@@ -3,8 +3,6 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { Swiper, SwiperSlide } from 'swiper/react'
-import 'swiper/css'
-import 'swiper/css/navigation'
 import { Button } from './ui/button'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { Autoplay, Navigation } from 'swiper/modules'
@@ -33,7 +31,7 @@ function CategoryCard({ name, count, slug, imageUrl }: CategoryCardProps) {
           className='object-cover'
           priority
         />
-        <div className='absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent pointer-events-none' />
+        <div className='absolute inset-0 bg-linear-to-t from-black/70 via-transparent to-transparent pointer-events-none' />
         <div className='absolute top-3 left-3 sm:top-4 sm:left-4 bg-gray-800/70 text-white px-2 py-1 sm:px-3 rounded-full text-xs sm:text-sm font-medium z-10'>
           {name}
         </div>

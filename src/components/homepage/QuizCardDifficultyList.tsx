@@ -7,8 +7,6 @@ import { QuizCardDifficulty } from '@/components/QuizCardDifficulty'
 import { useState, useRef } from 'react'
 import { SwiperSlide, Swiper } from 'swiper/react'
 import type { Swiper as SwiperType } from 'swiper'
-import 'swiper/css'
-import 'swiper/css/navigation'
 import { Autoplay, Navigation } from 'swiper/modules'
 import { quizzes } from '@/constant/mockQuizzes'
 
@@ -71,7 +69,7 @@ const QuizCardDifficultyList = () => {
         </div>
       </div>
 
-      <div className='xl:w-[100%] container'>
+      <div className='xl:w-full container'>
         <Swiper
           spaceBetween={30}
           slidesPerView={4}

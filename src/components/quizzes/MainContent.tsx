@@ -71,27 +71,18 @@ const MainContent = () => {
                     <RadioGroupItem value='easy' id='easy' />
                     <Label htmlFor='easy' className='flex items-center gap-2'>
                       Easy{' '}
-                      <Badge className='bg-green-500 text-foreground text-xs'>
-                        Easy
-                      </Badge>
                     </Label>
                   </div>
                   <div className='flex items-center space-x-2'>
                     <RadioGroupItem value='medium' id='medium' />
                     <Label htmlFor='medium' className='flex items-center gap-2'>
                       Medium{' '}
-                      <Badge className='bg-orange-500 text-foreground text-xs'>
-                        Medium
-                      </Badge>
                     </Label>
                   </div>
                   <div className='flex items-center space-x-2'>
                     <RadioGroupItem value='hard' id='hard' />
                     <Label htmlFor='hard' className='flex items-center gap-2'>
                       Hard{' '}
-                      <Badge className='bg-red-500 text-foreground text-xs'>
-                        Hard
-                      </Badge>
                     </Label>
                   </div>
                 </RadioGroup>
