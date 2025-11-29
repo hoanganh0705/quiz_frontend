@@ -1,6 +1,7 @@
 import Image from 'next/image'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
+import { Progress } from '@/components/ui/progress'
 import { Clock, Users, DollarSign } from 'lucide-react'
 import { difficultyColors } from '@/constant/difficultColor'
 
@@ -41,7 +42,7 @@ export function QuizCardDifficulty({
 
   return (
     <div className='w-full overflow-hidden rounded-lg border border-gray-300 dark:border-slate-700 shadow-lg'>
-      <div className='relative aspect-[16/9] w-full'>
+      <div className='relative aspect-video w-full'>
         <Image
           src={imageSrc || '/placeholder.svg'}
           alt={title}
@@ -49,7 +50,7 @@ export function QuizCardDifficulty({
           className='object-cover'
           sizes='(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw'
         />
-        <div className='absolute inset-0 bg-gradient-to-t from-black/70 to-transparent' />
+        <div className='absolute inset-0 bg-linear-to-t from-black/70 to-transparent' />
         <div
           className={`absolute top-3 right-3 rounded-full px-3 py-1 text-xs font-semibold text-white ${
             difficultyColors[difficulty as keyof typeof difficultyColors]
@@ -95,11 +96,8 @@ export function QuizCardDifficulty({
           <Users className='mr-2 h-4 w-4 text-foreground' />
           <span className='text-foreground'>{players} players</span>
         </div>
-        <div className='mb-3 h-2 w-full rounded-full bg-gray-700'>
-          <div
-            className='h-full rounded-full bg-white'
-            style={{ width: `${progress}%` }}
-          />
+        <div className='mb-3'>
+          <Progress value={progress} className='h-2' />
         </div>
         <p
           className={`mb-4 text-sm ${

@@ -26,7 +26,7 @@ export default function LiveWinners() {
           </Button>
         </div>
 
-        <div className='xl:w-[100%] container'>
+        <div className='xl:w-full container'>
           <Swiper
             modules={[Navigation, Autoplay]}
             autoplay={{
@@ -65,7 +65,7 @@ export default function LiveWinners() {
             {winners.map((winner) => (
               <SwiperSlide
                 key={winner.id}
-                className='flex-shrink-0 px-3 relative overflow-hidden dark:bg-slate-900 bg-[#e2e8f0] border border-gray-300 dark:border-slate-700 rounded-lg p-4 shadow-lg flex flex-col items-center text-center w-full'
+                className='shrink-0 px-3 relative overflow-hidden dark:bg-slate-900 bg-[#e2e8f0] border border-gray-300 dark:border-slate-700 rounded-lg p-4 shadow-lg flex flex-col items-center text-center w-full'
               >
                 <div className='flex items-center justify-between mb-4 w-full flex-row-reverse'>
                   <div className='text-2xl' aria-label='Confetti popper'>

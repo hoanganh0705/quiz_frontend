@@ -6,11 +6,6 @@ import { Swiper, SwiperSlide } from 'swiper/react'
 import { Navigation, Pagination, Autoplay } from 'swiper/modules'
 import { testimonials } from '@/constant/testimonial'
 
-// Import Swiper styles
-import 'swiper/css'
-import 'swiper/css/navigation'
-import 'swiper/css/pagination'
-
 export default function SuccessStoriesCarousel() {
   return (
     <section className='w-full py-12 mt-10 rounded-xl text-foreground bg-main'>
