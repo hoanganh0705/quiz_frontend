@@ -11,8 +11,8 @@ import {
   SelectValue
 } from '@/components/ui/select'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { difficultyColors } from '@/constant/difficultColor'
-import { tournaments } from '@/constant/tournament'
+import { difficultyColors } from '@/constants/difficultColor'
+import { tournaments } from '@/constants/tournament'
 import {
   CalendarDays,
   Users,

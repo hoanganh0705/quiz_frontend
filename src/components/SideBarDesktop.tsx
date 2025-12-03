@@ -2,7 +2,7 @@
 
 import React from 'react'
 import { LogOut } from 'lucide-react'
-import { sidebarItems } from '@/constant/sideBarItems'
+import { sidebarItems } from '@/constants/sideBarItems'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 

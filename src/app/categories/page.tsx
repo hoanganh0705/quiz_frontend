@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input'
 import QuizCategoriesCard from '@/components/quizCategoriesCard'
 import TestKnowledge from '@/components/categories/TestKnowledge'
 import HowItWorks from '@/components/HowItWorks'
-import categories from '@/constant/categories'
+import categories from '@/constants/categories'
 
 export default function QuizCategories() {
   const [searchTerm, setSearchTerm] = useState('')

@@ -1,6 +1,6 @@
 import Image from 'next/image'
 import { Button } from '@/components/ui/button'
-import { difficultyColors } from '@/constant/difficultColor'
+import { difficultyColors } from '@/constants/difficultColor'
 import { Badge } from '@/components/ui/badge'
 
 interface QuizCardProps {

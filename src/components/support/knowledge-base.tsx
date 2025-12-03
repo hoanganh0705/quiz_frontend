@@ -1,7 +1,7 @@
 import type React from 'react'
 import { Input } from '@/components/ui/input'
 import { Search, ArrowRight } from 'lucide-react'
-import { articles } from '@/constant/articles'
+import { articles } from '@/constants/articles'
 
 export function KnowledgeBase() {
   return (

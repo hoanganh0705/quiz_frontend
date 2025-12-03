@@ -154,7 +154,7 @@ export default function PlayQuizClient({ quiz }: { quiz: Quiz }) {
                       className='w-full justify-start text-left h-auto p-4 bg-background border border-gray-300 dark:border-slate-700 dark:hover:bg-slate-600 hover:bg-gray-200 text-foreground'
                       onClick={() => handleAnswer(answer.value)}
                     >
-                      <span className='bg-background text-foreground rounded-full w-8 h-8 flex items-center justify-center text-sm font-medium mr-4 flex-shrink-0'>
+                      <span className='bg-background text-foreground rounded-full w-8 h-8 flex items-center justify-center text-sm font-medium mr-4 shrink-0'>
                         {answer.label}
                       </span>
                       <span>{answer.value}</span>

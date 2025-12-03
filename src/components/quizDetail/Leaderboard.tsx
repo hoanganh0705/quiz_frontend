@@ -1,6 +1,6 @@
 'use client'
 
-import { leaderboardData, LeaderboardEntry } from '@/constant/leaderBoard'
+import { leaderboardData, LeaderboardEntry } from '@/constants/leaderBoard'
 import Image from 'next/image'
 import React, { useState } from 'react'
 import {

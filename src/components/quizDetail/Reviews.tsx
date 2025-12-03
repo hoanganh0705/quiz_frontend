@@ -1,6 +1,6 @@
 import React from 'react'
 import { Button } from '../ui/button'
-import { quizzes } from '@/constant/mockQuizzes'
+import { quizzes } from '@/constants/mockQuizzes'
 import Image from 'next/image'
 import StarRating from '../StarRating'
 

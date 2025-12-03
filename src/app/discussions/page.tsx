@@ -5,7 +5,7 @@ import { Card } from '@/components/ui/card'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Search, MessageSquare, CheckCircle2, XCircle } from 'lucide-react'
-import { discussions } from '@/constant/discussion'
+import { discussions } from '@/constants/discussion'
 
 export default function QuizDiscussions() {
   return (

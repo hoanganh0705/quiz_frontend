@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import Image from 'next/image'
 import SpotAvailabilityIndicator from '@/components/SpotAvailabiltyIndicator'
-import { difficultyColors } from '@/constant/difficultColor'
+import { difficultyColors } from '@/constants/difficultColor'
 import { Quiz } from '@/types/quiz'
 
 const QuizCardDetail = (props: Quiz) => {
