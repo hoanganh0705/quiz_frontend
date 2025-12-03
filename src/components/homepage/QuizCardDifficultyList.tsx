@@ -2,13 +2,13 @@
 
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { difficultyColors } from '@/constant/difficultColor'
+import { difficultyColors } from '@/constants/difficultColor'
 import { QuizCardDifficulty } from '@/components/QuizCardDifficulty'
 import { useState, useRef } from 'react'
 import { SwiperSlide, Swiper } from 'swiper/react'
 import type { Swiper as SwiperType } from 'swiper'
 import { Autoplay, Navigation } from 'swiper/modules'
-import { quizzes } from '@/constant/mockQuizzes'
+import { quizzes } from '@/constants/mockQuizzes'
 
 const QuizCardDifficultyList = () => {
   const [selectedDifficulty, setSelectedDifficulty] = useState<

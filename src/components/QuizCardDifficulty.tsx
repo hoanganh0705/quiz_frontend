@@ -3,7 +3,7 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
 import { Clock, Users, DollarSign } from 'lucide-react'
-import { difficultyColors } from '@/constant/difficultColor'
+import { difficultyColors } from '@/constants/difficultColor'
 
 export interface QuizCardProps {
   id?: string

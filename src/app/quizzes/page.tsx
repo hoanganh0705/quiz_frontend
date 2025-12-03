@@ -3,7 +3,7 @@
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import FeaturedQuiz from '@/components/FeaturedQuiz'
-import { categories } from '@/constant/categories'
+import { categories } from '@/constants/categories'
 import MainContent from '@/components/quizzes/MainContent'
 import { Swiper, SwiperSlide } from 'swiper/react'
 import { FreeMode } from 'swiper/modules'

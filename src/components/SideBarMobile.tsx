@@ -2,7 +2,7 @@
 
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
 import { LogOut, Menu } from 'lucide-react'
-import { sidebarItems } from '@/constant/sideBarItems'
+import { sidebarItems } from '@/constants/sideBarItems'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 

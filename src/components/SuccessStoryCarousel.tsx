@@ -4,7 +4,7 @@ import Image from 'next/image'
 import { Star } from 'lucide-react'
 import { Swiper, SwiperSlide } from 'swiper/react'
 import { Navigation, Pagination, Autoplay } from 'swiper/modules'
-import { testimonials } from '@/constant/testimonial'
+import { testimonials } from '@/constants/testimonial'
 
 export default function SuccessStoriesCarousel() {
   return (

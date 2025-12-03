@@ -4,9 +4,8 @@ import { ChevronLeft, ChevronRight, Swords } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Swiper, SwiperSlide } from 'swiper/react'
 import { Autoplay, Navigation } from 'swiper/modules'
-
 import { PlayerCard } from '../PlayerCard'
-import { players } from '@/constant/players'
+import { players } from '@/constants/players'
 
 const PlayerRanking = () => {
   return (
@@ -32,7 +31,7 @@ const PlayerRanking = () => {
         </div>
       </div>
 
-      <div className='xl:w-[100%] container'>
+      <div className='xl:w-full container'>
         <Swiper
           pagination={{ clickable: true }}
           modules={[Navigation, Autoplay]}

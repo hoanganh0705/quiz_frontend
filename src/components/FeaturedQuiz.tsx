@@ -7,7 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import Image from 'next/image'
 import SpotAvailabilityIndicator from '@/components/SpotAvailabiltyIndicator'
-import { quizzes } from '@/constant/mockQuizzes'
+import { quizzes } from '@/constants/mockQuizzes'
 
 const FeaturedQuiz = () => {
   const tabs = ['All', 'Hot', 'Trending', "Editor's"] as const

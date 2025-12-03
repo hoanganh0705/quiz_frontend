@@ -1,14 +1,13 @@
 'use client'
 
 import { ChevronUp, ChevronDown } from 'lucide-react'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { useState } from 'react'
 import { Label } from '@/components/ui/label'
 import { Slider } from '@/components/ui/slider'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import QuizCardDetail from '@/components/QuizCardDetail'
-import { quizzes } from '@/constant/mockQuizzes'
+import { quizzes } from '@/constants/mockQuizzes'
 
 const MainContent = () => {
   const [difficultyFilter, setDifficultyFilter] = useState('all')

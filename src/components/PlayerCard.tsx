@@ -3,7 +3,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { CardContent } from '@/components/ui/card'
 import { Users } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { Player } from '@/constant/players'
+import { Player } from '@/constants/players'
 
 export function PlayerCard({
   name,

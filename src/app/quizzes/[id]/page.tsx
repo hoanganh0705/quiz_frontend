@@ -1,5 +1,5 @@
 import QuizDetail from '@/components/quiz-page/QuizDetail'
-import { quizzes } from '@/constant/mockQuizzes'
+import { quizzes } from '@/constants/mockQuizzes'
 import Link from 'next/link'
 
 export default async function QuizDetailPage({

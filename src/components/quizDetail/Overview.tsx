@@ -1,10 +1,10 @@
 import React from 'react'
 import { Button } from '../ui/button'
 import { formatDuration } from '@/lib/formatDuration'
-import { quizzes } from '@/constant/mockQuizzes'
+import { quizzes } from '@/constants/mockQuizzes'
 import Image from 'next/image'
 import { Badge } from '../ui/badge'
-import { difficultyColors } from '@/constant/difficultColor'
+import { difficultyColors } from '@/constants/difficultColor'
 
 const Overview = ({
   description,

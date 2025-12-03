@@ -1,4 +1,4 @@
-import { howItWorksData } from '@/constant/howItWorks'
+import { howItWorksData } from '@/constants/howItWorks'
 import Image from 'next/image'
 
 export default function HowItWorks() {

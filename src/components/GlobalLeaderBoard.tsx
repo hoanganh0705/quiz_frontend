@@ -19,7 +19,7 @@ import {
   DropdownMenuItem
 } from '@/components/ui/dropdown-menu'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { players } from '@/constant/players'
+import { players } from '@/constants/players'
 import { Card, CardContent } from './ui/card'
 
 const getBadgeColor = (badge: string) => {

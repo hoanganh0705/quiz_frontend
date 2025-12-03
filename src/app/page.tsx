@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui/button'
-import categories from '@/constant/categories'
+import categories from '@/constants/categories'
 import QuizCategories from '@/components/QuizCategories'
 import QuizCard from '@/components/QuizCard'
 import Link from 'next/link'
@@ -9,7 +9,7 @@ import HowItWorks from '@/components/HowItWorks'
 import SuccessStoriesCarousel from '@/components/SuccessStoryCarousel'
 import PlayerRanking from '@/components/homepage/PlayerRanking'
 import QuizCardDifficultyList from '@/components/homepage/QuizCardDifficultyList'
-import { quizzes } from '@/constant/mockQuizzes'
+import { quizzes } from '@/constants/mockQuizzes'
 
 export default function QuizHubDashboard() {
   return (
