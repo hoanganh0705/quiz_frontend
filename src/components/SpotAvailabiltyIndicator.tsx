@@ -17,13 +17,6 @@ export default function SpotAvailabilityIndicator({
   const displaySpots = Math.max(0, Math.min(currentSpots, totalSpots))
   const displayTotal = Math.max(1, totalSpots)
 
-  // Cảnh báo nếu currentSpots lớn hơn totalSpots
-  if (currentSpots > totalSpots) {
-    console.warn(
-      'currentSpots cannot be greater than totalSpots. Clamping to totalSpots.'
-    )
-  }
-
   const availablePercentage = displaySpots / displayTotal
 
   // Màu sắc cho cả hai chế độ (dựa trên availablePercentage)

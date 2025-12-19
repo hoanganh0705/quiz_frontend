@@ -14,7 +14,7 @@ import { quizzes } from '@/constants/mockQuizzes'
 export default function QuizHubDashboard() {
   return (
     <div className='min-h-screen p-4 md:p-6 overflow-x-hidden max-w-full'>
-      <div className='relative bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-700 rounded-xl p-6 sm:p-8 lg:p-12 mb-6 sm:mb-8 border border-gray-300 dark:border-slate-600'>
+      <div className='relative bg-linear-to-br from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-700 rounded-xl p-6 sm:p-8 lg:p-12 mb-6 sm:mb-8 border border-gray-300 dark:border-slate-600'>
         <div className='relative z-10 max-w-full sm:max-w-lg lg:max-w-2xl'>
           <h1 className='text-3xl sm:text-4xl lg:text-5xl font-bold mb-3 sm:mb-4 leading-tight text-slate-900 dark:text-white'>
             Your Quiz Adventure
@@ -48,7 +48,7 @@ export default function QuizHubDashboard() {
         <div className='absolute top-4 right-4 bg-default text-white px-3 sm:px-4 py-1 sm:py-2 rounded-full transform rotate-12 text-sm sm:text-base shadow-lg'>
           <span className='font-bold'>Science Quiz</span>
         </div>
-        <div className='absolute bottom-6 sm:bottom-8 right-6 sm:right-8 w-20 sm:w-24 lg:w-32 h-20 sm:h-24 lg:h-32 bg-gradient-to-br from-blue-400 to-purple-400 rounded-full opacity-15'></div>
+        <div className='absolute bottom-6 sm:bottom-8 right-6 sm:right-8 w-20 sm:w-24 lg:w-32 h-20 sm:h-24 lg:h-32 bg-linear-to-br from-blue-400 to-purple-400 rounded-full opacity-15'></div>
         <div className='absolute top-1/2 right-8 sm:right-12 lg:right-16 w-12 sm:w-14 lg:w-16 h-12 sm:h-14 lg:h-16 bg-yellow-300 rounded-full opacity-25'></div>
       </div>
 

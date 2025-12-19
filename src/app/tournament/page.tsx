@@ -88,7 +88,7 @@ export default function QuizTournament() {
           Compete against other quiz enthusiasts and win amazing prizes
         </p>
 
-        <div className='relative bg-gradient-to-br bg-default to-indigo-950 rounded-xl p-6 md:p-10 lg:p-12 overflow-hidden shadow-lg'>
+        <div className='relative bg-linear-to-br bg-default to-indigo-950 rounded-xl p-6 md:p-10 lg:p-12 overflow-hidden shadow-lg'>
           {/* Abstract background shapes */}
           <div className='absolute inset-0 opacity-20'>
             <div className='absolute w-64 h-64 bg-default rounded-full -top-16 -left-16 blur-3xl'></div>
