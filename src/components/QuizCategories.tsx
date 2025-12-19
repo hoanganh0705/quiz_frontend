@@ -21,7 +21,7 @@ function CategoryCard({ name, count, slug, imageUrl }: CategoryCardProps) {
   return (
     <Link
       href={`/quizzes/${slug}`}
-      className='block w-full h-[180px] sm:h-[200px] overflow-hidden max-w-full min-w-0'
+      className='block w-full h-45 sm:h-50 overflow-hidden max-w-full min-w-0'
     >
       <div className='relative w-full h-full rounded-xl overflow-hidden shadow-lg transition-transform duration-300'>
         <Image
