@@ -17,7 +17,7 @@ export default function SpotAvailabilityIndicator({
   const displaySpots = Math.max(0, Math.min(currentSpots, totalSpots))
   const displayTotal = Math.max(1, totalSpots)
 
-  const availablePercentage = displaySpots / displayTotal
+  const availablePercentage = (displayTotal - displaySpots) / displayTotal
 
   // Màu sắc cho cả hai chế độ (dựa trên availablePercentage)
   const segmentColor = useMemo(() => {

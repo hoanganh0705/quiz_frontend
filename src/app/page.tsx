@@ -29,18 +29,22 @@ export default function QuizHubDashboard() {
             for your knowledge.
           </p>
           <div className='flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-4'>
-            <Button
-              size='lg'
-              className='text-white bg-default hover:bg-default-hover w-full sm:w-auto'
-            >
-              Create Quiz
-            </Button>
-            <Button
-              size='lg'
-              className='text-default bg-white hover:bg-slate-50 border border-default-hover dark:text-default dark:bg-transparent dark:hover:bg-slate-700 dark:border-default-hover w-full sm:w-auto'
-            >
-              Join Contest
-            </Button>
+            <Link href='/create-quiz'>
+              <Button
+                size='lg'
+                className='text-white bg-default hover:bg-default-hover w-full sm:w-auto'
+              >
+                Create Quiz
+              </Button>
+            </Link>
+            <Link href='/quizzes'>
+              <Button
+                size='lg'
+                className='text-default bg-white hover:bg-slate-50 border border-default-hover dark:text-default dark:bg-transparent dark:hover:bg-slate-700 dark:border-default-hover w-full sm:w-auto'
+              >
+                Join Contest
+              </Button>
+            </Link>
           </div>
         </div>
 
@@ -74,9 +78,11 @@ export default function QuizHubDashboard() {
         </div>
 
         <div className='flex justify-center mt-3 lg:mt-8 mb-3'>
-          <Button className='text-sm hover:bg-default-hover rounded-sm text-white'>
-            <Link href='/quizzes'>View All Quizzes</Link>
-          </Button>
+          <Link href='/quizzes'>
+            <Button className='text-sm hover:bg-default-hover rounded-sm text-white'>
+              View All Quizzes
+            </Button>
+          </Link>
         </div>
       </div>
 

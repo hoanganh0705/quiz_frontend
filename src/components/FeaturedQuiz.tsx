@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import Image from 'next/image'
 import SpotAvailabilityIndicator from '@/components/SpotAvailabiltyIndicator'
 import { quizzes } from '@/constants/mockQuizzes'
+import Link from 'next/link'
 
 const FeaturedQuiz = () => {
   const tabs = ['All', 'Hot', 'Trending', "Editor's"] as const
@@ -130,7 +131,7 @@ const FeaturedQuiz = () => {
                     {/* Creator Info */}
                     <div className='flex items-center justify-between'>
                       <div className='flex items-center gap-2 flex-1 min-w-0'>
-                        <Avatar className='w-8 h-8 flex-shrink-0'>
+                        <Avatar className='w-8 h-8 shrink-0'>
                           <AvatarImage
                             src={quiz.creator.imageURL || '/placeholder.svg'}
                           />
@@ -148,7 +149,7 @@ const FeaturedQuiz = () => {
                           </div>
                         </div>
                       </div>
-                      <div className='text-right flex-shrink-0'>
+                      <div className='text-right shrink-0'>
                         <p className='text-xs text-foreground'>Reward</p>
                         <p className='font-bold text-green-400'>
                           $ {quiz.reward}
@@ -210,7 +211,13 @@ const FeaturedQuiz = () => {
 
                     {/* Play Button */}
                     <Button className='text-sm w-full mt-2 text-white '>
-                      Play Now
+                      <Link
+                        href={`/quizzes/${quiz.title
+                          .toLowerCase()
+                          .replace(/\s+/g, '-')}`}
+                      >
+                        Play Now
+                      </Link>
                     </Button>
                   </div>
                 </div>

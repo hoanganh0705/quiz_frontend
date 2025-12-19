@@ -2,6 +2,7 @@ import Image from 'next/image'
 import { Button } from '@/components/ui/button'
 import { difficultyColors } from '@/constants/difficultColor'
 import { Badge } from '@/components/ui/badge'
+import Link from 'next/link'
 
 interface QuizCardProps {
   title: string
@@ -17,7 +18,7 @@ const QuizCard = ({ title, categories, difficulty, image }: QuizCardProps) => {
         <Image src={image} alt={title} fill className='object-cover' />
 
         {/* Overlay */}
-        <div className='absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex flex-col justify-end p-4'>
+        <div className='absolute inset-0 bg-linear-to-t from-black/60 to-transparent flex flex-col justify-end p-4'>
           {/* Badge */}
           <Badge
             className={`absolute top-3 left-3 z-10 ${
@@ -36,14 +37,15 @@ const QuizCard = ({ title, categories, difficulty, image }: QuizCardProps) => {
 
       {/* Bottom Section */}
       <div className='p-4 flex justify-between items-center'>
-        <div
-          key={categories[0]}
-          className='inline-flex items-center rounded-full border px-2.5 py-0.5 text-[12px] font-semibold text-foreground bg-slate-50 dark:bg-slate-700'
-        >
-          {categories[0]}
-        </div>
+        {categories.length > 0 && (
+          <div className='inline-flex items-center rounded-full border px-2.5 py-0.5 text-[12px] font-semibold text-foreground bg-slate-50 dark:bg-slate-700'>
+            {categories[0]}
+          </div>
+        )}
         <Button className='bg-default hover:bg-default-hover text-white'>
-          Play Now
+          <Link href={`/quizzes/${title.toLowerCase().replace(/\s+/g, '-')}`}>
+            Play Now
+          </Link>
         </Button>
       </div>
     </div>

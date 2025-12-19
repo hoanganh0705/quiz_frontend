@@ -209,7 +209,7 @@ export default function QuizTournament() {
               <TabsTrigger
                 key={category}
                 value={category}
-                className='flex-shrink-0 whitespace-nowrap px-2.5 py-1 text-xs sm:text-sm border-gray-300 dark:border-slate-700 rounded-full  sm:px-4 sm:py-1.5 font-medium text-foreground/70 data-[state=active]:bg-default data-[state=active]:text-white hover:bg-default-hover hover:text-white transition-all duration-200'
+                className='shrink-0 whitespace-nowrap px-2.5 py-1 text-xs sm:text-sm border-gray-300 dark:border-slate-700 rounded-full  sm:px-4 sm:py-1.5 font-medium text-foreground/70 data-[state=active]:bg-default data-[state=active]:text-white hover:bg-default-hover hover:text-white transition-all duration-200'
               >
                 {category === 'all' ? 'All Categories' : category}
               </TabsTrigger>
@@ -282,7 +282,7 @@ export default function QuizTournament() {
 
                 <Button className='w-full bg-default hover:bg-default-hover text-white'>
                   View Details
-                  <ChevronDown className='w-4 h-4 ml-2 rotate-[-90deg]' />
+                  <ChevronDown className='w-4 h-4 ml-2 -rotate-90' />
                 </Button>
               </CardContent>
             </Card>

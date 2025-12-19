@@ -32,7 +32,7 @@ export default function PlayQuizClient({ quiz }: { quiz: Quiz }) {
       // Handle time out
       handleSubmit()
     }
-  }, [timerStarted, timeLeft, answers, handleSubmit])
+  }, [timerStarted, timeLeft, handleSubmit])
 
   const handleAnswer = (answer: string) => {
     if (!timerStarted) {
@@ -62,7 +62,8 @@ export default function PlayQuizClient({ quiz }: { quiz: Quiz }) {
       .padStart(2, '0')}`
   }
 
-  const currentQ = quiz.questions[currentQuestion]
+  const currentQ =
+    quiz.questions[Math.min(currentQuestion, quiz.questions.length - 1)]
   const isLastQuestion = currentQuestion === quiz.questions.length - 1
 
   return (
@@ -116,7 +117,11 @@ export default function PlayQuizClient({ quiz }: { quiz: Quiz }) {
         {/* Progress Bar using shadcn Progress */}
         <div className='mb-8'>
           <Progress
-            value={((currentQuestion + 1) / quiz.questions.length) * 100}
+            value={
+              quiz.questions.length > 0
+                ? ((currentQuestion + 1) / quiz.questions.length) * 100
+                : 0
+            }
             className='h-2'
           />
         </div>
