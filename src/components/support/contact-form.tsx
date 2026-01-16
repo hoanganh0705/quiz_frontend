@@ -13,16 +13,85 @@ import {
   SelectValue
 } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
-import { Upload } from 'lucide-react'
+import { Upload, Loader2 } from 'lucide-react'
 import { useState } from 'react'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { z } from 'zod'
+import { toast } from 'react-toastify'
+
+// Validation schema
+const contactFormSchema = z.object({
+  name: z
+    .string()
+    .min(2, 'Name must be at least 2 characters')
+    .max(100, 'Name must be less than 100 characters'),
+  email: z.string().email('Please enter a valid email address'),
+  subject: z
+    .string()
+    .min(5, 'Subject must be at least 5 characters')
+    .max(200, 'Subject must be less than 200 characters'),
+  category: z.string().min(1, 'Please select a category'),
+  message: z
+    .string()
+    .min(20, 'Message must be at least 20 characters')
+    .max(2000, 'Message must be less than 2000 characters')
+})
+
+type ContactFormData = z.infer<typeof contactFormSchema>
 
 export function ContactForm() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    watch,
+    reset,
+    formState: { errors }
+  } = useForm<ContactFormData>({
+    resolver: zodResolver(contactFormSchema),
+    defaultValues: {
+      name: '',
+      email: '',
+      subject: '',
+      category: '',
+      message: ''
+    }
+  })
+
+  const selectedCategory = watch('category')
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (file) {
+      // Validate file size (5MB max)
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error('File size must be less than 5MB')
+        return
+      }
       setSelectedFile(file)
+    }
+  }
+
+  const onSubmit = async (data: ContactFormData) => {
+    setIsSubmitting(true)
+    try {
+      // Simulate API call
+      await new Promise((resolve) => setTimeout(resolve, 1500))
+
+      // Here you would send the data to your backend
+      console.log('Form submitted:', { ...data, attachment: selectedFile })
+
+      toast.success('Your support request has been submitted successfully!')
+      reset()
+      setSelectedFile(null)
+    } catch {
+      toast.error('Failed to submit request. Please try again.')
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
@@ -32,29 +101,45 @@ export function ContactForm() {
         <h2 className='text-2xl font-bold text-foreground'>Contact Support</h2>
       </div>
 
-      <form className='space-y-6'>
+      <form className='space-y-6' onSubmit={handleSubmit(onSubmit)}>
         {/* Name and Email row */}
         <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
           <div className='space-y-2'>
             <Label htmlFor='name' className='text-foreground font-medium'>
-              Name
+              Name <span className='text-red-500'>*</span>
             </Label>
             <Input
               id='name'
               placeholder='Your name'
-              className='bg-transparent border border-gray-300 dark:border-slate-700 text-foreground placeholder:text-foreground/70 focus:border-blue-500'
+              {...register('name')}
+              className={`bg-transparent border text-foreground placeholder:text-foreground/70 focus:border-blue-500 ${
+                errors.name
+                  ? 'border-red-500 focus:border-red-500'
+                  : 'border-gray-300 dark:border-slate-700'
+              }`}
             />
+            {errors.name && (
+              <p className='text-red-500 text-sm'>{errors.name.message}</p>
+            )}
           </div>
           <div className='space-y-2'>
             <Label htmlFor='email' className='text-foreground font-medium'>
-              Email
+              Email <span className='text-red-500'>*</span>
             </Label>
             <Input
               id='email'
               type='email'
               placeholder='your.email@example.com'
-              className='bg-transparent border border-gray-300 dark:border-slate-700 text-foreground placeholder:text-foreground/70 focus:border-blue-500'
+              {...register('email')}
+              className={`bg-transparent border text-foreground placeholder:text-foreground/70 focus:border-blue-500 ${
+                errors.email
+                  ? 'border-red-500 focus:border-red-500'
+                  : 'border-gray-300 dark:border-slate-700'
+              }`}
             />
+            {errors.email && (
+              <p className='text-red-500 text-sm'>{errors.email.message}</p>
+            )}
           </div>
         </div>
 
@@ -62,21 +147,38 @@ export function ContactForm() {
         <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
           <div className='space-y-2'>
             <Label htmlFor='subject' className='text-foreground font-medium'>
-              Subject
+              Subject <span className='text-red-500'>*</span>
             </Label>
             <Input
               id='subject'
               placeholder='Brief description of your issue'
-              className='bg-transparent border border-gray-300 dark:border-slate-700 text-foreground placeholder:text-foreground/70 focus:border-blue-500'
+              {...register('subject')}
+              className={`bg-transparent border text-foreground placeholder:text-foreground/70 focus:border-blue-500 ${
+                errors.subject
+                  ? 'border-red-500 focus:border-red-500'
+                  : 'border-gray-300 dark:border-slate-700'
+              }`}
             />
+            {errors.subject && (
+              <p className='text-red-500 text-sm'>{errors.subject.message}</p>
+            )}
           </div>
           <div className='space-y-2'>
             <Label htmlFor='category' className='text-foreground font-medium'>
-              Category
+              Category <span className='text-red-500'>*</span>
             </Label>
-            <Select>
-              <SelectTrigger className='bg-transparent text-foreground focus:border-default'>
-                <SelectValue placeholder='General' />
+            <Select
+              value={selectedCategory}
+              onValueChange={(value) => setValue('category', value)}
+            >
+              <SelectTrigger
+                className={`bg-transparent text-foreground focus:border-default ${
+                  errors.category
+                    ? 'border-red-500 focus:border-red-500'
+                    : 'border-gray-300 dark:border-slate-700'
+                }`}
+              >
+                <SelectValue placeholder='Select a category' />
               </SelectTrigger>
               <SelectContent className='bg-gray-300 dark:bg-slate-700 border-gray-300 dark:border-slate-700'>
                 <SelectItem
@@ -123,20 +225,31 @@ export function ContactForm() {
                 </SelectItem>
               </SelectContent>
             </Select>
+            {errors.category && (
+              <p className='text-red-500 text-sm'>{errors.category.message}</p>
+            )}
           </div>
         </div>
 
         {/* Message field */}
         <div className='space-y-2'>
           <Label htmlFor='message' className='text-foreground font-medium'>
-            Message
+            Message <span className='text-red-500'>*</span>
           </Label>
           <Textarea
             id='message'
-            placeholder='Please describe your issue in detail'
+            placeholder='Please describe your issue in detail (minimum 20 characters)'
             rows={8}
-            className='bg-transparent border border-gray-300 dark:border-slate-700 text-foreground placeholder:text-foreground/70 focus:border-default resize-none'
+            {...register('message')}
+            className={`bg-transparent border text-foreground placeholder:text-foreground/70 focus:border-default resize-none ${
+              errors.message
+                ? 'border-red-500 focus:border-red-500'
+                : 'border-gray-300 dark:border-slate-700'
+            }`}
           />
+          {errors.message && (
+            <p className='text-red-500 text-sm'>{errors.message.message}</p>
+          )}
         </div>
 
         {/* File upload */}
@@ -172,9 +285,17 @@ export function ContactForm() {
         {/* Submit button */}
         <Button
           type='submit'
-          className='bg-default hover:bg-default-hover text-foreground px-8 py-2'
+          disabled={isSubmitting}
+          className='bg-default hover:bg-default-hover text-foreground px-8 py-2 disabled:opacity-50'
         >
-          Submit Request
+          {isSubmitting ? (
+            <>
+              <Loader2 className='w-4 h-4 mr-2 animate-spin' />
+              Submitting...
+            </>
+          ) : (
+            'Submit Request'
+          )}
         </Button>
       </form>
     </div>
