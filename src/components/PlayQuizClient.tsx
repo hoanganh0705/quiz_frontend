@@ -3,23 +3,117 @@
 import { Quiz } from '@/types/quiz'
 import Image from 'next/image'
 import Link from 'next/link'
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { Card, CardContent } from './ui/card'
-import { ArrowLeft, Clock } from 'lucide-react'
+import { ArrowLeft, Clock, RotateCcw } from 'lucide-react'
 import { Button } from './ui/button'
 import { Badge } from './ui/badge'
 import { toast } from 'react-toastify'
 import { Progress } from './ui/progress'
 
+// Storage key generator
+const getStorageKey = (quizId: string) => `quiz_progress_${quizId}`
+
+// Quiz progress interface
+interface QuizProgress {
+  currentQuestion: number
+  answers: Record<number, string>
+  timeLeft: number
+  timerStarted: boolean
+  startedAt: number | null
+}
+
 export default function PlayQuizClient({ quiz }: { quiz: Quiz }) {
+  const [isLoaded, setIsLoaded] = useState(false)
   const [currentQuestion, setCurrentQuestion] = useState(0)
   const [answers, setAnswers] = useState<Record<number, string>>({})
   const [timeLeft, setTimeLeft] = useState(quiz.duration)
   const [timerStarted, setTimerStarted] = useState(false)
+  const [startedAt, setStartedAt] = useState<number | null>(null)
+  const isSubmittedRef = useRef(false)
+
+  // Load saved progress from localStorage
+  useEffect(() => {
+    const storageKey = getStorageKey(quiz.id)
+    const savedProgress = localStorage.getItem(storageKey)
+
+    if (savedProgress) {
+      try {
+        const progress: QuizProgress = JSON.parse(savedProgress)
+
+        // Calculate elapsed time if timer was running
+        if (progress.timerStarted && progress.startedAt) {
+          const elapsedSeconds = Math.floor(
+            (Date.now() - progress.startedAt) / 1000
+          )
+          const adjustedTimeLeft = Math.max(
+            0,
+            progress.timeLeft - elapsedSeconds
+          )
+
+          setCurrentQuestion(progress.currentQuestion)
+          setAnswers(progress.answers)
+          setTimeLeft(adjustedTimeLeft)
+          setTimerStarted(progress.timerStarted)
+          setStartedAt(progress.startedAt)
+
+          // If time ran out while away, submit immediately
+          if (adjustedTimeLeft <= 0) {
+            toast.warning('Time ran out while you were away!')
+          }
+        } else {
+          // Timer hadn't started yet, restore everything as-is
+          setCurrentQuestion(progress.currentQuestion)
+          setAnswers(progress.answers)
+          setTimeLeft(progress.timeLeft)
+          setTimerStarted(progress.timerStarted)
+          setStartedAt(progress.startedAt)
+        }
+
+        toast.info('Quiz progress restored!')
+      } catch {
+        // Invalid saved data, start fresh
+        localStorage.removeItem(storageKey)
+      }
+    }
+
+    setIsLoaded(true)
+  }, [quiz.id, quiz.duration])
+
+  // Save progress to localStorage whenever state changes
+  useEffect(() => {
+    if (!isLoaded || isSubmittedRef.current) return
+
+    const storageKey = getStorageKey(quiz.id)
+    const progress: QuizProgress = {
+      currentQuestion,
+      answers,
+      timeLeft,
+      timerStarted,
+      startedAt
+    }
+
+    localStorage.setItem(storageKey, JSON.stringify(progress))
+  }, [
+    quiz.id,
+    currentQuestion,
+    answers,
+    timeLeft,
+    timerStarted,
+    startedAt,
+    isLoaded
+  ])
+
+  const clearProgress = useCallback(() => {
+    const storageKey = getStorageKey(quiz.id)
+    localStorage.removeItem(storageKey)
+    isSubmittedRef.current = true
+  }, [quiz.id])
 
   const handleSubmit = useCallback(() => {
+    clearProgress()
     toast.success(`Quiz submitted! Your answers: ${JSON.stringify(answers)}`)
-  }, [answers])
+  }, [answers, clearProgress])
 
   // Timer effect
   useEffect(() => {
@@ -28,7 +122,7 @@ export default function PlayQuizClient({ quiz }: { quiz: Quiz }) {
         setTimeLeft((prev) => prev - 1)
       }, 1000)
       return () => clearInterval(timer)
-    } else if (timeLeft <= 0) {
+    } else if (timerStarted && timeLeft <= 0) {
       // Handle time out
       handleSubmit()
     }
@@ -37,6 +131,7 @@ export default function PlayQuizClient({ quiz }: { quiz: Quiz }) {
   const handleAnswer = (answer: string) => {
     if (!timerStarted) {
       setTimerStarted(true)
+      setStartedAt(Date.now())
     }
 
     setAnswers({ ...answers, [currentQuestion]: answer })
@@ -52,6 +147,17 @@ export default function PlayQuizClient({ quiz }: { quiz: Quiz }) {
     setCurrentQuestion((prev) => prev - 1)
   }
 
+  const handleRestart = () => {
+    clearProgress()
+    setCurrentQuestion(0)
+    setAnswers({})
+    setTimeLeft(quiz.duration)
+    setTimerStarted(false)
+    setStartedAt(null)
+    isSubmittedRef.current = false
+    toast.info('Quiz restarted!')
+  }
+
   // Format time display
   const formatTime = (seconds: number) => {
     const hours = Math.floor(seconds / 3600)
@@ -62,6 +168,15 @@ export default function PlayQuizClient({ quiz }: { quiz: Quiz }) {
       .padStart(2, '0')}`
   }
 
+  // Show loading state while restoring progress
+  if (!isLoaded) {
+    return (
+      <div className='min-h-screen bg-background flex items-center justify-center'>
+        <div className='text-foreground'>Loading quiz...</div>
+      </div>
+    )
+  }
+
   const currentQ =
     quiz.questions[Math.min(currentQuestion, quiz.questions.length - 1)]
   const isLastQuestion = currentQuestion === quiz.questions.length - 1
@@ -70,7 +185,7 @@ export default function PlayQuizClient({ quiz }: { quiz: Quiz }) {
     <div className='min-h-screen bg-background text-foreground p-4'>
       <div className='max-w-7xl mx-auto'>
         {/* Header */}
-        <div className='flex items-center gap-3 mb-8'>
+        <div className='flex items-center justify-between gap-3 mb-8'>
           <Button
             size='sm'
             className='text-foreground/70 dark:text-foreground/70 bg-transparent p-0 hover:bg-transparent hover:text-foreground dark:hover:text-foreground   shadow-none'
@@ -80,6 +195,15 @@ export default function PlayQuizClient({ quiz }: { quiz: Quiz }) {
               <ArrowLeft className='w-5 h-5 mr-2' />
               Back to Explore
             </Link>
+          </Button>
+          <Button
+            size='sm'
+            variant='outline'
+            onClick={handleRestart}
+            className='border-gray-300 dark:border-slate-700 text-foreground'
+          >
+            <RotateCcw className='w-4 h-4 mr-2' />
+            Restart Quiz
           </Button>
         </div>
 
