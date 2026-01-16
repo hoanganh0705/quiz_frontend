@@ -270,6 +270,7 @@ export default function QuizDetail({ quiz }: QuizDetailProps) {
                 <Button
                   size='icon'
                   className='text-foreground rounded-xl border border-gray-300 dark:border-slate-700 bg-transparent'
+                  aria-label='Bookmark this quiz'
                 >
                   <Bookmark className='h-6 w-6' />
                 </Button>
@@ -277,6 +278,7 @@ export default function QuizDetail({ quiz }: QuizDetailProps) {
                 <Button
                   size='icon'
                   className='text-foreground rounded-xl border border-gray-300 dark:border-slate-700 bg-transparent'
+                  aria-label='Share this quiz'
                 >
                   <Share2 className='h-6 w-6' />
                 </Button>
@@ -284,6 +286,7 @@ export default function QuizDetail({ quiz }: QuizDetailProps) {
                 <Button
                   size='icon'
                   className='text-foreground rounded-xl border border-gray-300 dark:border-slate-700 bg-transparent'
+                  aria-label='Get notifications for this quiz'
                 >
                   <Bell className='h-6 w-6' />
                 </Button>

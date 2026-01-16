@@ -59,10 +59,16 @@ const QuizCardDifficultyList = () => {
               size='icon'
               onClick={handlePrevClick}
               disabled={isBeginning}
+              aria-label='Previous quiz'
             >
               <ChevronLeft className='h-4 w-4' />
             </Button>
-            <Button size='icon' onClick={handleNextClick} disabled={isEnd}>
+            <Button
+              size='icon'
+              onClick={handleNextClick}
+              disabled={isEnd}
+              aria-label='Next quiz'
+            >
               <ChevronRight className='h-4 w-4' />
             </Button>
           </div>

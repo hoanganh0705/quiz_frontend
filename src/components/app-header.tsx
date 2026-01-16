@@ -29,7 +29,10 @@ export function AppHeader() {
     >
       {/* Left Section: SidebarTrigger */}
       <div>
-        <SidebarTrigger className='text-foreground/70 hover:text-foreground  hover:bg-transparent bg-transparent font-extralight' />
+        <SidebarTrigger
+          className='text-foreground/70 hover:text-foreground  hover:bg-transparent bg-transparent font-extralight'
+          aria-label='Toggle sidebar'
+        />
       </div>
 
       {/* Gap between Left and Middle/Right sections */}
@@ -53,24 +56,36 @@ export function AppHeader() {
       {/* Right Section */}
       <div className='flex items-center gap-2 sm:gap-2 md:gap-3 shrink-0'>
         {/* Messages */}
-        <div className='relative'>
-          <div className='p-1.5 sm:p-2 border border-gray-300 dark:border-slate-700 rounded-md'>
-            <MessageSquare className='h-4 w-4 text-foreground cursor-pointer' />
+        <button
+          className='relative'
+          aria-label='Messages (2 unread)'
+          type='button'
+        >
+          <div className='p-1.5 sm:p-2 border border-gray-300 dark:border-slate-700 rounded-md hover:bg-main-hover transition-colors'>
+            <MessageSquare className='h-4 w-4 text-foreground' />
           </div>
           <div className='absolute -top-1 -right-1 h-3 w-3 sm:h-4 sm:w-4 rounded-full dark:bg-white bg-black text-[0.6rem] flex items-center justify-center text-white dark:text-black'>
-            <span className='text-center leading-none'>2</span>
+            <span className='text-center leading-none' aria-hidden='true'>
+              2
+            </span>
           </div>
-        </div>
+        </button>
 
         {/* Notifications */}
-        <div className='relative'>
-          <div className='p-1.5 sm:p-2 border border-gray-300 dark:border-slate-700 rounded-md'>
-            <Bell className='h-4 w-4 text-foreground cursor-pointer' />
+        <button
+          className='relative'
+          aria-label='Notifications (3 unread)'
+          type='button'
+        >
+          <div className='p-1.5 sm:p-2 border border-gray-300 dark:border-slate-700 rounded-md hover:bg-main-hover transition-colors'>
+            <Bell className='h-4 w-4 text-foreground' />
           </div>
           <div className='absolute -top-1 -right-1 h-3 w-3 sm:h-4 sm:w-4 rounded-full dark:bg-white bg-black text-[0.6rem] flex items-center justify-center text-white dark:text-black'>
-            <span className='text-center leading-none'>3</span>
+            <span className='text-center leading-none' aria-hidden='true'>
+              3
+            </span>
           </div>
-        </div>
+        </button>
 
         {/* Theme Toggle */}
         <div>

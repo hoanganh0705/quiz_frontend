@@ -19,12 +19,14 @@ const PlayerRanking = () => {
           <Button
             size='icon'
             className='bg-default text-white hover:bg-default-hover player-swiper-button-prev'
+            aria-label='Previous player'
           >
             <ChevronLeft className='h-5 w-5' />
           </Button>
           <Button
             size='icon'
             className='bg-default text-white hover:bg-default-hover player-swiper-button-next'
+            aria-label='Next player'
           >
             <ChevronRight className='h-5 w-5' />
           </Button>
