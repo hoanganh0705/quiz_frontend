@@ -64,6 +64,7 @@ export default function QuizCategories({
             className='h-10 w-10'
             disabled={isBeginning}
             onClick={() => swiperRef.current?.slidePrev()}
+            aria-label='Previous category'
           >
             <ChevronLeft className='h-4 w-4' />
           </Button>
@@ -72,6 +73,7 @@ export default function QuizCategories({
             className='h-10 w-10'
             disabled={isEnd}
             onClick={() => swiperRef.current?.slideNext()}
+            aria-label='Next category'
           >
             <ChevronRight className='h-4 w-4' />
           </Button>
