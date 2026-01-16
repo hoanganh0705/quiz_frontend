@@ -29,10 +29,10 @@ const SideBarMobile = () => {
         <div className='flex flex-col h-full justify-between mt-10'>
           <div className='flex-1 overflow-auto'>
             <nav className='mt-10 px-4 space-y-3'>
-              {sidebarItems.map((item, index) => (
+              {sidebarItems.map((item) => (
                 <Link
                   href={item.href}
-                  key={index}
+                  key={item.href}
                   className={`flex items-center px-3 py-2 rounded-lg cursor-pointer transition-colors ${
                     pathname === item.href
                       ? 'bg-default text-primary'

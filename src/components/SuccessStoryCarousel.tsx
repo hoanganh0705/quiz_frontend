@@ -44,8 +44,8 @@ export default function SuccessStoriesCarousel() {
             loop={true}
             className='testimonial-swiper'
           >
-            {testimonials.map((testimonial, index) => (
-              <SwiperSlide key={index}>
+            {testimonials.map((testimonial) => (
+              <SwiperSlide key={testimonial.id}>
                 <div className='relative w-full max-w-4xl mx-auto rounded-xl p-6 md:p-12'>
                   <div className='flex flex-col items-center md:flex-row md:items-start md:space-x-8'>
                     <div className='relative mb-6 md:mb-0'>

@@ -119,7 +119,7 @@ export default function GlobalLeaderboard() {
                   (option) => (
                     <DropdownMenuItem
                       key={option}
-                      className='text-foreground cursor-pointer data-[highlighted]:bg-default-hover'
+                      className='text-foreground cursor-pointer data-highlighted:bg-default-hover'
                       onClick={() => setSortBy(option)}
                     >
                       {option}
