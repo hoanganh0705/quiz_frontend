@@ -185,16 +185,18 @@ const FeaturedQuiz = () => {
                                 quiz.currentPlayers > 0 &&
                                 Array.from({
                                   length: quiz.currentPlayers
-                                }).map((_, index) => (
+                                }).map((_, playerIndex) => (
                                   <Avatar
-                                    key={index}
+                                    key={`${quiz.id}-player-${playerIndex}`}
                                     className='w-6 h-6 bg-main text-foreground'
                                   >
                                     <AvatarImage
-                                      src={`https://randomuser.me/api/portraits/lego/${index}.jpg`}
-                                      alt={`Player ${index}`}
+                                      src={`https://randomuser.me/api/portraits/lego/${playerIndex}.jpg`}
+                                      alt={`Player ${playerIndex}`}
                                     />
-                                    <AvatarFallback>{index + 1}</AvatarFallback>
+                                    <AvatarFallback>
+                                      {playerIndex + 1}
+                                    </AvatarFallback>
                                   </Avatar>
                                 ))
                               ))}

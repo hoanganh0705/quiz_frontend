@@ -2,6 +2,7 @@ import { Check, Clock, Heart, Lock, Medal, Star } from 'lucide-react'
 
 export const badges = [
   {
+    id: 'badge-first-try',
     name: 'First Try',
     icon: Check,
     color: 'text-green-400',
@@ -9,6 +10,7 @@ export const badges = [
     unlocked: true
   },
   {
+    id: 'badge-speedster',
     name: 'Speedster',
     icon: Clock,
     color: 'text-blue-400',
@@ -16,6 +18,7 @@ export const badges = [
     unlocked: true
   },
   {
+    id: 'badge-perfect',
     name: 'Perfect',
     icon: Star,
     color: 'text-purple-400',
@@ -23,6 +26,7 @@ export const badges = [
     unlocked: true
   },
   {
+    id: 'badge-top-3',
     name: 'Top 3',
     icon: Medal,
     color: 'text-amber-400',
@@ -30,6 +34,7 @@ export const badges = [
     unlocked: true
   },
   {
+    id: 'badge-generous',
     name: 'Generous',
     icon: Heart,
     color: 'text-red-400',
@@ -37,6 +42,7 @@ export const badges = [
     unlocked: true
   },
   {
+    id: 'badge-veteran',
     name: 'Veteran',
     icon: Lock,
     color: 'text-gray-500',

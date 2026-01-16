@@ -71,8 +71,8 @@ const PlayerRanking = () => {
             }
           }}
         >
-          {players.map((player, index) => (
-            <SwiperSlide key={index} className='w-full'>
+          {players.map((player) => (
+            <SwiperSlide key={player.id} className='w-full'>
               <PlayerCard {...player} />
             </SwiperSlide>
           ))}

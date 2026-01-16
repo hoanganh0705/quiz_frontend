@@ -20,9 +20,9 @@ export default function HowItWorks() {
           </div>
         </div>
         <div className='mx-auto grid max-w-screen-2xl items-start gap-6 py-10 px-4 lg:grid-cols-3 lg:gap-10'>
-          {howItWorksData.map((item, index) => (
+          {howItWorksData.map((item) => (
             <div
-              key={index}
+              key={item.id}
               className='bg-main dark:bg-slate-900 border border-gray-300 dark:border-slate-700 rounded-2xl shadow-md overflow-hidden w-full h-full max-w-sm mx-auto'
             >
               <div className='relative w-full h-48'>

@@ -178,9 +178,9 @@ const MainContent = () => {
           </CardHeader>
           <CardContent>
             <div className='space-y-6'>
-              {displayedHistory.map((challenge, index) => (
+              {displayedHistory.map((challenge) => (
                 <Card
-                  key={index}
+                  key={challenge.id}
                   className='bg-background border-b border-gray-300 dark:border-slate-700 last:border-b-0'
                 >
                   <CardContent className='p-4'>
@@ -380,11 +380,11 @@ const MainContent = () => {
             </div>
 
             <div className='grid grid-cols-3 gap-2'>
-              {badges.map((badge, index) => {
+              {badges.map((badge) => {
                 const IconComponent = badge.icon
                 return (
                   <Card
-                    key={index}
+                    key={badge.id}
                     className={`
                   bg-background dark:bg-slate-700 rounded-lg p-3 text-center border border-gray-300 dark:border-slate-700
                   ${!badge.unlocked ? 'opacity-60' : ''}

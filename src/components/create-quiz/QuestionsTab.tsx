@@ -409,7 +409,7 @@ export default function QuestionsTab() {
                           updateQuestion(question.id, 'text', e.target.value)
                         }
                         onBlur={() => handleBlur(question.id, 'text')}
-                        className={`bg-transparent text-foreground placeholder:text-foreground/70 min-h-[100px] resize-y focus:ring-offset-0 focus:ring-0 border ${
+                        className={`bg-transparent text-foreground placeholder:text-foreground/70 min-h-25 resize-y focus:ring-offset-0 focus:ring-0 border ${
                           questionErrors?.text && touched[`${question.id}-text`]
                             ? 'border-red-500 focus:border-red-500'
                             : 'border-gray-300 dark:border-slate-700'
@@ -505,7 +505,7 @@ export default function QuestionsTab() {
                             e.target.value
                           )
                         }
-                        className='bg-transparent text-foreground placeholder:text-foreground/70 min-h-[80px] resize-y focus:ring-offset-0 focus:ring-0 border border-gray-300 dark:border-slate-700'
+                        className='bg-transparent text-foreground placeholder:text-foreground/70 min-h-20 resize-y focus:ring-offset-0 focus:ring-0 border border-gray-300 dark:border-slate-700'
                       />
                     </div>
                   </div>

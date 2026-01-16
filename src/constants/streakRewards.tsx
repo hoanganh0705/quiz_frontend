@@ -1,6 +1,6 @@
 export const streakRewards = [
-  { days: 3, reward: '+50 Coins' },
-  { days: 5, reward: '+100 Coins' },
-  { days: 7, reward: 'Special Badge' },
-  { days: 14, reward: 'Premium Theme' }
+  { id: 'streak-3', days: 3, reward: '+50 Coins' },
+  { id: 'streak-5', days: 5, reward: '+100 Coins' },
+  { id: 'streak-7', days: 7, reward: 'Special Badge' },
+  { id: 'streak-14', days: 14, reward: 'Premium Theme' }
 ]

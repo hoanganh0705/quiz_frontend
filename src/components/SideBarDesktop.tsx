@@ -22,10 +22,10 @@ const SideBarDesktop = ({ isCollapsed }: SideBarProps) => {
       <div className='flex-1'>
         {/* Navigation */}
         <nav className='mt-10 p-2 space-y-3'>
-          {sidebarItems.map((item, index) => (
+          {sidebarItems.map((item) => (
             <Link
               href={item.href}
-              key={index}
+              key={item.href}
               className={`flex items-center px-3 py-2 rounded-lg cursor-pointer transition-colors ${
                 pathname === item.href
                   ? 'bg-default text-primary'
