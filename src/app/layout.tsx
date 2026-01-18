@@ -1,3 +1,5 @@
+'use client'
+
 import type React from 'react'
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
@@ -6,6 +8,7 @@ import { AppSidebar } from '@/components/app-sidebar'
 import { AppHeader } from '@/components/app-header'
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
 import { ToastContainer } from 'react-toastify'
+import { usePathname } from 'next/navigation'
 import './globals.css'
 
 const inter = Inter({
@@ -13,16 +16,14 @@ const inter = Inter({
   weight: ['100', '200', '300', '400', '500', '600', '700', '800']
 })
 
-export const metadata: Metadata = {
-  title: 'Quiz Hub',
-  description: 'Quiz Hub Dashboard'
-}
-
 export default function RootLayout({
   children
 }: {
   children: React.ReactNode
 }) {
+  const pathname = usePathname()
+  const isAuthPage = pathname?.startsWith('/login')
+
   return (
     <html lang='en' suppressHydrationWarning>
       <body
@@ -34,27 +35,43 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <SidebarProvider>
-            <AppSidebar />
-            <SidebarInset className='overflow-x-hidden'>
-              <AppHeader />
-              <main className='pt-16 overflow-x-hidden max-w-full'>
-                {children}
-              </main>
-            </SidebarInset>
-          </SidebarProvider>
-
-          <ToastContainer
-            position='top-right'
-            autoClose={3000}
-            hideProgressBar={false}
-            newestOnTop={false}
-            closeOnClick
-            rtl={false}
-            pauseOnFocusLoss
-            draggable
-            pauseOnHover
-          />
+          {isAuthPage ? (
+            <>
+              {children}
+              <ToastContainer
+                position='top-right'
+                autoClose={3000}
+                hideProgressBar={false}
+                newestOnTop={false}
+                closeOnClick
+                rtl={false}
+                pauseOnFocusLoss
+                draggable
+                pauseOnHover
+              />
+            </>
+          ) : (
+            <SidebarProvider>
+              <AppSidebar />
+              <SidebarInset className='overflow-x-hidden'>
+                <AppHeader />
+                <main className='pt-16 overflow-x-hidden max-w-full'>
+                  {children}
+                </main>
+              </SidebarInset>
+              <ToastContainer
+                position='top-right'
+                autoClose={3000}
+                hideProgressBar={false}
+                newestOnTop={false}
+                closeOnClick
+                rtl={false}
+                pauseOnFocusLoss
+                draggable
+                pauseOnHover
+              />
+            </SidebarProvider>
+          )}
         </ThemeProvider>
       </body>
     </html>
