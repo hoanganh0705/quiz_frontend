@@ -16,16 +16,7 @@ You have user avatars and wallet display in the header, but no dedicated profile
 - [ ] Settings section (update avatar, username, preferences)
 - [ ] Social links and bio editing
 
-### 2. Authentication Pages (`/login`, `/register`, `/forgot-password`)
-
-No auth flow exists yet:
-
-- [ ] Login page with email/password + social logins (Google, GitHub)
-- [ ] Registration page with form validation
-- [ ] Forgot password / Reset password flow
-- [ ] Email verification page
-
-### 3. Quiz Results Page (`/quizzes/[id]/results`)
+### 2. Quiz Results Page (`/quizzes/[id]/results`)
 
 Your `PlayQuizClient` shows quiz-taking but lacks a proper results screen:
 
@@ -36,7 +27,7 @@ Your `PlayQuizClient` shows quiz-taking but lacks a proper results screen:
 - [ ] Share results on social media
 - [ ] "Play Again" or "Try Similar Quiz" buttons
 
-### 4. Notifications Dropdown/Page
+### 3. Notifications Dropdown/Page
 
 You have a notification bell icon showing "3" but no actual notification panel:
 
@@ -49,7 +40,7 @@ You have a notification bell icon showing "3" but no actual notification panel:
 
 ## 🌟 MEDIUM PRIORITY - Enhanced UX Features
 
-### 5. Friends/Social System
+### 4. Friends/Social System
 
 - [ ] Find friends page (search users)
 - [ ] Friend requests management
@@ -57,7 +48,7 @@ You have a notification bell icon showing "3" but no actual notification panel:
 - [ ] Invite friends to quizzes
 - [ ] Compare stats with friends
 
-### 6. User Settings Page (`/settings`)
+### 5. User Settings Page (`/settings`)
 
 - [ ] Account settings (email, password change)
 - [ ] Notification preferences
@@ -66,14 +57,14 @@ You have a notification bell icon showing "3" but no actual notification panel:
 - [ ] Connected accounts management
 - [ ] Delete account option
 
-### 7. Quiz History/Activity Page
+### 6. Quiz History/Activity Page
 
 - [ ] Timeline of all quiz activities
 - [ ] Filter by date, category, result
 - [ ] Statistics dashboard
 - [ ] Export quiz history
 
-### 8. Bookmarks/Saved Quizzes Page
+### 7. Bookmarks/Saved Quizzes Page
 
 Your `QuizDetail` has a bookmark icon, but no page to view saved quizzes:
 
@@ -81,7 +72,7 @@ Your `QuizDetail` has a bookmark icon, but no page to view saved quizzes:
 - [ ] Organize into collections/folders
 - [ ] Quick filters
 
-### 9. Advanced Search & Filters
+### 8. Advanced Search & Filters
 
 Enhance your existing search:
 
@@ -94,7 +85,7 @@ Enhance your existing search:
 
 ## 💡 NICE TO HAVE - Engagement Features
 
-### 10. Achievements/Badges Page
+### 9. Achievements/Badges Page
 
 You have badge data in constants but no dedicated page:
 
@@ -103,14 +94,14 @@ You have badge data in constants but no dedicated page:
 - [ ] Achievement details modal
 - [ ] Share achievement feature
 
-### 11. Streak Tracking UI
+### 10. Streak Tracking UI
 
 - [ ] Daily login streak visualization
 - [ ] Streak rewards calendar
 - [ ] "Don't break your streak" reminders
 - [ ] Streak milestones celebration
 
-### 12. Quiz Draft/My Quizzes Management
+### 11. Quiz Draft/My Quizzes Management
 
 Enhance create-quiz with:
 
@@ -120,7 +111,7 @@ Enhance create-quiz with:
 - [ ] Quiz analytics (plays, ratings, completion rate)
 - [ ] Duplicate quiz functionality
 
-### 13. Invite/Share Modal
+### 12. Invite/Share Modal
 
 - [ ] Generate shareable quiz links
 - [ ] Copy link functionality
@@ -128,7 +119,7 @@ Enhance create-quiz with:
 - [ ] QR code for quiz
 - [ ] Email invite form
 
-### 14. Loading States & Skeletons
+### 13. Loading States & Skeletons
 
 Add proper loading states across pages:
 
@@ -137,7 +128,7 @@ Add proper loading states across pages:
 - [ ] Progress indicators
 - [ ] Error states with retry buttons
 
-### 15. Empty States
+### 14. Empty States
 
 Add meaningful empty states for:
 
@@ -146,7 +137,7 @@ Add meaningful empty states for:
 - [ ] No notifications
 - [ ] No achievements unlocked
 
-### 16. Onboarding Flow
+### 15. Onboarding Flow
 
 For new users:
 
@@ -155,14 +146,14 @@ For new users:
 - [ ] Profile setup wizard
 - [ ] First quiz recommendations
 
-### 17. Keyboard Shortcuts
+### 16. Keyboard Shortcuts
 
 - [ ] Navigate quizzes with arrow keys
 - [ ] Submit answer with Enter
 - [ ] Quick search with Cmd/Ctrl + K
 - [ ] Shortcuts help modal
 
-### 18. Mobile Quiz Experience
+### 17. Mobile Quiz Experience
 
 Improve mobile UX:
 
@@ -175,30 +166,28 @@ Improve mobile UX:
 
 ## 📊 Summary Table
 
-| Feature              | Complexity | Impact   |
-| -------------------- | ---------- | -------- |
-| User Profile Page    | Medium     | High     |
-| Auth Pages           | Medium     | Critical |
-| Quiz Results Page    | Medium     | High     |
-| Notifications Panel  | Low        | Medium   |
-| Friends System       | High       | Medium   |
-| Settings Page        | Medium     | Medium   |
-| Quiz History         | Medium     | Medium   |
-| Bookmarks Page       | Low        | Low      |
-| Advanced Search      | Medium     | Medium   |
-| Achievements Page    | Low        | Medium   |
-| Loading/Empty States | Low        | High     |
+| Feature              | Complexity | Impact |
+| -------------------- | ---------- | ------ |
+| User Profile Page    | Medium     | High   |
+| Quiz Results Page    | Medium     | High   |
+| Notifications Panel  | Low        | Medium |
+| Friends System       | High       | Medium |
+| Settings Page        | Medium     | Medium |
+| Quiz History         | Medium     | Medium |
+| Bookmarks Page       | Low        | Low    |
+| Advanced Search      | Medium     | Medium |
+| Achievements Page    | Low        | Medium |
+| Loading/Empty States | Low        | High   |
 
 ---
 
 ## 🚀 Recommended Implementation Order
 
-1. **Auth pages** (foundation for everything else)
-2. **User Profile page**
-3. **Quiz Results page**
-4. **Notifications dropdown**
-5. **Settings page**
-6. **Loading/empty states** (improves UX across the board)
-7. **Bookmarks page**
-8. **Friends system**
-9. **Achievements page**
+1. **User Profile page**
+2. **Quiz Results page**
+3. **Notifications dropdown**
+4. **Settings page**
+5. **Loading/empty states** (improves UX across the board)
+6. **Bookmarks page**
+7. **Friends system**
+8. **Achievements page**
