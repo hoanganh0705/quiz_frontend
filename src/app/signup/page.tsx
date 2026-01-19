@@ -13,21 +13,30 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { toast } from 'react-toastify'
 
-const loginSchema = z.object({
-  firstName: z.string().min(1, 'First name is required'),
-  lastName: z.string().min(1, 'Last name is required'),
-  email: z.email('Please enter a valid email address'),
-  password: z
-    .string()
-    .min(6, 'Password must be at least 6 characters')
-    .max(100, 'Password must be less than 100 characters'),
-  rememberMe: z.boolean().optional()
-})
+const signupSchema = z
+  .object({
+    firstName: z.string().min(1, 'First name is required'),
+    lastName: z.string().min(1, 'Last name is required'),
+    email: z.email('Please enter a valid email address'),
+    password: z
+      .string()
+      .min(6, 'Password must be at least 6 characters')
+      .max(100, 'Password must be less than 100 characters'),
+    confirmPassword: z.string(),
+    agreeToTerms: z.boolean().refine((val) => val === true, {
+      message: 'You must agree to the terms and conditions'
+    })
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords don't match",
+    path: ['confirmPassword']
+  })
 
-type LoginFormData = z.infer<typeof loginSchema>
+type SignupFormData = z.infer<typeof signupSchema>
 
-export default function LoginPage() {
+export default function SignupPage() {
   const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
 
   const {
@@ -35,33 +44,34 @@ export default function LoginPage() {
     handleSubmit,
     control,
     formState: { errors }
-  } = useForm<LoginFormData>({
-    resolver: zodResolver(loginSchema),
+  } = useForm<SignupFormData>({
+    resolver: zodResolver(signupSchema),
     defaultValues: {
       firstName: '',
       lastName: '',
       email: '',
       password: '',
-      rememberMe: false
+      confirmPassword: '',
+      agreeToTerms: false
     }
   })
 
-  const onSubmit = async (data: LoginFormData) => {
+  const onSubmit = async (data: SignupFormData) => {
     setIsLoading(true)
     try {
       // Simulate API call
       await new Promise((resolve) => setTimeout(resolve, 1500))
-      console.log('Login attempt:', data)
-      toast.success('Login successful!')
+      console.log('Signup attempt:', data)
+      toast.success('Account created successfully!')
     } catch {
-      toast.error('Login failed. Please try again.')
+      toast.error('Signup failed. Please try again.')
     } finally {
       setIsLoading(false)
     }
   }
 
-  const handleSocialLogin = (provider: string) => {
-    console.log(`Login with ${provider}`)
+  const handleSocialSignup = (provider: string) => {
+    console.log(`Sign up with ${provider}`)
   }
 
   return (
@@ -71,7 +81,7 @@ export default function LoginPage() {
         <div className='relative w-full h-full rounded-2xl overflow-hidden'>
           <Image
             src='/login.jpg'
-            alt='Login background'
+            alt='Signup background'
             fill
             className='object-cover'
             priority
@@ -79,9 +89,9 @@ export default function LoginPage() {
         </div>
       </div>
 
-      {/* Right Side - Login Form */}
-      <div className='w-full lg:w-1/2 flex items-center justify-center px-8'>
-        <div className='w-full max-w-md space-y-8'>
+      {/* Right Side - Signup Form */}
+      <div className='w-full lg:w-1/2 flex items-center justify-center px-8 py-12'>
+        <div className='w-full max-w-md space-y-10'>
           {/* Mobile Logo */}
           <div className='lg:hidden flex items-center justify-center gap-3'>
             <h1 className='text-2xl font-bold text-foreground'>QuizHub</h1>
@@ -89,23 +99,57 @@ export default function LoginPage() {
 
           {/* Header */}
           <div className='space-y-10'>
-            <h2 className='text-3xl font-bold text-foreground space-y-10'>
-              Welcome back!
+            <h2 className='text-3xl font-bold text-foreground'>
+              Create your account
             </h2>
-            <p className='text-xs text-muted-foreground'>
-              New here?{' '}
+            <p className='text-sm text-muted-foreground'>
+              Already have an account?{' '}
               <Link
-                href='/signup'
+                href='/login'
                 className='text-foreground hover:text-muted-foreground font-semibold transition-colors underline'
               >
-                Create an account
+                Sign in
               </Link>
             </p>
           </div>
 
           <div>
-            {/* Login Form */}
+            {/* Signup Form */}
             <form onSubmit={handleSubmit(onSubmit)} className='space-y-5'>
+              {/* First Name and Last Name */}
+              <div className='grid grid-cols-2 gap-4'>
+                <div className='space-y-2'>
+                  <Input
+                    id='firstName'
+                    type='text'
+                    placeholder='First name'
+                    {...register('firstName')}
+                    className='h-12 text-primary'
+                    aria-invalid={!!errors.firstName}
+                  />
+                  {errors.firstName && (
+                    <p className='text-xs text-destructive'>
+                      {errors.firstName.message}
+                    </p>
+                  )}
+                </div>
+                <div className='space-y-2'>
+                  <Input
+                    id='lastName'
+                    type='text'
+                    placeholder='Last name'
+                    {...register('lastName')}
+                    className='h-12 text-primary'
+                    aria-invalid={!!errors.lastName}
+                  />
+                  {errors.lastName && (
+                    <p className='text-xs text-destructive'>
+                      {errors.lastName.message}
+                    </p>
+                  )}
+                </div>
+              </div>
+
               {/* Email Input */}
               <div className='space-y-2'>
                 <Input
@@ -129,7 +173,7 @@ export default function LoginPage() {
                   <Input
                     id='password'
                     type={showPassword ? 'text' : 'password'}
-                    placeholder='Enter your password'
+                    placeholder='Create password'
                     {...register('password')}
                     className='h-12 pr-12 text-primary'
                     aria-invalid={!!errors.password}
@@ -156,29 +200,82 @@ export default function LoginPage() {
                 )}
               </div>
 
-              {/* Remember Me */}
-              <div className='flex items-center gap-2'>
-                <Controller
-                  name='rememberMe'
-                  control={control}
-                  render={({ field }) => (
-                    <Checkbox
-                      id='remember'
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                      className='text-default'
-                    />
-                  )}
-                />
-                <Label
-                  htmlFor='remember'
-                  className='text-xs text-muted-foreground cursor-pointer select-none'
-                >
-                  Keep me signed in
-                </Label>
+              {/* Confirm Password Input */}
+              <div className='space-y-2'>
+                <div className='relative'>
+                  <Input
+                    id='confirmPassword'
+                    type={showConfirmPassword ? 'text' : 'password'}
+                    placeholder='Confirm password'
+                    {...register('confirmPassword')}
+                    className='h-12 pr-12 text-primary'
+                    aria-invalid={!!errors.confirmPassword}
+                  />
+                  <button
+                    type='button'
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className='absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors'
+                    aria-label={
+                      showConfirmPassword ? 'Hide password' : 'Show password'
+                    }
+                  >
+                    {showConfirmPassword ? (
+                      <EyeOff className='w-5 h-5' />
+                    ) : (
+                      <Eye className='w-5 h-5' />
+                    )}
+                  </button>
+                </div>
+                {errors.confirmPassword && (
+                  <p className='text-xs text-destructive'>
+                    {errors.confirmPassword.message}
+                  </p>
+                )}
               </div>
 
-              {/* Login Button */}
+              {/* Terms and Conditions */}
+              <div className='space-y-2'>
+                <div className='flex items-start gap-2'>
+                  <Controller
+                    name='agreeToTerms'
+                    control={control}
+                    render={({ field }) => (
+                      <Checkbox
+                        id='terms'
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                        className='text-default mt-0.5'
+                      />
+                    )}
+                  />
+                  <Label
+                    htmlFor='terms'
+                    className='text-xs text-muted-foreground cursor-pointer select-none leading-relaxed'
+                  >
+                    I agree to the{' '}
+                    <Link
+                      href='/terms'
+                      className='text-foreground hover:text-muted-foreground transition-colors underline'
+                    >
+                      Terms of Service
+                    </Link>{' '}
+                    and{' '}
+                    <Link
+                      href='/privacy'
+                      className='text-foreground hover:text-muted-foreground transition-colors underline'
+                    >
+                      Privacy Policy
+                    </Link>
+                  </Label>
+                </div>
+                {errors.agreeToTerms && (
+                  <p className='text-xs text-destructive'>
+                    {errors.agreeToTerms.message}
+                  </p>
+                )}
+              </div>
+
+              {/* Signup Button */}
               <Button
                 type='submit'
                 disabled={isLoading}
@@ -188,10 +285,10 @@ export default function LoginPage() {
                 {isLoading ? (
                   <div className='flex items-center gap-2'>
                     <div className='w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin text-white' />
-                    Signing in...
+                    Creating account...
                   </div>
                 ) : (
-                  <p className='text-white'>Sign in</p>
+                  <p className='text-white'>Create account</p>
                 )}
               </Button>
             </form>
@@ -205,12 +302,12 @@ export default function LoginPage() {
               <div className='flex-1 h-px bg-border' />
             </div>
 
-            {/* Social Login Buttons */}
+            {/* Social Signup Buttons */}
             <div className='grid grid-cols-2 gap-4'>
               <Button
                 type='button'
                 variant='outline'
-                onClick={() => handleSocialLogin('Google')}
+                onClick={() => handleSocialSignup('Google')}
                 size='lg'
                 className='h-12 rounded-xl group text-primary'
               >
@@ -237,7 +334,7 @@ export default function LoginPage() {
               <Button
                 type='button'
                 variant='outline'
-                onClick={() => handleSocialLogin('Facebook')}
+                onClick={() => handleSocialSignup('Facebook')}
                 size='lg'
                 className='h-12 rounded-xl group text-primary'
               >
@@ -251,24 +348,6 @@ export default function LoginPage() {
                 Facebook
               </Button>
             </div>
-
-            {/* Footer */}
-            <p className='text-xs text-center text-muted-foreground mt-8 leading-relaxed'>
-              By signing in, you agree to our{' '}
-              <Link
-                href='/terms'
-                className='text-foreground hover:text-muted-foreground transition-colors underline'
-              >
-                Terms
-              </Link>
-              {' & '}
-              <Link
-                href='/privacy'
-                className='text-foreground hover:text-muted-foreground transition-colors underline'
-              >
-                Privacy Policy
-              </Link>
-            </p>
           </div>
         </div>
       </div>
