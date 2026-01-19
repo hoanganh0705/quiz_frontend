@@ -156,26 +156,34 @@ export default function LoginPage() {
                 )}
               </div>
 
-              {/* Remember Me */}
-              <div className='flex items-center gap-2'>
-                <Controller
-                  name='rememberMe'
-                  control={control}
-                  render={({ field }) => (
-                    <Checkbox
-                      id='remember'
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                      className='text-default'
-                    />
-                  )}
-                />
-                <Label
-                  htmlFor='remember'
-                  className='text-xs text-muted-foreground cursor-pointer select-none'
+              {/* Remember Me & Forgot Password */}
+              <div className='flex items-center justify-between'>
+                <div className='flex items-center gap-2'>
+                  <Controller
+                    name='rememberMe'
+                    control={control}
+                    render={({ field }) => (
+                      <Checkbox
+                        id='remember'
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                        className='text-default'
+                      />
+                    )}
+                  />
+                  <Label
+                    htmlFor='remember'
+                    className='text-xs text-muted-foreground cursor-pointer select-none'
+                  >
+                    Keep me signed in
+                  </Label>
+                </div>
+                <Link
+                  href='/forgot-password'
+                  className='text-xs text-foreground hover:text-muted-foreground font-medium transition-colors underline'
                 >
-                  Keep me signed in
-                </Label>
+                  Forgot password?
+                </Link>
               </div>
 
               {/* Login Button */}
