@@ -178,10 +178,10 @@ export default function GlobalLeaderboard() {
                   index === 0
                     ? 'bg-amber-500 text-white'
                     : index === 1
-                    ? 'bg-gray-400 text-white'
-                    : index === 2
-                    ? 'bg-orange-600 text-white'
-                    : 'bg-background text-foreground/80 border'
+                      ? 'bg-gray-400 text-white'
+                      : index === 2
+                        ? 'bg-orange-600 text-white'
+                        : 'bg-background text-foreground/80 border'
                 }
               `}
                 >
@@ -193,7 +193,7 @@ export default function GlobalLeaderboard() {
               <div className='flex items-center gap-3'>
                 <Avatar className='w-10 h-10 border border-foreground/20'>
                   <AvatarImage
-                    src={player.avatar || '/placeholder.svg'}
+                    src={player.avatarUrl || '/placeholder.svg'}
                     alt={`${player.name}'s avatar`}
                   />
                   <AvatarFallback>{player.name.charAt(0)}</AvatarFallback>
@@ -222,10 +222,10 @@ export default function GlobalLeaderboard() {
                         index === 0
                           ? 'bg-amber-500'
                           : index === 1
-                          ? 'bg-gray-400'
-                          : index === 2
-                          ? 'bg-orange-600'
-                          : 'bg-foreground/20'
+                            ? 'bg-gray-400'
+                            : index === 2
+                              ? 'bg-orange-600'
+                              : 'bg-foreground/20'
                     }}
                   />
                 </div>

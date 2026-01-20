@@ -22,7 +22,7 @@ const Leaderboard = () => {
     <Table>
       <TableHeader>
         <TableRow className='border-b border-gray-300 dark:border-slate-700/50 hover:bg-transparent'>
-          <TableHead className='text-left py-4 px-6 text-slate-300 font-medium text-sm w-[60px]'>
+          <TableHead className='text-left py-4 px-6 text-slate-300 font-medium text-sm w-15'>
             #
           </TableHead>
           <TableHead className='text-left py-4 px-6 text-slate-300 font-medium text-sm'>

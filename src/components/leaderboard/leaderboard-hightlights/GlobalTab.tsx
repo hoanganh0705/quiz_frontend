@@ -21,7 +21,7 @@ export default function GlobalTab({ users, isLoading }: GlobalTabProps) {
           {users[1] && (
             <div className='flex flex-col items-center'>
               <div className='relative mb-3'>
-                <div className='w-20 h-20 rounded-full overflow-hidden ring-2 ring-[#d1d5db] ring-offset-[2px] ring-offset-main'>
+                <div className='w-20 h-20 rounded-full overflow-hidden ring-2 ring-[#d1d5db] ring-offset-2 ring-offset-main'>
                   <Image
                     src={users[1].avatar || '/placeholder.svg'}
                     alt={users[1].name}
@@ -59,7 +59,7 @@ export default function GlobalTab({ users, isLoading }: GlobalTabProps) {
           {users[0] && (
             <div className='flex flex-col items-center -mt-8'>
               <div className='relative mb-3'>
-                <div className='w-24 h-24 rounded-full overflow-hidden ring-2 ring-yellow-400 dark:ring-yellow-500 ring-offset-[2px] ring-offset-main'>
+                <div className='w-24 h-24 rounded-full overflow-hidden ring-2 ring-yellow-400 dark:ring-yellow-500 ring-offset-2 ring-offset-main'>
                   <Image
                     src={users[0].avatar || '/placeholder.svg'}
                     alt={users[0].name}
@@ -100,7 +100,7 @@ export default function GlobalTab({ users, isLoading }: GlobalTabProps) {
           {users[2] && (
             <div className='flex flex-col items-center'>
               <div className='relative mb-3'>
-                <div className='w-20 h-20 rounded-full overflow-hidden ring-2 ring-orange-500 dark:ring-orange-600 ring-offset-[2px] ring-offset-main'>
+                <div className='w-20 h-20 rounded-full overflow-hidden ring-2 ring-orange-500 dark:ring-orange-600 ring-offset-2 ring-offset-main'>
                   <Image
                     src={users[2].avatar || '/placeholder.svg'}
                     alt={users[2].name}

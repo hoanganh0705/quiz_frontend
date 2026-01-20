@@ -44,7 +44,7 @@ export default function QuizDiscussions() {
           <TabsList className='w-full justify-start overflow-x-auto scrollbar-hide border border-gray-300 dark:border-slate-700 rounded-md'>
             <TabsTrigger
               value='recent'
-              className='text-xs sm:text-sm md:text-base font-medium px-2 sm:px-3 md:px-4 flex-shrink-0 transition-transform data-[state=active]:bg-background text-foreground/70'
+              className='text-xs sm:text-sm md:text-base font-medium px-2 sm:px-3 md:px-4 shrink-0 transition-transform data-[state=active]:bg-background text-foreground/70'
             >
               <span className='hidden sm:inline text-sm'>
                 Recent Discussions
@@ -53,7 +53,7 @@ export default function QuizDiscussions() {
             </TabsTrigger>
             <TabsTrigger
               value='popular'
-              className='text-xs sm:text-sm md:text-base font-medium px-2 sm:px-3 md:px-4 flex-shrink-0 transition-transform data-[state=active]:bg-background text-foreground/70'
+              className='text-xs sm:text-sm md:text-base font-medium px-2 sm:px-3 md:px-4 shrink-0 transition-transform data-[state=active]:bg-background text-foreground/70'
             >
               <span className='hidden sm:inline text-sm'>
                 Popular Discussions
@@ -62,7 +62,7 @@ export default function QuizDiscussions() {
             </TabsTrigger>
             <TabsTrigger
               value='your'
-              className='text-xs sm:text-sm md:text-base font-medium px-2 sm:px-3 md:px-4 flex-shrink-0 transition-transform data-[state=active]:bg-background text-foreground/70'
+              className='text-xs sm:text-sm md:text-base font-medium px-2 sm:px-3 md:px-4 shrink-0 transition-transform data-[state=active]:bg-background text-foreground/70'
             >
               <span className='hidden sm:inline text-sm'>Your Discussions</span>
               <span className='sm:hidden'>Yours</span>
