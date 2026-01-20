@@ -1,7 +1,6 @@
 export interface Player {
   id: string
   rank: number
-  avatar?: string
   avatarUrl?: string
   name: string
   country: string
@@ -23,7 +22,6 @@ export const players: Player[] = [
   {
     id: '1',
     rank: 1,
-    avatar: '/placeholder.svg',
     avatarUrl: '/avatarPlaceholder.webp',
     name: 'Alex Johnson',
     country: 'United States',
@@ -43,7 +41,6 @@ export const players: Player[] = [
   {
     id: '2',
     rank: 2,
-    avatar: '/placeholder.svg',
     avatarUrl: '/avatarPlaceholder.webp',
     name: 'Sarah Williams',
     country: 'Canada',
@@ -63,7 +60,6 @@ export const players: Player[] = [
   {
     id: '3',
     rank: 3,
-    avatar: '/placeholder.svg',
     name: 'Michael Brown',
     country: 'United Kingdom',
     flag: undefined,
@@ -82,7 +78,6 @@ export const players: Player[] = [
   {
     id: '4',
     rank: 4,
-    avatar: '/placeholder.svg',
     name: 'Emily Davis',
     country: 'Australia',
     flag: undefined,
@@ -101,7 +96,6 @@ export const players: Player[] = [
   {
     id: '5',
     rank: 5,
-    avatar: '/placeholder.svg',
     name: 'David Wilson',
     country: 'Germany',
     flag: undefined,
@@ -120,7 +114,6 @@ export const players: Player[] = [
   {
     id: '6',
     rank: 6,
-    avatar: '/placeholder.svg',
     name: 'Olivia Martinez',
     country: 'France',
     flag: undefined,
@@ -139,7 +132,6 @@ export const players: Player[] = [
   {
     id: '7',
     rank: 7,
-    avatar: '/placeholder.svg',
     name: 'James Taylor',
     country: 'Japan',
     flag: undefined,
@@ -158,7 +150,6 @@ export const players: Player[] = [
   {
     id: '8',
     rank: 8,
-    avatar: '/placeholder.svg',
     name: 'Sophia Anderson',
     country: 'Brazil',
     flag: undefined,
