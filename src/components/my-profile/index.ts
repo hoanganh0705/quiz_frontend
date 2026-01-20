@@ -1,0 +1,8 @@
+export { ProfileHeader } from './ProfileHeader'
+export { StatsCard } from './StatsCard'
+export { QuickStatsSidebar } from './QuickStatsSidebar'
+export { QuickActions } from './QuickActions'
+export { OverviewTab } from './tabs/OverviewTab'
+export { QuizzesTab } from './tabs/QuizzesTab'
+export { AchievementsTab } from './tabs/AchievementsTab'
+export { StatisticsTab } from './tabs/StatisticsTab'
