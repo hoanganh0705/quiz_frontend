@@ -10,12 +10,14 @@ export interface Player {
   level?: number
   levelString?: string
   quizzes?: number
+  quizzesCreated?: number
   wins?: number
   badge?: 'Diamond' | 'Platinum' | 'Gold'
   earned?: number
   followers?: string
   following?: string
   bgImageUrl?: string
+  bio?: string
 }
 
 export const players: Player[] = [
@@ -31,12 +33,14 @@ export const players: Player[] = [
     level: 78,
     levelString: 'Grandmaster',
     quizzes: 42,
+    quizzesCreated: 15,
     wins: 42,
     badge: 'Diamond',
     earned: 1250.75,
     followers: '1.2k',
     following: '356',
-    bgImageUrl: '/placeholder.webp'
+    bgImageUrl: '/placeholder.webp',
+    bio: 'Quiz enthusiast and knowledge seeker. I love challenging myself with difficult quizzes!'
   },
   {
     id: '2',
@@ -50,12 +54,14 @@ export const players: Player[] = [
     level: 65,
     levelString: 'Master',
     quizzes: 38,
+    quizzesCreated: 12,
     wins: 38,
     badge: 'Platinum',
     earned: 980.5,
     followers: '987',
     following: '412',
-    bgImageUrl: '/placeholder.webp'
+    bgImageUrl: '/placeholder.webp',
+    bio: 'Passionate about learning and sharing knowledge.'
   },
   {
     id: '3',
@@ -68,12 +74,14 @@ export const players: Player[] = [
     level: 59,
     levelString: undefined,
     quizzes: 35,
+    quizzesCreated: 8,
     wins: undefined,
     badge: 'Gold',
     earned: undefined,
     followers: undefined,
     following: undefined,
-    bgImageUrl: undefined
+    bgImageUrl: undefined,
+    bio: 'Always up for a challenge and new experiences.'
   },
   {
     id: '4',
@@ -86,12 +94,14 @@ export const players: Player[] = [
     level: 52,
     levelString: undefined,
     quizzes: 31,
+    quizzesCreated: 5,
     wins: undefined,
     badge: 'Gold',
     earned: undefined,
     followers: undefined,
     following: undefined,
-    bgImageUrl: undefined
+    bgImageUrl: undefined,
+    bio: 'Curious mind, avid reader, and quiz lover.'
   },
   {
     id: '5',

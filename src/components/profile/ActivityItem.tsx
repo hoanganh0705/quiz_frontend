@@ -9,7 +9,7 @@ interface ActivityItemProps {
 export function ActivityItem({ icon, title, date }: ActivityItemProps) {
   return (
     <Card className='bg-main hover:border-default/50 transition-colors'>
-      <CardContent className='pt-6 flex gap-4'>
+      <CardContent className='flex gap-4 justify-center items-center p-4'>
         <div className='shrink-0'>{icon}</div>
         <div className='flex-1'>
           <p className='text-foreground font-medium'>{title}</p>

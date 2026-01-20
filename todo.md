@@ -6,17 +6,7 @@ Based on the analysis of the codebase, here are **frontend features** to conside
 
 ## 🔥 HIGH PRIORITY - Core Missing Features
 
-### 1. User Profile Page (`/profile`)
-
-You have user avatars and wallet display in the header, but no dedicated profile page.
-
-- [] Profile overview with stats (quizzes completed, win rate, points)
-- [ ] Achievement/badges gallery
-- [ ] Quiz history with performance charts
-- [ ] Settings section (update avatar, username, preferences)
-- [ ] Social links and bio editing
-
-### 2. Quiz Results Page (`/quizzes/[id]/results`)
+### 1. Quiz Results Page (`/quizzes/[id]/results`)
 
 Your `PlayQuizClient` shows quiz-taking but lacks a proper results screen:
 
@@ -27,7 +17,7 @@ Your `PlayQuizClient` shows quiz-taking but lacks a proper results screen:
 - [ ] Share results on social media
 - [ ] "Play Again" or "Try Similar Quiz" buttons
 
-### 3. Notifications Dropdown/Page
+### 2. Notifications Dropdown/Page
 
 You have a notification bell icon showing "3" but no actual notification panel:
 
@@ -40,7 +30,7 @@ You have a notification bell icon showing "3" but no actual notification panel:
 
 ## 🌟 MEDIUM PRIORITY - Enhanced UX Features
 
-### 4. Friends/Social System
+### 3. Friends/Social System
 
 - [ ] Find friends page (search users)
 - [ ] Friend requests management
@@ -48,7 +38,7 @@ You have a notification bell icon showing "3" but no actual notification panel:
 - [ ] Invite friends to quizzes
 - [ ] Compare stats with friends
 
-### 5. User Settings Page (`/settings`)
+### 4. User Settings Page (`/settings`)
 
 - [ ] Account settings (email, password change)
 - [ ] Notification preferences
@@ -57,14 +47,14 @@ You have a notification bell icon showing "3" but no actual notification panel:
 - [ ] Connected accounts management
 - [ ] Delete account option
 
-### 6. Quiz History/Activity Page
+### 5. Quiz History/Activity Page
 
 - [ ] Timeline of all quiz activities
 - [ ] Filter by date, category, result
 - [ ] Statistics dashboard
 - [ ] Export quiz history
 
-### 7. Bookmarks/Saved Quizzes Page
+### 6. Bookmarks/Saved Quizzes Page
 
 Your `QuizDetail` has a bookmark icon, but no page to view saved quizzes:
 
@@ -72,7 +62,7 @@ Your `QuizDetail` has a bookmark icon, but no page to view saved quizzes:
 - [ ] Organize into collections/folders
 - [ ] Quick filters
 
-### 8. Advanced Search & Filters
+### 7. Advanced Search & Filters
 
 Enhance your existing search:
 
@@ -85,7 +75,7 @@ Enhance your existing search:
 
 ## 💡 NICE TO HAVE - Engagement Features
 
-### 9. Achievements/Badges Page
+### 8. Achievements/Badges Page
 
 You have badge data in constants but no dedicated page:
 
@@ -94,14 +84,14 @@ You have badge data in constants but no dedicated page:
 - [ ] Achievement details modal
 - [ ] Share achievement feature
 
-### 10. Streak Tracking UI
+### 9. Streak Tracking UI
 
 - [ ] Daily login streak visualization
 - [ ] Streak rewards calendar
 - [ ] "Don't break your streak" reminders
 - [ ] Streak milestones celebration
 
-### 11. Quiz Draft/My Quizzes Management
+### 10. Quiz Draft/My Quizzes Management
 
 Enhance create-quiz with:
 
@@ -111,7 +101,7 @@ Enhance create-quiz with:
 - [ ] Quiz analytics (plays, ratings, completion rate)
 - [ ] Duplicate quiz functionality
 
-### 12. Invite/Share Modal
+### 11. Invite/Share Modal
 
 - [ ] Generate shareable quiz links
 - [ ] Copy link functionality
@@ -119,7 +109,7 @@ Enhance create-quiz with:
 - [ ] QR code for quiz
 - [ ] Email invite form
 
-### 13. Loading States & Skeletons
+### 12. Loading States & Skeletons
 
 Add proper loading states across pages:
 
@@ -128,7 +118,7 @@ Add proper loading states across pages:
 - [ ] Progress indicators
 - [ ] Error states with retry buttons
 
-### 14. Empty States
+### 13. Empty States
 
 Add meaningful empty states for:
 
@@ -137,7 +127,7 @@ Add meaningful empty states for:
 - [ ] No notifications
 - [ ] No achievements unlocked
 
-### 15. Onboarding Flow
+### 14. Onboarding Flow
 
 For new users:
 
@@ -146,14 +136,14 @@ For new users:
 - [ ] Profile setup wizard
 - [ ] First quiz recommendations
 
-### 16. Keyboard Shortcuts
+### 15. Keyboard Shortcuts
 
 - [ ] Navigate quizzes with arrow keys
 - [ ] Submit answer with Enter
 - [ ] Quick search with Cmd/Ctrl + K
 - [ ] Shortcuts help modal
 
-### 17. Mobile Quiz Experience
+### 16. Mobile Quiz Experience
 
 Improve mobile UX:
 
@@ -168,7 +158,6 @@ Improve mobile UX:
 
 | Feature              | Complexity | Impact |
 | -------------------- | ---------- | ------ |
-| User Profile Page    | Medium     | High   |
 | Quiz Results Page    | Medium     | High   |
 | Notifications Panel  | Low        | Medium |
 | Friends System       | High       | Medium |
@@ -183,11 +172,10 @@ Improve mobile UX:
 
 ## 🚀 Recommended Implementation Order
 
-1. **User Profile page**
-2. **Quiz Results page**
-3. **Notifications dropdown**
-4. **Settings page**
-5. **Loading/empty states** (improves UX across the board)
-6. **Bookmarks page**
-7. **Friends system**
-8. **Achievements page**
+1. **Quiz Results page**
+2. **Notifications dropdown**
+3. **Settings page**
+4. **Loading/empty states** (improves UX across the board)
+5. **Bookmarks page**
+6. **Friends system**
+7. **Achievements page**

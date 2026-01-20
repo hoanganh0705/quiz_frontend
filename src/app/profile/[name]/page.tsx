@@ -20,9 +20,9 @@ import {
   Calendar,
   BadgeCheck,
   Star,
-  Link,
   ArrowLeft
 } from 'lucide-react'
+import Link from 'next/link'
 
 export default function ProfilePage() {
   const [activeTab, setActiveTab] = useState('activity')
@@ -31,21 +31,29 @@ export default function ProfilePage() {
   const currentPlayer = players[0]
 
   // Sample activity data based on challenge history
-  const recentActivities = challengeData
-    .slice(0, 3)
-    .map((challenge, index) => ({
+  const recentActivities = challengeData.slice(0, 3).map((challenge) => {
+    let icon
+    switch (challenge.type) {
+      case 'achievement':
+        icon = <CheckCircle2 className='w-6 h-6 text-green-500' />
+        break
+      case 'win':
+        icon = <Trophy className='w-6 h-6 text-amber-500' />
+        break
+      case 'participation':
+        icon = <Zap className='w-6 h-6 text-default' />
+        break
+      default:
+        icon = <Zap className='w-6 h-6 text-default' />
+    }
+
+    return {
       id: challenge.id,
-      icon:
-        index === 0 ? (
-          <CheckCircle2 className='w-6 h-6 text-green-500' />
-        ) : index === 1 ? (
-          <Trophy className='w-6 h-6 text-amber-500' />
-        ) : (
-          <Zap className='w-6 h-6 text-default' />
-        ),
+      icon,
       title: `Completed '${challenge.category}' with a score of ${challenge.score}%`,
       date: challenge.date
-    }))
+    }
+  })
 
   // Calculate stats
   const averageScore =
@@ -54,24 +62,24 @@ export default function ProfilePage() {
   const winRate = Math.round((topRanks / challengeData.length) * 100)
 
   return (
-    <div className='min-h-screen flex items-center justify-center'>
-      <div>
+    <div className='min-h-screen flex items-start justify-center pt-10'>
+      <div className='w-[80%]'>
+        <Button
+          size='sm'
+          className='text-foreground/70 dark:text-foreground/70 bg-transparent p-0 hover:bg-transparent hover:text-foreground dark:hover:text-foreground   shadow-none'
+          asChild
+        >
+          <Link href='/'>
+            <ArrowLeft className='w-5 h-5 mr-2' />
+            Back to Home
+          </Link>
+        </Button>
         {/* Header Section */}
-        <div className='border-b border-border bg-main rounded-2xl'>
-          <Button
-            size='sm'
-            className='text-foreground/70 dark:text-foreground/70 bg-transparent p-0 hover:bg-transparent hover:text-foreground dark:hover:text-foreground   shadow-none'
-            asChild
-          >
-            <Link href='/'>
-              <ArrowLeft className='w-5 h-5 mr-2' />
-              Back to Home
-            </Link>
-          </Button>
+        <div className='border-b border-border bg-main rounded-2xl mt-10'>
           <div className='max-w-7xl mx-auto px-2 py-4'>
-            <div className='flex flex-col md:flex-row items-start justify-between gap-6'>
+            <div className='flex flex-col md:flex-row items-start justify-between gap-6 px-8'>
               <div className='flex flex-col sm:flex-row items-start gap-6 flex-1'>
-                <Avatar className='h-28 w-28 border-4 border-default'>
+                <Avatar className='h-22 w-22 border-4 border-default self-center'>
                   <AvatarImage
                     src={currentPlayer.avatarUrl}
                     alt={currentPlayer.name}
@@ -86,7 +94,7 @@ export default function ProfilePage() {
 
                 <div className='flex-1 pt-2'>
                   <div className='flex flex-wrap items-center gap-3 mb-2'>
-                    <h1 className='text-3xl font-bold text-foreground'>
+                    <h1 className='text-2xl font-bold text-foreground'>
                       {currentPlayer.name}
                     </h1>
                     <Badge className='bg-default/20 text-default border-default/30 gap-1'>
@@ -116,14 +124,13 @@ export default function ProfilePage() {
                     </span>
                   </div>
 
-                  <p className='text-muted-foreground mb-4'>
-                    Quiz enthusiast and knowledge seeker. I love challenging
-                    myself with difficult quizzes!
+                  <p className='text-muted-foreground mb-4 text-sm'>
+                    {currentPlayer.bio}
                   </p>
 
                   <div className='flex flex-wrap gap-6 text-sm'>
                     <div>
-                      <span className='text-foreground font-bold text-lg'>
+                      <span className='text-foreground font-bold text-sm'>
                         {currentPlayer.quizzes}
                       </span>
                       <span className='text-muted-foreground ml-2'>
@@ -131,15 +138,15 @@ export default function ProfilePage() {
                       </span>
                     </div>
                     <div>
-                      <span className='text-foreground font-bold text-lg'>
-                        15
+                      <span className='text-foreground font-bold text-sm'>
+                        {currentPlayer.quizzesCreated}
                       </span>
                       <span className='text-muted-foreground ml-2'>
                         Quizzes Created
                       </span>
                     </div>
                     <div>
-                      <span className='text-foreground font-bold text-lg'>
+                      <span className='text-foreground font-bold text-sm'>
                         {currentPlayer.followers}
                       </span>
                       <span className='text-muted-foreground ml-2'>
@@ -147,7 +154,7 @@ export default function ProfilePage() {
                       </span>
                     </div>
                     <div>
-                      <span className='text-foreground font-bold text-lg'>
+                      <span className='text-foreground font-bold text-sm'>
                         {currentPlayer.following}
                       </span>
                       <span className='text-muted-foreground ml-2'>
@@ -158,12 +165,12 @@ export default function ProfilePage() {
                 </div>
               </div>
 
-              <div className='flex gap-3'>
+              <div className='flex gap-3 self-center'>
                 <Button className='gap-2'>
                   <Users className='w-4 h-4' />
                   Follow
                 </Button>
-                <Button variant='outline' className='gap-2'>
+                <Button variant='outline' className='gap-2 text-primary'>
                   <MessageCircle className='w-4 h-4' />
                   Message
                 </Button>
@@ -173,21 +180,46 @@ export default function ProfilePage() {
         </div>
 
         {/* Main Content */}
-        <div className='max-w-7xl mx-auto px-6 py-8'>
+        <div className='max-w-7xl mx-auto mt-10'>
           <div className='grid grid-cols-1 lg:grid-cols-3 gap-8'>
             {/* Activity Section */}
             <div className='lg:col-span-2'>
               <Tabs
                 value={activeTab}
                 onValueChange={setActiveTab}
-                className='w-full'
+                className='w-full text-sm'
               >
                 <TabsList className='bg-main border border-border w-full justify-start'>
-                  <TabsTrigger value='activity'>Activity</TabsTrigger>
-                  <TabsTrigger value='quizzes'>Quizzes Taken</TabsTrigger>
-                  <TabsTrigger value='created'>Created Quizzes</TabsTrigger>
-                  <TabsTrigger value='followers'>Followers</TabsTrigger>
-                  <TabsTrigger value='following'>Following</TabsTrigger>
+                  <TabsTrigger
+                    value='activity'
+                    className='data-[state=active]:text-white text-sm'
+                  >
+                    Activity
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value='quizzes'
+                    className='data-[state=active]:text-white text-sm'
+                  >
+                    Quizzes Taken
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value='created'
+                    className='data-[state=active]:text-white text-sm'
+                  >
+                    Created Quizzes
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value='followers'
+                    className='data-[state=active]:text-white text-sm'
+                  >
+                    Followers
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value='following'
+                    className='data-[state=active]:text-white text-sm'
+                  >
+                    Following
+                  </TabsTrigger>
                 </TabsList>
 
                 <TabsContent value='activity' className='space-y-4 mt-6'>
@@ -203,7 +235,7 @@ export default function ProfilePage() {
 
                 <TabsContent value='quizzes'>
                   <Card className='bg-main'>
-                    <CardContent className='pt-6 text-center text-muted-foreground'>
+                    <CardContent className='p-4 text-center text-muted-foreground'>
                       No quizzes data to display
                     </CardContent>
                   </Card>
@@ -211,7 +243,7 @@ export default function ProfilePage() {
 
                 <TabsContent value='created'>
                   <Card className='bg-main'>
-                    <CardContent className='pt-6 text-center text-muted-foreground'>
+                    <CardContent className='p-4 text-center text-muted-foreground'>
                       No created quizzes to display
                     </CardContent>
                   </Card>
@@ -219,7 +251,7 @@ export default function ProfilePage() {
 
                 <TabsContent value='followers'>
                   <Card className='bg-main'>
-                    <CardContent className='pt-6 text-center text-muted-foreground'>
+                    <CardContent className='p-4 text-center text-muted-foreground'>
                       No followers data to display
                     </CardContent>
                   </Card>
@@ -227,7 +259,7 @@ export default function ProfilePage() {
 
                 <TabsContent value='following'>
                   <Card className='bg-main'>
-                    <CardContent className='pt-6 text-center text-muted-foreground'>
+                    <CardContent className='p-4 text-center text-muted-foreground'>
                       No following data to display
                     </CardContent>
                   </Card>
@@ -238,8 +270,8 @@ export default function ProfilePage() {
             {/* Stats Section */}
             <div className='lg:col-span-1'>
               <Card className='bg-main sticky top-8'>
-                <CardContent className='pt-6'>
-                  <h2 className='text-xl font-bold text-foreground mb-6'>
+                <CardContent className='p-4'>
+                  <h2 className='text-base font-bold text-foreground mb-6'>
                     Stats & Performance
                   </h2>
 
@@ -250,7 +282,7 @@ export default function ProfilePage() {
                         <p className='text-muted-foreground text-sm'>
                           Average Score
                         </p>
-                        <p className='text-2xl font-bold text-foreground'>
+                        <p className='text-base font-bold text-foreground'>
                           {averageScore.toFixed(1)}%
                         </p>
                       </div>
@@ -258,7 +290,7 @@ export default function ProfilePage() {
                         <p className='text-muted-foreground text-sm'>
                           Win Rate
                         </p>
-                        <p className='text-2xl font-bold text-foreground'>
+                        <p className='text-base font-bold text-foreground'>
                           {winRate}%
                         </p>
                       </div>
@@ -270,7 +302,7 @@ export default function ProfilePage() {
                         <p className='text-muted-foreground text-sm'>
                           Current Streak
                         </p>
-                        <p className='text-2xl font-bold text-foreground'>
+                        <p className='text-base font-bold text-foreground'>
                           {currentPlayer.streak} quizzes
                         </p>
                       </div>
@@ -278,7 +310,7 @@ export default function ProfilePage() {
                         <p className='text-muted-foreground text-sm'>
                           Highest Streak
                         </p>
-                        <p className='text-2xl font-bold text-foreground'>
+                        <p className='text-base font-bold text-foreground'>
                           12 quizzes
                         </p>
                       </div>
@@ -290,7 +322,7 @@ export default function ProfilePage() {
                         <p className='text-muted-foreground text-sm'>
                           Total Quizzes
                         </p>
-                        <p className='text-2xl font-bold text-foreground'>
+                        <p className='text-base font-bold text-foreground'>
                           {currentPlayer.quizzes}
                         </p>
                       </div>
@@ -298,7 +330,7 @@ export default function ProfilePage() {
                         <p className='text-muted-foreground text-sm'>
                           Completion Rate
                         </p>
-                        <p className='text-2xl font-bold text-foreground'>
+                        <p className='text-base font-bold text-foreground'>
                           94%
                         </p>
                       </div>
