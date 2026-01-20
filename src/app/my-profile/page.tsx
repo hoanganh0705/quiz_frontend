@@ -357,7 +357,7 @@ export default function MyProfilePage() {
               {/* Overview Tab */}
               <TabsContent value='overview' className='space-y-6 mt-6'>
                 {/* Level Progress */}
-                <Card className='bg-main'>
+                <Card className='bg-main p-4'>
                   <CardHeader className='pb-2'>
                     <CardTitle className='text-base flex items-center gap-2'>
                       <Star className='w-4 h-4 text-amber-500' />
@@ -385,7 +385,7 @@ export default function MyProfilePage() {
                 </Card>
 
                 {/* Recent Activity */}
-                <Card className='bg-main'>
+                <Card className='bg-main p-4'>
                   <CardHeader className='pb-2'>
                     <CardTitle className='text-base flex items-center justify-between'>
                       <span className='flex items-center gap-2'>
@@ -423,7 +423,7 @@ export default function MyProfilePage() {
                 </Card>
 
                 {/* Badges Preview */}
-                <Card className='bg-main'>
+                <Card className='bg-main p-4'>
                   <CardHeader className='pb-2'>
                     <CardTitle className='text-base flex items-center justify-between'>
                       <span className='flex items-center gap-2'>
@@ -487,7 +487,7 @@ export default function MyProfilePage() {
                           <BookOpen className='w-6 h-6 text-default' />
                         </div>
                         <div>
-                          <p className='text-3xl font-bold text-foreground'>
+                          <p className='text-xl font-bold text-foreground'>
                             {totalQuizzes}
                           </p>
                           <p className='text-sm text-muted-foreground'>
@@ -505,7 +505,7 @@ export default function MyProfilePage() {
                           <Edit className='w-6 h-6 text-green-500' />
                         </div>
                         <div>
-                          <p className='text-3xl font-bold text-foreground'>
+                          <p className='text-xl font-bold text-foreground'>
                             {quizzesCreated}
                           </p>
                           <p className='text-sm text-muted-foreground'>
@@ -517,7 +517,7 @@ export default function MyProfilePage() {
                   </Card>
                 </div>
 
-                <Card className='bg-main mt-4'>
+                <Card className='bg-main p-4 mt-4'>
                   <CardHeader>
                     <CardTitle className='text-base'>Quiz History</CardTitle>
                   </CardHeader>
@@ -564,7 +564,7 @@ export default function MyProfilePage() {
 
               {/* Achievements Tab */}
               <TabsContent value='achievements' className='mt-6'>
-                <Card className='bg-main'>
+                <Card className='bg-main p-4'>
                   <CardHeader>
                     <CardTitle className='text-base flex items-center gap-2'>
                       <Award className='w-4 h-4 text-purple-500' />
@@ -599,7 +599,7 @@ export default function MyProfilePage() {
                 </Card>
 
                 {/* Streak Rewards */}
-                <Card className='bg-main mt-4'>
+                <Card className='bg-main mt-4 p-4'>
                   <CardHeader>
                     <CardTitle className='text-base flex items-center gap-2'>
                       <Gift className='w-4 h-4 text-amber-500' />
@@ -640,7 +640,7 @@ export default function MyProfilePage() {
               {/* Statistics Tab */}
               <TabsContent value='stats' className='mt-6'>
                 <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-                  <Card className='bg-main'>
+                  <Card className='bg-main p-4'>
                     <CardHeader>
                       <CardTitle className='text-base flex items-center gap-2'>
                         <BarChart3 className='w-4 h-4 text-default' />
@@ -683,7 +683,7 @@ export default function MyProfilePage() {
                     </CardContent>
                   </Card>
 
-                  <Card className='bg-main'>
+                  <Card className='bg-main p-4'>
                     <CardHeader>
                       <CardTitle className='text-base flex items-center gap-2'>
                         <TrendingUp className='w-4 h-4 text-green-500' />
@@ -728,7 +728,7 @@ export default function MyProfilePage() {
                 </div>
 
                 {/* Category Performance */}
-                <Card className='bg-main mt-4'>
+                <Card className='bg-main mt-4 p-4'>
                   <CardHeader>
                     <CardTitle className='text-base'>
                       Category Performance
