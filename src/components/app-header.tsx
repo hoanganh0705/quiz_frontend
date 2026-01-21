@@ -1,10 +1,11 @@
 'use client'
 
-import { Search, MessageSquare, Bell } from 'lucide-react'
+import { Search, MessageSquare } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { ModeToggle } from '@/components/mode-toggle'
 import { SidebarTrigger, useSidebar } from '@/components/ui/sidebar'
+import { NotificationDropdown } from '@/components/NotificationDropdown'
 import { useEffect, useState } from 'react'
 
 export function AppHeader() {
@@ -72,20 +73,7 @@ export function AppHeader() {
         </button>
 
         {/* Notifications */}
-        <button
-          className='relative'
-          aria-label='Notifications (3 unread)'
-          type='button'
-        >
-          <div className='p-1.5 sm:p-2 border border-gray-300 dark:border-slate-700 rounded-md hover:bg-main-hover transition-colors'>
-            <Bell className='h-4 w-4 text-foreground' />
-          </div>
-          <div className='absolute -top-1 -right-1 h-3 w-3 sm:h-4 sm:w-4 rounded-full dark:bg-white bg-black text-[0.6rem] flex items-center justify-center text-white dark:text-black'>
-            <span className='text-center leading-none' aria-hidden='true'>
-              3
-            </span>
-          </div>
-        </button>
+        <NotificationDropdown />
 
         {/* Theme Toggle */}
         <div>
