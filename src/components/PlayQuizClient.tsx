@@ -4,6 +4,7 @@ import { Quiz } from '@/types/quiz'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useState, useEffect, useCallback, useRef } from 'react'
+import { useRouter } from 'next/navigation'
 import { Card, CardContent } from './ui/card'
 import { ArrowLeft, Clock, RotateCcw } from 'lucide-react'
 import { Button } from './ui/button'
@@ -13,6 +14,7 @@ import { Progress } from './ui/progress'
 
 // Storage key generator
 const getStorageKey = (quizId: string) => `quiz_progress_${quizId}`
+const getResultsKey = (quizId: string) => `quiz_results_${quizId}`
 
 // Quiz progress interface
 interface QuizProgress {
@@ -21,15 +23,35 @@ interface QuizProgress {
   timeLeft: number
   timerStarted: boolean
   startedAt: number | null
+  timePerQuestion: Record<number, number>
+  questionStartTime: number | null
+}
+
+// Quiz result interface
+interface QuizResult {
+  answers: Record<number, string>
+  timeTaken: number
+  completedAt: number
+  score: number
+  correctCount: number
+  incorrectCount: number
+  timePerQuestion: Record<number, number>
 }
 
 export default function PlayQuizClient({ quiz }: { quiz: Quiz }) {
+  const router = useRouter()
   const [isLoaded, setIsLoaded] = useState(false)
   const [currentQuestion, setCurrentQuestion] = useState(0)
   const [answers, setAnswers] = useState<Record<number, string>>({})
   const [timeLeft, setTimeLeft] = useState(quiz.duration)
   const [timerStarted, setTimerStarted] = useState(false)
   const [startedAt, setStartedAt] = useState<number | null>(null)
+  const [timePerQuestion, setTimePerQuestion] = useState<
+    Record<number, number>
+  >({})
+  const [questionStartTime, setQuestionStartTime] = useState<number | null>(
+    null
+  )
   const isSubmittedRef = useRef(false)
 
   // Load saved progress from localStorage
@@ -56,6 +78,8 @@ export default function PlayQuizClient({ quiz }: { quiz: Quiz }) {
           setTimeLeft(adjustedTimeLeft)
           setTimerStarted(progress.timerStarted)
           setStartedAt(progress.startedAt)
+          setTimePerQuestion(progress.timePerQuestion || {})
+          setQuestionStartTime(progress.questionStartTime)
 
           // If time ran out while away, submit immediately
           if (adjustedTimeLeft <= 0) {
@@ -68,6 +92,8 @@ export default function PlayQuizClient({ quiz }: { quiz: Quiz }) {
           setTimeLeft(progress.timeLeft)
           setTimerStarted(progress.timerStarted)
           setStartedAt(progress.startedAt)
+          setTimePerQuestion(progress.timePerQuestion || {})
+          setQuestionStartTime(progress.questionStartTime)
         }
 
         toast.info('Quiz progress restored!')
@@ -90,7 +116,9 @@ export default function PlayQuizClient({ quiz }: { quiz: Quiz }) {
       answers,
       timeLeft,
       timerStarted,
-      startedAt
+      startedAt,
+      timePerQuestion,
+      questionStartTime
     }
 
     localStorage.setItem(storageKey, JSON.stringify(progress))
@@ -101,6 +129,8 @@ export default function PlayQuizClient({ quiz }: { quiz: Quiz }) {
     timeLeft,
     timerStarted,
     startedAt,
+    timePerQuestion,
+    questionStartTime,
     isLoaded
   ])
 
@@ -110,10 +140,70 @@ export default function PlayQuizClient({ quiz }: { quiz: Quiz }) {
     isSubmittedRef.current = true
   }, [quiz.id])
 
+  // Track time spent on current question
+  const updateQuestionTime = useCallback(() => {
+    if (questionStartTime !== null) {
+      const timeSpent = Math.floor((Date.now() - questionStartTime) / 1000)
+      setTimePerQuestion((prev) => ({
+        ...prev,
+        [currentQuestion]: (prev[currentQuestion] || 0) + timeSpent
+      }))
+    }
+    setQuestionStartTime(Date.now())
+  }, [questionStartTime, currentQuestion])
+
   const handleSubmit = useCallback(() => {
+    // Update time for the last question
+    if (questionStartTime !== null) {
+      const timeSpent = Math.floor((Date.now() - questionStartTime) / 1000)
+      const finalTimePerQuestion = {
+        ...timePerQuestion,
+        [currentQuestion]: (timePerQuestion[currentQuestion] || 0) + timeSpent
+      }
+
+      // Calculate score
+      let correctCount = 0
+      quiz.questions.forEach((q, index) => {
+        if (answers[index] === q.correctAnswer) {
+          correctCount++
+        }
+      })
+
+      const totalTimeTaken = startedAt
+        ? Math.floor((Date.now() - startedAt) / 1000)
+        : 0
+
+      // Save results
+      const result: QuizResult = {
+        answers,
+        timeTaken: totalTimeTaken,
+        completedAt: Date.now(),
+        score: Math.round((correctCount / quiz.questions.length) * 100),
+        correctCount,
+        incorrectCount: quiz.questions.length - correctCount,
+        timePerQuestion: finalTimePerQuestion
+      }
+
+      const resultsKey = getResultsKey(quiz.id)
+      localStorage.setItem(resultsKey, JSON.stringify(result))
+    }
+
     clearProgress()
-    toast.success(`Quiz submitted! Your answers: ${JSON.stringify(answers)}`)
-  }, [answers, clearProgress])
+    toast.success('Quiz submitted! Redirecting to results...')
+
+    // Redirect to results page
+    router.push(`/quizzes/${quiz.id}/results`)
+  }, [
+    answers,
+    clearProgress,
+    currentQuestion,
+    questionStartTime,
+    quiz.id,
+    quiz.questions,
+    router,
+    startedAt,
+    timePerQuestion
+  ])
 
   // Timer effect
   useEffect(() => {
@@ -132,6 +222,7 @@ export default function PlayQuizClient({ quiz }: { quiz: Quiz }) {
     if (!timerStarted) {
       setTimerStarted(true)
       setStartedAt(Date.now())
+      setQuestionStartTime(Date.now())
     }
 
     setAnswers({ ...answers, [currentQuestion]: answer })
@@ -139,11 +230,13 @@ export default function PlayQuizClient({ quiz }: { quiz: Quiz }) {
 
   const handleNextQuestion = () => {
     if (currentQuestion === quiz.questions.length - 1) return
+    updateQuestionTime()
     setCurrentQuestion((prev) => prev + 1)
   }
 
   const handlePreviousQuestion = () => {
     if (currentQuestion === 0) return
+    updateQuestionTime()
     setCurrentQuestion((prev) => prev - 1)
   }
 
@@ -154,6 +247,8 @@ export default function PlayQuizClient({ quiz }: { quiz: Quiz }) {
     setTimeLeft(quiz.duration)
     setTimerStarted(false)
     setStartedAt(null)
+    setTimePerQuestion({})
+    setQuestionStartTime(null)
     isSubmittedRef.current = false
     toast.info('Quiz restarted!')
   }
