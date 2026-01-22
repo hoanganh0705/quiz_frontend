@@ -15,7 +15,6 @@ import {
   AccordionTrigger
 } from '@/components/ui/accordion'
 import { Plus, Eye, Trash2, Copy, AlertCircle } from 'lucide-react'
-import { toast } from 'react-toastify'
 
 interface Question {
   id: string
@@ -221,10 +220,8 @@ export default function QuestionsTab() {
   const handleValidateAndSave = () => {
     const isValid = validateAllQuestions()
     if (isValid) {
-      toast.success('All questions are valid!')
       return questions
     } else {
-      toast.error('Please fix the validation errors before saving')
       return null
     }
   }
@@ -273,8 +270,8 @@ export default function QuestionsTab() {
                         status === 'complete'
                           ? 'bg-green-500'
                           : status === 'error'
-                          ? 'bg-red-500'
-                          : 'bg-gray-400'
+                            ? 'bg-red-500'
+                            : 'bg-gray-400'
                       }`}
                     />
                     <h3 className='text-base font-semibold text-foreground'>

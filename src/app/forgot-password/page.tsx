@@ -8,7 +8,6 @@ import Link from 'next/link'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { toast } from 'react-toastify'
 
 const forgotPasswordSchema = z.object({
   email: z.string().email('Please enter a valid email address')
@@ -39,9 +38,8 @@ export default function ForgotPasswordPage() {
       await new Promise((resolve) => setTimeout(resolve, 1500))
       console.log('Password reset request:', data)
       setIsEmailSent(true)
-      toast.success('Reset link sent to your email!')
     } catch {
-      toast.error('Failed to send reset link. Please try again.')
+      // Handle error
     } finally {
       setIsLoading(false)
     }
@@ -51,9 +49,8 @@ export default function ForgotPasswordPage() {
     setIsLoading(true)
     try {
       await new Promise((resolve) => setTimeout(resolve, 1500))
-      toast.success('Reset link resent!')
     } catch {
-      toast.error('Failed to resend. Please try again.')
+      // Handle error
     } finally {
       setIsLoading(false)
     }

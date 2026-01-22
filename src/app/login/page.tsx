@@ -11,7 +11,6 @@ import Image from 'next/image'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { toast } from 'react-toastify'
 
 const loginSchema = z.object({
   firstName: z.string().min(1, 'First name is required'),
@@ -52,9 +51,8 @@ export default function LoginPage() {
       // Simulate API call
       await new Promise((resolve) => setTimeout(resolve, 1500))
       console.log('Login attempt:', data)
-      toast.success('Login successful!')
     } catch {
-      toast.error('Login failed. Please try again.')
+      // Handle error
     } finally {
       setIsLoading(false)
     }

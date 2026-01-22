@@ -9,7 +9,6 @@ import { Card, CardContent } from './ui/card'
 import { ArrowLeft, Clock, RotateCcw } from 'lucide-react'
 import { Button } from './ui/button'
 import { Badge } from './ui/badge'
-import { toast } from 'react-toastify'
 import { Progress } from './ui/progress'
 
 // Storage key generator
@@ -83,7 +82,7 @@ export default function PlayQuizClient({ quiz }: { quiz: Quiz }) {
 
           // If time ran out while away, submit immediately
           if (adjustedTimeLeft <= 0) {
-            toast.warning('Time ran out while you were away!')
+            // Time ran out
           }
         } else {
           // Timer hadn't started yet, restore everything as-is
@@ -95,8 +94,6 @@ export default function PlayQuizClient({ quiz }: { quiz: Quiz }) {
           setTimePerQuestion(progress.timePerQuestion || {})
           setQuestionStartTime(progress.questionStartTime)
         }
-
-        toast.info('Quiz progress restored!')
       } catch {
         // Invalid saved data, start fresh
         localStorage.removeItem(storageKey)
@@ -189,7 +186,6 @@ export default function PlayQuizClient({ quiz }: { quiz: Quiz }) {
     }
 
     clearProgress()
-    toast.success('Quiz submitted! Redirecting to results...')
 
     // Redirect to results page
     router.push(`/quizzes/${quiz.id}/results`)
@@ -250,7 +246,6 @@ export default function PlayQuizClient({ quiz }: { quiz: Quiz }) {
     setTimePerQuestion({})
     setQuestionStartTime(null)
     isSubmittedRef.current = false
-    toast.info('Quiz restarted!')
   }
 
   // Format time display
