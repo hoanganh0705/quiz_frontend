@@ -6,7 +6,6 @@ import { ThemeProvider } from '@/components/theme-provider'
 import { AppSidebar } from '@/components/AppSidebar'
 import { AppHeader } from '@/components/AppHeader'
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
-import { ToastContainer } from 'react-toastify'
 import { usePathname } from 'next/navigation'
 import './globals.css'
 
@@ -38,20 +37,7 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           {isAuthPage ? (
-            <>
-              {children}
-              <ToastContainer
-                position='top-right'
-                autoClose={3000}
-                hideProgressBar={false}
-                newestOnTop={false}
-                closeOnClick
-                rtl={false}
-                pauseOnFocusLoss
-                draggable
-                pauseOnHover
-              />
-            </>
+            children
           ) : (
             <SidebarProvider>
               <AppSidebar />
@@ -61,17 +47,6 @@ export default function RootLayout({
                   {children}
                 </main>
               </SidebarInset>
-              <ToastContainer
-                position='top-right'
-                autoClose={3000}
-                hideProgressBar={false}
-                newestOnTop={false}
-                closeOnClick
-                rtl={false}
-                pauseOnFocusLoss
-                draggable
-                pauseOnHover
-              />
             </SidebarProvider>
           )}
         </ThemeProvider>

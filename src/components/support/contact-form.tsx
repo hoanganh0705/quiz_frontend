@@ -18,7 +18,6 @@ import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { toast } from 'react-toastify'
 
 // Validation schema
 const contactFormSchema = z.object({
@@ -69,7 +68,6 @@ export function ContactForm() {
     if (file) {
       // Validate file size (5MB max)
       if (file.size > 5 * 1024 * 1024) {
-        toast.error('File size must be less than 5MB')
         return
       }
       setSelectedFile(file)
@@ -85,11 +83,10 @@ export function ContactForm() {
       // Here you would send the data to your backend
       console.log('Form submitted:', { ...data, attachment: selectedFile })
 
-      toast.success('Your support request has been submitted successfully!')
       reset()
       setSelectedFile(null)
     } catch {
-      toast.error('Failed to submit request. Please try again.')
+      // Handle error
     } finally {
       setIsSubmitting(false)
     }

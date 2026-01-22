@@ -6,7 +6,6 @@ import { useState, useEffect, useMemo, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ArrowLeft, Trophy, Share2, BarChart3 } from 'lucide-react'
-import { toast } from 'react-toastify'
 
 import {
   ScoreHero,
@@ -136,7 +135,6 @@ export default function QuizResults({ quiz }: { quiz: Quiz }) {
     const url = `${window.location.origin}/quizzes/${quiz.id}`
     navigator.clipboard.writeText(url)
     setCopied(true)
-    toast.success('Link copied to clipboard!')
     setTimeout(() => setCopied(false), 2000)
   }, [quiz.id])
 
@@ -210,7 +208,10 @@ export default function QuizResults({ quiz }: { quiz: Quiz }) {
         />
 
         {/* Stats Overview */}
-        <StatsOverview result={result} avgTimePerQuestion={avgTimePerQuestion} />
+        <StatsOverview
+          result={result}
+          avgTimePerQuestion={avgTimePerQuestion}
+        />
 
         {/* Tabs Section */}
         <Tabs defaultValue='review' className='mb-8'>

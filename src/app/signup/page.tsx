@@ -11,7 +11,6 @@ import Image from 'next/image'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { toast } from 'react-toastify'
 
 const signupSchema = z
   .object({
@@ -62,9 +61,8 @@ export default function SignupPage() {
       // Simulate API call
       await new Promise((resolve) => setTimeout(resolve, 1500))
       console.log('Signup attempt:', data)
-      toast.success('Account created successfully!')
     } catch {
-      toast.error('Signup failed. Please try again.')
+      // Handle error
     } finally {
       setIsLoading(false)
     }
