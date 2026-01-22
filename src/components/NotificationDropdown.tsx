@@ -7,7 +7,8 @@ import {
   Star,
   Clock,
   Check,
-  Trash2
+  Trash2,
+  MoreHorizontal
 } from 'lucide-react'
 import {
   DropdownMenu,
@@ -141,7 +142,7 @@ export function NotificationDropdown() {
             <Bell className='h-4 w-4 text-foreground' />
           </div>
           {unreadCount > 0 && (
-            <div className='absolute -top-1 -right-1 h-3 w-3 sm:h-4 sm:w-4 rounded-full dark:bg-white bg-black text-[0.6rem] flex items-center justify-center text-white dark:text-black'>
+            <div className='absolute -top-1 -right-1 h-3 w-3 sm:h-4 sm:w-4 rounded-full dark:bg-white bg-red-600 text-[0.6rem] flex items-center justify-center text-white dark:text-black'>
               <span className='text-center leading-none' aria-hidden='true'>
                 {unreadCount}
               </span>
@@ -151,39 +152,40 @@ export function NotificationDropdown() {
       </DropdownMenuTrigger>
       <DropdownMenuContent
         align='end'
-        className='w-80 sm:w-96 p-0'
+        className='w-[calc(100vw-2rem)] sm:w-80 md:w-96 p-0 max-w-md'
         sideOffset={8}
       >
         {/* Header */}
-        <div className='flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-slate-700'>
-          <DropdownMenuLabel className='p-0 text-base font-semibold'>
+        <div className='flex items-center justify-between px-3 sm:px-4 py-2.5 sm:py-3 border-b border-gray-200 dark:border-slate-700'>
+          <DropdownMenuLabel className='p-0 text-sm sm:text-base font-semibold'>
             Notifications
           </DropdownMenuLabel>
           {unreadCount > 0 && (
             <button
               onClick={markAllAsRead}
-              className='text-xs text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 flex items-center gap-1'
+              className='text-[0.65rem] sm:text-xs text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 flex items-center gap-0.5 sm:gap-1'
             >
-              <Check className='h-3 w-3' />
-              Mark all read
+              <Check className='h-2.5 w-2.5 sm:h-3 sm:w-3' />
+              <span className='hidden xs:inline sm:inline'>Mark all read</span>
+              <span className='inline xs:hidden sm:hidden'>Mark read</span>
             </button>
           )}
         </div>
 
         {/* Notifications List */}
-        <ScrollArea className='h-[350px]'>
+        <ScrollArea className='h-[60vh] sm:h-100 max-h-125'>
           <DropdownMenuGroup>
             {notifications.length === 0 ? (
-              <div className='flex flex-col items-center justify-center py-8 text-muted-foreground'>
-                <Bell className='h-10 w-10 mb-2 opacity-50' />
-                <p className='text-sm'>No notifications yet</p>
+              <div className='flex flex-col items-center justify-center h-[60vh] sm:h-100 max-h-125 text-muted-foreground'>
+                <Bell className='h-8 w-8 sm:h-10 sm:w-10 mb-2 opacity-50' />
+                <p className='text-xs sm:text-sm'>No notifications yet</p>
               </div>
             ) : (
               notifications.map((notification) => (
                 <DropdownMenuItem
                   key={notification.id}
                   className={cn(
-                    'flex items-start gap-3 px-4 py-3 cursor-pointer focus:bg-muted/50 rounded-none border-b border-gray-100 dark:border-slate-800 last:border-b-0',
+                    'flex items-start gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 sm:py-3 cursor-pointer focus:bg-muted/50 rounded-none border-b border-gray-100 dark:border-slate-800 last:border-b-0',
                     !notification.read && 'bg-blue-50/50 dark:bg-blue-950/20'
                   )}
                   onClick={() => markAsRead(notification.id)}
@@ -191,14 +193,14 @@ export function NotificationDropdown() {
                   {/* Icon or Avatar */}
                   <div className='shrink-0 mt-0.5'>
                     {notification.avatar ? (
-                      <Avatar className='h-8 w-8'>
+                      <Avatar className='h-7 w-7 sm:h-8 sm:w-8'>
                         <AvatarImage src={notification.avatar} />
-                        <AvatarFallback className='text-xs'>
+                        <AvatarFallback className='text-[0.65rem] sm:text-xs'>
                           {notification.avatarFallback}
                         </AvatarFallback>
                       </Avatar>
                     ) : (
-                      <div className='h-8 w-8 rounded-full bg-muted flex items-center justify-center'>
+                      <div className='h-7 w-7 sm:h-8 sm:w-8 rounded-full bg-muted flex items-center justify-center'>
                         {getNotificationIcon(notification.type)}
                       </div>
                     )}
@@ -206,10 +208,10 @@ export function NotificationDropdown() {
 
                   {/* Content */}
                   <div className='flex-1 min-w-0'>
-                    <div className='flex items-center gap-2'>
+                    <div className='flex items-center gap-1.5 sm:gap-2'>
                       <p
                         className={cn(
-                          'text-sm truncate',
+                          'text-xs sm:text-sm truncate',
                           !notification.read
                             ? 'font-semibold text-foreground'
                             : 'font-medium text-foreground/80'
@@ -218,25 +220,38 @@ export function NotificationDropdown() {
                         {notification.title}
                       </p>
                       {!notification.read && (
-                        <span className='h-2 w-2 rounded-full bg-blue-500 shrink-0' />
+                        <span className='h-1.5 w-1.5 sm:h-2 sm:w-2 rounded-full bg-blue-500 shrink-0' />
                       )}
                     </div>
-                    <p className='text-xs text-muted-foreground line-clamp-2 mt-0.5'>
+                    <p className='text-[0.65rem] sm:text-xs text-muted-foreground line-clamp-2 mt-0.5'>
                       {notification.description}
                     </p>
-                    <p className='text-xs text-muted-foreground/70 mt-1'>
+                    <p className='text-[0.65rem] sm:text-xs text-muted-foreground/70 mt-0.5 sm:mt-1'>
                       {notification.time}
                     </p>
                   </div>
 
-                  {/* Delete button */}
-                  <button
-                    onClick={(e) => deleteNotification(notification.id, e)}
-                    className='shrink-0 p-1 hover:bg-destructive/10 rounded transition-colors opacity-0 group-hover:opacity-100 hover:opacity-100'
-                    aria-label='Delete notification'
-                  >
-                    <Trash2 className='h-3.5 w-3.5 text-muted-foreground hover:text-destructive' />
-                  </button>
+                  {/* Three-dot menu */}
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <button
+                        onClick={(e) => e.stopPropagation()}
+                        className='shrink-0 p-0.5 sm:p-1 hover:bg-muted rounded-md transition-colors'
+                        aria-label='More options'
+                      >
+                        <MoreHorizontal className='h-3 w-3 sm:h-3.5 sm:w-3.5 text-muted-foreground' />
+                      </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align='end' className='w-32 '>
+                      <DropdownMenuItem
+                        onClick={(e) => deleteNotification(notification.id, e)}
+                        className='text-xs flex items-center justify-between cursor-pointer text-primary hover:bg-primary focus:text-primary focus:bg-[rgba(154,141,141,0.1)]'
+                      >
+                        Delete
+                        <Trash2 className='h-2 w-2' />
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </DropdownMenuItem>
               ))
             )}
@@ -245,11 +260,13 @@ export function NotificationDropdown() {
 
         {/* Footer */}
         <DropdownMenuSeparator className='m-0' />
-        <div className='p-2'>
-          <button className='w-full text-center text-sm text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 py-2 hover:bg-muted/50 rounded-md transition-colors'>
-            View all notifications
-          </button>
-        </div>
+        {notifications.length !== 0 && (
+          <div className='p-1.5 sm:p-2'>
+            <button className='w-full text-center text-xs sm:text-sm text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 py-1.5 sm:py-2 hover:bg-muted/50 rounded-md transition-colors'>
+              View all notifications
+            </button>
+          </div>
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   )

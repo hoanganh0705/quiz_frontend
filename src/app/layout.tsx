@@ -1,11 +1,10 @@
 'use client'
 
 import type React from 'react'
-import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import { ThemeProvider } from '@/components/theme-provider'
-import { AppSidebar } from '@/components/app-sidebar'
-import { AppHeader } from '@/components/app-header'
+import { AppSidebar } from '@/components/AppSidebar'
+import { AppHeader } from '@/components/AppHeader'
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
 import { ToastContainer } from 'react-toastify'
 import { usePathname } from 'next/navigation'

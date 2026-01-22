@@ -17,15 +17,6 @@ Your `PlayQuizClient` shows quiz-taking but lacks a proper results screen:
 - [ ] Share results on social media
 - [ ] "Play Again" or "Try Similar Quiz" buttons
 
-### 2. Notifications Dropdown/Page
-
-You have a notification bell icon showing "3" but no actual notification panel:
-
-- [ ] Real-time notification dropdown
-- [ ] Notification types (quiz invites, friend requests, achievements)
-- [ ] Mark as read/unread functionality
-- [ ] Notification settings page
-
 ---
 
 ## 🌟 MEDIUM PRIORITY - Enhanced UX Features
