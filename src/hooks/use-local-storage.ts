@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useCallback, useRef } from 'react'
 
 /**
  * Custom hook for managing localStorage with automatic serialization/deserialization
@@ -10,6 +10,9 @@ export function useLocalStorage<T>(
   key: string,
   initialValue: T
 ): [T, (value: T | ((prev: T) => T)) => void, () => void] {
+  // Use ref to track current value without causing re-renders in callbacks
+  const initialValueRef = useRef(initialValue)
+
   // State to store our value
   // Pass initial state function to useState so logic is only executed once
   const [storedValue, setStoredValue] = useState<T>(() => {
@@ -31,33 +34,35 @@ export function useLocalStorage<T>(
   const setValue = useCallback(
     (value: T | ((prev: T) => T)) => {
       try {
-        // Allow value to be a function so we have same API as useState
-        const valueToStore =
-          value instanceof Function ? value(storedValue) : value
+        setStoredValue((prevValue) => {
+          // Allow value to be a function so we have same API as useState
+          const valueToStore =
+            value instanceof Function ? value(prevValue) : value
 
-        setStoredValue(valueToStore)
+          if (typeof window !== 'undefined') {
+            window.localStorage.setItem(key, JSON.stringify(valueToStore))
+          }
 
-        if (typeof window !== 'undefined') {
-          window.localStorage.setItem(key, JSON.stringify(valueToStore))
-        }
+          return valueToStore
+        })
       } catch (error) {
         console.error(`Error setting localStorage key "${key}":`, error)
       }
     },
-    [key, storedValue]
+    [key]
   )
 
   // Remove the item from localStorage
   const removeValue = useCallback(() => {
     try {
-      setStoredValue(initialValue)
+      setStoredValue(initialValueRef.current)
       if (typeof window !== 'undefined') {
         window.localStorage.removeItem(key)
       }
     } catch (error) {
       console.error(`Error removing localStorage key "${key}":`, error)
     }
-  }, [key, initialValue])
+  }, [key])
 
   return [storedValue, setValue, removeValue]
 }

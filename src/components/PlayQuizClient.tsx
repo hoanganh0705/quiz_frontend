@@ -309,8 +309,8 @@ export default function PlayQuizClient({ quiz }: { quiz: Quiz }) {
           </div>
           <div className='flex items-center gap-2 bg-background px-3 py-2 rounded-full border border-gray-300 dark:border-slate-700'>
             <Clock className='w-4 h-4 text-foreground' />
-            <span className='text-foreground font-mono text-sm'>
-              {timerStarted ? formatTime(timeLeft) : formatTime(quiz.duration)}
+            <span className='text-foreground font-mono text-sm font-semibold'>
+              {formatTime(timeLeft)}
             </span>
           </div>
         </div>
@@ -349,29 +349,44 @@ export default function PlayQuizClient({ quiz }: { quiz: Quiz }) {
                 </h2>
 
                 <div className='space-y-3'>
-                  {currentQ.answers.map((answer) => (
-                    <Button
-                      key={answer.label}
-                      variant={
-                        answers[currentQuestion] === answer.value
-                          ? 'default'
-                          : 'outline'
-                      }
-                      className='w-full justify-start text-left h-auto p-4 bg-background border border-gray-300 dark:border-slate-700 dark:hover:bg-slate-600 hover:bg-gray-200 text-foreground'
-                      onClick={() => handleAnswer(answer.value)}
-                    >
-                      <span className='bg-background text-foreground rounded-full w-8 h-8 flex items-center justify-center text-sm font-medium mr-4 shrink-0'>
-                        {answer.label}
-                      </span>
-                      <span>{answer.value}</span>
-                    </Button>
-                  ))}
+                  {currentQ.answers.map((answer) => {
+                    const isSelected = answers[currentQuestion] === answer.value
+                    return (
+                      <Button
+                        key={answer.label}
+                        variant={isSelected ? 'default' : 'outline'}
+                        className={`w-full justify-start text-left h-auto p-4 ${
+                          isSelected
+                            ? 'bg-default dark:bg-white text-white dark:text-black border-primary'
+                            : 'border-gray-300 dark:border-slate-700 dark:hover:bg-slate-600 hover:bg-gray-200 text-foreground'
+                        }`}
+                        onClick={() => handleAnswer(answer.value)}
+                      >
+                        <span
+                          className={`rounded-full w-8 h-8 flex items-center justify-center text-sm font-medium mr-4 shrink-0 ${
+                            isSelected
+                              ? 'dark:bg-gray-600 bg-gray-200 text-primary'
+                              : 'bg-muted text-foreground'
+                          }`}
+                        >
+                          {answer.label}
+                        </span>
+                        <span>{answer.value}</span>
+                      </Button>
+                    )
+                  })}
                   <div className='flex justify-between'>
-                    <Button onClick={handlePreviousQuestion}>Previous</Button>
+                    <Button
+                      onClick={handlePreviousQuestion}
+                      className='text-white'
+                    >
+                      Previous
+                    </Button>
                     <Button
                       onClick={
                         isLastQuestion ? handleSubmit : handleNextQuestion
                       }
+                      className='text-white'
                     >
                       {isLastQuestion ? 'Submit' : 'Next'}
                     </Button>

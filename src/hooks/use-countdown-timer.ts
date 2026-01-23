@@ -22,18 +22,25 @@ export function useCountdownTimer({
     autoStart ? Date.now() : null
   )
   const completedRef = useRef(false)
+  const onCompleteRef = useRef(onComplete)
 
-  // Timer effect
+  // Keep onComplete ref updated
   useEffect(() => {
-    if (!isRunning || timeLeft <= 0) return
+    onCompleteRef.current = onComplete
+  }, [onComplete])
+
+  // Timer effect - only depends on isRunning
+  useEffect(() => {
+    if (!isRunning) return
 
     const timer = setInterval(() => {
       setTimeLeft((prev) => {
         if (prev <= 1) {
           setIsRunning(false)
-          if (onComplete && !completedRef.current) {
+          if (onCompleteRef.current && !completedRef.current) {
             completedRef.current = true
-            onComplete()
+            // Use setTimeout to avoid calling during render
+            setTimeout(() => onCompleteRef.current?.(), 0)
           }
           return 0
         }
@@ -42,15 +49,13 @@ export function useCountdownTimer({
     }, 1000)
 
     return () => clearInterval(timer)
-  }, [isRunning, timeLeft, onComplete])
+  }, [isRunning])
 
   const start = useCallback(() => {
-    if (!isRunning && timeLeft > 0) {
-      setIsRunning(true)
-      setStartedAt(Date.now())
-      completedRef.current = false
-    }
-  }, [isRunning, timeLeft])
+    setIsRunning(true)
+    setStartedAt(Date.now())
+    completedRef.current = false
+  }, [])
 
   const pause = useCallback(() => {
     setIsRunning(false)
