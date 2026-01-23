@@ -6,6 +6,7 @@ import { useState, useEffect, useMemo, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ArrowLeft, Trophy, Share2, BarChart3 } from 'lucide-react'
+import { useQuizResults, useClipboard } from '@/hooks'
 
 import {
   ScoreHero,
@@ -25,12 +26,19 @@ import {
 } from '@/components/quiz-results'
 
 export default function QuizResults({ quiz }: { quiz: Quiz }) {
-  const [result, setResult] = useState<QuizResult | null>(null)
+  // Use specialized hook for quiz results with localStorage persistence
+  const { results, setResults, clearResults } = useQuizResults<QuizResult>(
+    quiz.id,
+    null
+  )
+
+  // Use custom hook for clipboard with copy state
+  const { copied, copy } = useClipboard()
+
   const [isLoaded, setIsLoaded] = useState(false)
   const [expandedQuestions, setExpandedQuestions] = useState<Set<number>>(
     new Set()
   )
-  const [copied, setCopied] = useState(false)
 
   // Generate mock results for demo
   const generateMockResults = useCallback(() => {
@@ -57,53 +65,42 @@ export default function QuizResults({ quiz }: { quiz: Quiz }) {
       timePerQuestion: mockTimePerQuestion
     }
 
-    setResult(mockResult)
-  }, [quiz.questions])
+    setResults(mockResult)
+  }, [quiz.questions, setResults])
 
-  // Load results from localStorage
+  // Load results - useQuizResults automatically handles persistence
   useEffect(() => {
-    const resultsKey = getResultsKey(quiz.id)
-    const savedResults = localStorage.getItem(resultsKey)
-
-    if (savedResults) {
-      try {
-        const parsedResults: QuizResult = JSON.parse(savedResults)
-        setResult(parsedResults)
-      } catch {
-        generateMockResults()
-      }
-    } else {
+    if (!results) {
       generateMockResults()
     }
-
     setIsLoaded(true)
-  }, [quiz.id, generateMockResults])
+  }, [results, generateMockResults])
 
   // Computed values
   const questionReviews: QuestionReview[] = useMemo(() => {
-    if (!result) return []
+    if (!results) return []
 
     return quiz.questions.map((q, index) => ({
       questionIndex: index,
       question: q.question,
       image: q.image,
-      userAnswer: result.answers[index] || null,
+      userAnswer: results.answers[index] || null,
       correctAnswer: q.correctAnswer,
-      isCorrect: result.answers[index] === q.correctAnswer,
-      timeTaken: result.timePerQuestion[index] || 0,
+      isCorrect: results.answers[index] === q.correctAnswer,
+      timeTaken: results.timePerQuestion[index] || 0,
       answers: q.answers
     }))
-  }, [quiz.questions, result])
+  }, [quiz.questions, results])
 
   const avgTimePerQuestion = useMemo(() => {
-    if (!result) return 0
-    return calculateAvgTime(result.timePerQuestion)
-  }, [result])
+    if (!results) return 0
+    return calculateAvgTime(results.timePerQuestion)
+  }, [results])
 
   const percentile = useMemo(() => {
-    if (!result) return 0
-    return calculatePercentile(result.score)
-  }, [result])
+    if (!results) return 0
+    return calculatePercentile(results.score)
+  }, [results])
 
   // Event handlers
   const toggleQuestion = useCallback((index: number) => {
@@ -127,21 +124,21 @@ export default function QuizResults({ quiz }: { quiz: Quiz }) {
   }, [])
 
   const handlePlayAgain = useCallback(() => {
-    localStorage.removeItem(getStorageKey(quiz.id))
-    localStorage.removeItem(getResultsKey(quiz.id))
-  }, [quiz.id])
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem(getStorageKey(quiz.id))
+    }
+    clearResults()
+  }, [quiz.id, clearResults])
 
   const handleCopyLink = useCallback(() => {
     const url = `${window.location.origin}/quizzes/${quiz.id}`
-    navigator.clipboard.writeText(url)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
-  }, [quiz.id])
+    copy(url)
+  }, [quiz.id, copy])
 
   const handleShare = useCallback(
     (platform: string) => {
       const url = `${window.location.origin}/quizzes/${quiz.id}`
-      const text = `I scored ${result?.score}% on "${quiz.title}"! Can you beat my score?`
+      const text = `I scored ${results?.score}% on "${quiz.title}"! Can you beat my score?`
 
       const shareUrls: Record<string, string> = {
         twitter: `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`,
@@ -151,7 +148,7 @@ export default function QuizResults({ quiz }: { quiz: Quiz }) {
 
       window.open(shareUrls[platform], '_blank', 'width=600,height=400')
     },
-    [quiz.id, quiz.title, result?.score]
+    [quiz.id, quiz.title, results?.score]
   )
 
   // Loading state
@@ -164,7 +161,7 @@ export default function QuizResults({ quiz }: { quiz: Quiz }) {
   }
 
   // No results state
-  if (!result) {
+  if (!results) {
     return (
       <div className='min-h-screen bg-background flex items-center justify-center'>
         <div className='text-center'>
@@ -202,14 +199,14 @@ export default function QuizResults({ quiz }: { quiz: Quiz }) {
         {/* Score Hero Section */}
         <ScoreHero
           quiz={quiz}
-          result={result}
+          result={results}
           percentile={percentile}
           onPlayAgain={handlePlayAgain}
         />
 
         {/* Stats Overview */}
         <StatsOverview
-          result={result}
+          result={results}
           avgTimePerQuestion={avgTimePerQuestion}
         />
 
@@ -243,7 +240,7 @@ export default function QuizResults({ quiz }: { quiz: Quiz }) {
           <TabsContent value='leaderboard'>
             <LeaderboardTab
               quiz={quiz}
-              result={result}
+              result={results}
               formatTime={formatTime}
             />
           </TabsContent>
@@ -251,7 +248,7 @@ export default function QuizResults({ quiz }: { quiz: Quiz }) {
           <TabsContent value='share'>
             <ShareResultsTab
               quiz={quiz}
-              result={result}
+              result={results}
               copied={copied}
               onCopyLink={handleCopyLink}
               onShare={handleShare}

@@ -18,6 +18,7 @@ import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
+import { useAsyncAction } from '@/hooks'
 
 // Validation schema
 const contactFormSchema = z.object({
@@ -41,7 +42,6 @@ type ContactFormData = z.infer<typeof contactFormSchema>
 
 export function ContactForm() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
-  const [isSubmitting, setIsSubmitting] = useState(false)
 
   const {
     register,
@@ -74,9 +74,8 @@ export function ContactForm() {
     }
   }
 
-  const onSubmit = async (data: ContactFormData) => {
-    setIsSubmitting(true)
-    try {
+  const { execute: onSubmit, isLoading: isSubmitting } = useAsyncAction(
+    async (data: ContactFormData) => {
       // Simulate API call
       await new Promise((resolve) => setTimeout(resolve, 1500))
 
@@ -85,12 +84,8 @@ export function ContactForm() {
 
       reset()
       setSelectedFile(null)
-    } catch {
-      // Handle error
-    } finally {
-      setIsSubmitting(false)
     }
-  }
+  )
 
   return (
     <div className='space-y-8 bg-transparent border border-gray-300 dark:border-slate-700 rounded-lg p-8'>

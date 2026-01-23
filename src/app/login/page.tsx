@@ -1,6 +1,5 @@
 'use client'
 
-import { useState } from 'react'
 import { Eye, EyeOff } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -11,6 +10,7 @@ import Image from 'next/image'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
+import { useToggle, useAsyncAction } from '@/hooks'
 
 const loginSchema = z.object({
   firstName: z.string().min(1, 'First name is required'),
@@ -26,8 +26,7 @@ const loginSchema = z.object({
 type LoginFormData = z.infer<typeof loginSchema>
 
 export default function LoginPage() {
-  const [showPassword, setShowPassword] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
+  const [showPassword, toggleShowPassword] = useToggle(false)
 
   const {
     register,
@@ -45,18 +44,13 @@ export default function LoginPage() {
     }
   })
 
-  const onSubmit = async (data: LoginFormData) => {
-    setIsLoading(true)
-    try {
+  const { execute: onSubmit, isLoading } = useAsyncAction(
+    async (data: LoginFormData) => {
       // Simulate API call
       await new Promise((resolve) => setTimeout(resolve, 1500))
       console.log('Login attempt:', data)
-    } catch {
-      // Handle error
-    } finally {
-      setIsLoading(false)
     }
-  }
+  )
 
   const handleSocialLogin = (provider: string) => {
     console.log(`Login with ${provider}`)
@@ -134,7 +128,7 @@ export default function LoginPage() {
                   />
                   <button
                     type='button'
-                    onClick={() => setShowPassword(!showPassword)}
+                    onClick={toggleShowPassword}
                     className='absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors'
                     aria-label={
                       showPassword ? 'Hide password' : 'Show password'

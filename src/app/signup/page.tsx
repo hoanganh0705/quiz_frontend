@@ -1,6 +1,5 @@
 'use client'
 
-import { useState } from 'react'
 import { Eye, EyeOff } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -11,6 +10,7 @@ import Image from 'next/image'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
+import { useToggle, useAsyncAction } from '@/hooks'
 
 const signupSchema = z
   .object({
@@ -34,9 +34,8 @@ const signupSchema = z
 type SignupFormData = z.infer<typeof signupSchema>
 
 export default function SignupPage() {
-  const [showPassword, setShowPassword] = useState(false)
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
+  const [showPassword, toggleShowPassword] = useToggle(false)
+  const [showConfirmPassword, toggleShowConfirmPassword] = useToggle(false)
 
   const {
     register,
@@ -55,18 +54,13 @@ export default function SignupPage() {
     }
   })
 
-  const onSubmit = async (data: SignupFormData) => {
-    setIsLoading(true)
-    try {
+  const { execute: onSubmit, isLoading } = useAsyncAction(
+    async (data: SignupFormData) => {
       // Simulate API call
       await new Promise((resolve) => setTimeout(resolve, 1500))
       console.log('Signup attempt:', data)
-    } catch {
-      // Handle error
-    } finally {
-      setIsLoading(false)
     }
-  }
+  )
 
   const handleSocialSignup = (provider: string) => {
     console.log(`Sign up with ${provider}`)
@@ -178,7 +172,7 @@ export default function SignupPage() {
                   />
                   <button
                     type='button'
-                    onClick={() => setShowPassword(!showPassword)}
+                    onClick={toggleShowPassword}
                     className='absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors'
                     aria-label={
                       showPassword ? 'Hide password' : 'Show password'
@@ -211,7 +205,7 @@ export default function SignupPage() {
                   />
                   <button
                     type='button'
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    onClick={toggleShowConfirmPassword}
                     className='absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors'
                     aria-label={
                       showConfirmPassword ? 'Hide password' : 'Show password'
