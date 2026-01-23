@@ -26,28 +26,23 @@ export default function ScoreHero({
             <div className='w-48 h-48 rounded-full bg-background border-8 border-default/30 flex items-center justify-center'>
               <div className='text-center'>
                 <span
-                  className={`text-6xl font-bold ${getScoreColor(result.score)}`}
+                  className={`text-3xl font-bold ${getScoreColor(result.score)}`}
                 >
                   {result.score}%
                 </span>
-                <div className='text-2xl font-semibold text-foreground/70'>
+                <div className='text-xl font-semibold text-foreground/70'>
                   Grade: {getScoreGrade(result.score)}
                 </div>
-              </div>
-            </div>
-            <div className='absolute -top-2 -right-2'>
-              <div className='bg-default text-white rounded-full p-3'>
-                <Trophy className='w-6 h-6' />
               </div>
             </div>
           </div>
 
           {/* Score Info */}
           <div className='flex-1 text-center lg:text-left'>
-            <h1 className='text-3xl md:text-4xl font-bold mb-2'>
+            <h1 className='text-2xl md:text-3xl font-bold mb-2'>
               {quiz.title}
             </h1>
-            <p className='text-xl text-foreground/70 mb-4'>
+            <p className='text-base text-foreground/70 mb-4'>
               {getScoreMessage(result.score)}
             </p>
 
@@ -77,7 +72,7 @@ export default function ScoreHero({
 
             {/* Action Buttons */}
             <div className='flex flex-wrap gap-3 justify-center lg:justify-start'>
-              <Button asChild onClick={onPlayAgain}>
+              <Button asChild onClick={onPlayAgain} className='text-white'>
                 <Link href={`/quizzes/${quiz.id}/start`}>
                   <RotateCcw className='w-4 h-4 mr-2' />
                   Play Again

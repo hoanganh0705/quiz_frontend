@@ -19,7 +19,6 @@ import {
   QuizResult,
   QuestionReview,
   getStorageKey,
-  getResultsKey,
   formatTime,
   calculatePercentile,
   calculateAvgTime
@@ -213,16 +212,25 @@ export default function QuizResults({ quiz }: { quiz: Quiz }) {
         {/* Tabs Section */}
         <Tabs defaultValue='review' className='mb-8'>
           <TabsList className='grid w-full grid-cols-3 mb-6'>
-            <TabsTrigger value='review'>
-              <BarChart3 className='w-4 h-4 mr-2' />
+            <TabsTrigger
+              value='review'
+              className=' text-sm font-semibold dark:data-[state=active]:bg-default dark:dark:data-[state=active]:text-white data-[state=active]:bg-background text-foreground/70 data-[state=active]:text-foreground transition-transform'
+            >
+              <BarChart3 className='w-4 h-4 mr-2 ' />
               Answer Review
             </TabsTrigger>
-            <TabsTrigger value='leaderboard'>
-              <Trophy className='w-4 h-4 mr-2' />
+            <TabsTrigger
+              value='leaderboard'
+              className=' text-sm font-semibold dark:data-[state=active]:bg-default dark:dark:data-[state=active]:text-white data-[state=active]:bg-background text-foreground/70 data-[state=active]:text-foreground transition-transform'
+            >
+              <Trophy className='w-4 h-4 mr-2 ' />
               Leaderboard
             </TabsTrigger>
-            <TabsTrigger value='share'>
-              <Share2 className='w-4 h-4 mr-2' />
+            <TabsTrigger
+              value='share'
+              className=' text-sm font-semibold dark:data-[state=active]:bg-default dark:dark:data-[state=active]:text-white data-[state=active]:bg-background text-foreground/70 data-[state=active]:text-foreground transition-transform'
+            >
+              <Share2 className='w-4 h-4 mr-2 ' />
               Share Results
             </TabsTrigger>
           </TabsList>
@@ -234,6 +242,7 @@ export default function QuizResults({ quiz }: { quiz: Quiz }) {
               onToggleQuestion={toggleQuestion}
               onExpandAll={expandAll}
               onCollapseAll={collapseAll}
+              avgTimePerQuestion={avgTimePerQuestion}
             />
           </TabsContent>
 
@@ -256,12 +265,6 @@ export default function QuizResults({ quiz }: { quiz: Quiz }) {
             />
           </TabsContent>
         </Tabs>
-
-        {/* Time Analysis */}
-        <TimeAnalysis
-          questionReviews={questionReviews}
-          avgTimePerQuestion={avgTimePerQuestion}
-        />
 
         {/* Bottom Actions */}
         <BottomActions quizId={quiz.id} onPlayAgain={handlePlayAgain} />

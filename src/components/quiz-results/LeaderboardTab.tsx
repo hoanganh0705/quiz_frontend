@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { LeaderboardTabProps } from '@/types/quizResults'
+import { LeaderboardTabProps, LeaderboardItemProps } from '@/types/quizResults'
+import { getRankStyle } from '@/lib/quizResultsUtils'
 
 export default function LeaderboardTab({
   quiz,
@@ -8,7 +9,7 @@ export default function LeaderboardTab({
   formatTime
 }: LeaderboardTabProps) {
   return (
-    <Card>
+    <Card className='py-6'>
       <CardHeader>
         <CardTitle>Quiz Leaderboard</CardTitle>
       </CardHeader>
@@ -23,7 +24,7 @@ export default function LeaderboardTab({
         <div className='mt-6 p-4 bg-default/10 rounded-lg border border-default/30'>
           <div className='flex items-center justify-between'>
             <div className='flex items-center gap-4'>
-              <div className='w-8 h-8 rounded-full bg-default flex items-center justify-center font-bold text-white'>
+              <div className='w-8 h-8 rounded-full bg-default flex items-center justify-center font-bold text-xs text-white'>
                 #{Math.floor(Math.random() * 50) + 1}
               </div>
               <div>
@@ -46,26 +47,7 @@ export default function LeaderboardTab({
   )
 }
 
-interface LeaderboardItemProps {
-  player: {
-    userId: number
-    username: string
-    score: number | string
-    completedAt: string
-    avatar?: string
-    time: string
-  }
-  rank: number
-}
-
 function LeaderboardItem({ player, rank }: LeaderboardItemProps) {
-  const getRankStyle = (index: number) => {
-    if (index === 0) return 'bg-yellow-500 text-yellow-900'
-    if (index === 1) return 'bg-gray-300 text-gray-700'
-    if (index === 2) return 'bg-amber-600 text-amber-100'
-    return 'bg-foreground/10 text-foreground'
-  }
-
   return (
     <div
       className={`flex items-center gap-4 p-3 rounded-lg ${
@@ -75,7 +57,7 @@ function LeaderboardItem({ player, rank }: LeaderboardItemProps) {
       }`}
     >
       <div
-        className={`w-8 h-8 rounded-full flex items-center justify-center font-bold ${getRankStyle(rank)}`}
+        className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs ${getRankStyle(rank)}`}
       >
         {rank + 1}
       </div>
