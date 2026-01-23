@@ -10,6 +10,7 @@ import { ArrowLeft, Clock, RotateCcw } from 'lucide-react'
 import { Button } from './ui/button'
 import { Badge } from './ui/badge'
 import { Progress } from './ui/progress'
+import { useLocalStorage, useCountdownTimer } from '@/hooks'
 
 // Storage key generator
 const getStorageKey = (quizId: string) => `quiz_progress_${quizId}`
@@ -39,76 +40,77 @@ interface QuizResult {
 
 export default function PlayQuizClient({ quiz }: { quiz: Quiz }) {
   const router = useRouter()
-  const [isLoaded, setIsLoaded] = useState(false)
-  const [currentQuestion, setCurrentQuestion] = useState(0)
-  const [answers, setAnswers] = useState<Record<number, string>>({})
-  const [timeLeft, setTimeLeft] = useState(quiz.duration)
-  const [timerStarted, setTimerStarted] = useState(false)
-  const [startedAt, setStartedAt] = useState<number | null>(null)
-  const [timePerQuestion, setTimePerQuestion] = useState<
-    Record<number, number>
-  >({})
-  const [questionStartTime, setQuestionStartTime] = useState<number | null>(
-    null
-  )
   const isSubmittedRef = useRef(false)
 
-  // Load saved progress from localStorage
+  // Use custom hook for quiz progress with localStorage persistence
+  const [progress, setProgress, removeProgress] = useLocalStorage<QuizProgress>(
+    getStorageKey(quiz.id),
+    {
+      currentQuestion: 0,
+      answers: {},
+      timeLeft: quiz.duration,
+      timerStarted: false,
+      startedAt: null,
+      timePerQuestion: {},
+      questionStartTime: null
+    }
+  )
+
+  // Local state for individual properties (derived from progress)
+  const [isLoaded, setIsLoaded] = useState(false)
+  const [currentQuestion, setCurrentQuestion] = useState(
+    progress.currentQuestion
+  )
+  const [answers, setAnswers] = useState(progress.answers)
+  const [timePerQuestion, setTimePerQuestion] = useState(
+    progress.timePerQuestion
+  )
+  const [questionStartTime, setQuestionStartTime] = useState(
+    progress.questionStartTime
+  )
+
+  // Use custom countdown timer hook
+  const {
+    timeLeft,
+    isRunning: timerStarted,
+    start: startTimer,
+    setTime: setTimeLeft
+  } = useCountdownTimer({
+    initialTime: progress.timeLeft,
+    onComplete: () => {
+      if (!isSubmittedRef.current) {
+        handleSubmit()
+      }
+    },
+    autoStart: false
+  })
+
+  const [startedAt, setStartedAt] = useState<number | null>(progress.startedAt)
+
+  // Initialize from stored progress
   useEffect(() => {
-    const storageKey = getStorageKey(quiz.id)
-    const savedProgress = localStorage.getItem(storageKey)
+    if (progress.timerStarted && progress.startedAt) {
+      // Calculate elapsed time if timer was running
+      const elapsedSeconds = Math.floor(
+        (Date.now() - progress.startedAt) / 1000
+      )
+      const adjustedTimeLeft = Math.max(0, progress.timeLeft - elapsedSeconds)
 
-    if (savedProgress) {
-      try {
-        const progress: QuizProgress = JSON.parse(savedProgress)
+      setTimeLeft(adjustedTimeLeft)
 
-        // Calculate elapsed time if timer was running
-        if (progress.timerStarted && progress.startedAt) {
-          const elapsedSeconds = Math.floor(
-            (Date.now() - progress.startedAt) / 1000
-          )
-          const adjustedTimeLeft = Math.max(
-            0,
-            progress.timeLeft - elapsedSeconds
-          )
-
-          setCurrentQuestion(progress.currentQuestion)
-          setAnswers(progress.answers)
-          setTimeLeft(adjustedTimeLeft)
-          setTimerStarted(progress.timerStarted)
-          setStartedAt(progress.startedAt)
-          setTimePerQuestion(progress.timePerQuestion || {})
-          setQuestionStartTime(progress.questionStartTime)
-
-          // If time ran out while away, submit immediately
-          if (adjustedTimeLeft <= 0) {
-            // Time ran out
-          }
-        } else {
-          // Timer hadn't started yet, restore everything as-is
-          setCurrentQuestion(progress.currentQuestion)
-          setAnswers(progress.answers)
-          setTimeLeft(progress.timeLeft)
-          setTimerStarted(progress.timerStarted)
-          setStartedAt(progress.startedAt)
-          setTimePerQuestion(progress.timePerQuestion || {})
-          setQuestionStartTime(progress.questionStartTime)
-        }
-      } catch {
-        // Invalid saved data, start fresh
-        localStorage.removeItem(storageKey)
+      // Resume timer if there's time left
+      if (adjustedTimeLeft > 0) {
+        startTimer()
       }
     }
-
     setIsLoaded(true)
-  }, [quiz.id, quiz.duration])
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Save progress to localStorage whenever state changes
+  // Sync state changes to localStorage
   useEffect(() => {
     if (!isLoaded || isSubmittedRef.current) return
 
-    const storageKey = getStorageKey(quiz.id)
-    const progress: QuizProgress = {
+    setProgress({
       currentQuestion,
       answers,
       timeLeft,
@@ -116,11 +118,8 @@ export default function PlayQuizClient({ quiz }: { quiz: Quiz }) {
       startedAt,
       timePerQuestion,
       questionStartTime
-    }
-
-    localStorage.setItem(storageKey, JSON.stringify(progress))
+    })
   }, [
-    quiz.id,
     currentQuestion,
     answers,
     timeLeft,
@@ -128,14 +127,14 @@ export default function PlayQuizClient({ quiz }: { quiz: Quiz }) {
     startedAt,
     timePerQuestion,
     questionStartTime,
-    isLoaded
+    isLoaded,
+    setProgress
   ])
 
   const clearProgress = useCallback(() => {
-    const storageKey = getStorageKey(quiz.id)
-    localStorage.removeItem(storageKey)
+    removeProgress()
     isSubmittedRef.current = true
-  }, [quiz.id])
+  }, [removeProgress])
 
   // Track time spent on current question
   const updateQuestionTime = useCallback(() => {
@@ -201,22 +200,11 @@ export default function PlayQuizClient({ quiz }: { quiz: Quiz }) {
     timePerQuestion
   ])
 
-  // Timer effect
-  useEffect(() => {
-    if (timerStarted && timeLeft > 0) {
-      const timer = setInterval(() => {
-        setTimeLeft((prev) => prev - 1)
-      }, 1000)
-      return () => clearInterval(timer)
-    } else if (timerStarted && timeLeft <= 0) {
-      // Handle time out
-      handleSubmit()
-    }
-  }, [timerStarted, timeLeft, handleSubmit])
+  // Timer is now managed by useCountdownTimer hook
 
   const handleAnswer = (answer: string) => {
     if (!timerStarted) {
-      setTimerStarted(true)
+      startTimer()
       setStartedAt(Date.now())
       setQuestionStartTime(Date.now())
     }
@@ -241,7 +229,6 @@ export default function PlayQuizClient({ quiz }: { quiz: Quiz }) {
     setCurrentQuestion(0)
     setAnswers({})
     setTimeLeft(quiz.duration)
-    setTimerStarted(false)
     setStartedAt(null)
     setTimePerQuestion({})
     setQuestionStartTime(null)

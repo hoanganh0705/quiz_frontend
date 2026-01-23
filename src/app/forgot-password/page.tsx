@@ -8,6 +8,7 @@ import Link from 'next/link'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
+import { useAsyncAction } from '@/hooks'
 
 const forgotPasswordSchema = z.object({
   email: z.string().email('Please enter a valid email address')
@@ -16,7 +17,6 @@ const forgotPasswordSchema = z.object({
 type ForgotPasswordFormData = z.infer<typeof forgotPasswordSchema>
 
 export default function ForgotPasswordPage() {
-  const [isLoading, setIsLoading] = useState(false)
   const [isEmailSent, setIsEmailSent] = useState(false)
 
   const {
@@ -31,30 +31,20 @@ export default function ForgotPasswordPage() {
     }
   })
 
-  const onSubmit = async (data: ForgotPasswordFormData) => {
-    setIsLoading(true)
-    try {
+  const { execute: onSubmit, isLoading } = useAsyncAction(
+    async (data: ForgotPasswordFormData) => {
       // Simulate API call
       await new Promise((resolve) => setTimeout(resolve, 1500))
       console.log('Password reset request:', data)
       setIsEmailSent(true)
-    } catch {
-      // Handle error
-    } finally {
-      setIsLoading(false)
     }
-  }
+  )
 
-  const handleResendEmail = async () => {
-    setIsLoading(true)
-    try {
+  const { execute: handleResendEmail, isLoading: isResending } = useAsyncAction(
+    async () => {
       await new Promise((resolve) => setTimeout(resolve, 1500))
-    } catch {
-      // Handle error
-    } finally {
-      setIsLoading(false)
     }
-  }
+  )
 
   return (
     <div className='min-h-screen flex items-center justify-center bg-background px-8'>
@@ -171,10 +161,10 @@ export default function ForgotPasswordPage() {
                 <button
                   type='button'
                   onClick={handleResendEmail}
-                  disabled={isLoading}
+                  disabled={isResending}
                   className='text-foreground hover:text-muted-foreground font-semibold transition-colors underline disabled:opacity-50'
                 >
-                  {isLoading ? 'Resending...' : 'Click to resend'}
+                  {isResending ? 'Resending...' : 'Click to resend'}
                 </button>
               </p>
             </div>
