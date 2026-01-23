@@ -28,6 +28,5 @@ export default async function QuizResultsPage({
       </div>
     )
   }
-
   return <QuizResults quiz={quiz} />
 }
