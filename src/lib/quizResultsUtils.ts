@@ -36,6 +36,14 @@ export const getScoreGrade = (score: number) => {
   return 'F'
 }
 
+// Get rank style for leaderboard
+export const getRankStyle = (index: number) => {
+  if (index === 0) return 'bg-yellow-500 text-yellow-900'
+  if (index === 1) return 'bg-gray-300 text-gray-700'
+  if (index === 2) return 'bg-amber-600 text-amber-100'
+  return 'bg-foreground/10 text-foreground'
+}
+
 // Calculate percentile (mock)
 export const calculatePercentile = (score: number) => {
   return Math.min(99, Math.max(1, Math.round(score * 0.95 + 5)))

@@ -8,17 +8,22 @@ import {
   ChevronDown,
   ChevronUp
 } from 'lucide-react'
-import { AnswerReviewTabProps } from '@/types/quizResults'
+import {
+  AnswerReviewTabProps,
+  QuestionReviewItemProps
+} from '@/types/quizResults'
+import TimeAnalysis from './TimeAnalysis'
 
 export default function AnswerReviewTab({
   questionReviews,
   expandedQuestions,
   onToggleQuestion,
   onExpandAll,
-  onCollapseAll
+  onCollapseAll,
+  avgTimePerQuestion
 }: AnswerReviewTabProps) {
   return (
-    <Card>
+    <Card className='py-6'>
       <CardHeader className='flex flex-row items-center justify-between'>
         <CardTitle>Question by Question Review</CardTitle>
         <div className='flex gap-2'>
@@ -41,23 +46,14 @@ export default function AnswerReviewTab({
           />
         ))}
       </CardContent>
+
+      {/* Time Analysis */}
+      <TimeAnalysis
+        questionReviews={questionReviews}
+        avgTimePerQuestion={avgTimePerQuestion}
+      />
     </Card>
   )
-}
-
-interface QuestionReviewItemProps {
-  review: {
-    question: string
-    image: string
-    userAnswer: string | null
-    correctAnswer: string
-    isCorrect: boolean
-    timeTaken: number
-    answers: { label: string; value: string }[]
-  }
-  index: number
-  isExpanded: boolean
-  onToggle: () => void
 }
 
 function QuestionReviewItem({

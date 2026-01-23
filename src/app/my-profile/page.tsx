@@ -138,31 +138,31 @@ export default function MyProfilePage() {
               <TabsList className='bg-main border border-border w-full justify-start'>
                 <TabsTrigger
                   value='overview'
-                  className='data-[state=active]:text-white text-sm'
+                  className=' text-sm font-semibold dark:data-[state=active]:bg-default dark:dark:data-[state=active]:text-white data-[state=active]:bg-background text-foreground/70 data-[state=active]:text-foreground transition-transform'
                 >
                   Overview
                 </TabsTrigger>
                 <TabsTrigger
                   value='activity'
-                  className='data-[state=active]:text-white text-sm'
+                  className=' text-sm font-semibold dark:data-[state=active]:bg-default dark:dark:data-[state=active]:text-white data-[state=active]:bg-background text-foreground/70 data-[state=active]:text-foreground transition-transform'
                 >
                   Activity
                 </TabsTrigger>
                 <TabsTrigger
                   value='quizzes'
-                  className='data-[state=active]:text-white text-sm'
+                  className=' text-sm font-semibold dark:data-[state=active]:bg-default dark:dark:data-[state=active]:text-white data-[state=active]:bg-background text-foreground/70 data-[state=active]:text-foreground transition-transform'
                 >
                   My Quizzes
                 </TabsTrigger>
                 <TabsTrigger
                   value='achievements'
-                  className='data-[state=active]:text-white text-sm'
+                  className=' text-sm font-semibold dark:data-[state=active]:bg-default dark:dark:data-[state=active]:text-white data-[state=active]:bg-background text-foreground/70 data-[state=active]:text-foreground transition-transform'
                 >
                   Achievements
                 </TabsTrigger>
                 <TabsTrigger
                   value='stats'
-                  className='data-[state=active]:text-white text-sm'
+                  className=' text-sm font-semibold dark:data-[state=active]:bg-default dark:dark:data-[state=active]:text-white data-[state=active]:bg-background text-foreground/70 data-[state=active]:text-foreground transition-transform'
                 >
                   Statistics
                 </TabsTrigger>

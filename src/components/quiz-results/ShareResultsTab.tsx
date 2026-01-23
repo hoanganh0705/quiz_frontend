@@ -1,7 +1,12 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Trophy, Twitter, Facebook, Linkedin, Copy, Check } from 'lucide-react'
-import { ShareResultsTabProps } from '@/types/quizResults'
+import {
+  ShareResultsTabProps,
+  SharePreviewProps,
+  ShareButtonsProps,
+  ChallengeFriendsProps
+} from '@/types/quizResults'
 
 export default function ShareResultsTab({
   quiz,
@@ -12,7 +17,7 @@ export default function ShareResultsTab({
   formatTime
 }: ShareResultsTabProps) {
   return (
-    <Card>
+    <Card className='py-6'>
       <CardHeader>
         <CardTitle>Share Your Results</CardTitle>
       </CardHeader>
@@ -38,12 +43,6 @@ export default function ShareResultsTab({
   )
 }
 
-interface SharePreviewProps {
-  quiz: { title: string; questions: { id: number }[] }
-  result: { score: number; correctCount: number; timeTaken: number }
-  formatTime: (seconds: number) => string
-}
-
 function SharePreview({ quiz, result, formatTime }: SharePreviewProps) {
   return (
     <div className='bg-linear-to-br from-default to-default/80 rounded-xl p-6 text-white mb-6'>
@@ -60,12 +59,6 @@ function SharePreview({ quiz, result, formatTime }: SharePreviewProps) {
       </div>
     </div>
   )
-}
-
-interface ShareButtonsProps {
-  copied: boolean
-  onCopyLink: () => void
-  onShare: (platform: string) => void
 }
 
 function ShareButtons({ copied, onCopyLink, onShare }: ShareButtonsProps) {
@@ -109,12 +102,6 @@ function ShareButtons({ copied, onCopyLink, onShare }: ShareButtonsProps) {
       </Button>
     </div>
   )
-}
-
-interface ChallengeFriendsProps {
-  quizId: string
-  copied: boolean
-  onCopyLink: () => void
 }
 
 function ChallengeFriends({
