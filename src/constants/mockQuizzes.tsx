@@ -6,7 +6,7 @@ export const quizzes: Quiz[] = [
     title: 'Basic Math Quiz',
     description:
       'Test your math knowledge with questions on algebra and geometry.',
-    duration: 60,
+    duration: 600,
     questionCount: 20,
     difficulty: 'Easy',
     image: '/placeholder.webp',
