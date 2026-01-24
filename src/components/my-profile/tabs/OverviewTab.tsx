@@ -47,9 +47,8 @@ export function OverviewTab({
     <div className='space-y-6 mt-6'>
       {/* Level Progress */}
       <Card className='bg-main p-4'>
-        <CardHeader className='pb-2'>
-          <CardTitle className='text-base flex items-center gap-2'>
-            <Star className='w-4 h-4 text-amber-500' />
+        <CardHeader className=''>
+          <CardTitle className='text-base flex items-center'>
             Level Progress
           </CardTitle>
         </CardHeader>
@@ -73,27 +72,23 @@ export function OverviewTab({
 
       {/* Recent Activity */}
       <Card className='bg-main p-4'>
-        <CardHeader className='pb-2'>
+        <CardHeader className=''>
           <CardTitle className='text-base flex items-center justify-between'>
-            <span className='flex items-center gap-2'>
-              <Clock className='w-4 h-4 text-default' />
-              Recent Activity
-            </span>
+            <span className='flex items-center gap-2'>Recent Activity</span>
             <Button
-              variant='ghost'
               size='sm'
-              className='text-xs'
+              className='text-xs text-white'
               onClick={onViewAllActivity}
             >
               View All
             </Button>
           </CardTitle>
         </CardHeader>
-        <CardContent className='space-y-3'>
+        <CardContent className='space-y-2'>
           {recentActivities.slice(0, 3).map((activity) => (
             <div
               key={activity.id}
-              className='flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors'
+              className='flex items-center gap-3 rounded-lg transition-colors hover:bg-default/10'
             >
               {activity.icon}
               <div className='flex-1 min-w-0'>
@@ -109,16 +104,14 @@ export function OverviewTab({
 
       {/* Badges Preview */}
       <Card className='bg-main p-4'>
-        <CardHeader className='pb-2'>
+        <CardHeader className=''>
           <CardTitle className='text-base flex items-center justify-between'>
             <span className='flex items-center gap-2'>
-              <Award className='w-4 h-4 text-purple-500' />
               Badges ({unlockedBadges}/{badges.length})
             </span>
             <Button
-              variant='ghost'
               size='sm'
-              className='text-xs'
+              className='text-xs text-white'
               onClick={onViewAllBadges}
             >
               View All

@@ -64,16 +64,14 @@ export function QuizzesTab({
           <CardTitle className='text-base'>Quiz History</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className='space-y-3'>
+          <div className='space-y-2'>
             {quizHistory.map((quiz) => (
               <div
                 key={quiz.id}
-                className='flex items-center justify-between p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors'
+                className='flex items-center justify-between p-3 rounded-lg bg-muted/30 hover:bg-default/10 transition-colors'
               >
                 <div className='flex items-center gap-3'>
-                  <div
-                    className={`p-2 rounded-lg ${quiz.isTopTen ? 'bg-amber-500/10' : 'bg-muted'}`}
-                  >
+                  <div className={`p-2 rounded-lg`}>
                     {quiz.isTopTen ? (
                       <Trophy className='w-4 h-4 text-amber-500' />
                     ) : (
