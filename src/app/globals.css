@@ -1,9 +1,10 @@
 @import "tailwindcss";
 @import "tw-animate-css";
+@import "swiper/css";
 @import "swiper/css/pagination";
 @import "swiper/css/scrollbar";
-@import "swiper/css";
 @import "swiper/css/effect-coverflow";
+@import "swiper/css/free-mode";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -143,4 +144,9 @@
   --color-default: oklch(0.65 0.15 270);
   --color-default-hover: oklch(0.72 0.15 270);
   --color-white-primary: oklch(0.98 0 0);
+}
+
+/* Swiper category slider - fix for slidesPerView auto */
+.category-swiper .swiper-slide {
+  width: auto !important;
 }

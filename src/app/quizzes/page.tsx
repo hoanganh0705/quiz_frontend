@@ -34,6 +34,7 @@ export default function QuizPlatform() {
         </div>
       </div>
 
+      {/* Category Tabs for Desktop */}
       <div className='mb-12 hidden sm:block'>
         <Swiper
           modules={[FreeMode]}
@@ -47,7 +48,7 @@ export default function QuizPlatform() {
               <Button
                 className={`whitespace-nowrap rounded-full border border-gray-300 dark:border-slate-700 ${
                   category.active
-                    ? 'bg-default hover:bg-default/90'
+                    ? 'bg-default hover:bg-default/90 text-white'
                     : 'bg-transparent hover:bg-main/90'
                 }`}
               >
