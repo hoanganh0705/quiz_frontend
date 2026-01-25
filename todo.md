@@ -79,14 +79,14 @@ Enhance create-quiz with:
 - [ ] QR code for quiz
 - [ ] Email invite form
 
-### 10. Loading States & Skeletons
+### 10. Loading States & Skeletons ✅
 
 Add proper loading states across pages:
 
-- [ ] Skeleton cards for quiz lists
-- [ ] Loading spinners
-- [ ] Progress indicators
-- [ ] Error states with retry buttons
+- [x] Skeleton cards for quiz lists
+- [x] Loading spinners
+- [x] Progress indicators
+- [x] Error states with retry buttons
 
 ### 11. Empty States
 
@@ -129,7 +129,6 @@ Improve mobile UX:
 - Achievements/Badges Page: Display achievements grid, progress, details modal, and share feature with mock data.
 - Streak Tracking UI: Visualize streaks, rewards calendar, reminders, and milestones using localStorage.
 - Invite/Share Modal: Generate dummy share links, copy to clipboard, social share buttons, QR code, and email invite UI.
-- Loading States & Skeletons: Add skeleton cards, spinners, progress indicators, and error states.
 - Empty States: Show empty UI for quizzes, friends, notifications, achievements.
 - Onboarding Flow: Welcome tour, interest selection, profile setup, and quiz recommendations with mock data.
 - Keyboard Shortcuts: Implement navigation and shortcut actions in frontend.
