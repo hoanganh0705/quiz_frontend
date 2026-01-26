@@ -24,7 +24,7 @@ export function QuizzesTab({
   return (
     <div className='mt-6'>
       <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-        <Card className='bg-main'>
+        <Card>
           <CardContent className='p-6'>
             <div className='flex items-center gap-4'>
               <div className='p-3 rounded-lg bg-default/10'>
@@ -42,7 +42,7 @@ export function QuizzesTab({
           </CardContent>
         </Card>
 
-        <Card className='bg-main'>
+        <Card>
           <CardContent className='p-6'>
             <div className='flex items-center gap-4'>
               <div className='p-3 rounded-lg bg-green-500/10'>
@@ -59,7 +59,7 @@ export function QuizzesTab({
         </Card>
       </div>
 
-      <Card className='bg-main p-4 mt-4'>
+      <Card className='p-4 mt-4'>
         <CardHeader>
           <CardTitle className='text-base'>Quiz History</CardTitle>
         </CardHeader>

@@ -17,7 +17,7 @@ export function StatsCard({
   label
 }: StatsCardProps) {
   return (
-    <Card className='bg-main'>
+    <Card>
       <CardContent className='p-4'>
         <div className='flex items-center gap-3'>
           <div className={`p-2 rounded-lg ${iconBgColor}`}>

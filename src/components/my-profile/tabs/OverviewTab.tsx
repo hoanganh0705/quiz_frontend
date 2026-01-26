@@ -45,7 +45,7 @@ export function OverviewTab({
   return (
     <div className='space-y-6 mt-6'>
       {/* Level Progress */}
-      <Card className='bg-main p-4'>
+      <Card className='p-4'>
         <CardHeader className=''>
           <CardTitle className='text-base flex items-center'>
             Level Progress
@@ -70,7 +70,7 @@ export function OverviewTab({
       </Card>
 
       {/* Recent Activity */}
-      <Card className='bg-main p-4'>
+      <Card className='p-4'>
         <CardHeader className=''>
           <CardTitle className='text-base flex items-center justify-between'>
             <span className='flex items-center gap-2'>Recent Activity</span>
@@ -102,7 +102,7 @@ export function OverviewTab({
       </Card>
 
       {/* Badges Preview */}
-      <Card className='bg-main p-4'>
+      <Card className='p-4'>
         <CardHeader className=''>
           <CardTitle className='text-base flex items-center justify-between'>
             <span className='flex items-center gap-2'>

@@ -18,7 +18,7 @@ export default function ScoreHero({
   onPlayAgain
 }: ScoreHeroProps) {
   return (
-    <Card className='bg-linear-to-br from-default/20 to-default/5 border-default/30 mb-8 overflow-hidden'>
+    <Card className=' mb-8 overflow-hidden'>
       <CardContent className='p-8'>
         <div className='flex flex-col lg:flex-row items-center gap-8'>
           {/* Score Circle */}
