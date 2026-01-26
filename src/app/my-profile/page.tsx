@@ -135,7 +135,7 @@ export default function MyProfilePage() {
               onValueChange={setActiveTab}
               className='w-full text-sm'
             >
-              <TabsList className='bg-main border border-border w-full justify-start'>
+              <TabsList className='border border-border w-full justify-start'>
                 <TabsTrigger
                   value='overview'
                   className=' text-sm font-semibold dark:data-[state=active]:bg-default dark:dark:data-[state=active]:text-white data-[state=active]:bg-background text-foreground/70 data-[state=active]:text-foreground transition-transform'

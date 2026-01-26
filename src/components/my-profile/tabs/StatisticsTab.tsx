@@ -25,7 +25,7 @@ export function StatisticsTab({
   return (
     <div className='mt-6'>
       <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-        <Card className='bg-main p-4'>
+        <Card className='p-4'>
           <CardHeader>
             <CardTitle className='text-base flex items-center gap-2'>
               <BarChart3 className='w-4 h-4 text-default' />
@@ -62,7 +62,7 @@ export function StatisticsTab({
           </CardContent>
         </Card>
 
-        <Card className='bg-main p-4'>
+        <Card className='p-4'>
           <CardHeader>
             <CardTitle className='text-base flex items-center gap-2'>
               <TrendingUp className='w-4 h-4 text-green-500' />
@@ -97,7 +97,7 @@ export function StatisticsTab({
       </div>
 
       {/* Category Performance */}
-      <Card className='bg-main mt-4 p-4'>
+      <Card className='mt-4 p-4'>
         <CardHeader>
           <CardTitle className='text-base'>Category Performance</CardTitle>
         </CardHeader>

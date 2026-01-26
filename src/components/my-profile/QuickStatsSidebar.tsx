@@ -14,7 +14,7 @@ export function QuickStatsSidebar({
   mostPlayed
 }: QuickStatsSidebarProps) {
   return (
-    <Card className='bg-main sticky top-8'>
+    <Card className='sticky top-8'>
       <CardContent className='p-4'>
         <h2 className='text-base font-bold text-foreground mb-4'>
           Quick Stats

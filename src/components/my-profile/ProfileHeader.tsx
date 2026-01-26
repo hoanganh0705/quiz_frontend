@@ -230,7 +230,7 @@ export function ProfileHeader({
         </div>
       )}
 
-      <div className='border border-border bg-main rounded-2xl mt-6 overflow-hidden'>
+      <div className='border border-border rounded-2xl mt-6 overflow-hidden'>
         {/* Cover Image */}
         <div className='relative h-32 bg-linear-to-r from-default/30 via-default/20 to-default/10'>
           {(coverPreview || user.bgImageUrl) && (

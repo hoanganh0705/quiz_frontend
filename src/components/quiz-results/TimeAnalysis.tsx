@@ -1,4 +1,3 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
 import { Clock, CheckCircle2, XCircle } from 'lucide-react'
 import { TimeAnalysisProps, TimeAnalysisItemProps } from '@/types/quizResults'
@@ -8,14 +7,14 @@ export default function TimeAnalysis({
   avgTimePerQuestion
 }: TimeAnalysisProps) {
   return (
-    <Card className='mb-8 py-6'>
-      <CardHeader>
-        <CardTitle className='flex items-center gap-2'>
+    <div className='mb-8 py-6'>
+      <div className='px-6 pb-4'>
+        <h3 className='flex items-center gap-2 text-lg font-semibold'>
           <Clock className='w-5 h-5' />
           Time Analysis
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
+        </h3>
+      </div>
+      <div className='px-6'>
         <div className='space-y-4'>
           {questionReviews.map((review, index) => (
             <TimeAnalysisItem key={index} review={review} index={index} />
@@ -25,8 +24,8 @@ export default function TimeAnalysis({
           <span className='text-foreground/70'>Average time per question:</span>
           <span className='font-medium'>{avgTimePerQuestion} seconds</span>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   )
 }
 

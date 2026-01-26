@@ -32,7 +32,7 @@ export function AchievementsTab({
 }: AchievementsTabProps) {
   return (
     <div className='mt-6'>
-      <Card className='bg-main p-4'>
+      <Card className='p-4'>
         <CardHeader>
           <CardTitle className='text-base flex items-center gap-2'>
             <Award className='w-4 h-4 text-purple-500' />
@@ -63,7 +63,7 @@ export function AchievementsTab({
       </Card>
 
       {/* Streak Rewards */}
-      <Card className='bg-main mt-4 p-4'>
+      <Card className='mt-4 p-4'>
         <CardHeader>
           <CardTitle className='text-base flex items-center gap-2'>
             <Gift className='w-4 h-4 text-amber-500' />
