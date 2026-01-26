@@ -68,9 +68,9 @@ export function QuizzesTab({
             {quizHistory.map((quiz) => (
               <div
                 key={quiz.id}
-                className='flex items-center justify-between p-3 rounded-lg bg-muted/30 hover:bg-default/10 transition-colors'
+                className='flex items-center justify-between rounded-lg hover:bg-default/10 transition-colors border p-3 border-default/20'
               >
-                <div className='flex items-center gap-3'>
+                <div className='flex items-center gap-3 '>
                   <div className={`p-2 rounded-lg`}>
                     {quiz.isTopTen ? (
                       <Trophy className='w-4 h-4 text-amber-500' />

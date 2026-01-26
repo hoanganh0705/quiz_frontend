@@ -45,23 +45,14 @@ Enhance your existing search:
 
 ## 💡 NICE TO HAVE - Engagement Features
 
-### 6. Achievements/Badges Page
-
-You have badge data in constants but no dedicated page:
-
-- [ ] All achievements grid with locked/unlocked states
-- [ ] Progress tracking for in-progress achievements
-- [ ] Achievement details modal
-- [ ] Share achievement feature
-
-### 7. Streak Tracking UI
+### 6. Streak Tracking UI
 
 - [ ] Daily login streak visualization
 - [ ] Streak rewards calendar
 - [ ] "Don't break your streak" reminders
 - [ ] Streak milestones celebration
 
-### 8. Quiz Draft/My Quizzes Management
+### 7. Quiz Draft/My Quizzes Management
 
 Enhance create-quiz with:
 
@@ -71,7 +62,7 @@ Enhance create-quiz with:
 - [ ] Quiz analytics (plays, ratings, completion rate)
 - [ ] Duplicate quiz functionality
 
-### 9. Invite/Share Modal
+### 8. Invite/Share Modal
 
 - [ ] Generate shareable quiz links
 - [ ] Copy link functionality
@@ -79,16 +70,7 @@ Enhance create-quiz with:
 - [ ] QR code for quiz
 - [ ] Email invite form
 
-### 10. Loading States & Skeletons ✅
-
-Add proper loading states across pages:
-
-- [x] Skeleton cards for quiz lists
-- [x] Loading spinners
-- [x] Progress indicators
-- [x] Error states with retry buttons
-
-### 11. Empty States
+### 9. Empty States
 
 Add meaningful empty states for:
 
@@ -97,7 +79,7 @@ Add meaningful empty states for:
 - [ ] No notifications
 - [ ] No achievements unlocked
 
-### 12. Onboarding Flow
+### 10. Onboarding Flow
 
 For new users:
 
@@ -106,14 +88,14 @@ For new users:
 - [ ] Profile setup wizard
 - [ ] First quiz recommendations
 
-### 13. Keyboard Shortcuts
+### 11. Keyboard Shortcuts
 
 - [ ] Navigate quizzes with arrow keys
 - [ ] Submit answer with Enter
 - [ ] Quick search with Cmd/Ctrl + K
 - [ ] Shortcuts help modal
 
-### 14. Mobile Quiz Experience
+### 12. Mobile Quiz Experience
 
 Improve mobile UX:
 
@@ -126,7 +108,6 @@ Improve mobile UX:
 
 - User Settings Page: UI for account, notification, privacy, language, connected accounts, and delete option (local state/localStorage).
 - Bookmarks/Saved Quizzes Page: List, organize, and filter bookmarks using localStorage or mock data.
-- Achievements/Badges Page: Display achievements grid, progress, details modal, and share feature with mock data.
 - Streak Tracking UI: Visualize streaks, rewards calendar, reminders, and milestones using localStorage.
 - Invite/Share Modal: Generate dummy share links, copy to clipboard, social share buttons, QR code, and email invite UI.
 - Empty States: Show empty UI for quizzes, friends, notifications, achievements.
