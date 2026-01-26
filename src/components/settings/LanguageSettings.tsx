@@ -62,7 +62,7 @@ export function LanguageSettings({
       )}
 
       {/* Language Selection */}
-      <Card className='border-border/40'>
+      <Card className='border-border/40 py-4'>
         <CardHeader>
           <CardTitle className='flex items-center gap-2'>
             <Globe className='w-5 h-5 text-primary' />
@@ -100,7 +100,7 @@ export function LanguageSettings({
       </Card>
 
       {/* Timezone Selection */}
-      <Card className='border-border/40'>
+      <Card className='border-border/40 py-4'>
         <CardHeader>
           <CardTitle className='flex items-center gap-2'>
             <Clock className='w-5 h-5 text-primary' />
@@ -135,7 +135,7 @@ export function LanguageSettings({
       </Card>
 
       {/* Date & Time Format */}
-      <Card className='border-border/40'>
+      <Card className='border-border/40 py-4'>
         <CardHeader>
           <CardTitle className='flex items-center gap-2'>
             <Calendar className='w-5 h-5 text-primary' />
@@ -192,7 +192,7 @@ export function LanguageSettings({
           </div>
 
           {/* Preview */}
-          <div className='p-4 rounded-lg bg-muted/30 border border-border/40'>
+          <div className='p-4 rounded-lg bg-muted/30 border border-border/40 py-4'>
             <Label className='text-sm text-muted-foreground'>Preview</Label>
             <div className='mt-2 space-y-1'>
               <p className='text-sm'>

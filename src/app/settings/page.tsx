@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import {
   AccountSettings,
@@ -13,17 +12,7 @@ import {
 } from '@/components/settings'
 import { useLocalStorage } from '@/hooks/use-local-storage'
 import { UserSettings, SettingsTab, defaultSettings } from '@/types/settings'
-import {
-  ArrowLeft,
-  User,
-  Bell,
-  Shield,
-  Globe,
-  Link2,
-  AlertTriangle,
-  Settings
-} from 'lucide-react'
-import Link from 'next/link'
+import { User, Bell, Shield, Globe, Link2, AlertTriangle } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const settingsTabs: {
@@ -31,27 +20,27 @@ const settingsTabs: {
   label: string
   icon: React.ReactNode
 }[] = [
-  { id: 'account', label: 'Account', icon: <User className='w-4 h-4' /> },
+  { id: 'account', label: 'Account', icon: <User className='w-5 h-5' /> },
   {
     id: 'notifications',
     label: 'Notifications',
-    icon: <Bell className='w-4 h-4' />
+    icon: <Bell className='w-5 h-5' />
   },
-  { id: 'privacy', label: 'Privacy', icon: <Shield className='w-4 h-4' /> },
+  { id: 'privacy', label: 'Privacy', icon: <Shield className='w-5 h-5' /> },
   {
     id: 'language',
     label: 'Language & Region',
-    icon: <Globe className='w-4 h-4' />
+    icon: <Globe className='w-5 h-5' />
   },
   {
     id: 'connections',
     label: 'Connected Accounts',
-    icon: <Link2 className='w-4 h-4' />
+    icon: <Link2 className='w-5 h-5' />
   },
   {
     id: 'danger',
     label: 'Danger Zone',
-    icon: <AlertTriangle className='w-4 h-4' />
+    icon: <AlertTriangle className='w-5 h-5' />
   }
 ]
 
@@ -142,62 +131,47 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className='min-h-screen flex items-start justify-center pt-10 pb-20'>
-      <div className='w-[90%] max-w-6xl'>
-        {/* Header */}
-        <div className='mb-8'>
-          <Button
-            size='sm'
-            className='text-foreground/70 bg-transparent p-0 hover:bg-transparent hover:text-foreground shadow-none mb-4'
-            asChild
-          >
-            <Link href='/'>
-              <ArrowLeft className='w-5 h-5 mr-2' />
-              Back to Home
-            </Link>
-          </Button>
+    <div className='min-h-screen bg-transparent text-foreground mt-20'>
+      {/* Header */}
+      <div className='text-center px-4 mb-8'>
+        <h1 className='text-3xl font-bold mb-4'>Settings</h1>
+        <p className='text-foreground/70 text-base max-w-2xl mx-auto'>
+          Manage your account settings and preferences
+        </p>
+      </div>
 
-          <div className='flex items-center gap-3'>
-            <div className='p-3 rounded-xl bg-primary/10'>
-              <Settings className='w-8 h-8 text-primary' />
-            </div>
-            <div>
-              <h1 className='text-3xl font-bold'>Settings</h1>
-              <p className='text-muted-foreground'>
-                Manage your account settings and preferences
-              </p>
+      {/* Main Content */}
+      <div className='px-4 pb-12'>
+        <div className='grid grid-cols-1 lg:grid-cols-4 gap-8'>
+          {/* Sidebar Navigation */}
+          <div className='lg:col-span-1'>
+            <div className='bg-transparent border border-gray-300 dark:border-slate-700 rounded-lg p-6'>
+              <h3 className='text-xl font-semibold mb-6'>Settings</h3>
+              <nav className='space-y-2'>
+                {settingsTabs.map((tab) => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={cn(
+                      'w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-colors cursor-pointer',
+                      activeTab === tab.id
+                        ? 'bg-default text-white'
+                        : 'text-foreground hover:bg-default-hover hover:text-white',
+                      tab.id === 'danger' &&
+                        activeTab !== tab.id &&
+                        'text-destructive hover:text-white'
+                    )}
+                  >
+                    {tab.icon}
+                    <span className='text-sm'>{tab.label}</span>
+                  </button>
+                ))}
+              </nav>
             </div>
           </div>
-        </div>
-
-        {/* Settings Layout */}
-        <div className='flex flex-col md:flex-row gap-6'>
-          {/* Sidebar Navigation */}
-          <nav className='w-full md:w-64 shrink-0'>
-            <div className='sticky top-24 space-y-1 p-2 rounded-xl border border-border/40 bg-card/30'>
-              {settingsTabs.map((tab) => (
-                <Button
-                  key={tab.id}
-                  variant='ghost'
-                  className={cn(
-                    'w-full justify-start gap-3 h-11',
-                    activeTab === tab.id
-                      ? 'bg-primary/10 text-primary hover:bg-primary/15'
-                      : 'hover:bg-muted/50',
-                    tab.id === 'danger' &&
-                      'text-destructive hover:text-destructive'
-                  )}
-                  onClick={() => setActiveTab(tab.id)}
-                >
-                  {tab.icon}
-                  {tab.label}
-                </Button>
-              ))}
-            </div>
-          </nav>
 
           {/* Main Content */}
-          <div className='flex-1 min-w-0'>
+          <div className='lg:col-span-3'>
             <ScrollArea className='h-full'>
               <div className='p-1'>{renderContent()}</div>
             </ScrollArea>

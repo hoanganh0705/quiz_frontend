@@ -103,7 +103,7 @@ export function AccountSettings({ settings, onUpdate }: AccountSettingsProps) {
   return (
     <div className='space-y-6'>
       {/* Profile Picture Section */}
-      <Card className='border-border/40'>
+      <Card className='border-border/40 py-4'>
         <CardHeader>
           <CardTitle className='flex items-center gap-2'>
             <Camera className='w-5 h-5 text-primary' />
@@ -138,7 +138,7 @@ export function AccountSettings({ settings, onUpdate }: AccountSettingsProps) {
       </Card>
 
       {/* Account Information Section */}
-      <Card className='border-border/40'>
+      <Card className='border-border/40 py-4'>
         <CardHeader>
           <div className='flex items-center justify-between'>
             <div>
@@ -233,7 +233,7 @@ export function AccountSettings({ settings, onUpdate }: AccountSettingsProps) {
       </Card>
 
       {/* Password Section */}
-      <Card className='border-border/40'>
+      <Card className='border-border/40 py-4'>
         <CardHeader>
           <CardTitle className='flex items-center gap-2'>
             <Lock className='w-5 h-5 text-primary' />
