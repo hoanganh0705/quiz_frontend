@@ -81,7 +81,7 @@ export function DangerZone({
       </div>
 
       {/* Export Data */}
-      <Card className='border-border/40'>
+      <Card className='border-border/40 py-4'>
         <CardHeader>
           <CardTitle className='flex items-center gap-2'>
             <Download className='w-5 h-5 text-primary' />
@@ -101,7 +101,7 @@ export function DangerZone({
       </Card>
 
       {/* Sign Out All Sessions */}
-      <Card className='border-border/40'>
+      <Card className='border-border/40 py-4'>
         <CardHeader>
           <CardTitle className='flex items-center gap-2'>
             <LogOut className='w-5 h-5 text-amber-500' />
@@ -142,7 +142,7 @@ export function DangerZone({
       </Card>
 
       {/* Deactivate Account */}
-      <Card className='border-border/40'>
+      <Card className='border-border/40 py-4'>
         <CardHeader>
           <CardTitle className='flex items-center gap-2'>
             <XCircle className='w-5 h-5 text-amber-500' />
@@ -183,7 +183,7 @@ export function DangerZone({
       </Card>
 
       {/* Delete Account */}
-      <Card className='border-destructive/50'>
+      <Card className='border-destructive/50 py-5'>
         <CardHeader>
           <CardTitle className='flex items-center gap-2 text-destructive'>
             <Trash2 className='w-5 h-5' />

@@ -126,7 +126,7 @@ export function NotificationSettings({
       )}
 
       {/* Email & Push Notifications */}
-      <Card className='border-border/40'>
+      <Card className='border-border/40 py-4'>
         <CardHeader>
           <CardTitle className='flex items-center gap-2'>
             <Bell className='w-5 h-5 text-primary' />
@@ -159,7 +159,7 @@ export function NotificationSettings({
       </Card>
 
       {/* Activity Notifications */}
-      <Card className='border-border/40'>
+      <Card className='border-border/40 py-4'>
         <CardHeader>
           <CardTitle className='flex items-center gap-2'>
             <Sparkles className='w-5 h-5 text-primary' />
@@ -210,7 +210,7 @@ export function NotificationSettings({
       </Card>
 
       {/* Marketing & Updates */}
-      <Card className='border-border/40'>
+      <Card className='border-border/40 py-4'>
         <CardHeader>
           <CardTitle className='flex items-center gap-2'>
             <Megaphone className='w-5 h-5 text-primary' />

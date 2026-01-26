@@ -90,7 +90,7 @@ function AccountProvider({
   onDisconnect
 }: AccountProviderProps) {
   return (
-    <div className='flex items-center justify-between p-4 rounded-lg border border-border/40 bg-background/50'>
+    <div className='flex items-center justify-between p-4 rounded-lg border border-border/40 py-4 bg-background/50'>
       <div className='flex items-center gap-4'>
         <div className='p-3 rounded-lg bg-muted/50'>{icon}</div>
         <div>
@@ -186,7 +186,7 @@ export function ConnectedAccounts({
       )}
 
       {/* Connection Status Card */}
-      <Card className='border-border/40'>
+      <Card className='border-border/40 py-4'>
         <CardHeader>
           <CardTitle className='flex items-center gap-2'>
             <Link2 className='w-5 h-5 text-primary' />
@@ -212,7 +212,7 @@ export function ConnectedAccounts({
       </Card>
 
       {/* Account Providers */}
-      <Card className='border-border/40'>
+      <Card className='border-border/40 py-4'>
         <CardHeader>
           <CardTitle className='flex items-center gap-2'>
             <ExternalLink className='w-5 h-5 text-primary' />

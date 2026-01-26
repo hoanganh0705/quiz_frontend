@@ -111,7 +111,7 @@ export function PrivacySettings({ settings, onUpdate }: PrivacySettingsProps) {
       )}
 
       {/* Profile Visibility */}
-      <Card className='border-border/40'>
+      <Card className='border-border/40 py-4'>
         <CardHeader>
           <CardTitle className='flex items-center gap-2'>
             <Shield className='w-5 h-5 text-primary' />
@@ -171,7 +171,7 @@ export function PrivacySettings({ settings, onUpdate }: PrivacySettingsProps) {
       </Card>
 
       {/* Activity Privacy */}
-      <Card className='border-border/40'>
+      <Card className='border-border/40 py-4'>
         <CardHeader>
           <CardTitle className='flex items-center gap-2'>
             <Activity className='w-5 h-5 text-primary' />
@@ -222,7 +222,7 @@ export function PrivacySettings({ settings, onUpdate }: PrivacySettingsProps) {
       </Card>
 
       {/* Social Privacy */}
-      <Card className='border-border/40'>
+      <Card className='border-border/40 py-4'>
         <CardHeader>
           <CardTitle className='flex items-center gap-2'>
             <Users className='w-5 h-5 text-primary' />
