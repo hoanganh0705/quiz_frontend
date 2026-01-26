@@ -19,11 +19,11 @@ export const getScoreColor = (score: number) => {
 
 // Get motivational message based on score
 export const getScoreMessage = (score: number) => {
-  if (score === 100) return '🎉 Perfect Score! Outstanding!'
-  if (score >= 80) return '🌟 Excellent work! You nailed it!'
-  if (score >= 60) return '👍 Good job! Keep practicing!'
-  if (score >= 40) return '💪 Not bad! Room for improvement.'
-  return '📚 Keep studying! You can do better!'
+  if (score === 100) return ' Perfect Score! Outstanding!'
+  if (score >= 80) return ' Excellent work! You nailed it!'
+  if (score >= 60) return ' Good job! Keep practicing!'
+  if (score >= 40) return ' Not bad! Room for improvement.'
+  return ' Keep studying! You can do better!'
 }
 
 // Get letter grade based on score

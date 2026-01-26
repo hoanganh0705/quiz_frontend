@@ -74,7 +74,7 @@ function LeaderboardItem({ player, rank }: LeaderboardItemProps) {
         </div>
       </div>
       <div className='text-right'>
-        <div className='font-bold text-default'>{player.score}</div>
+        <div className='font-bold '>{player.score}</div>
         <div className='text-sm text-foreground/70'>{player.time}</div>
       </div>
     </div>
