@@ -1,7 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
-import { Star, Clock, Award } from 'lucide-react'
 import { Player } from '@/constants/players'
 
 interface Activity {
@@ -88,10 +87,10 @@ export function OverviewTab({
           {recentActivities.slice(0, 3).map((activity) => (
             <div
               key={activity.id}
-              className='flex items-center gap-3 rounded-lg transition-colors hover:bg-default/10'
+              className='flex items-center gap-3 rounded-lg transition-colors hover:bg-default/10 border p-3 border-default/20'
             >
               {activity.icon}
-              <div className='flex-1 min-w-0'>
+              <div className='flex-1 min-w-0 '>
                 <p className='text-sm text-foreground truncate'>
                   {activity.title}
                 </p>
