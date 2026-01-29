@@ -8,31 +8,14 @@
 - [ ] Invite friends to quizzes
 - [ ] Compare stats with friends
 
-### 2. User Settings Page (`/settings`)
-
-- [ ] Account settings (email, password change)
-- [ ] Notification preferences
-- [ ] Privacy settings
-- [ ] Language/locale preferences
-- [ ] Connected accounts management
-- [ ] Delete 1 option
-
-### 3. Quiz History/Activity Page
+### 2. Quiz History/Activity Page
 
 - [ ] Timeline of all quiz activities
 - [ ] Filter by date, category, result
 - [ ] Statistics dashboard
 - [ ] Export quiz history
 
-### 4. Bookmarks/Saved Quizzes Page
-
-Your `QuizDetail` has a bookmark icon, but no page to view saved quizzes:
-
-- [ ] List of bookmarked quizzes
-- [ ] Organize into collections/folders
-- [ ] Quick filters
-
-### 5. Advanced Search & Filters
+### 3. Advanced Search & Filters
 
 Enhance your existing search:
 
@@ -45,14 +28,7 @@ Enhance your existing search:
 
 ## 💡 NICE TO HAVE - Engagement Features
 
-### 6. Streak Tracking UI
-
-- [ ] Daily login streak visualization
-- [ ] Streak rewards calendar
-- [ ] "Don't break your streak" reminders
-- [ ] Streak milestones celebration
-
-### 7. Quiz Draft/My Quizzes Management
+### 5. Quiz Draft/My Quizzes Management
 
 Enhance create-quiz with:
 
@@ -62,7 +38,7 @@ Enhance create-quiz with:
 - [ ] Quiz analytics (plays, ratings, completion rate)
 - [ ] Duplicate quiz functionality
 
-### 8. Invite/Share Modal
+### 6. Invite/Share Modal
 
 - [ ] Generate shareable quiz links
 - [ ] Copy link functionality
@@ -70,7 +46,7 @@ Enhance create-quiz with:
 - [ ] QR code for quiz
 - [ ] Email invite form
 
-### 9. Empty States
+### 7. Empty States
 
 Add meaningful empty states for:
 
@@ -79,7 +55,7 @@ Add meaningful empty states for:
 - [ ] No notifications
 - [ ] No achievements unlocked
 
-### 10. Onboarding Flow
+### 8. Onboarding Flow
 
 For new users:
 
@@ -88,14 +64,14 @@ For new users:
 - [ ] Profile setup wizard
 - [ ] First quiz recommendations
 
-### 11. Keyboard Shortcuts
+### 9. Keyboard Shortcuts
 
 - [ ] Navigate quizzes with arrow keys
 - [ ] Submit answer with Enter
 - [ ] Quick search with Cmd/Ctrl + K
 - [ ] Shortcuts help modal
 
-### 12. Mobile Quiz Experience
+### 10. Mobile Quiz Experience
 
 Improve mobile UX:
 
@@ -106,9 +82,7 @@ Improve mobile UX:
 
 ## 🚀 Features You Can Implement Without Backend
 
-- User Settings Page: UI for account, notification, privacy, language, connected accounts, and delete option (local state/localStorage).
 - Bookmarks/Saved Quizzes Page: List, organize, and filter bookmarks using localStorage or mock data.
-- Streak Tracking UI: Visualize streaks, rewards calendar, reminders, and milestones using localStorage.
 - Invite/Share Modal: Generate dummy share links, copy to clipboard, social share buttons, QR code, and email invite UI.
 - Empty States: Show empty UI for quizzes, friends, notifications, achievements.
 - Onboarding Flow: Welcome tour, interest selection, profile setup, and quiz recommendations with mock data.

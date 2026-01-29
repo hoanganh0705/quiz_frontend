@@ -7,7 +7,8 @@ import {
   Crown,
   MessageCircle,
   Plus,
-  Settings
+  Settings,
+  Bookmark
 } from 'lucide-react'
 
 export const sidebarItems = [
@@ -15,6 +16,7 @@ export const sidebarItems = [
   { icon: Trophy, label: "Today's Challenge", href: '/daily-challenge' },
   { icon: BookOpen, label: 'Categories', href: '/categories' },
   { icon: Compass, label: 'Explore Quizzes', href: '/quizzes' },
+  { icon: Bookmark, label: 'Saved Quizzes', href: '/bookmarks' },
   { icon: Users, label: 'Quiz Tournament', href: '/tournament' },
   { icon: Crown, label: 'Leaderboard', href: '/leaderboard' },
   { icon: MessageCircle, label: 'Quiz Discussions', href: '/discussions' },
