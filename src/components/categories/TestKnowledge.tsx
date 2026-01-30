@@ -31,7 +31,7 @@ export default function TestKnowledge() {
           <Link href='/quizzes'>
             <Button
               size='lg'
-              className='bg-linear-to-r from-default to-default/60 hover:from-default-hover hover:to-default-hover/60 text-foreground px-6 sm:px-8 py-4 sm:py-6 font-semibold rounded-xl shadow-lg hover:shadow-default-hover/25 transition-all duration-300 text-sm w-full sm:w-auto'
+              className='bg-linear-to-r from-default to-default/60 hover:from-default-hover hover:to-default-hover/60 text-white px-6 sm:px-8 py-4 sm:py-6 font-semibold rounded-xl shadow-lg hover:shadow-default-hover/25 transition-all duration-300 text-sm w-full sm:w-auto'
             >
               Explore Quizzes
               <ArrowRight className='w-4 h-4 sm:w-5 sm:h-5 ml-2' />
@@ -41,7 +41,7 @@ export default function TestKnowledge() {
             <Button
               variant='outline'
               size='lg'
-              className='border-slate-600 text-foreground dark:hover:bg-slate-800 bg-indigo-400 hover:bg-indigo-300 hover:text-foreground px-6 sm:px-8 py-4 sm:py-6 font-semibold rounded-xl transition-all duration-300 text-sm w-full sm:w-auto'
+              className='border-slate-600 text-white dark:hover:bg-slate-800 bg-indigo-400 hover:bg-indigo-300 hover:text-foreground px-6 sm:px-8 py-4 sm:py-6 font-semibold rounded-xl transition-all duration-300 text-sm w-full sm:w-auto'
             >
               Create Your Own Quiz
             </Button>
