@@ -29,7 +29,7 @@ const Reviews = () => {
               >
                 <div className='flex items-start gap-4'>
                   {/* Avatar */}
-                  <div className='flex-shrink-0'>
+                  <div className='shrink-0'>
                     <Image
                       src={quiz.authorAvatarSrc || '/placeholder.svg'}
                       alt={
@@ -51,7 +51,7 @@ const Reviews = () => {
                       </h3>
                       <StarRating rating={review.rating ?? 0} />
                     </div>
-                    <p className='text-foreground/80 text-sm leading-relaxed break-words'>
+                    <p className='text-foreground/80 text-sm leading-relaxed wrap-break-word'>
                       {review.comment || 'No comment provided.'}
                     </p>
                   </div>
