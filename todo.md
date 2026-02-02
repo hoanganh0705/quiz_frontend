@@ -50,10 +50,10 @@ Enhance create-quiz with:
 
 Add meaningful empty states for:
 
-- [ ] No quizzes found
-- [ ] No friends yet
-- [ ] No notifications
-- [ ] No achievements unlocked
+- [x] No quizzes found
+- [x] No friends yet
+- [x] No notifications
+- [x] No achievements unlocked
 
 ### 8. Onboarding Flow
 
