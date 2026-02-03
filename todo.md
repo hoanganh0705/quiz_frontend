@@ -46,16 +46,7 @@ Enhance create-quiz with:
 - [ ] QR code for quiz
 - [ ] Email invite form
 
-### 7. Empty States
-
-Add meaningful empty states for:
-
-- [x] No quizzes found
-- [x] No friends yet
-- [x] No notifications
-- [x] No achievements unlocked
-
-### 8. Onboarding Flow
+### 7. Onboarding Flow
 
 For new users:
 
@@ -64,14 +55,14 @@ For new users:
 - [ ] Profile setup wizard
 - [ ] First quiz recommendations
 
-### 9. Keyboard Shortcuts
+### 8. Keyboard Shortcuts
 
 - [ ] Navigate quizzes with arrow keys
 - [ ] Submit answer with Enter
 - [ ] Quick search with Cmd/Ctrl + K
 - [ ] Shortcuts help modal
 
-### 10. Mobile Quiz Experience
+### 9. Mobile Quiz Experience
 
 Improve mobile UX:
 
