@@ -46,23 +46,25 @@ Enhance create-quiz with:
 - [ ] QR code for quiz
 - [ ] Email invite form
 
-### 7. Onboarding Flow
+g
+
+### 8. Onboarding Flow
 
 For new users:
 
-- [x] Welcome tour/walkthrough
-- [x] Interest selection (quiz categories)
-- [x] Profile setup wizard
-- [x] First quiz recommendations
+- [ ] Welcome tour/walkthrough
+- [ ] Interest selection (quiz categories)
+- [ ] Profile setup wizard
+- [ ] First quiz recommendations
 
-### 8. Keyboard Shortcuts
+### 9. Keyboard Shortcuts
 
 - [ ] Navigate quizzes with arrow keys
 - [ ] Submit answer with Enter
 - [ ] Quick search with Cmd/Ctrl + K
 - [ ] Shortcuts help modal
 
-### 9. Mobile Quiz Experience
+### 10. Mobile Quiz Experience
 
 Improve mobile UX:
 
@@ -73,7 +75,9 @@ Improve mobile UX:
 
 ## 🚀 Features You Can Implement Without Backend
 
+- Bookmarks/Saved Quizzes Page: List, organize, and filter bookmarks using localStorage or mock data.
 - Invite/Share Modal: Generate dummy share links, copy to clipboard, social share buttons, QR code, and email invite UI.
+- Empty States: Show empty UI for quizzes, friends, notifications, achievements.
 - Onboarding Flow: Welcome tour, interest selection, profile setup, and quiz recommendations with mock data.
 - Keyboard Shortcuts: Implement navigation and shortcut actions in frontend.
 - Mobile Quiz Experience: Swipe gestures, full-screen mode, mobile timer, and touch-friendly buttons.
