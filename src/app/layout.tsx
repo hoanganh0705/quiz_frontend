@@ -24,6 +24,7 @@ export default function RootLayout({
     pathname?.startsWith('/login') ||
     pathname?.startsWith('/signup') ||
     pathname?.startsWith('/forgot-password')
+  const isOnboardingPage = pathname?.startsWith('/onboarding')
 
   return (
     <html lang='en' suppressHydrationWarning>
@@ -36,7 +37,7 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          {isAuthPage ? (
+          {isAuthPage || isOnboardingPage ? (
             children
           ) : (
             <SidebarProvider>
