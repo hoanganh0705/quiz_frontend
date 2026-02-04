@@ -1,0 +1,6 @@
+export { ContactForm } from './contact-form'
+export { FAQSection } from './faq-section'
+export { HelpCategories } from './help-categories'
+export { KnowledgeBase } from './knowledge-base'
+export { SupportCenter } from './support-center'
+export { SupportTabs } from './support-tabs'
