@@ -50,10 +50,10 @@ Enhance create-quiz with:
 
 For new users:
 
-- [ ] Welcome tour/walkthrough
-- [ ] Interest selection (quiz categories)
-- [ ] Profile setup wizard
-- [ ] First quiz recommendations
+- [x] Welcome tour/walkthrough
+- [x] Interest selection (quiz categories)
+- [x] Profile setup wizard
+- [x] First quiz recommendations
 
 ### 8. Keyboard Shortcuts
 
@@ -73,9 +73,7 @@ Improve mobile UX:
 
 ## 🚀 Features You Can Implement Without Backend
 
-- Bookmarks/Saved Quizzes Page: List, organize, and filter bookmarks using localStorage or mock data.
 - Invite/Share Modal: Generate dummy share links, copy to clipboard, social share buttons, QR code, and email invite UI.
-- Empty States: Show empty UI for quizzes, friends, notifications, achievements.
 - Onboarding Flow: Welcome tour, interest selection, profile setup, and quiz recommendations with mock data.
 - Keyboard Shortcuts: Implement navigation and shortcut actions in frontend.
 - Mobile Quiz Experience: Swipe gestures, full-screen mode, mobile timer, and touch-friendly buttons.
