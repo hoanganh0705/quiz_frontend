@@ -1,16 +1,33 @@
 'use client'
 
+import { memo } from 'react' // rerender-memo
 import { Button } from '@/components/ui/button'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from '@/components/ui/select'
+// Fix barrel imports (bundle-barrel-imports)
+import { Select } from '@/components/ui/select'
+import { SelectContent } from '@/components/ui/select'
+import { SelectItem } from '@/components/ui/select'
+import { SelectTrigger } from '@/components/ui/select'
+import { SelectValue } from '@/components/ui/select'
 import { Input } from '@/components/ui/input'
-import { BookmarkFilter, BookmarkSortOption } from '@/types/bookmarks'
+import type { BookmarkFilter, BookmarkSortOption } from '@/types/bookmarks'
 import { Search, SlidersHorizontal } from 'lucide-react'
+
+// Hoist static data outside component (rendering-hoist-jsx)
+const FILTERS: { value: BookmarkFilter; label: string }[] = [
+  { value: 'all', label: 'All Bookmarks' },
+  { value: 'recent', label: 'Recently Added' },
+  { value: 'easy', label: 'Easy' },
+  { value: 'medium', label: 'Medium' },
+  { value: 'hard', label: 'Hard' }
+] as const
+
+const SORT_OPTIONS: { value: BookmarkSortOption; label: string }[] = [
+  { value: 'newest', label: 'Newest First' },
+  { value: 'oldest', label: 'Oldest First' },
+  { value: 'name-asc', label: 'Name (A-Z)' },
+  { value: 'name-desc', label: 'Name (Z-A)' },
+  { value: 'difficulty', label: 'Difficulty' }
+] as const
 
 interface BookmarkFiltersProps {
   searchQuery: string
@@ -21,7 +38,8 @@ interface BookmarkFiltersProps {
   onSortChange: (value: BookmarkSortOption) => void
 }
 
-export default function BookmarkFilters({
+// Use memo to prevent unnecessary re-renders (rerender-memo)
+const BookmarkFilters = memo(function BookmarkFilters({
   searchQuery,
   onSearchChange,
   filter,
@@ -29,22 +47,6 @@ export default function BookmarkFilters({
   sortBy,
   onSortChange
 }: BookmarkFiltersProps) {
-  const filters: { value: BookmarkFilter; label: string }[] = [
-    { value: 'all', label: 'All Bookmarks' },
-    { value: 'recent', label: 'Recently Added' },
-    { value: 'easy', label: 'Easy' },
-    { value: 'medium', label: 'Medium' },
-    { value: 'hard', label: 'Hard' }
-  ]
-
-  const sortOptions: { value: BookmarkSortOption; label: string }[] = [
-    { value: 'newest', label: 'Newest First' },
-    { value: 'oldest', label: 'Oldest First' },
-    { value: 'name-asc', label: 'Name (A-Z)' },
-    { value: 'name-desc', label: 'Name (Z-A)' },
-    { value: 'difficulty', label: 'Difficulty' }
-  ]
-
   return (
     <div className='flex flex-col sm:flex-row gap-3 mb-6'>
       {/* Search */}
@@ -60,7 +62,7 @@ export default function BookmarkFilters({
 
       {/* Quick Filters */}
       <div className='flex gap-2 flex-wrap'>
-        {filters.map((f) => (
+        {FILTERS.map((f) => (
           <Button
             key={f.value}
             variant={filter === f.value ? 'default' : 'outline'}
@@ -87,7 +89,7 @@ export default function BookmarkFilters({
           <SelectValue placeholder='Sort by' />
         </SelectTrigger>
         <SelectContent>
-          {sortOptions.map((opt) => (
+          {SORT_OPTIONS.map((opt) => (
             <SelectItem key={opt.value} value={opt.value}>
               {opt.label}
             </SelectItem>
@@ -96,4 +98,6 @@ export default function BookmarkFilters({
       </Select>
     </div>
   )
-}
+})
+
+export default BookmarkFilters

@@ -3,33 +3,41 @@
 import { useState, useMemo, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle
-} from '@/components/ui/alert-dialog'
-import {
-  BookmarkedQuizCard,
-  BookmarkFilters,
-  CollectionCard,
-  CollectionDialog,
-  EmptyBookmarks
-} from '@/components/bookmarks'
+// Fix barrel imports (bundle-barrel-imports)
+import { AlertDialog } from '@/components/ui/alert-dialog'
+import { AlertDialogAction } from '@/components/ui/alert-dialog'
+import { AlertDialogCancel } from '@/components/ui/alert-dialog'
+import { AlertDialogContent } from '@/components/ui/alert-dialog'
+import { AlertDialogDescription } from '@/components/ui/alert-dialog'
+import { AlertDialogFooter } from '@/components/ui/alert-dialog'
+import { AlertDialogHeader } from '@/components/ui/alert-dialog'
+import { AlertDialogTitle } from '@/components/ui/alert-dialog'
+// Import components directly (bundle-barrel-imports)
+import BookmarkedQuizCard from '@/components/bookmarks/BookmarkedQuizCard'
+import BookmarkFilters from '@/components/bookmarks/BookmarkFilters'
+import CollectionCard from '@/components/bookmarks/CollectionCard'
+import CollectionDialog from '@/components/bookmarks/CollectionDialog'
+import EmptyBookmarks from '@/components/bookmarks/EmptyBookmarks'
 import { useBookmarks, useBookmarkedQuizzes } from '@/hooks/use-bookmarks'
 import { quizzes } from '@/constants/mockQuizzes'
-import {
+import type {
   BookmarkFilter,
   BookmarkSortOption,
   BookmarkCollection
 } from '@/types/bookmarks'
-import { Quiz } from '@/types/quiz'
-import { BookmarkedQuiz } from '@/hooks/use-bookmarks'
+import type { Quiz } from '@/types/quiz'
+import type { BookmarkedQuiz } from '@/hooks/use-bookmarks'
 import { Bookmark, FolderPlus, Grid3X3, List, Layers } from 'lucide-react'
+
+// Hoist static data outside component (rendering-hoist-jsx, js-hoist-regexp)
+const DIFFICULTY_MAP: Record<string, string> = {
+  easy: 'Easy',
+  medium: 'Medium',
+  hard: 'Hard'
+} as const
+
+const DIFFICULTY_ORDER = { Easy: 1, Medium: 2, Hard: 3 } as const
+const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000
 
 export default function BookmarksPage() {
   // State
@@ -68,7 +76,7 @@ export default function BookmarksPage() {
     totalBookmarks
   } = useBookmarkedQuizzes(quizzes)
 
-  // Filter and sort bookmarks
+  // Cache expensive computations (js-cache-function-results)
   const filteredQuizzes = useMemo(() => {
     let result: (Quiz & { bookmark: BookmarkedQuiz })[] = []
 
@@ -92,22 +100,16 @@ export default function BookmarksPage() {
 
     // Apply difficulty filter
     if (filter !== 'all' && filter !== 'recent') {
-      const difficultyMap: Record<string, string> = {
-        easy: 'Easy',
-        medium: 'Medium',
-        hard: 'Hard'
-      }
       result = result.filter(
-        (quiz) => quiz.difficulty === difficultyMap[filter]
+        (quiz) => quiz.difficulty === DIFFICULTY_MAP[filter]
       )
     }
 
-    // Apply recent filter (last 7 days)
+    // Apply recent filter (last 7 days) - js-early-exit
     if (filter === 'recent') {
-      const sevenDaysAgo = new Date()
-      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
+      const cutoffTime = Date.now() - SEVEN_DAYS_MS
       result = result.filter(
-        (quiz) => new Date(quiz.bookmark.bookmarkedAt) >= sevenDaysAgo
+        (quiz) => new Date(quiz.bookmark.bookmarkedAt).getTime() >= cutoffTime
       )
     }
 
@@ -129,10 +131,11 @@ export default function BookmarksPage() {
         case 'name-desc':
           return b.title.localeCompare(a.title)
         case 'difficulty': {
-          const difficultyOrder = { Easy: 1, Medium: 2, Hard: 3 }
           return (
-            (difficultyOrder[a.difficulty] || 0) -
-            (difficultyOrder[b.difficulty] || 0)
+            (DIFFICULTY_ORDER[a.difficulty as keyof typeof DIFFICULTY_ORDER] ||
+              0) -
+            (DIFFICULTY_ORDER[b.difficulty as keyof typeof DIFFICULTY_ORDER] ||
+              0)
           )
         }
         default:
@@ -169,26 +172,28 @@ export default function BookmarksPage() {
     [editingCollection, updateCollection]
   )
 
+  // Use functional setState for stable callbacks (rerender-functional-setstate)
   const handleDeleteCollection = useCallback(() => {
     if (collectionToDelete) {
       deleteCollection(collectionToDelete)
       setCollectionToDelete(null)
       setDeleteDialogOpen(false)
-      if (selectedCollection === collectionToDelete) {
-        setSelectedCollection(null)
-      }
+      setSelectedCollection((prev) =>
+        prev === collectionToDelete ? null : prev
+      )
     }
-  }, [collectionToDelete, deleteCollection, selectedCollection])
+  }, [collectionToDelete, deleteCollection])
 
-  const openEditDialog = (collection: BookmarkCollection) => {
+  // Wrap in useCallback to prevent re-renders (rerender-memo)
+  const openEditDialog = useCallback((collection: BookmarkCollection) => {
     setEditingCollection(collection)
     setCollectionDialogOpen(true)
-  }
+  }, [])
 
-  const openDeleteDialog = (collectionId: string) => {
+  const openDeleteDialog = useCallback((collectionId: string) => {
     setCollectionToDelete(collectionId)
     setDeleteDialogOpen(true)
-  }
+  }, [])
 
   return (
     <div className='min-h-screen text-foreground p-4 md:p-8 lg:p-12'>
