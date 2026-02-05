@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, memo, useCallback, useMemo } from 'react'
 import {
   Clock,
   Calendar,
@@ -10,12 +10,20 @@ import {
   ChevronLeft,
   Star
 } from 'lucide-react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+// Fix barrel imports (bundle-barrel-imports)
+import { Card } from '@/components/ui/card'
+import { CardContent } from '@/components/ui/card'
+import { CardHeader } from '@/components/ui/card'
+import { CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
+import { RadioGroup } from '@/components/ui/radio-group'
+import { RadioGroupItem } from '@/components/ui/radio-group'
 import { Label } from '@/components/ui/label'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Tabs } from '@/components/ui/tabs'
+import { TabsContent } from '@/components/ui/tabs'
+import { TabsList } from '@/components/ui/tabs'
+import { TabsTrigger } from '@/components/ui/tabs'
 import { leaderboardData } from '@/constants/leaderBoard'
 import { streakRewards } from '@/constants/streakRewards'
 import ChallengeChart from '@/components/ChallengeChart'
@@ -26,6 +34,7 @@ import Image from 'next/image'
 import { players } from '@/constants/players'
 import { Gem, Medal } from 'lucide-react'
 
+// Hoist static data (data-hoisting)
 const badgeIcons: Record<string, React.ReactNode> = {
   Diamond: <Gem className='text-cyan-400 w-5 h-5' />,
   Platinum: <Gem className='text-slate-300 w-5 h-5' />,
@@ -34,7 +43,9 @@ const badgeIcons: Record<string, React.ReactNode> = {
   Bronze: <Medal className='text-orange-600 w-5 h-5' />
 }
 
-const MainContent = () => {
+const QUIZ_OPTIONS = ['Java', 'Python', 'HTML', 'JavaScript']
+
+const MainContent = memo(function MainContent() {
   const [questionTime, setQuestionTime] = useState<string>('5:00')
   const [selectedAnswer, setSelectedAnswer] = useState('')
   const [isTimerActive, setIsTimerActive] = useState(false)
@@ -76,9 +87,14 @@ const MainContent = () => {
     }
   }, [selectedAnswer])
 
-  const displayedHistory = showAllHistory
-    ? challengeData
-    : challengeData.slice(0, 3)
+  const displayedHistory = useMemo(
+    () => (showAllHistory ? challengeData : challengeData.slice(0, 3)),
+    [showAllHistory]
+  )
+
+  const toggleHistory = useCallback(() => {
+    setShowAllHistory((prev) => !prev)
+  }, [])
 
   return (
     <main className='grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6 items-start'>
@@ -98,8 +114,14 @@ const MainContent = () => {
                 </p>
               </div>
               <div className='flex items-center space-x-2 text-gray-500'>
-                <Clock className='h-4 w-4' />
-                <span className='font-mono'>{questionTime}</span>
+                <Clock className='h-4 w-4' aria-hidden='true' />
+                <span
+                  className='font-mono'
+                  aria-live='polite'
+                  aria-label='Time remaining'
+                >
+                  {questionTime}
+                </span>
               </div>
             </div>
             <div className='space-y-2'>
@@ -111,8 +133,8 @@ const MainContent = () => {
             </div>
           </CardHeader>
           <CardContent className='space-y-6'>
-            <div>
-              <h3 className='text-lg font-semibold mb-4'>
+            <div role='group' aria-labelledby='question-text'>
+              <h3 id='question-text' className='text-lg font-semibold mb-4'>
                 Which of these is NOT a programming language?
               </h3>
               <RadioGroup
@@ -120,7 +142,7 @@ const MainContent = () => {
                 onValueChange={setSelectedAnswer}
                 className='space-y-3'
               >
-                {['Java', 'Python', 'HTML', 'JavaScript'].map((option) => (
+                {QUIZ_OPTIONS.map((option) => (
                   <div
                     key={option}
                     className='flex items-center space-x-3 p-3 border rounded-lg hover:bg-main-hover'
@@ -139,13 +161,18 @@ const MainContent = () => {
                 ))}
               </RadioGroup>
             </div>
-            <div className='flex justify-between'>
-              <Button variant='outline' disabled>
+            <div
+              className='flex justify-between'
+              role='navigation'
+              aria-label='Quiz navigation'
+            >
+              <Button variant='outline' disabled aria-label='Previous question'>
                 Previous
               </Button>
               <Button
                 disabled={!selectedAnswer}
                 className='text-white transition-colors'
+                aria-label='Next question'
               >
                 Next
               </Button>
@@ -163,15 +190,20 @@ const MainContent = () => {
               <h1 className='text-xl font-bold'>Challenge History</h1>
               <Button
                 className='flex items-center gap-1 bg-background text-foreground/70 hover:text-foreground hover:bg-transparent transition-colors  shadow-none '
-                onClick={() => setShowAllHistory(!showAllHistory)}
+                onClick={toggleHistory}
+                aria-label={
+                  showAllHistory
+                    ? 'View less challenge history'
+                    : 'View all challenge history'
+                }
               >
                 <span className='text-xs'>
                   {showAllHistory ? 'View Less' : 'View All'}
                 </span>
                 {showAllHistory ? (
-                  <ChevronLeft className='w-4 h-4' />
+                  <ChevronLeft className='w-4 h-4' aria-hidden='true' />
                 ) : (
-                  <ChevronRight className='w-4 h-4' />
+                  <ChevronRight className='w-4 h-4' aria-hidden='true' />
                 )}
               </Button>
             </div>
@@ -258,7 +290,7 @@ const MainContent = () => {
                       key={player.id}
                       className='flex items-center space-x-3 p-3 border rounded-lg hover:bg-main-hover'
                     >
-                      <span className='text-lg'>
+                      <span className='text-lg' aria-hidden='true'>
                         {badgeIcons[player.badge]}
                       </span>
                       <div className='w-8 h-8 rounded-full flex items-center justify-center text-white'>
@@ -274,7 +306,12 @@ const MainContent = () => {
                         <p className='font-medium text-sm'>{player.name}</p>
                         <p className='text-xs text-gray-500'>{player.time}</p>
                       </div>
-                      <p className='font-bold text-sm'>{player.score} pts</p>
+                      <p
+                        className='font-bold text-sm'
+                        aria-label={`${player.score} points`}
+                      >
+                        {player.score} pts
+                      </p>
                     </div>
                   ))}
                 </TabsContent>
@@ -296,15 +333,24 @@ const MainContent = () => {
           <CardContent className='space-y-6'>
             <div>
               <div className='flex items-center space-x-2 mb-3'>
-                <Calendar className='h-4 w-4 text-blue-500' />
+                <Calendar
+                  className='h-4 w-4 text-blue-500'
+                  aria-hidden='true'
+                />
                 <span className='font-medium text-foreground text-sm'>
                   Daily Streak
                 </span>
               </div>
-              <div className='flex space-x-2 mb-2'>
+              <div
+                className='flex space-x-2 mb-2'
+                role='list'
+                aria-label='Daily streak progress'
+              >
                 {[1, 2, 3, 4, 5, 6, 7].map((day) => (
                   <div
                     key={day}
+                    role='listitem'
+                    aria-label={`Day ${day}${day <= (players[0]?.streak || 0) ? ' completed' : ' not completed'}`}
                     className={`w-8 h-8 text-foreground relative rounded-full flex items-center justify-center text-xs font-medium ${
                       day <= (players[0]?.streak || 0)
                         ? day === 7 && (players[0]?.streak || 0) >= 7
@@ -324,7 +370,7 @@ const MainContent = () => {
 
             <div>
               <div className='flex items-center space-x-2 mb-3'>
-                <Flame className='h-4 w-4 text-orange-400' />
+                <Flame className='h-4 w-4 text-orange-400' aria-hidden='true' />
                 <span className='font-medium text-foreground text-sm'>
                   Streak Rewards
                 </span>
@@ -344,8 +390,8 @@ const MainContent = () => {
                           isCurrentStreak
                             ? 'bg-orange-400 dark:bg-orange-400 border-2 border-orange-300 dark:border-orange-200'
                             : isUnlocked
-                            ? 'bg-green-500 dark:bg-emerald-400'
-                            : 'bg-slate-200 dark:bg-slate-600'
+                              ? 'bg-green-500 dark:bg-emerald-400'
+                              : 'bg-slate-200 dark:bg-slate-600'
                         }`}
                       >
                         <div className='font-bold text-xs text-foreground'>
@@ -372,7 +418,7 @@ const MainContent = () => {
 
             <div className='flex items-center gap-3 mb-8'>
               <div className='w-6 h-6 rounded-lg flex items-center justify-center'>
-                <Star className='h-4 w-4 text-violet-500' />
+                <Star className='h-4 w-4 text-violet-500' aria-hidden='true' />
               </div>
               <h1 className='text-medium text-foreground font-bold'>
                 Daily Challenge Badges
@@ -415,6 +461,6 @@ const MainContent = () => {
       </div>
     </main>
   )
-}
+})
 
 export default MainContent

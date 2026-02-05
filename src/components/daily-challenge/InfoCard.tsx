@@ -1,12 +1,12 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, memo } from 'react'
 import { Clock, Calendar, Trophy, Flame } from 'lucide-react'
-import { Card, CardContent } from '@/components/ui/card'
+// Fix barrel imports (bundle-barrel-imports)
+import { Card } from '@/components/ui/card'
+import { CardContent } from '@/components/ui/card'
 
-import React from 'react'
-
-const InfoCard = () => {
+const InfoCard = memo(function InfoCard() {
   const [timeRemaining, setTimeRemaining] = useState<string>('')
 
   useEffect(() => {
@@ -43,24 +43,29 @@ const InfoCard = () => {
   }, [])
 
   return (
-    <section className='grid grid-cols-1 lg:grid-cols-4 gap-4  mt-6'>
+    <section
+      className='grid grid-cols-1 lg:grid-cols-4 gap-4 mt-6'
+      aria-label='Challenge information'
+    >
       <Card className='bg-purple-100 border-purple-200 py-6'>
         <CardContent className='p-4 flex items-center space-x-3'>
-          <div className='p-2 bg-purple-200 rounded-full'>
+          <div className='p-2 bg-purple-200 rounded-full' aria-hidden='true'>
             <Clock className='h-5 w-5 text-purple-700' />
           </div>
           <div>
             <p className='text-sm text-purple-600 font-medium'>
               Time Remaining
             </p>
-            <p className='text-xl font-bold text-purple-900'>{timeRemaining}</p>
+            <p className='text-xl font-bold text-purple-900' aria-live='polite'>
+              {timeRemaining}
+            </p>
           </div>
         </CardContent>
       </Card>
 
       <Card className='bg-blue-100 border-blue-200 py-6'>
         <CardContent className='p-4 flex items-center space-x-3'>
-          <div className='p-2 bg-blue-200 rounded-full'>
+          <div className='p-2 bg-blue-200 rounded-full' aria-hidden='true'>
             <Calendar className='h-5 w-5 text-blue-700' />
           </div>
           <div>
@@ -74,7 +79,7 @@ const InfoCard = () => {
 
       <Card className='bg-yellow-100 border-yellow-200 py-6'>
         <CardContent className='p-4 flex items-center space-x-3'>
-          <div className='p-2 bg-yellow-200 rounded-full'>
+          <div className='p-2 bg-yellow-200 rounded-full' aria-hidden='true'>
             <Trophy className='h-5 w-5 text-yellow-700' />
           </div>
           <div>
@@ -86,7 +91,7 @@ const InfoCard = () => {
 
       <Card className='bg-red-50 border-red-200 py-6'>
         <CardContent className='p-4 flex items-center space-x-3'>
-          <div className='p-2 bg-red-100 rounded-full'>
+          <div className='p-2 bg-red-100 rounded-full' aria-hidden='true'>
             <Flame className='h-5 w-5 text-red-600' />
           </div>
           <div>
@@ -97,6 +102,6 @@ const InfoCard = () => {
       </Card>
     </section>
   )
-}
+})
 
 export default InfoCard
