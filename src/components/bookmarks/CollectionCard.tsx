@@ -49,6 +49,7 @@ const CollectionCard = memo(function CollectionCard({
             <FolderOpen
               className='h-4 w-4 shrink-0'
               style={{ color: collection.color }}
+              aria-hidden='true'
             />
             <h4 className='font-medium text-sm truncate'>{collection.name}</h4>
           </div>
@@ -70,8 +71,9 @@ const CollectionCard = memo(function CollectionCard({
               variant='ghost'
               size='icon'
               className='h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity'
+              aria-label='Collection options'
             >
-              <MoreHorizontal className='h-4 w-4' />
+              <MoreHorizontal className='h-4 w-4' aria-hidden='true' />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align='end'>

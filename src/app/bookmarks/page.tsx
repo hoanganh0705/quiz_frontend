@@ -236,8 +236,12 @@ export default function BookmarksPage() {
               </TabsList>
 
               <div className='flex items-center gap-2'>
-                {/* View Mode Toggle */}
-                <div className='flex border rounded-md'>
+                {/* View Mode Toggle - Add aria-labels for accessibility */}
+                <div
+                  className='flex border rounded-md'
+                  role='group'
+                  aria-label='View mode selection'
+                >
                   <Button
                     variant={viewMode === 'grid' ? 'default' : 'ghost'}
                     size='sm'
@@ -245,8 +249,10 @@ export default function BookmarksPage() {
                     className={
                       viewMode === 'grid' ? 'bg-default text-white' : ''
                     }
+                    aria-label='Grid view'
+                    aria-pressed={viewMode === 'grid'}
                   >
-                    <Grid3X3 className='h-4 w-4' />
+                    <Grid3X3 className='h-4 w-4' aria-hidden='true' />
                   </Button>
                   <Button
                     variant={viewMode === 'list' ? 'default' : 'ghost'}
@@ -255,8 +261,10 @@ export default function BookmarksPage() {
                     className={
                       viewMode === 'list' ? 'bg-default text-white' : ''
                     }
+                    aria-label='List view'
+                    aria-pressed={viewMode === 'list'}
                   >
-                    <List className='h-4 w-4' />
+                    <List className='h-4 w-4' aria-hidden='true' />
                   </Button>
                 </div>
 

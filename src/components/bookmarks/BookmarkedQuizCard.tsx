@@ -76,8 +76,9 @@ const BookmarkedQuizCard = memo(function BookmarkedQuizCard({
                   variant='ghost'
                   size='icon'
                   className='h-8 w-8 bg-black/30 hover:bg-black/50 text-white opacity-0 group-hover:opacity-100 transition-opacity'
+                  aria-label='Quiz options menu'
                 >
-                  <MoreVertical className='h-4 w-4' />
+                  <MoreVertical className='h-4 w-4' aria-hidden='true' />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align='end' className='w-48'>
@@ -133,7 +134,10 @@ const BookmarkedQuizCard = memo(function BookmarkedQuizCard({
         </div>
 
         {/* Bookmark indicator */}
-        <div className='absolute top-3 right-12 group-hover:right-3 transition-all'>
+        <div
+          className='absolute top-3 right-12 group-hover:right-3 transition-all'
+          aria-hidden='true'
+        >
           <Bookmark className='h-5 w-5 text-yellow-400 fill-yellow-400' />
         </div>
       </div>
@@ -143,11 +147,11 @@ const BookmarkedQuizCard = memo(function BookmarkedQuizCard({
         {/* Meta info */}
         <div className='flex items-center gap-4 text-xs text-muted-foreground mb-3'>
           <div className='flex items-center gap-1'>
-            <Clock className='h-3.5 w-3.5' />
+            <Clock className='h-3.5 w-3.5' aria-hidden='true' />
             <span>{Math.floor(quiz.duration / 60)} min</span>
           </div>
           <div className='flex items-center gap-1'>
-            <Users className='h-3.5 w-3.5' />
+            <Users className='h-3.5 w-3.5' aria-hidden='true' />
             <span>{quiz.players} plays</span>
           </div>
           {quiz.categories?.[0] && (
@@ -174,7 +178,7 @@ const BookmarkedQuizCard = memo(function BookmarkedQuizCard({
           <Link
             href={`/quizzes/${quiz.title.toLowerCase().replace(/\s+/g, '-')}`}
           >
-            <Play className='mr-2 h-4 w-4' />
+            <Play className='mr-2 h-4 w-4' aria-hidden='true' />
             Play Quiz
           </Link>
         </Button>
