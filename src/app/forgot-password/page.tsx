@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, memo, useCallback } from 'react'
 import { ArrowLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -10,13 +10,14 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useAsyncAction } from '@/hooks'
 
+// Hoist schema outside component (data-hoisting)
 const forgotPasswordSchema = z.object({
   email: z.string().email('Please enter a valid email address')
 })
 
 type ForgotPasswordFormData = z.infer<typeof forgotPasswordSchema>
 
-export default function ForgotPasswordPage() {
+const ForgotPasswordPage = memo(function ForgotPasswordPage() {
   const [isEmailSent, setIsEmailSent] = useState(false)
 
   const {
@@ -46,11 +47,18 @@ export default function ForgotPasswordPage() {
     }
   )
 
+  const handleOpenEmail = useCallback(() => {
+    window.open('mailto:', '_blank')
+  }, [])
+
   return (
     <div className='min-h-screen flex items-center justify-center bg-background px-8'>
-      <div className='w-full max-w-md space-y-8'>
+      <main className='w-full max-w-md space-y-8'>
         {/* Mobile Logo */}
-        <div className='lg:hidden flex items-center justify-center gap-3'>
+        <div
+          className='lg:hidden flex items-center justify-center gap-3'
+          role='banner'
+        >
           <h1 className='text-2xl font-bold text-foreground'>QuizHub</h1>
         </div>
 
@@ -58,28 +66,36 @@ export default function ForgotPasswordPage() {
         <Link
           href='/login'
           className='inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors'
+          aria-label='Back to login page'
         >
-          <ArrowLeft className='w-4 h-4' />
+          <ArrowLeft className='w-4 h-4' aria-hidden='true' />
           Back to login
         </Link>
 
         {!isEmailSent ? (
           <>
             {/* Header */}
-            <div className='space-y-2'>
+            <header className='space-y-2'>
               <h2 className='text-3xl font-bold text-foreground'>
                 Forgot password?
               </h2>
               <p className='text-sm text-muted-foreground'>
                 No worries, we&apos;ll send you reset instructions.
               </p>
-            </div>
+            </header>
 
-            <div>
+            <section>
               {/* Forgot Password Form */}
-              <form onSubmit={handleSubmit(onSubmit)} className='space-y-5'>
+              <form
+                onSubmit={handleSubmit(onSubmit)}
+                className='space-y-5'
+                aria-label='Password reset form'
+              >
                 {/* Email Input */}
                 <div className='space-y-2'>
+                  <label htmlFor='email' className='sr-only'>
+                    Email address
+                  </label>
                   <Input
                     id='email'
                     type='email'
@@ -87,9 +103,14 @@ export default function ForgotPasswordPage() {
                     {...register('email')}
                     className='h-12 text-primary'
                     aria-invalid={!!errors.email}
+                    aria-describedby={errors.email ? 'email-error' : undefined}
                   />
                   {errors.email && (
-                    <p className='text-xs text-destructive'>
+                    <p
+                      id='email-error'
+                      className='text-xs text-destructive'
+                      role='alert'
+                    >
                       {errors.email.message}
                     </p>
                   )}
@@ -101,10 +122,16 @@ export default function ForgotPasswordPage() {
                   disabled={isLoading}
                   size='lg'
                   className='w-full h-12 font-semibold rounded-xl'
+                  aria-label={
+                    isLoading ? 'Sending reset email' : 'Reset password'
+                  }
                 >
                   {isLoading ? (
                     <div className='flex items-center gap-2'>
-                      <div className='w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin text-white' />
+                      <div
+                        className='w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin text-white'
+                        aria-hidden='true'
+                      />
                       Sending...
                     </div>
                   ) : (
@@ -112,18 +139,22 @@ export default function ForgotPasswordPage() {
                   )}
                 </Button>
               </form>
-            </div>
+            </section>
           </>
         ) : (
           <>
             {/* Success State */}
-            <div className='space-y-2'>
-              <div className='w-16 h-16 bg-default/10 rounded-full flex items-center justify-center mb-6'>
+            <section className='space-y-2'>
+              <div
+                className='w-16 h-16 bg-default/10 rounded-full flex items-center justify-center mb-6'
+                aria-hidden='true'
+              >
                 <svg
                   className='w-8 h-8 text-default'
                   fill='none'
                   viewBox='0 0 24 24'
                   stroke='currentColor'
+                  aria-hidden='true'
                 >
                   <path
                     strokeLinecap='round'
@@ -142,7 +173,7 @@ export default function ForgotPasswordPage() {
                   {getValues('email')}
                 </span>
               </p>
-            </div>
+            </section>
 
             <div className='space-y-4'>
               {/* Open Email Button */}
@@ -150,7 +181,8 @@ export default function ForgotPasswordPage() {
                 type='button'
                 size='lg'
                 className='w-full h-12 font-semibold rounded-xl'
-                onClick={() => window.open('mailto:', '_blank')}
+                onClick={handleOpenEmail}
+                aria-label='Open email application'
               >
                 <p className='text-white'>Open email app</p>
               </Button>
@@ -163,6 +195,9 @@ export default function ForgotPasswordPage() {
                   onClick={handleResendEmail}
                   disabled={isResending}
                   className='text-foreground hover:text-muted-foreground font-semibold transition-colors underline disabled:opacity-50'
+                  aria-label={
+                    isResending ? 'Resending email' : 'Click to resend email'
+                  }
                 >
                   {isResending ? 'Resending...' : 'Click to resend'}
                 </button>
@@ -172,7 +207,7 @@ export default function ForgotPasswordPage() {
         )}
 
         {/* Footer */}
-        <p className='text-xs text-center text-muted-foreground mt-8'>
+        <footer className='text-xs text-center text-muted-foreground mt-8'>
           Remember your password?{' '}
           <Link
             href='/login'
@@ -180,8 +215,10 @@ export default function ForgotPasswordPage() {
           >
             Sign in
           </Link>
-        </p>
-      </div>
+        </footer>
+      </main>
     </div>
   )
-}
+})
+
+export default ForgotPasswordPage
