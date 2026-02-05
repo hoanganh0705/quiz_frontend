@@ -3,7 +3,7 @@
 
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { useState } from 'react'
+import { useState, memo, useCallback } from 'react'
 import { FindFriendsPopup } from './find-friends-popup'
 import { YourRankingPopup } from './your-ranking-popup'
 import {
@@ -28,7 +28,44 @@ interface LeaderboardHeaderProps {
   seasonEndDate?: string
 }
 
-export function LeaderboardHeader({
+// Hoist helper functions outside component (data-hoisting)
+const getBadgeColor = (badge: string) => {
+  switch (badge) {
+    case 'Diamond':
+      return 'bg-blue-600'
+    case 'Platinum':
+      return 'bg-slate-600'
+    case 'Gold':
+      return 'bg-yellow-600'
+    case 'Silver':
+      return 'bg-gray-500'
+    case 'Bronze':
+      return 'bg-orange-600'
+    default:
+      return 'bg-gray-500'
+  }
+}
+
+const getRankColor = (rank: number) => {
+  if (rank <= 3) return 'text-yellow-400'
+  if (rank <= 10) return 'text-blue-400'
+  if (rank <= 50) return 'text-green-400'
+  return 'text-slate-400'
+}
+
+const formatSeasonEndDate = (dateString: string) => {
+  const date = new Date(dateString)
+  const now = new Date()
+  const diffTime = date.getTime() - now.getTime()
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+
+  if (diffDays <= 0) return 'Season ended'
+  if (diffDays === 1) return '1 day left'
+  if (diffDays <= 7) return `${diffDays} days left`
+  return `${diffDays} days left`
+}
+
+export const LeaderboardHeader = memo(function LeaderboardHeader({
   onFindFriends,
   onYourRanking,
   userRank = 42,
@@ -41,50 +78,36 @@ export function LeaderboardHeader({
   const [showFindFriends, setShowFindFriends] = useState(false)
   const [showYourRanking, setShowYourRanking] = useState(false)
 
-  const getBadgeColor = (badge: string) => {
-    switch (badge) {
-      case 'Diamond':
-        return 'bg-blue-600'
-      case 'Platinum':
-        return 'bg-slate-600'
-      case 'Gold':
-        return 'bg-yellow-600'
-      case 'Silver':
-        return 'bg-gray-500'
-      case 'Bronze':
-        return 'bg-orange-600'
-      default:
-        return 'bg-gray-500'
-    }
-  }
+  const handleShowFindFriends = useCallback(() => {
+    setShowFindFriends(true)
+  }, [])
 
-  const getRankColor = (rank: number) => {
-    if (rank <= 3) return 'text-yellow-400'
-    if (rank <= 10) return 'text-blue-400'
-    if (rank <= 50) return 'text-green-400'
-    return 'text-slate-400'
-  }
+  const handleCloseFindFriends = useCallback(() => {
+    setShowFindFriends(false)
+  }, [])
 
-  const formatSeasonEndDate = (dateString: string) => {
-    const date = new Date(dateString)
-    const now = new Date()
-    const diffTime = date.getTime() - now.getTime()
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+  const handleShowYourRanking = useCallback(() => {
+    setShowYourRanking(true)
+  }, [])
 
-    if (diffDays <= 0) return 'Season ended'
-    if (diffDays === 1) return '1 day left'
-    if (diffDays <= 7) return `${diffDays} days left`
-    return `${diffDays} days left`
-  }
+  const handleCloseYourRanking = useCallback(() => {
+    setShowYourRanking(false)
+  }, [])
 
   return (
     <>
       <div className='mb-6 sm:mb-8 space-y-6'>
         {/* Main Header */}
-        <header className='space-y-4 flex flex-col xl:flex-row justify-between items-start xl:items-center'>
+        <header
+          className='space-y-4 flex flex-col xl:flex-row justify-between items-start xl:items-center'
+          role='banner'
+        >
           <div className='text-center xl:text-left'>
             <h1 className='text-2xl sm:text-3xl font-bold mb-2 text-foreground flex items-center gap-2'>
-              <Crown className='w-6 h-6 sm:w-8 sm:h-8 text-yellow-400' />
+              <Crown
+                className='w-6 h-6 sm:w-8 sm:h-8 text-yellow-400'
+                aria-hidden='true'
+              />
               Leader Board
             </h1>
             <p className='text-foreground/80 text-sm sm:text-base'>
@@ -92,26 +115,35 @@ export function LeaderboardHeader({
             </p>
           </div>
 
-          <div className='flex flex-wrap gap-2 justify-center items-center'>
+          <div
+            className='flex flex-wrap gap-2 justify-center items-center'
+            role='toolbar'
+            aria-label='Leaderboard actions'
+          >
             <Button
               className='bg-default hover:bg-default-hover text-white text-xs sm:text-sm px-3 sm:px-4 py-1 sm:py-2 flex items-center gap-2'
-              onClick={() => setShowFindFriends(true)}
+              onClick={handleShowFindFriends}
+              aria-label='Find friends on leaderboard'
             >
-              <Users className='w-3 h-3 sm:w-4 sm:h-4' />
+              <Users className='w-3 h-3 sm:w-4 sm:h-4' aria-hidden='true' />
               Find Friends
             </Button>
             <Button
               className='bg-default hover:bg-default-hover text-white text-xs sm:text-sm px-3 sm:px-4 py-1 sm:py-2 flex items-center gap-2'
-              onClick={() => setShowYourRanking(true)}
+              onClick={handleShowYourRanking}
+              aria-label='View your ranking details'
             >
-              <Trophy className='w-3 h-3 sm:w-4 sm:h-4' />
+              <Trophy className='w-3 h-3 sm:w-4 sm:h-4' aria-hidden='true' />
               Your Ranking
             </Button>
           </div>
         </header>
 
         {/* Stats Overview */}
-        <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4'>
+        <section
+          className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4'
+          aria-label='Leaderboard statistics overview'
+        >
           {/* Total Participants */}
           <div className='dark:bg-slate-800/50 background  p-4 rounded-lg border border-gray-300 dark:border-slate-700'>
             <div className='flex items-center justify-between'>
@@ -121,7 +153,10 @@ export function LeaderboardHeader({
                   {totalParticipants.toLocaleString()}
                 </p>
               </div>
-              <div className='w-10 h-10 bg-blue-500/20 rounded-full flex items-center justify-center'>
+              <div
+                className='w-10 h-10 bg-blue-500/20 rounded-full flex items-center justify-center'
+                aria-hidden='true'
+              >
                 <Users className='w-5 h-5 text-blue-400' />
               </div>
             </div>
@@ -136,7 +171,10 @@ export function LeaderboardHeader({
                   {formatSeasonEndDate(seasonEndDate)}
                 </p>
               </div>
-              <div className='w-10 h-10 bg-purple-500/20 rounded-full flex items-center justify-center'>
+              <div
+                className='w-10 h-10 bg-purple-500/20 rounded-full flex items-center justify-center'
+                aria-hidden='true'
+              >
                 <Calendar className='w-5 h-5 text-purple-400' />
               </div>
             </div>
@@ -151,7 +189,10 @@ export function LeaderboardHeader({
                   #{userRank}
                 </p>
               </div>
-              <div className='w-10 h-10 bg-yellow-500/20 rounded-full flex items-center justify-center'>
+              <div
+                className='w-10 h-10 bg-yellow-500/20 rounded-full flex items-center justify-center'
+                aria-hidden='true'
+              >
                 <Trophy className='w-5 h-5 text-yellow-400' />
               </div>
             </div>
@@ -166,24 +207,27 @@ export function LeaderboardHeader({
                   {userPoints.toLocaleString()}
                 </p>
               </div>
-              <div className='w-10 h-10 bg-green-500/20 rounded-full flex items-center justify-center'>
+              <div
+                className='w-10 h-10 bg-green-500/20 rounded-full flex items-center justify-center'
+                aria-hidden='true'
+              >
                 <Star className='w-5 h-5 text-green-400' />
               </div>
             </div>
           </div>
-        </div>
+        </section>
       </div>
 
       {/* Popups */}
       <FindFriendsPopup
         isOpen={showFindFriends}
-        onClose={() => setShowFindFriends(false)}
+        onClose={handleCloseFindFriends}
       />
 
       <YourRankingPopup
         isOpen={showYourRanking}
-        onClose={() => setShowYourRanking(false)}
+        onClose={handleCloseYourRanking}
       />
     </>
   )
-}
+})
