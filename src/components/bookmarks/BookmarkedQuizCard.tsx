@@ -1,16 +1,16 @@
 'use client'
 
+import { memo } from 'react' // rerender-memo
 import Image from 'next/image'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { difficultyColors } from '@/constants/difficultColor'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger
-} from '@/components/ui/dropdown-menu'
+// Fix barrel imports (bundle-barrel-imports)
+import { DropdownMenu } from '@/components/ui/dropdown-menu'
+import { DropdownMenuContent } from '@/components/ui/dropdown-menu'
+import { DropdownMenuItem } from '@/components/ui/dropdown-menu'
+import { DropdownMenuSeparator } from '@/components/ui/dropdown-menu'
+import { DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import {
   Bookmark,
   MoreVertical,
@@ -21,8 +21,8 @@ import {
   Users
 } from 'lucide-react'
 import Link from 'next/link'
-import { Quiz } from '@/types/quiz'
-import { BookmarkedQuiz, BookmarkCollection } from '@/types/bookmarks'
+import type { Quiz } from '@/types/quiz'
+import type { BookmarkedQuiz, BookmarkCollection } from '@/types/bookmarks'
 import { formatDistanceToNow } from 'date-fns'
 
 interface BookmarkedQuizCardProps {
@@ -33,7 +33,8 @@ interface BookmarkedQuizCardProps {
   onMoveToCollection: (quizId: string, collectionId: string | null) => void
 }
 
-export default function BookmarkedQuizCard({
+// Use memo to prevent unnecessary re-renders (rerender-memo)
+const BookmarkedQuizCard = memo(function BookmarkedQuizCard({
   quiz,
   bookmark,
   collections,
@@ -51,6 +52,7 @@ export default function BookmarkedQuizCard({
           src={quiz.image || '/placeholder.webp'}
           alt={quiz.title}
           fill
+          sizes='(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw'
           className='object-cover'
         />
 
@@ -179,4 +181,6 @@ export default function BookmarkedQuizCard({
       </div>
     </div>
   )
-}
+})
+
+export default BookmarkedQuizCard

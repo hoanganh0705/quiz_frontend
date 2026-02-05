@@ -197,19 +197,20 @@ export function useBookmarks() {
     [state.collections]
   )
 
-  // Get bookmarks count by collection
+  // Get bookmarks count by collection (js-index-maps for O(1) lookups)
   const getCollectionCounts = useMemo(() => {
     const counts: Record<string, number> = { uncategorized: 0 }
 
+    // Pre-initialize collection counts (js-early-exit)
     state.collections.forEach((c) => {
       counts[c.id] = 0
     })
 
+    // Single iteration through bookmarks (js-combine-iterations)
     state.bookmarks.forEach((b) => {
-      if (b.collectionId === null) {
-        counts['uncategorized']++
-      } else if (counts[b.collectionId] !== undefined) {
-        counts[b.collectionId]++
+      const key = b.collectionId ?? 'uncategorized'
+      if (counts[key] !== undefined) {
+        counts[key]++
       }
     })
 
@@ -234,14 +235,21 @@ export function useBookmarks() {
   }
 }
 
-// Helper hook to get full quiz data for bookmarks
+// Helper hook to get full quiz data for bookmarks (js-index-maps for faster lookups)
 export function useBookmarkedQuizzes(quizzes: Quiz[]) {
   const { bookmarks, collections, getCollectionCounts } = useBookmarks()
+
+  // Create quiz lookup map for O(1) access (js-index-maps)
+  const quizMap = useMemo(() => {
+    const map = new Map<string, Quiz>()
+    quizzes.forEach((quiz) => map.set(quiz.id, quiz))
+    return map
+  }, [quizzes])
 
   const bookmarkedQuizzes = useMemo(() => {
     return bookmarks
       .map((bookmark) => {
-        const quiz = quizzes.find((q) => q.id === bookmark.quizId)
+        const quiz = quizMap.get(bookmark.quizId)
         if (!quiz) return null
         return {
           ...quiz,
@@ -249,19 +257,21 @@ export function useBookmarkedQuizzes(quizzes: Quiz[]) {
         }
       })
       .filter(Boolean) as (Quiz & { bookmark: BookmarkedQuiz })[]
-  }, [bookmarks, quizzes])
+  }, [bookmarks, quizMap])
 
   const quizzesByCollection = useMemo(() => {
     const grouped: Record<string, (Quiz & { bookmark: BookmarkedQuiz })[]> = {
       uncategorized: []
     }
 
+    // Pre-initialize all collections (js-early-exit optimization)
     collections.forEach((c) => {
       grouped[c.id] = []
     })
 
+    // Single iteration to group (js-combine-iterations)
     bookmarkedQuizzes.forEach((quiz) => {
-      const collectionId = quiz.bookmark.collectionId || 'uncategorized'
+      const collectionId = quiz.bookmark.collectionId ?? 'uncategorized'
       if (grouped[collectionId]) {
         grouped[collectionId].push(quiz)
       }

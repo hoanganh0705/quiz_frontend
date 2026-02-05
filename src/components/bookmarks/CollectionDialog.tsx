@@ -1,20 +1,20 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle
-} from '@/components/ui/dialog'
-import { BookmarkCollection } from '@/types/bookmarks'
+// Fix barrel imports (bundle-barrel-imports)
+import { Dialog } from '@/components/ui/dialog'
+import { DialogContent } from '@/components/ui/dialog'
+import { DialogDescription } from '@/components/ui/dialog'
+import { DialogFooter } from '@/components/ui/dialog'
+import { DialogHeader } from '@/components/ui/dialog'
+import { DialogTitle } from '@/components/ui/dialog'
+import type { BookmarkCollection } from '@/types/bookmarks'
 
+// Hoist static data (rendering-hoist-jsx)
 const PRESET_COLORS = [
   '#ef4444', // red
   '#f97316', // orange
@@ -25,7 +25,7 @@ const PRESET_COLORS = [
   '#8b5cf6', // violet
   '#ec4899', // pink
   '#6b7280' // gray
-]
+] as const
 
 interface CollectionDialogProps {
   open: boolean
@@ -42,20 +42,27 @@ export default function CollectionDialog({
   collection,
   mode
 }: CollectionDialogProps) {
-  const [name, setName] = useState(collection?.name || '')
-  const [description, setDescription] = useState(collection?.description || '')
-  const [color, setColor] = useState(collection?.color || PRESET_COLORS[0])
+  const [name, setName] = useState('')
+  const [description, setDescription] = useState('')
+  const [color, setColor] = useState(PRESET_COLORS[0])
+
+  // Sync with collection prop when dialog opens (rerender-derived-state-no-effect)
+  useEffect(() => {
+    if (open && collection) {
+      setName(collection.name)
+      setDescription(collection.description || '')
+      setColor(collection.color)
+    } else if (open && !collection) {
+      setName('')
+      setDescription('')
+      setColor(PRESET_COLORS[0])
+    }
+  }, [open, collection])
 
   const handleSave = () => {
     if (!name.trim()) return
     onSave(name.trim(), description.trim(), color)
     onOpenChange(false)
-    // Reset form
-    if (mode === 'create') {
-      setName('')
-      setDescription('')
-      setColor(PRESET_COLORS[0])
-    }
   }
 
   return (

@@ -1,13 +1,13 @@
 'use client'
 
+import { memo } from 'react' // rerender-memo
 import { Button } from '@/components/ui/button'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger
-} from '@/components/ui/dropdown-menu'
-import { BookmarkCollection } from '@/types/bookmarks'
+// Fix barrel imports (bundle-barrel-imports)
+import { DropdownMenu } from '@/components/ui/dropdown-menu'
+import { DropdownMenuContent } from '@/components/ui/dropdown-menu'
+import { DropdownMenuItem } from '@/components/ui/dropdown-menu'
+import { DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
+import type { BookmarkCollection } from '@/types/bookmarks'
 import { MoreHorizontal, Pencil, Trash2, FolderOpen } from 'lucide-react'
 
 interface CollectionCardProps {
@@ -19,7 +19,8 @@ interface CollectionCardProps {
   onDelete: () => void
 }
 
-export default function CollectionCard({
+// Use memo to prevent unnecessary re-renders (rerender-memo)
+const CollectionCard = memo(function CollectionCard({
   collection,
   count,
   isSelected,
@@ -98,4 +99,6 @@ export default function CollectionCard({
       </div>
     </div>
   )
-}
+})
+
+export default CollectionCard

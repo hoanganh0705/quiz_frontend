@@ -1,5 +1,6 @@
 'use client'
 
+import { memo } from 'react' // rerender-memo
 import { Bookmark, FolderPlus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
@@ -9,7 +10,8 @@ interface EmptyBookmarksProps {
   onCreateCollection?: () => void
 }
 
-export default function EmptyBookmarks({
+// Use memo for static content component (rerender-memo)
+const EmptyBookmarks = memo(function EmptyBookmarks({
   type,
   collectionName,
   onCreateCollection
@@ -78,4 +80,6 @@ export default function EmptyBookmarks({
   }
 
   return null
-}
+})
+
+export default EmptyBookmarks
