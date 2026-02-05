@@ -1,5 +1,6 @@
 'use client'
 
+import { memo } from 'react'
 import { Button } from '@/components/ui/button'
 import { Sparkles, Brain, Trophy, Users } from 'lucide-react'
 
@@ -7,6 +8,7 @@ interface WelcomeStepProps {
   onNext: () => void
 }
 
+// Hoist features data outside component (data-hoisting)
 const features = [
   {
     icon: Brain,
@@ -26,12 +28,17 @@ const features = [
   }
 ]
 
-export function WelcomeStep({ onNext }: WelcomeStepProps) {
+export const WelcomeStep = memo(function WelcomeStep({
+  onNext
+}: WelcomeStepProps) {
   return (
     <div className='text-center space-y-8'>
       {/* Hero Section */}
       <div className='space-y-4'>
-        <div className='inline-flex items-center justify-center w-20 h-20 rounded-full bg-default/10 mb-4'>
+        <div
+          className='inline-flex items-center justify-center w-20 h-20 rounded-full bg-default/10 mb-4'
+          aria-hidden='true'
+        >
           <Sparkles className='w-10 h-10 text-default' />
         </div>
         <h1 className='text-3xl md:text-4xl font-bold text-foreground'>
@@ -44,13 +51,21 @@ export function WelcomeStep({ onNext }: WelcomeStepProps) {
       </div>
 
       {/* Features Grid */}
-      <div className='grid grid-cols-1 md:grid-cols-3 gap-6 py-8'>
+      <div
+        className='grid grid-cols-1 md:grid-cols-3 gap-6 py-8'
+        role='list'
+        aria-label='Platform features'
+      >
         {features.map((feature) => (
           <div
             key={feature.title}
             className='p-6 rounded-xl border border-border bg-card hover:border-default/50 transition-colors'
+            role='listitem'
           >
-            <div className='inline-flex items-center justify-center w-12 h-12 rounded-lg bg-default/10 mb-4'>
+            <div
+              className='inline-flex items-center justify-center w-12 h-12 rounded-lg bg-default/10 mb-4'
+              aria-hidden='true'
+            >
               <feature.icon className='w-6 h-6 text-default' />
             </div>
             <h3 className='font-semibold text-foreground mb-2'>
@@ -69,9 +84,10 @@ export function WelcomeStep({ onNext }: WelcomeStepProps) {
           onClick={onNext}
           size='lg'
           className='bg-default hover:bg-default-hover text-white px-8 py-6 text-lg'
+          aria-label='Start onboarding process'
         >
           Get Started
-          <Sparkles className='w-5 h-5 ml-2' />
+          <Sparkles className='w-5 h-5 ml-2' aria-hidden='true' />
         </Button>
         <p className='text-sm text-muted-foreground'>
           This will only take about 2 minutes
@@ -79,4 +95,4 @@ export function WelcomeStep({ onNext }: WelcomeStepProps) {
       </div>
     </div>
   )
-}
+})

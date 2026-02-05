@@ -1,5 +1,6 @@
 'use client'
 
+import { memo, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import { categories } from '@/constants/categories'
 import { cn } from '@/lib/utils'
@@ -13,7 +14,7 @@ interface InterestSelectionStepProps {
   onSkip: () => void
 }
 
-export function InterestSelectionStep({
+export const InterestSelectionStep = memo(function InterestSelectionStep({
   selectedInterests,
   onUpdateInterests,
   onNext,
@@ -24,13 +25,17 @@ export function InterestSelectionStep({
     (cat) => cat.id !== 'all-categories'
   )
 
-  const toggleInterest = (categoryId: string) => {
-    if (selectedInterests.includes(categoryId)) {
-      onUpdateInterests(selectedInterests.filter((id) => id !== categoryId))
-    } else {
-      onUpdateInterests([...selectedInterests, categoryId])
-    }
-  }
+  // Use useCallback for event handlers (rerender-functional-setstate)
+  const toggleInterest = useCallback(
+    (categoryId: string) => {
+      onUpdateInterests(
+        selectedInterests.includes(categoryId)
+          ? selectedInterests.filter((id) => id !== categoryId)
+          : [...selectedInterests, categoryId]
+      )
+    },
+    [selectedInterests, onUpdateInterests]
+  )
 
   const isSelected = (categoryId: string) =>
     selectedInterests.includes(categoryId)
@@ -50,7 +55,11 @@ export function InterestSelectionStep({
       </div>
 
       {/* Categories Grid */}
-      <div className='grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3'>
+      <div
+        className='grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3'
+        role='group'
+        aria-label='Select your interests'
+      >
         {selectableCategories.map((category) => (
           <button
             key={category.id}
@@ -62,17 +71,24 @@ export function InterestSelectionStep({
                 ? 'border-default bg-default/10 shadow-sm'
                 : 'border-border hover:border-default/50 bg-card'
             )}
+            aria-label={`${category.name} - ${isSelected(category.id) ? 'selected' : 'not selected'}`}
+            aria-pressed={isSelected(category.id)}
           >
             {/* Selection Indicator */}
             {isSelected(category.id) && (
-              <div className='absolute top-2 right-2 w-5 h-5 rounded-full bg-default flex items-center justify-center'>
+              <div
+                className='absolute top-2 right-2 w-5 h-5 rounded-full bg-default flex items-center justify-center'
+                aria-hidden='true'
+              >
                 <Check className='w-3 h-3 text-white' />
               </div>
             )}
 
             {/* Category Content */}
             <div className='space-y-2'>
-              <span className='text-2xl'>{category.icon}</span>
+              <span className='text-2xl' aria-hidden='true'>
+                {category.icon}
+              </span>
               <h3 className='font-medium text-foreground text-sm'>
                 {category.name}
               </h3>
@@ -93,6 +109,8 @@ export function InterestSelectionStep({
               ? 'bg-default/10 text-default'
               : 'bg-muted text-muted-foreground'
           )}
+          role='status'
+          aria-live='polite'
         >
           {selectedInterests.length} selected
           {!canProceed && ' (select at least 1)'}
@@ -100,24 +118,29 @@ export function InterestSelectionStep({
       </div>
 
       {/* Navigation */}
-      <div className='flex justify-between items-center pt-4'>
+      <nav
+        className='flex justify-between items-center pt-4'
+        aria-label='Step navigation'
+      >
         <Button
           variant='outline'
           onClick={onBack}
           className='flex items-center gap-2'
+          aria-label='Go back to previous step'
         >
-          <ArrowLeft className='w-4 h-4' />
+          <ArrowLeft className='w-4 h-4' aria-hidden='true' />
           Back
         </Button>
         <Button
           onClick={onNext}
           disabled={!canProceed}
           className='bg-default hover:bg-default-hover text-white flex items-center gap-2'
+          aria-label='Continue to next step'
         >
           Continue
-          <ArrowRight className='w-4 h-4' />
+          <ArrowRight className='w-4 h-4' aria-hidden='true' />
         </Button>
-      </div>
+      </nav>
     </div>
   )
-}
+})
