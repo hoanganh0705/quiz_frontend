@@ -27,6 +27,20 @@ const PRESET_COLORS = [
   '#6b7280' // gray
 ] as const
 
+const COLOR_NAMES: Record<string, string> = {
+  '#ef4444': 'red',
+  '#f97316': 'orange',
+  '#eab308': 'yellow',
+  '#22c55e': 'green',
+  '#14b8a6': 'teal',
+  '#3b82f6': 'blue',
+  '#8b5cf6': 'violet',
+  '#ec4899': 'pink',
+  '#6b7280': 'gray'
+} as const
+
+const getColorName = (color: string): string => COLOR_NAMES[color] || 'unknown'
+
 interface CollectionDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
@@ -44,18 +58,21 @@ export default function CollectionDialog({
 }: CollectionDialogProps) {
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
-  const [color, setColor] = useState(PRESET_COLORS[0])
+  const [color, setColor] = useState<string>(PRESET_COLORS[0])
 
-  // Sync with collection prop when dialog opens (rerender-derived-state-no-effect)
+  // Sync with collection prop when dialog opens or collection changes (rerender-derived-state-no-effect)
   useEffect(() => {
-    if (open && collection) {
-      setName(collection.name)
-      setDescription(collection.description || '')
-      setColor(collection.color)
-    } else if (open && !collection) {
-      setName('')
-      setDescription('')
-      setColor(PRESET_COLORS[0])
+    if (open) {
+      if (collection) {
+        setName(collection.name)
+        setDescription(collection.description || '')
+        setColor(collection.color)
+      } else {
+        // Reset for create mode
+        setName('')
+        setDescription('')
+        setColor(PRESET_COLORS[0])
+      }
     }
   }, [open, collection])
 
@@ -104,7 +121,11 @@ export default function CollectionDialog({
 
           <div className='grid gap-2'>
             <Label>Color</Label>
-            <div className='flex gap-2 flex-wrap'>
+            <div
+              className='flex gap-2 flex-wrap'
+              role='radiogroup'
+              aria-label='Choose collection color'
+            >
               {PRESET_COLORS.map((presetColor) => (
                 <button
                   key={presetColor}
@@ -116,6 +137,9 @@ export default function CollectionDialog({
                       : 'hover:scale-105'
                   }`}
                   style={{ backgroundColor: presetColor }}
+                  aria-label={`Select ${getColorName(presetColor)} color`}
+                  aria-checked={color === presetColor}
+                  role='radio'
                 />
               ))}
             </div>
