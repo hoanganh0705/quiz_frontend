@@ -1,5 +1,7 @@
 'use client'
 
+import { memo, useCallback } from 'react'
+// Fix barrel imports (bundle-barrel-imports)
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -16,6 +18,7 @@ interface ProfileSetupStepProps {
   onSkip: () => void
 }
 
+// Hoist constants outside component (data-hoisting)
 const experienceLevels = [
   {
     value: 'beginner',
@@ -58,18 +61,22 @@ const avatarOptions = [
   '🦋'
 ]
 
-export function ProfileSetupStep({
+export const ProfileSetupStep = memo(function ProfileSetupStep({
   profile,
   onUpdateProfile,
   onNext,
   onBack
 }: ProfileSetupStepProps) {
-  const updateField = <K extends keyof OnboardingProfile>(
-    field: K,
-    value: OnboardingProfile[K]
-  ) => {
-    onUpdateProfile({ ...profile, [field]: value })
-  }
+  // Use useCallback for event handlers (rerender-functional-setstate)
+  const updateField = useCallback(
+    <K extends keyof OnboardingProfile>(
+      field: K,
+      value: OnboardingProfile[K]
+    ) => {
+      onUpdateProfile({ ...profile, [field]: value })
+    },
+    [profile, onUpdateProfile]
+  )
 
   const canProceed = profile.displayName.trim().length >= 2
 
@@ -89,7 +96,11 @@ export function ProfileSetupStep({
         {/* Avatar Selection */}
         <div className='space-y-3'>
           <Label className='text-sm font-medium'>Choose an avatar</Label>
-          <div className='flex flex-wrap gap-2 justify-center p-4 rounded-xl border border-border bg-card'>
+          <div
+            className='flex flex-wrap gap-2 justify-center p-4 rounded-xl border border-border bg-card'
+            role='group'
+            aria-label='Avatar selection'
+          >
             {avatarOptions.map((avatar) => (
               <button
                 key={avatar}
@@ -101,6 +112,8 @@ export function ProfileSetupStep({
                     ? 'bg-default/20 ring-2 ring-default ring-offset-2 ring-offset-background'
                     : 'bg-muted'
                 )}
+                aria-label={`Select avatar ${avatar}`}
+                aria-pressed={profile.avatar === avatar}
               >
                 {avatar}
               </button>
@@ -119,7 +132,10 @@ export function ProfileSetupStep({
             Display Name <span className='text-destructive'>*</span>
           </Label>
           <div className='relative'>
-            <User className='absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground' />
+            <User
+              className='absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground'
+              aria-hidden='true'
+            />
             <Input
               id='displayName'
               placeholder='Enter your display name'
@@ -127,6 +143,8 @@ export function ProfileSetupStep({
               onChange={(e) => updateField('displayName', e.target.value)}
               className='pl-10'
               maxLength={30}
+              aria-required='true'
+              aria-invalid={profile.displayName.trim().length < 2}
             />
           </div>
           <p className='text-xs text-muted-foreground'>
@@ -157,7 +175,11 @@ export function ProfileSetupStep({
         {/* Experience Level */}
         <div className='space-y-3'>
           <Label className='text-sm font-medium'>Quiz experience level</Label>
-          <div className='grid grid-cols-1 sm:grid-cols-3 gap-3'>
+          <div
+            className='grid grid-cols-1 sm:grid-cols-3 gap-3'
+            role='group'
+            aria-label='Experience level selection'
+          >
             {experienceLevels.map((level) => (
               <button
                 key={level.value}
@@ -169,8 +191,12 @@ export function ProfileSetupStep({
                     ? 'border-default bg-default/10'
                     : 'border-border bg-card'
                 )}
+                aria-label={`${level.label}: ${level.description}`}
+                aria-pressed={profile.experienceLevel === level.value}
               >
-                <div className='text-2xl mb-2'>{level.emoji}</div>
+                <div className='text-2xl mb-2' aria-hidden='true'>
+                  {level.emoji}
+                </div>
                 <div className='font-medium text-foreground text-sm'>
                   {level.label}
                 </div>
@@ -184,24 +210,29 @@ export function ProfileSetupStep({
       </div>
 
       {/* Navigation */}
-      <div className='flex justify-between items-center pt-4'>
+      <nav
+        className='flex justify-between items-center pt-4'
+        aria-label='Step navigation'
+      >
         <Button
           variant='outline'
           onClick={onBack}
           className='flex items-center gap-2'
+          aria-label='Go back to previous step'
         >
-          <ArrowLeft className='w-4 h-4' />
+          <ArrowLeft className='w-4 h-4' aria-hidden='true' />
           Back
         </Button>
         <Button
           onClick={onNext}
           disabled={!canProceed}
           className='bg-default hover:bg-default-hover text-white flex items-center gap-2'
+          aria-label='Continue to next step'
         >
           Continue
-          <ArrowRight className='w-4 h-4' />
+          <ArrowRight className='w-4 h-4' aria-hidden='true' />
         </Button>
-      </div>
+      </nav>
     </div>
   )
-}
+})

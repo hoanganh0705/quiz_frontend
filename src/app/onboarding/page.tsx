@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, memo, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { useLocalStorage } from '@/hooks/use-local-storage'
 import { WelcomeStep } from '@/components/onboarding/WelcomeStep'
@@ -10,9 +10,10 @@ import { QuizRecommendationsStep } from '@/components/onboarding/QuizRecommendat
 import { Progress } from '@/components/ui/progress'
 import { OnboardingData } from '@/types/onboarding'
 
+// Hoist constant outside component (data-hoisting)
 const TOTAL_STEPS = 4
 
-export default function OnboardingPage() {
+const OnboardingPage = memo(function OnboardingPage() {
   const router = useRouter()
   const [currentStep, setCurrentStep] = useState(1)
   const [onboardingData, setOnboardingData] = useLocalStorage<OnboardingData>(
@@ -42,42 +43,49 @@ export default function OnboardingPage() {
 
   const progressPercentage = (currentStep / TOTAL_STEPS) * 100
 
-  const handleNext = () => {
+  // Use useCallback for event handlers (rerender-functional-setstate)
+  const handleNext = useCallback(() => {
     if (currentStep < TOTAL_STEPS) {
       setCurrentStep((prev) => prev + 1)
     }
-  }
+  }, [currentStep])
 
-  const handleBack = () => {
+  const handleBack = useCallback(() => {
     if (currentStep > 1) {
       setCurrentStep((prev) => prev - 1)
     }
-  }
+  }, [currentStep])
 
-  const handleSkip = () => {
+  const handleSkip = useCallback(() => {
     if (currentStep < TOTAL_STEPS) {
       setCurrentStep((prev) => prev + 1)
     } else {
       handleComplete()
     }
-  }
+  }, [currentStep])
 
-  const handleComplete = () => {
-    setOnboardingData({
-      ...onboardingData,
+  const handleComplete = useCallback(() => {
+    setOnboardingData((prev) => ({
+      ...prev,
       completedAt: new Date().toISOString()
-    })
+    }))
     setHasCompletedOnboarding(true)
     router.push('/')
-  }
+  }, [setOnboardingData, setHasCompletedOnboarding, router])
 
-  const updateInterests = (interests: string[]) => {
-    setOnboardingData((prev) => ({ ...prev, interests }))
-  }
+  const updateInterests = useCallback(
+    (interests: string[]) => {
+      setOnboardingData((prev) => ({ ...prev, interests }))
+    },
+    [setOnboardingData]
+  )
 
-  const updateProfile = (profile: OnboardingData['profile']) => {
-    setOnboardingData((prev) => ({ ...prev, profile }))
-  }
+  const updateProfile = useCallback(
+    (profile: OnboardingData['profile']) => {
+      setOnboardingData((prev) => ({ ...prev, profile }))
+    },
+    [setOnboardingData]
+  )
 
   const renderStep = () => {
     switch (currentStep) {
@@ -117,31 +125,41 @@ export default function OnboardingPage() {
   }
 
   return (
-    <div className='min-h-screen bg-background flex flex-col'>
+    <main className='min-h-screen bg-background flex flex-col'>
       {/* Progress Header */}
-      <div className='w-full px-4 py-6 border-b border-border'>
+      <header className='w-full px-4 py-6 border-b border-border'>
         <div className='max-w-2xl mx-auto'>
           <div className='flex items-center justify-between mb-3'>
-            <span className='text-sm text-muted-foreground'>
+            <span className='text-sm text-muted-foreground' aria-live='polite'>
               Step {currentStep} of {TOTAL_STEPS}
             </span>
             {currentStep > 1 && currentStep < TOTAL_STEPS && (
               <button
                 onClick={handleSkip}
                 className='text-sm text-muted-foreground hover:text-foreground transition-colors'
+                aria-label='Skip this step'
               >
                 Skip for now
               </button>
             )}
           </div>
-          <Progress value={progressPercentage} className='h-2' />
+          <Progress
+            value={progressPercentage}
+            className='h-2'
+            aria-label={`Onboarding progress: ${progressPercentage.toFixed(0)}%`}
+          />
         </div>
-      </div>
+      </header>
 
       {/* Step Content */}
-      <div className='flex-1 flex items-center justify-center px-4 py-8'>
+      <section
+        className='flex-1 flex items-center justify-center px-4 py-8'
+        aria-label='Onboarding step content'
+      >
         <div className='w-full max-w-2xl'>{renderStep()}</div>
-      </div>
-    </div>
+      </section>
+    </main>
   )
-}
+})
+
+export default OnboardingPage
