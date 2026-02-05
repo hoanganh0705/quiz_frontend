@@ -271,7 +271,10 @@ export const LeaderboardHighlights = memo(function LeaderboardHighlights() {
         <div className='flex items-center justify-between'>
           <div>
             <CardTitle className='text-foreground text-lg sm:text-xl md:text-2xl font-bold flex items-center gap-2'>
-              <Trophy className='w-5 h-5 sm:w-6 sm:h-6 text-yellow-400' aria-hidden='true' />
+              <Trophy
+                className='w-5 h-5 sm:w-6 sm:h-6 text-yellow-400'
+                aria-hidden='true'
+              />
               Leaderboard Highlights
             </CardTitle>
             <CardDescription className='text-foreground/80 text-sm sm:text-base'>
@@ -287,31 +290,48 @@ export const LeaderboardHighlights = memo(function LeaderboardHighlights() {
           onValueChange={(value) => setActiveTab(value as ActiveTab)}
           className='w-full'
         >
-          <TabsList className='grid w-full grid-cols-3 bg-[#e5eaee] dark:bg-slate-700 mb-4' role='tablist' aria-label='Leaderboard views'>
+          <TabsList
+            className='grid w-full grid-cols-3 bg-[#e5eaee] dark:bg-slate-700 mb-4'
+            role='tablist'
+            aria-label='Leaderboard views'
+          >
             <TabsTrigger
               value='global'
               className='data-[state=active]:bg-background text-xs sm:text-sm'
             >
-              <Globe className='w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2' aria-hidden='true' />
+              <Globe
+                className='w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2'
+                aria-hidden='true'
+              />
               Global
             </TabsTrigger>
             <TabsTrigger
               value='category'
               className='data-[state=active]:bg-background text-xs sm:text-sm'
             >
-              <BarChart3 className='w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2' aria-hidden='true' />
+              <BarChart3
+                className='w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2'
+                aria-hidden='true'
+              />
               By Category
             </TabsTrigger>
             <TabsTrigger
               value='trending'
               className='data-[state=active]:bg-background text-xs sm:text-sm'
             >
-              <TrendingUp className='w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2' aria-hidden='true' />
+              <TrendingUp
+                className='w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2'
+                aria-hidden='true'
+              />
               Trending
             </TabsTrigger>
           </TabsList>
 
-          <div className='flex flex-wrap gap-2' role='toolbar' aria-label='Time period filters'>
+          <div
+            className='flex flex-wrap gap-2'
+            role='toolbar'
+            aria-label='Time period filters'
+          >
             {TIME_PERIODS.map(({ value, label, icon: Icon }) => (
               <Button
                 key={value}
@@ -360,8 +380,15 @@ export const LeaderboardHighlights = memo(function LeaderboardHighlights() {
           )}
 
           {isLoading && (
-            <div className='flex items-center justify-center py-8' role='status' aria-label='Loading leaderboard data'>
-              <div className='animate-spin rounded-full h-8 w-8 border-b-2 border-white' aria-hidden='true'></div>
+            <div
+              className='flex items-center justify-center py-8'
+              role='status'
+              aria-label='Loading leaderboard data'
+            >
+              <div
+                className='animate-spin rounded-full h-8 w-8 border-b-2 border-white'
+                aria-hidden='true'
+              ></div>
             </div>
           )}
 
@@ -381,7 +408,8 @@ export const LeaderboardHighlights = memo(function LeaderboardHighlights() {
         </Tabs>
       </CardContent>
     </Card>
-  )\n})
+  )
+})
 
 export { mockUsers, categoryUsers, trendingUsers, categories }
 export type { LeaderboardUser, Category }

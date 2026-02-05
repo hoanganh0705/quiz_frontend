@@ -1,4 +1,9 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { memo } from 'react'
+// Fix barrel imports (bundle-barrel-imports)
+import { Card } from '@/components/ui/card'
+import { CardContent } from '@/components/ui/card'
+import { CardHeader } from '@/components/ui/card'
+import { CardTitle } from '@/components/ui/card'
 import { BookOpen, Edit, Trophy } from 'lucide-react'
 
 interface QuizEntry {
@@ -16,7 +21,7 @@ interface QuizzesTabProps {
   quizHistory: QuizEntry[]
 }
 
-export function QuizzesTab({
+export const QuizzesTab = memo(function QuizzesTab({
   totalQuizzes,
   quizzesCreated,
   quizHistory
@@ -27,7 +32,7 @@ export function QuizzesTab({
         <Card>
           <CardContent className='p-6'>
             <div className='flex items-center gap-4'>
-              <div className='p-3 rounded-lg bg-default/10'>
+              <div className='p-3 rounded-lg bg-default/10' aria-hidden='true'>
                 <BookOpen className='w-6 h-6 text-default' />
               </div>
               <div>
@@ -45,7 +50,10 @@ export function QuizzesTab({
         <Card>
           <CardContent className='p-6'>
             <div className='flex items-center gap-4'>
-              <div className='p-3 rounded-lg bg-green-500/10'>
+              <div
+                className='p-3 rounded-lg bg-green-500/10'
+                aria-hidden='true'
+              >
                 <Edit className='w-6 h-6 text-green-500' />
               </div>
               <div>
@@ -64,14 +72,15 @@ export function QuizzesTab({
           <CardTitle className='text-base'>Quiz History</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className='space-y-2'>
+          <div className='space-y-2' role='list' aria-label='Quiz history'>
             {quizHistory.map((quiz) => (
               <div
                 key={quiz.id}
                 className='flex items-center justify-between rounded-lg hover:bg-default/10 transition-colors border p-3 border-default/20'
+                role='listitem'
               >
                 <div className='flex items-center gap-3 '>
-                  <div className={`p-2 rounded-lg`}>
+                  <div className={`p-2 rounded-lg`} aria-hidden='true'>
                     {quiz.isTopTen ? (
                       <Trophy className='w-4 h-4 text-amber-500' />
                     ) : (
@@ -100,4 +109,4 @@ export function QuizzesTab({
       </Card>
     </div>
   )
-}
+})

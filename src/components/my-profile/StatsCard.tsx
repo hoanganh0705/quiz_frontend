@@ -1,4 +1,7 @@
-import { Card, CardContent } from '@/components/ui/card'
+import { memo } from 'react'
+// Fix barrel imports (bundle-barrel-imports)
+import { Card } from '@/components/ui/card'
+import { CardContent } from '@/components/ui/card'
 import { LucideIcon } from 'lucide-react'
 
 interface StatsCardProps {
@@ -9,7 +12,7 @@ interface StatsCardProps {
   label: string
 }
 
-export function StatsCard({
+export const StatsCard = memo(function StatsCard({
   icon: Icon,
   iconColor,
   iconBgColor,
@@ -20,7 +23,7 @@ export function StatsCard({
     <Card>
       <CardContent className='p-4'>
         <div className='flex items-center gap-3'>
-          <div className={`p-2 rounded-lg ${iconBgColor}`}>
+          <div className={`p-2 rounded-lg ${iconBgColor}`} aria-hidden='true'>
             <Icon className={`w-5 h-5 ${iconColor}`} />
           </div>
           <div>
@@ -31,4 +34,4 @@ export function StatsCard({
       </CardContent>
     </Card>
   )
-}
+})
