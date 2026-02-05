@@ -1,32 +1,42 @@
 'use client'
 
+import { memo, useState } from 'react'
 import { Label } from '@/components/ui/label'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from '@/components/ui/select'
+// Fix barrel imports (bundle-barrel-imports)
+import { Select } from '@/components/ui/select'
+import { SelectContent } from '@/components/ui/select'
+import { SelectItem } from '@/components/ui/select'
+import { SelectTrigger } from '@/components/ui/select'
+import { SelectValue } from '@/components/ui/select'
 import { Slider } from '@/components/ui/slider'
 import { Switch } from '@/components/ui/switch'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { useState } from 'react'
+import { Card } from '@/components/ui/card'
+import { CardContent } from '@/components/ui/card'
+import { CardHeader } from '@/components/ui/card'
+import { CardTitle } from '@/components/ui/card'
 
-export default function SettingsTab() {
+// Wrap component in memo to prevent unnecessary re-renders
+const SettingsTab = memo(function SettingsTab() {
   const [passingScore, setPassingScore] = useState(70)
 
   return (
-    <Card className='bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700 shadow-sm py-10'>
+    <Card
+      className='bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700 shadow-sm py-10'
+      role='region'
+      aria-labelledby='settings-title'
+    >
       <CardHeader className='pb-4'>
-        <CardTitle className='text-xl font-semibold text-gray-900 dark:text-white'>
+        <CardTitle
+          id='settings-title'
+          className='text-xl font-semibold text-gray-900 dark:text-white'
+        >
           Quiz Settings
         </CardTitle>
       </CardHeader>
 
-      <CardContent className='space-y-5'>
+      <CardContent className='space-y-5' role='form'>
         {/* Time Limit */}
-        <div>
+        <section>
           <Label
             htmlFor='time-limit'
             className='text-gray-700 dark:text-gray-200 text-sm mb-2 font-medium block'
@@ -79,10 +89,10 @@ export default function SettingsTab() {
               </SelectItem>
             </SelectContent>
           </Select>
-        </div>
+        </section>
 
         {/* Time Per Question */}
-        <div>
+        <section>
           <Label
             htmlFor='time-per-question'
             className='text-gray-700 dark:text-gray-200 text-sm mb-2 font-medium block'
@@ -135,10 +145,10 @@ export default function SettingsTab() {
               </SelectItem>
             </SelectContent>
           </Select>
-        </div>
+        </section>
 
         {/* Randomize Questions */}
-        <div className='flex items-center justify-between py-2'>
+        <section className='flex items-center justify-between py-2'>
           <Label
             htmlFor='randomize-questions'
             className='text-gray-700 dark:text-gray-200 text-sm font-medium'
@@ -149,10 +159,10 @@ export default function SettingsTab() {
             id='randomize-questions'
             className='data-[state=checked]:bg-blue-500 dark:data-[state=checked]:bg-blue-400 data-[state=unchecked]:bg-gray-200 dark:data-[state=unchecked]:bg-gray-600'
           />
-        </div>
+        </section>
 
         {/* Show Explanations After Answering */}
-        <div className='flex items-center justify-between py-2'>
+        <section className='flex items-center justify-between py-2'>
           <Label
             htmlFor='show-explanations'
             className='text-gray-700 dark:text-gray-200 text-sm font-medium'
@@ -164,10 +174,10 @@ export default function SettingsTab() {
             defaultChecked
             className='data-[state=checked]:bg-blue-500 dark:data-[state=checked]:bg-blue-400 data-[state=unchecked]:bg-gray-200 dark:data-[state=unchecked]:bg-gray-600'
           />
-        </div>
+        </section>
 
         {/* Allow Retakes */}
-        <div className='flex items-center justify-between py-2'>
+        <section className='flex items-center justify-between py-2'>
           <Label
             htmlFor='allow-retakes'
             className='text-gray-700 dark:text-gray-200 text-sm font-medium'
@@ -179,10 +189,10 @@ export default function SettingsTab() {
             defaultChecked
             className='data-[state=checked]:bg-blue-500 dark:data-[state=checked]:bg-blue-400 data-[state=unchecked]:bg-gray-200 dark:data-[state=unchecked]:bg-gray-600'
           />
-        </div>
+        </section>
 
         {/* Passing Score */}
-        <div className='py-2'>
+        <section className='py-2'>
           <div className='flex items-center justify-between mb-3'>
             <Label className='text-gray-700 dark:text-gray-200 text-sm font-medium'>
               Passing Score: {passingScore}%
@@ -194,12 +204,12 @@ export default function SettingsTab() {
             max={100}
             min={0}
             step={1}
-            className='w-full [&>span:first-child]:bg-gray-200 dark:[&>span:first-child]:bg-gray-600 [&_[role=slider]]:bg-default dark:[&_[role=slider]]:bg-default-hover [&>span:first-child>span]:bg-default dark:[&>span:first-child>span]:bg-default-hover'
+            className='w-full [&>span:first-child]:bg-gray-200 dark:[&>span:first-child]:bg-gray-600 **:[[role=slider]]:bg-default dark:**:[[role=slider]]:bg-default-hover [&>span:first-child>span]:bg-default dark:[&>span:first-child>span]:bg-default-hover'
           />
-        </div>
+        </section>
 
         {/* Quiz Visibility */}
-        <div>
+        <section>
           <Label
             htmlFor='quiz-visibility'
             className='text-gray-700 dark:text-gray-200 text-sm mb-2 font-medium block'
@@ -234,8 +244,10 @@ export default function SettingsTab() {
               </SelectItem>
             </SelectContent>
           </Select>
-        </div>
+        </section>
       </CardContent>
     </Card>
   )
-}
+})
+
+export default SettingsTab

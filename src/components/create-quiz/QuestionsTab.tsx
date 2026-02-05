@@ -1,19 +1,20 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, memo } from 'react'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
-import { Card, CardContent } from '@/components/ui/card'
+// Fix barrel imports (bundle-barrel-imports)
+import { RadioGroup } from '@/components/ui/radio-group'
+import { RadioGroupItem } from '@/components/ui/radio-group'
+import { Card } from '@/components/ui/card'
+import { CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger
-} from '@/components/ui/accordion'
+import { Accordion } from '@/components/ui/accordion'
+import { AccordionContent } from '@/components/ui/accordion'
+import { AccordionItem } from '@/components/ui/accordion'
+import { AccordionTrigger } from '@/components/ui/accordion'
 import { Plus, Eye, Trash2, Copy, AlertCircle } from 'lucide-react'
 
 interface Question {
@@ -33,7 +34,8 @@ interface ValidationErrors {
   }
 }
 
-export default function QuestionsTab() {
+// Wrap component in memo to prevent unnecessary re-renders
+const QuestionsTab = memo(function QuestionsTab() {
   const [questions, setQuestions] = useState<Question[]>([
     {
       id: '1',
@@ -106,125 +108,138 @@ export default function QuestionsTab() {
     return isValid
   }, [questions, validateQuestion])
 
-  // Mark field as touched on blur
-  const handleBlur = (questionId: string, field: string) => {
-    setTouched((prev) => ({ ...prev, [`${questionId}-${field}`]: true }))
-
-    // Validate the specific question when field is blurred
-    const question = questions.find((q) => q.id === questionId)
-    if (question) {
-      const questionErrors = validateQuestion(question)
-      setErrors((prev) => ({
-        ...prev,
-        [questionId]: questionErrors
-      }))
-    }
-  }
-
-  const addQuestion = () => {
-    const newQuestion: Question = {
-      id: (questions.length + 1).toString(),
-      title: `Question ${questions.length + 1}`,
-      text: '',
-      options: ['', '', '', ''],
-      correctAnswer: 0,
-      explanation: ''
-    }
-    setQuestions([...questions, newQuestion])
-  }
-
-  const duplicateQuestion = (questionId: string) => {
-    const questionToDuplicate = questions.find((q) => q.id === questionId)
-    if (questionToDuplicate) {
-      const newQuestion: Question = {
-        ...questionToDuplicate,
-        id: (questions.length + 1).toString(),
-        title: `Question ${questions.length + 1}`
+  // Add useCallback for event handlers (rerender-functional-setstate)
+  const addQuestion = useCallback(() => {
+    setQuestions((prev) => [
+      ...prev,
+      {
+        id: (prev.length + 1).toString(),
+        title: `Question ${prev.length + 1}`,
+        text: '',
+        options: ['', '', '', ''],
+        correctAnswer: 0,
+        explanation: ''
       }
-      setQuestions([...questions, newQuestion])
-    }
-  }
+    ])
+  }, [])
 
-  const deleteQuestion = (questionId: string) => {
-    if (questions.length > 1) {
-      const updatedQuestions = questions.filter((q) => q.id !== questionId)
+  const duplicateQuestion = useCallback((questionId: string) => {
+    setQuestions((prev) => {
+      const questionToDuplicate = prev.find((q) => q.id === questionId)
+      if (!questionToDuplicate) return prev
+      return [
+        ...prev,
+        {
+          ...questionToDuplicate,
+          id: (prev.length + 1).toString(),
+          title: `Question ${prev.length + 1}`
+        }
+      ]
+    })
+  }, [])
+
+  const deleteQuestion = useCallback((questionId: string) => {
+    setQuestions((prev) => {
+      if (prev.length <= 1) return prev
+      const filtered = prev.filter((q) => q.id !== questionId)
       // Re-number the remaining questions
-      const reNumberedQuestions = updatedQuestions.map((q, index) => ({
+      return filtered.map((q, index) => ({
         ...q,
         id: (index + 1).toString(),
         title: `Question ${index + 1}`
       }))
-      setQuestions(reNumberedQuestions)
-      // Clear errors for deleted question
-      setErrors((prev) => {
-        const newErrors = { ...prev }
-        delete newErrors[questionId]
-        return newErrors
-      })
-    }
-  }
+    })
+    // Clear errors for deleted question
+    setErrors((prev) => {
+      const newErrors = { ...prev }
+      delete newErrors[questionId]
+      return newErrors
+    })
+  }, [])
 
-  const updateQuestion = (
-    questionId: string,
-    field: keyof Question,
-    value: string | number
-  ) => {
-    setQuestions(
-      questions.map((q) => (q.id === questionId ? { ...q, [field]: value } : q))
-    )
-  }
+  const updateQuestion = useCallback(
+    (questionId: string, field: keyof Question, value: string | number) => {
+      setQuestions((prev) =>
+        prev.map((q) => (q.id === questionId ? { ...q, [field]: value } : q))
+      )
+    },
+    []
+  )
 
-  const updateOption = (
-    questionId: string,
-    optionIndex: number,
-    value: string
-  ) => {
-    setQuestions(
-      questions.map((q) => {
-        if (q.id === questionId) {
-          const newOptions = [...q.options]
-          newOptions[optionIndex] = value
-          return { ...q, options: newOptions }
-        }
-        return q
-      })
-    )
-  }
+  const updateOption = useCallback(
+    (questionId: string, optionIndex: number, value: string) => {
+      setQuestions((prev) =>
+        prev.map((q) => {
+          if (q.id === questionId) {
+            const newOptions = [...q.options]
+            newOptions[optionIndex] = value
+            return { ...q, options: newOptions }
+          }
+          return q
+        })
+      )
+    },
+    []
+  )
 
-  const setCorrectAnswer = (questionId: string, correctIndex: number) => {
-    updateQuestion(questionId, 'correctAnswer', correctIndex)
-  }
+  const setCorrectAnswer = useCallback(
+    (questionId: string, correctIndex: number) => {
+      updateQuestion(questionId, 'correctAnswer', correctIndex)
+    },
+    [updateQuestion]
+  )
 
   const [previewMode, setPreviewMode] = useState<string | null>(null)
 
-  const togglePreview = (questionId: string) => {
-    setPreviewMode(previewMode === questionId ? null : questionId)
-  }
+  const togglePreview = useCallback((questionId: string) => {
+    setPreviewMode((prev) => (prev === questionId ? null : questionId))
+  }, [])
 
   // Get validation status for a question
-  const getQuestionStatus = (questionId: string) => {
-    const question = questions.find((q) => q.id === questionId)
-    if (!question) return 'empty'
+  const getQuestionStatus = useCallback(
+    (questionId: string) => {
+      const question = questions.find((q) => q.id === questionId)
+      if (!question) return 'empty'
 
-    const hasContent = question.text.trim() !== ''
-    const hasOptions = question.options.some((opt) => opt.trim() !== '')
-    const hasErrors =
-      errors[questionId] && Object.keys(errors[questionId]).length > 0
+      const hasContent = question.text.trim() !== ''
+      const hasOptions = question.options.some((opt) => opt.trim() !== '')
+      const hasErrors =
+        errors[questionId] && Object.keys(errors[questionId]).length > 0
 
-    if (hasErrors) return 'error'
-    if (hasContent && hasOptions) return 'complete'
-    return 'incomplete'
-  }
+      if (hasErrors) return 'error'
+      if (hasContent && hasOptions) return 'complete'
+      return 'empty'
+    },
+    [questions, errors]
+  )
 
   // Export validation function for parent component
-  const handleValidateAndSave = () => {
+  const handleValidateAndSave = useCallback(() => {
     const isValid = validateAllQuestions()
     if (isValid) {
       return questions
     } else {
       return null
     }
-  }
+  }, [validateAllQuestions, questions])
+
+  // Mark field as touched on blur - use useCallback
+  const handleBlur = useCallback(
+    (questionId: string, field: string) => {
+      setTouched((prev) => ({ ...prev, [`${questionId}-${field}`]: true }))
+
+      // Validate the specific question when field is blurred
+      const question = questions.find((q) => q.id === questionId)
+      if (question) {
+        const questionErrors = validateQuestion(question)
+        setErrors((prev) => ({
+          ...prev,
+          [questionId]: questionErrors
+        }))
+      }
+    },
+    [questions, validateQuestion]
+  )
 
   return (
     <div className='rounded-xl'>
@@ -236,19 +251,25 @@ export default function QuestionsTab() {
             {questions.length === 1 ? 'question' : 'questions'}
           </Badge>
         </div>
-        <div className='flex gap-2'>
+        <div
+          className='flex gap-2'
+          role='toolbar'
+          aria-label='Question actions'
+        >
           <Button
             onClick={handleValidateAndSave}
             variant='outline'
             className='border-gray-300 dark:border-slate-700 text-foreground'
+            aria-label='Validate all questions'
           >
             Validate All
           </Button>
           <Button
             onClick={addQuestion}
             className='bg-default hover:bg-default-hover text-white px-4 py-2 rounded-md'
+            aria-label='Add new question'
           >
-            <Plus className='w-4 h-4 mr-2' />
+            <Plus className='w-4 h-4 mr-2' aria-hidden='true' />
             Add Question
           </Button>
         </div>
@@ -273,6 +294,7 @@ export default function QuestionsTab() {
                             ? 'bg-red-500'
                             : 'bg-gray-400'
                       }`}
+                      aria-label={`Question status: ${status}`}
                     />
                     <h3 className='text-base font-semibold text-foreground'>
                       {question.title}
@@ -283,7 +305,10 @@ export default function QuestionsTab() {
                       </span>
                     )}
                     {status === 'error' && (
-                      <AlertCircle className='w-4 h-4 text-red-500' />
+                      <AlertCircle
+                        className='w-4 h-4 text-red-500'
+                        aria-hidden='true'
+                      />
                     )}
                   </div>
                   <div className='flex items-center gap-2'>
@@ -294,9 +319,9 @@ export default function QuestionsTab() {
                         duplicateQuestion(question.id)
                       }}
                       className='text-white '
-                      title='Duplicate question'
+                      aria-label={`Duplicate ${question.title}`}
                     >
-                      <Copy className='w-4 h-4' />
+                      <Copy className='w-4 h-4' aria-hidden='true' />
                     </Button>
                     <Button
                       variant='ghost'
@@ -310,9 +335,9 @@ export default function QuestionsTab() {
                           ? 'bg-default/80 dark:bg-slate-800'
                           : ''
                       }`}
-                      title='Preview question'
+                      aria-label={`${previewMode === question.id ? 'Hide' : 'Show'} preview for ${question.title}`}
                     >
-                      <Eye className='w-4 h-4' />
+                      <Eye className='w-4 h-4' aria-hidden='true' />
                     </Button>
                     <Button
                       size='sm'
@@ -322,9 +347,9 @@ export default function QuestionsTab() {
                       }}
                       className='text-red-600 bg-transparent hover:text-red-400 shadow-none hover:bg-transparent'
                       disabled={questions.length === 1}
-                      title='Delete question'
+                      aria-label={`Delete ${question.title}`}
                     >
-                      <Trash2 className='w-4 h-4' />
+                      <Trash2 className='w-4 h-4' aria-hidden='true' />
                     </Button>
                   </div>
                 </div>
@@ -333,9 +358,12 @@ export default function QuestionsTab() {
               <AccordionContent>
                 {/* General error message */}
                 {questionErrors?.general && (
-                  <div className='mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md'>
+                  <div
+                    className='mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md'
+                    role='alert'
+                  >
                     <p className='text-red-600 dark:text-red-400 text-sm flex items-center gap-2'>
-                      <AlertCircle className='w-4 h-4' />
+                      <AlertCircle className='w-4 h-4' aria-hidden='true' />
                       {questionErrors.general}
                     </p>
                   </div>
@@ -514,4 +542,6 @@ export default function QuestionsTab() {
       </Accordion>
     </div>
   )
-}
+})
+
+export default QuestionsTab
