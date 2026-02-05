@@ -1,4 +1,7 @@
-import { Card, CardContent } from '@/components/ui/card'
+import { memo } from 'react'
+// Fix barrel imports (bundle-barrel-imports)
+import { Card } from '@/components/ui/card'
+import { CardContent } from '@/components/ui/card'
 import { CategoryRow } from '@/components/profile/CategoryRow'
 import { Player } from '@/constants/players'
 
@@ -8,7 +11,7 @@ interface QuickStatsSidebarProps {
   mostPlayed: string
 }
 
-export function QuickStatsSidebar({
+export const QuickStatsSidebar = memo(function QuickStatsSidebar({
   user,
   bestCategory,
   mostPlayed
@@ -51,4 +54,4 @@ export function QuickStatsSidebar({
       </CardContent>
     </Card>
   )
-}
+})

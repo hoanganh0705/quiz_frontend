@@ -1,4 +1,9 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { memo } from 'react'
+// Fix barrel imports (bundle-barrel-imports)
+import { Card } from '@/components/ui/card'
+import { CardContent } from '@/components/ui/card'
+import { CardHeader } from '@/components/ui/card'
+import { CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
 import { Player } from '@/constants/players'
@@ -31,7 +36,7 @@ interface OverviewTabProps {
   onViewAllBadges: () => void
 }
 
-export function OverviewTab({
+export const OverviewTab = memo(function OverviewTab({
   user,
   currentLevelXP,
   nextLevelXP,
@@ -60,7 +65,11 @@ export function OverviewTab({
                 {nextLevelXP.toLocaleString()} XP
               </span>
             </div>
-            <Progress value={levelProgress} className='h-2' />
+            <Progress
+              value={levelProgress}
+              className='h-2'
+              aria-label={`Level progress: ${levelProgress.toFixed(1)}%`}
+            />
             <p className='text-xs text-muted-foreground'>
               {(nextLevelXP - currentLevelXP).toLocaleString()} XP to reach
               Level {(user.level || 0) + 1}
@@ -78,6 +87,7 @@ export function OverviewTab({
               size='sm'
               className='text-xs text-white'
               onClick={onViewAllActivity}
+              aria-label='View all activities'
             >
               View All
             </Button>
@@ -112,21 +122,30 @@ export function OverviewTab({
               size='sm'
               className='text-xs text-white'
               onClick={onViewAllBadges}
+              aria-label='View all badges'
             >
               View All
             </Button>
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className='flex flex-wrap gap-3'>
+          <div
+            className='flex flex-wrap gap-3'
+            role='list'
+            aria-label='Unlocked badges'
+          >
             {badges.slice(0, 5).map((badge) => {
               const IconComponent = badge.icon
               return (
                 <div
                   key={badge.id}
                   className={`flex items-center gap-2 p-2 rounded-lg ${badge.bgColor} ${!badge.unlocked && 'opacity-50'}`}
+                  role='listitem'
                 >
-                  <IconComponent className={`w-4 h-4 ${badge.color}`} />
+                  <IconComponent
+                    className={`w-4 h-4 ${badge.color}`}
+                    aria-hidden='true'
+                  />
                   <span className={`text-xs font-medium ${badge.color}`}>
                     {badge.name}
                   </span>
@@ -138,4 +157,4 @@ export function OverviewTab({
       </Card>
     </div>
   )
-}
+})

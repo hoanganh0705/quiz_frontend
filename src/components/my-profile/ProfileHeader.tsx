@@ -1,16 +1,17 @@
 'use client'
 
-import { useRef, useState, useCallback } from 'react'
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
+import { useRef, useState, useCallback, memo } from 'react'
+// Fix barrel imports (bundle-barrel-imports)
+import { Avatar } from '@/components/ui/avatar'
+import { AvatarImage } from '@/components/ui/avatar'
+import { AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle
-} from '@/components/ui/dialog'
+import { Dialog } from '@/components/ui/dialog'
+import { DialogContent } from '@/components/ui/dialog'
+import { DialogDescription } from '@/components/ui/dialog'
+import { DialogFooter } from '@/components/ui/dialog'
+import { DialogHeader } from '@/components/ui/dialog'
+import { DialogTitle } from '@/components/ui/dialog'
 import {
   Edit,
   MapPin,
@@ -28,12 +29,7 @@ import Image from 'next/image'
 import { Player } from '@/constants/players'
 import { useClipboard } from '@/hooks'
 
-interface ProfileHeaderProps {
-  user: Player
-  onAvatarChange?: (file: File) => Promise<void>
-  onCoverChange?: (file: File) => Promise<void>
-}
-
+// Hoist constants outside component (data-hoisting)
 const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB
 const ALLOWED_IMAGE_TYPES = [
   'image/jpeg',
@@ -42,7 +38,13 @@ const ALLOWED_IMAGE_TYPES = [
   'image/gif'
 ]
 
-export function ProfileHeader({
+interface ProfileHeaderProps {
+  user: Player
+  onAvatarChange?: (file: File) => Promise<void>
+  onCoverChange?: (file: File) => Promise<void>
+}
+
+export const ProfileHeader = memo(function ProfileHeader({
   user,
   onAvatarChange,
   onCoverChange
@@ -232,7 +234,10 @@ export function ProfileHeader({
 
       <div className='border border-border rounded-2xl mt-6 overflow-hidden'>
         {/* Cover Image */}
-        <div className='relative h-32 bg-linear-to-r from-default/30 via-default/20 to-default/10'>
+        <section
+          aria-label='Cover image'
+          className='relative h-32 bg-linear-to-r from-default/30 via-default/20 to-default/10'
+        >
           {(coverPreview || user.bgImageUrl) && (
             <Image
               src={coverPreview || user.bgImageUrl || ''}
@@ -243,8 +248,15 @@ export function ProfileHeader({
             />
           )}
           {isCoverUploading && (
-            <div className='absolute inset-0 bg-background/50 flex items-center justify-center'>
-              <Loader2 className='w-6 h-6 animate-spin text-primary' />
+            <div
+              className='absolute inset-0 bg-background/50 flex items-center justify-center'
+              role='status'
+              aria-label='Uploading cover image'
+            >
+              <Loader2
+                className='w-6 h-6 animate-spin text-primary'
+                aria-hidden='true'
+              />
             </div>
           )}
           <Button
@@ -253,11 +265,12 @@ export function ProfileHeader({
             className='absolute bottom-3 right-3 gap-2 text-xs'
             onClick={() => coverInputRef.current?.click()}
             disabled={isCoverUploading}
+            aria-label='Change cover image'
           >
-            <Camera className='w-3 h-3' />
+            <Camera className='w-3 h-3' aria-hidden='true' />
             Change Cover
           </Button>
-        </div>
+        </section>
 
         {/* Profile Info */}
         <div className='px-8 pb-6'>
@@ -268,7 +281,7 @@ export function ProfileHeader({
                 <Avatar className='h-24 w-24 border-4 border-main'>
                   <AvatarImage
                     src={avatarPreview || user.avatarUrl}
-                    alt={user.name}
+                    alt={`${user.name}'s avatar`}
                   />
                   <AvatarFallback className='text-2xl'>
                     {user.name
@@ -278,8 +291,15 @@ export function ProfileHeader({
                   </AvatarFallback>
                 </Avatar>
                 {isAvatarUploading && (
-                  <div className='absolute inset-0 bg-background/50 flex items-center justify-center rounded-full'>
-                    <Loader2 className='w-6 h-6 animate-spin text-primary' />
+                  <div
+                    className='absolute inset-0 bg-background/50 flex items-center justify-center rounded-full'
+                    role='status'
+                    aria-label='Uploading avatar'
+                  >
+                    <Loader2
+                      className='w-6 h-6 animate-spin text-primary'
+                      aria-hidden='true'
+                    />
                   </div>
                 )}
                 <Button
@@ -290,7 +310,7 @@ export function ProfileHeader({
                   disabled={isAvatarUploading}
                   aria-label='Change avatar'
                 >
-                  <Camera className='w-3 h-3' />
+                  <Camera className='w-3 h-3' aria-hidden='true' />
                 </Button>
               </div>
 
@@ -304,11 +324,11 @@ export function ProfileHeader({
                 <div className='flex flex-wrap items-center gap-4 text-muted-foreground text-sm mb-3'>
                   <span>@{user.name.toLowerCase().replace(' ', '')}</span>
                   <span className='flex items-center gap-1'>
-                    <MapPin className='w-3 h-3' />
+                    <MapPin className='w-3 h-3' aria-hidden='true' />
                     {user.country}
                   </span>
                   <span className='flex items-center gap-1'>
-                    <Calendar className='w-3 h-3' />
+                    <Calendar className='w-3 h-3' aria-hidden='true' />
                     Joined March 15, 2022
                   </span>
                 </div>
@@ -356,10 +376,14 @@ export function ProfileHeader({
             </div>
 
             {/* Action Buttons */}
-            <div className='flex gap-3 self-start mt-4 md:mt-0 pt-2'>
+            <div
+              className='flex gap-3 self-start mt-4 md:mt-0 pt-2'
+              role='toolbar'
+              aria-label='Profile actions'
+            >
               <Button className='gap-2' asChild>
-                <Link href='/settings'>
-                  <Edit className='w-4 h-4' />
+                <Link href='/settings' aria-label='Edit profile'>
+                  <Edit className='w-4 h-4' aria-hidden='true' />
                   Edit Profile
                 </Link>
               </Button>
@@ -367,13 +391,14 @@ export function ProfileHeader({
                 variant='outline'
                 className='gap-2 text-primary'
                 onClick={handleShare}
+                aria-label='Share profile'
               >
-                <Share2 className='w-4 h-4' />
+                <Share2 className='w-4 h-4' aria-hidden='true' />
                 Share
               </Button>
               <Button size='icon' asChild>
-                <Link href='/settings'>
-                  <Settings className='w-4 h-4' />
+                <Link href='/settings' aria-label='Account settings'>
+                  <Settings className='w-4 h-4' aria-hidden='true' />
                 </Link>
               </Button>
             </div>
@@ -400,6 +425,7 @@ export function ProfileHeader({
                 readOnly
                 value={profileUrl}
                 className='flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50'
+                aria-label='Profile URL'
               />
             </div>
             <Button
@@ -407,12 +433,13 @@ export function ProfileHeader({
               size='sm'
               className='px-3'
               onClick={handleCopyLink}
+              aria-label={copied ? 'Link copied' : 'Copy profile link'}
             >
               <span className='sr-only'>Copy</span>
               {copied ? (
-                <Check className='h-4 w-4 text-green-500' />
+                <Check className='h-4 w-4 text-green-500' aria-hidden='true' />
               ) : (
-                <Copy className='h-4 w-4' />
+                <Copy className='h-4 w-4' aria-hidden='true' />
               )}
             </Button>
           </div>
@@ -429,4 +456,4 @@ export function ProfileHeader({
       </Dialog>
     </>
   )
-}
+})
