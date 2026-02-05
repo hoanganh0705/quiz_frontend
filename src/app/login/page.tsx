@@ -1,6 +1,8 @@
 'use client'
 
+import { memo, useCallback } from 'react'
 import { Eye, EyeOff } from 'lucide-react'
+// Fix barrel imports (bundle-barrel-imports)
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -12,6 +14,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useToggle, useAsyncAction } from '@/hooks'
 
+// Hoist schema outside component (data-hoisting)
 const loginSchema = z.object({
   firstName: z.string().min(1, 'First name is required'),
   lastName: z.string().min(1, 'Last name is required'),
@@ -25,7 +28,7 @@ const loginSchema = z.object({
 
 type LoginFormData = z.infer<typeof loginSchema>
 
-export default function LoginPage() {
+const LoginPage = memo(function LoginPage() {
   const [showPassword, toggleShowPassword] = useToggle(false)
 
   const {
@@ -52,14 +55,18 @@ export default function LoginPage() {
     }
   )
 
-  const handleSocialLogin = (provider: string) => {
+  // Use useCallback for event handlers (rerender-functional-setstate)
+  const handleSocialLogin = useCallback((provider: string) => {
     console.log(`Login with ${provider}`)
-  }
+  }, [])
 
   return (
     <div className='min-h-screen flex bg-background'>
       {/* Left Side - Visual */}
-      <div className='hidden lg:flex lg:w-1/2 relative overflow-hidden p-2'>
+      <aside
+        className='hidden lg:flex lg:w-1/2 relative overflow-hidden p-2'
+        aria-label='Login background'
+      >
         <div className='relative w-full h-full rounded-2xl overflow-hidden'>
           <Image
             src='/login.jpg'
@@ -69,10 +76,10 @@ export default function LoginPage() {
             priority
           />
         </div>
-      </div>
+      </aside>
 
       {/* Right Side - Login Form */}
-      <div className='w-full lg:w-1/2 flex items-center justify-center px-8'>
+      <main className='w-full lg:w-1/2 flex items-center justify-center px-8'>
         <div className='w-full max-w-md space-y-8'>
           {/* Mobile Logo */}
           <div className='lg:hidden flex items-center justify-center gap-3'>
@@ -80,7 +87,7 @@ export default function LoginPage() {
           </div>
 
           {/* Header */}
-          <div className='space-y-10'>
+          <header className='space-y-10'>
             <h2 className='text-3xl font-bold text-foreground space-y-10'>
               Welcome back!
             </h2>
@@ -93,11 +100,15 @@ export default function LoginPage() {
                 Create an account
               </Link>
             </p>
-          </div>
+          </header>
 
-          <div>
+          <section aria-label='Login form'>
             {/* Login Form */}
-            <form onSubmit={handleSubmit(onSubmit)} className='space-y-5'>
+            <form
+              onSubmit={handleSubmit(onSubmit)}
+              className='space-y-5'
+              aria-label='Sign in to your account'
+            >
               {/* Email Input */}
               <div className='space-y-2'>
                 <Input
@@ -135,9 +146,9 @@ export default function LoginPage() {
                     }
                   >
                     {showPassword ? (
-                      <EyeOff className='w-5 h-5' />
+                      <EyeOff className='w-5 h-5' aria-hidden='true' />
                     ) : (
-                      <Eye className='w-5 h-5' />
+                      <Eye className='w-5 h-5' aria-hidden='true' />
                     )}
                   </button>
                 </div>
@@ -184,10 +195,14 @@ export default function LoginPage() {
                 disabled={isLoading}
                 size='lg'
                 className='w-full h-12 font-semibold rounded-xl'
+                aria-label={isLoading ? 'Signing in' : 'Sign in'}
               >
                 {isLoading ? (
                   <div className='flex items-center gap-2'>
-                    <div className='w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin text-white' />
+                    <div
+                      className='w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin text-white'
+                      aria-hidden='true'
+                    />
                     Signing in...
                   </div>
                 ) : (
@@ -197,24 +212,37 @@ export default function LoginPage() {
             </form>
 
             {/* Divider */}
-            <div className='flex items-center gap-4 my-6'>
-              <div className='flex-1 h-px bg-border' />
+            <div
+              className='flex items-center gap-4 my-6'
+              role='separator'
+              aria-label='Or sign in with'
+            >
+              <div className='flex-1 h-px bg-border' aria-hidden='true' />
               <span className='text-xs text-muted-foreground font-medium'>
                 OR
               </span>
-              <div className='flex-1 h-px bg-border' />
+              <div className='flex-1 h-px bg-border' aria-hidden='true' />
             </div>
 
             {/* Social Login Buttons */}
-            <div className='grid grid-cols-2 gap-4'>
+            <div
+              className='grid grid-cols-2 gap-4'
+              role='group'
+              aria-label='Social login options'
+            >
               <Button
                 type='button'
                 variant='outline'
                 onClick={() => handleSocialLogin('Google')}
                 size='lg'
                 className='h-12 rounded-xl group text-primary'
+                aria-label='Sign in with Google'
               >
-                <svg className='w-5 h-5 mr-2' viewBox='0 0 24 24'>
+                <svg
+                  className='w-5 h-5 mr-2'
+                  viewBox='0 0 24 24'
+                  aria-hidden='true'
+                >
                   <path
                     fill='#4285F4'
                     d='M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z'
@@ -240,11 +268,13 @@ export default function LoginPage() {
                 onClick={() => handleSocialLogin('Facebook')}
                 size='lg'
                 className='h-12 rounded-xl group text-primary'
+                aria-label='Sign in with Facebook'
               >
                 <svg
                   className='w-5 h-5 mr-2'
                   fill='#1877F2'
                   viewBox='0 0 24 24'
+                  aria-hidden='true'
                 >
                   <path d='M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z' />
                 </svg>
@@ -253,7 +283,7 @@ export default function LoginPage() {
             </div>
 
             {/* Footer */}
-            <p className='text-xs text-center text-muted-foreground mt-8 leading-relaxed'>
+            <footer className='text-xs text-center text-muted-foreground mt-8 leading-relaxed'>
               By signing in, you agree to our{' '}
               <Link
                 href='/terms'
@@ -268,10 +298,12 @@ export default function LoginPage() {
               >
                 Privacy Policy
               </Link>
-            </p>
-          </div>
+            </footer>
+          </section>
         </div>
-      </div>
+      </main>
     </div>
   )
-}
+})
+
+export default LoginPage
