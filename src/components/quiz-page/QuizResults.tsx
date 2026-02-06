@@ -154,7 +154,9 @@ export default function QuizResults({ quiz }: { quiz: Quiz }) {
   if (!isLoaded) {
     return (
       <div className='min-h-screen bg-background flex items-center justify-center'>
-        <div className='text-foreground'>Loading results...</div>
+        <div className='text-foreground' role='status' aria-live='polite'>
+          Loading results\u2026
+        </div>
       </div>
     )
   }
@@ -179,7 +181,7 @@ export default function QuizResults({ quiz }: { quiz: Quiz }) {
   }
 
   return (
-    <div className='min-h-screen bg-background text-foreground p-4 md:p-8'>
+    <main className='min-h-screen bg-background text-foreground p-4 md:p-8'>
       <div className='max-w-6xl mx-auto'>
         {/* Header */}
         <div className='flex items-center justify-between gap-3 mb-8'>
@@ -188,8 +190,8 @@ export default function QuizResults({ quiz }: { quiz: Quiz }) {
             className='text-foreground/70 bg-transparent p-0 hover:bg-transparent hover:text-foreground shadow-none'
             asChild
           >
-            <Link href='/quizzes'>
-              <ArrowLeft className='w-5 h-5 mr-2' />
+            <Link href='/quizzes' aria-label='Back to quizzes list'>
+              <ArrowLeft className='w-5 h-5 mr-2' aria-hidden='true' />
               Back to Quizzes
             </Link>
           </Button>
@@ -216,21 +218,21 @@ export default function QuizResults({ quiz }: { quiz: Quiz }) {
               value='review'
               className=' text-sm font-semibold dark:data-[state=active]:bg-default dark:dark:data-[state=active]:text-white data-[state=active]:bg-background text-foreground/70 data-[state=active]:text-foreground transition-transform'
             >
-              <BarChart3 className='w-4 h-4 mr-2 ' />
+              <BarChart3 className='w-4 h-4 mr-2' aria-hidden='true' />
               Answer Review
             </TabsTrigger>
             <TabsTrigger
               value='leaderboard'
               className=' text-sm font-semibold dark:data-[state=active]:bg-default dark:dark:data-[state=active]:text-white data-[state=active]:bg-background text-foreground/70 data-[state=active]:text-foreground transition-transform'
             >
-              <Trophy className='w-4 h-4 mr-2 ' />
+              <Trophy className='w-4 h-4 mr-2' aria-hidden='true' />
               Leaderboard
             </TabsTrigger>
             <TabsTrigger
               value='share'
               className=' text-sm font-semibold dark:data-[state=active]:bg-default dark:dark:data-[state=active]:text-white data-[state=active]:bg-background text-foreground/70 data-[state=active]:text-foreground transition-transform'
             >
-              <Share2 className='w-4 h-4 mr-2 ' />
+              <Share2 className='w-4 h-4 mr-2' aria-hidden='true' />
               Share Results
             </TabsTrigger>
           </TabsList>
@@ -269,6 +271,6 @@ export default function QuizResults({ quiz }: { quiz: Quiz }) {
         {/* Bottom Actions */}
         <BottomActions quizId={quiz.id} onPlayAgain={handlePlayAgain} />
       </div>
-    </div>
+    </main>
   )
 }

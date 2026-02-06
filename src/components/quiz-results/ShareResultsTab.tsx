@@ -68,35 +68,39 @@ function ShareButtons({ copied, onCopyLink, onShare }: ShareButtonsProps) {
         variant='outline'
         className='flex items-center gap-2'
         onClick={() => onShare('twitter')}
+        aria-label='Share on Twitter'
       >
-        <Twitter className='w-5 h-5 text-[#1DA1F2]' />
+        <Twitter className='w-5 h-5 text-[#1DA1F2]' aria-hidden='true' />
         Twitter
       </Button>
       <Button
         variant='outline'
         className='flex items-center gap-2'
         onClick={() => onShare('facebook')}
+        aria-label='Share on Facebook'
       >
-        <Facebook className='w-5 h-5 text-[#4267B2]' />
+        <Facebook className='w-5 h-5 text-[#4267B2]' aria-hidden='true' />
         Facebook
       </Button>
       <Button
         variant='outline'
         className='flex items-center gap-2'
         onClick={() => onShare('linkedin')}
+        aria-label='Share on LinkedIn'
       >
-        <Linkedin className='w-5 h-5 text-[#0077B5]' />
+        <Linkedin className='w-5 h-5 text-[#0077B5]' aria-hidden='true' />
         LinkedIn
       </Button>
       <Button
         variant='outline'
         className='flex items-center gap-2'
         onClick={onCopyLink}
+        aria-label={copied ? 'Link copied' : 'Copy quiz link'}
       >
         {copied ? (
-          <Check className='w-5 h-5 text-green-500' />
+          <Check className='w-5 h-5 text-green-500' aria-hidden='true' />
         ) : (
-          <Copy className='w-5 h-5' />
+          <Copy className='w-5 h-5' aria-hidden='true' />
         )}
         {copied ? 'Copied!' : 'Copy Link'}
       </Button>
@@ -119,10 +123,16 @@ function ChallengeFriends({
         <input
           type='text'
           readOnly
+          aria-label='Quiz share link'
           value={`${typeof window !== 'undefined' ? window.location.origin : ''}/quizzes/${quizId}`}
           className='flex-1 px-3 py-2 rounded-lg bg-background border border-foreground/20 text-sm'
         />
-        <Button onClick={onCopyLink}>{copied ? 'Copied!' : 'Copy'}</Button>
+        <Button
+          onClick={onCopyLink}
+          aria-label={copied ? 'Link copied' : 'Copy quiz link'}
+        >
+          {copied ? 'Copied!' : 'Copy'}
+        </Button>
       </div>
     </div>
   )

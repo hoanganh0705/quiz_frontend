@@ -18,12 +18,18 @@ export default function StatsOverview({
         <div className='space-y-2'>
           <div className='flex items-center justify-between'>
             <div className='flex items-center gap-2'>
-              <CheckCircle2 className='w-5 h-5 text-green-500' />
+              <CheckCircle2
+                className='w-5 h-5 text-green-500'
+                aria-hidden='true'
+              />
               <span className='text-sm font-medium text-foreground'>
                 Correct Answers
               </span>
             </div>
-            <span className='text-sm font-bold text-green-500'>
+            <span
+              className='text-sm font-bold text-green-500'
+              style={{ fontVariantNumeric: 'tabular-nums' }}
+            >
               {result.correctCount}/{totalQuestions} (
               {correctPercentage.toFixed(0)}%)
             </span>
@@ -31,6 +37,7 @@ export default function StatsOverview({
           <Progress
             value={correctPercentage}
             className='h-2 [&>div]:bg-green-500'
+            aria-label={`Correct answers: ${correctPercentage.toFixed(0)}%`}
           />
         </div>
 
@@ -38,12 +45,15 @@ export default function StatsOverview({
         <div className='space-y-2'>
           <div className='flex items-center justify-between'>
             <div className='flex items-center gap-2'>
-              <XCircle className='w-5 h-5 text-red-500' />
+              <XCircle className='w-5 h-5 text-red-500' aria-hidden='true' />
               <span className='text-sm font-medium text-foreground'>
                 Incorrect Answers
               </span>
             </div>
-            <span className='text-sm font-bold text-red-500'>
+            <span
+              className='text-sm font-bold text-red-500'
+              style={{ fontVariantNumeric: 'tabular-nums' }}
+            >
               {result.incorrectCount}/{totalQuestions} (
               {incorrectPercentage.toFixed(0)}%)
             </span>
@@ -51,6 +61,7 @@ export default function StatsOverview({
           <Progress
             value={incorrectPercentage}
             className='h-2 [&>div]:bg-red-500'
+            aria-label={`Incorrect answers: ${incorrectPercentage.toFixed(0)}%`}
           />
         </div>
 
@@ -58,18 +69,22 @@ export default function StatsOverview({
         <div className='space-y-2'>
           <div className='flex items-center justify-between'>
             <div className='flex items-center gap-2'>
-              <Clock className='w-5 h-5 text-blue-500' />
+              <Clock className='w-5 h-5 text-blue-500' aria-hidden='true' />
               <span className='text-sm font-medium text-foreground'>
                 Avg. Time per Question
               </span>
             </div>
-            <span className='text-sm font-bold text-blue-500'>
+            <span
+              className='text-sm font-bold text-blue-500'
+              style={{ fontVariantNumeric: 'tabular-nums' }}
+            >
               {avgTimePerQuestion}s
             </span>
           </div>
           <Progress
             value={(avgTimePerQuestion / 60) * 100}
             className='h-2 [&>div]:bg-blue-500'
+            aria-label={`Average time per question: ${avgTimePerQuestion} seconds`}
           />
         </div>
       </CardContent>

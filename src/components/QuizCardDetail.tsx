@@ -1,26 +1,28 @@
-import React from 'react'
+import React, { memo } from 'react'
 
 import { Clock, Users, DollarSign, Star } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import Image from 'next/image'
+import Link from 'next/link'
 import SpotAvailabilityIndicator from '@/components/SpotAvailabiltyIndicator'
 import { difficultyColors } from '@/constants/difficultColor'
 import { Quiz } from '@/types/quiz'
 
-const QuizCardDetail = (props: Quiz) => {
+const QuizCardDetail = memo(function QuizCardDetail(props: Quiz) {
   return (
-    <div
-      key={props.id}
+    <article
+      role='listitem'
       className='border border-gray-300 dark:border-slate-700 rounded-xl overflow-hidden'
     >
       <div className='relative h-48'>
         <Image
           src={props.image}
-          alt={props.title}
+          alt={`${props.title} quiz cover`}
           fill
-          className='object-cover '
+          className='object-cover'
+          loading='lazy'
         />
         <Badge
           className={`absolute top-3 left-3 ${
@@ -31,8 +33,8 @@ const QuizCardDetail = (props: Quiz) => {
           {props.difficulty}
         </Badge>
         <div className='absolute top-3 right-3 bg-transparent text-white rounded-full px-2 py-1 flex items-center gap-1 text-sm'>
-          <Clock className='w-3 h-3' />
-          {props.duration}
+          <Clock className='w-3 h-3' aria-hidden='true' />
+          <span>{props.duration}</span>
         </div>
       </div>
 
@@ -56,7 +58,10 @@ const QuizCardDetail = (props: Quiz) => {
 
         <div className='flex items-center justify-between mb-3'>
           <div className='flex items-center gap-1'>
-            <Star className='w-4 h-4 fill-yellow-400 text-yellow-400' />
+            <Star
+              className='w-4 h-4 fill-yellow-400 text-yellow-400'
+              aria-hidden='true'
+            />
             <span className='text-foreground font-semibold'>
               {props.rating}
             </span>
@@ -65,14 +70,14 @@ const QuizCardDetail = (props: Quiz) => {
             </span>
           </div>
           <div className='flex items-center gap-1 text-green-400 font-bold'>
-            <DollarSign className='w-4 h-4' />
+            <DollarSign className='w-4 h-4' aria-hidden='true' />
             {props.reward.toFixed(2)}
           </div>
         </div>
 
         <div className='flex items-center justify-between gap-4 mb-4 text-sm text-slate-400'>
           <div className='flex items-center gap-1'>
-            <Users className='w-4 h-4' />
+            <Users className='w-4 h-4' aria-hidden='true' />
             {props.players} players
           </div>
           <div className='flex items-center gap-1'>
@@ -85,18 +90,26 @@ const QuizCardDetail = (props: Quiz) => {
           </div>
         </div>
 
-        {props.almostFull && (
-          <p className='text-red-400 text-sm mb-3'>
+        {props.almostFull ? (
+          <p className='text-red-400 text-sm mb-3' aria-live='polite'>
             Almost full! Only {props.spotsLeft} spots left
           </p>
-        )}
+        ) : null}
 
-        <Button className='w-full bg-default hover:bg-default-hover text-white'>
-          Play Now
+        <Button
+          className='w-full bg-default hover:bg-default-hover text-white'
+          asChild
+        >
+          <Link
+            href={`/quizzes/${props.id}/start`}
+            aria-label={`Play ${props.title}`}
+          >
+            Play Now
+          </Link>
         </Button>
       </div>
-    </div>
+    </article>
   )
-}
+})
 
 export default QuizCardDetail

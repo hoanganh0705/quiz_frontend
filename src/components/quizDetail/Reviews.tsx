@@ -20,12 +20,13 @@ const Reviews = () => {
         </div>
 
         {/* Reviews List */}
-        <div className='space-y-4 text-foreground'>
+        <div className='space-y-4 text-foreground' role='list'>
           {quizzes.map((quiz, quizIndex) =>
             quiz.quizReview?.map((review) => (
-              <div
+              <article
                 key={`${quiz.id || quizIndex}-${review.userId}`}
                 className='border border-slate-700 rounded-lg p-6 bg-background'
+                role='listitem'
               >
                 <div className='flex items-start gap-4'>
                   {/* Avatar */}
@@ -34,11 +35,12 @@ const Reviews = () => {
                       src={quiz.authorAvatarSrc || '/placeholder.svg'}
                       alt={
                         review.username
-                          ? `${review.username} avatar`
+                          ? `${review.username}'s avatar`
                           : 'User avatar'
                       }
                       width={48}
                       height={48}
+                      loading='lazy'
                       className='rounded-full'
                     />
                   </div>
@@ -56,7 +58,7 @@ const Reviews = () => {
                     </p>
                   </div>
                 </div>
-              </div>
+              </article>
             ))
           )}
         </div>

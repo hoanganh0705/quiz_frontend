@@ -34,12 +34,15 @@ export default function QuizDetail({ quiz }: QuizDetailProps) {
   const progressPercentage = (currentPlayers / maxPlayers) * 100
 
   return (
-    <div className='min-h-screen bg-background text-foreground'>
+    <main className='min-h-screen bg-background text-foreground'>
       {/* Header */}
       <div className='p-4'>
         <Link href='/quizzes'>
-          <Button className='text-white hover:bg-default-hover bg-transparent'>
-            <ArrowLeft className='w-4 h-4 mr-2' />
+          <Button
+            className='text-white hover:bg-default-hover bg-transparent'
+            aria-label='Back to explore quizzes'
+          >
+            <ArrowLeft className='w-4 h-4 mr-2' aria-hidden='true' />
             Back to Explore
           </Button>
         </Link>
@@ -49,7 +52,7 @@ export default function QuizDetail({ quiz }: QuizDetailProps) {
       <div className='relative mx-4 mb-8 rounded-lg h-72 overflow-hidden'>
         <Image
           src={quiz.image}
-          alt='Quiz background'
+          alt={`${quiz.title} quiz cover`}
           width={1200}
           height={800}
           quality={100}
@@ -85,19 +88,22 @@ export default function QuizDetail({ quiz }: QuizDetailProps) {
 
           <div className='flex items-center gap-6 text-sm'>
             <div className='flex items-center gap-1'>
-              <Clock className='w-4 h-4' />
+              <Clock className='w-4 h-4' aria-hidden='true' />
               <span>{formatDuration(quiz.duration)}</span>
             </div>
             <div className='flex items-center gap-1'>
-              <Users className='w-4 h-4' />
+              <Users className='w-4 h-4' aria-hidden='true' />
               <span>{currentPlayers} players</span>
             </div>
             <div className='flex items-center gap-1'>
-              <HelpCircle className='w-4 h-4' />
+              <HelpCircle className='w-4 h-4' aria-hidden='true' />
               <span>{quiz.questionCount} questions</span>
             </div>
             <div className='flex items-center gap-1'>
-              <Star className='w-4 h-4 fill-amber-400 text-amber-400' />
+              <Star
+                className='w-4 h-4 fill-amber-400 text-amber-400'
+                aria-hidden='true'
+              />
               <span>
                 {quiz.rating} ({quiz.quizReview.length} reviews)
               </span>
@@ -163,16 +169,18 @@ export default function QuizDetail({ quiz }: QuizDetailProps) {
                 </span>
               </div>
               <Progress value={progressPercentage} className='mb-3' />
-              {spotsLeft <= 0.1 * maxPlayers && (
-                <p className='text-red-400 text-sm font-medium'>
-                  Almost full! Only {spotsLeft} spots left
-                </p>
-              )}
-              {spotsLeft > 0.1 * maxPlayers && (
-                <p className='text-green-400 text-sm font-medium'>
-                  {spotsLeft} spots left
-                </p>
-              )}
+              <p
+                className={`text-sm font-medium ${
+                  spotsLeft <= 0.1 * maxPlayers
+                    ? 'text-red-400'
+                    : 'text-green-400'
+                }`}
+                aria-live='polite'
+              >
+                {spotsLeft <= 0.1 * maxPlayers
+                  ? `Almost full! Only ${spotsLeft} spots left`
+                  : `${spotsLeft} spots left`}
+              </p>
             </div>
 
             {/* Quiz Details */}
@@ -295,6 +303,6 @@ export default function QuizDetail({ quiz }: QuizDetailProps) {
           </div>
         </div>
       </div>
-    </div>
+    </main>
   )
 }
