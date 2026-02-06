@@ -74,6 +74,8 @@ function QuestionReviewItem({
       <button
         className='w-full p-4 flex items-center justify-between hover:bg-foreground/5 transition-colors'
         onClick={onToggle}
+        aria-expanded={isExpanded}
+        aria-label={`Question ${index + 1}: ${review.question}`}
       >
         <div className='flex items-center gap-4'>
           <div
@@ -82,9 +84,9 @@ function QuestionReviewItem({
             }`}
           >
             {review.isCorrect ? (
-              <CheckCircle2 className='w-5 h-5 text-white' />
+              <CheckCircle2 className='w-5 h-5 text-white' aria-hidden='true' />
             ) : (
-              <XCircle className='w-5 h-5 text-white' />
+              <XCircle className='w-5 h-5 text-white' aria-hidden='true' />
             )}
           </div>
           <div className='text-left'>
@@ -96,13 +98,15 @@ function QuestionReviewItem({
         </div>
         <div className='flex items-center gap-4'>
           <div className='text-sm text-foreground/70'>
-            <Clock className='w-4 h-4 inline mr-1' />
-            {review.timeTaken}s
+            <Clock className='w-4 h-4 inline mr-1' aria-hidden='true' />
+            <span style={{ fontVariantNumeric: 'tabular-nums' }}>
+              {review.timeTaken}s
+            </span>
           </div>
           {isExpanded ? (
-            <ChevronUp className='w-5 h-5' />
+            <ChevronUp className='w-5 h-5' aria-hidden='true' />
           ) : (
-            <ChevronDown className='w-5 h-5' />
+            <ChevronDown className='w-5 h-5' aria-hidden='true' />
           )}
         </div>
       </button>
@@ -116,9 +120,10 @@ function QuestionReviewItem({
               <div>
                 <Image
                   src={review.image}
-                  alt={review.question}
+                  alt={`Illustration for question ${index + 1}: ${review.question}`}
                   width={300}
                   height={200}
+                  loading='lazy'
                   className='rounded-lg object-cover w-full'
                 />
               </div>
@@ -181,9 +186,11 @@ function AnswerOption({
         {answer.label}
       </span>
       <span className='flex-1'>{answer.value}</span>
-      {isCorrectAnswer && <CheckCircle2 className='w-5 h-5 text-green-500' />}
+      {isCorrectAnswer && (
+        <CheckCircle2 className='w-5 h-5 text-green-500' aria-hidden='true' />
+      )}
       {isUserAnswer && !isCorrect && (
-        <XCircle className='w-5 h-5 text-red-500' />
+        <XCircle className='w-5 h-5 text-red-500' aria-hidden='true' />
       )}
     </div>
   )

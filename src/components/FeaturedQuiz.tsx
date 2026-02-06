@@ -1,5 +1,6 @@
 'use client'
 
+import { memo, useMemo, useCallback } from 'react'
 import { Clock, Star } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -10,10 +11,10 @@ import SpotAvailabilityIndicator from '@/components/SpotAvailabiltyIndicator'
 import { quizzes } from '@/constants/mockQuizzes'
 import Link from 'next/link'
 
-const FeaturedQuiz = () => {
+const FeaturedQuiz = memo(function FeaturedQuiz() {
   const tabs = ['All', 'Hot', 'Trending', "Editor's"] as const
 
-  const getFiltered = (tab: (typeof tabs)[number]) => {
+  const getFiltered = useCallback((tab: (typeof tabs)[number]) => {
     if (tab === 'All') return quizzes
     if (tab === 'Hot') return quizzes.filter((q) => q.badges.includes('Hot'))
     if (tab === 'Trending')
@@ -21,7 +22,7 @@ const FeaturedQuiz = () => {
     if (tab === "Editor's")
       return quizzes.filter((q) => q.badges.includes("Editor's Choice"))
     return quizzes
-  }
+  }, [])
 
   return (
     <div className='mb-15'>
@@ -77,8 +78,9 @@ const FeaturedQuiz = () => {
                   >
                     <Image
                       src={quiz.image || '/placeholder.svg'}
-                      alt={quiz.title}
+                      alt={`${quiz.title} quiz cover`}
                       fill
+                      loading='lazy'
                       className='object-cover hover:scale-105 transition-transform duration-200'
                     />
 
@@ -86,7 +88,7 @@ const FeaturedQuiz = () => {
                     <div className='absolute top-3 left-3 right-3 flex justify-between flex-wrap gap-2'>
                       {quiz.timeLeft && (
                         <Badge className='bg-transparent text-white'>
-                          <Clock className='w-3 h-3 mr-1' />
+                          <Clock className='w-3 h-3 mr-1' aria-hidden='true' />
                           {quiz.timeLeft} {quiz.timeLeft === 1 ? 'day' : 'days'}{' '}
                           left
                         </Badge>
@@ -99,10 +101,10 @@ const FeaturedQuiz = () => {
                               badge === 'Hot'
                                 ? 'bg-[#7F1D1D] hover:bg-[#7F1D1D]/80'
                                 : badge === "Editor's Choice"
-                                ? 'bg-violet-500 hover:bg-violet-600'
-                                : badge === 'Trending'
-                                ? 'bg-blue-500 hover:bg-blue-600'
-                                : 'bg-[#EAB308] hover:bg-[#EAB308]/80'
+                                  ? 'bg-violet-500 hover:bg-violet-600'
+                                  : badge === 'Trending'
+                                    ? 'bg-blue-500 hover:bg-blue-600'
+                                    : 'bg-[#EAB308] hover:bg-[#EAB308]/80'
                             }`}
                           >
                             {badge === 'Hot' && '🔥'}
@@ -142,7 +144,10 @@ const FeaturedQuiz = () => {
                             {quiz.creator.name}
                           </p>
                           <div className='flex items-center gap-1'>
-                            <Star className='w-3 h-3 text-yellow-400' />
+                            <Star
+                              className='w-3 h-3 text-yellow-400'
+                              aria-hidden='true'
+                            />
                             <span className='text-xs text-foreground'>
                               {quiz.creator.rating}
                             </span>
@@ -212,11 +217,12 @@ const FeaturedQuiz = () => {
                     </div>
 
                     {/* Play Button */}
-                    <Button className='text-sm w-full mt-2 text-white '>
+                    <Button asChild className='text-sm w-full mt-2 text-white'>
                       <Link
                         href={`/quizzes/${quiz.title
                           .toLowerCase()
                           .replace(/\s+/g, '-')}`}
+                        aria-label={`Play ${quiz.title}`}
                       >
                         Play Now
                       </Link>
@@ -230,6 +236,6 @@ const FeaturedQuiz = () => {
       </Tabs>
     </div>
   )
-}
+})
 
 export default FeaturedQuiz

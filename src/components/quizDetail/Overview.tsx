@@ -32,7 +32,10 @@ const Overview = ({
           {requirements}
         </p>
         <p className='text-foreground/80 leading-relaxed text-[0.9rem]'>
-          Completion time: {formatDuration(duration)}
+          Completion time:{' '}
+          <span style={{ fontVariantNumeric: 'tabular-nums' }}>
+            {formatDuration(duration)}
+          </span>
         </p>
       </div>
 
@@ -66,8 +69,9 @@ const Overview = ({
             <div className='relative h-32 w-full'>
               <Image
                 src={quiz.image || '/placeholder.svg'}
-                alt={quiz.title}
+                alt={`${quiz.title} quiz cover`}
                 fill
+                loading='lazy'
                 className='object-cover'
               />
               {/* Overlay */}

@@ -2,14 +2,14 @@
 
 import { ChevronUp, ChevronDown } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { useState } from 'react'
+import { useState, useCallback, useMemo, memo } from 'react'
 import { Label } from '@/components/ui/label'
 import { Slider } from '@/components/ui/slider'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import QuizCardDetail from '@/components/QuizCardDetail'
 import { quizzes } from '@/constants/mockQuizzes'
 
-const MainContent = () => {
+const MainContent = memo(function MainContent() {
   const [difficultyFilter, setDifficultyFilter] = useState('all')
   const [appliedDifficulty, setAppliedDifficulty] = useState('all')
   const [sortBy, setSortBy] = useState('popular')
@@ -24,23 +24,34 @@ const MainContent = () => {
   const [showAvailability, setShowAvailability] = useState(false)
   const [showTimeRange, setShowTimeRange] = useState(false)
 
-  // Filter quizzes based on applied filters
-  const filteredQuizzes = quizzes.filter((quiz) => {
-    // Apply difficulty filter
-    if (
-      appliedDifficulty !== 'all' &&
-      quiz.difficulty.toLowerCase() !== appliedDifficulty
-    ) {
-      return false
-    }
-    return true
-  })
+  // Re-render optimization: Memoize filtered results (rerender-derived-state-no-effect)
+  const filteredQuizzes = useMemo(
+    () =>
+      quizzes.filter((quiz) => {
+        if (
+          appliedDifficulty !== 'all' &&
+          quiz.difficulty.toLowerCase() !== appliedDifficulty
+        ) {
+          return false
+        }
+        return true
+      }),
+    [appliedDifficulty]
+  )
+
+  // Re-render optimization: useCallback for apply handler (rerender-functional-setstate)
+  const handleApplyFilters = useCallback(() => {
+    setAppliedDifficulty(difficultyFilter)
+  }, [difficultyFilter])
 
   return (
     <div className='text-foreground'>
       <div className='flex xl:flex-row flex-col gap-7'>
-        {/* Sidebar */}
-        <div className='xl:w-[16rem] w-full mb-3 xl:mb-none rounded-xl'>
+        {/* Sidebar Filters */}
+        <aside
+          className='xl:w-[16rem] w-full mb-3 xl:mb-none rounded-xl'
+          aria-label='Quiz filters'
+        >
           <h2 className='text-xl font-bold mb-6'>Filters</h2>
 
           <div className='border border-gray-300 dark:border-slate-700 rounded-md p-4'>
@@ -48,19 +59,23 @@ const MainContent = () => {
             <div className='mb-6 cursor-pointer'>
               <button
                 onClick={() => setShowDifficulty(!showDifficulty)}
+                aria-expanded={showDifficulty}
+                aria-controls='difficulty-filter'
                 className='flex items-center justify-between w-full text-left font-semibold mb-3 cursor-pointer'
               >
                 Difficulty
                 {showDifficulty ? (
-                  <ChevronUp className='w-4 h-4' />
+                  <ChevronUp className='w-4 h-4' aria-hidden='true' />
                 ) : (
-                  <ChevronDown className='w-4 h-4' />
+                  <ChevronDown className='w-4 h-4' aria-hidden='true' />
                 )}
               </button>
               {showDifficulty && (
                 <RadioGroup
+                  id='difficulty-filter'
                   value={difficultyFilter}
                   onValueChange={setDifficultyFilter}
+                  aria-label='Filter by difficulty'
                 >
                   <div className='flex items-center space-x-2'>
                     <RadioGroupItem value='all' id='all' />
@@ -93,17 +108,24 @@ const MainContent = () => {
             <div className='mb-6'>
               <button
                 onClick={() => setShowSortBy(!showSortBy)}
+                aria-expanded={showSortBy}
+                aria-controls='sortby-filter'
                 className='flex items-center justify-between w-full text-left font-semibold mb-3 cursor-pointer'
               >
                 Sort By
                 {showSortBy ? (
-                  <ChevronUp className='w-4 h-4' />
+                  <ChevronUp className='w-4 h-4' aria-hidden='true' />
                 ) : (
-                  <ChevronDown className='w-4 h-4' />
+                  <ChevronDown className='w-4 h-4' aria-hidden='true' />
                 )}
               </button>
               {showSortBy && (
-                <RadioGroup value={sortBy} onValueChange={setSortBy}>
+                <RadioGroup
+                  id='sortby-filter'
+                  value={sortBy}
+                  onValueChange={setSortBy}
+                  aria-label='Sort quizzes by'
+                >
                   <div className='flex items-center space-x-2'>
                     <RadioGroupItem value='popular' id='popular' />
                     <Label htmlFor='popular'>Most Popular</Label>
@@ -129,17 +151,19 @@ const MainContent = () => {
             <div className='mb-6'>
               <button
                 onClick={() => setShowReward(!showReward)}
+                aria-expanded={showReward}
+                aria-controls='reward-filter'
                 className='flex items-center justify-between w-full text-left font-semibold mb-3 cursor-pointer'
               >
                 Reward
                 {showReward ? (
-                  <ChevronUp className='w-4 h-4' />
+                  <ChevronUp className='w-4 h-4' aria-hidden='true' />
                 ) : (
-                  <ChevronDown className='w-4 h-4' />
+                  <ChevronDown className='w-4 h-4' aria-hidden='true' />
                 )}
               </button>
               {showReward && (
-                <div className='space-y-4'>
+                <div id='reward-filter' className='space-y-4'>
                   <div className='flex justify-between text-sm text-foreground/70'>
                     <span>$0</span>
                     <span>$15+</span>
@@ -160,17 +184,19 @@ const MainContent = () => {
             <div className='mb-6'>
               <button
                 onClick={() => setShowTimeLimit(!showTimeLimit)}
+                aria-expanded={showTimeLimit}
+                aria-controls='timelimit-filter'
                 className='flex items-center justify-between w-full text-left font-semibold mb-3 cursor-pointer'
               >
                 Time Limit
                 {showTimeLimit ? (
-                  <ChevronUp className='w-4 h-4' />
+                  <ChevronUp className='w-4 h-4' aria-hidden='true' />
                 ) : (
-                  <ChevronDown className='w-4 h-4' />
+                  <ChevronDown className='w-4 h-4' aria-hidden='true' />
                 )}
               </button>
               {showTimeLimit && (
-                <div className='space-y-4'>
+                <div id='timelimit-filter' className='space-y-4'>
                   <div className='flex justify-between text-sm text-foreground/70'>
                     <span>0 min</span>
                     <span>30+ min</span>
@@ -191,19 +217,23 @@ const MainContent = () => {
             <div className='mb-6'>
               <button
                 onClick={() => setShowAvailability(!showAvailability)}
+                aria-expanded={showAvailability}
+                aria-controls='availability-filter'
                 className='flex items-center justify-between w-full text-left font-semibold mb-3 cursor-pointer'
               >
                 Availability
                 {showAvailability ? (
-                  <ChevronUp className='w-4 h-4' />
+                  <ChevronUp className='w-4 h-4' aria-hidden='true' />
                 ) : (
-                  <ChevronDown className='w-4 h-4' />
+                  <ChevronDown className='w-4 h-4' aria-hidden='true' />
                 )}
               </button>
               {showAvailability && (
                 <RadioGroup
+                  id='availability-filter'
                   value={availability}
                   onValueChange={setAvailability}
+                  aria-label='Filter by availability'
                 >
                   <div className='flex items-center space-x-2'>
                     <RadioGroupItem
@@ -229,17 +259,24 @@ const MainContent = () => {
             <div>
               <button
                 onClick={() => setShowTimeRange(!showTimeRange)}
+                aria-expanded={showTimeRange}
+                aria-controls='timerange-filter'
                 className='flex items-center justify-between w-full text-left font-semibold mb-3 cursor-pointer'
               >
                 Time Range
                 {showTimeRange ? (
-                  <ChevronUp className='w-4 h-4' />
+                  <ChevronUp className='w-4 h-4' aria-hidden='true' />
                 ) : (
-                  <ChevronDown className='w-4 h-4' />
+                  <ChevronDown className='w-4 h-4' aria-hidden='true' />
                 )}
               </button>
               {showTimeRange && (
-                <RadioGroup value={timeRange} onValueChange={setTimeRange}>
+                <RadioGroup
+                  id='timerange-filter'
+                  value={timeRange}
+                  onValueChange={setTimeRange}
+                  aria-label='Filter by time range'
+                >
                   <div className='flex items-center space-x-2'>
                     <RadioGroupItem value='all time' id='all time' />
                     <Label htmlFor='all time'>All Time</Label>
@@ -262,26 +299,26 @@ const MainContent = () => {
           </div>
           {/* Apply Filters Button */}
           <div className='mt-6'>
-            <Button
-              className='w-full text-white'
-              onClick={() => {
-                setAppliedDifficulty(difficultyFilter)
-              }}
-            >
+            <Button className='w-full text-white' onClick={handleApplyFilters}>
               Apply Filters
             </Button>
           </div>
-        </div>
+        </aside>
 
         {/* Main Content */}
         <div className='flex-1 xl:block flex flex-col'>
           <div className='mb-6 order-2 xl:order-1'>
-            <p className='text-foreground/70 text-sm'>
-              Showing 1-6 of {filteredQuizzes.length} quizzes
+            <p className='text-foreground/70 text-sm' aria-live='polite'>
+              Showing 1\u2013{filteredQuizzes.length} of{' '}
+              {filteredQuizzes.length} quizzes
             </p>
           </div>
 
-          <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 order-1 xl:order-2'>
+          <div
+            className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 order-1 xl:order-2'
+            role='list'
+            aria-label='Quiz results'
+          >
             {filteredQuizzes.map((quiz) => (
               <QuizCardDetail key={quiz.id} {...quiz} />
             ))}
@@ -290,6 +327,6 @@ const MainContent = () => {
       </div>
     </div>
   )
-}
+})
 
 export default MainContent

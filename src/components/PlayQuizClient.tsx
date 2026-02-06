@@ -245,11 +245,13 @@ export default function PlayQuizClient({ quiz }: { quiz: Quiz }) {
       .padStart(2, '0')}`
   }
 
-  // Show loading state while restoring progress
+  // Loading state: use ellipsis per typography guidelines
   if (!isLoaded) {
     return (
       <div className='min-h-screen bg-background flex items-center justify-center'>
-        <div className='text-foreground'>Loading quiz...</div>
+        <div className='text-foreground' role='status' aria-live='polite'>
+          Loading quiz\u2026
+        </div>
       </div>
     )
   }
@@ -259,7 +261,7 @@ export default function PlayQuizClient({ quiz }: { quiz: Quiz }) {
   const isLastQuestion = currentQuestion === quiz.questions.length - 1
 
   return (
-    <div className='min-h-screen bg-background text-foreground p-4'>
+    <main className='min-h-screen bg-background text-foreground p-4'>
       <div className='max-w-7xl mx-auto'>
         {/* Header */}
         <div className='flex items-center justify-between gap-3 mb-8'>
@@ -268,8 +270,8 @@ export default function PlayQuizClient({ quiz }: { quiz: Quiz }) {
             className='text-foreground/70 dark:text-foreground/70 bg-transparent p-0 hover:bg-transparent hover:text-foreground dark:hover:text-foreground   shadow-none'
             asChild
           >
-            <Link href='/quizzes'>
-              <ArrowLeft className='w-5 h-5 mr-2' />
+            <Link href='/quizzes' aria-label='Back to explore quizzes'>
+              <ArrowLeft className='w-5 h-5 mr-2' aria-hidden='true' />
               Back to Explore
             </Link>
           </Button>
@@ -278,8 +280,9 @@ export default function PlayQuizClient({ quiz }: { quiz: Quiz }) {
             variant='outline'
             onClick={handleRestart}
             className='border-gray-300 dark:border-slate-700 text-foreground'
+            aria-label='Restart this quiz'
           >
-            <RotateCcw className='w-4 h-4 mr-2' />
+            <RotateCcw className='w-4 h-4 mr-2' aria-hidden='true' />
             Restart Quiz
           </Button>
         </div>
@@ -304,12 +307,22 @@ export default function PlayQuizClient({ quiz }: { quiz: Quiz }) {
 
         {/* Progress and Timer */}
         <div className='flex justify-between items-center mb-8'>
-          <div className='text-foreground font-semibold text-sm'>
+          <div
+            className='text-foreground font-semibold text-sm'
+            aria-live='polite'
+          >
             Question {currentQuestion + 1} of {quiz.questions.length}
           </div>
-          <div className='flex items-center gap-2 bg-background px-3 py-2 rounded-full border border-gray-300 dark:border-slate-700'>
-            <Clock className='w-4 h-4 text-foreground' />
-            <span className='text-foreground font-mono text-sm font-semibold'>
+          <div
+            className='flex items-center gap-2 bg-background px-3 py-2 rounded-full border border-gray-300 dark:border-slate-700'
+            role='timer'
+            aria-label='Time remaining'
+          >
+            <Clock className='w-4 h-4 text-foreground' aria-hidden='true' />
+            <span
+              className='text-foreground font-mono text-sm font-semibold'
+              style={{ fontVariantNumeric: 'tabular-nums' }}
+            >
               {formatTime(timeLeft)}
             </span>
           </div>
@@ -335,7 +348,7 @@ export default function PlayQuizClient({ quiz }: { quiz: Quiz }) {
               <div className='order-2 md:order-1'>
                 <Image
                   src={currentQ.image || '/placeholder.jpg'}
-                  alt={currentQ.question}
+                  alt={`Illustration for: ${currentQ.question}`}
                   width={400}
                   height={300}
                   className='rounded-lg object-cover w-full'
@@ -348,13 +361,18 @@ export default function PlayQuizClient({ quiz }: { quiz: Quiz }) {
                   {currentQ.question}
                 </h2>
 
-                <div className='space-y-3'>
+                <div
+                  className='space-y-3'
+                  role='radiogroup'
+                  aria-label='Answer options'
+                >
                   {currentQ.answers.map((answer) => {
                     const isSelected = answers[currentQuestion] === answer.value
                     return (
                       <Button
                         key={answer.label}
                         variant={isSelected ? 'default' : 'outline'}
+                        aria-pressed={isSelected}
                         className={`w-full justify-start text-left h-auto p-4 ${
                           isSelected
                             ? 'bg-default dark:bg-white text-white dark:text-black border-primary'
@@ -397,6 +415,6 @@ export default function PlayQuizClient({ quiz }: { quiz: Quiz }) {
           </CardContent>
         </Card>
       </div>
-    </div>
+    </main>
   )
 }

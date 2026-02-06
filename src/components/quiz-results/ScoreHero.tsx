@@ -89,21 +89,21 @@ export default function ScoreHero({
                 variant='outline'
                 className='px-3 py-1 text-sm border border-gray-300 dark:border-slate-700'
               >
-                <Target className='w-4 h-4 mr-1' />
+                <Target className='w-4 h-4 mr-1' aria-hidden='true' />
                 {result.correctCount}/{quiz.questions.length} Correct
               </Badge>
               <Badge
                 variant='outline'
                 className='px-3 py-1 text-sm border border-gray-300 dark:border-slate-700'
               >
-                <Clock className='w-4 h-4 mr-1' />
+                <Clock className='w-4 h-4 mr-1' aria-hidden='true' />
                 {formatTime(result.timeTaken)} Total Time
               </Badge>
               <Badge
                 variant='outline'
                 className='px-3 py-1 text-sm border border-gray-300 dark:border-slate-700'
               >
-                <Users className='w-4 h-4 mr-1' />
+                <Users className='w-4 h-4 mr-1' aria-hidden='true' />
                 Top {100 - percentile}%
               </Badge>
             </div>
@@ -117,7 +117,7 @@ export default function ScoreHero({
                 className='dark:bg-default dark:text-white dark:hover:bg-default-hover'
               >
                 <Link href={`/quizzes/${quiz.id}/start`}>
-                  <RotateCcw className='w-4 h-4 mr-2' />
+                  <RotateCcw className='w-4 h-4 mr-2' aria-hidden='true' />
                   Play Again
                 </Link>
               </Button>
@@ -127,7 +127,7 @@ export default function ScoreHero({
                 className='dark:bg-default dark:text-white dark:hover:bg-default-hover'
               >
                 <Link href={`/quizzes`}>
-                  <Zap className='w-4 h-4 mr-2' />
+                  <Zap className='w-4 h-4 mr-2' aria-hidden='true' />
                   Try Similar Quiz
                 </Link>
               </Button>
