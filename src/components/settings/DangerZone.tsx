@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, memo } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -29,7 +29,7 @@ interface DangerZoneProps {
   onSignOutAll: () => void
 }
 
-export function DangerZone({
+export const DangerZone = memo(function DangerZone({
   onDeleteAccount,
   onExportData,
   onSignOutAll
@@ -69,7 +69,10 @@ export function DangerZone({
   return (
     <div className='space-y-6'>
       <div className='flex items-center gap-2 p-4 rounded-lg bg-destructive/10 border border-destructive/20'>
-        <AlertTriangle className='w-5 h-5 text-destructive' />
+        <AlertTriangle
+          className='w-5 h-5 text-destructive'
+          aria-hidden='true'
+        />
         <div>
           <h3 className='text-lg font-semibold text-destructive'>
             Danger Zone
@@ -84,7 +87,7 @@ export function DangerZone({
       <Card className='border-border/40 py-4'>
         <CardHeader>
           <CardTitle className='flex items-center gap-2'>
-            <Download className='w-5 h-5 text-primary' />
+            <Download className='w-5 h-5 text-primary' aria-hidden='true' />
             Export Your Data
           </CardTitle>
           <CardDescription>
@@ -93,8 +96,12 @@ export function DangerZone({
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Button variant='outline' onClick={onExportData}>
-            <Download className='w-4 h-4 mr-2' />
+          <Button
+            variant='outline'
+            onClick={onExportData}
+            aria-label='Export your data'
+          >
+            <Download className='w-4 h-4 mr-2' aria-hidden='true' />
             Export Data
           </Button>
         </CardContent>
@@ -104,7 +111,7 @@ export function DangerZone({
       <Card className='border-border/40 py-4'>
         <CardHeader>
           <CardTitle className='flex items-center gap-2'>
-            <LogOut className='w-5 h-5 text-amber-500' />
+            <LogOut className='w-5 h-5 text-amber-500' aria-hidden='true' />
             Sign Out All Sessions
           </CardTitle>
           <CardDescription>
@@ -117,8 +124,9 @@ export function DangerZone({
               <Button
                 variant='outline'
                 className='text-amber-500 hover:text-amber-500'
+                aria-label='Sign out from all sessions'
               >
-                <LogOut className='w-4 h-4 mr-2' />
+                <LogOut className='w-4 h-4 mr-2' aria-hidden='true' />
                 Sign Out All Sessions
               </Button>
             </DialogTrigger>
@@ -145,7 +153,7 @@ export function DangerZone({
       <Card className='border-border/40 py-4'>
         <CardHeader>
           <CardTitle className='flex items-center gap-2'>
-            <XCircle className='w-5 h-5 text-amber-500' />
+            <XCircle className='w-5 h-5 text-amber-500' aria-hidden='true' />
             Deactivate Account
           </CardTitle>
           <CardDescription>
@@ -159,8 +167,9 @@ export function DangerZone({
               <Button
                 variant='outline'
                 className='text-amber-500 hover:text-amber-500'
+                aria-label='Deactivate your account'
               >
-                <XCircle className='w-4 h-4 mr-2' />
+                <XCircle className='w-4 h-4 mr-2' aria-hidden='true' />
                 Deactivate Account
               </Button>
             </DialogTrigger>
@@ -186,7 +195,7 @@ export function DangerZone({
       <Card className='border-destructive/50 py-5'>
         <CardHeader>
           <CardTitle className='flex items-center gap-2 text-destructive'>
-            <Trash2 className='w-5 h-5' />
+            <Trash2 className='w-5 h-5' aria-hidden='true' />
             Delete Account
           </CardTitle>
           <CardDescription>
@@ -203,15 +212,18 @@ export function DangerZone({
             }}
           >
             <DialogTrigger asChild>
-              <Button variant='destructive'>
-                <Trash2 className='w-4 h-4 mr-2' />
+              <Button
+                variant='destructive'
+                aria-label='Delete your account permanently'
+              >
+                <Trash2 className='w-4 h-4 mr-2' aria-hidden='true' />
                 Delete Account
               </Button>
             </DialogTrigger>
             <DialogContent className='sm:max-w-md'>
               <DialogHeader>
                 <DialogTitle className='flex items-center gap-2 text-destructive'>
-                  <AlertTriangle className='w-5 h-5' />
+                  <AlertTriangle className='w-5 h-5' aria-hidden='true' />
                   Delete Your Account
                 </DialogTitle>
                 <DialogDescription>
@@ -316,8 +328,9 @@ export function DangerZone({
                   variant='destructive'
                   disabled={!canDelete}
                   onClick={handleDeleteAccount}
+                  aria-label='Confirm account deletion'
                 >
-                  <Trash2 className='w-4 h-4 mr-2' />
+                  <Trash2 className='w-4 h-4 mr-2' aria-hidden='true' />
                   Delete My Account
                 </Button>
               </DialogFooter>
@@ -327,4 +340,4 @@ export function DangerZone({
       </Card>
     </div>
   )
-}
+})

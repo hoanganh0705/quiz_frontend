@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, memo } from 'react'
 import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
@@ -37,7 +37,7 @@ interface NotificationItemProps {
   onCheckedChange: (checked: boolean) => void
 }
 
-function NotificationItem({
+const NotificationItem = memo(function NotificationItem({
   icon,
   title,
   description,
@@ -53,12 +53,16 @@ function NotificationItem({
           <p className='text-sm text-muted-foreground'>{description}</p>
         </div>
       </div>
-      <Switch checked={checked} onCheckedChange={onCheckedChange} />
+      <Switch
+        checked={checked}
+        onCheckedChange={onCheckedChange}
+        aria-label={`Toggle ${title}`}
+      />
     </div>
   )
-}
+})
 
-export function NotificationSettings({
+export const NotificationSettings = memo(function NotificationSettings({
   settings,
   onUpdate
 }: NotificationSettingsProps) {
@@ -120,7 +124,7 @@ export function NotificationSettings({
 
       {saveSuccess && (
         <div className='flex items-center gap-2 text-green-500 text-sm p-3 bg-green-500/10 rounded-lg'>
-          <Check className='w-4 h-4' />
+          <Check className='w-4 h-4' aria-hidden='true' />
           Notification preferences saved!
         </div>
       )}
@@ -129,7 +133,7 @@ export function NotificationSettings({
       <Card className='border-border/40 py-4'>
         <CardHeader>
           <CardTitle className='flex items-center gap-2'>
-            <Bell className='w-5 h-5 text-primary' />
+            <Bell className='w-5 h-5 text-primary' aria-hidden='true' />
             General Notifications
           </CardTitle>
           <CardDescription>
@@ -138,7 +142,7 @@ export function NotificationSettings({
         </CardHeader>
         <CardContent className='space-y-0'>
           <NotificationItem
-            icon={<Mail className='w-4 h-4' />}
+            icon={<Mail className='w-4 h-4' aria-hidden='true' />}
             title='Email Notifications'
             description='Receive notifications via email'
             checked={notifications.emailNotifications}
@@ -147,7 +151,7 @@ export function NotificationSettings({
             }
           />
           <NotificationItem
-            icon={<Smartphone className='w-4 h-4' />}
+            icon={<Smartphone className='w-4 h-4' aria-hidden='true' />}
             title='Push Notifications'
             description='Receive push notifications on your devices'
             checked={notifications.pushNotifications}
@@ -162,7 +166,7 @@ export function NotificationSettings({
       <Card className='border-border/40 py-4'>
         <CardHeader>
           <CardTitle className='flex items-center gap-2'>
-            <Sparkles className='w-5 h-5 text-primary' />
+            <Sparkles className='w-5 h-5 text-primary' aria-hidden='true' />
             Activity Notifications
           </CardTitle>
           <CardDescription>
@@ -171,7 +175,7 @@ export function NotificationSettings({
         </CardHeader>
         <CardContent className='space-y-0'>
           <NotificationItem
-            icon={<Clock className='w-4 h-4' />}
+            icon={<Clock className='w-4 h-4' aria-hidden='true' />}
             title='Quiz Reminders'
             description='Get reminded about scheduled quizzes and daily challenges'
             checked={notifications.quizReminders}
@@ -180,7 +184,7 @@ export function NotificationSettings({
             }
           />
           <NotificationItem
-            icon={<Users className='w-4 h-4' />}
+            icon={<Users className='w-4 h-4' aria-hidden='true' />}
             title='Friend Requests'
             description='Notify when someone sends you a friend request'
             checked={notifications.friendRequests}
@@ -189,7 +193,7 @@ export function NotificationSettings({
             }
           />
           <NotificationItem
-            icon={<Trophy className='w-4 h-4' />}
+            icon={<Trophy className='w-4 h-4' aria-hidden='true' />}
             title='Challenge Invites'
             description='Get notified when friends challenge you to a quiz'
             checked={notifications.challengeInvites}
@@ -198,7 +202,7 @@ export function NotificationSettings({
             }
           />
           <NotificationItem
-            icon={<Sparkles className='w-4 h-4' />}
+            icon={<Sparkles className='w-4 h-4' aria-hidden='true' />}
             title='Achievement Alerts'
             description='Celebrate when you unlock new achievements'
             checked={notifications.achievementAlerts}
@@ -213,7 +217,7 @@ export function NotificationSettings({
       <Card className='border-border/40 py-4'>
         <CardHeader>
           <CardTitle className='flex items-center gap-2'>
-            <Megaphone className='w-5 h-5 text-primary' />
+            <Megaphone className='w-5 h-5 text-primary' aria-hidden='true' />
             Updates & Marketing
           </CardTitle>
           <CardDescription>
@@ -222,7 +226,7 @@ export function NotificationSettings({
         </CardHeader>
         <CardContent className='space-y-0'>
           <NotificationItem
-            icon={<Mail className='w-4 h-4' />}
+            icon={<Mail className='w-4 h-4' aria-hidden='true' />}
             title='Weekly Digest'
             description='Receive a weekly summary of your quiz activities'
             checked={notifications.weeklyDigest}
@@ -231,7 +235,7 @@ export function NotificationSettings({
             }
           />
           <NotificationItem
-            icon={<Megaphone className='w-4 h-4' />}
+            icon={<Megaphone className='w-4 h-4' aria-hidden='true' />}
             title='Marketing Emails'
             description='Receive promotional offers and new feature announcements'
             checked={notifications.marketingEmails}
@@ -243,4 +247,4 @@ export function NotificationSettings({
       </Card>
     </div>
   )
-}
+})

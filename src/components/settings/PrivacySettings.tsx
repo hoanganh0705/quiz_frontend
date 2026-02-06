@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, memo } from 'react'
 import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
 import {
@@ -45,7 +45,7 @@ interface PrivacyItemProps {
   onCheckedChange: (checked: boolean) => void
 }
 
-function PrivacyItem({
+const PrivacyItem = memo(function PrivacyItem({
   icon,
   title,
   description,
@@ -61,12 +61,19 @@ function PrivacyItem({
           <p className='text-sm text-muted-foreground'>{description}</p>
         </div>
       </div>
-      <Switch checked={checked} onCheckedChange={onCheckedChange} />
+      <Switch
+        checked={checked}
+        onCheckedChange={onCheckedChange}
+        aria-label={`Toggle ${title}`}
+      />
     </div>
   )
-}
+})
 
-export function PrivacySettings({ settings, onUpdate }: PrivacySettingsProps) {
+export const PrivacySettings = memo(function PrivacySettings({
+  settings,
+  onUpdate
+}: PrivacySettingsProps) {
   const [saveSuccess, setSaveSuccess] = useState(false)
   const [privacy, setPrivacy] = useState(settings.privacy)
 
@@ -105,7 +112,7 @@ export function PrivacySettings({ settings, onUpdate }: PrivacySettingsProps) {
 
       {saveSuccess && (
         <div className='flex items-center gap-2 text-green-500 text-sm p-3 bg-green-500/10 rounded-lg'>
-          <Check className='w-4 h-4' />
+          <Check className='w-4 h-4' aria-hidden='true' />
           Privacy settings saved!
         </div>
       )}
@@ -114,7 +121,7 @@ export function PrivacySettings({ settings, onUpdate }: PrivacySettingsProps) {
       <Card className='border-border/40 py-4'>
         <CardHeader>
           <CardTitle className='flex items-center gap-2'>
-            <Shield className='w-5 h-5 text-primary' />
+            <Shield className='w-5 h-5 text-primary' aria-hidden='true' />
             Profile Visibility
           </CardTitle>
           <CardDescription>
@@ -148,19 +155,19 @@ export function PrivacySettings({ settings, onUpdate }: PrivacySettingsProps) {
               <SelectContent className='bg-background'>
                 <SelectItem value='public'>
                   <div className='flex items-center gap-2'>
-                    <Globe className='w-4 h-4' />
+                    <Globe className='w-4 h-4' aria-hidden='true' />
                     Public
                   </div>
                 </SelectItem>
                 <SelectItem value='friends'>
                   <div className='flex items-center gap-2'>
-                    <UserCheck className='w-4 h-4' />
+                    <UserCheck className='w-4 h-4' aria-hidden='true' />
                     Friends Only
                   </div>
                 </SelectItem>
                 <SelectItem value='private'>
                   <div className='flex items-center gap-2'>
-                    <Lock className='w-4 h-4' />
+                    <Lock className='w-4 h-4' aria-hidden='true' />
                     Private
                   </div>
                 </SelectItem>
@@ -174,7 +181,7 @@ export function PrivacySettings({ settings, onUpdate }: PrivacySettingsProps) {
       <Card className='border-border/40 py-4'>
         <CardHeader>
           <CardTitle className='flex items-center gap-2'>
-            <Activity className='w-5 h-5 text-primary' />
+            <Activity className='w-5 h-5 text-primary' aria-hidden='true' />
             Activity Privacy
           </CardTitle>
           <CardDescription>
@@ -183,7 +190,7 @@ export function PrivacySettings({ settings, onUpdate }: PrivacySettingsProps) {
         </CardHeader>
         <CardContent className='space-y-0'>
           <PrivacyItem
-            icon={<Eye className='w-4 h-4' />}
+            icon={<Eye className='w-4 h-4' aria-hidden='true' />}
             title='Show Online Status'
             description='Let others see when you are online'
             checked={privacy.showOnlineStatus}
@@ -192,7 +199,7 @@ export function PrivacySettings({ settings, onUpdate }: PrivacySettingsProps) {
             }
           />
           <PrivacyItem
-            icon={<History className='w-4 h-4' />}
+            icon={<History className='w-4 h-4' aria-hidden='true' />}
             title='Show Quiz History'
             description='Allow others to view your quiz history'
             checked={privacy.showQuizHistory}
@@ -201,7 +208,7 @@ export function PrivacySettings({ settings, onUpdate }: PrivacySettingsProps) {
             }
           />
           <PrivacyItem
-            icon={<Trophy className='w-4 h-4' />}
+            icon={<Trophy className='w-4 h-4' aria-hidden='true' />}
             title='Show Achievements'
             description='Display your achievements on your profile'
             checked={privacy.showAchievements}
@@ -210,7 +217,7 @@ export function PrivacySettings({ settings, onUpdate }: PrivacySettingsProps) {
             }
           />
           <PrivacyItem
-            icon={<Activity className='w-4 h-4' />}
+            icon={<Activity className='w-4 h-4' aria-hidden='true' />}
             title='Share Activity with Friends'
             description='Let friends see your recent quiz activities'
             checked={privacy.shareActivityWithFriends}
@@ -225,7 +232,7 @@ export function PrivacySettings({ settings, onUpdate }: PrivacySettingsProps) {
       <Card className='border-border/40 py-4'>
         <CardHeader>
           <CardTitle className='flex items-center gap-2'>
-            <Users className='w-5 h-5 text-primary' />
+            <Users className='w-5 h-5 text-primary' aria-hidden='true' />
             Social Privacy
           </CardTitle>
           <CardDescription>
@@ -234,7 +241,7 @@ export function PrivacySettings({ settings, onUpdate }: PrivacySettingsProps) {
         </CardHeader>
         <CardContent className='space-y-0'>
           <PrivacyItem
-            icon={<Users className='w-4 h-4' />}
+            icon={<Users className='w-4 h-4' aria-hidden='true' />}
             title='Allow Friend Requests'
             description='Let others send you friend requests'
             checked={privacy.allowFriendRequests}
@@ -243,7 +250,7 @@ export function PrivacySettings({ settings, onUpdate }: PrivacySettingsProps) {
             }
           />
           <PrivacyItem
-            icon={<BarChart3 className='w-4 h-4' />}
+            icon={<BarChart3 className='w-4 h-4' aria-hidden='true' />}
             title='Show in Leaderboard'
             description='Appear in public leaderboards and rankings'
             checked={privacy.showInLeaderboard}
@@ -255,4 +262,4 @@ export function PrivacySettings({ settings, onUpdate }: PrivacySettingsProps) {
       </Card>
     </div>
   )
-}
+})

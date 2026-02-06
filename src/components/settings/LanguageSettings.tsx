@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, memo } from 'react'
 import { Label } from '@/components/ui/label'
 import {
   Card,
@@ -30,7 +30,7 @@ interface LanguageSettingsProps {
   onUpdate: (settings: Partial<UserSettings>) => void
 }
 
-export function LanguageSettings({
+export const LanguageSettings = memo(function LanguageSettings({
   settings,
   onUpdate
 }: LanguageSettingsProps) {
@@ -56,7 +56,7 @@ export function LanguageSettings({
 
       {saveSuccess && (
         <div className='flex items-center gap-2 text-green-500 text-sm p-3 bg-green-500/10 rounded-lg'>
-          <Check className='w-4 h-4' />
+          <Check className='w-4 h-4' aria-hidden='true' />
           Language preferences saved!
         </div>
       )}
@@ -65,7 +65,7 @@ export function LanguageSettings({
       <Card className='border-border/40 py-4'>
         <CardHeader>
           <CardTitle className='flex items-center gap-2'>
-            <Globe className='w-5 h-5 text-primary' />
+            <Globe className='w-5 h-5 text-primary' aria-hidden='true' />
             Language
           </CardTitle>
           <CardDescription>
@@ -103,7 +103,7 @@ export function LanguageSettings({
       <Card className='border-border/40 py-4'>
         <CardHeader>
           <CardTitle className='flex items-center gap-2'>
-            <Clock className='w-5 h-5 text-primary' />
+            <Clock className='w-5 h-5 text-primary' aria-hidden='true' />
             Time Zone
           </CardTitle>
           <CardDescription>
@@ -138,7 +138,7 @@ export function LanguageSettings({
       <Card className='border-border/40 py-4'>
         <CardHeader>
           <CardTitle className='flex items-center gap-2'>
-            <Calendar className='w-5 h-5 text-primary' />
+            <Calendar className='w-5 h-5 text-primary' aria-hidden='true' />
             Date & Time Format
           </CardTitle>
           <CardDescription>
@@ -205,11 +205,13 @@ export function LanguageSettings({
               </p>
               <p className='text-sm'>
                 <span className='text-muted-foreground'>Time: </span>
-                {new Date().toLocaleTimeString('en-US', {
-                  hour: '2-digit',
-                  minute: '2-digit',
-                  hour12: locale.timeFormat === '12h'
-                })}
+                <span style={{ fontVariantNumeric: 'tabular-nums' }}>
+                  {new Date().toLocaleTimeString('en-US', {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    hour12: locale.timeFormat === '12h'
+                  })}
+                </span>
               </p>
             </div>
           </div>
@@ -217,4 +219,4 @@ export function LanguageSettings({
       </Card>
     </div>
   )
-}
+})

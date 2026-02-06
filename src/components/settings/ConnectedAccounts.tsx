@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, memo } from 'react'
 import { Button } from '@/components/ui/button'
 import {
   Card,
@@ -81,7 +81,7 @@ function TwitterIcon() {
   )
 }
 
-function AccountProvider({
+const AccountProvider = memo(function AccountProvider({
   name,
   icon,
   description,
@@ -108,21 +108,27 @@ function AccountProvider({
           size='sm'
           className='text-destructive hover:text-destructive'
           onClick={onDisconnect}
+          aria-label={`Disconnect ${name} account`}
         >
-          <X className='w-4 h-4 mr-2' />
+          <X className='w-4 h-4 mr-2' aria-hidden='true' />
           Disconnect
         </Button>
       ) : (
-        <Button variant='outline' size='sm' onClick={onConnect}>
-          <Link2 className='w-4 h-4 mr-2' />
+        <Button
+          variant='outline'
+          size='sm'
+          onClick={onConnect}
+          aria-label={`Connect ${name} account`}
+        >
+          <Link2 className='w-4 h-4 mr-2' aria-hidden='true' />
           Connect
         </Button>
       )}
     </div>
   )
-}
+})
 
-export function ConnectedAccounts({
+export const ConnectedAccounts = memo(function ConnectedAccounts({
   settings,
   onUpdate
 }: ConnectedAccountsProps) {
@@ -180,7 +186,7 @@ export function ConnectedAccounts({
 
       {saveSuccess && (
         <div className='flex items-center gap-2 text-green-500 text-sm p-3 bg-green-500/10 rounded-lg'>
-          <Check className='w-4 h-4' />
+          <Check className='w-4 h-4' aria-hidden='true' />
           Account settings updated!
         </div>
       )}
@@ -189,7 +195,7 @@ export function ConnectedAccounts({
       <Card className='border-border/40 py-4'>
         <CardHeader>
           <CardTitle className='flex items-center gap-2'>
-            <Link2 className='w-5 h-5 text-primary' />
+            <Link2 className='w-5 h-5 text-primary' aria-hidden='true' />
             Connection Status
           </CardTitle>
           <CardDescription>
@@ -204,7 +210,10 @@ export function ConnectedAccounts({
                 style={{ width: `${(connectedCount / 4) * 100}%` }}
               />
             </div>
-            <span className='text-sm text-muted-foreground'>
+            <span
+              className='text-sm text-muted-foreground'
+              style={{ fontVariantNumeric: 'tabular-nums' }}
+            >
               {connectedCount}/4
             </span>
           </div>
@@ -215,7 +224,7 @@ export function ConnectedAccounts({
       <Card className='border-border/40 py-4'>
         <CardHeader>
           <CardTitle className='flex items-center gap-2'>
-            <ExternalLink className='w-5 h-5 text-primary' />
+            <ExternalLink className='w-5 h-5 text-primary' aria-hidden='true' />
             Social Accounts
           </CardTitle>
           <CardDescription>
@@ -298,4 +307,4 @@ export function ConnectedAccounts({
       </Dialog>
     </div>
   )
-}
+})
