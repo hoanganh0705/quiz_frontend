@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, memo } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -38,7 +38,10 @@ interface AccountSettingsProps {
   onUpdate: (settings: Partial<UserSettings>) => void
 }
 
-export function AccountSettings({ settings, onUpdate }: AccountSettingsProps) {
+export const AccountSettings = memo(function AccountSettings({
+  settings,
+  onUpdate
+}: AccountSettingsProps) {
   const [isEditing, setIsEditing] = useState(false)
   const [showPasswordDialog, setShowPasswordDialog] = useState(false)
   const [showPassword, setShowPassword] = useState({
@@ -106,7 +109,7 @@ export function AccountSettings({ settings, onUpdate }: AccountSettingsProps) {
       <Card className='border-border/40 py-4'>
         <CardHeader>
           <CardTitle className='flex items-center gap-2'>
-            <Camera className='w-5 h-5 text-primary' />
+            <Camera className='w-5 h-5 text-primary' aria-hidden='true' />
             Profile Picture
           </CardTitle>
           <CardDescription>
@@ -116,7 +119,11 @@ export function AccountSettings({ settings, onUpdate }: AccountSettingsProps) {
         <CardContent>
           <div className='flex items-center gap-6'>
             <Avatar className='w-24 h-24 border-4 border-primary/20'>
-              <AvatarImage src={settings.account.avatarUrl} />
+              <AvatarImage
+                src={settings.account.avatarUrl}
+                alt={`${settings.account.displayName}'s profile picture`}
+                loading='lazy'
+              />
               <AvatarFallback className='text-2xl bg-primary/20'>
                 {settings.account.displayName
                   .split(' ')
@@ -125,8 +132,12 @@ export function AccountSettings({ settings, onUpdate }: AccountSettingsProps) {
               </AvatarFallback>
             </Avatar>
             <div className='space-y-2'>
-              <Button variant='outline' size='sm'>
-                <Camera className='w-4 h-4 mr-2' />
+              <Button
+                variant='outline'
+                size='sm'
+                aria-label='Upload new profile photo'
+              >
+                <Camera className='w-4 h-4 mr-2' aria-hidden='true' />
                 Upload New Photo
               </Button>
               <p className='text-xs text-muted-foreground'>
@@ -143,7 +154,7 @@ export function AccountSettings({ settings, onUpdate }: AccountSettingsProps) {
           <div className='flex items-center justify-between'>
             <div>
               <CardTitle className='flex items-center gap-2'>
-                <User className='w-5 h-5 text-primary' />
+                <User className='w-5 h-5 text-primary' aria-hidden='true' />
                 Account Information
               </CardTitle>
               <CardDescription>
@@ -165,7 +176,7 @@ export function AccountSettings({ settings, onUpdate }: AccountSettingsProps) {
           <div className='grid gap-4 md:grid-cols-2'>
             <div className='space-y-2'>
               <Label htmlFor='displayName' className='flex items-center gap-2'>
-                <User className='w-4 h-4' />
+                <User className='w-4 h-4' aria-hidden='true' />
                 Display Name
               </Label>
               <Input
@@ -180,7 +191,7 @@ export function AccountSettings({ settings, onUpdate }: AccountSettingsProps) {
             </div>
             <div className='space-y-2'>
               <Label htmlFor='username' className='flex items-center gap-2'>
-                <AtSign className='w-4 h-4' />
+                <AtSign className='w-4 h-4' aria-hidden='true' />
                 Username
               </Label>
               <Input
@@ -196,7 +207,7 @@ export function AccountSettings({ settings, onUpdate }: AccountSettingsProps) {
           </div>
           <div className='space-y-2'>
             <Label htmlFor='email' className='flex items-center gap-2'>
-              <Mail className='w-4 h-4' />
+              <Mail className='w-4 h-4' aria-hidden='true' />
               Email Address
             </Label>
             <Input
@@ -213,8 +224,12 @@ export function AccountSettings({ settings, onUpdate }: AccountSettingsProps) {
 
           {isEditing && (
             <div className='flex gap-2 pt-2'>
-              <Button onClick={handleSave} className='gap-2'>
-                <Check className='w-4 h-4' />
+              <Button
+                onClick={handleSave}
+                className='gap-2'
+                aria-label='Save account changes'
+              >
+                <Check className='w-4 h-4' aria-hidden='true' />
                 Save Changes
               </Button>
               <Button variant='outline' onClick={handleCancel}>
@@ -225,7 +240,7 @@ export function AccountSettings({ settings, onUpdate }: AccountSettingsProps) {
 
           {saveSuccess && (
             <div className='flex items-center gap-2 text-green-500 text-sm'>
-              <Check className='w-4 h-4' />
+              <Check className='w-4 h-4' aria-hidden='true' />
               Changes saved successfully!
             </div>
           )}
@@ -236,7 +251,7 @@ export function AccountSettings({ settings, onUpdate }: AccountSettingsProps) {
       <Card className='border-border/40 py-4'>
         <CardHeader>
           <CardTitle className='flex items-center gap-2'>
-            <Lock className='w-5 h-5 text-primary' />
+            <Lock className='w-5 h-5 text-primary' aria-hidden='true' />
             Password & Security
           </CardTitle>
           <CardDescription>
@@ -249,8 +264,8 @@ export function AccountSettings({ settings, onUpdate }: AccountSettingsProps) {
             onOpenChange={setShowPasswordDialog}
           >
             <DialogTrigger asChild>
-              <Button variant='outline'>
-                <Lock className='w-4 h-4 mr-2' />
+              <Button variant='outline' aria-label='Change account password'>
+                <Lock className='w-4 h-4 mr-2' aria-hidden='true' />
                 Change Password
               </Button>
             </DialogTrigger>
@@ -289,11 +304,16 @@ export function AccountSettings({ settings, onUpdate }: AccountSettingsProps) {
                           current: !showPassword.current
                         })
                       }
+                      aria-label={
+                        showPassword.current
+                          ? 'Hide current password'
+                          : 'Show current password'
+                      }
                     >
                       {showPassword.current ? (
-                        <EyeOff className='w-4 h-4' />
+                        <EyeOff className='w-4 h-4' aria-hidden='true' />
                       ) : (
-                        <Eye className='w-4 h-4' />
+                        <Eye className='w-4 h-4' aria-hidden='true' />
                       )}
                     </Button>
                   </div>
@@ -324,11 +344,16 @@ export function AccountSettings({ settings, onUpdate }: AccountSettingsProps) {
                           new: !showPassword.new
                         })
                       }
+                      aria-label={
+                        showPassword.new
+                          ? 'Hide new password'
+                          : 'Show new password'
+                      }
                     >
                       {showPassword.new ? (
-                        <EyeOff className='w-4 h-4' />
+                        <EyeOff className='w-4 h-4' aria-hidden='true' />
                       ) : (
-                        <Eye className='w-4 h-4' />
+                        <Eye className='w-4 h-4' aria-hidden='true' />
                       )}
                     </Button>
                   </div>
@@ -362,11 +387,16 @@ export function AccountSettings({ settings, onUpdate }: AccountSettingsProps) {
                           confirm: !showPassword.confirm
                         })
                       }
+                      aria-label={
+                        showPassword.confirm
+                          ? 'Hide confirm password'
+                          : 'Show confirm password'
+                      }
                     >
                       {showPassword.confirm ? (
-                        <EyeOff className='w-4 h-4' />
+                        <EyeOff className='w-4 h-4' aria-hidden='true' />
                       ) : (
-                        <Eye className='w-4 h-4' />
+                        <Eye className='w-4 h-4' aria-hidden='true' />
                       )}
                     </Button>
                   </div>
@@ -387,4 +417,4 @@ export function AccountSettings({ settings, onUpdate }: AccountSettingsProps) {
       </Card>
     </div>
   )
-}
+})

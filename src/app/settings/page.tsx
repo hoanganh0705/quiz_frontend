@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo, useCallback, memo } from 'react'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import {
   AccountSettings,
@@ -20,50 +20,58 @@ const settingsTabs: {
   label: string
   icon: React.ReactNode
 }[] = [
-  { id: 'account', label: 'Account', icon: <User className='w-5 h-5' /> },
+  {
+    id: 'account',
+    label: 'Account',
+    icon: <User className='w-5 h-5' aria-hidden='true' />
+  },
   {
     id: 'notifications',
     label: 'Notifications',
-    icon: <Bell className='w-5 h-5' />
+    icon: <Bell className='w-5 h-5' aria-hidden='true' />
   },
-  { id: 'privacy', label: 'Privacy', icon: <Shield className='w-5 h-5' /> },
+  {
+    id: 'privacy',
+    label: 'Privacy',
+    icon: <Shield className='w-5 h-5' aria-hidden='true' />
+  },
   {
     id: 'language',
     label: 'Language & Region',
-    icon: <Globe className='w-5 h-5' />
+    icon: <Globe className='w-5 h-5' aria-hidden='true' />
   },
   {
     id: 'connections',
     label: 'Connected Accounts',
-    icon: <Link2 className='w-5 h-5' />
+    icon: <Link2 className='w-5 h-5' aria-hidden='true' />
   },
   {
     id: 'danger',
     label: 'Danger Zone',
-    icon: <AlertTriangle className='w-5 h-5' />
+    icon: <AlertTriangle className='w-5 h-5' aria-hidden='true' />
   }
 ]
 
-export default function SettingsPage() {
+const SettingsPage = memo(function SettingsPage() {
   const [activeTab, setActiveTab] = useState<SettingsTab>('account')
   const [settings, setSettings] = useLocalStorage<UserSettings>(
     'user_settings',
     defaultSettings
   )
 
-  const handleUpdateSettings = (updates: Partial<UserSettings>) => {
+  const handleUpdateSettings = useCallback((updates: Partial<UserSettings>) => {
     setSettings((prev) => ({
       ...prev,
       ...updates
     }))
-  }
+  }, [])
 
-  const handleDeleteAccount = () => {
+  const handleDeleteAccount = useCallback(() => {
     // In a real app, this would call an API to delete the account
     alert('Account deletion would be processed here')
-  }
+  }, [])
 
-  const handleExportData = () => {
+  const handleExportData = useCallback(() => {
     // Export settings as JSON file
     const dataStr = JSON.stringify(settings, null, 2)
     const dataBlob = new Blob([dataStr], { type: 'application/json' })
@@ -73,14 +81,14 @@ export default function SettingsPage() {
     link.download = 'quiz-app-data.json'
     link.click()
     URL.revokeObjectURL(url)
-  }
+  }, [settings])
 
-  const handleSignOutAll = () => {
+  const handleSignOutAll = useCallback(() => {
     // In a real app, this would call an API to invalidate all sessions
     alert('All sessions would be signed out here')
-  }
+  }, [])
 
-  const renderContent = () => {
+  const renderContent = useMemo(() => {
     switch (activeTab) {
       case 'account':
         return (
@@ -128,17 +136,24 @@ export default function SettingsPage() {
       default:
         return null
     }
-  }
+  }, [
+    activeTab,
+    settings,
+    handleUpdateSettings,
+    handleDeleteAccount,
+    handleExportData,
+    handleSignOutAll
+  ])
 
   return (
-    <div className='min-h-screen bg-transparent text-foreground mt-20'>
+    <main className='min-h-screen bg-transparent text-foreground mt-20'>
       {/* Header */}
-      <div className='text-center px-4 mb-8'>
+      <header className='text-center px-4 mb-8'>
         <h1 className='text-3xl font-bold mb-4'>Settings</h1>
         <p className='text-foreground/70 text-base max-w-2xl mx-auto'>
           Manage your account settings and preferences
         </p>
-      </div>
+      </header>
 
       {/* Main Content */}
       <div className='px-4 pb-12'>
@@ -147,7 +162,7 @@ export default function SettingsPage() {
           <div className='lg:col-span-1'>
             <div className='bg-transparent border border-gray-300 dark:border-slate-700 rounded-lg p-6'>
               <h3 className='text-xl font-semibold mb-6'>Settings</h3>
-              <nav className='space-y-2'>
+              <nav className='space-y-2' aria-label='Settings navigation'>
                 {settingsTabs.map((tab) => (
                   <button
                     key={tab.id}
@@ -161,6 +176,8 @@ export default function SettingsPage() {
                         activeTab !== tab.id &&
                         'text-destructive hover:text-white'
                     )}
+                    aria-current={activeTab === tab.id ? 'page' : undefined}
+                    aria-label={`${tab.label} settings`}
                   >
                     {tab.icon}
                     <span className='text-sm'>{tab.label}</span>
@@ -173,11 +190,13 @@ export default function SettingsPage() {
           {/* Main Content */}
           <div className='lg:col-span-3'>
             <ScrollArea className='h-full'>
-              <div className='p-1'>{renderContent()}</div>
+              <div className='p-1'>{renderContent}</div>
             </ScrollArea>
           </div>
         </div>
       </div>
-    </div>
+    </main>
   )
-}
+})
+
+export default SettingsPage
