@@ -2,7 +2,7 @@ import { memo } from 'react'
 // Fix barrel imports (bundle-barrel-imports)
 import { Card } from '@/components/ui/card'
 import { CardContent } from '@/components/ui/card'
-import { CategoryRow } from '@/components/profile/CategoryRow'
+import CategoryRow from '@/components/profile/CategoryRow'
 import { Player } from '@/constants/players'
 
 interface QuickStatsSidebarProps {

@@ -1,5 +1,6 @@
 'use client'
 
+import { memo, useCallback } from 'react'
 import { Eye, EyeOff } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -33,7 +34,7 @@ const signupSchema = z
 
 type SignupFormData = z.infer<typeof signupSchema>
 
-export default function SignupPage() {
+const SignupPage = memo(function SignupPage() {
   const [showPassword, toggleShowPassword] = useToggle(false)
   const [showConfirmPassword, toggleShowConfirmPassword] = useToggle(false)
 
@@ -62,18 +63,18 @@ export default function SignupPage() {
     }
   )
 
-  const handleSocialSignup = (provider: string) => {
+  const handleSocialSignup = useCallback((provider: string) => {
     console.log(`Sign up with ${provider}`)
-  }
+  }, [])
 
   return (
-    <div className='min-h-screen flex bg-background'>
+    <main className='min-h-screen flex bg-background'>
       {/* Left Side - Visual */}
       <div className='hidden lg:flex lg:w-1/2 relative overflow-hidden p-2'>
         <div className='relative w-full h-full rounded-2xl overflow-hidden'>
           <Image
             src='/login.jpg'
-            alt='Signup background'
+            alt='QuizHub signup - Join our community of quiz enthusiasts'
             fill
             className='object-cover'
             priority
@@ -179,9 +180,9 @@ export default function SignupPage() {
                     }
                   >
                     {showPassword ? (
-                      <EyeOff className='w-5 h-5' />
+                      <EyeOff className='w-5 h-5' aria-hidden='true' />
                     ) : (
-                      <Eye className='w-5 h-5' />
+                      <Eye className='w-5 h-5' aria-hidden='true' />
                     )}
                   </button>
                 </div>
@@ -212,9 +213,9 @@ export default function SignupPage() {
                     }
                   >
                     {showConfirmPassword ? (
-                      <EyeOff className='w-5 h-5' />
+                      <EyeOff className='w-5 h-5' aria-hidden='true' />
                     ) : (
-                      <Eye className='w-5 h-5' />
+                      <Eye className='w-5 h-5' aria-hidden='true' />
                     )}
                   </button>
                 </div>
@@ -275,9 +276,16 @@ export default function SignupPage() {
                 className='w-full h-12 font-semibold rounded-xl'
               >
                 {isLoading ? (
-                  <div className='flex items-center gap-2'>
-                    <div className='w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin text-white' />
-                    Creating account...
+                  <div
+                    className='flex items-center gap-2'
+                    role='status'
+                    aria-live='polite'
+                  >
+                    <div
+                      className='w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin text-white'
+                      aria-hidden='true'
+                    />
+                    Creating account…
                   </div>
                 ) : (
                   <p className='text-white'>Create account</p>
@@ -302,8 +310,13 @@ export default function SignupPage() {
                 onClick={() => handleSocialSignup('Google')}
                 size='lg'
                 className='h-12 rounded-xl group text-primary'
+                aria-label='Sign up with Google'
               >
-                <svg className='w-5 h-5 mr-2' viewBox='0 0 24 24'>
+                <svg
+                  className='w-5 h-5 mr-2'
+                  viewBox='0 0 24 24'
+                  aria-hidden='true'
+                >
                   <path
                     fill='#4285F4'
                     d='M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z'
@@ -329,11 +342,13 @@ export default function SignupPage() {
                 onClick={() => handleSocialSignup('Facebook')}
                 size='lg'
                 className='h-12 rounded-xl group text-primary'
+                aria-label='Sign up with Facebook'
               >
                 <svg
                   className='w-5 h-5 mr-2'
                   fill='#1877F2'
                   viewBox='0 0 24 24'
+                  aria-hidden='true'
                 >
                   <path d='M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z' />
                 </svg>
@@ -343,6 +358,8 @@ export default function SignupPage() {
           </div>
         </div>
       </div>
-    </div>
+    </main>
   )
-}
+})
+
+export default SignupPage
