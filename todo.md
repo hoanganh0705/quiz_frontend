@@ -46,8 +46,6 @@ Enhance create-quiz with:
 - [ ] QR code for quiz
 - [ ] Email invite form
 
-g
-
 ### 8. Onboarding Flow
 
 For new users:
@@ -75,9 +73,6 @@ Improve mobile UX:
 
 ## 🚀 Features You Can Implement Without Backend
 
-- Bookmarks/Saved Quizzes Page: List, organize, and filter bookmarks using localStorage or mock data.
 - Invite/Share Modal: Generate dummy share links, copy to clipboard, social share buttons, QR code, and email invite UI.
-- Empty States: Show empty UI for quizzes, friends, notifications, achievements.
-- Onboarding Flow: Welcome tour, interest selection, profile setup, and quiz recommendations with mock data.
 - Keyboard Shortcuts: Implement navigation and shortcut actions in frontend.
 - Mobile Quiz Experience: Swipe gestures, full-screen mode, mobile timer, and touch-friendly buttons.
