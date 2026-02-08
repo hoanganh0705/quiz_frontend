@@ -6,8 +6,8 @@ import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import Image from 'next/image'
 import Link from 'next/link'
-import SpotAvailabilityIndicator from '@/components/SpotAvailabiltyIndicator'
-import { difficultyColors } from '@/constants/difficultColor'
+import SpotAvailabilityIndicator from '@/components/SpotAvailabilityIndicator'
+import { difficultyColors } from '@/constants/difficultyColor'
 import { Quiz } from '@/types/quiz'
 
 const QuizCardDetail = memo(function QuizCardDetail(props: Quiz) {

@@ -4,7 +4,7 @@ import { memo } from 'react' // rerender-memo
 import Image from 'next/image'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { difficultyColors } from '@/constants/difficultColor'
+import { difficultyColors } from '@/constants/difficultyColor'
 // Fix barrel imports (bundle-barrel-imports)
 import { DropdownMenu } from '@/components/ui/dropdown-menu'
 import { DropdownMenuContent } from '@/components/ui/dropdown-menu'

@@ -4,7 +4,7 @@ import { formatDuration } from '@/lib/formatDuration'
 import { quizzes } from '@/constants/mockQuizzes'
 import Image from 'next/image'
 import { Badge } from '../ui/badge'
-import { difficultyColors } from '@/constants/difficultColor'
+import { difficultyColors } from '@/constants/difficultyColor'
 
 const Overview = ({
   description,

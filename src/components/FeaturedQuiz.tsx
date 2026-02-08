@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import Image from 'next/image'
-import SpotAvailabilityIndicator from '@/components/SpotAvailabiltyIndicator'
+import SpotAvailabilityIndicator from '@/components/SpotAvailabilityIndicator'
 import { quizzes } from '@/constants/mockQuizzes'
 import Link from 'next/link'
 

@@ -1,5 +1,5 @@
 import { memo } from 'react'
-import GlobalLeaderboard from '@/components/GlobalLeaderBoard'
+import GlobalLeaderboard from '@/components/GlobalLeaderboard'
 import { CompetitionStats } from '@/components/leaderboard/competition-stats'
 import { LeaderboardHeader } from '@/components/leaderboard/leaderboard-header'
 import { LeaderboardHighlights } from '@/components/leaderboard/leaderboard-highlights'

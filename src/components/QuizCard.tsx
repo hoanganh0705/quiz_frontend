@@ -1,6 +1,6 @@
 import Image from 'next/image'
 import { Button } from '@/components/ui/button'
-import { difficultyColors } from '@/constants/difficultColor'
+import { difficultyColors } from '@/constants/difficultyColor'
 import { Badge } from '@/components/ui/badge'
 import Link from 'next/link'
 

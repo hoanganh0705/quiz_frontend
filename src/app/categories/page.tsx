@@ -4,7 +4,7 @@ import { useState, useMemo, useCallback } from 'react'
 import { Search } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 // Direct imports (bundle-barrel-imports)
-import QuizCategoriesCard from '@/components/quizCategoriesCard'
+import QuizCategoriesCard from '@/components/QuizCategoriesCard'
 import TestKnowledge from '@/components/categories/TestKnowledge'
 import HowItWorks from '@/components/HowItWorks'
 import categories from '@/constants/categories'

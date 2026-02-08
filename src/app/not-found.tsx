@@ -1,6 +1,7 @@
 import { Button } from '@/components/ui/button'
-import { Home, Search, ArrowLeft } from 'lucide-react'
+import { Home, Search } from 'lucide-react'
 import Link from 'next/link'
+import { GoBackButton } from '../components/GoBackButton'
 
 export default function NotFound() {
   return (
@@ -41,15 +42,7 @@ export default function NotFound() {
           </Button>
         </div>
 
-        <div className='mt-8'>
-          <Link
-            href='javascript:history.back()'
-            className='inline-flex items-center text-sm text-foreground/70 hover:text-foreground transition-colors'
-          >
-            <ArrowLeft className='w-4 h-4 mr-1' />
-            Go back to previous page
-          </Link>
-        </div>
+        <GoBackButton />
       </div>
     </div>
   )

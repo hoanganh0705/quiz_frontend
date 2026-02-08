@@ -2,7 +2,7 @@
 
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { difficultyColors } from '@/constants/difficultColor'
+import { difficultyColors } from '@/constants/difficultyColor'
 import { QuizCardDifficulty } from '@/components/QuizCardDifficulty'
 import { useState, useRef } from 'react'
 import { SwiperSlide, Swiper } from 'swiper/react'

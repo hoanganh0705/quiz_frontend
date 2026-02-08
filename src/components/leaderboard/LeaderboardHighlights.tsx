@@ -25,9 +25,9 @@ import {
   Clock,
   Trophy
 } from 'lucide-react'
-import GlobalTab from './leaderboard-hightlights/GlobalTab'
-import CategoryTab from './leaderboard-hightlights/CategoryTab'
-import TrendingTab from './leaderboard-hightlights/TrendingTab'
+import GlobalTab from './leaderboard-highlights/GlobalTab'
+import CategoryTab from './leaderboard-highlights/CategoryTab'
+import TrendingTab from './leaderboard-highlights/TrendingTab'
 
 // Shared interfaces and mock data
 interface LeaderboardUser {

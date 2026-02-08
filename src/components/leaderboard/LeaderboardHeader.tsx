@@ -4,8 +4,8 @@
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { useState, memo, useCallback } from 'react'
-import { FindFriendsPopup } from './find-friends-popup'
-import { YourRankingPopup } from './your-ranking-popup'
+import { FindFriendsPopup } from './FindFriendsPopup'
+import { YourRankingPopup } from './YourRankingPopup'
 import {
   Trophy,
   Star,
