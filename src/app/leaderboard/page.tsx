@@ -1,8 +1,8 @@
 import { memo } from 'react'
 import GlobalLeaderboard from '@/components/GlobalLeaderboard'
-import { CompetitionStats } from '@/components/leaderboard/competition-stats'
-import { LeaderboardHeader } from '@/components/leaderboard/leaderboard-header'
+
 import { LeaderboardHighlights } from '@/components/leaderboard/leaderboard-highlights'
+import { CompetitionStats, LeaderboardHeader } from '@/components/leaderboard'
 
 const LeaderboardPage = memo(function LeaderboardPage() {
   return (

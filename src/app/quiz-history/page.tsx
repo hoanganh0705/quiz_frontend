@@ -2,16 +2,19 @@
 
 import { memo, useState, useMemo, useCallback } from 'react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { HistoryHeader } from '@/components/quiz-history/history-header'
-import { HistoryStatsDashboard } from '@/components/quiz-history/history-stats-dashboard'
-import { HistoryTimeline } from '@/components/quiz-history/history-timeline'
-import { HistoryFiltersBar } from '@/components/quiz-history/history-filters'
+
 import { quizHistoryEntries, quizHistoryStats } from '@/constants/quizHistory'
 import type {
   QuizHistoryFilters,
   QuizHistoryEntry,
   DateRangeFilter
 } from '@/types/quizHistory'
+import {
+  HistoryFiltersBar,
+  HistoryHeader,
+  HistoryStatsDashboard,
+  HistoryTimeline
+} from '@/components/quiz-history'
 
 // ── Default filter state ───────────────────────────────────────────────────
 
