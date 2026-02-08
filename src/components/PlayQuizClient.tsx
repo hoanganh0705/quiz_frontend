@@ -11,6 +11,7 @@ import { Button } from './ui/button'
 import { Badge } from './ui/badge'
 import { Progress } from './ui/progress'
 import { useLocalStorage, useCountdownTimer } from '@/hooks'
+import { useKeyboardShortcut } from '@/hooks/use-keyboard-shortcut'
 
 // Storage key generator
 const getStorageKey = (quizId: string) => `quiz_progress_${quizId}`
@@ -235,6 +236,79 @@ export default function PlayQuizClient({ quiz }: { quiz: Quiz }) {
     isSubmittedRef.current = false
   }
 
+  // --- Keyboard shortcuts for quiz navigation ---
+
+  // Arrow keys to select answers (1-4 map to A-D)
+  const currentQ =
+    quiz.questions[Math.min(currentQuestion, quiz.questions.length - 1)]
+  const isLastQuestion = currentQuestion === quiz.questions.length - 1
+
+  // Navigate to next question with ArrowRight
+  useKeyboardShortcut(
+    'arrowright',
+    useCallback(() => {
+      handleNextQuestion()
+    }, [currentQuestion, quiz.questions.length, questionStartTime]), // eslint-disable-line react-hooks/exhaustive-deps
+    { meta: false, preventDefault: true }
+  )
+
+  // Navigate to previous question with ArrowLeft
+  useKeyboardShortcut(
+    'arrowleft',
+    useCallback(() => {
+      handlePreviousQuestion()
+    }, [currentQuestion, questionStartTime]), // eslint-disable-line react-hooks/exhaustive-deps
+    { meta: false, preventDefault: true }
+  )
+
+  // Select answers with number keys 1-4
+  useKeyboardShortcut(
+    '1',
+    useCallback(() => {
+      if (currentQ.answers[0]) handleAnswer(currentQ.answers[0].value)
+    }, [currentQ, timerStarted]), // eslint-disable-line react-hooks/exhaustive-deps
+    { meta: false, preventDefault: true }
+  )
+
+  useKeyboardShortcut(
+    '2',
+    useCallback(() => {
+      if (currentQ.answers[1]) handleAnswer(currentQ.answers[1].value)
+    }, [currentQ, timerStarted]), // eslint-disable-line react-hooks/exhaustive-deps
+    { meta: false, preventDefault: true }
+  )
+
+  useKeyboardShortcut(
+    '3',
+    useCallback(() => {
+      if (currentQ.answers[2]) handleAnswer(currentQ.answers[2].value)
+    }, [currentQ, timerStarted]), // eslint-disable-line react-hooks/exhaustive-deps
+    { meta: false, preventDefault: true }
+  )
+
+  useKeyboardShortcut(
+    '4',
+    useCallback(() => {
+      if (currentQ.answers[3]) handleAnswer(currentQ.answers[3].value)
+    }, [currentQ, timerStarted]), // eslint-disable-line react-hooks/exhaustive-deps
+    { meta: false, preventDefault: true }
+  )
+
+  // Submit answer / go to next with Enter
+  useKeyboardShortcut(
+    'enter',
+    useCallback(() => {
+      if (answers[currentQuestion]) {
+        if (isLastQuestion) {
+          handleSubmit()
+        } else {
+          handleNextQuestion()
+        }
+      }
+    }, [answers, currentQuestion, isLastQuestion, questionStartTime]), // eslint-disable-line react-hooks/exhaustive-deps
+    { meta: false, preventDefault: true }
+  )
+
   // Format time display
   const formatTime = (seconds: number) => {
     const hours = Math.floor(seconds / 3600)
@@ -255,10 +329,6 @@ export default function PlayQuizClient({ quiz }: { quiz: Quiz }) {
       </div>
     )
   }
-
-  const currentQ =
-    quiz.questions[Math.min(currentQuestion, quiz.questions.length - 1)]
-  const isLastQuestion = currentQuestion === quiz.questions.length - 1
 
   return (
     <main className='min-h-screen bg-background text-foreground p-4'>

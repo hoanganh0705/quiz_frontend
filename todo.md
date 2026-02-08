@@ -33,10 +33,10 @@ Enhance create-quiz with:
 
 ### 4. Keyboard Shortcuts
 
-- [ ] Navigate quizzes with arrow keys
-- [ ] Submit answer with Enter
-- [ ] Quick search with Cmd/Ctrl + K
-- [ ] Shortcuts help modal
+- [x] Navigate quizzes with arrow keys
+- [x] Submit answer with Enter
+- [x] Quick search with Cmd/Ctrl + K
+- [x] Shortcuts help modal
 
 ### 5. Mobile Quiz Experience
 
