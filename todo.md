@@ -31,23 +31,15 @@ Enhance create-quiz with:
 - [ ] Quiz analytics (plays, ratings, completion rate)
 - [ ] Duplicate quiz functionality
 
-### 4. Keyboard Shortcuts
-
-- [x] Navigate quizzes with arrow keys
-- [x] Submit answer with Enter
-- [x] Quick search with Cmd/Ctrl + K
-- [x] Shortcuts help modal
-
-### 5. Mobile Quiz Experience
+### 4. Mobile Quiz Experience
 
 Improve mobile UX:
 
-- [ ] Swipe gestures for quiz navigation
-- [ ] Full-screen quiz mode
-- [ ] Mobile-optimized timer display
-- [ ] Touch-friendly answer buttons
+- [x] Swipe gestures for quiz navigation
+- [x] Full-screen quiz mode
+- [x] Mobile-optimized timer display
+- [x] Touch-friendly answer buttons
 
 ## 🚀 Features You Can Implement Without Backend
 
-- Keyboard Shortcuts: Implement navigation and shortcut actions in frontend.
 - Mobile Quiz Experience: Swipe gestures, full-screen mode, mobile timer, and touch-friendly buttons.
