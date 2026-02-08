@@ -46,8 +46,18 @@ export function AppHeader() {
           <Input
             type='search'
             placeholder='Search quizzes, categories, creators...'
-            className='pl-10 bg-background border border-gray-300 dark:border-slate-700 text-foreground placeholder-[#020817] dark:placeholder-slate-400 w-full text-sm focus:border-slate-600'
+            className='pl-10 pr-16 bg-background border border-gray-300 dark:border-slate-700 text-foreground placeholder-[#020817] dark:placeholder-slate-400 w-full text-sm focus:border-slate-600'
+            onFocus={(e) => {
+              e.target.blur()
+              window.dispatchEvent(
+                new KeyboardEvent('keydown', { key: 'k', metaKey: true })
+              )
+            }}
+            readOnly
           />
+          <kbd className='absolute right-3 top-1/2 -translate-y-1/2 hidden md:inline-flex items-center gap-0.5 rounded border border-gray-300 dark:border-slate-700 bg-muted px-1.5 py-0.5 text-[10px] font-medium text-foreground/50'>
+            ⌘K
+          </kbd>
         </div>
       </div>
 

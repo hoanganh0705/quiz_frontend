@@ -5,6 +5,8 @@ import { AppSidebar } from '@/components/AppSidebar'
 import { AppHeader } from '@/components/AppHeader'
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
 import { usePathname } from 'next/navigation'
+import { QuickSearch } from '@/components/keyboard-shortcuts/QuickSearch'
+import { ShortcutsHelpModal } from '@/components/keyboard-shortcuts/ShortcutsHelpModal'
 
 export function LayoutShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
@@ -25,6 +27,10 @@ export function LayoutShell({ children }: { children: React.ReactNode }) {
         <AppHeader />
         <main className='pt-16 overflow-x-hidden max-w-full'>{children}</main>
       </SidebarInset>
+
+      {/* Global keyboard shortcut modals */}
+      <QuickSearch />
+      <ShortcutsHelpModal />
     </SidebarProvider>
   )
 }
