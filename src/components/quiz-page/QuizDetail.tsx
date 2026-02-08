@@ -21,6 +21,7 @@ import Leaderboard from '../quiz-detail/Leaderboard'
 import Reviews from '../quiz-detail/Reviews'
 import { Card, CardContent } from '../ui/card'
 import { formatDuration } from '@/lib/formatDuration'
+import { ShareModal } from '@/components/share/ShareModal'
 
 interface QuizDetailProps {
   quiz: Quiz
@@ -283,13 +284,19 @@ export default function QuizDetail({ quiz }: QuizDetailProps) {
                   <Bookmark className='h-6 w-6' />
                 </Button>
 
-                <Button
-                  size='icon'
-                  className='text-foreground rounded-xl border border-gray-300 dark:border-slate-700 bg-transparent'
-                  aria-label='Share this quiz'
+                <ShareModal
+                  title={quiz.title}
+                  description={quiz.description}
+                  url={`/quizzes/${quiz.id}`}
                 >
-                  <Share2 className='h-6 w-6' />
-                </Button>
+                  <Button
+                    size='icon'
+                    className='text-foreground rounded-xl border border-gray-300 dark:border-slate-700 bg-transparent'
+                    aria-label='Share this quiz'
+                  >
+                    <Share2 className='h-6 w-6' />
+                  </Button>
+                </ShareModal>
 
                 <Button
                   size='icon'
