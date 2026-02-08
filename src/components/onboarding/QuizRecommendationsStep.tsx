@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { quizzes } from '@/constants/mockQuizzes'
 import { categories } from '@/constants/categories'
-import { difficultyColors } from '@/constants/difficultColor'
+import { difficultyColors } from '@/constants/difficultyColor'
 import {
   ArrowLeft,
   PartyPopper,

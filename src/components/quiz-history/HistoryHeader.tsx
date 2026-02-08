@@ -2,7 +2,7 @@
 
 import { memo } from 'react'
 import { History, BarChart3 } from 'lucide-react'
-import { HistoryExport } from './history-export'
+import { HistoryExport } from './HistoryExport'
 import type { QuizHistoryEntry } from '@/types/quizHistory'
 
 interface HistoryHeaderProps {

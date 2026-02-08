@@ -3,7 +3,7 @@
 import Image from 'next/image'
 import { Badge } from '@/components/ui/badge'
 import { Target, BarChart3, Zap, Star } from 'lucide-react'
-import { LeaderboardUser } from '../leaderboard-highlights'
+import { LeaderboardUser } from '../LeaderboardHighlights'
 
 interface CategoryTabProps {
   users: LeaderboardUser[]

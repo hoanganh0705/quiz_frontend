@@ -3,7 +3,7 @@
 import Image from 'next/image'
 import { Badge } from '@/components/ui/badge'
 import { TrendingUp, TrendingDown, Minus, Users, Zap } from 'lucide-react'
-import { LeaderboardUser } from '../leaderboard-highlights'
+import { LeaderboardUser } from '../LeaderboardHighlights'
 
 interface TrendingTabProps {
   users: LeaderboardUser[]

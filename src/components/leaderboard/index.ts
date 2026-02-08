@@ -1,18 +1,18 @@
-export { CompetitionStats } from './competition-stats'
-export { FindFriendsPopup } from './find-friends-popup'
-export { GlobalLeaderboard } from './global-leaderboard'
-export { LeaderboardHeader } from './leaderboard-header'
+export { CompetitionStats } from './CompetitionStats'
+export { FindFriendsPopup } from './FindFriendsPopup'
+export { GlobalLeaderboard } from './GlobalLeaderboard'
+export { LeaderboardHeader } from './LeaderboardHeader'
 export {
   LeaderboardHighlights,
   mockUsers,
   categoryUsers,
   trendingUsers,
   categories
-} from './leaderboard-highlights'
-export type { LeaderboardUser, Category } from './leaderboard-highlights'
-export { YourRankingPopup } from './your-ranking-popup'
+} from './LeaderboardHighlights'
+export type { LeaderboardUser, Category } from './LeaderboardHighlights'
+export { YourRankingPopup } from './YourRankingPopup'
 
 // Leaderboard highlights tabs
-export { default as CategoryTab } from './leaderboard-hightlights/CategoryTab'
-export { default as GlobalTab } from './leaderboard-hightlights/GlobalTab'
-export { default as TrendingTab } from './leaderboard-hightlights/TrendingTab'
+export { default as CategoryTab } from './leaderboard-highlights/CategoryTab'
+export { default as GlobalTab } from './leaderboard-highlights/GlobalTab'
+export { default as TrendingTab } from './leaderboard-highlights/TrendingTab'

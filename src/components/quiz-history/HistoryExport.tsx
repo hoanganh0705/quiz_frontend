@@ -91,7 +91,7 @@ export const HistoryExport = memo(function HistoryExport({
         value={format}
         onValueChange={(v) => setFormat(v as ExportFormat)}
       >
-        <SelectTrigger className='w-[120px] bg-background h-9'>
+        <SelectTrigger className='w-30 bg-background h-9'>
           <SelectValue />
         </SelectTrigger>
         <SelectContent>

@@ -1,9 +1,9 @@
 'use client'
 
-import { HelpCategories } from './help-categories'
-import { FAQSection } from './faq-section'
-import { ContactForm } from './contact-form'
-import { KnowledgeBase } from './knowledge-base'
+import { HelpCategories } from './HelpCategories'
+import { FAQSection } from './FAQSection'
+import { ContactForm } from './ContactForm'
+import { KnowledgeBase } from './KnowledgeBase'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
 export function SupportCenter() {
