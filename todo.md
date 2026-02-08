@@ -8,14 +8,7 @@
 - [ ] Invite friends to quizzes
 - [ ] Compare stats with friends
 
-### 2. Quiz History/Activity Page
-
-- [ ] Timeline of all quiz activities
-- [ ] Filter by date, category, result
-- [ ] Statistics dashboard
-- [ ] Export quiz history
-
-### 3. Advanced Search & Filters
+### 2. Advanced Search & Filters
 
 Enhance your existing search:
 
@@ -28,7 +21,7 @@ Enhance your existing search:
 
 ## 💡 NICE TO HAVE - Engagement Features
 
-### 5. Quiz Draft/My Quizzes Management
+### 3. Quiz Draft/My Quizzes Management
 
 Enhance create-quiz with:
 
@@ -38,31 +31,14 @@ Enhance create-quiz with:
 - [ ] Quiz analytics (plays, ratings, completion rate)
 - [ ] Duplicate quiz functionality
 
-### 6. Invite/Share Modal
-
-- [ ] Generate shareable quiz links
-- [ ] Copy link functionality
-- [ ] Social media share buttons
-- [ ] QR code for quiz
-- [ ] Email invite form
-
-### 8. Onboarding Flow
-
-For new users:
-
-- [ ] Welcome tour/walkthrough
-- [ ] Interest selection (quiz categories)
-- [ ] Profile setup wizard
-- [ ] First quiz recommendations
-
-### 9. Keyboard Shortcuts
+### 4. Keyboard Shortcuts
 
 - [ ] Navigate quizzes with arrow keys
 - [ ] Submit answer with Enter
 - [ ] Quick search with Cmd/Ctrl + K
 - [ ] Shortcuts help modal
 
-### 10. Mobile Quiz Experience
+### 5. Mobile Quiz Experience
 
 Improve mobile UX:
 
@@ -73,6 +49,5 @@ Improve mobile UX:
 
 ## 🚀 Features You Can Implement Without Backend
 
-- Invite/Share Modal: Generate dummy share links, copy to clipboard, social share buttons, QR code, and email invite UI.
 - Keyboard Shortcuts: Implement navigation and shortcut actions in frontend.
 - Mobile Quiz Experience: Swipe gestures, full-screen mode, mobile timer, and touch-friendly buttons.

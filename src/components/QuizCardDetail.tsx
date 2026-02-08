@@ -1,6 +1,6 @@
 import React, { memo } from 'react'
 
-import { Clock, Users, DollarSign, Star } from 'lucide-react'
+import { Clock, Users, DollarSign, Star, Share2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -9,6 +9,7 @@ import Link from 'next/link'
 import SpotAvailabilityIndicator from '@/components/SpotAvailabilityIndicator'
 import { difficultyColors } from '@/constants/difficultyColor'
 import { Quiz } from '@/types/quiz'
+import { ShareModal } from '@/components/share/ShareModal'
 
 const QuizCardDetail = memo(function QuizCardDetail(props: Quiz) {
   return (
@@ -96,17 +97,33 @@ const QuizCardDetail = memo(function QuizCardDetail(props: Quiz) {
           </p>
         ) : null}
 
-        <Button
-          className='w-full bg-default hover:bg-default-hover text-white'
-          asChild
-        >
-          <Link
-            href={`/quizzes/${props.id}/start`}
-            aria-label={`Play ${props.title}`}
+        <div className='flex gap-2'>
+          <Button
+            className='flex-1 bg-default hover:bg-default-hover text-white'
+            asChild
           >
-            Play Now
-          </Link>
-        </Button>
+            <Link
+              href={`/quizzes/${props.id}/start`}
+              aria-label={`Play ${props.title}`}
+            >
+              Play Now
+            </Link>
+          </Button>
+          <ShareModal
+            title={props.title}
+            description={props.description}
+            url={`/quizzes/${props.id}`}
+          >
+            <Button
+              size='icon'
+              variant='outline'
+              className='border-gray-300 dark:border-slate-700'
+              aria-label={`Share ${props.title}`}
+            >
+              <Share2 className='w-4 h-4' />
+            </Button>
+          </ShareModal>
+        </div>
       </div>
     </article>
   )
