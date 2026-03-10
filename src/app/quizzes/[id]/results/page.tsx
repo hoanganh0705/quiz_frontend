@@ -15,7 +15,7 @@ export default async function QuizResultsPage({
       <div className='min-h-screen flex items-center justify-center'>
         <div className='text-center'>
           <h1 className='text-2xl font-bold'>Quiz not found</h1>
-          <p className='text-slate-400 mb-6'>
+          <p className='text-muted-foreground mb-6'>
             The quiz you&apos;re looking for doesn&apos;t exist
           </p>
           <Link

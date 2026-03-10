@@ -16,7 +16,7 @@ export function SupportTabs({ onTabChange }: SupportTabsProps) {
   }
 
   return (
-    <div className='border-b border-slate-700 mb-8'>
+    <div className='border-b border-border mb-8'>
       <div className='px-4'>
         <div className='flex space-x-8'>
           <button

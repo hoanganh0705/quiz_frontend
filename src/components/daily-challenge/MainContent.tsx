@@ -113,7 +113,7 @@ const MainContent = memo(function MainContent() {
                   technological innovations.
                 </p>
               </div>
-              <div className='flex items-center space-x-2 text-gray-500'>
+              <div className='flex items-center space-x-2 text-muted-foreground'>
                 <Clock className='h-4 w-4' aria-hidden='true' />
                 <span
                   className='font-mono'
@@ -304,7 +304,9 @@ const MainContent = memo(function MainContent() {
                       </div>
                       <div className='flex-1'>
                         <p className='font-medium text-sm'>{player.name}</p>
-                        <p className='text-xs text-gray-500'>{player.time}</p>
+                        <p className='text-xs text-muted-foreground'>
+                          {player.time}
+                        </p>
                       </div>
                       <p
                         className='font-bold text-sm'
@@ -356,7 +358,7 @@ const MainContent = memo(function MainContent() {
                         ? day === 7 && (players[0]?.streak || 0) >= 7
                           ? 'bg-[#f59e0b] border border-yellow-500'
                           : 'border bg-[#dbeafe] dark:bg-[#1e3a8a] dark:border-[#1d4ed8] border-[#93c5fd]'
-                        : 'dark:bg-slate-700 bg-slate-200'
+                        : 'bg-muted'
                     }`}
                   >
                     {day}
@@ -391,7 +393,7 @@ const MainContent = memo(function MainContent() {
                             ? 'bg-orange-400 dark:bg-orange-400 border-2 border-orange-300 dark:border-orange-200'
                             : isUnlocked
                               ? 'bg-green-500 dark:bg-emerald-400'
-                              : 'bg-slate-200 dark:bg-slate-600'
+                              : 'bg-muted'
                         }`}
                       >
                         <div className='font-bold text-xs text-foreground'>
@@ -432,7 +434,7 @@ const MainContent = memo(function MainContent() {
                   <Card
                     key={badge.id}
                     className={`
-                  bg-background dark:bg-slate-700 rounded-lg p-3 text-center border border-border
+                  bg-card rounded-lg p-3 text-center border border-border
                   ${!badge.unlocked ? 'opacity-60' : ''}
                 `}
                   >

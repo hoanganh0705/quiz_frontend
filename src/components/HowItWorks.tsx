@@ -23,7 +23,7 @@ export default function HowItWorks() {
           {howItWorksData.map((item) => (
             <div
               key={item.id}
-              className='bg-main dark:bg-slate-900 border border-border rounded-2xl shadow-md overflow-hidden w-full h-full max-w-sm mx-auto'
+              className='bg-main border border-border rounded-2xl shadow-md overflow-hidden w-full h-full max-w-sm mx-auto'
             >
               <div className='relative w-full h-48'>
                 <Image
@@ -33,7 +33,7 @@ export default function HowItWorks() {
                   className='object-cover'
                 />
               </div>
-              <div className='p-6 bg-main dark:bg-slate-900 border border-border'>
+              <div className='p-6 bg-main border border-border'>
                 <h3 className='text-lg font-semibold mb-1 text-foreground '>
                   {item.title}
                 </h3>

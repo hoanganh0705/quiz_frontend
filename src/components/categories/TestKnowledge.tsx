@@ -51,7 +51,7 @@ const FeatureCard = memo(function FeatureCard({
 }: (typeof FEATURE_CARDS)[number]) {
   return (
     <Card
-      className={`bg-main dark:bg-slate-800/50 border-slate-700/50 backdrop-blur-sm hover:bg-main-hover transition-all duration-300 group cursor-pointer ${colSpan}`}
+      className={`bg-main border-border backdrop-blur-sm hover:bg-main-hover transition-all duration-300 group cursor-pointer ${colSpan}`}
     >
       <CardContent className='p-6 sm:p-8 text-center'>
         <div
@@ -122,7 +122,7 @@ const TestKnowledge = memo(function TestKnowledge() {
             asChild
             variant='outline'
             size='lg'
-            className='border-slate-600 text-white dark:hover:bg-slate-800 bg-indigo-400 hover:bg-indigo-300 hover:text-foreground px-6 sm:px-8 py-4 sm:py-6 font-semibold rounded-xl transition-all duration-300 text-sm w-full sm:w-auto'
+            className='border-border text-white bg-indigo-400 hover:bg-indigo-300 hover:text-foreground px-6 sm:px-8 py-4 sm:py-6 font-semibold rounded-xl transition-all duration-300 text-sm w-full sm:w-auto'
           >
             <Link href='/create-quiz'>Create Your Own Quiz</Link>
           </Button>
@@ -137,7 +137,7 @@ const TestKnowledge = memo(function TestKnowledge() {
       </div>
 
       {/* Join Our Community */}
-      <div className='bg-main dark:bg-slate-800/50 border-slate-700/50 backdrop-blur-sm hover:bg-main-hover cursor-pointer transition-all duration-300 group flex flex-col sm:flex-row items-center justify-between gap-4 mt-8 sm:mt-12 px-6 sm:px-8 py-4 sm:py-5 w-full sm:w-[90%] lg:w-[80%] mx-auto rounded-2xl'>
+      <div className='bg-main border-border backdrop-blur-sm hover:bg-main-hover cursor-pointer transition-all duration-300 group flex flex-col sm:flex-row items-center justify-between gap-4 mt-8 sm:mt-12 px-6 sm:px-8 py-4 sm:py-5 w-full sm:w-[90%] lg:w-[80%] mx-auto rounded-2xl'>
         <div className='flex items-center gap-3 sm:gap-4 text-center sm:text-left'>
           <div
             className='w-4 h-4 sm:w-8 sm:h-8 bg-default rounded-full flex items-center justify-center shrink-0'

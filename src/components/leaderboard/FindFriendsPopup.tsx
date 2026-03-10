@@ -96,7 +96,7 @@ export function FindFriendsPopup({ isOpen, onClose }: FindFriendsPopupProps) {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className='bg-slate-900 border-slate-700 text-white max-w-2xl max-h-[80vh] overflow-hidden'>
+      <DialogContent className='bg-background border-border text-foreground max-w-2xl max-h-[80vh] overflow-hidden'>
         <DialogHeader>
           <DialogTitle className='text-xl font-bold flex items-center gap-2'>
             <Users className='w-5 h-5' />
@@ -107,12 +107,12 @@ export function FindFriendsPopup({ isOpen, onClose }: FindFriendsPopupProps) {
         <div className='space-y-4'>
           {/* Search Bar */}
           <div className='relative'>
-            <Search className='absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400' />
+            <Search className='absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground' />
             <Input
               placeholder='Search by name or username...'
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className='pl-10 bg-slate-800 border-slate-600 text-white placeholder:text-slate-400'
+              className='pl-10 bg-muted border-border text-foreground placeholder:text-muted-foreground'
             />
           </div>
 
@@ -125,7 +125,7 @@ export function FindFriendsPopup({ isOpen, onClose }: FindFriendsPopupProps) {
               className={
                 selectedTab === 'suggested'
                   ? 'bg-default hover:bg-default-hover'
-                  : 'border-slate-600 text-slate-300 hover:bg-slate-700'
+                  : 'border-border text-muted-foreground hover:bg-accent'
               }
             >
               Suggested Friends
@@ -137,7 +137,7 @@ export function FindFriendsPopup({ isOpen, onClose }: FindFriendsPopupProps) {
               className={
                 selectedTab === 'search'
                   ? 'bg-default hover:bg-default-hover'
-                  : 'border-slate-600 text-slate-300 hover:bg-slate-700'
+                  : 'border-border text-muted-foreground hover:bg-accent'
               }
             >
               Search Results
@@ -149,7 +149,7 @@ export function FindFriendsPopup({ isOpen, onClose }: FindFriendsPopupProps) {
             {filteredFriends.map((friend) => (
               <div
                 key={friend.id}
-                className='flex items-center justify-between p-4 bg-slate-800/50 rounded-lg hover:bg-slate-800 transition-colors'
+                className='flex items-center justify-between p-4 bg-muted rounded-lg hover:bg-accent transition-colors'
               >
                 <div className='flex items-center gap-3'>
                   <div className='relative'>
@@ -163,16 +163,16 @@ export function FindFriendsPopup({ isOpen, onClose }: FindFriendsPopupProps) {
                       />
                     </div>
                     {friend.isOnline && (
-                      <div className='absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-slate-900' />
+                      <div className='absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-background' />
                     )}
                   </div>
 
                   <div className='flex-1'>
                     <div className='flex items-center gap-2'>
-                      <h3 className='font-semibold text-white'>
+                      <h3 className='font-semibold text-foreground'>
                         {friend.name}
                       </h3>
-                      <span className='text-slate-400 text-sm'>
+                      <span className='text-muted-foreground text-sm'>
                         {friend.username}
                       </span>
                     </div>
@@ -180,14 +180,14 @@ export function FindFriendsPopup({ isOpen, onClose }: FindFriendsPopupProps) {
                     <div className='flex items-center gap-3 mt-1'>
                       <div className='flex items-center gap-1'>
                         <Trophy className='w-3 h-3 text-yellow-400' />
-                        <span className='text-xs text-slate-400'>
+                        <span className='text-xs text-muted-foreground'>
                           Rank #{friend.rank}
                         </span>
                       </div>
 
                       <div className='flex items-center gap-1'>
                         <Star className='w-3 h-3 text-blue-400' />
-                        <span className='text-xs text-slate-400'>
+                        <span className='text-xs text-muted-foreground'>
                           {friend.points.toLocaleString()} pts
                         </span>
                       </div>
@@ -198,7 +198,7 @@ export function FindFriendsPopup({ isOpen, onClose }: FindFriendsPopupProps) {
                     </div>
 
                     {friend.mutualFriends > 0 && (
-                      <p className='text-xs text-slate-500 mt-1'>
+                      <p className='text-xs text-muted-foreground mt-1'>
                         {friend.mutualFriends} mutual friend
                         {friend.mutualFriends !== 1 ? 's' : ''}
                       </p>
@@ -218,7 +218,7 @@ export function FindFriendsPopup({ isOpen, onClose }: FindFriendsPopupProps) {
           </div>
 
           {filteredFriends.length === 0 && searchQuery && (
-            <div className='text-center py-8 text-slate-400'>
+            <div className='text-center py-8 text-muted-foreground'>
               <Users className='w-12 h-12 mx-auto mb-2 opacity-50' />
               <p>No friends found matching &quot;{searchQuery}&quot;</p>
               <p className='text-sm mt-1'>
@@ -228,11 +228,11 @@ export function FindFriendsPopup({ isOpen, onClose }: FindFriendsPopupProps) {
           )}
         </div>
 
-        <div className='flex justify-end gap-2 pt-4 border-t border-slate-700'>
+        <div className='flex justify-end gap-2 pt-4 border-t border-border'>
           <Button
             variant='outline'
             onClick={onClose}
-            className='border-slate-600 text-slate-300 hover:bg-slate-700'
+            className='border-border text-muted-foreground hover:bg-accent'
           >
             Close
           </Button>

@@ -290,7 +290,7 @@ export const LeaderboardHighlights = memo(function LeaderboardHighlights() {
           className='w-full'
         >
           <TabsList
-            className='grid w-full grid-cols-3 bg-[#e5eaee] dark:bg-slate-700 mb-4'
+            className='grid w-full grid-cols-3 bg-muted mb-4'
             role='tablist'
             aria-label='Leaderboard views'
           >
@@ -340,7 +340,7 @@ export const LeaderboardHighlights = memo(function LeaderboardHighlights() {
                 className={`text-xs sm:text-sm ${
                   timePeriod === value
                     ? 'bg-default hover:bg-default-hover'
-                    : 'dark:border-slate-600 text-foreground/80 dark:hover:bg-slate-700 border border-gray-300 hover:bg-default-hover'
+                    : 'border-border text-foreground/80 hover:bg-accent'
                 }`}
               >
                 {Icon && (

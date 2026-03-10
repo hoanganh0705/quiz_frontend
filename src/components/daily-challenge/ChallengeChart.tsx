@@ -101,7 +101,7 @@ const ChallengeChart = () => {
                 </BarChart>
               </ChartContainer>
 
-              <p className='text-center text-slate-400 text-sm'>
+              <p className='text-center text-muted-foreground text-sm'>
                 Your daily challenge performance compared to the average
               </p>
             </TabsContent>

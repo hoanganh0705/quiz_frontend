@@ -1,4 +1,3 @@
-import { memo } from 'react' // rerender-memo
 import Image from 'next/image'
 import { Card } from '@/components/ui/card'
 
@@ -8,12 +7,7 @@ interface QuizCategoryProps {
   count: number
 }
 
-// Memoize card component (rerender-memo)
-const QuizCategoriesCard = memo(function QuizCategoriesCard({
-  id,
-  name,
-  count
-}: QuizCategoryProps) {
+function QuizCategoriesCard({ id, name, count }: QuizCategoryProps) {
   return (
     <Card
       key={id}
@@ -45,6 +39,6 @@ const QuizCategoriesCard = memo(function QuizCategoriesCard({
       </div>
     </Card>
   )
-})
+}
 
 export default QuizCategoriesCard

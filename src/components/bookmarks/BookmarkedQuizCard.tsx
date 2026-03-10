@@ -46,7 +46,7 @@ const BookmarkedQuizCard = memo(function BookmarkedQuizCard({
   )
 
   return (
-    <div className='group rounded-lg border bg-card text-card-foreground shadow-sm overflow-hidden transition-all duration-200 hover:shadow-md hover:border-slate-300 dark:hover:border-slate-600'>
+    <div className='group rounded-lg border bg-card text-card-foreground shadow-sm overflow-hidden transition-all duration-200 hover:shadow-md hover:border-border'>
       <div className='relative h-40'>
         <Image
           src={quiz.image || '/placeholder.webp'}

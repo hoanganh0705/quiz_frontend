@@ -34,7 +34,7 @@ const CollectionCard = memo(function CollectionCard({
       className={`group relative p-4 rounded-lg border cursor-pointer transition-all ${
         isSelected
           ? 'border-default bg-default/5 shadow-sm'
-          : 'border-border hover:border-slate-400 dark:hover:border-slate-500 hover:shadow-sm'
+          : 'border-border hover:border-ring hover:shadow-sm'
       }`}
     >
       {/* Color indicator */}

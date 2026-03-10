@@ -154,7 +154,7 @@ export function ErrorBoundaryFallback({
           We&apos;re sorry, but something unexpected happened. Please try again.
         </p>
         {process.env.NODE_ENV === 'development' && (
-          <pre className='text-left text-xs bg-gray-100 dark:bg-slate-800 p-4 rounded-lg mb-4 overflow-auto max-h-40'>
+          <pre className='text-left text-xs bg-muted p-4 rounded-lg mb-4 overflow-auto max-h-40'>
             {error.message}
           </pre>
         )}

@@ -13,7 +13,7 @@ interface QuizCardProps {
 
 const QuizCard = ({ title, categories, difficulty, image }: QuizCardProps) => {
   return (
-    <div className='rounded-lg border bg-card text-card-foreground shadow-sm overflow-hidden transition-all duration-200 hover:shadow-md hover:border-slate-300 dark:hover:border-slate-600'>
+    <div className='rounded-lg border bg-card text-card-foreground shadow-sm overflow-hidden transition-all duration-200 hover:shadow-md hover:border-border'>
       <div className='relative h-48'>
         <Image src={image} alt={title} fill className='object-cover' />
 

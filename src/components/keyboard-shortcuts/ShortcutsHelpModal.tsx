@@ -112,7 +112,7 @@ export function ShortcutsHelpModal() {
               <h3 className='text-xs font-semibold uppercase tracking-wider text-foreground/40 mb-2'>
                 {group.title}
               </h3>
-              <div className='divide-y divide-gray-200 dark:divide-slate-700/50'>
+              <div className='divide-y divide-border'>
                 {group.shortcuts.map((shortcut) => (
                   <ShortcutRow key={shortcut.description} shortcut={shortcut} />
                 ))}
@@ -121,7 +121,7 @@ export function ShortcutsHelpModal() {
           ))}
         </div>
 
-        <div className='mt-4 pt-3 border-t border-gray-200 dark:border-slate-700/50'>
+        <div className='mt-4 pt-3 border-t border-border'>
           <p className='text-xs text-foreground/40 text-center'>
             Press <Kbd>?</Kbd> anytime to view this help
           </p>

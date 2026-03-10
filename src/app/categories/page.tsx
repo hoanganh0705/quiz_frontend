@@ -49,7 +49,7 @@ export default function QuizCategories() {
             placeholder='Search categories…'
             value={searchTerm}
             onChange={handleSearchChange}
-            className='pl-10 bg-background border-slate-700 text-foreground placeholder-foreground/70 focus:border-slate-600'
+            className='pl-10 bg-background border-border text-foreground placeholder-foreground/70 focus:border-ring'
             aria-label='Search quiz categories'
             autoComplete='off'
             spellCheck={false}

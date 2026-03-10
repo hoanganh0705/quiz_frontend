@@ -54,9 +54,9 @@ const globalLeaderboardData = [
 export function GlobalLeaderboard() {
   return (
     <div className='mt-8 max-w-7xl mx-auto'>
-      <Card className='bg-transparent border-slate-700'>
+      <Card className='bg-transparent border-border'>
         <CardHeader>
-          <CardTitle className='text-white text-xl font-bold'>
+          <CardTitle className='text-foreground text-xl font-bold'>
             Global Leaderboard
           </CardTitle>
         </CardHeader>
@@ -65,10 +65,10 @@ export function GlobalLeaderboard() {
             {globalLeaderboardData.map((user) => (
               <div
                 key={user.rank}
-                className='flex items-center justify-between p-3 bg-slate-800/30 rounded-lg hover:bg-slate-800/50 transition-colors'
+                className='flex items-center justify-between p-3 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors'
               >
                 <div className='flex items-center gap-3'>
-                  <div className='w-8 h-8 bg-slate-700 rounded-full flex items-center justify-center text-sm font-bold text-white'>
+                  <div className='w-8 h-8 bg-muted rounded-full flex items-center justify-center text-sm font-bold text-foreground'>
                     {user.rank}
                   </div>
 
@@ -83,8 +83,8 @@ export function GlobalLeaderboard() {
                   </div>
 
                   <div>
-                    <h3 className='text-white font-medium'>{user.name}</h3>
-                    <p className='text-slate-400 text-sm'>
+                    <h3 className='text-foreground font-medium'>{user.name}</h3>
+                    <p className='text-muted-foreground text-sm'>
                       {user.points.toLocaleString()} points
                     </p>
                   </div>
@@ -100,8 +100,8 @@ export function GlobalLeaderboard() {
                       user.change.startsWith('+')
                         ? 'text-green-400 bg-green-400/10'
                         : user.change.startsWith('-')
-                        ? 'text-red-400 bg-red-400/10'
-                        : 'text-slate-400 bg-slate-400/10'
+                          ? 'text-red-400 bg-red-400/10'
+                          : 'text-muted-foreground bg-muted'
                     }`}
                   >
                     {user.change !== '0' ? user.change : '—'}

@@ -58,7 +58,7 @@ export default function TrendingTab({ users, isLoading }: TrendingTabProps) {
         {users.map((user) => (
           <div
             key={user.id}
-            className='flex items-center gap-3 p-3 dark:bg-slate-800/50 bg-[#edf2f8] rounded-lg hover:bg-default transition-colors'
+            className='flex items-center gap-3 p-3 bg-muted rounded-lg hover:bg-default transition-colors'
           >
             <div className='w-12 h-12 rounded-full overflow-hidden'>
               <Image
@@ -98,21 +98,21 @@ export default function TrendingTab({ users, isLoading }: TrendingTabProps) {
         ))}
       </div>
       <div className='grid grid-cols-2 md:grid-cols-3 gap-4 mt-6'>
-        <div className='dark:bg-slate-800/50 bg-[#edf2f8] p-3 rounded-lg text-center'>
+        <div className='bg-muted p-3 rounded-lg text-center'>
           <div className='flex items-center justify-center mb-2'>
             <TrendingUp className='w-4 h-4 text-green-400' />
           </div>
           <p className='text-lg font-bold text-foreground'>+12</p>
           <p className='text-xs text-foreground/80'>Biggest Gain</p>
         </div>
-        <div className='dark:bg-slate-800/50 bg-[#edf2f8] p-3 rounded-lg text-center'>
+        <div className='bg-muted p-3 rounded-lg text-center'>
           <div className='flex items-center justify-center mb-2'>
             <Users className='w-4 h-4 text-blue-400' />
           </div>
           <p className='text-lg font-bold text-foreground'>156</p>
           <p className='text-xs text-foreground/80'>New Users</p>
         </div>
-        <div className='dark:bg-slate-800/50 bg-[#edf2f8] p-3 rounded-lg text-center'>
+        <div className='bg-muted p-3 rounded-lg text-center'>
           <div className='flex items-center justify-center mb-2'>
             <Zap className='w-4 h-4 text-orange-400' />
           </div>

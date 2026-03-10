@@ -51,7 +51,7 @@ export default function GlobalTab({ users, isLoading }: GlobalTabProps) {
                   ⭐65
                 </Badge>
               </div>
-              <div className='dark:bg-slate-800/50 bg-[#edf2f8] rounded-lg p-4 w-32 h-24'></div>
+              <div className='bg-muted rounded-lg p-4 w-32 h-24'></div>
             </div>
           )}
 
@@ -92,7 +92,7 @@ export default function GlobalTab({ users, isLoading }: GlobalTabProps) {
                   ⭐78
                 </Badge>
               </div>
-              <div className='dark:bg-slate-800/50 bg-[#edf2f8] rounded-lg p-4 w-36 h-32'></div>
+              <div className='bg-muted rounded-lg p-4 w-36 h-32'></div>
             </div>
           )}
 
@@ -130,13 +130,13 @@ export default function GlobalTab({ users, isLoading }: GlobalTabProps) {
                   ⭐59
                 </Badge>
               </div>
-              <div className='dark:bg-slate-800/50 bg-[#edf2f8] rounded-lg p-4 w-32 h-20'></div>
+              <div className='bg-muted rounded-lg p-4 w-32 h-20'></div>
             </div>
           )}
         </div>
 
         <div className='grid grid-cols-2 md:grid-cols-4 gap-4 mt-6'>
-          <div className='dark:bg-slate-800/50 bg-[#edf2f8] p-3 rounded-lg text-center'>
+          <div className='bg-muted p-3 rounded-lg text-center'>
             <div className='flex items-center justify-center mb-2'>
               <Target className='w-4 h-4 text-green-400' />
             </div>
@@ -145,7 +145,7 @@ export default function GlobalTab({ users, isLoading }: GlobalTabProps) {
             </p>
             <p className='text-xs text-foreground/80'>Top Win Rate</p>
           </div>
-          <div className='dark:bg-slate-800/50 bg-[#edf2f8] p-3 rounded-lg text-center'>
+          <div className='bg-muted p-3 rounded-lg text-center'>
             <div className='flex items-center justify-center mb-2'>
               <BarChart3 className='w-4 h-4 text-blue-400' />
             </div>
@@ -154,7 +154,7 @@ export default function GlobalTab({ users, isLoading }: GlobalTabProps) {
             </p>
             <p className='text-xs text-foreground/80'>Most Quizzes</p>
           </div>
-          <div className='dark:bg-slate-800/50 bg-[#edf2f8] p-3 rounded-lg text-center'>
+          <div className='bg-muted p-3 rounded-lg text-center'>
             <div className='flex items-center justify-center mb-2'>
               <Zap className='w-4 h-4 text-orange-400' />
             </div>
@@ -163,7 +163,7 @@ export default function GlobalTab({ users, isLoading }: GlobalTabProps) {
             </p>
             <p className='text-xs text-foreground/80'>Longest Streak</p>
           </div>
-          <div className='dark:bg-slate-800/50 bg-[#edf2f8]  p-3 rounded-lg text-center'>
+          <div className='bg-muted  p-3 rounded-lg text-center'>
             <div className='flex items-center justify-center mb-2'>
               <Star className='w-4 h-4 text-yellow-400' />
             </div>

@@ -14,16 +14,16 @@ import { quizzes } from '@/constants/mockQuizzes'
 export default function QuizHubDashboard() {
   return (
     <div className='min-h-screen p-4 md:p-6 overflow-x-hidden max-w-full'>
-      <div className='relative bg-linear-to-br from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-700 rounded-xl p-6 sm:p-8 lg:p-12 mb-6 sm:mb-8 border border-gray-300 dark:border-slate-600'>
+      <div className='relative bg-linear-to-br from-secondary to-muted rounded-xl p-6 sm:p-8 lg:p-12 mb-6 sm:mb-8 border border-border'>
         <div className='relative z-10 max-w-full sm:max-w-lg lg:max-w-2xl'>
-          <h1 className='text-3xl sm:text-4xl lg:text-5xl font-bold mb-3 sm:mb-4 leading-tight text-slate-900 dark:text-white'>
+          <h1 className='text-3xl sm:text-4xl lg:text-5xl font-bold mb-3 sm:mb-4 leading-tight text-foreground'>
             Your Quiz Adventure
             <br />
             Starts Here:
             <br />
             <span className='text-default'>Play, Share, Earn!</span>
           </h1>
-          <p className='text-base sm:text-lg lg:text-xl text-slate-600 dark:text-slate-300 mb-6 sm:mb-8'>
+          <p className='text-base sm:text-lg lg:text-xl text-muted-foreground mb-6 sm:mb-8'>
             Build engaging quizzes, challenge others, and earn rewards
             <br className='hidden sm:inline' />
             for your knowledge.

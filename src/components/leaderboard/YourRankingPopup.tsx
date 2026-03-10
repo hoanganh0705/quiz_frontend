@@ -212,7 +212,7 @@ export function YourRankingPopup({ isOpen, onClose }: YourRankingPopupProps) {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className='bg-slate-900 border-slate-700 text-white max-w-4xl max-h-[90vh] overflow-hidden'>
+      <DialogContent className='bg-background border-border text-foreground max-w-4xl max-h-[90vh] overflow-hidden'>
         <DialogHeader>
           <DialogTitle className='text-xl font-bold flex items-center gap-2'>
             <Crown className='w-5 h-5 text-yellow-400' />
@@ -222,7 +222,7 @@ export function YourRankingPopup({ isOpen, onClose }: YourRankingPopupProps) {
 
         <div className='space-y-6'>
           {/* User Header */}
-          <div className='flex items-center gap-4 p-4 bg-slate-800/50 rounded-lg'>
+          <div className='flex items-center gap-4 p-4 bg-muted rounded-lg'>
             <div className='relative'>
               <div className='w-16 h-16 rounded-full overflow-hidden'>
                 <Image
@@ -241,24 +241,24 @@ export function YourRankingPopup({ isOpen, onClose }: YourRankingPopupProps) {
             </div>
 
             <div className='flex-1'>
-              <h2 className='text-xl font-bold text-white'>{user.name}</h2>
-              <p className='text-slate-400'>{user.username}</p>
+              <h2 className='text-xl font-bold text-foreground'>{user.name}</h2>
+              <p className='text-muted-foreground'>{user.username}</p>
               <div className='flex items-center gap-4 mt-2'>
                 <div className='flex items-center gap-1'>
                   <Trophy className='w-4 h-4 text-yellow-400' />
-                  <span className='text-sm text-slate-300'>
+                  <span className='text-sm text-muted-foreground'>
                     Rank #{user.rank}
                   </span>
                 </div>
                 <div className='flex items-center gap-1'>
                   <Star className='w-4 h-4 text-blue-400' />
-                  <span className='text-sm text-slate-300'>
+                  <span className='text-sm text-muted-foreground'>
                     {user.points.toLocaleString()} pts
                   </span>
                 </div>
                 <div className='flex items-center gap-1'>
                   <Zap className='w-4 h-4 text-orange-400' />
-                  <span className='text-sm text-slate-300'>
+                  <span className='text-sm text-muted-foreground'>
                     {user.streak} day streak
                   </span>
                 </div>
@@ -267,7 +267,7 @@ export function YourRankingPopup({ isOpen, onClose }: YourRankingPopupProps) {
           </div>
 
           {/* Tabs */}
-          <div className='flex gap-2 border-b border-slate-700'>
+          <div className='flex gap-2 border-b border-border'>
             <Button
               variant={selectedTab === 'overview' ? 'default' : 'outline'}
               size='sm'
@@ -275,7 +275,7 @@ export function YourRankingPopup({ isOpen, onClose }: YourRankingPopupProps) {
               className={
                 selectedTab === 'overview'
                   ? 'bg-default hover:bg-default-hover'
-                  : 'border-slate-600 text-slate-300 hover:bg-slate-700'
+                  : 'border-border text-muted-foreground hover:bg-accent'
               }
             >
               Overview
@@ -287,7 +287,7 @@ export function YourRankingPopup({ isOpen, onClose }: YourRankingPopupProps) {
               className={
                 selectedTab === 'achievements'
                   ? 'bg-default hover:bg-default-hover'
-                  : 'border-slate-600 text-slate-300 hover:bg-slate-700'
+                  : 'border-border text-muted-foreground hover:bg-accent'
               }
             >
               Achievements
@@ -299,7 +299,7 @@ export function YourRankingPopup({ isOpen, onClose }: YourRankingPopupProps) {
               className={
                 selectedTab === 'activity'
                   ? 'bg-default hover:bg-default-hover'
-                  : 'border-slate-600 text-slate-300 hover:bg-slate-700'
+                  : 'border-border text-muted-foreground hover:bg-accent'
               }
             >
               Recent Activity
@@ -313,20 +313,24 @@ export function YourRankingPopup({ isOpen, onClose }: YourRankingPopupProps) {
                 {/* Level Progress */}
                 <div className='space-y-3'>
                   <div className='flex items-center justify-between'>
-                    <h3 className='font-semibold text-white'>Level Progress</h3>
-                    <span className='text-sm text-slate-400'>
+                    <h3 className='font-semibold text-foreground'>
+                      Level Progress
+                    </h3>
+                    <span className='text-sm text-muted-foreground'>
                       Level {user.level}
                     </span>
                   </div>
                   <div className='space-y-2'>
                     <div className='flex justify-between text-sm'>
-                      <span className='text-slate-400'>
+                      <span className='text-muted-foreground'>
                         {user.currentLevel}
                       </span>
-                      <span className='text-slate-400'>{user.nextLevel}</span>
+                      <span className='text-muted-foreground'>
+                        {user.nextLevel}
+                      </span>
                     </div>
                     <Progress value={progressPercentage} className='h-2' />
-                    <p className='text-xs text-slate-400'>
+                    <p className='text-xs text-muted-foreground'>
                       {user.pointsToNextLevel} points to {user.nextLevel}
                     </p>
                   </div>
@@ -334,75 +338,77 @@ export function YourRankingPopup({ isOpen, onClose }: YourRankingPopupProps) {
 
                 {/* Stats Grid */}
                 <div className='grid grid-cols-2 md:grid-cols-4 gap-4'>
-                  <div className='bg-slate-800/50 p-3 rounded-lg text-center'>
+                  <div className='bg-muted p-3 rounded-lg text-center'>
                     <div className='flex items-center justify-center mb-2'>
                       <BarChart3 className='w-5 h-5 text-blue-400' />
                     </div>
-                    <p className='text-lg font-bold text-white'>
+                    <p className='text-lg font-bold text-foreground'>
                       {user.quizzesCompleted}
                     </p>
-                    <p className='text-xs text-slate-400'>Quizzes Completed</p>
+                    <p className='text-xs text-muted-foreground'>
+                      Quizzes Completed
+                    </p>
                   </div>
 
-                  <div className='bg-slate-800/50 p-3 rounded-lg text-center'>
+                  <div className='bg-muted p-3 rounded-lg text-center'>
                     <div className='flex items-center justify-center mb-2'>
                       <Target className='w-5 h-5 text-green-400' />
                     </div>
-                    <p className='text-lg font-bold text-white'>
+                    <p className='text-lg font-bold text-foreground'>
                       {user.winRate}%
                     </p>
-                    <p className='text-xs text-slate-400'>Win Rate</p>
+                    <p className='text-xs text-muted-foreground'>Win Rate</p>
                   </div>
 
-                  <div className='bg-slate-800/50 p-3 rounded-lg text-center'>
+                  <div className='bg-muted p-3 rounded-lg text-center'>
                     <div className='flex items-center justify-center mb-2'>
                       <Star className='w-5 h-5 text-yellow-400' />
                     </div>
-                    <p className='text-lg font-bold text-white'>
+                    <p className='text-lg font-bold text-foreground'>
                       {user.averageScore}%
                     </p>
-                    <p className='text-xs text-slate-400'>Avg Score</p>
+                    <p className='text-xs text-muted-foreground'>Avg Score</p>
                   </div>
 
-                  <div className='bg-slate-800/50 p-3 rounded-lg text-center'>
+                  <div className='bg-muted p-3 rounded-lg text-center'>
                     <div className='flex items-center justify-center mb-2'>
                       <Clock className='w-5 h-5 text-purple-400' />
                     </div>
-                    <p className='text-lg font-bold text-white'>
+                    <p className='text-lg font-bold text-foreground'>
                       {user.totalTime}
                     </p>
-                    <p className='text-xs text-slate-400'>Total Time</p>
+                    <p className='text-xs text-muted-foreground'>Total Time</p>
                   </div>
                 </div>
 
                 {/* Season Stats */}
-                <div className='bg-slate-800/30 p-4 rounded-lg'>
-                  <h3 className='font-semibold text-white mb-3 flex items-center gap-2'>
+                <div className='bg-muted/50 p-4 rounded-lg'>
+                  <h3 className='font-semibold text-foreground mb-3 flex items-center gap-2'>
                     <Calendar className='w-4 h-4' />
                     Season Statistics
                   </h3>
                   <div className='grid grid-cols-2 md:grid-cols-4 gap-4 text-sm'>
                     <div>
-                      <p className='text-slate-400'>Season Rank</p>
-                      <p className='text-white font-semibold'>
+                      <p className='text-muted-foreground'>Season Rank</p>
+                      <p className='text-foreground font-semibold'>
                         #{user.seasonStats.seasonRank}
                       </p>
                     </div>
                     <div>
-                      <p className='text-slate-400'>Season Points</p>
-                      <p className='text-white font-semibold'>
+                      <p className='text-muted-foreground'>Season Points</p>
+                      <p className='text-foreground font-semibold'>
                         {user.seasonStats.seasonPoints.toLocaleString()}
                       </p>
                     </div>
                     <div>
-                      <p className='text-slate-400'>Season Quizzes</p>
-                      <p className='text-white font-semibold'>
+                      <p className='text-muted-foreground'>Season Quizzes</p>
+                      <p className='text-foreground font-semibold'>
                         {user.seasonStats.seasonQuizzes}
                       </p>
                     </div>
                     <div>
-                      <p className='text-slate-400'>Season Win Rate</p>
-                      <p className='text-white font-semibold'>
+                      <p className='text-muted-foreground'>Season Win Rate</p>
+                      <p className='text-foreground font-semibold'>
                         {user.seasonStats.seasonWinRate}%
                       </p>
                     </div>
@@ -413,12 +419,14 @@ export function YourRankingPopup({ isOpen, onClose }: YourRankingPopupProps) {
 
             {selectedTab === 'achievements' && (
               <div className='space-y-4'>
-                <h3 className='font-semibold text-white'>Your Achievements</h3>
+                <h3 className='font-semibold text-foreground'>
+                  Your Achievements
+                </h3>
                 <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
                   {user.achievements.map((achievement) => (
                     <div
                       key={achievement.id}
-                      className='flex items-center gap-3 p-3 bg-slate-800/50 rounded-lg'
+                      className='flex items-center gap-3 p-3 bg-muted rounded-lg'
                     >
                       <div
                         className={`w-10 h-10 rounded-full flex items-center justify-center text-lg ${getRarityColor(
@@ -428,13 +436,13 @@ export function YourRankingPopup({ isOpen, onClose }: YourRankingPopupProps) {
                         {achievement.icon}
                       </div>
                       <div className='flex-1'>
-                        <h4 className='font-semibold text-white'>
+                        <h4 className='font-semibold text-foreground'>
                           {achievement.name}
                         </h4>
-                        <p className='text-sm text-slate-400'>
+                        <p className='text-sm text-muted-foreground'>
                           {achievement.description}
                         </p>
-                        <p className='text-xs text-slate-500 mt-1'>
+                        <p className='text-xs text-muted-foreground mt-1'>
                           Earned{' '}
                           {new Date(achievement.earnedAt).toLocaleDateString()}
                         </p>
@@ -454,24 +462,26 @@ export function YourRankingPopup({ isOpen, onClose }: YourRankingPopupProps) {
 
             {selectedTab === 'activity' && (
               <div className='space-y-4'>
-                <h3 className='font-semibold text-white'>Recent Activity</h3>
+                <h3 className='font-semibold text-foreground'>
+                  Recent Activity
+                </h3>
                 <div className='space-y-3'>
                   {user.recentActivity.map((activity) => (
                     <div
                       key={activity.id}
-                      className='flex items-center gap-3 p-3 bg-slate-800/50 rounded-lg'
+                      className='flex items-center gap-3 p-3 bg-muted rounded-lg'
                     >
-                      <div className='w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center'>
+                      <div className='w-8 h-8 rounded-full bg-accent flex items-center justify-center'>
                         {getActivityIcon(activity.type)}
                       </div>
                       <div className='flex-1'>
-                        <h4 className='font-semibold text-white'>
+                        <h4 className='font-semibold text-foreground'>
                           {activity.title}
                         </h4>
-                        <p className='text-sm text-slate-400'>
+                        <p className='text-sm text-muted-foreground'>
                           {activity.description}
                         </p>
-                        <p className='text-xs text-slate-500 mt-1'>
+                        <p className='text-xs text-muted-foreground mt-1'>
                           {activity.timestamp}
                         </p>
                       </div>
@@ -479,7 +489,7 @@ export function YourRankingPopup({ isOpen, onClose }: YourRankingPopupProps) {
                         <p className='text-sm font-semibold text-green-400'>
                           +{activity.points}
                         </p>
-                        <p className='text-xs text-slate-400'>points</p>
+                        <p className='text-xs text-muted-foreground'>points</p>
                       </div>
                     </div>
                   ))}
@@ -489,11 +499,11 @@ export function YourRankingPopup({ isOpen, onClose }: YourRankingPopupProps) {
           </div>
         </div>
 
-        <div className='flex justify-end gap-2 pt-4 border-t border-slate-700'>
+        <div className='flex justify-end gap-2 pt-4 border-t border-border'>
           <Button
             variant='outline'
             onClick={onClose}
-            className='border-slate-600 text-slate-300 hover:bg-slate-700'
+            className='border-border text-muted-foreground hover:bg-accent'
           >
             Close
           </Button>

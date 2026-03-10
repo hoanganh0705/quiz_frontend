@@ -331,9 +331,7 @@ const QuestionsTab = memo(function QuestionsTab() {
                         togglePreview(question.id)
                       }}
                       className={`text-white hover:bg-default-hover hover:text-white ${
-                        previewMode === question.id
-                          ? 'bg-default/80 dark:bg-slate-800'
-                          : ''
+                        previewMode === question.id ? 'bg-default/80' : ''
                       }`}
                       aria-label={`${previewMode === question.id ? 'Hide' : 'Show'} preview for ${question.title}`}
                     >
@@ -370,7 +368,7 @@ const QuestionsTab = memo(function QuestionsTab() {
                 )}
 
                 {previewMode === question.id ? (
-                  <Card className='bg-gray-50 dark:bg-slate-800/50'>
+                  <Card className='bg-muted'>
                     <CardContent className='p-4 space-y-4'>
                       <h4 className='text-lg font-medium'>Preview Mode</h4>
                       {question.text && (
@@ -386,7 +384,7 @@ const QuestionsTab = memo(function QuestionsTab() {
                             className={`p-2 ${
                               index === question.correctAnswer
                                 ? 'bg-green-100 dark:bg-green-900/20 border-green-300'
-                                : 'bg-white dark:bg-slate-700 border-gray-300'
+                                : 'bg-card border-border'
                             }`}
                           >
                             <CardContent className='p-0 flex items-center'>

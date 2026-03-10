@@ -48,7 +48,7 @@ const Overview = ({
               <Button
                 key={tag}
                 variant='outline'
-                className='border-slate-600 text-foreground dark:hover:bg-slate-700 dark:hover:text-white bg-transparent px-2 py-1 h-auto leading-none'
+                className='border-border text-foreground hover:bg-accent bg-transparent px-2 py-1 h-auto leading-none'
               >
                 <span className='text-xs'>{tag}</span>
               </Button>

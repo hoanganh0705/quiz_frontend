@@ -17,24 +17,24 @@ const Leaderboard = memo(function Leaderboard() {
   return (
     <div className='bg-background p-6'>
       <div className='max-w-4xl mx-auto'>
-        <div className='bg-white dark:bg-slate-800/50 backdrop-blur-sm rounded-lg border border-gray-200 dark:border-slate-700/50 overflow-hidden'>
+        <div className='bg-card backdrop-blur-sm rounded-lg border border-border overflow-hidden'>
           <Tabs defaultValue='allTime'>
             <TabsList className='grid w-full grid-cols-3 bg-transparent'>
               <TabsTrigger
                 value='allTime'
-                className={`py-3 px-6 text-sm font-medium rounded-none data-[state=active]:bg-gray-200 data-[state=active]:text-gray-900 dark:data-[state=active]:bg-slate-700 dark:data-[state=active]:text-slate-100 data-[state=inactive]:text-gray-600 dark:data-[state=inactive]:text-slate-400 data-[state=inactive]:hover:bg-gray-100 dark:data-[state=inactive]:hover:bg-slate-700/50`}
+                className={`py-3 px-6 text-sm font-medium rounded-none data-[state=active]:bg-muted data-[state=active]:text-foreground data-[state=inactive]:text-muted-foreground data-[state=inactive]:hover:bg-accent`}
               >
                 All Time
               </TabsTrigger>
               <TabsTrigger
                 value='week'
-                className={`py-3 px-6 text-sm font-medium rounded-none data-[state=active]:bg-gray-200 data-[state=active]:text-gray-900 dark:data-[state=active]:bg-slate-700 dark:data-[state=active]:text-slate-100 data-[state=inactive]:text-gray-600 dark:data-[state=inactive]:text-slate-400 data-[state=inactive]:hover:bg-gray-100 dark:data-[state=inactive]:hover:bg-slate-700/50`}
+                className={`py-3 px-6 text-sm font-medium rounded-none data-[state=active]:bg-muted data-[state=active]:text-foreground data-[state=inactive]:text-muted-foreground data-[state=inactive]:hover:bg-accent`}
               >
                 Week
               </TabsTrigger>
               <TabsTrigger
                 value='today'
-                className={`py-3 px-6 text-sm font-medium rounded-none data-[state=active]:bg-gray-200 data-[state=active]:text-gray-900 dark:data-[state=active]:bg-slate-700 dark:data-[state=active]:text-slate-100 data-[state=inactive]:text-gray-600 dark:data-[state=inactive]:text-slate-400 data-[state=inactive]:hover:bg-gray-100 dark:data-[state=inactive]:hover:bg-slate-700/50`}
+                className={`py-3 px-6 text-sm font-medium rounded-none data-[state=active]:bg-muted data-[state=active]:text-foreground data-[state=inactive]:text-muted-foreground data-[state=inactive]:hover:bg-accent`}
               >
                 Today
               </TabsTrigger>
@@ -62,21 +62,21 @@ function LeaderboardTable({ data }: { data: LeaderboardEntry[] }) {
   return (
     <Table>
       <TableHeader>
-        <TableRow className='border-b border-gray-200 dark:border-slate-700/50 hover:bg-transparent'>
-          <TableHead className='text-left py-4 px-6 text-gray-600 dark:text-slate-300 font-medium text-sm w-15'>
+        <TableRow className='border-b border-border hover:bg-transparent'>
+          <TableHead className='text-left py-4 px-6 text-muted-foreground font-medium text-sm w-15'>
             #
           </TableHead>
-          <TableHead className='text-left py-4 px-6 text-gray-600 dark:text-slate-300 font-medium text-sm'>
+          <TableHead className='text-left py-4 px-6 text-muted-foreground font-medium text-sm'>
             Player
           </TableHead>
           <TableHead
-            className='text-right py-4 px-6 text-gray-600 dark:text-slate-300 font-medium text-sm'
+            className='text-right py-4 px-6 text-muted-foreground font-medium text-sm'
             style={{ fontVariantNumeric: 'tabular-nums' }}
           >
             Score
           </TableHead>
           <TableHead
-            className='text-right py-4 px-6 text-gray-600 dark:text-slate-300 font-medium text-sm'
+            className='text-right py-4 px-6 text-muted-foreground font-medium text-sm'
             style={{ fontVariantNumeric: 'tabular-nums' }}
           >
             Time
@@ -87,12 +87,12 @@ function LeaderboardTable({ data }: { data: LeaderboardEntry[] }) {
         {data.map((player) => (
           <TableRow
             key={player.id}
-            className='border-b border-gray-200 dark:border-slate-700/30 hover:bg-gray-50 dark:hover:bg-slate-700/20 transition-colors'
+            className='border-b border-border hover:bg-accent transition-colors'
           >
             <TableCell className='py-4 px-6'>
               <span
                 className={`text-lg font-medium ${
-                  player.rankTextColor || 'text-gray-800 dark:text-slate-200'
+                  player.rankTextColor || 'text-foreground'
                 } ${
                   player.rankBgColor
                     ? `px-2 py-1 rounded ${player.rankBgColor}`
@@ -112,12 +112,11 @@ function LeaderboardTable({ data }: { data: LeaderboardEntry[] }) {
                     height={40}
                     loading='lazy'
                     className={`rounded-full border-2 ${
-                      player.borderColor ||
-                      'border-gray-300 dark:border-slate-600'
+                      player.borderColor || 'border-border'
                     }`}
                   />
                 </div>
-                <span className='text-gray-900 dark:text-slate-100 font-medium text-base'>
+                <span className='text-foreground font-medium text-base'>
                   {player.name}
                 </span>
               </div>
@@ -126,7 +125,7 @@ function LeaderboardTable({ data }: { data: LeaderboardEntry[] }) {
               className='py-4 px-6 text-right'
               style={{ fontVariantNumeric: 'tabular-nums' }}
             >
-              <span className='text-gray-900 dark:text-slate-100 font-medium text-base'>
+              <span className='text-foreground font-medium text-base'>
                 {player.score}%
               </span>
             </TableCell>
@@ -134,7 +133,7 @@ function LeaderboardTable({ data }: { data: LeaderboardEntry[] }) {
               className='py-4 px-6 text-right'
               style={{ fontVariantNumeric: 'tabular-nums' }}
             >
-              <span className='text-gray-700 dark:text-slate-300 font-medium text-base'>
+              <span className='text-muted-foreground font-medium text-base'>
                 {player.time || 'N/A'}
               </span>
             </TableCell>

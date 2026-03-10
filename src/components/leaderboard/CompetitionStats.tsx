@@ -45,7 +45,7 @@ export const CompetitionStats = memo(function CompetitionStats() {
 
         <div className='space-y-3 sm:space-y-4'>
           {/* Your Rank */}
-          <div className='flex items-center bg-main dark:bg-slate-800/50 border border-border flex-col w-full p-3 sm:p-4 rounded-xl gap-1 sm:gap-2'>
+          <div className='flex items-center bg-main border border-border flex-col w-full p-3 sm:p-4 rounded-xl gap-1 sm:gap-2'>
             <div className='flex items-center justify-between w-full'>
               <div className='flex items-center gap-1 sm:gap-2'>
                 <Users className='w-4 h-4 text-foreground' aria-hidden='true' />
@@ -66,7 +66,7 @@ export const CompetitionStats = memo(function CompetitionStats() {
 
             {/* Progress Bar */}
             <div
-              className='w-full dark:bg-slate-700 bg-main rounded-full h-1.5 sm:h-2 border border-border'
+              className='w-full bg-muted rounded-full h-1.5 sm:h-2 border border-border'
               role='progressbar'
               aria-valuenow={81}
               aria-valuemin={0}
@@ -74,7 +74,7 @@ export const CompetitionStats = memo(function CompetitionStats() {
               aria-label='Progress to next level'
             >
               <div
-                className='dark:bg-white bg-slate-700 h-1 sm:h-1.5 rounded-full'
+                className='bg-foreground h-1 sm:h-1.5 rounded-full'
                 style={{ width: '81.25%' }}
               />
             </div>
