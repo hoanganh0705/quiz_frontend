@@ -391,7 +391,7 @@ export default function PlayQuizClient({ quiz }: { quiz: Quiz }) {
               size='sm'
               variant='outline'
               onClick={() => toggleFullscreen(quizContainerRef.current)}
-              className='border-gray-300 dark:border-slate-700 text-foreground'
+              className='border-border text-foreground'
               aria-label={
                 isFullscreen ? 'Exit full screen' : 'Enter full screen'
               }
@@ -409,7 +409,7 @@ export default function PlayQuizClient({ quiz }: { quiz: Quiz }) {
               size='sm'
               variant='outline'
               onClick={handleRestart}
-              className='border-gray-300 dark:border-slate-700 text-foreground'
+              className='border-border text-foreground'
               aria-label='Restart this quiz'
             >
               <RotateCcw className='w-4 h-4 md:mr-2' aria-hidden='true' />
@@ -427,12 +427,12 @@ export default function PlayQuizClient({ quiz }: { quiz: Quiz }) {
             {quiz.tags.map((tag) => (
               <Badge
                 key={tag}
-                className='bg-background text-foreground border border-gray-300 dark:border-slate-700 text-xs md:text-sm'
+                className='bg-background text-foreground border border-border text-xs md:text-sm'
               >
                 {tag}
               </Badge>
             ))}
-            <Badge className='bg-yellow-500 text-foreground font-medium border border-gray-300 dark:border-slate-700 text-xs md:text-sm'>
+            <Badge className='bg-yellow-500 text-foreground font-medium border border-border text-xs md:text-sm'>
               {quiz.difficulty}
             </Badge>
           </div>
@@ -469,7 +469,7 @@ export default function PlayQuizClient({ quiz }: { quiz: Quiz }) {
         />
 
         {/* Question Card */}
-        <Card className='bg-background border border-gray-300 dark:border-slate-700 text-foreground'>
+        <Card className='bg-background border border-border text-foreground'>
           <CardContent className='p-4 md:p-8'>
             <div className='grid md:grid-cols-2 gap-4 md:gap-8 items-center'>
               {/* Image */}
@@ -509,7 +509,7 @@ export default function PlayQuizClient({ quiz }: { quiz: Quiz }) {
                           'active:scale-[0.98] active:brightness-95',
                           isSelected
                             ? 'bg-default dark:bg-white text-white dark:text-black border-primary ring-2 ring-primary/20'
-                            : 'border-gray-300 dark:border-slate-700 dark:hover:bg-slate-600 hover:bg-gray-200 text-foreground'
+                            : 'border-border dark:hover:bg-slate-600 hover:bg-gray-200 text-foreground'
                         )}
                         onClick={() => handleAnswer(answer.value)}
                       >

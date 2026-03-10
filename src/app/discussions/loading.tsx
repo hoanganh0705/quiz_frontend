@@ -22,7 +22,7 @@ export default function DiscussionsLoading() {
         {Array.from({ length: 6 }).map((_, i) => (
           <div
             key={i}
-            className='p-6 border border-gray-300 dark:border-slate-700 rounded-lg'
+            className='p-6 border border-border rounded-lg'
           >
             {/* Discussion Header */}
             <div className='flex items-start gap-4 mb-4'>

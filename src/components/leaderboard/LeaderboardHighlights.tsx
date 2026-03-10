@@ -266,7 +266,7 @@ export const LeaderboardHighlights = memo(function LeaderboardHighlights() {
   }, [activeTab, timePeriod, selectedCategory])
 
   return (
-    <Card className=' bg-background border border-gray-300 dark:border-slate-700 col-span-2 lg:col-span-2 py-4 sm:py-6'>
+    <Card className=' bg-background border border-border col-span-2 lg:col-span-2 py-4 sm:py-6'>
       <CardHeader>
         <div className='flex items-center justify-between'>
           <div>
@@ -357,10 +357,10 @@ export const LeaderboardHighlights = memo(function LeaderboardHighlights() {
               value={selectedCategory}
               onValueChange={setSelectedCategory}
             >
-              <SelectTrigger className='w-full bg-main border border-gray-300 dark:border-slate-700 text-foreground text-xs sm:text-sm mb-20'>
+              <SelectTrigger className='w-full bg-main border border-border text-foreground text-xs sm:text-sm mb-20'>
                 <SelectValue placeholder='Select category' />
               </SelectTrigger>
-              <SelectContent className=' bg-main border border-gray-300 dark:border-slate-700 text-xs sm:text-sm'>
+              <SelectContent className=' bg-main border border-border text-xs sm:text-sm'>
                 <SelectItem value='all'>All Categories</SelectItem>
                 {categories.map((category) => (
                   <SelectItem key={category.id} value={category.id}>

@@ -109,7 +109,7 @@ const TimelineEntry = memo(function TimelineEntry({
   })
 
   return (
-    <Card className='bg-background border border-gray-300 dark:border-slate-700 hover:shadow-md transition-shadow group'>
+    <Card className='bg-background border border-border hover:shadow-md transition-shadow group'>
       <CardContent className='p-4'>
         <div className='flex items-start gap-4'>
           {/* Status indicator dot */}

@@ -5,7 +5,7 @@ import { articles } from '@/constants/articles'
 
 export function KnowledgeBase() {
   return (
-    <div className='space-y-6 bg-transparent border border-gray-300 dark:border-slate-700 rounded-lg  p-8'>
+    <div className='space-y-6 bg-transparent border border-border rounded-lg  p-8'>
       <div className='flex items-center justify-between'>
         <h2 className='text-2xl font-bold text-foreground'>
           All Categories Knowledge Base
@@ -14,7 +14,7 @@ export function KnowledgeBase() {
           <Search className='absolute left-3 top-1/2 transform -translate-y-1/2 text-foreground/70 h-4 w-4' />
           <Input
             placeholder='Search articles...'
-            className='pl-10 bg-transparent border border-gray-300 dark:border-slate-700 text-foreground placeholder:text-foreground/70'
+            className='pl-10 bg-transparent border border-border text-foreground placeholder:text-foreground/70'
           />
         </div>
       </div>
@@ -25,12 +25,12 @@ export function KnowledgeBase() {
           return (
             <div
               key={article.id}
-              className='group p-6 dark:hover:bg-default-hover group-hover:border-default transition-colors cursor-pointer border border-gray-300 dark:border-slate-700 rounded-lg hover:border-default-hover'
+              className='group p-6 dark:hover:bg-default-hover group-hover:border-default transition-colors cursor-pointer border border-border rounded-lg hover:border-default-hover'
             >
               <div className='flex items-center justify-between mb-4'>
                 <div className='flex items-center gap-2'>
                   <IconComponent className='h-4 w-4 text-foreground' />
-                  <span className='text-xs text-foreground px-1 py-0.5 cursor-pointer border border-gray-300 dark:border-slate-700 rounded-md'>
+                  <span className='text-xs text-foreground px-1 py-0.5 cursor-pointer border border-border rounded-md'>
                     {article.category}
                   </span>
                 </div>

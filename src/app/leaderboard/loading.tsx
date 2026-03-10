@@ -36,9 +36,9 @@ export default function LeaderboardLoading() {
 
       {/* Leaderboard Table Skeleton */}
       <div className='max-w-4xl mx-auto'>
-        <div className='bg-card border border-gray-300 dark:border-slate-700 rounded-lg overflow-hidden'>
+        <div className='bg-card border border-border rounded-lg overflow-hidden'>
           {/* Table Header */}
-          <div className='flex items-center gap-4 p-4 border-b border-gray-300 dark:border-slate-700'>
+          <div className='flex items-center gap-4 p-4 border-b border-border'>
             <Skeleton className='h-4 w-12' />
             <Skeleton className='h-4 w-32' />
             <Skeleton className='h-4 w-20 ml-auto' />

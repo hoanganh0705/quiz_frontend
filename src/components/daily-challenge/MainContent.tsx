@@ -101,7 +101,7 @@ const MainContent = memo(function MainContent() {
       {/* Left Block */}
       <div className='lg:col-span-2 space-y-6'>
         {/* Quiz Section */}
-        <Card className='bg-background text-foreground border border-gray-300 dark:border-slate-700 lg:col-span-2 py-6'>
+        <Card className='bg-background text-foreground border border-border lg:col-span-2 py-6'>
           <CardHeader>
             <div className='flex justify-between items-start'>
               <div>
@@ -184,7 +184,7 @@ const MainContent = memo(function MainContent() {
         <ChallengeChart />
 
         {/* Challenge History */}
-        <Card className='bg-background text-foreground border border-gray-300 dark:border-slate-700 py-6'>
+        <Card className='bg-background text-foreground border border-border py-6'>
           <CardHeader>
             <div className='flex items-center justify-between'>
               <h1 className='text-xl font-bold'>Challenge History</h1>
@@ -213,7 +213,7 @@ const MainContent = memo(function MainContent() {
               {displayedHistory.map((challenge) => (
                 <Card
                   key={challenge.id}
-                  className='bg-background border-b border-gray-300 dark:border-slate-700 last:border-b-0'
+                  className='bg-background border-b border-border last:border-b-0'
                 >
                   <CardContent className='p-4'>
                     <div className='flex items-center justify-between'>
@@ -222,11 +222,11 @@ const MainContent = memo(function MainContent() {
                           {challenge.date}
                         </div>
                         <div className='flex items-center gap-3'>
-                          <Badge className='bg-background text-foreground hover:bg-main-hover transition-colors border border-gray-300 dark:border-slate-700 py-0.5 px-2 rounded-3xl'>
+                          <Badge className='bg-background text-foreground hover:bg-main-hover transition-colors border border-border py-0.5 px-2 rounded-3xl'>
                             {challenge.category}
                           </Badge>
                           {challenge.isTopTen && (
-                            <Badge className='bg-orange-300 hover:bg-orange-400 text-foreground border border-gray-300 dark:border-slate-700 py-0.5 px-2 rounded-3xl'>
+                            <Badge className='bg-orange-300 hover:bg-orange-400 text-foreground border border-border py-0.5 px-2 rounded-3xl'>
                               Top 10
                             </Badge>
                           )}
@@ -321,7 +321,7 @@ const MainContent = memo(function MainContent() {
         </Card>
 
         {/* Rewards & Streaks */}
-        <Card className='bg-background text-foreground border border-gray-300 dark:border-slate-700 py-6'>
+        <Card className='bg-background text-foreground border border-border py-6'>
           <CardHeader>
             <CardTitle className='flex items-center space-x-2'>
               <Trophy className='h-5 w-5' />
@@ -432,7 +432,7 @@ const MainContent = memo(function MainContent() {
                   <Card
                     key={badge.id}
                     className={`
-                  bg-background dark:bg-slate-700 rounded-lg p-3 text-center border border-gray-300 dark:border-slate-700
+                  bg-background dark:bg-slate-700 rounded-lg p-3 text-center border border-border
                   ${!badge.unlocked ? 'opacity-60' : ''}
                 `}
                   >

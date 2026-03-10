@@ -54,7 +54,7 @@ const MainContent = memo(function MainContent() {
         >
           <h2 className='text-xl font-bold mb-6'>Filters</h2>
 
-          <div className='border border-gray-300 dark:border-slate-700 rounded-md p-4'>
+          <div className='border border-border rounded-md p-4'>
             {/* Difficulty Filter */}
             <div className='mb-6 cursor-pointer'>
               <button
@@ -102,7 +102,7 @@ const MainContent = memo(function MainContent() {
                 </RadioGroup>
               )}
             </div>
-            <hr className='w-full border-gray-300 dark:border-slate-700 my-4' />
+            <hr className='w-full border-border my-4' />
 
             {/* Sort By Filter */}
             <div className='mb-6'>
@@ -145,7 +145,7 @@ const MainContent = memo(function MainContent() {
                 </RadioGroup>
               )}
             </div>
-            <hr className='w-full border-gray-300 dark:border-slate-700 my-4' />
+            <hr className='w-full border-border my-4' />
 
             {/* Reward Filter */}
             <div className='mb-6'>
@@ -178,7 +178,7 @@ const MainContent = memo(function MainContent() {
                 </div>
               )}
             </div>
-            <hr className='w-full border-gray-300 dark:border-slate-700 my-4' />
+            <hr className='w-full border-border my-4' />
 
             {/* Time Limit Filter */}
             <div className='mb-6'>
@@ -211,7 +211,7 @@ const MainContent = memo(function MainContent() {
                 </div>
               )}
             </div>
-            <hr className='w-full border-gray-300 dark:border-slate-700 my-4' />
+            <hr className='w-full border-border my-4' />
 
             {/* Availability Filter */}
             <div className='mb-6'>
@@ -253,7 +253,7 @@ const MainContent = memo(function MainContent() {
                 </RadioGroup>
               )}
             </div>
-            <hr className='w-full border-gray-300 dark:border-slate-700 my-4' />
+            <hr className='w-full border-border my-4' />
 
             {/* Time Range Filter */}
             <div>

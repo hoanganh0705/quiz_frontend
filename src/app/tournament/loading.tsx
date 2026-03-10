@@ -37,7 +37,7 @@ export default function TournamentLoading() {
         {Array.from({ length: 6 }).map((_, i) => (
           <div
             key={i}
-            className='border border-gray-300 dark:border-slate-700 rounded-xl overflow-hidden'
+            className='border border-border rounded-xl overflow-hidden'
           >
             {/* Tournament Image */}
             <Skeleton className='h-40 w-full' />

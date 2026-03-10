@@ -26,7 +26,7 @@ export function HelpCategories() {
   const [activeCategory, setActiveCategory] = useState('general')
 
   return (
-    <div className='bg-transparent border border-gray-300 dark:border-slate-700 rounded-lg p-6'>
+    <div className='bg-transparent border border-border rounded-lg p-6'>
       <h3 className='text-xl font-semibold mb-6'>Help Categories</h3>
       <nav className='space-y-2'>
         {categories.map((category) => {

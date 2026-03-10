@@ -160,7 +160,7 @@ export default function QuizDetail({ quiz }: QuizDetailProps) {
 
         {/* Sidebar */}
         <div className='col-span-1'>
-          <div className='space-y-6 text-foreground border border-gray-300 dark:border-slate-700 rounded-lg p-4 bg-background'>
+          <div className='space-y-6 text-foreground border border-border rounded-lg p-4 bg-background'>
             {/* Spots Filled */}
             <div className='bg-background rounded-lg p-4 pb-0'>
               <div className='flex justify-between items-center mb-2'>
@@ -278,7 +278,7 @@ export default function QuizDetail({ quiz }: QuizDetailProps) {
               <div className='flex justify-center gap-6 pt-2 mt-3'>
                 <Button
                   size='icon'
-                  className='text-foreground rounded-xl border border-gray-300 dark:border-slate-700 bg-transparent'
+                  className='text-foreground rounded-xl border border-border bg-transparent'
                   aria-label='Bookmark this quiz'
                 >
                   <Bookmark className='h-6 w-6' />
@@ -291,7 +291,7 @@ export default function QuizDetail({ quiz }: QuizDetailProps) {
                 >
                   <Button
                     size='icon'
-                    className='text-foreground rounded-xl border border-gray-300 dark:border-slate-700 bg-transparent'
+                    className='text-foreground rounded-xl border border-border bg-transparent'
                     aria-label='Share this quiz'
                   >
                     <Share2 className='h-6 w-6' />
@@ -300,7 +300,7 @@ export default function QuizDetail({ quiz }: QuizDetailProps) {
 
                 <Button
                   size='icon'
-                  className='text-foreground rounded-xl border border-gray-300 dark:border-slate-700 bg-transparent'
+                  className='text-foreground rounded-xl border border-border bg-transparent'
                   aria-label='Get notifications for this quiz'
                 >
                   <Bell className='h-6 w-6' />

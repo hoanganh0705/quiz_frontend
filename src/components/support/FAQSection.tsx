@@ -53,7 +53,7 @@ export function FAQSection() {
   )
 
   return (
-    <div className='bg-transparent border border-gray-300 dark:border-slate-700 rounded-lg p-8'>
+    <div className='bg-transparent border border-border rounded-lg p-8'>
       <div className='flex items-center justify-between mb-8 '>
         <h2 className='text-2xl font-bold'>General FAQs</h2>
         <div className='relative w-80'>
@@ -72,7 +72,7 @@ export function FAQSection() {
           <AccordionItem
             key={faq.id}
             value={faq.id}
-            className='bg-transparent rounded-lg border border-gray-300 dark:border-slate-700'
+            className='bg-transparent rounded-lg border border-border'
           >
             <AccordionTrigger className='px-6 py-4 text-left hover:underline'>
               <span className='text-foreground font-medium'>

@@ -1,15 +1,15 @@
-@import "tailwindcss";
-@import "tw-animate-css";
-@import "swiper/css";
-@import "swiper/css/pagination";
-@import "swiper/css/scrollbar";
-@import "swiper/css/effect-coverflow";
-@import "swiper/css/free-mode";
+@import 'tailwindcss';
+@import 'tw-animate-css';
+@import 'swiper/css';
+@import 'swiper/css/pagination';
+@import 'swiper/css/scrollbar';
+@import 'swiper/css/effect-coverflow';
+@import 'swiper/css/free-mode';
 
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  --background: oklch(1 0 0)  ;
+  --background: oklch(1 0 0);
   --main: oklch(0.9619 0.0179 272.31);
   --main-hover: oklch(0.9683 0.0069 247.9);
   --foreground: oklch(0.2656 0 0);
@@ -138,9 +138,8 @@
   --breakpoint-md: 768px;
   --breakpoint-lg: 960px;
   --breakpoint-xl: 1280px;
-  --breakpoint-xxl: 1536px;
+  --breakpoint-2xl: 1536px;
 
-  --font-primary: "var(--font-inter)";
   --color-default: oklch(0.65 0.15 270);
   --color-default-hover: oklch(0.72 0.15 270);
   --color-white-primary: oklch(0.98 0 0);

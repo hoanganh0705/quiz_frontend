@@ -259,7 +259,7 @@ const QuestionsTab = memo(function QuestionsTab() {
           <Button
             onClick={handleValidateAndSave}
             variant='outline'
-            className='border-gray-300 dark:border-slate-700 text-foreground'
+            className='border-border text-foreground'
             aria-label='Validate all questions'
           >
             Validate All
@@ -437,7 +437,7 @@ const QuestionsTab = memo(function QuestionsTab() {
                         className={`bg-transparent text-foreground placeholder:text-foreground/70 min-h-25 resize-y focus:ring-offset-0 focus:ring-0 border ${
                           questionErrors?.text && touched[`${question.id}-text`]
                             ? 'border-red-500 focus:border-red-500'
-                            : 'border-gray-300 dark:border-slate-700'
+                            : 'border-border'
                         }`}
                       />
                       {questionErrors?.text &&
@@ -494,7 +494,7 @@ const QuestionsTab = memo(function QuestionsTab() {
                                     `${question.id}-option-${optionIndex}`
                                   ]
                                     ? 'border-red-500 focus:border-red-500'
-                                    : 'border-gray-300 dark:border-slate-700'
+                                    : 'border-border'
                                 }`}
                               />
                               {questionErrors?.options?.[optionIndex] &&
@@ -530,7 +530,7 @@ const QuestionsTab = memo(function QuestionsTab() {
                             e.target.value
                           )
                         }
-                        className='bg-transparent text-foreground placeholder:text-foreground/70 min-h-20 resize-y focus:ring-offset-0 focus:ring-0 border border-gray-300 dark:border-slate-700'
+                        className='bg-transparent text-foreground placeholder:text-foreground/70 min-h-20 resize-y focus:ring-offset-0 focus:ring-0 border border-border'
                       />
                     </div>
                   </div>

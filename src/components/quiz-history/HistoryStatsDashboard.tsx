@@ -57,7 +57,7 @@ function StatCard({
   color: string
 }) {
   return (
-    <Card className='bg-background border border-gray-300 dark:border-slate-700'>
+    <Card className='bg-background border border-border'>
       <CardContent className='p-4 flex items-center gap-4'>
         <div className={`p-3 rounded-xl ${color}`}>
           <Icon className='h-5 w-5 text-white' />
@@ -137,7 +137,7 @@ export const HistoryStatsDashboard = memo(function HistoryStatsDashboard({
       {/* Accuracy & Difficulty */}
       <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
         {/* Accuracy overview */}
-        <Card className='bg-background border border-gray-300 dark:border-slate-700'>
+        <Card className='bg-background border border-border'>
           <CardHeader className='pb-2'>
             <CardTitle className='text-base flex items-center gap-2'>
               <CheckCircle className='h-4 w-4 text-green-500' />
@@ -156,7 +156,7 @@ export const HistoryStatsDashboard = memo(function HistoryStatsDashboard({
         </Card>
 
         {/* Difficulty breakdown */}
-        <Card className='bg-background border border-gray-300 dark:border-slate-700'>
+        <Card className='bg-background border border-border'>
           <CardHeader className='pb-2'>
             <CardTitle className='text-base flex items-center gap-2'>
               <TrendingUp className='h-4 w-4 text-purple-500' />
@@ -192,7 +192,7 @@ export const HistoryStatsDashboard = memo(function HistoryStatsDashboard({
       </div>
 
       {/* Charts */}
-      <Card className='bg-background border border-gray-300 dark:border-slate-700 py-6'>
+      <Card className='bg-background border border-border py-6'>
         <CardHeader>
           <CardTitle className='flex items-center gap-2'>
             <Trophy className='h-5 w-5 text-yellow-500' />

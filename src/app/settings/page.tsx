@@ -11,7 +11,8 @@ import {
   DangerZone
 } from '@/components/settings'
 import { useLocalStorage } from '@/hooks/use-local-storage'
-import { UserSettings, SettingsTab, defaultSettings } from '@/types/settings'
+import { UserSettings, SettingsTab } from '@/types/settings'
+import { defaultSettings } from '@/constants/settings'
 import { User, Bell, Shield, Globe, Link2, AlertTriangle } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -160,7 +161,7 @@ const SettingsPage = memo(function SettingsPage() {
         <div className='grid grid-cols-1 lg:grid-cols-4 gap-8'>
           {/* Sidebar Navigation */}
           <div className='lg:col-span-1'>
-            <div className='bg-transparent border border-gray-300 dark:border-slate-700 rounded-lg p-6'>
+            <div className='bg-transparent border border-border rounded-lg p-6'>
               <h3 className='text-xl font-semibold mb-6'>Settings</h3>
               <nav className='space-y-2' aria-label='Settings navigation'>
                 {settingsTabs.map((tab) => (

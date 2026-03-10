@@ -37,7 +37,7 @@ export default function QuizPlatform() {
             id='quiz-search'
             name='search'
             placeholder='Search quizzes by title, category, or creator\u2026'
-            className='pl-10 bg-transparent border-x border-gray-300 dark:border-slate-700 text-foreground placeholder:text-foreground/70 h-8 placeholder:text-sm'
+            className='pl-10 bg-transparent border-x border-border text-foreground placeholder:text-foreground/70 h-8 placeholder:text-sm'
           />
         </div>
       </search>
@@ -56,7 +56,7 @@ export default function QuizPlatform() {
               <Button
                 aria-current={category.active ? 'true' : undefined}
                 aria-label={`Filter by ${category.name}`}
-                className={`whitespace-nowrap rounded-full border border-gray-300 dark:border-slate-700 ${
+                className={`whitespace-nowrap rounded-full border border-border ${
                   category.active
                     ? 'bg-default hover:bg-default/90 text-white'
                     : 'bg-transparent hover:bg-main/90'

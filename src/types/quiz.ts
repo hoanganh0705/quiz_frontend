@@ -7,7 +7,6 @@ export interface Quiz {
   difficulty: 'Easy' | 'Medium' | 'Hard'
   image: string
   currentPlayers: number
-  players: number
   maxPlayers: number
   requirements: string
   tags: string[]
@@ -43,7 +42,7 @@ export interface Quiz {
   leaderBoard: {
     userId: number
     username: string
-    score: number | string
+    score: number
     rank: number
     completedAt: string
     avatar?: string
@@ -52,10 +51,7 @@ export interface Quiz {
   badges: string[]
   timeLeft?: number
   reward: number
-  spots: number
   spotsLeft: number
   bgGradient: string
   almostFull?: boolean
-  authorAvatarSrc: string
-  authorName: string
 }

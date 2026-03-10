@@ -33,7 +33,7 @@ export default function NotFound() {
           <Button
             asChild
             variant='outline'
-            className='border-gray-300 dark:border-slate-700 text-primary'
+            className='border-border text-primary'
           >
             <Link href='/quizzes'>
               <Search className='w-4 h-4 mr-2' />

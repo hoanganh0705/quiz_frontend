@@ -139,7 +139,7 @@ const TournamentCard = memo(function TournamentCard({
 }) {
   return (
     <Card
-      className='bg-background border-gray-300 dark:border-slate-700 overflow-hidden'
+      className='bg-background border-border overflow-hidden'
       role='article'
       aria-labelledby={`tournament-${tournament.id}`}
     >
@@ -289,12 +289,12 @@ function QuizTournament() {
           <h2 className='text-2xl font-bold'>All Tournaments</h2>
           <Select value={filter} onValueChange={handleFilterChange}>
             <SelectTrigger
-              className='w-48 bg-background border-gray-300 dark:border-slate-700'
+              className='w-48 bg-background border-border'
               aria-label='Filter tournaments'
             >
               <SelectValue placeholder='All Tournaments' />
             </SelectTrigger>
-            <SelectContent className='bg-background border-gray-300 dark:border-slate-700'>
+            <SelectContent className='bg-background border-border'>
               <SelectItem value='all' className='text-foreground border'>
                 <div className='flex items-center gap-2'>
                   <Check className='w-4 h-4' aria-hidden='true' />
@@ -332,7 +332,7 @@ function QuizTournament() {
               <TabsTrigger
                 key={category}
                 value={category}
-                className='shrink-0 whitespace-nowrap px-2.5 py-1 text-xs sm:text-sm border-gray-300 dark:border-slate-700 rounded-full  sm:px-4 sm:py-1.5 font-medium text-foreground/70 data-[state=active]:bg-default data-[state=active]:text-white hover:bg-default-hover hover:text-white transition-all duration-200'
+                className='shrink-0 whitespace-nowrap px-2.5 py-1 text-xs sm:text-sm border-border rounded-full  sm:px-4 sm:py-1.5 font-medium text-foreground/70 data-[state=active]:bg-default data-[state=active]:text-white hover:bg-default-hover hover:text-white transition-all duration-200'
               >
                 {category === 'all' ? 'All Categories' : category}
               </TabsTrigger>

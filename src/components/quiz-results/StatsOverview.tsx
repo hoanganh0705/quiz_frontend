@@ -12,7 +12,7 @@ export default function StatsOverview({
   const incorrectPercentage = (result.incorrectCount / totalQuestions) * 100
 
   return (
-    <Card className='bg-background border border-gray-300 dark:border-slate-700 mb-8'>
+    <Card className='bg-background border border-border mb-8'>
       <CardContent className='p-6 space-y-6'>
         {/* Correct Answers */}
         <div className='space-y-2'>
