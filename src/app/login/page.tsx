@@ -16,8 +16,6 @@ import { useToggle, useAsyncAction } from '@/hooks'
 
 // Hoist schema outside component (data-hoisting)
 const loginSchema = z.object({
-  firstName: z.string().min(1, 'First name is required'),
-  lastName: z.string().min(1, 'Last name is required'),
   email: z.email('Please enter a valid email address'),
   password: z
     .string()
@@ -39,8 +37,6 @@ const LoginPage = memo(function LoginPage() {
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      firstName: '',
-      lastName: '',
       email: '',
       password: '',
       rememberMe: false
@@ -49,15 +45,14 @@ const LoginPage = memo(function LoginPage() {
 
   const { execute: onSubmit, isLoading } = useAsyncAction(
     async (data: LoginFormData) => {
-      // Simulate API call
+      // TODO: Implement actual login API call
       await new Promise((resolve) => setTimeout(resolve, 1500))
-      console.log('Login attempt:', data)
     }
   )
 
   // Use useCallback for event handlers (rerender-functional-setstate)
-  const handleSocialLogin = useCallback((provider: string) => {
-    console.log(`Login with ${provider}`)
+  const handleSocialLogin = useCallback((_provider: string) => {
+    // TODO: Implement social login
   }, [])
 
   return (

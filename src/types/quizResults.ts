@@ -11,6 +11,17 @@ export interface QuizResult {
   timePerQuestion: Record<number, number>
 }
 
+// Quiz progress interface (used for localStorage persistence)
+export interface QuizProgress {
+  currentQuestion: number
+  answers: Record<number, string>
+  timeLeft: number
+  timerStarted: boolean
+  startedAt: number | null
+  timePerQuestion: Record<number, number>
+  questionStartTime: number | null
+}
+
 export interface QuestionReview {
   questionIndex: number
   question: string

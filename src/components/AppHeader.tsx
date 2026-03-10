@@ -6,18 +6,11 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { ModeToggle } from '@/components/ModeToggle'
 import { SidebarTrigger, useSidebar } from '@/components/ui/sidebar'
 import { NotificationDropdown } from '@/components/NotificationDropdown'
-import { useEffect, useState } from 'react'
+import { useIsMobile } from '@/hooks'
 
 export function AppHeader() {
   const { state } = useSidebar()
-  const [isMobile, setIsMobile] = useState(false)
-
-  useEffect(() => {
-    const check = () => setIsMobile(window.innerWidth < 768)
-    check()
-    window.addEventListener('resize', check)
-    return () => window.removeEventListener('resize', check)
-  }, [])
+  const isMobile = useIsMobile()
 
   const sidebarWidth = isMobile ? '0' : state === 'expanded' ? '16rem' : '3rem'
 

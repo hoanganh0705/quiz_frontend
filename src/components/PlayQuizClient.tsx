@@ -1,6 +1,12 @@
 'use client'
 
 import { Quiz } from '@/types/quiz'
+import { QuizResult, QuizProgress } from '@/types/quizResults'
+import {
+  getStorageKey,
+  getResultsKey,
+  formatTime
+} from '@/lib/quizResultsUtils'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useState, useEffect, useCallback, useRef } from 'react'
@@ -22,32 +28,6 @@ import { MobileQuizTimer } from './quiz-page/MobileQuizTimer'
 import { SwipeIndicator } from './quiz-page/SwipeIndicator'
 import { cn } from '@/lib/utils'
 
-// Storage key generator
-const getStorageKey = (quizId: string) => `quiz_progress_${quizId}`
-const getResultsKey = (quizId: string) => `quiz_results_${quizId}`
-
-// Quiz progress interface
-interface QuizProgress {
-  currentQuestion: number
-  answers: Record<number, string>
-  timeLeft: number
-  timerStarted: boolean
-  startedAt: number | null
-  timePerQuestion: Record<number, number>
-  questionStartTime: number | null
-}
-
-// Quiz result interface
-interface QuizResult {
-  answers: Record<number, string>
-  timeTaken: number
-  completedAt: number
-  score: number
-  correctCount: number
-  incorrectCount: number
-  timePerQuestion: Record<number, number>
-}
-
 export default function PlayQuizClient({ quiz }: { quiz: Quiz }) {
   const router = useRouter()
   const isSubmittedRef = useRef(false)
@@ -66,6 +46,12 @@ export default function PlayQuizClient({ quiz }: { quiz: Quiz }) {
     }
   )
 
+  // Use localStorage hook for quiz results (replaces direct localStorage.setItem)
+  const [, setResults] = useLocalStorage<QuizResult | null>(
+    getResultsKey(quiz.id),
+    null
+  )
+
   // Local state for individual properties (derived from progress)
   const [isLoaded, setIsLoaded] = useState(false)
   const [currentQuestion, setCurrentQuestion] = useState(
@@ -79,7 +65,11 @@ export default function PlayQuizClient({ quiz }: { quiz: Quiz }) {
     progress.questionStartTime
   )
 
+  // Store initial progress values in refs for initialization effect
+  const initialProgressRef = useRef(progress)
+
   // Use custom countdown timer hook
+  const handleSubmitRef = useRef<() => void>(() => {})
   const {
     timeLeft,
     isRunning: timerStarted,
@@ -89,7 +79,7 @@ export default function PlayQuizClient({ quiz }: { quiz: Quiz }) {
     initialTime: progress.timeLeft,
     onComplete: () => {
       if (!isSubmittedRef.current) {
-        handleSubmit()
+        handleSubmitRef.current()
       }
     },
     autoStart: false
@@ -97,14 +87,13 @@ export default function PlayQuizClient({ quiz }: { quiz: Quiz }) {
 
   const [startedAt, setStartedAt] = useState<number | null>(progress.startedAt)
 
-  // Initialize from stored progress
+  // Initialize from stored progress (runs once on mount)
   useEffect(() => {
-    if (progress.timerStarted && progress.startedAt) {
+    const prog = initialProgressRef.current
+    if (prog.timerStarted && prog.startedAt) {
       // Calculate elapsed time if timer was running
-      const elapsedSeconds = Math.floor(
-        (Date.now() - progress.startedAt) / 1000
-      )
-      const adjustedTimeLeft = Math.max(0, progress.timeLeft - elapsedSeconds)
+      const elapsedSeconds = Math.floor((Date.now() - prog.startedAt) / 1000)
+      const adjustedTimeLeft = Math.max(0, prog.timeLeft - elapsedSeconds)
 
       setTimeLeft(adjustedTimeLeft)
 
@@ -114,7 +103,7 @@ export default function PlayQuizClient({ quiz }: { quiz: Quiz }) {
       }
     }
     setIsLoaded(true)
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [setTimeLeft, startTimer])
 
   // Sync state changes to localStorage
   useEffect(() => {
@@ -179,7 +168,7 @@ export default function PlayQuizClient({ quiz }: { quiz: Quiz }) {
         ? Math.floor((Date.now() - startedAt) / 1000)
         : 0
 
-      // Save results
+      // Save results using localStorage hook
       const result: QuizResult = {
         answers,
         timeTaken: totalTimeTaken,
@@ -190,8 +179,7 @@ export default function PlayQuizClient({ quiz }: { quiz: Quiz }) {
         timePerQuestion: finalTimePerQuestion
       }
 
-      const resultsKey = getResultsKey(quiz.id)
-      localStorage.setItem(resultsKey, JSON.stringify(result))
+      setResults(result)
     }
 
     clearProgress()
@@ -206,6 +194,7 @@ export default function PlayQuizClient({ quiz }: { quiz: Quiz }) {
     quiz.id,
     quiz.questions,
     router,
+    setResults,
     startedAt,
     timePerQuestion
   ])
@@ -252,12 +241,36 @@ export default function PlayQuizClient({ quiz }: { quiz: Quiz }) {
     quiz.questions[Math.min(currentQuestion, quiz.questions.length - 1)]
   const isLastQuestion = currentQuestion === quiz.questions.length - 1
 
+  // Use refs for keyboard shortcut callbacks to avoid re-registering listeners
+  const handleNextRef = useRef(handleNextQuestion)
+  const handlePrevRef = useRef(handlePreviousQuestion)
+  const handleAnswerRef = useRef(handleAnswer)
+  const handleSubmitRef2 = useRef(handleSubmit)
+  const currentQRef = useRef(currentQ)
+  const answersRef = useRef(answers)
+  const currentQuestionRef = useRef(currentQuestion)
+  const isLastQuestionRef = useRef(isLastQuestion)
+
+  useEffect(() => {
+    handleNextRef.current = handleNextQuestion
+    handlePrevRef.current = handlePreviousQuestion
+    handleAnswerRef.current = handleAnswer
+    handleSubmitRef2.current = handleSubmit
+    currentQRef.current = currentQ
+    answersRef.current = answers
+    currentQuestionRef.current = currentQuestion
+    isLastQuestionRef.current = isLastQuestion
+  })
+
+  // Keep handleSubmitRef in sync for timer onComplete callback
+  handleSubmitRef.current = handleSubmit
+
   // Navigate to next question with ArrowRight
   useKeyboardShortcut(
     'arrowright',
     useCallback(() => {
-      handleNextQuestion()
-    }, [currentQuestion, quiz.questions.length, questionStartTime]), // eslint-disable-line react-hooks/exhaustive-deps
+      handleNextRef.current()
+    }, []),
     { meta: false, preventDefault: true }
   )
 
@@ -265,8 +278,8 @@ export default function PlayQuizClient({ quiz }: { quiz: Quiz }) {
   useKeyboardShortcut(
     'arrowleft',
     useCallback(() => {
-      handlePreviousQuestion()
-    }, [currentQuestion, questionStartTime]), // eslint-disable-line react-hooks/exhaustive-deps
+      handlePrevRef.current()
+    }, []),
     { meta: false, preventDefault: true }
   )
 
@@ -274,32 +287,36 @@ export default function PlayQuizClient({ quiz }: { quiz: Quiz }) {
   useKeyboardShortcut(
     '1',
     useCallback(() => {
-      if (currentQ.answers[0]) handleAnswer(currentQ.answers[0].value)
-    }, [currentQ, timerStarted]), // eslint-disable-line react-hooks/exhaustive-deps
+      if (currentQRef.current.answers[0])
+        handleAnswerRef.current(currentQRef.current.answers[0].value)
+    }, []),
     { meta: false, preventDefault: true }
   )
 
   useKeyboardShortcut(
     '2',
     useCallback(() => {
-      if (currentQ.answers[1]) handleAnswer(currentQ.answers[1].value)
-    }, [currentQ, timerStarted]), // eslint-disable-line react-hooks/exhaustive-deps
+      if (currentQRef.current.answers[1])
+        handleAnswerRef.current(currentQRef.current.answers[1].value)
+    }, []),
     { meta: false, preventDefault: true }
   )
 
   useKeyboardShortcut(
     '3',
     useCallback(() => {
-      if (currentQ.answers[2]) handleAnswer(currentQ.answers[2].value)
-    }, [currentQ, timerStarted]), // eslint-disable-line react-hooks/exhaustive-deps
+      if (currentQRef.current.answers[2])
+        handleAnswerRef.current(currentQRef.current.answers[2].value)
+    }, []),
     { meta: false, preventDefault: true }
   )
 
   useKeyboardShortcut(
     '4',
     useCallback(() => {
-      if (currentQ.answers[3]) handleAnswer(currentQ.answers[3].value)
-    }, [currentQ, timerStarted]), // eslint-disable-line react-hooks/exhaustive-deps
+      if (currentQRef.current.answers[3])
+        handleAnswerRef.current(currentQRef.current.answers[3].value)
+    }, []),
     { meta: false, preventDefault: true }
   )
 
@@ -307,14 +324,14 @@ export default function PlayQuizClient({ quiz }: { quiz: Quiz }) {
   useKeyboardShortcut(
     'enter',
     useCallback(() => {
-      if (answers[currentQuestion]) {
-        if (isLastQuestion) {
-          handleSubmit()
+      if (answersRef.current[currentQuestionRef.current]) {
+        if (isLastQuestionRef.current) {
+          handleSubmitRef2.current()
         } else {
-          handleNextQuestion()
+          handleNextRef.current()
         }
       }
-    }, [answers, currentQuestion, isLastQuestion, questionStartTime]), // eslint-disable-line react-hooks/exhaustive-deps
+    }, []),
     { meta: false, preventDefault: true }
   )
 
@@ -333,15 +350,7 @@ export default function PlayQuizClient({ quiz }: { quiz: Quiz }) {
     quizContainerRef
   )
 
-  // Format time display
-  const formatTime = (seconds: number) => {
-    const hours = Math.floor(seconds / 3600)
-    const minutes = Math.floor((seconds % 3600) / 60)
-    const remainingSeconds = seconds % 60
-    return `${hours}:${minutes.toString().padStart(2, '0')}:${remainingSeconds
-      .toString()
-      .padStart(2, '0')}`
-  }
+  // formatTime is now imported from @/lib/quizResultsUtils
 
   // Loading state: use ellipsis per typography guidelines
   if (!isLoaded) {

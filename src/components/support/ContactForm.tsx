@@ -76,11 +76,8 @@ export function ContactForm() {
 
   const { execute: onSubmit, isLoading: isSubmitting } = useAsyncAction(
     async (data: ContactFormData) => {
-      // Simulate API call
+      // TODO: Implement actual contact form submission API call
       await new Promise((resolve) => setTimeout(resolve, 1500))
-
-      // Here you would send the data to your backend
-      console.log('Form submitted:', { ...data, attachment: selectedFile })
 
       reset()
       setSelectedFile(null)
