@@ -64,11 +64,11 @@ const QuizDetailsTab = memo(function QuizDetailsTab() {
           <Select defaultValue='medium'>
             <SelectTrigger
               id='difficulty-level'
-              className='w-full bg-white dark:bg-background text-foreground placeholder:text-foreground/70 focus:ring-offset-0 focus:ring-0 border border-border'
+              className='w-full bg-background text-foreground placeholder:text-foreground/70 focus:ring-offset-0 focus:ring-0 border border-border'
             >
               <SelectValue placeholder='Select difficulty' />
             </SelectTrigger>
-            <SelectContent className='bg-white dark:bg-background text-foreground'>
+            <SelectContent className='bg-background text-foreground'>
               <SelectItem value='easy'>Easy</SelectItem>
               <SelectItem value='medium'>Medium</SelectItem>
               <SelectItem value='hard'>Hard</SelectItem>

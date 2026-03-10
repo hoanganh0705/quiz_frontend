@@ -34,12 +34,12 @@ const QuizCardDifficultyList = () => {
           <h1 className='text-xl font-bold text-foreground md:text-2xl'>
             Quizzes by Difficulty
           </h1>
-          <p className='text-md text-gray-400 md:text-base'>
+          <p className='text-md text-muted-foreground md:text-base'>
             Choose challenges according to your skill level
           </p>
         </div>
         <div className='flex items-center gap-2'>
-          <div className='flex rounded-lg bg-gray-200 dark:bg-slate-800/50 p-1'>
+          <div className='flex rounded-lg bg-muted p-1'>
             {(['Easy', 'Medium', 'Hard'] as const).map((level) => (
               <Button
                 key={level}

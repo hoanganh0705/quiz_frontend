@@ -66,14 +66,14 @@ const QuizForm = memo(function QuizForm() {
       >
         <div className='flex flex-wrap gap-3'>
           <Button
-            className='bg-transparent dark:hover:bg-slate-800 hover:bg-main-hover border border-border text-foreground px-4 py-2 rounded-md'
+            className='bg-transparent hover:bg-main-hover border border-border text-foreground px-4 py-2 rounded-md'
             aria-label='Create new quiz'
           >
             <Plus className='w-4 h-4 mr-2' aria-hidden='true' />
             New Quiz
           </Button>
           <Button
-            className='bg-transparent dark:hover:bg-slate-800 hover:bg-main-hover border border-border text-foreground px-4 py-2 rounded-md'
+            className='bg-transparent hover:bg-main-hover border border-border text-foreground px-4 py-2 rounded-md'
             aria-label='Preview quiz'
           >
             <Eye className='w-4 h-4 mr-2' aria-hidden='true' />
@@ -89,7 +89,7 @@ const QuizForm = memo(function QuizForm() {
             Delete Quiz
           </Button>
           <Button
-            className='bg-transparent dark:hover:bg-slate-800 hover:bg-main-hover text-foreground px-4 py-2 rounded-md border border-border'
+            className='bg-transparent hover:bg-main-hover text-foreground px-4 py-2 rounded-md border border-border'
             aria-label='Save draft'
           >
             <Save className='w-4 h-4 mr-2' aria-hidden='true' />

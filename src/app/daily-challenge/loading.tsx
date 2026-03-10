@@ -38,10 +38,7 @@ export default function DailyChallengeLoading() {
             {/* Stats */}
             <div className='grid grid-cols-3 gap-4 mb-6'>
               {Array.from({ length: 3 }).map((_, i) => (
-                <div
-                  key={i}
-                  className='text-center p-3 bg-gray-50 dark:bg-slate-800 rounded-lg'
-                >
+                <div key={i} className='text-center p-3 bg-muted rounded-lg'>
                   <Skeleton className='h-6 w-12 mx-auto mb-1' />
                   <Skeleton className='h-4 w-16 mx-auto' />
                 </div>
@@ -71,7 +68,7 @@ export default function DailyChallengeLoading() {
           {Array.from({ length: 5 }).map((_, i) => (
             <div
               key={i}
-              className='flex items-center gap-4 p-3 bg-gray-50 dark:bg-slate-800 rounded-lg'
+              className='flex items-center gap-4 p-3 bg-muted rounded-lg'
             >
               <Skeleton className='h-8 w-8 rounded-full' />
               <Skeleton className='h-10 w-10 rounded-full' />

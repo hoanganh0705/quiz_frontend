@@ -158,7 +158,7 @@ export function PlayerCardSkeleton({ className }: QuizCardSkeletonProps) {
   return (
     <div
       className={cn(
-        'relative overflow-hidden rounded-lg bg-main dark:bg-slate-900 border border-border h-full',
+        'relative overflow-hidden rounded-lg bg-main border border-border h-full',
         className
       )}
     >
@@ -297,12 +297,7 @@ export function ProfileHeaderSkeleton({ className }: { className?: string }) {
 // ==========================================
 export function StatsCardSkeleton({ className }: { className?: string }) {
   return (
-    <div
-      className={cn(
-        'p-4 border border-border rounded-lg',
-        className
-      )}
-    >
+    <div className={cn('p-4 border border-border rounded-lg', className)}>
       <div className='flex items-center justify-between mb-2'>
         <Skeleton className='h-4 w-24' />
         <Skeleton className='h-8 w-8 rounded-full' />

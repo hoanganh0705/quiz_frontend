@@ -55,10 +55,7 @@ export function ProgressIndicator({
         </div>
       )}
       <div
-        className={cn(
-          'bg-gray-200 dark:bg-slate-700 rounded-full overflow-hidden',
-          heightMap[size]
-        )}
+        className={cn('bg-muted rounded-full overflow-hidden', heightMap[size])}
       >
         <div
           className={cn(
@@ -108,7 +105,7 @@ export function CircularProgress({
           fill='none'
           stroke='currentColor'
           strokeWidth={strokeWidth}
-          className='text-gray-200 dark:text-slate-700'
+          className='text-muted'
         />
         {/* Progress circle */}
         <circle
@@ -160,9 +157,7 @@ export function StepProgress({
                 <div
                   className={cn(
                     'flex-1 h-0.5 transition-colors',
-                    index <= currentStep
-                      ? 'bg-default'
-                      : 'bg-gray-200 dark:bg-slate-700'
+                    index <= currentStep ? 'bg-default' : 'bg-muted'
                   )}
                 />
               )}
@@ -173,7 +168,7 @@ export function StepProgress({
                     ? 'bg-default border-default text-white'
                     : index === currentStep
                       ? 'border-default text-default bg-background'
-                      : 'border-gray-300 dark:border-slate-600 text-foreground/50'
+                      : 'border-border text-foreground/50'
                 )}
               >
                 {index < currentStep ? (
@@ -188,9 +183,7 @@ export function StepProgress({
                 <div
                   className={cn(
                     'flex-1 h-0.5 transition-colors',
-                    index < currentStep
-                      ? 'bg-default'
-                      : 'bg-gray-200 dark:bg-slate-700'
+                    index < currentStep ? 'bg-default' : 'bg-muted'
                   )}
                 />
               )}
@@ -228,7 +221,7 @@ export function IndeterminateBar({ className }: IndeterminateBarProps) {
   return (
     <div
       className={cn(
-        'w-full h-1 bg-gray-200 dark:bg-slate-700 rounded-full overflow-hidden',
+        'w-full h-1 bg-muted rounded-full overflow-hidden',
         className
       )}
     >

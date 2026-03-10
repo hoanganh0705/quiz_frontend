@@ -26,7 +26,7 @@ export function PlayerCard({
   }
 
   return (
-    <div className='relative overflow-hidden rounded-lg bg-main dark:bg-slate-900 border border-border text-foreground shadow-lg h-full'>
+    <div className='relative overflow-hidden rounded-lg bg-main border border-border text-foreground shadow-lg h-full'>
       <div className='relative h-32 w-full'>
         <Image
           src={bgImageUrl || '/placeholder.svg'}

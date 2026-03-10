@@ -134,7 +134,7 @@ export const LeaderboardHeader = memo(function LeaderboardHeader({
           aria-label='Leaderboard statistics overview'
         >
           {/* Total Participants */}
-          <div className='dark:bg-slate-800/50 background  p-4 rounded-lg border border-border'>
+          <div className='bg-background p-4 rounded-lg border border-border'>
             <div className='flex items-center justify-between'>
               <div>
                 <p className='text-foreground/80 text-sm'>Total Participants</p>
@@ -152,7 +152,7 @@ export const LeaderboardHeader = memo(function LeaderboardHeader({
           </div>
 
           {/* Season End */}
-          <div className='dark:bg-slate-800/50  bg-background p-4 rounded-lg border border-border'>
+          <div className='bg-background p-4 rounded-lg border border-border'>
             <div className='flex items-center justify-between'>
               <div>
                 <p className='text-foreground/80 text-sm'>Season Ends</p>
@@ -170,7 +170,7 @@ export const LeaderboardHeader = memo(function LeaderboardHeader({
           </div>
 
           {/* Your Rank */}
-          <div className='dark:bg-slate-800/50  bg-background p-4 rounded-lg border border-border'>
+          <div className='bg-background p-4 rounded-lg border border-border'>
             <div className='flex items-center justify-between'>
               <div>
                 <p className='text-foreground/80 text-sm'>Your Rank</p>
@@ -188,7 +188,7 @@ export const LeaderboardHeader = memo(function LeaderboardHeader({
           </div>
 
           {/* Your Points */}
-          <div className='dark:bg-slate-800/50  bg-background p-4 rounded-lg border border-border'>
+          <div className='bg-background p-4 rounded-lg border border-border'>
             <div className='flex items-center justify-between'>
               <div>
                 <p className='text-foreground/80 text-sm'>Your Points</p>

@@ -121,19 +121,19 @@ export default function QuizDetail({ quiz }: QuizDetailProps) {
             <TabsList className='grid w-full grid-cols-3 dark:bg-[#1e293b80]'>
               <TabsTrigger
                 value='overview'
-                className='dark:data-[state=active]:bg-slate-700 data-[state=active]:bg-background data-[state=active]:text-foreground text-foreground/70'
+                className='data-[state=active]:bg-muted data-[state=active]:text-foreground text-foreground/70'
               >
                 Overview
               </TabsTrigger>
               <TabsTrigger
                 value='leaderboard'
-                className='dark:data-[state=active]:bg-slate-700 data-[state=active]:bg-background data-[state=active]:text-foreground text-foreground/70'
+                className='data-[state=active]:bg-muted data-[state=active]:text-foreground text-foreground/70'
               >
                 Leaderboard
               </TabsTrigger>
               <TabsTrigger
                 value='reviews'
-                className='dark:data-[state=active]:bg-slate-700 data-[state=active]:bg-background data-[state=active]:text-foreground text-foreground/70'
+                className='data-[state=active]:bg-muted data-[state=active]:text-foreground text-foreground/70'
               >
                 Reviews
               </TabsTrigger>
@@ -188,7 +188,7 @@ export default function QuizDetail({ quiz }: QuizDetailProps) {
             <div className='bg-background p-4 rounded-lg mb-3'>
               {/* Quiz Details Grid */}
               <div className='grid grid-cols-2 gap-4 mb-5 grid-rows-[auto] items-stretch'>
-                <Card className='bg-background border dark:border-slate-700 border-gray-300 h-full'>
+                <Card className='bg-background border border-border h-full'>
                   <CardContent className='rounded-lg border p-3 h-full'>
                     <div className='text-xs text-muted-foreground mb-1'>
                       Category
@@ -200,7 +200,7 @@ export default function QuizDetail({ quiz }: QuizDetailProps) {
                   </CardContent>
                 </Card>
 
-                <Card className='bg-background border dark:border-slate-700 border-gray-300 h-full'>
+                <Card className='bg-background border border-border h-full'>
                   <CardContent className='rounded-lg border p-3 h-full '>
                     <div className='text-xs text-muted-foreground mb-1'>
                       Questions
@@ -209,7 +209,7 @@ export default function QuizDetail({ quiz }: QuizDetailProps) {
                   </CardContent>
                 </Card>
 
-                <Card className='bg-background border dark:border-slate-700 border-gray-300 h-full'>
+                <Card className='bg-background border border-border h-full'>
                   <CardContent className='rounded-lg border p-3 h-full '>
                     <div className='text-xs text-muted-foreground mb-1'>
                       Time Limit
@@ -218,7 +218,7 @@ export default function QuizDetail({ quiz }: QuizDetailProps) {
                   </CardContent>
                 </Card>
 
-                <Card className='bg-background border dark:border-slate-700 border-gray-300 h-full'>
+                <Card className='bg-background border border-border h-full'>
                   <CardContent className='rounded-lg border p-3 h-full '>
                     <div className='text-xs text-muted-foreground mb-1'>
                       Difficulty
@@ -229,10 +229,10 @@ export default function QuizDetail({ quiz }: QuizDetailProps) {
               </div>
 
               {/* Creator Profile */}
-              <Card className='bg-background border dark:border-slate-700 border-gray-300 mb-5'>
+              <Card className='bg-background border border-border mb-5'>
                 <CardContent className='p-4'>
                   <div className='flex items-center gap-3 mb-4'>
-                    <div className='w-12 h-12 rounded-full overflow-hidden bg-slate-600'>
+                    <div className='w-12 h-12 rounded-full overflow-hidden bg-muted'>
                       <Image
                         src={quiz.creator.imageURL}
                         alt={`${quiz.creator.name}'s name`}

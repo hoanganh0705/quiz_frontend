@@ -25,7 +25,7 @@ const Reviews = () => {
             quiz.quizReview?.map((review) => (
               <article
                 key={`${quiz.id || quizIndex}-${review.userId}`}
-                className='border border-slate-700 rounded-lg p-6 bg-background'
+                className='border border-border rounded-lg p-6 bg-background'
                 role='listitem'
               >
                 <div className='flex items-start gap-4'>

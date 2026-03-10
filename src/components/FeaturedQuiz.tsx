@@ -33,7 +33,7 @@ const FeaturedQuiz = memo(function FeaturedQuiz() {
             <h2 className='text-2xl font-bold mb-1 text-foreground'>
               Featured Quizzes
             </h2>
-            <p className='text-slate-400'>
+            <p className='text-muted-foreground'>
               Specially selected quizzes you don&apos;t want to miss
             </p>
           </div>

@@ -169,7 +169,7 @@ export function ContactForm() {
               >
                 <SelectValue placeholder='Select a category' />
               </SelectTrigger>
-              <SelectContent className='bg-gray-300 dark:bg-slate-700 border-border'>
+              <SelectContent className='bg-muted border-border'>
                 <SelectItem
                   value='general'
                   className='text-foreground hover:bg-default-hover'

@@ -15,7 +15,7 @@ export default async function QuizDetailPage({
       <div className='min-h-screen flex items-center justify-center'>
         <div className='text-center'>
           <h1 className='text-2xl font-bold'>Can not find this quiz</h1>
-          <p className='text-slate-400 mb-6'>Quiz is unavailable</p>
+          <p className='text-muted-foreground mb-6'>Quiz is unavailable</p>
           <Link
             href='/quizzes'
             className='bg-default hover:bg-default-hover text-white px-6 py-2 rounded-lg transition'

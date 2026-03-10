@@ -156,7 +156,7 @@ export function NotificationDropdown() {
         sideOffset={8}
       >
         {/* Header */}
-        <div className='flex items-center justify-between px-3 sm:px-4 py-2.5 sm:py-3 border-b border-gray-200 dark:border-slate-700'>
+        <div className='flex items-center justify-between px-3 sm:px-4 py-2.5 sm:py-3 border-b border-border'>
           <DropdownMenuLabel className='p-0 text-sm sm:text-base font-semibold'>
             Notifications
           </DropdownMenuLabel>

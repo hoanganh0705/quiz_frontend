@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import { Search, MessageSquare } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -7,6 +8,32 @@ import { ModeToggle } from '@/components/ModeToggle'
 import { SidebarTrigger, useSidebar } from '@/components/ui/sidebar'
 import { NotificationDropdown } from '@/components/NotificationDropdown'
 import { useIsMobile } from '@/hooks'
+
+// TODO: Replace with real unread count from API when backend is available
+function MessagesButton() {
+  const [unreadCount] = useState(2)
+
+  return (
+    <button
+      className='relative'
+      aria-label={
+        unreadCount > 0 ? `Messages (${unreadCount} unread)` : 'Messages'
+      }
+      type='button'
+    >
+      <div className='p-1.5 sm:p-2 border border-border rounded-md hover:bg-main-hover transition-colors'>
+        <MessageSquare className='h-4 w-4 text-foreground' />
+      </div>
+      {unreadCount > 0 && (
+        <div className='absolute -top-1 -right-1 h-3 w-3 sm:h-4 sm:w-4 rounded-full dark:bg-white bg-red-600 text-[0.6rem] flex items-center justify-center text-white dark:text-black'>
+          <span className='text-center leading-none' aria-hidden='true'>
+            {unreadCount}
+          </span>
+        </div>
+      )}
+    </button>
+  )
+}
 
 export function AppHeader() {
   const { state } = useSidebar()
@@ -35,11 +62,11 @@ export function AppHeader() {
       {/* Middle Section: Search */}
       <div className='hidden sm:flex items-center gap-2 flex-1 min-w-0 max-w-sm sm:max-w-md lg:max-w-xl'>
         <div className='relative flex-1 min-w-0'>
-          <Search className='absolute left-3 top-1/2 transform -translate-y-1/2 text-[#020817]/60 dark:text-slate-400 h-4 w-4' />
+          <Search className='absolute left-3 top-1/2 transform -translate-y-1/2 text-foreground/60 h-4 w-4' />
           <Input
             type='search'
             placeholder='Search quizzes, categories, creators...'
-            className='pl-10 pr-16 bg-background border border-border text-foreground placeholder-[#020817] dark:placeholder-slate-400 w-full text-sm focus:border-slate-600'
+            className='pl-10 pr-16 bg-background border border-border text-foreground placeholder-muted-foreground w-full text-sm focus:border-ring'
             onFocus={(e) => {
               e.target.blur()
               window.dispatchEvent(
@@ -49,7 +76,10 @@ export function AppHeader() {
             readOnly
           />
           <kbd className='absolute right-3 top-1/2 -translate-y-1/2 hidden md:inline-flex items-center gap-0.5 rounded border border-border bg-muted px-1.5 py-0.5 text-[10px] font-medium text-foreground/50'>
-            ⌘K
+            {typeof navigator !== 'undefined' &&
+            /Mac|iPod|iPhone|iPad/.test(navigator.platform)
+              ? '⌘K'
+              : 'Ctrl+K'}
           </kbd>
         </div>
       </div>
@@ -60,20 +90,7 @@ export function AppHeader() {
       {/* Right Section */}
       <div className='flex items-center gap-2 sm:gap-2 md:gap-3 shrink-0'>
         {/* Messages */}
-        <button
-          className='relative'
-          aria-label='Messages (2 unread)'
-          type='button'
-        >
-          <div className='p-1.5 sm:p-2 border border-border rounded-md hover:bg-main-hover transition-colors'>
-            <MessageSquare className='h-4 w-4 text-foreground' />
-          </div>
-          <div className='absolute -top-1 -right-1 h-3 w-3 sm:h-4 sm:w-4 rounded-full dark:bg-white bg-red-600 text-[0.6rem] flex items-center justify-center text-white dark:text-black'>
-            <span className='text-center leading-none' aria-hidden='true'>
-              2
-            </span>
-          </div>
-        </button>
+        <MessagesButton />
 
         {/* Notifications */}
         <NotificationDropdown />
