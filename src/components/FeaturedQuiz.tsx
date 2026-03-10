@@ -67,7 +67,7 @@ const FeaturedQuiz = memo(function FeaturedQuiz() {
               {getFiltered(tab).map((quiz) => (
                 <div
                   key={quiz.id}
-                  className='border border-gray-300 dark:border-slate-700 text-foreground rounded-xl overflow-hidden cursor-pointer'
+                  className='border border-border text-foreground rounded-xl overflow-hidden cursor-pointer'
                 >
                   {/* Quiz Image */}
                   <div
@@ -165,8 +165,8 @@ const FeaturedQuiz = memo(function FeaturedQuiz() {
                     {/* Stats */}
                     <div className='flex items-start gap-2 text-xs text-foreground/70 -translate-x-1'>
                       <SpotAvailabilityIndicator
-                        currentSpots={quiz.spots - quiz.spotsLeft}
-                        totalSpots={quiz.spots}
+                        currentSpots={quiz.maxPlayers - quiz.spotsLeft}
+                        totalSpots={quiz.maxPlayers}
                         mode='percentage'
                       />
                       <div className='flex items-start flex-col flex-1'>

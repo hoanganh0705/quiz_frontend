@@ -42,7 +42,7 @@ export default function Error({
           <Button
             asChild
             variant='outline'
-            className='border-gray-300 dark:border-slate-700'
+            className='border-border'
           >
             <Link href='/'>
               <Home className='w-4 h-4 mr-2' />

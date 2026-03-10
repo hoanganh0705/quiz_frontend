@@ -8,15 +8,13 @@
 ## Table of Contents
 
 1. [🏗️ Architecture & Structure](#1--architecture--structure)
-2. [🧩 Code Quality & Duplication](#2--code-quality--duplication)
-3. [🔐 Type Safety & Data Modeling](#3--type-safety--data-modeling)
-4. [🎨 Styling & Theming](#4--styling--theming)
-5. [🧪 Testing](#5--testing)
-6. [⚡ Performance](#6--performance)
-7. [🔒 Security & Auth](#7--security--auth)
-8. [🐳 DevOps & Deployment](#8--devops--deployment)
-9. [♿ Accessibility](#9--accessibility)
-10. [📦 Miscellaneous](#10--miscellaneous)
+2. [🔐 Type Safety & Data Modeling](#2--type-safety--data-modeling)
+3. [🎨 Styling & Theming](#3--styling--theming)
+4. [🧪 Testing](#4--testing)
+5. [⚡ Performance](#5--performance)
+6. [🔒 Security & Auth](#6--security--auth)
+7. [🐳 DevOps & Deployment](#7--devops--deployment)
+8. [♿ Accessibility](#8--accessibility)
 
 ---
 
@@ -43,7 +41,7 @@ All data is hardcoded in `src/constants/` as mock data. There is **no API servic
 | 🔴 Critical | Architecture |
 
 - No `middleware.ts` file exists — no route protection.
-- Login/signup pages use `console.log()` as the "submit" handler. There is no actual auth flow.
+- Login/signup pages have no actual auth flow.
 - `LayoutShell` checks for auth pages by pathname string matching, but there's no auth state or session management.
 - The header displays a hardcoded user avatar (`JD`) and wallet balance (`$124.50`).
 
@@ -63,152 +61,9 @@ No `.env`, `.env.local`, or `.env.example` files exist. When an API layer is add
 
 ---
 
-### 1.4 Missing Barrel Exports for Components
+## 2. 🔐 Type Safety & Data Modeling
 
-| Severity  | Category     |
-| --------- | ------------ |
-| 🟡 Medium | Organization |
-
-The `src/hooks/` directory has a proper `index.ts` barrel file, but `src/components/`, `src/types/`, and `src/constants/` do not. This leads to inconsistent import patterns across the project.
-
----
-
-### 1.5 Constants Use `.tsx` Extension Without JSX
-
-| Severity | Category     |
-| -------- | ------------ |
-| 🟢 Low   | Organization |
-
-All 18 files in `src/constants/` use the `.tsx` extension (e.g., `categories.tsx`, `players.tsx`, `leaderBoard.tsx`) even though they contain pure data — no JSX. They should use `.ts`.
-
-**Exception:** Files like `sideBarItems.tsx` that import React icons are valid as `.tsx`.
-
----
-
-## 2. 🧩 Code Quality & Duplication
-
-### 2.1 Duplicate `QuizResult` Interface
-
-| Severity    | Category    |
-| ----------- | ----------- |
-| 🔴 Critical | Duplication |
-
-The `QuizResult` interface is defined **twice** with identical fields:
-
-- `src/types/quizResults.ts` — the canonical type file
-- `src/components/PlayQuizClient.tsx` (lines 41–49) — re-declared locally
-
-**Recommendation:** Remove the local interface from `PlayQuizClient.tsx` and import from `@/types/quizResults`.
-
----
-
-### 2.2 Duplicate Utility Functions
-
-| Severity    | Category    |
-| ----------- | ----------- |
-| 🔴 Critical | Duplication |
-
-| Function          | Location 1                   | Location 2                                          |
-| ----------------- | ---------------------------- | --------------------------------------------------- |
-| `getStorageKey()` | `PlayQuizClient.tsx:26`      | `lib/quizResultsUtils.ts:2`                         |
-| `getResultsKey()` | `PlayQuizClient.tsx:27`      | `lib/quizResultsUtils.ts:3`                         |
-| `formatTime()`    | `PlayQuizClient.tsx:337-344` | `lib/quizResultsUtils.ts:6-10`                      |
-| `QuizProgress`    | `PlayQuizClient.tsx:30-38`   | `hooks/use-local-storage.ts:76` (`useQuizProgress`) |
-
-**Recommendation:** Consolidate all quiz utility functions in `lib/quizResultsUtils.ts` and remove duplicates from `PlayQuizClient.tsx`.
-
----
-
-### 2.3 Inconsistent Mobile Detection
-
-| Severity  | Category      |
-| --------- | ------------- |
-| 🟡 Medium | Inconsistency |
-
-Two different mobile detection strategies are used:
-
-| Approach                              | File                  | Method                                         |
-| ------------------------------------- | --------------------- | ---------------------------------------------- |
-| Custom hook                           | `hooks/use-mobile.ts` | `useIsMobile()` — used in `PlayQuizClient.tsx` |
-| Manual `useState` + `resize` listener | `AppHeader.tsx:13-20` | Raw `window.innerWidth < 768`                  |
-
-**Recommendation:** Use `useIsMobile()` everywhere. Remove the manual implementation in `AppHeader.tsx`.
-
----
-
-### 2.4 Excessive `eslint-disable` Comments
-
-| Severity  | Category     |
-| --------- | ------------ |
-| 🟡 Medium | Code Quality |
-
-**11 instances** of `eslint-disable` found, 8 of which are in `PlayQuizClient.tsx` alone, all suppressing `react-hooks/exhaustive-deps`. This hides real dependency bugs.
-
-**Other files:**
-
-- `ShareModal.tsx` — disables `@next/next/no-img-element`
-- `LeaderboardHeader.tsx` — disables `@typescript-eslint/no-unused-vars` (file-wide!)
-- `use-keyboard-shortcut.ts` — disables exhaustive-deps
-
-**Recommendation:** Fix the underlying dependency arrays instead of suppressing warnings. Refactor `PlayQuizClient.tsx` to use `useCallback` properly with correct dependency lists.
-
----
-
-### 2.5 `console.log` Statements in Production Code
-
-| Severity  | Category     |
-| --------- | ------------ |
-| 🟡 Medium | Code Quality |
-
-**6 `console.log` statements** found in source code:
-
-| File                       | Line   | Content                                        |
-| -------------------------- | ------ | ---------------------------------------------- |
-| `login/page.tsx`           | 54     | `console.log('Login attempt:', data)`          |
-| `login/page.tsx`           | 60     | `console.log('Login with ${provider}')`        |
-| `signup/page.tsx`          | 62, 67 | Similar login/signup logs                      |
-| `forgot-password/page.tsx` | 39     | `console.log('Password reset request:', data)` |
-| `support/ContactForm.tsx`  | 83     | `console.log('Form submitted:', ...)`          |
-
-**Recommendation:** Remove all `console.log` statements. Add an ESLint rule (`no-console`) to prevent future occurrences.
-
----
-
-### 2.6 Oversized Component: `PlayQuizClient.tsx`
-
-| Severity  | Category     |
-| --------- | ------------ |
-| 🟡 Medium | Code Quality |
-
-At **568 lines**, `PlayQuizClient.tsx` is a god component handling:
-
-- Quiz state management
-- Timer logic
-- Keyboard shortcuts (7 separate `useKeyboardShortcut` calls)
-- Swipe gesture handling
-- Fullscreen management
-- Answer selection
-- Score calculation
-- `localStorage` persistence
-- Navigation
-
-**Recommendation:** Extract into smaller modules: `useQuizState`, `useQuizKeyboardShortcuts`, `QuizHeader`, `QuizQuestionCard`, `QuizNavigation`.
-
----
-
-### 2.7 Direct `localStorage.setItem` Bypassing Hook
-
-| Severity  | Category      |
-| --------- | ------------- |
-| 🟡 Medium | Inconsistency |
-
-`PlayQuizClient.tsx:194` directly calls `localStorage.setItem(resultsKey, JSON.stringify(result))` instead of using the `useLocalStorage` hook that exists in the project. This creates an inconsistency in state management.
-
----
-
-## 3. 🔐 Type Safety & Data Modeling
-
-### 3.1 `score` Field Has Inconsistent Type
+### 2.1 `score` Field Has Inconsistent Type
 
 | Severity    | Category    |
 | ----------- | ----------- |
@@ -220,13 +75,13 @@ In `types/quiz.ts:46`, the leaderboard `score` field is typed as `number | strin
 score: number | string // '98%' in some places, 95 in others
 ```
 
-In the mock data (`mockQuizzes.tsx`), some quizzes use numeric scores (`95`, `90`) while others use string scores (`'98%'`, `'95%'`). This will cause runtime bugs when sorting or comparing scores.
+In the mock data (`mockQuizzes.ts`), some quizzes use numeric scores (`95`, `90`) while others use string scores (`'98%'`, `'95%'`). This will cause runtime bugs when sorting or comparing scores.
 
 **Recommendation:** Standardize to `number` and format for display.
 
 ---
 
-### 3.2 Redundant Fields in `Quiz` Type
+### 2.2 Redundant Fields in `Quiz` Type
 
 | Severity  | Category      |
 | --------- | ------------- |
@@ -245,7 +100,7 @@ The `Quiz` interface has several redundant field pairs:
 
 ---
 
-### 3.3 Default Data Mixed Into Type Files
+### 2.3 Default Data Mixed Into Type Files
 
 | Severity  | Category               |
 | --------- | ---------------------- |
@@ -260,7 +115,7 @@ The `Quiz` interface has several redundant field pairs:
 
 ---
 
-### 3.4 Mock Quizzes With Empty Data
+### 2.4 Mock Quizzes With Empty Data
 
 | Severity | Category     |
 | -------- | ------------ |
@@ -276,9 +131,9 @@ This could cause runtime errors in components that don't null-check these values
 
 ---
 
-## 4. 🎨 Styling & Theming
+## 3. 🎨 Styling & Theming
 
-### 4.1 Hardcoded Dark Theme Classes on `<body>`
+### 3.1 Hardcoded Dark Theme Classes on `<body>`
 
 | Severity    | Category |
 | ----------- | -------- |
@@ -296,7 +151,7 @@ This **conflicts with the `ThemeProvider`** which manages light/dark themes dyna
 
 ---
 
-### 4.2 Inconsistent Border Styling
+### 3.2 Inconsistent Border Styling
 
 | Severity  | Category    |
 | --------- | ----------- |
@@ -313,7 +168,7 @@ This appears in virtually every component and means border styling won't automat
 
 ---
 
-### 4.3 Unused CSS Custom Property
+### 3.3 Unused CSS Custom Property
 
 | Severity | Category |
 | -------- | -------- |
@@ -323,7 +178,7 @@ This appears in virtually every component and means border styling won't automat
 
 ---
 
-### 4.4 Non-Standard Breakpoint
+### 3.4 Non-Standard Breakpoint
 
 | Severity | Category  |
 | -------- | --------- |
@@ -333,9 +188,9 @@ This appears in virtually every component and means border styling won't automat
 
 ---
 
-## 5. 🧪 Testing
+## 4. 🧪 Testing
 
-### 5.1 Zero Test Files
+### 4.1 Zero Test Files
 
 | Severity    | Category |
 | ----------- | -------- |
@@ -352,9 +207,9 @@ There are **no test files** in the entire project — no `*.test.ts`, `*.test.ts
 
 ---
 
-## 6. ⚡ Performance
+## 5. ⚡ Performance
 
-### 6.1 `use client` Overuse
+### 5.1 `use client` Overuse
 
 | Severity  | Category    |
 | --------- | ----------- |
@@ -373,7 +228,7 @@ Examples of components that could be Server Components:
 
 ---
 
-### 6.2 Unused `swr` Dependency
+### 5.2 Unused `swr` Dependency
 
 | Severity | Category    |
 | -------- | ----------- |
@@ -385,43 +240,21 @@ Examples of components that could be Server Components:
 
 ---
 
-### 6.3 Large Mock Data Files
+### 5.3 Large Mock Data Files
 
 | Severity | Category    |
 | -------- | ----------- |
 | 🟢 Low   | Bundle Size |
 
-`constants/mockQuizzes.tsx` is **567 lines / 14.4 KB** of hardcoded quiz data, all of which is bundled into the client. Several other constant files (`players.tsx`, `quizHistory.tsx`, `leaderBoard.tsx`) add to this.
+`constants/mockQuizzes.ts` is **567 lines / 14.4 KB** of hardcoded quiz data, all of which is bundled into the client. Several other constant files (`players.ts`, `quizHistory.ts`, `leaderBoard.ts`) add to this.
 
 **Recommendation:** When moving to API-driven data, remove these files. For development, use MSW (Mock Service Worker) or a JSON file loaded on demand.
 
 ---
 
-## 7. 🔒 Security & Auth
+## 6. 🔒 Security & Auth
 
-### 7.1 Login Schema Mismatch
-
-| Severity  | Category |
-| --------- | -------- |
-| 🟡 Medium | Bug      |
-
-The login form has a `loginSchema` that requires `firstName` and `lastName` fields:
-
-```typescript
-const loginSchema = z.object({
-  firstName: z.string().min(1, 'First name is required'),
-  lastName: z.string().min(1, 'Last name is required'),
-  ...
-})
-```
-
-But the login **form UI only shows email and password inputs** — no first/last name fields. This means the form will never validate successfully because the required first/last name fields are empty (hidden but required).
-
-**Recommendation:** Remove `firstName` and `lastName` from the login schema (they belong in the signup schema).
-
----
-
-### 7.2 No CSRF or Rate-Limiting Setup
+### 6.1 No CSRF or Rate-Limiting Setup
 
 | Severity  | Category |
 | --------- | -------- |
@@ -431,13 +264,13 @@ No CSRF protection or rate-limiting patterns are in place. When the API layer is
 
 ---
 
-## 8. 🐳 DevOps & Deployment
+## 7. 🐳 DevOps & Deployment
 
-### 8.1 Dockerfile is Well-Structured ✅
+### 7.1 Dockerfile is Well-Structured ✅
 
 The multi-stage Dockerfile is well done — proper `standalone` output, non-root user, multi-lockfile detection. No significant issues found.
 
-### 8.2 No CI/CD Pipeline
+### 7.2 No CI/CD Pipeline
 
 | Severity  | Category |
 | --------- | -------- |
@@ -449,9 +282,9 @@ The `.github/` directory exists but no CI/CD workflow was observed for lint, bui
 
 ---
 
-## 9. ♿ Accessibility
+## 8. ♿ Accessibility
 
-### 9.1 Keyboard-only Shortcut: ⌘K Displayed on All Platforms
+### 8.1 Keyboard-only Shortcut: ⌘K Displayed on All Platforms
 
 | Severity | Category      |
 | -------- | ------------- |
@@ -461,7 +294,7 @@ The `.github/` directory exists but no CI/CD workflow was observed for lint, bui
 
 ---
 
-### 9.2 Hardcoded Notification Count in Messages Button
+### 8.2 Hardcoded Notification Count in Messages Button
 
 | Severity | Category                    |
 | -------- | --------------------------- |
@@ -471,77 +304,18 @@ The `.github/` directory exists but no CI/CD workflow was observed for lint, bui
 
 ---
 
-## 10. 📦 Miscellaneous
-
-### 10.1 Relative Import in `not-found.tsx`
-
-| Severity | Category    |
-| -------- | ----------- |
-| 🟢 Low   | Consistency |
-
-`not-found.tsx:4` uses a relative import:
-
-```typescript
-import { GoBackButton } from '../components/GoBackButton'
-```
-
-All other files consistently use the `@/` alias. This should be `@/components/GoBackButton`.
-
----
-
-### 10.2 Named + Default Export Conflict
-
-| Severity | Category    |
-| -------- | ----------- |
-| 🟢 Low   | Consistency |
-
-`constants/mockQuizzes.tsx` exports `quizzes` twice:
-
-```typescript
-export const quizzes: Quiz[] = [ ... ]  // named export (line 3)
-export default quizzes                    // default export (line 566)
-```
-
-Consumers are split: `page.tsx` uses `{ quizzes }` (named), some may use the default. Pick one convention.
-
----
-
-### 10.3 `useQuizProgress` Hook Is Never Used
-
-| Severity | Category  |
-| -------- | --------- |
-| 🟢 Low   | Dead Code |
-
-`hooks/use-local-storage.ts` exports a `useQuizProgress` helper hook (lines 76–88), but `PlayQuizClient.tsx` directly uses `useLocalStorage` with a manual storage key instead of using this hook.
-
-**Recommendation:** Either use `useQuizProgress` in `PlayQuizClient.tsx` or remove the dead code.
-
----
-
-### 10.4 `QuizProgress` Interface Not Exported
-
-| Severity | Category    |
-| -------- | ----------- |
-| 🟢 Low   | Reusability |
-
-The `QuizProgress` interface is defined locally inside `PlayQuizClient.tsx` and never exported. This makes it impossible to reuse in other components (e.g., resume-quiz dialogs).
-
----
-
 ## Summary
 
 | Severity    | Count |
 | ----------- | ----- |
-| 🔴 Critical | 7     |
-| 🟡 Medium   | 12    |
-| 🟢 Low      | 10    |
+| 🔴 Critical | 5     |
+| 🟡 Medium   | 8     |
+| 🟢 Low      | 7     |
 
 ### Top Priority Fixes
 
 1. **Remove hardcoded `bg-slate-900 text-white` from `layout.tsx`** — theming is broken
-2. **Fix login schema** (`firstName`/`lastName` required but no UI fields)
-3. **Consolidate duplicate code** (QuizResult interface, utility functions)
-4. **Standardize `score` type** to `number` across all interfaces and data
-5. **Add at least basic test coverage** for critical paths
-6. **Create an API/services layer** to replace hardcoded mock data
-7. **Remove `eslint-disable` comments** and fix actual dependency issues
+2. **Standardize `score` type** to `number` across all interfaces and data
+3. **Add at least basic test coverage** for critical paths
+4. **Create an API/services layer** to replace hardcoded mock data
+5. **Implement authentication** with proper middleware

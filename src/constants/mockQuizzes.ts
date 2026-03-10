@@ -11,7 +11,6 @@ export const quizzes: Quiz[] = [
     difficulty: 'Easy',
     image: '/placeholder.webp',
     currentPlayers: 10,
-    players: 10,
     maxPlayers: 20,
     requirements: 'No prior knowledge required',
     tags: ['Mathematics', 'Algebra', 'Geometry'],
@@ -309,12 +308,9 @@ export const quizzes: Quiz[] = [
     badges: ['Hot', 'Top Rated'],
     timeLeft: 3,
     reward: 50,
-    spots: 20,
     spotsLeft: 10,
     bgGradient: 'from-blue-500 to-indigo-600',
-    almostFull: true,
-    authorAvatarSrc: '/avatarPlaceholder.webp',
-    authorName: 'Dr. John Smith'
+    almostFull: true
   },
   {
     id: '2',
@@ -325,7 +321,6 @@ export const quizzes: Quiz[] = [
     difficulty: 'Medium',
     image: '/q17.png',
     currentPlayers: 15,
-    players: 15,
     maxPlayers: 500,
     requirements: 'Knowledge of Vietnamese literature',
     tags: ['Literature', 'Vietnamese'],
@@ -404,30 +399,26 @@ export const quizzes: Quiz[] = [
     badges: ['Trending', "Editor's Choice"],
     timeLeft: 5,
     reward: 75,
-    spots: 500,
     spotsLeft: 485,
     bgGradient: 'from-purple-500 to-pink-600',
-    almostFull: false,
-    authorAvatarSrc: '/avatarPlaceholder.webp',
-    authorName: 'Dr. Nguyen Hoang Anh'
+    almostFull: false
   },
   {
     id: '3',
     title: 'Pop Culture Essentials',
-    description: '',
+    description: 'Test your knowledge of movies, music, and entertainment trends.',
     duration: 8,
-    questionCount: 0,
+    questionCount: 3,
     difficulty: 'Medium',
     image: '/placeholder.webp',
     currentPlayers: 60,
-    players: 60,
     maxPlayers: 100,
     requirements: '',
     tags: ['Entertainment'],
     categories: ['Entertainment'],
     isPopular: false,
     isFeatured: false,
-    rating: 0,
+    rating: 4.3,
     creator: {
       userId: 103,
       username: 'AlexSmith',
@@ -439,7 +430,44 @@ export const quizzes: Quiz[] = [
     },
     createdAt: '2025-06-20T10:00:00Z',
     updatedAt: '2025-07-01T14:00:00Z',
-    questions: [],
+    questions: [
+      {
+        id: 1,
+        question: 'Which movie won the Academy Award for Best Picture in 2024?',
+        image: '/question.jpg',
+        answers: [
+          { label: 'A', value: 'Oppenheimer' },
+          { label: 'B', value: 'Barbie' },
+          { label: 'C', value: 'Killers of the Flower Moon' },
+          { label: 'D', value: 'Poor Things' }
+        ],
+        correctAnswer: 'Oppenheimer'
+      },
+      {
+        id: 2,
+        question: 'Who is the lead singer of the band Coldplay?',
+        image: '/question.jpg',
+        answers: [
+          { label: 'A', value: 'Bono' },
+          { label: 'B', value: 'Chris Martin' },
+          { label: 'C', value: 'Thom Yorke' },
+          { label: 'D', value: 'Eddie Vedder' }
+        ],
+        correctAnswer: 'Chris Martin'
+      },
+      {
+        id: 3,
+        question: 'What is the highest-grossing film of all time?',
+        image: '/question.jpg',
+        answers: [
+          { label: 'A', value: 'Avengers: Endgame' },
+          { label: 'B', value: 'Avatar' },
+          { label: 'C', value: 'Titanic' },
+          { label: 'D', value: 'Star Wars: The Force Awakens' }
+        ],
+        correctAnswer: 'Avatar'
+      }
+    ],
     quizReview: [
       {
         userId: 201,
@@ -467,7 +495,7 @@ export const quizzes: Quiz[] = [
       {
         userId: 1,
         username: 'ThorFan',
-        score: '98%',
+        score: 98,
         rank: 1,
         completedAt: '2025-07-03T09:45:00Z',
         avatar: '/avatarPlaceholder.webp',
@@ -476,7 +504,7 @@ export const quizzes: Quiz[] = [
       {
         userId: 2,
         username: 'IronManRules',
-        score: '95%',
+        score: 95,
         rank: 2,
         completedAt: '2025-07-03T09:45:00Z',
         avatar: '/avatarPlaceholder.webp',
@@ -485,7 +513,7 @@ export const quizzes: Quiz[] = [
       {
         userId: 3,
         username: 'CaptainAmerica',
-        score: '92%',
+        score: 92,
         rank: 3,
         completedAt: '2025-07-03T09:45:00Z',
         avatar: '/avatarPlaceholder.webp',
@@ -494,7 +522,7 @@ export const quizzes: Quiz[] = [
       {
         userId: 4,
         username: 'BlackWidow',
-        score: '90%',
+        score: 90,
         rank: 4,
         completedAt: '2025-07-03T09:45:00Z',
         avatar: '/avatarPlaceholder.webp',
@@ -503,7 +531,7 @@ export const quizzes: Quiz[] = [
       {
         userId: 5,
         username: 'HulkSmash',
-        score: '88%',
+        score: 88,
         rank: 5,
         completedAt: '2025-07-03T09:45:00Z',
         avatar: '/avatarPlaceholder.webp',
@@ -513,30 +541,26 @@ export const quizzes: Quiz[] = [
     badges: [],
     timeLeft: 0,
     reward: 2.5,
-    spots: 100,
     spotsLeft: 40,
-    bgGradient: '',
-    almostFull: false,
-    authorAvatarSrc: '/avatarPlaceholder.webp',
-    authorName: 'Alex Smith'
+    bgGradient: 'from-orange-500 to-red-600',
+    almostFull: false
   },
   {
     id: '4',
     title: 'Science for Beginners',
-    description: '',
+    description: 'Discover fundamental science concepts with this beginner-friendly quiz.',
     duration: 12,
-    questionCount: 0,
+    questionCount: 3,
     difficulty: 'Medium',
     image: '/placeholder.webp',
     currentPlayers: 90,
-    players: 90,
     maxPlayers: 100,
     requirements: '',
     tags: ['Science'],
     categories: ['Science'],
     isPopular: false,
     isFeatured: false,
-    rating: 0,
+    rating: 4.1,
     creator: {
       userId: 104,
       username: 'AlexSmith',
@@ -548,17 +572,51 @@ export const quizzes: Quiz[] = [
     },
     createdAt: '2025-06-25T11:00:00Z',
     updatedAt: '2025-07-02T13:00:00Z',
-    questions: [],
+    questions: [
+      {
+        id: 1,
+        question: 'What is the chemical symbol for water?',
+        image: '/question.jpg',
+        answers: [
+          { label: 'A', value: 'H2O' },
+          { label: 'B', value: 'CO2' },
+          { label: 'C', value: 'NaCl' },
+          { label: 'D', value: 'O2' }
+        ],
+        correctAnswer: 'H2O'
+      },
+      {
+        id: 2,
+        question: 'What planet is known as the Red Planet?',
+        image: '/question.jpg',
+        answers: [
+          { label: 'A', value: 'Venus' },
+          { label: 'B', value: 'Mars' },
+          { label: 'C', value: 'Jupiter' },
+          { label: 'D', value: 'Saturn' }
+        ],
+        correctAnswer: 'Mars'
+      },
+      {
+        id: 3,
+        question: 'What is the speed of light approximately?',
+        image: '/question.jpg',
+        answers: [
+          { label: 'A', value: '300,000 km/s' },
+          { label: 'B', value: '150,000 km/s' },
+          { label: 'C', value: '500,000 km/s' },
+          { label: 'D', value: '1,000,000 km/s' }
+        ],
+        correctAnswer: '300,000 km/s'
+      }
+    ],
     quizReview: [],
     leaderBoard: [],
     badges: [],
     timeLeft: 0,
     reward: 3.5,
-    spots: 100,
     spotsLeft: 10,
-    bgGradient: '',
-    almostFull: true,
-    authorAvatarSrc: '/avatarPlaceholder.webp',
-    authorName: 'Alex Smith'
+    bgGradient: 'from-green-500 to-teal-600',
+    almostFull: true
   }
 ]

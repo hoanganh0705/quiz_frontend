@@ -32,7 +32,7 @@ const Reviews = () => {
                   {/* Avatar */}
                   <div className='shrink-0'>
                     <Image
-                      src={quiz.authorAvatarSrc || '/placeholder.svg'}
+                      src={quiz.creator.imageURL || '/placeholder.svg'}
                       alt={
                         review.username
                           ? `${review.username}'s avatar`

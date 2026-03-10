@@ -66,14 +66,14 @@ const QuizForm = memo(function QuizForm() {
       >
         <div className='flex flex-wrap gap-3'>
           <Button
-            className='bg-transparent dark:hover:bg-slate-800 hover:bg-main-hover border border-gray-300 dark:border-slate-700 text-foreground px-4 py-2 rounded-md'
+            className='bg-transparent dark:hover:bg-slate-800 hover:bg-main-hover border border-border text-foreground px-4 py-2 rounded-md'
             aria-label='Create new quiz'
           >
             <Plus className='w-4 h-4 mr-2' aria-hidden='true' />
             New Quiz
           </Button>
           <Button
-            className='bg-transparent dark:hover:bg-slate-800 hover:bg-main-hover border border-gray-300 dark:border-slate-700 text-foreground px-4 py-2 rounded-md'
+            className='bg-transparent dark:hover:bg-slate-800 hover:bg-main-hover border border-border text-foreground px-4 py-2 rounded-md'
             aria-label='Preview quiz'
           >
             <Eye className='w-4 h-4 mr-2' aria-hidden='true' />
@@ -82,21 +82,21 @@ const QuizForm = memo(function QuizForm() {
         </div>
         <div className='flex flex-wrap gap-3'>
           <Button
-            className='dark:bg-[#7F1D1D] bg-[#ef4444] hover:bg-[#b91c1c] text-white px-4 py-2 rounded-md border border-gray-300 dark:border-slate-700'
+            className='dark:bg-[#7F1D1D] bg-[#ef4444] hover:bg-[#b91c1c] text-white px-4 py-2 rounded-md border border-border'
             aria-label='Delete quiz'
           >
             <Trash2 className='w-4 h-4 mr-2' aria-hidden='true' />
             Delete Quiz
           </Button>
           <Button
-            className='bg-transparent dark:hover:bg-slate-800 hover:bg-main-hover text-foreground px-4 py-2 rounded-md border border-gray-300 dark:border-slate-700'
+            className='bg-transparent dark:hover:bg-slate-800 hover:bg-main-hover text-foreground px-4 py-2 rounded-md border border-border'
             aria-label='Save draft'
           >
             <Save className='w-4 h-4 mr-2' aria-hidden='true' />
             Save Draft
           </Button>
           <Button
-            className='bg-default hover:bg-default-hover text-white px-4 py-2 rounded-md border border-gray-300 dark:border-slate-700'
+            className='bg-default hover:bg-default-hover text-white px-4 py-2 rounded-md border border-border'
             aria-label='Publish quiz'
           >
             <Upload className='w-4 h-4 mr-2' aria-hidden='true' />

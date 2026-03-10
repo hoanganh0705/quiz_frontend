@@ -53,7 +53,7 @@ export default function QuizzesLoading() {
         {/* Sidebar Skeleton */}
         <div className='xl:w-[16rem] w-full mb-3 xl:mb-0'>
           <Skeleton className='h-7 w-16 mb-6' />
-          <div className='border border-gray-300 dark:border-slate-700 rounded-md p-4'>
+          <div className='border border-border rounded-md p-4'>
             {/* Filter sections */}
             {Array.from({ length: 3 }).map((_, i) => (
               <div key={i} className='mb-6'>

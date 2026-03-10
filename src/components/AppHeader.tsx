@@ -17,7 +17,7 @@ export function AppHeader() {
   return (
     <header
       className='fixed top-0 z-50 h-16 flex items-center
-                 bg-background border-b border-gray-300 dark:border-slate-700 px-2 sm:px-4
+                 bg-background border-b border-border px-2 sm:px-4
                  transition-all duration-300'
       style={{ left: sidebarWidth, right: 0 }}
     >
@@ -39,7 +39,7 @@ export function AppHeader() {
           <Input
             type='search'
             placeholder='Search quizzes, categories, creators...'
-            className='pl-10 pr-16 bg-background border border-gray-300 dark:border-slate-700 text-foreground placeholder-[#020817] dark:placeholder-slate-400 w-full text-sm focus:border-slate-600'
+            className='pl-10 pr-16 bg-background border border-border text-foreground placeholder-[#020817] dark:placeholder-slate-400 w-full text-sm focus:border-slate-600'
             onFocus={(e) => {
               e.target.blur()
               window.dispatchEvent(
@@ -48,7 +48,7 @@ export function AppHeader() {
             }}
             readOnly
           />
-          <kbd className='absolute right-3 top-1/2 -translate-y-1/2 hidden md:inline-flex items-center gap-0.5 rounded border border-gray-300 dark:border-slate-700 bg-muted px-1.5 py-0.5 text-[10px] font-medium text-foreground/50'>
+          <kbd className='absolute right-3 top-1/2 -translate-y-1/2 hidden md:inline-flex items-center gap-0.5 rounded border border-border bg-muted px-1.5 py-0.5 text-[10px] font-medium text-foreground/50'>
             ⌘K
           </kbd>
         </div>
@@ -65,7 +65,7 @@ export function AppHeader() {
           aria-label='Messages (2 unread)'
           type='button'
         >
-          <div className='p-1.5 sm:p-2 border border-gray-300 dark:border-slate-700 rounded-md hover:bg-main-hover transition-colors'>
+          <div className='p-1.5 sm:p-2 border border-border rounded-md hover:bg-main-hover transition-colors'>
             <MessageSquare className='h-4 w-4 text-foreground' />
           </div>
           <div className='absolute -top-1 -right-1 h-3 w-3 sm:h-4 sm:w-4 rounded-full dark:bg-white bg-red-600 text-[0.6rem] flex items-center justify-center text-white dark:text-black'>
@@ -84,7 +84,7 @@ export function AppHeader() {
         </div>
 
         {/* Wallet */}
-        <div className='hidden sm:flex items-center gap-1 p-1 sm:p-2 border border-gray-300 dark:border-slate-700 rounded-lg'>
+        <div className='hidden sm:flex items-center gap-1 p-1 sm:p-2 border border-border rounded-lg'>
           <span className='text-foreground text-xs sm:text-sm font-medium'>
             $124.50
           </span>

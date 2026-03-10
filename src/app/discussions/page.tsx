@@ -23,15 +23,15 @@ const DiscussionCard = memo(function DiscussionCard({
   discussion
 }: DiscussionCardProps) {
   return (
-    <Card className='bg-transparentrounded-lg flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border border-gray-300 dark:border-slate-700 p-10'>
+    <Card className='bg-transparentrounded-lg flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border border-border p-10'>
       <div className='flex-1 gap-2 flex flex-col'>
         <h3 className='text-lg font-semibold'>{discussion.title}</h3>
         <div className='flex items-center gap-2 text-foreground text-sm'>
-          <Badge className='bg-transparent text-foreground px-2 py-1 rounded-md border border-gray-300 dark:border-slate-700'>
+          <Badge className='bg-transparent text-foreground px-2 py-1 rounded-md border border-border'>
             {discussion.category}
           </Badge>
           <Badge
-            className={`px-2 py-1 rounded-md border border-gray-300 dark:border-slate-700 ${
+            className={`px-2 py-1 rounded-md border border-border ${
               discussion.difficulty === 'Medium'
                 ? 'bg-[#d97706] text-white'
                 : 'bg-[#dc2626] text-white'
@@ -107,7 +107,7 @@ const QuizDiscussions = memo(function QuizDiscussions() {
           role='search'
           aria-label='Search and filter discussions'
         >
-          <div className='relative flex-1 w-full border border-gray-300 dark:border-slate-700 rounded-md'>
+          <div className='relative flex-1 w-full border border-border rounded-md'>
             <Search
               className='absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-foreground/70'
               aria-hidden='true'
@@ -125,13 +125,13 @@ const QuizDiscussions = memo(function QuizDiscussions() {
             aria-label='Discussion filters'
           >
             <Button
-              className='bg-background hover:bg-main text-foreground px-6 py-2 rounded-md border border-gray-300 dark:border-slate-700'
+              className='bg-background hover:bg-main text-foreground px-6 py-2 rounded-md border border-border'
               aria-label='Filter discussions'
             >
               Filter
             </Button>
             <Button
-              className='bg-background  hover:bg-main text-foreground px-6 py-2 rounded-md border border-gray-300 dark:border-slate-700'
+              className='bg-background  hover:bg-main text-foreground px-6 py-2 rounded-md border border-border'
               aria-label='Sort discussions'
             >
               Sort
@@ -141,7 +141,7 @@ const QuizDiscussions = memo(function QuizDiscussions() {
 
         {/* Discussion Tabs */}
         <Tabs defaultValue='recent' className='w-full '>
-          <TabsList className='w-full justify-start overflow-x-auto scrollbar-hide border border-gray-300 dark:border-slate-700 rounded-md'>
+          <TabsList className='w-full justify-start overflow-x-auto scrollbar-hide border border-border rounded-md'>
             <TabsTrigger
               value='recent'
               className='text-xs sm:text-sm md:text-base font-medium px-2 sm:px-3 md:px-4 shrink-0 transition-transform data-[state=active]:bg-background text-foreground/70'

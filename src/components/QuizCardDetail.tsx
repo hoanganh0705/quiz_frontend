@@ -15,7 +15,7 @@ const QuizCardDetail = memo(function QuizCardDetail(props: Quiz) {
   return (
     <article
       role='listitem'
-      className='border border-gray-300 dark:border-slate-700 rounded-xl overflow-hidden'
+      className='border border-border rounded-xl overflow-hidden'
     >
       <div className='relative h-48'>
         <Image
@@ -52,7 +52,7 @@ const QuizCardDetail = memo(function QuizCardDetail(props: Quiz) {
           <span className='text-foreground/70 text-sm'>
             {props.creator.name}
           </span>
-          <Badge className='dark:bg-main bg-[#f8fafc] text-foreground border border-gray-300 dark:border-slate-700'>
+          <Badge className='dark:bg-main bg-[#f8fafc] text-foreground border border-border'>
             {props.categories.join(', ')}
           </Badge>
         </div>
@@ -79,13 +79,13 @@ const QuizCardDetail = memo(function QuizCardDetail(props: Quiz) {
         <div className='flex items-center justify-between gap-4 mb-4 text-sm text-slate-400'>
           <div className='flex items-center gap-1'>
             <Users className='w-4 h-4' aria-hidden='true' />
-            {props.players} players
+            {props.currentPlayers} players
           </div>
           <div className='flex items-center gap-1'>
             <div>{props.spotsLeft} spots left</div>
             <SpotAvailabilityIndicator
-              currentSpots={props.spots - props.spotsLeft}
-              totalSpots={props.spots}
+              currentSpots={props.maxPlayers - props.spotsLeft}
+              totalSpots={props.maxPlayers}
               mode='default'
             />
           </div>
@@ -117,7 +117,7 @@ const QuizCardDetail = memo(function QuizCardDetail(props: Quiz) {
             <Button
               size='icon'
               variant='outline'
-              className='border-gray-300 dark:border-slate-700'
+              className='border-border'
               aria-label={`Share ${props.title}`}
             >
               <Share2 className='w-4 h-4' />

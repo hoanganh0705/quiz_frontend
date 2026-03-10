@@ -106,10 +106,10 @@ export default function GlobalLeaderboard() {
           <div className='flex gap-3 w-full md:w-auto justify-end'>
             <DropdownMenu>
               <DropdownMenuTrigger
-                className='border-gray-300 dark:border-slate-700 border text-foreground'
+                className='border-border border text-foreground'
                 asChild
               >
-                <Button className='bg-transparent text-foreground border border-gray-300 dark:border-slate-700 rounded-lg px-4 py-2.5 flex items-center gap-2 font-medium'>
+                <Button className='bg-transparent text-foreground border border-border rounded-lg px-4 py-2.5 flex items-center gap-2 font-medium'>
                   Sort by: {sortBy}
                   <ChevronDown className='w-4 h-4' />
                 </Button>
@@ -130,10 +130,10 @@ export default function GlobalLeaderboard() {
             </DropdownMenu>
             <DropdownMenu>
               <DropdownMenuTrigger
-                className='border-gray-300 dark:border-slate-700 border text-foreground'
+                className='border-border border text-foreground'
                 asChild
               >
-                <Button className='bg-transparent text-foreground border border-gray-300 dark:border-slate-700 rounded-lg px-4 py-2.5 flex items-center gap-2 font-medium'>
+                <Button className='bg-transparent text-foreground border border-border rounded-lg px-4 py-2.5 flex items-center gap-2 font-medium'>
                   All Time
                   <ChevronDown className='w-4 h-4' />
                 </Button>

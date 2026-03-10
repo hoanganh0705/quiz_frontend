@@ -85,7 +85,7 @@ export function ContactForm() {
   )
 
   return (
-    <div className='space-y-8 bg-transparent border border-gray-300 dark:border-slate-700 rounded-lg p-8'>
+    <div className='space-y-8 bg-transparent border border-border rounded-lg p-8'>
       <div className='flex items-center justify-between mb-8 '>
         <h2 className='text-2xl font-bold text-foreground'>Contact Support</h2>
       </div>
@@ -104,7 +104,7 @@ export function ContactForm() {
               className={`bg-transparent border text-foreground placeholder:text-foreground/70 focus:border-blue-500 ${
                 errors.name
                   ? 'border-red-500 focus:border-red-500'
-                  : 'border-gray-300 dark:border-slate-700'
+                  : 'border-border'
               }`}
             />
             {errors.name && (
@@ -123,7 +123,7 @@ export function ContactForm() {
               className={`bg-transparent border text-foreground placeholder:text-foreground/70 focus:border-blue-500 ${
                 errors.email
                   ? 'border-red-500 focus:border-red-500'
-                  : 'border-gray-300 dark:border-slate-700'
+                  : 'border-border'
               }`}
             />
             {errors.email && (
@@ -145,7 +145,7 @@ export function ContactForm() {
               className={`bg-transparent border text-foreground placeholder:text-foreground/70 focus:border-blue-500 ${
                 errors.subject
                   ? 'border-red-500 focus:border-red-500'
-                  : 'border-gray-300 dark:border-slate-700'
+                  : 'border-border'
               }`}
             />
             {errors.subject && (
@@ -164,12 +164,12 @@ export function ContactForm() {
                 className={`bg-transparent text-foreground focus:border-default ${
                   errors.category
                     ? 'border-red-500 focus:border-red-500'
-                    : 'border-gray-300 dark:border-slate-700'
+                    : 'border-border'
                 }`}
               >
                 <SelectValue placeholder='Select a category' />
               </SelectTrigger>
-              <SelectContent className='bg-gray-300 dark:bg-slate-700 border-gray-300 dark:border-slate-700'>
+              <SelectContent className='bg-gray-300 dark:bg-slate-700 border-border'>
                 <SelectItem
                   value='general'
                   className='text-foreground hover:bg-default-hover'
@@ -233,7 +233,7 @@ export function ContactForm() {
             className={`bg-transparent border text-foreground placeholder:text-foreground/70 focus:border-default resize-none ${
               errors.message
                 ? 'border-red-500 focus:border-red-500'
-                : 'border-gray-300 dark:border-slate-700'
+                : 'border-border'
             }`}
           />
           {errors.message && (
@@ -259,7 +259,7 @@ export function ContactForm() {
                 type='button'
                 variant='outline'
                 size='sm'
-                className='bg-transparent border border-gray-300 dark:border-slate-700 text-foreground hover:bg-default-hover hover:border-default px-4'
+                className='bg-transparent border border-border text-foreground hover:bg-default-hover hover:border-default px-4'
               >
                 <Upload className='w-4 h-4 mr-2' />
                 {selectedFile ? selectedFile.name : 'Upload File'}

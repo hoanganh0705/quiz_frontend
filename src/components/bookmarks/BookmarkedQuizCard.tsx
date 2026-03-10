@@ -152,7 +152,7 @@ const BookmarkedQuizCard = memo(function BookmarkedQuizCard({
           </div>
           <div className='flex items-center gap-1'>
             <Users className='h-3.5 w-3.5' aria-hidden='true' />
-            <span>{quiz.players} plays</span>
+            <span>{quiz.currentPlayers} plays</span>
           </div>
           {quiz.categories?.[0] && (
             <Badge variant='secondary' className='text-xs py-0 h-5'>

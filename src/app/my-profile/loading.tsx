@@ -34,7 +34,7 @@ export default function ProfileLoading() {
           {Array.from({ length: 5 }).map((_, i) => (
             <div
               key={i}
-              className='p-4 border border-gray-300 dark:border-slate-700 rounded-lg'
+              className='p-4 border border-border rounded-lg'
             >
               <div className='flex items-center gap-4'>
                 <Skeleton className='h-12 w-12 rounded-lg' />

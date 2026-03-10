@@ -54,7 +54,7 @@ export function MobileQuizTimer({
       {/* Desktop: simple text timer */}
       <div
         className={cn(
-          'hidden md:flex items-center gap-2 px-3 py-2 rounded-full border border-gray-300 dark:border-slate-700 bg-background',
+          'hidden md:flex items-center gap-2 px-3 py-2 rounded-full border border-border bg-background',
           isWarning && 'border-yellow-500 dark:border-yellow-500',
           isCritical && 'border-red-500 dark:border-red-500'
         )}

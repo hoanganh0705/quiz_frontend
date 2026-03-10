@@ -21,7 +21,7 @@ export default function DailyChallengeLoading() {
 
       {/* Challenge Card Skeleton */}
       <div className='max-w-2xl mx-auto'>
-        <div className='border border-gray-300 dark:border-slate-700 rounded-xl overflow-hidden'>
+        <div className='border border-border rounded-xl overflow-hidden'>
           {/* Image */}
           <Skeleton className='h-64 w-full' />
 

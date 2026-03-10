@@ -217,7 +217,7 @@ export function QuickSearch() {
         <DialogTitle className='sr-only'>Quick Search</DialogTitle>
 
         {/* Search input */}
-        <div className='flex items-center gap-2 border-b border-gray-300 dark:border-slate-700 px-3'>
+        <div className='flex items-center gap-2 border-b border-border px-3'>
           <Search
             className='h-4 w-4 text-foreground/50 shrink-0'
             aria-hidden='true'
@@ -237,7 +237,7 @@ export function QuickSearch() {
                 : undefined
             }
           />
-          <kbd className='hidden sm:inline-flex items-center gap-1 rounded border border-gray-300 dark:border-slate-700 bg-muted px-1.5 py-0.5 text-[10px] font-medium text-foreground/50'>
+          <kbd className='hidden sm:inline-flex items-center gap-1 rounded border border-border bg-muted px-1.5 py-0.5 text-[10px] font-medium text-foreground/50'>
             ESC
           </kbd>
         </div>
@@ -291,22 +291,22 @@ export function QuickSearch() {
         </div>
 
         {/* Footer */}
-        <div className='flex items-center justify-between border-t border-gray-300 dark:border-slate-700 px-3 py-2 text-xs text-foreground/40'>
+        <div className='flex items-center justify-between border-t border-border px-3 py-2 text-xs text-foreground/40'>
           <div className='flex items-center gap-2'>
             <span className='flex items-center gap-1'>
-              <kbd className='rounded border border-gray-300 dark:border-slate-700 bg-muted px-1 py-0.5 text-[10px]'>
+              <kbd className='rounded border border-border bg-muted px-1 py-0.5 text-[10px]'>
                 ↑↓
               </kbd>
               navigate
             </span>
             <span className='flex items-center gap-1'>
-              <kbd className='rounded border border-gray-300 dark:border-slate-700 bg-muted px-1 py-0.5 text-[10px]'>
+              <kbd className='rounded border border-border bg-muted px-1 py-0.5 text-[10px]'>
                 ↵
               </kbd>
               select
             </span>
             <span className='flex items-center gap-1'>
-              <kbd className='rounded border border-gray-300 dark:border-slate-700 bg-muted px-1 py-0.5 text-[10px]'>
+              <kbd className='rounded border border-border bg-muted px-1 py-0.5 text-[10px]'>
                 esc
               </kbd>
               close

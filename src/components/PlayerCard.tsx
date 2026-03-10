@@ -26,7 +26,7 @@ export function PlayerCard({
   }
 
   return (
-    <div className='relative overflow-hidden rounded-lg bg-main dark:bg-slate-900 border border-gray-300 dark:border-slate-700 text-foreground shadow-lg h-full'>
+    <div className='relative overflow-hidden rounded-lg bg-main dark:bg-slate-900 border border-border text-foreground shadow-lg h-full'>
       <div className='relative h-32 w-full'>
         <Image
           src={bgImageUrl || '/placeholder.svg'}
@@ -87,14 +87,14 @@ export function PlayerCard({
         </CardContent>
 
         <div className='mt-4 flex w-full justify-around gap-2'>
-          <div className='flex flex-1 flex-col items-center rounded-md dark:bg-main bg-[#e2e8f0] p-2 border border-gray-300 dark:border-slate-700'>
+          <div className='flex flex-1 flex-col items-center rounded-md dark:bg-main bg-[#e2e8f0] p-2 border border-border'>
             <Users className='h-4 w-4 text-gray-400' />
             <span className='mt-1 text-sm font-semibold'>
               {followers ?? 'N/A'}
             </span>
             <span className='text-xs text-gray-400'>Followers</span>
           </div>
-          <div className='flex flex-1 flex-col items-center rounded-md dark:bg-main bg-[#e2e8f0] p-2 border border-gray-300 dark:border-slate-700'>
+          <div className='flex flex-1 flex-col items-center rounded-md dark:bg-main bg-[#e2e8f0] p-2 border border-border'>
             <Users className='h-4 w-4 text-gray-400' />
             <span className='mt-1 text-base font-semibold'>
               {following ?? 'N/A'}

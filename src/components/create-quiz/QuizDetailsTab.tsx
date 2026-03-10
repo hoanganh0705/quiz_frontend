@@ -15,7 +15,7 @@ import { Button } from '@/components/ui/button'
 const QuizDetailsTab = memo(function QuizDetailsTab() {
   return (
     <section
-      className='p-6 space-y-8 border border-gray-300 dark:border-slate-700 rounded-xl'
+      className='p-6 space-y-8 border border-border rounded-xl'
       aria-labelledby='quiz-info-title'
     >
       <h2 id='quiz-info-title' className='text-2xl font-bold text-foreground'>
@@ -33,7 +33,7 @@ const QuizDetailsTab = memo(function QuizDetailsTab() {
           <Input
             id='quiz-title'
             placeholder='Untitled Quiz'
-            className='bg-transparent text-foreground placeholder:text-foreground/70 focus:ring-offset-0 focus:ring-0 border border-gray-300 dark:border-slate-700'
+            className='bg-transparent text-foreground placeholder:text-foreground/70 focus:ring-offset-0 focus:ring-0 border border-border'
             autoComplete='off'
             required
           />
@@ -49,7 +49,7 @@ const QuizDetailsTab = memo(function QuizDetailsTab() {
           <Textarea
             id='description'
             placeholder='Quiz description'
-            className='bg-transparent text-foreground placeholder:text-foreground/70 min-h-25 resize-y focus:ring-offset-0 focus:ring-0 border border-gray-300 dark:border-slate-700'
+            className='bg-transparent text-foreground placeholder:text-foreground/70 min-h-25 resize-y focus:ring-offset-0 focus:ring-0 border border-border'
             autoComplete='off'
           />
         </div>
@@ -64,7 +64,7 @@ const QuizDetailsTab = memo(function QuizDetailsTab() {
           <Select defaultValue='medium'>
             <SelectTrigger
               id='difficulty-level'
-              className='w-full bg-white dark:bg-background text-foreground placeholder:text-foreground/70 focus:ring-offset-0 focus:ring-0 border border-gray-300 dark:border-slate-700'
+              className='w-full bg-white dark:bg-background text-foreground placeholder:text-foreground/70 focus:ring-offset-0 focus:ring-0 border border-border'
             >
               <SelectValue placeholder='Select difficulty' />
             </SelectTrigger>
@@ -84,7 +84,7 @@ const QuizDetailsTab = memo(function QuizDetailsTab() {
             <Input
               id='tags'
               placeholder='Add a tag'
-              className='flex-1 bg-transparent text-foreground placeholder:text-foreground/70 focus:ring-offset-0 focus:ring-0 border border-gray-300 dark:border-slate-700'
+              className='flex-1 bg-transparent text-foreground placeholder:text-foreground/70 focus:ring-offset-0 focus:ring-0 border border-border'
               autoComplete='off'
             />
             <Button

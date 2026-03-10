@@ -11,7 +11,7 @@ export default function SettingsLoading() {
         </div>
 
         {/* Tabs Skeleton */}
-        <div className='flex gap-2 mb-8 border-b border-gray-300 dark:border-slate-700 pb-2'>
+        <div className='flex gap-2 mb-8 border-b border-border pb-2'>
           {Array.from({ length: 5 }).map((_, i) => (
             <Skeleton key={i} className='h-10 w-28 rounded-md' />
           ))}
@@ -22,7 +22,7 @@ export default function SettingsLoading() {
           {Array.from({ length: 3 }).map((_, sectionIndex) => (
             <div
               key={sectionIndex}
-              className='p-6 border border-gray-300 dark:border-slate-700 rounded-lg'
+              className='p-6 border border-border rounded-lg'
             >
               <Skeleton className='h-6 w-40 mb-4' />
 

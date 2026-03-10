@@ -50,7 +50,7 @@ const shortcutGroups: ShortcutGroup[] = [
 
 const Kbd = memo(function Kbd({ children }: { children: React.ReactNode }) {
   return (
-    <kbd className='inline-flex items-center justify-center min-w-6 h-6 px-1.5 rounded border border-gray-300 dark:border-slate-700 bg-muted text-xs font-medium text-foreground/70 shadow-sm'>
+    <kbd className='inline-flex items-center justify-center min-w-6 h-6 px-1.5 rounded border border-border bg-muted text-xs font-medium text-foreground/70 shadow-sm'>
       {children}
     </kbd>
   )

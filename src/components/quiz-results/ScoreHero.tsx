@@ -87,21 +87,21 @@ export default function ScoreHero({
             <div className='flex flex-wrap gap-2 justify-center lg:justify-start mb-6'>
               <Badge
                 variant='outline'
-                className='px-3 py-1 text-sm border border-gray-300 dark:border-slate-700'
+                className='px-3 py-1 text-sm border border-border'
               >
                 <Target className='w-4 h-4 mr-1' aria-hidden='true' />
                 {result.correctCount}/{quiz.questions.length} Correct
               </Badge>
               <Badge
                 variant='outline'
-                className='px-3 py-1 text-sm border border-gray-300 dark:border-slate-700'
+                className='px-3 py-1 text-sm border border-border'
               >
                 <Clock className='w-4 h-4 mr-1' aria-hidden='true' />
                 {formatTime(result.timeTaken)} Total Time
               </Badge>
               <Badge
                 variant='outline'
-                className='px-3 py-1 text-sm border border-gray-300 dark:border-slate-700'
+                className='px-3 py-1 text-sm border border-border'
               >
                 <Users className='w-4 h-4 mr-1' aria-hidden='true' />
                 Top {100 - percentile}%

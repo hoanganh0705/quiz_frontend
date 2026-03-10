@@ -9,39 +9,39 @@ export interface QuizCardProps {
   id?: string
   imageSrc: string
   difficulty: 'Easy' | 'Medium' | 'Hard'
-  authorAvatarSrc: string
-  authorName: string
+  creatorImageURL: string
+  creatorName: string
   reward: number
   category: string
   duration: number
   title: string
-  players: number
+  currentPlayers: number
   spotsAvailable: number
-  totalSpots: number
+  maxPlayers: number
 }
 
 export function QuizCardDifficulty({
   imageSrc,
   difficulty,
-  authorAvatarSrc,
-  authorName,
+  creatorImageURL,
+  creatorName,
   reward,
   category,
   duration,
   title,
-  players,
+  currentPlayers,
   spotsAvailable,
-  totalSpots
+  maxPlayers
 }: QuizCardProps) {
-  const progress = ((totalSpots - spotsAvailable) / totalSpots) * 100
+  const progress = ((maxPlayers - spotsAvailable) / maxPlayers) * 100
   const spotsText =
     spotsAvailable > 0
       ? `${spotsAvailable} spots available`
-      : `Only ${totalSpots - players} spots left!`
+      : `Only ${maxPlayers - currentPlayers} spots left!`
   const isSpotsLow = spotsAvailable > 0 && spotsAvailable <= 10
 
   return (
-    <div className='w-full overflow-hidden rounded-lg border border-gray-300 dark:border-slate-700 shadow-lg'>
+    <div className='w-full overflow-hidden rounded-lg border border-border shadow-lg'>
       <div className='relative aspect-video w-full'>
         <Image
           src={imageSrc || '/placeholder.svg'}
@@ -61,17 +61,17 @@ export function QuizCardDifficulty({
         <div className='absolute bottom-3 left-3 flex items-center gap-2'>
           <Avatar className='h-10 w-10 border-2 border-white'>
             <AvatarImage
-              src={authorAvatarSrc || '/placeholder.svg'}
-              alt={authorName}
+              src={creatorImageURL || '/placeholder.svg'}
+              alt={creatorName}
             />
             <AvatarFallback>
-              {authorName
+              {creatorName
                 .split(' ')
                 .map((n) => n[0])
                 .join('')}
             </AvatarFallback>
           </Avatar>
-          <span className='font-semibold text-white'>{authorName}</span>
+          <span className='font-semibold text-white'>{creatorName}</span>
         </div>
         <div className='absolute bottom-3 right-3 flex flex-col items-center text-sm font-semibold text-white'>
           <span>Reward</span>
@@ -83,7 +83,7 @@ export function QuizCardDifficulty({
       </div>
       <div className='p-4 text-white'>
         <div className='mb-2 flex items-center justify-between text-sm text-gray-400'>
-          <span className='rounded-full text-foreground border border-gray-300 dark:border-slate-700 px-2 py-0.5 text-xs'>
+          <span className='rounded-full text-foreground border border-border px-2 py-0.5 text-xs'>
             {category}
           </span>
           <div className='flex items-center'>
@@ -94,7 +94,7 @@ export function QuizCardDifficulty({
         <h3 className='mb-3 text-lg text-foreground font-bold'>{title}</h3>
         <div className='mb-3 flex items-center text-sm text-gray-400'>
           <Users className='mr-2 h-4 w-4 text-foreground' />
-          <span className='text-foreground'>{players} players</span>
+          <span className='text-foreground'>{currentPlayers} players</span>
         </div>
         <div className='mb-3'>
           <Progress value={progress} className='h-2' />

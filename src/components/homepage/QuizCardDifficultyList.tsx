@@ -123,15 +123,15 @@ const QuizCardDifficultyList = () => {
                   id={quiz.id}
                   imageSrc={quiz.image}
                   difficulty={quiz.difficulty}
-                  authorAvatarSrc={quiz.authorAvatarSrc}
-                  authorName={quiz.authorName}
+                  creatorImageURL={quiz.creator.imageURL}
+                  creatorName={quiz.creator.name}
                   reward={quiz.reward}
                   category={quiz.categories[0]} // Assuming the first category is used
                   duration={quiz.duration}
                   title={quiz.title}
-                  players={quiz.currentPlayers}
+                  currentPlayers={quiz.currentPlayers}
                   spotsAvailable={quiz.spotsLeft}
-                  totalSpots={quiz.spots}
+                  maxPlayers={quiz.maxPlayers}
                 />
               </SwiperSlide>
             ))}

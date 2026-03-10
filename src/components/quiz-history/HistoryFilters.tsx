@@ -33,7 +33,7 @@ export const HistoryFiltersBar = memo(function HistoryFiltersBar({
   categories
 }: HistoryFiltersProps) {
   return (
-    <Card className='bg-background border border-gray-300 dark:border-slate-700'>
+    <Card className='bg-background border border-border'>
       <CardContent className='p-4'>
         <div className='flex flex-col gap-4'>
           {/* Search */}

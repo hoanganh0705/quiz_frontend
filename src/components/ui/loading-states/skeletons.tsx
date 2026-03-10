@@ -37,7 +37,7 @@ export function QuizCardDetailSkeleton({ className }: QuizCardSkeletonProps) {
   return (
     <div
       className={cn(
-        'border border-gray-300 dark:border-slate-700 rounded-xl overflow-hidden',
+        'border border-border rounded-xl overflow-hidden',
         className
       )}
     >
@@ -96,7 +96,7 @@ export function FeaturedQuizSkeleton({ className }: QuizCardSkeletonProps) {
   return (
     <div
       className={cn(
-        'border border-gray-300 dark:border-slate-700 rounded-xl overflow-hidden',
+        'border border-border rounded-xl overflow-hidden',
         className
       )}
     >
@@ -158,7 +158,7 @@ export function PlayerCardSkeleton({ className }: QuizCardSkeletonProps) {
   return (
     <div
       className={cn(
-        'relative overflow-hidden rounded-lg bg-main dark:bg-slate-900 border border-gray-300 dark:border-slate-700 h-full',
+        'relative overflow-hidden rounded-lg bg-main dark:bg-slate-900 border border-border h-full',
         className
       )}
     >
@@ -299,7 +299,7 @@ export function StatsCardSkeleton({ className }: { className?: string }) {
   return (
     <div
       className={cn(
-        'p-4 border border-gray-300 dark:border-slate-700 rounded-lg',
+        'p-4 border border-border rounded-lg',
         className
       )}
     >
