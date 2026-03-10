@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useCallback } from 'react'
+import { useEffect, useCallback, useMemo } from 'react'
 import useSWRSubscription from 'swr/subscription'
 
 /**
@@ -53,11 +53,18 @@ export function useKeyboardShortcut(
 
   const stableCallback = useCallback(callback, [callback])
 
+  // Serialize options to a stable string for dependency comparison
+  const optionsKey = useMemo(
+    () => JSON.stringify({ meta: options.meta, shift: options.shift, preventDefault: options.preventDefault }),
+    [options.meta, options.shift, options.preventDefault]
+  )
+
   // Register this callback in the module-level Map
   useEffect(() => {
     if (!enabled) return
 
-    const entry: CallbackEntry = { callback: stableCallback, options }
+    const parsedOptions = JSON.parse(optionsKey) as ShortcutOptions
+    const entry: CallbackEntry = { callback: stableCallback, options: { ...parsedOptions, enabled } }
 
     if (!keyCallbacks.has(key)) {
       keyCallbacks.set(key, new Set())
@@ -73,7 +80,7 @@ export function useKeyboardShortcut(
         }
       }
     }
-  }, [key, stableCallback, enabled]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [key, stableCallback, enabled, optionsKey])
 
   // Single shared global keydown listener via useSWRSubscription
   useSWRSubscription(

@@ -66,23 +66,3 @@ export function useLocalStorage<T>(
 
   return [storedValue, setValue, removeValue]
 }
-
-/**
- * Hook for managing quiz progress in localStorage with automatic persistence
- * @param quizId - The quiz identifier
- * @param initialProgress - Initial progress state
- * @returns Progress management utilities
- */
-export function useQuizProgress<T>(quizId: string, initialProgress: T) {
-  const storageKey = `quiz_progress_${quizId}`
-  const [progress, setProgress, clearProgress] = useLocalStorage<T>(
-    storageKey,
-    initialProgress
-  )
-
-  return {
-    progress,
-    setProgress,
-    clearProgress
-  }
-}

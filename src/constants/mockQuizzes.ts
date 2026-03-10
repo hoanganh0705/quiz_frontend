@@ -562,5 +562,3 @@ export const quizzes: Quiz[] = [
     authorName: 'Alex Smith'
   }
 ]
-
-export default quizzes

@@ -34,9 +34,8 @@ const ForgotPasswordPage = memo(function ForgotPasswordPage() {
 
   const { execute: onSubmit, isLoading } = useAsyncAction(
     async (data: ForgotPasswordFormData) => {
-      // Simulate API call
+      // TODO: Implement actual password reset API call
       await new Promise((resolve) => setTimeout(resolve, 1500))
-      console.log('Password reset request:', data)
       setIsEmailSent(true)
     }
   )

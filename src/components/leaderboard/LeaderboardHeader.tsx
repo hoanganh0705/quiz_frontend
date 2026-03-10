@@ -1,21 +1,10 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 'use client'
 
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import { useState, memo, useCallback } from 'react'
 import { FindFriendsPopup } from './FindFriendsPopup'
 import { YourRankingPopup } from './YourRankingPopup'
-import {
-  Trophy,
-  Star,
-  TrendingUp,
-  Users,
-  Crown,
-  Target,
-  Calendar,
-  BarChart3
-} from 'lucide-react'
+import { Trophy, Star, Users, Crown, Calendar } from 'lucide-react'
 
 interface LeaderboardHeaderProps {
   onFindFriends?: () => void

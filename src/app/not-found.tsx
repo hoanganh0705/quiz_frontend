@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button'
 import { Home, Search } from 'lucide-react'
 import Link from 'next/link'
-import { GoBackButton } from '../components/GoBackButton'
+import { GoBackButton } from '@/components/GoBackButton'
 
 export default function NotFound() {
   return (
