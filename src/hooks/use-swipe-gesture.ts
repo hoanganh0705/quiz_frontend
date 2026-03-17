@@ -1,3 +1,5 @@
+'use client'
+
 import { useEffect, useRef, useCallback } from 'react'
 
 interface SwipeGestureOptions {
@@ -47,6 +49,8 @@ export function useSwipeGesture(
       if (!enabled) return
       touchStartX.current = e.touches[0].clientX
       touchStartY.current = e.touches[0].clientY
+      touchEndX.current = touchStartX.current
+      touchEndY.current = touchStartY.current
       isSwiping.current = true
     },
     [enabled]

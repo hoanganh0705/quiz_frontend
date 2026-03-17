@@ -23,7 +23,7 @@ const DiscussionCard = memo(function DiscussionCard({
   discussion
 }: DiscussionCardProps) {
   return (
-    <Card className='bg-transparentrounded-lg flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border border-border p-10'>
+    <Card className='bg-transparent rounded-lg flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border border-border p-10'>
       <div className='flex-1 gap-2 flex flex-col'>
         <h3 className='text-lg font-semibold'>{discussion.title}</h3>
         <div className='flex items-center gap-2 text-foreground text-sm'>

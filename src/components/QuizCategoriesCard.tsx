@@ -2,7 +2,7 @@ import Image from 'next/image'
 import { Card } from '@/components/ui/card'
 
 interface QuizCategoryProps {
-  id: number
+  id: string
   name: string
   count: number
 }

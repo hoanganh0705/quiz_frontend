@@ -1,3 +1,5 @@
+'use client'
+
 import { useState, useEffect, useCallback, useRef } from 'react'
 
 interface UseCountdownTimerOptions {
@@ -23,6 +25,9 @@ export function useCountdownTimer({
   )
   const completedRef = useRef(false)
   const onCompleteRef = useRef(onComplete)
+  const endTimeRef = useRef<number | null>(
+    autoStart ? Date.now() + initialTime * 1000 : null
+  )
 
   // Keep onComplete ref updated
   useEffect(() => {
@@ -33,36 +38,53 @@ export function useCountdownTimer({
   useEffect(() => {
     if (!isRunning) return
 
+    if (endTimeRef.current === null) {
+      endTimeRef.current = Date.now() + timeLeft * 1000
+    }
+
     const timer = setInterval(() => {
-      setTimeLeft((prev) => {
-        if (prev <= 1) {
-          setIsRunning(false)
-          if (onCompleteRef.current && !completedRef.current) {
-            completedRef.current = true
-            // Use setTimeout to avoid calling during render
-            setTimeout(() => onCompleteRef.current?.(), 0)
-          }
-          return 0
+      const endTime = endTimeRef.current
+      if (endTime === null) return
+
+      const remaining = Math.max(0, Math.ceil((endTime - Date.now()) / 1000))
+      setTimeLeft(remaining)
+
+      if (remaining <= 0) {
+        setIsRunning(false)
+        endTimeRef.current = null
+        if (onCompleteRef.current && !completedRef.current) {
+          completedRef.current = true
+          setTimeout(() => onCompleteRef.current?.(), 0)
         }
-        return prev - 1
-      })
-    }, 1000)
+      }
+    }, 250)
 
     return () => clearInterval(timer)
-  }, [isRunning])
+  }, [isRunning, timeLeft])
 
   const start = useCallback(() => {
     setIsRunning(true)
-    setStartedAt(Date.now())
+    const now = Date.now()
+    setStartedAt(now)
+    endTimeRef.current = now + timeLeft * 1000
     completedRef.current = false
-  }, [])
+  }, [timeLeft])
 
   const pause = useCallback(() => {
+    if (endTimeRef.current !== null) {
+      const remaining = Math.max(
+        0,
+        Math.ceil((endTimeRef.current - Date.now()) / 1000)
+      )
+      setTimeLeft(remaining)
+    }
+    endTimeRef.current = null
     setIsRunning(false)
   }, [])
 
   const resume = useCallback(() => {
     if (timeLeft > 0) {
+      endTimeRef.current = Date.now() + timeLeft * 1000
       setIsRunning(true)
     }
   }, [timeLeft])
@@ -72,14 +94,18 @@ export function useCountdownTimer({
       setTimeLeft(newTime ?? initialTime)
       setIsRunning(false)
       setStartedAt(null)
+      endTimeRef.current = null
       completedRef.current = false
     },
     [initialTime]
   )
 
   const setTime = useCallback((time: number) => {
+    if (isRunning) {
+      endTimeRef.current = Date.now() + time * 1000
+    }
     setTimeLeft(time)
-  }, [])
+  }, [isRunning])
 
   return {
     timeLeft,

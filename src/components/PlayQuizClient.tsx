@@ -346,7 +346,7 @@ export default function PlayQuizClient({ quiz }: { quiz: Quiz }) {
       onSwipeLeft: handleNextQuestion,
       onSwipeRight: handlePreviousQuestion
     },
-    { threshold: 50, enabled: isMobile },
+    { threshold: 50, enabled: isMobile === true },
     quizContainerRef
   )
 

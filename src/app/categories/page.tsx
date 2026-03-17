@@ -66,7 +66,7 @@ export default function QuizCategories() {
           <QuizCategoriesCard
             key={category.id}
             {...category}
-            id={Number(category.id)}
+            id={category.id}
           />
         ))}
       </div>

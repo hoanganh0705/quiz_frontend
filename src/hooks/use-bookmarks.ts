@@ -3,21 +3,7 @@
 import { useCallback, useMemo } from 'react'
 import { useLocalStorage } from './use-local-storage'
 import { Quiz } from '@/types/quiz'
-
-export interface BookmarkCollection {
-  id: string
-  name: string
-  description?: string
-  color: string
-  createdAt: string
-}
-
-export interface BookmarkedQuiz {
-  quizId: string
-  collectionId: string | null // null means "Uncategorized"
-  bookmarkedAt: string
-  notes?: string
-}
+import type { BookmarkCollection, BookmarkedQuiz } from '@/types/bookmarks'
 
 interface BookmarksState {
   collections: BookmarkCollection[]
