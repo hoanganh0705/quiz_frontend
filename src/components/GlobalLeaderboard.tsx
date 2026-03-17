@@ -215,17 +215,17 @@ export default function GlobalLeaderboard() {
                 </span>
                 <div className='w-full h-2 rounded-full bg-foreground/20'>
                   <div
-                    className='h-full rounded-full transition-all'
+                    className={`h-full rounded-full transition-all ${
+                      index === 0
+                        ? 'bg-amber-500'
+                        : index === 1
+                          ? 'bg-gray-400'
+                          : index === 2
+                            ? 'bg-orange-600'
+                            : 'bg-foreground/20'
+                    }`}
                     style={{
-                      width: `${((player.score || 0) / maxScore) * 100}%`,
-                      background:
-                        index === 0
-                          ? 'bg-amber-500'
-                          : index === 1
-                            ? 'bg-gray-400'
-                            : index === 2
-                              ? 'bg-orange-600'
-                              : 'bg-foreground/20'
+                      width: `${((player.score || 0) / maxScore) * 100}%`
                     }}
                   />
                 </div>

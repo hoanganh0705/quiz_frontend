@@ -1,13 +1,4 @@
 import { Article } from '@/types/articles'
-import {
-  BookOpen,
-  User,
-  CreditCard,
-  PlusCircle,
-  Trophy,
-  Shield,
-  Settings
-} from 'lucide-react'
 
 export const articles: Article[] = [
   {
@@ -17,7 +8,7 @@ export const articles: Article[] = [
     description:
       'Everything you need to know to begin your journey on our platform.',
     readTime: '5 min read',
-    icon: BookOpen,
+    icon: 'book-open',
     slug: 'getting-started-with-quizhub',
     content: 'Complete guide to getting started...',
     tags: ['beginner', 'setup', 'introduction'],
@@ -31,7 +22,7 @@ export const articles: Article[] = [
     description:
       'Learn how to set up your account, customize your profile, and configure your preferences.',
     readTime: '5 min read',
-    icon: User,
+    icon: 'user',
     slug: 'complete-account-setup-guide',
     content: 'Step-by-step account setup instructions...',
     tags: ['account', 'profile', 'settings'],
@@ -45,7 +36,7 @@ export const articles: Article[] = [
     description:
       'Learn how to upgrade, downgrade, or cancel your subscription plan.',
     readTime: '4 min read',
-    icon: CreditCard,
+    icon: 'credit-card',
     slug: 'managing-your-subscription',
     content: 'Comprehensive billing and subscription management...',
     tags: ['billing', 'subscription', 'payment'],
@@ -59,7 +50,7 @@ export const articles: Article[] = [
     description:
       'A step-by-step guide to creating your first quiz from scratch.',
     readTime: '5 min read',
-    icon: PlusCircle,
+    icon: 'plus-circle',
     slug: 'quiz-creation-basics',
     content: 'Learn the fundamentals of quiz creation...',
     tags: ['quiz', 'creation', 'basics'],
@@ -73,7 +64,7 @@ export const articles: Article[] = [
     description:
       'Learn how to set up, configure, and launch a successful quiz tournament.',
     readTime: '6 min read',
-    icon: Trophy,
+    icon: 'trophy',
     slug: 'creating-your-first-tournament',
     content: 'Tournament setup and management guide...',
     tags: ['tournament', 'competition', 'setup'],
@@ -87,7 +78,7 @@ export const articles: Article[] = [
     description:
       'A comprehensive guide to all privacy options available on the platform.',
     readTime: '5 min read',
-    icon: Shield,
+    icon: 'shield',
     slug: 'understanding-privacy-settings',
     content: 'Complete privacy settings overview...',
     tags: ['privacy', 'security', 'settings'],
@@ -101,7 +92,7 @@ export const articles: Article[] = [
     description:
       'Explore advanced features like timers, multimedia questions, and custom scoring.',
     readTime: '8 min read',
-    icon: Settings,
+    icon: 'settings',
     slug: 'advanced-quiz-features',
     content: 'Deep dive into advanced quiz functionality...',
     tags: ['quiz', 'advanced', 'features'],
@@ -115,7 +106,7 @@ export const articles: Article[] = [
     description:
       'Learn how to personalize your profile with avatars, bio, and social links.',
     readTime: '3 min read',
-    icon: User,
+    icon: 'user',
     slug: 'profile-customization-guide',
     content: 'Complete profile customization walkthrough...',
     tags: ['profile', 'customization', 'personalization'],
@@ -129,7 +120,7 @@ export const articles: Article[] = [
     description:
       'Master the tools available for moderating and managing tournament participants.',
     readTime: '7 min read',
-    icon: Shield,
+    icon: 'shield',
     slug: 'tournament-moderation-tools',
     content: 'Tournament moderation best practices...',
     tags: ['tournament', 'moderation', 'management'],
@@ -143,7 +134,7 @@ export const articles: Article[] = [
     description:
       'Compare different pricing tiers and find the plan that best suits your needs.',
     readTime: '4 min read',
-    icon: CreditCard,
+    icon: 'credit-card',
     slug: 'understanding-pricing-plans',
     content: 'Detailed pricing plan comparison...',
     tags: ['pricing', 'plans', 'comparison'],
@@ -157,7 +148,7 @@ export const articles: Article[] = [
     description:
       'Discover all the features available in our mobile application.',
     readTime: '6 min read',
-    icon: BookOpen,
+    icon: 'book-open',
     slug: 'mobile-app-features',
     content: 'Complete mobile app feature overview...',
     tags: ['mobile', 'app', 'features'],
@@ -171,7 +162,7 @@ export const articles: Article[] = [
     description:
       'Learn how to export your data or permanently delete your account.',
     readTime: '4 min read',
-    icon: Shield,
+    icon: 'shield',
     slug: 'data-export-and-deletion',
     content: 'Data management and account deletion guide...',
     tags: ['data', 'export', 'deletion', 'gdpr'],

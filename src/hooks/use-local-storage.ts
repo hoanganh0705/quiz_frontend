@@ -1,4 +1,7 @@
+'use client'
+
 import { useState, useCallback, useRef } from 'react'
+import { useEffect } from 'react'
 
 /**
  * Custom hook for managing localStorage with automatic serialization/deserialization
@@ -61,6 +64,30 @@ export function useLocalStorage<T>(
       }
     } catch (error) {
       console.error(`Error removing localStorage key "${key}":`, error)
+    }
+  }, [key])
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+
+    const handleStorageChange = (event: StorageEvent) => {
+      if (event.storageArea !== window.localStorage || event.key !== key) return
+
+      try {
+        if (event.newValue === null) {
+          setStoredValue(initialValueRef.current)
+          return
+        }
+
+        setStoredValue(JSON.parse(event.newValue) as T)
+      } catch (error) {
+        console.error(`Error syncing localStorage key "${key}":`, error)
+      }
+    }
+
+    window.addEventListener('storage', handleStorageChange)
+    return () => {
+      window.removeEventListener('storage', handleStorageChange)
     }
   }, [key])
 

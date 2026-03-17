@@ -1,7 +1,31 @@
 import type React from 'react'
 import { Input } from '@/components/ui/input'
-import { Search, ArrowRight } from 'lucide-react'
+import {
+  Search,
+  ArrowRight,
+  BookOpen,
+  User,
+  CreditCard,
+  PlusCircle,
+  Trophy,
+  Shield,
+  Settings
+} from 'lucide-react'
 import { articles } from '@/constants/articles'
+import type { ArticleIconName } from '@/types/articles'
+
+const iconMap: Record<
+  ArticleIconName,
+  React.ComponentType<{ className?: string }>
+> = {
+  'book-open': BookOpen,
+  user: User,
+  'credit-card': CreditCard,
+  'plus-circle': PlusCircle,
+  trophy: Trophy,
+  shield: Shield,
+  settings: Settings
+}
 
 export function KnowledgeBase() {
   return (
@@ -21,7 +45,7 @@ export function KnowledgeBase() {
 
       <div className='grid grid-cols-1 lg:grid-cols-2 gap-6'>
         {articles.map((article) => {
-          const IconComponent = article.icon
+          const IconComponent = iconMap[article.icon]
           return (
             <div
               key={article.id}

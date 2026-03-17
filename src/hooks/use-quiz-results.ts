@@ -1,3 +1,5 @@
+'use client'
+
 import { useLocalStorage } from './use-local-storage'
 
 /**

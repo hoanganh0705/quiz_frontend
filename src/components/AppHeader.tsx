@@ -39,7 +39,14 @@ export function AppHeader() {
   const { state } = useSidebar()
   const isMobile = useIsMobile()
 
-  const sidebarWidth = isMobile ? '0' : state === 'expanded' ? '16rem' : '3rem'
+  const sidebarWidth =
+    isMobile === undefined
+      ? '0'
+      : isMobile
+        ? '0'
+        : state === 'expanded'
+          ? '16rem'
+          : '3rem'
 
   return (
     <header

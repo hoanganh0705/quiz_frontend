@@ -1,17 +1,3 @@
-# 🚨 CRITICAL BUGS - Fix Immediately
-
-## 🔴 Critical Bugs (Blockers)
-
-- [ ] **Login form schema includes `firstName`/`lastName`** — copy-pasted from signup form ([src/app/login/page.tsx](src/app/login/page.tsx))
-- [ ] **`difficultyColor[difficulty]` used incorrectly** — returns object with `.bg` sub-property, but code uses it directly as CSS class, rendering `[object Object]` ([src/components/QuizCardDifficulty.tsx](src/components/QuizCardDifficulty.tsx))
-- [ ] **Score bar in leaderboard uses Tailwind class names as inline `style` values** — `backgroundColor: "bg-yellow-500"` won't render any color ([src/components/GlobalLeaderboard.tsx](src/components/GlobalLeaderboard.tsx))
-- [ ] **`<Suspense>` used in Server Components** — has no effect in RSC; only works in client components ([src/app/daily-challenge/page.tsx](src/app/daily-challenge/page.tsx), [src/app/discussions/page.tsx](src/app/discussions/page.tsx), [src/app/leaderboard/page.tsx](src/app/leaderboard/page.tsx))
-- [ ] **CSS class typo** — `"bg-muted/50rounded-lg"` (missing space) ([src/app/discussions/page.tsx](src/app/discussions/page.tsx))
-- [ ] **`<Link>` wrapping a `<Button>`** — invalid HTML nesting (`<a>` inside `<button>`) ([src/components/QuizCard.tsx](src/components/QuizCard.tsx))
-- [ ] **Correct answers exposed to client** — `correctAnswer` field in `Quiz` type is sent to browser, enabling cheating via DevTools ([src/types/quiz.ts](src/types/quiz.ts))
-
----
-
 # 🟡 CODE QUALITY ISSUES - Technical Debt
 
 ## Architecture & Types
