@@ -1,23 +1,3 @@
-# 🟡 CODE QUALITY ISSUES - Technical Debt
-
-## Architecture & Types
-
-- [ ] **Decompose `Quiz` god type** (29+ fields) — split into smaller interfaces: `QuizMetadata`, `QuizQuestion`, `QuizReview`, `QuizLeaderboardEntry`, etc.
-- [ ] **Remove duplicate type declarations** — `Bookmark` and `BookmarkCollection` defined in both [src/types/bookmarks.ts](src/types/bookmarks.ts) and [src/hooks/use-bookmarks.ts](src/hooks/use-bookmarks.ts)
-- [ ] **Fix inconsistent `id` typing** — `id` is `number` in `QuizCategoriesCard` but `string` in `QuizCategory` type
-- [ ] **Fix `Article.icon` storing React components** — makes articles non-serializable; use string icon names instead
-- [ ] **Unify 3 overlapping quiz card components** — `QuizCard`, `QuizCardDetail`, `QuizCardDifficulty` should use variants instead
-
-## Custom Hooks
-
-- [ ] **Add missing `'use client'` directive** to 10+ hooks using React hooks/browser APIs
-- [ ] **Add abort/cancellation support** to `use-async-action` — prevent stale closures setting state on unmounted components
-- [ ] **Fix timer drift in `use-countdown-timer`** — use `Date.now()`-based approach instead of `setInterval`
-- [ ] **Add cross-tab synchronization** to `use-local-storage` — listen for `storage` event
-- [ ] **Add unmount cleanup** to `use-clipboard` timer
-- [ ] **Fix swipe gesture bug** — reset `touchStartX`/`touchStartY` on new touches to prevent phantom swipe detection
-- [ ] **Fix hydration mismatch** in `use-mobile` — returns `false` during SSR causing layout flash on mobile
-
 ## Page Components
 
 - [ ] **Refactor oversized page files** — extract business logic from pages into hooks/utils:

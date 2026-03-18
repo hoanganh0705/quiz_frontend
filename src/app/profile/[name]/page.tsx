@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, memo, useMemo, useCallback } from 'react'
+import { memo } from 'react'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -8,14 +8,10 @@ import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import ActivityItem from '@/components/profile/ActivityItem'
 import CategoryRow from '@/components/profile/CategoryRow'
-import { players } from '@/constants/players'
 import { challengeData } from '@/constants/challengeHistoryData'
 // Bundle optimization: Using barrel imports with Next.js optimizePackageImports
 // Next.js automatically transforms these to direct imports (bundle-barrel-imports)
 import {
-  CheckCircle2,
-  Trophy,
-  Zap,
   MessageCircle,
   Users,
   MapPin,
@@ -25,28 +21,7 @@ import {
   ArrowLeft
 } from 'lucide-react'
 import Link from 'next/link'
-
-// Rendering optimization: Hoist static JSX elements (rendering-hoist-jsx)
-const achievementIcon = (
-  <CheckCircle2 className='w-6 h-6 text-green-500' aria-hidden='true' />
-)
-const winIcon = <Trophy className='w-6 h-6 text-amber-500' aria-hidden='true' />
-const participationIcon = (
-  <Zap className='w-6 h-6 text-default' aria-hidden='true' />
-)
-
-const getActivityIcon = (type: string | undefined) => {
-  switch (type) {
-    case 'achievement':
-      return achievementIcon
-    case 'win':
-      return winIcon
-    case 'participation':
-      return participationIcon
-    default:
-      return participationIcon
-  }
-}
+import { usePublicProfilePage } from '@/hooks/use-public-profile-page'
 
 // Re-render optimization: Extract to memoized components (rerender-memo)
 const ProfileHeader = memo(function ProfileHeader({
@@ -247,42 +222,14 @@ const StatsPanel = memo(function StatsPanel({
 })
 
 const ProfilePage = () => {
-  const [activeTab, setActiveTab] = useState('activity')
-
-  // Get the first player as example (you can later make this dynamic based on route params)
-  const currentPlayer = players[0]
-
-  // Re-render optimization: Use useCallback with stable dependencies (rerender-dependencies)
-  const handleTabChange = useCallback((value: string) => {
-    setActiveTab(value)
-  }, [])
-
-  // Re-render optimization: Lazy state initialization (rerender-lazy-state-init)
-  // Calculate stats - memoized with primitive dependencies
-  const averageScore = useMemo(() => {
-    if (challengeData.length === 0) return 0
-    return (
-      challengeData.reduce((sum, c) => sum + c.score, 0) / challengeData.length
-    )
-  }, [])
-
-  const winRate = useMemo(() => {
-    if (challengeData.length === 0) return 0
-    const topRanks = challengeData.filter((c) => c.rank <= 10).length
-    return Math.round((topRanks / challengeData.length) * 100)
-  }, [])
-
-  // Sample activity data based on challenge history
-  const recentActivities = useMemo(
-    () =>
-      challengeData.slice(0, 3).map((challenge) => ({
-        id: challenge.id,
-        icon: getActivityIcon(challenge.type),
-        title: `Completed '${challenge.category}' with a score of ${challenge.score}%`,
-        date: challenge.date
-      })),
-    []
-  )
+  const {
+    activeTab,
+    handleTabChange,
+    currentPlayer,
+    averageScore,
+    winRate,
+    recentActivities
+  } = usePublicProfilePage()
 
   return (
     <main className='min-h-screen flex items-start justify-center pt-10'>

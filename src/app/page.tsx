@@ -1,5 +1,6 @@
 import { Button } from '@/components/ui/button'
 import categories from '@/constants/categories'
+import { buildMetadata } from '@/lib/seo'
 import QuizCategories from '@/components/QuizCategories'
 import QuizCard from '@/components/QuizCard'
 import Link from 'next/link'
@@ -10,6 +11,13 @@ import SuccessStoriesCarousel from '@/components/SuccessStoryCarousel'
 import PlayerRanking from '@/components/homepage/PlayerRanking'
 import QuizCardDifficultyList from '@/components/homepage/QuizCardDifficultyList'
 import { quizzes } from '@/constants/mockQuizzes'
+
+export const metadata = buildMetadata({
+  title: 'QuizHub - Play, Share, Earn!',
+  description:
+    'Build engaging quizzes, challenge others, and earn rewards for your knowledge.',
+  path: '/'
+})
 
 export default function QuizHubDashboard() {
   return (
