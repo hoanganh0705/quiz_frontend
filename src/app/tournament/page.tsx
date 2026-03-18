@@ -1,5 +1,5 @@
 'use client'
-import React, { useState, useMemo, useCallback, memo } from 'react'
+import { memo } from 'react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -12,7 +12,6 @@ import {
 } from '@/components/ui/select'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { difficultyColors } from '@/constants/difficultyColor'
-import { tournaments } from '@/constants/tournament'
 import {
   CalendarDays,
   Users,
@@ -27,6 +26,7 @@ import {
 import Image from 'next/image'
 import Link from 'next/link'
 import { Tournament } from '@/types/tournament'
+import { useTournamentPage } from '@/hooks/use-tournament-page'
 
 const FeaturedTournament = memo(function FeaturedTournament() {
   return (
@@ -224,51 +224,14 @@ const TournamentCard = memo(function TournamentCard({
 })
 
 function QuizTournament() {
-  const [filter, setFilter] = useState<string>('all')
-  const [selectedCategory, setSelectedCategory] = useState<string>('all')
-
-  // Get unique categories from tournaments for tabs
-  const uniqueCategories = useMemo(
-    () => ['all', ...new Set(tournaments.map((t) => t.category))],
-    []
-  )
-
-  const filteredTournaments = useMemo(() => {
-    const now = new Date('2025-08-01')
-    let filtered = [...tournaments]
-
-    // Filter by category
-    if (selectedCategory !== 'all') {
-      filtered = filtered.filter((t) => t.category === selectedCategory)
-    }
-
-    // Filter by status
-    switch (filter) {
-      case 'upcoming':
-        return filtered.filter((t) => new Date(t.startDate) > now)
-      case 'ongoing':
-        return filtered.filter(
-          (t) => new Date(t.startDate) <= now && new Date(t.endDate) >= now
-        )
-      case 'completed':
-        return filtered.filter((t) => new Date(t.endDate) < now)
-      case 'registration':
-        return filtered.filter((t) => t.registrationOpen)
-      case 'all':
-      default:
-        return filtered
-    }
-  }, [filter, selectedCategory])
-
-  // Handle filter changes
-  const handleFilterChange = useCallback((value: string) => {
-    setFilter(value)
-  }, [])
-
-  // Handle tab changes
-  const handleTabChange = useCallback((value: string) => {
-    setSelectedCategory(value)
-  }, [])
+  const {
+    filter,
+    selectedCategory,
+    uniqueCategories,
+    filteredTournaments,
+    handleFilterChange,
+    handleCategoryChange
+  } = useTournamentPage()
 
   return (
     <main className='min-h-screen text-foreground p-4 md:p-8 lg:p-12'>
@@ -320,7 +283,7 @@ function QuizTournament() {
         {/* Category Tabs */}
         <Tabs
           value={selectedCategory}
-          onValueChange={handleTabChange}
+          onValueChange={handleCategoryChange}
           className='mb-8 w-full'
         >
           <TabsList

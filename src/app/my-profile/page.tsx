@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, memo } from 'react'
+import { memo } from 'react'
 // Fix barrel imports (bundle-barrel-imports)
 import { Button } from '@/components/ui/button'
 import { Tabs } from '@/components/ui/tabs'
@@ -30,55 +30,22 @@ import {
   Flame
 } from 'lucide-react'
 import Link from 'next/link'
-
-// Hoist helper function outside component (data-hoisting)
-function getActivityIcon(type?: string) {
-  switch (type) {
-    case 'achievement':
-      return (
-        <CheckCircle2 className='w-5 h-5 text-green-500' aria-hidden='true' />
-      )
-    case 'win':
-      return <Trophy className='w-5 h-5 text-amber-500' aria-hidden='true' />
-    case 'participation':
-      return <Zap className='w-5 h-5 text-default' aria-hidden='true' />
-    default:
-      return <Zap className='w-5 h-5 text-default' aria-hidden='true' />
-  }
-}
-
-// Hoist calculation functions outside component (data-hoisting)
-function calculateStats() {
-  const averageScore =
-    challengeData.reduce((sum, c) => sum + c.score, 0) / challengeData.length
-  const topRanks = challengeData.filter((c) => c.rank <= 10).length
-  const winRate = Math.round((topRanks / challengeData.length) * 100)
-  return { averageScore, winRate }
-}
+import { useMyProfilePage } from '@/hooks/use-my-profile-page'
 
 const MyProfilePage = memo(function MyProfilePage() {
-  const [activeTab, setActiveTab] = useState('overview')
-
-  // Current logged-in user (simulated - would come from auth context)
-  const currentUser = players[0]
-
-  // Activity data from challenge history
-  const recentActivities = challengeData.slice(0, 5).map((challenge) => ({
-    id: challenge.id,
-    icon: getActivityIcon(challenge.type),
-    title: `Completed '${challenge.category}' with a score of ${challenge.score}%`,
-    date: challenge.date
-  }))
-
-  // Calculate stats
-  const { averageScore, winRate } = calculateStats()
-  const totalQuizzes = currentUser.quizzes || 0
-  const quizzesCreated = currentUser.quizzesCreated || 0
-
-  // Level progress calculation
-  const currentLevelXP = 7800
-  const nextLevelXP = 10000
-  const levelProgress = (currentLevelXP / nextLevelXP) * 100
+  const {
+    activeTab,
+    setActiveTab,
+    currentUser,
+    recentActivities,
+    averageScore,
+    winRate,
+    totalQuizzes,
+    quizzesCreated,
+    currentLevelXP,
+    nextLevelXP,
+    levelProgress
+  } = useMyProfilePage()
 
   // Unlocked badges count
   const unlockedBadges = badges.filter((b) => b.unlocked).length

@@ -13,6 +13,7 @@ import { AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Search, MessageSquare, CheckCircle2, XCircle } from 'lucide-react'
 import { discussions } from '@/constants/discussion'
+import { useDiscussionsPage } from '@/hooks/use-discussions-page'
 
 // Extract DiscussionCard component (vercel-composition-patterns)
 interface DiscussionCardProps {
@@ -89,6 +90,20 @@ const DiscussionCard = memo(function DiscussionCard({
 })
 
 const QuizDiscussions = memo(function QuizDiscussions() {
+  const {
+    activeTab,
+    setActiveTab,
+    searchQuery,
+    setSearchQuery,
+    difficultyFilter,
+    sortByComments,
+    cycleDifficultyFilter,
+    toggleSort,
+    filteredDiscussions,
+    popularDiscussions,
+    yourDiscussions
+  } = useDiscussionsPage()
+
   return (
     <div className='min-h-screen text-foreground p-4 md:p-8 lg:p-12'>
       <div className=''>
@@ -115,6 +130,8 @@ const QuizDiscussions = memo(function QuizDiscussions() {
             <Input
               type='search'
               placeholder='Search discussions...'
+              value={searchQuery}
+              onChange={(event) => setSearchQuery(event.target.value)}
               className='w-full pl-10 pr-4 py-2 border-none text-foreground placeholder:text-foreground/70 focus:ring-offset-0 focus:ring-0'
               aria-label='Search discussions'
             />
@@ -125,22 +142,30 @@ const QuizDiscussions = memo(function QuizDiscussions() {
             aria-label='Discussion filters'
           >
             <Button
+              onClick={cycleDifficultyFilter}
               className='bg-background hover:bg-main text-foreground px-6 py-2 rounded-md border border-border'
-              aria-label='Filter discussions'
+              aria-label={`Filter discussions by difficulty: ${difficultyFilter}`}
             >
-              Filter
+              Filter: {difficultyFilter}
             </Button>
             <Button
+              onClick={toggleSort}
               className='bg-background  hover:bg-main text-foreground px-6 py-2 rounded-md border border-border'
-              aria-label='Sort discussions'
+              aria-label='Sort discussions by comments'
             >
-              Sort
+              Sort: {sortByComments ? 'Comments' : 'Default'}
             </Button>
           </div>
         </section>
 
         {/* Discussion Tabs */}
-        <Tabs defaultValue='recent' className='w-full '>
+        <Tabs
+          value={activeTab}
+          onValueChange={(value) =>
+            setActiveTab(value as 'recent' | 'popular' | 'your')
+          }
+          className='w-full '
+        >
           <TabsList className='w-full justify-start overflow-x-auto scrollbar-hide border border-border rounded-md'>
             <TabsTrigger
               value='recent'
@@ -171,39 +196,45 @@ const QuizDiscussions = memo(function QuizDiscussions() {
 
           {/* Recent Discussions Content */}
           <TabsContent value='recent' className='mt-6 space-y-4 '>
-            {discussions.map((discussion) => (
+            {filteredDiscussions.map((discussion) => (
               <DiscussionCard key={discussion.id} discussion={discussion} />
             ))}
           </TabsContent>
 
-          {/* Popular Discussions Content (Placeholder) */}
-          <TabsContent
-            value='popular'
-            className='mt-6 p-6 bg-transparent rounded-lg'
-          >
-            <section>
-              <h2 className='text-xl font-bold text-foreground'>
-                Popular Discussions
-              </h2>
-              <p className='text-foreground/70 mt-2'>
-                Content for popular discussions will be displayed here.
-              </p>
-            </section>
+          {/* Popular Discussions Content */}
+          <TabsContent value='popular' className='mt-6 space-y-4'>
+            {popularDiscussions.length > 0 ? (
+              popularDiscussions.map((discussion) => (
+                <DiscussionCard key={discussion.id} discussion={discussion} />
+              ))
+            ) : (
+              <section className='mt-6 p-6 bg-transparent rounded-lg'>
+                <h2 className='text-xl font-bold text-foreground'>
+                  Popular Discussions
+                </h2>
+                <p className='text-foreground/70 mt-2'>
+                  No discussions match your filters.
+                </p>
+              </section>
+            )}
           </TabsContent>
 
-          {/* Your Discussions Content (Placeholder) */}
-          <TabsContent
-            value='your'
-            className='mt-6 p-6 bg-transparent rounded-lg'
-          >
-            <section>
-              <h2 className='text-xl font-bold text-foreground'>
-                Your Discussions
-              </h2>
-              <p className='text-foreground/70 mt-2'>
-                Content for your discussions will be displayed here.
-              </p>
-            </section>
+          {/* Your Discussions Content */}
+          <TabsContent value='your' className='mt-6 space-y-4'>
+            {yourDiscussions.length > 0 ? (
+              yourDiscussions.map((discussion) => (
+                <DiscussionCard key={discussion.id} discussion={discussion} />
+              ))
+            ) : (
+              <section className='mt-6 p-6 bg-transparent rounded-lg'>
+                <h2 className='text-xl font-bold text-foreground'>
+                  Your Discussions
+                </h2>
+                <p className='text-foreground/70 mt-2'>
+                  No personal discussions found with current filters.
+                </p>
+              </section>
+            )}
           </TabsContent>
         </Tabs>
       </div>
