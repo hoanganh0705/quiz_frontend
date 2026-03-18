@@ -5,10 +5,33 @@ import { Button } from '@/components/ui/button'
 import { winners } from '@/constants/liveWinner'
 import { Autoplay, Navigation } from 'swiper/modules'
 import { Swiper, SwiperSlide } from 'swiper/react'
+import { useRef, useState } from 'react'
+import type { Swiper as SwiperType } from 'swiper'
 
 export default function LiveWinners() {
+  const swiperRef = useRef<SwiperType | null>(null)
+  const [isAutoplayPaused, setIsAutoplayPaused] = useState(false)
+
+  const handleToggleAutoplay = () => {
+    const swiper = swiperRef.current
+    if (!swiper?.autoplay) return
+
+    if (isAutoplayPaused) {
+      swiper.autoplay.start()
+    } else {
+      swiper.autoplay.stop()
+    }
+
+    setIsAutoplayPaused((prev) => !prev)
+  }
+
   return (
-    <div className='mt-20 bg-main p-5 rounded-xl'>
+    <section
+      className='mt-20 bg-main p-5 rounded-xl'
+      role='region'
+      aria-roledescription='carousel'
+      aria-label='Live winners carousel'
+    >
       <div className='text-foreground '>
         <div className='flex items-center justify-between mb-6'>
           <h2 className='text-xl md:text-2xl font-bold flex items-center gap-3'>
@@ -18,16 +41,34 @@ export default function LiveWinners() {
             </span>
             Live Winners
           </h2>
-          <Button
-            variant='ghost'
-            className='rounded-full bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 text-sm'
-          >
-            8 recent winners
-          </Button>
+          <div className='flex items-center gap-2'>
+            <Button
+              variant='ghost'
+              className='rounded-full bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 text-sm'
+            >
+              8 recent winners
+            </Button>
+            <Button
+              variant='outline'
+              size='sm'
+              onClick={handleToggleAutoplay}
+              aria-label={
+                isAutoplayPaused
+                  ? 'Resume auto-rotation'
+                  : 'Pause auto-rotation'
+              }
+              aria-pressed={isAutoplayPaused}
+            >
+              {isAutoplayPaused ? 'Resume' : 'Pause'}
+            </Button>
+          </div>
         </div>
 
         <div className='xl:w-full container'>
           <Swiper
+            onBeforeInit={(swiper) => {
+              swiperRef.current = swiper
+            }}
             modules={[Navigation, Autoplay]}
             autoplay={{
               delay: 3000,
@@ -101,6 +142,6 @@ export default function LiveWinners() {
           </Swiper>
         </div>
       </div>
-    </div>
+    </section>
   )
 }

@@ -1,26 +1,3 @@
-## Page Components
-
-- [ ] **Refactor oversized page files** — extract business logic from pages into hooks/utils:
-  - [ ] bookmarks (~468 lines)
-  - [ ] profile/[name] (~431 lines)
-  - [ ] tournament (~358 lines)
-  - [ ] my-profile (~256 lines)
-  - [ ] discussions (~215 lines)
-
----
-
-# 🟠 SEO & METADATA - Critical for Production
-
-## Zero Metadata Exports (18 pages affected)
-
-- [ ] **Add `metadata` export to all pages** — titles, descriptions, Open Graph tags
-- [ ] **Add `generateMetadata` to dynamic routes** — `/quizzes/[id]`, `/profile/[name]`
-- [ ] **Fix client component metadata limitation** — login, signup, forgot-password need server wrappers or layout metadata
-- [ ] **Add `robots.txt` and `sitemap.xml` generation**
-- [ ] **Add structured data (JSON-LD)** for quizzes and user profiles
-
----
-
 # 🟠 ACCESSIBILITY (A11Y) ISSUES - Legal Compliance
 
 ## Screen Reader & Keyboard Navigation

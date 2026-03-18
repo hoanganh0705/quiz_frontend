@@ -5,10 +5,33 @@ import { Star } from 'lucide-react'
 import { Swiper, SwiperSlide } from 'swiper/react'
 import { Navigation, Pagination, Autoplay } from 'swiper/modules'
 import { testimonials } from '@/constants/testimonial'
+import { useRef, useState } from 'react'
+import type { Swiper as SwiperType } from 'swiper'
 
 export default function SuccessStoriesCarousel() {
+  const swiperRef = useRef<SwiperType | null>(null)
+  const [isAutoplayPaused, setIsAutoplayPaused] = useState(false)
+
+  const handleToggleAutoplay = () => {
+    const swiper = swiperRef.current
+    if (!swiper?.autoplay) return
+
+    if (isAutoplayPaused) {
+      swiper.autoplay.start()
+    } else {
+      swiper.autoplay.stop()
+    }
+
+    setIsAutoplayPaused((prev) => !prev)
+  }
+
   return (
-    <section className='w-full py-12 mt-10 rounded-xl text-foreground bg-main'>
+    <section
+      className='w-full py-12 mt-10 rounded-xl text-foreground bg-main'
+      role='region'
+      aria-roledescription='carousel'
+      aria-label='Success stories carousel'
+    >
       <div className='container px-4 md:px-6'>
         <div className='flex flex-col items-center justify-center space-y-4 text-center'>
           <div className='space-y-2'>
@@ -23,7 +46,25 @@ export default function SuccessStoriesCarousel() {
         </div>
 
         <div className='relative mt-12'>
+          <div className='flex justify-end mb-3'>
+            <button
+              type='button'
+              onClick={handleToggleAutoplay}
+              className='rounded-md border border-border px-3 py-1 text-sm hover:bg-main-hover'
+              aria-label={
+                isAutoplayPaused
+                  ? 'Resume auto-rotation'
+                  : 'Pause auto-rotation'
+              }
+              aria-pressed={isAutoplayPaused}
+            >
+              {isAutoplayPaused ? 'Resume' : 'Pause'}
+            </button>
+          </div>
           <Swiper
+            onBeforeInit={(swiper) => {
+              swiperRef.current = swiper
+            }}
             modules={[Navigation, Pagination, Autoplay]}
             spaceBetween={30}
             slidesPerView={1}
