@@ -18,6 +18,8 @@ export default function SpotAvailabilityIndicator({
   const displayTotal = Math.max(1, totalSpots)
 
   const availablePercentage = (displayTotal - displaySpots) / displayTotal
+  const availableSpots = displayTotal - displaySpots
+  const percentageLabel = Math.round(availablePercentage * 100)
 
   // Màu sắc cho cả hai chế độ (dựa trên availablePercentage)
   const segmentColor = useMemo(() => {
@@ -32,7 +34,11 @@ export default function SpotAvailabilityIndicator({
   return (
     <div className='flex items-center justify-center bg-transparent text-foreground rounded-lg'>
       {mode === 'default' && (
-        <div className='w-6 h-6 flex items-center justify-center'>
+        <div
+          className='w-6 h-6 flex items-center justify-center'
+          role='img'
+          aria-label={`${availableSpots} of ${displayTotal} spots available`}
+        >
           <svg className='w-full h-full' viewBox='0 0 24 24'>
             <circle
               cx='12'
@@ -59,7 +65,11 @@ export default function SpotAvailabilityIndicator({
       )}
 
       {mode === 'percentage' && (
-        <div className='relative w-10 h-10 flex items-center justify-center bg-transparent text-foreground'>
+        <div
+          className='relative w-10 h-10 flex items-center justify-center bg-transparent text-foreground'
+          role='img'
+          aria-label={`${percentageLabel}% spots available`}
+        >
           <svg className='absolute w-full h-full' viewBox='0 0 24 24'>
             <circle
               cx='12'

@@ -154,111 +154,126 @@ export default function GlobalLeaderboard() {
 
         {/* Leaderboard Table */}
         <div className='rounded-xl overflow-hidden border border-foreground/20'>
-          {/* Table Header */}
-          <div className='grid grid-cols-[60px_2fr_1.5fr_1fr_1fr_1fr] md:grid-cols-[60px_2fr_1.5fr_1fr_1fr_1fr] gap-4 p-4 bg-main text-foreground font-semibold border-b border-foreground/20 text-sm md:text-base'>
-            <div className='text-center'>Rank</div>
-            <div>User</div>
-            <div>Score</div>
-            <div>Level</div>
-            <div>Quizzes</div>
-            <div>Badge</div>
-          </div>
-
-          {/* Table Rows */}
-          {sortedPlayers.map((player, index) => (
-            <div
-              key={player.id}
-              className='grid grid-cols-[60px_2fr_1.5fr_1fr_1fr_1fr] md:grid-cols-[60px_2fr_1.5fr_1fr_1fr_1fr] gap-4 p-4 border-b border-foreground/20 last:border-b-0 items-center text-sm md:text-base hover:bg-foreground/10 transition-colors'
+          <div className='overflow-x-auto'>
+            <table
+              className='w-full text-sm md:text-base'
+              aria-label='Global leaderboard table'
             >
-              {/* Rank */}
-              <div className='flex justify-center items-center'>
-                <div
-                  className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold
-                ${
-                  index === 0
-                    ? 'bg-amber-500 text-white'
-                    : index === 1
-                      ? 'bg-gray-400 text-white'
-                      : index === 2
-                        ? 'bg-orange-600 text-white'
-                        : 'bg-background text-foreground/80 border'
-                }
-              `}
-                >
-                  {index + 1}
-                </div>
-              </div>
+              <thead className='bg-main text-foreground font-semibold border-b border-foreground/20'>
+                <tr>
+                  <th className='p-4 text-center w-15'>Rank</th>
+                  <th className='p-4 text-left'>User</th>
+                  <th className='p-4 text-left'>Score</th>
+                  <th className='p-4 text-left'>Level</th>
+                  <th className='p-4 text-left'>Quizzes</th>
+                  <th className='p-4 text-left'>Badge</th>
+                </tr>
+              </thead>
+              <tbody>
+                {sortedPlayers.map((player, index) => (
+                  <tr
+                    key={player.id}
+                    className='border-b border-foreground/20 last:border-b-0 hover:bg-foreground/10 transition-colors'
+                  >
+                    <td className='p-4 align-middle'>
+                      <div className='flex justify-center items-center'>
+                        <div
+                          className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold
+                        ${
+                          index === 0
+                            ? 'bg-amber-500 text-white'
+                            : index === 1
+                              ? 'bg-gray-400 text-white'
+                              : index === 2
+                                ? 'bg-orange-600 text-white'
+                                : 'bg-background text-foreground/80 border'
+                        }
+                      `}
+                        >
+                          {index + 1}
+                        </div>
+                      </div>
+                    </td>
 
-              {/* User */}
-              <div className='flex items-center gap-3'>
-                <Avatar className='w-10 h-10 border border-foreground/20'>
-                  <AvatarImage
-                    src={player.avatarUrl || '/placeholder.svg'}
-                    alt={`${player.name}'s avatar`}
-                  />
-                  <AvatarFallback>{player.name.charAt(0)}</AvatarFallback>
-                </Avatar>
-                <div className='flex flex-col'>
-                  <span className='font-semibold'>{player.name}</span>
-                  <span className='text-foreground/50 text-xs flex items-center gap-1'>
-                    {player.country}{' '}
-                    <Flame className='w-3 h-3 text-orange-400' />{' '}
-                    {player.streak} streak
-                  </span>
-                </div>
-              </div>
+                    <td className='p-4 align-middle'>
+                      <div className='flex items-center gap-3'>
+                        <Avatar className='w-10 h-10 border border-foreground/20'>
+                          <AvatarImage
+                            src={player.avatarUrl || '/placeholder.svg'}
+                            alt={`${player.name}'s avatar`}
+                          />
+                          <AvatarFallback>
+                            {player.name.charAt(0)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className='flex flex-col'>
+                          <span className='font-semibold'>{player.name}</span>
+                          <span className='text-foreground/50 text-xs flex items-center gap-1'>
+                            {player.country}{' '}
+                            <Flame className='w-3 h-3 text-orange-400' />{' '}
+                            {player.streak} streak
+                          </span>
+                        </div>
+                      </div>
+                    </td>
 
-              {/* Score */}
-              <div className='flex flex-col items-start'>
-                <span className='font-semibold mb-1'>
-                  {player.score?.toLocaleString() || 0}
-                </span>
-                <div className='w-full h-2 rounded-full bg-foreground/20'>
-                  <div
-                    className={`h-full rounded-full transition-all ${
-                      index === 0
-                        ? 'bg-amber-500'
-                        : index === 1
-                          ? 'bg-gray-400'
-                          : index === 2
-                            ? 'bg-orange-600'
-                            : 'bg-foreground/20'
-                    }`}
-                    style={{
-                      width: `${((player.score || 0) / maxScore) * 100}%`
-                    }}
-                  />
-                </div>
-              </div>
+                    <td className='p-4 align-middle'>
+                      <div className='flex flex-col items-start'>
+                        <span className='font-semibold mb-1'>
+                          {player.score?.toLocaleString() || 0}
+                        </span>
+                        <div className='w-full h-2 rounded-full bg-foreground/20'>
+                          <div
+                            className={`h-full rounded-full transition-all ${
+                              index === 0
+                                ? 'bg-amber-500'
+                                : index === 1
+                                  ? 'bg-gray-400'
+                                  : index === 2
+                                    ? 'bg-orange-600'
+                                    : 'bg-foreground/20'
+                            }`}
+                            style={{
+                              width: `${((player.score || 0) / maxScore) * 100}%`
+                            }}
+                          />
+                        </div>
+                      </div>
+                    </td>
 
-              {/* Level */}
-              <div className='flex items-center gap-1'>
-                <Star className='w-4 h-4 fill-amber-400 text-amber-400' />
-                <span>{player.level}</span>
-              </div>
+                    <td className='p-4 align-middle'>
+                      <div className='flex items-center gap-1'>
+                        <Star className='w-4 h-4 fill-amber-400 text-amber-400' />
+                        <span>{player.level}</span>
+                      </div>
+                    </td>
 
-              {/* Quizzes */}
-              <div className='flex flex-col items-start'>
-                <span className='font-semibold'>{player.quizzes}</span>
-                <span className='text-xs text-emerald-400 flex items-center gap-1'>
-                  <TrendingUp className='w-3 h-3 text-emerald-400' /> Active
-                </span>
-              </div>
+                    <td className='p-4 align-middle'>
+                      <div className='flex flex-col items-start'>
+                        <span className='font-semibold'>{player.quizzes}</span>
+                        <span className='text-xs text-emerald-400 flex items-center gap-1'>
+                          <TrendingUp className='w-3 h-3 text-emerald-400' />{' '}
+                          Active
+                        </span>
+                      </div>
+                    </td>
 
-              {/* Badge */}
-              <div>
-                <Button
-                  variant='outline'
-                  className={`rounded-full px-3 py-1 h-auto text-xs font-medium flex items-center gap-1 bg-transparent
-                ${getBadgeColor(player.badge || 'Gold')}
-              `}
-                >
-                  <Trophy className='w-3 h-3' />
-                  {player.badge}
-                </Button>
-              </div>
-            </div>
-          ))}
+                    <td className='p-4 align-middle'>
+                      <Button
+                        variant='outline'
+                        className={`rounded-full px-3 py-1 h-auto text-xs font-medium flex items-center gap-1 bg-transparent
+                        ${getBadgeColor(player.badge || 'Gold')}
+                      `}
+                      >
+                        <Trophy className='w-3 h-3' />
+                        {player.badge}
+                      </Button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
           <div className='text-sm p-5 flex flex-row justify-between items-center'>
             <span>Showing 1-10 of {sortedPlayers.length} players</span>
             <div className='flex items-center gap-2'>

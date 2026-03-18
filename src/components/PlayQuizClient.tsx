@@ -500,7 +500,8 @@ export default function PlayQuizClient({ quiz }: { quiz: Quiz }) {
                       <Button
                         key={answer.label}
                         variant={isSelected ? 'default' : 'outline'}
-                        aria-pressed={isSelected}
+                        role='radio'
+                        aria-checked={isSelected}
                         className={cn(
                           'w-full justify-start text-left h-auto transition-all duration-150',
                           // Touch-friendly: larger tap targets on mobile

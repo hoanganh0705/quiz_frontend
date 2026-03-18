@@ -51,14 +51,44 @@ export default function QuizCategories({
   const swiperRef = useRef<SwiperType | null>(null)
   const [isBeginning, setIsBeginning] = useState(true)
   const [isEnd, setIsEnd] = useState(false)
+  const [isAutoplayPaused, setIsAutoplayPaused] = useState(false)
+
+  const handleToggleAutoplay = () => {
+    const swiper = swiperRef.current
+    if (!swiper?.autoplay) return
+
+    if (isAutoplayPaused) {
+      swiper.autoplay.start()
+    } else {
+      swiper.autoplay.stop()
+    }
+
+    setIsAutoplayPaused((prev) => !prev)
+  }
 
   return (
-    <div className='w-full max-w-full overflow-hidden mb-10'>
+    <section
+      className='w-full max-w-full overflow-hidden mb-10'
+      role='region'
+      aria-roledescription='carousel'
+      aria-label='Quiz categories carousel'
+    >
       <div className='flex items-center justify-between mb-4 sm:mb-6 px-4 sm:px-6'>
         <h2 className='text-xl sm:text-2xl font-bold text-foreground'>
           Quiz Categories
         </h2>
         <div className='flex gap-2'>
+          <Button
+            size='sm'
+            variant='outline'
+            onClick={handleToggleAutoplay}
+            aria-label={
+              isAutoplayPaused ? 'Resume auto-rotation' : 'Pause auto-rotation'
+            }
+            aria-pressed={isAutoplayPaused}
+          >
+            {isAutoplayPaused ? 'Resume' : 'Pause'}
+          </Button>
           <Button
             size='icon'
             className='h-10 w-10'
@@ -137,6 +167,6 @@ export default function QuizCategories({
           ))}
         </Swiper>
       </div>
-    </div>
+    </section>
   )
 }
