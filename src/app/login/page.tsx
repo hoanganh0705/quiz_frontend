@@ -43,15 +43,14 @@ const LoginPage = memo(function LoginPage() {
     }
   })
 
-  const { execute: onSubmit, isLoading } = useAsyncAction(
-    async (data: LoginFormData) => {
-      // TODO: Implement actual login API call
-      await new Promise((resolve) => setTimeout(resolve, 1500))
-    }
-  )
+  const { execute: onSubmit, isLoading } = useAsyncAction(async () => {
+    // TODO: Implement actual login API call
+    await new Promise((resolve) => setTimeout(resolve, 1500))
+  })
 
   // Use useCallback for event handlers (rerender-functional-setstate)
-  const handleSocialLogin = useCallback((_provider: string) => {
+  const handleSocialLogin = useCallback((provider: string) => {
+    void provider
     // TODO: Implement social login
   }, [])
 

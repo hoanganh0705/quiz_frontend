@@ -3,6 +3,7 @@
 import { memo } from 'react' // rerender-memo
 import { Bookmark, FolderPlus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import Link from 'next/link'
 
 interface EmptyBookmarksProps {
   type: 'no-bookmarks' | 'no-results' | 'empty-collection'
@@ -32,7 +33,7 @@ const EmptyBookmarks = memo(function EmptyBookmarks({
             asChild
             className='bg-default hover:bg-default-hover text-white'
           >
-            <a href='/quizzes'>Explore Quizzes</a>
+            <Link href='/quizzes'>Explore Quizzes</Link>
           </Button>
           {onCreateCollection && (
             <Button variant='outline' onClick={onCreateCollection}>

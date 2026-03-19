@@ -42,7 +42,10 @@ export function useSwipeGesture(
   const isSwiping = useRef(false)
 
   const handlersRef = useRef(handlers)
-  handlersRef.current = handlers
+
+  useEffect(() => {
+    handlersRef.current = handlers
+  }, [handlers])
 
   const handleTouchStart = useCallback(
     (e: TouchEvent) => {

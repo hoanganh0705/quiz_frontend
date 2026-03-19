@@ -1,5 +1,4 @@
 import { Skeleton } from '@/components/ui/skeleton'
-import { CommentSkeleton } from '@/components/ui/loading-states'
 
 export default function DiscussionsLoading() {
   return (
@@ -20,13 +19,10 @@ export default function DiscussionsLoading() {
       {/* Discussion Cards Skeleton */}
       <div className='space-y-4'>
         {Array.from({ length: 6 }).map((_, i) => (
-          <div
-            key={i}
-            className='p-6 border border-border rounded-lg'
-          >
+          <div key={i} className='p-6 border border-border rounded-lg'>
             {/* Discussion Header */}
             <div className='flex items-start gap-4 mb-4'>
-              <Skeleton className='h-12 w-12 rounded-full flex-shrink-0' />
+              <Skeleton className='h-12 w-12 rounded-full shrink-0' />
               <div className='flex-1'>
                 <Skeleton className='h-6 w-3/4 mb-2' />
                 <div className='flex items-center gap-2'>

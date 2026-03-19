@@ -60,12 +60,15 @@ const SettingsPage = memo(function SettingsPage() {
     defaultSettings
   )
 
-  const handleUpdateSettings = useCallback((updates: Partial<UserSettings>) => {
-    setSettings((prev) => ({
-      ...prev,
-      ...updates
-    }))
-  }, [])
+  const handleUpdateSettings = useCallback(
+    (updates: Partial<UserSettings>) => {
+      setSettings((prev) => ({
+        ...prev,
+        ...updates
+      }))
+    },
+    [setSettings]
+  )
 
   const handleDeleteAccount = useCallback(() => {
     // In a real app, this would call an API to delete the account

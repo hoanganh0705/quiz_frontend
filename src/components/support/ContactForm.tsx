@@ -47,7 +47,6 @@ export function ContactForm() {
     register,
     handleSubmit,
     setValue,
-    watch,
     reset,
     formState: { errors }
   } = useForm<ContactFormData>({
@@ -61,8 +60,6 @@ export function ContactForm() {
     }
   })
 
-  const selectedCategory = watch('category')
-
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (file) {
@@ -75,7 +72,7 @@ export function ContactForm() {
   }
 
   const { execute: onSubmit, isLoading: isSubmitting } = useAsyncAction(
-    async (data: ContactFormData) => {
+    async () => {
       // TODO: Implement actual contact form submission API call
       await new Promise((resolve) => setTimeout(resolve, 1500))
 
@@ -156,10 +153,7 @@ export function ContactForm() {
             <Label htmlFor='category' className='text-foreground font-medium'>
               Category <span className='text-red-500'>*</span>
             </Label>
-            <Select
-              value={selectedCategory}
-              onValueChange={(value) => setValue('category', value)}
-            >
+            <Select onValueChange={(value) => setValue('category', value)}>
               <SelectTrigger
                 className={`bg-transparent text-foreground focus:border-default ${
                   errors.category

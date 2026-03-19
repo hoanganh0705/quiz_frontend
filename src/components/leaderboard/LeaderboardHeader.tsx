@@ -11,28 +11,8 @@ interface LeaderboardHeaderProps {
   onYourRanking?: () => void
   userRank?: number
   userPoints?: number
-  userBadge?: string
-  userStreak?: number
   totalParticipants?: number
   seasonEndDate?: string
-}
-
-// Hoist helper functions outside component (data-hoisting)
-const getBadgeColor = (badge: string) => {
-  switch (badge) {
-    case 'Diamond':
-      return 'bg-blue-600'
-    case 'Platinum':
-      return 'bg-slate-600'
-    case 'Gold':
-      return 'bg-yellow-600'
-    case 'Silver':
-      return 'bg-gray-500'
-    case 'Bronze':
-      return 'bg-orange-600'
-    default:
-      return 'bg-gray-500'
-  }
 }
 
 const getRankColor = (rank: number) => {
@@ -59,8 +39,6 @@ export const LeaderboardHeader = memo(function LeaderboardHeader({
   onYourRanking,
   userRank = 42,
   userPoints = 3250,
-  userBadge = 'Silver',
-  userStreak = 7,
   totalParticipants = 1248,
   seasonEndDate = '2024-03-31'
 }: LeaderboardHeaderProps) {
@@ -68,16 +46,18 @@ export const LeaderboardHeader = memo(function LeaderboardHeader({
   const [showYourRanking, setShowYourRanking] = useState(false)
 
   const handleShowFindFriends = useCallback(() => {
+    onFindFriends?.()
     setShowFindFriends(true)
-  }, [])
+  }, [onFindFriends])
 
   const handleCloseFindFriends = useCallback(() => {
     setShowFindFriends(false)
   }, [])
 
   const handleShowYourRanking = useCallback(() => {
+    onYourRanking?.()
     setShowYourRanking(true)
-  }, [])
+  }, [onYourRanking])
 
   const handleCloseYourRanking = useCallback(() => {
     setShowYourRanking(false)

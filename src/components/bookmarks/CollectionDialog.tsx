@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -60,30 +60,32 @@ export default function CollectionDialog({
   const [description, setDescription] = useState('')
   const [color, setColor] = useState<string>(PRESET_COLORS[0])
 
-  // Sync with collection prop when dialog opens or collection changes (rerender-derived-state-no-effect)
-  useEffect(() => {
-    if (open) {
-      if (collection) {
-        setName(collection.name)
-        setDescription(collection.description || '')
-        setColor(collection.color)
-      } else {
-        // Reset for create mode
-        setName('')
-        setDescription('')
-        setColor(PRESET_COLORS[0])
+  const handleOpenChange = useCallback(
+    (nextOpen: boolean) => {
+      if (nextOpen) {
+        if (collection) {
+          setName(collection.name)
+          setDescription(collection.description || '')
+          setColor(collection.color)
+        } else {
+          setName('')
+          setDescription('')
+          setColor(PRESET_COLORS[0])
+        }
       }
-    }
-  }, [open, collection])
+      onOpenChange(nextOpen)
+    },
+    [collection, onOpenChange]
+  )
 
   const handleSave = () => {
     if (!name.trim()) return
     onSave(name.trim(), description.trim(), color)
-    onOpenChange(false)
+    handleOpenChange(false)
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className='sm:max-w-106.25'>
         <DialogHeader>
           <DialogTitle>
@@ -147,7 +149,7 @@ export default function CollectionDialog({
         </div>
 
         <DialogFooter>
-          <Button variant='outline' onClick={() => onOpenChange(false)}>
+          <Button variant='outline' onClick={() => handleOpenChange(false)}>
             Cancel
           </Button>
           <Button

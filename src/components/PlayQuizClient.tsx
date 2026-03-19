@@ -2,11 +2,7 @@
 
 import { Quiz } from '@/types/quiz'
 import { QuizResult, QuizProgress } from '@/types/quizResults'
-import {
-  getStorageKey,
-  getResultsKey,
-  formatTime
-} from '@/lib/quizResultsUtils'
+import { getStorageKey, getResultsKey } from '@/lib/quizResultsUtils'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useState, useEffect, useCallback, useRef } from 'react'

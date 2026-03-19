@@ -1,7 +1,6 @@
 import { Skeleton } from '@/components/ui/skeleton'
 import {
   SkeletonGrid,
-  QuizCardDetailSkeleton,
   FeaturedQuizSkeleton
 } from '@/components/ui/loading-states'
 
