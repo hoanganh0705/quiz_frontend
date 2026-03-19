@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import ActivityItem from '@/components/profile/ActivityItem'
 import CategoryRow from '@/components/profile/CategoryRow'
 import { challengeData } from '@/constants/challengeHistoryData'
+import type { Player } from '@/constants/players'
 // Bundle optimization: Using barrel imports with Next.js optimizePackageImports
 // Next.js automatically transforms these to direct imports (bundle-barrel-imports)
 import {
@@ -27,7 +28,7 @@ import { usePublicProfilePage } from '@/hooks/use-public-profile-page'
 const ProfileHeader = memo(function ProfileHeader({
   player
 }: {
-  player: (typeof players)[0]
+  player: Player
 }) {
   return (
     <header
@@ -148,7 +149,7 @@ const StatsPanel = memo(function StatsPanel({
 }: {
   averageScore: number
   winRate: number
-  player: (typeof players)[0]
+  player: Player
 }) {
   return (
     <Card className='bg-main sticky top-8'>

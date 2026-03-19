@@ -49,9 +49,11 @@ export function useKeyboardShortcut(
   callback: () => void,
   options: ShortcutOptions = {}
 ) {
-  const { enabled = true, preventDefault = true } = options
+  const { enabled = true } = options
 
-  const stableCallback = useCallback(callback, [callback])
+  const stableCallback = useCallback(() => {
+    callback()
+  }, [callback])
 
   // Serialize options to a stable string for dependency comparison
   const optionsKey = useMemo(

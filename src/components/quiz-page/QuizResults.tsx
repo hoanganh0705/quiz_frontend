@@ -14,7 +14,6 @@ import {
   AnswerReviewTab,
   LeaderboardTab,
   ShareResultsTab,
-  TimeAnalysis,
   BottomActions,
   QuizResult,
   QuestionReview,

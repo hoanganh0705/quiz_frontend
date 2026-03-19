@@ -3,7 +3,7 @@ import { useMemo } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Trophy, Clock, Target, Users, RotateCcw, Zap } from 'lucide-react'
+import { Clock, Target, Users, RotateCcw, Zap } from 'lucide-react'
 import { ScoreHeroProps } from '@/types/quizResults'
 import {
   getScoreColor,

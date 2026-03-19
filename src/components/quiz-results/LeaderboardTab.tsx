@@ -8,6 +8,8 @@ export default function LeaderboardTab({
   result,
   formatTime
 }: LeaderboardTabProps) {
+  const estimatedPosition = Math.max(1, 50 - Math.floor(result.score / 2))
+
   return (
     <Card className='py-6'>
       <CardHeader>
@@ -25,7 +27,7 @@ export default function LeaderboardTab({
           <div className='flex items-center justify-between'>
             <div className='flex items-center gap-4'>
               <div className='w-8 h-8 rounded-full bg-default flex items-center justify-center font-bold text-xs text-white'>
-                #{Math.floor(Math.random() * 50) + 1}
+                #{estimatedPosition}
               </div>
               <div>
                 <div className='font-medium'>Your Position</div>

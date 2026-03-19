@@ -1,7 +1,6 @@
 'use client'
 
 import { cn } from '@/lib/utils'
-import { Progress } from '@/components/ui/progress'
 import { CheckCircle, Circle, Loader2 } from 'lucide-react'
 
 interface ProgressIndicatorProps {

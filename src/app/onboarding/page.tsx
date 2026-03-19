@@ -56,14 +56,6 @@ const OnboardingPage = memo(function OnboardingPage() {
     }
   }, [currentStep])
 
-  const handleSkip = useCallback(() => {
-    if (currentStep < TOTAL_STEPS) {
-      setCurrentStep((prev) => prev + 1)
-    } else {
-      handleComplete()
-    }
-  }, [currentStep])
-
   const handleComplete = useCallback(() => {
     setOnboardingData((prev) => ({
       ...prev,
@@ -72,6 +64,14 @@ const OnboardingPage = memo(function OnboardingPage() {
     setHasCompletedOnboarding(true)
     router.push('/')
   }, [setOnboardingData, setHasCompletedOnboarding, router])
+
+  const handleSkip = useCallback(() => {
+    if (currentStep < TOTAL_STEPS) {
+      setCurrentStep((prev) => prev + 1)
+    } else {
+      handleComplete()
+    }
+  }, [currentStep, handleComplete])
 
   const updateInterests = useCallback(
     (interests: string[]) => {

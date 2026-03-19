@@ -147,20 +147,19 @@ export function QuickSearch() {
       .slice(0, 10)
   }, [query, allItems])
 
-  // Reset active index when results change
-  useEffect(() => {
-    setActiveIndex(0)
-  }, [results.length])
+  const clampedActiveIndex = useMemo(() => {
+    if (results.length === 0) return 0
+    return Math.min(activeIndex, results.length - 1)
+  }, [activeIndex, results.length])
 
-  // Focus input when dialog opens
-  useEffect(() => {
-    if (open) {
+  const handleOpenChange = useCallback((nextOpen: boolean) => {
+    setOpen(nextOpen)
+    if (nextOpen) {
       setQuery('')
       setActiveIndex(0)
-      // Small delay to ensure the dialog is rendered
       setTimeout(() => inputRef.current?.focus(), 50)
     }
-  }, [open])
+  }, [])
 
   // Scroll active item into view
   useEffect(() => {
@@ -198,17 +197,17 @@ export function QuickSearch() {
           break
         case 'Enter':
           e.preventDefault()
-          if (results[activeIndex]) {
-            handleSelect(results[activeIndex].href)
+          if (results[clampedActiveIndex]) {
+            handleSelect(results[clampedActiveIndex].href)
           }
           break
       }
     },
-    [results, activeIndex, handleSelect]
+    [results, clampedActiveIndex, handleSelect]
   )
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent
         className='sm:max-w-lg p-0 gap-0 overflow-hidden'
         showCloseButton={false}
@@ -232,8 +231,8 @@ export function QuickSearch() {
             aria-label='Quick search'
             aria-controls='quick-search-results'
             aria-activedescendant={
-              results[activeIndex]
-                ? `result-${results[activeIndex].id}`
+              results[clampedActiveIndex]
+                ? `result-${results[clampedActiveIndex].id}`
                 : undefined
             }
           />
@@ -277,7 +276,7 @@ export function QuickSearch() {
                         <ResultItem
                           key={result.id}
                           result={result}
-                          isActive={globalIndex === activeIndex}
+                          isActive={globalIndex === clampedActiveIndex}
                           onSelect={handleSelect}
                           onHover={() => setActiveIndex(globalIndex)}
                         />

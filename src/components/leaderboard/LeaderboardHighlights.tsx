@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, memo } from 'react'
+import { useState, memo, useCallback } from 'react'
 // Fix barrel imports (bundle-barrel-imports)
 import { Card } from '@/components/ui/card'
 import { CardContent } from '@/components/ui/card'
@@ -259,11 +259,38 @@ export const LeaderboardHighlights = memo(function LeaderboardHighlights() {
   const [isLoading, setIsLoading] = useState(false)
   const [users] = useState<LeaderboardUser[]>(mockUsers)
 
-  useEffect(() => {
+  const triggerLoading = useCallback(() => {
     setIsLoading(true)
     const timer = setTimeout(() => setIsLoading(false), 500)
-    return () => clearTimeout(timer)
-  }, [activeTab, timePeriod, selectedCategory])
+    return timer
+  }, [])
+
+  const handleTabChange = useCallback(
+    (value: string) => {
+      setActiveTab(value as ActiveTab)
+      const timer = triggerLoading()
+      setTimeout(() => clearTimeout(timer), 510)
+    },
+    [triggerLoading]
+  )
+
+  const handleTimePeriodChange = useCallback(
+    (value: TimePeriod) => {
+      setTimePeriod(value)
+      const timer = triggerLoading()
+      setTimeout(() => clearTimeout(timer), 510)
+    },
+    [triggerLoading]
+  )
+
+  const handleCategoryChange = useCallback(
+    (value: string) => {
+      setSelectedCategory(value)
+      const timer = triggerLoading()
+      setTimeout(() => clearTimeout(timer), 510)
+    },
+    [triggerLoading]
+  )
 
   return (
     <Card className=' bg-background border border-border col-span-2 lg:col-span-2 py-4 sm:py-6'>
@@ -287,7 +314,7 @@ export const LeaderboardHighlights = memo(function LeaderboardHighlights() {
       <CardContent className='space-y-4 sm:space-y-6'>
         <Tabs
           value={activeTab}
-          onValueChange={(value) => setActiveTab(value as ActiveTab)}
+          onValueChange={handleTabChange}
           className='w-full'
         >
           <TabsList
@@ -337,7 +364,7 @@ export const LeaderboardHighlights = memo(function LeaderboardHighlights() {
                 key={value}
                 variant={timePeriod === value ? 'default' : 'outline'}
                 size='sm'
-                onClick={() => setTimePeriod(value as TimePeriod)}
+                onClick={() => handleTimePeriodChange(value as TimePeriod)}
                 className={`text-xs sm:text-sm ${
                   timePeriod === value
                     ? 'bg-default hover:bg-default-hover'
@@ -355,7 +382,7 @@ export const LeaderboardHighlights = memo(function LeaderboardHighlights() {
           {activeTab === 'category' && (
             <Select
               value={selectedCategory}
-              onValueChange={setSelectedCategory}
+              onValueChange={handleCategoryChange}
             >
               <SelectTrigger className='w-full bg-main border border-border text-foreground text-xs sm:text-sm mb-20'>
                 <SelectValue placeholder='Select category' />

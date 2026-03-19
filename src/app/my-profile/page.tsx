@@ -16,19 +16,10 @@ import { OverviewTab } from '@/components/my-profile/tabs/OverviewTab'
 import { QuizzesTab } from '@/components/my-profile/tabs/QuizzesTab'
 import { AchievementsTab } from '@/components/my-profile/tabs/AchievementsTab'
 import { StatisticsTab } from '@/components/my-profile/tabs/StatisticsTab'
-import { players } from '@/constants/players'
 import { challengeData } from '@/constants/challengeHistoryData'
 import { badges } from '@/constants/badges'
 import { streakRewards } from '@/constants/streakRewards'
-import {
-  CheckCircle2,
-  Trophy,
-  Zap,
-  ArrowLeft,
-  TrendingUp,
-  Target,
-  Flame
-} from 'lucide-react'
+import { Trophy, ArrowLeft, TrendingUp, Target, Flame } from 'lucide-react'
 import Link from 'next/link'
 import { useMyProfilePage } from '@/hooks/use-my-profile-page'
 

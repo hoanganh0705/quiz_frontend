@@ -55,14 +55,13 @@ const SignupPage = memo(function SignupPage() {
     }
   })
 
-  const { execute: onSubmit, isLoading } = useAsyncAction(
-    async (data: SignupFormData) => {
-      // TODO: Implement actual signup API call
-      await new Promise((resolve) => setTimeout(resolve, 1500))
-    }
-  )
+  const { execute: onSubmit, isLoading } = useAsyncAction(async () => {
+    // TODO: Implement actual signup API call
+    await new Promise((resolve) => setTimeout(resolve, 1500))
+  })
 
-  const handleSocialSignup = useCallback((_provider: string) => {
+  const handleSocialSignup = useCallback((provider: string) => {
+    void provider
     // TODO: Implement social signup
   }, [])
 

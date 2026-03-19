@@ -82,7 +82,11 @@ export function useBookmarksPage() {
     }
 
     if (filter === 'recent') {
-      const cutoffTime = Date.now() - SEVEN_DAYS_MS
+      const latestBookmarkTime = result.reduce((latest, quiz) => {
+        const bookmarkedAt = new Date(quiz.bookmark.bookmarkedAt).getTime()
+        return Math.max(latest, bookmarkedAt)
+      }, 0)
+      const cutoffTime = latestBookmarkTime - SEVEN_DAYS_MS
       result = result.filter(
         (quiz) => new Date(quiz.bookmark.bookmarkedAt).getTime() >= cutoffTime
       )

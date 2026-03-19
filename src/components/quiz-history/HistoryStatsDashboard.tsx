@@ -27,7 +27,6 @@ import {
 import {
   Trophy,
   Target,
-  Clock,
   Flame,
   Zap,
   TrendingUp,

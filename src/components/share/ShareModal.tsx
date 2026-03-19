@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback, memo, useRef, useEffect } from 'react'
+import { useState, useCallback, memo, useRef } from 'react'
 import {
   Copy,
   Check,

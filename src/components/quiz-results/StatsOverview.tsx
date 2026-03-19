@@ -1,6 +1,6 @@
 import { Card, CardContent } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
-import { CheckCircle2, XCircle, Clock, Medal } from 'lucide-react'
+import { CheckCircle2, XCircle, Clock } from 'lucide-react'
 import { StatsOverviewProps } from '@/types/quizResults'
 
 export default function StatsOverview({

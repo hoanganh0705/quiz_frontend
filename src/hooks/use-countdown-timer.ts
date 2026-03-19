@@ -20,14 +20,10 @@ export function useCountdownTimer({
 }: UseCountdownTimerOptions) {
   const [timeLeft, setTimeLeft] = useState(initialTime)
   const [isRunning, setIsRunning] = useState(autoStart)
-  const [startedAt, setStartedAt] = useState<number | null>(
-    autoStart ? Date.now() : null
-  )
+  const [startedAt, setStartedAt] = useState<number | null>(null)
   const completedRef = useRef(false)
   const onCompleteRef = useRef(onComplete)
-  const endTimeRef = useRef<number | null>(
-    autoStart ? Date.now() + initialTime * 1000 : null
-  )
+  const endTimeRef = useRef<number | null>(null)
 
   // Keep onComplete ref updated
   useEffect(() => {
