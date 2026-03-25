@@ -20,6 +20,16 @@ import {
   useFullscreen
 } from '@/hooks'
 import { useKeyboardShortcut } from '@/hooks/use-keyboard-shortcut'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle
+} from '@/components/ui/alert-dialog'
 import { MobileQuizTimer } from './quiz-page/MobileQuizTimer'
 import { SwipeIndicator } from './quiz-page/SwipeIndicator'
 import { cn } from '@/lib/utils'
@@ -27,6 +37,13 @@ import { cn } from '@/lib/utils'
 export default function PlayQuizClient({ quiz }: { quiz: Quiz }) {
   const router = useRouter()
   const isSubmittedRef = useRef(false)
+  const [confirmSubmitOpen, setConfirmSubmitOpen] = useState(false)
+  const warningSecondRef = useRef<number | null>(null)
+  const audioContextRef = useRef<AudioContext | null>(null)
+
+  const [, setRecentlyPlayed] = useLocalStorage<
+    { quizId: string; title: string; playedAt: string }[]
+  >('recently_played_quizzes_v1', [])
 
   // Use custom hook for quiz progress with localStorage persistence
   const [progress, setProgress, removeProgress] = useLocalStorage<QuizProgress>(
@@ -82,6 +99,35 @@ export default function PlayQuizClient({ quiz }: { quiz: Quiz }) {
   })
 
   const [startedAt, setStartedAt] = useState<number | null>(progress.startedAt)
+
+  const playTone = useCallback((frequency: number, durationMs: number) => {
+    if (typeof window === 'undefined') return
+
+    const AudioContextConstructor =
+      window.AudioContext ||
+      (window as Window & { webkitAudioContext?: typeof AudioContext })
+        .webkitAudioContext
+
+    if (!AudioContextConstructor) return
+
+    if (!audioContextRef.current) {
+      audioContextRef.current = new AudioContextConstructor()
+    }
+
+    const context = audioContextRef.current
+    const oscillator = context.createOscillator()
+    const gain = context.createGain()
+
+    oscillator.type = 'sine'
+    oscillator.frequency.value = frequency
+    gain.gain.value = 0.04
+
+    oscillator.connect(gain)
+    gain.connect(context.destination)
+
+    oscillator.start()
+    oscillator.stop(context.currentTime + durationMs / 1000)
+  }, [])
 
   // Initialize from stored progress (runs once on mount)
   useEffect(() => {
@@ -180,6 +226,17 @@ export default function PlayQuizClient({ quiz }: { quiz: Quiz }) {
 
     clearProgress()
 
+    setRecentlyPlayed((prev) =>
+      [
+        {
+          quizId: quiz.id,
+          title: quiz.title,
+          playedAt: new Date().toISOString()
+        },
+        ...prev.filter((item) => item.quizId !== quiz.id)
+      ].slice(0, 8)
+    )
+
     // Redirect to results page
     router.push(`/quizzes/${quiz.id}/results`)
   }, [
@@ -192,7 +249,9 @@ export default function PlayQuizClient({ quiz }: { quiz: Quiz }) {
     router,
     setResults,
     startedAt,
-    timePerQuestion
+    timePerQuestion,
+    setRecentlyPlayed,
+    quiz.title
   ])
 
   // Timer is now managed by useCountdownTimer hook
@@ -202,6 +261,12 @@ export default function PlayQuizClient({ quiz }: { quiz: Quiz }) {
       startTimer()
       setStartedAt(Date.now())
       setQuestionStartTime(Date.now())
+    }
+
+    if (answer === currentQ.correctAnswer) {
+      playTone(880, 110)
+    } else {
+      playTone(220, 150)
     }
 
     setAnswers({ ...answers, [currentQuestion]: answer })
@@ -322,7 +387,7 @@ export default function PlayQuizClient({ quiz }: { quiz: Quiz }) {
     useCallback(() => {
       if (answersRef.current[currentQuestionRef.current]) {
         if (isLastQuestionRef.current) {
-          handleSubmitRef2.current()
+          setConfirmSubmitOpen(true)
         } else {
           handleNextRef.current()
         }
@@ -347,6 +412,14 @@ export default function PlayQuizClient({ quiz }: { quiz: Quiz }) {
   )
 
   // formatTime is now imported from @/lib/quizResultsUtils
+
+  useEffect(() => {
+    if (!timerStarted || timeLeft > 10 || timeLeft <= 0) return
+    if (warningSecondRef.current === timeLeft) return
+
+    warningSecondRef.current = timeLeft
+    playTone(540, 90)
+  }, [playTone, timeLeft, timerStarted])
 
   // Loading state: use ellipsis per typography guidelines
   if (!isLoaded) {
@@ -542,7 +615,9 @@ export default function PlayQuizClient({ quiz }: { quiz: Quiz }) {
                     </Button>
                     <Button
                       onClick={
-                        isLastQuestion ? handleSubmit : handleNextQuestion
+                        isLastQuestion
+                          ? () => setConfirmSubmitOpen(true)
+                          : handleNextQuestion
                       }
                       className={cn(
                         'text-white',
@@ -568,6 +643,23 @@ export default function PlayQuizClient({ quiz }: { quiz: Quiz }) {
           </p>
         )}
       </div>
+
+      <AlertDialog open={confirmSubmitOpen} onOpenChange={setConfirmSubmitOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Submit quiz now?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Once submitted, your answers will be finalized and scored.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Review answers</AlertDialogCancel>
+            <AlertDialogAction onClick={handleSubmit}>
+              Submit quiz
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </main>
   )
 }

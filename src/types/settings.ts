@@ -19,6 +19,13 @@ export interface UserSettings {
     achievementAlerts: boolean
   }
 
+  notificationChannels: {
+    inApp: boolean
+    email: boolean
+    push: boolean
+    marketing: boolean
+  }
+
   // Privacy Settings
   privacy: {
     profileVisibility: 'public' | 'friends' | 'private'

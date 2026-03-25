@@ -3,6 +3,7 @@ import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import { ThemeProvider } from '@/components/ThemeProvider'
 import { LayoutShell } from '@/components/LayoutShell'
+import { PwaServiceWorker } from '@/components/PwaServiceWorker'
 import './globals.css'
 
 const inter = Inter({
@@ -24,12 +25,16 @@ export default function RootLayout({
   return (
     <html lang='en' suppressHydrationWarning>
       <body className={`${inter.className} antialiased overflow-x-hidden`}>
+        <a href='#main-content' className='skip-link'>
+          Skip to main content
+        </a>
         <ThemeProvider
           attribute='class'
           defaultTheme='system'
           enableSystem
           disableTransitionOnChange
         >
+          <PwaServiceWorker />
           <LayoutShell>{children}</LayoutShell>
         </ThemeProvider>
       </body>

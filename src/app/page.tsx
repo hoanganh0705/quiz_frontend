@@ -10,6 +10,7 @@ import HowItWorks from '@/components/HowItWorks'
 import SuccessStoriesCarousel from '@/components/SuccessStoryCarousel'
 import PlayerRanking from '@/components/homepage/PlayerRanking'
 import QuizCardDifficultyList from '@/components/homepage/QuizCardDifficultyList'
+import RecentlyPlayedSection from '@/components/homepage/RecentlyPlayedSection'
 import { quizzes } from '@/constants/mockQuizzes'
 
 export const metadata = buildMetadata({
@@ -75,6 +76,7 @@ export default function QuizHubDashboard() {
             {quizzes.map((quiz) => (
               <div key={quiz.id} className='min-w-0 max-w-full'>
                 <QuizCard
+                  id={quiz.id}
                   title={quiz.title}
                   categories={quiz.categories}
                   difficulty={quiz.difficulty}
@@ -96,6 +98,8 @@ export default function QuizHubDashboard() {
 
       {/* Featured Quiz */}
       <FeaturedQuiz />
+
+      <RecentlyPlayedSection />
 
       {/* Player Ranking */}
       <PlayerRanking />

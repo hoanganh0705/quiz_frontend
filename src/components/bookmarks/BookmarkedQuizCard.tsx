@@ -176,7 +176,7 @@ const BookmarkedQuizCard = memo(function BookmarkedQuizCard({
           size='sm'
         >
           <Link
-            href={`/quizzes/${quiz.title.toLowerCase().replace(/\s+/g, '-')}`}
+            href={`/quizzes/${quiz.id}`}
           >
             <Play className='mr-2 h-4 w-4' aria-hidden='true' />
             Play Quiz

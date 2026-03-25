@@ -3,7 +3,7 @@ import { memo } from 'react'
 import { Card } from '@/components/ui/card'
 import { CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Edit, Flame, Trophy, Settings } from 'lucide-react'
+import { Edit, Flame, Trophy, Settings, UserPlus } from 'lucide-react'
 import Link from 'next/link'
 
 export const QuickActions = memo(function QuickActions() {
@@ -42,6 +42,16 @@ export const QuickActions = memo(function QuickActions() {
             <Link href='/leaderboard' aria-label='View leaderboard'>
               <Trophy className='w-4 h-4' aria-hidden='true' />
               View Leaderboard
+            </Link>
+          </Button>
+          <Button
+            variant='outline'
+            className='w-full justify-start gap-2'
+            asChild
+          >
+            <Link href='/friends' aria-label='Open friends and social page'>
+              <UserPlus className='w-4 h-4' aria-hidden='true' />
+              Friends & Social
             </Link>
           </Button>
           <Button

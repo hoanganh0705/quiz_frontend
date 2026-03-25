@@ -7,6 +7,7 @@ import {
   Trophy,
   Grid3X3,
   Compass,
+  UserPlus,
   Users,
   BarChart3,
   MessageSquare,
@@ -51,6 +52,11 @@ const items = [
     title: 'Explore Quizzes',
     url: '/quizzes',
     icon: Compass
+  },
+  {
+    title: 'Friends',
+    url: '/friends',
+    icon: UserPlus
   },
   {
     title: 'Quiz Tournament',

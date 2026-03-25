@@ -8,6 +8,7 @@ import { ModeToggle } from '@/components/ModeToggle'
 import { SidebarTrigger, useSidebar } from '@/components/ui/sidebar'
 import { NotificationDropdown } from '@/components/NotificationDropdown'
 import { useIsMobile } from '@/hooks'
+import { useAppLanguage } from '@/hooks/use-app-language'
 
 // TODO: Replace with real unread count from API when backend is available
 function MessagesButton() {
@@ -38,6 +39,7 @@ function MessagesButton() {
 export function AppHeader() {
   const { state } = useSidebar()
   const isMobile = useIsMobile()
+  const { t } = useAppLanguage()
 
   const sidebarWidth =
     isMobile === undefined
@@ -72,7 +74,10 @@ export function AppHeader() {
           <Search className='absolute left-3 top-1/2 transform -translate-y-1/2 text-foreground/60 h-4 w-4' />
           <Input
             type='search'
-            placeholder='Search quizzes, categories, creators...'
+            placeholder={t(
+              'searchPlaceholder',
+              'Search quizzes, categories, creators...'
+            )}
             className='pl-10 pr-16 bg-background border border-border text-foreground placeholder-muted-foreground w-full text-sm focus:border-ring'
             onFocus={(e) => {
               e.target.blur()

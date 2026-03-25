@@ -2,6 +2,14 @@
 
 import { memo, useState, useMemo, useCallback } from 'react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from '@/components/ui/select'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
 import { quizHistoryEntries, quizHistoryStats } from '@/constants/quizHistory'
 import type {
@@ -126,6 +134,9 @@ function applyFilters(
 
 const QuizHistoryPage = memo(function QuizHistoryPage() {
   const [filters, setFilters] = useState<QuizHistoryFilters>(defaultFilters)
+  const [compareQuizId, setCompareQuizId] = useState('')
+  const [compareAttemptA, setCompareAttemptA] = useState('')
+  const [compareAttemptB, setCompareAttemptB] = useState('')
 
   const handleFilterChange = useCallback(
     (partial: Partial<QuizHistoryFilters>) => {
@@ -146,6 +157,37 @@ const QuizHistoryPage = memo(function QuizHistoryPage() {
   const uniqueCategories = useMemo(
     () => Array.from(new Set(quizHistoryEntries.map((e) => e.category))).sort(),
     []
+  )
+
+  const compareQuizOptions = useMemo(
+    () =>
+      Array.from(
+        new Map(
+          quizHistoryEntries.map((entry) => [entry.quizId, entry.quizTitle])
+        )
+      ).map(([id, title]) => ({ id, title })),
+    []
+  )
+
+  const compareAttempts = useMemo(
+    () =>
+      quizHistoryEntries
+        .filter((entry) => entry.quizId === compareQuizId)
+        .sort(
+          (a, b) =>
+            new Date(b.completedAt).getTime() -
+            new Date(a.completedAt).getTime()
+        ),
+    [compareQuizId]
+  )
+
+  const attemptA = useMemo(
+    () => compareAttempts.find((entry) => entry.id === compareAttemptA),
+    [compareAttemptA, compareAttempts]
+  )
+  const attemptB = useMemo(
+    () => compareAttempts.find((entry) => entry.id === compareAttemptB),
+    [compareAttemptB, compareAttempts]
   )
 
   return (
@@ -187,6 +229,94 @@ const QuizHistoryPage = memo(function QuizHistoryPage() {
         {/* Statistics tab */}
         <TabsContent value='statistics' className='mt-6'>
           <HistoryStatsDashboard stats={quizHistoryStats} />
+
+          <Card className='mt-6'>
+            <CardHeader>
+              <CardTitle>Quiz Attempt Comparison</CardTitle>
+            </CardHeader>
+            <CardContent className='space-y-4'>
+              <div className='grid md:grid-cols-3 gap-3'>
+                <Select
+                  value={compareQuizId}
+                  onValueChange={(value) => {
+                    setCompareQuizId(value)
+                    setCompareAttemptA('')
+                    setCompareAttemptB('')
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder='Select quiz' />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {compareQuizOptions.map((option) => (
+                      <SelectItem key={option.id} value={option.id}>
+                        {option.title}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                <Select
+                  value={compareAttemptA}
+                  onValueChange={setCompareAttemptA}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder='Attempt A' />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {compareAttempts.map((attempt) => (
+                      <SelectItem key={attempt.id} value={attempt.id}>
+                        {new Date(attempt.completedAt).toLocaleString()}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                <Select
+                  value={compareAttemptB}
+                  onValueChange={setCompareAttemptB}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder='Attempt B' />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {compareAttempts.map((attempt) => (
+                      <SelectItem key={attempt.id} value={attempt.id}>
+                        {new Date(attempt.completedAt).toLocaleString()}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {attemptA && attemptB ? (
+                <div className='grid md:grid-cols-2 gap-3 text-sm'>
+                  <div className='rounded-md border border-border p-3 space-y-1'>
+                    <p className='font-semibold'>Attempt A</p>
+                    <p>Score: {attemptA.score}%</p>
+                    <p>
+                      Correct: {attemptA.correctAnswers}/
+                      {attemptA.totalQuestions}
+                    </p>
+                    <p>Time: {attemptA.timeTaken}s</p>
+                  </div>
+                  <div className='rounded-md border border-border p-3 space-y-1'>
+                    <p className='font-semibold'>Attempt B</p>
+                    <p>Score: {attemptB.score}%</p>
+                    <p>
+                      Correct: {attemptB.correctAnswers}/
+                      {attemptB.totalQuestions}
+                    </p>
+                    <p>Time: {attemptB.timeTaken}s</p>
+                  </div>
+                </div>
+              ) : (
+                <p className='text-sm text-muted-foreground'>
+                  Pick two attempts of the same quiz to compare performance.
+                </p>
+              )}
+            </CardContent>
+          </Card>
         </TabsContent>
       </Tabs>
     </div>

@@ -56,5 +56,33 @@ export function useShare(data: ShareData) {
     [socialUrls]
   )
 
-  return { shareUrl, copied, copyLink, socialUrls, openSocial }
+  const canNativeShare = useMemo(() => {
+    if (typeof navigator === 'undefined') return false
+    return typeof navigator.share === 'function'
+  }, [])
+
+  const shareNative = useCallback(async () => {
+    if (!canNativeShare) return false
+
+    try {
+      await navigator.share({
+        title: data.title,
+        text: data.description,
+        url: shareUrl
+      })
+      return true
+    } catch {
+      return false
+    }
+  }, [canNativeShare, data.description, data.title, shareUrl])
+
+  return {
+    shareUrl,
+    copied,
+    copyLink,
+    socialUrls,
+    openSocial,
+    canNativeShare,
+    shareNative
+  }
 }

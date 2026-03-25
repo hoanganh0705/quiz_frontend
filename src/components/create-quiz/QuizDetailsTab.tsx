@@ -12,7 +12,24 @@ import { SelectTrigger } from '@/components/ui/select'
 import { SelectValue } from '@/components/ui/select'
 import { Button } from '@/components/ui/button'
 
-const QuizDetailsTab = memo(function QuizDetailsTab() {
+interface QuizDetailsValues {
+  title: string
+  description: string
+  difficulty: 'easy' | 'medium' | 'hard'
+  tags: string[]
+}
+
+interface QuizDetailsTabProps {
+  values: QuizDetailsValues
+  onChange: (next: Partial<QuizDetailsValues>) => void
+}
+
+const QuizDetailsTab = memo(function QuizDetailsTab({
+  values,
+  onChange
+}: QuizDetailsTabProps) {
+  const tagInput = values.tags.join(', ')
+
   return (
     <section
       className='p-6 space-y-8 border border-border rounded-xl'
@@ -33,6 +50,8 @@ const QuizDetailsTab = memo(function QuizDetailsTab() {
           <Input
             id='quiz-title'
             placeholder='Untitled Quiz'
+            value={values.title}
+            onChange={(event) => onChange({ title: event.target.value })}
             className='bg-transparent text-foreground placeholder:text-foreground/70 focus:ring-offset-0 focus:ring-0 border border-border'
             autoComplete='off'
             required
@@ -49,6 +68,8 @@ const QuizDetailsTab = memo(function QuizDetailsTab() {
           <Textarea
             id='description'
             placeholder='Quiz description'
+            value={values.description}
+            onChange={(event) => onChange({ description: event.target.value })}
             className='bg-transparent text-foreground placeholder:text-foreground/70 min-h-25 resize-y focus:ring-offset-0 focus:ring-0 border border-border'
             autoComplete='off'
           />
@@ -61,7 +82,12 @@ const QuizDetailsTab = memo(function QuizDetailsTab() {
           >
             Difficulty Level
           </Label>
-          <Select defaultValue='medium'>
+          <Select
+            value={values.difficulty}
+            onValueChange={(value) =>
+              onChange({ difficulty: value as 'easy' | 'medium' | 'hard' })
+            }
+          >
             <SelectTrigger
               id='difficulty-level'
               className='w-full bg-background text-foreground placeholder:text-foreground/70 focus:ring-offset-0 focus:ring-0 border border-border'
@@ -84,10 +110,20 @@ const QuizDetailsTab = memo(function QuizDetailsTab() {
             <Input
               id='tags'
               placeholder='Add a tag'
+              value={tagInput}
+              onChange={(event) =>
+                onChange({
+                  tags: event.target.value
+                    .split(',')
+                    .map((tag) => tag.trim())
+                    .filter(Boolean)
+                })
+              }
               className='flex-1 bg-transparent text-foreground placeholder:text-foreground/70 focus:ring-offset-0 focus:ring-0 border border-border'
               autoComplete='off'
             />
             <Button
+              type='button'
               className='bg-transparent hover:bg-main-hover text-foreground px-6 py-2 rounded-md'
               aria-label='Add tag'
             >
