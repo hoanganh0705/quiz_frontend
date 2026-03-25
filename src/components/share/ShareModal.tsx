@@ -60,7 +60,14 @@ export function ShareModal({
   children
 }: ShareModalProps) {
   const [open, setOpen] = useState(false)
-  const { shareUrl, copied, copyLink, openSocial } = useShare({
+  const {
+    shareUrl,
+    copied,
+    copyLink,
+    openSocial,
+    canNativeShare,
+    shareNative
+  } = useShare({
     title,
     description,
     url
@@ -136,6 +143,16 @@ export function ShareModal({
 
           {/* ─── Social Tab ───────────────────────────────────────── */}
           <TabsContent value='social' className='mt-4'>
+            {canNativeShare && (
+              <Button
+                className='w-full mb-3'
+                variant='outline'
+                onClick={() => void shareNative()}
+              >
+                <Share2 className='w-4 h-4 mr-2' />
+                Share via device
+              </Button>
+            )}
             <div className='grid grid-cols-2 sm:grid-cols-3 gap-3'>
               <SocialButton
                 icon={<Twitter className='w-5 h-5' />}

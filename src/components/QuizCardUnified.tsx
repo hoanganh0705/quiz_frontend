@@ -13,6 +13,7 @@ import { ShareModal } from '@/components/share/ShareModal'
 
 type CompactVariantProps = {
   variant: 'compact'
+  id?: string
   title: string
   categories: string[]
   difficulty: string
@@ -84,9 +85,7 @@ export default function QuizCardUnified(props: QuizCardUnifiedProps) {
             asChild
             className='bg-default hover:bg-default-hover text-white'
           >
-            <Link
-              href={`/quizzes/${props.title.toLowerCase().replace(/\s+/g, '-')}`}
-            >
+            <Link href={props.id ? `/quizzes/${props.id}` : '/quizzes'}>
               Play Now
             </Link>
           </Button>

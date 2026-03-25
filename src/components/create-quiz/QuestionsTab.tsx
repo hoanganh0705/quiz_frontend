@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback, memo } from 'react'
+import { useState, useCallback, memo, useEffect } from 'react'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -34,20 +34,36 @@ interface ValidationErrors {
   }
 }
 
+interface QuestionsTabProps {
+  initialCount?: number
+  onQuestionsCountChange?: (count: number) => void
+}
+
+function buildInitialQuestions(count: number): Question[] {
+  return Array.from({ length: Math.max(1, count) }, (_, index) => ({
+    id: String(index + 1),
+    title: `Question ${index + 1}`,
+    text: '',
+    options: ['', '', '', ''],
+    correctAnswer: 0,
+    explanation: ''
+  }))
+}
+
 // Wrap component in memo to prevent unnecessary re-renders
-const QuestionsTab = memo(function QuestionsTab() {
-  const [questions, setQuestions] = useState<Question[]>([
-    {
-      id: '1',
-      title: 'Question 1',
-      text: '',
-      options: ['', '', '', ''],
-      correctAnswer: 0,
-      explanation: ''
-    }
-  ])
+const QuestionsTab = memo(function QuestionsTab({
+  initialCount = 1,
+  onQuestionsCountChange
+}: QuestionsTabProps) {
+  const [questions, setQuestions] = useState<Question[]>(() =>
+    buildInitialQuestions(initialCount)
+  )
   const [errors, setErrors] = useState<ValidationErrors>({})
   const [touched, setTouched] = useState<{ [key: string]: boolean }>({})
+
+  useEffect(() => {
+    onQuestionsCountChange?.(questions.length)
+  }, [questions.length, onQuestionsCountChange])
 
   // Validation function for a single question
   const validateQuestion = useCallback((question: Question) => {

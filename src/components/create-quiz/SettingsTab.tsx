@@ -1,6 +1,6 @@
 'use client'
 
-import { memo, useState } from 'react'
+import { memo } from 'react'
 import { Label } from '@/components/ui/label'
 // Fix barrel imports (bundle-barrel-imports)
 import { Select } from '@/components/ui/select'
@@ -15,10 +15,26 @@ import { CardContent } from '@/components/ui/card'
 import { CardHeader } from '@/components/ui/card'
 import { CardTitle } from '@/components/ui/card'
 
-// Wrap component in memo to prevent unnecessary re-renders
-const SettingsTab = memo(function SettingsTab() {
-  const [passingScore, setPassingScore] = useState(70)
+interface SettingsValues {
+  timeLimit: string
+  timePerQuestion: string
+  randomizeQuestions: boolean
+  showExplanations: boolean
+  allowRetakes: boolean
+  passingScore: number
+  visibility: 'private' | 'public' | 'unlisted'
+}
 
+interface SettingsTabProps {
+  values: SettingsValues
+  onChange: (next: Partial<SettingsValues>) => void
+}
+
+// Wrap component in memo to prevent unnecessary re-renders
+const SettingsTab = memo(function SettingsTab({
+  values,
+  onChange
+}: SettingsTabProps) {
   return (
     <Card
       className='bg-card border-border shadow-sm py-10'
@@ -43,7 +59,10 @@ const SettingsTab = memo(function SettingsTab() {
           >
             Time Limit (minutes)
           </Label>
-          <Select defaultValue='no-limit'>
+          <Select
+            value={values.timeLimit}
+            onValueChange={(value) => onChange({ timeLimit: value })}
+          >
             <SelectTrigger
               id='time-limit'
               className='w-full bg-background text-foreground border-border focus:ring-2 focus:ring-ring focus:border-transparent rounded-md'
@@ -96,7 +115,10 @@ const SettingsTab = memo(function SettingsTab() {
           >
             Time Per Question (seconds)
           </Label>
-          <Select defaultValue='no-limit-per-question'>
+          <Select
+            value={values.timePerQuestion}
+            onValueChange={(value) => onChange({ timePerQuestion: value })}
+          >
             <SelectTrigger
               id='time-per-question'
               className='w-full bg-background text-foreground border-border focus:ring-2 focus:ring-ring focus:border-transparent rounded-md'
@@ -154,6 +176,10 @@ const SettingsTab = memo(function SettingsTab() {
           </Label>
           <Switch
             id='randomize-questions'
+            checked={values.randomizeQuestions}
+            onCheckedChange={(checked) =>
+              onChange({ randomizeQuestions: checked })
+            }
             className='data-[state=checked]:bg-primary data-[state=unchecked]:bg-muted'
           />
         </section>
@@ -168,7 +194,10 @@ const SettingsTab = memo(function SettingsTab() {
           </Label>
           <Switch
             id='show-explanations'
-            defaultChecked
+            checked={values.showExplanations}
+            onCheckedChange={(checked) =>
+              onChange({ showExplanations: checked })
+            }
             className='data-[state=checked]:bg-primary data-[state=unchecked]:bg-muted'
           />
         </section>
@@ -183,7 +212,8 @@ const SettingsTab = memo(function SettingsTab() {
           </Label>
           <Switch
             id='allow-retakes'
-            defaultChecked
+            checked={values.allowRetakes}
+            onCheckedChange={(checked) => onChange({ allowRetakes: checked })}
             className='data-[state=checked]:bg-primary data-[state=unchecked]:bg-muted'
           />
         </section>
@@ -192,12 +222,14 @@ const SettingsTab = memo(function SettingsTab() {
         <section className='py-2'>
           <div className='flex items-center justify-between mb-3'>
             <Label className='text-foreground text-sm font-medium'>
-              Passing Score: {passingScore}%
+              Passing Score: {values.passingScore}%
             </Label>
           </div>
           <Slider
-            value={[passingScore]}
-            onValueChange={(value) => setPassingScore(value[0])}
+            value={[values.passingScore]}
+            onValueChange={(value) => {
+              onChange({ passingScore: value[0] })
+            }}
             max={100}
             min={0}
             step={1}
@@ -213,7 +245,14 @@ const SettingsTab = memo(function SettingsTab() {
           >
             Quiz Visibility
           </Label>
-          <Select defaultValue='private'>
+          <Select
+            value={values.visibility}
+            onValueChange={(value) =>
+              onChange({
+                visibility: value as 'private' | 'public' | 'unlisted'
+              })
+            }
+          >
             <SelectTrigger
               id='quiz-visibility'
               className='w-full bg-background text-foreground border-border focus:ring-2 focus:ring-ring focus:border-transparent rounded-md'

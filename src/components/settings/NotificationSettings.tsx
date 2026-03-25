@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, memo } from 'react'
+import { useState, memo, useMemo, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
@@ -12,6 +12,7 @@ import {
   CardTitle
 } from '@/components/ui/card'
 import { UserSettings } from '@/types/settings'
+import { defaultSettings } from '@/constants/settings'
 import {
   Bell,
   Mail,
@@ -67,7 +68,27 @@ export const NotificationSettings = memo(function NotificationSettings({
   onUpdate
 }: NotificationSettingsProps) {
   const [saveSuccess, setSaveSuccess] = useState(false)
-  const [notifications, setNotifications] = useState(settings.notifications)
+  const initialNotifications = useMemo(
+    () => ({ ...defaultSettings.notifications, ...settings.notifications }),
+    [settings.notifications]
+  )
+  const initialChannels = useMemo(
+    () => ({
+      ...defaultSettings.notificationChannels,
+      ...settings.notificationChannels
+    }),
+    [settings.notificationChannels]
+  )
+  const [notifications, setNotifications] = useState(initialNotifications)
+  const [channels, setChannels] = useState(initialChannels)
+
+  useEffect(() => {
+    setNotifications(initialNotifications)
+  }, [initialNotifications])
+
+  useEffect(() => {
+    setChannels(initialChannels)
+  }, [initialChannels])
 
   const updateNotification = (
     key: keyof typeof notifications,
@@ -80,13 +101,30 @@ export const NotificationSettings = memo(function NotificationSettings({
     setTimeout(() => setSaveSuccess(false), 2000)
   }
 
+  const updateChannel = (key: keyof typeof channels, value: boolean) => {
+    const updatedChannels = { ...channels, [key]: value }
+    setChannels(updatedChannels)
+    onUpdate({ notificationChannels: updatedChannels })
+    setSaveSuccess(true)
+    setTimeout(() => setSaveSuccess(false), 2000)
+  }
+
   const enableAll = () => {
     const allEnabled = Object.keys(notifications).reduce(
       (acc, key) => ({ ...acc, [key]: true }),
       {}
     ) as typeof notifications
+    const enabledChannels = Object.keys(channels).reduce(
+      (acc, key) => ({ ...acc, [key]: true }),
+      {}
+    ) as typeof channels
+
     setNotifications(allEnabled)
-    onUpdate({ notifications: allEnabled })
+    setChannels(enabledChannels)
+    onUpdate({
+      notifications: allEnabled,
+      notificationChannels: enabledChannels
+    })
     setSaveSuccess(true)
     setTimeout(() => setSaveSuccess(false), 2000)
   }
@@ -96,11 +134,52 @@ export const NotificationSettings = memo(function NotificationSettings({
       (acc, key) => ({ ...acc, [key]: false }),
       {}
     ) as typeof notifications
+    const disabledChannels = Object.keys(channels).reduce(
+      (acc, key) => ({ ...acc, [key]: false }),
+      {}
+    ) as typeof channels
+
     setNotifications(allDisabled)
-    onUpdate({ notifications: allDisabled })
+    setChannels(disabledChannels)
+    onUpdate({
+      notifications: allDisabled,
+      notificationChannels: disabledChannels
+    })
     setSaveSuccess(true)
     setTimeout(() => setSaveSuccess(false), 2000)
   }
+
+  const channelItems: Array<{
+    key: keyof typeof channels
+    title: string
+    description: string
+    icon: React.ReactNode
+  }> = [
+    {
+      key: 'inApp',
+      title: 'In-App Notifications',
+      description: 'Show notifications inside the app interface',
+      icon: <Bell className='w-4 h-4' aria-hidden='true' />
+    },
+    {
+      key: 'email',
+      title: 'Email Channel',
+      description: 'Allow notifications to be delivered to your email',
+      icon: <Mail className='w-4 h-4' aria-hidden='true' />
+    },
+    {
+      key: 'push',
+      title: 'Push Channel',
+      description: 'Allow browser/mobile push delivery when available',
+      icon: <Smartphone className='w-4 h-4' aria-hidden='true' />
+    },
+    {
+      key: 'marketing',
+      title: 'Marketing Channel',
+      description: 'Allow product updates, campaigns, and promotions',
+      icon: <Megaphone className='w-4 h-4' aria-hidden='true' />
+    }
+  ]
 
   return (
     <div className='space-y-6'>
@@ -128,6 +207,30 @@ export const NotificationSettings = memo(function NotificationSettings({
           Notification preferences saved!
         </div>
       )}
+
+      <Card className='border-border/40 py-4'>
+        <CardHeader>
+          <CardTitle className='flex items-center gap-2'>
+            <Smartphone className='w-5 h-5 text-primary' aria-hidden='true' />
+            Delivery Channels
+          </CardTitle>
+          <CardDescription>
+            Choose where notifications are delivered (stored locally for now)
+          </CardDescription>
+        </CardHeader>
+        <CardContent className='space-y-0'>
+          {channelItems.map((item) => (
+            <NotificationItem
+              key={item.key}
+              icon={item.icon}
+              title={item.title}
+              description={item.description}
+              checked={channels[item.key]}
+              onCheckedChange={(checked) => updateChannel(item.key, checked)}
+            />
+          ))}
+        </CardContent>
+      </Card>
 
       {/* Email & Push Notifications */}
       <Card className='border-border/40 py-4'>

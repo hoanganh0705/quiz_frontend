@@ -55,7 +55,7 @@ export const AchievementsTab = memo(function AchievementsTab({
               return (
                 <div
                   key={badge.id}
-                  className={`flex flex-col items-center gap-2 p-4 rounded-lg border ${badge.unlocked ? 'border-border' : 'border-border/50 opacity-50'} ${badge.bgColor}`}
+                  className={`flex flex-col items-center gap-2 p-4 rounded-lg border transition-transform ${badge.unlocked ? 'border-border hover:scale-[1.02] animate-in fade-in zoom-in-95 duration-300' : 'border-border/50 opacity-50'} ${badge.bgColor}`}
                   role='listitem'
                   aria-label={`${badge.name} badge - ${badge.unlocked ? 'unlocked' : 'locked'}`}
                 >
@@ -69,6 +69,11 @@ export const AchievementsTab = memo(function AchievementsTab({
                   <span className='text-xs text-muted-foreground'>
                     {badge.unlocked ? 'Unlocked' : 'Locked'}
                   </span>
+                  {badge.unlocked && (
+                    <span className='text-xs text-amber-500 animate-pulse'>
+                      New achievement
+                    </span>
+                  )}
                 </div>
               )
             })}
@@ -93,7 +98,7 @@ export const AchievementsTab = memo(function AchievementsTab({
             {streakRewards.map((reward) => (
               <div
                 key={reward.id}
-                className={`flex flex-col items-center gap-2 p-4 rounded-lg border ${currentStreak >= reward.days ? 'border-amber-500/50 bg-amber-500/10' : 'border-border bg-muted/30'}`}
+                className={`flex flex-col items-center gap-2 p-4 rounded-lg border ${currentStreak >= reward.days ? 'border-amber-500/50 bg-amber-500/10 animate-in fade-in zoom-in-95 duration-300' : 'border-border bg-muted/30'}`}
                 role='listitem'
                 aria-label={`${reward.days} day streak reward - ${currentStreak >= reward.days ? 'claimed' : 'locked'}`}
               >

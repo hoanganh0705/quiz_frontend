@@ -157,10 +157,7 @@ export const QuizRecommendationsStep = memo(function QuizRecommendationsStep({
               </div>
 
               {/* Play Button */}
-              <Link
-                href={`/quizzes/${quiz.title.toLowerCase().replace(/\s+/g, '-')}`}
-                className='block'
-              >
+              <Link href={`/quizzes/${quiz.id}`} className='block'>
                 <Button
                   size='sm'
                   className='w-full bg-default hover:bg-default-hover text-white'

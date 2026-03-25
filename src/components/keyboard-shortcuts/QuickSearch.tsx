@@ -9,6 +9,7 @@ import { sidebarItems } from '@/constants/sideBarItems'
 import { categories } from '@/constants/categories'
 import { quizzes } from '@/constants/mockQuizzes'
 import { useKeyboardShortcut } from '@/hooks/use-keyboard-shortcut'
+import { useLocalStorage } from '@/hooks/use-local-storage'
 
 interface SearchResult {
   id: string
@@ -27,7 +28,7 @@ const ResultItem = memo(function ResultItem({
 }: {
   result: SearchResult
   isActive: boolean
-  onSelect: (href: string) => void
+  onSelect: (href: string, title: string) => void
   onHover: () => void
 }) {
   const typeIcon = {
@@ -48,7 +49,7 @@ const ResultItem = memo(function ResultItem({
           ? 'bg-primary/10 dark:bg-primary/20 text-foreground'
           : 'text-foreground/80 hover:bg-muted'
       }`}
-      onClick={() => onSelect(result.href)}
+      onClick={() => onSelect(result.href, result.title)}
       onMouseEnter={onHover}
       role='option'
       aria-selected={isActive}
@@ -71,6 +72,10 @@ export function QuickSearch() {
   const [open, setOpen] = useState(false)
   const [query, setQuery] = useState('')
   const [activeIndex, setActiveIndex] = useState(0)
+  const [recentQueries, setRecentQueries] = useLocalStorage<string[]>(
+    'quick_search_recent',
+    []
+  )
   const router = useRouter()
   const inputRef = useRef<HTMLInputElement>(null)
   const listRef = useRef<HTMLDivElement>(null)
@@ -131,21 +136,46 @@ export function QuickSearch() {
   // Filter results based on query
   const results = useMemo(() => {
     if (!query.trim()) {
-      // Show pages and featured categories when no query
-      return allItems.filter(
+      const defaultItems = allItems.filter(
         (item) => item.type === 'page' || item.id === 'shortcuts-help'
       )
+
+      const recentItems = recentQueries
+        .map((recentQuery) =>
+          allItems.find(
+            (item) => item.title.toLowerCase() === recentQuery.toLowerCase()
+          )
+        )
+        .filter((item): item is SearchResult => Boolean(item))
+
+      const dedupedRecentItems = recentItems.filter(
+        (item, index, arr) => arr.findIndex((x) => x.id === item.id) === index
+      )
+
+      return [...dedupedRecentItems, ...defaultItems].slice(0, 10)
     }
 
     const lowerQuery = query.toLowerCase()
+
+    const scoreItem = (item: SearchResult) => {
+      const title = item.title.toLowerCase()
+      const subtitle = item.subtitle.toLowerCase()
+
+      if (title === lowerQuery) return 5
+      if (title.startsWith(lowerQuery)) return 4
+      if (title.includes(lowerQuery)) return 3
+      if (subtitle.startsWith(lowerQuery)) return 2
+      if (subtitle.includes(lowerQuery)) return 1
+      return 0
+    }
+
     return allItems
-      .filter(
-        (item) =>
-          item.title.toLowerCase().includes(lowerQuery) ||
-          item.subtitle.toLowerCase().includes(lowerQuery)
-      )
+      .map((item) => ({ item, score: scoreItem(item) }))
+      .filter(({ score }) => score > 0)
+      .sort((a, b) => b.score - a.score)
+      .map(({ item }) => item)
       .slice(0, 10)
-  }, [query, allItems])
+  }, [query, allItems, recentQueries])
 
   const clampedActiveIndex = useMemo(() => {
     if (results.length === 0) return 0
@@ -172,7 +202,19 @@ export function QuickSearch() {
   }, [activeIndex])
 
   const handleSelect = useCallback(
-    (href: string) => {
+    (href: string, selectedTitle?: string) => {
+      if (selectedTitle) {
+        setRecentQueries((prev) =>
+          [
+            selectedTitle,
+            ...prev.filter(
+              (recentTitle) =>
+                recentTitle.toLowerCase() !== selectedTitle.toLowerCase()
+            )
+          ].slice(0, 5)
+        )
+      }
+
       setOpen(false)
       if (href === '#shortcuts') {
         // Dispatch custom event to open shortcuts modal
@@ -181,7 +223,7 @@ export function QuickSearch() {
       }
       router.push(href)
     },
-    [router]
+    [router, setRecentQueries]
   )
 
   const handleKeyDown = useCallback(
@@ -198,7 +240,10 @@ export function QuickSearch() {
         case 'Enter':
           e.preventDefault()
           if (results[clampedActiveIndex]) {
-            handleSelect(results[clampedActiveIndex].href)
+            handleSelect(
+              results[clampedActiveIndex].href,
+              results[clampedActiveIndex].title
+            )
           }
           break
       }

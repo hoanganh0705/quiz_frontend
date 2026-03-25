@@ -1,6 +1,6 @@
 'use client'
 
-import { memo, useCallback } from 'react'
+import { memo, useCallback, useMemo } from 'react'
 import { Eye, EyeOff } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -34,6 +34,37 @@ const signupSchema = z
 
 type SignupFormData = z.infer<typeof signupSchema>
 
+function getPasswordStrength(password: string) {
+  if (!password) {
+    return {
+      score: 0,
+      label: 'Too weak',
+      checks: {
+        minLength: false,
+        uppercase: false,
+        number: false,
+        symbol: false
+      }
+    }
+  }
+
+  const checks = {
+    minLength: password.length >= 8,
+    uppercase: /[A-Z]/.test(password),
+    number: /\d/.test(password),
+    symbol: /[^A-Za-z0-9]/.test(password)
+  }
+
+  const score = Object.values(checks).filter(Boolean).length
+  const labels = ['Too weak', 'Weak', 'Fair', 'Good', 'Strong']
+
+  return {
+    score,
+    label: labels[score],
+    checks
+  }
+}
+
 const SignupPage = memo(function SignupPage() {
   const [showPassword, toggleShowPassword] = useToggle(false)
   const [showConfirmPassword, toggleShowConfirmPassword] = useToggle(false)
@@ -42,6 +73,7 @@ const SignupPage = memo(function SignupPage() {
     register,
     handleSubmit,
     control,
+    watch,
     formState: { errors }
   } = useForm<SignupFormData>({
     resolver: zodResolver(signupSchema),
@@ -64,6 +96,12 @@ const SignupPage = memo(function SignupPage() {
     void provider
     // TODO: Implement social signup
   }, [])
+
+  const passwordValue = watch('password')
+  const passwordStrength = useMemo(
+    () => getPasswordStrength(passwordValue ?? ''),
+    [passwordValue]
+  )
 
   return (
     <main className='min-h-screen flex bg-background'>
@@ -184,6 +222,48 @@ const SignupPage = memo(function SignupPage() {
                     )}
                   </button>
                 </div>
+                {passwordValue && (
+                  <div className='space-y-2' aria-live='polite'>
+                    <div
+                      className='grid grid-cols-4 gap-1'
+                      role='progressbar'
+                      aria-label='Password strength'
+                      aria-valuemin={0}
+                      aria-valuemax={4}
+                      aria-valuenow={passwordStrength.score}
+                    >
+                      {Array.from({ length: 4 }).map((_, index) => (
+                        <div
+                          key={index}
+                          className={`h-1.5 rounded-full ${
+                            index < passwordStrength.score
+                              ? 'bg-default'
+                              : 'bg-muted'
+                          }`}
+                        />
+                      ))}
+                    </div>
+                    <p className='text-xs text-muted-foreground'>
+                      Strength: {passwordStrength.label}
+                    </p>
+                    <ul className='grid grid-cols-2 gap-x-3 gap-y-1 text-xs text-muted-foreground'>
+                      <li>
+                        {passwordStrength.checks.minLength ? '✓' : '•'} 8+
+                        characters
+                      </li>
+                      <li>
+                        {passwordStrength.checks.uppercase ? '✓' : '•'}
+                        uppercase letter
+                      </li>
+                      <li>
+                        {passwordStrength.checks.number ? '✓' : '•'} number
+                      </li>
+                      <li>
+                        {passwordStrength.checks.symbol ? '✓' : '•'} symbol
+                      </li>
+                    </ul>
+                  </div>
+                )}
                 {errors.password && (
                   <p className='text-xs text-destructive'>
                     {errors.password.message}

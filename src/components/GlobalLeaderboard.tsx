@@ -38,6 +38,7 @@ const getBadgeColor = (badge: string) => {
 export default function GlobalLeaderboard() {
   const [searchQuery, setSearchQuery] = useState('')
   const [sortBy, setSortBy] = useState('Score')
+  const [visibleRows, setVisibleRows] = useState(20)
   const maxScore = Math.max(...players.map((p) => p.score || 0))
 
   // Filter players based on search query
@@ -61,6 +62,8 @@ export default function GlobalLeaderboard() {
         return (b.score || 0) - (a.score || 0) // Default to Score
     }
   })
+
+  const visiblePlayers = sortedPlayers.slice(0, visibleRows)
 
   return (
     <Card className='min-h-screen rounded-xl bg-background text-foreground mt-10 md:mt-20'>
@@ -97,7 +100,10 @@ export default function GlobalLeaderboard() {
               placeholder='Search players...'
               className='w-full pl-10 pr-4 py-2.5 rounded-lg bg-transparent border border-foreground/20 text-foreground placeholder-foreground/50 focus:ring-0.5 focus:ring-default focus:border-transparent'
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => {
+                setSearchQuery(e.target.value)
+                setVisibleRows(20)
+              }}
               aria-label='Search players'
             />
           </div>
@@ -120,7 +126,10 @@ export default function GlobalLeaderboard() {
                     <DropdownMenuItem
                       key={option}
                       className='text-foreground cursor-pointer data-highlighted:bg-default-hover'
-                      onClick={() => setSortBy(option)}
+                      onClick={() => {
+                        setSortBy(option)
+                        setVisibleRows(20)
+                      }}
                     >
                       {option}
                     </DropdownMenuItem>
@@ -170,7 +179,7 @@ export default function GlobalLeaderboard() {
                 </tr>
               </thead>
               <tbody>
-                {sortedPlayers.map((player, index) => (
+                {visiblePlayers.map((player, index) => (
                   <tr
                     key={player.id}
                     className='border-b border-foreground/20 last:border-b-0 hover:bg-foreground/10 transition-colors'
@@ -273,9 +282,27 @@ export default function GlobalLeaderboard() {
                 ))}
               </tbody>
             </table>
+
+            {visibleRows < sortedPlayers.length && (
+              <div className='p-4 flex justify-center'>
+                <Button
+                  variant='outline'
+                  onClick={() =>
+                    setVisibleRows((prev) =>
+                      Math.min(sortedPlayers.length, prev + 20)
+                    )
+                  }
+                >
+                  Load more
+                </Button>
+              </div>
+            )}
           </div>
           <div className='text-sm p-5 flex flex-row justify-between items-center'>
-            <span>Showing 1-10 of {sortedPlayers.length} players</span>
+            <span>
+              Showing 1-{Math.min(visiblePlayers.length, sortedPlayers.length)}{' '}
+              of {sortedPlayers.length} players
+            </span>
             <div className='flex items-center gap-2'>
               <Button
                 className='rounded-full px-4 py-2 h-auto text-sm font-medium bg-transparent  hover:bg-foreground/10 border border-foreground/20 disabled:opacity-50'

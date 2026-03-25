@@ -18,6 +18,12 @@ export const defaultSettings: UserSettings = {
     marketingEmails: false,
     achievementAlerts: true
   },
+  notificationChannels: {
+    inApp: true,
+    email: true,
+    push: true,
+    marketing: false
+  },
   privacy: {
     profileVisibility: 'public',
     showOnlineStatus: true,
