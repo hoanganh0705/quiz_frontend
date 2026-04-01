@@ -1,11 +1,7 @@
-export interface Winner {
-  id: string
-  name: string
-  timeAgo: string
-  amountWon: string
-  game: string
-  avatarUrl: string
-}
+import type { Winner } from '@/types/winners'
+
+// Re-export type for backwards compatibility
+export type { Winner } from '@/types/winners'
 
 export const winners: Winner[] = [
   {

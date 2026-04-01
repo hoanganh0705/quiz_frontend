@@ -1,13 +1,9 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { LeaderboardTabProps, LeaderboardItemProps } from '@/types/quizResults'
-import { getRankStyle } from '@/lib/quizResultsUtils'
+import { getRankStyle, formatTime } from '@/lib/quizResultsUtils'
 
-export default function LeaderboardTab({
-  quiz,
-  result,
-  formatTime
-}: LeaderboardTabProps) {
+export default function LeaderboardTab({ quiz, result }: LeaderboardTabProps) {
   const estimatedPosition = Math.max(1, 50 - Math.floor(result.score / 2))
 
   return (

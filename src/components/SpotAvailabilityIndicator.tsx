@@ -13,7 +13,7 @@ export default function SpotAvailabilityIndicator({
   totalSpots,
   mode = 'default'
 }: SpotAvailabilityIndicatorProps) {
-  // Đảm bảo currentSpots không vượt quá totalSpots
+  // Clamp currentSpots so it never exceeds totalSpots
   const displaySpots = Math.max(0, Math.min(currentSpots, totalSpots))
   const displayTotal = Math.max(1, totalSpots)
 
@@ -21,10 +21,10 @@ export default function SpotAvailabilityIndicator({
   const availableSpots = displayTotal - displaySpots
   const percentageLabel = Math.round(availablePercentage * 100)
 
-  // Màu sắc cho cả hai chế độ (dựa trên availablePercentage)
+  // Color for both modes (based on availablePercentage)
   const segmentColor = useMemo(() => {
-    if (availablePercentage < 0.1) return 'rgb(239, 68, 68)' // Đỏ khi chỗ trống dưới 10%
-    return 'rgb(255, 255, 255)' // Trắng nếu không
+    if (availablePercentage < 0.1) return 'rgb(239, 68, 68)' // Red when < 10% available
+    return 'rgb(255, 255, 255)' // White otherwise
   }, [availablePercentage])
 
   const unoccupiedSegmentColor = 'rgb(55, 65, 81)'

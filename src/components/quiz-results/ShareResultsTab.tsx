@@ -7,14 +7,14 @@ import {
   ShareButtonsProps,
   ChallengeFriendsProps
 } from '@/types/quizResults'
+import { formatTime } from '@/lib/quizResultsUtils'
 
 export default function ShareResultsTab({
   quiz,
   result,
   copied,
   onCopyLink,
-  onShare,
-  formatTime
+  onShare
 }: ShareResultsTabProps) {
   return (
     <Card className='py-6'>
@@ -23,7 +23,7 @@ export default function ShareResultsTab({
       </CardHeader>
       <CardContent>
         {/* Share Preview */}
-        <SharePreview quiz={quiz} result={result} formatTime={formatTime} />
+        <SharePreview quiz={quiz} result={result} />
 
         {/* Share Buttons */}
         <ShareButtons
@@ -43,7 +43,7 @@ export default function ShareResultsTab({
   )
 }
 
-function SharePreview({ quiz, result, formatTime }: SharePreviewProps) {
+function SharePreview({ quiz, result }: SharePreviewProps) {
   return (
     <div className='bg-linear-to-br from-default to-default/80 rounded-xl p-6 text-white mb-6'>
       <div className='text-center'>
