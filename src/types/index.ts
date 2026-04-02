@@ -9,6 +9,10 @@ export * from './onboarding'
 export * from './settings'
 export * from './testimonials'
 export * from './tournament'
+export * from './friends'
+export * from './players'
+export * from './winners'
+export * from './leaderboard'
 // Re-export with alias to avoid name collision with quizCategories.Category
 export type { Category as TournamentCategory } from './tournamentCategories'
 

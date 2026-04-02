@@ -18,7 +18,6 @@ import {
   QuizResult,
   QuestionReview,
   getStorageKey,
-  formatTime,
   calculatePercentile,
   calculateAvgTime
 } from '@/components/quiz-results'
@@ -248,11 +247,7 @@ export default function QuizResults({ quiz }: { quiz: Quiz }) {
           </TabsContent>
 
           <TabsContent value='leaderboard'>
-            <LeaderboardTab
-              quiz={quiz}
-              result={results}
-              formatTime={formatTime}
-            />
+            <LeaderboardTab quiz={quiz} result={results} />
           </TabsContent>
 
           <TabsContent value='share'>
@@ -262,7 +257,6 @@ export default function QuizResults({ quiz }: { quiz: Quiz }) {
               copied={copied}
               onCopyLink={handleCopyLink}
               onShare={handleShare}
-              formatTime={formatTime}
             />
           </TabsContent>
         </Tabs>

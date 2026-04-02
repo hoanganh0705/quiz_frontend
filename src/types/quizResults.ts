@@ -62,7 +62,6 @@ export interface AnswerReviewTabProps {
 export interface LeaderboardTabProps {
   quiz: Quiz
   result: QuizResult
-  formatTime: (seconds: number) => string
 }
 
 export interface ShareResultsTabProps {
@@ -71,7 +70,6 @@ export interface ShareResultsTabProps {
   copied: boolean
   onCopyLink: () => void
   onShare: (platform: string) => void
-  formatTime: (seconds: number) => string
 }
 
 export interface TimeAnalysisProps {
@@ -115,7 +113,6 @@ export interface LeaderboardItemProps {
 export interface SharePreviewProps {
   quiz: { title: string; questions: { id: number }[] }
   result: { score: number; correctCount: number; timeTaken: number }
-  formatTime: (seconds: number) => string
 }
 
 export interface ShareButtonsProps {

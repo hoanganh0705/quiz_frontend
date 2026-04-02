@@ -1,24 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import { CheckCircle2, Trophy, Zap } from 'lucide-react'
+import { getActivityIcon } from '@/lib/activityIcon'
 import { players } from '@/constants/players'
 import { challengeData } from '@/constants/challengeHistoryData'
-
-function getActivityIcon(type?: string) {
-  switch (type) {
-    case 'achievement':
-      return (
-        <CheckCircle2 className='w-5 h-5 text-green-500' aria-hidden='true' />
-      )
-    case 'win':
-      return <Trophy className='w-5 h-5 text-amber-500' aria-hidden='true' />
-    case 'participation':
-      return <Zap className='w-5 h-5 text-default' aria-hidden='true' />
-    default:
-      return <Zap className='w-5 h-5 text-default' aria-hidden='true' />
-  }
-}
 
 function calculateStats() {
   const averageScore =

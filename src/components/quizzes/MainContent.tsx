@@ -4,7 +4,7 @@ import { memo, useMemo, useRef, useState, useEffect } from 'react'
 import { Label } from '@/components/ui/label'
 import { Slider } from '@/components/ui/slider'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
-import QuizCardDetail from '@/components/QuizCardDetail'
+import QuizCardUnified from '@/components/QuizCardUnified'
 import { quizzes } from '@/constants/mockQuizzes'
 import { categories } from '@/constants/categories'
 import type { Quiz } from '@/types/quiz'
@@ -258,7 +258,7 @@ const MainContent = memo(function MainContent({
             aria-label='Quiz results'
           >
             {visibleQuizzes.map((quiz) => (
-              <QuizCardDetail key={quiz.id} {...quiz} />
+              <QuizCardUnified key={quiz.id} variant='detail' quiz={quiz} />
             ))}
           </div>
 

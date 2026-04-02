@@ -1,4 +1,3 @@
-import React from 'react'
 import { Button } from '../ui/button'
 import { formatDuration } from '@/lib/formatDuration'
 import { quizzes } from '@/constants/mockQuizzes'

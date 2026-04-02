@@ -1,30 +1,9 @@
 'use client'
 
 import { useState, useMemo, useCallback } from 'react'
-import { CheckCircle2, Trophy, Zap } from 'lucide-react'
+import { getActivityIcon } from '@/lib/activityIcon'
 import { players } from '@/constants/players'
 import { challengeData } from '@/constants/challengeHistoryData'
-
-const achievementIcon = (
-  <CheckCircle2 className='w-6 h-6 text-green-500' aria-hidden='true' />
-)
-const winIcon = <Trophy className='w-6 h-6 text-amber-500' aria-hidden='true' />
-const participationIcon = (
-  <Zap className='w-6 h-6 text-default' aria-hidden='true' />
-)
-
-function getActivityIcon(type: string | undefined) {
-  switch (type) {
-    case 'achievement':
-      return achievementIcon
-    case 'win':
-      return winIcon
-    case 'participation':
-      return participationIcon
-    default:
-      return participationIcon
-  }
-}
 
 export function usePublicProfilePage() {
   const [activeTab, setActiveTab] = useState('activity')
