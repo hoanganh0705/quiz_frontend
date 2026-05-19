@@ -145,6 +145,8 @@ export default function QuizDetail({ quiz }: QuizDetailProps) {
                 requirements={quiz.requirements}
                 duration={quiz.duration}
                 tags={quiz.tags}
+                previewQuestions={quiz.questions.slice(0, 3)}
+                questionCount={quiz.questionCount}
               />
             </TabsContent>
 
@@ -265,14 +267,25 @@ export default function QuizDetail({ quiz }: QuizDetailProps) {
               </Card>
 
               {/* Play Button */}
-              <Link href={`/quizzes/${quiz.id}/start`} className='block'>
-                <Button
-                  className='w-[98%] mx-auto flex justify-center items-center bg-default hover:bg-default-hover text-white font-semibold py-4 text-base rounded-xl'
-                  size='lg'
-                >
-                  Play now
-                </Button>
-              </Link>
+              <div className='space-y-3'>
+                <Link href={`/quizzes/${quiz.id}/start`} className='block'>
+                  <Button
+                    className='w-[98%] mx-auto flex justify-center items-center bg-default hover:bg-default-hover text-white font-semibold py-4 text-base rounded-xl'
+                    size='lg'
+                  >
+                    Play now
+                  </Button>
+                </Link>
+                <Link href='#preview-questions' className='block'>
+                  <Button
+                    variant='outline'
+                    className='w-[98%] mx-auto flex justify-center items-center text-foreground font-semibold py-4 text-base rounded-xl border-border'
+                    size='lg'
+                  >
+                    Preview questions
+                  </Button>
+                </Link>
+              </div>
 
               {/* Action Buttons */}
               <div className='flex justify-center gap-6 pt-2 mt-3'>

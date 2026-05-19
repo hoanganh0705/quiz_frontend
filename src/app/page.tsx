@@ -38,6 +38,14 @@ export default function QuizHubDashboard() {
             for your knowledge.
           </p>
           <div className='flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-4'>
+            <Link href='/quizzes'>
+              <Button
+                size='lg'
+                className='text-default bg-white hover:bg-slate-50 border border-default-hover dark:text-default dark:bg-transparent dark:hover:bg-slate-700 dark:border-default-hover w-full sm:w-auto'
+              >
+                Play a Quiz
+              </Button>
+            </Link>
             <Link href='/create-quiz'>
               <Button
                 size='lg'
@@ -46,15 +54,10 @@ export default function QuizHubDashboard() {
                 Create Quiz
               </Button>
             </Link>
-            <Link href='/quizzes'>
-              <Button
-                size='lg'
-                className='text-default bg-white hover:bg-slate-50 border border-default-hover dark:text-default dark:bg-transparent dark:hover:bg-slate-700 dark:border-default-hover w-full sm:w-auto'
-              >
-                Join Contest
-              </Button>
-            </Link>
           </div>
+          <p className='text-xs text-muted-foreground mt-3'>
+            No login needed to start playing. Save progress later.
+          </p>
         </div>
 
         {/* Decorative Elements */}

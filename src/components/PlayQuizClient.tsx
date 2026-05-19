@@ -17,7 +17,8 @@ import {
   useCountdownTimer,
   useIsMobile,
   useSwipeGesture,
-  useFullscreen
+  useFullscreen,
+  useAuthState
 } from '@/hooks'
 import { useKeyboardShortcut } from '@/hooks/use-keyboard-shortcut'
 import {
@@ -33,6 +34,7 @@ import {
 import { MobileQuizTimer } from './quiz-page/MobileQuizTimer'
 import { SwipeIndicator } from './quiz-page/SwipeIndicator'
 import { cn } from '@/lib/utils'
+import { AuthNudgeDialog } from '@/components/auth/AuthNudgeDialog'
 
 export default function PlayQuizClient({ quiz }: { quiz: Quiz }) {
   const router = useRouter()
@@ -40,6 +42,7 @@ export default function PlayQuizClient({ quiz }: { quiz: Quiz }) {
   const [confirmSubmitOpen, setConfirmSubmitOpen] = useState(false)
   const warningSecondRef = useRef<number | null>(null)
   const audioContextRef = useRef<AudioContext | null>(null)
+  const { isAuthenticated } = useAuthState()
 
   const [, setRecentlyPlayed] = useLocalStorage<
     { quizId: string; title: string; playedAt: string }[]
@@ -64,6 +67,14 @@ export default function PlayQuizClient({ quiz }: { quiz: Quiz }) {
     getResultsKey(quiz.id),
     null
   )
+
+  const [dismissedNudges, setDismissedNudges] = useLocalStorage<string[]>(
+    'auth_nudge_dismissed_v1',
+    []
+  )
+  const [authNudgeOpen, setAuthNudgeOpen] = useState(false)
+  const authNudgeKey = `play-${quiz.id}`
+  const hasDismissedNudge = dismissedNudges.includes(authNudgeKey)
 
   // Local state for individual properties (derived from progress)
   const [isLoaded, setIsLoaded] = useState(false)
@@ -421,6 +432,13 @@ export default function PlayQuizClient({ quiz }: { quiz: Quiz }) {
     playTone(540, 90)
   }, [playTone, timeLeft, timerStarted])
 
+  useEffect(() => {
+    if (isAuthenticated) return
+    if (hasDismissedNudge) return
+    if (currentQuestion < 2) return
+    setAuthNudgeOpen(true)
+  }, [currentQuestion, hasDismissedNudge, isAuthenticated])
+
   // Loading state: use ellipsis per typography guidelines
   if (!isLoaded) {
     return (
@@ -441,6 +459,19 @@ export default function PlayQuizClient({ quiz }: { quiz: Quiz }) {
       )}
     >
       <div className='max-w-7xl mx-auto'>
+        {!isAuthenticated && (
+          <div className='mb-4 rounded-lg border border-border bg-muted/40 p-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between'>
+            <div>
+              <div className='text-sm font-semibold'>Playing as guest</div>
+              <div className='text-xs text-muted-foreground'>
+                Progress is saved on this device only.
+              </div>
+            </div>
+            <Button asChild size='sm'>
+              <Link href='/login'>Sign in to save</Link>
+            </Button>
+          </div>
+        )}
         {/* Header */}
         <div className='flex items-center justify-between gap-3 mb-4 md:mb-8'>
           <Button
@@ -660,6 +691,21 @@ export default function PlayQuizClient({ quiz }: { quiz: Quiz }) {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <AuthNudgeDialog
+        open={authNudgeOpen}
+        onOpenChange={setAuthNudgeOpen}
+        title='Save your progress?'
+        description='Create a free account to save results, track streaks, and join leaderboards.'
+        primaryLabel='Save and sign in'
+        primaryHref='/login'
+        secondaryLabel='Continue as guest'
+        onSecondary={() => {
+          setDismissedNudges((prev) =>
+            prev.includes(authNudgeKey) ? prev : [...prev, authNudgeKey]
+          )
+        }}
+      />
     </main>
   )
 }

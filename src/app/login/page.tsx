@@ -12,7 +12,10 @@ import Image from 'next/image'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { useToggle, useAsyncAction } from '@/hooks'
+import { useToggle, useAsyncAction, useAuthState } from '@/hooks'
+import { useRouter } from 'next/navigation'
+import { loginUser } from '@/lib/api/auth'
+import { setAuthToken } from '@/lib/auth-cookies'
 
 // Hoist schema outside component (data-hoisting)
 const loginSchema = z.object({
@@ -28,6 +31,8 @@ type LoginFormData = z.infer<typeof loginSchema>
 
 const LoginPage = memo(function LoginPage() {
   const [showPassword, toggleShowPassword] = useToggle(false)
+  const { setAuthenticated } = useAuthState()
+  const router = useRouter()
 
   const {
     register,
@@ -43,10 +48,18 @@ const LoginPage = memo(function LoginPage() {
     }
   })
 
-  const { execute: onSubmit, isLoading } = useAsyncAction(async () => {
-    // TODO: Implement actual login API call
-    await new Promise((resolve) => setTimeout(resolve, 1500))
-  })
+  const { execute: onSubmit, isLoading } = useAsyncAction(
+    async (data: LoginFormData) => {
+      const response = await loginUser({
+        email: data.email,
+        password: data.password
+      })
+      const cookieDays = data.rememberMe ? 30 : 7
+      setAuthToken(response.token.accessToken, { days: cookieDays })
+      setAuthenticated(true)
+      router.replace('/quizzes')
+    }
+  )
 
   // Use useCallback for event handlers (rerender-functional-setstate)
   const handleSocialLogin = useCallback((provider: string) => {
@@ -99,7 +112,7 @@ const LoginPage = memo(function LoginPage() {
           <section aria-label='Login form'>
             {/* Login Form */}
             <form
-              onSubmit={handleSubmit(onSubmit)}
+              onSubmit={handleSubmit((data) => onSubmit(data))}
               className='space-y-5'
               aria-label='Sign in to your account'
             >
@@ -180,6 +193,16 @@ const LoginPage = memo(function LoginPage() {
                   className='text-xs text-foreground hover:text-muted-foreground font-medium transition-colors underline'
                 >
                   Forgot password?
+                </Link>
+              </div>
+
+              <div className='text-xs text-muted-foreground'>
+                Need a new verification link?{' '}
+                <Link
+                  href='/resend-verification'
+                  className='text-foreground hover:text-muted-foreground font-medium transition-colors underline'
+                >
+                  Resend verification email
                 </Link>
               </div>
 

@@ -6,7 +6,8 @@ import { useState, useEffect, useMemo, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ArrowLeft, Trophy, Share2, BarChart3 } from 'lucide-react'
-import { useQuizResults, useClipboard } from '@/hooks'
+import { useQuizResults, useClipboard, useAuthState, useLocalStorage } from '@/hooks'
+import { AuthNudgeDialog } from '@/components/auth/AuthNudgeDialog'
 
 import {
   ScoreHero,
@@ -28,6 +29,14 @@ export default function QuizResults({ quiz }: { quiz: Quiz }) {
     quiz.id,
     null
   )
+  const { isAuthenticated } = useAuthState()
+  const [dismissedNudges, setDismissedNudges] = useLocalStorage<string[]>(
+    'auth_nudge_dismissed_v1',
+    []
+  )
+  const [authNudgeOpen, setAuthNudgeOpen] = useState(false)
+  const authNudgeKey = `results-${quiz.id}`
+  const hasDismissedNudge = dismissedNudges.includes(authNudgeKey)
 
   // Use custom hook for clipboard with copy state
   const { copied, copy } = useClipboard()
@@ -203,6 +212,35 @@ export default function QuizResults({ quiz }: { quiz: Quiz }) {
           onPlayAgain={handlePlayAgain}
         />
 
+        {!isAuthenticated && !hasDismissedNudge && (
+          <div className='mt-6 rounded-lg border border-border bg-muted/40 p-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between'>
+            <div>
+              <div className='text-sm font-semibold'>Save your results</div>
+              <div className='text-xs text-muted-foreground'>
+                Keep your score history, streaks, and leaderboard rank.
+              </div>
+            </div>
+            <div className='flex flex-col sm:flex-row gap-2'>
+              <Button size='sm' onClick={() => setAuthNudgeOpen(true)}>
+                Save results
+              </Button>
+              <Button
+                size='sm'
+                variant='outline'
+                onClick={() => {
+                  setDismissedNudges((prev) =>
+                    prev.includes(authNudgeKey)
+                      ? prev
+                      : [...prev, authNudgeKey]
+                  )
+                }}
+              >
+                Continue without saving
+              </Button>
+            </div>
+          </div>
+        )}
+
         {/* Stats Overview */}
         <StatsOverview
           result={results}
@@ -264,6 +302,21 @@ export default function QuizResults({ quiz }: { quiz: Quiz }) {
         {/* Bottom Actions */}
         <BottomActions quizId={quiz.id} onPlayAgain={handlePlayAgain} />
       </div>
+
+      <AuthNudgeDialog
+        open={authNudgeOpen}
+        onOpenChange={setAuthNudgeOpen}
+        title='Save this score to your profile?'
+        description='Create a free account to keep your results and unlock leaderboards.'
+        primaryLabel='Save and sign in'
+        primaryHref='/login'
+        secondaryLabel='Continue as guest'
+        onSecondary={() => {
+          setDismissedNudges((prev) =>
+            prev.includes(authNudgeKey) ? prev : [...prev, authNudgeKey]
+          )
+        }}
+      />
     </main>
   )
 }
