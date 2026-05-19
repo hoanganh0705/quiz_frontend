@@ -1,16 +1,18 @@
 'use client'
 
-import { useEffect, useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
-import { useSearchParams } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { verifyEmail } from '@/lib/api/auth'
 import { useAsyncAction } from '@/hooks'
 
 export default function VerifyEmailPage() {
   const searchParams = useSearchParams()
+  const router = useRouter()
   const token = useMemo(() => searchParams.get('token') ?? '', [searchParams])
   const email = useMemo(() => searchParams.get('email') ?? '', [searchParams])
+  const [isVerified, setIsVerified] = useState(false)
 
   const {
     execute: runVerify,
@@ -19,12 +21,21 @@ export default function VerifyEmailPage() {
   } = useAsyncAction(async () => {
     if (!token) return
     await verifyEmail({ token })
+    setIsVerified(true)
   })
 
   useEffect(() => {
     if (!token) return
     runVerify()
   }, [runVerify, token])
+
+  useEffect(() => {
+    if (!isVerified) return
+    const timer = window.setTimeout(() => {
+      router.replace('/login?verified=1')
+    }, 1200)
+    return () => window.clearTimeout(timer)
+  }, [isVerified, router])
 
   const title = token
     ? isLoading
