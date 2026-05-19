@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Search, MessageSquare } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -14,6 +14,7 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { logout } from '@/lib/api/auth'
 import { useRouter } from 'next/navigation'
+import { useUserStore } from '@/stores/user-store'
 
 // TODO: Replace with real unread count from API when backend is available
 function MessagesButton() {
@@ -47,6 +48,15 @@ export function AppHeader() {
   const { t } = useAppLanguage()
   const { isAuthenticated, setAuthenticated } = useAuthState()
   const router = useRouter()
+  const user = useUserStore((state) => state.user)
+  const clearUser = useUserStore((state) => state.clearUser)
+
+  const avatarLabel = useMemo(() => {
+    const value = user?.displayName || user?.username || user?.email || 'User'
+    const parts = value.trim().split(' ')
+    if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase()
+    return `${parts[0][0] ?? ''}${parts[1][0] ?? ''}`.toUpperCase()
+  }, [user])
 
   const { execute: handleLogout, isLoading: isLoggingOut } = useAsyncAction(
     async () => {
@@ -54,6 +64,7 @@ export function AppHeader() {
         await logout()
       } finally {
         setAuthenticated(false)
+        clearUser()
         router.replace('/login')
       }
     }
@@ -154,7 +165,7 @@ export function AppHeader() {
             <Avatar className='h-7 w-7 sm:h-8 sm:w-8 shrink-0'>
               <AvatarImage src='/avatarPlaceholder.webp' />
               <AvatarFallback className='bg-background text-background text-xs'>
-                JD
+                {avatarLabel}
               </AvatarFallback>
             </Avatar>
           </div>
