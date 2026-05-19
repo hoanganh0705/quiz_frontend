@@ -1,6 +1,30 @@
 import QuizDetail from '@/components/quiz-page/QuizDetail'
 import { quizzes } from '@/constants/mockQuizzes'
 import Link from 'next/link'
+import { buildMetadata } from '@/lib/seo'
+
+export async function generateMetadata({
+  params
+}: {
+  params: Promise<{ id: string }>
+}) {
+  const { id } = await params
+  const quiz = quizzes.find((q) => q.id === id)
+
+  if (!quiz) {
+    return buildMetadata({
+      title: 'Quiz not found | QuizHub',
+      description: 'This quiz is unavailable.',
+      path: `/quizzes/${id}`
+    })
+  }
+
+  return buildMetadata({
+    title: `${quiz.title} | QuizHub`,
+    description: quiz.description,
+    path: `/quizzes/${quiz.id}`
+  })
+}
 
 export default async function QuizDetailPage({
   params

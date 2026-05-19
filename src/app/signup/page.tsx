@@ -11,7 +11,9 @@ import Image from 'next/image'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { useToggle, useAsyncAction } from '@/hooks'
+import { useToggle, useAsyncAction, useAuthState } from '@/hooks'
+import { useRouter } from 'next/navigation'
+import { registerUser } from '@/lib/api/auth'
 
 const signupSchema = z
   .object({
@@ -68,6 +70,8 @@ function getPasswordStrength(password: string) {
 const SignupPage = memo(function SignupPage() {
   const [showPassword, toggleShowPassword] = useToggle(false)
   const [showConfirmPassword, toggleShowConfirmPassword] = useToggle(false)
+  const { setAuthenticated } = useAuthState()
+  const router = useRouter()
 
   const {
     register,
@@ -87,10 +91,24 @@ const SignupPage = memo(function SignupPage() {
     }
   })
 
-  const { execute: onSubmit, isLoading } = useAsyncAction(async () => {
-    // TODO: Implement actual signup API call
-    await new Promise((resolve) => setTimeout(resolve, 1500))
-  })
+  const { execute: onSubmit, isLoading } = useAsyncAction(
+    async (data: SignupFormData) => {
+      const rawUsername = `${data.firstName}.${data.lastName}`
+      const username = rawUsername
+        .toLowerCase()
+        .replace(/[^a-z0-9._-]/g, '')
+        .slice(0, 50)
+
+      await registerUser({
+        username: username || data.email.split('@')[0],
+        email: data.email,
+        password: data.password
+      })
+
+      setAuthenticated(false)
+      router.replace(`/verify-email?email=${encodeURIComponent(data.email)}`)
+    }
+  )
 
   const handleSocialSignup = useCallback((provider: string) => {
     void provider
@@ -140,11 +158,23 @@ const SignupPage = memo(function SignupPage() {
                 Sign in
               </Link>
             </p>
+            <p className='text-xs text-muted-foreground'>
+              After signing up, we will email you a verification link.{' '}
+              <Link
+                href='/resend-verification'
+                className='text-foreground hover:text-muted-foreground font-medium transition-colors underline'
+              >
+                Resend verification email
+              </Link>
+            </p>
           </div>
 
           <div>
             {/* Signup Form */}
-            <form onSubmit={handleSubmit(onSubmit)} className='space-y-5'>
+            <form
+              onSubmit={handleSubmit((data) => onSubmit(data))}
+              className='space-y-5'
+            >
               {/* First Name and Last Name */}
               <div className='grid grid-cols-2 gap-4'>
                 <div className='space-y-2'>

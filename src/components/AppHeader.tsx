@@ -7,8 +7,13 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { ModeToggle } from '@/components/ModeToggle'
 import { SidebarTrigger, useSidebar } from '@/components/ui/sidebar'
 import { NotificationDropdown } from '@/components/NotificationDropdown'
-import { useIsMobile } from '@/hooks'
+import { useIsMobile, useAsyncAction } from '@/hooks'
 import { useAppLanguage } from '@/hooks/use-app-language'
+import { useAuthState } from '@/hooks'
+import Link from 'next/link'
+import { Button } from '@/components/ui/button'
+import { logout } from '@/lib/api/auth'
+import { useRouter } from 'next/navigation'
 
 // TODO: Replace with real unread count from API when backend is available
 function MessagesButton() {
@@ -40,6 +45,19 @@ export function AppHeader() {
   const { state } = useSidebar()
   const isMobile = useIsMobile()
   const { t } = useAppLanguage()
+  const { isAuthenticated, setAuthenticated } = useAuthState()
+  const router = useRouter()
+
+  const { execute: handleLogout, isLoading: isLoggingOut } = useAsyncAction(
+    async () => {
+      try {
+        await logout()
+      } finally {
+        setAuthenticated(false)
+        router.replace('/login')
+      }
+    }
+  )
 
   const sidebarWidth =
     isMobile === undefined
@@ -123,12 +141,28 @@ export function AppHeader() {
         </div>
 
         {/* Avatar */}
-        <Avatar className='h-7 w-7 sm:h-8 sm:w-8 shrink-0'>
-          <AvatarImage src='/avatarPlaceholder.webp' />
-          <AvatarFallback className='bg-background text-background text-xs'>
-            JD
-          </AvatarFallback>
-        </Avatar>
+        {isAuthenticated ? (
+          <div className='flex items-center gap-2'>
+            <Button
+              size='sm'
+              variant='outline'
+              onClick={handleLogout}
+              disabled={isLoggingOut}
+            >
+              {isLoggingOut ? 'Signing out…' : 'Logout'}
+            </Button>
+            <Avatar className='h-7 w-7 sm:h-8 sm:w-8 shrink-0'>
+              <AvatarImage src='/avatarPlaceholder.webp' />
+              <AvatarFallback className='bg-background text-background text-xs'>
+                JD
+              </AvatarFallback>
+            </Avatar>
+          </div>
+        ) : (
+          <Button asChild size='sm' className='rounded-full'>
+            <Link href='/login'>Sign in</Link>
+          </Button>
+        )}
       </div>
     </header>
   )

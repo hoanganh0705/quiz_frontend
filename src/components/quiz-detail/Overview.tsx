@@ -4,21 +4,26 @@ import { quizzes } from '@/constants/mockQuizzes'
 import Image from 'next/image'
 import { Badge } from '../ui/badge'
 import { difficultyColors } from '@/constants/difficultyColor'
+import type { QuizQuestion } from '@/types/quiz'
 
 const Overview = ({
   description,
   requirements,
   duration,
-  tags
+  tags,
+  previewQuestions,
+  questionCount
 }: {
   description: string
   requirements: string
   duration: number
   tags: string[]
+  previewQuestions: QuizQuestion[]
+  questionCount: number
 }) => {
   return (
     <div className='space-y-6 text-foreground'>
-      <div>
+      <div id='preview-questions'>
         <h2 className='text-xl font-bold mb-4'>Description</h2>
         <p className='text-foreground/80 leading-relaxed text-[0.9rem]'>
           {description}
@@ -36,6 +41,45 @@ const Overview = ({
             {formatDuration(duration)}
           </span>
         </p>
+      </div>
+
+      <div>
+        <h2 className='text-xl font-bold mb-4'>Preview Questions</h2>
+        <div className='space-y-3'>
+          {previewQuestions.map((question, index) => {
+            const isLocked = index >= 2
+            return (
+              <div
+                key={question.id}
+                className={`rounded-lg border border-border bg-background p-4 ${
+                  isLocked ? 'relative overflow-hidden' : ''
+                }`}
+              >
+                <div
+                  className={`text-sm font-semibold text-foreground ${
+                    isLocked ? 'blur-[3px]' : ''
+                  }`}
+                >
+                  {question.question}
+                </div>
+                <div
+                  className={`mt-2 text-xs text-muted-foreground ${
+                    isLocked ? 'blur-[3px]' : ''
+                  }`}
+                >
+                  {question.answers.length} options
+                </div>
+                {isLocked && (
+                  <div className='absolute inset-0 flex items-center justify-center bg-background/60'>
+                    <span className='text-xs font-semibold text-foreground'>
+                      Sign in to unlock all {questionCount} questions
+                    </span>
+                  </div>
+                )}
+              </div>
+            )
+          })}
+        </div>
       </div>
 
       <div className='max-w-6xl mx-auto'>

@@ -8,14 +8,30 @@ import { usePathname } from 'next/navigation'
 import { QuickSearch } from '@/components/keyboard-shortcuts/QuickSearch'
 import { ShortcutsHelpModal } from '@/components/keyboard-shortcuts/ShortcutsHelpModal'
 import { AppBreadcrumbs } from '@/components/AppBreadcrumbs'
+import { GuestAccessBanner } from '@/components/auth/GuestAccessBanner'
+import { useAuthState } from '@/hooks'
 
 export function LayoutShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
+  const { isAuthenticated } = useAuthState()
   const isAuthPage =
     pathname?.startsWith('/login') ||
     pathname?.startsWith('/signup') ||
     pathname?.startsWith('/forgot-password')
   const isOnboardingPage = pathname?.startsWith('/onboarding')
+  const protectedPrefixes = [
+    '/create-quiz',
+    '/settings',
+    '/bookmarks',
+    '/my-profile',
+    '/quiz-history',
+    '/friends',
+    '/discussions',
+    '/tournament'
+  ]
+  const isProtectedPage = protectedPrefixes.some((prefix) =>
+    pathname?.startsWith(prefix)
+  )
 
   if (isAuthPage || isOnboardingPage) {
     return <>{children}</>
@@ -31,6 +47,11 @@ export function LayoutShell({ children }: { children: React.ReactNode }) {
           id='main-content'
           className='pt-3 overflow-x-hidden max-w-full app-page-transition'
         >
+          {isProtectedPage && !isAuthenticated && (
+            <div className='px-4 pt-2'>
+              <GuestAccessBanner />
+            </div>
+          )}
           {children}
         </main>
       </SidebarInset>
