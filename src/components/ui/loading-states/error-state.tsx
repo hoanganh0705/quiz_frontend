@@ -69,7 +69,7 @@ export function ErrorState({
     <div
       className={cn(
         'flex flex-col items-center justify-center text-center p-8',
-        fullHeight && 'min-h-[400px]',
+        fullHeight && 'min-h-100',
         className
       )}
     >
@@ -114,7 +114,7 @@ export function InlineError({ message, onRetry, className }: InlineErrorProps) {
       )}
     >
       <div className='flex items-center gap-2'>
-        <AlertCircle className='w-4 h-4 text-red-500 dark:text-red-400 flex-shrink-0' />
+        <AlertCircle className='w-4 h-4 text-red-500 dark:text-red-400 shrink-0' />
         <p className='text-sm text-red-700 dark:text-red-300'>{message}</p>
       </div>
       {onRetry && (
@@ -193,7 +193,7 @@ export function ErrorToast({
         className
       )}
     >
-      <AlertCircle className='w-5 h-5 text-red-500 dark:text-red-400 flex-shrink-0' />
+      <AlertCircle className='w-5 h-5 text-red-500 dark:text-red-400 shrink-0' />
       <p className='flex-1 text-sm text-red-700 dark:text-red-300'>{message}</p>
       <div className='flex gap-2'>
         {onRetry && (

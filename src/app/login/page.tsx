@@ -1,6 +1,6 @@
 'use client'
 
-import { memo, useCallback } from 'react'
+import { memo, useCallback, useMemo, useState } from 'react'
 import { Eye, EyeOff } from 'lucide-react'
 // Fix barrel imports (bundle-barrel-imports)
 import { Button } from '@/components/ui/button'
@@ -13,9 +13,10 @@ import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useToggle, useAsyncAction, useAuthState } from '@/hooks'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { loginUser } from '@/lib/api/auth'
 import { setAuthToken } from '@/lib/auth-cookies'
+import axios from 'axios'
 
 // Hoist schema outside component (data-hoisting)
 const loginSchema = z.object({
@@ -33,6 +34,13 @@ const LoginPage = memo(function LoginPage() {
   const [showPassword, toggleShowPassword] = useToggle(false)
   const { setAuthenticated } = useAuthState()
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const [verifyBanner, setVerifyBanner] = useState<string | null>(null)
+  const verifiedParam = useMemo(
+    () => searchParams.get('verified') === '1',
+    [searchParams]
+  )
+  const showVerifiedToast = verifiedParam
 
   const {
     register,
@@ -50,14 +58,28 @@ const LoginPage = memo(function LoginPage() {
 
   const { execute: onSubmit, isLoading } = useAsyncAction(
     async (data: LoginFormData) => {
-      const response = await loginUser({
-        email: data.email,
-        password: data.password
-      })
-      const cookieDays = data.rememberMe ? 30 : 7
-      setAuthToken(response.token.accessToken, { days: cookieDays })
-      setAuthenticated(true)
-      router.replace('/quizzes')
+      setVerifyBanner(null)
+      try {
+        const response = await loginUser({
+          email: data.email,
+          password: data.password
+        })
+        const cookieDays = data.rememberMe ? 30 : 7
+        setAuthToken(response.token.accessToken, { days: cookieDays })
+        setAuthenticated(true)
+        router.replace('/quizzes')
+      } catch (err) {
+        if (axios.isAxiosError(err)) {
+          const message =
+            (err.response?.data as { message?: string })?.message ?? ''
+          if (/verify|verified|verification/i.test(message)) {
+            setVerifyBanner(
+              'Your email is not verified yet. Please check your inbox or resend the link.'
+            )
+          }
+        }
+        throw err
+      }
     }
   )
 
@@ -110,6 +132,18 @@ const LoginPage = memo(function LoginPage() {
           </header>
 
           <section aria-label='Login form'>
+            {showVerifiedToast && (
+              <div className='rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-xs text-emerald-700'>
+                Email verified successfully. You can now sign in.
+              </div>
+            )}
+
+            {verifyBanner && (
+              <div className='rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-700'>
+                {verifyBanner}
+              </div>
+            )}
+
             {/* Login Form */}
             <form
               onSubmit={handleSubmit((data) => onSubmit(data))}
