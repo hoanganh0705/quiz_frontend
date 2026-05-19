@@ -17,6 +17,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { loginUser } from '@/lib/api/auth'
 import { setAuthToken } from '@/lib/auth-cookies'
 import axios from 'axios'
+import { useUserStore } from '@/stores/user-store'
 
 // Hoist schema outside component (data-hoisting)
 const loginSchema = z.object({
@@ -36,6 +37,7 @@ const LoginPage = memo(function LoginPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [verifyBanner, setVerifyBanner] = useState<string | null>(null)
+  const fetchCurrentUser = useUserStore((state) => state.fetchCurrentUser)
   const verifiedParam = useMemo(
     () => searchParams.get('verified') === '1',
     [searchParams]
@@ -67,6 +69,7 @@ const LoginPage = memo(function LoginPage() {
         const cookieDays = data.rememberMe ? 30 : 7
         setAuthToken(response.token.accessToken, { days: cookieDays })
         setAuthenticated(true)
+        await fetchCurrentUser()
         router.replace('/quizzes')
       } catch (err) {
         if (axios.isAxiosError(err)) {

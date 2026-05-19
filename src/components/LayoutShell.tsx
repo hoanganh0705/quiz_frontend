@@ -1,6 +1,7 @@
 'use client'
 
 import type React from 'react'
+import { useEffect } from 'react'
 import { AppSidebar } from '@/components/AppSidebar'
 import { AppHeader } from '@/components/AppHeader'
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
@@ -10,10 +11,14 @@ import { ShortcutsHelpModal } from '@/components/keyboard-shortcuts/ShortcutsHel
 import { AppBreadcrumbs } from '@/components/AppBreadcrumbs'
 import { GuestAccessBanner } from '@/components/auth/GuestAccessBanner'
 import { useAuthState } from '@/hooks'
+import { useUserStore } from '@/stores/user-store'
 
 export function LayoutShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const { isAuthenticated } = useAuthState()
+  const user = useUserStore((state) => state.user)
+  const isUserLoading = useUserStore((state) => state.isLoading)
+  const fetchCurrentUser = useUserStore((state) => state.fetchCurrentUser)
   const isAuthPage =
     pathname?.startsWith('/login') ||
     pathname?.startsWith('/signup') ||
@@ -32,6 +37,12 @@ export function LayoutShell({ children }: { children: React.ReactNode }) {
   const isProtectedPage = protectedPrefixes.some((prefix) =>
     pathname?.startsWith(prefix)
   )
+
+  useEffect(() => {
+    if (!isAuthenticated) return
+    if (user || isUserLoading) return
+    fetchCurrentUser()
+  }, [fetchCurrentUser, isAuthenticated, isUserLoading, user])
 
   if (isAuthPage || isOnboardingPage) {
     return <>{children}</>
