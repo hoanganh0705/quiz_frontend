@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import FeaturedQuiz from '@/components/FeaturedQuiz'
 import { categories } from '@/constants/categories'
 import { quizzes } from '@/constants/mockQuizzes'
-import { QuizzesMainContent } from '@/components/quizzes'
+import { MainContent } from '@/features/quizzes'
 import { Swiper, SwiperSlide } from 'swiper/react'
 import { FreeMode } from 'swiper/modules'
 import { useLocalStorage } from '@/hooks'
@@ -181,7 +181,7 @@ export default function QuizPlatform() {
       <FeaturedQuiz />
 
       <section aria-label='Quiz listings'>
-        <QuizzesMainContent
+        <MainContent
           searchQuery={searchQuery}
           selectedCategory={selectedCategory}
         />
