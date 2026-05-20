@@ -1,7 +1,7 @@
 'use client'
 
 import { Trophy, Target, Flame, Award } from 'lucide-react'
-import { EmptyState } from '@/components/ui/empty-state'
+import { EmptyState } from '@/components/ui/EmptyState'
 
 interface EmptyAchievementsProps {
   type: 'no-achievements' | 'no-badges' | 'no-streaks' | 'category-locked'

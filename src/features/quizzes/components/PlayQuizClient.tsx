@@ -2,16 +2,16 @@
 
 import { Quiz } from '@/features/quizzes/types'
 import { QuizResult, QuizProgress } from '@/features/quizzes/types'
-import { getStorageKey, getResultsKey } from '@/features/quizzes/lib/quizResultsUtils'
+import { getStorageKey, getResultsKey } from '@/features/quizzes/lib/quiz-results-utils'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { Card, CardContent } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/Card'
 import { ArrowLeft, RotateCcw, Maximize, Minimize } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Progress } from '@/components/ui/progress'
+import { Button } from '@/components/ui/Button'
+import { Badge } from '@/components/ui/Badge'
+import { Progress } from '@/components/ui/Progress'
 import {
   useLocalStorage,
   useIsMobile,
@@ -30,10 +30,10 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle
-} from '@/components/ui/alert-dialog'
+} from '@/components/ui/AlertDialog'
 import { MobileQuizTimer } from '@/features/quizzes/components/QuizPlayer/MobileQuizTimer'
 import { SwipeIndicator } from '@/features/quizzes/components/QuizPlayer/SwipeIndicator'
-import { cn } from '@/shared/lib/utils'
+import { cn } from '@/shared/utils/merge-class-names'
 import { AuthNudgeDialog } from '@/features/auth/components/AuthNudgeDialog'
 
 export default function PlayQuizClient({ quiz }: { quiz: Quiz }) {

@@ -1,4 +1,4 @@
-import { Progress } from '@/components/ui/progress'
+import { Progress } from '@/components/ui/Progress'
 import { Clock, CheckCircle2, XCircle } from 'lucide-react'
 import { TimeAnalysisProps, TimeAnalysisItemProps } from '@/features/quizzes/types'
 

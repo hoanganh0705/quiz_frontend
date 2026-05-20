@@ -1,4 +1,4 @@
-import { Skeleton } from '@/components/ui/skeleton'
+import { Skeleton } from '@/components/ui/Skeleton'
 import { LeaderboardRowSkeleton } from '@/components/ui/loading-states'
 
 export default function LeaderboardLoading() {

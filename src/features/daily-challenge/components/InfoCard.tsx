@@ -2,8 +2,8 @@
 
 import { useState, useEffect, memo } from 'react'
 import { Clock, Calendar, Trophy, Flame } from 'lucide-react'
-import { Card } from '@/components/ui/card'
-import { CardContent } from '@/components/ui/card'
+import { Card } from '@/components/ui/Card'
+import { CardContent } from '@/components/ui/Card'
 
 const InfoCard = memo(function InfoCard() {
   const [timeRemaining, setTimeRemaining] = useState<string>('')

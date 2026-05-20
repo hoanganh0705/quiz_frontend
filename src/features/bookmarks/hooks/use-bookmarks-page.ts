@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useCallback } from 'react'
 import { useBookmarks, useBookmarkedQuizzes } from '@/features/bookmarks/hooks'
-import { quizzes } from '@/features/quizzes/constants/mockQuizzes'
+import { quizzes } from '@/features/quizzes/constants/mock-quizzes'
 import type {
   BookmarkFilter,
   BookmarkSortOption,

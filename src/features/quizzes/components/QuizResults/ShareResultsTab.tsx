@@ -1,5 +1,5 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
+import { Button } from '@/components/ui/Button'
 import { Trophy, Twitter, Facebook, Linkedin, Copy, Check } from 'lucide-react'
 import {
   ShareResultsTabProps,
@@ -7,7 +7,7 @@ import {
   ShareButtonsProps,
   ChallengeFriendsProps
 } from '@/features/quizzes/types'
-import { formatTime } from '@/features/quizzes/lib/quizResultsUtils'
+import { formatTime } from '@/features/quizzes/lib/quiz-results-utils'
 
 export default function ShareResultsTab({
   quiz,

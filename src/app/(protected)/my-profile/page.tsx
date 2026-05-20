@@ -2,11 +2,11 @@
 
 import { memo } from 'react'
 // Fix barrel imports (bundle-barrel-imports)
-import { Button } from '@/components/ui/button'
-import { Tabs } from '@/components/ui/tabs'
-import { TabsContent } from '@/components/ui/tabs'
-import { TabsList } from '@/components/ui/tabs'
-import { TabsTrigger } from '@/components/ui/tabs'
+import { Button } from '@/components/ui/Button'
+import { Tabs } from '@/components/ui/Tabs'
+import { TabsContent } from '@/components/ui/Tabs'
+import { TabsList } from '@/components/ui/Tabs'
+import { TabsTrigger } from '@/components/ui/Tabs'
 import ActivityItem from '@/features/users/components/profile/ActivityItem'
 import { ProfileHeader } from '@/features/users/components/my-profile/ProfileHeader'
 import { StatsCard } from '@/features/users/components/my-profile/StatsCard'
@@ -16,9 +16,9 @@ import { OverviewTab } from '@/features/users/components/my-profile/tabs/Overvie
 import { QuizzesTab } from '@/features/users/components/my-profile/tabs/QuizzesTab'
 import { AchievementsTab } from '@/features/users/components/my-profile/tabs/AchievementsTab'
 import { StatisticsTab } from '@/features/users/components/my-profile/tabs/StatisticsTab'
-import { challengeData } from '@/features/daily-challenge/constants/challengeHistoryData'
+import { challengeData } from '@/features/daily-challenge/constants/challenge-history-data'
 import { badges } from '@/features/leaderboard/constants/badges'
-import { streakRewards } from '@/features/daily-challenge/constants/streakRewards'
+import { streak-rewards } from '@/features/daily-challenge/constants/streak-rewards'
 import { Trophy, ArrowLeft, TrendingUp, Target, Flame } from 'lucide-react'
 import Link from 'next/link'
 import { useMyProfilePage } from '@/features/users/hooks/use-my-profile-page'
@@ -184,7 +184,7 @@ const MyProfilePage = memo(function MyProfilePage() {
                 <QuizzesTab
                   totalQuizzes={totalQuizzes}
                   quizzesCreated={quizzesCreated}
-                  quizHistory={challengeData}
+                  quiz-history={challengeData}
                 />
               </TabsContent>
 
@@ -193,7 +193,7 @@ const MyProfilePage = memo(function MyProfilePage() {
                 <AchievementsTab
                   badges={badges}
                   unlockedBadges={unlockedBadges}
-                  streakRewards={streakRewards}
+                  streak-rewards={streak-rewards}
                   currentStreak={currentUser.streak || 0}
                 />
               </TabsContent>
@@ -204,7 +204,7 @@ const MyProfilePage = memo(function MyProfilePage() {
                   user={currentUser}
                   averageScore={averageScore}
                   winRate={winRate}
-                  quizHistory={challengeData}
+                  quiz-history={challengeData}
                 />
               </TabsContent>
             </Tabs>

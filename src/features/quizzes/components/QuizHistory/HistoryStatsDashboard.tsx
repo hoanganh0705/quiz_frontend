@@ -1,8 +1,8 @@
 'use client'
 
 import { memo } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/Tabs'
 import {
   ChartConfig,
   ChartContainer,
@@ -10,7 +10,7 @@ import {
   ChartLegendContent,
   ChartTooltip,
   ChartTooltipContent
-} from '@/components/ui/chart'
+} from '@/components/ui/Chart'
 import {
   BarChart,
   Bar,
@@ -33,7 +33,7 @@ import {
   BookOpen,
   CheckCircle
 } from 'lucide-react'
-import { Progress } from '@/components/ui/progress'
+import { Progress } from '@/components/ui/Progress'
 import type { QuizHistoryStats } from '@/features/quizzes/types'
 
 interface HistoryStatsDashboardProps {

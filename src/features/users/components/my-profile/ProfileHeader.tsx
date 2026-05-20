@@ -2,16 +2,16 @@
 
 import { useRef, useState, useCallback, memo } from 'react'
 // Fix barrel imports (bundle-barrel-imports)
-import { Avatar } from '@/components/ui/avatar'
-import { AvatarImage } from '@/components/ui/avatar'
-import { AvatarFallback } from '@/components/ui/avatar'
-import { Button } from '@/components/ui/button'
-import { Dialog } from '@/components/ui/dialog'
-import { DialogContent } from '@/components/ui/dialog'
-import { DialogDescription } from '@/components/ui/dialog'
-import { DialogFooter } from '@/components/ui/dialog'
-import { DialogHeader } from '@/components/ui/dialog'
-import { DialogTitle } from '@/components/ui/dialog'
+import { Avatar } from '@/components/ui/Avatar'
+import { AvatarImage } from '@/components/ui/Avatar'
+import { AvatarFallback } from '@/components/ui/Avatar'
+import { Button } from '@/components/ui/Button'
+import { Dialog } from '@/components/ui/Dialog'
+import { DialogContent } from '@/components/ui/Dialog'
+import { DialogDescription } from '@/components/ui/Dialog'
+import { DialogFooter } from '@/components/ui/Dialog'
+import { DialogHeader } from '@/components/ui/Dialog'
+import { DialogTitle } from '@/components/ui/Dialog'
 import {
   Edit,
   MapPin,

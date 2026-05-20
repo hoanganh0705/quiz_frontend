@@ -1,5 +1,5 @@
-import { Badge } from '@/components/ui/badge'
-import { difficultyColors } from '@/features/quizzes/constants/difficultyColor'
+import { Badge } from '@/components/ui/Badge'
+import { difficulty-colors } from '@/features/quizzes/constants/difficulty-color'
 
 interface QuizCardDifficultyBadgeProps {
   difficulty: string
@@ -13,7 +13,7 @@ export function QuizCardDifficultyBadge({
   asDiv = false
 }: QuizCardDifficultyBadgeProps) {
   const colorClass =
-    difficultyColors[difficulty as keyof typeof difficultyColors]?.bg ||
+    difficulty-colors[difficulty as keyof typeof difficulty-colors]?.bg ||
     'bg-slate-500'
 
   if (asDiv) {

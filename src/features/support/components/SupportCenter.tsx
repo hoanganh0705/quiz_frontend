@@ -4,7 +4,7 @@ import { HelpCategories } from './HelpCategories'
 import { FAQSection } from './FAQSection'
 import { ContactForm } from './ContactForm'
 import { KnowledgeBase } from './KnowledgeBase'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/Tabs'
 
 export function SupportCenter() {
   return (

@@ -1,10 +1,10 @@
 import { memo } from 'react'
-import { Card } from '@/components/ui/card'
-import { CardContent } from '@/components/ui/card'
-import { CardHeader } from '@/components/ui/card'
-import { CardTitle } from '@/components/ui/card'
-import { CardDescription } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
+import { Card } from '@/components/ui/Card'
+import { CardContent } from '@/components/ui/Card'
+import { CardHeader } from '@/components/ui/Card'
+import { CardTitle } from '@/components/ui/Card'
+import { CardDescription } from '@/components/ui/Card'
+import { Badge } from '@/components/ui/Badge'
 import { Medal, Users, Trophy } from 'lucide-react'
 
 export const CompetitionStats = memo(function CompetitionStats() {

@@ -1,4 +1,4 @@
-import { Button } from '@/components/ui/button'
+import { Button } from '@/components/ui/Button'
 import categories from '@/features/categories/constants/categories'
 import { buildMetadata } from '@/shared/lib/seo'
 import QuizCategories from '@/features/categories/components/QuizCategories'
@@ -10,7 +10,7 @@ import { HowItWorks, SuccessStoriesCarousel } from '@/features/marketing'
 import PlayerRanking from '@/features/leaderboard/components/PlayerRanking'
 import QuizCardDifficultyList from '@/features/quizzes/components/QuizCardDifficultyList'
 import RecentlyPlayedSection from '@/features/users/components/RecentlyPlayedSection'
-import { quizzes } from '@/features/quizzes/constants/mockQuizzes'
+import { quizzes } from '@/features/quizzes/constants/mock-quizzes'
 
 export const metadata = buildMetadata({
   title: 'QuizHub - Play, Share, Earn!',

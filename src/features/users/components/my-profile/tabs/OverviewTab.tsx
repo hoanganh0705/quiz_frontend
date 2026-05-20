@@ -1,11 +1,11 @@
 import { memo } from 'react'
 // Fix barrel imports (bundle-barrel-imports)
-import { Card } from '@/components/ui/card'
-import { CardContent } from '@/components/ui/card'
-import { CardHeader } from '@/components/ui/card'
-import { CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Progress } from '@/components/ui/progress'
+import { Card } from '@/components/ui/Card'
+import { CardContent } from '@/components/ui/Card'
+import { CardHeader } from '@/components/ui/Card'
+import { CardTitle } from '@/components/ui/Card'
+import { Button } from '@/components/ui/Button'
+import { Progress } from '@/components/ui/Progress'
 import type { Player } from '@/features/users/types'
 
 interface Activity {

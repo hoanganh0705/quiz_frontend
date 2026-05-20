@@ -1,8 +1,8 @@
 import type React from 'react'
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
-import { ThemeProvider } from '@/providers/theme-provider'
-import { LayoutShell } from '@/features/layout/components/LayoutShell'
+import { ThemeProvider } from '@/providers/ThemeProvider'
+import { LayoutShell } from '@/shared/layout'
 import { PwaServiceWorker } from '@/shared/ui/PwaServiceWorker'
 import './globals.css'
 

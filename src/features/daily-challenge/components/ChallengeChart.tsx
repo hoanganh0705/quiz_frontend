@@ -1,7 +1,7 @@
 'use client'
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/Tabs'
 import {
   ChartConfig,
   ChartContainer,
@@ -9,9 +9,9 @@ import {
   ChartLegendContent,
   ChartTooltip,
   ChartTooltipContent
-} from '@/components/ui/chart'
+} from '@/components/ui/Chart'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts'
-import { performanceData } from '@/features/daily-challenge/constants/performanceData'
+import { performance-data } from '@/features/daily-challenge/constants/performance-data'
 import ChallengePieChart from './ChallengePieChart'
 
 const chartConfig = {
@@ -55,7 +55,7 @@ const ChallengeChart = () => {
               >
                 <BarChart
                   accessibilityLayer
-                  data={performanceData}
+                  data={performance-data}
                   margin={{
                     top: 20,
                     right: 30,

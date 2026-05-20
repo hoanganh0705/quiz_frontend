@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { Button } from '@/components/ui/button'
+import { Button } from '@/components/ui/Button'
 import { RotateCcw, Zap } from 'lucide-react'
 import { BottomActionsProps } from '@/features/quizzes/types'
 

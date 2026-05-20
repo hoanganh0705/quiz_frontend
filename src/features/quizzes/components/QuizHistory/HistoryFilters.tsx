@@ -1,16 +1,16 @@
 'use client'
 
 import { memo } from 'react'
-import { Card, CardContent } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/Card'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue
-} from '@/components/ui/select'
-import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
+} from '@/components/ui/Select'
+import { Input } from '@/components/ui/Input'
+import { Button } from '@/components/ui/Button'
 import { Search, RotateCcw } from 'lucide-react'
 import type {
   QuizHistoryFilters,

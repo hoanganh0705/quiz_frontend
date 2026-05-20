@@ -18,10 +18,10 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger
-} from '@/components/ui/dropdown-menu'
-import { ScrollArea } from '@/components/ui/scroll-area'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { cn } from '@/shared/lib/utils'
+} from '@/components/ui/DropdownMenu'
+import { ScrollArea } from '@/components/ui/ScrollArea'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/Avatar'
+import { cn } from '@/shared/utils/merge-class-names'
 import { useEffect, useCallback, useState } from 'react'
 import {
   type Notification,

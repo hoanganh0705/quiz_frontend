@@ -10,17 +10,17 @@ import {
   Star,
   Users
 } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Progress } from '@/components/ui/progress'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Button } from '@/components/ui/Button'
+import { Badge } from '@/components/ui/Badge'
+import { Progress } from '@/components/ui/Progress'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/Tabs'
 import { Quiz } from '@/features/quizzes/types'
-import { difficultyColors } from '@/features/quizzes/constants/difficultyColor'
-import Overview from '@/features/quizzes/components/QuizDetail/Overview'
+import { difficulty-colors } from '@/features/quizzes/constants/difficulty-color'
+import QuizOverviewPanel from '@/features/quizzes/components/QuizDetail/QuizOverviewPanel'
 import Leaderboard from '@/features/quizzes/components/QuizDetail/Leaderboard'
 import Reviews from '@/features/quizzes/components/QuizDetail/Reviews'
-import { Card, CardContent } from '@/components/ui/card'
-import { formatDuration } from '@/features/quizzes/lib/formatDuration'
+import { Card, CardContent } from '@/components/ui/Card'
+import { format-duration } from '@/features/quizzes/lib/format-duration'
 import { ShareModal } from '@/shared/ui'
 
 interface QuizDetailProps {
@@ -66,9 +66,9 @@ export default function QuizDetail({ quiz }: QuizDetailProps) {
           <div className='flex gap-2 mb-4'>
             <Badge
               className={`${
-                difficultyColors[quiz.difficulty].bg || 'bg-gray-600'
+                difficulty-colors[quiz.difficulty].bg || 'bg-gray-600'
               } ${
-                difficultyColors[quiz.difficulty]?.hover || 'hover:bg-gray-500'
+                difficulty-colors[quiz.difficulty]?.hover || 'hover:bg-gray-500'
               } text-white-primary cursor-pointer`}
             >
               {quiz.difficulty}
@@ -90,7 +90,7 @@ export default function QuizDetail({ quiz }: QuizDetailProps) {
           <div className='flex items-center gap-6 text-sm'>
             <div className='flex items-center gap-1'>
               <Clock className='w-4 h-4' aria-hidden='true' />
-              <span>{formatDuration(quiz.duration)}</span>
+              <span>{format-duration(quiz.duration)}</span>
             </div>
             <div className='flex items-center gap-1'>
               <Users className='w-4 h-4' aria-hidden='true' />
@@ -140,7 +140,7 @@ export default function QuizDetail({ quiz }: QuizDetailProps) {
             </TabsList>
 
             <TabsContent value='overview' className='mt-6'>
-              <Overview
+              <QuizOverviewPanel
                 description={quiz.description}
                 requirements={quiz.requirements}
                 duration={quiz.duration}

@@ -71,5 +71,5 @@ export interface QuizMetadata {
 export interface Quiz extends QuizMetadata {
   questions: QuizQuestion[]
   quizReview: QuizReview[]
-  leaderBoard: QuizLeaderboardEntry[]
+  leaderboard: QuizLeaderboardEntry[]
 }

@@ -1,2 +1,3 @@
-export * from './quizResultsUtils'
-export * from './formatDuration'
+export * from './quiz-results-utils'
+export * from './format-duration'
+export * from './quiz-discovery-score'

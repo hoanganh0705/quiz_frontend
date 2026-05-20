@@ -1,14 +1,14 @@
 'use client'
 
 import { useState, memo } from 'react'
-import { Button } from '@/components/ui/button'
+import { Button } from '@/components/ui/Button'
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle
-} from '@/components/ui/card'
+} from '@/components/ui/Card'
 import {
   Dialog,
   DialogContent,
@@ -16,7 +16,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle
-} from '@/components/ui/dialog'
+} from '@/components/ui/Dialog'
 import { UserSettings, ConnectedAccount } from '@/features/users/types'
 import { Link2, Check, X, ExternalLink } from 'lucide-react'
 

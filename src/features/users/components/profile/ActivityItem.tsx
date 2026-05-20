@@ -1,5 +1,5 @@
 import { memo } from 'react'
-import { Card, CardContent } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/Card'
 
 interface ActivityItemProps {
   icon: React.ReactNode

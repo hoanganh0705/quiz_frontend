@@ -1,4 +1,4 @@
-import { Skeleton } from '@/components/ui/skeleton'
+import { Skeleton } from '@/components/ui/Skeleton'
 import {
   StatsCardSkeleton,
   ProfileHeaderSkeleton

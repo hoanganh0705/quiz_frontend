@@ -1,5 +1,5 @@
 import { QuizDetail } from '@/features/quizzes/components/QuizPlayer'
-import { quizzes } from '@/features/quizzes/constants/mockQuizzes'
+import { quizzes } from '@/features/quizzes/constants/mock-quizzes'
 import Link from 'next/link'
 import { buildMetadata } from '@/shared/lib/seo'
 

@@ -1,5 +1,5 @@
-import { Card, CardContent } from '@/components/ui/card'
-import { Progress } from '@/components/ui/progress'
+import { Card, CardContent } from '@/components/ui/Card'
+import { Progress } from '@/components/ui/Progress'
 import { CheckCircle2, XCircle, Clock } from 'lucide-react'
 import { StatsOverviewProps } from '@/features/quizzes/types'
 

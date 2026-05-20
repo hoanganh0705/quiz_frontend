@@ -1,11 +1,11 @@
 'use client'
 
 import { memo } from 'react'
-import { Button } from '@/components/ui/button'
-import { DropdownMenu } from '@/components/ui/dropdown-menu'
-import { DropdownMenuContent } from '@/components/ui/dropdown-menu'
-import { DropdownMenuItem } from '@/components/ui/dropdown-menu'
-import { DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
+import { Button } from '@/components/ui/Button'
+import { DropdownMenu } from '@/components/ui/DropdownMenu'
+import { DropdownMenuContent } from '@/components/ui/DropdownMenu'
+import { DropdownMenuItem } from '@/components/ui/DropdownMenu'
+import { DropdownMenuTrigger } from '@/components/ui/DropdownMenu'
 import type { BookmarkCollection } from '@/features/bookmarks/types'
 import { MoreHorizontal, Pencil, Trash2, FolderOpen } from 'lucide-react'
 

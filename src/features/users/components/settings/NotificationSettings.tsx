@@ -1,16 +1,16 @@
 'use client'
 
 import { useState, memo, useMemo, useEffect } from 'react'
-import { Button } from '@/components/ui/button'
-import { Switch } from '@/components/ui/switch'
-import { Label } from '@/components/ui/label'
+import { Button } from '@/components/ui/Button'
+import { Switch } from '@/components/ui/Switch'
+import { Label } from '@/components/ui/Label'
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle
-} from '@/components/ui/card'
+} from '@/components/ui/Card'
 import { UserSettings } from '@/features/users/types'
 import { defaultSettings } from '@/features/users/constants/settings'
 import {

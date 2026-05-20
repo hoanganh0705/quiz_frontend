@@ -1,7 +1,7 @@
 'use client'
 
 import { ChevronLeft, ChevronRight, Swords } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { Button } from '@/components/ui/Button'
 import { Swiper, SwiperSlide } from 'swiper/react'
 import { Autoplay, Navigation } from 'swiper/modules'
 import { PlayerCard } from '@/features/leaderboard/components/PlayerCard'

@@ -1,3 +1,3 @@
-export * from './difficultyColor'
-export * from './mockQuizzes'
-export * from './quizHistory'
+export * from './difficulty-color'
+export * from './mock-quizzes'
+export * from './quiz-history'

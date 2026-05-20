@@ -1,9 +1,9 @@
 import { memo } from 'react'
 // Fix barrel imports (bundle-barrel-imports)
-import { Card } from '@/components/ui/card'
-import { CardContent } from '@/components/ui/card'
-import { CardHeader } from '@/components/ui/card'
-import { CardTitle } from '@/components/ui/card'
+import { Card } from '@/components/ui/Card'
+import { CardContent } from '@/components/ui/Card'
+import { CardHeader } from '@/components/ui/Card'
+import { CardTitle } from '@/components/ui/Card'
 import { BookOpen, Edit, Trophy } from 'lucide-react'
 
 interface QuizEntry {
@@ -18,13 +18,13 @@ interface QuizEntry {
 interface QuizzesTabProps {
   totalQuizzes: number
   quizzesCreated: number
-  quizHistory: QuizEntry[]
+  quiz-history: QuizEntry[]
 }
 
 export const QuizzesTab = memo(function QuizzesTab({
   totalQuizzes,
   quizzesCreated,
-  quizHistory
+  quiz-history
 }: QuizzesTabProps) {
   return (
     <div className='mt-6'>
@@ -73,7 +73,7 @@ export const QuizzesTab = memo(function QuizzesTab({
         </CardHeader>
         <CardContent>
           <div className='space-y-2' role='list' aria-label='Quiz history'>
-            {quizHistory.map((quiz) => (
+            {quiz-history.map((quiz) => (
               <div
                 key={quiz.id}
                 className='flex items-center justify-between rounded-lg hover:bg-default/10 transition-colors border p-3 border-default/20'

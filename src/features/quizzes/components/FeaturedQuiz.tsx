@@ -2,13 +2,13 @@
 
 import { memo, useCallback } from 'react'
 import { Clock, Star } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Button } from '@/components/ui/Button'
+import { Badge } from '@/components/ui/Badge'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/Avatar'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/Tabs'
 import Image from 'next/image'
 import SpotAvailabilityIndicator from '@/features/quizzes/components/SpotAvailabilityIndicator'
-import { quizzes } from '@/features/quizzes/constants/mockQuizzes'
+import { quizzes } from '@/features/quizzes/constants/mock-quizzes'
 import Link from 'next/link'
 
 const FeaturedQuiz = memo(function FeaturedQuiz() {

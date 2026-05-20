@@ -1,7 +1,7 @@
 'use client'
 
 import { Search, SlidersHorizontal } from 'lucide-react'
-import { EmptyState } from '@/components/ui/empty-state'
+import { EmptyState } from '@/components/ui/EmptyState'
 
 interface EmptyQuizzesProps {
   type: 'no-quizzes' | 'no-results' | 'no-category'

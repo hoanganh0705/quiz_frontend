@@ -1,9 +1,9 @@
 'use client'
 
 import { memo, useCallback } from 'react'
-import { Button } from '@/components/ui/button'
+import { Button } from '@/components/ui/Button'
 import { categories } from '@/features/categories/constants/categories'
-import { cn } from '@/shared/lib/utils'
+import { cn } from '@/shared/utils/merge-class-names'
 import { ArrowLeft, ArrowRight, Check } from 'lucide-react'
 
 interface InterestSelectionStepProps {

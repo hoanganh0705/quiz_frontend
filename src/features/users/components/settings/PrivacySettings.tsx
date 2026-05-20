@@ -1,22 +1,22 @@
 'use client'
 
 import { useState, memo } from 'react'
-import { Switch } from '@/components/ui/switch'
-import { Label } from '@/components/ui/label'
+import { Switch } from '@/components/ui/Switch'
+import { Label } from '@/components/ui/Label'
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle
-} from '@/components/ui/card'
+} from '@/components/ui/Card'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue
-} from '@/components/ui/select'
+} from '@/components/ui/Select'
 import { UserSettings } from '@/features/users/types'
 import {
   Shield,

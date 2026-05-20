@@ -1,11 +1,11 @@
 'use client'
 
 import { memo, useMemo, useState } from 'react'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Button } from '@/components/ui/button'
-import { Progress } from '@/components/ui/progress'
-import { Badge } from '@/components/ui/badge'
-import { Card, CardContent } from '@/components/ui/card'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/Tabs'
+import { Button } from '@/components/ui/Button'
+import { Progress } from '@/components/ui/Progress'
+import { Badge } from '@/components/ui/Badge'
+import { Card, CardContent } from '@/components/ui/Card'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -16,9 +16,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger
-} from '@/components/ui/alert-dialog'
+} from '@/components/ui/AlertDialog'
 import { Plus, Eye, Trash2, Save, Upload, Copy, Pencil } from 'lucide-react'
-import { QuestionsTab, QuizDetailsTab, SettingsTab } from '@/features/create-quiz'
+import {
+  QuestionsTab,
+  QuizDetailsTab,
+  QuizSettingsConfigurationTab
+} from '@/features/create-quiz'
 import { useLocalStorage } from '@/shared/hooks'
 
 interface QuizEditorState {
@@ -234,7 +238,7 @@ const QuizForm = memo(function QuizForm() {
           </TabsContent>
 
           <TabsContent value='settings'>
-            <SettingsTab
+            <QuizSettingsConfigurationTab
               values={editorState.settings}
               onChange={(next) =>
                 setEditorState((prev) => ({

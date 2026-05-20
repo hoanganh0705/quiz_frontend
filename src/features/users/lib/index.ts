@@ -1,1 +1,1 @@
-export * from './activityIcon'
+export * from './activity-type-icon'

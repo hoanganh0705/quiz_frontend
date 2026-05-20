@@ -1,16 +1,16 @@
 'use client'
 
 import { useState, memo } from 'react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+import { Button } from '@/components/ui/Button'
+import { Input } from '@/components/ui/Input'
+import { Label } from '@/components/ui/Label'
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle
-} from '@/components/ui/card'
+} from '@/components/ui/Card'
 import {
   Dialog,
   DialogContent,
@@ -19,8 +19,8 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger
-} from '@/components/ui/dialog'
-import { Checkbox } from '@/components/ui/checkbox'
+} from '@/components/ui/Dialog'
+import { Checkbox } from '@/components/ui/Checkbox'
 import { AlertTriangle, Trash2, Download, LogOut, XCircle } from 'lucide-react'
 
 interface DangerZoneProps {

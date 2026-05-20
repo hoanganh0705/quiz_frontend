@@ -1,8 +1,8 @@
 import Link from 'next/link'
 import { useMemo } from 'react'
-import { Card, CardContent } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
+import { Card, CardContent } from '@/components/ui/Card'
+import { Button } from '@/components/ui/Button'
+import { Badge } from '@/components/ui/Badge'
 import { Clock, Target, Users, RotateCcw, Zap } from 'lucide-react'
 import { ScoreHeroProps } from '@/features/quizzes/types'
 import {
@@ -10,7 +10,7 @@ import {
   getScoreGrade,
   getScoreMessage,
   formatTime
-} from '@/features/quizzes/lib/quizResultsUtils'
+} from '@/features/quizzes/lib/quiz-results-utils'
 
 export default function ScoreHero({
   quiz,

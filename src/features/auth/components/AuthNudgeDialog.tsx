@@ -10,7 +10,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle
-} from '@/components/ui/alert-dialog'
+} from '@/components/ui/AlertDialog'
 
 interface AuthNudgeDialogProps {
   open: boolean

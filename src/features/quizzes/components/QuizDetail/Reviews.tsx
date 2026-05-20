@@ -1,5 +1,5 @@
-import { Button } from '@/components/ui/button'
-import { quizzes } from '@/features/quizzes/constants/mockQuizzes'
+import { Button } from '@/components/ui/Button'
+import { quizzes } from '@/features/quizzes/constants/mock-quizzes'
 import Image from 'next/image'
 import StarRating from '@/features/quizzes/components/StarRating'
 
