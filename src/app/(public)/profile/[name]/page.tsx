@@ -8,8 +8,8 @@ import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import ActivityItem from '@/features/users/components/profile/ActivityItem'
 import CategoryRow from '@/features/users/components/profile/CategoryRow'
-import { challengeData } from '@/constants/challengeHistoryData'
-import type { Player } from '@/constants/players'
+import { challengeData } from '@/features/daily-challenge/constants/challengeHistoryData'
+import type { Player } from '@/features/users/types'
 // Bundle optimization: Using barrel imports with Next.js optimizePackageImports
 // Next.js automatically transforms these to direct imports (bundle-barrel-imports)
 import {

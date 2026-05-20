@@ -1,8 +1,24 @@
 // Re-export quiz types from shared location
-export type { Quiz } from '@/types/quiz'
-export type { LeaderboardEntry, BadgeType } from '@/types/leaderboard'
+export type { Quiz } from '@/features/quizzes/types'
+export { BADGE_TYPES } from './badges'
+export type { BadgeType } from './badges'
+import type { BadgeType } from './badges'
 
 // Leaderboard-specific types
+export interface LeaderboardEntry {
+  id: string
+  name: string
+  avatar: string
+  score: number
+  time?: string
+  badge?: BadgeType
+  rank: number
+  badgeColor?: string
+  borderColor?: string
+  rankBgColor?: string
+  rankTextColor?: string
+  stars?: number
+}
 export interface LeaderboardUser {
   id: string
   rank: number

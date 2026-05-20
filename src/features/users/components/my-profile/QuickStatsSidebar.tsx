@@ -3,7 +3,7 @@ import { memo } from 'react'
 import { Card } from '@/components/ui/card'
 import { CardContent } from '@/components/ui/card'
 import CategoryRow from '@/features/users/components/profile/CategoryRow'
-import { Player } from '@/constants/players'
+import type { Player } from '@/features/users/types'
 
 interface QuickStatsSidebarProps {
   user: Player

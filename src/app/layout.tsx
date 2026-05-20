@@ -2,8 +2,8 @@ import type React from 'react'
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import { ThemeProvider } from '@/providers/theme-provider'
-import { LayoutShell } from '@/components/LayoutShell'
-import { PwaServiceWorker } from '@/components/PwaServiceWorker'
+import { LayoutShell } from '@/features/layout/components/LayoutShell'
+import { PwaServiceWorker } from '@/shared/ui/PwaServiceWorker'
 import './globals.css'
 
 const inter = Inter({

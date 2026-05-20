@@ -11,18 +11,18 @@ import {
 } from '@/components/ui/select'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
-import { quizHistoryEntries, quizHistoryStats } from '@/constants/quizHistory'
+import { quizHistoryEntries, quizHistoryStats } from '@/features/quizzes/constants/quizHistory'
 import type {
   QuizHistoryFilters,
   QuizHistoryEntry,
   DateRangeFilter
-} from '@/types/quizHistory'
+} from '@/features/quizzes/types'
 import {
   HistoryFiltersBar,
   HistoryHeader,
   HistoryStatsDashboard,
   HistoryTimeline
-} from '@/features/quiz-history'
+} from '@/features/quizzes/components/QuizHistory'
 
 // ── Default filter state ───────────────────────────────────────────────────
 

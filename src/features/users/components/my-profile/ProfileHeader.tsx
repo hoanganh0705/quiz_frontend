@@ -26,8 +26,8 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { Player } from '@/constants/players'
-import { useClipboard } from '@/hooks'
+import type { Player } from '@/features/users/types'
+import { useClipboard } from '@/shared/hooks'
 
 // Hoist constants outside component (data-hoisting)
 const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB

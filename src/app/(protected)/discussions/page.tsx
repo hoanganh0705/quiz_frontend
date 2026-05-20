@@ -14,12 +14,13 @@ import { AvatarFallback } from '@/components/ui/avatar'
 import { AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Search, MessageSquare, CheckCircle2, XCircle } from 'lucide-react'
-import { discussions } from '@/constants/discussion'
-import { useDiscussionsPage } from '@/hooks/use-discussions-page'
+import { discussions } from '@/features/discussions/constants/discussion'
+import { useDiscussionsPage } from '@/features/discussions/hooks'
+import type { Discussion } from '@/features/discussions/api'
 
 // Extract DiscussionCard component (vercel-composition-patterns)
 interface DiscussionCardProps {
-  discussion: (typeof discussions)[0]
+  discussion: Discussion
 }
 
 const DiscussionCard = memo(function DiscussionCard({

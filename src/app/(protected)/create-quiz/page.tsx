@@ -19,7 +19,7 @@ import {
 } from '@/components/ui/alert-dialog'
 import { Plus, Eye, Trash2, Save, Upload, Copy, Pencil } from 'lucide-react'
 import { QuestionsTab, QuizDetailsTab, SettingsTab } from '@/features/create-quiz'
-import { useLocalStorage } from '@/hooks'
+import { useLocalStorage } from '@/shared/hooks'
 
 interface QuizEditorState {
   title: string

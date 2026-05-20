@@ -5,7 +5,7 @@ import {
   getScoreGrade,
   getScoreColor,
   getStorageKey,
-} from '@/lib/quizResultsUtils'
+} from '@/features/quizzes/lib/quizResultsUtils'
 
 describe('quizResultsUtils', () => {
   it('builds storage key with quiz id', () => {

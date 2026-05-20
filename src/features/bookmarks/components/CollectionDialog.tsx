@@ -11,7 +11,7 @@ import { DialogDescription } from '@/components/ui/dialog'
 import { DialogFooter } from '@/components/ui/dialog'
 import { DialogHeader } from '@/components/ui/dialog'
 import { DialogTitle } from '@/components/ui/dialog'
-import type { BookmarkCollection } from '@/types/bookmarks'
+import type { BookmarkCollection } from '@/features/bookmarks/types'
 
 // Hoist static data
 const PRESET_COLORS = [

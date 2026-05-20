@@ -21,7 +21,7 @@ import {
   DialogTrigger
 } from '@/components/ui/dialog'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { UserSettings } from '@/types/settings'
+import { UserSettings } from '@/features/users/types'
 import {
   User,
   Mail,

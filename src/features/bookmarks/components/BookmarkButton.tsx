@@ -15,10 +15,10 @@ import {
   TooltipProvider,
   TooltipTrigger
 } from '@/components/ui/tooltip'
-import { useBookmarks } from '@/hooks/use-bookmarks'
+import { useBookmarks } from '@/features/bookmarks/hooks'
 import { Bookmark, ChevronDown, Check } from 'lucide-react'
-import { cn } from '@/lib/utils'
-import type { BookmarkCollection } from '@/types/bookmarks'
+import { cn } from '@/shared/lib/utils'
+import type { BookmarkCollection } from '@/features/bookmarks/types'
 
 interface BookmarkButtonProps {
   quizId: string

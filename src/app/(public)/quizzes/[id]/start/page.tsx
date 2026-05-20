@@ -1,5 +1,5 @@
-import PlayQuizClient from '@/components/PlayQuizClient'
-import { quizzes } from '@/constants/mockQuizzes'
+import PlayQuizClient from '@/features/quizzes/components/PlayQuizClient'
+import { quizzes } from '@/features/quizzes/constants/mockQuizzes'
 
 export default async function QuizStart({
   params

@@ -13,9 +13,9 @@ import {
   SelectTrigger,
   SelectValue
 } from '@/components/ui/select'
-import { useLocalStorage } from '@/hooks'
-import { defaultSocialState, friendProfiles, type SocialState } from '@/constants/friends'
-import { quizzes } from '@/constants/mockQuizzes'
+import { useLocalStorage } from '@/shared/hooks'
+import { defaultSocialState, friendProfiles, type SocialState } from '@/features/users/constants/friends'
+import { quizzes } from '@/features/quizzes/constants/mockQuizzes'
 import { Search, Users, UserPlus, Check, X, Send } from 'lucide-react'
 import { useUser } from '@/features/users/store/user-store'
 
@@ -154,6 +154,8 @@ const FriendsPage = memo(function FriendsPage() {
     (friendId: number) => {
       const quizId = inviteSelections[friendId]
       if (!quizId) return
+      const friend = profileMap.get(friendId)
+      const quiz = quizzes.find((q) => q.id === quizId)
 
       updateState((prev) => ({
         ...prev,
@@ -161,8 +163,15 @@ const FriendsPage = memo(function FriendsPage() {
           {
             id: `${friendId}-${quizId}-${Date.now()}`,
             friendId,
+            friendName: friend?.name ?? 'Unknown',
+            friendAvatar: friend?.avatar ?? '/placeholder.svg',
+            inviterId: user?.id ?? 'current-user',
+            inviterName: user?.displayName ?? 'Me',
+            inviterAvatar: user?.avatarUrl ?? '/placeholder.svg',
             quizId,
-            sentAt: new Date().toISOString()
+            quizTitle: quiz?.title ?? 'Quiz',
+            sentAt: new Date().toISOString(),
+            status: 'pending'
           },
           ...prev.invitations
         ]

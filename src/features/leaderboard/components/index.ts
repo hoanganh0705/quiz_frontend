@@ -1,7 +1,7 @@
 // Leaderboard components - public API surface
 export { CompetitionStats } from './CompetitionStats'
 export { FindFriendsPopup } from './FindFriendsPopup'
-export { GlobalLeaderboard } from './GlobalLeaderboard'
+export { default as GlobalLeaderboard } from './GlobalLeaderboard'
 export { LeaderboardHeader } from './LeaderboardHeader'
 export {
   LeaderboardHighlights,
@@ -12,8 +12,13 @@ export {
   mockLeaderboardUsers
 } from './LeaderboardHighlights'
 export { YourRankingPopup } from './YourRankingPopup'
+export { PlayerCard } from './PlayerCard'
 
 // Tabs
 export { default as GlobalTab } from './GlobalTab'
 export { default as CategoryTab } from './CategoryTab'
 export { default as TrendingTab } from './TrendingTab'
+
+// Migrated from homepage
+export { default as LiveWinner } from './LiveWinner'
+export { default as PlayerRanking } from './PlayerRanking'

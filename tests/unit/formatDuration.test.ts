@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { formatDuration } from '@/lib/formatDuration'
+import { formatDuration } from '@/features/quizzes/lib/formatDuration'
 
 describe('formatDuration', () => {
   it('formats minutes below one hour', () => {

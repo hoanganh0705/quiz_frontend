@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { buildMetadata } from '@/lib/seo'
+import { buildMetadata } from '@/shared/lib/seo'
 
 export const metadata = buildMetadata({
   title: 'Quiz Categories | QuizHub',

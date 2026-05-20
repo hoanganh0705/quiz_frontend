@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import type { ReactNode } from 'react'
-import { quizzes } from '@/constants/mockQuizzes'
-import { buildMetadata, siteConfig } from '@/lib/seo'
+import { quizzes } from '@/features/quizzes/constants/mockQuizzes'
+import { buildMetadata, siteConfig } from '@/shared/lib/seo'
 
 export async function generateMetadata({
   params

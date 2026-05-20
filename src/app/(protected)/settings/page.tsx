@@ -11,10 +11,10 @@ import {
   DangerZone
 } from '@/features/users/components/settings'
 import { useLocalStorage } from '@/shared/hooks/use-local-storage'
-import { UserSettings, SettingsTab } from '@/types/settings'
-import { defaultSettings } from '@/constants/settings'
+import { UserSettings, SettingsTab } from '@/features/users/types'
+import { defaultSettings } from '@/features/users/constants/settings'
 import { User, Bell, Shield, Globe, Link2, AlertTriangle } from 'lucide-react'
-import { cn } from '@/lib/utils'
+import { cn } from '@/shared/lib/utils'
 
 const settingsTabs: {
   id: SettingsTab

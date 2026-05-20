@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { verifyEmail } from '@/features/auth/api/auth'
-import { useAsyncAction } from '@/hooks'
+import { useAsyncAction } from '@/shared/hooks'
 
 export default function VerifyEmailPage() {
   const searchParams = useSearchParams()

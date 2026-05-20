@@ -1,9 +1,9 @@
 'use client'
 
 import { useState, useMemo, useCallback } from 'react'
-import { getActivityIcon } from '@/lib/activityIcon'
-import { challengeData } from '@/constants/challengeHistoryData'
-import type { Player } from '@/types/players'
+import { getActivityIcon } from '@/features/users/lib/activityIcon'
+import { challengeData } from '@/features/daily-challenge/constants/challengeHistoryData'
+import type { Player } from '@/features/users/types'
 import { useUser } from '@/features/users/store/user-store'
 
 export function usePublicProfilePage() {
