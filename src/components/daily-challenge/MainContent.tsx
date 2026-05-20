@@ -31,7 +31,7 @@ import { Badge } from '@/components/ui/badge'
 import { badges } from '@/constants/badges'
 import { challengeData } from '@/constants/challengeHistoryData'
 import Image from 'next/image'
-import { players } from '@/constants/players'
+import { useUser } from '@/features/users/store/user-store'
 import { Gem, Medal } from 'lucide-react'
 
 // Hoist static data (data-hoisting)
@@ -50,6 +50,7 @@ const MainContent = memo(function MainContent() {
   const [selectedAnswer, setSelectedAnswer] = useState('')
   const [isTimerActive, setIsTimerActive] = useState(false)
   const [showAllHistory, setShowAllHistory] = useState(false)
+  const currentStreak = useUser()?.streak ?? 0
 
   useEffect(() => {
     if (!isTimerActive || selectedAnswer === '') return
@@ -352,10 +353,10 @@ const MainContent = memo(function MainContent() {
                   <div
                     key={day}
                     role='listitem'
-                    aria-label={`Day ${day}${day <= (players[0]?.streak || 0) ? ' completed' : ' not completed'}`}
+                    aria-label={`Day ${day}${day <= currentStreak ? ' completed' : ' not completed'}`}
                     className={`w-8 h-8 text-foreground relative rounded-full flex items-center justify-center text-xs font-medium ${
-                      day <= (players[0]?.streak || 0)
-                        ? day === 7 && (players[0]?.streak || 0) >= 7
+                      day <= currentStreak
+                        ? day === 7 && currentStreak >= 7
                           ? 'bg-[#f59e0b] border border-yellow-500'
                           : 'border bg-[#dbeafe] dark:bg-[#1e3a8a] dark:border-[#1d4ed8] border-[#93c5fd]'
                         : 'bg-muted'
@@ -366,7 +367,7 @@ const MainContent = memo(function MainContent() {
                 ))}
               </div>
               <p className='text-xs text-foreground/70 font-medium'>
-                Current streak: {players[0].streak} days. Keep playing daily!
+                Current streak: {currentStreak} days. Keep playing daily!
               </p>
             </div>
 
@@ -381,9 +382,8 @@ const MainContent = memo(function MainContent() {
                 {streakRewards
                   .filter((reward) => reward.days <= 7)
                   .map((reward) => {
-                    const isCurrentStreak =
-                      reward.days === (players[0]?.streak || 0)
-                    const isUnlocked = reward.days <= (players[0]?.streak || 0)
+                    const isCurrentStreak = reward.days === currentStreak
+                    const isUnlocked = reward.days <= currentStreak
 
                     return (
                       <div

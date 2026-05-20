@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react'
 import { Search, MessageSquare } from 'lucide-react'
 import { Input } from '@/components/ui/input'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { ModeToggle } from '@/components/ModeToggle'
 import { SidebarTrigger, useSidebar } from '@/components/ui/sidebar'
 import { NotificationDropdown } from '@/components/NotificationDropdown'
@@ -12,9 +12,9 @@ import { useAppLanguage } from '@/hooks/use-app-language'
 import { useAuthState } from '@/hooks'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-import { logout } from '@/lib/api/auth'
+import { logout } from '@/features/auth/api/auth'
 import { useRouter } from 'next/navigation'
-import { useUserStore } from '@/stores/user-store'
+import { useUser, useUserActions } from '@/features/users/store/user-store'
 
 // TODO: Replace with real unread count from API when backend is available
 function MessagesButton() {
@@ -48,8 +48,8 @@ export function AppHeader() {
   const { t } = useAppLanguage()
   const { isAuthenticated, setAuthenticated } = useAuthState()
   const router = useRouter()
-  const user = useUserStore((state) => state.user)
-  const clearUser = useUserStore((state) => state.clearUser)
+  const user = useUser()
+  const { clearUser } = useUserActions()
 
   const avatarLabel = useMemo(() => {
     const value = user?.displayName || user?.username || user?.email || 'User'
@@ -163,7 +163,6 @@ export function AppHeader() {
               {isLoggingOut ? 'Signing out…' : 'Logout'}
             </Button>
             <Avatar className='h-7 w-7 sm:h-8 sm:w-8 shrink-0'>
-              <AvatarImage src='/avatarPlaceholder.webp' />
               <AvatarFallback className='bg-background text-background text-xs'>
                 {avatarLabel}
               </AvatarFallback>
