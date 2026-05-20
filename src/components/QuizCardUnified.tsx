@@ -8,7 +8,7 @@ import { Progress } from '@/components/ui/progress'
 import SpotAvailabilityIndicator from '@/components/SpotAvailabilityIndicator'
 import { difficultyColors } from '@/constants/difficultyColor'
 import type { Quiz, QuizDifficulty } from '@/types/quiz'
-import { ShareModal } from '@/components/share/ShareModal'
+import { ShareModal } from '@/features/shared-ui/ShareModal'
 
 type CompactVariantProps = {
   variant: 'compact'

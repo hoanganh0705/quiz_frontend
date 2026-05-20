@@ -1,4 +1,4 @@
-import QuizResults from '@/components/quiz-page/QuizResults'
+import { QuizResults } from '@/features/quiz-page'
 import { quizzes } from '@/constants/mockQuizzes'
 import Link from 'next/link'
 
