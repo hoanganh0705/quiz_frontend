@@ -34,7 +34,7 @@ import {
 import { MobileQuizTimer } from './quiz-page/MobileQuizTimer'
 import { SwipeIndicator } from './quiz-page/SwipeIndicator'
 import { cn } from '@/lib/utils'
-import { AuthNudgeDialog } from '@/components/auth/AuthNudgeDialog'
+import { AuthNudgeDialog } from '@/features/auth/components/AuthNudgeDialog'
 
 export default function PlayQuizClient({ quiz }: { quiz: Quiz }) {
   const router = useRouter()

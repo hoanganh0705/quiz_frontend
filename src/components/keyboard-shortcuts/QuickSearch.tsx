@@ -9,7 +9,7 @@ import { sidebarItems } from '@/constants/sideBarItems'
 import { categories } from '@/constants/categories'
 import { quizzes } from '@/constants/mockQuizzes'
 import { useKeyboardShortcut } from '@/hooks/use-keyboard-shortcut'
-import { useLocalStorage } from '@/hooks/use-local-storage'
+import { useLocalStorage } from '@/shared/hooks/use-local-storage'
 
 interface SearchResult {
   id: string

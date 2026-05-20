@@ -9,16 +9,16 @@ import { usePathname } from 'next/navigation'
 import { QuickSearch } from '@/components/keyboard-shortcuts/QuickSearch'
 import { ShortcutsHelpModal } from '@/components/keyboard-shortcuts/ShortcutsHelpModal'
 import { AppBreadcrumbs } from '@/components/AppBreadcrumbs'
-import { GuestAccessBanner } from '@/components/auth/GuestAccessBanner'
+import { GuestAccessBanner } from '@/features/auth/components/GuestAccessBanner'
 import { useAuthState } from '@/hooks'
-import { useUserStore } from '@/stores/user-store'
+import { useUser, useUserActions, useUserStatus } from '@/features/users/store/user-store'
 
 export function LayoutShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const { isAuthenticated } = useAuthState()
-  const user = useUserStore((state) => state.user)
-  const isUserLoading = useUserStore((state) => state.isLoading)
-  const fetchCurrentUser = useUserStore((state) => state.fetchCurrentUser)
+  const user = useUser()
+  const { isLoading: isUserLoading } = useUserStatus()
+  const { fetchCurrentUser } = useUserActions()
   const isAuthPage =
     pathname?.startsWith('/login') ||
     pathname?.startsWith('/signup') ||

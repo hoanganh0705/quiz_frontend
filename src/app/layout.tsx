@@ -1,7 +1,7 @@
 import type React from 'react'
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
-import { ThemeProvider } from '@/components/ThemeProvider'
+import { ThemeProvider } from '@/providers/theme-provider'
 import { LayoutShell } from '@/components/LayoutShell'
 import { PwaServiceWorker } from '@/components/PwaServiceWorker'
 import './globals.css'

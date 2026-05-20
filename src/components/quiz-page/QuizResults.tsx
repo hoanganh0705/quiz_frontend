@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ArrowLeft, Trophy, Share2, BarChart3 } from 'lucide-react'
 import { useQuizResults, useClipboard, useAuthState, useLocalStorage } from '@/hooks'
-import { AuthNudgeDialog } from '@/components/auth/AuthNudgeDialog'
+import { AuthNudgeDialog } from '@/features/auth/components/AuthNudgeDialog'
 
 import {
   ScoreHero,
