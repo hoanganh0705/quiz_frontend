@@ -1,22 +1,22 @@
 'use client'
 
 import { useState, memo } from 'react'
-import { Label } from '@/components/ui/label'
+import { Label } from '@/components/ui/Label'
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle
-} from '@/components/ui/card'
+} from '@/components/ui/Card'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue
-} from '@/components/ui/select'
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
+} from '@/components/ui/Select'
+import { RadioGroup, RadioGroupItem } from '@/components/ui/RadioGroup'
 import { UserSettings } from '@/features/users/types'
 import { languages, timezones, dateFormats } from '@/features/users/constants/settings'
 import { Globe, Clock, Calendar, Check } from 'lucide-react'

@@ -9,7 +9,7 @@ import {
   ProfileSetupStep,
   QuizRecommendationsStep
 } from '@/features/onboarding'
-import { Progress } from '@/components/ui/progress'
+import { Progress } from '@/components/ui/Progress'
 import { OnboardingData } from '@/features/onboarding/types'
 
 // Hoist constant outside component (data-hoisting)

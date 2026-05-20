@@ -1,4 +1,4 @@
-import { howItWorksData } from '@/features/marketing/constants/howItWorks'
+import { how-it-worksData } from '@/features/marketing/constants/how-it-works'
 import Image from 'next/image'
 
 export default function HowItWorks() {
@@ -20,7 +20,7 @@ export default function HowItWorks() {
           </div>
         </div>
         <div className='mx-auto grid max-w-screen-2xl items-start gap-6 py-10 px-4 lg:grid-cols-3 lg:gap-10'>
-          {howItWorksData.map((item) => (
+          {how-it-worksData.map((item) => (
             <div
               key={item.id}
               className='bg-main border border-border rounded-2xl shadow-md overflow-hidden w-full h-full max-w-sm mx-auto'

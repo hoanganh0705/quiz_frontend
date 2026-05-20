@@ -1,12 +1,12 @@
 'use client'
 
 import { useMemo, useState, useCallback } from 'react'
-import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/Input'
+import { Button } from '@/components/ui/Button'
 import FeaturedQuiz from '@/features/quizzes/components/FeaturedQuiz'
 import { categories } from '@/features/categories/constants/categories'
-import { quizzes } from '@/features/quizzes/constants/mockQuizzes'
-import { MainContent } from '@/features/quizzes'
+import { quizzes } from '@/features/quizzes/constants/mock-quizzes'
+import { QuizCatalogMainContent } from '@/features/quizzes'
 import { Swiper, SwiperSlide } from 'swiper/react'
 import { FreeMode } from 'swiper/modules'
 import { useLocalStorage } from '@/shared/hooks'
@@ -181,7 +181,7 @@ export default function QuizPlatform() {
       <FeaturedQuiz />
 
       <section aria-label='Quiz listings'>
-        <MainContent
+        <QuizCatalogMainContent
           searchQuery={searchQuery}
           selectedCategory={selectedCategory}
         />

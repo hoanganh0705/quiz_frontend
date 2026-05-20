@@ -2,14 +2,14 @@
 
 import { memo } from 'react'
 import Image from 'next/image'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { difficultyColors } from '@/features/quizzes/constants/difficultyColor'
-import { DropdownMenu } from '@/components/ui/dropdown-menu'
-import { DropdownMenuContent } from '@/components/ui/dropdown-menu'
-import { DropdownMenuItem } from '@/components/ui/dropdown-menu'
-import { DropdownMenuSeparator } from '@/components/ui/dropdown-menu'
-import { DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
+import { Button } from '@/components/ui/Button'
+import { Badge } from '@/components/ui/Badge'
+import { difficulty-colors } from '@/features/quizzes/constants/difficulty-color'
+import { DropdownMenu } from '@/components/ui/DropdownMenu'
+import { DropdownMenuContent } from '@/components/ui/DropdownMenu'
+import { DropdownMenuItem } from '@/components/ui/DropdownMenu'
+import { DropdownMenuSeparator } from '@/components/ui/DropdownMenu'
+import { DropdownMenuTrigger } from '@/components/ui/DropdownMenu'
 import {
   Bookmark,
   MoreVertical,
@@ -61,8 +61,8 @@ const BookmarkedQuizCard = memo(function BookmarkedQuizCard({
           <div className='flex justify-between items-start'>
             <Badge
               className={`${
-                difficultyColors[
-                  quiz.difficulty as keyof typeof difficultyColors
+                difficulty-colors[
+                  quiz.difficulty as keyof typeof difficulty-colors
                 ]?.bg || 'bg-gray-500'
               } text-white text-xs`}
             >

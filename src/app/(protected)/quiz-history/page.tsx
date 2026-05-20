@@ -1,17 +1,17 @@
 'use client'
 
 import { memo, useState, useMemo, useCallback } from 'react'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/Tabs'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue
-} from '@/components/ui/select'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+} from '@/components/ui/Select'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 
-import { quizHistoryEntries, quizHistoryStats } from '@/features/quizzes/constants/quizHistory'
+import { quiz-historyEntries, quiz-historyStats } from '@/features/quizzes/constants/quiz-history'
 import type {
   QuizHistoryFilters,
   QuizHistoryEntry,
@@ -150,12 +150,12 @@ const QuizHistoryPage = memo(function QuizHistoryPage() {
   }, [])
 
   const filteredEntries = useMemo(
-    () => applyFilters(quizHistoryEntries, filters),
+    () => applyFilters(quiz-historyEntries, filters),
     [filters]
   )
 
   const uniqueCategories = useMemo(
-    () => Array.from(new Set(quizHistoryEntries.map((e) => e.category))).sort(),
+    () => Array.from(new Set(quiz-historyEntries.map((e) => e.category))).sort(),
     []
   )
 
@@ -163,7 +163,7 @@ const QuizHistoryPage = memo(function QuizHistoryPage() {
     () =>
       Array.from(
         new Map(
-          quizHistoryEntries.map((entry) => [entry.quizId, entry.quizTitle])
+          quiz-historyEntries.map((entry) => [entry.quizId, entry.quizTitle])
         )
       ).map(([id, title]) => ({ id, title })),
     []
@@ -171,7 +171,7 @@ const QuizHistoryPage = memo(function QuizHistoryPage() {
 
   const compareAttempts = useMemo(
     () =>
-      quizHistoryEntries
+      quiz-historyEntries
         .filter((entry) => entry.quizId === compareQuizId)
         .sort(
           (a, b) =>
@@ -194,7 +194,7 @@ const QuizHistoryPage = memo(function QuizHistoryPage() {
     <div className='min-h-screen p-4 md:p-8 lg:p-12 space-y-6'>
       {/* Header with export */}
       <HistoryHeader
-        totalEntries={quizHistoryEntries.length}
+        totalEntries={quiz-historyEntries.length}
         filteredEntries={filteredEntries}
       />
 
@@ -228,7 +228,7 @@ const QuizHistoryPage = memo(function QuizHistoryPage() {
 
         {/* Statistics tab */}
         <TabsContent value='statistics' className='mt-6'>
-          <HistoryStatsDashboard stats={quizHistoryStats} />
+          <HistoryStatsDashboard stats={quiz-historyStats} />
 
           <Card className='mt-6'>
             <CardHeader>

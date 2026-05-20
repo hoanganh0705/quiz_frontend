@@ -1,21 +1,21 @@
 'use client'
 
 import { memo, useMemo, useState, useCallback } from 'react'
-import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Input } from '@/components/ui/Input'
+import { Button } from '@/components/ui/Button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
+import { Badge } from '@/components/ui/Badge'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/Avatar'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue
-} from '@/components/ui/select'
+} from '@/components/ui/Select'
 import { useLocalStorage } from '@/shared/hooks'
 import { defaultSocialState, friendProfiles, type SocialState } from '@/features/users/constants/friends'
-import { quizzes } from '@/features/quizzes/constants/mockQuizzes'
+import { quizzes } from '@/features/quizzes/constants/mock-quizzes'
 import { Search, Users, UserPlus, Check, X, Send } from 'lucide-react'
 import { useUser } from '@/features/users/store/user-store'
 

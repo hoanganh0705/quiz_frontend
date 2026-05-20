@@ -1,7 +1,7 @@
 'use client'
 
 import { Users, UserPlus, Search } from 'lucide-react'
-import { EmptyState } from '@/components/ui/empty-state'
+import { EmptyState } from '@/components/ui/EmptyState'
 
 interface EmptyFriendsProps {
   type: 'no-friends' | 'no-requests' | 'no-search-results'

@@ -1,10 +1,10 @@
 import { memo } from 'react'
 // Fix barrel imports (bundle-barrel-imports)
-import { Card } from '@/components/ui/card'
-import { CardContent } from '@/components/ui/card'
-import { CardHeader } from '@/components/ui/card'
-import { CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
+import { Card } from '@/components/ui/Card'
+import { CardContent } from '@/components/ui/Card'
+import { CardHeader } from '@/components/ui/Card'
+import { CardTitle } from '@/components/ui/Card'
+import { Badge } from '@/components/ui/Badge'
 import { Award, Gift, Flame } from 'lucide-react'
 
 interface BadgeItem {
@@ -25,14 +25,14 @@ interface StreakReward {
 interface AchievementsTabProps {
   badges: BadgeItem[]
   unlockedBadges: number
-  streakRewards: StreakReward[]
+  streak-rewards: StreakReward[]
   currentStreak: number
 }
 
 export const AchievementsTab = memo(function AchievementsTab({
   badges,
   unlockedBadges,
-  streakRewards,
+  streak-rewards,
   currentStreak
 }: AchievementsTabProps) {
   return (
@@ -95,7 +95,7 @@ export const AchievementsTab = memo(function AchievementsTab({
             role='list'
             aria-label='Streak rewards'
           >
-            {streakRewards.map((reward) => (
+            {streak-rewards.map((reward) => (
               <div
                 key={reward.id}
                 className={`flex flex-col items-center gap-2 p-4 rounded-lg border ${currentStreak >= reward.days ? 'border-amber-500/50 bg-amber-500/10 animate-in fade-in zoom-in-95 duration-300' : 'border-border bg-muted/30'}`}

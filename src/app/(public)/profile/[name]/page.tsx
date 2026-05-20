@@ -1,14 +1,14 @@
 'use client'
 
 import { memo } from 'react'
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/Avatar'
+import { Button } from '@/components/ui/Button'
+import { Card, CardContent } from '@/components/ui/Card'
+import { Badge } from '@/components/ui/Badge'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/Tabs'
 import ActivityItem from '@/features/users/components/profile/ActivityItem'
 import CategoryRow from '@/features/users/components/profile/CategoryRow'
-import { challengeData } from '@/features/daily-challenge/constants/challengeHistoryData'
+import { challengeData } from '@/features/daily-challenge/constants/challenge-history-data'
 import type { Player } from '@/features/users/types'
 // Bundle optimization: Using barrel imports with Next.js optimizePackageImports
 // Next.js automatically transforms these to direct imports (bundle-barrel-imports)

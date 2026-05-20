@@ -1,16 +1,16 @@
 'use client'
 
-import { Button } from '@/components/ui/button'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Button } from '@/components/ui/Button'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/Tabs'
 // Fix barrel imports (bundle-barrel-imports)
-import { AlertDialog } from '@/components/ui/alert-dialog'
-import { AlertDialogAction } from '@/components/ui/alert-dialog'
-import { AlertDialogCancel } from '@/components/ui/alert-dialog'
-import { AlertDialogContent } from '@/components/ui/alert-dialog'
-import { AlertDialogDescription } from '@/components/ui/alert-dialog'
-import { AlertDialogFooter } from '@/components/ui/alert-dialog'
-import { AlertDialogHeader } from '@/components/ui/alert-dialog'
-import { AlertDialogTitle } from '@/components/ui/alert-dialog'
+import { AlertDialog } from '@/components/ui/AlertDialog'
+import { AlertDialogAction } from '@/components/ui/AlertDialog'
+import { AlertDialogCancel } from '@/components/ui/AlertDialog'
+import { AlertDialogContent } from '@/components/ui/AlertDialog'
+import { AlertDialogDescription } from '@/components/ui/AlertDialog'
+import { AlertDialogFooter } from '@/components/ui/AlertDialog'
+import { AlertDialogHeader } from '@/components/ui/AlertDialog'
+import { AlertDialogTitle } from '@/components/ui/AlertDialog'
 // Import from features
 import {
   BookmarkedQuizCard,

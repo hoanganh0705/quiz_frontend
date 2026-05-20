@@ -10,17 +10,17 @@ import {
   TrendingUp
 } from 'lucide-react'
 
-import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/Input'
+import { Button } from '@/components/ui/Button'
 import {
   DropdownMenu,
   DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuItem
-} from '@/components/ui/dropdown-menu'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+} from '@/components/ui/DropdownMenu'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/Avatar'
 import { players } from '@/features/leaderboard/constants/players'
-import { Card, CardContent } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/Card'
 
 const getBadgeColor = (badge: string) => {
   switch (badge) {

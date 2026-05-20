@@ -1,17 +1,17 @@
 'use client'
 import { memo } from 'react'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
+import { Badge } from '@/components/ui/Badge'
+import { Button } from '@/components/ui/Button'
+import { Card, CardContent } from '@/components/ui/Card'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue
-} from '@/components/ui/select'
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { difficultyColors } from '@/features/quizzes/constants/difficultyColor'
+} from '@/components/ui/Select'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/Tabs'
+import { difficulty-colors } from '@/features/quizzes/constants/difficulty-color'
 import {
   CalendarDays,
   Users,
@@ -153,7 +153,7 @@ const TournamentCard = memo(function TournamentCard({
           loading='lazy'
         />
         <div className='absolute top-3 left-3'>
-          <Badge className={`${difficultyColors[tournament.difficulty].bg}`}>
+          <Badge className={`${difficulty-colors[tournament.difficulty].bg}`}>
             {tournament.difficulty}
           </Badge>
         </div>

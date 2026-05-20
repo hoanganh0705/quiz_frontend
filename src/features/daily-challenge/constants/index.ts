@@ -1,3 +1,3 @@
-export * from './challengeHistoryData'
-export * from './performanceData'
-export * from './streakRewards'
+export * from './challenge-history-data'
+export * from './performance-data'
+export * from './streak-rewards'

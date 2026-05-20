@@ -1,5 +1,5 @@
 import { memo } from 'react'
-import { InfoCard, MainContent } from '@/features/daily-challenge'
+import { InfoCard, DailyChallengeMainContent } from '@/features/daily-challenge'
 
 const DailyChallenge = memo(function DailyChallenge() {
   return (
@@ -18,7 +18,7 @@ const DailyChallenge = memo(function DailyChallenge() {
       <InfoCard />
 
       {/* Main Content */}
-      <MainContent />
+      <DailyChallengeMainContent />
     </div>
   )
 })

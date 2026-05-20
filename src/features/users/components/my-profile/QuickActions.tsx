@@ -1,8 +1,8 @@
 import { memo } from 'react'
 // Fix barrel imports (bundle-barrel-imports)
-import { Card } from '@/components/ui/card'
-import { CardContent } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/Card'
+import { CardContent } from '@/components/ui/Card'
+import { Button } from '@/components/ui/Button'
 import { Edit, Flame, Trophy, Settings, UserPlus } from 'lucide-react'
 import Link from 'next/link'
 

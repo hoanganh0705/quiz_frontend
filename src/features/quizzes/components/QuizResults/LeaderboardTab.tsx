@@ -1,7 +1,7 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/Avatar'
 import { LeaderboardTabProps, LeaderboardItemProps } from '@/features/quizzes/types'
-import { getRankStyle, formatTime } from '@/features/quizzes/lib/quizResultsUtils'
+import { getRankStyle, formatTime } from '@/features/quizzes/lib/quiz-results-utils'
 
 export default function LeaderboardTab({ quiz, result }: LeaderboardTabProps) {
   const estimatedPosition = Math.max(1, 50 - Math.floor(result.score / 2))
@@ -13,7 +13,7 @@ export default function LeaderboardTab({ quiz, result }: LeaderboardTabProps) {
       </CardHeader>
       <CardContent>
         <div className='space-y-3'>
-          {quiz.leaderBoard.slice(0, 10).map((player, index) => (
+          {quiz.leaderboard.slice(0, 10).map((player, index) => (
             <LeaderboardItem key={player.userId} player={player} rank={index} />
           ))}
         </div>

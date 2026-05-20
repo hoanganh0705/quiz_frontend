@@ -1,7 +1,7 @@
 'use client'
 
 import { Bell, BellOff, Settings } from 'lucide-react'
-import { EmptyState } from '@/components/ui/empty-state'
+import { EmptyState } from '@/components/ui/EmptyState'
 
 interface EmptyNotificationsProps {
   type: 'no-notifications' | 'no-unread' | 'notifications-disabled'

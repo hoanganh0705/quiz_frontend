@@ -1,6 +1,6 @@
 'use client'
 
-import { leaderboardData, LeaderboardEntry } from '@/features/leaderboard/constants/leaderBoard'
+import { leaderboardData, LeaderboardEntry } from '@/features/leaderboard/constants/leaderboard'
 import Image from 'next/image'
 import { memo } from 'react'
 import {
@@ -10,8 +10,8 @@ import {
   TableHead,
   TableHeader,
   TableRow
-} from '@/components/ui/table'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+} from '@/components/ui/Table'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/Tabs'
 
 const Leaderboard = memo(function Leaderboard() {
   return (

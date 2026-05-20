@@ -1,7 +1,7 @@
 'use client'
 
 import { memo } from 'react'
-import { Button } from '@/components/ui/button'
+import { Button } from '@/components/ui/Button'
 import { Sparkles, Brain, Trophy, Users } from 'lucide-react'
 
 interface WelcomeStepProps {

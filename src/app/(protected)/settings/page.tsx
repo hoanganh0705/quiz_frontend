@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useMemo, useCallback, memo } from 'react'
-import { ScrollArea } from '@/components/ui/scroll-area'
+import { ScrollArea } from '@/components/ui/ScrollArea'
 import {
   AccountSettings,
   NotificationSettings,
@@ -11,13 +11,13 @@ import {
   DangerZone
 } from '@/features/users/components/settings'
 import { useLocalStorage } from '@/shared/hooks/use-local-storage'
-import { UserSettings, SettingsTab } from '@/features/users/types'
+import { UserSettings, UserSettingsTabId } from '@/features/users/types'
 import { defaultSettings } from '@/features/users/constants/settings'
 import { User, Bell, Shield, Globe, Link2, AlertTriangle } from 'lucide-react'
-import { cn } from '@/shared/lib/utils'
+import { cn } from '@/shared/utils/merge-class-names'
 
 const settingsTabs: {
-  id: SettingsTab
+  id: UserSettingsTabId
   label: string
   icon: React.ReactNode
 }[] = [
@@ -54,7 +54,7 @@ const settingsTabs: {
 ]
 
 const SettingsPage = memo(function SettingsPage() {
-  const [activeTab, setActiveTab] = useState<SettingsTab>('account')
+  const [activeTab, setActiveTab] = useState<UserSettingsTabId>('account')
   const [settings, setSettings] = useLocalStorage<UserSettings>(
     'user_settings',
     defaultSettings

@@ -2,11 +2,11 @@
 
 import { useMemo, memo } from 'react'
 // Fix barrel imports (bundle-barrel-imports)
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { quizzes } from '@/features/quizzes/constants/mockQuizzes'
+import { Button } from '@/components/ui/Button'
+import { Badge } from '@/components/ui/Badge'
+import { quizzes } from '@/features/quizzes/constants/mock-quizzes'
 import { categories } from '@/features/categories/constants/categories'
-import { difficultyColors } from '@/features/quizzes/constants/difficultyColor'
+import { difficulty-colors } from '@/features/quizzes/constants/difficulty-color'
 import {
   ArrowLeft,
   PartyPopper,
@@ -25,7 +25,7 @@ interface QuizRecommendationsStepProps {
 }
 
 // Hoist helper function outside component (data-hoisting)
-function formatDuration(seconds: number) {
+function format-duration(seconds: number) {
   const minutes = Math.floor(seconds / 60)
   return `${minutes} min`
 }
@@ -107,8 +107,8 @@ export const QuizRecommendationsStep = memo(function QuizRecommendationsStep({
               />
               <Badge
                 className={`absolute top-2 left-2 ${
-                  difficultyColors[
-                    quiz.difficulty as keyof typeof difficultyColors
+                  difficulty-colors[
+                    quiz.difficulty as keyof typeof difficulty-colors
                   ]?.bg || 'bg-gray-500'
                 } text-white text-xs`}
               >
@@ -126,7 +126,7 @@ export const QuizRecommendationsStep = memo(function QuizRecommendationsStep({
               <div className='flex items-center gap-4 text-xs text-muted-foreground'>
                 <span className='flex items-center gap-1'>
                   <Clock className='w-3 h-3' aria-hidden='true' />
-                  {formatDuration(quiz.duration)}
+                  {format-duration(quiz.duration)}
                 </span>
                 <span className='flex items-center gap-1'>
                   <HelpCircle className='w-3 h-3' aria-hidden='true' />

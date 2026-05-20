@@ -2,12 +2,12 @@
 
 import { useState, useCallback, useMemo, memo, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
-import { Input } from '@/components/ui/input'
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/Dialog'
+import { Input } from '@/components/ui/Input'
 import { Search, ArrowRight, FileText, Layers, Keyboard } from 'lucide-react'
-import { sidebarItems } from '@/features/layout/constants/sideBarItems'
+import { sidebarItems } from '@/shared/layout'
 import { categories } from '@/features/categories/constants/categories'
-import { quizzes } from '@/features/quizzes/constants/mockQuizzes'
+import { quizzes } from '@/features/quizzes/constants/mock-quizzes'
 import { useKeyboardShortcut } from '@/shared/hooks/use-keyboard-shortcut'
 import { useLocalStorage } from '@/shared/hooks/use-local-storage'
 

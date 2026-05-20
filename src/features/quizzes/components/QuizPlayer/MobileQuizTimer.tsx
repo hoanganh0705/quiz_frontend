@@ -1,7 +1,7 @@
 'use client'
 
 import { Clock } from 'lucide-react'
-import { cn } from '@/shared/lib/utils'
+import { cn } from '@/shared/utils/merge-class-names'
 
 interface MobileQuizTimerProps {
   timeLeft: number

@@ -3,8 +3,8 @@
 import { Quiz } from '@/features/quizzes/types'
 import Link from 'next/link'
 import { useState, useEffect, useMemo, useCallback } from 'react'
-import { Button } from '@/components/ui/button'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Button } from '@/components/ui/Button'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/Tabs'
 import { ArrowLeft, Trophy, Share2, BarChart3 } from 'lucide-react'
 import { useQuizResults } from '@/features/quizzes/hooks'
 import { useClipboard, useLocalStorage } from '@/shared/hooks'
@@ -20,7 +20,7 @@ import {
   BottomActions
 } from '@/features/quizzes/components/QuizResults'
 import type { QuizResult, QuestionReview } from '@/features/quizzes/types'
-import { getStorageKey, calculatePercentile, calculateAvgTime } from '@/features/quizzes/lib/quizResultsUtils'
+import { getStorageKey, calculatePercentile, calculateAvgTime } from '@/features/quizzes/lib/quiz-results-utils'
 
 export default function QuizResults({ quiz }: { quiz: Quiz }) {
   // Use specialized hook for quiz results with localStorage persistence

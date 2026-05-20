@@ -1,16 +1,16 @@
 'use client'
 
 import { memo } from 'react'
-import { Label } from '@/components/ui/label'
-import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
+import { Label } from '@/components/ui/Label'
+import { Input } from '@/components/ui/Input'
+import { Textarea } from '@/components/ui/Textarea'
 // Fix barrel imports (bundle-barrel-imports)
-import { Select } from '@/components/ui/select'
-import { SelectContent } from '@/components/ui/select'
-import { SelectItem } from '@/components/ui/select'
-import { SelectTrigger } from '@/components/ui/select'
-import { SelectValue } from '@/components/ui/select'
-import { Button } from '@/components/ui/button'
+import { Select } from '@/components/ui/Select'
+import { SelectContent } from '@/components/ui/Select'
+import { SelectItem } from '@/components/ui/Select'
+import { SelectTrigger } from '@/components/ui/Select'
+import { SelectValue } from '@/components/ui/Select'
+import { Button } from '@/components/ui/Button'
 
 interface QuizDetailsValues {
   title: string

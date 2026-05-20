@@ -1,23 +1,23 @@
 'use client'
 
 import { useState } from 'react'
-import { Button } from '@/components/ui/button'
+import { Button } from '@/components/ui/Button'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger
-} from '@/components/ui/dropdown-menu'
+} from '@/components/ui/DropdownMenu'
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger
-} from '@/components/ui/tooltip'
+} from '@/components/ui/Tooltip'
 import { useBookmarks } from '@/features/bookmarks/hooks'
 import { Bookmark, ChevronDown, Check } from 'lucide-react'
-import { cn } from '@/shared/lib/utils'
+import { cn } from '@/shared/utils/merge-class-names'
 import type { BookmarkCollection } from '@/features/bookmarks/types'
 
 interface BookmarkButtonProps {

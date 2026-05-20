@@ -1,8 +1,8 @@
 import Image from 'next/image'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { CardContent } from '@/components/ui/card'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/Avatar'
+import { CardContent } from '@/components/ui/Card'
 import { Users } from 'lucide-react'
-import { cn } from '@/shared/lib/utils'
+import { cn } from '@/shared/utils/merge-class-names'
 import type { Player } from '@/features/users/types'
 
 export function PlayerCard({

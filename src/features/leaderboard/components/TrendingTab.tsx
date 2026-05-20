@@ -1,7 +1,7 @@
 'use client'
 
 import Image from 'next/image'
-import { Badge } from '@/components/ui/badge'
+import { Badge } from '@/components/ui/Badge'
 import { TrendingUp, TrendingDown, Minus, Users, Zap } from 'lucide-react'
 import type { LeaderboardUser } from '../types'
 

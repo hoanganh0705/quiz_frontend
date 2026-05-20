@@ -1,11 +1,14 @@
 'use client'
 
 import { useState, memo, useCallback } from 'react'
-import { Button } from '@/components/ui/button'
+import { Button } from '@/components/ui/Button'
 import { FindFriendsPopup } from './FindFriendsPopup'
 import { YourRankingPopup } from './YourRankingPopup'
 import { Trophy, Star, Users, Crown, Calendar } from 'lucide-react'
-import { getRankColor, formatSeasonEndDate } from '../utils'
+import {
+  getRankColor,
+  formatSeasonEndDate
+} from '@/features/leaderboard/lib/leaderboard-presentation'
 
 interface LeaderboardHeaderProps {
   onFindFriends?: () => void

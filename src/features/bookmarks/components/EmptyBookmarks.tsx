@@ -2,7 +2,7 @@
 
 import { memo } from 'react'
 import { Bookmark, FolderPlus } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { Button } from '@/components/ui/Button'
 import Link from 'next/link'
 
 interface EmptyBookmarksProps {

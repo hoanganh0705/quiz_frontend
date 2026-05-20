@@ -1,2 +1,2 @@
 export * from './tournament'
-export * from './tournamentCategories'
+export * from './tournament-categories'

@@ -2,13 +2,13 @@
 
 import { useState } from 'react'
 import { Search } from 'lucide-react'
-import { Input } from '@/components/ui/input'
+import { Input } from '@/components/ui/Input'
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger
-} from '@/components/ui/accordion'
+} from '@/components/ui/Accordion'
 
 const faqs = [
   {

@@ -1,10 +1,10 @@
 import { memo } from 'react'
 // Fix barrel imports (bundle-barrel-imports)
-import { Card } from '@/components/ui/card'
-import { CardContent } from '@/components/ui/card'
-import { CardHeader } from '@/components/ui/card'
-import { CardTitle } from '@/components/ui/card'
-import { Progress } from '@/components/ui/progress'
+import { Card } from '@/components/ui/Card'
+import { CardContent } from '@/components/ui/Card'
+import { CardHeader } from '@/components/ui/Card'
+import { CardTitle } from '@/components/ui/Card'
+import { Progress } from '@/components/ui/Progress'
 import { BarChart3, TrendingUp } from 'lucide-react'
 import type { Player } from '@/features/users/types'
 
@@ -18,14 +18,14 @@ interface StatisticsTabProps {
   user: Player
   averageScore: number
   winRate: number
-  quizHistory: QuizEntry[]
+  quiz-history: QuizEntry[]
 }
 
 export const StatisticsTab = memo(function StatisticsTab({
   user,
   averageScore,
   winRate,
-  quizHistory
+  quiz-history
 }: StatisticsTabProps) {
   return (
     <div className='mt-6'>
@@ -110,7 +110,7 @@ export const StatisticsTab = memo(function StatisticsTab({
           <CardTitle className='text-base'>Category Performance</CardTitle>
         </CardHeader>
         <CardContent className='space-y-4'>
-          {quizHistory.slice(0, 4).map((quiz) => (
+          {quiz-history.slice(0, 4).map((quiz) => (
             <div key={quiz.id} className='space-y-2'>
               <div className='flex justify-between text-sm'>
                 <span className='text-foreground'>{quiz.category}</span>

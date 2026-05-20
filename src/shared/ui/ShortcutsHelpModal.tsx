@@ -7,7 +7,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription
-} from '@/components/ui/dialog'
+} from '@/components/ui/Dialog'
 import { Keyboard } from 'lucide-react'
 import { useKeyboardShortcut } from '@/shared/hooks/use-keyboard-shortcut'
 

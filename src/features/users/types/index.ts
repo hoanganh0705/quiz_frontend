@@ -152,7 +152,14 @@ export interface SocialState {
   invitations: QuizInvitation[]
 }
 
-export type SettingsTab = 'account' | 'notifications' | 'privacy' | 'language' | 'connected' | 'connections' | 'danger'
+export type UserSettingsTabId =
+  | 'account'
+  | 'notifications'
+  | 'privacy'
+  | 'language'
+  | 'connected'
+  | 'connections'
+  | 'danger'
 
 // Winner type for leaderboard
 export interface Winner {

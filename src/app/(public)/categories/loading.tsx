@@ -1,4 +1,4 @@
-import { Skeleton } from '@/components/ui/skeleton'
+import { Skeleton } from '@/components/ui/Skeleton'
 import { SkeletonGrid } from '@/components/ui/loading-states'
 
 export default function CategoriesLoading() {

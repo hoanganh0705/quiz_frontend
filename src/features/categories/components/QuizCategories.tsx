@@ -3,7 +3,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { Swiper, SwiperSlide } from 'swiper/react'
-import { Button } from '@/components/ui/button'
+import { Button } from '@/components/ui/Button'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { Autoplay, Navigation } from 'swiper/modules'
 import { useRef, useState } from 'react'

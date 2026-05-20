@@ -1,7 +1,7 @@
 import { memo } from 'react'
 // Fix barrel imports (bundle-barrel-imports)
-import { Card } from '@/components/ui/card'
-import { CardContent } from '@/components/ui/card'
+import { Card } from '@/components/ui/Card'
+import { CardContent } from '@/components/ui/Card'
 import { LucideIcon } from 'lucide-react'
 
 interface StatsCardProps {
