@@ -1,11 +1,10 @@
 'use client'
 
-import { memo } from 'react' // rerender-memo
+import { memo } from 'react'
 import Image from 'next/image'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { difficultyColors } from '@/constants/difficultyColor'
-// Fix barrel imports (bundle-barrel-imports)
 import { DropdownMenu } from '@/components/ui/dropdown-menu'
 import { DropdownMenuContent } from '@/components/ui/dropdown-menu'
 import { DropdownMenuItem } from '@/components/ui/dropdown-menu'
@@ -33,7 +32,7 @@ interface BookmarkedQuizCardProps {
   onMoveToCollection: (quizId: string, collectionId: string | null) => void
 }
 
-// Use memo to prevent unnecessary re-renders (rerender-memo)
+// Use memo to prevent unnecessary re-renders
 const BookmarkedQuizCard = memo(function BookmarkedQuizCard({
   quiz,
   bookmark,
@@ -175,9 +174,7 @@ const BookmarkedQuizCard = memo(function BookmarkedQuizCard({
           className='w-full bg-default hover:bg-default-hover text-white'
           size='sm'
         >
-          <Link
-            href={`/quizzes/${quiz.id}`}
-          >
+          <Link href={`/quizzes/${quiz.id}`}>
             <Play className='mr-2 h-4 w-4' aria-hidden='true' />
             Play Quiz
           </Link>

@@ -3,10 +3,12 @@
 import { useState, useEffect, memo, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { useLocalStorage } from '@/shared/hooks/use-local-storage'
-import { WelcomeStep } from '@/components/onboarding/WelcomeStep'
-import { InterestSelectionStep } from '@/components/onboarding/InterestSelectionStep'
-import { ProfileSetupStep } from '@/components/onboarding/ProfileSetupStep'
-import { QuizRecommendationsStep } from '@/components/onboarding/QuizRecommendationsStep'
+import {
+  WelcomeStep,
+  InterestSelectionStep,
+  ProfileSetupStep,
+  QuizRecommendationsStep
+} from '@/features/onboarding'
 import { Progress } from '@/components/ui/progress'
 import { OnboardingData } from '@/types/onboarding'
 

@@ -1,8 +1,7 @@
 'use client'
 
-import { memo } from 'react' // rerender-memo
+import { memo } from 'react'
 import { Button } from '@/components/ui/button'
-// Fix barrel imports (bundle-barrel-imports)
 import { DropdownMenu } from '@/components/ui/dropdown-menu'
 import { DropdownMenuContent } from '@/components/ui/dropdown-menu'
 import { DropdownMenuItem } from '@/components/ui/dropdown-menu'
@@ -19,7 +18,7 @@ interface CollectionCardProps {
   onDelete: () => void
 }
 
-// Use memo to prevent unnecessary re-renders (rerender-memo)
+// Use memo to prevent unnecessary re-renders
 const CollectionCard = memo(function CollectionCard({
   collection,
   count,

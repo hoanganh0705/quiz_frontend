@@ -11,12 +11,14 @@ import { AlertDialogDescription } from '@/components/ui/alert-dialog'
 import { AlertDialogFooter } from '@/components/ui/alert-dialog'
 import { AlertDialogHeader } from '@/components/ui/alert-dialog'
 import { AlertDialogTitle } from '@/components/ui/alert-dialog'
-// Import components directly (bundle-barrel-imports)
-import BookmarkedQuizCard from '@/components/bookmarks/BookmarkedQuizCard'
-import BookmarkFilters from '@/components/bookmarks/BookmarkFilters'
-import CollectionCard from '@/components/bookmarks/CollectionCard'
-import CollectionDialog from '@/components/bookmarks/CollectionDialog'
-import EmptyBookmarks from '@/components/bookmarks/EmptyBookmarks'
+// Import from features
+import {
+  BookmarkedQuizCard,
+  BookmarkFilters,
+  CollectionCard,
+  CollectionDialog,
+  EmptyBookmarks
+} from '@/features/bookmarks'
 import { useBookmarksPage } from '@/hooks/use-bookmarks-page'
 import { Bookmark, FolderPlus, Grid3X3, List, Layers } from 'lucide-react'
 

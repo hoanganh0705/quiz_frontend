@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-// Fix barrel imports (bundle-barrel-imports)
 import { Dialog } from '@/components/ui/dialog'
 import { DialogContent } from '@/components/ui/dialog'
 import { DialogDescription } from '@/components/ui/dialog'
@@ -14,7 +13,7 @@ import { DialogHeader } from '@/components/ui/dialog'
 import { DialogTitle } from '@/components/ui/dialog'
 import type { BookmarkCollection } from '@/types/bookmarks'
 
-// Hoist static data (rendering-hoist-jsx)
+// Hoist static data
 const PRESET_COLORS = [
   '#ef4444', // red
   '#f97316', // orange
