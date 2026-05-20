@@ -11,8 +11,8 @@ import {
   Shield,
   Settings
 } from 'lucide-react'
-import { articles } from '@/constants/articles'
-import type { ArticleIconName } from '@/types/articles'
+import { articles } from '@/features/support/constants/articles'
+import type { ArticleIconName } from '@/features/support/types/articles'
 
 const iconMap: Record<
   ArticleIconName,

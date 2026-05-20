@@ -6,7 +6,7 @@ import { CardHeader } from '@/components/ui/card'
 import { CardTitle } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
 import { BarChart3, TrendingUp } from 'lucide-react'
-import { Player } from '@/constants/players'
+import type { Player } from '@/features/users/types'
 
 interface QuizEntry {
   id: string

@@ -5,10 +5,10 @@ import { Search } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import {
   QuizCategoriesCard,
-  TestKnowledge,
-  HowItWorks
+  TestKnowledge
 } from '@/features/categories'
-import categories from '@/constants/categories'
+import { HowItWorks } from '@/features/marketing'
+import categories from '@/features/categories/constants/categories'
 
 export default function QuizCategories() {
   const [searchTerm, setSearchTerm] = useState('')

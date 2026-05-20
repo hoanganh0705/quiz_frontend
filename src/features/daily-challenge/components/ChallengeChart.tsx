@@ -11,7 +11,7 @@ import {
   ChartTooltipContent
 } from '@/components/ui/chart'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts'
-import { performanceData } from '@/constants/performanceData'
+import { performanceData } from '@/features/daily-challenge/constants/performanceData'
 import ChallengePieChart from './ChallengePieChart'
 
 const chartConfig = {

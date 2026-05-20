@@ -3,15 +3,15 @@
 import { useMemo, useState, useCallback } from 'react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import FeaturedQuiz from '@/components/FeaturedQuiz'
-import { categories } from '@/constants/categories'
-import { quizzes } from '@/constants/mockQuizzes'
+import FeaturedQuiz from '@/features/quizzes/components/FeaturedQuiz'
+import { categories } from '@/features/categories/constants/categories'
+import { quizzes } from '@/features/quizzes/constants/mockQuizzes'
 import { MainContent } from '@/features/quizzes'
 import { Swiper, SwiperSlide } from 'swiper/react'
 import { FreeMode } from 'swiper/modules'
-import { useLocalStorage } from '@/hooks'
+import { useLocalStorage } from '@/shared/hooks'
 import { Search } from 'lucide-react'
-import { useAppLanguage } from '@/hooks/use-app-language'
+import { useAppLanguage } from '@/shared/hooks/use-app-language'
 
 export default function QuizPlatform() {
   const { t } = useAppLanguage()

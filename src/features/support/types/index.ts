@@ -4,3 +4,5 @@ export interface SupportTicket {
   message: string
   email?: string
 }
+
+export type { Article, ArticleIconName } from './articles'

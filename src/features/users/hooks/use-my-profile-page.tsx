@@ -1,10 +1,10 @@
 'use client'
 
 import { useState } from 'react'
-import { getActivityIcon } from '@/lib/activityIcon'
-import type { Player } from '@/types/players'
+import { getActivityIcon } from '@/features/users/lib/activityIcon'
+import type { Player } from '@/features/users/types'
 import { useUser } from '@/features/users/store/user-store'
-import { challengeData } from '@/constants/challengeHistoryData'
+import { challengeData } from '@/features/daily-challenge/constants/challengeHistoryData'
 
 function calculateStats() {
   const averageScore =

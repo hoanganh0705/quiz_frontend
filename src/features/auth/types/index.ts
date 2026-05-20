@@ -45,3 +45,30 @@ export type RefreshTokenResponse = {
 export type VerifyEmailResponse = {
   message: string
 }
+
+export type ForgotPasswordRequest = {
+  email: string
+}
+
+export type ForgotPasswordResponse = {
+  message: string
+}
+
+export type ResetPasswordRequest = {
+  token: string
+  password: string
+}
+
+export type ResetPasswordResponse = {
+  message: string
+}
+
+export type SocialProvider = 'google' | 'facebook' | 'github'
+
+export type SocialAuthRequest = {
+  provider: SocialProvider
+}
+
+export type SocialAuthResponse = {
+  url: string
+}

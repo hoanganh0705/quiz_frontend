@@ -11,7 +11,7 @@ import {
   SelectValue
 } from '@/components/ui/select'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { difficultyColors } from '@/constants/difficultyColor'
+import { difficultyColors } from '@/features/quizzes/constants/difficultyColor'
 import {
   CalendarDays,
   Users,
@@ -25,8 +25,8 @@ import {
 } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { Tournament } from '@/types/tournament'
-import { useTournamentPage } from '@/hooks/use-tournament-page'
+import { Tournament } from '@/features/tournaments/types'
+import { useTournamentPage } from '@/features/tournaments/hooks'
 
 const FeaturedTournament = memo(function FeaturedTournament() {
   return (

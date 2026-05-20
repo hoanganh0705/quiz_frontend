@@ -11,8 +11,8 @@ import {
   CardHeader,
   CardTitle
 } from '@/components/ui/card'
-import { UserSettings } from '@/types/settings'
-import { defaultSettings } from '@/constants/settings'
+import { UserSettings } from '@/features/users/types'
+import { defaultSettings } from '@/features/users/constants/settings'
 import {
   Bell,
   Mail,

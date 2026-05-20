@@ -9,7 +9,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { resendVerificationEmail } from '@/features/auth/api/auth'
-import { useAsyncAction } from '@/hooks'
+import { useAsyncAction } from '@/shared/hooks'
 
 const schema = z.object({
   email: z.email('Please enter a valid email address')

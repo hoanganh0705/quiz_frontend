@@ -17,8 +17,8 @@ import {
   SelectValue
 } from '@/components/ui/select'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
-import { UserSettings } from '@/types/settings'
-import { languages, timezones, dateFormats } from '@/constants/settings'
+import { UserSettings } from '@/features/users/types'
+import { languages, timezones, dateFormats } from '@/features/users/constants/settings'
 import { Globe, Clock, Calendar, Check } from 'lucide-react'
 
 interface LanguageSettingsProps {

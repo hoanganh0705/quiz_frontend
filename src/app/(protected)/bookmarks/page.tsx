@@ -19,7 +19,7 @@ import {
   CollectionDialog,
   EmptyBookmarks
 } from '@/features/bookmarks'
-import { useBookmarksPage } from '@/hooks/use-bookmarks-page'
+import { useBookmarksPage } from '@/features/bookmarks/hooks'
 import { Bookmark, FolderPlus, Grid3X3, List, Layers } from 'lucide-react'
 
 export default function BookmarksPage() {

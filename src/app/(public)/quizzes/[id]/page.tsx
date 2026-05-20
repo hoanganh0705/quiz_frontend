@@ -1,7 +1,7 @@
-import { QuizDetail } from '@/features/quiz-page'
-import { quizzes } from '@/constants/mockQuizzes'
+import { QuizDetail } from '@/features/quizzes/components/QuizPlayer'
+import { quizzes } from '@/features/quizzes/constants/mockQuizzes'
 import Link from 'next/link'
-import { buildMetadata } from '@/lib/seo'
+import { buildMetadata } from '@/shared/lib/seo'
 
 export async function generateMetadata({
   params

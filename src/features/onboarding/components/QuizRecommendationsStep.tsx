@@ -4,9 +4,9 @@ import { useMemo, memo } from 'react'
 // Fix barrel imports (bundle-barrel-imports)
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { quizzes } from '@/constants/mockQuizzes'
-import { categories } from '@/constants/categories'
-import { difficultyColors } from '@/constants/difficultyColor'
+import { quizzes } from '@/features/quizzes/constants/mockQuizzes'
+import { categories } from '@/features/categories/constants/categories'
+import { difficultyColors } from '@/features/quizzes/constants/difficultyColor'
 import {
   ArrowLeft,
   PartyPopper,

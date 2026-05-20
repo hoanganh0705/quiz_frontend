@@ -18,7 +18,9 @@ import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { useAsyncAction } from '@/hooks'
+import { useAsyncAction } from '@/shared/hooks'
+import { submitContactForm } from '@/features/support/api/support'
+import type { ContactCategory } from '@/features/support/api/support'
 
 // Validation schema
 const contactFormSchema = z.object({
@@ -42,6 +44,7 @@ type ContactFormData = z.infer<typeof contactFormSchema>
 
 export function ContactForm() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const [submitSuccess, setSubmitSuccess] = useState(false)
 
   const {
     register,
@@ -72,12 +75,21 @@ export function ContactForm() {
   }
 
   const { execute: onSubmit, isLoading: isSubmitting } = useAsyncAction(
-    async () => {
-      // TODO: Implement actual contact form submission API call
-      await new Promise((resolve) => setTimeout(resolve, 1500))
+    async (data: ContactFormData) => {
+      await submitContactForm({
+        name: data.name,
+        email: data.email,
+        subject: data.subject,
+        category: data.category as ContactCategory,
+        message: data.message
+      })
 
+      setSubmitSuccess(true)
       reset()
       setSelectedFile(null)
+
+      // Reset success message after 5 seconds
+      setTimeout(() => setSubmitSuccess(false), 5000)
     }
   )
 
@@ -266,6 +278,13 @@ export function ContactForm() {
         </div>
 
         {/* Submit button */}
+        {submitSuccess && (
+          <div className='p-4 bg-green-500/10 border border-green-500/20 rounded-lg'>
+            <p className='text-green-600 dark:text-green-400 text-sm font-medium'>
+              Your message has been submitted successfully. We&apos;ll get back to you soon.
+            </p>
+          </div>
+        )}
         <Button
           type='submit'
           disabled={isSubmitting}

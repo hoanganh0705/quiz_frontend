@@ -8,7 +8,8 @@ import Link from 'next/link'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { useAsyncAction } from '@/hooks'
+import { useAsyncAction } from '@/shared/hooks'
+import { forgotPassword } from '@/features/auth/api/auth'
 
 // Hoist schema outside component (data-hoisting)
 const forgotPasswordSchema = z.object({
@@ -32,15 +33,17 @@ const ForgotPasswordPage = memo(function ForgotPasswordPage() {
     }
   })
 
-  const { execute: onSubmit, isLoading } = useAsyncAction(async () => {
-    // TODO: Implement actual password reset API call
-    await new Promise((resolve) => setTimeout(resolve, 1500))
+  const { execute: onSubmit, isLoading } = useAsyncAction(async (data: ForgotPasswordFormData) => {
+    await forgotPassword({ email: data.email })
     setIsEmailSent(true)
   })
 
   const { execute: handleResendEmail, isLoading: isResending } = useAsyncAction(
     async () => {
-      await new Promise((resolve) => setTimeout(resolve, 1500))
+      const email = getValues('email')
+      if (email) {
+        await forgotPassword({ email })
+      }
     }
   )
 

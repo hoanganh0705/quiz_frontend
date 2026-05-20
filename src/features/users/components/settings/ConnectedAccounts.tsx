@@ -17,7 +17,7 @@ import {
   DialogHeader,
   DialogTitle
 } from '@/components/ui/dialog'
-import { UserSettings, ConnectedAccount } from '@/types/settings'
+import { UserSettings, ConnectedAccount } from '@/features/users/types'
 import { Link2, Check, X, ExternalLink } from 'lucide-react'
 
 interface ConnectedAccountsProps {

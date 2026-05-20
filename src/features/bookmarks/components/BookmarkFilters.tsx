@@ -8,7 +8,7 @@ import { SelectItem } from '@/components/ui/select'
 import { SelectTrigger } from '@/components/ui/select'
 import { SelectValue } from '@/components/ui/select'
 import { Input } from '@/components/ui/input'
-import type { BookmarkFilter, BookmarkSortOption } from '@/types/bookmarks'
+import type { BookmarkFilter, BookmarkSortOption } from '@/features/bookmarks/types'
 import { Search, SlidersHorizontal } from 'lucide-react'
 
 // Hoist static data outside component

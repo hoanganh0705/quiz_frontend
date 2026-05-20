@@ -6,8 +6,8 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { OnboardingProfile } from '@/types/onboarding'
-import { cn } from '@/lib/utils'
+import { OnboardingProfile } from '@/features/onboarding/types'
+import { cn } from '@/shared/lib/utils'
 import { ArrowLeft, ArrowRight, User } from 'lucide-react'
 
 interface ProfileSetupStepProps {

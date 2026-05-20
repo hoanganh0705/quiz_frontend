@@ -2,8 +2,8 @@
 
 import { memo, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
-import { categories } from '@/constants/categories'
-import { cn } from '@/lib/utils'
+import { categories } from '@/features/categories/constants/categories'
+import { cn } from '@/shared/lib/utils'
 import { ArrowLeft, ArrowRight, Check } from 'lucide-react'
 
 interface InterestSelectionStepProps {

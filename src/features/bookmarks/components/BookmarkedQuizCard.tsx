@@ -4,7 +4,7 @@ import { memo } from 'react'
 import Image from 'next/image'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { difficultyColors } from '@/constants/difficultyColor'
+import { difficultyColors } from '@/features/quizzes/constants/difficultyColor'
 import { DropdownMenu } from '@/components/ui/dropdown-menu'
 import { DropdownMenuContent } from '@/components/ui/dropdown-menu'
 import { DropdownMenuItem } from '@/components/ui/dropdown-menu'
@@ -20,8 +20,8 @@ import {
   Users
 } from 'lucide-react'
 import Link from 'next/link'
-import type { Quiz } from '@/types/quiz'
-import type { BookmarkedQuiz, BookmarkCollection } from '@/types/bookmarks'
+import type { Quiz } from '@/features/quizzes/types'
+import type { BookmarkedQuiz, BookmarkCollection } from '@/features/bookmarks/types'
 import { formatDistanceToNow } from 'date-fns'
 
 interface BookmarkedQuizCardProps {

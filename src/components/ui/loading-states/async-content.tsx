@@ -3,7 +3,7 @@
 import { ReactNode } from 'react'
 import { LoadingSpinner } from './loading-spinner'
 import { ErrorState } from './error-state'
-import { cn } from '@/lib/utils'
+import { cn } from '@/shared/lib/utils'
 
 interface AsyncContentProps {
   isLoading: boolean

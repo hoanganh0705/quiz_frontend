@@ -4,11 +4,17 @@ import type {
   LoginRequest,
   VerifyEmailRequest,
   ResendVerificationRequest,
+  ForgotPasswordRequest,
+  ResetPasswordRequest,
+  SocialProvider,
   LoginResponse,
   RegisterResponse,
   LogoutResponse,
   RefreshTokenResponse,
-  VerifyEmailResponse
+  VerifyEmailResponse,
+  ForgotPasswordResponse,
+  ResetPasswordResponse,
+  SocialAuthResponse
 } from '@/features/auth/types'
 
 export async function registerUser(payload: RegisterRequest) {
@@ -45,6 +51,30 @@ export async function resendVerificationEmail(payload: ResendVerificationRequest
   const response = await apiClient.post<VerifyEmailResponse>(
     '/auth/resend-verification-email',
     payload
+  )
+  return response.data
+}
+
+export async function forgotPassword(payload: ForgotPasswordRequest) {
+  const response = await apiClient.post<ForgotPasswordResponse>(
+    '/auth/forgot-password',
+    payload
+  )
+  return response.data
+}
+
+export async function resetPassword(payload: ResetPasswordRequest) {
+  const response = await apiClient.post<ResetPasswordResponse>(
+    '/auth/reset-password',
+    payload
+  )
+  return response.data
+}
+
+// Get social auth URL for OAuth providers
+export async function getSocialAuthUrl(provider: SocialProvider) {
+  const response = await apiClient.get<SocialAuthResponse>(
+    `/auth/social/${provider}/url`
   )
   return response.data
 }

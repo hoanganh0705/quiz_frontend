@@ -6,7 +6,7 @@ import { DropdownMenu } from '@/components/ui/dropdown-menu'
 import { DropdownMenuContent } from '@/components/ui/dropdown-menu'
 import { DropdownMenuItem } from '@/components/ui/dropdown-menu'
 import { DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
-import type { BookmarkCollection } from '@/types/bookmarks'
+import type { BookmarkCollection } from '@/features/bookmarks/types'
 import { MoreHorizontal, Pencil, Trash2, FolderOpen } from 'lucide-react'
 
 interface CollectionCardProps {

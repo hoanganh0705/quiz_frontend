@@ -4,10 +4,10 @@ import { memo, useMemo, useRef, useState, useEffect } from 'react'
 import { Label } from '@/components/ui/label'
 import { Slider } from '@/components/ui/slider'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
-import QuizCardUnified from '@/components/QuizCardUnified'
-import { quizzes } from '@/constants/mockQuizzes'
-import { categories } from '@/constants/categories'
-import type { Quiz } from '@/types/quiz'
+import { QuizCardDetail } from '@/features/quizzes/components/QuizCard'
+import { quizzes } from '@/features/quizzes/constants/mockQuizzes'
+import { categories } from '@/features/categories/constants/categories'
+import type { Quiz } from '@/features/quizzes/types'
 import { Button } from '@/components/ui/button'
 import { getTrendingScore, getPopularityScore } from '../utils'
 
@@ -259,7 +259,7 @@ const MainContent = memo(function MainContent({
             aria-label='Quiz results'
           >
             {visibleQuizzes.map((quiz) => (
-              <QuizCardUnified key={quiz.id} variant='detail' quiz={quiz} />
+              <QuizCardDetail key={quiz.id} quiz={quiz} />
             ))}
           </div>
 

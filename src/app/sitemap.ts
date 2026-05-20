@@ -1,7 +1,7 @@
 import type { MetadataRoute } from 'next'
-import { siteConfig } from '@/lib/seo'
-import { quizzes } from '@/constants/mockQuizzes'
-import { players } from '@/constants/players'
+import { siteConfig } from '@/shared/lib/seo'
+import { quizzes } from '@/features/quizzes/constants/mockQuizzes'
+import { players } from '@/features/leaderboard/constants/players'
 
 const staticRoutes = [
   '/',

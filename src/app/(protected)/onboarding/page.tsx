@@ -10,7 +10,7 @@ import {
   QuizRecommendationsStep
 } from '@/features/onboarding'
 import { Progress } from '@/components/ui/progress'
-import { OnboardingData } from '@/types/onboarding'
+import { OnboardingData } from '@/features/onboarding/types'
 
 // Hoist constant outside component (data-hoisting)
 const TOTAL_STEPS = 4

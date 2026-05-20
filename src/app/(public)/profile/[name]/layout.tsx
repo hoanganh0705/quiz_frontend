@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import type { ReactNode } from 'react'
-import { players } from '@/constants/players'
-import { buildMetadata, siteConfig } from '@/lib/seo'
+import { players } from '@/features/leaderboard/constants/players'
+import { buildMetadata, siteConfig } from '@/shared/lib/seo'
 
 const slugify = (value: string) =>
   value

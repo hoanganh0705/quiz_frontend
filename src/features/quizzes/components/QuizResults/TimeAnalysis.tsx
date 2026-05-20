@@ -1,0 +1,61 @@
+import { Progress } from '@/components/ui/progress'
+import { Clock, CheckCircle2, XCircle } from 'lucide-react'
+import { TimeAnalysisProps, TimeAnalysisItemProps } from '@/features/quizzes/types'
+
+export default function TimeAnalysis({
+  questionReviews,
+  avgTimePerQuestion
+}: TimeAnalysisProps) {
+  return (
+    <div className='mb-8 py-6'>
+      <div className='px-6 pb-4'>
+        <h3 className='flex items-center gap-2 text-lg font-semibold'>
+          <Clock className='w-5 h-5' aria-hidden='true' />
+          Time Analysis
+        </h3>
+      </div>
+      <div className='px-6'>
+        <div className='space-y-4'>
+          {questionReviews.map((review, index) => (
+            <TimeAnalysisItem key={index} review={review} index={index} />
+          ))}
+        </div>
+        <div className='mt-6 pt-4 border-t border-foreground/10 flex justify-between text-sm'>
+          <span className='text-foreground/70'>Average time per question:</span>
+          <span
+            className='font-medium'
+            style={{ fontVariantNumeric: 'tabular-nums' }}
+          >
+            {avgTimePerQuestion} seconds
+          </span>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function TimeAnalysisItem({ review, index }: TimeAnalysisItemProps) {
+  return (
+    <div className='flex items-center gap-4'>
+      <span className='w-8 text-sm text-foreground/70'>Q{index + 1}</span>
+      <div className='flex-1'>
+        <Progress
+          value={(review.timeTaken / 60) * 100}
+          className={`h-3 ${review.isCorrect ? '[&>div]:bg-green-500' : '[&>div]:bg-red-500'}`}
+          aria-label={`Question ${index + 1}: ${review.timeTaken} seconds, ${review.isCorrect ? 'correct' : 'incorrect'}`}
+        />
+      </div>
+      <span
+        className='w-12 text-sm text-right'
+        style={{ fontVariantNumeric: 'tabular-nums' }}
+      >
+        {review.timeTaken}s
+      </span>
+      {review.isCorrect ? (
+        <CheckCircle2 className='w-5 h-5 text-green-500' aria-hidden='true' />
+      ) : (
+        <XCircle className='w-5 h-5 text-red-500' aria-hidden='true' />
+      )}
+    </div>
+  )
+}

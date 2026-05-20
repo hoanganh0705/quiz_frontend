@@ -1,5 +1,5 @@
-import { QuizResults } from '@/features/quiz-page'
-import { quizzes } from '@/constants/mockQuizzes'
+import { QuizResults } from '@/features/quizzes/components/QuizPlayer'
+import { quizzes } from '@/features/quizzes/constants/mockQuizzes'
 import Link from 'next/link'
 
 export default async function QuizResultsPage({

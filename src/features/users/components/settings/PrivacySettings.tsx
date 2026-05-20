@@ -17,7 +17,7 @@ import {
   SelectTrigger,
   SelectValue
 } from '@/components/ui/select'
-import { UserSettings } from '@/types/settings'
+import { UserSettings } from '@/features/users/types'
 import {
   Shield,
   Eye,
