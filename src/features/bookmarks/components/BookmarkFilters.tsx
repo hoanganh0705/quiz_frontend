@@ -1,8 +1,7 @@
 'use client'
 
-import { memo } from 'react' // rerender-memo
+import { memo } from 'react'
 import { Button } from '@/components/ui/button'
-// Fix barrel imports (bundle-barrel-imports)
 import { Select } from '@/components/ui/select'
 import { SelectContent } from '@/components/ui/select'
 import { SelectItem } from '@/components/ui/select'
@@ -12,7 +11,7 @@ import { Input } from '@/components/ui/input'
 import type { BookmarkFilter, BookmarkSortOption } from '@/types/bookmarks'
 import { Search, SlidersHorizontal } from 'lucide-react'
 
-// Hoist static data outside component (rendering-hoist-jsx)
+// Hoist static data outside component
 const FILTERS: { value: BookmarkFilter; label: string }[] = [
   { value: 'all', label: 'All Bookmarks' },
   { value: 'recent', label: 'Recently Added' },
@@ -38,7 +37,7 @@ interface BookmarkFiltersProps {
   onSortChange: (value: BookmarkSortOption) => void
 }
 
-// Use memo to prevent unnecessary re-renders (rerender-memo)
+// Use memo to prevent unnecessary re-renders
 const BookmarkFilters = memo(function BookmarkFilters({
   searchQuery,
   onSearchChange,

@@ -1,6 +1,7 @@
+// Bookmarks components - public API surface
+export { default as BookmarkButton } from './BookmarkButton'
 export { default as BookmarkedQuizCard } from './BookmarkedQuizCard'
 export { default as BookmarkFilters } from './BookmarkFilters'
 export { default as CollectionCard } from './CollectionCard'
 export { default as CollectionDialog } from './CollectionDialog'
 export { default as EmptyBookmarks } from './EmptyBookmarks'
-export { default as BookmarkButton } from './BookmarkButton'

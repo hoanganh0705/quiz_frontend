@@ -2,7 +2,6 @@
 
 import { useState, useEffect, memo } from 'react'
 import { Clock, Calendar, Trophy, Flame } from 'lucide-react'
-// Fix barrel imports (bundle-barrel-imports)
 import { Card } from '@/components/ui/card'
 import { CardContent } from '@/components/ui/card'
 
@@ -36,10 +35,10 @@ const InfoCard = memo(function InfoCard() {
       )
     }
 
-    updateTimer() // Initial call
+    updateTimer()
     const interval: NodeJS.Timeout = setInterval(updateTimer, 1000)
 
-    return () => clearInterval(interval) // Cleanup on unmount
+    return () => clearInterval(interval)
   }, [])
 
   return (
@@ -69,7 +68,7 @@ const InfoCard = memo(function InfoCard() {
             <Calendar className='h-5 w-5 text-blue-700' />
           </div>
           <div>
-            <p className='text-sm text-blue-600 font-medium'>Today’s Theme</p>
+            <p className='text-sm text-blue-600 font-medium'>Today's Theme</p>
             <p className='text-lg font-bold text-blue-900'>
               Science & Technology
             </p>

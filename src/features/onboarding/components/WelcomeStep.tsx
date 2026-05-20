@@ -8,7 +8,7 @@ interface WelcomeStepProps {
   onNext: () => void
 }
 
-// Hoist features data outside component (data-hoisting)
+// Hoist features data outside component
 const features = [
   {
     icon: Brain,

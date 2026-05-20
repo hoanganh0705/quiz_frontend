@@ -10,7 +10,6 @@ import {
   ChevronLeft,
   Star
 } from 'lucide-react'
-// Fix barrel imports (bundle-barrel-imports)
 import { Card } from '@/components/ui/card'
 import { CardContent } from '@/components/ui/card'
 import { CardHeader } from '@/components/ui/card'
@@ -34,7 +33,6 @@ import Image from 'next/image'
 import { useUser } from '@/features/users/store/user-store'
 import { Gem, Medal } from 'lucide-react'
 
-// Hoist static data (data-hoisting)
 const badgeIcons: Record<string, React.ReactNode> = {
   Diamond: <Gem className='text-cyan-400 w-5 h-5' />,
   Platinum: <Gem className='text-slate-300 w-5 h-5' />,
@@ -75,13 +73,12 @@ const MainContent = memo(function MainContent() {
       seconds--
     }
 
-    updateTimer() // Update immediately on selection
+    updateTimer()
     const interval = setInterval(updateTimer, 1000)
 
     return () => clearInterval(interval)
-  }, [isTimerActive, selectedAnswer]) // Depend on isTimerActive and selectedAnswer
+  }, [isTimerActive, selectedAnswer])
 
-  // Start the timer when an answer is selected
   useEffect(() => {
     if (selectedAnswer !== '') {
       setIsTimerActive(true)

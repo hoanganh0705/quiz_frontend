@@ -18,6 +18,7 @@ import {
 import { useBookmarks } from '@/hooks/use-bookmarks'
 import { Bookmark, ChevronDown, Check } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import type { BookmarkCollection } from '@/types/bookmarks'
 
 interface BookmarkButtonProps {
   quizId: string
@@ -167,7 +168,7 @@ export default function BookmarkButton({
               </DropdownMenuItem>
 
               {/* Collections */}
-              {collections.map((collection) => (
+              {collections.map((collection: BookmarkCollection) => (
                 <DropdownMenuItem
                   key={collection.id}
                   onClick={() => moveToCollection(quizId, collection.id)}
