@@ -18,9 +18,7 @@ import {
   AlertDialogTrigger
 } from '@/components/ui/alert-dialog'
 import { Plus, Eye, Trash2, Save, Upload, Copy, Pencil } from 'lucide-react'
-import QuizDetailsTab from '@/components/create-quiz/QuizDetailsTab'
-import QuestionsTab from '@/components/create-quiz/QuestionsTab'
-import SettingsTab from '@/components/create-quiz/SettingsTab'
+import { QuestionsTab, QuizDetailsTab, SettingsTab } from '@/features/create-quiz'
 import { useLocalStorage } from '@/hooks'
 
 interface QuizEditorState {

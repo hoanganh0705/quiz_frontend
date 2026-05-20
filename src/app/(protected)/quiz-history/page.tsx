@@ -22,7 +22,7 @@ import {
   HistoryHeader,
   HistoryStatsDashboard,
   HistoryTimeline
-} from '@/components/quiz-history'
+} from '@/features/quiz-history'
 
 // ── Default filter state ───────────────────────────────────────────────────
 

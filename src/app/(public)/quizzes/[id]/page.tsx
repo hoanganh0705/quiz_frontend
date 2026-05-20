@@ -1,4 +1,4 @@
-import QuizDetail from '@/components/quiz-page/QuizDetail'
+import { QuizDetail } from '@/features/quiz-page'
 import { quizzes } from '@/constants/mockQuizzes'
 import Link from 'next/link'
 import { buildMetadata } from '@/lib/seo'

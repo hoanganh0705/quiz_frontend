@@ -1,4 +1,4 @@
-import { SupportCenter } from '@/components/support'
+import { SupportCenter } from '@/features/support'
 
 export default function Support() {
   return (

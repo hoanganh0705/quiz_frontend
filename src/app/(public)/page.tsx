@@ -8,9 +8,7 @@ import FeaturedQuiz from '@/components/FeaturedQuiz'
 import LiveWinners from '@/components/LiveWinner'
 import HowItWorks from '@/components/HowItWorks'
 import SuccessStoriesCarousel from '@/components/SuccessStoryCarousel'
-import PlayerRanking from '@/components/homepage/PlayerRanking'
-import QuizCardDifficultyList from '@/components/homepage/QuizCardDifficultyList'
-import RecentlyPlayedSection from '@/components/homepage/RecentlyPlayedSection'
+import { PlayerRanking, QuizCardDifficultyList, RecentlyPlayedSection } from '@/features/homepage'
 import { quizzes } from '@/constants/mockQuizzes'
 
 export const metadata = buildMetadata({
