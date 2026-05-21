@@ -11,7 +11,7 @@ import {
   SelectValue
 } from '@/components/ui/Select'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/Tabs'
-import { difficulty-colors } from '@/features/quizzes/constants/difficulty-color'
+import { difficultyColors } from '@/features/quizzes/constants/difficulty-color'
 import {
   CalendarDays,
   Users,
@@ -153,7 +153,7 @@ const TournamentCard = memo(function TournamentCard({
           loading='lazy'
         />
         <div className='absolute top-3 left-3'>
-          <Badge className={`${difficulty-colors[tournament.difficulty].bg}`}>
+          <Badge className={`${difficultyColors[tournament.difficulty].bg}`}>
             {tournament.difficulty}
           </Badge>
         </div>

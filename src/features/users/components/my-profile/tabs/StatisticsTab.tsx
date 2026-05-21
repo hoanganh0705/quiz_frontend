@@ -18,14 +18,14 @@ interface StatisticsTabProps {
   user: Player
   averageScore: number
   winRate: number
-  quiz-history: QuizEntry[]
+  quizHistory: QuizEntry[]
 }
 
 export const StatisticsTab = memo(function StatisticsTab({
   user,
   averageScore,
   winRate,
-  quiz-history
+  quizHistory
 }: StatisticsTabProps) {
   return (
     <div className='mt-6'>
@@ -110,7 +110,7 @@ export const StatisticsTab = memo(function StatisticsTab({
           <CardTitle className='text-base'>Category Performance</CardTitle>
         </CardHeader>
         <CardContent className='space-y-4'>
-          {quiz-history.slice(0, 4).map((quiz) => (
+          {quizHistory.slice(0, 4).map((quiz) => (
             <div key={quiz.id} className='space-y-2'>
               <div className='flex justify-between text-sm'>
                 <span className='text-foreground'>{quiz.category}</span>

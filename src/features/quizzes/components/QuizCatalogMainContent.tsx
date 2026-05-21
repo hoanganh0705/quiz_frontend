@@ -93,7 +93,7 @@ const QuizCatalogMainContent = memo(function QuizCatalogMainContent({
     maxDuration,
     minRating,
     searchQuery,
-    selectedCategoryName,
+    categorySlug,
     sortBy
   ])
 

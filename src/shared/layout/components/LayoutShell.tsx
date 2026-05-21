@@ -11,14 +11,14 @@ import { ShortcutsHelpModal } from '@/shared/ui'
 import { AppBreadcrumbs } from '@/shared/layout/components/AppBreadcrumbs'
 import { GuestAccessBanner } from '@/features/auth/components/GuestAccessBanner'
 import { useAuthState } from '@/features/auth/hooks'
-import { useUser, useUserActions, useUserStatus } from '@/features/users/store/user-store'
+import { useUser, useIsUserLoading, useFetchCurrentUser, useUserStore } from '@/features/users/store/user-store'
 
 export function LayoutShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const { isAuthenticated } = useAuthState()
   const user = useUser()
-  const { isLoading: isUserLoading } = useUserStatus()
-  const { fetchCurrentUser } = useUserActions()
+  const isUserLoading = useIsUserLoading()
+  const fetchCurrentUser = useFetchCurrentUser()
   const isAuthPage =
     pathname?.startsWith('/login') ||
     pathname?.startsWith('/signup') ||
@@ -37,6 +37,13 @@ export function LayoutShell({ children }: { children: React.ReactNode }) {
   const isProtectedPage = protectedPrefixes.some((prefix) =>
     pathname?.startsWith(prefix)
   )
+
+  // Rehydrate persist store from localStorage on client mount.
+  // Required because skipHydration: true is set in the store to avoid
+  // the Next.js SSR getServerSnapshot infinite-loop warning.
+  useEffect(() => {
+    useUserStore.persist.rehydrate()
+  }, [])
 
   useEffect(() => {
     if (!isAuthenticated) return

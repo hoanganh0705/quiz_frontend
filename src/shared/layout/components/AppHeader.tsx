@@ -1,9 +1,17 @@
 'use client'
 
-import { useMemo, useEffect, useState } from 'react'
-import { Search, MessageSquare } from 'lucide-react'
+import { useMemo, useEffect, useState, useSyncExternalStore } from 'react'
+import { ChevronDown, LogOut, Search, Settings, User as UserIcon, MessageSquare } from 'lucide-react'
 import { Input } from '@/components/ui/Input'
-import { Avatar, AvatarFallback } from '@/components/ui/Avatar'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/Avatar'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/DropdownMenu'
 import { ModeToggle } from '@/shared/layout/components/ModeToggle'
 import { SidebarTrigger, useSidebar } from '@/components/ui/Sidebar'
 import { NotificationDropdown } from '@/features/notifications/components/NotificationDropdown'
@@ -14,8 +22,18 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/Button'
 import { logout } from '@/features/auth/api/auth'
 import { useRouter } from 'next/navigation'
-import { useUser, useUserActions } from '@/features/users/store/user-store'
+import { useUser, useClearUser } from '@/features/users/store/user-store'
 import { getUnreadCount } from '@/features/notifications/api'
+
+// Detect Mac only on the client (navigator is undefined on the server).
+// useSyncExternalStore keeps the server snapshot stable and avoids hydration mismatches.
+function useIsMac() {
+  return useSyncExternalStore(
+    () => () => {},
+    () => /Mac|iPod|iPhone|iPad/.test(navigator.platform),
+    () => false
+  )
+}
 
 function MessagesButton() {
   const [unreadCount, setUnreadCount] = useState(0)
@@ -62,7 +80,8 @@ export function AppHeader() {
   const { isAuthenticated, setAuthenticated } = useAuthState()
   const router = useRouter()
   const user = useUser()
-  const { clearUser } = useUserActions()
+  const clearUser = useClearUser()
+  const isMac = useIsMac()
 
   const avatarLabel = useMemo(() => {
     const value = user?.displayName || user?.username || user?.email || 'User'
@@ -70,6 +89,13 @@ export function AppHeader() {
     if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase()
     return `${parts[0][0] ?? ''}${parts[1][0] ?? ''}`.toUpperCase()
   }, [user])
+
+  const userDisplayName = useMemo(() => {
+    return user?.displayName || user?.username || user?.email || 'Account'
+  }, [user])
+
+  const userEmail = user?.email
+  const userAvatarUrl = user?.avatarUrl
 
   const { execute: handleLogout, isLoading: isLoggingOut } = useAsyncAction(
     async () => {
@@ -91,6 +117,20 @@ export function AppHeader() {
         : state === 'expanded'
           ? '16rem'
           : '3rem'
+
+  // Auth state is undefined until after mount (useAuthState uses useState(undefined)).
+  // Return a matching placeholder to avoid hydration mismatch and prevent layout shift.
+  if (isAuthenticated === undefined) {
+    return (
+      <header
+        className='fixed top-0 z-50 h-16 flex items-center
+                   bg-background border-b border-border px-2 sm:px-4
+                   transition-all duration-300'
+        style={{ left: sidebarWidth, right: 0 }}
+        aria-hidden='true'
+      />
+    )
+  }
 
   return (
     <header
@@ -127,10 +167,7 @@ export function AppHeader() {
             readOnly
           />
           <kbd className='absolute right-3 top-1/2 -translate-y-1/2 hidden md:inline-flex items-center gap-0.5 rounded border border-border bg-muted px-1.5 py-0.5 text-[10px] font-medium text-foreground/50'>
-            {typeof navigator !== 'undefined' &&
-            /Mac|iPod|iPhone|iPad/.test(navigator.platform)
-              ? '⌘K'
-              : 'Ctrl+K'}
+            {isMac ? '⌘K' : 'Ctrl+K'}
           </kbd>
         </div>
       </div>
@@ -139,9 +176,7 @@ export function AppHeader() {
 
       <div className='flex items-center gap-2 sm:gap-2 md:gap-3 shrink-0'>
         <MessagesButton />
-
         <NotificationDropdown />
-
         <div>
           <ModeToggle />
         </div>
@@ -156,23 +191,83 @@ export function AppHeader() {
         </div>
 
         {isAuthenticated ? (
-          <div className='flex items-center gap-2'>
-            <Button
-              size='sm'
-              variant='outline'
-              onClick={handleLogout}
-              disabled={isLoggingOut}
-            >
-              {isLoggingOut ? 'Signing out…' : 'Logout'}
-            </Button>
-            <Avatar className='h-7 w-7 sm:h-8 sm:w-8 shrink-0'>
-              <AvatarFallback className='bg-background text-background text-xs'>
-                {avatarLabel}
-              </AvatarFallback>
-            </Avatar>
-          </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant='ghost'
+                className='flex items-center gap-2 rounded-full px-2 py-1.5 hover:bg-muted/70'
+                aria-label='Open user menu'
+              >
+                <Avatar className='h-7 w-7 sm:h-8 sm:w-8 shrink-0'>
+                  {userAvatarUrl ? (
+                    <AvatarImage src={userAvatarUrl} alt={userDisplayName} />
+                  ) : null}
+                  <AvatarFallback className='bg-default text-white-primary text-xs'>
+                    {avatarLabel}
+                  </AvatarFallback>
+                </Avatar>
+                <ChevronDown className='h-3.5 w-3.5 text-foreground/60' />
+              </Button>
+            </DropdownMenuTrigger>
+
+            <DropdownMenuContent align='end' className='w-64'>
+              <DropdownMenuLabel className='space-y-1'>
+                <div className='flex items-center gap-3'>
+                  <Avatar className='h-9 w-9 shrink-0'>
+                    {userAvatarUrl ? (
+                      <AvatarImage src={userAvatarUrl} alt={userDisplayName} />
+                    ) : null}
+                    <AvatarFallback className='bg-default text-white-primary text-xs'>
+                      {avatarLabel}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className='min-w-0'>
+                    <p className='truncate text-sm font-semibold text-foreground'>
+                      {userDisplayName}
+                    </p>
+                    {userEmail ? (
+                      <p className='truncate text-xs text-muted-foreground'>
+                        {userEmail}
+                      </p>
+                    ) : null}
+                  </div>
+                </div>
+              </DropdownMenuLabel>
+
+              <DropdownMenuSeparator />
+
+              <DropdownMenuItem asChild>
+                <Link href='/my-profile' className='flex items-center gap-2'>
+                  <UserIcon className='h-4 w-4' />
+                  <span>My profile</span>
+                </Link>
+              </DropdownMenuItem>
+
+              <DropdownMenuItem asChild>
+                <Link href='/settings' className='flex items-center gap-2'>
+                  <Settings className='h-4 w-4' />
+                  <span>Settings</span>
+                </Link>
+              </DropdownMenuItem>
+
+              <DropdownMenuSeparator />
+
+              <DropdownMenuItem
+                variant='destructive'
+                className='flex items-center gap-2'
+                onSelect={(event) => {
+                  event.preventDefault()
+                  void handleLogout()
+                }}
+                disabled={isLoggingOut}
+              >
+                <LogOut className='h-4 w-4' />
+                <span>{isLoggingOut ? 'Signing out…' : 'Logout'}</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         ) : (
-          <Button asChild size='sm' className='rounded-full'>
+          <Button asChild size='sm' className='rounded-full px-4'>
             <Link href='/login'>Sign in</Link>
           </Button>
         )}

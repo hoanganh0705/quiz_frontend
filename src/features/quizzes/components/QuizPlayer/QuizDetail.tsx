@@ -15,12 +15,12 @@ import { Badge } from '@/components/ui/Badge'
 import { Progress } from '@/components/ui/Progress'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/Tabs'
 import { Quiz } from '@/features/quizzes/types'
-import { difficulty-colors } from '@/features/quizzes/constants/difficulty-color'
+import { difficultyColors } from '@/features/quizzes/constants/difficulty-color'
 import QuizOverviewPanel from '@/features/quizzes/components/QuizDetail/QuizOverviewPanel'
 import Leaderboard from '@/features/quizzes/components/QuizDetail/Leaderboard'
 import Reviews from '@/features/quizzes/components/QuizDetail/Reviews'
 import { Card, CardContent } from '@/components/ui/Card'
-import { format-duration } from '@/features/quizzes/lib/format-duration'
+import { formatDuration } from '@/features/quizzes/lib/format-duration'
 import { ShareModal } from '@/shared/ui'
 
 interface QuizDetailProps {
@@ -64,11 +64,11 @@ export default function QuizDetail({ quiz }: QuizDetailProps) {
         {/* Quiz Info Overlay */}
         <div className='absolute bottom-0 left-0 p-6 text-white'>
           <div className='flex gap-2 mb-4'>
-            <Badge
+              <Badge
               className={`${
-                difficulty-colors[quiz.difficulty].bg || 'bg-gray-600'
+                difficultyColors[quiz.difficulty].bg || 'bg-gray-600'
               } ${
-                difficulty-colors[quiz.difficulty]?.hover || 'hover:bg-gray-500'
+                difficultyColors[quiz.difficulty]?.hover || 'hover:bg-gray-500'
               } text-white-primary cursor-pointer`}
             >
               {quiz.difficulty}
@@ -90,7 +90,7 @@ export default function QuizDetail({ quiz }: QuizDetailProps) {
           <div className='flex items-center gap-6 text-sm'>
             <div className='flex items-center gap-1'>
               <Clock className='w-4 h-4' aria-hidden='true' />
-              <span>{format-duration(quiz.duration)}</span>
+              <span>{formatDuration(quiz.duration)}</span>
             </div>
             <div className='flex items-center gap-1'>
               <Users className='w-4 h-4' aria-hidden='true' />

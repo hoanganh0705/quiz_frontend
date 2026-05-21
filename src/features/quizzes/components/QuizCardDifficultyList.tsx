@@ -2,7 +2,7 @@
 
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
-import { difficulty-colors } from '@/features/quizzes/constants/difficulty-color'
+import { difficultyColors } from '@/features/quizzes/constants/difficulty-color'
 import { QuizCardDifficulty } from '@/features/quizzes/components/QuizCard'
 import { useState, useRef } from 'react'
 import { SwiperSlide, Swiper } from 'swiper/react'
@@ -46,8 +46,8 @@ const QuizCardDifficultyList = () => {
                 onClick={() => setSelectedDifficulty(level)}
                 className={`rounded-sm px-4 py-1 text-sm transition ${
                   selectedDifficulty === level
-                    ? `${difficulty-colors[level].bg} pointer-events-none text-white dark:text-foreground`
-                    : `bg-transparent text-foreground dark:text-foreground/70 ${difficulty-colors[level].hover}`
+                    ? `${difficultyColors[level].bg} pointer-events-none text-white dark:text-foreground`
+                    : `bg-transparent text-foreground dark:text-foreground/70 ${difficultyColors[level].hover}`
                 }`}
               >
                 {level}

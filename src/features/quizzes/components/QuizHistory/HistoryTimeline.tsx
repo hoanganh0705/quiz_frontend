@@ -81,7 +81,7 @@ const statusConfig = {
   }
 }
 
-const difficulty-color = {
+const difficultyColor: Record<string, string> = {
   Easy: 'bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/20',
   Medium:
     'bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 border-yellow-500/20',
@@ -132,7 +132,7 @@ const TimelineEntry = memo(function TimelineEntry({
               <div className='flex items-center gap-2 shrink-0'>
                 <Badge
                   variant='outline'
-                  className={difficulty-color[entry.difficulty]}
+                  className={difficultyColor[entry.difficulty]}
                 >
                   {entry.difficulty}
                 </Badge>

@@ -4,7 +4,7 @@ import { memo } from 'react'
 import Image from 'next/image'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
-import { difficulty-colors } from '@/features/quizzes/constants/difficulty-color'
+import { difficultyColors } from '@/features/quizzes/constants/difficulty-color'
 import { DropdownMenu } from '@/components/ui/DropdownMenu'
 import { DropdownMenuContent } from '@/components/ui/DropdownMenu'
 import { DropdownMenuItem } from '@/components/ui/DropdownMenu'
@@ -61,8 +61,8 @@ const BookmarkedQuizCard = memo(function BookmarkedQuizCard({
           <div className='flex justify-between items-start'>
             <Badge
               className={`${
-                difficulty-colors[
-                  quiz.difficulty as keyof typeof difficulty-colors
+                difficultyColors[
+                  quiz.difficulty as keyof typeof difficultyColors
                 ]?.bg || 'bg-gray-500'
               } text-white text-xs`}
             >

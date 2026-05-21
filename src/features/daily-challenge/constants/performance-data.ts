@@ -1,4 +1,4 @@
-export const performance-data = [
+export const performanceData = [
   { day: 'Mon', yourScore: 80, avgScore: 65 },
   { day: 'Tue', yourScore: 60, avgScore: 70 },
   { day: 'Wed', yourScore: 90, avgScore: 70 },

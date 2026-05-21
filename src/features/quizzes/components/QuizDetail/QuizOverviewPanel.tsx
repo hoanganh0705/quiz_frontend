@@ -1,9 +1,9 @@
 import { Button } from '@/components/ui/Button'
-import { format-duration } from '@/features/quizzes/lib/format-duration'
+import { formatDuration } from '@/features/quizzes/lib/format-duration'
 import { quizzes } from '@/features/quizzes/constants/mock-quizzes'
 import Image from 'next/image'
 import { Badge } from '@/components/ui/Badge'
-import { difficulty-colors } from '@/features/quizzes/constants/difficulty-color'
+import { difficultyColors } from '@/features/quizzes/constants/difficulty-color'
 import type { QuizQuestion } from '@/features/quizzes/types'
 
 const QuizOverviewPanel = ({
@@ -38,7 +38,7 @@ const QuizOverviewPanel = ({
         <p className='text-foreground/80 leading-relaxed text-[0.9rem]'>
           Completion time:{' '}
           <span style={{ fontVariantNumeric: 'tabular-nums' }}>
-            {format-duration(duration)}
+            {formatDuration(duration)}
           </span>
         </p>
       </div>
@@ -127,7 +127,7 @@ const QuizOverviewPanel = ({
               <div className='flex justify-start'>
                 <Badge
                   className={`${
-                    difficulty-colors[quiz.difficulty].bg
+                    difficultyColors[quiz.difficulty].bg
                   } text-white text-xs px-2 py-1 font-medium`}
                 >
                   {quiz.difficulty}

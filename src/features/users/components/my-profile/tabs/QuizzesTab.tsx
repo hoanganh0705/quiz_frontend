@@ -18,13 +18,13 @@ interface QuizEntry {
 interface QuizzesTabProps {
   totalQuizzes: number
   quizzesCreated: number
-  quiz-history: QuizEntry[]
+  quizHistory: QuizEntry[]
 }
 
 export const QuizzesTab = memo(function QuizzesTab({
   totalQuizzes,
   quizzesCreated,
-  quiz-history
+  quizHistory
 }: QuizzesTabProps) {
   return (
     <div className='mt-6'>
@@ -73,7 +73,7 @@ export const QuizzesTab = memo(function QuizzesTab({
         </CardHeader>
         <CardContent>
           <div className='space-y-2' role='list' aria-label='Quiz history'>
-            {quiz-history.map((quiz) => (
+            {quizHistory.map((quiz) => (
               <div
                 key={quiz.id}
                 className='flex items-center justify-between rounded-lg hover:bg-default/10 transition-colors border p-3 border-default/20'

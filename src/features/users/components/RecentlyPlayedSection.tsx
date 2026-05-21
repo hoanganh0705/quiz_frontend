@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/Badge'
 import { useLocalStorage } from '@/shared/hooks'
 import { quizzes } from '@/features/quizzes/constants/mock-quizzes'
 import { Clock } from 'lucide-react'
+import { useAuthState } from '@/features/auth/hooks/use-auth-state'
 
 interface RecentlyPlayedItem {
   quizId: string
@@ -16,6 +17,7 @@ interface RecentlyPlayedItem {
 }
 
 export default function RecentlyPlayedSection() {
+  const { isAuthenticated } = useAuthState()
   const [recentlyPlayed] = useLocalStorage<RecentlyPlayedItem[]>(
     'recently_played_quizzes_v1',
     []
@@ -37,7 +39,7 @@ export default function RecentlyPlayedSection() {
     [recentlyPlayed]
   )
 
-  if (items.length === 0) return null
+  if (!isAuthenticated || items.length === 0) return null
 
   return (
     <section className='mb-10' aria-label='Recently played quizzes'>

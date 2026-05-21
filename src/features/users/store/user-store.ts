@@ -37,20 +37,27 @@ export const useUserStore = create<UserState>()(
     {
       name: 'user_store_v1',
       storage: createJSONStorage(() => localStorage),
-      partialize: (state) => ({ user: state.user })
+      partialize: (state) => ({ user: state.user }),
+      // Required for Next.js App Router: prevents persist from reading localStorage
+      // during SSR, which makes getServerSnapshot unstable and causes an infinite loop.
+      // Rehydration is triggered manually on the client in LayoutShell.
+      skipHydration: true
     }
   )
 )
 
+// ─── Individual scalar/function selectors ────────────────────────────────────
+// Rule: NEVER return an object from a selector. Objects create a new reference
+// on every call, which breaks React's getServerSnapshot caching requirement and
+// causes an infinite loop. Primitives and function refs are stable by identity.
+
 export const useUser = () => useUserStore((state) => state.user)
-export const useUserStatus = () =>
-  useUserStore((state) => ({
-    isLoading: state.isLoading,
-    error: state.error
-  }))
-export const useUserActions = () =>
-  useUserStore((state) => ({
-    setUser: state.setUser,
-    clearUser: state.clearUser,
-    fetchCurrentUser: state.fetchCurrentUser
-  }))
+
+// Status — scalar primitives
+export const useIsUserLoading = () => useUserStore((state) => state.isLoading)
+export const useUserError = () => useUserStore((state) => state.error)
+
+// Actions — stable function references (defined once in create(), never change)
+export const useSetUser = () => useUserStore((state) => state.setUser)
+export const useClearUser = () => useUserStore((state) => state.clearUser)
+export const useFetchCurrentUser = () => useUserStore((state) => state.fetchCurrentUser)

@@ -2,7 +2,7 @@ import type { QuizHistoryEntry, QuizHistoryStats } from '@/features/quizzes/type
 
 // ── Mock Quiz History Entries ──────────────────────────────────────────────
 
-export const quiz-historyEntries: QuizHistoryEntry[] = [
+export const quizHistoryEntries: QuizHistoryEntry[] = [
   {
     id: 'qh-001',
     quizId: 'q-101',
@@ -277,7 +277,7 @@ export const quiz-historyEntries: QuizHistoryEntry[] = [
 
 // ── Mock Statistics ────────────────────────────────────────────────────────
 
-export const quiz-historyStats: QuizHistoryStats = {
+export const quizHistoryStats: QuizHistoryStats = {
   totalQuizzes: 47,
   totalCorrectAnswers: 389,
   totalQuestions: 520,

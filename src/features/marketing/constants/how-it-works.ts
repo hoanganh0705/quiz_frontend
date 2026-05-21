@@ -1,4 +1,4 @@
-export const how-it-worksData = [
+export const howItWorksData = [
   {
     id: 'browse-categories',
     imageSrc: '/step1.jpg',
