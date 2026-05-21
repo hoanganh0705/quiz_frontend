@@ -10,17 +10,17 @@ import { useRef, useState } from 'react'
 import type { Swiper as SwiperType } from 'swiper'
 
 interface CategoryCardProps {
-  id: string
+  categoryId: string
   name: string
-  count: number
+  description?: string | null
   slug: string
-  imageUrl: string
+  imageUrl?: string | null
 }
 
-function CategoryCard({ name, count, slug, imageUrl }: CategoryCardProps) {
+function CategoryCard({ name, slug, imageUrl }: CategoryCardProps) {
   return (
     <Link
-      href={`/quizzes/${slug}`}
+      href={`/quizzes?category=${encodeURIComponent(slug)}`}
       className='block w-full h-45 sm:h-50 overflow-hidden max-w-full min-w-0'
     >
       <div className='relative w-full h-full rounded-xl overflow-hidden shadow-lg transition-transform duration-300'>
@@ -34,9 +34,6 @@ function CategoryCard({ name, count, slug, imageUrl }: CategoryCardProps) {
         <div className='absolute inset-0 bg-linear-to-t from-black/70 via-transparent to-transparent pointer-events-none' />
         <div className='absolute top-3 left-3 sm:top-4 sm:left-4 bg-gray-800/70 text-white px-2 py-1 sm:px-3 rounded-full text-xs sm:text-sm font-medium z-10'>
           {name}
-        </div>
-        <div className='absolute top-3 right-3 sm:top-4 sm:right-4 bg-gray-800/70 backdrop-blur-sm rounded-full px-2 py-0.5 text-xs font-medium'>
-          {count}
         </div>
       </div>
     </Link>
@@ -155,11 +152,10 @@ export default function QuizCategories({
           className='w-full max-w-full'
         >
           {categories.map((category) => (
-            <SwiperSlide key={category.id} className='min-w-0 max-w-full'>
+            <SwiperSlide key={category.categoryId} className='min-w-0 max-w-full'>
               <CategoryCard
-                id={category.id}
+                categoryId={category.categoryId}
                 name={category.name}
-                count={category.count}
                 slug={category.slug}
                 imageUrl={category.imageUrl}
               />

@@ -1,7 +1,5 @@
 import { Button } from '@/components/ui/Button'
-import categories from '@/features/categories/constants/categories'
-import { buildMetadata } from '@/shared/lib/seo'
-import QuizCategories from '@/features/categories/components/QuizCategories'
+import QuizCategoriesClient from './QuizCategoriesClient'
 import QuizCard from '@/features/quizzes/components/QuizCard'
 import Link from 'next/link'
 import FeaturedQuiz from '@/features/quizzes/components/FeaturedQuiz'
@@ -11,15 +9,19 @@ import PlayerRanking from '@/features/leaderboard/components/PlayerRanking'
 import QuizCardDifficultyList from '@/features/quizzes/components/QuizCardDifficultyList'
 import RecentlyPlayedSection from '@/features/users/components/RecentlyPlayedSection'
 import { quizzes } from '@/features/quizzes/constants/mock-quizzes'
+import { getCategoriesServer } from '@/features/categories/api/categories-server'
+import type { Category } from '@/features/categories/types'
 
-export const metadata = buildMetadata({
-  title: 'QuizHub - Play, Share, Earn!',
-  description:
-    'Build engaging quizzes, challenge others, and earn rewards for your knowledge.',
-  path: '/'
-})
+export default async function QuizHubDashboard() {
+  let categories: Category[] = []
 
-export default function QuizHubDashboard() {
+  try {
+    const data = await getCategoriesServer({ limit: 20 })
+    categories = data.items
+  } catch {
+    // Fall back to empty array — don't break the page
+  }
+
   return (
     <div className='min-h-screen p-4 md:p-6 overflow-x-hidden max-w-full'>
       <div className='relative bg-linear-to-br from-secondary to-muted rounded-xl p-6 sm:p-8 lg:p-12 mb-6 sm:mb-8 border border-border'>
@@ -59,7 +61,6 @@ export default function QuizHubDashboard() {
           </p>
         </div>
 
-        {/* Decorative Elements */}
         <div className='absolute top-4 right-4 bg-default text-white px-3 sm:px-4 py-1 sm:py-2 rounded-full transform rotate-12 text-sm sm:text-base shadow-lg'>
           <span className='font-bold'>Science Quiz</span>
         </div>
@@ -67,10 +68,8 @@ export default function QuizHubDashboard() {
         <div className='absolute top-1/2 right-8 sm:right-12 lg:right-16 w-12 sm:w-14 lg:w-16 h-12 sm:h-14 lg:h-16 bg-yellow-300 rounded-full opacity-25'></div>
       </div>
 
-      {/* Quiz Categories */}
-      <QuizCategories categories={categories} />
+      <QuizCategoriesClient categories={categories} />
 
-      {/* Latest Quizzes */}
       <div className='bg-main text-foreground border rounded-xl lg:p-8 mb-10 max-w-full overflow-x-hidden'>
         <h2 className='text-2xl font-bold mb-8'>Latest Quizzes</h2>
         <div className='overflow-x-auto'>
@@ -98,24 +97,18 @@ export default function QuizHubDashboard() {
         </div>
       </div>
 
-      {/* Featured Quiz */}
       <FeaturedQuiz />
 
       <RecentlyPlayedSection />
 
-      {/* Player Ranking */}
       <PlayerRanking />
 
-      {/* QuizCard Difficulty*/}
       <QuizCardDifficultyList />
 
-      {/* Live Winners */}
       <LiveWinners />
 
-      {/*How it Works */}
       <HowItWorks />
 
-      {/* Success Story */}
       <SuccessStoriesCarousel />
     </div>
   )
