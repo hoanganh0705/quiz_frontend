@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { clearAuthToken, getAuthToken } from '@/features/auth/utils/auth-cookies'
 
 export function useAuthState() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | undefined>(undefined)
 
   useEffect(() => {
     setIsAuthenticated(!!getAuthToken())

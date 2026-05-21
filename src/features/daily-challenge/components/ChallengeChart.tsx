@@ -11,7 +11,7 @@ import {
   ChartTooltipContent
 } from '@/components/ui/Chart'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts'
-import { performance-data } from '@/features/daily-challenge/constants/performance-data'
+import { performanceData } from '@/features/daily-challenge/constants/performance-data'
 import ChallengePieChart from './ChallengePieChart'
 
 const chartConfig = {
@@ -55,7 +55,7 @@ const ChallengeChart = () => {
               >
                 <BarChart
                   accessibilityLayer
-                  data={performance-data}
+                  data={performanceData}
                   margin={{
                     top: 20,
                     right: 30,

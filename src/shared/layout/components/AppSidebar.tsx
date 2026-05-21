@@ -12,7 +12,6 @@ import {
   BarChart3,
   MessageSquare,
   Plus,
-  LogOut,
   LifeBuoy
 } from 'lucide-react'
 import Link from 'next/link'
@@ -30,6 +29,9 @@ import {
   SidebarMenuItem,
   SidebarRail
 } from '@/components/ui/Sidebar'
+import { UserAvatarDropdown } from '@/shared/ui/UserAvatarDropdown'
+import { useAuthState } from '@/features/auth/hooks/use-auth-state'
+import { Button } from '@/components/ui/Button'
 
 const sidebarItems = [
   {
@@ -86,6 +88,7 @@ const sidebarItems = [
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const pathname = usePathname()
+  const { isAuthenticated } = useAuthState()
 
   return (
     <Sidebar
@@ -138,14 +141,17 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </SidebarGroup>
       </SidebarContent>
       <SidebarFooter className='bg-background border-x border-border'>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton className='text-foreground cursor-pointer hover:bg-main-hover'>
-              <LogOut />
-              <span>Logout</span>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
+        {isAuthenticated ? (
+          <div className='px-2 pb-2'>
+            <UserAvatarDropdown variant='sidebar' />
+          </div>
+        ) : (
+          <div className='px-2 pb-2'>
+            <Button asChild className='w-full bg-default hover:bg-default-hover text-white-primary'>
+              <Link href='/login'>Sign in</Link>
+            </Button>
+          </div>
+        )}
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>

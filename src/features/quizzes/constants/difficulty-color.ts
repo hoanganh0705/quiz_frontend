@@ -1,4 +1,4 @@
-export const difficulty-colors = {
+export const difficultyColors = {
   Easy: {
     bg: 'bg-green-600',
     hover: 'hover:bg-green-500'

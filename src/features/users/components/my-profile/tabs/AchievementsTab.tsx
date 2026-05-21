@@ -25,14 +25,14 @@ interface StreakReward {
 interface AchievementsTabProps {
   badges: BadgeItem[]
   unlockedBadges: number
-  streak-rewards: StreakReward[]
+  streakRewards: StreakReward[]
   currentStreak: number
 }
 
 export const AchievementsTab = memo(function AchievementsTab({
   badges,
   unlockedBadges,
-  streak-rewards,
+  streakRewards,
   currentStreak
 }: AchievementsTabProps) {
   return (
@@ -95,7 +95,7 @@ export const AchievementsTab = memo(function AchievementsTab({
             role='list'
             aria-label='Streak rewards'
           >
-            {streak-rewards.map((reward) => (
+            {streakRewards.map((reward) => (
               <div
                 key={reward.id}
                 className={`flex flex-col items-center gap-2 p-4 rounded-lg border ${currentStreak >= reward.days ? 'border-amber-500/50 bg-amber-500/10 animate-in fade-in zoom-in-95 duration-300' : 'border-border bg-muted/30'}`}

@@ -18,7 +18,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { loginUser, getSocialAuthUrl } from '@/features/auth/api/auth'
 import { setAuthToken } from '@/features/auth/utils/auth-cookies'
 import axios from 'axios'
-import { useUserActions } from '@/features/users/store/user-store'
+import { useFetchCurrentUser } from '@/features/users/store/user-store'
 import type { SocialProvider } from '@/features/auth/types'
 
 // Hoist schema outside component (data-hoisting)
@@ -39,7 +39,7 @@ const LoginPage = memo(function LoginPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [verifyBanner, setVerifyBanner] = useState<string | null>(null)
-  const { fetchCurrentUser } = useUserActions()
+  const fetchCurrentUser = useFetchCurrentUser()
   const verifiedParam = useMemo(
     () => searchParams.get('verified') === '1',
     [searchParams]

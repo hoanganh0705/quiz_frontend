@@ -24,7 +24,7 @@ import { TabsContent } from '@/components/ui/Tabs'
 import { TabsList } from '@/components/ui/Tabs'
 import { TabsTrigger } from '@/components/ui/Tabs'
 import { leaderboardData } from '@/features/leaderboard/constants/leaderboard'
-import { streak-rewards } from '@/features/daily-challenge/constants/streak-rewards'
+import { streakRewards } from '@/features/daily-challenge/constants/streak-rewards'
 import ChallengeChart from './ChallengeChart'
 import { Badge } from '@/components/ui/Badge'
 import { badges } from '@/features/leaderboard/constants/badges'
@@ -376,7 +376,7 @@ const DailyChallengeMainContent = memo(function DailyChallengeMainContent() {
                 </span>
               </div>
               <div className='grid grid-cols-2 gap-2 mb-2'>
-                {streak-rewards
+                {streakRewards
                   .filter((reward) => reward.days <= 7)
                   .map((reward) => {
                     const isCurrentStreak = reward.days === currentStreak

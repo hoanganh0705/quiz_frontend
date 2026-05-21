@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useCallback, useMemo } from 'react'
-import useSWRSubscription from 'swr/subscription'
 
 /**
  * Module-level Map to track callbacks per shortcut key.
@@ -26,6 +25,8 @@ interface CallbackEntry {
 }
 
 const keyCallbacks = new Map<string, Set<CallbackEntry>>()
+let globalListenerAttached = false
+let globalHandler: ((e: KeyboardEvent) => void) | null = null
 
 function matchesModifiers(
   e: KeyboardEvent,
@@ -84,19 +85,22 @@ export function useKeyboardShortcut(
     }
   }, [key, stableCallback, enabled, optionsKey])
 
-  // Single shared global keydown listener via useSWRSubscription
-  useSWRSubscription(
-    enabled ? 'global-keydown' : null,
-    (_, { next }: { next: (err: Error | null, data?: KeyboardEvent) => void }) => {
+    // Single shared global keydown listener managed at module level.
+    // Attach the listener when the first shortcut is registered and
+    // remove it when the last one is unregistered.
+    useEffect(() => {
+      if (!enabled) return
+
+      // If a listener is already attached, nothing to do here.
+      if ((globalListenerAttached as any) === true) return
+
       const handler = (e: KeyboardEvent) => {
-        // Skip if user is typing in an input/textarea/contenteditable
         const target = e.target as HTMLElement
         if (
           target.tagName === 'INPUT' ||
           target.tagName === 'TEXTAREA' ||
           target.isContentEditable
         ) {
-          // Allow meta shortcuts (Cmd/Ctrl+K) even in inputs
           if (!(e.metaKey || e.ctrlKey)) return
         }
 
@@ -111,12 +115,18 @@ export function useKeyboardShortcut(
             }
           })
         }
-
-        next(null, e)
       }
 
       window.addEventListener('keydown', handler)
-      return () => window.removeEventListener('keydown', handler)
-    }
-  )
+      globalListenerAttached = true
+      globalHandler = handler
+
+      return () => {
+        window.removeEventListener('keydown', handler)
+        globalListenerAttached = false
+        globalHandler = null
+      }
+      // We only want to run this effect once per mount
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [enabled])
 }

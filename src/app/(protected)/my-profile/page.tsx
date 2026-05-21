@@ -18,7 +18,7 @@ import { AchievementsTab } from '@/features/users/components/my-profile/tabs/Ach
 import { StatisticsTab } from '@/features/users/components/my-profile/tabs/StatisticsTab'
 import { challengeData } from '@/features/daily-challenge/constants/challenge-history-data'
 import { badges } from '@/features/leaderboard/constants/badges'
-import { streak-rewards } from '@/features/daily-challenge/constants/streak-rewards'
+import { streakRewards } from '@/features/daily-challenge/constants/streak-rewards'
 import { Trophy, ArrowLeft, TrendingUp, Target, Flame } from 'lucide-react'
 import Link from 'next/link'
 import { useMyProfilePage } from '@/features/users/hooks/use-my-profile-page'
@@ -181,11 +181,11 @@ const MyProfilePage = memo(function MyProfilePage() {
 
               {/* My Quizzes Tab */}
               <TabsContent value='quizzes'>
-                <QuizzesTab
-                  totalQuizzes={totalQuizzes}
-                  quizzesCreated={quizzesCreated}
-                  quiz-history={challengeData}
-                />
+                  <QuizzesTab
+                    totalQuizzes={totalQuizzes}
+                    quizzesCreated={quizzesCreated}
+                    quizHistory={challengeData}
+                  />
               </TabsContent>
 
               {/* Achievements Tab */}
@@ -193,7 +193,7 @@ const MyProfilePage = memo(function MyProfilePage() {
                 <AchievementsTab
                   badges={badges}
                   unlockedBadges={unlockedBadges}
-                  streak-rewards={streak-rewards}
+                  streakRewards={streakRewards}
                   currentStreak={currentUser.streak || 0}
                 />
               </TabsContent>
@@ -204,7 +204,7 @@ const MyProfilePage = memo(function MyProfilePage() {
                   user={currentUser}
                   averageScore={averageScore}
                   winRate={winRate}
-                  quiz-history={challengeData}
+                  quizHistory={challengeData}
                 />
               </TabsContent>
             </Tabs>

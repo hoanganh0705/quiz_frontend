@@ -4,7 +4,7 @@
  * @returns Formatted duration string
  */
 
-export function format-duration(minutes: number): string {
+export function formatDuration(minutes: number): string {
   // Handle invalid input
   if (minutes < 0 || !Number.isFinite(minutes)) {
     return 'Invalid duration';
