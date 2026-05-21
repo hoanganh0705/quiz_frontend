@@ -6,7 +6,6 @@ import { Slider } from '@/components/ui/Slider'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/RadioGroup'
 import { QuizCardDetail } from '@/features/quizzes/components/QuizCard'
 import { quizzes } from '@/features/quizzes/constants/mock-quizzes'
-import { categories } from '@/features/categories/constants/categories'
 import type { Quiz } from '@/features/quizzes/types'
 import { Button } from '@/components/ui/Button'
 import {
@@ -15,13 +14,13 @@ import {
 } from '@/features/quizzes/lib/quiz-discovery-score'
 
 interface QuizCatalogMainContentProps {
+  categorySlug?: string
   searchQuery: string
-  selectedCategory: string
 }
 
 const QuizCatalogMainContent = memo(function QuizCatalogMainContent({
-  searchQuery,
-  selectedCategory
+  categorySlug,
+  searchQuery
 }: QuizCatalogMainContentProps) {
   const [difficultyFilter, setDifficultyFilter] = useState('all')
   const [sortBy, setSortBy] = useState('most-popular')
@@ -31,15 +30,6 @@ const QuizCatalogMainContent = memo(function QuizCatalogMainContent({
     Record<string, number>
   >({})
   const loadMoreRef = useRef<HTMLDivElement | null>(null)
-
-  const selectedCategoryName = useMemo(() => {
-    if (selectedCategory === 'all-categories') return null
-
-    return (
-      categories.find((category) => category.id === selectedCategory)?.name ??
-      null
-    )
-  }, [selectedCategory])
 
   const filteredQuizzes = useMemo(() => {
     const normalizedQuery = searchQuery.trim().toLowerCase()
@@ -52,12 +42,15 @@ const QuizCatalogMainContent = memo(function QuizCatalogMainContent({
         return false
       }
 
-      if (selectedCategoryName) {
-        const categoryMatches = quiz.categories.some(
+      if (categorySlug) {
+        const slugMatch = quiz.categories.some(
           (category) =>
-            category.toLowerCase() === selectedCategoryName.toLowerCase()
+            category.toLowerCase().replace(/\s+/g, '-') === categorySlug.toLowerCase(),
         )
-        if (!categoryMatches) return false
+        const nameMatch = quiz.categories.some(
+          (category) => category.toLowerCase() === categorySlug.toLowerCase(),
+        )
+        if (!slugMatch && !nameMatch) return false
       }
 
       const durationInMinutes = Math.max(1, Math.round(quiz.duration / 60))
@@ -108,7 +101,7 @@ const QuizCatalogMainContent = memo(function QuizCatalogMainContent({
     () =>
       [
         searchQuery.trim().toLowerCase(),
-        selectedCategory,
+        categorySlug ?? '',
         difficultyFilter,
         sortBy,
         maxDuration[0],
@@ -119,7 +112,7 @@ const QuizCatalogMainContent = memo(function QuizCatalogMainContent({
       maxDuration,
       minRating,
       searchQuery,
-      selectedCategory,
+      categorySlug,
       sortBy
     ]
   )

@@ -1,10 +1,9 @@
 'use client'
 
-import { useMemo, useState, useCallback } from 'react'
+import { useMemo, useState, useCallback, useEffect } from 'react'
 import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
 import FeaturedQuiz from '@/features/quizzes/components/FeaturedQuiz'
-import { categories } from '@/features/categories/constants/categories'
 import { quizzes } from '@/features/quizzes/constants/mock-quizzes'
 import { QuizCatalogMainContent } from '@/features/quizzes'
 import { Swiper, SwiperSlide } from 'swiper/react'
@@ -12,6 +11,14 @@ import { FreeMode } from 'swiper/modules'
 import { useLocalStorage } from '@/shared/hooks'
 import { Search } from 'lucide-react'
 import { useAppLanguage } from '@/shared/hooks/use-app-language'
+import { getCategories } from '@/features/categories/api/categories'
+import type { Category } from '@/features/categories/types'
+
+interface SwiperCategory {
+  categoryId: string
+  name: string
+  slug: string
+}
 
 export default function QuizPlatform() {
   const { t } = useAppLanguage()
@@ -19,10 +26,25 @@ export default function QuizPlatform() {
   const [selectedCategory, setSelectedCategory] =
     useState<string>('all-categories')
   const [showSuggestions, setShowSuggestions] = useState(false)
+  const [swiperCategories, setSwiperCategories] = useState<SwiperCategory[]>([])
   const [recentSearches, setRecentSearches] = useLocalStorage<string[]>(
     'quiz_search_recent_v1',
     []
   )
+
+  useEffect(() => {
+    getCategories({ limit: 100 })
+      .then((data) =>
+        setSwiperCategories(
+          data.items.map((c: Category) => ({
+            categoryId: c.categoryId,
+            name: c.name,
+            slug: c.slug,
+          })),
+        ),
+      )
+      .catch(() => {})
+  }, [])
 
   const suggestionPool = useMemo(() => {
     const items = quizzes.flatMap((quiz) => [
@@ -154,23 +176,34 @@ export default function QuizPlatform() {
           freeMode={true}
           className='category-swiper'
         >
-          {categories.map((category) => (
-            <SwiperSlide key={category.name} className='w-auto'>
+          <SwiperSlide className='w-auto'>
+            <Button
+              aria-current={selectedCategory === 'all-categories' ? 'true' : undefined}
+              aria-label='Show all categories'
+              onClick={() => setSelectedCategory('all-categories')}
+              className={`whitespace-nowrap rounded-full border border-border ${
+                selectedCategory === 'all-categories'
+                  ? 'bg-default hover:bg-default/90 text-white'
+                  : 'bg-transparent hover:bg-main/90'
+              }`}
+            >
+              All
+            </Button>
+          </SwiperSlide>
+          {swiperCategories.map((category) => (
+            <SwiperSlide key={category.categoryId} className='w-auto'>
               <Button
                 aria-current={
-                  selectedCategory === category.id ? 'true' : undefined
+                  selectedCategory === category.slug ? 'true' : undefined
                 }
                 aria-label={`Filter by ${category.name}`}
-                onClick={() => setSelectedCategory(category.id)}
+                onClick={() => setSelectedCategory(category.slug)}
                 className={`whitespace-nowrap rounded-full border border-border ${
-                  selectedCategory === category.id
+                  selectedCategory === category.slug
                     ? 'bg-default hover:bg-default/90 text-white'
                     : 'bg-transparent hover:bg-main/90'
                 }`}
               >
-                <span className='mr-2' aria-hidden='true'>
-                  {category.icon}
-                </span>
                 {category.name}
               </Button>
             </SwiperSlide>
@@ -182,8 +215,8 @@ export default function QuizPlatform() {
 
       <section aria-label='Quiz listings'>
         <QuizCatalogMainContent
+          categorySlug={selectedCategory === 'all-categories' ? undefined : selectedCategory}
           searchQuery={searchQuery}
-          selectedCategory={selectedCategory}
         />
       </section>
     </main>
