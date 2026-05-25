@@ -1,12 +1,8 @@
 'use client'
 
 import { memo } from 'react'
-// Fix barrel imports (bundle-barrel-imports)
 import { Button } from '@/components/ui/Button'
-import { Tabs } from '@/components/ui/Tabs'
-import { TabsContent } from '@/components/ui/Tabs'
-import { TabsList } from '@/components/ui/Tabs'
-import { TabsTrigger } from '@/components/ui/Tabs'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/Tabs'
 import ActivityItem from '@/features/users/components/profile/ActivityItem'
 import { ProfileHeader } from '@/features/users/components/my-profile/ProfileHeader'
 import { StatsCard } from '@/features/users/components/my-profile/StatsCard'
@@ -58,7 +54,7 @@ const MyProfilePage = memo(function MyProfilePage() {
 
   return (
     <main className='min-h-screen flex items-start justify-center pt-10 pb-20'>
-      <div className='w-[85%] max-w-7xl'>
+      <div className='w-full max-w-7xl'>
         {/* Back Button */}
         <Button
           size='sm'
@@ -122,31 +118,31 @@ const MyProfilePage = memo(function MyProfilePage() {
               >
                 <TabsTrigger
                   value='overview'
-                  className=' text-sm font-semibold dark:data-[state=active]:bg-default dark:dark:data-[state=active]:text-white data-[state=active]:bg-background text-foreground/70 data-[state=active]:text-foreground transition-transform'
+                  className=' text-sm font-semibold data-[state=active]:bg-brand dark:data-[state=active]:text-brand data-[state=active]:bg-background text-foreground/70 data-[state=active]:text-foreground transition-transform'
                 >
                   Overview
                 </TabsTrigger>
                 <TabsTrigger
                   value='activity'
-                  className=' text-sm font-semibold dark:data-[state=active]:bg-default dark:dark:data-[state=active]:text-white data-[state=active]:bg-background text-foreground/70 data-[state=active]:text-foreground transition-transform'
+                  className=' text-sm font-semibold data-[state=active]:bg-brand dark:data-[state=active]:text-brand data-[state=active]:bg-background text-foreground/70 data-[state=active]:text-foreground transition-transform'
                 >
                   Activity
                 </TabsTrigger>
                 <TabsTrigger
                   value='quizzes'
-                  className=' text-sm font-semibold dark:data-[state=active]:bg-default dark:dark:data-[state=active]:text-white data-[state=active]:bg-background text-foreground/70 data-[state=active]:text-foreground transition-transform'
+                  className=' text-sm font-semibold data-[state=active]:bg-brand dark:data-[state=active]:text-brand data-[state=active]:bg-background text-foreground/70 data-[state=active]:text-foreground transition-transform'
                 >
                   My Quizzes
                 </TabsTrigger>
                 <TabsTrigger
                   value='achievements'
-                  className=' text-sm font-semibold dark:data-[state=active]:bg-default dark:dark:data-[state=active]:text-white data-[state=active]:bg-background text-foreground/70 data-[state=active]:text-foreground transition-transform'
+                  className=' text-sm font-semibold data-[state=active]:bg-brand dark:data-[state=active]:text-brand data-[state=active]:bg-background text-foreground/70 data-[state=active]:text-foreground transition-transform'
                 >
                   Achievements
                 </TabsTrigger>
                 <TabsTrigger
                   value='stats'
-                  className=' text-sm font-semibold dark:data-[state=active]:bg-default dark:dark:data-[state=active]:text-white data-[state=active]:bg-background text-foreground/70 data-[state=active]:text-foreground transition-transform'
+                  className=' text-sm font-semibold data-[state=active]:bg-brand dark:data-[state=active]:text-brand data-[state=active]:bg-background text-foreground/70 data-[state=active]:text-foreground transition-transform'
                 >
                   Statistics
                 </TabsTrigger>

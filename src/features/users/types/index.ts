@@ -21,6 +21,7 @@ export interface Player {
   following?: string | number
   bgImageUrl?: string
   bio?: string
+  joinedAt?: string
 }
 
 export type EditProfileRequest = {
@@ -49,6 +50,8 @@ export type CurrentUserResponse = {
   following?: string | number
   bio?: string
   settings?: Record<string, unknown>
+  balance?: number
+  joinedAt?: string
 }
 
 // User settings types

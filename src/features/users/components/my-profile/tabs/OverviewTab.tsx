@@ -97,7 +97,7 @@ export const OverviewTab = memo(function OverviewTab({
           {recentActivities.slice(0, 3).map((activity) => (
             <div
               key={activity.id}
-              className='flex items-center gap-3 rounded-lg transition-colors hover:bg-default/10 border p-3 border-default/20'
+              className='flex items-center gap-3 rounded-lg transition-colors bg-brand/10 border p-3 border-brand/20'
             >
               {activity.icon}
               <div className='flex-1 min-w-0 '>

@@ -567,7 +567,7 @@ export default function PlayQuizClient({ quiz }: { quiz: Quiz }) {
                           'p-3 md:p-4 min-h-12 md:min-h-0',
                           'active:scale-[0.98] active:brightness-95',
                           isSelected
-                            ? 'bg-default dark:bg-white text-white dark:text-black border-primary ring-2 ring-primary/20'
+                            ? 'bg-brand dark:bg-white text-white dark:text-black border-primary ring-2 ring-primary/20'
                             : 'border-border dark:hover:bg-slate-600 hover:bg-gray-200 text-foreground'
                         )}
                         onClick={() => handleAnswer(answer.value)}

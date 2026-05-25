@@ -203,19 +203,19 @@ export const HistoryStatsDashboard = memo(function HistoryStatsDashboard({
             <TabsList className='grid w-full grid-cols-3 bg-main'>
               <TabsTrigger
                 value='weekly'
-                className='data-[state=active]:bg-default data-[state=active]:text-white'
+                className='data-[state=active]:bg-brand data-[state=active]:text-white'
               >
                 Weekly
               </TabsTrigger>
               <TabsTrigger
                 value='trend'
-                className='data-[state=active]:bg-default data-[state=active]:text-white'
+                className='data-[state=active]:bg-brand data-[state=active]:text-white'
               >
                 Score Trend
               </TabsTrigger>
               <TabsTrigger
                 value='categories'
-                className='data-[state=active]:bg-default data-[state=active]:text-white'
+                className='data-[state=active]:bg-brand data-[state=active]:text-white'
               >
                 Categories
               </TabsTrigger>

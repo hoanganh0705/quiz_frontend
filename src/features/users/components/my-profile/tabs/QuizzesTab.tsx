@@ -32,8 +32,8 @@ export const QuizzesTab = memo(function QuizzesTab({
         <Card>
           <CardContent className='p-6'>
             <div className='flex items-center gap-4'>
-              <div className='p-3 rounded-lg bg-default/10' aria-hidden='true'>
-                <BookOpen className='w-6 h-6 text-default' />
+              <div className='p-3 rounded-lg bg-brand/10' aria-hidden='true'>
+                <BookOpen className='w-6 h-6 text-brand' />
               </div>
               <div>
                 <p className='text-xl font-bold text-foreground'>
@@ -76,7 +76,7 @@ export const QuizzesTab = memo(function QuizzesTab({
             {quizHistory.map((quiz) => (
               <div
                 key={quiz.id}
-                className='flex items-center justify-between rounded-lg hover:bg-default/10 transition-colors border p-3 border-default/20'
+                className='flex items-center justify-between rounded-lg hover:bg-brand/10 transition-colors border p-3 border-brand/20'
                 role='listitem'
               >
                 <div className='flex items-center gap-3 '>

@@ -29,19 +29,19 @@ export function SupportCenter() {
               <TabsList className='w-full justify-start overflow-x-auto bg-transparent border-b border-border mb-6 h-auto '>
                 <TabsTrigger
                   value='faq'
-                  className='py-2 px-1 mr-6 data-[state=active]:border-b-2 data-[state=active]:border-default data-[state=active]:text-foreground data-[state=inactive]:text-foreground/70'
+                  className='py-2 px-1 mr-6 data-[state=active]:border-b-2 data-[state=active]:border-brand data-[state=active]:text-foreground data-[state=inactive]:text-foreground/70'
                 >
                   Frequently Asked Questions
                 </TabsTrigger>
                 <TabsTrigger
                   value='contact'
-                  className='py-2 px-1 mr-6 data-[state=active]:border-b-2 data-[state=active]:border-default data-[state=active]:text-foreground data-[state=inactive]:text-foreground/70'
+                  className='py-2 px-1 mr-6 data-[state=active]:border-b-2 data-[state=active]:border-brand data-[state=active]:text-foreground data-[state=inactive]:text-foreground/70'
                 >
                   Contact Support
                 </TabsTrigger>
                 <TabsTrigger
                   value='knowledge'
-                  className='py-2 px-1 data-[state=active]:border-b-2 data-[state=active]:border-default data-[state=active]:text-foreground data-[state=inactive]:text-foreground/70'
+                  className='py-2 px-1 data-[state=active]:border-b-2 data-[state=active]:border-brand data-[state=active]:text-foreground data-[state=inactive]:text-foreground/70'
                 >
                   Knowledge Base
                 </TabsTrigger>

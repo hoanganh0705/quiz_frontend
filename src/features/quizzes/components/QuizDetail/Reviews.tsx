@@ -11,7 +11,7 @@ const Reviews = () => {
         <div className='flex justify-between items-center mb-8'>
           <h1 className='text-xl font-bold text-foreground'>Reviews</h1>
           <Button
-            className='bg-default hover:bg-default-hover text-white px-6 py-2 rounded-lg'
+            className='bg-brand hover:bg-brand text-white px-6 py-2 rounded-lg'
             aria-label='Write a new review'
           >
             Write a Review

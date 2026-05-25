@@ -15,6 +15,7 @@ import { useToggle, useAsyncAction } from '@/shared/hooks'
 import { useAuthState } from '@/features/auth/hooks'
 import { useRouter } from 'next/navigation'
 import { registerUser, getSocialAuthUrl } from '@/features/auth/api/auth'
+import { getPasswordStrength } from '@/features/auth/utils/password-strength'
 import type { SocialProvider } from '@/features/auth/types'
 
 const signupSchema = z
@@ -37,37 +38,6 @@ const signupSchema = z
   })
 
 type SignupFormData = z.infer<typeof signupSchema>
-
-function getPasswordStrength(password: string) {
-  if (!password) {
-    return {
-      score: 0,
-      label: 'Too weak',
-      checks: {
-        minLength: false,
-        uppercase: false,
-        number: false,
-        symbol: false
-      }
-    }
-  }
-
-  const checks = {
-    minLength: password.length >= 8,
-    uppercase: /[A-Z]/.test(password),
-    number: /\d/.test(password),
-    symbol: /[^A-Za-z0-9]/.test(password)
-  }
-
-  const score = Object.values(checks).filter(Boolean).length
-  const labels = ['Too weak', 'Weak', 'Fair', 'Good', 'Strong']
-
-  return {
-    score,
-    label: labels[score],
-    checks
-  }
-}
 
 const SignupPage = memo(function SignupPage() {
   const [showPassword, toggleShowPassword] = useToggle(false)
@@ -112,14 +82,10 @@ const SignupPage = memo(function SignupPage() {
     }
   )
 
-  const { execute: handleSocialSignup, isLoading: isSocialLoading } = useAsyncAction(
+  const { execute: handleSocialSignup, isLoading: isSocialLoading, error: socialError } = useAsyncAction(
     async (provider: SocialProvider) => {
-      try {
-        const response = await getSocialAuthUrl(provider)
-        window.location.href = response.url
-      } catch {
-        // Handle error silently or show toast
-      }
+      const response = await getSocialAuthUrl(provider)
+      window.location.href = response.url
     }
   )
 
@@ -182,6 +148,8 @@ const SignupPage = memo(function SignupPage() {
             <form
               onSubmit={handleSubmit((data) => onSubmit(data))}
               className='space-y-5'
+              aria-label='Create a new account'
+              aria-live='polite'
             >
               {/* First Name and Last Name */}
               <div className='grid grid-cols-2 gap-4'>
@@ -275,7 +243,7 @@ const SignupPage = memo(function SignupPage() {
                           key={index}
                           className={`h-1.5 rounded-full ${
                             index < passwordStrength.score
-                              ? 'bg-default'
+                              ? 'bg-brand'
                               : 'bg-muted'
                           }`}
                         />
@@ -353,7 +321,7 @@ const SignupPage = memo(function SignupPage() {
                         id='terms'
                         checked={field.value}
                         onCheckedChange={field.onChange}
-                        className='text-default mt-0.5'
+                        className='text-brand mt-0.5'
                       />
                     )}
                   />
@@ -417,6 +385,12 @@ const SignupPage = memo(function SignupPage() {
               </span>
               <div className='flex-1 h-px bg-border' />
             </div>
+
+            {socialError && (
+              <div className='rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3 text-xs text-destructive' role='alert'>
+                {socialError.message || 'Failed to initiate social login. Please try again.'}
+              </div>
+            )}
 
             {/* Social Signup Buttons */}
             <div className='grid grid-cols-2 gap-4'>

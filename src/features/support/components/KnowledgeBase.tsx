@@ -49,7 +49,7 @@ export function KnowledgeBase() {
           return (
             <div
               key={article.id}
-              className='group p-6 dark:hover:bg-default-hover group-hover:border-default transition-colors cursor-pointer border border-border rounded-lg hover:border-default-hover'
+              className='group p-6 hover:bg-brand hover:border-brand transition-colors cursor-pointer border border-border rounded-lg hover:border-brand-hover'
             >
               <div className='flex items-center justify-between mb-4'>
                 <div className='flex items-center gap-2'>
@@ -68,7 +68,7 @@ export function KnowledgeBase() {
               <p className='text-foreground/70 text-sm mb-4'>
                 {article.description}
               </p>
-              <div className='flex items-center text-foreground group-hover:text-default-hover dark:group-hover:text-foreground transition-colors'>
+              <div className='flex items-center text-foreground group-hover:text-brand-hover dark:group-hover:text-foreground transition-colors'>
                 <span className='text-sm font-medium'>Read article</span>
                 <ArrowRight className='h-4 w-4 ml-1' />
               </div>

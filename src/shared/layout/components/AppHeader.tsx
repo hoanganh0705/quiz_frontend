@@ -37,18 +37,25 @@ function useIsMac() {
 
 function MessagesButton() {
   const [unreadCount, setUnreadCount] = useState(0)
+  const router = useRouter()
 
   useEffect(() => {
-    const fetchUnreadCount = async () => {
+    let cancelled = false
+    async function fetchUnreadCount() {
       try {
         const { unreadCount: count } = await getUnreadCount()
-        setUnreadCount(count)
+        if (!cancelled) {
+          setUnreadCount(count)
+        }
       } catch {
-        // Use default 0 if API fails
+        // API unavailable — keep 0
       }
     }
 
-    fetchUnreadCount()
+    void fetchUnreadCount()
+    return () => {
+      cancelled = true
+    }
   }, [])
 
   return (
@@ -58,6 +65,7 @@ function MessagesButton() {
         unreadCount > 0 ? `Messages (${unreadCount} unread)` : 'Messages'
       }
       type='button'
+      onClick={() => router.push('/messages')}
     >
       <div className='p-1.5 sm:p-2 border border-border rounded-md hover:bg-main-hover transition-colors'>
         <MessageSquare className='h-4 w-4 text-foreground' />
@@ -183,7 +191,7 @@ export function AppHeader() {
 
         <div className='hidden sm:flex items-center gap-1 p-1 sm:p-2 border border-border rounded-lg'>
           <span className='text-foreground text-xs sm:text-sm font-medium'>
-            $124.50
+            ${user?.balance != null ? user.balance.toFixed(2) : '124.50'}
           </span>
           <span className='text-green-500 text-xs sm:text-sm font-medium'>
             💰
@@ -191,6 +199,7 @@ export function AppHeader() {
         </div>
 
         {isAuthenticated ? (
+          <div className='relative z-55'>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
@@ -202,7 +211,7 @@ export function AppHeader() {
                   {userAvatarUrl ? (
                     <AvatarImage src={userAvatarUrl} alt={userDisplayName} />
                   ) : null}
-                  <AvatarFallback className='bg-default text-white-primary text-xs'>
+                  <AvatarFallback className='bg-brand text-white-primary text-xs'>
                     {avatarLabel}
                   </AvatarFallback>
                 </Avatar>
@@ -210,14 +219,18 @@ export function AppHeader() {
               </Button>
             </DropdownMenuTrigger>
 
-            <DropdownMenuContent align='end' className='w-64'>
+            <DropdownMenuContent
+              align='end'
+              sideOffset={12}
+              className='w-64 z-60'
+            >
               <DropdownMenuLabel className='space-y-1'>
                 <div className='flex items-center gap-3'>
                   <Avatar className='h-9 w-9 shrink-0'>
                     {userAvatarUrl ? (
                       <AvatarImage src={userAvatarUrl} alt={userDisplayName} />
                     ) : null}
-                    <AvatarFallback className='bg-default text-white-primary text-xs'>
+                    <AvatarFallback className='bg-brand text-white-primary text-xs'>
                       {avatarLabel}
                     </AvatarFallback>
                   </Avatar>
@@ -266,6 +279,7 @@ export function AppHeader() {
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
+          </div>
         ) : (
           <Button asChild size='sm' className='rounded-full px-4'>
             <Link href='/login'>Sign in</Link>

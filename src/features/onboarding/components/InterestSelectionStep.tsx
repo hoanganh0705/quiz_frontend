@@ -68,8 +68,8 @@ export const InterestSelectionStep = memo(function InterestSelectionStep({
               'relative p-4 rounded-xl border-2 transition-all duration-200 text-left',
               'hover:scale-[1.02] hover:shadow-md',
               isSelected(category.id)
-                ? 'border-default bg-default/10 shadow-sm'
-                : 'border-border hover:border-default/50 bg-card'
+                ? 'border-brand bg-brand/10 shadow-sm'
+                : 'border-border hover:border-brand/50 bg-card'
             )}
             aria-label={`${category.name} - ${isSelected(category.id) ? 'selected' : 'not selected'}`}
             aria-pressed={isSelected(category.id)}
@@ -77,7 +77,7 @@ export const InterestSelectionStep = memo(function InterestSelectionStep({
             {/* Selection Indicator */}
             {isSelected(category.id) && (
               <div
-                className='absolute top-2 right-2 w-5 h-5 rounded-full bg-default flex items-center justify-center'
+                className='absolute top-2 right-2 w-5 h-5 rounded-full bg-brand flex items-center justify-center'
                 aria-hidden='true'
               >
                 <Check className='w-3 h-3 text-white' />
@@ -106,7 +106,7 @@ export const InterestSelectionStep = memo(function InterestSelectionStep({
           className={cn(
             'inline-flex items-center px-3 py-1 rounded-full text-sm',
             canProceed
-              ? 'bg-default/10 text-default'
+              ? 'bg-brand/10 text-brand'
               : 'bg-muted text-muted-foreground'
           )}
           role='status'
@@ -134,7 +134,7 @@ export const InterestSelectionStep = memo(function InterestSelectionStep({
         <Button
           onClick={onNext}
           disabled={!canProceed}
-          className='bg-default hover:bg-default-hover text-white flex items-center gap-2'
+          className='bg-brand hover:bg-brand-hover text-white flex items-center gap-2'
           aria-label='Continue to next step'
         >
           Continue

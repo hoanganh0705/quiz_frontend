@@ -114,7 +114,7 @@ export default function ScoreHero({
                 asChild
                 onClick={onPlayAgain}
                 variant={'outline'}
-                className='dark:bg-default dark:text-white dark:hover:bg-default-hover'
+                className='bg-brand dark:text-white dark:hover:bg-brand'
               >
                 <Link href={`/quizzes/${quiz.id}/start`}>
                   <RotateCcw className='w-4 h-4 mr-2' aria-hidden='true' />
@@ -124,7 +124,7 @@ export default function ScoreHero({
               <Button
                 variant='outline'
                 asChild
-                className='dark:bg-default dark:text-white dark:hover:bg-default-hover'
+                className='bg-brand dark:text-white dark:hover:bg-brand'
               >
                 <Link href={`/quizzes`}>
                   <Zap className='w-4 h-4 mr-2' aria-hidden='true' />

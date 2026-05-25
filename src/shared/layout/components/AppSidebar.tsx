@@ -101,7 +101,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <SidebarMenuItem>
             <SidebarMenuButton size='lg' asChild>
               <Link href='/'>
-                <div className='flex aspect-square size-8 items-center justify-center rounded-lg bg-default'>
+                <div className='flex aspect-square size-8 items-center justify-center rounded-lg bg-brand'>
                   <BookOpen className='size-4' />
                 </div>
                 <div className='flex flex-col gap-0.5 leading-none'>
@@ -125,7 +125,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                     isActive={pathname === item.url}
                     className={`${
                       pathname === item.url
-                        ? 'text-white hover:bg-main-hover data-[active=true]:bg-default'
+                        ? 'text-white hover:bg-main-hover data-[active=true]:bg-brand'
                         : 'text-foreground hover:bg-main-hover'
                     } text-sm flex items-center gap-2`}
                   >
@@ -147,7 +147,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           </div>
         ) : (
           <div className='px-2 pb-2'>
-            <Button asChild className='w-full bg-default hover:bg-default-hover text-white-primary'>
+            <Button asChild className='w-full bg-brand hover:bg-brand-hover text-white-primary'>
               <Link href='/login'>Sign in</Link>
             </Button>
           </div>

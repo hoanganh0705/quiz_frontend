@@ -19,10 +19,10 @@ export default function LeaderboardTab({ quiz, result }: LeaderboardTabProps) {
         </div>
 
         {/* Your Position */}
-        <div className='mt-6 p-4 bg-default/10 rounded-lg border border-default/30'>
+        <div className='mt-6 p-4 bg-brand/10 rounded-lg border border-brand/30'>
           <div className='flex items-center justify-between'>
             <div className='flex items-center gap-4'>
-              <div className='w-8 h-8 rounded-full bg-default flex items-center justify-center font-bold text-xs text-white'>
+              <div className='w-8 h-8 rounded-full bg-brand flex items-center justify-center font-bold text-xs text-white'>
                 #{estimatedPosition}
               </div>
               <div>
@@ -33,7 +33,7 @@ export default function LeaderboardTab({ quiz, result }: LeaderboardTabProps) {
               </div>
             </div>
             <div className='text-right'>
-              <div className='font-bold text-default'>{result.score}%</div>
+              <div className='font-bold text-brand'>{result.score}%</div>
               <div className='text-sm text-foreground/70'>
                 {formatTime(result.timeTaken)}
               </div>

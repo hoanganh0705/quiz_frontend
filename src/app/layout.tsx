@@ -1,15 +1,10 @@
 import type React from 'react'
 import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
+import { inter } from '@/shared/config/fonts'
 import { ThemeProvider } from '@/providers/ThemeProvider'
 import { LayoutShell } from '@/shared/layout'
 import { PwaServiceWorker } from '@/shared/ui/PwaServiceWorker'
 import './globals.css'
-
-const inter = Inter({
-  subsets: ['latin'],
-  weight: ['100', '200', '300', '400', '500', '600', '700', '800']
-})
 
 export const metadata: Metadata = {
   title: 'QuizHub - Play, Share, Earn!',

@@ -124,7 +124,7 @@ export function FindFriendsPopup({ isOpen, onClose }: FindFriendsPopupProps) {
               onClick={() => setSelectedTab('suggested')}
               className={
                 selectedTab === 'suggested'
-                  ? 'bg-default hover:bg-default-hover'
+                  ? 'bg-brand hover:bg-brand'
                   : 'border-border text-muted-foreground hover:bg-accent'
               }
             >
@@ -136,7 +136,7 @@ export function FindFriendsPopup({ isOpen, onClose }: FindFriendsPopupProps) {
               onClick={() => setSelectedTab('search')}
               className={
                 selectedTab === 'search'
-                  ? 'bg-default hover:bg-default-hover'
+                  ? 'bg-brand hover:bg-brand'
                   : 'border-border text-muted-foreground hover:bg-accent'
               }
             >
@@ -208,7 +208,7 @@ export function FindFriendsPopup({ isOpen, onClose }: FindFriendsPopupProps) {
 
                 <Button
                   size='sm'
-                  className='bg-default hover:bg-default-hover text-white'
+                  className='bg-brand hover:bg-brand text-white'
                 >
                   <UserPlus className='w-4 h-4 mr-1' />
                   Add Friend

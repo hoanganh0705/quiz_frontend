@@ -11,7 +11,6 @@ import { z } from 'zod'
 import { useAsyncAction } from '@/shared/hooks'
 import { forgotPassword } from '@/features/auth/api/auth'
 
-// Hoist schema outside component (data-hoisting)
 const forgotPasswordSchema = z.object({
   email: z.string().email('Please enter a valid email address')
 })
@@ -48,8 +47,10 @@ const ForgotPasswordPage = memo(function ForgotPasswordPage() {
   )
 
   const handleOpenEmail = useCallback(() => {
-    window.open('mailto:', '_blank')
-  }, [])
+    const email = getValues('email')
+    if (!email) return
+    window.open(`mailto:${encodeURIComponent(email)}`, '_blank')
+  }, [getValues])
 
   return (
     <div className='min-h-screen flex items-center justify-center bg-background px-8'>
@@ -90,6 +91,7 @@ const ForgotPasswordPage = memo(function ForgotPasswordPage() {
                 onSubmit={handleSubmit(onSubmit)}
                 className='space-y-5'
                 aria-label='Password reset form'
+                aria-live='polite'
               >
                 {/* Email Input */}
                 <div className='space-y-2'>
@@ -127,9 +129,9 @@ const ForgotPasswordPage = memo(function ForgotPasswordPage() {
                   }
                 >
                   {isLoading ? (
-                    <div className='flex items-center gap-2'>
+                    <div className='flex items-center gap-2' role='status' aria-label='Sending reset email, please wait'>
                       <div
-                        className='w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin text-white'
+                        className='w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin'
                         aria-hidden='true'
                       />
                       Sending...
@@ -146,11 +148,11 @@ const ForgotPasswordPage = memo(function ForgotPasswordPage() {
             {/* Success State */}
             <section className='space-y-2'>
               <div
-                className='w-16 h-16 bg-default/10 rounded-full flex items-center justify-center mb-6'
+                className='w-16 h-16 bg-brand/10 rounded-full flex items-center justify-center mb-6'
                 aria-hidden='true'
               >
                 <svg
-                  className='w-8 h-8 text-default'
+                  className='w-8 h-8 text-brand'
                   fill='none'
                   viewBox='0 0 24 24'
                   stroke='currentColor'

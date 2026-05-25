@@ -1,13 +1,10 @@
 import type React from 'react'
 import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
+import { createInterFont } from '@/shared/config/fonts'
 import { AdminLayoutShell } from './_components'
 import '@/app/globals.css'
 
-const inter = Inter({
-  subsets: ['latin'],
-  weight: ['100', '200', '300', '400', '500', '600', '700', '800']
-})
+const inter = createInterFont()
 
 export const metadata: Metadata = {
   title: {

@@ -167,7 +167,7 @@ export function ContactForm() {
             </Label>
             <Select onValueChange={(value) => setValue('category', value)}>
               <SelectTrigger
-                className={`bg-transparent text-foreground focus:border-default ${
+                className={`bg-transparent text-foreground focus:border-brand ${
                   errors.category
                     ? 'border-red-500 focus:border-red-500'
                     : 'border-border'
@@ -178,43 +178,43 @@ export function ContactForm() {
               <SelectContent className='bg-muted border-border'>
                 <SelectItem
                   value='general'
-                  className='text-foreground hover:bg-default-hover'
+                  className='text-foreground hover:bg-brand'
                 >
                   General
                 </SelectItem>
                 <SelectItem
                   value='account'
-                  className='text-foreground hover:bg-default-hover'
+                  className='text-foreground hover:bg-brand'
                 >
                   Account
                 </SelectItem>
                 <SelectItem
                   value='billing'
-                  className='text-foreground hover:bg-default-hover'
+                  className='text-foreground hover:bg-brand'
                 >
                   Billing
                 </SelectItem>
                 <SelectItem
                   value='quiz-creation'
-                  className='text-foreground hover:bg-default-hover'
+                  className='text-foreground hover:bg-brand'
                 >
                   Quiz Creation
                 </SelectItem>
                 <SelectItem
                   value='tournaments'
-                  className='text-foreground hover:bg-default-hover'
+                  className='text-foreground hover:bg-brand'
                 >
                   Tournaments
                 </SelectItem>
                 <SelectItem
                   value='privacy'
-                  className='text-foreground hover:bg-default-hover'
+                  className='text-foreground hover:bg-brand'
                 >
                   Privacy
                 </SelectItem>
                 <SelectItem
                   value='technical'
-                  className='text-foreground hover:bg-default-hover'
+                  className='text-foreground hover:bg-brand'
                 >
                   Technical Issues
                 </SelectItem>
@@ -236,7 +236,7 @@ export function ContactForm() {
             placeholder='Please describe your issue in detail (minimum 20 characters)'
             rows={8}
             {...register('message')}
-            className={`bg-transparent border text-foreground placeholder:text-foreground/70 focus:border-default resize-none ${
+            className={`bg-transparent border text-foreground placeholder:text-foreground/70 focus:border-brand resize-none ${
               errors.message
                 ? 'border-red-500 focus:border-red-500'
                 : 'border-border'
@@ -265,7 +265,7 @@ export function ContactForm() {
                 type='button'
                 variant='outline'
                 size='sm'
-                className='bg-transparent border border-border text-foreground hover:bg-default-hover hover:border-default px-4'
+                className='bg-transparent border border-border text-foreground hover:bg-brand hover:border-brand px-4'
               >
                 <Upload className='w-4 h-4 mr-2' />
                 {selectedFile ? selectedFile.name : 'Upload File'}
@@ -288,7 +288,7 @@ export function ContactForm() {
         <Button
           type='submit'
           disabled={isSubmitting}
-          className='bg-default hover:bg-default-hover text-foreground px-8 py-2 disabled:opacity-50'
+          className='bg-brand hover:bg-brand text-foreground px-8 py-2 disabled:opacity-50'
         >
           {isSubmitting ? (
             <>

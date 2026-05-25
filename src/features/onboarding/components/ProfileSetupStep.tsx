@@ -107,9 +107,9 @@ export const ProfileSetupStep = memo(function ProfileSetupStep({
                 onClick={() => updateField('avatar', avatar)}
                 className={cn(
                   'w-12 h-12 rounded-full flex items-center justify-center text-2xl transition-all',
-                  'hover:scale-110 hover:bg-default/10',
+                  'hover:scale-110 hover:bg-brand/10',
                   profile.avatar === avatar
-                    ? 'bg-default/20 ring-2 ring-default ring-offset-2 ring-offset-background'
+                    ? 'bg-brand/20 ring-2 ring-brand ring-offset-2 ring-offset-background'
                     : 'bg-muted'
                 )}
                 aria-label={`Select avatar ${avatar}`}
@@ -186,9 +186,9 @@ export const ProfileSetupStep = memo(function ProfileSetupStep({
                 onClick={() => updateField('experienceLevel', level.value)}
                 className={cn(
                   'p-4 rounded-xl border-2 transition-all text-left',
-                  'hover:border-default/50',
+                  'hover:border-brand/50',
                   profile.experienceLevel === level.value
-                    ? 'border-default bg-default/10'
+                    ? 'border-brand bg-brand/10'
                     : 'border-border bg-card'
                 )}
                 aria-label={`${level.label}: ${level.description}`}
@@ -226,7 +226,7 @@ export const ProfileSetupStep = memo(function ProfileSetupStep({
         <Button
           onClick={onNext}
           disabled={!canProceed}
-          className='bg-default hover:bg-default-hover text-white flex items-center gap-2'
+          className='bg-brand hover:bg-brand-hover text-white flex items-center gap-2'
           aria-label='Continue to next step'
         >
           Continue

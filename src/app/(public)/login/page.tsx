@@ -1,8 +1,7 @@
 'use client'
 
-import { memo, useCallback, useMemo, useState } from 'react'
+import { memo, useMemo, useState, useCallback } from 'react'
 import { Eye, EyeOff } from 'lucide-react'
-// Fix barrel imports (bundle-barrel-imports)
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Label } from '@/components/ui/Label'
@@ -40,6 +39,11 @@ const LoginPage = memo(function LoginPage() {
   const searchParams = useSearchParams()
   const [verifyBanner, setVerifyBanner] = useState<string | null>(null)
   const fetchCurrentUser = useFetchCurrentUser()
+
+  const redirectTo = useMemo(
+    () => searchParams.get('redirect') ?? '/quizzes',
+    [searchParams]
+  )
   const verifiedParam = useMemo(
     () => searchParams.get('verified') === '1',
     [searchParams]
@@ -71,8 +75,8 @@ const LoginPage = memo(function LoginPage() {
         const cookieDays = data.rememberMe ? 30 : 7
         setAuthToken(response.token.accessToken, { days: cookieDays })
         setAuthenticated(true)
-        await fetchCurrentUser()
-        router.replace('/quizzes')
+        void fetchCurrentUser()
+        router.replace(redirectTo)
       } catch (err) {
         if (axios.isAxiosError(err)) {
           const message =
@@ -88,14 +92,10 @@ const LoginPage = memo(function LoginPage() {
     }
   )
 
-  const { execute: handleSocialLogin, isLoading: isSocialLoading } = useAsyncAction(
+  const { execute: handleSocialLogin, isLoading: isSocialLoading, error: socialError } = useAsyncAction(
     async (provider: SocialProvider) => {
-      try {
-        const response = await getSocialAuthUrl(provider)
-        window.location.href = response.url
-      } catch {
-        // Handle error silently or show toast
-      }
+      const response = await getSocialAuthUrl(provider)
+      window.location.href = response.url
     }
   )
 
@@ -154,11 +154,18 @@ const LoginPage = memo(function LoginPage() {
               </div>
             )}
 
+            {socialError && (
+              <div className='rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3 text-xs text-destructive' role='alert'>
+                {socialError.message || 'Failed to initiate social login. Please try again.'}
+              </div>
+            )}
+
             {/* Login Form */}
             <form
               onSubmit={handleSubmit((data) => onSubmit(data))}
               className='space-y-5'
               aria-label='Sign in to your account'
+              aria-live='polite'
             >
               {/* Email Input */}
               <div className='space-y-2'>
@@ -169,6 +176,7 @@ const LoginPage = memo(function LoginPage() {
                   {...register('email')}
                   className='h-12 text-primary'
                   aria-invalid={!!errors.email}
+                  disabled={isLoading}
                 />
                 {errors.email && (
                   <p className='text-xs text-destructive'>
@@ -187,11 +195,13 @@ const LoginPage = memo(function LoginPage() {
                     {...register('password')}
                     className='h-12 pr-12 text-primary'
                     aria-invalid={!!errors.password}
+                    disabled={isLoading}
                   />
                   <button
                     type='button'
                     onClick={toggleShowPassword}
-                    className='absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors'
+                    disabled={isLoading}
+                    className='absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50 disabled:cursor-not-allowed'
                     aria-label={
                       showPassword ? 'Hide password' : 'Show password'
                     }
@@ -221,7 +231,8 @@ const LoginPage = memo(function LoginPage() {
                         id='remember'
                         checked={field.value}
                         onCheckedChange={field.onChange}
-                        className='text-default'
+                        className='text-brand'
+                        disabled={isLoading}
                       />
                     )}
                   />
@@ -256,12 +267,11 @@ const LoginPage = memo(function LoginPage() {
                 disabled={isLoading}
                 size='lg'
                 className='w-full h-12 font-semibold rounded-xl'
-                aria-label={isLoading ? 'Signing in' : 'Sign in'}
               >
                 {isLoading ? (
-                  <div className='flex items-center gap-2'>
+                  <div className='flex items-center gap-2' role='status' aria-label='Signing in, please wait'>
                     <div
-                      className='w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin text-white'
+                      className='w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin'
                       aria-hidden='true'
                     />
                     Signing in...

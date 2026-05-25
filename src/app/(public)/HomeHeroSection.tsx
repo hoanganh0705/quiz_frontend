@@ -16,7 +16,7 @@ export function HomeHeroSection() {
           <br />
           Starts Here:
           <br />
-          <span className='text-default'>Play, Share, Earn!</span>
+          <span className='text-brand'>Play, Share, Earn!</span>
         </h1>
         <p className='text-base sm:text-lg lg:text-xl text-muted-foreground mb-6 sm:mb-8'>
           Build engaging quizzes, challenge others, and earn rewards
@@ -28,7 +28,7 @@ export function HomeHeroSection() {
           <Link href='/quizzes'>
             <Button
               size='lg'
-              className='text-default bg-white hover:bg-slate-50 border border-default-hover dark:text-default dark:bg-transparent dark:hover:bg-slate-700 dark:border-default-hover w-full sm:w-auto'
+                  className='text-brand bg-white hover:bg-slate-50 border border-brand-hover dark:text-brand dark:bg-transparent dark:hover:bg-slate-700 dark:border-brand-hover w-full sm:w-auto'
             >
               Play a Quiz
             </Button>
@@ -39,7 +39,7 @@ export function HomeHeroSection() {
               <Link href='/create-quiz'>
                 <Button
                   size='lg'
-                  className='text-white bg-default hover:bg-default-hover w-full sm:w-auto'
+                  className='text-white bg-brand hover:bg-brand-hover w-full sm:w-auto'
                 >
                   Create Quiz
                 </Button>
@@ -53,7 +53,7 @@ export function HomeHeroSection() {
               <Link href='/create-quiz'>
                 <Button
                   size='lg'
-                  className='text-white bg-default hover:bg-default-hover w-full sm:w-auto'
+                  className='text-white bg-brand hover:bg-brand-hover w-full sm:w-auto'
                 >
                   Create Quiz
                 </Button>
@@ -62,7 +62,7 @@ export function HomeHeroSection() {
                 <Button
                   size='lg'
                   variant='outline'
-                  className='w-full sm:w-auto border-default text-default hover:bg-default hover:text-white-primary'
+                  className='w-full sm:w-auto border-brand text-brand hover:bg-brand hover:text-white-primary'
                 >
                   Sign In
                 </Button>
@@ -78,7 +78,7 @@ export function HomeHeroSection() {
         )}
       </div>
 
-      <div className='absolute top-4 right-4 bg-default text-white px-3 sm:px-4 py-1 sm:py-2 rounded-full transform rotate-12 text-sm sm:text-base shadow-lg'>
+      <div className='absolute top-4 right-4 bg-brand text-white px-3 sm:px-4 py-1 sm:py-2 rounded-full transform rotate-12 text-sm sm:text-base shadow-lg'>
         <span className='font-bold'>Science Quiz</span>
       </div>
       <div className='absolute bottom-6 sm:bottom-8 right-6 sm:right-8 w-20 sm:w-24 lg:w-32 h-20 sm:h-24 lg:h-32 bg-linear-to-br from-blue-400 to-purple-400 rounded-full opacity-15' />

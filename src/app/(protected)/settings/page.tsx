@@ -1,7 +1,13 @@
 'use client'
 
-import { useState, useMemo, useCallback, memo } from 'react'
+import { useCallback, memo } from 'react'
 import { ScrollArea } from '@/components/ui/ScrollArea'
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger
+} from '@/components/ui/Tabs'
 import {
   AccountSettings,
   NotificationSettings,
@@ -14,7 +20,6 @@ import { useLocalStorage } from '@/shared/hooks/use-local-storage'
 import { UserSettings, UserSettingsTabId } from '@/features/users/types'
 import { defaultSettings } from '@/features/users/constants/settings'
 import { User, Bell, Shield, Globe, Link2, AlertTriangle } from 'lucide-react'
-import { cn } from '@/shared/utils/merge-class-names'
 
 const settingsTabs: {
   id: UserSettingsTabId
@@ -54,7 +59,6 @@ const settingsTabs: {
 ]
 
 const SettingsPage = memo(function SettingsPage() {
-  const [activeTab, setActiveTab] = useState<UserSettingsTabId>('account')
   const [settings, setSettings] = useLocalStorage<UserSettings>(
     'user_settings',
     defaultSettings
@@ -71,12 +75,10 @@ const SettingsPage = memo(function SettingsPage() {
   )
 
   const handleDeleteAccount = useCallback(() => {
-    // In a real app, this would call an API to delete the account
     alert('Account deletion would be processed here')
   }, [])
 
   const handleExportData = useCallback(() => {
-    // Export settings as JSON file
     const dataStr = JSON.stringify(settings, null, 2)
     const dataBlob = new Blob([dataStr], { type: 'application/json' })
     const url = URL.createObjectURL(dataBlob)
@@ -88,66 +90,8 @@ const SettingsPage = memo(function SettingsPage() {
   }, [settings])
 
   const handleSignOutAll = useCallback(() => {
-    // In a real app, this would call an API to invalidate all sessions
     alert('All sessions would be signed out here')
   }, [])
-
-  const renderContent = useMemo(() => {
-    switch (activeTab) {
-      case 'account':
-        return (
-          <AccountSettings
-            settings={settings}
-            onUpdate={handleUpdateSettings}
-          />
-        )
-      case 'notifications':
-        return (
-          <NotificationSettings
-            settings={settings}
-            onUpdate={handleUpdateSettings}
-          />
-        )
-      case 'privacy':
-        return (
-          <PrivacySettings
-            settings={settings}
-            onUpdate={handleUpdateSettings}
-          />
-        )
-      case 'language':
-        return (
-          <LanguageSettings
-            settings={settings}
-            onUpdate={handleUpdateSettings}
-          />
-        )
-      case 'connections':
-        return (
-          <ConnectedAccounts
-            settings={settings}
-            onUpdate={handleUpdateSettings}
-          />
-        )
-      case 'danger':
-        return (
-          <DangerZone
-            onDeleteAccount={handleDeleteAccount}
-            onExportData={handleExportData}
-            onSignOutAll={handleSignOutAll}
-          />
-        )
-      default:
-        return null
-    }
-  }, [
-    activeTab,
-    settings,
-    handleUpdateSettings,
-    handleDeleteAccount,
-    handleExportData,
-    handleSignOutAll
-  ])
 
   return (
     <main className='min-h-screen bg-transparent text-foreground mt-20'>
@@ -161,43 +105,72 @@ const SettingsPage = memo(function SettingsPage() {
 
       {/* Main Content */}
       <div className='px-4 pb-12'>
-        <div className='grid grid-cols-1 lg:grid-cols-4 gap-8'>
+        <Tabs
+          defaultValue='account'
+          className='grid grid-cols-1 lg:grid-cols-4 gap-8'
+        >
           {/* Sidebar Navigation */}
-          <div className='lg:col-span-1'>
-            <div className='bg-transparent border border-border rounded-lg p-6'>
-              <h3 className='text-xl font-semibold mb-6'>Settings</h3>
-              <nav className='space-y-2' aria-label='Settings navigation'>
-                {settingsTabs.map((tab) => (
-                  <button
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id)}
-                    className={cn(
-                      'w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-colors cursor-pointer',
-                      activeTab === tab.id
-                        ? 'bg-default text-white'
-                        : 'text-foreground hover:bg-default-hover hover:text-white',
-                      tab.id === 'danger' &&
-                        activeTab !== tab.id &&
-                        'text-destructive hover:text-white'
-                    )}
-                    aria-current={activeTab === tab.id ? 'page' : undefined}
-                    aria-label={`${tab.label} settings`}
-                  >
-                    {tab.icon}
-                    <span className='text-sm'>{tab.label}</span>
-                  </button>
-                ))}
-              </nav>
-            </div>
-          </div>
+          <TabsList
+            orientation='vertical'
+            className='h-auto flex flex-row lg:flex-col w-full lg:w-auto bg-transparent border border-border rounded-lg p-3 justify-start lg:justify-start'
+          >
+            {settingsTabs.map((tab) => (
+              <TabsTrigger
+                key={tab.id}
+                value={tab.id}
+                className='w-full lg:w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left data-[state=active]:bg-brand data-[state=active]:text-white text-foreground hover:bg-muted transition-colors justify-start'
+              >
+                {tab.icon}
+                <span className='text-sm'>{tab.label}</span>
+              </TabsTrigger>
+            ))}
+          </TabsList>
 
           {/* Main Content */}
           <div className='lg:col-span-3'>
             <ScrollArea className='h-full'>
-              <div className='p-1'>{renderContent}</div>
+              <div className='p-1'>
+                <TabsContent value='account'>
+                  <AccountSettings
+                    settings={settings}
+                    onUpdate={handleUpdateSettings}
+                  />
+                </TabsContent>
+                <TabsContent value='notifications'>
+                  <NotificationSettings
+                    settings={settings}
+                    onUpdate={handleUpdateSettings}
+                  />
+                </TabsContent>
+                <TabsContent value='privacy'>
+                  <PrivacySettings
+                    settings={settings}
+                    onUpdate={handleUpdateSettings}
+                  />
+                </TabsContent>
+                <TabsContent value='language'>
+                  <LanguageSettings
+                    settings={settings}
+                    onUpdate={handleUpdateSettings}
+                  />
+                </TabsContent>
+                <TabsContent value='connections'>
+                  <ConnectedAccounts
+                    settings={settings}
+                    onUpdate={handleUpdateSettings}
+                  />
+                </TabsContent>
+                <TabsContent value='danger'>
+                  <DangerZone
+                    onDeleteAccount={handleDeleteAccount}
+                    onExportData={handleExportData}
+                    onSignOutAll={handleSignOutAll}
+                  />
+                </TabsContent>
+              </div>
             </ScrollArea>
           </div>
-        </div>
+        </Tabs>
       </div>
     </main>
   )

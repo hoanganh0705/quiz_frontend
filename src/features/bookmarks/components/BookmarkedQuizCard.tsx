@@ -171,7 +171,7 @@ const BookmarkedQuizCard = memo(function BookmarkedQuizCard({
         {/* Action */}
         <Button
           asChild
-          className='w-full bg-default hover:bg-default-hover text-white'
+          className='w-full bg-brand hover:bg-brand-hover text-white'
           size='sm'
         >
           <Link href={`/quizzes/${quiz.id}`}>

@@ -221,7 +221,7 @@ export default function AdminTagsPage() {
           {filteredTags.map((tag) => (
             <div
               key={tag.tagId}
-              className='rounded-lg border border-border p-4 hover:border-default/50 transition-colors group'
+              className='rounded-lg border border-border p-4 hover:border-brand/50 transition-colors group'
             >
               <div className='flex items-start justify-between gap-2'>
                 <div className='min-w-0 flex-1'>

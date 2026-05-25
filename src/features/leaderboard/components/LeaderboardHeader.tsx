@@ -75,7 +75,7 @@ export const LeaderboardHeader = memo(function LeaderboardHeader({
             aria-label='Leaderboard actions'
           >
             <Button
-              className='bg-default hover:bg-default-hover text-white text-xs sm:text-sm px-3 sm:px-4 py-1 sm:py-2 flex items-center gap-2'
+              className='bg-brand hover:bg-brand text-white text-xs sm:text-sm px-3 sm:px-4 py-1 sm:py-2 flex items-center gap-2'
               onClick={handleShowFindFriends}
               aria-label='Find friends on leaderboard'
             >
@@ -83,7 +83,7 @@ export const LeaderboardHeader = memo(function LeaderboardHeader({
               Find Friends
             </Button>
             <Button
-              className='bg-default hover:bg-default-hover text-white text-xs sm:text-sm px-3 sm:px-4 py-1 sm:py-2 flex items-center gap-2'
+              className='bg-brand hover:bg-brand text-white text-xs sm:text-sm px-3 sm:px-4 py-1 sm:py-2 flex items-center gap-2'
               onClick={handleShowYourRanking}
               aria-label='View your ranking details'
             >

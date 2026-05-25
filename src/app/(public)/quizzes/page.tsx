@@ -1,5 +1,8 @@
 'use client'
 
+import 'swiper/css'
+import 'swiper/css/free-mode'
+import 'swiper/css/scrollbar'
 import { useMemo, useState, useCallback, useEffect } from 'react'
 import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
@@ -183,7 +186,7 @@ export default function QuizPlatform() {
               onClick={() => setSelectedCategory('all-categories')}
               className={`whitespace-nowrap rounded-full border border-border ${
                 selectedCategory === 'all-categories'
-                  ? 'bg-default hover:bg-default/90 text-white'
+                  ? 'bg-brand hover:bg-brand/90 text-white'
                   : 'bg-transparent hover:bg-main/90'
               }`}
             >
@@ -200,7 +203,7 @@ export default function QuizPlatform() {
                 onClick={() => setSelectedCategory(category.slug)}
                 className={`whitespace-nowrap rounded-full border border-border ${
                   selectedCategory === category.slug
-                    ? 'bg-default hover:bg-default/90 text-white'
+                    ? 'bg-brand hover:bg-brand/90 text-white'
                     : 'bg-transparent hover:bg-main/90'
                 }`}
               >
