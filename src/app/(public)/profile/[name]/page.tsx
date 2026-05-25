@@ -10,8 +10,6 @@ import ActivityItem from '@/features/users/components/profile/ActivityItem'
 import CategoryRow from '@/features/users/components/profile/CategoryRow'
 import { challengeData } from '@/features/daily-challenge/constants/challenge-history-data'
 import type { Player } from '@/features/users/types'
-// Bundle optimization: Using barrel imports with Next.js optimizePackageImports
-// Next.js automatically transforms these to direct imports (bundle-barrel-imports)
 import {
   MessageCircle,
   Users,
@@ -78,7 +76,7 @@ const ProfileHeader = memo(function ProfileHeader({
                 </span>
                 <span className='flex items-center gap-1'>
                   <Calendar className='w-3 h-3' aria-hidden='true' />
-                  Joined March 15, 2022
+                  Joined {player.joinedAt ? new Date(player.joinedAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : 'March 15, 2022'}
                 </span>
               </div>
 
@@ -234,7 +232,7 @@ const ProfilePage = () => {
 
   return (
     <main className='min-h-screen flex items-start justify-center pt-10'>
-      <div className='w-[80%]'>
+      <div className='w-full max-w-7xl'>
         <Button
           size='sm'
           className='text-foreground/70 dark:text-foreground/70 bg-transparent p-0 hover:bg-transparent hover:text-foreground dark:hover:text-foreground   shadow-none'

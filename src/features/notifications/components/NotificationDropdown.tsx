@@ -2,13 +2,15 @@
 
 import {
   Bell,
+  BellOff,
   Trophy,
   MessageCircle,
   Star,
   Clock,
   Check,
   Trash2,
-  MoreHorizontal
+  MoreHorizontal,
+  X
 } from 'lucide-react'
 import {
   DropdownMenu,
@@ -129,20 +131,42 @@ function formatRelativeTime(dateString: string): string {
 export function NotificationDropdown() {
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [fetchError, setFetchError] = useState(false)
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null)
+
+  // Close the more-menu when clicking outside
+  useEffect(() => {
+    if (!openMenuId) return
+    const handleClick = () => setOpenMenuId(null)
+    document.addEventListener('click', handleClick, true)
+    return () => document.removeEventListener('click', handleClick, true)
+  }, [openMenuId])
 
   useEffect(() => {
-    const fetchNotifications = async () => {
+    let cancelled = false
+    async function fetchNotifications() {
+      setIsLoading(true)
+      setFetchError(false)
       try {
         const data = await getNotifications({ limit: 20 })
-        setNotifications(data.notifications)
+        if (!cancelled) {
+          setNotifications(data.notifications)
+        }
       } catch {
-        setNotifications(mockNotifications)
+        if (!cancelled) {
+          setFetchError(true)
+        }
       } finally {
-        setIsLoading(false)
+        if (!cancelled) {
+          setIsLoading(false)
+        }
       }
     }
 
-    fetchNotifications()
+    void fetchNotifications()
+    return () => {
+      cancelled = true
+    }
   }, [])
 
   const unreadCount = notifications.filter((n) => !n.read).length
@@ -237,6 +261,12 @@ export function NotificationDropdown() {
                 <div className='w-8 h-8 border-2 border-muted-foreground/30 border-t-muted-foreground rounded-full animate-spin mb-2' />
                 <p className='text-xs sm:text-sm'>Loading...</p>
               </div>
+            ) : fetchError ? (
+              <div className='flex flex-col items-center justify-center h-[60vh] sm:h-100 max-h-125 text-muted-foreground gap-2 px-4'>
+                <BellOff className='h-8 w-8 sm:h-10 sm:w-10 opacity-50' />
+                <p className='text-xs sm:text-sm'>Failed to load notifications</p>
+                <p className='text-[0.65rem] sm:text-xs opacity-70'>Check your connection and try again</p>
+              </div>
             ) : notifications.length === 0 ? (
               <div className='flex flex-col items-center justify-center h-[60vh] sm:h-100 max-h-125 text-muted-foreground'>
                 <Bell className='h-8 w-8 sm:h-10 sm:w-10 mb-2 opacity-50' />
@@ -293,26 +323,42 @@ export function NotificationDropdown() {
                     </p>
                   </div>
 
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <button
-                        onClick={(e) => e.stopPropagation()}
-                        className='shrink-0 p-0.5 sm:p-1 hover:bg-muted rounded-md transition-colors'
-                        aria-label='More options'
-                      >
-                        <MoreHorizontal className='h-3 w-3 sm:h-3.5 sm:w-3.5 text-muted-foreground' />
-                      </button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align='end' className='w-32 '>
-                      <DropdownMenuItem
-                        onClick={(e) => handleDeleteNotification(notification.id, e)}
-                        className='text-xs flex items-center justify-between cursor-pointer text-primary hover:bg-primary focus:text-primary focus:bg-[rgba(154,141,141,0.1)]'
-                      >
-                        Delete
-                        <Trash2 className='h-2 w-2' />
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setOpenMenuId(
+                        openMenuId === notification.id ? null : notification.id
+                      )
+                    }}
+                    className='shrink-0 p-0.5 sm:p-1 hover:bg-muted rounded-md transition-colors relative'
+                    aria-label='More options'
+                  >
+                    <MoreHorizontal className='h-3 w-3 sm:h-3.5 sm:w-3.5 text-muted-foreground' />
+                    {openMenuId === notification.id && (
+                      <div className='absolute right-0 top-full mt-1 z-50 bg-popover border border-border rounded-md shadow-md py-1 w-28'>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            handleDeleteNotification(notification.id, e)
+                            setOpenMenuId(null)
+                          }}
+                          className='w-full flex items-center justify-between px-3 py-1.5 text-xs text-foreground hover:bg-muted transition-colors cursor-pointer'
+                        >
+                          Delete
+                          <Trash2 className='h-2.5 w-2.5' />
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            setOpenMenuId(null)
+                          }}
+                          className='w-full flex items-center justify-center px-3 py-1.5 text-xs text-muted-foreground hover:bg-muted transition-colors cursor-pointer'
+                        >
+                          <X className='h-2.5 w-2.5' />
+                        </button>
+                      </div>
+                    )}
+                  </button>
                 </DropdownMenuItem>
               ))
             )}

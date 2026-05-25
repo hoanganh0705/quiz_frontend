@@ -1,5 +1,8 @@
 'use client'
 
+import 'swiper/css'
+import 'swiper/css/free-mode'
+import 'swiper/css/scrollbar'
 import { ChevronLeft, ChevronRight, Swords } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Swiper, SwiperSlide } from 'swiper/react'
@@ -18,14 +21,14 @@ const PlayerRanking = () => {
         <div className='flex gap-2'>
           <Button
             size='icon'
-            className='bg-default text-white hover:bg-default-hover player-swiper-button-prev'
+            className='bg-brand text-white hover:bg-brand-hover player-swiper-button-prev'
             aria-label='Previous player'
           >
             <ChevronLeft className='h-5 w-5' />
           </Button>
           <Button
             size='icon'
-            className='bg-default text-white hover:bg-default-hover player-swiper-button-next'
+            className='bg-brand text-white hover:bg-brand-hover player-swiper-button-next'
             aria-label='Next player'
           >
             <ChevronRight className='h-5 w-5' />
@@ -82,7 +85,7 @@ const PlayerRanking = () => {
       </div>
 
       <div className='mt-8 flex justify-center'>
-        <Button className='rounded-md text-white bg-default hover:bg-default-hover'>
+        <Button className='rounded-md text-white bg-brand hover:bg-brand-hover'>
           View Full Leaderboard
         </Button>
       </div>

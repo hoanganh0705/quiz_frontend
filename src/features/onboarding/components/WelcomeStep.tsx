@@ -36,10 +36,10 @@ export const WelcomeStep = memo(function WelcomeStep({
       {/* Hero Section */}
       <div className='space-y-4'>
         <div
-          className='inline-flex items-center justify-center w-20 h-20 rounded-full bg-default/10 mb-4'
+          className='inline-flex items-center justify-center w-20 h-20 rounded-full bg-brand/10 mb-4'
           aria-hidden='true'
         >
-          <Sparkles className='w-10 h-10 text-default' />
+          <Sparkles className='w-10 h-10 text-brand' />
         </div>
         <h1 className='text-3xl md:text-4xl font-bold text-foreground'>
           Welcome to QuizHub! 🎉
@@ -59,14 +59,14 @@ export const WelcomeStep = memo(function WelcomeStep({
         {features.map((feature) => (
           <div
             key={feature.title}
-            className='p-6 rounded-xl border border-border bg-card hover:border-default/50 transition-colors'
+            className='p-6 rounded-xl border border-border bg-card hover:border-brand/50 transition-colors'
             role='listitem'
           >
             <div
-              className='inline-flex items-center justify-center w-12 h-12 rounded-lg bg-default/10 mb-4'
+              className='inline-flex items-center justify-center w-12 h-12 rounded-lg bg-brand/10 mb-4'
               aria-hidden='true'
             >
-              <feature.icon className='w-6 h-6 text-default' />
+              <feature.icon className='w-6 h-6 text-brand' />
             </div>
             <h3 className='font-semibold text-foreground mb-2'>
               {feature.title}
@@ -83,7 +83,7 @@ export const WelcomeStep = memo(function WelcomeStep({
         <Button
           onClick={onNext}
           size='lg'
-          className='bg-default hover:bg-default-hover text-white px-8 py-6 text-lg'
+          className='bg-brand hover:bg-brand-hover text-white px-8 py-6 text-lg'
           aria-label='Start onboarding process'
         >
           Get Started

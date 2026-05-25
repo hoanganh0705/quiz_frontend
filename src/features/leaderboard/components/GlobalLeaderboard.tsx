@@ -66,7 +66,7 @@ export default function GlobalLeaderboard() {
 
   return (
     <Card className='min-h-screen rounded-xl bg-background text-foreground mt-10 md:mt-20'>
-      <div className='flex flex-col md:flex-row justify-between items-start md:items-center gap-6 p-6 bg-default rounded-t-xl'>
+      <div className='flex flex-col md:flex-row justify-between items-start md:items-center gap-6 p-6 bg-brand rounded-t-xl'>
         <div>
           <h1 className='text-xl md:text-2xl font-bold mb-2 text-white'>
             Global Leaderboard
@@ -94,7 +94,7 @@ export default function GlobalLeaderboard() {
             <Input
               type='text'
               placeholder='Search players...'
-              className='w-full pl-10 pr-4 py-2.5 rounded-lg bg-transparent border border-foreground/20 text-foreground placeholder-foreground/50 focus:ring-0.5 focus:ring-default focus:border-transparent'
+              className='w-full pl-10 pr-4 py-2.5 rounded-lg bg-transparent border border-foreground/20 text-foreground placeholder-foreground/50 focus:ring-0.5 focus:ring-brand focus:border-transparent'
               value={searchQuery}
               onChange={(e) => {
                 setSearchQuery(e.target.value)
@@ -120,7 +120,7 @@ export default function GlobalLeaderboard() {
                   (option) => (
                     <DropdownMenuItem
                       key={option}
-                      className='text-foreground cursor-pointer data-highlighted:bg-default-hover'
+                      className='text-foreground cursor-pointer data-highlighted:bg-brand-hover'
                       onClick={() => {
                         setSortBy(option)
                         setVisibleRows(20)
@@ -146,7 +146,7 @@ export default function GlobalLeaderboard() {
                 {['All Time', 'Last Month', 'Last Week'].map((option) => (
                   <DropdownMenuItem
                     key={option}
-                    className='text-foreground hover:bg-default-hover cursor-pointer'
+                    className='text-foreground hover:bg-brand-hover cursor-pointer'
                   >
                     {option}
                   </DropdownMenuItem>

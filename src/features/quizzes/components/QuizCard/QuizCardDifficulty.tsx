@@ -97,7 +97,7 @@ export function QuizCardDifficulty({
         >
           {spotsText}
         </p>
-        <Button className='w-full bg-default hover:bg-default-hover'>
+        <Button className='w-full bg-brand hover:bg-brand'>
           Start Quiz
         </Button>
       </div>

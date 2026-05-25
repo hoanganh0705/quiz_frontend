@@ -58,7 +58,7 @@ export function UserAvatarDropdown({ variant = 'header' }: UserAvatarDropdownPro
                 className='object-cover w-full h-full rounded-full'
               />
             ) : (
-              <AvatarFallback className='bg-default text-white-primary text-xs'>
+              <AvatarFallback className='bg-brand text-white-primary text-xs'>
                 {avatarLabel}
               </AvatarFallback>
             )}

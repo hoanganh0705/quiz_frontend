@@ -67,10 +67,10 @@ export const QuizRecommendationsStep = memo(function QuizRecommendationsStep({
       {/* Header */}
       <div className='text-center space-y-2'>
         <div
-          className='inline-flex items-center justify-center w-16 h-16 rounded-full bg-default/10 mb-2'
+          className='inline-flex items-center justify-center w-16 h-16 rounded-full bg-brand/10 mb-2'
           aria-hidden='true'
         >
-          <PartyPopper className='w-8 h-8 text-default' />
+          <PartyPopper className='w-8 h-8 text-brand' />
         </div>
         <h2 className='text-2xl md:text-3xl font-bold text-foreground'>
           You&apos;re all set! 🎉
@@ -90,7 +90,7 @@ export const QuizRecommendationsStep = memo(function QuizRecommendationsStep({
         {recommendedQuizzes.map((quiz) => (
           <article
             key={quiz.id}
-            className='group rounded-xl border border-border bg-card overflow-hidden transition-all hover:shadow-lg hover:border-default/50'
+            className='group rounded-xl border border-border bg-card overflow-hidden transition-all hover:shadow-lg hover:border-brand/50'
             role='listitem'
           >
             {/* Quiz Image */}
@@ -160,7 +160,7 @@ export const QuizRecommendationsStep = memo(function QuizRecommendationsStep({
               <Link href={`/quizzes/${quiz.id}`} className='block'>
                 <Button
                   size='sm'
-                  className='w-full bg-default hover:bg-default-hover text-white'
+                  className='w-full bg-brand hover:bg-brand-hover text-white'
                   aria-label={`Play ${quiz.title} quiz`}
                 >
                   <Play className='w-4 h-4 mr-1' aria-hidden='true' />
@@ -193,7 +193,7 @@ export const QuizRecommendationsStep = memo(function QuizRecommendationsStep({
           <Button
             onClick={onComplete}
             size='lg'
-            className='bg-default hover:bg-default-hover text-white px-8'
+            className='bg-brand hover:bg-brand-hover text-white px-8'
             aria-label='Complete onboarding and start exploring'
           >
             Start Exploring QuizHub 🚀

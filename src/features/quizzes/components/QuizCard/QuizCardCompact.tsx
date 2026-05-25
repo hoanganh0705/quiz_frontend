@@ -41,7 +41,7 @@ export default function QuizCardCompact({
             {categories[0]}
           </div>
         )}
-        <Button asChild className='bg-default hover:bg-default-hover text-white'>
+        <Button asChild className='bg-brand hover:bg-brand text-white'>
           <Link href={id ? `/quizzes/${id}` : '/quizzes'}>Play Now</Link>
         </Button>
       </div>

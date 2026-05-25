@@ -82,7 +82,7 @@ export default function AdminQuizzesPage() {
           return (
             <div
               key={quiz.id}
-              className='rounded-lg border border-border p-4 hover:border-default/50 transition-colors'
+              className='rounded-lg border border-border p-4 hover:border-brand/50 transition-colors'
             >
               <div className='flex items-start justify-between gap-4'>
                 <div className='flex items-start gap-3 min-w-0 flex-1'>

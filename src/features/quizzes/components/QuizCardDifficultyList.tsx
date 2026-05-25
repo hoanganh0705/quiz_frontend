@@ -1,5 +1,8 @@
 'use client'
 
+import 'swiper/css'
+import 'swiper/css/free-mode'
+import 'swiper/css/scrollbar'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { difficultyColors } from '@/features/quizzes/constants/difficulty-color'

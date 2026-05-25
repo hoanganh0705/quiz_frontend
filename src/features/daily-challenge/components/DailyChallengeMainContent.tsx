@@ -259,19 +259,19 @@ const DailyChallengeMainContent = memo(function DailyChallengeMainContent() {
             <Tabs defaultValue='today' className='w-full'>
               <TabsList className='text-white grid grid-cols-3 w-full bg-main'>
                 <TabsTrigger
-                  className='text-foreground data-[state=active]:bg-default data-[state=active]:text-white'
+                  className='text-foreground data-[state=active]:bg-brand data-[state=active]:text-white'
                   value='today'
                 >
                   Today
                 </TabsTrigger>
                 <TabsTrigger
-                  className='text-foreground data-[state=active]:bg-default data-[state=active]:text-white'
+                  className='text-foreground data-[state=active]:bg-brand data-[state=active]:text-white'
                   value='week'
                 >
                   Week
                 </TabsTrigger>
                 <TabsTrigger
-                  className='text-foreground data-[state=active]:bg-default data-[state=active]:text-white'
+                  className='text-foreground data-[state=active]:bg-brand data-[state=active]:text-white'
                   value='allTime'
                 >
                   All Time

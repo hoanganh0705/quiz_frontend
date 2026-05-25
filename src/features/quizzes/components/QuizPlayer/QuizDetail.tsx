@@ -40,7 +40,7 @@ export default function QuizDetail({ quiz }: QuizDetailProps) {
       <div className='p-4'>
         <Link href='/quizzes'>
           <Button
-            className='text-white hover:bg-default-hover bg-transparent'
+            className='text-white hover:bg-brand bg-transparent'
             aria-label='Back to explore quizzes'
           >
             <ArrowLeft className='w-4 h-4 mr-2' aria-hidden='true' />
@@ -270,7 +270,7 @@ export default function QuizDetail({ quiz }: QuizDetailProps) {
               <div className='space-y-3'>
                 <Link href={`/quizzes/${quiz.id}/start`} className='block'>
                   <Button
-                    className='w-[98%] mx-auto flex justify-center items-center bg-default hover:bg-default-hover text-white font-semibold py-4 text-base rounded-xl'
+                    className='w-[98%] mx-auto flex justify-center items-center bg-brand hover:bg-brand text-white font-semibold py-4 text-base rounded-xl'
                     size='lg'
                   >
                     Play now

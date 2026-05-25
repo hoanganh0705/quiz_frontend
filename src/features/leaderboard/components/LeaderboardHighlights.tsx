@@ -335,7 +335,7 @@ export const LeaderboardHighlights = memo(function LeaderboardHighlights() {
                 onClick={() => handleTimePeriodChange(value)}
                 className={`text-xs sm:text-sm ${
                   timePeriod === value
-                    ? 'bg-default hover:bg-default-hover'
+                    ? 'bg-brand hover:bg-brand'
                     : 'border-border text-foreground/80 hover:bg-accent'
                 }`}
               >

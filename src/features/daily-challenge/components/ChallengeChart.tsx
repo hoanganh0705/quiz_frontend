@@ -36,13 +36,13 @@ const ChallengeChart = () => {
             <TabsList className='grid w-full grid-cols-2 bg-main'>
               <TabsTrigger
                 value='performance'
-                className='data-[state=active]:bg-default data-[state=active]:text-white'
+                className='data-[state=active]:bg-brand data-[state=active]:text-white'
               >
                 Performance
               </TabsTrigger>
               <TabsTrigger
                 value='categories'
-                className='data-[state=active]:bg-default data-[state=active]:text-white'
+                className='data-[state=active]:bg-brand data-[state=active]:text-white'
               >
                 Categories
               </TabsTrigger>

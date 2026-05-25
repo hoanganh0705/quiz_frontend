@@ -1,4 +1,4 @@
-import { howItWorksData } from '@/features/marketing/constants/how-it-works'
+import { howItWorksData } from '@/features/marketing/constants/howItWorks'
 import Image from 'next/image'
 
 export default function HowItWorks() {

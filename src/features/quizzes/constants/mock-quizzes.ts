@@ -32,19 +32,19 @@ export const quizzes: Quiz[] = [
     questions: [
       {
         id: 1,
-        question: 'How many legs does a dog have?',
+        question: 'What is 15% of 200?',
         image: '/question.jpg',
         answers: [
-          { label: 'A', value: '3' },
-          { label: 'B', value: '4' },
-          { label: 'C', value: '5' },
-          { label: 'D', value: '6' }
+          { label: 'A', value: '20' },
+          { label: 'B', value: '25' },
+          { label: 'C', value: '30' },
+          { label: 'D', value: '35' }
         ],
-        correctAnswer: '4'
+        correctAnswer: '30'
       },
       {
         id: 2,
-        question: 'How many sides does a square have?',
+        question: 'Solve for x: 3x + 7 = 22',
         image: '/question.jpg',
         answers: [
           { label: 'A', value: '3' },
@@ -52,223 +52,223 @@ export const quizzes: Quiz[] = [
           { label: 'C', value: '5' },
           { label: 'D', value: '6' }
         ],
-        correctAnswer: '4'
+        correctAnswer: '5'
       },
       {
         id: 3,
-        question: 'How many days are in a week?',
+        question: 'What is the square root of 144?',
         image: '/question.jpg',
         answers: [
-          { label: 'A', value: '3' },
-          { label: 'B', value: '4' },
-          { label: 'C', value: '5' },
-          { label: 'D', value: '6' }
+          { label: 'A', value: '10' },
+          { label: 'B', value: '11' },
+          { label: 'C', value: '12' },
+          { label: 'D', value: '14' }
         ],
-        correctAnswer: '7'
+        correctAnswer: '12'
       },
       {
         id: 4,
-        question: 'What is 1 + 1?',
+        question: 'If a triangle has angles of 60° and 70°, what is the third angle?',
         image: '/question.jpg',
         answers: [
-          { label: 'A', value: '3' },
-          { label: 'B', value: '4' },
-          { label: 'C', value: '5' },
-          { label: 'D', value: '6' }
+          { label: 'A', value: '40°' },
+          { label: 'B', value: '50°' },
+          { label: 'C', value: '60°' },
+          { label: 'D', value: '70°' }
         ],
-        correctAnswer: '2'
+        correctAnswer: '50°'
       },
       {
         id: 5,
-        question: 'What is 2 * 2?',
+        question: 'What is 2³ (2 cubed)?',
         image: '/question.jpg',
         answers: [
-          { label: 'A', value: '3' },
-          { label: 'B', value: '4' },
-          { label: 'C', value: '5' },
-          { label: 'D', value: '6' }
+          { label: 'A', value: '6' },
+          { label: 'B', value: '8' },
+          { label: 'C', value: '9' },
+          { label: 'D', value: '16' }
         ],
-        correctAnswer: '4'
+        correctAnswer: '8'
       },
       {
         id: 6,
-        question: 'What is 5 - 1?',
+        question: 'Which of the following is a prime number?',
         image: '/question.jpg',
         answers: [
-          { label: 'A', value: '3' },
-          { label: 'B', value: '4' },
-          { label: 'C', value: '5' },
-          { label: 'D', value: '6' }
+          { label: 'A', value: '21' },
+          { label: 'B', value: '27' },
+          { label: 'C', value: '29' },
+          { label: 'D', value: '33' }
         ],
-        correctAnswer: '4'
+        correctAnswer: '29'
       },
       {
         id: 7,
-        question: 'What is 1 + 1?',
+        question: 'What is the perimeter of a rectangle with length 8 cm and width 5 cm?',
         image: '/question.jpg',
         answers: [
-          { label: 'A', value: '3' },
-          { label: 'B', value: '4' },
-          { label: 'C', value: '5' },
-          { label: 'D', value: '6' }
+          { label: 'A', value: '13 cm' },
+          { label: 'B', value: '26 cm' },
+          { label: 'C', value: '40 cm' },
+          { label: 'D', value: '24 cm' }
         ],
-        correctAnswer: '2'
+        correctAnswer: '26 cm'
       },
       {
         id: 8,
-        question: 'What is 1 + 1?',
+        question: 'Simplify: (x² · x³) ÷ x⁴',
         image: '/question.jpg',
         answers: [
-          { label: 'A', value: '3' },
-          { label: 'B', value: '4' },
-          { label: 'C', value: '5' },
-          { label: 'D', value: '6' }
+          { label: 'A', value: 'x' },
+          { label: 'B', value: 'x²' },
+          { label: 'C', value: '1' },
+          { label: 'D', value: 'x⁵' }
         ],
-        correctAnswer: '2'
+        correctAnswer: 'x'
       },
       {
         id: 9,
-        question: 'What is 2 * 2?',
+        question: 'What is the area of a circle with radius 7 cm? (Use π ≈ 22/7)',
         image: '/question.jpg',
         answers: [
-          { label: 'A', value: '3' },
-          { label: 'B', value: '4' },
-          { label: 'C', value: '5' },
-          { label: 'D', value: '6' }
+          { label: 'A', value: '44 cm²' },
+          { label: 'B', value: '154 cm²' },
+          { label: 'C', value: '22 cm²' },
+          { label: 'D', value: '308 cm²' }
         ],
-        correctAnswer: '4'
+        correctAnswer: '154 cm²'
       },
       {
         id: 10,
-        question: 'How many sides does a square have?',
+        question: 'Find the mean of: 4, 8, 12, 16, 20',
         image: '/question.jpg',
         answers: [
-          { label: 'A', value: '3' },
-          { label: 'B', value: '4' },
-          { label: 'C', value: '5' },
-          { label: 'D', value: '6' }
+          { label: 'A', value: '10' },
+          { label: 'B', value: '12' },
+          { label: 'C', value: '14' },
+          { label: 'D', value: '8' }
         ],
-        correctAnswer: '4'
+        correctAnswer: '12'
       },
       {
         id: 11,
-        question: 'How many days are in a week?',
+        question: 'What is the next number in the sequence: 2, 6, 12, 20, 30, ?',
         image: '/question.jpg',
         answers: [
-          { label: 'A', value: '3' },
-          { label: 'B', value: '4' },
-          { label: 'C', value: '5' },
-          { label: 'D', value: '6' }
+          { label: 'A', value: '40' },
+          { label: 'B', value: '42' },
+          { label: 'C', value: '44' },
+          { label: 'D', value: '38' }
         ],
-        correctAnswer: '7'
+        correctAnswer: '42'
       },
       {
         id: 12,
-        question: 'What shape has three sides?',
+        question: 'If 4 workers can paint a fence in 6 hours, how long would 8 workers take?',
         image: '/question.jpg',
         answers: [
-          { label: 'A', value: '3' },
-          { label: 'B', value: '4' },
-          { label: 'C', value: '5' },
-          { label: 'D', value: '6' }
+          { label: 'A', value: '2 hours' },
+          { label: 'B', value: '3 hours' },
+          { label: 'C', value: '4 hours' },
+          { label: 'D', value: '12 hours' }
         ],
-        correctAnswer: '3'
+        correctAnswer: '3 hours'
       },
       {
         id: 13,
-        question: 'What is 10 - 6?',
+        question: 'What is the value of 0.75 expressed as a fraction in simplest form?',
         image: '/question.jpg',
         answers: [
-          { label: 'A', value: '3' },
-          { label: 'B', value: '4' },
-          { label: 'C', value: '5' },
-          { label: 'D', value: '6' }
+          { label: 'A', value: '3/5' },
+          { label: 'B', value: '5/8' },
+          { label: 'C', value: '3/4' },
+          { label: 'D', value: '7/10' }
         ],
-        correctAnswer: '4'
+        correctAnswer: '3/4'
       },
       {
         id: 14,
-        question: 'What is 3 + 2?',
+        question: 'How many edges does a rectangular prism have?',
         image: '/question.jpg',
         answers: [
-          { label: 'A', value: '3' },
-          { label: 'B', value: '4' },
-          { label: 'C', value: '5' },
+          { label: 'A', value: '8' },
+          { label: 'B', value: '10' },
+          { label: 'C', value: '12' },
           { label: 'D', value: '6' }
         ],
-        correctAnswer: '5'
+        correctAnswer: '12'
       },
       {
         id: 15,
-        question: 'What is 5 - 1?',
+        question: 'What is the result of 3/4 − 1/3 expressed in simplest form?',
         image: '/question.jpg',
         answers: [
-          { label: 'A', value: '3' },
-          { label: 'B', value: '4' },
-          { label: 'C', value: '5' },
-          { label: 'D', value: '6' }
+          { label: 'A', value: '2/1' },
+          { label: 'B', value: '5/12' },
+          { label: 'C', value: '5/7' },
+          { label: 'D', value: '1/2' }
         ],
-        correctAnswer: '4'
+        correctAnswer: '5/12'
       },
       {
         id: 16,
-        question: '2 + 2 = ?',
+        question: 'A car travels 240 km in 4 hours. What is its average speed in km/h?',
         image: '/question.jpg',
         answers: [
-          { label: 'A', value: '3' },
-          { label: 'B', value: '4' },
-          { label: 'C', value: '5' },
-          { label: 'D', value: '6' }
+          { label: 'A', value: '50 km/h' },
+          { label: 'B', value: '60 km/h' },
+          { label: 'C', value: '70 km/h' },
+          { label: 'D', value: '55 km/h' }
         ],
-        correctAnswer: '4'
+        correctAnswer: '60 km/h'
       },
       {
         id: 17,
-        question: 'What is 3 + 2?',
+        question: 'What is the sum of the interior angles of a hexagon?',
         image: '/question.jpg',
         answers: [
-          { label: 'A', value: '3' },
-          { label: 'B', value: '4' },
-          { label: 'C', value: '5' },
-          { label: 'D', value: '6' }
+          { label: 'A', value: '540°' },
+          { label: 'B', value: '720°' },
+          { label: 'C', value: '900°' },
+          { label: 'D', value: '1080°' }
         ],
-        correctAnswer: '5'
+        correctAnswer: '720°'
       },
       {
         id: 18,
-        question: 'What shape has three sides?',
+        question: 'Solve: |x − 5| = 3. What are the possible values of x?',
         image: '/question.jpg',
         answers: [
-          { label: 'A', value: '3' },
-          { label: 'B', value: '4' },
-          { label: 'C', value: '5' },
-          { label: 'D', value: '6' }
+          { label: 'A', value: '2 and 8' },
+          { label: 'B', value: '3 and 5' },
+          { label: 'C', value: '5 only' },
+          { label: 'D', value: '-2 and 8' }
         ],
-        correctAnswer: '3'
+        correctAnswer: '2 and 8'
       },
       {
         id: 19,
-        question: 'How many legs does a dog have?',
+        question: 'A product costs $80 and is discounted by 15%. What is the sale price?',
         image: '/question.jpg',
         answers: [
-          { label: 'A', value: '3' },
-          { label: 'B', value: '4' },
-          { label: 'C', value: '5' },
-          { label: 'D', value: '6' }
+          { label: 'A', value: '$68' },
+          { label: 'B', value: '$65' },
+          { label: 'C', value: '$72' },
+          { label: 'D', value: '$70' }
         ],
-        correctAnswer: '4'
+        correctAnswer: '$68'
       },
       {
         id: 20,
-        question: 'What is 10 - 6?',
+        question: 'What is the probability of rolling a sum of 7 with two fair dice?',
         image: '/question.jpg',
         answers: [
-          { label: 'A', value: '3' },
-          { label: 'B', value: '4' },
-          { label: 'C', value: '5' },
-          { label: 'D', value: '6' }
+          { label: 'A', value: '1/6' },
+          { label: 'B', value: '1/9' },
+          { label: 'C', value: '7/36' },
+          { label: 'D', value: '1/12' }
         ],
-        correctAnswer: '4'
+        correctAnswer: '1/6'
       }
     ],
     quizReview: [

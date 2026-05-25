@@ -333,7 +333,7 @@ export const ProfileHeader = memo(function ProfileHeader({
                   )}
                   <span className='flex items-center gap-1'>
                     <Calendar className='w-3 h-3' aria-hidden='true' />
-                    Joined March 15, 2022
+                    Joined {user.joinedAt ? new Date(user.joinedAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : 'March 15, 2022'}
                   </span>
                 </div>
 

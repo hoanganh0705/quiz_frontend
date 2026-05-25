@@ -58,7 +58,7 @@ export function AdminSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
           <SidebarMenuItem>
             <SidebarMenuButton size='lg' asChild>
               <Link href='/admin'>
-                <div className='flex aspect-square size-8 items-center justify-center rounded-lg bg-default text-white-primary'>
+                <div className='flex aspect-square size-8 items-center justify-center rounded-lg bg-brand text-white-primary'>
                   <Shield className='size-4' />
                 </div>
                 <div className='flex flex-col gap-0.5 leading-none'>
@@ -84,7 +84,7 @@ export function AdminSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
                 isActive={isActive(item.url)}
                 className={`${
                   isActive(item.url)
-                    ? 'text-white-primary bg-default hover:bg-default-hover data-[active=true]:bg-default-hover'
+                    ? 'text-white-primary bg-brand hover:bg-brand-hover data-[active=true]:bg-brand-hover'
                     : 'text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
                 } transition-colors`}
               >
@@ -109,7 +109,7 @@ export function AdminSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
                 isActive={isActive(item.url)}
                 className={`${
                   isActive(item.url)
-                    ? 'text-white-primary bg-default hover:bg-default-hover data-[active=true]:bg-default-hover'
+                    ? 'text-white-primary bg-brand hover:bg-brand-hover data-[active=true]:bg-brand-hover'
                     : 'text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
                 } transition-colors`}
               >

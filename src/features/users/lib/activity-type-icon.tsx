@@ -5,7 +5,7 @@ const achievementIcon = (
 )
 const winIcon = <Trophy className='w-5 h-5 text-amber-500' aria-hidden='true' />
 const participationIcon = (
-  <Zap className='w-5 h-5 text-default' aria-hidden='true' />
+  <Zap className='w-5 h-5 text-brand' aria-hidden='true' />
 )
 
 /**

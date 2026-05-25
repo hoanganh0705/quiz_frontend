@@ -49,7 +49,7 @@ export default async function QuizHubDashboard() {
 
         <div className='flex justify-center mt-3 lg:mt-8 mb-3'>
           <Link href='/quizzes'>
-            <Button className='text-sm hover:bg-default-hover rounded-sm text-white'>
+            <Button className='text-sm hover:bg-brand-hover rounded-sm text-white'>
               View All Quizzes
             </Button>
           </Link>

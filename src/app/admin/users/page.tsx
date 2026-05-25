@@ -26,9 +26,9 @@ const mockUsers: User[] = [
   { id: '5', username: 'TravelBug', email: 'travelbug@example.com', avatar: 'TB', role: 'creator', quizzes: 33, score: 9800, joinedAt: '2023-10-05', status: 'active' },
   { id: '6', username: 'MathGuru', email: 'mathguru@example.com', avatar: 'MG', role: 'creator', quizzes: 8, score: 3400, joinedAt: '2023-11-12', status: 'active' },
   { id: '7', username: 'FilmFan', email: 'filmfan@example.com', avatar: 'FF', role: 'user', quizzes: 3, score: 1200, joinedAt: '2023-12-01', status: 'active' },
-  { id: '8', username: 'SpamBot123', email: 'spambot@example.com', avatar: 'SB', role: 'user', quizzes: 156, score: 0, joinedAt: '2024-01-15', status: 'banned' },
+  { id: '8', username: 'DataSpammer99', email: 'dataspammer@example.com', avatar: 'DS', role: 'user', quizzes: 4, score: 310, joinedAt: '2024-01-15', status: 'suspended' },
   { id: '9', username: 'BookWorm', email: 'bookworm@example.com', avatar: 'BW', role: 'creator', quizzes: 22, score: 7800, joinedAt: '2024-02-01', status: 'active' },
-  { id: '10', username: 'GeoPro', email: 'geopro@example.com', avatar: 'GP', role: 'user', quizzes: 0, score: 450, joinedAt: '2024-03-10', status: 'suspended' }
+  { id: '10', username: 'GeoPro', email: 'geopro@example.com', avatar: 'GP', role: 'user', quizzes: 1, score: 450, joinedAt: '2024-03-10', status: 'suspended' }
 ]
 
 const roleConfig = {
@@ -78,12 +78,12 @@ export default function AdminUsersPage() {
           return (
             <div
               key={user.id}
-              className='rounded-lg border border-border p-4 hover:border-default/50 transition-colors'
+              className='rounded-lg border border-border p-4 hover:border-brand/50 transition-colors'
             >
               <div className='flex items-center justify-between gap-4'>
                 <div className='flex items-center gap-3 min-w-0'>
                   <Avatar className='h-10 w-10 shrink-0'>
-                    <AvatarFallback className='bg-default text-white-primary text-sm'>
+                    <AvatarFallback className='bg-brand text-white-primary text-sm'>
                       {user.avatar}
                     </AvatarFallback>
                   </Avatar>

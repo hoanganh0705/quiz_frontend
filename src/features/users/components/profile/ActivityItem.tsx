@@ -9,7 +9,7 @@ interface ActivityItemProps {
 
 const ActivityItem = ({ icon, title, date }: ActivityItemProps) => {
   return (
-    <Card className='hover:border-default/50 transition-colors' role='listitem'>
+    <Card className='hover:border-brand/50 transition-colors' role='listitem'>
       <CardContent className='flex gap-4 justify-center items-center p-4'>
         <div className='shrink-0'>{icon}</div>
         <div className='flex-1'>

@@ -31,14 +31,14 @@ import { useTournamentPage } from '@/features/tournaments/hooks'
 const FeaturedTournament = memo(function FeaturedTournament() {
   return (
     <section
-      className='relative bg-linear-to-br bg-default to-indigo-950 rounded-xl p-6 md:p-10 lg:p-12 overflow-hidden shadow-lg'
+      className='relative bg-linear-to-br bg-brand to-indigo-950 rounded-xl p-6 md:p-10 lg:p-12 overflow-hidden shadow-lg'
       aria-labelledby='featured-title'
     >
       {/* Abstract background shapes */}
       <div className='absolute inset-0 opacity-20' aria-hidden='true'>
-        <div className='absolute w-64 h-64 bg-default rounded-full -top-16 -left-16 blur-3xl'></div>
+        <div className='absolute w-64 h-64 bg-brand rounded-full -top-16 -left-16 blur-3xl'></div>
         <div className='absolute w-96 h-96 bg-indigo-700 rounded-full -bottom-32 -right-32 blur-3xl'></div>
-        <div className='absolute w-48 h-48 bg-default rounded-full top-1/2 left-1/4 -translate-x-1/2 -translate-y-1/2 blur-3xl'></div>
+        <div className='absolute w-48 h-48 bg-brand rounded-full top-1/2 left-1/4 -translate-x-1/2 -translate-y-1/2 blur-3xl'></div>
       </div>
 
       <div className='relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-8 items-center'>
@@ -73,7 +73,7 @@ const FeaturedTournament = memo(function FeaturedTournament() {
             </div>
           </div>
           <Button
-            className='bg-default text-white px-6 py-3 rounded-lg text-sm font-semibold flex items-center gap-2'
+            className='bg-brand text-white px-6 py-3 rounded-lg text-sm font-semibold flex items-center gap-2'
             aria-label='Join Global Knowledge Championship tournament'
           >
             Join Tournament
@@ -82,7 +82,7 @@ const FeaturedTournament = memo(function FeaturedTournament() {
         </div>
 
         {/* Right Section */}
-        <div className='bg-default/30 backdrop-blur-sm rounded-lg p-6 space-y-6 lg:ml-auto lg:max-w-sm w-full'>
+        <div className='bg-brand/30 backdrop-blur-sm rounded-lg p-6 space-y-6 lg:ml-auto lg:max-w-sm w-full'>
           <div className='flex items-center justify-between text-white'>
             <span>Registration closes in</span>
             <div className='flex items-center gap-1'>
@@ -91,7 +91,7 @@ const FeaturedTournament = memo(function FeaturedTournament() {
             </div>
           </div>
           <div
-            className='w-full bg-default rounded-full h-2.5'
+            className='w-full bg-brand rounded-full h-2.5'
             role='progressbar'
             aria-valuenow={70}
             aria-valuemin={0}
@@ -104,19 +104,19 @@ const FeaturedTournament = memo(function FeaturedTournament() {
             ></div>
           </div>
           <div className='grid grid-cols-3 gap-4'>
-            <div className='bg-default rounded-lg p-4 text-center'>
+            <div className='bg-brand rounded-lg p-4 text-center'>
               <div className='text-2xl font-bold text-white tabular-nums'>
                 3
               </div>
               <div className='text-white text-sm'>Rounds</div>
             </div>
-            <div className='bg-default rounded-lg p-4 text-center'>
+            <div className='bg-brand rounded-lg p-4 text-center'>
               <div className='text-2xl font-bold text-white tabular-nums'>
                 15
               </div>
               <div className='text-white text-sm'>Categories</div>
             </div>
-            <div className='bg-default rounded-lg p-4 text-center'>
+            <div className='bg-brand rounded-lg p-4 text-center'>
               <div className='text-2xl font-bold text-white tabular-nums'>
                 50
               </div>
@@ -205,7 +205,7 @@ const TournamentCard = memo(function TournamentCard({
 
         <Button
           asChild
-          className='w-full bg-default hover:bg-default-hover text-white'
+          className='w-full bg-brand hover:bg-brand-hover text-white'
         >
           <Link
             href={`/tournament/${tournament.id}`}
@@ -295,7 +295,7 @@ function QuizTournament() {
               <TabsTrigger
                 key={category}
                 value={category}
-                className='shrink-0 whitespace-nowrap px-2.5 py-1 text-xs sm:text-sm border-border rounded-full  sm:px-4 sm:py-1.5 font-medium text-foreground/70 data-[state=active]:bg-default data-[state=active]:text-white hover:bg-default-hover hover:text-white transition-all duration-200'
+                className='shrink-0 whitespace-nowrap px-2.5 py-1 text-xs sm:text-sm border-border rounded-full  sm:px-4 sm:py-1.5 font-medium text-foreground/70 data-[state=active]:bg-brand data-[state=active]:text-white hover:bg-brand-hover hover:text-white transition-all duration-200'
               >
                 {category === 'all' ? 'All Categories' : category}
               </TabsTrigger>

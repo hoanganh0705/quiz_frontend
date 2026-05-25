@@ -274,7 +274,7 @@ export function YourRankingPopup({ isOpen, onClose }: YourRankingPopupProps) {
               onClick={() => setSelectedTab('overview')}
               className={
                 selectedTab === 'overview'
-                  ? 'bg-default hover:bg-default-hover'
+                  ? 'bg-brand hover:bg-brand'
                   : 'border-border text-muted-foreground hover:bg-accent'
               }
             >
@@ -286,7 +286,7 @@ export function YourRankingPopup({ isOpen, onClose }: YourRankingPopupProps) {
               onClick={() => setSelectedTab('achievements')}
               className={
                 selectedTab === 'achievements'
-                  ? 'bg-default hover:bg-default-hover'
+                  ? 'bg-brand hover:bg-brand'
                   : 'border-border text-muted-foreground hover:bg-accent'
               }
             >
@@ -298,7 +298,7 @@ export function YourRankingPopup({ isOpen, onClose }: YourRankingPopupProps) {
               onClick={() => setSelectedTab('activity')}
               className={
                 selectedTab === 'activity'
-                  ? 'bg-default hover:bg-default-hover'
+                  ? 'bg-brand hover:bg-brand'
                   : 'border-border text-muted-foreground hover:bg-accent'
               }
             >

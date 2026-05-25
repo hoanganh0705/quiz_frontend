@@ -33,7 +33,7 @@ export const StatisticsTab = memo(function StatisticsTab({
         <Card className='p-4'>
           <CardHeader>
             <CardTitle className='text-base flex items-center gap-2'>
-              <BarChart3 className='w-4 h-4 text-default' aria-hidden='true' />
+              <BarChart3 className='w-4 h-4 text-brand' aria-hidden='true' />
               Performance Overview
             </CardTitle>
           </CardHeader>

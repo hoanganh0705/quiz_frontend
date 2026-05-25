@@ -1,10 +1,12 @@
 'use client'
 
+import 'swiper/css'
+import 'swiper/css/free-mode'
 import Image from 'next/image'
 import { Star } from 'lucide-react'
 import { Swiper, SwiperSlide } from 'swiper/react'
 import { Navigation, Pagination, Autoplay } from 'swiper/modules'
-import { testimonials } from '@/features/marketing/constants/testimonial'
+import { testimonials } from '@/features/marketing/constants/testimonialData'
 import { useRef, useState } from 'react'
 import type { Swiper as SwiperType } from 'swiper'
 
@@ -126,13 +128,13 @@ export default function SuccessStoriesCarousel() {
                           <div className='text-gray-400 text-sm'>Earnings</div>
                         </div>
                         <div className='text-center'>
-                          <div className='text-2xl font-bold text-default'>
+                          <div className='text-2xl font-bold text-brand'>
                             {testimonial.quizzes}
                           </div>
                           <div className='text-gray-400 text-sm'>Quizzes</div>
                         </div>
                         <div className='text-center'>
-                          <div className='text-2xl font-bold text-default'>
+                          <div className='text-2xl font-bold text-brand'>
                             {testimonial.followers}
                           </div>
                           <div className='text-gray-400 text-sm'>Followers</div>
@@ -146,7 +148,7 @@ export default function SuccessStoriesCarousel() {
           </Swiper>
 
           <button
-            className='swiper-button-prev-custom absolute left-4 top-1/2 -translate-y-1/2 z-10 w-12 h-12 rounded-full bg-default hover:bg-default-hover text-white flex items-center justify-center transition-colors hover:cursor-pointer'
+            className='swiper-button-prev-custom absolute left-4 top-1/2 -translate-y-1/2 z-10 w-12 h-12 rounded-full bg-brand hover:bg-brand-hover text-white flex items-center justify-center transition-colors hover:cursor-pointer'
             aria-label='Previous testimonial'
           >
             <svg
@@ -165,7 +167,7 @@ export default function SuccessStoriesCarousel() {
           </button>
 
           <button
-            className='swiper-button-next-custom absolute right-4 top-1/2 -translate-y-1/2 z-10 w-12 h-12 rounded-full bg-default hover:bg-default-hover text-white flex items-center justify-center transition-colors hover:cursor-pointer'
+            className='swiper-button-next-custom absolute right-4 top-1/2 -translate-y-1/2 z-10 w-12 h-12 rounded-full bg-brand hover:bg-brand-hover text-white flex items-center justify-center transition-colors hover:cursor-pointer'
             aria-label='Next testimonial'
           >
             <svg

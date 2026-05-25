@@ -2,15 +2,7 @@
 
 import { Button } from '@/components/ui/Button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/Tabs'
-// Fix barrel imports (bundle-barrel-imports)
-import { AlertDialog } from '@/components/ui/AlertDialog'
-import { AlertDialogAction } from '@/components/ui/AlertDialog'
-import { AlertDialogCancel } from '@/components/ui/AlertDialog'
-import { AlertDialogContent } from '@/components/ui/AlertDialog'
-import { AlertDialogDescription } from '@/components/ui/AlertDialog'
-import { AlertDialogFooter } from '@/components/ui/AlertDialog'
-import { AlertDialogHeader } from '@/components/ui/AlertDialog'
-import { AlertDialogTitle } from '@/components/ui/AlertDialog'
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/AlertDialog'
 // Import from features
 import {
   BookmarkedQuizCard,
@@ -60,7 +52,7 @@ export default function BookmarksPage() {
       {/* Header */}
       <div className='mb-8'>
         <div className='flex items-center gap-3 mb-2'>
-          <Bookmark className='h-8 w-8 text-default' />
+          <Bookmark className='h-8 w-8 text-brand' />
           <h1 className='text-3xl font-bold text-foreground'>Saved Quizzes</h1>
         </div>
         <p className='text-foreground/70 text-base'>
@@ -107,7 +99,7 @@ export default function BookmarksPage() {
                     size='sm'
                     onClick={() => setViewMode('grid')}
                     className={
-                      viewMode === 'grid' ? 'bg-default text-white' : ''
+                      viewMode === 'grid' ? 'bg-brand text-white' : ''
                     }
                     aria-label='Grid view'
                     aria-pressed={viewMode === 'grid'}
@@ -119,7 +111,7 @@ export default function BookmarksPage() {
                     size='sm'
                     onClick={() => setViewMode('list')}
                     className={
-                      viewMode === 'list' ? 'bg-default text-white' : ''
+                      viewMode === 'list' ? 'bg-brand text-white' : ''
                     }
                     aria-label='List view'
                     aria-pressed={viewMode === 'list'}
@@ -134,7 +126,7 @@ export default function BookmarksPage() {
                     setEditingCollection(null)
                     setCollectionDialogOpen(true)
                   }}
-                  className='bg-default hover:bg-default-hover text-white'
+                  className='bg-brand hover:bg-brand-hover text-white'
                 >
                   <FolderPlus className='mr-2 h-4 w-4' />
                   New Collection

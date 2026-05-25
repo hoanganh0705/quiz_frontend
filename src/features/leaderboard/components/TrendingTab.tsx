@@ -58,7 +58,7 @@ export default function TrendingTab({ users, isLoading }: TrendingTabProps) {
         {users.map((user) => (
           <div
             key={user.id}
-            className='flex items-center gap-3 p-3 bg-muted rounded-lg hover:bg-default transition-colors'
+            className='flex items-center gap-3 p-3 bg-muted rounded-lg hover:bg-brand transition-colors'
           >
             <div className='w-12 h-12 rounded-full overflow-hidden'>
               <Image

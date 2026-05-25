@@ -94,7 +94,7 @@ export default function QuizCardDetail({ quiz }: QuizCardDetailProps) {
 
         <div className='flex gap-2'>
           <Button
-            className='flex-1 bg-default hover:bg-default-hover text-white'
+            className='flex-1 bg-brand hover:bg-brand text-white'
             asChild
           >
             <Link

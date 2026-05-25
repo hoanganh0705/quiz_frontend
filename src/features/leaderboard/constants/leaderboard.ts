@@ -101,7 +101,7 @@ export const leaderboardData = {
       time: 'avg 42s',
       badge: BADGE_TYPES.DIAMOND,
       rank: 1,
-      badgeColor: 'bg-default hover:bg-default-hover',
+      badgeColor: 'bg-brand hover:bg-brand',
       borderColor: 'border-yellow-400',
       rankBgColor: 'bg-yellow-400',
       rankTextColor: 'text-slate-900',

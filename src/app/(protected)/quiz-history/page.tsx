@@ -18,6 +18,9 @@ import type {
   DateRangeFilter
 } from '@/features/quizzes/types'
 import {
+  isWithinDateRange
+} from '@/shared/utils/date-utils'
+import {
   HistoryFiltersBar,
   HistoryHeader,
   HistoryStatsDashboard,
@@ -36,39 +39,6 @@ const defaultFilters: QuizHistoryFilters = {
 }
 
 // ── Filter logic ───────────────────────────────────────────────────────────
-
-function isWithinDateRange(date: string, range: DateRangeFilter): boolean {
-  if (range === 'all') return true
-  const d = new Date(date)
-  const now = new Date()
-
-  switch (range) {
-    case 'today':
-      return d.toDateString() === now.toDateString()
-    case 'week': {
-      const weekAgo = new Date(now)
-      weekAgo.setDate(weekAgo.getDate() - 7)
-      return d >= weekAgo
-    }
-    case 'month': {
-      const monthAgo = new Date(now)
-      monthAgo.setMonth(monthAgo.getMonth() - 1)
-      return d >= monthAgo
-    }
-    case '3months': {
-      const ago = new Date(now)
-      ago.setMonth(ago.getMonth() - 3)
-      return d >= ago
-    }
-    case 'year': {
-      const yearAgo = new Date(now)
-      yearAgo.setFullYear(yearAgo.getFullYear() - 1)
-      return d >= yearAgo
-    }
-    default:
-      return true
-  }
-}
 
 function applyFilters(
   entries: QuizHistoryEntry[],
@@ -203,13 +173,13 @@ const QuizHistoryPage = memo(function QuizHistoryPage() {
         <TabsList className='grid w-full grid-cols-2 bg-main max-w-md'>
           <TabsTrigger
             value='timeline'
-            className='data-[state=active]:bg-default data-[state=active]:text-white'
+            className='data-[state=active]:bg-brand data-[state=active]:text-white'
           >
             Activity Timeline
           </TabsTrigger>
           <TabsTrigger
             value='statistics'
-            className='data-[state=active]:bg-default data-[state=active]:text-white'
+            className='data-[state=active]:bg-brand data-[state=active]:text-white'
           >
             Statistics Dashboard
           </TabsTrigger>
