@@ -1,21 +1,19 @@
-import { apiClient } from '@/shared/lib/api/client'
+/**
+ * Tags API layer.
+ *
+ * @deprecated Use wrappers instead:
+ * - import { listTags, getTagBySlug, ... } from '@/features/tags/wrappers/tag.wrapper'
+ */
 
-export async function getTags(params?: {
-  cursor?: string
-  limit?: number
-}): Promise<{
-  items: import('../types').Tag[]
-  pagination: {
-    limit: number
-    nextCursor: string | null
-    hasNextPage: boolean
-  }
-}> {
-  const response = await apiClient.get('/tags', { params })
-  return response.data
-}
+import {
+  listTags,
+  getTagBySlug,
+  type ListTagsParams,
+} from '@/features/tags/wrappers/tag.wrapper';
 
-export async function getTagBySlug(slug: string): Promise<import('../types').Tag> {
-  const response = await apiClient.get(`/tags/${slug}`)
-  return response.data
+export { listTags, getTagBySlug };
+export type { ListTagsParams };
+
+export async function getTags(params?: ListTagsParams) {
+  return listTags(params);
 }

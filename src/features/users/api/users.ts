@@ -1,21 +1,29 @@
-import { apiClient } from '@/shared/lib/api/client'
+/**
+ * Users API layer.
+ *
+ * @deprecated Use wrappers instead:
+ * - import { getCurrentUser, updateMe, updateMySettings } from '@/features/users/wrappers/user.wrapper'
+ */
+
+import {
+  getCurrentUser,
+  updateMe,
+  updateMySettings,
+} from '@/features/users/wrappers/user.wrapper';
 import type {
   CurrentUserResponse,
   EditProfileRequest,
-  EditSettingsRequest
-} from '@/features/users/types'
+  EditSettingsRequest,
+} from '@/features/users/types';
 
-export async function getCurrentUser() {
-  const response = await apiClient.get<CurrentUserResponse>('/users/me')
-  return response.data
+export { getCurrentUser, updateMe, updateMySettings };
+export type { CurrentUserResponse, EditProfileRequest, EditSettingsRequest };
+
+// Backward-compatible aliases
+export async function editProfile(payload: EditProfileRequest): Promise<CurrentUserResponse> {
+  return updateMe(payload);
 }
 
-export async function editProfile(payload: EditProfileRequest) {
-  const response = await apiClient.patch<CurrentUserResponse>('/users/me', payload)
-  return response.data
-}
-
-export async function editSettings(payload: EditSettingsRequest) {
-  const response = await apiClient.patch<CurrentUserResponse>('/users/me/settings', payload)
-  return response.data
+export async function editSettings(payload: EditSettingsRequest): Promise<CurrentUserResponse> {
+  return updateMySettings(payload);
 }

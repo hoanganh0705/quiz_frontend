@@ -1,21 +1,19 @@
-import { apiClient } from '@/shared/lib/api/client'
+/**
+ * Categories API layer.
+ *
+ * @deprecated Use wrappers instead:
+ * - import { listCategories, getCategoryBySlug, ... } from '@/features/categories/wrappers/category.wrapper'
+ */
 
-export async function getCategories(params?: {
-  cursor?: string
-  limit?: number
-}): Promise<{
-  items: import('../types').Category[]
-  pagination: {
-    limit: number
-    nextCursor: string | null
-    hasNextPage: boolean
-  }
-}> {
-  const response = await apiClient.get('/categories', { params })
-  return response.data
-}
+import {
+  listCategories,
+  getCategoryBySlug,
+  type ListCategoriesParams,
+} from '@/features/categories/wrappers/category.wrapper';
 
-export async function getCategoryBySlug(slug: string): Promise<import('../types').Category> {
-  const response = await apiClient.get(`/categories/${slug}`)
-  return response.data
+export { listCategories, getCategoryBySlug };
+export type { ListCategoriesParams };
+
+export async function getCategories(params?: ListCategoriesParams) {
+  return listCategories(params);
 }

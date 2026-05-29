@@ -1,17 +1,87 @@
-// Users domain types
+/**
+ * Users Types — aligned with backend UserMeResponseDto.
+ */
 
-// Backend-aligned types
-export type {
-  UserMeResponseDto,
-  UpdateMeDto,
-  UpdateMeSettingsDto,
-  CurrentUserResponse,
-  EditProfileRequest,
-  EditSettingsRequest,
-} from './user-backend'
+// ─── Backend-aligned types ───────────────────────────────────────────────────────
 
-// Frontend-only types (not in backend yet)
-export type { Player } from './user-backend'
+export interface UserMeResponseDto {
+  userId: string
+  username: string
+  email: string
+  displayName: string | null
+  avatarUrl: string | null
+  bio: string | null
+  xpTotal: number
+  currentStreak: number
+  longestStreak: number
+  settings: Record<string, unknown>
+  createdAt: string
+  updatedAt: string
+}
+
+export interface UpdateMeDto {
+  displayName?: string
+  bio?: string
+}
+
+export interface UpdateMeSettingsDto {
+  settings: Record<string, unknown>
+}
+
+// ─── Legacy types (deprecated — for backward compat) ────────────────────────────
+
+/** @deprecated Use UserMeResponseDto instead */
+export interface CurrentUserResponse {
+  userId: string
+  username: string
+  email: string
+  displayName: string | null
+  avatarUrl: string | null
+  bio: string | null
+  xpTotal: number
+  currentStreak: number
+  longestStreak: number
+  settings: Record<string, unknown>
+  createdAt: string
+  updatedAt: string
+}
+
+/** @deprecated Use UpdateMeDto instead */
+export type EditProfileRequest = {
+  displayName?: string
+  bio?: string
+}
+
+/** @deprecated Use UpdateMeSettingsDto instead */
+export type EditSettingsRequest = {
+  settings: Record<string, unknown>
+}
+
+// ─── Frontend-only types (gamification - not in backend yet) ──────────────────
+
+export interface Player {
+  id: string
+  rank: number
+  name: string
+  username?: string
+  avatarUrl?: string
+  country?: string
+  flag?: string
+  streak?: number
+  score?: number
+  level?: number
+  levelString?: string
+  quizzes?: number
+  quizzesCreated?: number
+  wins?: number
+  badge?: string
+  earned?: number
+  followers?: string | number
+  following?: string | number
+  bgImageUrl?: string
+  bio?: string
+  joinedAt?: string
+}
 
 // User settings types
 export interface NotificationPreferences {
