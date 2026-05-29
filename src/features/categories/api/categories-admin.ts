@@ -1,43 +1,29 @@
-import { apiClient } from '@/shared/lib/api/client'
-import type { Category, CategoryListResponse, DeleteCategoryResponse } from '../types'
+/**
+ * Categories Admin API layer.
+ *
+ * @deprecated Use wrappers instead:
+ * - import { listCategories, createCategory, ... } from '@/features/categories/wrappers/category.wrapper'
+ */
 
-export async function getCategories(params?: {
-  cursor?: string
-  limit?: number
-}): Promise<CategoryListResponse> {
-  const response = await apiClient.get('/categories', { params })
-  return response.data
-}
+import {
+  listCategories,
+  getCategoryBySlug,
+  createCategory,
+  updateCategory,
+  deleteCategory,
+  type ListCategoriesParams,
+} from '@/features/categories/wrappers/category.wrapper';
 
-export async function getCategoryBySlug(slug: string): Promise<Category> {
-  const response = await apiClient.get(`/categories/${slug}`)
-  return response.data
-}
+export {
+  listCategories,
+  getCategoryBySlug,
+  createCategory,
+  updateCategory,
+  deleteCategory,
+};
+export type { ListCategoriesParams };
 
-export async function createCategory(payload: {
-  name: string
-  description?: string
-  slug?: string
-  imageUrl?: string
-}): Promise<Category> {
-  const response = await apiClient.post('/categories', payload)
-  return response.data
-}
-
-export async function updateCategory(
-  id: string,
-  payload: {
-    name?: string
-    description?: string
-    slug?: string
-    imageUrl?: string
-  }
-): Promise<Category> {
-  const response = await apiClient.patch(`/categories/${id}`, payload)
-  return response.data
-}
-
-export async function deleteCategory(id: string): Promise<DeleteCategoryResponse> {
-  const response = await apiClient.delete(`/categories/${id}`)
-  return response.data
+// Backward-compatible aliases
+export async function getCategories(params?: ListCategoriesParams) {
+  return listCategories(params);
 }

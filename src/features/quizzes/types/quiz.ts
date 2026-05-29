@@ -1,3 +1,9 @@
+/**
+ * @deprecated This file contains mock/legacy types from the old frontend.
+ * Use '@/features/quizzes/types/quiz-backend.ts' for backend-aligned types.
+ * These types do NOT match the actual backend API responses.
+ */
+
 export type QuizDifficulty = 'Easy' | 'Medium' | 'Hard'
 
 export interface QuizCreator {
