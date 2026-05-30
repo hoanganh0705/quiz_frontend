@@ -3,16 +3,21 @@
  * Handles token refresh, cross-tab sync, and response envelope unwrapping.
  */
 
-import axios, { AxiosInstance, InternalAxiosRequestConfig } from 'axios';
+import axios, {
+  AxiosInstance,
+  AxiosRequestConfig,
+  InternalAxiosRequestConfig,
+} from 'axios';
 
 // Auth utilities (to be created in features/auth/utils)
 import {
   getAuthToken,
+  clearAuthToken,
   setAuthToken,
 } from '@/features/auth/utils/auth-cookies';
 
 const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api/v1';
+  process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
 
 // Paths that should NOT trigger token refresh on 401
 const AUTH_PATHS = [
@@ -89,7 +94,7 @@ customInstance.interceptors.response.use(
     try {
       // Call refresh endpoint with credentials to send cookie
       const refreshResponse = await axios.post(
-        `${API_BASE_URL}/auth/refresh-token`,
+        `${API_BASE_URL}/api/v1/auth/refresh-token`,
         {},
         { withCredentials: true }
       );
@@ -144,3 +149,10 @@ if (typeof window !== 'undefined') {
 }
 
 export type { CustomConfig };
+
+export const orvalCustomInstance = async <T>(
+  config: AxiosRequestConfig
+): Promise<T> => {
+  const response = await customInstance.request<T>(config);
+  return response.data;
+};

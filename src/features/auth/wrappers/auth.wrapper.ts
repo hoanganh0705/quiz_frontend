@@ -28,7 +28,7 @@ import type {
 
 export async function register(payload: RegisterRequest): Promise<RegisterResponse> {
   const response = await authOnlyInstance.post<RegisterResponse>(
-    '/auth/register',
+    '/api/v1/auth/register',
     payload
   );
   return response.data;
@@ -36,7 +36,7 @@ export async function register(payload: RegisterRequest): Promise<RegisterRespon
 
 export async function login(payload: LoginRequest): Promise<LoginResponse> {
   const response = await authOnlyInstance.post<LoginResponse>(
-    '/auth/login',
+    '/api/v1/auth/login',
     payload
   );
   const data = response.data;
@@ -57,7 +57,7 @@ export async function verifyEmail(
   payload: VerifyEmailRequest
 ): Promise<VerifyEmailResponse> {
   const response = await authOnlyInstance.post<VerifyEmailResponse>(
-    '/auth/verify-email',
+    '/api/v1/auth/verify-email',
     payload
   );
   return response.data;
@@ -67,7 +67,7 @@ export async function resendVerificationEmail(
   payload: ResendVerificationRequest
 ): Promise<VerifyEmailResponse> {
   const response = await authOnlyInstance.post<VerifyEmailResponse>(
-    '/auth/resend-verification-email',
+    '/api/v1/auth/resend-verification-email',
     payload
   );
   return response.data;
@@ -76,7 +76,7 @@ export async function resendVerificationEmail(
 export async function logout(): Promise<LogoutResponse> {
   try {
     const response = await customInstance.post<LogoutResponse>(
-      '/auth/logout'
+      '/api/v1/auth/logout'
     );
     return response.data;
   } finally {
@@ -91,7 +91,7 @@ export async function logout(): Promise<LogoutResponse> {
 export async function logoutAll(): Promise<LogoutResponse> {
   try {
     const response = await customInstance.post<LogoutResponse>(
-      '/auth/logout-all'
+      '/api/v1/auth/logout-all'
     );
     return response.data;
   } finally {

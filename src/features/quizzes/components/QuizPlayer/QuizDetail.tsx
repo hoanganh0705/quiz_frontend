@@ -14,25 +14,43 @@ import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
 import { Progress } from '@/components/ui/Progress'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/Tabs'
-import { Quiz } from '@/features/quizzes/types'
+import type { QuizResponseDto, QuizVersionResponseDto } from '@/lib/api/generated/schemas'
 import { difficultyColors } from '@/features/quizzes/constants/difficulty-color'
 import QuizOverviewPanel from '@/features/quizzes/components/QuizDetail/QuizOverviewPanel'
 import Leaderboard from '@/features/quizzes/components/QuizDetail/Leaderboard'
 import Reviews from '@/features/quizzes/components/QuizDetail/Reviews'
 import { Card, CardContent } from '@/components/ui/Card'
-import { formatDuration } from '@/features/quizzes/lib/format-duration'
 import { ShareModal } from '@/shared/ui'
 
 interface QuizDetailProps {
-  quiz: Quiz
+  quiz: QuizResponseDto
+  version?: QuizVersionResponseDto
 }
 
-export default function QuizDetail({ quiz }: QuizDetailProps) {
-  // Simulate current players (you can replace this with real data)
-  const currentPlayers = quiz.currentPlayers
-  const maxPlayers = quiz.maxPlayers
+export default function QuizDetail({ quiz, version }: QuizDetailProps) {
+  // Default values for optional fields
+  const difficulty = version?.difficulty ?? 'medium'
+  const duration = version?.durationMs ?? 0
+  const questionCount = version?.questions?.length ?? 0
+  const questions = version?.questions ?? []
+  const rating = 0 // TODO: Get from reviews API
+  const reviewCount = 0
+
+  // Simulate player data (no real-time data available yet)
+  const currentPlayers = 0
+  const maxPlayers = 100
   const spotsLeft = maxPlayers - currentPlayers
-  const progressPercentage = (currentPlayers / maxPlayers) * 100
+  const progressPercentage = maxPlayers > 0 ? (currentPlayers / maxPlayers) * 100 : 0
+
+  // Format duration from milliseconds to readable format
+  const formatDurationMs = (ms: number) => {
+    const minutes = Math.floor(ms / 60000)
+    if (minutes >= 60) {
+      const hours = Math.floor(minutes / 60)
+      return `${hours}h ${minutes % 60}m`
+    }
+    return `${minutes} min`
+  }
 
   return (
     <main className='min-h-screen bg-background text-foreground'>
@@ -52,7 +70,7 @@ export default function QuizDetail({ quiz }: QuizDetailProps) {
       {/* Hero Section */}
       <div className='relative mx-4 mb-8 rounded-lg h-72 overflow-hidden'>
         <Image
-          src={quiz.image}
+          src={quiz.imageUrl ?? '/placeholder.webp'}
           alt={`${quiz.title} quiz cover`}
           width={1200}
           height={800}
@@ -64,23 +82,18 @@ export default function QuizDetail({ quiz }: QuizDetailProps) {
         {/* Quiz Info Overlay */}
         <div className='absolute bottom-0 left-0 p-6 text-white'>
           <div className='flex gap-2 mb-4'>
-              <Badge
+            <Badge
               className={`${
-                difficultyColors[quiz.difficulty].bg || 'bg-gray-600'
+                difficultyColors[difficulty]?.bg || 'bg-gray-600'
               } ${
-                difficultyColors[quiz.difficulty]?.hover || 'hover:bg-gray-500'
+                difficultyColors[difficulty]?.hover || 'hover:bg-gray-500'
               } text-white-primary cursor-pointer`}
             >
-              {quiz.difficulty}
+              {difficulty}
             </Badge>
             {quiz.isFeatured && (
               <Badge className='cursor-pointer bg-purple-500/80 hover:bg-purple-600 text-white-primary'>
                 Featured
-              </Badge>
-            )}
-            {quiz.isPopular && (
-              <Badge className='cursor-pointer bg-blue-500/80 hover:bg-blue-600 text-white-primary'>
-                Popular
               </Badge>
             )}
           </div>
@@ -90,7 +103,7 @@ export default function QuizDetail({ quiz }: QuizDetailProps) {
           <div className='flex items-center gap-6 text-sm'>
             <div className='flex items-center gap-1'>
               <Clock className='w-4 h-4' aria-hidden='true' />
-              <span>{formatDuration(quiz.duration)}</span>
+              <span>{formatDurationMs(duration)}</span>
             </div>
             <div className='flex items-center gap-1'>
               <Users className='w-4 h-4' aria-hidden='true' />
@@ -98,7 +111,7 @@ export default function QuizDetail({ quiz }: QuizDetailProps) {
             </div>
             <div className='flex items-center gap-1'>
               <HelpCircle className='w-4 h-4' aria-hidden='true' />
-              <span>{quiz.questionCount} questions</span>
+              <span>{questionCount} questions</span>
             </div>
             <div className='flex items-center gap-1'>
               <Star
@@ -106,7 +119,7 @@ export default function QuizDetail({ quiz }: QuizDetailProps) {
                 aria-hidden='true'
               />
               <span>
-                {quiz.rating} ({quiz.quizReview.length} reviews)
+                {rating} ({reviewCount} reviews)
               </span>
             </div>
           </div>
@@ -141,12 +154,12 @@ export default function QuizDetail({ quiz }: QuizDetailProps) {
 
             <TabsContent value='overview' className='mt-6'>
               <QuizOverviewPanel
-                description={quiz.description}
-                requirements={quiz.requirements}
-                duration={quiz.duration}
-                tags={quiz.tags}
-                previewQuestions={quiz.questions.slice(0, 3)}
-                questionCount={quiz.questionCount}
+                description={quiz.description ?? ''}
+                requirements={quiz.requirements ?? ''}
+                duration={duration}
+                tags={[]}
+                previewQuestions={questions.slice(0, 3)}
+                questionCount={questionCount}
               />
             </TabsContent>
 
@@ -155,7 +168,7 @@ export default function QuizDetail({ quiz }: QuizDetailProps) {
             </TabsContent>
 
             <TabsContent value='reviews' className='mt-6'>
-              <Reviews />
+              <Reviews quizId={quiz.quizId} />
             </TabsContent>
           </Tabs>
         </div>
@@ -193,21 +206,9 @@ export default function QuizDetail({ quiz }: QuizDetailProps) {
                 <Card className='bg-background border border-border h-full'>
                   <CardContent className='rounded-lg border p-3 h-full'>
                     <div className='text-xs text-muted-foreground mb-1'>
-                      Category
-                    </div>
-                    <div className='font-medium'>
-                      Science &<br />
-                      Technology
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card className='bg-background border border-border h-full'>
-                  <CardContent className='rounded-lg border p-3 h-full '>
-                    <div className='text-xs text-muted-foreground mb-1'>
                       Questions
                     </div>
-                    <div className='font-medium'>25</div>
+                    <div className='font-medium">{questionCount}</div>
                   </CardContent>
                 </Card>
 
@@ -216,7 +217,7 @@ export default function QuizDetail({ quiz }: QuizDetailProps) {
                     <div className='text-xs text-muted-foreground mb-1'>
                       Time Limit
                     </div>
-                    <div className='font-medium'>20 min</div>
+                    <div className='font-medium'>{formatDurationMs(duration)}</div>
                   </CardContent>
                 </Card>
 
@@ -225,50 +226,23 @@ export default function QuizDetail({ quiz }: QuizDetailProps) {
                     <div className='text-xs text-muted-foreground mb-1'>
                       Difficulty
                     </div>
-                    <div className='font-medium'>Medium</div>
+                    <div className='font-medium capitalize'>{difficulty}</div>
+                  </CardContent>
+                </Card>
+
+                <Card className='bg-background border border-border h-full'>
+                  <CardContent className='rounded-lg border p-3 h-full '>
+                    <div className='text-xs text-muted-foreground mb-1'>
+                      Passing Score
+                    </div>
+                    <div className='font-medium'>{version?.passingScorePercent ?? 70}%</div>
                   </CardContent>
                 </Card>
               </div>
 
-              {/* Creator Profile */}
-              <Card className='bg-background border border-border mb-5'>
-                <CardContent className='p-4'>
-                  <div className='flex items-center gap-3 mb-4'>
-                    <div className='w-12 h-12 rounded-full overflow-hidden bg-muted'>
-                      <Image
-                        src={quiz.creator.imageURL}
-                        alt={`${quiz.creator.name}'s name`}
-                        width={48}
-                        height={48}
-                        className='w-full h-full object-cover'
-                      />
-                    </div>
-                    <div>
-                      <div className='text-foreground'>{quiz.creator.name}</div>
-                      <div className='text-foreground/70 text-xs'>
-                        {quiz.creator.position}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className='flex justify-between text-sm'>
-                    <div>
-                      <span className='text-muted-foreground'>Quizzes: </span>
-                      <span className='text-foreground font-semibold'>
-                        {quiz.creator.quizzesCreated}
-                      </span>
-                    </div>
-                    <div>
-                      <span className='text-muted-foreground'>Updated: </span>
-                      <span className='text-foreground'>{quiz.updatedAt}</span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
               {/* Play Button */}
               <div className='space-y-3'>
-                <Link href={`/quizzes/${quiz.id}/start`} className='block'>
+                <Link href={`/quizzes/${quiz.slug}/start`} className='block'>
                   <Button
                     className='w-[98%] mx-auto flex justify-center items-center bg-brand hover:bg-brand text-white font-semibold py-4 text-base rounded-xl'
                     size='lg'
@@ -299,8 +273,8 @@ export default function QuizDetail({ quiz }: QuizDetailProps) {
 
                 <ShareModal
                   title={quiz.title}
-                  description={quiz.description}
-                  url={`/quizzes/${quiz.id}`}
+                  description={quiz.description ?? ''}
+                  url={`/quizzes/${quiz.slug}`}
                 >
                   <Button
                     size='icon'

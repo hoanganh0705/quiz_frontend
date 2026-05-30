@@ -1,17 +1,22 @@
-// Users domain types
+// Users domain types — aligned with backend DTOs
 
-// Backend-aligned types
+// Re-export from generated SDK
 export type {
   UserMeResponseDto,
   UpdateMeDto,
   UpdateMeSettingsDto,
-  CurrentUserResponse,
-  EditProfileRequest,
-  EditSettingsRequest,
-} from './user-backend'
+} from '@/lib/api/generated/schemas';
 
-// Frontend-only types (not in backend yet)
-export type { Player } from './user-backend'
+export type {
+  UserControllerMeResult,
+  UserControllerUpdateMeResult,
+  UserControllerUpdateMeSettingsResult,
+} from '@/lib/api/generated/users/users';
+
+// Backward-compatible type aliases
+export type CurrentUserResponse = UserMeResponseDto;
+export type EditProfileRequest = UpdateMeDto;
+export type EditSettingsRequest = UpdateMeSettingsDto;
 
 // User settings types
 export interface NotificationPreferences {

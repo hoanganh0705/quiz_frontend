@@ -1,65 +1,48 @@
 /**
  * Categories wrapper — wraps API calls with the custom API client.
+ * Uses the generated SDK from orval.
  */
 
-import { customInstance } from '@/lib/api/core/custom-instance';
+import { getCategories } from '@/lib/api/generated/categories/categories';
 import type {
-  Category,
-  CategoryListResponse,
-} from '@/features/categories/types';
+  CreateCategoryDto,
+  UpdateCategoryDto,
+} from '@/lib/api/generated/schemas';
+
+export type {
+  CategoryControllerListCategoriesResult,
+  CategoryControllerCreateCategoryResult,
+  CategoryControllerGetCategoryBySlugResult,
+  CategoryControllerUpdateCategoryResult,
+  CategoryControllerDeleteCategoryResult,
+} from '@/lib/api/generated/categories/categories';
 
 export interface ListCategoriesParams {
   cursor?: string
   limit?: number
 }
 
-export async function listCategories(
-  params?: ListCategoriesParams
-): Promise<CategoryListResponse> {
-  const response = await customInstance.get<CategoryListResponse>(
-    '/categories',
-    { params }
-  );
-  return response.data;
+export async function listCategories(params?: ListCategoriesParams) {
+  const sdk = getCategories();
+  return sdk.categoryControllerListCategories(params);
 }
 
-export async function getCategoryBySlug(slug: string): Promise<Category> {
-  const response = await customInstance.get<Category>(
-    `/categories/${slug}`
-  );
-  return response.data;
+export async function getCategoryBySlug(slug: string) {
+  const sdk = getCategories();
+  return sdk.categoryControllerGetCategoryBySlug(slug);
 }
 
-// Admin-only functions (require authentication)
-export interface CreateCategoryParams {
-  name: string
-  slug: string
-  description?: string
-  imageUrl?: string
+export async function createCategory(params: CreateCategoryDto) {
+  const sdk = getCategories();
+  return sdk.categoryControllerCreateCategory(params);
 }
 
-export async function createCategory(params: CreateCategoryParams): Promise<Category> {
-  const response = await customInstance.post<Category>(
-    '/categories',
-    params
-  );
-  return response.data;
+export async function updateCategory(id: string, params: UpdateCategoryDto) {
+  const sdk = getCategories();
+  return sdk.categoryControllerUpdateCategory(id, params);
 }
 
-export async function updateCategory(
-  id: string,
-  params: Partial<CreateCategoryParams>
-): Promise<Category> {
-  const response = await customInstance.patch<Category>(
-    `/categories/${id}`,
-    params
-  );
-  return response.data;
-}
-
-export async function deleteCategory(id: string): Promise<{ message: string }> {
-  const response = await customInstance.delete<{ message: string }>(
-    `/categories/${id}`
-  );
-  return response.data;
+export async function deleteCategory(id: string) {
+  const sdk = getCategories();
+  return sdk.categoryControllerDeleteCategory(id);
 }

@@ -6,8 +6,8 @@ import { QuizCardDifficultyBadge } from './shared/QuizCardDifficultyBadge'
 export interface QuizCardCompactProps {
   id?: string
   title: string
-  categories: string[]
-  difficulty: string
+  categories?: string[]
+  difficulty?: string
   image: string
 }
 
@@ -16,7 +16,7 @@ export default function QuizCardCompact({
   title,
   categories,
   difficulty,
-  image
+  image,
 }: QuizCardCompactProps) {
   return (
     <div className='rounded-lg border bg-card text-card-foreground shadow-sm overflow-hidden transition-all duration-200 hover:shadow-md hover:border-border'>
@@ -24,10 +24,12 @@ export default function QuizCardCompact({
         <Image src={image} alt={title} fill className='object-cover' />
 
         <div className='absolute inset-0 bg-linear-to-t from-black/60 to-transparent flex flex-col justify-end p-4'>
-          <QuizCardDifficultyBadge
-            difficulty={difficulty}
-            className='absolute top-3 left-3 z-10 text-white'
-          />
+          {difficulty && (
+            <QuizCardDifficultyBadge
+              difficulty={difficulty}
+              className='absolute top-3 left-3 z-10 text-white'
+            />
+          )}
 
           <h3 className='font-bold text-base text-white line-clamp-2'>
             {title}
@@ -36,7 +38,7 @@ export default function QuizCardCompact({
       </div>
 
       <div className='p-4 flex justify-between items-center'>
-        {categories.length > 0 && (
+        {categories && categories.length > 0 && (
           <div className='inline-flex items-center rounded-full border px-2.5 py-0.5 text-[12px] font-semibold text-foreground bg-slate-50 dark:bg-slate-700'>
             {categories[0]}
           </div>

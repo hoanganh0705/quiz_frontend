@@ -92,7 +92,7 @@ export function useKeyboardShortcut(
       if (!enabled) return
 
       // If a listener is already attached, nothing to do here.
-      if ((globalListenerAttached as any) === true) return
+      if (globalListenerAttached) return
 
       const handler = (e: KeyboardEvent) => {
         const target = e.target as HTMLElement
@@ -127,6 +127,6 @@ export function useKeyboardShortcut(
         globalHandler = null
       }
       // We only want to run this effect once per mount
-      // eslint-disable-next-line react-hooks/exhaustive-deps
+       
     }, [enabled])
 }

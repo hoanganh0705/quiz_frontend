@@ -6,8 +6,9 @@ import { Dialog, DialogContent, DialogTitle } from '@/components/ui/Dialog'
 import { Input } from '@/components/ui/Input'
 import { Search, ArrowRight, FileText, Layers, Keyboard } from 'lucide-react'
 import { sidebarItems } from '@/shared/layout'
-import { categories } from '@/features/categories/constants/categories'
-import { quizzes } from '@/features/quizzes/constants/mock-quizzes'
+import { listCategories } from '@/features/categories/api'
+import { listQuizzes } from '@/features/quizzes/api'
+import type { CategoryResponseDto, QuizResponseDto } from '@/lib/api/generated/schemas'
 import { useKeyboardShortcut } from '@/shared/hooks/use-keyboard-shortcut'
 import { useLocalStorage } from '@/shared/hooks/use-local-storage'
 
@@ -72,6 +73,8 @@ export function QuickSearch() {
   const [open, setOpen] = useState(false)
   const [query, setQuery] = useState('')
   const [activeIndex, setActiveIndex] = useState(0)
+  const [categories, setCategories] = useState<CategoryResponseDto[]>([])
+  const [quizzes, setQuizzes] = useState<QuizResponseDto[]>([])
   const [recentQueries, setRecentQueries] = useLocalStorage<string[]>(
     'quick_search_recent',
     []
@@ -79,6 +82,23 @@ export function QuickSearch() {
   const router = useRouter()
   const inputRef = useRef<HTMLInputElement>(null)
   const listRef = useRef<HTMLDivElement>(null)
+
+  // Fetch data on mount
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const [categoriesData, quizzesData] = await Promise.all([
+          listCategories({ limit: 50 }),
+          listQuizzes({ limit: 100 }),
+        ])
+        setCategories(categoriesData.items)
+        setQuizzes(quizzesData.items)
+      } catch (error) {
+        console.error('Failed to fetch search data:', error)
+      }
+    }
+    fetchData()
+  }, [])
 
   // Register Cmd/Ctrl + K shortcut
   useKeyboardShortcut(
@@ -99,26 +119,25 @@ export function QuickSearch() {
     }))
 
     const cats: SearchResult[] = categories
-      .filter((c) => c.id !== 'all-categories')
+      .filter((c) => c.slug)
       .map((cat) => ({
-        id: `cat-${cat.id}`,
+        id: `cat-${cat.categoryId}`,
         title: cat.name,
-        subtitle: `${cat.count} quizzes · ${cat.description}`,
+        subtitle: cat.description ?? 'Browse this category',
         href: `/categories/${cat.slug}`,
         type: 'category' as const,
-        icon: cat.icon
+        icon: '📂'
       }))
 
     const quizItems: SearchResult[] = quizzes.map((quiz) => ({
-      id: `quiz-${quiz.id}`,
+      id: `quiz-${quiz.quizId}`,
       title: quiz.title,
-      subtitle: `${quiz.difficulty} · ${quiz.questionCount} questions · by ${quiz.creator.name}`,
-      href: `/quizzes/${quiz.id}`,
+      subtitle: quiz.description ?? quiz.title,
+      href: `/quizzes/${quiz.slug}`,
       type: 'quiz' as const,
       icon: '📝'
     }))
 
-    // Add shortcuts help as a special result
     const shortcuts: SearchResult[] = [
       {
         id: 'shortcuts-help',
@@ -131,7 +150,7 @@ export function QuickSearch() {
     ]
 
     return [...pages, ...cats, ...quizItems, ...shortcuts]
-  }, [])
+  }, [categories, quizzes])
 
   // Filter results based on query
   const results = useMemo(() => {
@@ -217,7 +236,6 @@ export function QuickSearch() {
 
       setOpen(false)
       if (href === '#shortcuts') {
-        // Dispatch custom event to open shortcuts modal
         window.dispatchEvent(new CustomEvent('open-shortcuts-modal'))
         return
       }
@@ -260,7 +278,6 @@ export function QuickSearch() {
       >
         <DialogTitle className='sr-only'>Quick Search</DialogTitle>
 
-        {/* Search input */}
         <div className='flex items-center gap-2 border-b border-border px-3'>
           <Search
             className='h-4 w-4 text-foreground/50 shrink-0'
@@ -286,7 +303,6 @@ export function QuickSearch() {
           </kbd>
         </div>
 
-        {/* Results */}
         <div
           ref={listRef}
           id='quick-search-results'
@@ -300,7 +316,6 @@ export function QuickSearch() {
             </div>
           ) : (
             <>
-              {/* Group by type */}
               {['page', 'category', 'quiz'].map((type) => {
                 const typeResults = results.filter((r) => r.type === type)
                 if (typeResults.length === 0) return null
@@ -334,7 +349,6 @@ export function QuickSearch() {
           )}
         </div>
 
-        {/* Footer */}
         <div className='flex items-center justify-between border-t border-border px-3 py-2 text-xs text-foreground/40'>
           <div className='flex items-center gap-2'>
             <span className='flex items-center gap-1'>

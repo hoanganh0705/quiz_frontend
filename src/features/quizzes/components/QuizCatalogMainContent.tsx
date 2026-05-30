@@ -1,17 +1,14 @@
 'use client'
 
-import { memo, useMemo, useRef, useState, useEffect } from 'react'
+import { memo, useEffect, useState, useRef } from 'react'
 import { Label } from '@/components/ui/Label'
 import { Slider } from '@/components/ui/Slider'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/RadioGroup'
-import { QuizCardDetail } from '@/features/quizzes/components/QuizCard'
-import { quizzes } from '@/features/quizzes/constants/mock-quizzes'
-import type { Quiz } from '@/features/quizzes/types'
+import QuizCardCompact from '@/features/quizzes/components/QuizCard/QuizCardCompact'
+import { listQuizzes } from '@/features/quizzes/api'
+import type { QuizResponseDto } from '@/lib/api/generated/schemas'
+import type { ListQuizzesParams } from '@/features/quizzes/api'
 import { Button } from '@/components/ui/Button'
-import {
-  getTrendingScore,
-  getPopularityScore
-} from '@/features/quizzes/lib/quiz-discovery-score'
 
 interface QuizCatalogMainContentProps {
   categorySlug?: string
@@ -22,103 +19,46 @@ const QuizCatalogMainContent = memo(function QuizCatalogMainContent({
   categorySlug,
   searchQuery
 }: QuizCatalogMainContentProps) {
-  const [difficultyFilter, setDifficultyFilter] = useState('all')
-  const [sortBy, setSortBy] = useState('most-popular')
-  const [maxDuration, setMaxDuration] = useState([60])
-  const [minRating, setMinRating] = useState([0])
-  const [visibleCountByQuery, setVisibleCountByQuery] = useState<
-    Record<string, number>
-  >({})
+  const [quizzes, setQuizzes] = useState<QuizResponseDto[]>([])
+  const [loading, setLoading] = useState(true)
+  const [cursor, setCursor] = useState<string | undefined>()
+  const [hasMore, setHasMore] = useState(true)
+  const [difficultyFilter, setDifficultyFilter] = useState<string>('all')
+  const [sortBy, setSortBy] = useState<string>('newest')
+  const [maxDuration, setMaxDuration] = useState<number[]>([60])
+  const [minRating, setMinRating] = useState<number[]>([0])
   const loadMoreRef = useRef<HTMLDivElement | null>(null)
 
-  const filteredQuizzes = useMemo(() => {
-    const normalizedQuery = searchQuery.trim().toLowerCase()
-
-    const filtered = quizzes.filter((quiz) => {
-      if (
-        difficultyFilter !== 'all' &&
-        quiz.difficulty.toLowerCase() !== difficultyFilter
-      ) {
-        return false
+  // Fetch quizzes from API
+  const fetchQuizzes = async (append = false) => {
+    try {
+      const params: ListQuizzesParams = {
+        limit: 12,
+        ...(categorySlug && { categoryId: categorySlug }),
+        ...(searchQuery && { search: searchQuery }),
+        ...(difficultyFilter !== 'all' && { difficulty: difficultyFilter as 'easy' | 'medium' | 'hard' }),
+        ...(cursor && { cursor }),
       }
 
-      if (categorySlug) {
-        const slugMatch = quiz.categories.some(
-          (category) =>
-            category.toLowerCase().replace(/\s+/g, '-') === categorySlug.toLowerCase(),
-        )
-        const nameMatch = quiz.categories.some(
-          (category) => category.toLowerCase() === categorySlug.toLowerCase(),
-        )
-        if (!slugMatch && !nameMatch) return false
-      }
+      const data = await listQuizzes(params)
+      setQuizzes(prev => append ? [...prev, ...data.items] : data.items)
+      setHasMore(data.pagination.hasNextPage)
+      setCursor(data.pagination.nextCursor ?? undefined)
+    } catch (error) {
+      console.error('Failed to fetch quizzes:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
 
-      const durationInMinutes = Math.max(1, Math.round(quiz.duration / 60))
-      if (durationInMinutes > maxDuration[0]) {
-        return false
-      }
+  // Initial fetch
+  useEffect(() => {
+    setLoading(true)
+    setCursor(undefined)
+    fetchQuizzes(false)
+  }, [categorySlug, searchQuery, difficultyFilter])
 
-      if (quiz.rating < minRating[0]) {
-        return false
-      }
-
-      if (!normalizedQuery) return true
-
-      return (
-        quiz.title.toLowerCase().includes(normalizedQuery) ||
-        quiz.description.toLowerCase().includes(normalizedQuery) ||
-        quiz.creator.name.toLowerCase().includes(normalizedQuery) ||
-        quiz.categories.some((category) =>
-          category.toLowerCase().includes(normalizedQuery)
-        ) ||
-        quiz.tags.some((tag) => tag.toLowerCase().includes(normalizedQuery))
-      )
-    })
-
-    const sorted = [...filtered].sort((a, b) => {
-      if (sortBy === 'newest') {
-        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-      }
-
-      if (sortBy === 'trending') {
-        return getTrendingScore(b) - getTrendingScore(a)
-      }
-
-      return getPopularityScore(b) - getPopularityScore(a)
-    })
-
-    return sorted
-  }, [
-    difficultyFilter,
-    maxDuration,
-    minRating,
-    searchQuery,
-    categorySlug,
-    sortBy
-  ])
-
-  const queryKey = useMemo(
-    () =>
-      [
-        searchQuery.trim().toLowerCase(),
-        categorySlug ?? '',
-        difficultyFilter,
-        sortBy,
-        maxDuration[0],
-        minRating[0]
-      ].join('|'),
-    [
-      difficultyFilter,
-      maxDuration,
-      minRating,
-      searchQuery,
-      categorySlug,
-      sortBy
-    ]
-  )
-
-  const visibleCount = visibleCountByQuery[queryKey] ?? 12
-
+  // Load more when scrolling
   useEffect(() => {
     const element = loadMoreRef.current
     if (!element) return
@@ -126,14 +66,8 @@ const QuizCatalogMainContent = memo(function QuizCatalogMainContent({
     const observer = new IntersectionObserver(
       (entries) => {
         const entry = entries[0]
-        if (entry.isIntersecting) {
-          setVisibleCountByQuery((prev) => {
-            const current = prev[queryKey] ?? 12
-            return {
-              ...prev,
-              [queryKey]: Math.min(filteredQuizzes.length, current + 6)
-            }
-          })
+        if (entry.isIntersecting && hasMore && !loading) {
+          fetchQuizzes(true)
         }
       },
       { threshold: 0.2 }
@@ -141,9 +75,34 @@ const QuizCatalogMainContent = memo(function QuizCatalogMainContent({
 
     observer.observe(element)
     return () => observer.disconnect()
-  }, [filteredQuizzes.length, queryKey])
+  }, [hasMore, loading, cursor])
 
-  const visibleQuizzes = filteredQuizzes.slice(0, visibleCount)
+  if (loading && quizzes.length === 0) {
+    return (
+      <div className='text-foreground'>
+        <div className='flex xl:flex-row flex-col gap-7'>
+          <aside className='xl:w-[16rem] w-full rounded-xl'>
+            <h2 className='text-xl font-bold mb-6'>Filters</h2>
+            <div className='border border-border rounded-md p-4 space-y-5'>
+              <div className='h-4 w-24 bg-muted rounded animate-pulse' />
+              <div className='h-4 w-24 bg-muted rounded animate-pulse' />
+            </div>
+          </aside>
+          <div className='flex-1'>
+            <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
+              {[1, 2, 3, 4, 5, 6].map((i) => (
+                <div key={i} className='rounded-lg border bg-card p-4 animate-pulse'>
+                  <div className='h-48 bg-muted rounded mb-4' />
+                  <div className='h-4 w-3/4 bg-muted rounded mb-2' />
+                  <div className='h-4 w-1/2 bg-muted rounded' />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className='text-foreground'>
@@ -200,24 +159,6 @@ const QuizCatalogMainContent = memo(function QuizCatalogMainContent({
             </div>
 
             <div>
-              <div className='flex justify-between mb-3'>
-                <p className='font-semibold'>Rating</p>
-                <p className='text-sm text-foreground/70'>
-                  {minRating[0].toFixed(1)}+
-                </p>
-              </div>
-              <Slider
-                value={minRating}
-                onValueChange={(value) => setMinRating(value)}
-                min={0}
-                max={5}
-                step={0.5}
-                className='w-full'
-                aria-label='Minimum rating'
-              />
-            </div>
-
-            <div>
               <p className='font-semibold mb-3'>Sort by</p>
               <RadioGroup
                 value={sortBy}
@@ -244,36 +185,40 @@ const QuizCatalogMainContent = memo(function QuizCatalogMainContent({
         <div className='flex-1'>
           <div className='mb-6'>
             <p className='text-foreground/70 text-sm' aria-live='polite'>
-              Showing {visibleQuizzes.length} of {filteredQuizzes.length}{' '}
-              quizzes
+              {quizzes.length} quizzes found
             </p>
           </div>
 
-          <div
-            className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'
-            role='list'
-            aria-label='Quiz results'
-          >
-            {visibleQuizzes.map((quiz) => (
-              <QuizCardDetail key={quiz.id} quiz={quiz} />
-            ))}
-          </div>
+          {quizzes.length === 0 ? (
+            <div className='text-center py-12'>
+              <p className='text-muted-foreground'>No quizzes found matching your criteria.</p>
+            </div>
+          ) : (
+            <div
+              className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'
+              role='list'
+              aria-label='Quiz results'
+            >
+              {quizzes.map((quiz) => (
+                <QuizCardCompact
+                  key={quiz.quizId}
+                  id={quiz.slug}
+                  title={quiz.title}
+                  image={quiz.imageUrl ?? '/placeholder.webp'}
+                  difficulty={quiz.publishedVersion?.difficulty}
+                />
+              ))}
+            </div>
+          )}
 
-          {visibleCount < filteredQuizzes.length && (
+          {hasMore && (
             <div className='mt-6 flex justify-center'>
               <Button
                 variant='outline'
-                onClick={() =>
-                  setVisibleCountByQuery((prev) => {
-                    const current = prev[queryKey] ?? 12
-                    return {
-                      ...prev,
-                      [queryKey]: Math.min(filteredQuizzes.length, current + 6)
-                    }
-                  })
-                }
+                onClick={() => fetchQuizzes(true)}
+                disabled={loading}
               >
-                Load more
+                {loading ? 'Loading...' : 'Load more'}
               </Button>
             </div>
           )}

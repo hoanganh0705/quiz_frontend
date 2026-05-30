@@ -1,11 +1,12 @@
-export { getCategories, getCategoryBySlug } from './categories'
-export { getCategoriesServer, getCategoryBySlugServer } from './categories-server'
-
-// Admin functions (deprecated - use wrappers instead)
+// Re-export from wrappers (wrappers use generated SDK)
 export {
-  getCategories as getCategoriesAdmin,
+  listCategories,
+  getCategoryBySlug,
   createCategory,
   updateCategory,
   deleteCategory,
-} from './categories-admin'
-export type { ListCategoriesParams } from './categories-admin'
+} from '@/features/categories/wrappers/category.wrapper';
+
+export type { ListCategoriesParams } from '@/features/categories/wrappers/category.wrapper';
+
+// Admin functions (deprecated - use wrappers instead)

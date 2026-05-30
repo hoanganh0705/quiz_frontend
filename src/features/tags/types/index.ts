@@ -1,21 +1,23 @@
-// Tags types — aligned with backend TagResponseDto
-export interface Tag {
-  tagId: string
-  name: string
-  slug: string
-  createdAt: string
-  updatedAt: string
-}
+// Tags types — aligned with backend DTOs
 
-export interface TagListResponse {
-  items: Tag[]
-  pagination: {
-    limit: number
-    nextCursor: string | null
-    hasNextPage: boolean
-  }
-}
+// Re-export from generated SDK
+export type {
+  TagResponseDto,
+  TagListResponseDto,
+  TagPaginationResponseDto,
+  CreateTagDto,
+  UpdateTagDto,
+  DeleteTagResponseDto,
+} from '@/lib/api/generated/schemas';
 
-export interface DeleteTagResponse {
-  message: string
-}
+export type {
+  TagControllerListTagsResult,
+  TagControllerCreateTagResult,
+  TagControllerGetTagBySlugResult,
+  TagControllerUpdateTagResult,
+  TagControllerDeleteTagResult,
+} from '@/lib/api/generated/tags/tags';
+
+// Backward compatibility aliases
+export type Tag = TagResponseDto;
+export type TagListResponse = TagPaginationResponseDto;

@@ -1,90 +1,57 @@
 /**
  * Attempts wrapper — wraps API calls for quiz attempts.
+ * Uses the generated SDK from orval.
  */
 
-import { customInstance } from '@/lib/api/core/custom-instance';
+import { getAttempts } from '@/lib/api/generated/attempts/attempts';
+import type {
+  StartAttemptDto,
+  SubmitAnswerDto,
+} from '@/lib/api/generated/schemas';
 
-// ─── Types ─────────────────────────────────────────────────────────────────────
+export type {
+  AttemptControllerStartAttemptResult,
+  AttemptControllerGetAttemptByIdResult,
+  AttemptControllerSubmitAnswerResult,
+  AttemptControllerAbandonAttemptResult,
+  AttemptControllerCompleteAttemptResult,
+  AttemptControllerListMyAttemptsResult,
+} from '@/lib/api/generated/attempts/attempts';
 
-export interface AttemptResponseDto {
-  attemptId: string
-  quizId: string
-  quizVersionId: string
-  userId: string
-  score: number
-  totalQuestions: number
-  correctAnswers: number
-  timeMs: number
-  startedAt: string
-  completedAt: string | null
-  status: 'in_progress' | 'completed' | 'abandoned'
+export interface ListMyAttemptsParams {
+  cursor?: string
+  limit?: number
 }
 
-export interface AttemptListResponse {
-  items: AttemptResponseDto[]
-  pagination: {
-    limit: number
-    nextCursor: string | null
-    hasNextPage: boolean
-  }
+export async function startAttempt(quizId: string, params?: StartAttemptDto) {
+  const sdk = getAttempts();
+  return sdk.attemptControllerStartAttempt(quizId, params);
 }
 
-// ─── API Functions ─────────────────────────────────────────────────────────────
-
-export async function startAttempt(quizId: string): Promise<{
-  attemptId: string
-  quizVersionId: string
-}> {
-  const response = await customInstance.post<{
-    attemptId: string
-    quizVersionId: string
-  }>(`/quizzes/${quizId}/attempts`);
-  return response.data;
-}
-
-export async function getAttempt(attemptId: string): Promise<AttemptResponseDto> {
-  const response = await customInstance.get<AttemptResponseDto>(
-    `/attempts/${attemptId}`
-  );
-  return response.data;
+export async function getAttempt(attemptId: string) {
+  const sdk = getAttempts();
+  return sdk.attemptControllerGetAttemptById(attemptId);
 }
 
 export async function submitAnswer(
   attemptId: string,
-  questionId: string,
-  selectedOptionId: string
-): Promise<{ isCorrect: boolean; correctOptionId: string }> {
-  const response = await customInstance.post<{
-    isCorrect: boolean
-    correctOptionId: string
-  }>(`/attempts/${attemptId}/answers`, {
-    questionId,
-    selectedOptionId,
-  });
-  return response.data;
+  params: SubmitAnswerDto
+) {
+  const sdk = getAttempts();
+  return sdk.attemptControllerSubmitAnswer(attemptId, params);
 }
 
-export async function abandonAttempt(attemptId: string): Promise<AttemptResponseDto> {
-  const response = await customInstance.post<AttemptResponseDto>(
-    `/attempts/${attemptId}/abandon`
-  );
-  return response.data;
+export async function abandonAttempt(attemptId: string) {
+  const sdk = getAttempts();
+  return sdk.attemptControllerAbandonAttempt(attemptId);
 }
 
-export async function completeAttempt(attemptId: string): Promise<AttemptResponseDto> {
-  const response = await customInstance.post<AttemptResponseDto>(
-    `/attempts/${attemptId}/complete`
-  );
-  return response.data;
+export async function completeAttempt(attemptId: string) {
+  const sdk = getAttempts();
+  return sdk.attemptControllerCompleteAttempt(attemptId);
 }
 
-export async function getMyAttempts(params?: {
-  cursor?: string
-  limit?: number
-}): Promise<AttemptListResponse> {
-  const response = await customInstance.get<AttemptListResponse>(
-    '/users/me/attempts',
-    { params }
-  );
-  return response.data;
+export async function getMyAttempts(params?: ListMyAttemptsParams) {
+  const sdk = getAttempts();
+  return sdk.attemptControllerListMyAttempts(params);
 }
