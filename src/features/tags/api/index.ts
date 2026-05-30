@@ -1,11 +1,13 @@
-export { getTags, getTagBySlug } from './tags'
-export { getTagsServer, getTagBySlugServer } from './tags-server'
-
-// Admin functions (deprecated - use wrappers instead)
+// Re-export from wrappers (wrappers use generated SDK)
 export {
-  getTags as getTagsAdmin,
+  listTags,
+  getTagBySlug,
   createTag,
   updateTag,
   deleteTag,
-} from './tags-admin'
-export type { ListTagsParams } from './tags-admin'
+} from '@/features/tags/wrappers/tag.wrapper';
+
+export type { ListTagsParams } from '@/features/tags/wrappers/tag.wrapper';
+
+// Admin functions (deprecated - use wrappers instead)
+export { getTagsAdmin } from './tags-admin'

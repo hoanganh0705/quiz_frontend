@@ -1,78 +1,48 @@
 /**
  * Instances wrapper — wraps API calls for live quiz instances.
+ * Uses the generated SDK from orval.
  */
 
-import { customInstance } from '@/lib/api/core/custom-instance';
+import { getInstances } from '@/lib/api/generated/instances/instances';
+import type {
+  CreateInstanceDto,
+} from '@/lib/api/generated/schemas';
 
-// ─── Types ─────────────────────────────────────────────────────────────────────
+export type {
+  InstanceControllerCreateInstanceResult,
+  InstanceControllerGetInstanceByIdResult,
+  InstanceControllerJoinInstanceResult,
+  InstanceControllerStartInstanceResult,
+  InstanceControllerCloseInstanceResult,
+  InstanceControllerGetLeaderboardResult,
+} from '@/lib/api/generated/instances/instances';
 
-export interface InstanceResponseDto {
-  instanceId: string
-  quizId: string
-  quizVersionId: string
-  status: 'waiting' | 'active' | 'closed'
-  currentPlayers: number
-  maxPlayers: number
-  startedAt: string | null
-  endedAt: string | null
-  createdAt: string
-  updatedAt: string
+export async function createInstance(params: CreateInstanceDto) {
+  const sdk = getInstances();
+  return sdk.instanceControllerCreateInstance(params);
 }
 
-export interface InstanceLeaderboardEntryDto {
-  rank: number
-  userId: string
-  username: string
-  displayName: string | null
-  avatarUrl: string | null
-  score: number
-  timeMs: number
-  completedAt: string | null
+export async function getInstance(id: string) {
+  const sdk = getInstances();
+  return sdk.instanceControllerGetInstanceById(id);
 }
 
-// ─── API Functions ─────────────────────────────────────────────────────────────
-
-export async function createInstance(quizId: string): Promise<InstanceResponseDto> {
-  const response = await customInstance.post<InstanceResponseDto>(
-    '/instances',
-    { quizId }
-  );
-  return response.data;
+export async function joinInstance(id: string) {
+  const sdk = getInstances();
+  return sdk.instanceControllerJoinInstance(id);
 }
 
-export async function getInstance(instanceId: string): Promise<InstanceResponseDto> {
-  const response = await customInstance.get<InstanceResponseDto>(
-    `/instances/${instanceId}`
-  );
-  return response.data;
+export async function startInstance(id: string) {
+  const sdk = getInstances();
+  return sdk.instanceControllerStartInstance(id);
 }
 
-export async function joinInstance(instanceId: string): Promise<{ message: string }> {
-  const response = await customInstance.post<{ message: string }>(
-    `/instances/${instanceId}/join`
-  );
-  return response.data;
+export async function closeInstance(id: string) {
+  const sdk = getInstances();
+  return sdk.instanceControllerCloseInstance(id);
 }
 
-export async function startInstance(instanceId: string): Promise<InstanceResponseDto> {
-  const response = await customInstance.post<InstanceResponseDto>(
-    `/instances/${instanceId}/start`
-  );
-  return response.data;
-}
-
-export async function closeInstance(instanceId: string): Promise<InstanceResponseDto> {
-  const response = await customInstance.post<InstanceResponseDto>(
-    `/instances/${instanceId}/close`
-  );
-  return response.data;
-}
-
-export async function getInstanceLeaderboard(
-  instanceId: string
-): Promise<{ items: InstanceLeaderboardEntryDto[] }> {
-  const response = await customInstance.get<{ items: InstanceLeaderboardEntryDto[] }>(
-    `/instances/${instanceId}/leaderboard`
-  );
-  return response.data;
+export async function getInstanceLeaderboard(id: string) {
+  const sdk = getInstances();
+  return sdk.instanceControllerGetLeaderboard(id);
 }

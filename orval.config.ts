@@ -4,7 +4,7 @@ export default defineConfig({
   quiz: {
     input: {
       target: 'http://localhost:8080/api/v1/docs/openapi.json',
-      validation: true,
+      validation: false,
     },
     output: {
       target: './src/lib/api/generated',
@@ -19,7 +19,7 @@ export default defineConfig({
       override: {
         mutator: {
           path: './src/lib/api/core/custom-instance.ts',
-          name: 'customInstance',
+          name: 'orvalCustomInstance',
         },
       },
     },

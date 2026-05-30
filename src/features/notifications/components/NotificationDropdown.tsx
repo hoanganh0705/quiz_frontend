@@ -50,69 +50,6 @@ const getNotificationIcon = (type: Notification['type']) => {
   }
 }
 
-const mockNotifications: Notification[] = [
-  {
-    id: '1',
-    type: 'achievement',
-    title: 'New Achievement Unlocked!',
-    description:
-      'You earned the "Quiz Master" badge for completing 50 quizzes.',
-    time: '2 min ago',
-    read: false,
-    createdAt: new Date(Date.now() - 2 * 60 * 1000).toISOString()
-  },
-  {
-    id: '2',
-    type: 'message',
-    title: 'Sarah Johnson',
-    description: 'Hey! Want to join my quiz tournament this weekend?',
-    time: '15 min ago',
-    read: false,
-    avatar: '/avatarPlaceholder.webp',
-    avatarFallback: 'SJ',
-    createdAt: new Date(Date.now() - 15 * 60 * 1000).toISOString()
-  },
-  {
-    id: '3',
-    type: 'challenge',
-    title: 'Daily Challenge Available',
-    description:
-      'New daily challenge is ready. Complete it to maintain your streak!',
-    time: '1 hour ago',
-    read: false,
-    createdAt: new Date(Date.now() - 60 * 60 * 1000).toISOString()
-  },
-  {
-    id: '4',
-    type: 'quiz',
-    title: 'Quiz Result',
-    description: 'You scored 95% on "Advanced JavaScript Concepts"',
-    time: '3 hours ago',
-    read: true,
-    createdAt: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString()
-  },
-  {
-    id: '5',
-    type: 'system',
-    title: 'Leaderboard Update',
-    description: 'You moved up to #15 on the global leaderboard!',
-    time: '5 hours ago',
-    read: true,
-    createdAt: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString()
-  },
-  {
-    id: '6',
-    type: 'message',
-    title: 'Mike Chen',
-    description: 'Great quiz! I learned a lot from your questions.',
-    time: '1 day ago',
-    read: true,
-    avatar: '/avatarPlaceholder.webp',
-    avatarFallback: 'MC',
-    createdAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
-  }
-]
-
 function formatRelativeTime(dateString: string): string {
   const date = new Date(dateString)
   const now = new Date()

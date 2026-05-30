@@ -1,28 +1,70 @@
 'use client'
 
-import { memo, useCallback } from 'react'
+import { memo, useEffect, useState } from 'react'
 import { Clock, Star } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/Avatar'
+import { Avatar, AvatarFallback } from '@/components/ui/Avatar'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/Tabs'
 import Image from 'next/image'
 import SpotAvailabilityIndicator from '@/features/quizzes/components/SpotAvailabilityIndicator'
-import { quizzes } from '@/features/quizzes/constants/mock-quizzes'
+import { listQuizzes } from '@/features/quizzes/api'
+import type { QuizResponseDto } from '@/lib/api/generated/schemas'
 import Link from 'next/link'
 
 const FeaturedQuiz = memo(function FeaturedQuiz() {
-  const tabs = ['All', 'Hot', 'Trending', "Editor's"] as const
+  const [quizzes, setQuizzes] = useState<QuizResponseDto[]>([])
+  const [loading, setLoading] = useState(true)
+  const tabs = ['All', 'Featured', 'Popular'] as const
 
-  const getFiltered = useCallback((tab: (typeof tabs)[number]) => {
-    if (tab === 'All') return quizzes
-    if (tab === 'Hot') return quizzes.filter((q) => q.badges.includes('Hot'))
-    if (tab === 'Trending')
-      return quizzes.filter((q) => q.badges.includes('Trending'))
-    if (tab === "Editor's")
-      return quizzes.filter((q) => q.badges.includes("Editor's Choice"))
-    return quizzes
+  useEffect(() => {
+    async function fetchFeaturedQuizzes() {
+      try {
+        const data = await listQuizzes({ featured: true, limit: 20 })
+        setQuizzes(data.items)
+      } catch (error) {
+        console.error('Failed to fetch featured quizzes:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchFeaturedQuizzes()
   }, [])
+
+  const getFiltered = (tab: (typeof tabs)[number]) => {
+    if (tab === 'All') return quizzes
+    if (tab === 'Featured') return quizzes.filter((q) => q.isFeatured)
+    if (tab === 'Popular') return quizzes.slice(0, 8) // TODO: Replace with actual popularity metric
+    return quizzes
+  }
+
+  if (loading) {
+    return (
+      <div className='mb-15'>
+        <div className='mb-5'>
+          <h2 className='text-2xl font-bold mb-1 text-foreground'>
+            Featured Quizzes
+          </h2>
+          <p className='text-muted-foreground'>
+            Specially selected quizzes you don&apos;t want to miss
+          </p>
+        </div>
+        <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6'>
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className='border border-border rounded-xl overflow-hidden animate-pulse'>
+              <div className='h-48 bg-muted' />
+              <div className='p-4 space-y-3'>
+                <div className='h-4 w-3/4 bg-muted rounded' />
+                <div className='h-3 w-1/2 bg-muted rounded' />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    )
+  }
+
+  if (quizzes.length === 0) return null
 
   return (
     <div className='mb-15'>
@@ -51,28 +93,15 @@ const FeaturedQuiz = memo(function FeaturedQuiz() {
 
         {tabs.map((tab) => (
           <TabsContent key={tab} value={tab} className='mt-6'>
-            <div
-              className='
-          grid gap-6 
-          grid-cols-1 
-          sm:grid-cols-2 
-          lg:grid-cols-3 
-          xl:grid-cols-4
-        '
-            >
+            <div className='grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'>
               {getFiltered(tab).map((quiz) => (
                 <div
-                  key={quiz.id}
+                  key={quiz.quizId}
                   className='border border-border text-foreground rounded-xl overflow-hidden cursor-pointer'
                 >
-                  <div
-                    className={`relative`}
-                    style={{
-                      height: quiz.image ? '200px' : '150px'
-                    }}
-                  >
+                  <div className='relative h-48'>
                     <Image
-                      src={quiz.image || '/placeholder.svg'}
+                      src={quiz.imageUrl ?? '/placeholder.webp'}
                       alt={`${quiz.title} quiz cover`}
                       fill
                       loading='lazy'
@@ -80,139 +109,38 @@ const FeaturedQuiz = memo(function FeaturedQuiz() {
                     />
 
                     <div className='absolute top-3 left-3 right-3 flex justify-between flex-wrap gap-2'>
-                      {quiz.timeLeft && (
+                      {quiz.isFeatured && (
                         <Badge className='bg-transparent text-white'>
-                          <Clock className='w-3 h-3 mr-1' aria-hidden='true' />
-                          {quiz.timeLeft} {quiz.timeLeft === 1 ? 'day' : 'days'}{' '}
-                          left
+                          <Star className='w-3 h-3 mr-1' aria-hidden='true' />
+                          Featured
                         </Badge>
                       )}
-                      <div className='flex flex-wrap gap-1'>
-                        {quiz.badges.map((badge) => (
-                          <Badge
-                            key={badge}
-                            className={`text-white rounded-full border px-2.5 py-0.5 text-xs font-semibold flex items-center ${
-                              badge === 'Hot'
-                                ? 'bg-[#7F1D1D] hover:bg-[#7F1D1D]/80'
-                                : badge === "Editor's Choice"
-                                  ? 'bg-violet-500 hover:bg-violet-600'
-                                  : badge === 'Trending'
-                                    ? 'bg-blue-500 hover:bg-blue-600'
-                                    : 'bg-[#EAB308] hover:bg-[#EAB308]/80'
-                            }`}
-                          >
-                            {badge === 'Hot' && '🔥'}
-                            {badge === "Editor's Choice" && '⭐'}
-                            {badge === 'Trending' && '📈'}
-                            {badge === 'Top Rated' && '⭐'}
-                            {badge}
-                          </Badge>
-                        ))}
-                      </div>
                     </div>
 
                     <div className='absolute bottom-0 left-0 right-0 p-4'>
-                      <h3 className='font-bold text-base mb-1 leading-tight text-white'>
+                      <h3 className='font-bold text-base mb-1 leading-tight text-white line-clamp-2'>
                         {quiz.title}
                       </h3>
-                      <p className='text-sm leading-tight text-white'>
-                        {quiz.categories.join(', ')}
-                      </p>
+                      {quiz.description && (
+                        <p className='text-sm leading-tight text-white/80 line-clamp-1'>
+                          {quiz.description}
+                        </p>
+                      )}
                     </div>
                   </div>
 
                   <div className='p-4 flex flex-col gap-3'>
-                    <div className='flex items-center justify-between'>
-                      <div className='flex items-center gap-2 flex-1 min-w-0'>
-                        <Avatar className='w-8 h-8 shrink-0'>
-                          <AvatarImage
-                            src={quiz.creator.imageURL || '/placeholder.svg'}
-                          />
-                          <AvatarFallback>AS</AvatarFallback>
-                        </Avatar>
-                        <div className='min-w-0 flex-1'>
-                          <p className='font-medium text-sm text-foreground truncate'>
-                            {quiz.creator.name}
-                          </p>
-                          <div className='flex items-center gap-1'>
-                            <Star
-                              className='w-3 h-3 text-yellow-400'
-                              aria-hidden='true'
-                            />
-                            <span className='text-xs text-foreground'>
-                              {quiz.creator.rating}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
+                    <div className='flex items-center justify-end'>
                       <div className='text-right shrink-0'>
-                        <p className='text-xs text-foreground'>Reward</p>
-                        <p className='font-bold text-green-400'>
-                          $ {quiz.reward}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className='flex items-start gap-2 text-xs text-foreground/70 -translate-x-1'>
-                      <SpotAvailabilityIndicator
-                        currentSpots={quiz.maxPlayers - quiz.spotsLeft}
-                        totalSpots={quiz.maxPlayers}
-                        mode='percentage'
-                      />
-                      <div className='flex items-start flex-col flex-1'>
-                        <div className='flex items-center gap-2 mb-1'>
-                          <div className='*:data-[slot=avatar]:ring-main flex -space-x-2 *:data-[slot=avatar]:ring-2'>
-                            {quiz.currentPlayers > 0 &&
-                              (quiz.currentPlayers > 3 ? (
-                                <Avatar className='w-6 h-6'>
-                                  <AvatarImage
-                                    src={
-                                      quiz.creator.imageURL ||
-                                      '/placeholder.svg'
-                                    }
-                                    alt={quiz.creator.name}
-                                  />
-                                  <AvatarFallback>
-                                    {quiz.currentPlayers - 3}+
-                                  </AvatarFallback>
-                                </Avatar>
-                              ) : (
-                                quiz.currentPlayers > 0 &&
-                                Array.from({
-                                  length: quiz.currentPlayers
-                                }).map((_, playerIndex) => (
-                                  <Avatar
-                                    key={`${quiz.id}-player-${playerIndex}`}
-                                    className='w-6 h-6 bg-main text-foreground'
-                                  >
-                                    <AvatarImage
-                                      src={`https://randomuser.me/api/portraits/lego/${playerIndex}.jpg`}
-                                      alt={`Player ${playerIndex}`}
-                                    />
-                                    <AvatarFallback>
-                                      {playerIndex + 1}
-                                    </AvatarFallback>
-                                  </Avatar>
-                                ))
-                              ))}
-                          </div>
-                          <span className='text-sm text-foreground font-semibold'>
-                            {quiz.currentPlayers} players joined
-                          </span>
-                        </div>
-                        <p className='text-xs text-foreground'>
-                          {quiz.spotsLeft} spots available
+                        <p className='text-xs text-foreground'>Updated</p>
+                        <p className='font-medium text-sm text-foreground'>
+                          {new Date(quiz.updatedAt).toLocaleDateString()}
                         </p>
                       </div>
                     </div>
 
                     <Button asChild className='text-sm w-full mt-2 text-white'>
-                      <Link
-                        href={`/quizzes/${quiz.title
-                          .toLowerCase()
-                          .replace(/\s+/g, '-')}`}
-                        aria-label={`Play ${quiz.title}`}
-                      >
+                      <Link href={`/quizzes/${quiz.slug}`}>
                         Play Now
                       </Link>
                     </Button>

@@ -1,35 +1,31 @@
 /**
  * Users wrapper — wraps API calls with the custom API client.
+ * Uses the generated SDK from orval.
  */
 
-import { customInstance } from '@/lib/api/core/custom-instance';
+import { getUsers } from '@/lib/api/generated/users/users';
 import type {
-  UserMeResponseDto,
   UpdateMeDto,
   UpdateMeSettingsDto,
-} from '@/features/users/types';
+} from '@/lib/api/generated/schemas';
 
-export async function getCurrentUser(): Promise<UserMeResponseDto> {
-  const response = await customInstance.get<UserMeResponseDto>(
-    '/users/me'
-  );
-  return response.data;
+export type {
+  UserControllerMeResult,
+  UserControllerUpdateMeResult,
+  UserControllerUpdateMeSettingsResult,
+} from '@/lib/api/generated/users/users';
+
+export async function getCurrentUser() {
+  const sdk = getUsers();
+  return sdk.userControllerMe();
 }
 
-export async function updateMe(params: UpdateMeDto): Promise<UserMeResponseDto> {
-  const response = await customInstance.patch<UserMeResponseDto>(
-    '/users/me',
-    params
-  );
-  return response.data;
+export async function updateMe(params: UpdateMeDto) {
+  const sdk = getUsers();
+  return sdk.userControllerUpdateMe(params);
 }
 
-export async function updateMySettings(
-  params: UpdateMeSettingsDto
-): Promise<UserMeResponseDto> {
-  const response = await customInstance.patch<UserMeResponseDto>(
-    '/users/me/settings',
-    params
-  );
-  return response.data;
+export async function updateMySettings(params: UpdateMeSettingsDto) {
+  const sdk = getUsers();
+  return sdk.userControllerUpdateMeSettings(params);
 }

@@ -1,26 +1,23 @@
-// Categories types — aligned with backend CategoryResponseDto
-export interface Category {
-  categoryId: string
-  name: string
-  description: string | null
-  slug: string
-  imageUrl: string | null
-  createdAt: string
-  updatedAt: string
-}
+// Categories types — aligned with backend DTOs
 
-export interface CategoryListResponse {
-  items: Category[]
-  pagination: {
-    limit: number
-    nextCursor: string | null
-    hasNextPage: boolean
-  }
-}
+import { CategoryPaginationResponseDto, CategoryResponseDto } from '@/lib/api/generated/schemas';
 
-export interface DeleteCategoryResponse {
-  message: string
-}
+// Re-export from generated schemas
+export type {
+  CategoryListResponseDto,
+  CreateCategoryDto,
+  UpdateCategoryDto,
+  DeleteCategoryResponseDto,
+} from '@/lib/api/generated/schemas';
 
-// Legacy alias for backward compatibility with existing component props
-export type QuizCategory = Category
+export type {
+  CategoryControllerListCategoriesResult,
+  CategoryControllerCreateCategoryResult,
+  CategoryControllerGetCategoryBySlugResult,
+  CategoryControllerUpdateCategoryResult,
+  CategoryControllerDeleteCategoryResult,
+} from '@/lib/api/generated/categories/categories';
+
+// Backward compatibility aliases
+export type Category = CategoryResponseDto;
+export type CategoryListResponse = CategoryPaginationResponseDto;

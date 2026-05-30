@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import type { ReactNode } from 'react'
-import { quizzes } from '@/features/quizzes/constants/mock-quizzes'
+import { getQuizBySlug } from '@/features/quizzes/api'
 import { buildMetadata, siteConfig } from '@/shared/lib/seo'
 
 export async function generateMetadata({
@@ -9,21 +9,21 @@ export async function generateMetadata({
   params: Promise<{ id: string }>
 }): Promise<Metadata> {
   const { id } = await params
-  const quiz = quizzes.find((item) => item.id === id)
 
-  if (!quiz) {
+  try {
+    const quiz = await getQuizBySlug(id)
+    return buildMetadata({
+      title: `${quiz.title} | QuizHub`,
+      description: quiz.description ?? undefined,
+      path: `/quizzes/${id}`
+    })
+  } catch {
     return buildMetadata({
       title: 'Quiz Details | QuizHub',
       description: 'View quiz details, difficulty, and rewards.',
       path: `/quizzes/${id}`
     })
   }
-
-  return buildMetadata({
-    title: `${quiz.title} | QuizHub`,
-    description: quiz.description,
-    path: `/quizzes/${id}`
-  })
 }
 
 export default async function QuizIdLayout({
@@ -34,7 +34,13 @@ export default async function QuizIdLayout({
   params: Promise<{ id: string }>
 }) {
   const { id } = await params
-  const quiz = quizzes.find((item) => item.id === id)
+
+  let quiz = null
+  try {
+    quiz = await getQuizBySlug(id)
+  } catch {
+    // Quiz not found
+  }
 
   const quizJsonLd = quiz
     ? {
@@ -43,15 +49,11 @@ export default async function QuizIdLayout({
         name: quiz.title,
         description: quiz.description,
         educationalLevel: quiz.difficulty,
-        timeRequired: `PT${quiz.duration}S`,
+        timeRequired: quiz.duration ? `PT${quiz.duration}S` : undefined,
         numberOfQuestions: quiz.questionCount,
         isAccessibleForFree: true,
-        url: new URL(`/quizzes/${quiz.id}`, siteConfig.url).toString(),
-        image: new URL(quiz.image, siteConfig.url).toString(),
-        creator: {
-          '@type': 'Person',
-          name: quiz.creator.name
-        }
+        url: new URL(`/quizzes/${id}`, siteConfig.url).toString(),
+        image: quiz.imageUrl ? new URL(quiz.imageUrl, siteConfig.url).toString() : undefined,
       }
     : null
 

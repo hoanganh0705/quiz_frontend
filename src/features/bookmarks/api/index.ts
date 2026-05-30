@@ -1,3 +1,18 @@
-export { type BookmarkResponse, type CollectionResponse } from './bookmarks'
-export type { GetBookmarksResponse, CreateBookmarkRequest, UpdateBookmarkRequest, CreateCollectionRequest, UpdateCollectionRequest } from './bookmarks'
-export { getBookmarks, addBookmark, removeBookmark, updateBookmark, getCollections, createCollection, updateCollection, deleteCollection } from './bookmarks'
+// Bookmarks API layer
+// Re-exports from wrappers (wrappers use generated SDK)
+
+export {
+  listCollections,
+  createCollection,
+  getCollection,
+  updateCollection,
+  deleteCollection,
+  addBookmark,
+  removeBookmark,
+  listBookmarksInCollection,
+} from '@/features/bookmarks/wrappers/bookmark.wrapper';
+
+export type {
+  ListCollectionsParams,
+  ListBookmarksParams,
+} from '@/features/bookmarks/wrappers/bookmark.wrapper';

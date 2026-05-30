@@ -20,7 +20,7 @@ import { useAppLanguage } from '@/shared/hooks/use-app-language'
 import { useAuthState } from '@/features/auth/hooks'
 import Link from 'next/link'
 import { Button } from '@/components/ui/Button'
-import { logout } from '@/features/auth/api/auth'
+import { logoutUser } from '@/features/auth/api/auth'
 import { useRouter } from 'next/navigation'
 import { useUser, useClearUser } from '@/features/users/store/user-store'
 import { getUnreadCount } from '@/features/notifications/api'
@@ -108,7 +108,7 @@ export function AppHeader() {
   const { execute: handleLogout, isLoading: isLoggingOut } = useAsyncAction(
     async () => {
       try {
-        await logout()
+        await logoutUser()
       } finally {
         setAuthenticated(false)
         clearUser()

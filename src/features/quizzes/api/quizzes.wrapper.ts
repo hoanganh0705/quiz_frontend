@@ -1,20 +1,39 @@
 /**
  * Quizzes wrapper — wraps API calls with the custom API client.
+ * Uses the generated SDK from orval.
  */
 
-import { customInstance } from '@/lib/api/core/custom-instance';
+import { getQuizzes } from '@/lib/api/generated/quizzes/quizzes';
 import type {
-  QuizResponseDto,
-  QuizVersionDetailDto,
-  QuizListResponse,
-} from '@/features/quizzes/types';
+  CreateQuizDto,
+  UpdateQuizDto,
+  CreateQuizVersionDto,
+  UpdateQuizVersionDto,
+  CreateQuizQuestionDto,
+  CreateQuizQuestionsDto,
+} from '@/lib/api/generated/schemas';
+
+// Re-export types for convenience
+export type {
+  QuizControllerCreateQuizResult,
+  QuizControllerListQuizzesResult,
+  QuizControllerGetQuizBySlugResult,
+  QuizControllerUpdateQuizResult,
+  QuizControllerDeleteQuizResult,
+  QuizControllerCreateQuizVersionResult,
+  QuizControllerListQuizVersionsResult,
+  QuizControllerCreateQuizQuestionResult,
+  QuizControllerCreateQuizQuestionsResult,
+  QuizVersionControllerUpdateQuizVersionResult,
+  QuizVersionControllerPublishQuizVersionResult,
+} from '@/lib/api/generated/quizzes/quizzes';
 
 // ─── Query Parameters ──────────────────────────────────────────────────────────
 
 export interface ListQuizzesParams {
   cursor?: string
   limit?: number
-  categorySlug?: string
+  categoryId?: string
   difficulty?: 'easy' | 'medium' | 'hard'
   search?: string
   featured?: boolean
@@ -23,135 +42,74 @@ export interface ListQuizzesParams {
 
 // ─── Quiz Endpoints ─────────────────────────────────────────────────────────────
 
-export async function listQuizzes(
-  params?: ListQuizzesParams
-): Promise<QuizListResponse> {
-  const response = await customInstance.get<QuizListResponse>(
-    '/quizzes',
-    { params }
-  );
-  return response.data;
+export async function listQuizzes(params?: ListQuizzesParams) {
+  const sdk = getQuizzes();
+  return sdk.quizControllerListQuizzes(params);
 }
 
-export async function getQuizBySlug(slug: string): Promise<QuizResponseDto> {
-  const response = await customInstance.get<QuizResponseDto>(
-    `/quizzes/${slug}`
-  );
-  return response.data;
-}
-
-// ─── Quiz Version Endpoints ──────────────────────────────────────────────────────
-
-export async function getQuizVersionDetail(
-  quizId: string,
-  versionId: string
-): Promise<QuizVersionDetailDto> {
-  const response = await customInstance.get<QuizVersionDetailDto>(
-    `/quizzes/${quizId}/versions/${versionId}`
-  );
-  return response.data;
+export async function getQuizBySlug(slug: string) {
+  const sdk = getQuizzes();
+  return sdk.quizControllerGetQuizBySlug(slug);
 }
 
 // ─── Admin-only Functions ───────────────────────────────────────────────────────
 
-export interface CreateQuizParams {
-  title: string
-  description?: string
-  slug?: string
-  requirements?: string
-  imageUrl?: string
-  isHidden?: boolean
+export async function createQuiz(params: CreateQuizDto) {
+  const sdk = getQuizzes();
+  return sdk.quizControllerCreateQuiz(params);
 }
 
-export async function createQuiz(params: CreateQuizParams): Promise<QuizResponseDto> {
-  const response = await customInstance.post<QuizResponseDto>(
-    '/quizzes',
-    params
-  );
-  return response.data;
+export async function updateQuiz(id: string, params: UpdateQuizDto) {
+  const sdk = getQuizzes();
+  return sdk.quizControllerUpdateQuiz(id, params);
 }
 
-export async function updateQuiz(
-  id: string,
-  params: Partial<CreateQuizParams>
-): Promise<QuizResponseDto> {
-  const response = await customInstance.patch<QuizResponseDto>(
-    `/quizzes/${id}`,
-    params
-  );
-  return response.data;
-}
-
-export async function deleteQuiz(id: string): Promise<{ message: string }> {
-  const response = await customInstance.delete<{ message: string }>(
-    `/quizzes/${id}`
-  );
-  return response.data;
+export async function deleteQuiz(id: string) {
+  const sdk = getQuizzes();
+  return sdk.quizControllerDeleteQuiz(id);
 }
 
 // ─── Version Management ──────────────────────────────────────────────────────────
 
-export interface CreateQuizVersionParams {
-  difficulty: 'easy' | 'medium' | 'hard'
-  durationMs: number
-  passingScorePercent: number
-  rewardXp: number
+export async function createQuizVersion(quizId: string, params: CreateQuizVersionDto) {
+  const sdk = getQuizzes();
+  return sdk.quizControllerCreateQuizVersion(quizId, params);
 }
 
-export async function createQuizVersion(
+export async function listQuizVersions(
   quizId: string,
-  params: CreateQuizVersionParams
-): Promise<{ quizVersionId: string; versionNumber: number }> {
-  const response = await customInstance.post<{ quizVersionId: string; versionNumber: number }>(
-    `/quizzes/${quizId}/versions`,
-    params
-  );
-  return response.data;
+  params?: { cursor?: string; limit?: number }
+) {
+  const sdk = getQuizzes();
+  return sdk.quizControllerListQuizVersions(quizId, params);
 }
 
-export async function publishQuizVersion(
-  _quizId: string,
-  versionId: string
-): Promise<{ message: string }> {
-  const response = await customInstance.post<{ message: string }>(
-    `/quiz-versions/${versionId}/publish`
-  );
-  return response.data;
+export async function updateQuizVersion(versionId: string, params: UpdateQuizVersionDto) {
+  const sdk = getQuizzes();
+  return sdk.quizVersionControllerUpdateQuizVersion(versionId, params);
+}
+
+export async function publishQuizVersion(versionId: string) {
+  const sdk = getQuizzes();
+  return sdk.quizVersionControllerPublishQuizVersion(versionId);
 }
 
 // ─── Question Management ────────────────────────────────────────────────────────
 
-export interface AddQuestionParams {
-  position: number
-  questionText: string
-  imageUrl?: string
-  answerOptions: Array<{
-    position: number
-    value: string
-    isCorrect: boolean
-  }>
-}
-
 export async function addQuestion(
   quizId: string,
   versionId: string,
-  params: AddQuestionParams
-): Promise<{ questionId: string }> {
-  const response = await customInstance.post<{ questionId: string }>(
-    `/quizzes/${quizId}/versions/${versionId}/questions`,
-    params
-  );
-  return response.data;
+  params: CreateQuizQuestionDto
+) {
+  const sdk = getQuizzes();
+  return sdk.quizControllerCreateQuizQuestion(quizId, versionId, params);
 }
 
 export async function addQuestionsBulk(
   quizId: string,
   versionId: string,
-  questions: AddQuestionParams[]
-): Promise<{ insertedCount: number }> {
-  const response = await customInstance.post<{ insertedCount: number }>(
-    `/quizzes/${quizId}/versions/${versionId}/questions/bulk`,
-    { questions }
-  );
-  return response.data;
+  params: CreateQuizQuestionsDto
+) {
+  const sdk = getQuizzes();
+  return sdk.quizControllerCreateQuizQuestions(quizId, versionId, params);
 }
