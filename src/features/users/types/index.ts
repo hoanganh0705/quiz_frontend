@@ -1,58 +1,22 @@
-// Users domain types
+// Users domain types — aligned with backend DTOs
 
-export interface Player {
-  id: string
-  rank: number
-  name: string
-  username?: string
-  avatarUrl?: string
-  country?: string
-  flag?: string
-  streak?: number
-  score?: number
-  level?: number
-  levelString?: string
-  quizzes?: number
-  quizzesCreated?: number
-  wins?: number
-  badge?: string
-  earned?: number
-  followers?: string | number
-  following?: string | number
-  bgImageUrl?: string
-  bio?: string
-  joinedAt?: string
-}
+// Re-export from generated SDK
+export type {
+  UserMeResponseDto,
+  UpdateMeDto,
+  UpdateMeSettingsDto,
+} from '@/lib/api/generated/schemas';
 
-export type EditProfileRequest = {
-  displayName?: string
-  bio?: string
-}
+export type {
+  UserControllerMeResult,
+  UserControllerUpdateMeResult,
+  UserControllerUpdateMeSettingsResult,
+} from '@/lib/api/generated/users/users';
 
-export type EditSettingsRequest = {
-  settings: Record<string, unknown>
-}
-
-export type CurrentUserResponse = {
-  id?: string
-  userId?: string
-  username?: string
-  email?: string
-  displayName?: string
-  avatarUrl?: string
-  country?: string
-  rank?: number
-  streak?: number
-  level?: number
-  quizzes?: number
-  quizzesCreated?: number
-  followers?: string | number
-  following?: string | number
-  bio?: string
-  settings?: Record<string, unknown>
-  balance?: number
-  joinedAt?: string
-}
+// Backward-compatible type aliases
+export type CurrentUserResponse = UserMeResponseDto;
+export type EditProfileRequest = UpdateMeDto;
+export type EditSettingsRequest = UpdateMeSettingsDto;
 
 // User settings types
 export interface NotificationPreferences {

@@ -1,135 +1,77 @@
 'use client'
 
 import { useState, useMemo, useCallback } from 'react'
-import { useBookmarks, useBookmarkedQuizzes } from '@/features/bookmarks/hooks'
-import { quizzes } from '@/features/quizzes/constants/mock-quizzes'
-import type {
-  BookmarkFilter,
-  BookmarkSortOption,
-  BookmarkCollection,
-  BookmarkedQuiz
-} from '@/features/bookmarks/types'
-import type { Quiz } from '@/features/quizzes/types'
+import { useBookmarks } from '@/features/bookmarks/hooks'
+import type { BookmarkFilter, BookmarkSortOption } from '@/features/bookmarks/types'
+import type { BookmarkCollectionResponseDto, BookmarkedQuizResponseDto } from '@/lib/api/generated/schemas'
 
-const DIFFICULTY_MAP: Record<string, string> = {
-  easy: 'Easy',
-  medium: 'Medium',
-  hard: 'Hard'
-}
-
-const DIFFICULTY_ORDER = { Easy: 1, Medium: 2, Hard: 3 } as const
+const DIFFICULTY_ORDER: Record<string, number> = { easy: 1, medium: 2, hard: 3 }
 const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000
 
 export function useBookmarksPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [filter, setFilter] = useState<BookmarkFilter>('all')
   const [sortBy, setSortBy] = useState<BookmarkSortOption>('newest')
-  const [selectedCollection, setSelectedCollection] = useState<string | null>(
-    null
-  )
+  const [selectedCollection, setSelectedCollection] = useState<string | null>(null)
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
   const [activeTab, setActiveTab] = useState<'all' | 'collections'>('all')
 
   const [collectionDialogOpen, setCollectionDialogOpen] = useState(false)
   const [editingCollection, setEditingCollection] =
-    useState<BookmarkCollection | null>(null)
+    useState<BookmarkCollectionResponseDto | null>(null)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
-  const [collectionToDelete, setCollectionToDelete] = useState<string | null>(
-    null
-  )
+  const [collectionToDelete, setCollectionToDelete] = useState<string | null>(null)
 
   const {
     removeBookmark,
-    moveToCollection,
     addCollection,
     updateCollection,
-    deleteCollection
+    deleteCollection,
+    collections,
+    bookmarks,
+    getCollectionCounts,
   } = useBookmarks()
 
-  const {
-    bookmarkedQuizzes,
-    quizzesByCollection,
-    collections,
-    getCollectionCounts,
-    totalBookmarks
-  } = useBookmarkedQuizzes(quizzes)
+  // Filter and sort bookmarks
+  const filteredBookmarks = useMemo(() => {
+    let result: BookmarkedQuizResponseDto[] = [...bookmarks]
 
-  const filteredQuizzes = useMemo(() => {
-    let result: (Quiz & { bookmark: BookmarkedQuiz })[] = []
-
+    // Filter by collection
     if (activeTab === 'collections' && selectedCollection) {
-      result = quizzesByCollection[selectedCollection] || []
-    } else {
-      result = [...bookmarkedQuizzes]
+      result = result.filter(
+        (b) => b.collection?.collectionId === selectedCollection
+      )
     }
 
+    // Search filter
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase()
       result = result.filter(
-        (quiz) =>
-          quiz.title.toLowerCase().includes(query) ||
-          quiz.categories?.some((category) =>
-            category.toLowerCase().includes(query)
-          ) ||
-          quiz.tags?.some((tag) => tag.toLowerCase().includes(query))
+        (b) =>
+          b.quiz?.title?.toLowerCase().includes(query)
       )
     }
 
-    if (filter !== 'all' && filter !== 'recent') {
-      result = result.filter(
-        (quiz) => quiz.difficulty === DIFFICULTY_MAP[filter]
-      )
-    }
-
-    if (filter === 'recent') {
-      const latestBookmarkTime = result.reduce((latest, quiz) => {
-        const bookmarkedAt = new Date(quiz.bookmark.bookmarkedAt).getTime()
-        return Math.max(latest, bookmarkedAt)
-      }, 0)
-      const cutoffTime = latestBookmarkTime - SEVEN_DAYS_MS
-      result = result.filter(
-        (quiz) => new Date(quiz.bookmark.bookmarkedAt).getTime() >= cutoffTime
-      )
-    }
-
+    // Sort
     result.sort((a, b) => {
       switch (sortBy) {
         case 'newest':
-          return (
-            new Date(b.bookmark.bookmarkedAt).getTime() -
-            new Date(a.bookmark.bookmarkedAt).getTime()
-          )
+          return new Date(b.bookmarkedAt).getTime() - new Date(a.bookmarkedAt).getTime()
         case 'oldest':
-          return (
-            new Date(a.bookmark.bookmarkedAt).getTime() -
-            new Date(b.bookmark.bookmarkedAt).getTime()
-          )
+          return new Date(a.bookmarkedAt).getTime() - new Date(b.bookmarkedAt).getTime()
         case 'name-asc':
-          return a.title.localeCompare(b.title)
+          return (a.quiz?.title ?? '').localeCompare(b.quiz?.title ?? '')
         case 'name-desc':
-          return b.title.localeCompare(a.title)
-        case 'difficulty':
-          return (
-            (DIFFICULTY_ORDER[a.difficulty as keyof typeof DIFFICULTY_ORDER] ||
-              0) -
-            (DIFFICULTY_ORDER[b.difficulty as keyof typeof DIFFICULTY_ORDER] ||
-              0)
-          )
+          return (b.quiz?.title ?? '').localeCompare(a.quiz?.title ?? '')
         default:
           return 0
       }
     })
 
     return result
-  }, [
-    activeTab,
-    selectedCollection,
-    quizzesByCollection,
-    bookmarkedQuizzes,
-    searchQuery,
-    filter,
-    sortBy
-  ])
+  }, [activeTab, selectedCollection, bookmarks, searchQuery, sortBy])
+
+  const totalBookmarks = bookmarks.length
 
   const handleCreateCollection = useCallback(
     (name: string, description: string, color: string) => {
@@ -141,7 +83,7 @@ export function useBookmarksPage() {
   const handleEditCollection = useCallback(
     (name: string, description: string, color: string) => {
       if (!editingCollection) return
-      updateCollection(editingCollection.id, { name, description, color })
+      updateCollection(editingCollection.collectionId, { name, description, color })
       setEditingCollection(null)
     },
     [editingCollection, updateCollection]
@@ -155,7 +97,7 @@ export function useBookmarksPage() {
     setSelectedCollection((prev) => (prev === collectionToDelete ? null : prev))
   }, [collectionToDelete, deleteCollection])
 
-  const openEditDialog = useCallback((collection: BookmarkCollection) => {
+  const openEditDialog = useCallback((collection: BookmarkCollectionResponseDto) => {
     setEditingCollection(collection)
     setCollectionDialogOpen(true)
   }, [])
@@ -185,11 +127,10 @@ export function useBookmarksPage() {
     deleteDialogOpen,
     setDeleteDialogOpen,
     removeBookmark,
-    moveToCollection,
     collections,
     getCollectionCounts,
     totalBookmarks,
-    filteredQuizzes,
+    filteredBookmarks,
     handleCreateCollection,
     handleEditCollection,
     handleDeleteCollection,

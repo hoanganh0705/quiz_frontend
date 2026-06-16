@@ -68,7 +68,7 @@ const InfoCard = memo(function InfoCard() {
             <Calendar className='h-5 w-5 text-blue-700' />
           </div>
           <div>
-            <p className='text-sm text-blue-600 font-medium'>Today's Theme</p>
+            <p className='text-sm text-blue-600 font-medium'>Today&apos;s Theme</p>
             <p className='text-lg font-bold text-blue-900'>
               Science & Technology
             </p>

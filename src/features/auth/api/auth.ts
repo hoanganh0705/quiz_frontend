@@ -1,80 +1,72 @@
-import { apiClient } from '@/shared/lib/api/client'
+/**
+ * Auth API layer.
+ *
+ * @deprecated Use wrappers instead:
+ * - import { login, register, logout, ... } from '@/features/auth/wrappers/auth.wrapper'
+ */
+
+import {
+  register as registerApi,
+  login,
+  verifyEmail as verifyEmailApi,
+  resendVerificationEmail as resendVerificationEmailApi,
+  logout,
+  logoutAll,
+} from '@/features/auth/wrappers/auth.wrapper';
 import type {
   RegisterRequest,
   LoginRequest,
   VerifyEmailRequest,
   ResendVerificationRequest,
-  ForgotPasswordRequest,
-  ResetPasswordRequest,
-  SocialProvider,
-  LoginResponse,
-  RegisterResponse,
-  LogoutResponse,
-  RefreshTokenResponse,
-  VerifyEmailResponse,
-  ForgotPasswordResponse,
-  ResetPasswordResponse,
-  SocialAuthResponse
-} from '@/features/auth/types'
+} from '@/features/auth/types';
+
+export const authApi = {
+  register: registerApi,
+  login,
+  verifyEmail: verifyEmailApi,
+  resendVerificationEmail: resendVerificationEmailApi,
+  logout,
+  logoutAll,
+};
 
 export async function registerUser(payload: RegisterRequest) {
-  const response = await apiClient.post<RegisterResponse>('/auth/register', payload)
-  return response.data
+  return registerApi(payload);
 }
 
 export async function loginUser(payload: LoginRequest) {
-  const response = await apiClient.post<LoginResponse>('/auth/login', payload)
-  return response.data
+  return login(payload);
 }
 
 export async function refreshToken() {
-  const response = await apiClient.post<RefreshTokenResponse>('/auth/refresh-token')
-  return response.data
+  throw new Error(
+    'refreshToken() is deprecated. Token refresh is handled automatically by the API client.'
+  );
 }
 
-export async function logout() {
-  const response = await apiClient.post<LogoutResponse>('/auth/logout')
-  return response.data
+export async function logoutUser() {
+  return logout();
 }
 
-export async function logoutAll() {
-  const response = await apiClient.post<LogoutResponse>('/auth/logout-all')
-  return response.data
+export async function logoutAllSessions() {
+  return logoutAll();
 }
 
 export async function verifyEmail(payload: VerifyEmailRequest) {
-  const response = await apiClient.post<VerifyEmailResponse>('/auth/verify-email', payload)
-  return response.data
+  return verifyEmailApi(payload);
 }
 
 export async function resendVerificationEmail(payload: ResendVerificationRequest) {
-  const response = await apiClient.post<VerifyEmailResponse>(
-    '/auth/resend-verification-email',
-    payload
-  )
-  return response.data
+  return resendVerificationEmailApi(payload);
 }
 
-export async function forgotPassword(payload: ForgotPasswordRequest) {
-  const response = await apiClient.post<ForgotPasswordResponse>(
-    '/auth/forgot-password',
-    payload
-  )
-  return response.data
+export async function forgotPassword(_payload: { email: string }) {
+  throw new Error('forgotPassword is not implemented. Backend does not support this endpoint.');
 }
 
-export async function resetPassword(payload: ResetPasswordRequest) {
-  const response = await apiClient.post<ResetPasswordResponse>(
-    '/auth/reset-password',
-    payload
-  )
-  return response.data
+export async function resetPassword(_payload: { token: string; password: string }) {
+  throw new Error('resetPassword is not implemented. Backend does not support this endpoint.');
 }
 
-// Get social auth URL for OAuth providers
-export async function getSocialAuthUrl(provider: SocialProvider) {
-  const response = await apiClient.get<SocialAuthResponse>(
-    `/auth/social/${provider}/url`
-  )
-  return response.data
+export async function getSocialAuthUrl(_provider: string) {
+  throw new Error('getSocialAuthUrl is not implemented. Backend does not support OAuth yet.');
 }

@@ -1,18 +1,19 @@
 'use client'
 
 import Link from 'next/link'
-import { useMemo } from 'react'
 import { Card, CardContent } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
 import { useLocalStorage } from '@/shared/hooks'
-import { quizzes } from '@/features/quizzes/constants/mock-quizzes'
 import { Clock } from 'lucide-react'
 import { useAuthState } from '@/features/auth/hooks/use-auth-state'
 
 interface RecentlyPlayedItem {
   quizId: string
   title: string
+  slug?: string
+  difficulty?: string
+  imageUrl?: string
   playedAt: string
 }
 
@@ -23,21 +24,7 @@ export default function RecentlyPlayedSection() {
     []
   )
 
-  const items = useMemo(
-    () =>
-      recentlyPlayed
-        .map((entry) => {
-          const quiz = quizzes.find((item) => item.id === entry.quizId)
-          if (!quiz) return null
-          return {
-            quiz,
-            playedAt: entry.playedAt
-          }
-        })
-        .filter(Boolean)
-        .slice(0, 4),
-    [recentlyPlayed]
-  )
+  const items = recentlyPlayed.slice(0, 4)
 
   if (!isAuthenticated || items.length === 0) return null
 
@@ -45,27 +32,27 @@ export default function RecentlyPlayedSection() {
     <section className='mb-10' aria-label='Recently played quizzes'>
       <h2 className='text-2xl font-bold mb-4'>Recently Played</h2>
       <div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-4'>
-        {items.map((item) =>
-          item ? (
-            <Card key={`${item.quiz.id}-${item.playedAt}`}>
-              <CardContent className='p-4 space-y-3'>
-                <div className='flex items-center justify-between'>
-                  <Badge variant='outline'>{item.quiz.difficulty}</Badge>
-                  <span className='text-xs text-foreground/60 flex items-center gap-1'>
-                    <Clock className='h-3 w-3' />
-                    {new Date(item.playedAt).toLocaleDateString()}
-                  </span>
-                </div>
-                <p className='font-semibold line-clamp-2'>{item.quiz.title}</p>
-                <Button asChild size='sm' className='w-full'>
-                  <Link href={`/quizzes/${item.quiz.id}/start`}>
-                    Play Again
-                  </Link>
-                </Button>
-              </CardContent>
-            </Card>
-          ) : null
-        )}
+        {items.map((item) => (
+          <Card key={`${item.quizId}-${item.playedAt}`}>
+            <CardContent className='p-4 space-y-3'>
+              <div className='flex items-center justify-between'>
+                {item.difficulty && (
+                  <Badge variant='outline'>{item.difficulty}</Badge>
+                )}
+                <span className='text-xs text-foreground/60 flex items-center gap-1'>
+                  <Clock className='h-3 w-3' />
+                  {new Date(item.playedAt).toLocaleDateString()}
+                </span>
+              </div>
+              <p className='font-semibold line-clamp-2'>{item.title}</p>
+              <Button asChild size='sm' className='w-full'>
+                <Link href={`/quizzes/${item.slug ?? item.quizId}/start`}>
+                  Play Again
+                </Link>
+              </Button>
+            </CardContent>
+          </Card>
+        ))}
       </div>
     </section>
   )

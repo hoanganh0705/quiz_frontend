@@ -1,5 +1,5 @@
 import { QuizDetail } from '@/features/quizzes/components/QuizPlayer'
-import { quizzes } from '@/features/quizzes/constants/mock-quizzes'
+import { getQuizBySlug, listQuizVersions } from '@/features/quizzes/api'
 import Link from 'next/link'
 import { buildMetadata } from '@/shared/lib/seo'
 
@@ -9,21 +9,22 @@ export async function generateMetadata({
   params: Promise<{ id: string }>
 }) {
   const { id } = await params
-  const quiz = quizzes.find((q) => q.id === id)
 
-  if (!quiz) {
+  try {
+    const quiz = await getQuizBySlug(id)
+
+    return buildMetadata({
+      title: `${quiz.title} | QuizHub`,
+      description: quiz.description ?? undefined,
+      path: `/quizzes/${id}`
+    })
+  } catch {
     return buildMetadata({
       title: 'Quiz not found | QuizHub',
       description: 'This quiz is unavailable.',
       path: `/quizzes/${id}`
     })
   }
-
-  return buildMetadata({
-    title: `${quiz.title} | QuizHub`,
-    description: quiz.description,
-    path: `/quizzes/${quiz.id}`
-  })
 }
 
 export default async function QuizDetailPage({
@@ -32,7 +33,21 @@ export default async function QuizDetailPage({
   params: Promise<{ id: string }>
 }) {
   const { id } = await params
-  const quiz = quizzes.find((q) => q.id === id)
+
+  let quiz = null
+  let publishedVersion = null
+
+  try {
+    quiz = await getQuizBySlug(id)
+
+    // Fetch the published version
+    if (quiz.publishedVersionId) {
+      const versions = await listQuizVersions(quiz.quizId)
+      publishedVersion = versions.items.find(v => v.quizVersionId === quiz.publishedVersionId)
+    }
+  } catch {
+    // Quiz not found
+  }
 
   if (!quiz) {
     return (
@@ -51,5 +66,5 @@ export default async function QuizDetailPage({
     )
   }
 
-  return <QuizDetail quiz={quiz} />
+  return <QuizDetail quiz={quiz} version={publishedVersion ?? undefined} />
 }

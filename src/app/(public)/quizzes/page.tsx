@@ -1,17 +1,20 @@
-"use client";
-import { useMemo, useState, useCallback, useEffect } from "react";
-import { Input } from "@/components/ui/Input";
-import { Button } from "@/components/ui/Button";
-import FeaturedQuiz from "@/features/quizzes/components/FeaturedQuiz";
-import { quizzes } from "@/features/quizzes/constants/mock-quizzes";
-import { QuizCatalogMainContent } from "@/features/quizzes";
-import { Swiper, SwiperSlide } from "swiper/react";
-import { FreeMode } from "swiper/modules";
-import { useLocalStorage } from "@/shared/hooks";
-import { Search } from "lucide-react";
-import { useAppLanguage } from "@/shared/hooks/use-app-language";
-import { getCategories } from "@/features/categories/api/categories";
-import type { Category } from "@/features/categories/types";
+'use client'
+
+import 'swiper/css'
+import 'swiper/css/free-mode'
+import 'swiper/css/scrollbar'
+import { useState, useCallback, useEffect } from 'react'
+import { Input } from '@/components/ui/Input'
+import { Button } from '@/components/ui/Button'
+import FeaturedQuiz from '@/features/quizzes/components/FeaturedQuiz'
+import { QuizCatalogMainContent } from '@/features/quizzes'
+import { Swiper, SwiperSlide } from 'swiper/react'
+import { FreeMode } from 'swiper/modules'
+import { useLocalStorage } from '@/shared/hooks'
+import { Search } from 'lucide-react'
+import { useAppLanguage } from '@/shared/hooks/use-app-language'
+import { listCategories } from '@/features/categories/api'
+import type { Category } from '@/features/categories/types'
 
 interface SwiperCategory {
   categoryId: string;
@@ -34,7 +37,7 @@ export default function QuizPlatform() {
   );
 
   useEffect(() => {
-    getCategories({ limit: 100 })
+    listCategories({ limit: 100 })
       .then((data) =>
         setSwiperCategories(
           data.items.map((c: Category) => ({
@@ -47,25 +50,11 @@ export default function QuizPlatform() {
       .catch(() => {});
   }, []);
 
-  const suggestionPool = useMemo(() => {
-    const items = quizzes.flatMap((quiz) => [
-      quiz.title,
-      quiz.creator.name,
-      ...quiz.categories,
-      ...quiz.tags,
-    ]);
-
-    return Array.from(new Set(items));
-  }, []);
-
-  const suggestions = useMemo(() => {
-    const normalizedQuery = searchQuery.trim().toLowerCase();
-    if (!normalizedQuery) return recentSearches.slice(0, 6);
-
-    return suggestionPool
-      .filter((item) => item.toLowerCase().includes(normalizedQuery))
-      .slice(0, 6);
-  }, [recentSearches, searchQuery, suggestionPool]);
+  const suggestions = searchQuery.trim()
+    ? recentSearches
+        .filter((item) => item.toLowerCase().includes(searchQuery.trim().toLowerCase()))
+        .slice(0, 6)
+    : recentSearches.slice(0, 6)
 
   const saveRecentSearch = useCallback(
     (query: string) => {

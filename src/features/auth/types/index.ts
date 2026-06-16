@@ -19,15 +19,13 @@ export type ResendVerificationRequest = {
   email: string
 }
 
-export type TokenResponse = {
-  accessToken: string
-}
+// ─── Response Types (matching backend DTOs) ────────────────────────────────────
 
 export type LoginResponse = {
   userId: string
   username: string
   email: string
-  token: TokenResponse
+  accessToken: string
 }
 
 export type RegisterResponse = {
@@ -39,12 +37,34 @@ export type LogoutResponse = {
 }
 
 export type RefreshTokenResponse = {
-  token: TokenResponse
+  accessToken: string
 }
 
 export type VerifyEmailResponse = {
   message: string
 }
+
+// ─── Legacy types (deprecated — for backward compat only) ──────────────────────
+
+/** @deprecated Use LoginResponse.accessToken instead */
+export type TokenResponse = {
+  accessToken: string
+}
+
+/** @deprecated Use LoginResponse instead */
+export type LoginResponseLegacy = {
+  userId: string
+  username: string
+  email: string
+  token: TokenResponse
+}
+
+/** @deprecated Use RefreshTokenResponse instead */
+export type RefreshTokenResponseLegacy = {
+  token: TokenResponse
+}
+
+// ─── Unimplemented (backend doesn't support yet) ───────────────────────────────
 
 export type ForgotPasswordRequest = {
   email: string
@@ -64,10 +84,6 @@ export type ResetPasswordResponse = {
 }
 
 export type SocialProvider = 'google' | 'facebook' | 'github'
-
-export type SocialAuthRequest = {
-  provider: SocialProvider
-}
 
 export type SocialAuthResponse = {
   url: string

@@ -1,34 +1,12 @@
 'use client'
 
-import type React from 'react'
+import { useEffect, useState } from 'react'
 import { Plus } from 'lucide-react'
 import { Badge } from '@/components/ui/Badge'
 import { Avatar, AvatarFallback } from '@/components/ui/Avatar'
 import { AdminPageHeader } from '../_components'
-
-interface Quiz {
-  id: string
-  title: string
-  category: string
-  author: string
-  authorAvatar: string
-  questions: number
-  plays: number
-  rating: number
-  status: 'published' | 'draft' | 'flagged' | 'archived'
-  createdAt: string
-}
-
-const mockQuizzes: Quiz[] = [
-  { id: '1', title: 'World War II History', category: 'History', author: 'HistoryBuff', authorAvatar: 'HB', questions: 20, plays: 4521, rating: 4.7, status: 'published', createdAt: '2024-08-01' },
-  { id: '2', title: 'Python Programming Basics', category: 'Technology', author: 'CodeMaster', authorAvatar: 'CM', questions: 15, plays: 3240, rating: 4.5, status: 'published', createdAt: '2024-08-05' },
-  { id: '3', title: 'Periodic Table Challenge', category: 'Science', author: 'ChemWiz', authorAvatar: 'CW', questions: 25, plays: 2100, rating: 4.3, status: 'published', createdAt: '2024-08-10' },
-  { id: '4', title: 'Capital Cities of the World', category: 'Geography', author: 'GeoPro', authorAvatar: 'GP', questions: 30, plays: 5890, rating: 4.8, status: 'published', createdAt: '2024-08-12' },
-  { id: '5', title: 'Movie Trivia Night', category: 'Entertainment', author: 'FilmFan', authorAvatar: 'FF', questions: 18, plays: 1876, rating: 4.1, status: 'flagged', createdAt: '2024-08-15' },
-  { id: '6', title: 'Advanced Calculus', category: 'Mathematics', author: 'MathGuru', authorAvatar: 'MG', questions: 22, plays: 890, rating: 4.6, status: 'draft', createdAt: '2024-08-18' },
-  { id: '7', title: 'World Capitals 2024', category: 'Geography', author: 'TravelBug', authorAvatar: 'TB', questions: 50, plays: 6234, rating: 4.9, status: 'published', createdAt: '2024-08-20' },
-  { id: '8', title: 'Literature Classics', category: 'Literature', author: 'BookWorm', authorAvatar: 'BW', questions: 16, plays: 1234, rating: 4.4, status: 'archived', createdAt: '2024-08-22' }
-]
+import { listQuizzes } from '@/features/quizzes/api'
+import type { QuizResponseDto } from '@/lib/api/generated/schemas'
 
 const statusConfig = {
   published: { bg: 'bg-green-100 dark:bg-green-900/30', text: 'text-green-800 dark:text-green-400', label: 'Published' },
@@ -54,6 +32,23 @@ const StarRating = ({ rating }: { rating: number }) => (
 )
 
 export default function AdminQuizzesPage() {
+  const [quizzes, setQuizzes] = useState<QuizResponseDto[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    async function fetchQuizzes() {
+      try {
+        const data = await listQuizzes({ limit: 100 })
+        setQuizzes(data.items)
+      } catch (error) {
+        console.error('Failed to fetch quizzes:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchQuizzes()
+  }, [])
+
   const handleCreate = () => {
     console.log('Create quiz')
   }
@@ -66,6 +61,33 @@ export default function AdminQuizzesPage() {
     console.log('Delete quiz:', id)
   }
 
+  if (loading) {
+    return (
+      <div className='px-4 sm:px-6 pb-8'>
+        <AdminPageHeader
+          title='Quizzes'
+          description='Review, moderate, and manage quizzes on the platform.'
+          actionLabel='Create Quiz'
+          actionIcon={Plus}
+          onAction={handleCreate}
+        />
+        <div className='space-y-3'>
+          {[1, 2, 3].map((i) => (
+            <div key={i} className='rounded-lg border border-border p-4 animate-pulse'>
+              <div className='flex items-start gap-3'>
+                <div className='h-10 w-10 bg-muted rounded' />
+                <div className='flex-1 space-y-2'>
+                  <div className='h-4 w-1/3 bg-muted rounded' />
+                  <div className='h-3 w-1/2 bg-muted rounded' />
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className='px-4 sm:px-6 pb-8'>
       <AdminPageHeader
@@ -76,83 +98,70 @@ export default function AdminQuizzesPage() {
         onAction={handleCreate}
       />
 
-      <div className='space-y-3'>
-        {mockQuizzes.map((quiz) => {
-          const status = statusConfig[quiz.status]
-          return (
+      {quizzes.length === 0 ? (
+        <p className='text-muted-foreground text-center py-12'>No quizzes found.</p>
+      ) : (
+        <div className='space-y-3'>
+          {quizzes.map((quiz) => (
             <div
-              key={quiz.id}
+              key={quiz.quizId}
               className='rounded-lg border border-border p-4 hover:border-brand/50 transition-colors'
             >
               <div className='flex items-start justify-between gap-4'>
                 <div className='flex items-start gap-3 min-w-0 flex-1'>
                   <div className='p-2 rounded-lg bg-muted shrink-0'>
-                    <div className='h-5 w-5 bg-muted-foreground/50 rounded-sm' />
+                    {quiz.imageUrl ? (
+                      <img src={quiz.imageUrl} alt='' className='h-5 w-5 rounded' />
+                    ) : (
+                      <div className='h-5 w-5 bg-muted-foreground/50 rounded-sm' />
+                    )}
                   </div>
 
                   <div className='min-w-0 flex-1'>
                     <div className='flex items-center gap-2 flex-wrap'>
                       <h3 className='font-semibold text-foreground'>{quiz.title}</h3>
-                      <Badge variant='secondary' className='text-xs'>
-                        {quiz.category}
-                      </Badge>
-                      <Badge variant='secondary' className={`${status.bg} ${status.text}`}>
-                        {status.label}
-                      </Badge>
+                      {quiz.isFeatured && (
+                        <Badge variant='secondary' className='text-xs'>Featured</Badge>
+                      )}
+                      {quiz.isHidden && (
+                        <Badge className='bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-400 text-xs'>
+                          Hidden
+                        </Badge>
+                      )}
+                      {quiz.isVerified && (
+                        <Badge className='bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400 text-xs'>
+                          Verified
+                        </Badge>
+                      )}
                     </div>
 
                     <div className='flex items-center gap-4 mt-2'>
-                      <div className='flex items-center gap-1.5'>
-                        <Avatar className='h-5 w-5'>
-                          <AvatarFallback className='text-[9px] bg-muted text-muted-foreground'>
-                            {quiz.authorAvatar}
-                          </AvatarFallback>
-                        </Avatar>
-                        <span className='text-xs text-muted-foreground'>by {quiz.author}</span>
-                      </div>
-
                       <span className='text-xs text-muted-foreground'>
-                        {quiz.questions} questions
+                        Created {new Date(quiz.createdAt).toLocaleDateString()}
                       </span>
-                      <span className='text-xs text-muted-foreground'>
-                        {quiz.plays.toLocaleString()} plays
-                      </span>
-                      <StarRating rating={quiz.rating} />
                     </div>
-
-                    <p className='text-xs text-muted-foreground mt-1'>
-                      Created {quiz.createdAt}
-                    </p>
                   </div>
                 </div>
 
                 <div className='flex items-center gap-2 shrink-0'>
                   <button
-                    onClick={() => handleEdit(quiz.id)}
+                    onClick={() => handleEdit(quiz.quizId)}
                     className='px-3 py-1.5 text-xs font-medium rounded-md border border-border hover:bg-muted transition-colors text-foreground'
                   >
                     Edit
                   </button>
                   <button
-                    onClick={() => handleDelete(quiz.id)}
+                    onClick={() => handleDelete(quiz.quizId)}
                     className='px-3 py-1.5 text-xs font-medium rounded-md border border-destructive/30 text-destructive hover:bg-destructive/10 transition-colors'
                   >
                     Delete
                   </button>
                 </div>
               </div>
-
-              {quiz.status === 'flagged' && (
-                <div className='mt-3 p-2.5 rounded-md bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900'>
-                  <p className='text-xs font-medium text-red-700 dark:text-red-400'>
-                    This quiz has been flagged for review. Reason: Reported by community (inappropriate content).
-                  </p>
-                </div>
-              )}
             </div>
-          )
-        })}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   )
 }
