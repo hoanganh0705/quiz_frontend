@@ -1,39 +1,37 @@
-'use client'
-
-import 'swiper/css'
-import 'swiper/css/free-mode'
-import 'swiper/css/scrollbar'
-import { useMemo, useState, useCallback, useEffect } from 'react'
-import { Input } from '@/components/ui/Input'
-import { Button } from '@/components/ui/Button'
-import FeaturedQuiz from '@/features/quizzes/components/FeaturedQuiz'
-import { quizzes } from '@/features/quizzes/constants/mock-quizzes'
-import { QuizCatalogMainContent } from '@/features/quizzes'
-import { Swiper, SwiperSlide } from 'swiper/react'
-import { FreeMode } from 'swiper/modules'
-import { useLocalStorage } from '@/shared/hooks'
-import { Search } from 'lucide-react'
-import { useAppLanguage } from '@/shared/hooks/use-app-language'
-import { getCategories } from '@/features/categories/api/categories'
-import type { Category } from '@/features/categories/types'
+"use client";
+import { useMemo, useState, useCallback, useEffect } from "react";
+import { Input } from "@/components/ui/Input";
+import { Button } from "@/components/ui/Button";
+import FeaturedQuiz from "@/features/quizzes/components/FeaturedQuiz";
+import { quizzes } from "@/features/quizzes/constants/mock-quizzes";
+import { QuizCatalogMainContent } from "@/features/quizzes";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { FreeMode } from "swiper/modules";
+import { useLocalStorage } from "@/shared/hooks";
+import { Search } from "lucide-react";
+import { useAppLanguage } from "@/shared/hooks/use-app-language";
+import { getCategories } from "@/features/categories/api/categories";
+import type { Category } from "@/features/categories/types";
 
 interface SwiperCategory {
-  categoryId: string
-  name: string
-  slug: string
+  categoryId: string;
+  name: string;
+  slug: string;
 }
 
 export default function QuizPlatform() {
-  const { t } = useAppLanguage()
-  const [searchQuery, setSearchQuery] = useState('')
+  const { t } = useAppLanguage();
+  const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] =
-    useState<string>('all-categories')
-  const [showSuggestions, setShowSuggestions] = useState(false)
-  const [swiperCategories, setSwiperCategories] = useState<SwiperCategory[]>([])
+    useState<string>("all-categories");
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [swiperCategories, setSwiperCategories] = useState<SwiperCategory[]>(
+    [],
+  );
   const [recentSearches, setRecentSearches] = useLocalStorage<string[]>(
-    'quiz_search_recent_v1',
-    []
-  )
+    "quiz_search_recent_v1",
+    [],
+  );
 
   useEffect(() => {
     getCategories({ limit: 100 })
@@ -46,105 +44,105 @@ export default function QuizPlatform() {
           })),
         ),
       )
-      .catch(() => {})
-  }, [])
+      .catch(() => {});
+  }, []);
 
   const suggestionPool = useMemo(() => {
     const items = quizzes.flatMap((quiz) => [
       quiz.title,
       quiz.creator.name,
       ...quiz.categories,
-      ...quiz.tags
-    ])
+      ...quiz.tags,
+    ]);
 
-    return Array.from(new Set(items))
-  }, [])
+    return Array.from(new Set(items));
+  }, []);
 
   const suggestions = useMemo(() => {
-    const normalizedQuery = searchQuery.trim().toLowerCase()
-    if (!normalizedQuery) return recentSearches.slice(0, 6)
+    const normalizedQuery = searchQuery.trim().toLowerCase();
+    if (!normalizedQuery) return recentSearches.slice(0, 6);
 
     return suggestionPool
       .filter((item) => item.toLowerCase().includes(normalizedQuery))
-      .slice(0, 6)
-  }, [recentSearches, searchQuery, suggestionPool])
+      .slice(0, 6);
+  }, [recentSearches, searchQuery, suggestionPool]);
 
   const saveRecentSearch = useCallback(
     (query: string) => {
-      const normalized = query.trim()
-      if (!normalized) return
+      const normalized = query.trim();
+      if (!normalized) return;
 
       setRecentSearches((prev) =>
         [
           normalized,
           ...prev.filter(
-            (item) => item.toLowerCase() !== normalized.toLowerCase()
-          )
-        ].slice(0, 8)
-      )
+            (item) => item.toLowerCase() !== normalized.toLowerCase(),
+          ),
+        ].slice(0, 8),
+      );
     },
-    [setRecentSearches]
-  )
+    [setRecentSearches],
+  );
 
   const applySearchTerm = useCallback(
     (value: string) => {
-      setSearchQuery(value)
-      saveRecentSearch(value)
-      setShowSuggestions(false)
+      setSearchQuery(value);
+      saveRecentSearch(value);
+      setShowSuggestions(false);
     },
-    [saveRecentSearch]
-  )
+    [saveRecentSearch],
+  );
 
   return (
-    <main className='min-h-screen text-foreground p-4 md:p-8 lg:p-12'>
-      <header className='mb-8'>
-        <h1 className='text-3xl font-bold mb-2 text-foreground'>
-          {t('exploreQuizzes', 'Explore Quizzes')}
+    <main className="min-h-screen text-foreground p-4 md:p-8 lg:p-12">
+      <header className="mb-8">
+        <h1 className="text-3xl font-bold mb-2 text-foreground">
+          {t("exploreQuizzes", "Explore Quizzes")}
         </h1>
-        <p className='text-foreground/70 text-base'>
+        <p className="text-foreground/70 text-base">
           Discover and play quizzes from our community
         </p>
       </header>
 
-      <search className='relative mb-8 flex items-center gap-4 rounded-full'>
+      <search className="relative mb-8 flex items-center gap-4 rounded-full">
         <form
-          className='relative flex-1'
+          className="relative flex-1"
           onSubmit={(event) => {
-            event.preventDefault()
-            saveRecentSearch(searchQuery)
-            setShowSuggestions(false)
+            event.preventDefault();
+            saveRecentSearch(searchQuery);
+            setShowSuggestions(false);
           }}
         >
-          <label htmlFor='quiz-search' className='sr-only'>
+          <label htmlFor="quiz-search" className="sr-only">
             Search quizzes
           </label>
           <Search
-            className='absolute left-3 top-1/2 transform -translate-y-1/2 text-foreground/70 w-5 h-4'
-            aria-hidden='true'
+            className="absolute left-3 top-1/2 transform -translate-y-1/2 text-foreground/70 w-5 h-4"
+            aria-hidden="true"
           />
           <Input
-            id='quiz-search'
-            name='search'
-            placeholder='Search quizzes by title, category, or creator…'
+            id="quiz-search"
+            name="search"
+            placeholder="Search quizzes by title, category, or creator…"
             value={searchQuery}
             onChange={(event) => {
-              setSearchQuery(event.target.value)
-              setShowSuggestions(true)
+              setSearchQuery(event.target.value);
+              setShowSuggestions(true);
             }}
             onFocus={() => setShowSuggestions(true)}
             onBlur={() => {
-              window.setTimeout(() => setShowSuggestions(false), 100)
+              window.setTimeout(() => setShowSuggestions(false), 100);
             }}
-            className='pl-10 bg-transparent border-x border-border text-foreground placeholder:text-foreground/70 h-8 placeholder:text-sm'
+            className="pl-10 bg-transparent border-x border-border text-foreground placeholder:text-foreground/70 h-8 placeholder:text-sm"
           />
 
           {showSuggestions && suggestions.length > 0 && (
-            <div className='absolute z-10 mt-2 w-full rounded-md border border-border bg-background shadow-md p-1'>
+            <div className="absolute z-10 mt-2 w-full rounded-md border border-border bg-background shadow-md p-1">
               {suggestions.map((suggestion) => (
                 <button
                   key={suggestion}
-                  type='button'
-                  className='block w-full text-left text-sm px-3 py-2 rounded-sm hover:bg-main-hover'
+                  type="button"
+                  className="block w-full text-left text-sm px-3 py-2 rounded-sm hover:bg-main-hover"
                   onMouseDown={(event) => event.preventDefault()}
                   onClick={() => applySearchTerm(suggestion)}
                 >
@@ -155,13 +153,13 @@ export default function QuizPlatform() {
           )}
 
           {!searchQuery && recentSearches.length > 0 && (
-            <div className='mt-3 flex flex-wrap gap-2'>
+            <div className="mt-3 flex flex-wrap gap-2">
               {recentSearches.slice(0, 6).map((recent) => (
                 <button
                   key={recent}
-                  type='button'
+                  type="button"
                   onClick={() => applySearchTerm(recent)}
-                  className='text-xs px-2.5 py-1 rounded-full border border-border hover:bg-main-hover'
+                  className="text-xs px-2.5 py-1 rounded-full border border-border hover:bg-main-hover"
                 >
                   {recent}
                 </button>
@@ -171,40 +169,42 @@ export default function QuizPlatform() {
         </form>
       </search>
 
-      <nav className='mb-12 hidden sm:block' aria-label='Quiz categories'>
+      <nav className="mb-12 hidden sm:block" aria-label="Quiz categories">
         <Swiper
           modules={[FreeMode]}
           spaceBetween={12}
-          slidesPerView='auto'
+          slidesPerView="auto"
           freeMode={true}
-          className='category-swiper'
+          className="category-swiper"
         >
-          <SwiperSlide className='w-auto'>
+          <SwiperSlide className="w-auto">
             <Button
-              aria-current={selectedCategory === 'all-categories' ? 'true' : undefined}
-              aria-label='Show all categories'
-              onClick={() => setSelectedCategory('all-categories')}
+              aria-current={
+                selectedCategory === "all-categories" ? "true" : undefined
+              }
+              aria-label="Show all categories"
+              onClick={() => setSelectedCategory("all-categories")}
               className={`whitespace-nowrap rounded-full border border-border ${
-                selectedCategory === 'all-categories'
-                  ? 'bg-brand hover:bg-brand/90 text-white'
-                  : 'bg-transparent hover:bg-main/90'
+                selectedCategory === "all-categories"
+                  ? "bg-brand hover:bg-brand/90 text-white"
+                  : "bg-transparent hover:bg-main/90"
               }`}
             >
               All
             </Button>
           </SwiperSlide>
           {swiperCategories.map((category) => (
-            <SwiperSlide key={category.categoryId} className='w-auto'>
+            <SwiperSlide key={category.categoryId} className="w-auto">
               <Button
                 aria-current={
-                  selectedCategory === category.slug ? 'true' : undefined
+                  selectedCategory === category.slug ? "true" : undefined
                 }
                 aria-label={`Filter by ${category.name}`}
                 onClick={() => setSelectedCategory(category.slug)}
                 className={`whitespace-nowrap rounded-full border border-border ${
                   selectedCategory === category.slug
-                    ? 'bg-brand hover:bg-brand/90 text-white'
-                    : 'bg-transparent hover:bg-main/90'
+                    ? "bg-brand hover:bg-brand/90 text-white"
+                    : "bg-transparent hover:bg-main/90"
                 }`}
               >
                 {category.name}
@@ -216,12 +216,14 @@ export default function QuizPlatform() {
 
       <FeaturedQuiz />
 
-      <section aria-label='Quiz listings'>
+      <section aria-label="Quiz listings">
         <QuizCatalogMainContent
-          categorySlug={selectedCategory === 'all-categories' ? undefined : selectedCategory}
+          categorySlug={
+            selectedCategory === "all-categories" ? undefined : selectedCategory
+          }
           searchQuery={searchQuery}
         />
       </section>
     </main>
-  )
+  );
 }

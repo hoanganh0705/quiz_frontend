@@ -1,23 +1,23 @@
-'use client'
+"use client";
 
-import { memo } from 'react'
-import { Button } from '@/components/ui/Button'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/Tabs'
-import ActivityItem from '@/features/users/components/profile/ActivityItem'
-import { ProfileHeader } from '@/features/users/components/my-profile/ProfileHeader'
-import { StatsCard } from '@/features/users/components/my-profile/StatsCard'
-import { QuickStatsSidebar } from '@/features/users/components/my-profile/QuickStatsSidebar'
-import { QuickActions } from '@/features/users/components/my-profile/QuickActions'
-import { OverviewTab } from '@/features/users/components/my-profile/tabs/OverviewTab'
-import { QuizzesTab } from '@/features/users/components/my-profile/tabs/QuizzesTab'
-import { AchievementsTab } from '@/features/users/components/my-profile/tabs/AchievementsTab'
-import { StatisticsTab } from '@/features/users/components/my-profile/tabs/StatisticsTab'
-import { challengeData } from '@/features/daily-challenge/constants/challenge-history-data'
-import { badges } from '@/features/leaderboard/constants/badges'
-import { streakRewards } from '@/features/daily-challenge/constants/streak-rewards'
-import { Trophy, ArrowLeft, TrendingUp, Target, Flame } from 'lucide-react'
-import Link from 'next/link'
-import { useMyProfilePage } from '@/features/users/hooks/use-my-profile-page'
+import { memo } from "react";
+import { Button } from "@/components/ui/Button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/Tabs";
+import ActivityItem from "@/features/users/components/profile/ActivityItem";
+import { ProfileHeader } from "@/features/users/components/my-profile/ProfileHeader";
+import { StatsCard } from "@/features/users/components/my-profile/StatsCard";
+import { QuickStatsSidebar } from "@/features/users/components/my-profile/QuickStatsSidebar";
+import { QuickActions } from "@/features/users/components/my-profile/QuickActions";
+import { OverviewTab } from "@/features/users/components/my-profile/tabs/OverviewTab";
+import { QuizzesTab } from "@/features/users/components/my-profile/tabs/QuizzesTab";
+import { AchievementsTab } from "@/features/users/components/my-profile/tabs/AchievementsTab";
+import { StatisticsTab } from "@/features/users/components/my-profile/tabs/StatisticsTab";
+import { challengeData } from "@/features/daily-challenge/constants/challenge-history-data";
+import { badges } from "@/features/leaderboard/constants/badges";
+import { streakRewards } from "@/features/daily-challenge/constants/streak-rewards";
+import { Trophy, ArrowLeft, TrendingUp, Target, Flame } from "lucide-react";
+import Link from "next/link";
+import { useMyProfilePage } from "@/features/users/hooks/use-my-profile-page";
 
 const MyProfilePage = memo(function MyProfilePage() {
   const {
@@ -31,38 +31,38 @@ const MyProfilePage = memo(function MyProfilePage() {
     quizzesCreated,
     currentLevelXP,
     nextLevelXP,
-    levelProgress
-  } = useMyProfilePage()
+    levelProgress,
+  } = useMyProfilePage();
 
   if (!currentUser) {
     return (
-      <main className='min-h-screen flex items-center justify-center px-6'>
-        <div className='text-center max-w-md'>
-          <h1 className='text-2xl font-bold text-foreground mb-2'>
+      <main className="min-h-screen flex items-center justify-center px-6">
+        <div className="text-center max-w-md">
+          <h1 className="text-2xl font-bold text-foreground mb-2">
             Profile unavailable
           </h1>
-          <p className='text-sm text-muted-foreground'>
+          <p className="text-sm text-muted-foreground">
             Sign in to view your profile and stats.
           </p>
         </div>
       </main>
-    )
+    );
   }
 
   // Unlocked badges count
-  const unlockedBadges = badges.filter((b) => b.unlocked).length
+  const unlockedBadges = badges.filter((b) => b.unlocked).length;
 
   return (
-    <main className='min-h-screen flex items-start justify-center pt-10 pb-20'>
-      <div className='w-full max-w-7xl'>
+    <main className="min-h-screen flex items-start justify-center pt-10 pb-20">
+      <div className="w-full max-w-7xl">
         {/* Back Button */}
         <Button
-          size='sm'
-          className='text-foreground/70 bg-transparent p-0 hover:bg-transparent hover:text-foreground shadow-none'
+          size="sm"
+          className="text-foreground/70 bg-transparent p-0 hover:bg-transparent hover:text-foreground shadow-none"
           asChild
         >
-          <Link href='/' aria-label='Back to home page'>
-            <ArrowLeft className='w-5 h-5 mr-2' aria-hidden='true' />
+          <Link href="/" aria-label="Back to home page">
+            <ArrowLeft className="w-5 h-5 mr-2" aria-hidden="true" />
             Back to Home
           </Link>
         </Button>
@@ -71,85 +71,85 @@ const MyProfilePage = memo(function MyProfilePage() {
         <ProfileHeader user={currentUser} />
 
         {/* Quick Stats Cards */}
-        <div className='grid grid-cols-2 md:grid-cols-4 gap-4 mt-6'>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
           <StatsCard
             icon={TrendingUp}
-            iconColor='text-green-500'
-            iconBgColor='bg-green-500/10'
+            iconColor="text-green-500"
+            iconBgColor="bg-green-500/10"
             value={`${averageScore.toFixed(1)}%`}
-            label='Average Score'
+            label="Average Score"
           />
           <StatsCard
             icon={Flame}
-            iconColor='text-amber-500'
-            iconBgColor='bg-amber-500/10'
+            iconColor="text-amber-500"
+            iconBgColor="bg-amber-500/10"
             value={currentUser.streak || 0}
-            label='Day Streak'
+            label="Day Streak"
           />
           <StatsCard
             icon={Trophy}
-            iconColor='text-purple-500'
-            iconBgColor='bg-purple-500/10'
+            iconColor="text-purple-500"
+            iconBgColor="bg-purple-500/10"
             value={`#${currentUser.rank}`}
-            label='Global Rank'
+            label="Global Rank"
           />
           <StatsCard
             icon={Target}
-            iconColor='text-blue-500'
-            iconBgColor='bg-blue-500/10'
+            iconColor="text-blue-500"
+            iconBgColor="bg-blue-500/10"
             value={`${winRate}%`}
-            label='Win Rate'
+            label="Win Rate"
           />
         </div>
 
         {/* Main Content */}
-        <div className='grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6'>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
           {/* Left Column - Tabs */}
-          <div className='lg:col-span-2'>
+          <div className="lg:col-span-2">
             <Tabs
               value={activeTab}
               onValueChange={setActiveTab}
-              className='w-full text-sm'
+              className="w-full text-sm"
             >
               <TabsList
-                className='border border-border w-full justify-start'
-                role='tablist'
-                aria-label='Profile sections'
+                className="border border-border w-full justify-start"
+                role="tablist"
+                aria-label="Profile sections"
               >
                 <TabsTrigger
-                  value='overview'
-                  className=' text-sm font-semibold data-[state=active]:bg-brand dark:data-[state=active]:text-brand data-[state=active]:bg-background text-foreground/70 data-[state=active]:text-foreground transition-transform'
+                  value="overview"
+                  className=" text-sm font-semibold data-[state=active]:bg-brand dark:data-[state=active]:text-brand text-foreground/70 data-[state=active]:text-foreground transition-transform"
                 >
                   Overview
                 </TabsTrigger>
                 <TabsTrigger
-                  value='activity'
-                  className=' text-sm font-semibold data-[state=active]:bg-brand dark:data-[state=active]:text-brand data-[state=active]:bg-background text-foreground/70 data-[state=active]:text-foreground transition-transform'
+                  value="activity"
+                  className=" text-sm font-semibold data-[state=active]:bg-brand dark:data-[state=active]:text-brand text-foreground/70 data-[state=active]:text-foreground transition-transform"
                 >
                   Activity
                 </TabsTrigger>
                 <TabsTrigger
-                  value='quizzes'
-                  className=' text-sm font-semibold data-[state=active]:bg-brand dark:data-[state=active]:text-brand data-[state=active]:bg-background text-foreground/70 data-[state=active]:text-foreground transition-transform'
+                  value="quizzes"
+                  className=" text-sm font-semibold data-[state=active]:bg-brand dark:data-[state=active]:text-brand text-foreground/70 data-[state=active]:text-foreground transition-transform"
                 >
                   My Quizzes
                 </TabsTrigger>
                 <TabsTrigger
-                  value='achievements'
-                  className=' text-sm font-semibold data-[state=active]:bg-brand dark:data-[state=active]:text-brand data-[state=active]:bg-background text-foreground/70 data-[state=active]:text-foreground transition-transform'
+                  value="achievements"
+                  className=" text-sm font-semibold data-[state=active]:bg-brand dark:data-[state=active]:text-brand text-foreground/70 data-[state=active]:text-foreground transition-transform"
                 >
                   Achievements
                 </TabsTrigger>
                 <TabsTrigger
-                  value='stats'
-                  className=' text-sm font-semibold data-[state=active]:bg-brand dark:data-[state=active]:text-brand data-[state=active]:bg-background text-foreground/70 data-[state=active]:text-foreground transition-transform'
+                  value="stats"
+                  className=" text-sm font-semibold data-[state=active]:bg-brand dark:data-[state=active]:text-brand text-foreground/70 data-[state=active]:text-foreground transition-transform"
                 >
                   Statistics
                 </TabsTrigger>
               </TabsList>
 
               {/* Overview Tab */}
-              <TabsContent value='overview'>
+              <TabsContent value="overview">
                 <OverviewTab
                   user={currentUser}
                   currentLevelXP={currentLevelXP}
@@ -158,13 +158,13 @@ const MyProfilePage = memo(function MyProfilePage() {
                   recentActivities={recentActivities}
                   badges={badges}
                   unlockedBadges={unlockedBadges}
-                  onViewAllActivity={() => setActiveTab('activity')}
-                  onViewAllBadges={() => setActiveTab('achievements')}
+                  onViewAllActivity={() => setActiveTab("activity")}
+                  onViewAllBadges={() => setActiveTab("achievements")}
                 />
               </TabsContent>
 
               {/* Activity Tab */}
-              <TabsContent value='activity' className='space-y-4 mt-6'>
+              <TabsContent value="activity" className="space-y-4 mt-6">
                 {recentActivities.map((activity) => (
                   <ActivityItem
                     key={activity.id}
@@ -176,16 +176,16 @@ const MyProfilePage = memo(function MyProfilePage() {
               </TabsContent>
 
               {/* My Quizzes Tab */}
-              <TabsContent value='quizzes'>
-                  <QuizzesTab
-                    totalQuizzes={totalQuizzes}
-                    quizzesCreated={quizzesCreated}
-                    quizHistory={challengeData}
-                  />
+              <TabsContent value="quizzes">
+                <QuizzesTab
+                  totalQuizzes={totalQuizzes}
+                  quizzesCreated={quizzesCreated}
+                  quizHistory={challengeData}
+                />
               </TabsContent>
 
               {/* Achievements Tab */}
-              <TabsContent value='achievements'>
+              <TabsContent value="achievements">
                 <AchievementsTab
                   badges={badges}
                   unlockedBadges={unlockedBadges}
@@ -195,7 +195,7 @@ const MyProfilePage = memo(function MyProfilePage() {
               </TabsContent>
 
               {/* Statistics Tab */}
-              <TabsContent value='stats'>
+              <TabsContent value="stats">
                 <StatisticsTab
                   user={currentUser}
                   averageScore={averageScore}
@@ -207,18 +207,18 @@ const MyProfilePage = memo(function MyProfilePage() {
           </div>
 
           {/* Right Column - Sidebar */}
-          <div className='lg:col-span-1 space-y-6'>
+          <div className="lg:col-span-1 space-y-6">
             <QuickStatsSidebar
               user={currentUser}
-              bestCategory={challengeData[0]?.category || 'History'}
-              mostPlayed={challengeData[1]?.category || 'Science'}
+              bestCategory={challengeData[0]?.category || "History"}
+              mostPlayed={challengeData[1]?.category || "Science"}
             />
             <QuickActions />
           </div>
         </div>
       </div>
     </main>
-  )
-})
+  );
+});
 
-export default MyProfilePage
+export default MyProfilePage;

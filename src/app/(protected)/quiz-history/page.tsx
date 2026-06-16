@@ -1,143 +1,143 @@
-'use client'
+"use client";
 
-import { memo, useState, useMemo, useCallback } from 'react'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/Tabs'
+import { memo, useState, useMemo, useCallback } from "react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/Tabs";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue
-} from '@/components/ui/Select'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
+  SelectValue,
+} from "@/components/ui/Select";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 
-import { quizHistoryEntries, quizHistoryStats } from '@/features/quizzes/constants/quiz-history'
+import {
+  quizHistoryEntries,
+  quizHistoryStats,
+} from "@/features/quizzes/constants/quiz-history";
 import type {
   QuizHistoryFilters,
   QuizHistoryEntry,
-  DateRangeFilter
-} from '@/features/quizzes/types'
-import {
-  isWithinDateRange
-} from '@/shared/utils/date-utils'
+} from "@/features/quizzes/types";
+import { isWithinDateRange } from "@/shared/utils/date-utils";
 import {
   HistoryFiltersBar,
   HistoryHeader,
   HistoryStatsDashboard,
-  HistoryTimeline
-} from '@/features/quizzes/components/QuizHistory'
+  HistoryTimeline,
+} from "@/features/quizzes/components/QuizHistory";
 
 // ── Default filter state ───────────────────────────────────────────────────
 
 const defaultFilters: QuizHistoryFilters = {
-  dateRange: 'all',
-  category: 'all',
-  status: 'all',
-  difficulty: 'all',
-  sort: 'newest',
-  search: ''
-}
+  dateRange: "all",
+  category: "all",
+  status: "all",
+  difficulty: "all",
+  sort: "newest",
+  search: "",
+};
 
 // ── Filter logic ───────────────────────────────────────────────────────────
 
 function applyFilters(
   entries: QuizHistoryEntry[],
-  filters: QuizHistoryFilters
+  filters: QuizHistoryFilters,
 ): QuizHistoryEntry[] {
-  let result = entries
+  let result = entries;
 
   // Date range
   result = result.filter((e) =>
-    isWithinDateRange(e.completedAt, filters.dateRange)
-  )
+    isWithinDateRange(e.completedAt, filters.dateRange),
+  );
 
   // Category
-  if (filters.category !== 'all') {
-    result = result.filter((e) => e.category === filters.category)
+  if (filters.category !== "all") {
+    result = result.filter((e) => e.category === filters.category);
   }
 
   // Status
-  if (filters.status !== 'all') {
-    result = result.filter((e) => e.status === filters.status)
+  if (filters.status !== "all") {
+    result = result.filter((e) => e.status === filters.status);
   }
 
   // Difficulty
-  if (filters.difficulty !== 'all') {
-    result = result.filter((e) => e.difficulty === filters.difficulty)
+  if (filters.difficulty !== "all") {
+    result = result.filter((e) => e.difficulty === filters.difficulty);
   }
 
   // Search
   if (filters.search.trim()) {
-    const q = filters.search.toLowerCase()
+    const q = filters.search.toLowerCase();
     result = result.filter(
       (e) =>
         e.quizTitle.toLowerCase().includes(q) ||
         e.tags.some((t) => t.toLowerCase().includes(q)) ||
-        e.category.toLowerCase().includes(q)
-    )
+        e.category.toLowerCase().includes(q),
+    );
   }
 
   // Sort
   result = [...result].sort((a, b) => {
     switch (filters.sort) {
-      case 'newest':
+      case "newest":
         return (
           new Date(b.completedAt).getTime() - new Date(a.completedAt).getTime()
-        )
-      case 'oldest':
+        );
+      case "oldest":
         return (
           new Date(a.completedAt).getTime() - new Date(b.completedAt).getTime()
-        )
-      case 'highest-score':
-        return b.score - a.score
-      case 'lowest-score':
-        return a.score - b.score
+        );
+      case "highest-score":
+        return b.score - a.score;
+      case "lowest-score":
+        return a.score - b.score;
       default:
-        return 0
+        return 0;
     }
-  })
+  });
 
-  return result
+  return result;
 }
 
 // ── Page Component ─────────────────────────────────────────────────────────
 
 const QuizHistoryPage = memo(function QuizHistoryPage() {
-  const [filters, setFilters] = useState<QuizHistoryFilters>(defaultFilters)
-  const [compareQuizId, setCompareQuizId] = useState('')
-  const [compareAttemptA, setCompareAttemptA] = useState('')
-  const [compareAttemptB, setCompareAttemptB] = useState('')
+  const [filters, setFilters] = useState<QuizHistoryFilters>(defaultFilters);
+  const [compareQuizId, setCompareQuizId] = useState("");
+  const [compareAttemptA, setCompareAttemptA] = useState("");
+  const [compareAttemptB, setCompareAttemptB] = useState("");
 
   const handleFilterChange = useCallback(
     (partial: Partial<QuizHistoryFilters>) => {
-      setFilters((prev) => ({ ...prev, ...partial }))
+      setFilters((prev) => ({ ...prev, ...partial }));
     },
-    []
-  )
+    [],
+  );
 
   const handleReset = useCallback(() => {
-    setFilters(defaultFilters)
-  }, [])
+    setFilters(defaultFilters);
+  }, []);
 
   const filteredEntries = useMemo(
     () => applyFilters(quizHistoryEntries, filters),
-    [filters]
-  )
+    [filters],
+  );
 
   const uniqueCategories = useMemo(
     () => Array.from(new Set(quizHistoryEntries.map((e) => e.category))).sort(),
-    []
-  )
+    [],
+  );
 
   const compareQuizOptions = useMemo(
     () =>
       Array.from(
         new Map(
-          quizHistoryEntries.map((entry) => [entry.quizId, entry.quizTitle])
-        )
+          quizHistoryEntries.map((entry) => [entry.quizId, entry.quizTitle]),
+        ),
       ).map(([id, title]) => ({ id, title })),
-    []
-  )
+    [],
+  );
 
   const compareAttempts = useMemo(
     () =>
@@ -146,22 +146,22 @@ const QuizHistoryPage = memo(function QuizHistoryPage() {
         .sort(
           (a, b) =>
             new Date(b.completedAt).getTime() -
-            new Date(a.completedAt).getTime()
+            new Date(a.completedAt).getTime(),
         ),
-    [compareQuizId]
-  )
+    [compareQuizId],
+  );
 
   const attemptA = useMemo(
     () => compareAttempts.find((entry) => entry.id === compareAttemptA),
-    [compareAttemptA, compareAttempts]
-  )
+    [compareAttemptA, compareAttempts],
+  );
   const attemptB = useMemo(
     () => compareAttempts.find((entry) => entry.id === compareAttemptB),
-    [compareAttemptB, compareAttempts]
-  )
+    [compareAttemptB, compareAttempts],
+  );
 
   return (
-    <div className='min-h-screen p-4 md:p-8 lg:p-12 space-y-6'>
+    <div className="min-h-screen p-4 md:p-8 lg:p-12 space-y-6">
       {/* Header with export */}
       <HistoryHeader
         totalEntries={quizHistoryEntries.length}
@@ -169,24 +169,24 @@ const QuizHistoryPage = memo(function QuizHistoryPage() {
       />
 
       {/* Main content tabs */}
-      <Tabs defaultValue='timeline' className='w-full'>
-        <TabsList className='grid w-full grid-cols-2 bg-main max-w-md'>
+      <Tabs defaultValue="timeline" className="w-full">
+        <TabsList className="grid w-full grid-cols-2 bg-main max-w-md">
           <TabsTrigger
-            value='timeline'
-            className='data-[state=active]:bg-brand data-[state=active]:text-white'
+            value="timeline"
+            className="data-[state=active]:bg-brand data-[state=active]:text-white"
           >
             Activity Timeline
           </TabsTrigger>
           <TabsTrigger
-            value='statistics'
-            className='data-[state=active]:bg-brand data-[state=active]:text-white'
+            value="statistics"
+            className="data-[state=active]:bg-brand data-[state=active]:text-white"
           >
             Statistics Dashboard
           </TabsTrigger>
         </TabsList>
 
         {/* Timeline tab */}
-        <TabsContent value='timeline' className='mt-6 space-y-4'>
+        <TabsContent value="timeline" className="mt-6 space-y-4">
           <HistoryFiltersBar
             filters={filters}
             onFilterChange={handleFilterChange}
@@ -197,25 +197,25 @@ const QuizHistoryPage = memo(function QuizHistoryPage() {
         </TabsContent>
 
         {/* Statistics tab */}
-        <TabsContent value='statistics' className='mt-6'>
+        <TabsContent value="statistics" className="mt-6">
           <HistoryStatsDashboard stats={quizHistoryStats} />
 
-          <Card className='mt-6'>
+          <Card className="mt-6">
             <CardHeader>
               <CardTitle>Quiz Attempt Comparison</CardTitle>
             </CardHeader>
-            <CardContent className='space-y-4'>
-              <div className='grid md:grid-cols-3 gap-3'>
+            <CardContent className="space-y-4">
+              <div className="grid md:grid-cols-3 gap-3">
                 <Select
                   value={compareQuizId}
                   onValueChange={(value) => {
-                    setCompareQuizId(value)
-                    setCompareAttemptA('')
-                    setCompareAttemptB('')
+                    setCompareQuizId(value);
+                    setCompareAttemptA("");
+                    setCompareAttemptB("");
                   }}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder='Select quiz' />
+                    <SelectValue placeholder="Select quiz" />
                   </SelectTrigger>
                   <SelectContent>
                     {compareQuizOptions.map((option) => (
@@ -231,7 +231,7 @@ const QuizHistoryPage = memo(function QuizHistoryPage() {
                   onValueChange={setCompareAttemptA}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder='Attempt A' />
+                    <SelectValue placeholder="Attempt A" />
                   </SelectTrigger>
                   <SelectContent>
                     {compareAttempts.map((attempt) => (
@@ -247,7 +247,7 @@ const QuizHistoryPage = memo(function QuizHistoryPage() {
                   onValueChange={setCompareAttemptB}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder='Attempt B' />
+                    <SelectValue placeholder="Attempt B" />
                   </SelectTrigger>
                   <SelectContent>
                     {compareAttempts.map((attempt) => (
@@ -260,9 +260,9 @@ const QuizHistoryPage = memo(function QuizHistoryPage() {
               </div>
 
               {attemptA && attemptB ? (
-                <div className='grid md:grid-cols-2 gap-3 text-sm'>
-                  <div className='rounded-md border border-border p-3 space-y-1'>
-                    <p className='font-semibold'>Attempt A</p>
+                <div className="grid md:grid-cols-2 gap-3 text-sm">
+                  <div className="rounded-md border border-border p-3 space-y-1">
+                    <p className="font-semibold">Attempt A</p>
                     <p>Score: {attemptA.score}%</p>
                     <p>
                       Correct: {attemptA.correctAnswers}/
@@ -270,8 +270,8 @@ const QuizHistoryPage = memo(function QuizHistoryPage() {
                     </p>
                     <p>Time: {attemptA.timeTaken}s</p>
                   </div>
-                  <div className='rounded-md border border-border p-3 space-y-1'>
-                    <p className='font-semibold'>Attempt B</p>
+                  <div className="rounded-md border border-border p-3 space-y-1">
+                    <p className="font-semibold">Attempt B</p>
                     <p>Score: {attemptB.score}%</p>
                     <p>
                       Correct: {attemptB.correctAnswers}/
@@ -281,7 +281,7 @@ const QuizHistoryPage = memo(function QuizHistoryPage() {
                   </div>
                 </div>
               ) : (
-                <p className='text-sm text-muted-foreground'>
+                <p className="text-sm text-muted-foreground">
                   Pick two attempts of the same quiz to compare performance.
                 </p>
               )}
@@ -290,7 +290,7 @@ const QuizHistoryPage = memo(function QuizHistoryPage() {
         </TabsContent>
       </Tabs>
     </div>
-  )
-})
+  );
+});
 
-export default QuizHistoryPage
+export default QuizHistoryPage;
