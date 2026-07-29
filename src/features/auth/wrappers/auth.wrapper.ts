@@ -5,10 +5,17 @@
  * - Setting tokens after login/register
  * - Cross-tab auth state sync
  * - Redirects on auth errors
+ *
+ * All HTTP calls go through the generated SDK (TKT-1.2.2.2). The wrapper
+ * owns the cross-cutting side-effects that the SDK itself cannot express:
+ * cookie persistence on the client (`setAuthToken` / `clearAuthToken`) and
+ * `BroadcastChannel('auth')` events for cross-tab synchronization.
+ *
+ * SDK access goes through `@/lib/api` (the barrel from TKT-1.2.1.1).
+ * TKT-1.2.2.4 verified that all consumers of this file import from the
+ * barrel path; this file itself follows the same rule.
  */
 
-import { authOnlyInstance } from '@/lib/api/core/auth-only-instance';
-import { customInstance } from '@/lib/api/core/custom-instance';
 import {
   setAuthToken,
   clearAuthToken,
@@ -23,23 +30,16 @@ import type {
   ResendVerificationRequest,
   LogoutResponse,
 } from '@/features/auth/types';
+import { getAuth } from '@/lib/api';
 
 // ─── Auth Endpoints (no Bearer token needed) ────────────────────────────────────
 
 export async function register(payload: RegisterRequest): Promise<RegisterResponse> {
-  const response = await authOnlyInstance.post<RegisterResponse>(
-    '/api/v1/auth/register',
-    payload
-  );
-  return response.data;
+  return getAuth().authControllerRegister(payload);
 }
 
 export async function login(payload: LoginRequest): Promise<LoginResponse> {
-  const response = await authOnlyInstance.post<LoginResponse>(
-    '/api/v1/auth/login',
-    payload
-  );
-  const data = response.data;
+  const data = await getAuth().authControllerLogin(payload);
 
   setAuthToken(data.accessToken);
 
@@ -56,29 +56,18 @@ export async function login(payload: LoginRequest): Promise<LoginResponse> {
 export async function verifyEmail(
   payload: VerifyEmailRequest
 ): Promise<VerifyEmailResponse> {
-  const response = await authOnlyInstance.post<VerifyEmailResponse>(
-    '/api/v1/auth/verify-email',
-    payload
-  );
-  return response.data;
+  return getAuth().authControllerVerifyEmail(payload);
 }
 
 export async function resendVerificationEmail(
   payload: ResendVerificationRequest
 ): Promise<VerifyEmailResponse> {
-  const response = await authOnlyInstance.post<VerifyEmailResponse>(
-    '/api/v1/auth/resend-verification-email',
-    payload
-  );
-  return response.data;
+  return getAuth().authControllerResendVerificationEmail(payload);
 }
 
 export async function logout(): Promise<LogoutResponse> {
   try {
-    const response = await customInstance.post<LogoutResponse>(
-      '/api/v1/auth/logout'
-    );
-    return response.data;
+    return await getAuth().authControllerLogout();
   } finally {
     clearAuthToken();
 
@@ -90,10 +79,7 @@ export async function logout(): Promise<LogoutResponse> {
 
 export async function logoutAll(): Promise<LogoutResponse> {
   try {
-    const response = await customInstance.post<LogoutResponse>(
-      '/api/v1/auth/logout-all'
-    );
-    return response.data;
+    return await getAuth().authControllerLogoutAll();
   } finally {
     clearAuthToken();
 
