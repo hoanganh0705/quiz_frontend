@@ -1,9 +1,14 @@
 /**
  * Users wrapper — wraps API calls with the custom API client.
  * Uses the generated SDK from orval.
+ *
+ * SDK access goes through `@/lib/api` (the barrel from TKT-1.2.1.1).
+ * This file is itself inside the Epic 1.2 exempt glob (it's a wrapper,
+ * not a feature), but it follows the barrel convention anyway for
+ * consistency with the rest of the codebase.
  */
 
-import { getUsers } from '@/lib/api/generated/users/users';
+import { getUsers } from '@/lib/api';
 import type {
   UpdateMeDto,
   UpdateMeSettingsDto,
