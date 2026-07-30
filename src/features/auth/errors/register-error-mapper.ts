@@ -47,11 +47,7 @@
  * `ApiError` instances and assert the mapped kind without mocking globals.
  */
 
-/**
- * Pure dispatch. We do not import `ApiError` directly; the duck-typed
- * shape reader accepts both `ApiError` instances and synthetic shapes
- * from the unit suite without coupling test code to the SDK.
- */
+import { asApiErrorShape, containsEnumerationOracle } from './auth-shapes';
 
 /**
  * Tagged union for availability-check outcomes.
@@ -145,45 +141,12 @@ export function mapAvailabilityError(err: unknown): AvailabilityStatus {
 }
 
 /**
- * Shape returned by `asApiErrorShape`. Kept private to this module so
- * feature code never depends on it directly; callers go through the
- * public `mapAvailabilityError` / `mapRegisterError`.
- */
-interface ApiErrorShape {
-  code: string;
-  status: number;
-  isValidationError: boolean;
-  isServerError: boolean;
-  validationMessages: string[];
-}
-
-/**
  * Reduce an `unknown` thrown value to the small surface the mappers
- * read. Accepts both real `ApiError` instances and the duck-typed
- * shape used by the vitest suite; in either case the mappers do not
- * become weaker — real `ApiError` carries `status`, `code`, etc. and
- * the duck-typed shape is the same fields.
+ * read. Imported from `./auth-shapes` so it is shared across all
+ * auth-error mappers (TKT-2.2.B2 extraction). The shape itself is
+ * `ApiErrorShape` from that module; this file no longer re-declares
+ * it. The mapper's behaviour is unchanged.
  */
-function asApiErrorShape(err: unknown): ApiErrorShape | null {
-  if (!err || typeof err !== 'object') return null;
-  const obj = err as Partial<ApiErrorShape>;
-  if (
-    typeof obj.status !== 'number' ||
-    typeof obj.code !== 'string' ||
-    typeof obj.isValidationError !== 'boolean' ||
-    typeof obj.isServerError !== 'boolean' ||
-    !Array.isArray(obj.validationMessages)
-  ) {
-    return null;
-  }
-  return {
-    code: obj.code,
-    status: obj.status,
-    isValidationError: obj.isValidationError,
-    isServerError: obj.isServerError,
-    validationMessages: obj.validationMessages,
-  };
-}
 
 /**
  * Map any error thrown by `register` to a tagged result for the form layer.
@@ -279,23 +242,7 @@ function sanitizeFieldErrors(
   return out;
 }
 
-/**
- * True when `message` contains a phrase that would betray account
- * existence to a careful attacker. The check is case-insensitive and
- * covers the four canonical enumeration phrases plus a few common
- * variants; it is intentionally over-broad (false positives are safe —
- * they result in a silent field; the canonical copy covers the field).
- */
-function containsEnumerationOracle(message: string): boolean {
-  if (typeof message !== 'string') return false;
-  const lower = message.toLowerCase();
-  return (
-    lower.includes('already') ||
-    lower.includes('duplicate') ||
-    lower.includes('exists') ||
-    lower.includes('in use') ||
-    lower.includes('taken') ||
-    lower.includes('success') ||
-    lower.includes('created')
-  );
-}
+// `containsEnumerationOracle` is now sourced from `./auth-shapes`
+// (TKT-2.2.B2 extraction). The shared list expands the registration
+// list to include token-validity phrases ("verified", "invalid token",
+// "expired token") that the verify / resend mappers filter on.

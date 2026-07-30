@@ -42,11 +42,11 @@ const LoginPage = memo(function LoginPage() {
     () => searchParams.get("redirect") ?? "/quizzes",
     [searchParams],
   );
-  const verifiedParam = useMemo(
-    () => searchParams.get("verified") === "1",
-    [searchParams],
-  );
-  const showVerifiedToast = verifiedParam;
+  // TKT-2.2.D4: visit `/login?verified=1` MUST render the same UI
+  // as `/login`. The "Email verified successfully" banner was an
+  // oracle — it asserted verification succeeded. The verify-email
+  // page (TKT-2.2.C3) no longer navigates here with `?verified=1`,
+  // so the banner is dead code; it is removed entirely.
 
   const {
     register,
@@ -132,12 +132,9 @@ const LoginPage = memo(function LoginPage() {
           </header>
 
           <section aria-label="Login form">
-            {showVerifiedToast && (
-              <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-xs text-emerald-700">
-                Email verified successfully. You can now sign in.
-              </div>
-            )}
-
+            {/* TKT-2.2.D4: the `verified=1` banner was removed
+                (it was an oracle). The login page is now
+                intentionally neutral regardless of the URL. */}
             {verifyBanner && (
               <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-700">
                 {verifyBanner}

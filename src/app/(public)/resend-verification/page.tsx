@@ -1,23 +1,61 @@
-'use client'
+'use client';
 
-import { useMemo } from 'react'
+/**
+ * `/resend-verification` route — request a new verification link.
+ *
+ * Source epic: Epic 2.2 — Email verification and resend.
+ * Source tickets:
+ *   - TKT-2.2.B3 — Suspense boundary around `useSearchParams`.
+ *   - TKT-2.2.D1 — `resend-verification.schema.ts`.
+ *   - TKT-2.2.D2 — `useResendVerification` hook.
+ *   - TKT-2.2.D3 — neutral acknowledgement body, cooldown UI.
+ *
+ * ## Anti-enumeration invariants
+ *
+ *   - The page renders the same `resend-acknowledgement-body` for
+ *     every successful response (verified / unverified / unknown).
+ *   - The page does NOT echo the user-supplied email in copy.
+ *   - The submit button is disabled during pending AND during
+ *     cooldown, with a countdown.
+ *   - The page does NOT import `@/features/auth/api/auth`
+ *     (the deprecated barrel); it consumes `auth.service.ts`
+ *     via the hook.
+ */
+
+import { Suspense, useEffect, useMemo } from 'react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { useForm } from 'react-hook-form'
-import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
+
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
-import { resendVerificationEmail } from '@/features/auth/api/auth'
-import { useAsyncAction } from '@/shared/hooks'
 
-const schema = z.object({
-  email: z.email('Please enter a valid email address')
-})
+import { useResendVerification } from '@/features/auth/forms/use-resend-verification'
+import { resendVerificationSchema, type ResendVerificationFormValues } from '@/features/auth/forms/schemas/resend-verification.schema'
+import { COPY_KEYS, resolveCopy, resolveCooldown } from '@/features/auth/copy/verify-email-copy'
 
-type FormData = z.infer<typeof schema>
+export const dynamic = 'force-dynamic'
 
-export default function ResendVerificationPage() {
+function ResendVerificationSkeleton() {
+  return (
+    <main
+      className='min-h-screen flex items-center justify-center bg-background px-4'
+      data-testid='resend-verification-skeleton'
+    >
+      <div className='w-full max-w-md space-y-6 rounded-xl border border-border bg-background p-6 shadow-sm'>
+        <div className='space-y-2'>
+          <div className='h-7 w-56 animate-pulse rounded bg-muted' />
+          <div className='h-4 w-full animate-pulse rounded bg-muted' />
+        </div>
+        <div className='h-10 w-full animate-pulse rounded bg-muted' />
+        <div className='h-9 w-full animate-pulse rounded bg-muted' />
+      </div>
+    </main>
+  )
+}
+
+function ResendVerificationInner() {
   const searchParams = useSearchParams()
   const defaultEmail = useMemo(
     () => searchParams.get('email') ?? '',
@@ -29,48 +67,119 @@ export default function ResendVerificationPage() {
     handleSubmit,
     formState: { errors },
     watch
-  } = useForm<FormData>({
-    resolver: zodResolver(schema),
+  } = useForm<ResendVerificationFormValues>({
+    resolver: zodResolver(resendVerificationSchema),
     defaultValues: { email: defaultEmail }
   })
 
-  const { execute, isLoading, error } = useAsyncAction(async (data: FormData) => {
-    await resendVerificationEmail({ email: data.email })
-  })
-
+  const { state, start } = useResendVerification()
   const emailValue = watch('email')
 
+  const isPending = state.status === 'pending'
+  const isCooldown = state.status === 'cooldown'
+  const isError = state.status === 'error'
+
+  const submitDisabled = isPending || isCooldown || !emailValue
+
+  // It is intentional that the page renders the same
+  // acknowledgement body during cooldown. The hook's
+  // `cooldownRemainingMs` is rendered next to it via
+  // `resolveCooldown` so the user sees a countdown.
+  const showAcknowledgement = isCooldown
+  const errorCopy = isError
+    ? state.errorKind === 'rate_limited'
+      ? resolveCopy(COPY_KEYS.resend.error.rate_limited)
+      : resolveCopy(COPY_KEYS.resend.error.server)
+    : null
+
+  const cooldownSeconds = isCooldown
+    ? Math.ceil(state.cooldownRemainingMs / 1000)
+    : 0
+
+  // Suppress unused-var warnings for `useEffect`; the hook
+  // already triggers itself on mount via the form submit.
+  useEffect(() => {}, [])
+
   return (
-    <main className='min-h-screen flex items-center justify-center bg-background px-4'>
+    <main
+      className='min-h-screen flex items-center justify-center bg-background px-4'
+      data-testid='resend-verification-page'
+    >
       <div className='w-full max-w-md space-y-6 rounded-xl border border-border bg-background p-6 shadow-sm'>
         <div className='space-y-2'>
-          <h1 className='text-2xl font-bold text-foreground'>Resend verification</h1>
-          <p className='text-sm text-muted-foreground'>
-            Enter your email to receive a new verification link.
+          <h1 className='text-2xl font-bold text-foreground'>
+            {showAcknowledgement
+              ? resolveCopy(COPY_KEYS.resend.acknowledgement.title)
+              : 'Resend verification'}
+          </h1>
+          <p
+            className='text-sm text-muted-foreground'
+            data-testid='resend-help'
+          >
+            {showAcknowledgement
+              ? resolveCopy(COPY_KEYS.resend.acknowledgement.body)
+              : resolveCopy(COPY_KEYS.resend.idle.help)}
           </p>
         </div>
 
-        <form onSubmit={handleSubmit((data) => execute(data))} className='space-y-4'>
-          <div className='space-y-2'>
-            <Input
-              type='email'
-              placeholder='Email address'
-              {...register('email')}
-              aria-invalid={!!errors.email}
-            />
-            {errors.email && (
-              <p className='text-xs text-destructive'>{errors.email.message}</p>
-            )}
-          </div>
+        {!showAcknowledgement && (
+          <form
+            onSubmit={handleSubmit((values) => start(values))}
+            className='space-y-4'
+            data-testid='resend-form'
+          >
+            <div className='space-y-2'>
+              <Input
+                type='email'
+                placeholder={resolveCopy(COPY_KEYS.resend.idle.placeholder)}
+                {...register('email')}
+                aria-invalid={!!errors.email}
+                disabled={isPending || isCooldown}
+              />
+              {errors.email && (
+                <p className='text-xs text-destructive'>{errors.email.message}</p>
+              )}
+            </div>
 
-          <Button type='submit' disabled={isLoading || !emailValue} className='w-full'>
-            {isLoading ? 'Sending...' : 'Send verification email'}
-          </Button>
-        </form>
+            <Button
+              type='submit'
+              disabled={submitDisabled}
+              className='w-full'
+              data-testid='resend-submit'
+            >
+              {isPending
+                ? resolveCopy(COPY_KEYS.resend.loading)
+                : 'Send verification email'}
+            </Button>
+          </form>
+        )}
 
-        {error && (
-          <p className='text-xs text-destructive'>
-            We could not send the email. Please try again.
+        {showAcknowledgement && (
+          <p
+            className='text-xs text-muted-foreground'
+            data-testid='resend-acknowledgement-body'
+            data-cooldown-remaining-ms={state.status === 'cooldown' ? state.cooldownRemainingMs : 0}
+          >
+            {resolveCopy(COPY_KEYS.resend.acknowledgement.body)}
+          </p>
+        )}
+
+        {isCooldown && (
+          <p
+            className='text-xs text-muted-foreground'
+            data-testid='resend-cooldown'
+          >
+            {resolveCooldown(cooldownSeconds)}
+          </p>
+        )}
+
+        {errorCopy && (
+          <p
+            className='text-xs text-destructive'
+            data-testid='resend-error'
+            data-error-kind={state.status === 'error' ? state.errorKind : 'none'}
+          >
+            {errorCopy}
           </p>
         )}
 
@@ -84,5 +193,13 @@ export default function ResendVerificationPage() {
         </div>
       </div>
     </main>
+  )
+}
+
+export default function ResendVerificationPage() {
+  return (
+    <Suspense fallback={<ResendVerificationSkeleton />}>
+      <ResendVerificationInner />
+    </Suspense>
   )
 }

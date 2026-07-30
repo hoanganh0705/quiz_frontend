@@ -20,7 +20,10 @@ import { useAppLanguage } from '@/shared/hooks/use-app-language'
 import { useAuthState } from '@/features/auth/hooks'
 import Link from 'next/link'
 import { Button } from '@/components/ui/Button'
-import { logoutUser } from '@/features/auth/api/auth'
+// TKT-2.2.E1: migrated off the deprecated `features/auth/api/auth`
+// barrel. `logout` is the same side-effecting wrapper Epic 2.1
+// landed on `auth.service.ts` (cookie + cross-tab broadcast).
+import { logout } from '@/features/auth/service/auth.service'
 import { useRouter } from 'next/navigation'
 import { useUser, useClearUser } from '@/features/users/store/user-store'
 import { getUnreadCount } from '@/features/notifications/api'
@@ -108,7 +111,7 @@ export function AppHeader() {
   const { execute: handleLogout, isLoading: isLoggingOut } = useAsyncAction(
     async () => {
       try {
-        await logoutUser()
+        await logout()
       } finally {
         setAuthenticated(false)
         clearUser()
