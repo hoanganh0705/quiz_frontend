@@ -6,13 +6,21 @@
  * OpenAPI spec version: 1.0
  */
 import type {
-  CloseInstanceResponseDto,
+  CancelCountdown202,
+  CloseInstance202,
+  CreateInstance201,
   CreateInstanceDto,
-  CreateInstanceResponseDto,
-  InstanceDetailResponseDto,
-  InstanceLeaderboardResponseDto,
-  JoinInstanceResponseDto,
-  StartInstanceResponseDto
+  GetInstanceById200,
+  GetInstanceLeaderboard200,
+  GetInstanceLeaderboardParams,
+  JoinInstance201,
+  ListInstancePlayers200,
+  ListInstancePlayersParams,
+  ListInstances200,
+  ListInstancesParams,
+  StartCountdown200,
+  StartCountdownDto,
+  StartInstance202
 } from '.././schemas';
 
 import { orvalCustomInstance } from '../../core/custom-instance';
@@ -21,13 +29,13 @@ import { orvalCustomInstance } from '../../core/custom-instance';
 
   export const getInstances = () => {
 /**
- * Creates a new live quiz instance and sets the authenticated user as the host.
+ * Creates a new quiz instance for the given quiz, automatically adding the caller as a host player. The latest published version of the quiz is resolved server-side — clients only need to know the `quizId`. Requires a valid JWT bearer token. A 400 is returned only when the request body fails validation (e.g. `quizId` is not a valid UUID or `maxPlayers` is outside 2–100). 500 can be returned for unexpected server errors (e.g. database failures).
  * @summary Create instance
  */
-const instanceControllerCreateInstance = (
+const createInstance = (
     createInstanceDto: CreateInstanceDto,
  ) => {
-      return orvalCustomInstance<CreateInstanceResponseDto>(
+      return orvalCustomInstance<CreateInstance201>(
       {url: `/api/v1/instances`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
       data: createInstanceDto
@@ -35,69 +43,129 @@ const instanceControllerCreateInstance = (
       );
     }
   /**
- * Returns the full instance record including current players.
- * @summary Get instance by ID
+ * Returns a paginated cursor-based list of quiz instances. Requires a valid JWT bearer token. Query parameters: `cursor` (opaque pagination cursor), `limit` (1–100, default 20), `status` (one of `open`, `running`, `closed`, `finished`), `difficulty` (`easy`, `medium`, `hard`), `quizId` (filter by quiz UUID), `creatorId` (filter by host UUID). 400 is returned only when the query parameters fail validation.
+ * @summary List instances
  */
-const instanceControllerGetInstanceById = (
+const listInstances = (
+    params?: ListInstancesParams,
+ ) => {
+      return orvalCustomInstance<ListInstances200>(
+      {url: `/api/v1/instances`, method: 'GET',
+        params
+    },
+      );
+    }
+  /**
+ * Returns the cursor-paginated list of players currently in the instance, sorted by join time. Requires a valid JWT bearer token. Query parameters: `cursor` (opaque pagination cursor, decoded payload: `{ joinedAt, instancePlayerId }`) and `limit` (1–100, default 20). 404 is returned when the instance does not exist.
+ * @summary List instance players
+ */
+const listInstancePlayers = (
+    id: string,
+    params?: ListInstancePlayersParams,
+ ) => {
+      return orvalCustomInstance<ListInstancePlayers200>(
+      {url: `/api/v1/instances/${id}/players`, method: 'GET',
+        params
+    },
+      );
+    }
+  /**
+ * Returns full instance details including the host, quiz info, lifecycle timestamps, and a snapshot of the current players. Requires a valid JWT bearer token. 404 is returned when the instance does not exist.
+ * @summary Get instance by id
+ */
+const getInstanceById = (
     id: string,
  ) => {
-      return orvalCustomInstance<InstanceDetailResponseDto>(
+      return orvalCustomInstance<GetInstanceById200>(
       {url: `/api/v1/instances/${id}`, method: 'GET'
     },
       );
     }
   /**
- * Adds the authenticated user as a player in the instance.
+ * Adds the caller as a player in the instance. Requires a valid JWT bearer token. Possible errors: 400 (instance is not open, instance is at capacity, malformed path UUID, or body validation failure), 404 (instance does not exist), and 409 (caller is already a player in the instance). Returns 201 with `{ message: "Joined the instance successfully" }`.
  * @summary Join instance
  */
-const instanceControllerJoinInstance = (
+const joinInstance = (
     id: string,
  ) => {
-      return orvalCustomInstance<JoinInstanceResponseDto>(
+      return orvalCustomInstance<JoinInstance201>(
       {url: `/api/v1/instances/${id}/join`, method: 'POST'
     },
       );
     }
   /**
- * Starts the instance, allowing all joined players to begin answering questions.
+ * Transitions a `countdown` instance into the `running` state. Only the host can start an instance. Requires a valid JWT bearer token. Possible errors: 400 (instance is already `running` (`INSTANCE_ALREADY_STARTED`) or already terminal `closed`/`finished` (`INSTANCE_ALREADY_CLOSED`)), 403 (caller is not the host), 404 (instance does not exist), 409 (instance is still in `open` and the countdown has not been started — `INSTANCE_NOT_IN_COUNTDOWN`), and 422 (fewer than 2 players joined — `MIN_PLAYERS_NOT_MET`). Returns 202 with `{ message: "Instance started" }`.
  * @summary Start instance
  */
-const instanceControllerStartInstance = (
+const startInstance = (
     id: string,
  ) => {
-      return orvalCustomInstance<StartInstanceResponseDto>(
+      return orvalCustomInstance<StartInstance202>(
       {url: `/api/v1/instances/${id}/start`, method: 'POST'
     },
       );
     }
   /**
- * Closes the instance and finalizes all player scores.
+ * Transitions the instance into the `closed` state. Only the host can close an instance. Requires a valid JWT bearer token. Possible errors: 400 (instance is already closed (`INSTANCE_ALREADY_CLOSED`) or already finished (`INSTANCE_ALREADY_FINISHED`), or malformed path UUID), 403 (caller is not the host), 404 (instance does not exist). Returns 202 with `{ message: "Instance closed" }`.
  * @summary Close instance
  */
-const instanceControllerCloseInstance = (
+const closeInstance = (
     id: string,
  ) => {
-      return orvalCustomInstance<CloseInstanceResponseDto>(
+      return orvalCustomInstance<CloseInstance202>(
       {url: `/api/v1/instances/${id}/close`, method: 'POST'
     },
       );
     }
   /**
- * Returns the live leaderboard for a specific instance.
- * @summary Get instance leaderboard
+ * Transitions an open instance into the `countdown` state. Only the host can start the countdown. Persists `countdownStartedAt` and emits the `countdown_started` WebSocket event. Idempotent: a retry of the same call returns the existing anchor. Requires a valid JWT bearer token. Possible errors: 400 (instance is not open), 403 (caller is not the host), 404 (instance does not exist).
+ * @summary Start countdown
  */
-const instanceControllerGetLeaderboard = (
+const startCountdown = (
     id: string,
+    startCountdownDto: StartCountdownDto,
  ) => {
-      return orvalCustomInstance<InstanceLeaderboardResponseDto>(
-      {url: `/api/v1/instances/${id}/leaderboard`, method: 'GET'
+      return orvalCustomInstance<StartCountdown200>(
+      {url: `/api/v1/instances/${id}/countdown`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: startCountdownDto
     },
       );
     }
-  return {instanceControllerCreateInstance,instanceControllerGetInstanceById,instanceControllerJoinInstance,instanceControllerStartInstance,instanceControllerCloseInstance,instanceControllerGetLeaderboard}};
-export type InstanceControllerCreateInstanceResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getInstances>['instanceControllerCreateInstance']>>>
-export type InstanceControllerGetInstanceByIdResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getInstances>['instanceControllerGetInstanceById']>>>
-export type InstanceControllerJoinInstanceResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getInstances>['instanceControllerJoinInstance']>>>
-export type InstanceControllerStartInstanceResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getInstances>['instanceControllerStartInstance']>>>
-export type InstanceControllerCloseInstanceResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getInstances>['instanceControllerCloseInstance']>>>
-export type InstanceControllerGetLeaderboardResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getInstances>['instanceControllerGetLeaderboard']>>>
+  /**
+ * Transitions an instance in the `countdown` state back to `open`. Only the host can cancel. Emits the `countdown_cancelled` WebSocket event. Requires a valid JWT bearer token. Possible errors: 403 (caller is not the host), 404 (instance does not exist), 409 (instance is not in the `countdown` state).
+ * @summary Cancel countdown
+ */
+const cancelCountdown = (
+    id: string,
+ ) => {
+      return orvalCustomInstance<CancelCountdown202>(
+      {url: `/api/v1/instances/${id}/countdown/cancel`, method: 'POST'
+    },
+      );
+    }
+  /**
+ * Returns the ranked player leaderboard for the instance, sorted by attempt score then by completion time. Requires a valid JWT bearer token. Supports cursor pagination via the `cursor` query parameter (decoded payload: `{ rank, instancePlayerId }`) and `limit` (1–100, default 20). 404 is returned when the instance does not exist.
+ * @summary Get instance leaderboard
+ */
+const getInstanceLeaderboard = (
+    id: string,
+    params?: GetInstanceLeaderboardParams,
+ ) => {
+      return orvalCustomInstance<GetInstanceLeaderboard200>(
+      {url: `/api/v1/instances/${id}/leaderboard`, method: 'GET',
+        params
+    },
+      );
+    }
+  return {createInstance,listInstances,listInstancePlayers,getInstanceById,joinInstance,startInstance,closeInstance,startCountdown,cancelCountdown,getInstanceLeaderboard}};
+export type CreateInstanceResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getInstances>['createInstance']>>>
+export type ListInstancesResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getInstances>['listInstances']>>>
+export type ListInstancePlayersResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getInstances>['listInstancePlayers']>>>
+export type GetInstanceByIdResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getInstances>['getInstanceById']>>>
+export type JoinInstanceResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getInstances>['joinInstance']>>>
+export type StartInstanceResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getInstances>['startInstance']>>>
+export type CloseInstanceResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getInstances>['closeInstance']>>>
+export type StartCountdownResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getInstances>['startCountdown']>>>
+export type CancelCountdownResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getInstances>['cancelCountdown']>>>
+export type GetInstanceLeaderboardResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getInstances>['getInstanceLeaderboard']>>>

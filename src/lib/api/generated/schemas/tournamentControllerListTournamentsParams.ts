@@ -10,7 +10,7 @@ import type { TournamentControllerListTournamentsDifficulty } from './tournament
 
 export type TournamentControllerListTournamentsParams = {
 /**
- * Cursor for cursor-based pagination
+ * Opaque cursor string for cursor-based pagination. Pass the `nextCursor` value from a previous response to fetch the next page. Omit (or pass `null`) for the first page.
  * @nullable
  */
 cursor?: string | null;
@@ -36,4 +36,15 @@ difficulty?: TournamentControllerListTournamentsDifficulty;
  * @nullable
  */
 categoryId?: string | null;
+/**
+ * Filter by one or more tag UUIDs (AND semantics — tournament must have ALL specified tags). Must be valid UUID v4 values. Use comma-separated values or repeat the query parameter.
+ * @maxItems 50
+ * @nullable
+ */
+tagIds?: string[] | null;
+/**
+ * Filter by creator/owner UUID
+ * @nullable
+ */
+creatorId?: string | null;
 };

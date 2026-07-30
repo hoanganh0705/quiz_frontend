@@ -35,7 +35,7 @@ export interface CreateTournamentDto {
   /** Tournament end timestamp (ISO 8601) */
   endAt: string;
   /**
-   * Maximum number of participants
+   * Maximum number of participants. If omitted or null, no participant limit is enforced.
    * @minimum 2
    * @nullable
    */

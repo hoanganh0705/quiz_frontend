@@ -5,12 +5,8 @@
  * REST API for the quiz application
  * OpenAPI spec version: 1.0
  */
-import type { QuizResponseDtoCreatorId } from './quizResponseDtoCreatorId';
-import type { QuizResponseDtoDescription } from './quizResponseDtoDescription';
-import type { QuizResponseDtoRequirements } from './quizResponseDtoRequirements';
-import type { QuizResponseDtoImageUrl } from './quizResponseDtoImageUrl';
-import type { QuizResponseDtoPublishedVersionId } from './quizResponseDtoPublishedVersionId';
 import type { QuizResponseDtoPublishedVersion } from './quizResponseDtoPublishedVersion';
+import type { QuizTagDto } from './quizTagDto';
 
 export interface QuizResponseDto {
   /** Unique quiz identifier */
@@ -19,26 +15,31 @@ export interface QuizResponseDto {
    * Creator user identifier
    * @nullable
    */
-  creatorId?: QuizResponseDtoCreatorId;
+  creatorId?: string | null;
   /** Quiz title */
   title: string;
   /**
    * Quiz description
    * @nullable
    */
-  description?: QuizResponseDtoDescription;
+  description?: string | null;
   /** URL-friendly slug */
   slug: string;
   /**
    * Prerequisites
    * @nullable
    */
-  requirements?: QuizResponseDtoRequirements;
+  requirements?: string | null;
   /**
    * Quiz cover image URL
    * @nullable
    */
-  imageUrl?: QuizResponseDtoImageUrl;
+  imageUrl?: string | null;
+  /**
+   * Associated category identifier (singular — each quiz belongs to at most one category)
+   * @nullable
+   */
+  categoryId?: string | null;
   /** Whether the quiz is featured */
   isFeatured: boolean;
   /** Whether the quiz is hidden from public listings */
@@ -49,14 +50,16 @@ export interface QuizResponseDto {
    * Currently published version identifier
    * @nullable
    */
-  publishedVersionId?: QuizResponseDtoPublishedVersionId;
-  /** Creation timestamp (ISO 8601) */
+  publishedVersionId?: string | null;
+  /** Creation timestamp */
   createdAt: string;
-  /** Last update timestamp (ISO 8601) */
+  /** Last update timestamp */
   updatedAt: string;
   /**
    * Published version summary (excluded when listing multiple quizzes)
    * @nullable
    */
   publishedVersion?: QuizResponseDtoPublishedVersion;
+  /** Tags attached to the quiz (only populated on detail endpoints) */
+  tags: QuizTagDto[];
 }

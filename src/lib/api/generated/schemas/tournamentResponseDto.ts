@@ -5,12 +5,8 @@
  * REST API for the quiz application
  * OpenAPI spec version: 1.0
  */
-import type { TournamentResponseDtoDescription } from './tournamentResponseDtoDescription';
 import type { TournamentResponseDtoDifficulty } from './tournamentResponseDtoDifficulty';
 import type { TournamentResponseDtoStatus } from './tournamentResponseDtoStatus';
-import type { TournamentResponseDtoPrize } from './tournamentResponseDtoPrize';
-import type { TournamentResponseDtoMaxParticipants } from './tournamentResponseDtoMaxParticipants';
-import type { TournamentResponseDtoCategoryId } from './tournamentResponseDtoCategoryId';
 
 export interface TournamentResponseDto {
   /** Unique tournament identifier */
@@ -21,7 +17,7 @@ export interface TournamentResponseDto {
    * Tournament description
    * @nullable
    */
-  description?: TournamentResponseDtoDescription;
+  description?: string | null;
   /** Difficulty level */
   difficulty: TournamentResponseDtoDifficulty;
   /** Lifecycle status */
@@ -30,7 +26,7 @@ export interface TournamentResponseDto {
    * Prize description
    * @nullable
    */
-  prize?: TournamentResponseDtoPrize;
+  prize?: string | null;
   /** Start timestamp (ISO 8601) */
   startAt: string;
   /** End timestamp (ISO 8601) */
@@ -39,12 +35,14 @@ export interface TournamentResponseDto {
    * Maximum participants
    * @nullable
    */
-  maxParticipants?: TournamentResponseDtoMaxParticipants;
+  maxParticipants?: number | null;
   /**
    * Associated category identifier
    * @nullable
    */
-  categoryId?: TournamentResponseDtoCategoryId;
+  categoryId?: string | null;
+  /** Phase 1 / Issue #2 — UUID of the user who created the tournament. Used by the authorization layer for `PATCH /tournaments/:id`, `DELETE /tournaments/:id`, and `POST /tournaments/:id/cancel`. The application-layer policy compares this against the JWT subject to decide whether the caller can mutate the tournament. */
+  ownerUserId: string;
   /** Creation timestamp (ISO 8601) */
   createdAt: string;
   /** Last update timestamp (ISO 8601) */

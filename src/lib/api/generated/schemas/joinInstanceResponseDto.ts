@@ -7,6 +7,6 @@
  */
 
 export interface JoinInstanceResponseDto {
-  /** Join result */
+  /** Human-readable confirmation message returned by the join handler */
   message: string;
 }

@@ -7,14 +7,36 @@
  */
 import type {
   CreateTournamentDto,
-  RegisterTournamentResponseDto,
-  StartTournamentAttemptResponseDto,
+  CreateTournamentRoundDto,
+  TournamentControllerCancelTournament200,
+  TournamentControllerCreateTournament201,
+  TournamentControllerCreateTournamentRound201,
+  TournamentControllerGetActiveTournaments200,
+  TournamentControllerGetActiveTournamentsParams,
+  TournamentControllerGetCompletedTournaments200,
+  TournamentControllerGetCompletedTournamentsParams,
+  TournamentControllerGetLeaderboard200,
+  TournamentControllerGetLeaderboardParams,
+  TournamentControllerGetMyTournamentStanding200,
+  TournamentControllerGetRelatedTournaments200,
+  TournamentControllerGetRelatedTournamentsParams,
+  TournamentControllerGetTournamentById200,
+  TournamentControllerGetTournamentParticipants200,
+  TournamentControllerGetTournamentParticipantsParams,
+  TournamentControllerGetTournamentStats200,
+  TournamentControllerGetTournamentWinners200,
+  TournamentControllerGetTournamentWinnersParams,
+  TournamentControllerGetUpcomingTournaments200,
+  TournamentControllerGetUpcomingTournamentsParams,
+  TournamentControllerListTournaments200,
   TournamentControllerListTournamentsParams,
-  TournamentDetailResponseDto,
-  TournamentLeaderboardResponseDto,
-  TournamentListResponseDto,
-  TournamentResponseDto,
-  UnregisterTournamentResponseDto
+  TournamentControllerRegisterForTournament201,
+  TournamentControllerSoftDeleteTournament200,
+  TournamentControllerStartRoundAttempt201,
+  TournamentControllerUnregisterFromTournament200,
+  TournamentControllerUpdateTournament200,
+  TournamentControllerWithdrawFromTournament200,
+  UpdateTournamentDto
 } from '.././schemas';
 
 import { orvalCustomInstance } from '../../core/custom-instance';
@@ -23,13 +45,13 @@ import { orvalCustomInstance } from '../../core/custom-instance';
 
   export const getTournaments = () => {
 /**
- * Creates a new tournament. Requires `tournament:create` permission.
+ * Creates a new tournament. Requires the `TOURNAMENT_CREATE` permission. A 400 is returned when the request body fails validation (e.g. `endAt` is not after `startAt`) or when `categoryId` references a non-existent category.
  * @summary Create tournament
  */
 const tournamentControllerCreateTournament = (
     createTournamentDto: CreateTournamentDto,
  ) => {
-      return orvalCustomInstance<TournamentResponseDto>(
+      return orvalCustomInstance<TournamentControllerCreateTournament201>(
       {url: `/api/v1/tournaments`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
       data: createTournamentDto
@@ -37,84 +59,270 @@ const tournamentControllerCreateTournament = (
       );
     }
   /**
- * Returns a paginated list of tournaments. Supports filtering by status, difficulty, and category.
+ * Returns a cursor-paginated list of tournaments filtered by optional criteria.
  * @summary List tournaments
  */
 const tournamentControllerListTournaments = (
     params?: TournamentControllerListTournamentsParams,
  ) => {
-      return orvalCustomInstance<TournamentListResponseDto>(
+      return orvalCustomInstance<TournamentControllerListTournaments200>(
       {url: `/api/v1/tournaments`, method: 'GET',
         params
     },
       );
     }
   /**
- * Returns tournament details including rounds and participant count.
+ * Creates a new round for the given tournament. Requires the `TOURNAMENT_CREATE` permission. Rounds can only be added to tournaments that are in `upcoming` or `registration` status. If provided, `startAt` must be >= the tournament startAt, and `endAt` must be <= the tournament endAt.
+ * @summary Create tournament round
+ */
+const tournamentControllerCreateTournamentRound = (
+    id: string,
+    createTournamentRoundDto: CreateTournamentRoundDto,
+ ) => {
+      return orvalCustomInstance<TournamentControllerCreateTournamentRound201>(
+      {url: `/api/v1/tournaments/${id}/rounds`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: createTournamentRoundDto
+    },
+      );
+    }
+  /**
+ * Returns an offset-paginated list of tournaments that are in `upcoming` status and have a future startAt. Ordered by startAt ascending by default, or by registration deadline if specified.
+ * @summary List upcoming tournaments
+ */
+const tournamentControllerGetUpcomingTournaments = (
+    params?: TournamentControllerGetUpcomingTournamentsParams,
+ ) => {
+      return orvalCustomInstance<TournamentControllerGetUpcomingTournaments200>(
+      {url: `/api/v1/tournaments/upcoming`, method: 'GET',
+        params
+    },
+      );
+    }
+  /**
+ * Returns an offset-paginated list of tournaments that are currently active (in `registration` or `ongoing` status and within their time window).
+ * @summary List active tournaments
+ */
+const tournamentControllerGetActiveTournaments = (
+    params?: TournamentControllerGetActiveTournamentsParams,
+ ) => {
+      return orvalCustomInstance<TournamentControllerGetActiveTournaments200>(
+      {url: `/api/v1/tournaments/active`, method: 'GET',
+        params
+    },
+      );
+    }
+  /**
+ * Returns an offset-paginated list of tournaments that are in `finished` status and have ended (endAt < now).
+ * @summary List completed tournaments
+ */
+const tournamentControllerGetCompletedTournaments = (
+    params?: TournamentControllerGetCompletedTournamentsParams,
+ ) => {
+      return orvalCustomInstance<TournamentControllerGetCompletedTournaments200>(
+      {url: `/api/v1/tournaments/completed`, method: 'GET',
+        params
+    },
+      );
+    }
+  /**
+ * Returns tournaments related to the given tournament, ranked by category match (+3), description word overlap (+1 per word), and title word overlap (+0.5 per word). Includes tournaments with any status except `cancelled` (includes finished tournaments for historical browsing). The list is bounded by `limit` (default 5) and is returned as a non-paginated bare array.
+ * @summary List related tournaments
+ */
+const tournamentControllerGetRelatedTournaments = (
+    id: string,
+    params?: TournamentControllerGetRelatedTournamentsParams,
+ ) => {
+      return orvalCustomInstance<TournamentControllerGetRelatedTournaments200>(
+      {url: `/api/v1/tournaments/${id}/related`, method: 'GET',
+        params
+    },
+      );
+    }
+  /**
+ * Returns aggregate statistics for the given tournament.
+ * @summary Get tournament stats
+ */
+const tournamentControllerGetTournamentStats = (
+    id: string,
+ ) => {
+      return orvalCustomInstance<TournamentControllerGetTournamentStats200>(
+      {url: `/api/v1/tournaments/${id}/stats`, method: 'GET'
+    },
+      );
+    }
+  /**
+ * Returns the final winners of the tournament sorted by rank ascending. The default limit is 10; pass `limit` to fetch more. The list is bounded by `limit` and is returned as a non-paginated bare array.
+ * @summary Get tournament winners
+ */
+const tournamentControllerGetTournamentWinners = (
+    id: string,
+    params?: TournamentControllerGetTournamentWinnersParams,
+ ) => {
+      return orvalCustomInstance<TournamentControllerGetTournamentWinners200>(
+      {url: `/api/v1/tournaments/${id}/winners`, method: 'GET',
+        params
+    },
+      );
+    }
+  /**
+ * Returns a single tournament with its associated rounds, category info, and participant count.
  * @summary Get tournament by ID
  */
 const tournamentControllerGetTournamentById = (
     id: string,
  ) => {
-      return orvalCustomInstance<TournamentDetailResponseDto>(
+      return orvalCustomInstance<TournamentControllerGetTournamentById200>(
       {url: `/api/v1/tournaments/${id}`, method: 'GET'
     },
       );
     }
   /**
- * Registers the authenticated user for a tournament. Requires `tournament:register` permission.
+ * Phase 1 / Issue #1 — partially updates a tournament. Callers must hold `TOURNAMENT_EDIT_OWN` and own the tournament, or hold `TOURNAMENT_EDIT_ANY`. Body is optional-only: every omitted field is left untouched. Editing is only allowed while the tournament is in `upcoming`, `registration`, or `ongoing`; while `ongoing`, only `prize` is editable. Reducing `maxParticipants` after registration has started is rejected to protect already-registered participants. A 400 is returned when `categoryId` references a non-existent category.
+ * @summary Update tournament
+ */
+const tournamentControllerUpdateTournament = (
+    id: string,
+    updateTournamentDto: UpdateTournamentDto,
+ ) => {
+      return orvalCustomInstance<TournamentControllerUpdateTournament200>(
+      {url: `/api/v1/tournaments/${id}`, method: 'PATCH',
+      headers: {'Content-Type': 'application/json', },
+      data: updateTournamentDto
+    },
+      );
+    }
+  /**
+ * Phase 1 / Issue #1 — soft-deletes a tournament by setting `deleted_at = now()`. The row remains in the database for audit, but every read endpoint filters `deleted_at IS NULL` so the row is invisible to clients. The two precondition checks: (1) the caller must own the tournament or hold `TOURNAMENT_EDIT_ANY`; (2) the tournament must be in `upcoming` or `registration` (a tournament with participants who have submitted attempts cannot be soft-deleted without breaking the audit trail).
+ * @summary Soft-delete tournament
+ */
+const tournamentControllerSoftDeleteTournament = (
+    id: string,
+ ) => {
+      return orvalCustomInstance<TournamentControllerSoftDeleteTournament200>(
+      {url: `/api/v1/tournaments/${id}`, method: 'DELETE'
+    },
+      );
+    }
+  /**
+ * Returns an offset-paginated list of users registered for the tournament, plus the total registered count.
+ * @summary List tournament participants
+ */
+const tournamentControllerGetTournamentParticipants = (
+    id: string,
+    params?: TournamentControllerGetTournamentParticipantsParams,
+ ) => {
+      return orvalCustomInstance<TournamentControllerGetTournamentParticipants200>(
+      {url: `/api/v1/tournaments/${id}/participants`, method: 'GET',
+        params
+    },
+      );
+    }
+  /**
+ * Phase 1 / Issue #1 — transitions a tournament to the `cancelled` lifecycle status. Requires the `TOURNAMENT_CANCEL` permission (admin-only in Phase 1). Cancelling is only allowed while the tournament is in `upcoming` or `registration`; an `ongoing`/`finished` tournament is protected because the audit reserves those states for the finalization pipeline. A re-cancel of an already-`cancelled` tournament is idempotent at the repository layer — the controller will surface it as 409 if the row was mutated by a concurrent finalize cron between the SELECT and the UPDATE.
+ * @summary Cancel tournament
+ */
+const tournamentControllerCancelTournament = (
+    id: string,
+ ) => {
+      return orvalCustomInstance<TournamentControllerCancelTournament200>(
+      {url: `/api/v1/tournaments/${id}/cancel`, method: 'POST'
+    },
+      );
+    }
+  /**
+ * Registers the authenticated user for the tournament. If the user previously withdrew, this reactivates their participant record. Requires the `TOURNAMENT_REGISTER` permission.
  * @summary Register for tournament
  */
 const tournamentControllerRegisterForTournament = (
     id: string,
  ) => {
-      return orvalCustomInstance<RegisterTournamentResponseDto>(
+      return orvalCustomInstance<TournamentControllerRegisterForTournament201>(
       {url: `/api/v1/tournaments/${id}/register`, method: 'POST'
     },
       );
     }
   /**
- * Withdraws the authenticated user from a tournament. Only allowed when the tournament status is `registration`. Requires `tournament:register` permission.
+ * Removes the authenticated user from the tournament participant list. Only allowed while the tournament is still in the registration phase. Returns 200 with a success message body. Requires the `TOURNAMENT_REGISTER` permission.
  * @summary Unregister from tournament
  */
 const tournamentControllerUnregisterFromTournament = (
     id: string,
  ) => {
-      return orvalCustomInstance<UnregisterTournamentResponseDto>(
+      return orvalCustomInstance<TournamentControllerUnregisterFromTournament200>(
       {url: `/api/v1/tournaments/${id}/register`, method: 'DELETE'
     },
       );
     }
   /**
- * Returns the live tournament leaderboard sorted by score.
+ * Returns the live leaderboard for the tournament with each participant rank, score, and time. Results are paginated with `limit` (default 50) and `offset` (default 0).
  * @summary Get tournament leaderboard
  */
 const tournamentControllerGetLeaderboard = (
     id: string,
+    params?: TournamentControllerGetLeaderboardParams,
  ) => {
-      return orvalCustomInstance<TournamentLeaderboardResponseDto>(
-      {url: `/api/v1/tournaments/${id}/leaderboard`, method: 'GET'
+      return orvalCustomInstance<TournamentControllerGetLeaderboard200>(
+      {url: `/api/v1/tournaments/${id}/leaderboard`, method: 'GET',
+        params
     },
       );
     }
   /**
- * Starts a tournament round attempt for the authenticated participant. Requires `tournament:attempt` permission.
+ * Returns the authenticated user current rank, score, percentile, and total participants for the tournament. Requires the user to be an active participant.
+ * @summary Get my tournament standing
+ */
+const tournamentControllerGetMyTournamentStanding = (
+    id: string,
+ ) => {
+      return orvalCustomInstance<TournamentControllerGetMyTournamentStanding200>(
+      {url: `/api/v1/tournaments/${id}/my-standing`, method: 'GET'
+    },
+      );
+    }
+  /**
+ * Starts an attempt for the authenticated user on the given tournament round. Returns the new `attemptId` to be used with the attempt endpoints. Requires the `TOURNAMENT_ATTEMPT` permission.
  * @summary Start round attempt
  */
 const tournamentControllerStartRoundAttempt = (
     id: string,
     roundId: string,
  ) => {
-      return orvalCustomInstance<StartTournamentAttemptResponseDto>(
+      return orvalCustomInstance<TournamentControllerStartRoundAttempt201>(
       {url: `/api/v1/tournaments/${id}/rounds/${roundId}/attempts`, method: 'POST'
     },
       );
     }
-  return {tournamentControllerCreateTournament,tournamentControllerListTournaments,tournamentControllerGetTournamentById,tournamentControllerRegisterForTournament,tournamentControllerUnregisterFromTournament,tournamentControllerGetLeaderboard,tournamentControllerStartRoundAttempt}};
+  /**
+ * Withdraws the authenticated user from an ongoing tournament. Only allowed while the tournament status is `ongoing`. Returns 200 with a success message body. Requires the `TOURNAMENT_REGISTER` permission.
+ * @summary Withdraw from ongoing tournament
+ */
+const tournamentControllerWithdrawFromTournament = (
+    id: string,
+ ) => {
+      return orvalCustomInstance<TournamentControllerWithdrawFromTournament200>(
+      {url: `/api/v1/tournaments/${id}/withdraw`, method: 'POST'
+    },
+      );
+    }
+  return {tournamentControllerCreateTournament,tournamentControllerListTournaments,tournamentControllerCreateTournamentRound,tournamentControllerGetUpcomingTournaments,tournamentControllerGetActiveTournaments,tournamentControllerGetCompletedTournaments,tournamentControllerGetRelatedTournaments,tournamentControllerGetTournamentStats,tournamentControllerGetTournamentWinners,tournamentControllerGetTournamentById,tournamentControllerUpdateTournament,tournamentControllerSoftDeleteTournament,tournamentControllerGetTournamentParticipants,tournamentControllerCancelTournament,tournamentControllerRegisterForTournament,tournamentControllerUnregisterFromTournament,tournamentControllerGetLeaderboard,tournamentControllerGetMyTournamentStanding,tournamentControllerStartRoundAttempt,tournamentControllerWithdrawFromTournament}};
 export type TournamentControllerCreateTournamentResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getTournaments>['tournamentControllerCreateTournament']>>>
 export type TournamentControllerListTournamentsResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getTournaments>['tournamentControllerListTournaments']>>>
+export type TournamentControllerCreateTournamentRoundResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getTournaments>['tournamentControllerCreateTournamentRound']>>>
+export type TournamentControllerGetUpcomingTournamentsResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getTournaments>['tournamentControllerGetUpcomingTournaments']>>>
+export type TournamentControllerGetActiveTournamentsResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getTournaments>['tournamentControllerGetActiveTournaments']>>>
+export type TournamentControllerGetCompletedTournamentsResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getTournaments>['tournamentControllerGetCompletedTournaments']>>>
+export type TournamentControllerGetRelatedTournamentsResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getTournaments>['tournamentControllerGetRelatedTournaments']>>>
+export type TournamentControllerGetTournamentStatsResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getTournaments>['tournamentControllerGetTournamentStats']>>>
+export type TournamentControllerGetTournamentWinnersResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getTournaments>['tournamentControllerGetTournamentWinners']>>>
 export type TournamentControllerGetTournamentByIdResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getTournaments>['tournamentControllerGetTournamentById']>>>
+export type TournamentControllerUpdateTournamentResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getTournaments>['tournamentControllerUpdateTournament']>>>
+export type TournamentControllerSoftDeleteTournamentResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getTournaments>['tournamentControllerSoftDeleteTournament']>>>
+export type TournamentControllerGetTournamentParticipantsResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getTournaments>['tournamentControllerGetTournamentParticipants']>>>
+export type TournamentControllerCancelTournamentResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getTournaments>['tournamentControllerCancelTournament']>>>
 export type TournamentControllerRegisterForTournamentResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getTournaments>['tournamentControllerRegisterForTournament']>>>
 export type TournamentControllerUnregisterFromTournamentResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getTournaments>['tournamentControllerUnregisterFromTournament']>>>
 export type TournamentControllerGetLeaderboardResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getTournaments>['tournamentControllerGetLeaderboard']>>>
+export type TournamentControllerGetMyTournamentStandingResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getTournaments>['tournamentControllerGetMyTournamentStanding']>>>
 export type TournamentControllerStartRoundAttemptResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getTournaments>['tournamentControllerStartRoundAttempt']>>>
+export type TournamentControllerWithdrawFromTournamentResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getTournaments>['tournamentControllerWithdrawFromTournament']>>>

@@ -5,7 +5,6 @@
  * REST API for the quiz application
  * OpenAPI spec version: 1.0
  */
-import type { ReviewPaginationResponseDtoNextCursor } from './reviewPaginationResponseDtoNextCursor';
 
 export interface ReviewPaginationResponseDto {
   /** Items per page */
@@ -14,7 +13,7 @@ export interface ReviewPaginationResponseDto {
    * Cursor for next page
    * @nullable
    */
-  nextCursor?: ReviewPaginationResponseDtoNextCursor;
+  nextCursor?: string | null;
   /** Has more pages */
   hasNextPage: boolean;
 }

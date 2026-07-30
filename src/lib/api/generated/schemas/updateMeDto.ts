@@ -5,27 +5,24 @@
  * REST API for the quiz application
  * OpenAPI spec version: 1.0
  */
-import type { UpdateMeDtoDisplayName } from './updateMeDtoDisplayName';
-import type { UpdateMeDtoBio } from './updateMeDtoBio';
-import type { UpdateMeDtoAvatarUrl } from './updateMeDtoAvatarUrl';
 
 export interface UpdateMeDto {
   /**
-   * Display name shown in the app (null or blank removes it)
+   * Display name shown in the app. Send `null` or a blank string to clear. Omit the field (or send `undefined`) to leave the current value unchanged.
    * @maxLength 100
    * @nullable
    */
-  displayName?: UpdateMeDtoDisplayName;
+  displayName?: string | null;
   /**
-   * Short bio (null or blank removes it)
+   * Short bio shown on the profile. Send `null` or a blank string to clear. Omit the field to leave the current value unchanged.
    * @maxLength 500
    * @nullable
    */
-  bio?: UpdateMeDtoBio;
+  bio?: string | null;
   /**
-   * Avatar image URL (null or blank removes it)
+   * Avatar image URL. Send `null` or a blank string to clear. Omit the field to leave the current value unchanged. Must be a valid `http://` or `https://` URL.
    * @maxLength 2048
    * @nullable
    */
-  avatarUrl?: UpdateMeDtoAvatarUrl;
+  avatarUrl?: string | null;
 }

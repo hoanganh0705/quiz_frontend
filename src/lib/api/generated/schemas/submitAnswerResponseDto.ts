@@ -5,9 +5,6 @@
  * REST API for the quiz application
  * OpenAPI spec version: 1.0
  */
-import type { SubmitAnswerResponseDtoSelectedOptionId } from './submitAnswerResponseDtoSelectedOptionId';
-import type { SubmitAnswerResponseDtoTimeTakenMs } from './submitAnswerResponseDtoTimeTakenMs';
-import type { SubmitAnswerResponseDtoIsCorrect } from './submitAnswerResponseDtoIsCorrect';
 
 export interface SubmitAnswerResponseDto {
   /** Answer record identifier */
@@ -18,17 +15,12 @@ export interface SubmitAnswerResponseDto {
    * Selected option identifier
    * @nullable
    */
-  selectedOptionId?: SubmitAnswerResponseDtoSelectedOptionId;
+  selectedOptionId?: string | null;
   /** Submission timestamp (ISO 8601) */
   answeredAt: string;
   /**
    * Time taken in ms
    * @nullable
    */
-  timeTakenMs?: SubmitAnswerResponseDtoTimeTakenMs;
-  /**
-   * Whether the answer was correct
-   * @nullable
-   */
-  isCorrect?: SubmitAnswerResponseDtoIsCorrect;
+  timeTakenMs?: number | null;
 }

@@ -5,7 +5,6 @@
  * REST API for the quiz application
  * OpenAPI spec version: 1.0
  */
-import type { CreateReviewResponseDtoComment } from './createReviewResponseDtoComment';
 
 export interface CreateReviewResponseDto {
   /** New review identifier */
@@ -18,7 +17,7 @@ export interface CreateReviewResponseDto {
    * Review text
    * @nullable
    */
-  comment?: CreateReviewResponseDtoComment;
+  comment?: string | null;
   /** Creation timestamp (ISO 8601) */
   createdAt: string;
 }

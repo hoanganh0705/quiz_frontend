@@ -26,13 +26,29 @@ limit?: number | null;
  */
 difficulty?: QuizControllerListQuizzesDifficulty;
 /**
- * Filter by category UUID
+ * Filter by category UUID (must be a valid UUID v4)
  * @nullable
  */
 categoryId?: string | null;
 /**
- * Filter by tag UUID
+ * Filter by one or more tag UUIDs (OR semantics — quiz matches if it has at least one of the given tags). Must be valid UUID v4 values.
+ * @maxItems 50
  * @nullable
  */
-tagId?: string | null;
+tagIds?: string[] | null;
+/**
+ * Filter by creator/owner UUID
+ * @nullable
+ */
+creatorId?: string | null;
+/**
+ * Filter by quiz status (draft or published)
+ * @nullable
+ */
+status?: string | null;
+/**
+ * Filter to featured quizzes only
+ * @nullable
+ */
+featured?: boolean | null;
 };

@@ -5,5 +5,13 @@
  * REST API for the quiz application
  * OpenAPI spec version: 1.0
  */
+import type { CreateQuizQuestionDto } from './createQuizQuestionDto';
 
-export interface CreateQuizQuestionsDto { [key: string]: unknown }
+export interface CreateQuizQuestionsDto {
+  /**
+   * Questions to create (minimum 1, maximum 50 per request)
+   * @minItems 1
+   * @maxItems 50
+   */
+  questions: CreateQuizQuestionDto;
+}

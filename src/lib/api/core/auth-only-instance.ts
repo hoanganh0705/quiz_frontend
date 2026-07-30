@@ -7,6 +7,8 @@
 
 import axios, { AxiosInstance } from 'axios';
 
+import { unwrapEnvelope } from './unwrap';
+
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
 
@@ -21,9 +23,6 @@ export const authOnlyInstance: AxiosInstance = axios.create({
 
 // Response interceptor: unwrap { data, meta } → T
 authOnlyInstance.interceptors.response.use((response) => {
-  const payload = response.data;
-  if (payload && typeof payload === 'object' && 'data' in payload) {
-    response.data = payload.data;
-  }
+  response.data = unwrapEnvelope(response.data);
   return response;
 });

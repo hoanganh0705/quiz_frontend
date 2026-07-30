@@ -6,11 +6,24 @@
  * OpenAPI spec version: 1.0
  */
 import type {
+  CategoryControllerCreateCategory201,
+  CategoryControllerDeleteCategory200,
+  CategoryControllerGetCategoryAnalytics200,
+  CategoryControllerGetCategoryById200,
+  CategoryControllerGetCategoryBySlug200,
+  CategoryControllerGetCategoryQuizzes200,
+  CategoryControllerGetCategoryQuizzesParams,
+  CategoryControllerGetPopularCategories200,
+  CategoryControllerGetPopularCategoriesParams,
+  CategoryControllerGetRelatedCategories200,
+  CategoryControllerGetRelatedCategoriesParams,
+  CategoryControllerGetTrendingCategories200,
+  CategoryControllerGetTrendingCategoriesParams,
+  CategoryControllerListCategories200,
   CategoryControllerListCategoriesParams,
-  CategoryListResponseDto,
-  CategoryResponseDto,
+  CategoryControllerRestoreCategory200,
+  CategoryControllerUpdateCategory200,
   CreateCategoryDto,
-  DeleteCategoryResponseDto,
   UpdateCategoryDto
 } from '.././schemas';
 
@@ -20,26 +33,118 @@ import { orvalCustomInstance } from '../../core/custom-instance';
 
   export const getCategories = () => {
 /**
- * Returns a paginated, cursor-based list of active categories.
- * @summary List categories
+ * @summary List popular categories
+ */
+const categoryControllerGetPopularCategories = (
+    params?: CategoryControllerGetPopularCategoriesParams,
+ ) => {
+      return orvalCustomInstance<CategoryControllerGetPopularCategories200>(
+      {url: `/api/v1/categories/popular`, method: 'GET',
+        params
+    },
+      );
+    }
+  /**
+ * @summary List trending categories
+ */
+const categoryControllerGetTrendingCategories = (
+    params?: CategoryControllerGetTrendingCategoriesParams,
+ ) => {
+      return orvalCustomInstance<CategoryControllerGetTrendingCategories200>(
+      {url: `/api/v1/categories/trending`, method: 'GET',
+        params
+    },
+      );
+    }
+  /**
+ * @summary List quizzes in a category
+ */
+const categoryControllerGetCategoryQuizzes = (
+    slug: string,
+    params?: CategoryControllerGetCategoryQuizzesParams,
+ ) => {
+      return orvalCustomInstance<CategoryControllerGetCategoryQuizzes200>(
+      {url: `/api/v1/categories/${slug}/quizzes`, method: 'GET',
+        params
+    },
+      );
+    }
+  /**
+ * @summary List categories related to a category
+ */
+const categoryControllerGetRelatedCategories = (
+    slug: string,
+    params?: CategoryControllerGetRelatedCategoriesParams,
+ ) => {
+      return orvalCustomInstance<CategoryControllerGetRelatedCategories200>(
+      {url: `/api/v1/categories/${slug}/related`, method: 'GET',
+        params
+    },
+      );
+    }
+  /**
+ * @summary Get analytics for a category
+ */
+const categoryControllerGetCategoryAnalytics = (
+    id: string,
+ ) => {
+      return orvalCustomInstance<CategoryControllerGetCategoryAnalytics200>(
+      {url: `/api/v1/categories/${id}/analytics`, method: 'GET'
+    },
+      );
+    }
+  /**
+ * @summary Follow a category
+ */
+const categoryControllerFollowCategory = (
+    id: string,
+ ) => {
+      return orvalCustomInstance<void>(
+      {url: `/api/v1/categories/${id}/follow`, method: 'POST'
+    },
+      );
+    }
+  /**
+ * @summary Unfollow a category
+ */
+const categoryControllerUnfollowCategory = (
+    id: string,
+ ) => {
+      return orvalCustomInstance<void>(
+      {url: `/api/v1/categories/${id}/follow`, method: 'DELETE'
+    },
+      );
+    }
+  /**
+ * @summary Restore a deleted category
+ */
+const categoryControllerRestoreCategory = (
+    id: string,
+ ) => {
+      return orvalCustomInstance<CategoryControllerRestoreCategory200>(
+      {url: `/api/v1/categories/${id}/restore`, method: 'POST'
+    },
+      );
+    }
+  /**
+ * @summary List all categories
  */
 const categoryControllerListCategories = (
     params?: CategoryControllerListCategoriesParams,
  ) => {
-      return orvalCustomInstance<CategoryListResponseDto>(
+      return orvalCustomInstance<CategoryControllerListCategories200>(
       {url: `/api/v1/categories`, method: 'GET',
         params
     },
       );
     }
   /**
- * Creates a new quiz category. Requires admin role.
- * @summary Create category
+ * @summary Create a category
  */
 const categoryControllerCreateCategory = (
     createCategoryDto: CreateCategoryDto,
  ) => {
-      return orvalCustomInstance<CategoryResponseDto>(
+      return orvalCustomInstance<CategoryControllerCreateCategory201>(
       {url: `/api/v1/categories`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
       data: createCategoryDto
@@ -47,26 +152,24 @@ const categoryControllerCreateCategory = (
       );
     }
   /**
- * Returns a single active category by its URL slug.
- * @summary Get category by slug
+ * @summary Get a category by ID
  */
-const categoryControllerGetCategoryBySlug = (
-    slug: string,
+const categoryControllerGetCategoryById = (
+    id: string,
  ) => {
-      return orvalCustomInstance<CategoryResponseDto>(
-      {url: `/api/v1/categories/${slug}`, method: 'GET'
+      return orvalCustomInstance<CategoryControllerGetCategoryById200>(
+      {url: `/api/v1/categories/${id}`, method: 'GET'
     },
       );
     }
   /**
- * Updates an existing category by ID. Requires admin role.
- * @summary Update category
+ * @summary Update a category
  */
 const categoryControllerUpdateCategory = (
     id: string,
     updateCategoryDto: UpdateCategoryDto,
  ) => {
-      return orvalCustomInstance<CategoryResponseDto>(
+      return orvalCustomInstance<CategoryControllerUpdateCategory200>(
       {url: `/api/v1/categories/${id}`, method: 'PATCH',
       headers: {'Content-Type': 'application/json', },
       data: updateCategoryDto
@@ -74,20 +177,39 @@ const categoryControllerUpdateCategory = (
       );
     }
   /**
- * Soft-deletes a category. Requires admin role.
- * @summary Delete category
+ * @summary Delete a category
  */
 const categoryControllerDeleteCategory = (
     id: string,
  ) => {
-      return orvalCustomInstance<DeleteCategoryResponseDto>(
+      return orvalCustomInstance<CategoryControllerDeleteCategory200>(
       {url: `/api/v1/categories/${id}`, method: 'DELETE'
     },
       );
     }
-  return {categoryControllerListCategories,categoryControllerCreateCategory,categoryControllerGetCategoryBySlug,categoryControllerUpdateCategory,categoryControllerDeleteCategory}};
+  /**
+ * @summary Get a category by slug
+ */
+const categoryControllerGetCategoryBySlug = (
+    slug: string,
+ ) => {
+      return orvalCustomInstance<CategoryControllerGetCategoryBySlug200>(
+      {url: `/api/v1/categories/${slug}`, method: 'GET'
+    },
+      );
+    }
+  return {categoryControllerGetPopularCategories,categoryControllerGetTrendingCategories,categoryControllerGetCategoryQuizzes,categoryControllerGetRelatedCategories,categoryControllerGetCategoryAnalytics,categoryControllerFollowCategory,categoryControllerUnfollowCategory,categoryControllerRestoreCategory,categoryControllerListCategories,categoryControllerCreateCategory,categoryControllerGetCategoryById,categoryControllerUpdateCategory,categoryControllerDeleteCategory,categoryControllerGetCategoryBySlug}};
+export type CategoryControllerGetPopularCategoriesResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getCategories>['categoryControllerGetPopularCategories']>>>
+export type CategoryControllerGetTrendingCategoriesResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getCategories>['categoryControllerGetTrendingCategories']>>>
+export type CategoryControllerGetCategoryQuizzesResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getCategories>['categoryControllerGetCategoryQuizzes']>>>
+export type CategoryControllerGetRelatedCategoriesResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getCategories>['categoryControllerGetRelatedCategories']>>>
+export type CategoryControllerGetCategoryAnalyticsResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getCategories>['categoryControllerGetCategoryAnalytics']>>>
+export type CategoryControllerFollowCategoryResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getCategories>['categoryControllerFollowCategory']>>>
+export type CategoryControllerUnfollowCategoryResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getCategories>['categoryControllerUnfollowCategory']>>>
+export type CategoryControllerRestoreCategoryResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getCategories>['categoryControllerRestoreCategory']>>>
 export type CategoryControllerListCategoriesResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getCategories>['categoryControllerListCategories']>>>
 export type CategoryControllerCreateCategoryResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getCategories>['categoryControllerCreateCategory']>>>
-export type CategoryControllerGetCategoryBySlugResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getCategories>['categoryControllerGetCategoryBySlug']>>>
+export type CategoryControllerGetCategoryByIdResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getCategories>['categoryControllerGetCategoryById']>>>
 export type CategoryControllerUpdateCategoryResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getCategories>['categoryControllerUpdateCategory']>>>
 export type CategoryControllerDeleteCategoryResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getCategories>['categoryControllerDeleteCategory']>>>
+export type CategoryControllerGetCategoryBySlugResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getCategories>['categoryControllerGetCategoryBySlug']>>>

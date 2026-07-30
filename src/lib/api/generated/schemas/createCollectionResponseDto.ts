@@ -5,7 +5,6 @@
  * REST API for the quiz application
  * OpenAPI spec version: 1.0
  */
-import type { CreateCollectionResponseDtoDescription } from './createCollectionResponseDtoDescription';
 
 export interface CreateCollectionResponseDto {
   /** New collection identifier */
@@ -16,7 +15,7 @@ export interface CreateCollectionResponseDto {
    * Collection description
    * @nullable
    */
-  description?: CreateCollectionResponseDtoDescription;
+  description?: string | null;
   /** Creation timestamp (ISO 8601) */
   createdAt: string;
 }

@@ -5,7 +5,6 @@
  * REST API for the quiz application
  * OpenAPI spec version: 1.0
  */
-import type { QuizPaginationResponseDtoNextCursor } from './quizPaginationResponseDtoNextCursor';
 
 export interface QuizPaginationResponseDto {
   /** Number of items returned in this page */
@@ -14,7 +13,7 @@ export interface QuizPaginationResponseDto {
    * Cursor for fetching the next page. `null` when there is no next page.
    * @nullable
    */
-  nextCursor?: QuizPaginationResponseDtoNextCursor;
+  nextCursor?: string | null;
   /** Whether more items exist after this page */
   hasNextPage: boolean;
 }

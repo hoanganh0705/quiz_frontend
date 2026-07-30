@@ -5,11 +5,8 @@
  * REST API for the quiz application
  * OpenAPI spec version: 1.0
  */
-import type { AttemptResponseDtoContextRefId } from './attemptResponseDtoContextRefId';
-import type { AttemptResponseDtoScorePercent } from './attemptResponseDtoScorePercent';
-import type { AttemptResponseDtoCorrectCount } from './attemptResponseDtoCorrectCount';
-import type { AttemptResponseDtoFinishedAt } from './attemptResponseDtoFinishedAt';
-import type { AttemptResponseDtoTimeTakenMs } from './attemptResponseDtoTimeTakenMs';
+import type { AttemptResponseDtoContextType } from './attemptResponseDtoContextType';
+import type { AttemptResponseDtoStatus } from './attemptResponseDtoStatus';
 import type { AttemptAnswerResponseDto } from './attemptAnswerResponseDto';
 
 export interface AttemptResponseDto {
@@ -34,36 +31,36 @@ export interface AttemptResponseDto {
   /** XP reward */
   rewardXp: number;
   /** Context type */
-  contextType: string;
+  contextType: AttemptResponseDtoContextType;
   /**
    * Context reference ID
    * @nullable
    */
-  contextRefId?: AttemptResponseDtoContextRefId;
+  contextRefId?: string | null;
   /** Attempt status */
-  status: string;
+  status: AttemptResponseDtoStatus;
   /**
-   * Final score as a percentage string (null if not yet complete)
+   * Final score as a percentage (null if not yet complete)
    * @nullable
    */
-  scorePercent?: AttemptResponseDtoScorePercent;
+  scorePercent?: number | null;
   /**
    * Number of correct answers (null if not yet complete)
    * @nullable
    */
-  correctCount?: AttemptResponseDtoCorrectCount;
+  correctCount?: number | null;
   /** Attempt start timestamp (ISO 8601) */
   startedAt: string;
   /**
    * Completion timestamp (ISO 8601, null if not yet complete)
    * @nullable
    */
-  finishedAt?: AttemptResponseDtoFinishedAt;
+  finishedAt?: string | null;
   /**
    * Total time taken in milliseconds (null if not yet complete)
    * @nullable
    */
-  timeTakenMs?: AttemptResponseDtoTimeTakenMs;
+  timeTakenMs?: number | null;
   /** Total XP earned from this attempt */
   xpEarned: number;
   /** Individual answer records */

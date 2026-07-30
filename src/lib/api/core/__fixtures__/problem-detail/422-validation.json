@@ -1,0 +1,16 @@
+{
+  "type": "https://api.quiz.local/problems/bad-request",
+  "title": "Bad Request",
+  "status": 422,
+  "detail": "Validation failed: email must be a valid email; password too short",
+  "instance": "/api/v1/auth/register",
+  "extensions": {
+    "code": "GLOBAL_VALIDATION_FAILED",
+    "requestId": "req-004",
+    "timestamp": "2026-07-29T08:00:00Z",
+    "validationErrors": [
+      { "field": "email", "message": "must be a valid email" },
+      { "field": "password", "message": "too short" }
+    ]
+  }
+}

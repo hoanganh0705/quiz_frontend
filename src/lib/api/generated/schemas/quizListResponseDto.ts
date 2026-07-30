@@ -5,12 +5,12 @@
  * REST API for the quiz application
  * OpenAPI spec version: 1.0
  */
-import type { QuizResponseDto } from './quizResponseDto';
+import type { QuizListItemDto } from './quizListItemDto';
 import type { QuizPaginationResponseDto } from './quizPaginationResponseDto';
 
 export interface QuizListResponseDto {
   /** Quiz items */
-  items: QuizResponseDto[];
+  items: QuizListItemDto[];
   /** Pagination metadata */
   pagination: QuizPaginationResponseDto;
 }

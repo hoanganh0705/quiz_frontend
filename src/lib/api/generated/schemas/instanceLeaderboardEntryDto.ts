@@ -5,11 +5,7 @@
  * REST API for the quiz application
  * OpenAPI spec version: 1.0
  */
-import type { InstanceLeaderboardEntryDtoDisplayName } from './instanceLeaderboardEntryDtoDisplayName';
-import type { InstanceLeaderboardEntryDtoAvatarUrl } from './instanceLeaderboardEntryDtoAvatarUrl';
-import type { InstanceLeaderboardEntryDtoScorePercent } from './instanceLeaderboardEntryDtoScorePercent';
-import type { InstanceLeaderboardEntryDtoCorrectCount } from './instanceLeaderboardEntryDtoCorrectCount';
-import type { InstanceLeaderboardEntryDtoTimeTakenMs } from './instanceLeaderboardEntryDtoTimeTakenMs';
+import type { InstanceLeaderboardEntryDtoStatus } from './instanceLeaderboardEntryDtoStatus';
 
 export interface InstanceLeaderboardEntryDto {
   /** Rank position */
@@ -24,27 +20,27 @@ export interface InstanceLeaderboardEntryDto {
    * Display name
    * @nullable
    */
-  displayName?: InstanceLeaderboardEntryDtoDisplayName;
+  displayName?: string | null;
   /**
    * Avatar URL
    * @nullable
    */
-  avatarUrl?: InstanceLeaderboardEntryDtoAvatarUrl;
+  avatarUrl?: string | null;
   /** Player status */
-  status: string;
+  status: InstanceLeaderboardEntryDtoStatus;
   /**
    * Score percent
    * @nullable
    */
-  scorePercent?: InstanceLeaderboardEntryDtoScorePercent;
+  scorePercent?: number | null;
   /**
    * Correct answer count
    * @nullable
    */
-  correctCount?: InstanceLeaderboardEntryDtoCorrectCount;
+  correctCount?: number | null;
   /**
    * Total time in milliseconds
    * @nullable
    */
-  timeTakenMs?: InstanceLeaderboardEntryDtoTimeTakenMs;
+  timeTakenMs?: number | null;
 }

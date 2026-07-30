@@ -7,15 +7,28 @@
  */
 import type {
   AddBookmarkDto,
-  AddBookmarkResponseDto,
-  BookmarkCollectionListResponseDto,
-  BookmarkListResponseDto,
+  BookmarkControllerAddBookmark201,
+  BookmarkControllerAddBookmarksBulk200,
+  BookmarkControllerCreateCollection201,
+  BookmarkControllerGetBookmarkStatus200,
+  BookmarkControllerGetCollectionAnalytics200,
+  BookmarkControllerGetMyBookmarkStats200,
+  BookmarkControllerGetRecentBookmarks200,
+  BookmarkControllerGetRecentBookmarksParams,
+  BookmarkControllerListBookmarksInCollection200,
+  BookmarkControllerListCollections200,
+  BookmarkControllerMoveBookmark200,
+  BookmarkControllerRemoveBookmarksBulk200,
+  BookmarkControllerSearchBookmarks200,
+  BookmarkControllerSearchBookmarksParams,
+  BookmarkControllerUpdateBookmark200,
+  BookmarkControllerUpdateCollection200,
+  BulkAddBookmarksDto,
+  BulkRemoveBookmarksDto,
   CreateCollectionDto,
-  CreateCollectionResponseDto,
-  DeleteCollectionResponseDto,
-  RemoveBookmarkResponseDto,
-  UpdateCollectionDto,
-  UpdateCollectionResponseDto
+  MoveBookmarkDto,
+  UpdateBookmarkDto,
+  UpdateCollectionDto
 } from '.././schemas';
 
 import { orvalCustomInstance } from '../../core/custom-instance';
@@ -24,25 +37,58 @@ import { orvalCustomInstance } from '../../core/custom-instance';
 
   export const getBookmarks = () => {
 /**
- * Returns all bookmark collections owned by the authenticated user.
- * @summary List my collections
+ * @summary Search bookmarks
+ */
+const bookmarkControllerSearchBookmarks = (
+    params: BookmarkControllerSearchBookmarksParams,
+ ) => {
+      return orvalCustomInstance<BookmarkControllerSearchBookmarks200>(
+      {url: `/api/v1/bookmarks/search`, method: 'GET',
+        params
+    },
+      );
+    }
+  /**
+ * @summary Get recent bookmarks
+ */
+const bookmarkControllerGetRecentBookmarks = (
+    params?: BookmarkControllerGetRecentBookmarksParams,
+ ) => {
+      return orvalCustomInstance<BookmarkControllerGetRecentBookmarks200>(
+      {url: `/api/v1/bookmarks/recent`, method: 'GET',
+        params
+    },
+      );
+    }
+  /**
+ * @summary Get bookmark status for a quiz
+ */
+const bookmarkControllerGetBookmarkStatus = (
+    quizId: string,
+ ) => {
+      return orvalCustomInstance<BookmarkControllerGetBookmarkStatus200>(
+      {url: `/api/v1/bookmarks/quizzes/${quizId}/status`, method: 'GET'
+    },
+      );
+    }
+  /**
+ * @summary List bookmark collections
  */
 const bookmarkControllerListCollections = (
     
  ) => {
-      return orvalCustomInstance<BookmarkCollectionListResponseDto>(
+      return orvalCustomInstance<BookmarkControllerListCollections200>(
       {url: `/api/v1/bookmarks/collections`, method: 'GET'
     },
       );
     }
   /**
- * Creates a new bookmark collection for the authenticated user.
- * @summary Create collection
+ * @summary Create bookmark collection
  */
 const bookmarkControllerCreateCollection = (
     createCollectionDto: CreateCollectionDto,
  ) => {
-      return orvalCustomInstance<CreateCollectionResponseDto>(
+      return orvalCustomInstance<BookmarkControllerCreateCollection201>(
       {url: `/api/v1/bookmarks/collections`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
       data: createCollectionDto
@@ -50,26 +96,25 @@ const bookmarkControllerCreateCollection = (
       );
     }
   /**
- * Returns all bookmarked quizzes within a specific collection.
- * @summary List bookmarks in collection
+ * @summary List bookmarks in a collection
  */
 const bookmarkControllerListBookmarksInCollection = (
     collectionId: string,
  ) => {
-      return orvalCustomInstance<BookmarkListResponseDto>(
+      return orvalCustomInstance<BookmarkControllerListBookmarksInCollection200>(
       {url: `/api/v1/bookmarks/collections/${collectionId}`, method: 'GET'
     },
       );
     }
   /**
- * Updates the name and/or description of a bookmark collection.
+ * Updates the name and/or description of an owned bookmark collection.
  * @summary Update collection
  */
 const bookmarkControllerUpdateCollection = (
     collectionId: string,
     updateCollectionDto: UpdateCollectionDto,
  ) => {
-      return orvalCustomInstance<UpdateCollectionResponseDto>(
+      return orvalCustomInstance<BookmarkControllerUpdateCollection200>(
       {url: `/api/v1/bookmarks/collections/${collectionId}`, method: 'PATCH',
       headers: {'Content-Type': 'application/json', },
       data: updateCollectionDto
@@ -77,14 +122,25 @@ const bookmarkControllerUpdateCollection = (
       );
     }
   /**
- * Deletes a bookmark collection and all its bookmarked quizzes.
+ * Deletes an owned bookmark collection and all bookmarks it contains. A 404 is returned when the collection does not exist or is not owned by the caller.
  * @summary Delete collection
  */
 const bookmarkControllerDeleteCollection = (
     collectionId: string,
  ) => {
-      return orvalCustomInstance<DeleteCollectionResponseDto>(
+      return orvalCustomInstance<void>(
       {url: `/api/v1/bookmarks/collections/${collectionId}`, method: 'DELETE'
+    },
+      );
+    }
+  /**
+ * @summary Get collection analytics
+ */
+const bookmarkControllerGetCollectionAnalytics = (
+    collectionId: string,
+ ) => {
+      return orvalCustomInstance<BookmarkControllerGetCollectionAnalytics200>(
+      {url: `/api/v1/bookmarks/collections/${collectionId}/analytics`, method: 'GET'
     },
       );
     }
@@ -96,7 +152,7 @@ const bookmarkControllerAddBookmark = (
     collectionId: string,
     addBookmarkDto: AddBookmarkDto,
  ) => {
-      return orvalCustomInstance<AddBookmarkResponseDto>(
+      return orvalCustomInstance<BookmarkControllerAddBookmark201>(
       {url: `/api/v1/bookmarks/collections/${collectionId}/quizzes`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
       data: addBookmarkDto
@@ -104,23 +160,103 @@ const bookmarkControllerAddBookmark = (
       );
     }
   /**
- * Removes a quiz from a bookmark collection.
+ * Adds multiple quizzes to a bookmark collection in a single call. Duplicates and pairs that already exist in the collection are silently skipped (no 409 is produced). The response reports how many rows were actually inserted.
+ * @summary Bulk add bookmarks
+ */
+const bookmarkControllerAddBookmarksBulk = (
+    collectionId: string,
+    bulkAddBookmarksDto: BulkAddBookmarksDto,
+ ) => {
+      return orvalCustomInstance<BookmarkControllerAddBookmarksBulk200>(
+      {url: `/api/v1/bookmarks/collections/${collectionId}/quizzes/bulk`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: bulkAddBookmarksDto
+    },
+      );
+    }
+  /**
+ * Removes multiple quizzes from a bookmark collection in a single call. Removing a pair that does not exist is a no-op (no 404 is produced). The response reports how many rows were actually removed.
+ * @summary Bulk remove bookmarks
+ */
+const bookmarkControllerRemoveBookmarksBulk = (
+    collectionId: string,
+    bulkRemoveBookmarksDto: BulkRemoveBookmarksDto,
+ ) => {
+      return orvalCustomInstance<BookmarkControllerRemoveBookmarksBulk200>(
+      {url: `/api/v1/bookmarks/collections/${collectionId}/quizzes/bulk`, method: 'DELETE',
+      headers: {'Content-Type': 'application/json', },
+      data: bulkRemoveBookmarksDto
+    },
+      );
+    }
+  /**
  * @summary Remove bookmark
  */
 const bookmarkControllerRemoveBookmark = (
     collectionId: string,
     quizId: string,
  ) => {
-      return orvalCustomInstance<RemoveBookmarkResponseDto>(
+      return orvalCustomInstance<void>(
       {url: `/api/v1/bookmarks/collections/${collectionId}/quizzes/${quizId}`, method: 'DELETE'
     },
       );
     }
-  return {bookmarkControllerListCollections,bookmarkControllerCreateCollection,bookmarkControllerListBookmarksInCollection,bookmarkControllerUpdateCollection,bookmarkControllerDeleteCollection,bookmarkControllerAddBookmark,bookmarkControllerRemoveBookmark}};
+  /**
+ * Updates the personal notes for a bookmarked quiz in a collection.
+ * @summary Update bookmark
+ */
+const bookmarkControllerUpdateBookmark = (
+    collectionId: string,
+    quizId: string,
+    updateBookmarkDto: UpdateBookmarkDto,
+ ) => {
+      return orvalCustomInstance<BookmarkControllerUpdateBookmark200>(
+      {url: `/api/v1/bookmarks/collections/${collectionId}/quizzes/${quizId}`, method: 'PATCH',
+      headers: {'Content-Type': 'application/json', },
+      data: updateBookmarkDto
+    },
+      );
+    }
+  /**
+ * Moves a bookmark from the collection identified by the path parameter into the target collection supplied in the request body.
+ * @summary Move bookmark
+ */
+const bookmarkControllerMoveBookmark = (
+    collectionId: string,
+    moveBookmarkDto: MoveBookmarkDto,
+ ) => {
+      return orvalCustomInstance<BookmarkControllerMoveBookmark200>(
+      {url: `/api/v1/bookmarks/collections/${collectionId}/move`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: moveBookmarkDto
+    },
+      );
+    }
+  /**
+ * @summary Get my bookmark statistics
+ */
+const bookmarkControllerGetMyBookmarkStats = (
+    
+ ) => {
+      return orvalCustomInstance<BookmarkControllerGetMyBookmarkStats200>(
+      {url: `/api/v1/bookmarks/me/stats`, method: 'GET'
+    },
+      );
+    }
+  return {bookmarkControllerSearchBookmarks,bookmarkControllerGetRecentBookmarks,bookmarkControllerGetBookmarkStatus,bookmarkControllerListCollections,bookmarkControllerCreateCollection,bookmarkControllerListBookmarksInCollection,bookmarkControllerUpdateCollection,bookmarkControllerDeleteCollection,bookmarkControllerGetCollectionAnalytics,bookmarkControllerAddBookmark,bookmarkControllerAddBookmarksBulk,bookmarkControllerRemoveBookmarksBulk,bookmarkControllerRemoveBookmark,bookmarkControllerUpdateBookmark,bookmarkControllerMoveBookmark,bookmarkControllerGetMyBookmarkStats}};
+export type BookmarkControllerSearchBookmarksResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getBookmarks>['bookmarkControllerSearchBookmarks']>>>
+export type BookmarkControllerGetRecentBookmarksResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getBookmarks>['bookmarkControllerGetRecentBookmarks']>>>
+export type BookmarkControllerGetBookmarkStatusResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getBookmarks>['bookmarkControllerGetBookmarkStatus']>>>
 export type BookmarkControllerListCollectionsResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getBookmarks>['bookmarkControllerListCollections']>>>
 export type BookmarkControllerCreateCollectionResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getBookmarks>['bookmarkControllerCreateCollection']>>>
 export type BookmarkControllerListBookmarksInCollectionResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getBookmarks>['bookmarkControllerListBookmarksInCollection']>>>
 export type BookmarkControllerUpdateCollectionResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getBookmarks>['bookmarkControllerUpdateCollection']>>>
 export type BookmarkControllerDeleteCollectionResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getBookmarks>['bookmarkControllerDeleteCollection']>>>
+export type BookmarkControllerGetCollectionAnalyticsResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getBookmarks>['bookmarkControllerGetCollectionAnalytics']>>>
 export type BookmarkControllerAddBookmarkResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getBookmarks>['bookmarkControllerAddBookmark']>>>
+export type BookmarkControllerAddBookmarksBulkResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getBookmarks>['bookmarkControllerAddBookmarksBulk']>>>
+export type BookmarkControllerRemoveBookmarksBulkResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getBookmarks>['bookmarkControllerRemoveBookmarksBulk']>>>
 export type BookmarkControllerRemoveBookmarkResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getBookmarks>['bookmarkControllerRemoveBookmark']>>>
+export type BookmarkControllerUpdateBookmarkResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getBookmarks>['bookmarkControllerUpdateBookmark']>>>
+export type BookmarkControllerMoveBookmarkResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getBookmarks>['bookmarkControllerMoveBookmark']>>>
+export type BookmarkControllerGetMyBookmarkStatsResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getBookmarks>['bookmarkControllerGetMyBookmarkStats']>>>

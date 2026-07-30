@@ -9,6 +9,11 @@ import axios, {
   InternalAxiosRequestConfig,
 } from 'axios';
 
+import { unwrapEnvelope } from './unwrap';
+import { ApiError } from './ApiError';
+
+const fromAxios = ApiError.fromAxios.bind(ApiError);
+
 // Auth utilities (to be created in features/auth/utils)
 import {
   getAuthToken,
@@ -28,10 +33,20 @@ const AUTH_PATHS = [
   '/auth/resend-verification-email',
 ];
 
-const REFRESH_COOLDOWN_MS = 1000;
-let lastRefreshAttempt = 0;
-
 type CustomConfig = InternalAxiosRequestConfig & { _retry?: boolean };
+
+/**
+ * Module-level Promise-share for the refresh endpoint.
+ *
+ * Source ticket: TKT-1.4.2.3 (Epic 1.4, US-1.4.2).
+ *
+ * When the first concurrent 401 hits the interceptor, this is set to a
+ * Promise<string> wrapping the refresh call. Subsequent concurrent 401s
+ * `await inFlightRefresh` instead of firing a second refresh call. The
+ * Promise is reset to `null` in a `finally` block so a later (legitimate)
+ * refresh can fire fresh.
+ */
+let inFlightRefresh: Promise<string> | null = null;
 
 export const customInstance: AxiosInstance = axios.create({
   baseURL: API_BASE_URL,
@@ -57,10 +72,7 @@ customInstance.interceptors.request.use((config) => {
 customInstance.interceptors.response.use(
   // Success: unwrap { data, meta } → T
   (response) => {
-    const payload = response.data;
-    if (payload && typeof payload === 'object' && 'data' in payload) {
-      response.data = payload.data;
-    }
+    response.data = unwrapEnvelope(response.data);
     return response;
   },
 
@@ -71,52 +83,32 @@ customInstance.interceptors.response.use(
 
     // Not a 401, or an auth endpoint → reject immediately
     if (!originalRequest || error.response?.status !== 401) {
-      return Promise.reject(error);
+      return Promise.reject(fromAxios(error));
     }
 
     if (requestPath && AUTH_PATHS.some((path) => requestPath.includes(path))) {
-      return Promise.reject(error);
+      return Promise.reject(fromAxios(error));
     }
 
-    // Prevent concurrent refresh attempts
-    const now = Date.now();
-    if (originalRequest._retry || now - lastRefreshAttempt < REFRESH_COOLDOWN_MS) {
+    // Prevent the same retried request from triggering a second refresh.
+    if (originalRequest._retry) {
       clearAuthToken();
       if (typeof window !== 'undefined') {
         window.location.href = '/login';
       }
-      return Promise.reject(error);
+      return Promise.reject(fromAxios(error));
     }
 
     originalRequest._retry = true;
-    lastRefreshAttempt = now;
 
     try {
-      // Call refresh endpoint with credentials to send cookie
-      const refreshResponse = await axios.post(
-        `${API_BASE_URL}/api/v1/auth/refresh-token`,
-        {},
-        { withCredentials: true }
-      );
+      // Reuse an in-flight refresh (concurrent 401s) or kick off a fresh one.
+      const accessToken = await (inFlightRefresh ??= doRefresh());
 
-      const { accessToken } = refreshResponse.data.data.token;
-
-      if (accessToken) {
-        setAuthToken(accessToken);
-
-        // Broadcast refresh to other tabs
-        if (typeof BroadcastChannel !== 'undefined') {
-          new BroadcastChannel('auth').postMessage({
-            type: 'TOKEN_REFRESHED',
-            accessToken,
-          });
-        }
-
-        // Retry original request with new token
-        originalRequest.headers = originalRequest.headers ?? {};
-        originalRequest.headers.Authorization = `Bearer ${accessToken}`;
-        return customInstance(originalRequest);
-      }
+      // Retry original request with new token
+      originalRequest.headers = originalRequest.headers ?? {};
+      originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+      return customInstance(originalRequest);
     } catch (refreshError) {
       clearAuthToken();
 
@@ -127,11 +119,47 @@ customInstance.interceptors.response.use(
       if (typeof window !== 'undefined') {
         window.location.href = '/login';
       }
+    } finally {
+      // Reset the in-flight slot so a later request (e.g. 5 minutes after
+      // the refresh resolves) can fire a fresh refresh.
+      inFlightRefresh = null;
     }
 
-    return Promise.reject(error);
+    return Promise.reject(fromAxios(error));
   }
 );
+
+/**
+ * Run the refresh-token flow exactly once. Returns the new access token on
+ * success, throws on failure. Captured in a module-level Promise by
+ * `inFlightRefresh` so concurrent 401s share the same network call.
+ */
+async function doRefresh(): Promise<string> {
+  const refreshResponse = await axios.post(
+    `${API_BASE_URL}/api/v1/auth/refresh-token`,
+    {},
+    { withCredentials: true }
+  );
+
+  const { accessToken } = refreshResponse.data.data;
+
+  if (typeof accessToken !== 'string' || accessToken.length === 0) {
+    throw new Error('Refresh token response missing accessToken');
+  }
+
+  setAuthToken(accessToken);
+
+  // Broadcast refresh to other tabs
+  if (typeof BroadcastChannel !== 'undefined') {
+    new BroadcastChannel('auth').postMessage({
+      type: 'TOKEN_REFRESHED',
+      accessToken,
+      timestamp: Date.now(),
+    });
+  }
+
+  return accessToken;
+}
 
 // ─── Cross-Tab Sync ───────────────────────────────────────────────────────────
 

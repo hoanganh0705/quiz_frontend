@@ -6,10 +6,11 @@
  * OpenAPI spec version: 1.0
  */
 import type { InstanceLeaderboardEntryDto } from './instanceLeaderboardEntryDto';
+import type { InstanceLeaderboardPaginationDto } from './instanceLeaderboardPaginationDto';
 
 export interface InstanceLeaderboardResponseDto {
-  /** Parent instance identifier */
-  instanceId: string;
   /** Leaderboard entries sorted by rank */
   items: InstanceLeaderboardEntryDto[];
+  /** Cursor-based pagination metadata */
+  pagination: InstanceLeaderboardPaginationDto;
 }

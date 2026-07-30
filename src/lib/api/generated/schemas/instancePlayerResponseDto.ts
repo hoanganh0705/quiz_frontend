@@ -5,9 +5,7 @@
  * REST API for the quiz application
  * OpenAPI spec version: 1.0
  */
-import type { InstancePlayerResponseDtoDisplayName } from './instancePlayerResponseDtoDisplayName';
-import type { InstancePlayerResponseDtoAvatarUrl } from './instancePlayerResponseDtoAvatarUrl';
-import type { InstancePlayerResponseDtoAttemptId } from './instancePlayerResponseDtoAttemptId';
+import type { InstancePlayerResponseDtoStatus } from './instancePlayerResponseDtoStatus';
 
 export interface InstancePlayerResponseDto {
   /** Instance player record identifier */
@@ -22,19 +20,19 @@ export interface InstancePlayerResponseDto {
    * Player display name
    * @nullable
    */
-  displayName?: InstancePlayerResponseDtoDisplayName;
+  displayName?: string | null;
   /**
    * Player avatar URL
    * @nullable
    */
-  avatarUrl?: InstancePlayerResponseDtoAvatarUrl;
+  avatarUrl?: string | null;
   /** Player status in the instance */
-  status: string;
+  status: InstancePlayerResponseDtoStatus;
   /**
    * Attempt identifier if player has started
    * @nullable
    */
-  attemptId?: InstancePlayerResponseDtoAttemptId;
+  attemptId?: string | null;
   /** Join timestamp (ISO 8601) */
   joinedAt: string;
 }

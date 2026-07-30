@@ -7,6 +7,6 @@
  */
 
 export interface StartInstanceResponseDto {
-  /** Start result */
+  /** Human-readable confirmation message returned by the start handler */
   message: string;
 }

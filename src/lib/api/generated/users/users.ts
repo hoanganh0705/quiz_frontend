@@ -6,9 +6,45 @@
  * OpenAPI spec version: 1.0
  */
 import type {
+  ListMyComments200,
+  ListMyCommentsParams,
+  ListUserComments200,
+  ListUserCommentsParams,
   UpdateMeDto,
   UpdateMeSettingsDto,
-  UserMeResponseDto
+  UserCategoryControllerListFollowedCategories200,
+  UserCategoryControllerListFollowedCategoriesParams,
+  UserControllerGetMyAnalytics200,
+  UserControllerGetMyRanking200,
+  UserControllerGetMyTournamentAnalytics200,
+  UserControllerGetPublicTournamentProfile200,
+  UserControllerGetRecommendedQuizzes200,
+  UserControllerGetRecommendedQuizzesParams,
+  UserControllerGetUserQuizAnalytics200,
+  UserControllerGetUserTournamentHistory200,
+  UserControllerGetUserTournamentHistoryParams,
+  UserControllerListBadgesByUserId200,
+  UserControllerListBadgesByUserIdParams,
+  UserControllerListMyActivity200,
+  UserControllerListMyActivityParams,
+  UserControllerListMyBadges200,
+  UserControllerListMyBadgesParams,
+  UserControllerListMyTournamentHistory200,
+  UserControllerListMyTournamentHistoryParams,
+  UserControllerListMyTournaments200,
+  UserControllerListMyTournamentsParams,
+  UserControllerListUserQuizzes200,
+  UserControllerListUserQuizzesParams,
+  UserControllerMe200,
+  UserControllerUpdateMe200,
+  UserControllerUpdateMeSettings200,
+  UserReviewControllerGetMyReviewForQuiz200,
+  UserReviewControllerListMyReportedReviews200,
+  UserReviewControllerListMyReportedReviewsParams,
+  UserReviewControllerListMyReviews200,
+  UserReviewControllerListMyReviewsParams,
+  UserReviewControllerListReviewsByUser200,
+  UserReviewControllerListReviewsByUserParams
 } from '.././schemas';
 
 import { orvalCustomInstance } from '../../core/custom-instance';
@@ -17,25 +53,38 @@ import { orvalCustomInstance } from '../../core/custom-instance';
 
   export const getUsers = () => {
 /**
- * Returns the authenticated user's full profile including XP, streaks, and settings.
- * @summary Get current user profile
+ * Returns quizzes recommended for the authenticated user based on their activity, preferences, and following history.
+ * @summary Get my recommended quizzes
+ */
+const userControllerGetRecommendedQuizzes = (
+    params?: UserControllerGetRecommendedQuizzesParams,
+ ) => {
+      return orvalCustomInstance<UserControllerGetRecommendedQuizzes200>(
+      {url: `/api/v1/users/me/recommended-quizzes`, method: 'GET',
+        params
+    },
+      );
+    }
+  /**
+ * Returns the authenticated user's full profile. For the slim identity payload (userId, username, email, role, isVerified) used to bootstrap the auth state on the client, use `GET /api/v1/auth/me` instead. The two endpoints are complementary, not interchangeable.
+ * @summary Get my profile
  */
 const userControllerMe = (
     
  ) => {
-      return orvalCustomInstance<UserMeResponseDto>(
+      return orvalCustomInstance<UserControllerMe200>(
       {url: `/api/v1/users/me`, method: 'GET'
     },
       );
     }
   /**
- * Updates the authenticated user's display name, bio, or avatar URL.
- * @summary Update profile
+ * Updates the authenticated user's profile fields. Pass `null` (or a blank string) to clear `displayName`, `bio`, or `avatarUrl`.
+ * @summary Update my profile
  */
 const userControllerUpdateMe = (
     updateMeDto: UpdateMeDto,
  ) => {
-      return orvalCustomInstance<UserMeResponseDto>(
+      return orvalCustomInstance<UserControllerUpdateMe200>(
       {url: `/api/v1/users/me`, method: 'PATCH',
       headers: {'Content-Type': 'application/json', },
       data: updateMeDto
@@ -43,20 +92,281 @@ const userControllerUpdateMe = (
       );
     }
   /**
- * Replaces the authenticated user's entire settings object.
- * @summary Update settings
+ * Returns a cursor-paginated list of badges earned by the authenticated user.
+ * @summary List my earned badges
+ */
+const userControllerListMyBadges = (
+    params?: UserControllerListMyBadgesParams,
+ ) => {
+      return orvalCustomInstance<UserControllerListMyBadges200>(
+      {url: `/api/v1/users/me/badges`, method: 'GET',
+        params
+    },
+      );
+    }
+  /**
+ * Returns a cursor-paginated list of activity events for the authenticated user. Honours the `showActivity` privacy flag (403 when the flag is false and the requester is not the owner).
+ * @summary List my activity events
+ */
+const userControllerListMyActivity = (
+    params?: UserControllerListMyActivityParams,
+ ) => {
+      return orvalCustomInstance<UserControllerListMyActivity200>(
+      {url: `/api/v1/users/me/activity`, method: 'GET',
+        params
+    },
+      );
+    }
+  /**
+ * Returns a cursor-paginated list of tournaments the authenticated user participates in.
+ * @summary List my tournaments
+ */
+const userControllerListMyTournaments = (
+    params?: UserControllerListMyTournamentsParams,
+ ) => {
+      return orvalCustomInstance<UserControllerListMyTournaments200>(
+      {url: `/api/v1/users/me/tournaments`, method: 'GET',
+        params
+    },
+      );
+    }
+  /**
+ * Returns a cursor-paginated list of completed tournaments the authenticated user participated in.
+ * @summary List my tournament history
+ */
+const userControllerListMyTournamentHistory = (
+    params?: UserControllerListMyTournamentHistoryParams,
+ ) => {
+      return orvalCustomInstance<UserControllerListMyTournamentHistory200>(
+      {url: `/api/v1/users/me/tournament-history`, method: 'GET',
+        params
+    },
+      );
+    }
+  /**
+ * Returns aggregate tournament analytics for the authenticated user.
+ * @summary Get my tournament analytics
+ */
+const userControllerGetMyTournamentAnalytics = (
+    
+ ) => {
+      return orvalCustomInstance<UserControllerGetMyTournamentAnalytics200>(
+      {url: `/api/v1/users/me/tournaments/analytics`, method: 'GET'
+    },
+      );
+    }
+  /**
+ * Returns the authenticated user's global ranking.
+ * @summary Get my ranking
+ */
+const userControllerGetMyRanking = (
+    
+ ) => {
+      return orvalCustomInstance<UserControllerGetMyRanking200>(
+      {url: `/api/v1/users/me/ranking`, method: 'GET'
+    },
+      );
+    }
+  /**
+ * Returns the authenticated user's aggregate analytics summary.
+ * @summary Get my analytics
+ */
+const userControllerGetMyAnalytics = (
+    
+ ) => {
+      return orvalCustomInstance<UserControllerGetMyAnalytics200>(
+      {url: `/api/v1/users/me/analytics`, method: 'GET'
+    },
+      );
+    }
+  /**
+ * Replaces the authenticated user's preference object.
+ * @summary Update my settings
  */
 const userControllerUpdateMeSettings = (
     updateMeSettingsDto: UpdateMeSettingsDto,
  ) => {
-      return orvalCustomInstance<UserMeResponseDto>(
+      return orvalCustomInstance<UserControllerUpdateMeSettings200>(
       {url: `/api/v1/users/me/settings`, method: 'PATCH',
       headers: {'Content-Type': 'application/json', },
       data: updateMeSettingsDto
     },
       );
     }
-  return {userControllerMe,userControllerUpdateMe,userControllerUpdateMeSettings}};
+  /**
+ * Returns aggregate creator-side quiz analytics for the given user. Restricted to the authenticated user — calling this endpoint for any other `userId` returns 404. This is the same data exposed at `GET /users/me/analytics` and `GET /users/me/tournament-analytics`, but scoped to a creator role.
+ * @summary Get creator analytics for a user
+ */
+const userControllerGetUserQuizAnalytics = (
+    userId: string,
+ ) => {
+      return orvalCustomInstance<UserControllerGetUserQuizAnalytics200>(
+      {url: `/api/v1/users/${userId}/quizzes/analytics`, method: 'GET'
+    },
+      );
+    }
+  /**
+ * Returns a cursor-paginated list of quizzes created by the specified user.
+ * @summary List quizzes created by a user
+ */
+const userControllerListUserQuizzes = (
+    userId: string,
+    params?: UserControllerListUserQuizzesParams,
+ ) => {
+      return orvalCustomInstance<UserControllerListUserQuizzes200>(
+      {url: `/api/v1/users/${userId}/quizzes`, method: 'GET',
+        params
+    },
+      );
+    }
+  /**
+ * Returns a cursor-paginated list of badges earned by the specified user. Honours the user's privacy settings — private profiles return 403.
+ * @summary List badges earned by a user
+ */
+const userControllerListBadgesByUserId = (
+    userId: string,
+    params?: UserControllerListBadgesByUserIdParams,
+ ) => {
+      return orvalCustomInstance<UserControllerListBadgesByUserId200>(
+      {url: `/api/v1/users/${userId}/badges`, method: 'GET',
+        params
+    },
+      );
+    }
+  /**
+ * Returns a cursor-paginated list of completed tournaments for the specified user. Honours the target user's `showTournamentActivity` privacy flag (403 when the flag is false and the requester is not the owner).
+ * @summary Get public tournament history for a user
+ */
+const userControllerGetUserTournamentHistory = (
+    userId: string,
+    params?: UserControllerGetUserTournamentHistoryParams,
+ ) => {
+      return orvalCustomInstance<UserControllerGetUserTournamentHistory200>(
+      {url: `/api/v1/users/${userId}/tournament-history`, method: 'GET',
+        params
+    },
+      );
+    }
+  /**
+ * Returns aggregate tournament stats for the specified user. Honours privacy settings.
+ * @summary Get public tournament profile for a user
+ */
+const userControllerGetPublicTournamentProfile = (
+    userId: string,
+ ) => {
+      return orvalCustomInstance<UserControllerGetPublicTournamentProfile200>(
+      {url: `/api/v1/users/${userId}/tournaments`, method: 'GET'
+    },
+      );
+    }
+  /**
+ * @summary List reviews reported by the authenticated user
+ */
+const userReviewControllerListMyReportedReviews = (
+    params?: UserReviewControllerListMyReportedReviewsParams,
+ ) => {
+      return orvalCustomInstance<UserReviewControllerListMyReportedReviews200>(
+      {url: `/api/v1/users/me/reported-reviews`, method: 'GET',
+        params
+    },
+      );
+    }
+  /**
+ * @summary List the authenticated user's reviews
+ */
+const userReviewControllerListMyReviews = (
+    params?: UserReviewControllerListMyReviewsParams,
+ ) => {
+      return orvalCustomInstance<UserReviewControllerListMyReviews200>(
+      {url: `/api/v1/users/me/reviews`, method: 'GET',
+        params
+    },
+      );
+    }
+  /**
+ * @summary Get the authenticated user's review for a specific quiz
+ */
+const userReviewControllerGetMyReviewForQuiz = (
+    quizId: string,
+ ) => {
+      return orvalCustomInstance<UserReviewControllerGetMyReviewForQuiz200>(
+      {url: `/api/v1/users/me/reviews/${quizId}`, method: 'GET'
+    },
+      );
+    }
+  /**
+ * @summary List reviews created by a user
+ */
+const userReviewControllerListReviewsByUser = (
+    userId: string,
+    params?: UserReviewControllerListReviewsByUserParams,
+ ) => {
+      return orvalCustomInstance<UserReviewControllerListReviewsByUser200>(
+      {url: `/api/v1/users/${userId}/reviews`, method: 'GET',
+        params
+    },
+      );
+    }
+  /**
+ * Cursor-paginated; the quiz title is denormalized into each item to make a profile page render in one round-trip.
+ * @summary List the authenticated viewer's comment history
+ */
+const listMyComments = (
+    params?: ListMyCommentsParams,
+ ) => {
+      return orvalCustomInstance<ListMyComments200>(
+      {url: `/api/v1/users/me/comments`, method: 'GET',
+        params
+    },
+      );
+    }
+  /**
+ * Public endpoint. Hidden and soft-deleted comments are filtered out; only `isHidden = false` and `deletedAt IS NULL` rows are returned.
+ * @summary List any user's public comment history
+ */
+const listUserComments = (
+    userId: string,
+    params?: ListUserCommentsParams,
+ ) => {
+      return orvalCustomInstance<ListUserComments200>(
+      {url: `/api/v1/users/${userId}/comments`, method: 'GET',
+        params
+    },
+      );
+    }
+  /**
+ * @summary List categories followed by the authenticated user
+ */
+const userCategoryControllerListFollowedCategories = (
+    params?: UserCategoryControllerListFollowedCategoriesParams,
+ ) => {
+      return orvalCustomInstance<UserCategoryControllerListFollowedCategories200>(
+      {url: `/api/v1/users/me/followed-categories`, method: 'GET',
+        params
+    },
+      );
+    }
+  return {userControllerGetRecommendedQuizzes,userControllerMe,userControllerUpdateMe,userControllerListMyBadges,userControllerListMyActivity,userControllerListMyTournaments,userControllerListMyTournamentHistory,userControllerGetMyTournamentAnalytics,userControllerGetMyRanking,userControllerGetMyAnalytics,userControllerUpdateMeSettings,userControllerGetUserQuizAnalytics,userControllerListUserQuizzes,userControllerListBadgesByUserId,userControllerGetUserTournamentHistory,userControllerGetPublicTournamentProfile,userReviewControllerListMyReportedReviews,userReviewControllerListMyReviews,userReviewControllerGetMyReviewForQuiz,userReviewControllerListReviewsByUser,listMyComments,listUserComments,userCategoryControllerListFollowedCategories}};
+export type UserControllerGetRecommendedQuizzesResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getUsers>['userControllerGetRecommendedQuizzes']>>>
 export type UserControllerMeResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getUsers>['userControllerMe']>>>
 export type UserControllerUpdateMeResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getUsers>['userControllerUpdateMe']>>>
+export type UserControllerListMyBadgesResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getUsers>['userControllerListMyBadges']>>>
+export type UserControllerListMyActivityResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getUsers>['userControllerListMyActivity']>>>
+export type UserControllerListMyTournamentsResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getUsers>['userControllerListMyTournaments']>>>
+export type UserControllerListMyTournamentHistoryResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getUsers>['userControllerListMyTournamentHistory']>>>
+export type UserControllerGetMyTournamentAnalyticsResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getUsers>['userControllerGetMyTournamentAnalytics']>>>
+export type UserControllerGetMyRankingResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getUsers>['userControllerGetMyRanking']>>>
+export type UserControllerGetMyAnalyticsResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getUsers>['userControllerGetMyAnalytics']>>>
 export type UserControllerUpdateMeSettingsResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getUsers>['userControllerUpdateMeSettings']>>>
+export type UserControllerGetUserQuizAnalyticsResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getUsers>['userControllerGetUserQuizAnalytics']>>>
+export type UserControllerListUserQuizzesResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getUsers>['userControllerListUserQuizzes']>>>
+export type UserControllerListBadgesByUserIdResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getUsers>['userControllerListBadgesByUserId']>>>
+export type UserControllerGetUserTournamentHistoryResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getUsers>['userControllerGetUserTournamentHistory']>>>
+export type UserControllerGetPublicTournamentProfileResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getUsers>['userControllerGetPublicTournamentProfile']>>>
+export type UserReviewControllerListMyReportedReviewsResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getUsers>['userReviewControllerListMyReportedReviews']>>>
+export type UserReviewControllerListMyReviewsResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getUsers>['userReviewControllerListMyReviews']>>>
+export type UserReviewControllerGetMyReviewForQuizResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getUsers>['userReviewControllerGetMyReviewForQuiz']>>>
+export type UserReviewControllerListReviewsByUserResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getUsers>['userReviewControllerListReviewsByUser']>>>
+export type ListMyCommentsResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getUsers>['listMyComments']>>>
+export type ListUserCommentsResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getUsers>['listUserComments']>>>
+export type UserCategoryControllerListFollowedCategoriesResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getUsers>['userCategoryControllerListFollowedCategories']>>>

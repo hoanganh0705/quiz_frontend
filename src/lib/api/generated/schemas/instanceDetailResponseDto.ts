@@ -5,18 +5,13 @@
  * REST API for the quiz application
  * OpenAPI spec version: 1.0
  */
-import type { InstanceDetailResponseDtoHostDisplayName } from './instanceDetailResponseDtoHostDisplayName';
-import type { InstanceDetailResponseDtoMaxPlayers } from './instanceDetailResponseDtoMaxPlayers';
+import type { InstanceDetailResponseDtoStatus } from './instanceDetailResponseDtoStatus';
 import type { InstanceDetailResponseDtoDifficulty } from './instanceDetailResponseDtoDifficulty';
-import type { InstanceDetailResponseDtoStartedAt } from './instanceDetailResponseDtoStartedAt';
-import type { InstanceDetailResponseDtoClosedAt } from './instanceDetailResponseDtoClosedAt';
 import type { InstancePlayerResponseDto } from './instancePlayerResponseDto';
 
 export interface InstanceDetailResponseDto {
   /** Unique instance identifier */
   instanceId: string;
-  /** Quiz version hosted in this instance */
-  quizVersionId: string;
   /** Host user identifier */
   hostUserId: string;
   /** Host username */
@@ -25,16 +20,14 @@ export interface InstanceDetailResponseDto {
    * Host display name
    * @nullable
    */
-  hostDisplayName?: InstanceDetailResponseDtoHostDisplayName;
+  hostDisplayName?: string | null;
   /**
    * Maximum player capacity (null = unlimited)
    * @nullable
    */
-  maxPlayers?: InstanceDetailResponseDtoMaxPlayers;
+  maxPlayers?: number | null;
   /** Instance lifecycle status */
-  status: string;
-  /** Quiz version number */
-  versionNumber: number;
+  status: InstanceDetailResponseDtoStatus;
   /** Quiz difficulty */
   difficulty: InstanceDetailResponseDtoDifficulty;
   /** Time limit in milliseconds */
@@ -55,12 +48,12 @@ export interface InstanceDetailResponseDto {
    * Start timestamp (ISO 8601)
    * @nullable
    */
-  startedAt?: InstanceDetailResponseDtoStartedAt;
+  startedAt?: string | null;
   /**
    * Close timestamp (ISO 8601)
    * @nullable
    */
-  closedAt?: InstanceDetailResponseDtoClosedAt;
+  closedAt?: string | null;
   /** Last update timestamp (ISO 8601) */
   updatedAt: string;
   /** Players currently in the instance */

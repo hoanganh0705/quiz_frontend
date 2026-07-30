@@ -5,7 +5,6 @@
  * REST API for the quiz application
  * OpenAPI spec version: 1.0
  */
-import type { UpdateCollectionDtoDescription } from './updateCollectionDtoDescription';
 
 export interface UpdateCollectionDto {
   /**
@@ -15,9 +14,9 @@ export interface UpdateCollectionDto {
    */
   name?: string;
   /**
-   * Updated collection description
+   * Updated collection description (omit to leave unchanged)
    * @maxLength 500
    * @nullable
    */
-  description?: UpdateCollectionDtoDescription;
+  description?: string | null;
 }

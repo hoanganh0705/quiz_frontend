@@ -7,10 +7,7 @@
  */
 import type { QuizVersionResponseDtoStatus } from './quizVersionResponseDtoStatus';
 import type { QuizVersionResponseDtoDifficulty } from './quizVersionResponseDtoDifficulty';
-import type { QuizVersionResponseDtoCreatedByUserId } from './quizVersionResponseDtoCreatedByUserId';
-import type { QuizVersionResponseDtoPublishedAt } from './quizVersionResponseDtoPublishedAt';
-import type { QuizVersionResponseDtoArchivedAt } from './quizVersionResponseDtoArchivedAt';
-import type { QuizQuestionResponseDto } from './quizQuestionResponseDto';
+import type { QuizQuestionAuthorDto } from './quizQuestionAuthorDto';
 
 export interface QuizVersionResponseDto {
   /** Unique quiz version identifier */
@@ -33,24 +30,24 @@ export interface QuizVersionResponseDto {
    * Creator user identifier
    * @nullable
    */
-  createdByUserId?: QuizVersionResponseDtoCreatedByUserId;
-  /** Creation timestamp (ISO 8601) */
+  creatorId?: string | null;
+  /** Creation timestamp */
   createdAt: string;
   /**
-   * Timestamp when version was published (ISO 8601)
+   * Timestamp when version was published
    * @nullable
    */
-  publishedAt?: QuizVersionResponseDtoPublishedAt;
+  publishedAt?: string | null;
   /**
-   * Timestamp when version was archived (ISO 8601)
+   * Timestamp when version was archived
    * @nullable
    */
-  archivedAt?: QuizVersionResponseDtoArchivedAt;
-  /** Last update timestamp (ISO 8601) */
+  archivedAt?: string | null;
+  /** Last update timestamp */
   updatedAt: string;
   /**
-   * Questions included in this version (only populated when version detail is requested)
+   * Questions included in this version (only populated when version detail is requested; author view — includes `isCorrect` on each option)
    * @nullable
    */
-  questions?: QuizQuestionResponseDto[] | null;
+  questions?: QuizQuestionAuthorDto[] | null;
 }

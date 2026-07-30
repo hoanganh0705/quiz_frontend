@@ -5,9 +5,6 @@
  * REST API for the quiz application
  * OpenAPI spec version: 1.0
  */
-import type { CreateQuizDtoDescription } from './createQuizDtoDescription';
-import type { CreateQuizDtoRequirements } from './createQuizDtoRequirements';
-import type { CreateQuizDtoImageUrl } from './createQuizDtoImageUrl';
 import type { CreateInitialQuizVersionDto } from './createInitialQuizVersionDto';
 
 export interface CreateQuizDto {
@@ -22,7 +19,7 @@ export interface CreateQuizDto {
    * @maxLength 2000
    * @nullable
    */
-  description?: CreateQuizDtoDescription;
+  description?: string | null;
   /**
    * URL-friendly slug (auto-generated from title if omitted)
    * @maxLength 120
@@ -35,13 +32,13 @@ export interface CreateQuizDto {
    * @maxLength 5000
    * @nullable
    */
-  requirements?: CreateQuizDtoRequirements;
+  requirements?: string | null;
   /**
    * Quiz cover image URL
    * @maxLength 2048
    * @nullable
    */
-  imageUrl?: CreateQuizDtoImageUrl;
+  imageUrl?: string | null;
   /**
    * Whether the quiz is featured on the home page
    * @nullable
@@ -53,11 +50,10 @@ export interface CreateQuizDto {
    */
   isHidden?: boolean | null;
   /**
-   * UUIDs of associated categories (max 50)
-   * @maxItems 50
+   * UUID of the associated category
    * @nullable
    */
-  categoryIds?: string[] | null;
+  categoryId?: string | null;
   /**
    * UUIDs of associated tags (max 50)
    * @maxItems 50

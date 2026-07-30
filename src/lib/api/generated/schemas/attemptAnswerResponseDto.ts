@@ -5,9 +5,6 @@
  * REST API for the quiz application
  * OpenAPI spec version: 1.0
  */
-import type { AttemptAnswerResponseDtoSelectedOptionId } from './attemptAnswerResponseDtoSelectedOptionId';
-import type { AttemptAnswerResponseDtoTimeTakenMs } from './attemptAnswerResponseDtoTimeTakenMs';
-import type { AttemptAnswerResponseDtoIsCorrect } from './attemptAnswerResponseDtoIsCorrect';
 
 export interface AttemptAnswerResponseDto {
   /** Unique answer record identifier */
@@ -18,17 +15,12 @@ export interface AttemptAnswerResponseDto {
    * Selected option identifier
    * @nullable
    */
-  selectedOptionId?: AttemptAnswerResponseDtoSelectedOptionId;
+  selectedOptionId?: string | null;
   /** Answer submission timestamp (ISO 8601) */
   answeredAt: string;
   /**
    * Time taken in milliseconds
    * @nullable
    */
-  timeTakenMs?: AttemptAnswerResponseDtoTimeTakenMs;
-  /**
-   * Whether the answer was correct (null if attempt is not yet complete)
-   * @nullable
-   */
-  isCorrect?: AttemptAnswerResponseDtoIsCorrect;
+  timeTakenMs?: number | null;
 }

@@ -5,8 +5,6 @@
  * REST API for the quiz application
  * OpenAPI spec version: 1.0
  */
-import type { UpdateCategoryDtoDescription } from './updateCategoryDtoDescription';
-import type { UpdateCategoryDtoImageUrl } from './updateCategoryDtoImageUrl';
 
 export interface UpdateCategoryDto {
   /**
@@ -20,7 +18,7 @@ export interface UpdateCategoryDto {
    * @maxLength 500
    * @nullable
    */
-  description?: UpdateCategoryDtoDescription;
+  description?: string | null;
   /**
    * URL-friendly slug
    * @maxLength 120
@@ -33,5 +31,5 @@ export interface UpdateCategoryDto {
    * @maxLength 2048
    * @nullable
    */
-  imageUrl?: UpdateCategoryDtoImageUrl;
+  imageUrl?: string | null;
 }

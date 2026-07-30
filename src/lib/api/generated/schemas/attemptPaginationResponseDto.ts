@@ -5,7 +5,6 @@
  * REST API for the quiz application
  * OpenAPI spec version: 1.0
  */
-import type { AttemptPaginationResponseDtoNextCursor } from './attemptPaginationResponseDtoNextCursor';
 
 export interface AttemptPaginationResponseDto {
   /** Items per page */
@@ -14,7 +13,7 @@ export interface AttemptPaginationResponseDto {
    * Cursor for next page
    * @nullable
    */
-  nextCursor?: AttemptPaginationResponseDtoNextCursor;
+  nextCursor: string | null;
   /** Has more pages */
   hasNextPage: boolean;
 }

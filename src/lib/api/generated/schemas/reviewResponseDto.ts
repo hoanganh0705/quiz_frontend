@@ -5,8 +5,6 @@
  * REST API for the quiz application
  * OpenAPI spec version: 1.0
  */
-import type { ReviewResponseDtoUserAvatarUrl } from './reviewResponseDtoUserAvatarUrl';
-import type { ReviewResponseDtoComment } from './reviewResponseDtoComment';
 
 export interface ReviewResponseDto {
   /** Unique review identifier */
@@ -21,16 +19,18 @@ export interface ReviewResponseDto {
    * Reviewer avatar URL
    * @nullable
    */
-  userAvatarUrl?: ReviewResponseDtoUserAvatarUrl;
+  userAvatarUrl?: string | null;
   /** Star rating (1–5) */
   rating: number;
   /**
    * Review text
    * @nullable
    */
-  comment?: ReviewResponseDtoComment;
+  comment?: string | null;
   /** Creation timestamp (ISO 8601) */
   createdAt: string;
   /** Last update timestamp (ISO 8601) */
   updatedAt: string;
+  /** Number of users who found this review helpful */
+  helpfulCount: number;
 }

@@ -5,9 +5,6 @@
  * REST API for the quiz application
  * OpenAPI spec version: 1.0
  */
-import type { UpdateQuizDtoDescription } from './updateQuizDtoDescription';
-import type { UpdateQuizDtoRequirements } from './updateQuizDtoRequirements';
-import type { UpdateQuizDtoImageUrl } from './updateQuizDtoImageUrl';
 
 export interface UpdateQuizDto {
   /**
@@ -21,7 +18,7 @@ export interface UpdateQuizDto {
    * @maxLength 2000
    * @nullable
    */
-  description?: UpdateQuizDtoDescription;
+  description?: string | null;
   /**
    * URL-friendly slug
    * @maxLength 120
@@ -34,13 +31,13 @@ export interface UpdateQuizDto {
    * @maxLength 5000
    * @nullable
    */
-  requirements?: UpdateQuizDtoRequirements;
+  requirements?: string | null;
   /**
    * Quiz cover image URL
    * @maxLength 2048
    * @nullable
    */
-  imageUrl?: UpdateQuizDtoImageUrl;
+  imageUrl?: string | null;
   /**
    * Featured on home page
    * @nullable
@@ -52,11 +49,10 @@ export interface UpdateQuizDto {
    */
   isHidden?: boolean | null;
   /**
-   * Associated category UUIDs (max 50)
-   * @maxItems 50
+   * Associated category UUID
    * @nullable
    */
-  categoryIds?: string[] | null;
+  categoryId?: string | null;
   /**
    * Associated tag UUIDs (max 50)
    * @maxItems 50
