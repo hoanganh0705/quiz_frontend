@@ -5,8 +5,6 @@
  * REST API for the quiz application
  * OpenAPI spec version: 1.0
  */
-import type { SubmitAnswerDtoSelectedOptionId } from './submitAnswerDtoSelectedOptionId';
-import type { SubmitAnswerDtoTimeTakenMs } from './submitAnswerDtoTimeTakenMs';
 
 export interface SubmitAnswerDto {
   /** UUID of the question being answered */
@@ -15,11 +13,10 @@ export interface SubmitAnswerDto {
    * UUID of the selected answer option. Omit or send `null` to skip this question.
    * @nullable
    */
-  selectedOptionId?: SubmitAnswerDtoSelectedOptionId;
+  selectedOptionId?: string | null;
   /**
    * Time taken to answer in milliseconds
-   * @minimum 0
    * @nullable
    */
-  timeTakenMs?: SubmitAnswerDtoTimeTakenMs;
+  timeTakenMs?: number | null;
 }

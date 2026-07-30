@@ -9,6 +9,6 @@
 export interface CreateInstanceResponseDto {
   /** New instance identifier */
   instanceId: string;
-  /** Instance creation result */
+  /** Human-readable confirmation message */
   message: string;
 }

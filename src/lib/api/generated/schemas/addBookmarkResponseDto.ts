@@ -5,7 +5,6 @@
  * REST API for the quiz application
  * OpenAPI spec version: 1.0
  */
-import type { AddBookmarkResponseDtoNotes } from './addBookmarkResponseDtoNotes';
 
 export interface AddBookmarkResponseDto {
   /** Bookmark record identifier */
@@ -18,7 +17,7 @@ export interface AddBookmarkResponseDto {
    * Personal notes
    * @nullable
    */
-  notes?: AddBookmarkResponseDtoNotes;
+  notes?: string | null;
   /** Bookmark creation timestamp (ISO 8601) */
   bookmarkedAt: string;
 }

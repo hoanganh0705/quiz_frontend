@@ -5,7 +5,6 @@
  * REST API for the quiz application
  * OpenAPI spec version: 1.0
  */
-import type { BookmarkCollectionResponseDtoDescription } from './bookmarkCollectionResponseDtoDescription';
 
 export interface BookmarkCollectionResponseDto {
   /** Collection identifier */
@@ -18,8 +17,11 @@ export interface BookmarkCollectionResponseDto {
    * Collection description
    * @nullable
    */
-  description?: BookmarkCollectionResponseDtoDescription;
-  /** Number of bookmarked quizzes in this collection */
+  description?: string | null;
+  /**
+   * Number of bookmarked quizzes in this collection
+   * @minimum 0
+   */
   quizCount: number;
   /** Creation timestamp (ISO 8601) */
   createdAt: string;

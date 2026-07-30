@@ -6,20 +6,54 @@
  * OpenAPI spec version: 1.0
  */
 import type {
+  CreateComment201,
+  CreateCommentDto,
   CreateQuizDto,
   CreateQuizQuestionDto,
   CreateQuizQuestionsDto,
   CreateQuizVersionDto,
-  DeleteQuizResponseDto,
+  CreateReviewDto,
+  ListQuizComments200,
+  ListQuizCommentsParams,
+  QuizControllerCreateQuiz201,
+  QuizControllerCreateQuizQuestion201,
+  QuizControllerCreateQuizQuestions201,
+  QuizControllerCreateQuizVersion201,
+  QuizControllerDeleteQuiz200,
+  QuizControllerGetFeaturedQuizzes200,
+  QuizControllerGetFeaturedQuizzesParams,
+  QuizControllerGetMyQuizAnalytics200,
+  QuizControllerGetPopularQuizzes200,
+  QuizControllerGetPopularQuizzesParams,
+  QuizControllerGetQuizById200,
+  QuizControllerGetQuizStats200,
+  QuizControllerGetQuizVersionDetail200,
+  QuizControllerGetRelatedQuizzes200,
+  QuizControllerGetRelatedQuizzesParams,
+  QuizControllerGetTrendingQuizzes200,
+  QuizControllerGetTrendingQuizzesParams,
+  QuizControllerListMyDraftQuizzes200,
+  QuizControllerListMyDraftQuizzesParams,
+  QuizControllerListMyPublishedQuizzes200,
+  QuizControllerListMyPublishedQuizzesParams,
+  QuizControllerListMyQuizzes200,
+  QuizControllerListMyQuizzesParams,
+  QuizControllerListQuizVersions200,
   QuizControllerListQuizVersionsParams,
+  QuizControllerListQuizzes200,
   QuizControllerListQuizzesParams,
-  QuizListResponseDto,
-  QuizQuestionResponseDto,
-  QuizResponseDto,
-  QuizVersionListResponseDto,
-  QuizVersionResponseDto,
+  QuizControllerPublishQuizVersion200,
+  QuizControllerUpdateQuiz200,
+  QuizControllerUpdateQuizVersion200,
+  QuizReviewControllerCreateReview201,
+  QuizReviewControllerGetCreatorQuizReviewAnalytics200,
+  QuizReviewControllerGetQuizReviewStats200,
+  QuizReviewControllerListReviews200,
+  QuizReviewControllerListReviewsParams,
+  QuizReviewControllerUpdateReview200,
   UpdateQuizDto,
-  UpdateQuizVersionDto
+  UpdateQuizVersionDto,
+  UpdateReviewDto
 } from '.././schemas';
 
 import { orvalCustomInstance } from '../../core/custom-instance';
@@ -28,13 +62,12 @@ import { orvalCustomInstance } from '../../core/custom-instance';
 
   export const getQuizzes = () => {
 /**
- * Creates a new quiz with an initial version. Requires `quiz:create` permission.
- * @summary Create quiz
+ * @summary Create a new quiz
  */
 const quizControllerCreateQuiz = (
     createQuizDto: CreateQuizDto,
  ) => {
-      return orvalCustomInstance<QuizResponseDto>(
+      return orvalCustomInstance<QuizControllerCreateQuiz201>(
       {url: `/api/v1/quizzes`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
       data: createQuizDto
@@ -42,39 +75,121 @@ const quizControllerCreateQuiz = (
       );
     }
   /**
- * Returns a paginated, cursor-based list of quizzes. Supports filtering by difficulty, category, and tag.
- * @summary List quizzes
+ * @summary List all public quizzes
  */
 const quizControllerListQuizzes = (
     params?: QuizControllerListQuizzesParams,
  ) => {
-      return orvalCustomInstance<QuizListResponseDto>(
+      return orvalCustomInstance<QuizControllerListQuizzes200>(
       {url: `/api/v1/quizzes`, method: 'GET',
         params
     },
       );
     }
   /**
- * Returns a single quiz by its URL slug including the published version summary.
- * @summary Get quiz by slug
+ * @summary List quizzes created by the authenticated user
  */
-const quizControllerGetQuizBySlug = (
-    slug: string,
+const quizControllerListMyQuizzes = (
+    params?: QuizControllerListMyQuizzesParams,
  ) => {
-      return orvalCustomInstance<QuizResponseDto>(
-      {url: `/api/v1/quizzes/${slug}`, method: 'GET'
+      return orvalCustomInstance<QuizControllerListMyQuizzes200>(
+      {url: `/api/v1/quizzes/me`, method: 'GET',
+        params
     },
       );
     }
   /**
- * Updates a quiz by ID. Requires `quiz:edit:own` or `quiz:edit:any` permission.
- * @summary Update quiz
+ * @summary List the authenticated user's draft quizzes
+ */
+const quizControllerListMyDraftQuizzes = (
+    params?: QuizControllerListMyDraftQuizzesParams,
+ ) => {
+      return orvalCustomInstance<QuizControllerListMyDraftQuizzes200>(
+      {url: `/api/v1/quizzes/me/drafts`, method: 'GET',
+        params
+    },
+      );
+    }
+  /**
+ * @summary List the authenticated user's published quizzes
+ */
+const quizControllerListMyPublishedQuizzes = (
+    params?: QuizControllerListMyPublishedQuizzesParams,
+ ) => {
+      return orvalCustomInstance<QuizControllerListMyPublishedQuizzes200>(
+      {url: `/api/v1/quizzes/me/published`, method: 'GET',
+        params
+    },
+      );
+    }
+  /**
+ * @summary List trending quizzes
+ */
+const quizControllerGetTrendingQuizzes = (
+    params?: QuizControllerGetTrendingQuizzesParams,
+ ) => {
+      return orvalCustomInstance<QuizControllerGetTrendingQuizzes200>(
+      {url: `/api/v1/quizzes/trending`, method: 'GET',
+        params
+    },
+      );
+    }
+  /**
+ * @summary List popular quizzes
+ */
+const quizControllerGetPopularQuizzes = (
+    params?: QuizControllerGetPopularQuizzesParams,
+ ) => {
+      return orvalCustomInstance<QuizControllerGetPopularQuizzes200>(
+      {url: `/api/v1/quizzes/popular`, method: 'GET',
+        params
+    },
+      );
+    }
+  /**
+ * @summary Get analytics for the authenticated user's quizzes
+ */
+const quizControllerGetMyQuizAnalytics = (
+    
+ ) => {
+      return orvalCustomInstance<QuizControllerGetMyQuizAnalytics200>(
+      {url: `/api/v1/quizzes/me/analytics`, method: 'GET'
+    },
+      );
+    }
+  /**
+ * Returns editorially curated featured quizzes. Results are limited (max 100) with no cursor pagination — featured quizzes are a static editorial set, not a browsable feed.
+ * @summary List featured quizzes
+ */
+const quizControllerGetFeaturedQuizzes = (
+    params?: QuizControllerGetFeaturedQuizzesParams,
+ ) => {
+      return orvalCustomInstance<QuizControllerGetFeaturedQuizzes200>(
+      {url: `/api/v1/quizzes/featured`, method: 'GET',
+        params
+    },
+      );
+    }
+  /**
+ * Returns the quiz and, when one is published, its published version. For player-facing access (this public endpoint), the published version includes questions but the `isCorrect` flag is stripped from each answer option to prevent spoilers — correct answers are revealed only after the user finishes an attempt, via GET /attempts/{attemptId}/review.
+ * @summary Get quiz by ID or slug
+ */
+const quizControllerGetQuizById = (
+    id: string,
+ ) => {
+      return orvalCustomInstance<QuizControllerGetQuizById200>(
+      {url: `/api/v1/quizzes/${id}`, method: 'GET'
+    },
+      );
+    }
+  /**
+ * @summary Update a quiz
  */
 const quizControllerUpdateQuiz = (
     id: string,
     updateQuizDto: UpdateQuizDto,
  ) => {
-      return orvalCustomInstance<QuizResponseDto>(
+      return orvalCustomInstance<QuizControllerUpdateQuiz200>(
       {url: `/api/v1/quizzes/${id}`, method: 'PATCH',
       headers: {'Content-Type': 'application/json', },
       data: updateQuizDto
@@ -82,26 +197,49 @@ const quizControllerUpdateQuiz = (
       );
     }
   /**
- * Soft-deletes a quiz by ID. Requires `quiz:delete:own` or `quiz:delete:any` permission.
- * @summary Delete quiz
+ * @summary Delete a quiz
  */
 const quizControllerDeleteQuiz = (
     id: string,
  ) => {
-      return orvalCustomInstance<DeleteQuizResponseDto>(
+      return orvalCustomInstance<QuizControllerDeleteQuiz200>(
       {url: `/api/v1/quizzes/${id}`, method: 'DELETE'
     },
       );
     }
   /**
- * Creates a new draft version for a quiz. Optionally copies questions from an existing version. Requires `quiz-version:create:own` or `quiz-version:create:any`.
- * @summary Create quiz version
+ * @summary Get quiz statistics
+ */
+const quizControllerGetQuizStats = (
+    id: string,
+ ) => {
+      return orvalCustomInstance<QuizControllerGetQuizStats200>(
+      {url: `/api/v1/quizzes/${id}/stats`, method: 'GET'
+    },
+      );
+    }
+  /**
+ * Returns quizzes that share a category or tags with the source quiz, sorted by relevance. Results are limited (max 100) with no cursor pagination — this is a discovery hint, not a browsable feed.
+ * @summary Get quizzes related to the specified quiz
+ */
+const quizControllerGetRelatedQuizzes = (
+    slug: string,
+    params?: QuizControllerGetRelatedQuizzesParams,
+ ) => {
+      return orvalCustomInstance<QuizControllerGetRelatedQuizzes200>(
+      {url: `/api/v1/quizzes/${slug}/related`, method: 'GET',
+        params
+    },
+      );
+    }
+  /**
+ * @summary Create a new draft version for a quiz
  */
 const quizControllerCreateQuizVersion = (
     id: string,
     createQuizVersionDto: CreateQuizVersionDto,
  ) => {
-      return orvalCustomInstance<QuizVersionResponseDto>(
+      return orvalCustomInstance<QuizControllerCreateQuizVersion201>(
       {url: `/api/v1/quizzes/${id}/versions`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
       data: createQuizVersionDto
@@ -109,29 +247,66 @@ const quizControllerCreateQuizVersion = (
       );
     }
   /**
- * Returns all versions of a quiz. Requires `quiz-version:view:own` or `quiz-version:view:any`.
- * @summary List quiz versions
+ * @summary List all versions of a quiz
  */
 const quizControllerListQuizVersions = (
     id: string,
     params?: QuizControllerListQuizVersionsParams,
  ) => {
-      return orvalCustomInstance<QuizVersionListResponseDto>(
+      return orvalCustomInstance<QuizControllerListQuizVersions200>(
       {url: `/api/v1/quizzes/${id}/versions`, method: 'GET',
         params
     },
       );
     }
   /**
- * Adds a single question to a quiz version. Requires `quiz-version:edit:own` or `quiz-version:edit:any`.
- * @summary Create question
+ * @summary Get a specific quiz version
+ */
+const quizControllerGetQuizVersionDetail = (
+    id: string,
+    versionId: string,
+ ) => {
+      return orvalCustomInstance<QuizControllerGetQuizVersionDetail200>(
+      {url: `/api/v1/quizzes/${id}/versions/${versionId}`, method: 'GET'
+    },
+      );
+    }
+  /**
+ * @summary Update a quiz version
+ */
+const quizControllerUpdateQuizVersion = (
+    id: string,
+    versionId: string,
+    updateQuizVersionDto: UpdateQuizVersionDto,
+ ) => {
+      return orvalCustomInstance<QuizControllerUpdateQuizVersion200>(
+      {url: `/api/v1/quizzes/${id}/versions/${versionId}`, method: 'PATCH',
+      headers: {'Content-Type': 'application/json', },
+      data: updateQuizVersionDto
+    },
+      );
+    }
+  /**
+ * @summary Publish a quiz version
+ */
+const quizControllerPublishQuizVersion = (
+    id: string,
+    versionId: string,
+ ) => {
+      return orvalCustomInstance<QuizControllerPublishQuizVersion200>(
+      {url: `/api/v1/quizzes/${id}/versions/${versionId}/publish`, method: 'POST'
+    },
+      );
+    }
+  /**
+ * @summary Add a question to a quiz version
  */
 const quizControllerCreateQuizQuestion = (
     id: string,
     versionId: string,
     createQuizQuestionDto: CreateQuizQuestionDto,
  ) => {
-      return orvalCustomInstance<QuizQuestionResponseDto>(
+      return orvalCustomInstance<QuizControllerCreateQuizQuestion201>(
       {url: `/api/v1/quizzes/${id}/versions/${versionId}/questions`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
       data: createQuizQuestionDto
@@ -139,15 +314,14 @@ const quizControllerCreateQuizQuestion = (
       );
     }
   /**
- * Adds multiple questions to a quiz version in a single request. Requires `quiz-version:edit:own` or `quiz-version:edit:any`.
- * @summary Create questions in bulk
+ * @summary Add multiple questions to a quiz version in bulk
  */
 const quizControllerCreateQuizQuestions = (
     id: string,
     versionId: string,
     createQuizQuestionsDto: CreateQuizQuestionsDto,
  ) => {
-      return orvalCustomInstance<QuizQuestionResponseDto[]>(
+      return orvalCustomInstance<QuizControllerCreateQuizQuestions201>(
       {url: `/api/v1/quizzes/${id}/versions/${versionId}/questions/bulk`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
       data: createQuizQuestionsDto
@@ -155,41 +329,135 @@ const quizControllerCreateQuizQuestions = (
       );
     }
   /**
- * Updates a quiz version's metadata (difficulty, duration, passing score, XP reward). Requires `quiz-version:edit:own` or `quiz-version:edit:any`.
- * @summary Update quiz version
+ * @summary Create a review for a quiz
  */
-const quizVersionControllerUpdateQuizVersion = (
-    id: string,
-    updateQuizVersionDto: UpdateQuizVersionDto,
+const quizReviewControllerCreateReview = (
+    quizId: string,
+    createReviewDto: CreateReviewDto,
  ) => {
-      return orvalCustomInstance<QuizVersionResponseDto>(
-      {url: `/api/v1/quiz-versions/${id}`, method: 'PATCH',
+      return orvalCustomInstance<QuizReviewControllerCreateReview201>(
+      {url: `/api/v1/quizzes/${quizId}/reviews`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
-      data: updateQuizVersionDto
+      data: createReviewDto
     },
       );
     }
   /**
- * Publishes a draft quiz version, making it available for attempts. Only one version per quiz can be published at a time. The version must contain at least 5 questions. Requires `quiz-version:publish:own` or `quiz-version:publish:any`.
- * @summary Publish quiz version
+ * @summary List reviews for a quiz
  */
-const quizVersionControllerPublishQuizVersion = (
-    id: string,
+const quizReviewControllerListReviews = (
+    quizId: string,
+    params?: QuizReviewControllerListReviewsParams,
  ) => {
-      return orvalCustomInstance<QuizVersionResponseDto>(
-      {url: `/api/v1/quiz-versions/${id}/publish`, method: 'POST'
+      return orvalCustomInstance<QuizReviewControllerListReviews200>(
+      {url: `/api/v1/quizzes/${quizId}/reviews`, method: 'GET',
+        params
     },
       );
     }
-  return {quizControllerCreateQuiz,quizControllerListQuizzes,quizControllerGetQuizBySlug,quizControllerUpdateQuiz,quizControllerDeleteQuiz,quizControllerCreateQuizVersion,quizControllerListQuizVersions,quizControllerCreateQuizQuestion,quizControllerCreateQuizQuestions,quizVersionControllerUpdateQuizVersion,quizVersionControllerPublishQuizVersion}};
+  /**
+ * @summary Update the authenticated user review for a quiz
+ */
+const quizReviewControllerUpdateReview = (
+    quizId: string,
+    updateReviewDto: UpdateReviewDto,
+ ) => {
+      return orvalCustomInstance<QuizReviewControllerUpdateReview200>(
+      {url: `/api/v1/quizzes/${quizId}/reviews`, method: 'PATCH',
+      headers: {'Content-Type': 'application/json', },
+      data: updateReviewDto
+    },
+      );
+    }
+  /**
+ * @summary Delete the authenticated user review for a quiz
+ */
+const quizReviewControllerDeleteReview = (
+    quizId: string,
+ ) => {
+      return orvalCustomInstance<void>(
+      {url: `/api/v1/quizzes/${quizId}/reviews`, method: 'DELETE'
+    },
+      );
+    }
+  /**
+ * @summary Get review statistics for a quiz
+ */
+const quizReviewControllerGetQuizReviewStats = (
+    quizId: string,
+ ) => {
+      return orvalCustomInstance<QuizReviewControllerGetQuizReviewStats200>(
+      {url: `/api/v1/quizzes/${quizId}/reviews/stats`, method: 'GET'
+    },
+      );
+    }
+  /**
+ * @summary Get review analytics for a quiz (creator or moderator)
+ */
+const quizReviewControllerGetCreatorQuizReviewAnalytics = (
+    quizId: string,
+ ) => {
+      return orvalCustomInstance<QuizReviewControllerGetCreatorQuizReviewAnalytics200>(
+      {url: `/api/v1/quizzes/${quizId}/reviews/analytics`, method: 'GET'
+    },
+      );
+    }
+  /**
+ * Returns a cursor-paginated list of top-level comments on a quiz. The first page of replies is inlined on each top-level comment when the viewer is authenticated, and the requester's vote is projected as `userVote`. This endpoint is public; the viewer's vote is `null` for unauthenticated requests.
+ * @summary List comments for a quiz
+ */
+const listQuizComments = (
+    quizId: string,
+    params?: ListQuizCommentsParams,
+ ) => {
+      return orvalCustomInstance<ListQuizComments200>(
+      {url: `/api/v1/quizzes/${quizId}/comments`, method: 'GET',
+        params
+    },
+      );
+    }
+  /**
+ * Creates a top-level comment when `parentCommentId` is omitted, or a reply when `parentCommentId` references a top-level comment on the same quiz. Replies to replies are rejected with `COMMENT_PARENT_COMMENT_CROSS_THREAD`.
+ * @summary Create a top-level comment or reply on a quiz
+ */
+const createComment = (
+    quizId: string,
+    createCommentDto: CreateCommentDto,
+ ) => {
+      return orvalCustomInstance<CreateComment201>(
+      {url: `/api/v1/quizzes/${quizId}/comments`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: createCommentDto
+    },
+      );
+    }
+  return {quizControllerCreateQuiz,quizControllerListQuizzes,quizControllerListMyQuizzes,quizControllerListMyDraftQuizzes,quizControllerListMyPublishedQuizzes,quizControllerGetTrendingQuizzes,quizControllerGetPopularQuizzes,quizControllerGetMyQuizAnalytics,quizControllerGetFeaturedQuizzes,quizControllerGetQuizById,quizControllerUpdateQuiz,quizControllerDeleteQuiz,quizControllerGetQuizStats,quizControllerGetRelatedQuizzes,quizControllerCreateQuizVersion,quizControllerListQuizVersions,quizControllerGetQuizVersionDetail,quizControllerUpdateQuizVersion,quizControllerPublishQuizVersion,quizControllerCreateQuizQuestion,quizControllerCreateQuizQuestions,quizReviewControllerCreateReview,quizReviewControllerListReviews,quizReviewControllerUpdateReview,quizReviewControllerDeleteReview,quizReviewControllerGetQuizReviewStats,quizReviewControllerGetCreatorQuizReviewAnalytics,listQuizComments,createComment}};
 export type QuizControllerCreateQuizResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getQuizzes>['quizControllerCreateQuiz']>>>
 export type QuizControllerListQuizzesResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getQuizzes>['quizControllerListQuizzes']>>>
-export type QuizControllerGetQuizBySlugResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getQuizzes>['quizControllerGetQuizBySlug']>>>
+export type QuizControllerListMyQuizzesResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getQuizzes>['quizControllerListMyQuizzes']>>>
+export type QuizControllerListMyDraftQuizzesResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getQuizzes>['quizControllerListMyDraftQuizzes']>>>
+export type QuizControllerListMyPublishedQuizzesResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getQuizzes>['quizControllerListMyPublishedQuizzes']>>>
+export type QuizControllerGetTrendingQuizzesResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getQuizzes>['quizControllerGetTrendingQuizzes']>>>
+export type QuizControllerGetPopularQuizzesResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getQuizzes>['quizControllerGetPopularQuizzes']>>>
+export type QuizControllerGetMyQuizAnalyticsResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getQuizzes>['quizControllerGetMyQuizAnalytics']>>>
+export type QuizControllerGetFeaturedQuizzesResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getQuizzes>['quizControllerGetFeaturedQuizzes']>>>
+export type QuizControllerGetQuizByIdResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getQuizzes>['quizControllerGetQuizById']>>>
 export type QuizControllerUpdateQuizResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getQuizzes>['quizControllerUpdateQuiz']>>>
 export type QuizControllerDeleteQuizResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getQuizzes>['quizControllerDeleteQuiz']>>>
+export type QuizControllerGetQuizStatsResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getQuizzes>['quizControllerGetQuizStats']>>>
+export type QuizControllerGetRelatedQuizzesResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getQuizzes>['quizControllerGetRelatedQuizzes']>>>
 export type QuizControllerCreateQuizVersionResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getQuizzes>['quizControllerCreateQuizVersion']>>>
 export type QuizControllerListQuizVersionsResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getQuizzes>['quizControllerListQuizVersions']>>>
+export type QuizControllerGetQuizVersionDetailResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getQuizzes>['quizControllerGetQuizVersionDetail']>>>
+export type QuizControllerUpdateQuizVersionResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getQuizzes>['quizControllerUpdateQuizVersion']>>>
+export type QuizControllerPublishQuizVersionResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getQuizzes>['quizControllerPublishQuizVersion']>>>
 export type QuizControllerCreateQuizQuestionResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getQuizzes>['quizControllerCreateQuizQuestion']>>>
 export type QuizControllerCreateQuizQuestionsResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getQuizzes>['quizControllerCreateQuizQuestions']>>>
-export type QuizVersionControllerUpdateQuizVersionResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getQuizzes>['quizVersionControllerUpdateQuizVersion']>>>
-export type QuizVersionControllerPublishQuizVersionResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getQuizzes>['quizVersionControllerPublishQuizVersion']>>>
+export type QuizReviewControllerCreateReviewResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getQuizzes>['quizReviewControllerCreateReview']>>>
+export type QuizReviewControllerListReviewsResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getQuizzes>['quizReviewControllerListReviews']>>>
+export type QuizReviewControllerUpdateReviewResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getQuizzes>['quizReviewControllerUpdateReview']>>>
+export type QuizReviewControllerDeleteReviewResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getQuizzes>['quizReviewControllerDeleteReview']>>>
+export type QuizReviewControllerGetQuizReviewStatsResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getQuizzes>['quizReviewControllerGetQuizReviewStats']>>>
+export type QuizReviewControllerGetCreatorQuizReviewAnalyticsResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getQuizzes>['quizReviewControllerGetCreatorQuizReviewAnalytics']>>>
+export type ListQuizCommentsResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getQuizzes>['listQuizComments']>>>
+export type CreateCommentResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getQuizzes>['createComment']>>>

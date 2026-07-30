@@ -5,12 +5,13 @@
  * REST API for the quiz application
  * OpenAPI spec version: 1.0
  */
+import type { AbandonAttemptResponseDtoStatus } from './abandonAttemptResponseDtoStatus';
 
 export interface AbandonAttemptResponseDto {
   /** Attempt identifier */
   attemptId: string;
   /** Final status */
-  status: string;
+  status: AbandonAttemptResponseDtoStatus;
   /** Abandonment timestamp (ISO 8601) */
   finishedAt: string;
   /** Status message */

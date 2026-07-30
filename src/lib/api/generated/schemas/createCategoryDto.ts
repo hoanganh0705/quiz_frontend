@@ -5,8 +5,6 @@
  * REST API for the quiz application
  * OpenAPI spec version: 1.0
  */
-import type { CreateCategoryDtoDescription } from './createCategoryDtoDescription';
-import type { CreateCategoryDtoImageUrl } from './createCategoryDtoImageUrl';
 
 export interface CreateCategoryDto {
   /**
@@ -20,7 +18,7 @@ export interface CreateCategoryDto {
    * @maxLength 500
    * @nullable
    */
-  description?: CreateCategoryDtoDescription;
+  description?: string | null;
   /**
    * URL-friendly slug (auto-generated from name if omitted)
    * @maxLength 120
@@ -33,5 +31,5 @@ export interface CreateCategoryDto {
    * @maxLength 2048
    * @nullable
    */
-  imageUrl?: CreateCategoryDtoImageUrl;
+  imageUrl?: string | null;
 }

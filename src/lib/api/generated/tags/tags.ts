@@ -7,11 +7,25 @@
  */
 import type {
   CreateTagDto,
-  DeleteTagResponseDto,
+  TagControllerCreateTag201,
+  TagControllerDeleteTag200,
+  TagControllerGetPopularTags200,
+  TagControllerGetPopularTagsParams,
+  TagControllerGetRelatedTags200,
+  TagControllerGetRelatedTagsParams,
+  TagControllerGetTagAnalytics200,
+  TagControllerGetTagById200,
+  TagControllerGetTagBySlug200,
+  TagControllerGetTagQuizzes200,
+  TagControllerGetTrendingTags200,
+  TagControllerGetTrendingTagsParams,
+  TagControllerListTags200,
   TagControllerListTagsParams,
-  TagListResponseDto,
-  TagResponseDto,
-  UpdateTagDto
+  TagControllerRestoreTag200,
+  TagControllerUpdateTag200,
+  UpdateTagDto,
+  UserTagControllerListFollowedTags200,
+  UserTagControllerListFollowedTagsParams
 } from '.././schemas';
 
 import { orvalCustomInstance } from '../../core/custom-instance';
@@ -20,53 +34,83 @@ import { orvalCustomInstance } from '../../core/custom-instance';
 
   export const getTags = () => {
 /**
- * Returns a paginated, cursor-based list of active tags.
- * @summary List tags
+ * @summary List popular tags
  */
-const tagControllerListTags = (
-    params?: TagControllerListTagsParams,
+const tagControllerGetPopularTags = (
+    params?: TagControllerGetPopularTagsParams,
  ) => {
-      return orvalCustomInstance<TagListResponseDto>(
-      {url: `/api/v1/tags`, method: 'GET',
+      return orvalCustomInstance<TagControllerGetPopularTags200>(
+      {url: `/api/v1/tags/popular`, method: 'GET',
         params
     },
       );
     }
   /**
- * Creates a new quiz tag. Requires admin role.
- * @summary Create tag
+ * @summary List trending tags
  */
-const tagControllerCreateTag = (
-    createTagDto: CreateTagDto,
+const tagControllerGetTrendingTags = (
+    params?: TagControllerGetTrendingTagsParams,
  ) => {
-      return orvalCustomInstance<TagResponseDto>(
-      {url: `/api/v1/tags`, method: 'POST',
-      headers: {'Content-Type': 'application/json', },
-      data: createTagDto
+      return orvalCustomInstance<TagControllerGetTrendingTags200>(
+      {url: `/api/v1/tags/trending`, method: 'GET',
+        params
     },
       );
     }
   /**
- * Returns a single active tag by its URL slug.
- * @summary Get tag by slug
+ * @summary List quizzes in a tag
  */
-const tagControllerGetTagBySlug = (
+const tagControllerGetTagQuizzes = (
     slug: string,
  ) => {
-      return orvalCustomInstance<TagResponseDto>(
-      {url: `/api/v1/tags/${slug}`, method: 'GET'
+      return orvalCustomInstance<TagControllerGetTagQuizzes200>(
+      {url: `/api/v1/tags/${slug}/quizzes`, method: 'GET'
     },
       );
     }
   /**
- * Updates an existing tag by ID. Requires admin role.
- * @summary Update tag
+ * @summary List tags related to a tag
+ */
+const tagControllerGetRelatedTags = (
+    slug: string,
+    params?: TagControllerGetRelatedTagsParams,
+ ) => {
+      return orvalCustomInstance<TagControllerGetRelatedTags200>(
+      {url: `/api/v1/tags/${slug}/related`, method: 'GET',
+        params
+    },
+      );
+    }
+  /**
+ * @summary Get analytics for a tag
+ */
+const tagControllerGetTagAnalytics = (
+    id: string,
+ ) => {
+      return orvalCustomInstance<TagControllerGetTagAnalytics200>(
+      {url: `/api/v1/tags/${id}/analytics`, method: 'GET'
+    },
+      );
+    }
+  /**
+ * @summary Get a tag by ID
+ */
+const tagControllerGetTagById = (
+    id: string,
+ ) => {
+      return orvalCustomInstance<TagControllerGetTagById200>(
+      {url: `/api/v1/tags/${id}`, method: 'GET'
+    },
+      );
+    }
+  /**
+ * @summary Update a tag
  */
 const tagControllerUpdateTag = (
     id: string,
     updateTagDto: UpdateTagDto,
  ) => {
-      return orvalCustomInstance<TagResponseDto>(
+      return orvalCustomInstance<TagControllerUpdateTag200>(
       {url: `/api/v1/tags/${id}`, method: 'PATCH',
       headers: {'Content-Type': 'application/json', },
       data: updateTagDto
@@ -74,20 +118,110 @@ const tagControllerUpdateTag = (
       );
     }
   /**
- * Soft-deletes a tag. Requires admin role.
- * @summary Delete tag
+ * @summary Delete a tag
  */
 const tagControllerDeleteTag = (
     id: string,
  ) => {
-      return orvalCustomInstance<DeleteTagResponseDto>(
+      return orvalCustomInstance<TagControllerDeleteTag200>(
       {url: `/api/v1/tags/${id}`, method: 'DELETE'
     },
       );
     }
-  return {tagControllerListTags,tagControllerCreateTag,tagControllerGetTagBySlug,tagControllerUpdateTag,tagControllerDeleteTag}};
+  /**
+ * @summary Follow a tag
+ */
+const tagControllerFollowTag = (
+    id: string,
+ ) => {
+      return orvalCustomInstance<void>(
+      {url: `/api/v1/tags/${id}/follow`, method: 'POST'
+    },
+      );
+    }
+  /**
+ * @summary Unfollow a tag
+ */
+const tagControllerUnfollowTag = (
+    id: string,
+ ) => {
+      return orvalCustomInstance<void>(
+      {url: `/api/v1/tags/${id}/follow`, method: 'DELETE'
+    },
+      );
+    }
+  /**
+ * @summary Restore a deleted tag
+ */
+const tagControllerRestoreTag = (
+    id: string,
+ ) => {
+      return orvalCustomInstance<TagControllerRestoreTag200>(
+      {url: `/api/v1/tags/${id}/restore`, method: 'POST'
+    },
+      );
+    }
+  /**
+ * @summary List all tags
+ */
+const tagControllerListTags = (
+    params?: TagControllerListTagsParams,
+ ) => {
+      return orvalCustomInstance<TagControllerListTags200>(
+      {url: `/api/v1/tags`, method: 'GET',
+        params
+    },
+      );
+    }
+  /**
+ * @summary Create a tag
+ */
+const tagControllerCreateTag = (
+    createTagDto: CreateTagDto,
+ ) => {
+      return orvalCustomInstance<TagControllerCreateTag201>(
+      {url: `/api/v1/tags`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: createTagDto
+    },
+      );
+    }
+  /**
+ * @summary Get a tag by slug
+ */
+const tagControllerGetTagBySlug = (
+    slug: string,
+ ) => {
+      return orvalCustomInstance<TagControllerGetTagBySlug200>(
+      {url: `/api/v1/tags/${slug}`, method: 'GET'
+    },
+      );
+    }
+  /**
+ * @summary List tags followed by the authenticated user
+ */
+const userTagControllerListFollowedTags = (
+    params?: UserTagControllerListFollowedTagsParams,
+ ) => {
+      return orvalCustomInstance<UserTagControllerListFollowedTags200>(
+      {url: `/api/v1/users/me/followed-tags`, method: 'GET',
+        params
+    },
+      );
+    }
+  return {tagControllerGetPopularTags,tagControllerGetTrendingTags,tagControllerGetTagQuizzes,tagControllerGetRelatedTags,tagControllerGetTagAnalytics,tagControllerGetTagById,tagControllerUpdateTag,tagControllerDeleteTag,tagControllerFollowTag,tagControllerUnfollowTag,tagControllerRestoreTag,tagControllerListTags,tagControllerCreateTag,tagControllerGetTagBySlug,userTagControllerListFollowedTags}};
+export type TagControllerGetPopularTagsResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getTags>['tagControllerGetPopularTags']>>>
+export type TagControllerGetTrendingTagsResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getTags>['tagControllerGetTrendingTags']>>>
+export type TagControllerGetTagQuizzesResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getTags>['tagControllerGetTagQuizzes']>>>
+export type TagControllerGetRelatedTagsResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getTags>['tagControllerGetRelatedTags']>>>
+export type TagControllerGetTagAnalyticsResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getTags>['tagControllerGetTagAnalytics']>>>
+export type TagControllerGetTagByIdResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getTags>['tagControllerGetTagById']>>>
+export type TagControllerUpdateTagResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getTags>['tagControllerUpdateTag']>>>
+export type TagControllerDeleteTagResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getTags>['tagControllerDeleteTag']>>>
+export type TagControllerFollowTagResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getTags>['tagControllerFollowTag']>>>
+export type TagControllerUnfollowTagResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getTags>['tagControllerUnfollowTag']>>>
+export type TagControllerRestoreTagResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getTags>['tagControllerRestoreTag']>>>
 export type TagControllerListTagsResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getTags>['tagControllerListTags']>>>
 export type TagControllerCreateTagResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getTags>['tagControllerCreateTag']>>>
 export type TagControllerGetTagBySlugResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getTags>['tagControllerGetTagBySlug']>>>
-export type TagControllerUpdateTagResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getTags>['tagControllerUpdateTag']>>>
-export type TagControllerDeleteTagResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getTags>['tagControllerDeleteTag']>>>
+export type UserTagControllerListFollowedTagsResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getTags>['userTagControllerListFollowedTags']>>>

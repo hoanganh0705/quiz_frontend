@@ -7,6 +7,6 @@
  */
 
 export interface RegisterResponseDto {
-  /** Confirmation message */
+  /** Generic acknowledgement message (same for new account, duplicate email, duplicate username) */
   message: string;
 }

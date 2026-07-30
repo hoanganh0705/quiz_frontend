@@ -6,15 +6,42 @@
  * OpenAPI spec version: 1.0
  */
 import type {
+  AuthControllerChangePassword201,
+  AuthControllerCheckEmail200,
+  AuthControllerCheckEmailDeprecated200,
+  AuthControllerCheckEmailParams,
+  AuthControllerCheckUsername200,
+  AuthControllerCheckUsernameDeprecated200,
+  AuthControllerCheckUsernameParams,
+  AuthControllerDeleteAccount200,
+  AuthControllerForgotPassword200,
+  AuthControllerGetActiveSessions200,
+  AuthControllerGetCurrentUser200,
+  AuthControllerGetSecurityDashboard200,
+  AuthControllerGoogleLogin201,
+  AuthControllerLogin201,
+  AuthControllerLogout201,
+  AuthControllerLogoutAll200,
+  AuthControllerRefreshToken201,
+  AuthControllerRegister201,
+  AuthControllerResendVerificationEmail201,
+  AuthControllerResetPassword201,
+  AuthControllerRevokeOtherSessions200,
+  AuthControllerRevokeSession200,
+  AuthControllerVerifyEmail200,
+  AuthControllerVerifyPassword201,
+  ChangePasswordDto,
+  CheckEmailDto,
+  CheckUsernameDto,
+  DeleteAccountDto,
+  ForgotPasswordDto,
+  GoogleLoginDto,
   LoginDto,
-  LoginResponseDto,
-  LogoutResponseDto,
-  RefreshTokenResponseDto,
   RegisterDto,
-  RegisterResponseDto,
   ResendVerificationDto,
+  ResetPasswordDto,
   VerifyEmailDto,
-  VerifyEmailResponseDto
+  VerifyPasswordDto
 } from '.././schemas';
 
 import { orvalCustomInstance } from '../../core/custom-instance';
@@ -23,13 +50,13 @@ import { orvalCustomInstance } from '../../core/custom-instance';
 
   export const getAuth = () => {
 /**
- * Creates a new user account and sends a verification email to the provided address.
+ * Creates a new user account and sends a verification email to the provided address. Returns 201 with a generic acknowledgement message regardless of whether the email or username is already registered, to prevent account enumeration. Clients should treat a 201 response as "your request was received" and attempt to log in (or check the inbox) to determine the actual outcome.
  * @summary Register a new account
  */
 const authControllerRegister = (
     registerDto: RegisterDto,
  ) => {
-      return orvalCustomInstance<RegisterResponseDto>(
+      return orvalCustomInstance<AuthControllerRegister201>(
       {url: `/api/v1/auth/register`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
       data: registerDto
@@ -37,13 +64,13 @@ const authControllerRegister = (
       );
     }
   /**
- * Confirms an email address using the token from the verification email.
+ * Confirms an email address using the token from the verification email. Returns the same generic acknowledgement message regardless of whether the token is valid, expired, or unknown — this prevents account/token enumeration. Clients should treat a 200 response as "your request was received" and verify the email through other means (e.g., attempting to log in).
  * @summary Verify email address
  */
 const authControllerVerifyEmail = (
     verifyEmailDto: VerifyEmailDto,
  ) => {
-      return orvalCustomInstance<VerifyEmailResponseDto>(
+      return orvalCustomInstance<AuthControllerVerifyEmail200>(
       {url: `/api/v1/auth/verify-email`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
       data: verifyEmailDto
@@ -51,13 +78,13 @@ const authControllerVerifyEmail = (
       );
     }
   /**
- * Sends a new verification email to the provided address if the account exists and is unverified.
+ * Sends a new verification email to the provided address if the account exists and is unverified. Returns the same generic acknowledgement message regardless of whether the email is registered, already verified, or unknown — this prevents account enumeration. Clients should treat a 200 response as "your request was received" and check the inbox (or attempt to log in) to confirm.
  * @summary Resend verification email
  */
 const authControllerResendVerificationEmail = (
     resendVerificationDto: ResendVerificationDto,
  ) => {
-      return orvalCustomInstance<VerifyEmailResponseDto>(
+      return orvalCustomInstance<AuthControllerResendVerificationEmail201>(
       {url: `/api/v1/auth/resend-verification-email`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
       data: resendVerificationDto
@@ -65,13 +92,13 @@ const authControllerResendVerificationEmail = (
       );
     }
   /**
- * Authenticates with email and password and returns a JWT access token. Device information is collected for security purposes.
+ * Authenticates with email and password and returns a JWT access token. A refresh token cookie is set on success. Device information is collected for security purposes.
  * @summary Log in
  */
 const authControllerLogin = (
     loginDto: LoginDto,
  ) => {
-      return orvalCustomInstance<LoginResponseDto>(
+      return orvalCustomInstance<AuthControllerLogin201>(
       {url: `/api/v1/auth/login`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
       data: loginDto
@@ -79,25 +106,39 @@ const authControllerLogin = (
       );
     }
   /**
- * Exchanges a valid refresh token cookie for a new JWT access token.
+ * Authenticates using a Google ID token and returns a JWT access token. If no account exists for the Google user, one is created automatically. A refresh token cookie is set on success.
+ * @summary Log in with Google
+ */
+const authControllerGoogleLogin = (
+    googleLoginDto: GoogleLoginDto,
+ ) => {
+      return orvalCustomInstance<AuthControllerGoogleLogin201>(
+      {url: `/api/v1/auth/oauth/google`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: googleLoginDto
+    },
+      );
+    }
+  /**
+ * Exchanges a valid refresh token cookie for a new JWT access token. The refresh token cookie is rotated on success.
  * @summary Refresh access token
  */
 const authControllerRefreshToken = (
     
  ) => {
-      return orvalCustomInstance<RefreshTokenResponseDto>(
+      return orvalCustomInstance<AuthControllerRefreshToken201>(
       {url: `/api/v1/auth/refresh-token`, method: 'POST'
     },
       );
     }
   /**
- * Clears the refresh token cookie. The access token remains valid until it expires. Requires the refresh token cookie to be present.
+ * Idempotent logout. Always returns 201 and clears the refresh token cookie. If the cookie is missing, the request still succeeds (the cookie is already cleared). The access token remains valid until it expires.
  * @summary Log out
  */
 const authControllerLogout = (
     
  ) => {
-      return orvalCustomInstance<LogoutResponseDto>(
+      return orvalCustomInstance<AuthControllerLogout201>(
       {url: `/api/v1/auth/logout`, method: 'POST'
     },
       );
@@ -109,16 +150,219 @@ const authControllerLogout = (
 const authControllerLogoutAll = (
     
  ) => {
-      return orvalCustomInstance<LogoutResponseDto>(
+      return orvalCustomInstance<AuthControllerLogoutAll200>(
       {url: `/api/v1/auth/logout-all`, method: 'POST'
     },
       );
     }
-  return {authControllerRegister,authControllerVerifyEmail,authControllerResendVerificationEmail,authControllerLogin,authControllerRefreshToken,authControllerLogout,authControllerLogoutAll}};
+  /**
+ * Returns all active sessions for the authenticated user, ordered by most recent activity. The current session is marked with isCurrentSession: true.
+ * @summary List active sessions
+ */
+const authControllerGetActiveSessions = (
+    
+ ) => {
+      return orvalCustomInstance<AuthControllerGetActiveSessions200>(
+      {url: `/api/v1/auth/sessions`, method: 'GET'
+    },
+      );
+    }
+  /**
+ * Normalized REST route. Keeps the current session and revokes every other active session for the user.
+ * @summary Log out all other devices
+ */
+const authControllerRevokeOtherSessions = (
+    
+ ) => {
+      return orvalCustomInstance<AuthControllerRevokeOtherSessions200>(
+      {url: `/api/v1/auth/sessions/others`, method: 'DELETE'
+    },
+      );
+    }
+  /**
+ * Revokes a specific session by ID. Use this when you want to terminate a single device or browser while keeping the rest of your sessions active. If the target is the current session, the user is logged out (cookie cleared). Otherwise only the target session is invalidated.
+ * @summary Revoke a session
+ */
+const authControllerRevokeSession = (
+    sessionId: string,
+ ) => {
+      return orvalCustomInstance<AuthControllerRevokeSession200>(
+      {url: `/api/v1/auth/sessions/${sessionId}`, method: 'DELETE'
+    },
+      );
+    }
+  /**
+ * Returns security-related information about the authenticated user account.
+ * @summary Account security dashboard
+ */
+const authControllerGetSecurityDashboard = (
+    
+ ) => {
+      return orvalCustomInstance<AuthControllerGetSecurityDashboard200>(
+      {url: `/api/v1/auth/security/dashboard`, method: 'GET'
+    },
+      );
+    }
+  /**
+ * Sends a password reset email if the account exists. Always returns a generic success message to prevent email enumeration.
+ * @summary Request password reset
+ */
+const authControllerForgotPassword = (
+    forgotPasswordDto: ForgotPasswordDto,
+ ) => {
+      return orvalCustomInstance<AuthControllerForgotPassword200>(
+      {url: `/api/v1/auth/forgot-password`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: forgotPasswordDto
+    },
+      );
+    }
+  /**
+ * Resets the account password using a valid token. All active sessions are immediately invalidated after a successful reset.
+ * @summary Reset password
+ */
+const authControllerResetPassword = (
+    resetPasswordDto: ResetPasswordDto,
+ ) => {
+      return orvalCustomInstance<AuthControllerResetPassword201>(
+      {url: `/api/v1/auth/reset-password`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: resetPasswordDto
+    },
+      );
+    }
+  /**
+ * Changes the account password for an authenticated user. Requires the current password and terminates all other active sessions.
+ * @summary Change password
+ */
+const authControllerChangePassword = (
+    changePasswordDto: ChangePasswordDto,
+ ) => {
+      return orvalCustomInstance<AuthControllerChangePassword201>(
+      {url: `/api/v1/auth/change-password`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: changePasswordDto
+    },
+      );
+    }
+  /**
+ * Returns the authenticated principal identity (userId, username, email, role, isVerified).
+
+This is the slim identity payload used to bootstrap the auth state on the client. For the full user profile (display name, avatar, bio, XP, streaks, settings, timestamps), use `GET /api/v1/users/me` instead. The two endpoints are complementary, not interchangeable.
+ * @summary Get current user identity
+ */
+const authControllerGetCurrentUser = (
+    
+ ) => {
+      return orvalCustomInstance<AuthControllerGetCurrentUser200>(
+      {url: `/api/v1/auth/me`, method: 'GET'
+    },
+      );
+    }
+  /**
+ * Checks whether an email address is available for registration. Does not reveal whether an account exists.
+ * @summary Check email availability
+ */
+const authControllerCheckEmail = (
+    params: AuthControllerCheckEmailParams,
+ ) => {
+      return orvalCustomInstance<AuthControllerCheckEmail200>(
+      {url: `/api/v1/auth/check-email`, method: 'GET',
+        params
+    },
+      );
+    }
+  /**
+ * Deprecated alias of `GET /auth/check-email?email=...`. Returns the same response. Prefer the GET form; this POST route will be removed in the next minor version.
+ * @deprecated
+ * @summary Check email availability (deprecated)
+ */
+const authControllerCheckEmailDeprecated = (
+    checkEmailDto: CheckEmailDto,
+ ) => {
+      return orvalCustomInstance<AuthControllerCheckEmailDeprecated200>(
+      {url: `/api/v1/auth/check-email`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: checkEmailDto
+    },
+      );
+    }
+  /**
+ * Checks whether a username is available for registration. Does not reveal whether an account exists.
+ * @summary Check username availability
+ */
+const authControllerCheckUsername = (
+    params: AuthControllerCheckUsernameParams,
+ ) => {
+      return orvalCustomInstance<AuthControllerCheckUsername200>(
+      {url: `/api/v1/auth/check-username`, method: 'GET',
+        params
+    },
+      );
+    }
+  /**
+ * Deprecated alias of `GET /auth/check-username?username=...`. Returns the same response. Prefer the GET form; this POST route will be removed in the next minor version.
+ * @deprecated
+ * @summary Check username availability (deprecated)
+ */
+const authControllerCheckUsernameDeprecated = (
+    checkUsernameDto: CheckUsernameDto,
+ ) => {
+      return orvalCustomInstance<AuthControllerCheckUsernameDeprecated200>(
+      {url: `/api/v1/auth/check-username`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: checkUsernameDto
+    },
+      );
+    }
+  /**
+ * Verifies the authenticated user's current password without issuing tokens or sessions. Intended as a confirmation step before sensitive operations.
+ * @summary Verify current password
+ */
+const authControllerVerifyPassword = (
+    verifyPasswordDto: VerifyPasswordDto,
+ ) => {
+      return orvalCustomInstance<AuthControllerVerifyPassword201>(
+      {url: `/api/v1/auth/verify-password`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: verifyPasswordDto
+    },
+      );
+    }
+  /**
+ * Permanently deletes the authenticated user's account after password confirmation. All active sessions are terminated immediately and the refresh token cookie is cleared.
+ * @summary Delete account
+ */
+const authControllerDeleteAccount = (
+    deleteAccountDto: DeleteAccountDto,
+ ) => {
+      return orvalCustomInstance<AuthControllerDeleteAccount200>(
+      {url: `/api/v1/auth/account`, method: 'DELETE',
+      headers: {'Content-Type': 'application/json', },
+      data: deleteAccountDto
+    },
+      );
+    }
+  return {authControllerRegister,authControllerVerifyEmail,authControllerResendVerificationEmail,authControllerLogin,authControllerGoogleLogin,authControllerRefreshToken,authControllerLogout,authControllerLogoutAll,authControllerGetActiveSessions,authControllerRevokeOtherSessions,authControllerRevokeSession,authControllerGetSecurityDashboard,authControllerForgotPassword,authControllerResetPassword,authControllerChangePassword,authControllerGetCurrentUser,authControllerCheckEmail,authControllerCheckEmailDeprecated,authControllerCheckUsername,authControllerCheckUsernameDeprecated,authControllerVerifyPassword,authControllerDeleteAccount}};
 export type AuthControllerRegisterResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getAuth>['authControllerRegister']>>>
 export type AuthControllerVerifyEmailResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getAuth>['authControllerVerifyEmail']>>>
 export type AuthControllerResendVerificationEmailResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getAuth>['authControllerResendVerificationEmail']>>>
 export type AuthControllerLoginResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getAuth>['authControllerLogin']>>>
+export type AuthControllerGoogleLoginResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getAuth>['authControllerGoogleLogin']>>>
 export type AuthControllerRefreshTokenResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getAuth>['authControllerRefreshToken']>>>
 export type AuthControllerLogoutResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getAuth>['authControllerLogout']>>>
 export type AuthControllerLogoutAllResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getAuth>['authControllerLogoutAll']>>>
+export type AuthControllerGetActiveSessionsResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getAuth>['authControllerGetActiveSessions']>>>
+export type AuthControllerRevokeOtherSessionsResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getAuth>['authControllerRevokeOtherSessions']>>>
+export type AuthControllerRevokeSessionResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getAuth>['authControllerRevokeSession']>>>
+export type AuthControllerGetSecurityDashboardResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getAuth>['authControllerGetSecurityDashboard']>>>
+export type AuthControllerForgotPasswordResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getAuth>['authControllerForgotPassword']>>>
+export type AuthControllerResetPasswordResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getAuth>['authControllerResetPassword']>>>
+export type AuthControllerChangePasswordResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getAuth>['authControllerChangePassword']>>>
+export type AuthControllerGetCurrentUserResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getAuth>['authControllerGetCurrentUser']>>>
+export type AuthControllerCheckEmailResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getAuth>['authControllerCheckEmail']>>>
+export type AuthControllerCheckEmailDeprecatedResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getAuth>['authControllerCheckEmailDeprecated']>>>
+export type AuthControllerCheckUsernameResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getAuth>['authControllerCheckUsername']>>>
+export type AuthControllerCheckUsernameDeprecatedResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getAuth>['authControllerCheckUsernameDeprecated']>>>
+export type AuthControllerVerifyPasswordResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getAuth>['authControllerVerifyPassword']>>>
+export type AuthControllerDeleteAccountResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getAuth>['authControllerDeleteAccount']>>>

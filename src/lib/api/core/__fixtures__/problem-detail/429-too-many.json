@@ -1,0 +1,12 @@
+{
+  "type": "https://api.quiz.local/problems/auth-rate-limited",
+  "title": "TooManyRequests",
+  "status": 429,
+  "detail": "Too many login attempts. Please try again later.",
+  "instance": "/api/v1/auth/login",
+  "extensions": {
+    "code": "AUTH_RATE_LIMITED",
+    "requestId": "req-005",
+    "timestamp": "2026-07-29T08:00:00Z"
+  }
+}

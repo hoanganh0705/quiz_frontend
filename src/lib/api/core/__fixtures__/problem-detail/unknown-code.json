@@ -1,0 +1,11 @@
+{
+  "type": "https://api.quiz.local/problems/not-found",
+  "title": "Not Found",
+  "status": 404,
+  "detail": "Resource not found",
+  "instance": "/api/v1/quizzes/missing",
+  "extensions": {
+    "requestId": "req-006",
+    "timestamp": "2026-07-29T08:00:00Z"
+  }
+}

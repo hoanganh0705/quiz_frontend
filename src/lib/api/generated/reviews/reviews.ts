@@ -6,13 +6,16 @@
  * OpenAPI spec version: 1.0
  */
 import type {
-  CreateReviewDto,
-  CreateReviewResponseDto,
-  DeleteReviewResponseDto,
-  ReviewControllerListReviewsParams,
-  ReviewListResponseDto,
-  UpdateReviewDto,
-  UpdateReviewResponseDto
+  AdminReviewControllerListPlatformReports200,
+  AdminReviewControllerListPlatformReportsParams,
+  AdminReviewControllerUpdateReportStatus200,
+  HelpfulReviewDto,
+  ReportReviewDto,
+  ReviewControllerGetMyReviewDashboard200,
+  ReviewControllerGetReviewById200,
+  ReviewControllerMarkReviewHelpful200,
+  ReviewControllerReportReview200,
+  UpdateReportStatusDto
 } from '.././schemas';
 
 import { orvalCustomInstance } from '../../core/custom-instance';
@@ -21,63 +24,110 @@ import { orvalCustomInstance } from '../../core/custom-instance';
 
   export const getReviews = () => {
 /**
- * Creates a star rating and optional written review for a quiz. One review per user per quiz.
- * @summary Create review
+ * @summary Get the authenticated user's review dashboard
  */
-const reviewControllerCreateReview = (
-    quizId: string,
-    createReviewDto: CreateReviewDto,
+const reviewControllerGetMyReviewDashboard = (
+    
  ) => {
-      return orvalCustomInstance<CreateReviewResponseDto>(
-      {url: `/api/v1/quizzes/${quizId}/reviews`, method: 'POST',
-      headers: {'Content-Type': 'application/json', },
-      data: createReviewDto
+      return orvalCustomInstance<ReviewControllerGetMyReviewDashboard200>(
+      {url: `/api/v1/reviews/me`, method: 'GET'
     },
       );
     }
   /**
- * Returns a paginated list of reviews for a specific quiz.
- * @summary List quiz reviews
+ * @summary Mark a review as helpful
  */
-const reviewControllerListReviews = (
-    quizId: string,
-    params?: ReviewControllerListReviewsParams,
+const reviewControllerMarkReviewHelpful = (
+    reviewId: string,
+    helpfulReviewDto: HelpfulReviewDto,
  ) => {
-      return orvalCustomInstance<ReviewListResponseDto>(
-      {url: `/api/v1/quizzes/${quizId}/reviews`, method: 'GET',
+      return orvalCustomInstance<ReviewControllerMarkReviewHelpful200>(
+      {url: `/api/v1/reviews/${reviewId}/helpful`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: helpfulReviewDto
+    },
+      );
+    }
+  /**
+ * @summary Remove the helpful vote on a review
+ */
+const reviewControllerRemoveHelpfulVote = (
+    reviewId: string,
+ ) => {
+      return orvalCustomInstance<void>(
+      {url: `/api/v1/reviews/${reviewId}/helpful`, method: 'DELETE'
+    },
+      );
+    }
+  /**
+ * @summary Report a review
+ */
+const reviewControllerReportReview = (
+    reviewId: string,
+    reportReviewDto: ReportReviewDto,
+ ) => {
+      return orvalCustomInstance<ReviewControllerReportReview200>(
+      {url: `/api/v1/reviews/${reviewId}/report`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: reportReviewDto
+    },
+      );
+    }
+  /**
+ * @summary Get a review by ID
+ */
+const reviewControllerGetReviewById = (
+    reviewId: string,
+ ) => {
+      return orvalCustomInstance<ReviewControllerGetReviewById200>(
+      {url: `/api/v1/reviews/${reviewId}`, method: 'GET'
+    },
+      );
+    }
+  /**
+ * @summary List all reported reviews (moderator)
+ */
+const adminReviewControllerListPlatformReports = (
+    params?: AdminReviewControllerListPlatformReportsParams,
+ ) => {
+      return orvalCustomInstance<AdminReviewControllerListPlatformReports200>(
+      {url: `/api/v1/admin/reviews/reports`, method: 'GET',
         params
     },
       );
     }
   /**
- * Updates the authenticated user's existing review for a quiz.
- * @summary Update my review
+ * @summary Update the status of a report (moderator)
  */
-const reviewControllerUpdateReview = (
-    quizId: string,
-    updateReviewDto: UpdateReviewDto,
+const adminReviewControllerUpdateReportStatus = (
+    reportId: string,
+    updateReportStatusDto: UpdateReportStatusDto,
  ) => {
-      return orvalCustomInstance<UpdateReviewResponseDto>(
-      {url: `/api/v1/quizzes/${quizId}/reviews`, method: 'PATCH',
+      return orvalCustomInstance<AdminReviewControllerUpdateReportStatus200>(
+      {url: `/api/v1/admin/reviews/reports/${reportId}`, method: 'PATCH',
       headers: {'Content-Type': 'application/json', },
-      data: updateReviewDto
+      data: updateReportStatusDto
     },
       );
     }
   /**
- * Deletes the authenticated user's review for a quiz.
- * @summary Delete my review
+ * Phase 1 / Issue #22 — moderator route for removing any review, including reviews authored by other users. The self-delete endpoint `DELETE /quizzes/:quizId/reviews` is keyed on `(quizId, user.sub)` and cannot reach another author. The action is recorded in the audit log.
+ * @summary Delete any review (moderator)
  */
-const reviewControllerDeleteReview = (
-    quizId: string,
+const adminReviewControllerAdminDeleteReview = (
+    reviewId: string,
  ) => {
-      return orvalCustomInstance<DeleteReviewResponseDto>(
-      {url: `/api/v1/quizzes/${quizId}/reviews`, method: 'DELETE'
+      return orvalCustomInstance<void>(
+      {url: `/api/v1/admin/reviews/${reviewId}`, method: 'DELETE'
     },
       );
     }
-  return {reviewControllerCreateReview,reviewControllerListReviews,reviewControllerUpdateReview,reviewControllerDeleteReview}};
-export type ReviewControllerCreateReviewResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getReviews>['reviewControllerCreateReview']>>>
-export type ReviewControllerListReviewsResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getReviews>['reviewControllerListReviews']>>>
-export type ReviewControllerUpdateReviewResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getReviews>['reviewControllerUpdateReview']>>>
-export type ReviewControllerDeleteReviewResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getReviews>['reviewControllerDeleteReview']>>>
+  return {reviewControllerGetMyReviewDashboard,reviewControllerMarkReviewHelpful,reviewControllerRemoveHelpfulVote,reviewControllerReportReview,reviewControllerGetReviewById,adminReviewControllerListPlatformReports,adminReviewControllerUpdateReportStatus,adminReviewControllerAdminDeleteReview}};
+export type ReviewControllerGetMyReviewDashboardResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getReviews>['reviewControllerGetMyReviewDashboard']>>>
+export type ReviewControllerMarkReviewHelpfulResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getReviews>['reviewControllerMarkReviewHelpful']>>>
+export type ReviewControllerRemoveHelpfulVoteResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getReviews>['reviewControllerRemoveHelpfulVote']>>>
+export type ReviewControllerReportReviewResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getReviews>['reviewControllerReportReview']>>>
+export type ReviewControllerGetReviewByIdResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getReviews>['reviewControllerGetReviewById']>>>
+export type AdminReviewControllerListPlatformReportsResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getReviews>['adminReviewControllerListPlatformReports']>>>
+export type AdminReviewControllerUpdateReportStatusResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getReviews>['adminReviewControllerUpdateReportStatus']>>>
+export type AdminReviewControllerAdminDeleteReviewResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getReviews>['adminReviewControllerAdminDeleteReview']>>>

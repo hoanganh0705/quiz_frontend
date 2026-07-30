@@ -5,19 +5,18 @@
  * REST API for the quiz application
  * OpenAPI spec version: 1.0
  */
-import type { CreateCollectionDtoDescription } from './createCollectionDtoDescription';
 
 export interface CreateCollectionDto {
   /**
-   * Collection name
+   * Collection name. Whitespace is trimmed before validation; names containing only whitespace are rejected (must be at least 1 character after trimming). Must be unique per owner.
    * @minLength 1
    * @maxLength 100
    */
   name: string;
   /**
-   * Collection description
+   * Collection description (optional, may be null)
    * @maxLength 500
    * @nullable
    */
-  description?: CreateCollectionDtoDescription;
+  description?: string | null;
 }

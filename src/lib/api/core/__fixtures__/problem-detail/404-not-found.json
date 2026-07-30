@@ -1,0 +1,12 @@
+{
+  "type": "https://api.quiz.local/problems/quiz-not-found",
+  "title": "Not Found",
+  "status": 404,
+  "detail": "Quiz with slug trivia-101 not found",
+  "instance": "/api/v1/quizzes/trivia-101",
+  "extensions": {
+    "code": "QUIZ_NOT_FOUND",
+    "requestId": "req-001",
+    "timestamp": "2026-07-29T08:00:00Z"
+  }
+}

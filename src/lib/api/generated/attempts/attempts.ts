@@ -6,14 +6,20 @@
  * OpenAPI spec version: 1.0
  */
 import type {
-  AbandonAttemptResponseDto,
+  AttemptControllerAbandonAttempt200,
+  AttemptControllerCompleteAttempt200,
+  AttemptControllerGetAttemptAnalytics200,
+  AttemptControllerGetAttemptAnswers200,
+  AttemptControllerGetAttemptById200,
+  AttemptControllerGetAttemptReview200,
+  AttemptControllerGetMyAttemptStats200,
+  AttemptControllerListMyAttempts200,
   AttemptControllerListMyAttemptsParams,
-  AttemptListResponseDto,
-  AttemptResponseDto,
-  CompleteAttemptResponseDto,
+  AttemptControllerStartAttempt201,
+  AttemptControllerSubmitAnswer201,
+  AttemptControllerWithdrawAnswer200,
   StartAttemptDto,
-  SubmitAnswerDto,
-  SubmitAnswerResponseDto
+  SubmitAnswerDto
 } from '.././schemas';
 
 import { orvalCustomInstance } from '../../core/custom-instance';
@@ -29,7 +35,7 @@ const attemptControllerStartAttempt = (
     quizId: string,
     startAttemptDto: StartAttemptDto,
  ) => {
-      return orvalCustomInstance<AttemptResponseDto>(
+      return orvalCustomInstance<AttemptControllerStartAttempt201>(
       {url: `/api/v1/quizzes/${quizId}/attempts`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
       data: startAttemptDto
@@ -37,13 +43,13 @@ const attemptControllerStartAttempt = (
       );
     }
   /**
- * Returns the full attempt record including all answers for the authenticated user.
+ * Retrieves a single quiz attempt by its identifier. Only accessible by the attempt owner or admin.
  * @summary Get attempt by ID
  */
 const attemptControllerGetAttemptById = (
     attemptId: string,
  ) => {
-      return orvalCustomInstance<AttemptResponseDto>(
+      return orvalCustomInstance<AttemptControllerGetAttemptById200>(
       {url: `/api/v1/attempts/${attemptId}`, method: 'GET'
     },
       );
@@ -56,7 +62,7 @@ const attemptControllerSubmitAnswer = (
     attemptId: string,
     submitAnswerDto: SubmitAnswerDto,
  ) => {
-      return orvalCustomInstance<SubmitAnswerResponseDto>(
+      return orvalCustomInstance<AttemptControllerSubmitAnswer201>(
       {url: `/api/v1/attempts/${attemptId}/answers`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
       data: submitAnswerDto
@@ -64,46 +70,112 @@ const attemptControllerSubmitAnswer = (
       );
     }
   /**
- * Marks an in-progress attempt as abandoned. No XP is earned. The attempt cannot be resumed.
- * @summary Abandon attempt
+ * Returns all submitted answers for a specific attempt as raw submission records. Per-question correctness is intentionally not exposed by this endpoint; use GET /attempts/{attemptId}/analytics for aggregate scoring data.
+ * @summary Get attempt answers
+ */
+const attemptControllerGetAttemptAnswers = (
+    attemptId: string,
+ ) => {
+      return orvalCustomInstance<AttemptControllerGetAttemptAnswers200>(
+      {url: `/api/v1/attempts/${attemptId}/answers`, method: 'GET'
+    },
+      );
+    }
+  /**
+ * Removes a previously submitted answer from an active attempt.
+ * @summary Withdraw answer
+ */
+const attemptControllerWithdrawAnswer = (
+    attemptId: string,
+    questionId: string,
+ ) => {
+      return orvalCustomInstance<AttemptControllerWithdrawAnswer200>(
+      {url: `/api/v1/attempts/${attemptId}/answers/${questionId}`, method: 'DELETE'
+    },
+      );
+    }
+  /**
+ * Abandons an active quiz attempt. No score or XP is awarded for abandoned attempts.
+ * @summary Abandon quiz attempt
  */
 const attemptControllerAbandonAttempt = (
     attemptId: string,
  ) => {
-      return orvalCustomInstance<AbandonAttemptResponseDto>(
+      return orvalCustomInstance<AttemptControllerAbandonAttempt200>(
       {url: `/api/v1/attempts/${attemptId}/abandon`, method: 'POST'
     },
       );
     }
   /**
- * Manually finalizes an attempt and calculates the score. XP is awarded based on the result.
- * @summary Complete attempt
+ * Finalizes the attempt, computes the score, awards XP, and writes side effects. Only the owner (or an admin) of an attempt with status "started" can complete it.
+ * @summary Complete quiz attempt
  */
 const attemptControllerCompleteAttempt = (
     attemptId: string,
  ) => {
-      return orvalCustomInstance<CompleteAttemptResponseDto>(
+      return orvalCustomInstance<AttemptControllerCompleteAttempt200>(
       {url: `/api/v1/attempts/${attemptId}/complete`, method: 'POST'
     },
       );
     }
   /**
- * Returns a paginated list of all quiz attempts for the authenticated user.
+ * Returns a cursor-paginated list of attempts for the authenticated user. Supports filtering by status, quiz, category, tag, and date range.
  * @summary List my attempts
  */
 const attemptControllerListMyAttempts = (
     params?: AttemptControllerListMyAttemptsParams,
  ) => {
-      return orvalCustomInstance<AttemptListResponseDto>(
+      return orvalCustomInstance<AttemptControllerListMyAttempts200>(
       {url: `/api/v1/users/me/attempts`, method: 'GET',
         params
     },
       );
     }
-  return {attemptControllerStartAttempt,attemptControllerGetAttemptById,attemptControllerSubmitAnswer,attemptControllerAbandonAttempt,attemptControllerCompleteAttempt,attemptControllerListMyAttempts}};
+  /**
+ * Returns aggregated statistics for the authenticated user, including total attempts, average score, total time spent, and favorite category/tag.
+ * @summary Get my attempt statistics
+ */
+const attemptControllerGetMyAttemptStats = (
+    
+ ) => {
+      return orvalCustomInstance<AttemptControllerGetMyAttemptStats200>(
+      {url: `/api/v1/users/me/attempts/stats`, method: 'GET'
+    },
+      );
+    }
+  /**
+ * Returns detailed analytics for a completed attempt, including score, accuracy, percentile rank, and time spent. Analytics are only available for completed attempts.
+ * @summary Get attempt analytics
+ */
+const attemptControllerGetAttemptAnalytics = (
+    attemptId: string,
+ ) => {
+      return orvalCustomInstance<AttemptControllerGetAttemptAnalytics200>(
+      {url: `/api/v1/attempts/${attemptId}/analytics`, method: 'GET'
+    },
+      );
+    }
+  /**
+ * Returns a per-question debrief for a completed attempt, including the user's selected option, whether it was correct, and the full option set with `isCorrect` flags. Only available for completed attempts — in-progress or abandoned attempts return 422. Use this to render a "review your answers" experience after a user finishes a quiz.
+ * @summary Get post-attempt review
+ */
+const attemptControllerGetAttemptReview = (
+    attemptId: string,
+ ) => {
+      return orvalCustomInstance<AttemptControllerGetAttemptReview200>(
+      {url: `/api/v1/attempts/${attemptId}/review`, method: 'GET'
+    },
+      );
+    }
+  return {attemptControllerStartAttempt,attemptControllerGetAttemptById,attemptControllerSubmitAnswer,attemptControllerGetAttemptAnswers,attemptControllerWithdrawAnswer,attemptControllerAbandonAttempt,attemptControllerCompleteAttempt,attemptControllerListMyAttempts,attemptControllerGetMyAttemptStats,attemptControllerGetAttemptAnalytics,attemptControllerGetAttemptReview}};
 export type AttemptControllerStartAttemptResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getAttempts>['attemptControllerStartAttempt']>>>
 export type AttemptControllerGetAttemptByIdResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getAttempts>['attemptControllerGetAttemptById']>>>
 export type AttemptControllerSubmitAnswerResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getAttempts>['attemptControllerSubmitAnswer']>>>
+export type AttemptControllerGetAttemptAnswersResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getAttempts>['attemptControllerGetAttemptAnswers']>>>
+export type AttemptControllerWithdrawAnswerResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getAttempts>['attemptControllerWithdrawAnswer']>>>
 export type AttemptControllerAbandonAttemptResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getAttempts>['attemptControllerAbandonAttempt']>>>
 export type AttemptControllerCompleteAttemptResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getAttempts>['attemptControllerCompleteAttempt']>>>
 export type AttemptControllerListMyAttemptsResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getAttempts>['attemptControllerListMyAttempts']>>>
+export type AttemptControllerGetMyAttemptStatsResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getAttempts>['attemptControllerGetMyAttemptStats']>>>
+export type AttemptControllerGetAttemptAnalyticsResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getAttempts>['attemptControllerGetAttemptAnalytics']>>>
+export type AttemptControllerGetAttemptReviewResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getAttempts>['attemptControllerGetAttemptReview']>>>

@@ -7,6 +7,6 @@
  */
 
 export interface CloseInstanceResponseDto {
-  /** Close result */
+  /** Human-readable confirmation message returned by the close handler */
   message: string;
 }

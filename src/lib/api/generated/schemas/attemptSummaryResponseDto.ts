@@ -5,9 +5,8 @@
  * REST API for the quiz application
  * OpenAPI spec version: 1.0
  */
-import type { AttemptSummaryResponseDtoScorePercent } from './attemptSummaryResponseDtoScorePercent';
-import type { AttemptSummaryResponseDtoCorrectCount } from './attemptSummaryResponseDtoCorrectCount';
-import type { AttemptSummaryResponseDtoFinishedAt } from './attemptSummaryResponseDtoFinishedAt';
+import type { AttemptSummaryResponseDtoContextType } from './attemptSummaryResponseDtoContextType';
+import type { AttemptSummaryResponseDtoStatus } from './attemptSummaryResponseDtoStatus';
 
 export interface AttemptSummaryResponseDto {
   /** Unique attempt identifier */
@@ -23,26 +22,26 @@ export interface AttemptSummaryResponseDto {
   /** Difficulty level */
   difficulty: string;
   /** Context type */
-  contextType: string;
+  contextType: AttemptSummaryResponseDtoContextType;
   /** Attempt status */
-  status: string;
+  status: AttemptSummaryResponseDtoStatus;
   /**
    * Score percent (null if not yet complete)
    * @nullable
    */
-  scorePercent?: AttemptSummaryResponseDtoScorePercent;
+  scorePercent?: number | null;
   /**
    * Correct answer count (null if not yet complete)
    * @nullable
    */
-  correctCount?: AttemptSummaryResponseDtoCorrectCount;
+  correctCount?: number | null;
   /** Start timestamp (ISO 8601) */
   startedAt: string;
   /**
    * Completion timestamp (ISO 8601)
    * @nullable
    */
-  finishedAt?: AttemptSummaryResponseDtoFinishedAt;
+  finishedAt?: string | null;
   /** XP earned */
   xpEarned: number;
 }

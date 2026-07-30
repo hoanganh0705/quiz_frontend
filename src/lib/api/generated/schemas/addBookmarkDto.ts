@@ -5,7 +5,6 @@
  * REST API for the quiz application
  * OpenAPI spec version: 1.0
  */
-import type { AddBookmarkDtoNotes } from './addBookmarkDtoNotes';
 
 export interface AddBookmarkDto {
   /** UUID of the quiz to bookmark */
@@ -15,5 +14,5 @@ export interface AddBookmarkDto {
    * @maxLength 500
    * @nullable
    */
-  notes?: AddBookmarkDtoNotes;
+  notes?: string | null;
 }

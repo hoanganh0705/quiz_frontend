@@ -5,7 +5,6 @@
  * REST API for the quiz application
  * OpenAPI spec version: 1.0
  */
-import type { UpdateReviewResponseDtoComment } from './updateReviewResponseDtoComment';
 
 export interface UpdateReviewResponseDto {
   /** Review identifier */
@@ -18,7 +17,7 @@ export interface UpdateReviewResponseDto {
    * Updated review text
    * @nullable
    */
-  comment?: UpdateReviewResponseDtoComment;
+  comment?: string | null;
   /** Last update timestamp (ISO 8601) */
   updatedAt: string;
 }

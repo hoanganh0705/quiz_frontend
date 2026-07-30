@@ -5,9 +5,7 @@
  * REST API for the quiz application
  * OpenAPI spec version: 1.0
  */
-import type { CompleteAttemptResponseDtoScorePercent } from './completeAttemptResponseDtoScorePercent';
-import type { CompleteAttemptResponseDtoCorrectCount } from './completeAttemptResponseDtoCorrectCount';
-import type { CompleteAttemptResponseDtoTimeTakenMs } from './completeAttemptResponseDtoTimeTakenMs';
+import type { CompleteAttemptResponseDtoStatus } from './completeAttemptResponseDtoStatus';
 
 export interface CompleteAttemptResponseDto {
   /** Attempt identifier */
@@ -15,16 +13,22 @@ export interface CompleteAttemptResponseDto {
   /** Quiz identifier */
   quizId: string;
   /** Final status */
-  status: string;
-  /** Final score percent */
-  scorePercent: CompleteAttemptResponseDtoScorePercent;
-  /** Correct answer count */
-  correctCount: CompleteAttemptResponseDtoCorrectCount;
+  status: CompleteAttemptResponseDtoStatus;
+  /**
+   * Final score percent (null if not yet complete)
+   * @nullable
+   */
+  scorePercent?: number | null;
+  /**
+   * Correct answer count
+   * @nullable
+   */
+  correctCount?: number | null;
   /**
    * Total time taken in milliseconds
    * @nullable
    */
-  timeTakenMs?: CompleteAttemptResponseDtoTimeTakenMs;
+  timeTakenMs?: number | null;
   /** Total XP earned */
   xpEarned: number;
   /** Completion timestamp (ISO 8601) */

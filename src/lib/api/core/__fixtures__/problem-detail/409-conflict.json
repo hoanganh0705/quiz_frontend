@@ -1,0 +1,12 @@
+{
+  "type": "https://api.quiz.local/problems/quiz-slug-conflict",
+  "title": "Conflict",
+  "status": 409,
+  "detail": "A quiz with slug trivia-101 already exists",
+  "instance": "/api/v1/quizzes",
+  "extensions": {
+    "code": "QUIZ_SLUG_CONFLICT",
+    "requestId": "req-003",
+    "timestamp": "2026-07-29T08:00:00Z"
+  }
+}

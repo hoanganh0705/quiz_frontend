@@ -16,6 +16,5 @@ export type TournamentRoundResponseDtoStatus = typeof TournamentRoundResponseDto
 export const TournamentRoundResponseDtoStatus = {
   pending: 'pending',
   open: 'open',
-  running: 'running',
   finished: 'finished',
 } as const;

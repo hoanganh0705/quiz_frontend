@@ -5,9 +5,6 @@
  * REST API for the quiz application
  * OpenAPI spec version: 1.0
  */
-import type { BookmarkedQuizResponseDtoQuizImageUrl } from './bookmarkedQuizResponseDtoQuizImageUrl';
-import type { BookmarkedQuizResponseDtoQuizDifficulty } from './bookmarkedQuizResponseDtoQuizDifficulty';
-import type { BookmarkedQuizResponseDtoNotes } from './bookmarkedQuizResponseDtoNotes';
 
 export interface BookmarkedQuizResponseDto {
   /** Bookmark record identifier */
@@ -22,19 +19,14 @@ export interface BookmarkedQuizResponseDto {
    * Quiz cover image URL
    * @nullable
    */
-  quizImageUrl?: BookmarkedQuizResponseDtoQuizImageUrl;
+  quizImageUrl?: string | null;
   /** Whether the quiz is featured */
   quizIsFeatured: boolean;
-  /**
-   * Quiz difficulty
-   * @nullable
-   */
-  quizDifficulty?: BookmarkedQuizResponseDtoQuizDifficulty;
   /**
    * Personal notes
    * @nullable
    */
-  notes?: BookmarkedQuizResponseDtoNotes;
+  notes?: string | null;
   /** Bookmark creation timestamp (ISO 8601) */
   bookmarkedAt: string;
 }

@@ -7,6 +7,6 @@
  */
 
 export interface LogoutResponseDto {
-  /** Logout confirmation */
+  /** Logout confirmation. The exact message varies by endpoint: `POST /auth/logout` returns "Logged out successfully"; `POST /auth/logout-all` returns "Logged out from all sessions successfully". */
   message: string;
 }

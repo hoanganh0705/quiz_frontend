@@ -5,8 +5,6 @@
  * REST API for the quiz application
  * OpenAPI spec version: 1.0
  */
-import type { CategoryResponseDtoDescription } from './categoryResponseDtoDescription';
-import type { CategoryResponseDtoImageUrl } from './categoryResponseDtoImageUrl';
 
 export interface CategoryResponseDto {
   /** Unique category identifier */
@@ -17,14 +15,14 @@ export interface CategoryResponseDto {
    * Category description
    * @nullable
    */
-  description?: CategoryResponseDtoDescription;
+  description?: string | null;
   /** URL-friendly slug */
   slug: string;
   /**
    * Category cover image URL
    * @nullable
    */
-  imageUrl?: CategoryResponseDtoImageUrl;
+  imageUrl?: string | null;
   /** Creation timestamp (ISO 8601) */
   createdAt: string;
   /** Last update timestamp (ISO 8601) */

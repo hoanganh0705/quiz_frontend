@@ -5,9 +5,7 @@
  * REST API for the quiz application
  * OpenAPI spec version: 1.0
  */
-import type { TournamentLeaderboardEntryDtoDisplayName } from './tournamentLeaderboardEntryDtoDisplayName';
-import type { TournamentLeaderboardEntryDtoAvatarUrl } from './tournamentLeaderboardEntryDtoAvatarUrl';
-import type { TournamentLeaderboardEntryDtoRankFinal } from './tournamentLeaderboardEntryDtoRankFinal';
+import type { TournamentLeaderboardEntryDtoStatus } from './tournamentLeaderboardEntryDtoStatus';
 
 export interface TournamentLeaderboardEntryDto {
   /** Current rank */
@@ -22,12 +20,12 @@ export interface TournamentLeaderboardEntryDto {
    * Display name
    * @nullable
    */
-  displayName?: TournamentLeaderboardEntryDtoDisplayName;
+  displayName?: string | null;
   /**
    * Avatar image URL
    * @nullable
    */
-  avatarUrl?: TournamentLeaderboardEntryDtoAvatarUrl;
+  avatarUrl?: string | null;
   /** Total accumulated score */
   totalScore: number;
   /** Total time in milliseconds */
@@ -36,7 +34,7 @@ export interface TournamentLeaderboardEntryDto {
    * Final rank (null if not yet decided)
    * @nullable
    */
-  rankFinal?: TournamentLeaderboardEntryDtoRankFinal;
+  rankFinal?: number | null;
   /** Participant status */
-  status: string;
+  status: TournamentLeaderboardEntryDtoStatus;
 }

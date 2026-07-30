@@ -5,7 +5,6 @@
  * REST API for the quiz application
  * OpenAPI spec version: 1.0
  */
-import type { CreateQuizQuestionDtoImageUrl } from './createQuizQuestionDtoImageUrl';
 import type { CreateQuizAnswerOptionDto } from './createQuizAnswerOptionDto';
 
 export interface CreateQuizQuestionDto {
@@ -25,11 +24,11 @@ export interface CreateQuizQuestionDto {
    * @maxLength 2048
    * @nullable
    */
-  imageUrl?: CreateQuizQuestionDtoImageUrl;
+  imageUrl?: string | null;
   /**
    * Answer options (minimum 2, maximum 10)
    * @minItems 2
    * @maxItems 10
    */
-  answerOptions: CreateQuizAnswerOptionDto[];
+  answerOptions: CreateQuizAnswerOptionDto;
 }

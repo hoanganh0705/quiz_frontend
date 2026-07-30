@@ -5,9 +5,6 @@
  * REST API for the quiz application
  * OpenAPI spec version: 1.0
  */
-import type { UserMeResponseDtoDisplayName } from './userMeResponseDtoDisplayName';
-import type { UserMeResponseDtoAvatarUrl } from './userMeResponseDtoAvatarUrl';
-import type { UserMeResponseDtoBio } from './userMeResponseDtoBio';
 import type { UserMeResponseDtoSettings } from './userMeResponseDtoSettings';
 
 export interface UserMeResponseDto {
@@ -21,18 +18,18 @@ export interface UserMeResponseDto {
    * Display name
    * @nullable
    */
-  displayName?: UserMeResponseDtoDisplayName;
+  displayName?: string | null;
   /**
    * Avatar image URL
    * @nullable
    */
-  avatarUrl?: UserMeResponseDtoAvatarUrl;
+  avatarUrl?: string | null;
   /**
    * User bio
    * @nullable
    */
-  bio?: UserMeResponseDtoBio;
-  /** Total experience points earned */
+  bio?: string | null;
+  /** Total experience points earned. A value of 0 means the user has no `user_ranking` row yet (brand-new user). The row is created and this value is initialised the first time the user reads `GET /users/me/ranking` (write-on-read upsert — see audit F-19). */
   xpTotal: number;
   /** Current daily quiz streak */
   currentStreak: number;
@@ -42,6 +39,6 @@ export interface UserMeResponseDto {
   settings: UserMeResponseDtoSettings;
   /** Account creation timestamp (ISO 8601) */
   createdAt: string;
-  /** Last profile update timestamp (ISO 8601) */
+  /** Last write to the user record (any column, not just profile). ISO 8601 timestamp. */
   updatedAt: string;
 }

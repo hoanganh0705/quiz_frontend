@@ -7,8 +7,8 @@
  */
 
 export interface CreateInstanceDto {
-  /** UUID of the published quiz version to host */
-  quizVersionId: string;
+  /** UUID of the quiz to host. The latest published version of the quiz is resolved server-side. */
+  quizId: string;
   /**
    * Maximum number of players (2–100, defaults to unlimited)
    * @minimum 2

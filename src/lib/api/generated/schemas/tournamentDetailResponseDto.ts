@@ -5,14 +5,8 @@
  * REST API for the quiz application
  * OpenAPI spec version: 1.0
  */
-import type { TournamentDetailResponseDtoDescription } from './tournamentDetailResponseDtoDescription';
 import type { TournamentDetailResponseDtoDifficulty } from './tournamentDetailResponseDtoDifficulty';
 import type { TournamentDetailResponseDtoStatus } from './tournamentDetailResponseDtoStatus';
-import type { TournamentDetailResponseDtoPrize } from './tournamentDetailResponseDtoPrize';
-import type { TournamentDetailResponseDtoMaxParticipants } from './tournamentDetailResponseDtoMaxParticipants';
-import type { TournamentDetailResponseDtoCategoryId } from './tournamentDetailResponseDtoCategoryId';
-import type { TournamentDetailResponseDtoCategoryName } from './tournamentDetailResponseDtoCategoryName';
-import type { TournamentDetailResponseDtoCategorySlug } from './tournamentDetailResponseDtoCategorySlug';
 import type { TournamentRoundResponseDto } from './tournamentRoundResponseDto';
 
 export interface TournamentDetailResponseDto {
@@ -24,7 +18,7 @@ export interface TournamentDetailResponseDto {
    * Tournament description
    * @nullable
    */
-  description?: TournamentDetailResponseDtoDescription;
+  description?: string | null;
   /** Difficulty level */
   difficulty: TournamentDetailResponseDtoDifficulty;
   /** Lifecycle status */
@@ -33,7 +27,7 @@ export interface TournamentDetailResponseDto {
    * Prize description
    * @nullable
    */
-  prize?: TournamentDetailResponseDtoPrize;
+  prize?: string | null;
   /** Start timestamp (ISO 8601) */
   startAt: string;
   /** End timestamp (ISO 8601) */
@@ -42,12 +36,14 @@ export interface TournamentDetailResponseDto {
    * Maximum participants
    * @nullable
    */
-  maxParticipants?: TournamentDetailResponseDtoMaxParticipants;
+  maxParticipants?: number | null;
   /**
    * Associated category identifier
    * @nullable
    */
-  categoryId?: TournamentDetailResponseDtoCategoryId;
+  categoryId?: string | null;
+  /** Phase 1 / Issue #2 — UUID of the user who created the tournament. Used by the authorization layer for `PATCH /tournaments/:id`, `DELETE /tournaments/:id`, and `POST /tournaments/:id/cancel`. The application-layer policy compares this against the JWT subject to decide whether the caller can mutate the tournament. */
+  ownerUserId: string;
   /** Creation timestamp (ISO 8601) */
   createdAt: string;
   /** Last update timestamp (ISO 8601) */
@@ -56,12 +52,12 @@ export interface TournamentDetailResponseDto {
    * Associated category name
    * @nullable
    */
-  categoryName?: TournamentDetailResponseDtoCategoryName;
+  categoryName?: string | null;
   /**
    * Associated category slug
    * @nullable
    */
-  categorySlug?: TournamentDetailResponseDtoCategorySlug;
+  categorySlug?: string | null;
   /** Number of registered participants */
   totalParticipants: number;
   /** Tournament rounds */

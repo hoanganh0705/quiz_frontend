@@ -7,7 +7,7 @@
  */
 
 export interface LoginResponseDto {
-  /** Unique user identifier */
+  /** Unique user identifier (UUIDv7) */
   userId: string;
   /** Username */
   username: string;
@@ -15,4 +15,6 @@ export interface LoginResponseDto {
   email: string;
   /** JWT access token for authenticated requests */
   accessToken: string;
+  /** Current session identifier for session management operations (UUIDv7) */
+  sessionId: string;
 }

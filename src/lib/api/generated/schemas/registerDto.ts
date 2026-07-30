@@ -8,7 +8,7 @@
 
 export interface RegisterDto {
   /**
-   * Unique username (letters, numbers, periods, underscores, hyphens)
+   * Username (case-insensitive; stored lowercase). Accepts letters, numbers, periods, underscores, hyphens.
    * @minLength 3
    * @maxLength 50
    * @pattern ^[a-zA-Z0-9._-]+$
@@ -20,9 +20,9 @@ export interface RegisterDto {
    */
   email: string;
   /**
-   * Password: minimum 6 characters, must contain 1 uppercase letter, 1 number, 1 special character
-   * @minLength 6
-   * @maxLength 100
+   * Password: minimum 8 characters, must contain at least one uppercase letter, one lowercase letter, and one number
+   * @minLength 8
+   * @maxLength 128
    */
   password: string;
 }

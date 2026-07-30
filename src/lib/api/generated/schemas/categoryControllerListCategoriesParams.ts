@@ -5,6 +5,8 @@
  * REST API for the quiz application
  * OpenAPI spec version: 1.0
  */
+import type { CategoryControllerListCategoriesSort } from './categoryControllerListCategoriesSort';
+import type { CategoryControllerListCategoriesOrder } from './categoryControllerListCategoriesOrder';
 
 export type CategoryControllerListCategoriesParams = {
 /**
@@ -19,4 +21,14 @@ cursor?: string | null;
  * @nullable
  */
 limit?: number | null;
+/**
+ * Sort categories by name or creation date
+ * @nullable
+ */
+sort?: CategoryControllerListCategoriesSort;
+/**
+ * Sort direction (ascending or descending)
+ * @nullable
+ */
+order?: CategoryControllerListCategoriesOrder;
 };

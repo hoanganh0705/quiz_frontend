@@ -5,7 +5,6 @@
  * REST API for the quiz application
  * OpenAPI spec version: 1.0
  */
-import type { UpdateCollectionResponseDtoDescription } from './updateCollectionResponseDtoDescription';
 
 export interface UpdateCollectionResponseDto {
   /** Collection identifier */
@@ -16,7 +15,7 @@ export interface UpdateCollectionResponseDto {
    * Collection description
    * @nullable
    */
-  description?: UpdateCollectionResponseDtoDescription;
+  description?: string | null;
   /** Creation timestamp (ISO 8601) */
   createdAt: string;
   /** Last update timestamp (ISO 8601) */

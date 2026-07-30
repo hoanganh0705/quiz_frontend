@@ -5,6 +5,8 @@
  * REST API for the quiz application
  * OpenAPI spec version: 1.0
  */
+import type { AttemptControllerListMyAttemptsStatus } from './attemptControllerListMyAttemptsStatus';
+import type { AttemptControllerListMyAttemptsSortBy } from './attemptControllerListMyAttemptsSortBy';
 
 export type AttemptControllerListMyAttemptsParams = {
 /**
@@ -19,4 +21,39 @@ cursor?: string | null;
  * @nullable
  */
 limit?: number | null;
+/**
+ * Filter attempts by status
+ * @nullable
+ */
+status?: AttemptControllerListMyAttemptsStatus;
+/**
+ * Filter attempts by quiz identifier
+ * @nullable
+ */
+quizId?: string | null;
+/**
+ * Filter attempts by category identifier
+ * @nullable
+ */
+categoryId?: string | null;
+/**
+ * Filter attempts by tag identifier
+ * @nullable
+ */
+tagId?: string | null;
+/**
+ * Filter attempts created on or after this ISO 8601 timestamp
+ * @nullable
+ */
+fromDate?: string | null;
+/**
+ * Filter attempts created on or before this ISO 8601 timestamp
+ * @nullable
+ */
+toDate?: string | null;
+/**
+ * Sort field for attempt history
+ * @nullable
+ */
+sortBy?: AttemptControllerListMyAttemptsSortBy;
 };

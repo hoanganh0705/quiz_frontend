@@ -1,19 +1,37 @@
 /**
- * Auth wrapper — wraps API calls with auth-specific logic.
+ * Auth wrapper — handles cookie + cross-tab side-effects for the auth
+ * endpoints that remain outside the registration epic (login, logout,
+ * email verification, etc.).
  *
- * This layer handles:
- * - Setting tokens after login/register
- * - Cross-tab auth state sync
- * - Redirects on auth errors
+ * Source epic: Epic 2.1 — Registration form and availability guidance.
+ * Source ticket: TKT-2.1.E2.
  *
- * All HTTP calls go through the generated SDK (TKT-1.2.2.2). The wrapper
- * owns the cross-cutting side-effects that the SDK itself cannot express:
- * cookie persistence on the client (`setAuthToken` / `clearAuthToken`) and
- * `BroadcastChannel('auth')` events for cross-tab synchronization.
+ * ## What this file is and is NOT
  *
- * SDK access goes through `@/lib/api` (the barrel from TKT-1.2.1.1).
- * TKT-1.2.2.4 verified that all consumers of this file import from the
- * barrel path; this file itself follows the same rule.
+ * After TKT-2.1.E2, this wrapper contains **zero references** to
+ * `register`, `checkEmail`, or `checkUsername` (E2 acceptance criterion
+ * 2). The registration epic's calls all flow through
+ * `features/auth/service/auth.service.ts`, never through this file.
+ *
+ * The wrapper still exists because the login flow, logout flow, and
+ * email-verification flow depend on side-effects the SDK cannot express
+ * (cookie persistence, `BroadcastChannel('auth')` cross-tab sync). Those
+ * side-effects live behind a single set of helpers:
+ *
+ *   - `setAuthToken` / `clearAuthToken` in
+ *     `features/auth/utils/auth-cookies.ts`.
+ *   - A module-local `broadcastAuth()` for cross-tab sync.
+ *
+ * Phase 3 will move `login`/`logout`/`verifyEmail`/`resendVerificationEmail`
+ * into `auth.service.ts`; at that point this file can be deleted. Until
+ * then it is a transitional helper.
+ *
+ * ## SDK access
+ *
+ * The wrapper does not import `axios` or any `@/lib/api/generated/**`
+ * symbol directly. It only calls `getAuth()` (the public builder) so
+ * the linter and the cross-epic "thin service layer" rule are both
+ * satisfied.
  */
 
 import {
@@ -23,8 +41,6 @@ import {
 import type {
   LoginRequest,
   LoginResponse,
-  RegisterRequest,
-  RegisterResponse,
   VerifyEmailRequest,
   VerifyEmailResponse,
   ResendVerificationRequest,
@@ -32,24 +48,22 @@ import type {
 } from '@/features/auth/types';
 import { getAuth } from '@/lib/api';
 
-// ─── Auth Endpoints (no Bearer token needed) ────────────────────────────────────
-
-export async function register(payload: RegisterRequest): Promise<RegisterResponse> {
-  return getAuth().authControllerRegister(payload);
+function broadcastAuth(
+  payload:
+    | { type: 'TOKEN_REFRESHED'; accessToken: string }
+    | { type: 'LOGGED_OUT' }
+) {
+  if (typeof BroadcastChannel === 'undefined') return;
+  new BroadcastChannel('auth').postMessage(payload);
 }
 
 export async function login(payload: LoginRequest): Promise<LoginResponse> {
   const data = await getAuth().authControllerLogin(payload);
-
   setAuthToken(data.accessToken);
-
-  if (typeof BroadcastChannel !== 'undefined') {
-    new BroadcastChannel('auth').postMessage({
-      type: 'TOKEN_REFRESHED',
-      accessToken: data.accessToken,
-    });
-  }
-
+  broadcastAuth({
+    type: 'TOKEN_REFRESHED',
+    accessToken: data.accessToken,
+  });
   return data;
 }
 
@@ -70,10 +84,7 @@ export async function logout(): Promise<LogoutResponse> {
     return await getAuth().authControllerLogout();
   } finally {
     clearAuthToken();
-
-    if (typeof BroadcastChannel !== 'undefined') {
-      new BroadcastChannel('auth').postMessage({ type: 'LOGGED_OUT' });
-    }
+    broadcastAuth({ type: 'LOGGED_OUT' });
   }
 }
 
@@ -82,9 +93,6 @@ export async function logoutAll(): Promise<LogoutResponse> {
     return await getAuth().authControllerLogoutAll();
   } finally {
     clearAuthToken();
-
-    if (typeof BroadcastChannel !== 'undefined') {
-      new BroadcastChannel('auth').postMessage({ type: 'LOGGED_OUT' });
-    }
+    broadcastAuth({ type: 'LOGGED_OUT' });
   }
 }

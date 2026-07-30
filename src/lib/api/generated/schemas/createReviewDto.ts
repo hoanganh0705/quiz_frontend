@@ -5,7 +5,6 @@
  * REST API for the quiz application
  * OpenAPI spec version: 1.0
  */
-import type { CreateReviewDtoComment } from './createReviewDtoComment';
 
 export interface CreateReviewDto {
   /**
@@ -19,5 +18,10 @@ export interface CreateReviewDto {
    * @maxLength 1000
    * @nullable
    */
-  comment?: CreateReviewDtoComment;
+  comment?: string | null;
+  /**
+   * Idempotency key to prevent duplicate review submissions on retry. If a review was already submitted with this key, the cached response is returned.
+   * @nullable
+   */
+  idempotencyKey?: string | null;
 }

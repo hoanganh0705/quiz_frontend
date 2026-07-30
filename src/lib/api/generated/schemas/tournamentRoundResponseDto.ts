@@ -5,12 +5,7 @@
  * REST API for the quiz application
  * OpenAPI spec version: 1.0
  */
-import type { TournamentRoundResponseDtoDescription } from './tournamentRoundResponseDtoDescription';
-import type { TournamentRoundResponseDtoStartAt } from './tournamentRoundResponseDtoStartAt';
-import type { TournamentRoundResponseDtoEndAt } from './tournamentRoundResponseDtoEndAt';
-import type { TournamentRoundResponseDtoDurationMs } from './tournamentRoundResponseDtoDurationMs';
 import type { TournamentRoundResponseDtoStatus } from './tournamentRoundResponseDtoStatus';
-import type { TournamentRoundResponseDtoParticipantLimit } from './tournamentRoundResponseDtoParticipantLimit';
 
 export interface TournamentRoundResponseDto {
   /** Round identifier */
@@ -25,24 +20,24 @@ export interface TournamentRoundResponseDto {
    * Round description
    * @nullable
    */
-  description?: TournamentRoundResponseDtoDescription;
+  description?: string | null;
   /** Quiz version used in this round */
   quizVersionId: string;
   /**
    * Scheduled start timestamp (ISO 8601)
    * @nullable
    */
-  startAt?: TournamentRoundResponseDtoStartAt;
+  startAt?: string | null;
   /**
    * Scheduled end timestamp (ISO 8601)
    * @nullable
    */
-  endAt?: TournamentRoundResponseDtoEndAt;
+  endAt?: string | null;
   /**
    * Round duration in milliseconds
    * @nullable
    */
-  durationMs?: TournamentRoundResponseDtoDurationMs;
+  durationMs?: number | null;
   /** Round status */
   status: TournamentRoundResponseDtoStatus;
   /** Whether incorrect answers result in elimination */
@@ -51,7 +46,7 @@ export interface TournamentRoundResponseDto {
    * Maximum participants in this round
    * @nullable
    */
-  participantLimit?: TournamentRoundResponseDtoParticipantLimit;
+  participantLimit?: number | null;
   /** Creation timestamp (ISO 8601) */
   createdAt: string;
   /** Last update timestamp (ISO 8601) */
