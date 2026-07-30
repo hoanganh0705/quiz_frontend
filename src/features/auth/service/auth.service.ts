@@ -57,11 +57,13 @@ import {
 import type {
   AuthControllerCheckEmailResult,
   AuthControllerCheckUsernameResult,
+  AuthControllerForgotPasswordResult,
   AuthControllerLoginResult,
   AuthControllerLogoutResult,
   AuthControllerLogoutAllResult,
   AuthControllerRegisterResult,
   AuthControllerResendVerificationEmailResult,
+  AuthControllerResetPasswordResult,
   AuthControllerVerifyEmailResult,
 } from "@/lib/api/generated/auth/auth";
 
@@ -213,4 +215,54 @@ export async function resendVerificationEmail(
   >[0],
 ): Promise<AuthControllerResendVerificationEmailResult> {
   return getAuth().authControllerResendVerificationEmail(dto);
+}
+
+/**
+ * `POST /api/v1/auth/forgot-password`
+ *
+ * Source epic: Epic 2.3 — Forgot-password and reset-password recovery.
+ * Source tickets: TKT-2.3.B1, TKT-2.3.A1 (SDK verification).
+ *
+ * Initiates the password-recovery flow. Returns a generic acknowledgment
+ * regardless of whether the address exists / is unverified / is verified
+ * — anti-enumeration is the backend's invariant; this module is a pure
+ * forwarder. The 429/5xx surface the backend emits is collapsed into the
+ * same envelope by the B2 mapper.
+ *
+ * Anonymous call: no cookie or broadcast side-effects. The user is not
+ * authenticated, so the cross-tab sync machinery in `login` / `logout`
+ * does not apply.
+ */
+export async function forgotPassword(
+  dto: Parameters<
+    ReturnType<typeof getAuth>["authControllerForgotPassword"]
+  >[0],
+): Promise<AuthControllerForgotPasswordResult> {
+  return getAuth().authControllerForgotPassword(dto);
+}
+
+/**
+ * `POST /api/v1/auth/reset-password`
+ *
+ * Source epic: Epic 2.3 — Forgot-password and reset-password recovery.
+ * Source tickets: TKT-2.3.B1, TKT-2.3.A1 (SDK verification).
+ *
+ * Completes the password-recovery flow using a token from the
+ * reset-password email. The response is `201 Created` with a generic
+ * `{ message }` body. The backend invalidates ALL active sessions on
+ * success; the cross-tab `LOGGED_OUT` broadcast and the local
+ * `auth_token` cookie clear are the **caller's** responsibility (see
+ * `useResetPassword` in the form layer, TKT-2.3.C5).
+ *
+ * Anonymous call: no cookie or broadcast side-effects in this module.
+ * The hook composes the side-effects because they are a UX concern
+ * (the user has to be routed to `/login` after the reset succeeds),
+ * not a transport concern.
+ */
+export async function resetPassword(
+  dto: Parameters<
+    ReturnType<typeof getAuth>["authControllerResetPassword"]
+  >[0],
+): Promise<AuthControllerResetPasswordResult> {
+  return getAuth().authControllerResetPassword(dto);
 }
