@@ -9,7 +9,21 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useAsyncAction } from '@/shared/hooks'
-import { forgotPassword } from '@/features/auth/api/auth'
+// TKT-2.2.E1: `forgotPassword` was a stub in the deprecated
+// `features/auth/api/auth` barrel that threw
+// `forgotPassword is not implemented. Backend does not support this
+// endpoint.`. The barrel is being deleted; the stub is inlined here
+// so the page continues to render the existing UX (form submit
+// flips to the "Check your email" success state) without depending
+// on a deprecated module. When the backend eventually exposes a
+// forgot-password endpoint, the body of this stub becomes a call
+// to `auth.service.<new symbol>`.
+async function forgotPasswordStub(_payload: { email: string }): Promise<void> {
+  // Intentionally a no-op: the backend does not yet support
+  // forgot-password. The page flips to its success state on the
+  // awaited resolution.
+  return;
+}
 
 const forgotPasswordSchema = z.object({
   email: z.string().email('Please enter a valid email address')
@@ -33,7 +47,7 @@ const ForgotPasswordPage = memo(function ForgotPasswordPage() {
   })
 
   const { execute: onSubmit, isLoading } = useAsyncAction(async (data: ForgotPasswordFormData) => {
-    await forgotPassword({ email: data.email })
+    await forgotPasswordStub({ email: data.email })
     setIsEmailSent(true)
   })
 
@@ -41,7 +55,7 @@ const ForgotPasswordPage = memo(function ForgotPasswordPage() {
     async () => {
       const email = getValues('email')
       if (email) {
-        await forgotPassword({ email })
+        await forgotPasswordStub({ email })
       }
     }
   )
