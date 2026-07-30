@@ -122,3 +122,45 @@ export function containsEnumerationOracle(message: string): boolean {
   const lower = message.toLowerCase();
   return ENUMERATION_PHRASES.some((phrase) => lower.includes(phrase));
 }
+
+/**
+ * The set of `extensions.code` values that an auth-recovery mapper
+ * (forgot / reset) MUST recognise. The mapper dispatches on the
+ * code, not on the HTTP status, because the backend uses the same
+ * `400` status for many distinct failure modes — only the code
+ * distinguishes `'invalid_token'` from `'validation_failed'`.
+ *
+ * Source epic: Epic 2.3 — Forgot-password and reset-password recovery.
+ * Source ticket: TKT-2.3.B2.
+ *
+ * The set is intentionally narrow. The mapper does NOT iterate over
+ * the entire `ErrorCode` union (122 members); it only cares about
+ * the three codes that gate the recovery flow:
+ *
+ *   - `AUTH_INVALID_TOKEN` — reset only; the backend returns this
+ *       for unknown, expired, and consumed tokens. The mapper
+ *       collapses the three into a single `'invalid_link'` kind.
+ *   - `GLOBAL_VALIDATION_FAILED` — reset only; the backend's
+ *       `class-validator` emits this when the new password
+ *       violates a rule that the client-side `passwordSchema` did
+ *       not catch. The mapper returns `'validation'` and the page
+ *       shows the recoverable failure copy.
+ *   - `GLOBAL_RATE_LIMITED` — both endpoints; the backend's
+ *       `@Throttle()` decorator emits this on `429`. The mapper
+ *       returns `'rate_limited'`.
+ */
+export type RecoveryErrorCode =
+  | 'AUTH_INVALID_TOKEN'
+  | 'GLOBAL_VALIDATION_FAILED'
+  | 'GLOBAL_RATE_LIMITED';
+
+/**
+ * Convenience: pull the synthetic code list out of the
+ * `auth-shapes` module so the recovery mapper can dispatch on it
+ * without re-importing from `@/lib/api/error-codes`.
+ */
+export const RECOVERY_ERROR_CODES: ReadonlyArray<string> = Object.freeze([
+  'AUTH_INVALID_TOKEN',
+  'GLOBAL_VALIDATION_FAILED',
+  'GLOBAL_RATE_LIMITED',
+]);
