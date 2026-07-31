@@ -6,6 +6,7 @@
  *   - TKT-2.1.B1 — `checkEmail` / `checkUsername` re-exports.
  *   - TKT-2.1.E2 — `register` / `login` / `logout` / `logoutAll` /
  *     `verifyEmail` / `resendVerificationEmail` re-exports.
+ *   - 2.9.T4 — `verifyPassword` / `changePassword` / `revalidateAfterPasswordChange` re-exports.
  *
  * ## Boundaries
  *
@@ -59,6 +60,7 @@ import {
   broadcastAuthEvent,
   type LoggedInEvent,
 } from "@/lib/api/core/broadcast-channel";
+import { clearVerificationFlags } from "@/features/auth/utils/verification-flag";
 import type {
   AuthControllerCheckEmailResult,
   AuthControllerCheckUsernameResult,
@@ -75,9 +77,17 @@ import type {
 } from "@/lib/api/generated/auth/auth";
 import type {
   AccountSecurityDto,
+  ChangePasswordDto,
+  ChangePasswordResponseDto,
   SessionListResponseDto,
   SessionManagementResultDto,
+  VerifyPasswordDto,
+  VerifyPasswordResponseDto,
 } from "@/lib/api";
+import {
+  AuthControllerChangePasswordResult,
+  AuthControllerVerifyPasswordResult,
+} from "@/lib/api/generated/auth/auth";
 import { ApiError } from "@/lib/api/core/ApiError";
 
 /**
@@ -334,6 +344,14 @@ export async function logout(): Promise<AuthControllerLogoutResult> {
   try {
     return await getAuth().authControllerLogout();
   } finally {
+    // Epic 2.9 / 2.9.T10 — wipe any in-memory "recently verified"
+    // flags so a stale flag cannot survive a local logout. The
+    // broadcast listener in `custom-instance.ts` already wipes
+    // the flag in sibling tabs; this call covers THIS tab's
+    // pending in-memory state. Order matters: wipe before
+    // `broadcastLogout()` so the receiving tab's listener sees a
+    // consistent state.
+    clearVerificationFlags();
     clearAuthToken();
     clearAllAuthCache();
     broadcastLogout();
@@ -368,6 +386,10 @@ export async function logoutAll(): Promise<AuthControllerLogoutAllResult> {
   try {
     return await getAuth().authControllerLogoutAll();
   } finally {
+    // Epic 2.9 / 2.9.T10 — same discipline as `logout()`; wipe
+    // any in-memory "recently verified" flags before broadcasting
+    // so the receiving tab's listener sees consistent state.
+    clearVerificationFlags();
     clearAuthToken();
     clearAllAuthCache();
     broadcastLogout();
@@ -620,6 +642,11 @@ export async function revokeCurrentSession(
     // this tab from re-receiving its own broadcast; the hook handles
     // the same-tab redirect via `router.push('/login')` after this
     // resolves.
+    //
+    // Epic 2.9 / 2.9.T10 — wipe any in-memory "recently verified"
+    // flags BEFORE broadcasting, so the receiving tab's listener
+    // sees consistent state.
+    clearVerificationFlags();
     clearAuthToken();
     clearAllAuthCache();
     broadcastAuthEvent({ type: "LOGGED_OUT" });
@@ -716,6 +743,221 @@ export async function resetPassword(
   return getAuth().authControllerResetPassword(dto);
 }
 
+// ─── Password Management SDK Wrappers ────────────────────────────────────────
+//
+// Source epic: Epic 2.9 — Password re-verification and password change.
+// Source tickets: 2.9.T4 (SDK wrappers), 2.9.T5 (revalidation helper).
+//
+// ## Boundary discipline
+//
+// Both wrappers below are pure forwarders: they call the SDK and
+// propagate `ApiError` unchanged, with NO side-effects:
+//
+//   - They never call `setAuthToken` / `clearAuthToken`.
+//   - They never call `clearAllAuthCache`.
+//   - They never broadcast `LOGGED_IN` / `LOGGED_OUT`.
+//
+// `verifyPassword` proves password knowledge but does not change
+// auth state — the backend contract is "verify returns
+// VerifyPasswordResponseDto, no token, no cookie, no new session".
+// The frontend must not present the verification response as a
+// reusable server authorization credential.
+//
+// `changePassword` preserves the current session on success and
+// revokes every other session. The local `auth_token` cookie
+// remains valid; the SDK wrapper therefore does not touch local
+// state. The hook layer (`useChangePassword`, 2.9.T7) is
+// responsible for revalidating the security dashboard and
+// session list so the UI reflects the new state.
+//
+// Errors are propagated to the caller. The password-error mapper
+// (`password-error-mapper.ts`, 2.9.T2) classifies them into
+// `invalid_current | reuse | validation | auth_terminal | conflict
+// | retryable`; the hooks read the classification and decide what
+// UI to surface.
+
+/**
+ * `POST /api/v1/auth/verify-password`
+ *
+ * Source epic: Epic 2.9 — Password re-verification and password change.
+ * Source ticket: 2.9.T4.
+ *
+ * Verifies the authenticated user's current password WITHOUT issuing
+ * tokens or sessions. Intended as a confirmation step before
+ * sensitive operations (e.g. opening the change-password card).
+ *
+ * ## Backend contract
+ *
+ * The response shape is `VerifyPasswordResponseDto` (`{ valid:
+ * boolean }`):
+ *
+ *   - `valid: true`  — the password matched the current account.
+ *   - `valid: false` — the backend still returns 200 with this
+ *     body; the UI must read the `valid` boolean, not the HTTP
+ *     status. The mapper does not see this path — `verify-password`
+ *     does not throw on a wrong password.
+ *
+ * If the user is unauthenticated the backend returns 401
+ * (`AUTH_INVALID_TOKEN`); the wrapper propagates the `ApiError`
+ * unchanged so the hook can route through `mapPasswordError`.
+ *
+ * ## Side-effect ownership
+ *
+ * This wrapper does NOT touch cookies, broadcasts, or cache. The
+ * verification step is local to the user already in the session;
+ * setting or clearing an `auth_token` cookie would change auth
+ * state and the backend explicitly does not authorize that here.
+ *
+ * Errors are propagated to the caller. The hook
+ * (`useVerifyPassword`, 2.9.T6) routes through
+ * `mapPasswordError(...)` for the `'invalid_current'` /
+ * `'retryable'` / `'auth_terminal'` branches.
+ *
+ * @param dto - The `VerifyPasswordDto` (`{ password: string }`)
+ * @returns `VerifyPasswordResponseDto` (`{ valid: boolean }`)
+ * @throws `ApiError` on any non-2xx response (network failure,
+ *         401, 429, 5xx). The hook layer is responsible for
+ *         routing the failure through `mapPasswordError`.
+ */
+export async function verifyPassword(
+  dto: VerifyPasswordDto,
+): Promise<VerifyPasswordResponseDto> {
+  const data: AuthControllerVerifyPasswordResult =
+    await getAuth().authControllerVerifyPassword(dto);
+  if (!data.data) {
+    throw new ApiError({
+      status: 500,
+      code: "GLOBAL_INTERNAL_ERROR",
+      message: "Verify password response missing data envelope",
+    } as unknown as ConstructorParameters<typeof ApiError>[0]);
+  }
+  return data.data;
+}
+
+/**
+ * `POST /api/v1/auth/change-password`
+ *
+ * Source epic: Epic 2.9 — Password re-verification and password change.
+ * Source ticket: 2.9.T4.
+ *
+ * Changes the account password for an authenticated user. Requires
+ * the current password and terminates every other active session.
+ *
+ * ## Backend contract
+ *
+ * The response shape on success is `ChangePasswordResponseDto`
+ * (`{ message: string }`). Notable status codes:
+ *
+ *   - `201` — password changed; current session preserved; other
+ *     sessions revoked.
+ *   - `401 AUTH_INVALID_CURRENT_PASSWORD` — `currentPassword` does
+ *     not match. Field-level error on the current-password field.
+ *   - `409 AUTH_PASSWORD_REUSE` — the new password matches a
+ *     recent value in the user's password history. Field-level
+ *     error on the new-password field.
+ *   - `400 GLOBAL_VALIDATION_FAILED` — the new password failed
+ *     server-side `class-validator` rules (e.g. minimum length,
+ *     complexity) the client-side `password-strength.ts` did not
+ *     catch. Per-field messages are in `validationMessages`.
+ *
+ * ## Side-effect ownership
+ *
+ * This wrapper does NOT call `setAuthToken`, `clearAuthToken`,
+ * `clearAllAuthCache`, or `broadcastLogout`. The backend contract
+ * is "successful change preserves the current session" — the
+ * local `auth_token` cookie remains valid. The frontend's job is
+ * to revalidate the security dashboard and the active-sessions
+ * list through `revalidateAfterPasswordChange()` (T5) so the UI
+ * reflects the new state (only the current session remains;
+ * `passwordAgeDays` and `lastPasswordChangeAt` are updated).
+ *
+ * Errors are propagated to the caller. The hook
+ * (`useChangePassword`, 2.9.T7) routes through
+ * `mapPasswordError(...)` for the `'invalid_current' | 'reuse' |
+ * 'validation' | 'auth_terminal' | 'conflict' | 'retryable'`
+ * branches.
+ *
+ * @param dto - The `ChangePasswordDto` (`{ currentPassword: string;
+ *              newPassword: string }`)
+ * @returns `ChangePasswordResponseDto` (`{ message: string }`)
+ * @throws `ApiError` on any non-2xx response. The hook layer is
+ *         responsible for routing the failure through
+ *         `mapPasswordError`.
+ */
+export async function changePassword(
+  dto: ChangePasswordDto,
+): Promise<ChangePasswordResponseDto> {
+  const data: AuthControllerChangePasswordResult =
+    await getAuth().authControllerChangePassword(dto);
+  if (!data.data) {
+    throw new ApiError({
+      status: 500,
+      code: "GLOBAL_INTERNAL_ERROR",
+      message: "Change password response missing data envelope",
+    } as unknown as ConstructorParameters<typeof ApiError>[0]);
+  }
+  return data.data;
+}
+
+/**
+ * `revalidateAfterPasswordChange()` — re-read the security
+ * dashboard and active-sessions list after a successful password
+ * change.
+ *
+ * Source epic: Epic 2.9 — Password re-verification and password change.
+ * Source ticket: 2.9.T5.
+ *
+ * ## Purpose
+ *
+ * The backend preserves the current session on a successful change
+ * but revokes every other one. The frontend must reflect the new
+ * state without touching local auth state — the local `auth_token`
+ * cookie is still valid. This helper is the single place the
+ * post-change revalidation lives, mirroring the discipline
+ * `revokeCurrentSession()` (2.8.T5) has.
+ *
+ * ## Parallel reads
+ *
+ * The two reads run in parallel via `Promise.all` so the UI sees
+ * the updated dashboard and list at the same time. If either read
+ * rejects, the helper rejects with the first error — partial
+ * failure surfaces the original error, and the caller's UI can
+ * retry (the success banner is NOT rolled back: the password
+ * change itself succeeded).
+ *
+ * ## Side-effect ownership
+ *
+ * This helper does NOT call `setAuthToken`, `clearAuthToken`,
+ * `clearAllAuthCache`, or `broadcastLogout`. The backend contract
+ * is "successful change preserves the current session" — the
+ * local `auth_token` cookie remains valid. The two reads are
+ * pure fetches.
+ *
+ * @returns `{ dashboard, sessions }` — both `AccountSecurityDto`
+ *          and `SessionListResponseDto` ready for the hook to
+ *          hand off to the dashboard / sessions hooks.
+ * @throws `ApiError` on the first read that rejects. The caller
+ *         may retry by calling the helper again.
+ *
+ * @example
+ * ```typescript
+ * const result = await changePassword({ currentPassword, newPassword });
+ * const { dashboard, sessions } = await revalidateAfterPasswordChange();
+ * dashboardRefetch(dashboard);
+ * sessionsRefetch(sessions);
+ * ```
+ */
+export async function revalidateAfterPasswordChange(): Promise<{
+  dashboard: AccountSecurityDto;
+  sessions: SessionListResponseDto;
+}> {
+  const [dashboard, sessions] = await Promise.all([
+    getSecurityDashboard(),
+    getActiveSessions(),
+  ]);
+  return { dashboard, sessions };
+}
+
 // ─── OAuth Error Mapper Re-export ──────────────────────────────────────────────
 
 /**
@@ -783,3 +1025,51 @@ export {
   sessionListEmptySnapshot,
   lastPasswordChangeUnknownSnapshot,
 } from "@/features/auth/copy/security-copy";
+
+// ─── Password Error Mapper / Codes Re-export ──────────────────────────────────
+//
+// Source epic: Epic 2.9 — Password re-verification and password change.
+// Source tickets: 2.9.T1 (codes), 2.9.T2 (mapper), 2.9.T3 (copy).
+//
+// Re-exported here so the verify-password modal and the
+// change-password card (planned at 2.9.T9 / 2.9.T11) can pull
+// every error-mapping type and copy key from `auth.service` rather
+// than reaching into the errors / copy subdirectories. Same
+// convention as the Session and OAuth mappers above.
+
+export {
+  mapPasswordError,
+  isInvalidCurrentPassword,
+  isPasswordReuse,
+  isPasswordValidation,
+  isAuthTerminalPasswordError,
+  isPasswordConflict,
+  isPasswordErrorRetryable,
+  type PasswordErrorClassification,
+  type PasswordErrorInput,
+} from "@/features/auth/errors/password-error-mapper";
+
+export {
+  AUTH_INVALID_CURRENT_PASSWORD,
+  AUTH_PASSWORD_REUSE,
+  // Re-use the session codes for `AUTH_INVALID_TOKEN` and
+  // `AUTH_RESOURCE_CONFLICT` — they are already exported from the
+  // session-error-codes re-export above, and re-exporting them
+  // here would collide with that re-export. Callers should import
+  // these two codes from the session-error-codes re-export point.
+  GLOBAL_VALIDATION_FAILED,
+  isInvalidCurrentPasswordError,
+  isPasswordReuseError,
+  isPasswordErrorCode,
+  isPasswordRecoverableStatus,
+  type PasswordErrorCode,
+} from "@/features/auth/errors/password-error-codes";
+
+export {
+  COPY_KEYS as PASSWORD_COPY_KEYS,
+  resolveCopy as resolvePasswordCopy,
+  verifyInvalidCurrentSnapshot,
+  passwordTooWeakSnapshot,
+  passwordChangeSuccessSnapshot,
+  hasPasswordCopyKey,
+} from "@/features/auth/copy/password-copy";

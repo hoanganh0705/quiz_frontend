@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 /**
  * Auth Gate — route protection components.
@@ -28,14 +28,13 @@
  * ```
  */
 
-import { type ReactNode } from 'react';
-import { redirectToLogin } from '@/features/auth/utils/auth-redirect';
-import { useAuthBootstrap } from '@/features/auth/contexts/auth-bootstrap-context';
+import { type ReactNode } from "react";
+import { redirectToLogin } from "@/features/auth/utils/auth-redirect";
+import { useAuthBootstrap } from "@/features/auth/contexts/auth-bootstrap-context";
 import {
   BootstrapSkeleton,
   ProfileSkeleton,
-} from '@/features/auth/components/auth-skeleton';
-import { redirectToLogin } from '@/features/auth/utils/auth-redirect';
+} from "@/features/auth/components/auth-skeleton";
 
 interface AuthGateProps {
   children: ReactNode;
@@ -59,18 +58,19 @@ export function AuthGate({
   children,
   fallback,
   redirectTo,
-}: AuthGateProps): JSX.Element {
-  const { bootstrapState, isBootstrapping, isAuthenticated } = useAuthBootstrap();
+}: AuthGateProps) {
+  const { bootstrapState, isBootstrapping, isAuthenticated } =
+    useAuthBootstrap();
 
   // During bootstrap, show skeleton
-  if (isBootstrapping || bootstrapState === 'idle') {
+  if (isBootstrapping || bootstrapState === "idle") {
     return fallback ?? <BootstrapSkeleton />;
   }
 
   // Unauthenticated — redirect to login
-  if (!isAuthenticated || bootstrapState === 'unauthenticated') {
+  if (!isAuthenticated || bootstrapState === "unauthenticated") {
     // Redirect in useEffect to avoid rendering during SSR
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       redirectToLogin(redirectTo);
     }
     return fallback ?? <BootstrapSkeleton />;
@@ -90,11 +90,11 @@ export function ProfileGate({
   children,
   fallback,
   onDegraded,
-}: ProfileGateProps): JSX.Element {
-  const { user, isLoading, isDegraded } = useAuthBootstrap();
+}: ProfileGateProps) {
+  const { user, isBootstrapping, isDegraded } = useAuthBootstrap();
 
   // During loading, show skeleton
-  if (isLoading || !user) {
+  if (isBootstrapping || !user) {
     return (
       fallback ?? (
         <div className="flex items-center justify-center p-8">
@@ -145,7 +145,7 @@ export function DegradedProfileBanner({
   onRetry,
 }: {
   onRetry?: () => void;
-}): JSX.Element {
+}) {
   return (
     <div
       className="flex items-center justify-between rounded-lg bg-amber-50 px-4 py-2 dark:bg-amber-950/20"

@@ -126,6 +126,7 @@ describe('Epic 2.7 Batch 8 edge-case handling', () => {
       // Authoritative list mirrors the source comment in
       // `custom-instance.ts`. Update both together.
       const AUTH_PATHS = [
+        '/auth/change-password',
         '/auth/login',
         '/auth/logout-all',
         '/auth/oauth/google',
@@ -135,6 +136,7 @@ describe('Epic 2.7 Batch 8 edge-case handling', () => {
         '/auth/security/dashboard',
         '/auth/sessions',
         '/auth/verify-email',
+        '/auth/verify-password',
       ];
       return AUTH_PATHS.some((path) => requestPath.includes(path));
     }
@@ -157,6 +159,27 @@ describe('Epic 2.7 Batch 8 edge-case handling', () => {
 
     it('skips refresh on /auth/sessions/:id (DELETE) 401', () => {
       expect(isInAuthPaths('/auth/sessions/abc-123')).toBe(true);
+    });
+
+    // ─── Epic 2.9 T16 — password-management endpoints ─────────────────────
+
+    it('skips refresh on /auth/verify-password 401', () => {
+      // Source epic: Epic 2.9 — Password re-verification and password change.
+      // Source ticket: 2.9.T16.
+      //
+      // A 401 from `/auth/verify-password` means the session is
+      // gone — the right action is forced reauthentication, not a
+      // silent refresh that would mask the boundary.
+      expect(isInAuthPaths('/auth/verify-password')).toBe(true);
+    });
+
+    it('skips refresh on /auth/change-password 401', () => {
+      // Source ticket: 2.9.T16.
+      //
+      // Same rationale as `/auth/verify-password`: the user
+      // explicitly asked to change the password; a 401 here is the
+      // session boundary, not a transient token-expiry.
+      expect(isInAuthPaths('/auth/change-password')).toBe(true);
     });
 
     it('STILL triggers refresh on /auth/me 401 (regression guard)', () => {

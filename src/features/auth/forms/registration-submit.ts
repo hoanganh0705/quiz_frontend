@@ -41,19 +41,20 @@
  * handler makes that branch literally inexpressible.
  */
 
-import { register as defaultRegister } from '@/features/auth/service/auth.service';
+import { register as defaultRegister } from "@/features/auth/service/auth.service";
 
-import type { RegisterFormValues, RegisterFieldErrors } from './schemas/register.schema';
-import { toRegisterDto } from './schemas/register.schema';
+import type { RegisterFormValues } from "./schemas/register.schema";
+import { toRegisterDto } from "./schemas/register.schema";
 import {
   mapRegisterError,
+  RegisterFieldErrors,
   type RegisterErrorKind,
-} from '@/features/auth/errors/register-error-mapper';
+} from "@/features/auth/errors/register-error-mapper";
 
 export type RegistrationSubmitResult =
-  | { kind: 'ok'; nextRoute: string }
+  | { kind: "ok"; nextRoute: string }
   | {
-      kind: 'error';
+      kind: "error";
       errorKind: RegisterErrorKind;
       fieldErrors?: RegisterFieldErrors;
       globalMessage?: string;
@@ -64,7 +65,7 @@ export type RegistrationSubmitResult =
  * (rather than configured) so the F2 anti-enumeration snapshot test
  * has a single source of truth.
  */
-export const ACKNOWLEDGE_ROUTE = '/register/check-inbox';
+export const ACKNOWLEDGE_ROUTE = "/register/check-inbox";
 
 export interface SubmitRegistrationDeps {
   /**
@@ -72,9 +73,11 @@ export interface SubmitRegistrationDeps {
    * but injected via this dependency so the unit suite (TKT-2.1.E3)
    * can substitute a stub without mocking modules.
    */
-  register: (
-    dto: { username: string; email: string; password: string }
-  ) => Promise<unknown>;
+  register: (dto: {
+    username: string;
+    email: string;
+    password: string;
+  }) => Promise<unknown>;
   /** Optional default redirect target; default = `ACKNOWLEDGE_ROUTE`. */
   ackRoute?: string;
 }
@@ -99,16 +102,16 @@ export const defaultSubmitDeps: SubmitRegistrationDeps = {
  */
 export async function submitRegistration(
   values: RegisterFormValues,
-  deps: SubmitRegistrationDeps = defaultSubmitDeps
+  deps: SubmitRegistrationDeps = defaultSubmitDeps,
 ): Promise<RegistrationSubmitResult> {
   const ackRoute = deps.ackRoute ?? ACKNOWLEDGE_ROUTE;
   try {
     await deps.register(toRegisterDto(values));
-    return { kind: 'ok', nextRoute: ackRoute };
+    return { kind: "ok", nextRoute: ackRoute };
   } catch (err: unknown) {
     const mapped = mapRegisterError(err);
     return {
-      kind: 'error',
+      kind: "error",
       errorKind: mapped.kind,
       fieldErrors: mapped.fieldErrors,
       globalMessage: mapped.globalMessage,

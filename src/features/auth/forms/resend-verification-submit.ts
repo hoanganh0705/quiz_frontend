@@ -38,17 +38,20 @@
  * the success.
  */
 
-import { resendVerificationEmail as defaultResend } from '@/features/auth/service/auth.service';
+import { resendVerificationEmail as defaultResend } from "@/features/auth/service/auth.service";
 
-import { mapResendVerificationError, type ResendVerificationErrorKind } from '@/features/auth/errors/verify-email-error-mapper';
+import {
+  mapResendVerificationError,
+  type ResendVerificationErrorKind,
+} from "@/features/auth/errors/verify-email-error-mapper";
 
-import type { ResendVerificationFormValues } from './schemas/resend-verification.schema';
-import { toResendVerificationDto } from './schemas/resend-verification.schema';
+import type { ResendVerificationFormValues } from "./schemas/resend-verification.schema";
+import { toResendVerificationDto } from "./schemas/resend-verification.schema";
 
 export type ResendSubmitResult =
-  | { kind: 'cooldown'; cooldownMs: number }
+  | { kind: "cooldown"; cooldownMs: number }
   | {
-      kind: 'error';
+      kind: "error";
       errorKind: ResendVerificationErrorKind;
     };
 
@@ -66,7 +69,7 @@ export const RESEND_COOLDOWN_MS = 60_000;
  * Playwright anti-enumeration spec asserts the same body for
  * the three cases (verified / unverified / unknown email).
  */
-export const RESEND_ACK_IN_PLACE = null as const;
+export const RESEND_ACK_IN_PLACE = null;
 
 export interface SubmitResendVerificationDeps {
   /**
@@ -105,16 +108,16 @@ export const defaultSubmitResendDeps: SubmitResendVerificationDeps = {
  */
 export async function submitResendVerification(
   values: ResendVerificationFormValues,
-  deps: SubmitResendVerificationDeps = defaultSubmitResendDeps
+  deps: SubmitResendVerificationDeps = defaultSubmitResendDeps,
 ): Promise<ResendSubmitResult> {
   const cooldownMs = deps.cooldownMs ?? RESEND_COOLDOWN_MS;
   try {
     await deps.resendVerificationEmail(toResendVerificationDto(values));
-    return { kind: 'cooldown', cooldownMs };
+    return { kind: "cooldown", cooldownMs };
   } catch (err: unknown) {
     const mapped = mapResendVerificationError(err);
     return {
-      kind: 'error',
+      kind: "error",
       errorKind: mapped.kind,
     };
   }

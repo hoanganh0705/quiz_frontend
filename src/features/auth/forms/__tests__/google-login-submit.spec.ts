@@ -29,35 +29,55 @@
  * are stubbed in the test file.
  */
 
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from "vitest";
 
-import { googleLoginSubmit, type GoogleLoginSubmitResult } from '../google-login-submit';
-import type { AuthControllerGoogleLoginResult } from '@/lib/api/generated/auth/auth';
-import type { GoogleLoginSubmitDeps } from '../google-login-submit';
-import type { ClearAuthTokenFn } from '@/features/auth/utils/auth-cookies';
+import { googleLoginSubmit } from "../google-login-submit";
+import type { AuthControllerGoogleLoginResult } from "@/lib/api/generated/auth/auth";
+import type { GoogleLoginSubmitDeps } from "../google-login-submit";
+import type { ClearAuthTokenFn } from "@/features/auth/utils/auth-cookies";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Stub factories.
 // ─────────────────────────────────────────────────────────────────────────────
 
-function makeUser(id = 'user-123', email = 'test@example.com') {
+import type { LoginResponseDto } from "@/lib/api/generated/schemas/loginResponseDto";
+
+function makeLoginResponse(
+  overrides: Partial<LoginResponseDto> = {},
+): LoginResponseDto {
   return {
-    id,
-    email,
-    username: 'testuser',
-    roles: [] as string[],
+    userId: "user-123",
+    username: "testuser",
+    email: "test@example.com",
+    accessToken: "access-token-abc",
+    sessionId: "session-123",
+    ...overrides,
   };
 }
 
-function makeSuccessResult(user = makeUser()): AuthControllerGoogleLoginResult {
+function makeSuccessResult(
+  payload: LoginResponseDto = makeLoginResponse(),
+): AuthControllerGoogleLoginResult {
+  // The generated SDK type is `WrappedDto & { data?: LoginResponseDto }`
+  // which intersected with `WrappedDtoData = { [key: string]: unknown }`
+  // makes the runtime contract difficult to satisfy statically. The
+  // cast below is the same one the rest of the suite uses when stubbing
+  // generated SDK responses (see `login-flow.spec.ts`).
   return {
-    data: {
-      accessToken: 'access-token-abc',
-      user,
-    },
-    message: 'Login successful',
-  };
+    data: payload,
+    message: "Login successful",
+  } as unknown as AuthControllerGoogleLoginResult;
 }
+
+/**
+ * Type-safe mock for `ClearAuthTokenFn`.
+ *
+ * `vi.fn()` returns a `Mock` whose signature TypeScript widens to
+ * `Mock<Procedure | Constructable>` once the result is used as the
+ * `ClearAuthTokenFn` field of `GoogleLoginSubmitDeps`. We type the
+ * factory explicitly so the dep-object literal accepts the value
+ * without per-call casts.
+ */
 
 function makeStubGoogleLogin(
   result: AuthControllerGoogleLoginResult,
@@ -65,249 +85,289 @@ function makeStubGoogleLogin(
   return vi.fn().mockResolvedValue(result);
 }
 
-const makeStubClearAuthToken = (): ClearAuthTokenFn => {
+/**
+ * Type-safe mock for `ClearAuthTokenFn`.
+ *
+ * `vi.fn()` returns a `Mock` whose signature TypeScript widens to
+ * `Mock<Procedure | Constructable>` once the result is used as the
+ * `ClearAuthTokenFn` field of `GoogleLoginSubmitDeps`. We return the
+ * raw mock so test bodies can access `.mock.calls` directly without
+ * per-call casts.
+ */
+function makeStubClearAuthToken() {
   return vi.fn();
-};
+}
+
+function asDeps(deps: {
+  googleLogin: (idToken: string) => Promise<AuthControllerGoogleLoginResult>;
+  clearAuthToken: ReturnType<typeof vi.fn>;
+}): GoogleLoginSubmitDeps {
+  return {
+    googleLogin: deps.googleLogin,
+    clearAuthToken: deps.clearAuthToken as unknown as ClearAuthTokenFn,
+  };
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // T20 — googleLoginSubmit
 // ─────────────────────────────────────────────────────────────────────────────
 
-describe('googleLoginSubmit', () => {
-  describe('success path', () => {
+describe("googleLoginSubmit", () => {
+  describe("success path", () => {
     it('returns { kind: "success", user } on success', async () => {
-      const user = makeUser();
-      const deps: GoogleLoginSubmitDeps = {
-        googleLogin: makeStubGoogleLogin(makeSuccessResult(user)),
+      const payload = makeLoginResponse();
+      const deps = asDeps({
+        googleLogin: makeStubGoogleLogin(makeSuccessResult(payload)),
         clearAuthToken: makeStubClearAuthToken(),
-      };
-
-      const result = await googleLoginSubmit('valid-google-token', deps);
-
-      expect(result.kind).toBe('success');
-      expect(result.user).toEqual({
-        accessToken: 'access-token-abc',
-        user,
       });
+
+      const result = await googleLoginSubmit("valid-google-token", deps);
+
+      expect(result.kind).toBe("success");
+      if (result.kind === "success") {
+        expect(result.user).toEqual(payload);
+      }
     });
 
-    it('clearAuthToken is NOT called by googleLoginSubmit itself', async () => {
+    it("clearAuthToken is NOT called by googleLoginSubmit itself", async () => {
       // Note: Unlike submitLogin, googleLoginSubmit does NOT call clearAuthToken.
       // The useGoogleLogin hook calls clearAuthToken BEFORE googleLoginSubmit
       // to handle the authenticated-user edge case.
-      const deps: GoogleLoginSubmitDeps = {
+      const clearAuthTokenMock = makeStubClearAuthToken();
+      const deps = asDeps({
         googleLogin: makeStubGoogleLogin(makeSuccessResult()),
-        clearAuthToken: makeStubClearAuthToken(),
-      };
+        clearAuthToken: clearAuthTokenMock,
+      });
 
-      await googleLoginSubmit('valid-google-token', deps);
+      await googleLoginSubmit("valid-google-token", deps);
 
       // clearAuthToken should NOT be called by submit function itself
       // (The hook is responsible for calling clearAuthToken before submit)
-      const clearAuthTokenCalls = (deps.clearAuthToken as ReturnType<typeof makeStubClearAuthToken>).mock.calls;
-      expect(clearAuthTokenCalls.length).toBe(0);
+      expect(clearAuthTokenMock.mock.calls.length).toBe(0);
     });
 
-    it('passes idToken to googleLogin', async () => {
-      const idToken = 'my-google-id-token-123';
-      const deps: GoogleLoginSubmitDeps = {
+    it("passes idToken to googleLogin", async () => {
+      const idToken = "my-google-id-token-123";
+      const deps = asDeps({
         googleLogin: makeStubGoogleLogin(makeSuccessResult()),
         clearAuthToken: makeStubClearAuthToken(),
-      };
+      });
 
       await googleLoginSubmit(idToken, deps);
 
       expect(deps.googleLogin).toHaveBeenCalledWith(idToken);
     });
 
-    it('returns correct user data shape', async () => {
-      const user = makeUser('user-456', 'different@example.com');
-      const deps: GoogleLoginSubmitDeps = {
-        googleLogin: makeStubGoogleLogin(makeSuccessResult(user)),
+    it("returns correct user data shape", async () => {
+      const payload = makeLoginResponse({
+        userId: "user-456",
+        email: "different@example.com",
+      });
+      const deps = asDeps({
+        googleLogin: makeStubGoogleLogin(makeSuccessResult(payload)),
         clearAuthToken: makeStubClearAuthToken(),
-      };
+      });
 
-      const result = await googleLoginSubmit('token', deps);
+      const result = await googleLoginSubmit("token", deps);
 
-      if (result.kind === 'success') {
-        expect(result.user.user.id).toBe('user-456');
-        expect(result.user.user.email).toBe('different@example.com');
+      if (result.kind === "success") {
+        // Narrow the optional `data` field that the wrapped DTO exposes.
+        const data = result.user as LoginResponseDto | undefined;
+        expect(data?.userId).toBe("user-456");
+        expect(data?.email).toBe("different@example.com");
       } else {
-        throw new Error('Expected success');
+        throw new Error("Expected success");
       }
     });
   });
 
-  describe('error path — oauth-specific errors', () => {
-    it('AUTH_OAUTH_INVALID_TOKEN → invalid_token', async () => {
-      const deps: GoogleLoginSubmitDeps = {
+  describe("error path — oauth-specific errors", () => {
+    it("AUTH_OAUTH_INVALID_TOKEN → invalid_token", async () => {
+      const deps = asDeps({
         googleLogin: vi.fn().mockRejectedValue({
-          code: 'AUTH_OAUTH_INVALID_TOKEN',
+          code: "AUTH_OAUTH_INVALID_TOKEN",
           status: 401,
           isValidationError: false,
           isServerError: false,
           validationMessages: [],
         }),
         clearAuthToken: makeStubClearAuthToken(),
-      };
+      });
 
-      const result = await googleLoginSubmit('expired-token', deps);
+      const result = await googleLoginSubmit("expired-token", deps);
 
-      expect(result.kind).toBe('error');
-      expect((result as { kind: 'error'; errorKind: string }).errorKind).toBe('invalid_token');
+      expect(result.kind).toBe("error");
+      expect((result as { kind: "error"; errorKind: string }).errorKind).toBe(
+        "invalid_token",
+      );
     });
 
-    it('AUTH_OAUTH_ACCOUNT_ALREADY_EXISTS → account_conflict', async () => {
-      const deps: GoogleLoginSubmitDeps = {
+    it("AUTH_OAUTH_ACCOUNT_ALREADY_EXISTS → account_conflict", async () => {
+      const deps = asDeps({
         googleLogin: vi.fn().mockRejectedValue({
-          code: 'AUTH_OAUTH_ACCOUNT_ALREADY_EXISTS',
+          code: "AUTH_OAUTH_ACCOUNT_ALREADY_EXISTS",
           status: 409,
           isValidationError: false,
           isServerError: false,
           validationMessages: [],
         }),
         clearAuthToken: makeStubClearAuthToken(),
-      };
+      });
 
-      const result = await googleLoginSubmit('any-token', deps);
+      const result = await googleLoginSubmit("any-token", deps);
 
-      expect(result.kind).toBe('error');
-      expect((result as { kind: 'error'; errorKind: string }).errorKind).toBe('account_conflict');
+      expect(result.kind).toBe("error");
+      expect((result as { kind: "error"; errorKind: string }).errorKind).toBe(
+        "account_conflict",
+      );
     });
 
-    it('AUTH_OAUTH_LINKING_REQUIRED → linking_required', async () => {
-      const deps: GoogleLoginSubmitDeps = {
+    it("AUTH_OAUTH_LINKING_REQUIRED → linking_required", async () => {
+      const deps = asDeps({
         googleLogin: vi.fn().mockRejectedValue({
-          code: 'AUTH_OAUTH_LINKING_REQUIRED',
+          code: "AUTH_OAUTH_LINKING_REQUIRED",
           status: 400,
           isValidationError: false,
           isServerError: false,
           validationMessages: [],
         }),
         clearAuthToken: makeStubClearAuthToken(),
-      };
+      });
 
-      const result = await googleLoginSubmit('any-token', deps);
+      const result = await googleLoginSubmit("any-token", deps);
 
-      expect(result.kind).toBe('error');
-      expect((result as { kind: 'error'; errorKind: string }).errorKind).toBe('linking_required');
+      expect(result.kind).toBe("error");
+      expect((result as { kind: "error"; errorKind: string }).errorKind).toBe(
+        "linking_required",
+      );
     });
   });
 
-  describe('error path — retryable errors', () => {
-    it('429 → retryable', async () => {
-      const deps: GoogleLoginSubmitDeps = {
+  describe("error path — retryable errors", () => {
+    it("429 → retryable", async () => {
+      const deps = asDeps({
         googleLogin: vi.fn().mockRejectedValue({
-          code: 'GLOBAL_RATE_LIMITED',
+          code: "GLOBAL_RATE_LIMITED",
           status: 429,
           isValidationError: false,
           isServerError: false,
           validationMessages: [],
         }),
         clearAuthToken: makeStubClearAuthToken(),
-      };
+      });
 
-      const result = await googleLoginSubmit('any-token', deps);
+      const result = await googleLoginSubmit("any-token", deps);
 
-      expect(result.kind).toBe('error');
-      expect((result as { kind: 'error'; errorKind: string }).errorKind).toBe('retryable');
+      expect(result.kind).toBe("error");
+      expect((result as { kind: "error"; errorKind: string }).errorKind).toBe(
+        "retryable",
+      );
     });
 
-    it('5xx → retryable', async () => {
-      const deps: GoogleLoginSubmitDeps = {
+    it("5xx → retryable", async () => {
+      const deps = asDeps({
         googleLogin: vi.fn().mockRejectedValue({
-          code: 'GLOBAL_INTERNAL_ERROR',
+          code: "GLOBAL_INTERNAL_ERROR",
           status: 500,
           isValidationError: false,
           isServerError: true,
           validationMessages: [],
         }),
         clearAuthToken: makeStubClearAuthToken(),
-      };
+      });
 
-      const result = await googleLoginSubmit('any-token', deps);
+      const result = await googleLoginSubmit("any-token", deps);
 
-      expect(result.kind).toBe('error');
-      expect((result as { kind: 'error'; errorKind: string }).errorKind).toBe('retryable');
+      expect(result.kind).toBe("error");
+      expect((result as { kind: "error"; errorKind: string }).errorKind).toBe(
+        "retryable",
+      );
     });
 
-    it('network error → retryable', async () => {
-      const deps: GoogleLoginSubmitDeps = {
+    it("network error → retryable", async () => {
+      const deps = asDeps({
         googleLogin: vi.fn().mockRejectedValue({
-          code: '',
+          code: "",
           status: 0,
           isValidationError: false,
           isServerError: false,
           validationMessages: [],
         }),
         clearAuthToken: makeStubClearAuthToken(),
-      };
+      });
 
-      const result = await googleLoginSubmit('any-token', deps);
+      const result = await googleLoginSubmit("any-token", deps);
 
-      expect(result.kind).toBe('error');
-      expect((result as { kind: 'error'; errorKind: string }).errorKind).toBe('retryable');
+      expect(result.kind).toBe("error");
+      expect((result as { kind: "error"; errorKind: string }).errorKind).toBe(
+        "retryable",
+      );
     });
 
-    it('unknown error → retryable', async () => {
-      const deps: GoogleLoginSubmitDeps = {
-        googleLogin: vi.fn().mockRejectedValue(new Error('unexpected error')),
+    it("unknown error → retryable", async () => {
+      const deps = asDeps({
+        googleLogin: vi.fn().mockRejectedValue(new Error("unexpected error")),
         clearAuthToken: makeStubClearAuthToken(),
-      };
+      });
 
-      const result = await googleLoginSubmit('any-token', deps);
+      const result = await googleLoginSubmit("any-token", deps);
 
-      expect(result.kind).toBe('error');
-      expect((result as { kind: 'error'; errorKind: string }).errorKind).toBe('retryable');
+      expect(result.kind).toBe("error");
+      expect((result as { kind: "error"; errorKind: string }).errorKind).toBe(
+        "retryable",
+      );
     });
   });
 
-  describe('dependency injection', () => {
-    it('uses default deps when not provided', async () => {
+  describe("dependency injection", () => {
+    it("uses default deps when not provided", async () => {
       // This test verifies the default deps export exists and is usable
-      const { defaultGoogleLoginSubmitDeps } = await import('../google-login-submit');
+      const { defaultGoogleLoginSubmitDeps } =
+        await import("../google-login-submit");
 
       expect(defaultGoogleLoginSubmitDeps).toBeDefined();
-      expect(typeof defaultGoogleLoginSubmitDeps.googleLogin).toBe('function');
-      expect(typeof defaultGoogleLoginSubmitDeps.clearAuthToken).toBe('function');
+      expect(typeof defaultGoogleLoginSubmitDeps.googleLogin).toBe("function");
+      expect(typeof defaultGoogleLoginSubmitDeps.clearAuthToken).toBe(
+        "function",
+      );
     });
 
-    it('allows custom googleLogin implementation', async () => {
+    it("allows custom googleLogin implementation", async () => {
       const customGoogleLogin = vi.fn().mockResolvedValue(makeSuccessResult());
-      const deps: GoogleLoginSubmitDeps = {
+      const deps = asDeps({
         googleLogin: customGoogleLogin,
         clearAuthToken: makeStubClearAuthToken(),
-      };
+      });
 
-      await googleLoginSubmit('custom-token', deps);
+      await googleLoginSubmit("custom-token", deps);
 
-      expect(customGoogleLogin).toHaveBeenCalledWith('custom-token');
+      expect(customGoogleLogin).toHaveBeenCalledWith("custom-token");
     });
   });
 
-  describe('never rejects', () => {
-    it('rejects from googleLogin are swallowed and returned as error result', async () => {
-      const deps: GoogleLoginSubmitDeps = {
-        googleLogin: vi.fn().mockRejectedValue(new Error('network failure')),
+  describe("never rejects", () => {
+    it("rejects from googleLogin are swallowed and returned as error result", async () => {
+      const deps = asDeps({
+        googleLogin: vi.fn().mockRejectedValue(new Error("network failure")),
         clearAuthToken: makeStubClearAuthToken(),
-      };
+      });
 
       // Should not throw
-      const result = await googleLoginSubmit('any-token', deps);
+      const result = await googleLoginSubmit("any-token", deps);
 
       // Should return an error result, not throw
-      expect(result.kind).toBe('error');
+      expect(result.kind).toBe("error");
     });
 
-    it('returns result synchronously on thrown non-Error values', async () => {
-      const deps: GoogleLoginSubmitDeps = {
-        googleLogin: vi.fn().mockRejectedValue('string error'),
+    it("returns result synchronously on thrown non-Error values", async () => {
+      const deps = asDeps({
+        googleLogin: vi.fn().mockRejectedValue("string error"),
         clearAuthToken: makeStubClearAuthToken(),
-      };
+      });
 
-      const result = await googleLoginSubmit('any-token', deps);
+      const result = await googleLoginSubmit("any-token", deps);
 
-      expect(result.kind).toBe('error');
+      expect(result.kind).toBe("error");
     });
   });
 });

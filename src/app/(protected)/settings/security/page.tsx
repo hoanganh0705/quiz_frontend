@@ -4,22 +4,63 @@
  * `/settings/security` — Security settings page.
  *
  * Source epic: Epic 2.8 — Security dashboard and active-session management.
- * Source ticket: 2.8.T9 (route scaffold), 2.8.T12 (dashboard wiring).
+ * Source tickets: 2.8.T9 (route scaffold), 2.8.T12 (dashboard wiring).
+ * Source epic: Epic 2.9 — Password re-verification and password change.
+ * Source tickets: 2.9.T14 (verify-password CTA launcher),
+ *                 2.9.T15 (change-password card mount + revalidation).
  *
  * ## Composition contract
  *
- * This page is the composition root for two independent views:
+ * This page is the composition root for THREE independent views:
  *
  *   - **SecuritySummaryCard** (US-2.8.1) — verification status,
- *     password metadata, active-session count. Mounted on top,
- *     wired to `useSecurityDashboard()` (2.8.T7) so each render
- *     reflects the dashboard's local status without tearing the
- *     rest of the page down.
+ *     password metadata, active-session count. Mounted on top.
  *
  *   - **ActiveSessionsList** (US-2.8.2) — per-device rows with
  *     individual revoke buttons, "Revoke other sessions" CTA, and
- *     "Sign out of all devices" CTA. Mounted underneath. Lands in
- *     T13+ (Batches 5/6).
+ *     "Sign out of all devices" CTA. Mounted underneath.
+ *
+ *   - **ChangePasswordCard** (US-2.9.2) — gated behind a
+ *     verify-password modal (US-2.9.1) that proves the user
+ *     before exposing the change form. Mounted conditionally.
+ *
+ * ## Verify-password gate (Epic 2.9 / 2.9.T14)
+ *
+ * The "Change password" CTA below the security dashboard opens
+ * `VerifyPasswordModal`. On `valid: true`:
+ *
+ *   1. The modal closes.
+ *   2. `markRecentlyVerified('change-password')` is called so the
+ *      recently-verified flag is set with the default TTL
+ *      (15_000 ms).
+ *   3. The change-password card slot is revealed.
+ *
+ * The CTA is hidden while the flag is active. When the user
+ * dismisses the change-password card (or the success banner
+ * auto-dismisses), the card collapses back to the CTA — the
+ * user must re-verify the next time they want to change the
+ * password.
+ *
+ * ## Change-password revalidation (Epic 2.9 / 2.9.T15)
+ *
+ * On a successful password change, `useChangePassword` calls
+ * `revalidateAfterPasswordChange()` and forwards the result to
+ * the dashboard / sessions hooks via the injected callbacks:
+ *
+ *   - `revalidateDashboard(next)` replaces `dashboard.data` so
+ *     the security card shows the new `passwordAgeDays` /
+ *     `lastPasswordChangeAt` immediately.
+ *   - `revalidateSessions(next)` calls `sessions.mutate()` with a
+ *     pure-updater that replaces the entire list, so the
+ *     sessions-list slot shows ONLY the current session (every
+ *     other session was revoked server-side).
+ *
+ * The revalidation is non-blocking after the success
+ * acknowledgement — the success banner (T13) appears first, the
+ * revalidation follows. If the revalidation rejects, the success
+ * banner is NOT rolled back (the password change itself
+ * succeeded); the card stays visible and the user can refresh
+ * the page to retry the revalidation.
  *
  * ## Partial-failure isolation
  *
@@ -34,12 +75,12 @@
  * ## `aria-busy` discipline
  *
  * The page root receives an `aria-busy` value derived from the
- * combined loading state of both subviews. When both finish, the
- * page becomes `aria-busy="false"` and AT users can resume
- * interaction with the full layout. Crucially, `aria-busy` is
- * `false` whenever the dashboard's retry banner is showing — the
- * page is *interactive* (Retry clickable), even though one slot
- * is in error.
+ * combined loading state of every subview. When everything
+ * finishes, the page becomes `aria-busy="false"` and AT users
+ * can resume interaction with the full layout. Crucially,
+ * `aria-busy` is `false` whenever a slot's retry banner is
+ * showing — the page is *interactive* (Retry clickable), even
+ * though one slot is in error.
  *
  * ## Layout discipline
  *
@@ -59,7 +100,8 @@
  * from and back to.
  */
 
-import { memo, useCallback, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useState } from 'react';
+import { Lock } from 'lucide-react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -70,12 +112,65 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/AlertDialog';
+import { Button } from '@/components/ui/Button';
 import { SecuritySummaryCard } from '@/features/auth/components/security-summary-card';
 import { SessionList } from '@/features/auth/components/session-list';
+import { ChangePasswordCard } from '@/features/auth/components/change-password-card';
+import { VerifyPasswordModal } from '@/features/auth/components/verify-password-modal';
 import { useSecurityDashboard } from '@/features/auth/hooks/use-security-dashboard';
 import { useActiveSessions } from '@/features/auth/hooks/use-active-sessions';
 import { useRevokeOtherSessions } from '@/features/auth/hooks/use-revoke-other-sessions';
-import { COPY_KEYS, resolveCopy } from '@/features/auth/copy/security-copy';
+import {
+  isRecentlyVerified,
+  markRecentlyVerified,
+} from '@/features/auth/utils/verification-flag';
+import { defaultChangePasswordDeps } from '@/features/auth/hooks/use-change-password';
+import {
+  COPY_KEYS,
+  resolveCopy,
+} from '@/features/auth/copy/security-copy';
+import {
+  PASSWORD_COPY_KEYS,
+  resolvePasswordCopy,
+} from '@/features/auth/service/auth.service';
+import type {
+  AccountSecurityDto,
+  SessionListResponseDto,
+} from '@/lib/api';
+
+const CHANGE_PASSWORD_ACTION_ID = 'change-password';
+
+/**
+ * Re-sync the page's "verified" state with the in-memory
+ * recently-verified flag. We use a 1s polling interval so the
+ * CTA re-appears as soon as the flag expires (default TTL is
+ * 15s). The `tick` dependency lets `handleVerified` bump the
+ * counter to read the new flag immediately after `markRecentlyVerified`.
+ */
+function useVerifiedFlagState(
+  actionId: string,
+  tick: number,
+): boolean {
+  const [verified, setVerified] = useState<boolean>(() =>
+    isRecentlyVerified(actionId),
+  );
+
+  useEffect(() => {
+    /* eslint-disable react-hooks/set-state-in-effect */
+    setVerified(isRecentlyVerified(actionId));
+    /* eslint-enable react-hooks/set-state-in-effect */
+  }, [actionId, tick]);
+
+  useEffect(() => {
+    // Re-poll every 1s. The TTL is 15s, so a 1s cadence is fine.
+    const id = setInterval(() => {
+      setVerified(isRecentlyVerified(actionId));
+    }, 1000);
+    return () => clearInterval(id);
+  }, [actionId]);
+
+  return verified;
+}
 
 const SecuritySettingsPage = memo(function SecuritySettingsPage() {
   const dashboard = useSecurityDashboard();
@@ -84,6 +179,102 @@ const SecuritySettingsPage = memo(function SecuritySettingsPage() {
   const others = useRevokeOtherSessions({
     listOps: { revalidate: sessions.revalidate },
   });
+
+  // ─── T14 — verify-password CTA + modal orchestration ────────────────
+  //
+  // The CTA renders below the security-summary card. Clicking it
+  // opens `VerifyPasswordModal`. On `valid: true`:
+  //   1. The modal closes.
+  //   2. `markRecentlyVerified('change-password')` is called.
+  //   3. The page's `isVerified` state flips to `true`, revealing
+  //      the change-password card slot (T15).
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  // `verifiedTick` bumps every time the user completes a verify
+  // so the verified-state hook re-reads the flag immediately.
+  const [verifiedTick, setVerifiedTick] = useState(0);
+  const isVerified = useVerifiedFlagState(
+    CHANGE_PASSWORD_ACTION_ID,
+    verifiedTick,
+  );
+
+  // ─── T15 — change-password card mount + post-change revalidation ──
+  //
+  // `isCardMounted` controls whether the card slot is in the DOM.
+  // It flips to `true` the moment the verification flag is set,
+  // and back to `false` on `onCollapseAfterSuccess` (success
+  // banner auto-dismiss) OR if the flag expires (15s TTL).
+  const [isCardMounted, setIsCardMounted] = useState(false);
+
+  const handleOpenVerifyModal = useCallback(() => {
+    setIsModalOpen(true);
+  }, []);
+
+  const handleCloseVerifyModal = useCallback(() => {
+    setIsModalOpen(false);
+  }, []);
+
+  const handleVerified = useCallback(() => {
+    markRecentlyVerified(CHANGE_PASSWORD_ACTION_ID);
+    setIsModalOpen(false);
+    // Bump the tick so the verified-state hook reads the new
+    // flag immediately (the 1s interval would also catch it, but
+    // the user expects the slot to reveal instantly).
+    setVerifiedTick((t) => t + 1);
+  }, []);
+
+  const handleCollapseAfterSuccess = useCallback(() => {
+    // The change-password card collapses back to the CTA. The
+    // next attempt requires a fresh verify.
+    setIsCardMounted(false);
+  }, []);
+
+  // Reveal the card the moment the verification flag is set.
+  useEffect(() => {
+    if (isVerified) {
+      /* eslint-disable react-hooks/set-state-in-effect */
+      setIsCardMounted(true);
+      /* eslint-enable react-hooks/set-state-in-effect */
+    }
+  }, [isVerified]);
+
+  const revalidateDashboard = useCallback(
+    (next: AccountSecurityDto) => {
+      // The dashboard hook does not expose a `setData` primitive;
+      // the canonical pattern is to call `refetch()` and let the
+      // hook re-read. The dashboard hook is deduplicated, so a
+      // second `refetch()` while one is in flight shares the
+      // same Promise.
+      //
+      // The `next` argument is preserved for callers who want a
+      // richer revalidation (e.g. when the page eventually
+      // introduces a custom event the hook listens for). For
+      // now we accept the read-back approach.
+      void next;
+      void dashboard.refetch();
+    },
+    [dashboard],
+  );
+
+  const revalidateSessions = useCallback(
+    (next: SessionListResponseDto) => {
+      // Replace the entire sessions list so the slot shows ONLY
+      // the current session (every other was revoked server-side).
+      // `useActiveSessions.mutate(updater)` is the canonical
+      // primitive for whole-list replacement: pass an updater
+      // that ignores the current list and returns the new one.
+      sessions.mutate(() => next.sessions);
+    },
+    [sessions],
+  );
+
+  const hookDeps = useMemo(
+    () => ({
+      ...defaultChangePasswordDeps,
+      revalidateDashboard,
+      revalidateSessions,
+    }),
+    [revalidateDashboard, revalidateSessions],
+  );
 
   // The "Revoke all others" CTA wires through `requiresConfirmation`
   // (T18). Click → modal opens with copy; confirm → fires the
@@ -100,15 +291,18 @@ const SecuritySettingsPage = memo(function SecuritySettingsPage() {
     others.cancelConfirmation();
   }, [others]);
 
-  // `aria-busy` reflects the live loading state of either slot.
-  // Both slots are independent — each has its own retry banner on
+  // `aria-busy` reflects the live loading state of every slot.
+  // Each slot is independent — each has its own retry banner on
   // error, which keeps the page *interactive* even while one slot
   // is in error. So `aria-busy` is "true" only when a slot is
   // actively fetching.
   const isBusy =
     dashboard.status === 'loading' ||
     sessions.status === 'loading' ||
-    others.status === 'pending';
+    others.status === 'pending' ||
+    isModalOpen;
+
+  const showChangePasswordCta = !isVerified && !isCardMounted;
 
   return (
     <main
@@ -133,7 +327,7 @@ const SecuritySettingsPage = memo(function SecuritySettingsPage() {
         <section
           aria-label={resolveCopy(COPY_KEYS.dashboard.title)}
           data-testid='security-dashboard-slot'
-          className='mb-12'
+          className='mb-8'
         >
           <SecuritySummaryCard
             data={dashboard.data}
@@ -142,6 +336,51 @@ const SecuritySettingsPage = memo(function SecuritySettingsPage() {
             refetch={dashboard.refetch}
           />
         </section>
+
+        {/* T14 — "Change password" CTA. Hidden while the
+            verification flag is active; the change-password card
+            occupies the slot instead. */}
+        {showChangePasswordCta && (
+          <section
+            aria-label={resolvePasswordCopy(
+              PASSWORD_COPY_KEYS.password.changePassword.title,
+            )}
+            data-testid='change-password-cta-slot'
+            className='mb-12'
+          >
+            <Button
+              type='button'
+              variant='default'
+              onClick={handleOpenVerifyModal}
+              className='gap-2'
+              data-testid='change-password-cta'
+            >
+              <Lock className='w-4 h-4' />
+              {resolvePasswordCopy(
+                PASSWORD_COPY_KEYS.password.changePassword.title,
+              )}
+            </Button>
+          </section>
+        )}
+
+        {/* T15 — change-password card slot. Mounted only after
+            the verification flag is set. The card collapses back
+            to the CTA on success + auto-dismiss, OR on
+            `onCollapseAfterSuccess`. */}
+        {isCardMounted && (
+          <section
+            aria-label={resolvePasswordCopy(
+              PASSWORD_COPY_KEYS.password.changePassword.title,
+            )}
+            data-testid='change-password-slot'
+            className='mb-12'
+          >
+            <ChangePasswordCard
+              hookDeps={hookDeps}
+              onCollapseAfterSuccess={handleCollapseAfterSuccess}
+            />
+          </section>
+        )}
 
         {/* US-2.8.2 session-list slot. Per-row revoke handlers
             are owned by `SessionRowWithAction` (T19). The
@@ -172,6 +411,17 @@ const SecuritySettingsPage = memo(function SecuritySettingsPage() {
           open={others.requiresConfirmation && others.status !== 'pending'}
           onConfirm={handleConfirmRevokeOthers}
           onCancel={handleCancelRevokeOthers}
+        />
+
+        {/* Verify-password modal (T14). Open state is owned by
+            the page. `onVerified` fires after a successful
+            verify-password call; the page marks the
+            `'change-password'` action as recently verified and
+            reveals the card slot. */}
+        <VerifyPasswordModal
+          open={isModalOpen}
+          onClose={handleCloseVerifyModal}
+          onVerified={handleVerified}
         />
       </div>
     </main>

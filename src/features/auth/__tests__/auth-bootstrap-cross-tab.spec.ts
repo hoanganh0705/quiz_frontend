@@ -30,11 +30,17 @@ import {
   clearLogoutMarker,
   _getLastLogoutTimestampForTesting,
 } from '@/lib/api/core/custom-instance';
+// `clearAuthToken` and `subscribeToAuthChanges` are imported solely
+// so their identity can be referenced through `actual.clearAuthToken`
+// and `actual.subscribeToAuthChanges` inside the `vi.mock` factories
+// below. They are NOT consumed directly by the test bodies.
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import {
   setAuthToken,
   clearAuthToken,
   subscribeToAuthChanges,
 } from '@/features/auth/utils/auth-cookies';
+/* eslint-enable @typescript-eslint/no-unused-vars */
 import { clearAllAuthCache } from '@/features/auth/utils/user-scoped-cache';
 import {
   subscribeToAuthEvents,
