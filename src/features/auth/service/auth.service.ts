@@ -59,6 +59,7 @@ import type {
   AuthControllerCheckEmailResult,
   AuthControllerCheckUsernameResult,
   AuthControllerForgotPasswordResult,
+  AuthControllerGoogleLoginResult,
   AuthControllerLoginResult,
   AuthControllerLogoutResult,
   AuthControllerLogoutAllResult,
@@ -173,6 +174,60 @@ export async function login(
   dto: Parameters<ReturnType<typeof getAuth>["authControllerLogin"]>[0],
 ): Promise<AuthControllerLoginResult> {
   const data = await getAuth().authControllerLogin(dto);
+  setAuthToken(data.data.accessToken);
+  broadcastAuth({
+    type: "TOKEN_REFRESHED",
+    accessToken: data.data.accessToken,
+    timestamp: Date.now(),
+  });
+  return data;
+}
+
+/**
+ * `POST /api/v1/auth/oauth/google`
+ *
+ * Authenticates using a Google ID token and establishes the same session
+ * as credential login. The Google ID token is obtained from the Google
+ * Identity Services library (GIS) after the user completes the OAuth flow.
+ *
+ * Source epic: Epic 2.6 — Google sign-in parity.
+ * Source ticket: TKT-2.6.T7.
+ *
+ * ## Session parity with credential login
+ *
+ * On success, this function:
+ *   1. Sets the `auth_token` cookie with the access token.
+ *   2. Broadcasts `TOKEN_REFRESHED` to other tabs (cross-tab sync).
+ *
+ * The backend sets the HttpOnly refresh token cookie via `Set-Cookie`.
+ * The refresh token is never read in JavaScript.
+ *
+ * ## Error handling contract
+ *
+ * This function does NOT catch errors. It is the caller's responsibility
+ * to map errors via `mapGoogleLoginError` (TKT-2.6.T2). The mapper
+ * translates backend `AUTH_OAUTH_*` codes into UI-facing kinds:
+ *
+ *   - `AUTH_OAUTH_INVALID_TOKEN` → `'invalid_token'`
+ *   - `AUTH_OAUTH_ACCOUNT_ALREADY_EXISTS` → `'account_conflict'`
+ *   - `AUTH_OAUTH_LINKING_REQUIRED` → `'linking_required'`
+ *   - 429, 5xx, network → `'retryable'`
+ *
+ * ## Token hygiene
+ *
+ * The caller (typically `googleLoginSubmit` in the form layer) is
+ * responsible for calling `clearAuthToken()` BEFORE this function to
+ * defeat the stale-token edge case where a logged-out user signs in
+ * as a different account.
+ *
+ * @param idToken - The Google ID token from the Google Identity Services library.
+ * @throws `ApiError` on any non-2xx response. Callers MUST route through
+ *         `mapGoogleLoginError`.
+ */
+export async function googleLogin(
+  idToken: string,
+): Promise<AuthControllerGoogleLoginResult> {
+  const data = await getAuth().authControllerGoogleLogin({ idToken });
   setAuthToken(data.data.accessToken);
   broadcastAuth({
     type: "TOKEN_REFRESHED",
@@ -312,3 +367,23 @@ export async function resetPassword(
 ): Promise<AuthControllerResetPasswordResult> {
   return getAuth().authControllerResetPassword(dto);
 }
+
+// ─── OAuth Error Mapper Re-export ──────────────────────────────────────────────
+
+/**
+ * Re-export of `mapGoogleLoginError` from the error mapper layer.
+ *
+ * Source epic: Epic 2.6 — Google sign-in parity.
+ * Source ticket: TKT-2.6.T8.
+ *
+ * Re-exported here so consumers can import the mapper from the service
+ * barrel rather than directly from the errors subdirectory. This keeps
+ * the import surface consistent: all auth concerns come from `auth.service`.
+ *
+ * The mapper's input/output contract is documented in `oauth-error-mapper.ts`.
+ */
+export {
+  mapGoogleLoginError,
+  type GoogleLoginErrorKind,
+  type GoogleLoginErrorResult,
+} from "@/features/auth/errors/oauth-error-mapper";

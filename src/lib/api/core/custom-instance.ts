@@ -27,10 +27,11 @@ const API_BASE_URL =
 // Paths that should NOT trigger token refresh on 401
 const AUTH_PATHS = [
   '/auth/login',
+  '/auth/oauth/google',  // Google OAuth exchanges do not use refresh tokens
   '/auth/register',
   '/auth/refresh-token',
-  '/auth/verify-email',
   '/auth/resend-verification-email',
+  '/auth/verify-email',
 ];
 
 type CustomConfig = InternalAxiosRequestConfig & { _retry?: boolean };

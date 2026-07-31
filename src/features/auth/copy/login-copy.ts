@@ -42,10 +42,13 @@ const COPY = {
     terms: "Terms",
     and: "&",
     privacy: "Privacy Policy",
+    orContinueWith: "Or continue with",
   },
   button: {
     signIn: "Sign in",
     signingIn: "Signing in...",
+    continueWithGoogle: "Continue with Google",
+    signingInWithGoogle: "Signing in with Google...",
   },
   error: {
     invalidCredentials: {
@@ -63,6 +66,29 @@ const COPY = {
     server: {
       title: "Unable to sign in",
       body: "Something went wrong on our end. Please try again in a moment.",
+    },
+    // OAuth-specific error copy
+    google: {
+      invalidToken: {
+        title: "Sign-in session expired",
+        body: "Your Google sign-in session expired. Please try again.",
+      },
+      accountConflict: {
+        title: "Account already exists",
+        body: "An account with this email already exists. Try signing in with your password instead.",
+      },
+      linkingRequired: {
+        title: "Account linking required",
+        body: "This Google account needs to be linked to an existing account first. Please sign in with your password.",
+      },
+      providerUnavailable: {
+        title: "Google sign-in unavailable",
+        body: "Google sign-in is currently unavailable. Please sign in with your email and password.",
+      },
+      retryable: {
+        title: "Unable to sign in with Google",
+        body: "Something went wrong. Please try again in a moment.",
+      },
     },
   },
   title: "Welcome back!",
