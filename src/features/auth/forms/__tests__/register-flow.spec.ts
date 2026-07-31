@@ -497,15 +497,23 @@ describe('service-layer boundary', () => {
       const text = fs.readFileSync(file, 'utf8');
       if (file.endsWith('auth.service.ts')) continue;
       if (
-        file.endsWith('register-submit.ts') &&
+        (file.endsWith('register-submit.ts') ||
+          file.endsWith('login-submit.ts')) &&
         text.includes("from '@/features/auth/service/auth.service'")
       ) {
-        // `registration-submit.ts` is allowed to import the service;
-        // the service then imports the SDK. We treat it as a
-        // pass-through.
+        // `registration-submit.ts` and `login-submit.ts` are allowed to
+        // import the service; the service then imports the SDK. We treat
+        // them as pass-throughs.
         continue;
       }
-      if (file.endsWith('use-registration-submit.ts')) continue;
+      if (
+        file.endsWith('use-registration-submit.ts') ||
+        file.endsWith('use-login.ts') ||
+        file.endsWith('use-logout.ts')
+      ) {
+        // Hook files are allowed to import the service indirectly through the submit helpers.
+        continue;
+      }
       expect(
         text.includes("from '@/lib/api/generated"),
         `Unexpected SDK import in ${file}`
