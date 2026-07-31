@@ -37,13 +37,36 @@ import { clearAllAuthCache } from '@/features/auth/utils/user-scoped-cache';
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
 
-// Paths that should NOT trigger token refresh on 401
+// Paths that should NOT trigger token refresh on 401.
+//
+// Source epic: Epic 2.8 — Security dashboard and active-session management.
+// Source ticket: 2.8.T22.
+//
+// Session-management endpoints must NOT trigger a refresh on
+// 401: the request itself is what the user asked for, and
+// auto-retrying via refresh would mask a real session-loss or
+// a permission boundary. The error mapper (2.8.T2) classifies
+// these 401s into `auth_terminal` so the hook / UI surface
+// them directly.
+//
+// Array is alphabetically grouped (T22 acceptance criterion 4):
+// `/auth/login`, `/auth/logout-all`, `/auth/oauth/...`,
+// `/auth/register`, `/auth/refresh-token`,
+// `/auth/resend-verification-email`, `/auth/security/dashboard`,
+// `/auth/sessions`, `/auth/verify-email`.
 const AUTH_PATHS = [
   '/auth/login',
-  '/auth/oauth/google',  // Google OAuth exchanges do not use refresh tokens
+  '/auth/logout-all',
+  '/auth/oauth/google',      // Google OAuth exchanges do not use refresh tokens
   '/auth/register',
   '/auth/refresh-token',
   '/auth/resend-verification-email',
+  '/auth/security/dashboard',
+  // `/auth/sessions` matches:
+  //   - GET   /auth/sessions         (list)
+  //   - DELETE /auth/sessions/others (bulk revoke others)
+  //   - DELETE /auth/sessions/:id    (single revoke)
+  '/auth/sessions',
   '/auth/verify-email',
 ];
 
