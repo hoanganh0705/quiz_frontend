@@ -72,9 +72,6 @@ const eslintConfig = [
       // Legacy: a hand-rolled axios client that mirrors custom-instance.ts.
       // Tracked for removal — do not extend consumers here.
       'src/shared/lib/api/client.ts',
-      // Legacy: uses axios.isAxiosError for narrowing. Tracked for migration
-      // to the barrel's `isApiError` in a follow-up ticket.
-      'src/app/(public)/login/page.tsx',
     ],
     rules: {
       'no-restricted-imports': 'off',

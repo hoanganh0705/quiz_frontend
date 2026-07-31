@@ -1,59 +1,45 @@
 "use client";
 
-import { memo, useMemo, useState } from 'react'
-import { Eye, EyeOff } from 'lucide-react'
-import { Button } from '@/components/ui/Button'
-import { Input } from '@/components/ui/Input'
-import { Label } from '@/components/ui/Label'
-import { Checkbox } from '@/components/ui/Checkbox'
-import Link from 'next/link'
-import Image from 'next/image'
-import { useForm, Controller } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
-import { useToggle, useAsyncAction } from '@/shared/hooks'
-import { useAuthState } from '@/features/auth/hooks'
-import { useRouter, useSearchParams } from 'next/navigation'
-import { login } from '@/features/auth/wrappers/auth.wrapper'
-import axios from 'axios'
-import { useFetchCurrentUser } from '@/features/users/store/user-store'
+import { Suspense, memo, useMemo } from "react";
+import { Eye } from "lucide-react";
+import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Input";
+import { Label } from "@/components/ui/Label";
+import { Checkbox } from "@/components/ui/Checkbox";
+import Link from "next/link";
+import Image from "next/image";
+import { useForm, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useLogin } from "@/features/auth/forms/use-login";
+import { useFetchCurrentUser } from "@/features/users/store/user-store";
+import { safeRedirectTarget } from "@/features/auth/utils/safe-redirect";
+import { COPY_KEYS, resolveCopy } from "@/features/auth/copy/login-copy";
+import {
+  loginSchema,
+  type LoginFormValues,
+} from "@/features/auth/forms/schemas/login.schema";
+import { LoginSkeleton } from "@/components/auth/LoginSkeleton";
 
-// Hoist schema outside component (data-hoisting)
-const loginSchema = z.object({
-  email: z.email("Please enter a valid email address"),
-  password: z
-    .string()
-    .min(6, "Password must be at least 6 characters")
-    .max(100, "Password must be less than 100 characters"),
-  rememberMe: z.boolean().optional(),
-});
-
-type LoginFormData = z.infer<typeof loginSchema>;
-
-const LoginPage = memo(function LoginPage() {
-  const [showPassword, toggleShowPassword] = useToggle(false);
-  const { setAuthenticated } = useAuthState();
+const LoginPageContent = memo(function LoginPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [verifyBanner, setVerifyBanner] = useState<string | null>(null);
   const fetchCurrentUser = useFetchCurrentUser();
+  const { state, start, reset } = useLogin();
 
   const redirectTo = useMemo(
-    () => searchParams.get("redirect") ?? "/quizzes",
+    () => safeRedirectTarget(searchParams.get("redirect")),
     [searchParams],
   );
-  // TKT-2.2.D4: visit `/login?verified=1` MUST render the same UI
-  // as `/login`. The "Email verified successfully" banner was an
-  // oracle — it asserted verification succeeded. The verify-email
-  // page (TKT-2.2.C3) no longer navigates here with `?verified=1`,
-  // so the banner is dead code; it is removed entirely.
+
+  const isPending = state.status === "pending";
 
   const {
     register,
     handleSubmit,
     control,
     formState: { errors },
-  } = useForm<LoginFormData>({
+  } = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
       email: "",
@@ -62,32 +48,16 @@ const LoginPage = memo(function LoginPage() {
     },
   });
 
-  const { execute: onSubmit, isLoading } = useAsyncAction(
-    async (data: LoginFormData) => {
-      setVerifyBanner(null);
-      try {
-        // login() stores token automatically via setAuthToken in the wrapper
-        await login({
-          email: data.email,
-          password: data.password
-        })
-        setAuthenticated(true)
-        void fetchCurrentUser()
-        router.replace(redirectTo)
-      } catch (err) {
-        if (axios.isAxiosError(err)) {
-          const message =
-            (err.response?.data as { message?: string })?.message ?? "";
-          if (/verify|verified|verification/i.test(message)) {
-            setVerifyBanner(
-              "Your email is not verified yet. Please check your inbox or resend the link.",
-            );
-          }
-        }
-        throw err;
-      }
-    },
-  );
+  const onSubmit = handleSubmit(async (values) => {
+    reset();
+    const result = await start(values);
+    if (result.kind === "success") {
+      await fetchCurrentUser();
+      router.replace(redirectTo);
+    }
+  });
+
+  const errorKind = state.status === "error" ? state.errorKind : null;
 
   return (
     <div className="min-h-screen flex bg-background">
@@ -118,49 +88,88 @@ const LoginPage = memo(function LoginPage() {
           {/* Header */}
           <header className="space-y-10">
             <h2 className="text-3xl font-bold text-foreground space-y-10">
-              Welcome back!
+              {resolveCopy(COPY_KEYS.title)}
             </h2>
             <p className="text-xs text-muted-foreground">
-              New here?{" "}
+              {resolveCopy(COPY_KEYS.form.noAccount)}{" "}
               <Link
                 href="/signup"
                 className="text-foreground hover:text-muted-foreground font-semibold transition-colors underline"
               >
-                Create an account
+                {resolveCopy(COPY_KEYS.form.createAccount)}
               </Link>
             </p>
           </header>
 
-          <section aria-label="Login form">
-            {/* TKT-2.2.D4: the `verified=1` banner was removed
-                (it was an oracle). The login page is now
-                intentionally neutral regardless of the URL. */}
-            {verifyBanner && (
-              <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-700">
-                {verifyBanner}
+          <section aria-label="Sign in to your account">
+            {/* Error message */}
+            {errorKind && (
+              <div
+                role="alert"
+                aria-live="polite"
+                className="rounded-lg border border-destructive/20 bg-destructive/5 px-4 py-3 text-sm text-destructive"
+              >
+                {errorKind === "invalid_credentials" && (
+                  <>
+                    <p className="font-medium">
+                      {resolveCopy(COPY_KEYS.error.invalidCredentials.title)}
+                    </p>
+                    <p className="mt-1 opacity-80">
+                      {resolveCopy(COPY_KEYS.error.invalidCredentials.body)}
+                    </p>
+                  </>
+                )}
+                {errorKind === "rate_limited" && (
+                  <>
+                    <p className="font-medium">
+                      {resolveCopy(COPY_KEYS.error.rateLimited.title)}
+                    </p>
+                    <p className="mt-1 opacity-80">
+                      {resolveCopy(COPY_KEYS.error.rateLimited.body)}
+                    </p>
+                  </>
+                )}
+                {(errorKind === "server" || errorKind === "validation") && (
+                  <>
+                    <p className="font-medium">
+                      {resolveCopy(COPY_KEYS.error.server.title)}
+                    </p>
+                    <p className="mt-1 opacity-80">
+                      {resolveCopy(COPY_KEYS.error.server.body)}
+                    </p>
+                  </>
+                )}
               </div>
             )}
 
             {/* Login Form */}
             <form
-              onSubmit={handleSubmit((data) => onSubmit(data))}
+              onSubmit={onSubmit}
               className="space-y-5"
               aria-label="Sign in to your account"
-              aria-live="polite"
             >
               {/* Email Input */}
               <div className="space-y-2">
+                <Label htmlFor="email">
+                  {resolveCopy(COPY_KEYS.form.email.label)}
+                </Label>
                 <Input
                   id="email"
                   type="email"
-                  placeholder="Email address"
+                  placeholder={resolveCopy(COPY_KEYS.form.email.placeholder)}
                   {...register("email")}
                   className="h-12 text-primary"
                   aria-invalid={!!errors.email}
-                  disabled={isLoading}
+                  aria-describedby={errors.email ? "email-error" : undefined}
+                  disabled={isPending}
+                  autoComplete="email"
                 />
                 {errors.email && (
-                  <p className="text-xs text-destructive">
+                  <p
+                    id="email-error"
+                    className="text-xs text-destructive"
+                    role="alert"
+                  >
                     {errors.email.message}
                   </p>
                 )}
@@ -168,34 +177,47 @@ const LoginPage = memo(function LoginPage() {
 
               {/* Password Input */}
               <div className="space-y-2">
+                <Label htmlFor="password">
+                  {resolveCopy(COPY_KEYS.form.password.label)}
+                </Label>
                 <div className="relative">
                   <Input
                     id="password"
-                    type={showPassword ? "text" : "password"}
-                    placeholder="Enter your password"
+                    type="password"
+                    placeholder={resolveCopy(
+                      COPY_KEYS.form.password.placeholder,
+                    )}
                     {...register("password")}
                     className="h-12 pr-12 text-primary"
                     aria-invalid={!!errors.password}
-                    disabled={isLoading}
+                    aria-describedby={
+                      errors.password ? "password-error" : undefined
+                    }
+                    disabled={isPending}
+                    autoComplete="current-password"
                   />
                   <button
                     type="button"
-                    onClick={toggleShowPassword}
-                    disabled={isLoading}
+                    onClick={() => {
+                      const input = document.getElementById("password");
+                      if (input) {
+                        input.type =
+                          input.type === "password" ? "text" : "password";
+                      }
+                    }}
+                    disabled={isPending}
                     className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                    aria-label={
-                      showPassword ? "Hide password" : "Show password"
-                    }
+                    aria-label="Toggle password visibility"
                   >
-                    {showPassword ? (
-                      <EyeOff className="w-5 h-5" aria-hidden="true" />
-                    ) : (
-                      <Eye className="w-5 h-5" aria-hidden="true" />
-                    )}
+                    <Eye className="h-5 w-5" aria-hidden="true" />
                   </button>
                 </div>
                 {errors.password && (
-                  <p className="text-xs text-destructive">
+                  <p
+                    id="password-error"
+                    className="text-xs text-destructive"
+                    role="alert"
+                  >
                     {errors.password.message}
                   </p>
                 )}
@@ -213,7 +235,7 @@ const LoginPage = memo(function LoginPage() {
                         checked={field.value}
                         onCheckedChange={field.onChange}
                         className="text-brand"
-                        disabled={isLoading}
+                        disabled={isPending}
                       />
                     )}
                   />
@@ -221,35 +243,35 @@ const LoginPage = memo(function LoginPage() {
                     htmlFor="remember"
                     className="text-xs text-muted-foreground cursor-pointer select-none"
                   >
-                    Keep me signed in
+                    {resolveCopy(COPY_KEYS.form.rememberMe)}
                   </Label>
                 </div>
                 <Link
                   href="/forgot-password"
                   className="text-xs text-foreground hover:text-muted-foreground font-medium transition-colors underline"
                 >
-                  Forgot password?
+                  {resolveCopy(COPY_KEYS.form.forgotPassword)}
                 </Link>
               </div>
 
               <div className="text-xs text-muted-foreground">
-                Need a new verification link?{" "}
+                {resolveCopy(COPY_KEYS.form.needVerification)}{" "}
                 <Link
                   href="/resend-verification"
                   className="text-foreground hover:text-muted-foreground font-medium transition-colors underline"
                 >
-                  Resend verification email
+                  {resolveCopy(COPY_KEYS.form.resendLink)}
                 </Link>
               </div>
 
               {/* Login Button */}
               <Button
                 type="submit"
-                disabled={isLoading}
+                disabled={isPending}
                 size="lg"
                 className="w-full h-12 font-semibold rounded-xl"
               >
-                {isLoading ? (
+                {isPending ? (
                   <div
                     className="flex items-center gap-2"
                     role="status"
@@ -259,29 +281,29 @@ const LoginPage = memo(function LoginPage() {
                       className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"
                       aria-hidden="true"
                     />
-                    Signing in...
+                    {resolveCopy(COPY_KEYS.button.signingIn)}
                   </div>
                 ) : (
-                  <p className="text-white">Sign in</p>
+                  <span>{resolveCopy(COPY_KEYS.button.signIn)}</span>
                 )}
               </Button>
             </form>
 
             {/* Footer */}
             <footer className="text-xs text-center text-muted-foreground mt-8 leading-relaxed">
-              By signing in, you agree to our{" "}
+              {resolveCopy(COPY_KEYS.form.termsLabel)}{" "}
               <Link
                 href="/terms"
                 className="text-foreground hover:text-muted-foreground transition-colors underline"
               >
-                Terms
-              </Link>
-              {" & "}
+                {resolveCopy(COPY_KEYS.form.terms)}
+              </Link>{" "}
+              {resolveCopy(COPY_KEYS.form.and)}{" "}
               <Link
                 href="/privacy"
                 className="text-foreground hover:text-muted-foreground transition-colors underline"
               >
-                Privacy Policy
+                {resolveCopy(COPY_KEYS.form.privacy)}
               </Link>
             </footer>
           </section>
@@ -291,4 +313,10 @@ const LoginPage = memo(function LoginPage() {
   );
 });
 
-export default LoginPage;
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<LoginSkeleton />}>
+      <LoginPageContent />
+    </Suspense>
+  );
+}

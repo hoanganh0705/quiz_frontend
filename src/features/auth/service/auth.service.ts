@@ -146,6 +146,27 @@ export async function register(
  * cross-tab `TOKEN_REFRESHED` so other tabs pick up the new token. The
  * refresh token arrives via a `Set-Cookie` from the backend (HttpOnly)
  * and is never read in JS.
+ *
+ * ## Side-effect ownership (TKT-2.4.B1)
+ *
+ * This function is **not** a pure forwarder — it carries the cookie-set
+ * + broadcast side-effects because the cross-tab listener in
+ * `src/lib/api/core/custom-instance.ts` already knows how to handle a
+ * `TOKEN_REFRESHED` message (it updates the SDK's in-memory token +
+ * re-issues any in-flight requests). Centralising the side-effect in
+ * this module means every consumer (login page, refresh-on-401 hook,
+ * future re-auth flow) reaches the cross-tab state for free.
+ *
+ * The C1 hook (`useLogin`) is responsible for:
+ *
+ *   1. **Ordering**: `submitLogin` calls `clearAuthToken()` BEFORE
+ *      this function runs (TKT-2.4.B2) to defeat the stale-token edge
+ *      case where a logged-out user logs in as a different account.
+ *   2. **Post-success orchestration**: it routes the user to
+ *      `intendedRedirect ?? '/quizzes'` and fires `useFetchCurrentUser`.
+ *
+ * This function itself does not navigate; it returns the SDK result
+ * and the hook composes the rest.
  */
 export async function login(
   dto: Parameters<ReturnType<typeof getAuth>["authControllerLogin"]>[0],
@@ -166,6 +187,28 @@ export async function login(
  * Always succeeds (idempotent). Clears the local access-token cookie and
  * broadcasts a cross-tab `LOGGED_OUT` event so other tabs redirect to
  * `/login` in lockstep.
+ *
+ * ## `finally`-path cleanup discipline (TKT-2.4.B1)
+ *
+ * The SDK call is wrapped in `try { ... } finally { ... }` so the
+ * local cleanup (`clearAuthToken()` + `LOGGED_OUT` broadcast) runs
+ * on EVERY code path:
+ *
+ *   - successful backend response (`201`),
+ *   - thrown `ApiError` (`401`, `5xx`, network, etc.),
+ *   - synchronous throw from inside `getAuth().authControllerLogout()`.
+ *
+ * The contract is non-negotiable: the user must always reach a public
+ * surface after clicking Sign Out, regardless of the backend's
+ * response. The unit suite (TKT-2.4.D3) verifies the discipline by
+ * stubbing the SDK to throw and asserting the cleanup still fired.
+ *
+ * This function is the only place in the codebase that calls
+ * `clearAuthToken()` for the logout path. Hooks that wrap this
+ * function (`useLogout`, `useLogoutMenu`) MUST NOT clear the cookie
+ * themselves — duplicating the cleanup is a foot-gun (a buggy
+ * future hook might call `clearAuthToken` before the SDK resolves
+ * and break the broadcast ordering).
  */
 export async function logout(): Promise<AuthControllerLogoutResult> {
   try {
