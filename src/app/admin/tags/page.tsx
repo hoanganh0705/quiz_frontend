@@ -37,8 +37,7 @@ const initialFormData: TagFormData = {
 export default function AdminTagsPage() {
   const [tags, setTags] = useState<Tag[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [searchValue, setSearchValue] = useState("");
+  const [searchValue] = useState("");
 
   // Dialog states
   const [createOpen, setCreateOpen] = useState(false);
@@ -161,7 +160,7 @@ export default function AdminTagsPage() {
       {/* Toast */}
       {toast && (
         <div
-          className={`fixed top-20 right-4 z-[100] flex items-center gap-2 px-4 py-3 rounded-lg border shadow-lg text-sm font-medium ${
+          className={`fixed top-20 right-4 z-100 flex items-center gap-2 px-4 py-3 rounded-lg border shadow-lg text-sm font-medium ${
             toast.type === "success"
               ? "bg-green-50 border-green-200 text-green-800 dark:bg-green-900/30 dark:border-green-800 dark:text-green-400"
               : "bg-red-50 border-red-200 text-red-800 dark:bg-red-900/30 dark:border-red-800 dark:text-red-400"

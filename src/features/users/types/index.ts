@@ -1,17 +1,39 @@
-// Users domain types — aligned with backend DTOs
+/**
+ * Users domain types — aligned with backend DTOs.
+ *
+ * Source epic: Epic 2.5 — Auth bootstrap and full-profile hydration.
+ *
+ * ## Type Hierarchy
+ *
+ * - `CurrentUserResponseDto` (from `@/features/auth/types`) — slim identity
+ *   from `GET /auth/me`: userId, username, email, role, isVerified.
+ *
+ * - `UserMeResponseDto` — full profile from `GET /users/me`:
+ *   displayName, avatarUrl, bio, xpTotal, currentStreak, longestStreak,
+ *   settings, createdAt, updatedAt.
+ *
+ * The two types are complementary: use `CurrentUserResponseDto` for auth
+ * decisions and role checks; use `UserMeResponseDto` for profile display.
+ */
+
+import {
+  UpdateMeDto,
+  UpdateMeSettingsDto,
+  UserMeResponseDto,
+} from "./user-backend";
 
 // Re-export from generated SDK
 export type {
   UserMeResponseDto,
   UpdateMeDto,
   UpdateMeSettingsDto,
-} from '@/lib/api/generated/schemas';
+} from "@/lib/api/generated/schemas";
 
 export type {
   UserControllerMeResult,
   UserControllerUpdateMeResult,
   UserControllerUpdateMeSettingsResult,
-} from '@/lib/api/generated/users/users';
+} from "@/lib/api/generated/users/users";
 
 // Backward-compatible type aliases
 export type CurrentUserResponse = UserMeResponseDto;
@@ -20,133 +42,133 @@ export type EditSettingsRequest = UpdateMeSettingsDto;
 
 // User settings types
 export interface NotificationPreferences {
-  emailNotifications: boolean
-  pushNotifications: boolean
-  quizReminders: boolean
-  friendActivity: boolean
-  leaderboardUpdates: boolean
-  weeklyDigest: boolean
+  emailNotifications: boolean;
+  pushNotifications: boolean;
+  quizReminders: boolean;
+  friendActivity: boolean;
+  leaderboardUpdates: boolean;
+  weeklyDigest: boolean;
 }
 
 export interface UserSettings {
   account: {
-    email: string
-    displayName: string
-    username: string
-    avatarUrl: string
-  }
+    email: string;
+    displayName: string;
+    username: string;
+    avatarUrl: string;
+  };
   notifications: {
-    emailNotifications: boolean
-    pushNotifications: boolean
-    quizReminders: boolean
-    friendRequests: boolean
-    challengeInvites: boolean
-    weeklyDigest: boolean
-    marketingEmails: boolean
-    achievementAlerts: boolean
-  }
+    emailNotifications: boolean;
+    pushNotifications: boolean;
+    quizReminders: boolean;
+    friendRequests: boolean;
+    challengeInvites: boolean;
+    weeklyDigest: boolean;
+    marketingEmails: boolean;
+    achievementAlerts: boolean;
+  };
   notificationChannels: {
-    inApp: boolean
-    email: boolean
-    push: boolean
-    marketing: boolean
-  }
+    inApp: boolean;
+    email: boolean;
+    push: boolean;
+    marketing: boolean;
+  };
   privacy: {
-    profileVisibility: string
-    showOnlineStatus: boolean
-    showQuizHistory: boolean
-    showAchievements: boolean
-    allowFriendRequests: boolean
-    showInLeaderboard: boolean
-    shareActivityWithFriends: boolean
-  }
+    profileVisibility: string;
+    showOnlineStatus: boolean;
+    showQuizHistory: boolean;
+    showAchievements: boolean;
+    allowFriendRequests: boolean;
+    showInLeaderboard: boolean;
+    shareActivityWithFriends: boolean;
+  };
   locale: {
-    language: string
-    timezone: string
-    dateFormat: string
-    timeFormat: string
-  }
+    language: string;
+    timezone: string;
+    dateFormat: string;
+    timeFormat: string;
+  };
   connectedAccounts: {
-    google: ConnectedAccount | null
-    github: ConnectedAccount | null
-    discord: ConnectedAccount | null
-    twitter: ConnectedAccount | null
-  }
+    google: ConnectedAccount | null;
+    github: ConnectedAccount | null;
+    discord: ConnectedAccount | null;
+    twitter: ConnectedAccount | null;
+  };
 }
 
 export interface ConnectedAccount {
-  id: string
-  email: string
-  name: string
-  connectedAt: string
+  id: string;
+  email: string;
+  name: string;
+  connectedAt: string;
 }
 
 // Friend-related types
 export interface FriendStats {
-  quizzesPlayed: number
-  averageScore: number
-  winRate: number
-  streak: number
+  quizzesPlayed: number;
+  averageScore: number;
+  winRate: number;
+  streak: number;
 }
 
 export interface FriendProfile {
-  id: number
-  name: string
-  username: string
-  avatar: string
-  onlineStatus: 'online' | 'offline' | 'away'
-  stats: FriendStats
+  id: number;
+  name: string;
+  username: string;
+  avatar: string;
+  onlineStatus: "online" | "offline" | "away";
+  stats: FriendStats;
 }
 
 export interface QuizInvitation {
-  id: string
-  friendId: string | number
-  friendName: string
-  friendAvatar: string
-  inviterId: string
-  inviterName: string
-  inviterAvatar: string
-  quizId: string
-  quizTitle: string
-  sentAt: string
-  status: 'pending' | 'accepted' | 'declined'
+  id: string;
+  friendId: string | number;
+  friendName: string;
+  friendAvatar: string;
+  inviterId: string;
+  inviterName: string;
+  inviterAvatar: string;
+  quizId: string;
+  quizTitle: string;
+  sentAt: string;
+  status: "pending" | "accepted" | "declined";
 }
 
 export interface SocialState {
-  friends: number[]
-  incomingRequests: number[]
-  outgoingRequests: number[]
-  invitations: QuizInvitation[]
+  friends: number[];
+  incomingRequests: number[];
+  outgoingRequests: number[];
+  invitations: QuizInvitation[];
 }
 
 export type UserSettingsTabId =
-  | 'account'
-  | 'notifications'
-  | 'privacy'
-  | 'language'
-  | 'connected'
-  | 'connections'
-  | 'danger'
+  | "account"
+  | "notifications"
+  | "privacy"
+  | "language"
+  | "connected"
+  | "connections"
+  | "danger";
 
 // Winner type for leaderboard
 export interface Winner {
-  id: string
-  name: string
-  avatarUrl: string
-  timeAgo: string
-  amountWon: string
-  game: string
+  id: string;
+  name: string;
+  avatarUrl: string;
+  timeAgo: string;
+  amountWon: string;
+  game: string;
 }
 
 // Testimonial type for social proof
 export interface Testimonial {
-  id: string | number
-  name: string
-  role: string
-  avatar: string
-  quote: string
-  earnings?: string
-  quizzes?: string
-  followers?: string
-  rating: number
+  id: string | number;
+  name: string;
+  role: string;
+  avatar: string;
+  quote: string;
+  earnings?: string;
+  quizzes?: string;
+  followers?: string;
+  rating: number;
 }

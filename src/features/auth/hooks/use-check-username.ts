@@ -68,12 +68,16 @@ export function useCheckUsername({
     [enabled, username],
   );
 
+  // Cleanup: abort pending request and reset state when input becomes invalid.
+  // Setting state here is intentional to clear stale availability status.
   useEffect(() => {
     if (!shouldFire) {
       if (controllerRef.current) controllerRef.current.abort();
       controllerRef.current = null;
+      /* eslint-disable react-hooks/set-state-in-effect */
       setDebouncedUsername("");
       setStatus("idle");
+      /* eslint-enable react-hooks/set-state-in-effect */
       return;
     }
 

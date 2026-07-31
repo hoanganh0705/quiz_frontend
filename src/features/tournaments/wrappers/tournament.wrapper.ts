@@ -19,7 +19,7 @@ export type {
   TournamentControllerStartRoundAttemptResult,
 } from '@/lib/api/generated/tournaments/tournaments';
 
-export interface ListTournamentsParams extends TournamentControllerListTournamentsParams {}
+export type ListTournamentsParams = TournamentControllerListTournamentsParams;
 
 export async function listTournaments(params?: ListTournamentsParams) {
   const sdk = getTournaments();

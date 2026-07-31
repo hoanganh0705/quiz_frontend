@@ -1,5 +1,5 @@
 /**
- * Middleware for quiz_frontend (Next.js 16, Edge runtime).
+ * Proxy for quiz_frontend (Next.js 16, Edge runtime).
  *
  * # Auth model (presence-only, not validated)
  *
@@ -51,76 +51,90 @@
  *        admin-aware instead of relying solely on the backend `@Permissions`.
  *   Tracked as a Phase-2 ticket.
  */
-import { NextRequest, NextResponse } from 'next/server'
-import { getAuthTokenFromRequest } from '@/features/auth/utils/auth-cookies'
+import { NextRequest, NextResponse } from "next/server";
+import { getAuthTokenFromRequest } from "@/features/auth/utils/auth-cookies";
 
 // Routes that require an authenticated user
 const PROTECTED_PREFIXES = [
-  '/bookmarks',
-  '/create-quiz',
-  '/discussions',
-  '/friends',
-  '/my-profile',
-  '/onboarding',
-  '/quiz-history',
-  '/settings',
-  '/tournament'
-] as const
+  "/bookmarks",
+  "/create-quiz",
+  "/discussions",
+  "/friends",
+  "/my-profile",
+  "/onboarding",
+  "/quiz-history",
+  "/settings",
+  "/tournament",
+] as const;
 
 // Routes that should redirect authenticated users away (auth pages)
-const AUTH_ROUTES = ['/login', '/signup', '/forgot-password', '/resend-verification', '/verify-email'] as const
+const AUTH_ROUTES = [
+  "/login",
+  "/signup",
+  "/forgot-password",
+  "/resend-verification",
+  "/verify-email",
+] as const;
 
 // Admin routes — require admin role (checked server-side; here we guard by auth only)
-const ADMIN_PREFIXES = ['/admin'] as const
+const ADMIN_PREFIXES = ["/admin"] as const;
 
 // Routes that never redirect
-const PUBLIC_ROUTES = ['/api', '/_next', '/favicon', '/manifest', '/sw'] as const
+const PUBLIC_ROUTES = [
+  "/api",
+  "/_next",
+  "/favicon",
+  "/manifest",
+  "/sw",
+] as const;
 
 function isProtected(pathname: string): boolean {
-  return [...PROTECTED_PREFIXES, ...ADMIN_PREFIXES].some((p) => pathname.startsWith(p))
+  return [...PROTECTED_PREFIXES, ...ADMIN_PREFIXES].some((p) =>
+    pathname.startsWith(p),
+  );
 }
 
 function isAuthRoute(pathname: string): boolean {
-  return AUTH_ROUTES.some((r) => pathname === r || pathname.startsWith(r))
+  return AUTH_ROUTES.some((r) => pathname === r || pathname.startsWith(r));
 }
 
 function isPublic(pathname: string): boolean {
-  return PUBLIC_ROUTES.some((r) => pathname.startsWith(r))
+  return PUBLIC_ROUTES.some((r) => pathname.startsWith(r));
 }
 
-export function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl
+export function proxy(request: NextRequest) {
+  const { pathname } = request.nextUrl;
 
   // Skip static files, Next.js internals, and API routes
   if (isPublic(pathname)) {
-    return NextResponse.next()
+    return NextResponse.next();
   }
 
-  const token = getAuthTokenFromRequest(request)
-  const isAuthenticated = !!token
+  const token = getAuthTokenFromRequest(request);
+  const isAuthenticated = !!token;
 
   // ── Guard: protected routes ──────────────────────────────────────────────────
   if (isProtected(pathname) && !isAuthenticated) {
-    const loginUrl = new URL('/login', request.url)
+    const loginUrl = new URL("/login", request.url);
     // Preserve the intended destination so we can redirect back after login
-    loginUrl.searchParams.set('redirect', pathname)
-    return NextResponse.redirect(loginUrl)
+    loginUrl.searchParams.set("redirect", pathname);
+    return NextResponse.redirect(loginUrl);
   }
 
   // ── Guard: already authenticated → redirect away from auth pages ─────────────
   if (isAuthRoute(pathname) && isAuthenticated) {
-    const redirectParam = request.nextUrl.searchParams.get('redirect')
+    const redirectParam = request.nextUrl.searchParams.get("redirect");
     if (redirectParam) {
-      const dest = new URL(redirectParam, request.url)
+      const dest = new URL(redirectParam, request.url);
       if (dest.pathname !== pathname) {
-        return NextResponse.redirect(dest)
+        return NextResponse.redirect(dest);
       }
     }
     // Default redirect for authenticated users on auth pages
-    return NextResponse.redirect(new URL('/', request.url))
+    return NextResponse.redirect(new URL("/", request.url));
   }
 
-  return NextResponse.next()
+  return NextResponse.next();
 }
 
 // Configure which paths the middleware runs on
@@ -133,6 +147,6 @@ export const config = {
      * - favicon.ico, robots.txt, etc.
      * - Files with extensions (e.g. .png, .svg)
      */
-    '/((?!_next/static|_next/image|favicon|robots|sitemap|.*\\..*$).*)'
-  ]
-}
+    "/((?!_next/static|_next/image|favicon|robots|sitemap|.*\\..*$).*)",
+  ],
+};

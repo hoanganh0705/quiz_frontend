@@ -21,9 +21,9 @@
  * guard fails with a clear message.
  */
 
-import { describe, expect, it } from 'vitest';
-import { NextRequest } from 'next/server';
-import { middleware } from './middleware';
+import { describe, expect, it } from "vitest";
+import { NextRequest } from "next/server";
+import { middleware } from "./proxy";
 
 /**
  * Build a NextRequest for a given pathname + optional cookie value.
@@ -40,11 +40,11 @@ function buildRequest(
   pathname: string,
   options: { cookieValue?: string | null; search?: string } = {},
 ): NextRequest {
-  const { cookieValue = null, search = '' } = options;
+  const { cookieValue = null, search = "" } = options;
   const url = new URL(`http://localhost:3000${pathname}${search}`);
   const headers = new Headers();
   if (cookieValue !== null) {
-    headers.set('cookie', `auth_token=${encodeURIComponent(cookieValue)}`);
+    headers.set("cookie", `auth_token=${encodeURIComponent(cookieValue)}`);
   }
   return new NextRequest(url, { headers });
 }
@@ -65,9 +65,9 @@ function statusOf(response: Response): number {
  * returns a URL whose `pathname` is `''` and `searchParams` is empty.
  */
 function locationUrlOf(response: Response): URL {
-  const raw = response.headers.get('location');
-  if (raw === null || raw === '') {
-    return new URL('http://noop/');
+  const raw = response.headers.get("location");
+  if (raw === null || raw === "") {
+    return new URL("http://noop/");
   }
   return new URL(raw);
 }
@@ -77,115 +77,115 @@ function locationUrlOf(response: Response): URL {
 
 /** Every prefix the middleware redirects to /login when unauthenticated. */
 const PROTECTED_PREFIXES = [
-  '/bookmarks',
-  '/create-quiz',
-  '/discussions',
-  '/friends',
-  '/my-profile',
-  '/onboarding',
-  '/quiz-history',
-  '/settings',
-  '/tournament',
+  "/bookmarks",
+  "/create-quiz",
+  "/discussions",
+  "/friends",
+  "/my-profile",
+  "/onboarding",
+  "/quiz-history",
+  "/settings",
+  "/tournament",
 ] as const;
 
 /** The single admin prefix — same gate as PROTECTED_PREFIXES, role check is server-side. */
-const ADMIN_PREFIXES = ['/admin'] as const;
+const ADMIN_PREFIXES = ["/admin"] as const;
 
 /** Every auth-only route that redirects an authenticated user away. */
 const AUTH_ONLY_ROUTES = [
-  '/login',
-  '/signup',
-  '/forgot-password',
-  '/resend-verification',
-  '/verify-email',
+  "/login",
+  "/signup",
+  "/forgot-password",
+  "/resend-verification",
+  "/verify-email",
 ] as const;
 
 /** A token shape that is *never* empty and *never* contains a semicolon. */
-const SOME_TOKEN = 'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1c2VyLTEyMyJ9.signature';
+const SOME_TOKEN = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1c2VyLTEyMyJ9.signature";
 
-describe('middleware (Epic 1.6) — protected routes while unauthenticated (ET-1.6-D1)', () => {
+describe("middleware (Epic 1.6) — protected routes while unauthenticated (ET-1.6-D1)", () => {
   it.each(PROTECTED_PREFIXES)(
-    'redirects GET /%s to /login?redirect=/%s when no auth_token cookie is set',
+    "redirects GET /%s to /login?redirect=/%s when no auth_token cookie is set",
     (prefix) => {
       const request = buildRequest(prefix);
       const response = middleware(request);
 
       expect(statusOf(response)).toBe(307);
       const loc = locationUrlOf(response);
-      expect(loc.pathname).toBe('/login');
-      expect(loc.searchParams.get('redirect')).toBe(prefix);
+      expect(loc.pathname).toBe("/login");
+      expect(loc.searchParams.get("redirect")).toBe(prefix);
     },
   );
 
   it.each(PROTECTED_PREFIXES)(
-    'redirects GET /%s/some-sub-path to /login?redirect=/%s/some-sub-path (prefix match inherits)',
+    "redirects GET /%s/some-sub-path to /login?redirect=/%s/some-sub-path (prefix match inherits)",
     (prefix) => {
       const request = buildRequest(`${prefix}/some-sub-path`);
       const response = middleware(request);
 
       expect(statusOf(response)).toBe(307);
       const loc = locationUrlOf(response);
-      expect(loc.pathname).toBe('/login');
-      expect(loc.searchParams.get('redirect')).toBe(`${prefix}/some-sub-path`);
+      expect(loc.pathname).toBe("/login");
+      expect(loc.searchParams.get("redirect")).toBe(`${prefix}/some-sub-path`);
     },
   );
 
   it.each(ADMIN_PREFIXES)(
-    'redirects GET /%s to /login?redirect=/%s (admin prefix treated as protected)',
+    "redirects GET /%s to /login?redirect=/%s (admin prefix treated as protected)",
     (prefix) => {
       const request = buildRequest(prefix);
       const response = middleware(request);
 
       expect(statusOf(response)).toBe(307);
       const loc = locationUrlOf(response);
-      expect(loc.pathname).toBe('/login');
-      expect(loc.searchParams.get('redirect')).toBe(prefix);
+      expect(loc.pathname).toBe("/login");
+      expect(loc.searchParams.get("redirect")).toBe(prefix);
     },
   );
 
   it.each(ADMIN_PREFIXES)(
-    'redirects GET /%s/users to /login?redirect=/%s/users (admin prefix is prefix-match)',
+    "redirects GET /%s/users to /login?redirect=/%s/users (admin prefix is prefix-match)",
     (prefix) => {
       const request = buildRequest(`${prefix}/users`);
       const response = middleware(request);
 
       expect(statusOf(response)).toBe(307);
       const loc = locationUrlOf(response);
-      expect(loc.pathname).toBe('/login');
-      expect(loc.searchParams.get('redirect')).toBe(`${prefix}/users`);
+      expect(loc.pathname).toBe("/login");
+      expect(loc.searchParams.get("redirect")).toBe(`${prefix}/users`);
     },
   );
 });
 
-describe('middleware (Epic 1.6) — auth-only routes while authenticated (ET-1.6-E1, E2)', () => {
-  describe('with `?redirect=` query param (ET-1.6-E1)', () => {
+describe("middleware (Epic 1.6) — auth-only routes while authenticated (ET-1.6-E1, E2)", () => {
+  describe("with `?redirect=` query param (ET-1.6-E1)", () => {
     it.each(AUTH_ONLY_ROUTES)(
-      'redirects GET /%s?redirect=/my-profile to /my-profile when authenticated',
+      "redirects GET /%s?redirect=/my-profile to /my-profile when authenticated",
       (route) => {
         const request = buildRequest(route, {
           cookieValue: SOME_TOKEN,
-          search: '?redirect=/my-profile',
+          search: "?redirect=/my-profile",
         });
         const response = middleware(request);
 
         expect(statusOf(response)).toBe(307);
-        expect(locationUrlOf(response).pathname).toBe('/my-profile');
+        expect(locationUrlOf(response).pathname).toBe("/my-profile");
       },
     );
 
-    it('rejects a same-path redirect (?redirect=/login while at /login) and falls back to /', () => {
-      const request = buildRequest('/login', {
+    it("rejects a same-path redirect (?redirect=/login while at /login) and falls back to /", () => {
+      const request = buildRequest("/login", {
         cookieValue: SOME_TOKEN,
-        search: '?redirect=/login',
+        search: "?redirect=/login",
       });
       const response = middleware(request);
 
       expect(statusOf(response)).toBe(307);
-      expect(locationUrlOf(response).pathname).toBe('/');
+      expect(locationUrlOf(response).pathname).toBe("/");
     });
 
     it.each(AUTH_ONLY_ROUTES)(
-      'rejects same-path redirect at every auth-only route (no infinite-loop)',
+      "rejects same-path redirect at every auth-only route (no infinite-loop)",
       (route) => {
         const request = buildRequest(route, {
           cookieValue: SOME_TOKEN,
@@ -196,44 +196,44 @@ describe('middleware (Epic 1.6) — auth-only routes while authenticated (ET-1.6
         expect(statusOf(response)).toBe(307);
         // Falls through to the default, not the same path.
         const loc = locationUrlOf(response);
-        expect(loc.pathname).toBe('/');
+        expect(loc.pathname).toBe("/");
         expect(loc.pathname).not.toBe(route);
       },
     );
   });
 
-  describe('without `?redirect=` query param (ET-1.6-E2)', () => {
+  describe("without `?redirect=` query param (ET-1.6-E2)", () => {
     it.each(AUTH_ONLY_ROUTES)(
-      'redirects GET /%s to / when authenticated',
+      "redirects GET /%s to / when authenticated",
       (route) => {
         const request = buildRequest(route, { cookieValue: SOME_TOKEN });
         const response = middleware(request);
 
         expect(statusOf(response)).toBe(307);
-        expect(locationUrlOf(response).pathname).toBe('/');
+        expect(locationUrlOf(response).pathname).toBe("/");
       },
     );
   });
 });
 
-describe('middleware (Epic 1.6) — auth-only routes while unauthenticated', () => {
+describe("middleware (Epic 1.6) — auth-only routes while unauthenticated", () => {
   // Locking the *negative* direction: an unauthenticated user must NOT be
   // bounced off /login. Otherwise the redirect loop on logout would be
   // possible.
   it.each(AUTH_ONLY_ROUTES)(
-    'does NOT redirect GET /%s when no auth_token cookie is set (lets the page render)',
+    "does NOT redirect GET /%s when no auth_token cookie is set (lets the page render)",
     (route) => {
       const request = buildRequest(route);
       const response = middleware(request);
 
       expect(statusOf(response)).toBe(200);
       // No Location header set by NextResponse.next().
-      expect(response.headers.get('location')).toBeNull();
+      expect(response.headers.get("location")).toBeNull();
     },
   );
 });
 
-describe('middleware (Epic 1.6) — presence-only token check, ET-1.6-F1', () => {
+describe("middleware (Epic 1.6) — presence-only token check, ET-1.6-F1", () => {
   /**
    * The middleware does **not** validate the JWT. It only checks whether the
    * `auth_token` cookie is *present and non-empty* (cookie value passes
@@ -260,129 +260,141 @@ describe('middleware (Epic 1.6) — presence-only token check, ET-1.6-F1', () =>
    */
 
   const MALFORMED_TOKENS = [
-    { label: 'single char', token: 'a' },
-    { label: 'short garbage', token: 'abc' },
-    { label: 'random base64', token: 'Z29vZHpZ' },
-    { label: 'three-segment but bad signature', token: 'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhZG1pbiJ9.not-a-real-signature' },
-    { label: 'expired-looking (3 segments, exp claim in the past)', token: 'eyJhbGciOiJIUzI1NiJ9.eyJleHAiOjF9.signature' },
+    { label: "single char", token: "a" },
+    { label: "short garbage", token: "abc" },
+    { label: "random base64", token: "Z29vZHpZ" },
+    {
+      label: "three-segment but bad signature",
+      token: "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhZG1pbiJ9.not-a-real-signature",
+    },
+    {
+      label: "expired-looking (3 segments, exp claim in the past)",
+      token: "eyJhbGciOiJIUzI1NiJ9.eyJleHAiOjF9.signature",
+    },
   ] as const;
 
-  describe('authenticated path (cookie present, even with malformed token)', () => {
+  describe("authenticated path (cookie present, even with malformed token)", () => {
     it.each(MALFORMED_TOKENS)(
-      '$label — treats request as authenticated for an AUTH_ONLY route (redirects away to /)',
+      "$label — treats request as authenticated for an AUTH_ONLY route (redirects away to /)",
       ({ token }) => {
-        const request = buildRequest('/login', { cookieValue: token });
+        const request = buildRequest("/login", { cookieValue: token });
         const response = middleware(request);
 
         expect(statusOf(response)).toBe(307);
-        expect(locationUrlOf(response).pathname).toBe('/');
+        expect(locationUrlOf(response).pathname).toBe("/");
       },
     );
 
     it.each(MALFORMED_TOKENS)(
-      '$label — treats request as authenticated for a PROTECTED route (no redirect, lets the page render)',
+      "$label — treats request as authenticated for a PROTECTED route (no redirect, lets the page render)",
       ({ token }) => {
-        const request = buildRequest('/my-profile', { cookieValue: token });
+        const request = buildRequest("/my-profile", { cookieValue: token });
         const response = middleware(request);
 
         // 200 means the middleware short-circuited with NextResponse.next().
         expect(statusOf(response)).toBe(200);
-        expect(response.headers.get('location')).toBeNull();
+        expect(response.headers.get("location")).toBeNull();
       },
     );
 
     it.each(MALFORMED_TOKENS)(
-      '$label — does NOT throw, does NOT 5xx on a malformed token',
+      "$label — does NOT throw, does NOT 5xx on a malformed token",
       ({ token }) => {
         expect(() => {
-          middleware(buildRequest('/login', { cookieValue: token }));
+          middleware(buildRequest("/login", { cookieValue: token }));
         }).not.toThrow();
         expect(() => {
-          middleware(buildRequest('/my-profile', { cookieValue: token }));
+          middleware(buildRequest("/my-profile", { cookieValue: token }));
         }).not.toThrow();
       },
     );
   });
 
-  describe('sub-resource present with a malformed value', () => {
+  describe("sub-resource present with a malformed value", () => {
     // The matcher regex excludes paths with extensions (e.g. `.js`); we
     // cover the case where the cookie header itself is well-formed but
     // the value is malformed. The middleware does not parse the value.
-    it('does not parse the cookie value (so a malformed value cannot break it)', () => {
-      const request = new NextRequest(new URL('http://localhost:3000/my-profile'), {
-        headers: { cookie: 'auth_token=' + encodeURIComponent(MALFORMED_TOKENS[4].token) },
-      });
+    it("does not parse the cookie value (so a malformed value cannot break it)", () => {
+      const request = new NextRequest(
+        new URL("http://localhost:3000/my-profile"),
+        {
+          headers: {
+            cookie:
+              "auth_token=" + encodeURIComponent(MALFORMED_TOKENS[4].token),
+          },
+        },
+      );
       const response = middleware(request);
       expect(statusOf(response)).toBe(200);
     });
   });
 
-  describe('empty cookie value (operationally equal to no cookie)', () => {
-    it('redirects a protected route to /login?redirect=/<path> when auth_token is the empty string', () => {
-      const request = buildRequest('/friends', { cookieValue: '' });
+  describe("empty cookie value (operationally equal to no cookie)", () => {
+    it("redirects a protected route to /login?redirect=/<path> when auth_token is the empty string", () => {
+      const request = buildRequest("/friends", { cookieValue: "" });
       const response = middleware(request);
       expect(statusOf(response)).toBe(307);
       const loc = locationUrlOf(response);
-      expect(loc.pathname).toBe('/login');
-      expect(loc.searchParams.get('redirect')).toBe('/friends');
+      expect(loc.pathname).toBe("/login");
+      expect(loc.searchParams.get("redirect")).toBe("/friends");
     });
 
-    it('lets an auth-only route render when auth_token is the empty string', () => {
-      const request = buildRequest('/signup', { cookieValue: '' });
+    it("lets an auth-only route render when auth_token is the empty string", () => {
+      const request = buildRequest("/signup", { cookieValue: "" });
       const response = middleware(request);
       expect(statusOf(response)).toBe(200);
-      expect(response.headers.get('location')).toBeNull();
+      expect(response.headers.get("location")).toBeNull();
     });
   });
 
-  describe('no cookie at all', () => {
-    it('redirects a protected route to /login?redirect=/<path>', () => {
-      const request = buildRequest('/friends');
+  describe("no cookie at all", () => {
+    it("redirects a protected route to /login?redirect=/<path>", () => {
+      const request = buildRequest("/friends");
       const response = middleware(request);
       expect(statusOf(response)).toBe(307);
       const loc = locationUrlOf(response);
-      expect(loc.pathname).toBe('/login');
-      expect(loc.searchParams.get('redirect')).toBe('/friends');
+      expect(loc.pathname).toBe("/login");
+      expect(loc.searchParams.get("redirect")).toBe("/friends");
     });
 
-    it('lets an auth-only route render (no redirect)', () => {
-      const request = buildRequest('/signup');
+    it("lets an auth-only route render (no redirect)", () => {
+      const request = buildRequest("/signup");
       const response = middleware(request);
       expect(statusOf(response)).toBe(200);
-      expect(response.headers.get('location')).toBeNull();
+      expect(response.headers.get("location")).toBeNull();
     });
   });
 });
 
-describe('middleware (Epic 1.6) — public/excluded paths are not redirected', () => {
+describe("middleware (Epic 1.6) — public/excluded paths are not redirected", () => {
   // The matcher regex (config) plus isPublic() (function body) exempt
   // static assets and Next.js internals from the middleware. The matcher
   // itself is enforced by Next.js at runtime, so we cannot directly assert
   // it here — but we can verify that paths inside the isPublic() set pass
   // through the middleware unchanged when they would otherwise be gated.
-  it('does not redirect /api/* (the isPublic exclusion)', () => {
-    const request = buildRequest('/api/some-handler');
+  it("does not redirect /api/* (the isPublic exclusion)", () => {
+    const request = buildRequest("/api/some-handler");
     const response = middleware(request);
     expect(statusOf(response)).toBe(200);
-    expect(response.headers.get('location')).toBeNull();
+    expect(response.headers.get("location")).toBeNull();
   });
 
-  it('does not redirect /_next/* (defensive isPublic exclusion)', () => {
-    const request = buildRequest('/_next/static/chunks/main.js');
+  it("does not redirect /_next/* (defensive isPublic exclusion)", () => {
+    const request = buildRequest("/_next/static/chunks/main.js");
     const response = middleware(request);
     expect(statusOf(response)).toBe(200);
-    expect(response.headers.get('location')).toBeNull();
+    expect(response.headers.get("location")).toBeNull();
   });
 
-  it('does not redirect /favicon (defensive isPublic exclusion)', () => {
-    const request = buildRequest('/favicon.ico');
+  it("does not redirect /favicon (defensive isPublic exclusion)", () => {
+    const request = buildRequest("/favicon.ico");
     const response = middleware(request);
     expect(statusOf(response)).toBe(200);
-    expect(response.headers.get('location')).toBeNull();
+    expect(response.headers.get("location")).toBeNull();
   });
 });
 
-describe('middleware (Epic 1.6) — drift guard against inventory docs', () => {
+describe("middleware (Epic 1.6) — drift guard against inventory docs", () => {
   /**
    * The PROTECTED_PREFIXES and AUTH_ONLY_ROUTES arrays above are
    * duplicated from the docs (ET-1.6-A1, A2, B1). If anyone changes the
@@ -396,9 +408,9 @@ describe('middleware (Epic 1.6) — drift guard against inventory docs', () => {
    * fails loudly with a clear message.
    */
 
-  it('PROTECTED_PREFIXES in the docs inventory matches the middleware constant', async () => {
-    const source = await import('./middleware?raw');
-    const text: string = (source as { default?: string }).default ?? '';
+  it("PROTECTED_PREFIXES in the docs inventory matches the middleware constant", async () => {
+    const source = await import("./middleware?raw");
+    const text: string = (source as { default?: string }).default ?? "";
     // We don't import the constants directly because they are not exported;
     // instead we assert that each prefix appears as a literal in the file.
     for (const prefix of PROTECTED_PREFIXES) {
@@ -406,17 +418,17 @@ describe('middleware (Epic 1.6) — drift guard against inventory docs', () => {
     }
   });
 
-  it('ADMIN_PREFIXES in the docs inventory matches the middleware constant', async () => {
-    const source = await import('./middleware?raw');
-    const text: string = (source as { default?: string }).default ?? '';
+  it("ADMIN_PREFIXES in the docs inventory matches the middleware constant", async () => {
+    const source = await import("./middleware?raw");
+    const text: string = (source as { default?: string }).default ?? "";
     for (const prefix of ADMIN_PREFIXES) {
       expect(text).toContain(`'${prefix}'`);
     }
   });
 
-  it('AUTH_ONLY_ROUTES in the docs inventory matches the middleware constant', async () => {
-    const source = await import('./middleware?raw');
-    const text: string = (source as { default?: string }).default ?? '';
+  it("AUTH_ONLY_ROUTES in the docs inventory matches the middleware constant", async () => {
+    const source = await import("./middleware?raw");
+    const text: string = (source as { default?: string }).default ?? "";
     for (const route of AUTH_ONLY_ROUTES) {
       expect(text).toContain(`'${route}'`);
     }

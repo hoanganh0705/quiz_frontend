@@ -2,7 +2,6 @@
 
 import type React from 'react'
 import { Search, Bell, LogOut } from 'lucide-react'
-import Link from 'next/link'
 
 import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
