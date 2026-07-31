@@ -55,6 +55,10 @@ import {
   clearAuthToken,
 } from "@/features/auth/utils/auth-cookies";
 import { clearAllAuthCache } from "@/features/auth/utils/user-scoped-cache";
+import {
+  broadcastAuthEvent,
+  type LoggedInEvent,
+} from "@/lib/api/core/broadcast-channel";
 import type {
   AuthControllerCheckEmailResult,
   AuthControllerCheckUsernameResult,
@@ -70,20 +74,45 @@ import type {
 } from "@/lib/api/generated/auth/auth";
 
 /**
- * Notify any open tabs that an auth transition has happened. The
- * `BroadcastChannel('auth')` listener in `src/lib/api/core/custom-instance.ts`
- * uses these same messages to keep cookies, in-flight tokens, and tabs in
- * step. The function is the single seam at which we communicate with the
- * cross-tab subsystem from feature code; feature code MUST NOT post its
- * own messages.
+ * Broadcast a login event for cross-tab synchronization.
+ *
+ * Source epic: Epic 2.7 — Access-token refresh and cross-tab session synchronization.
+ * Source ticket: 2.7.T15.
+ *
+ * Uses the centralized BroadcastChannel manager so the cross-tab listener
+ * in `src/lib/api/core/custom-instance.ts` and auth bootstrap context can
+ * pick up the new session.
  */
-function broadcastAuth(
-  payload:
-    | { type: "TOKEN_REFRESHED"; accessToken: string; timestamp?: number }
-    | { type: "LOGGED_OUT" },
-) {
-  if (typeof BroadcastChannel === "undefined") return;
-  new BroadcastChannel("auth").postMessage(payload);
+function broadcastLogin(
+  userId: string,
+  accessToken: string,
+): void {
+  const event: Omit<LoggedInEvent, 'tabId' | 'timestamp'> = {
+    type: 'LOGGED_IN',
+    userId,
+    accessToken,
+  };
+  broadcastAuthEvent(event);
+}
+
+/**
+ * Broadcast a logout event using the centralized channel.
+ *
+ * Falls back gracefully when `BroadcastChannel` is unavailable — the
+ * storage sync fallback will handle cross-tab sync.
+ */
+function broadcastLogout(): void {
+  broadcastAuthEvent({ type: 'LOGGED_OUT' });
+}
+
+/**
+ * Broadcast a token refresh event using the centralized channel.
+ */
+function broadcastTokenRefreshed(accessToken: string): void {
+  broadcastAuthEvent({
+    type: 'TOKEN_REFRESHED',
+    accessToken,
+  });
 }
 
 /**
@@ -174,12 +203,30 @@ export async function login(
   dto: Parameters<ReturnType<typeof getAuth>["authControllerLogin"]>[0],
 ): Promise<AuthControllerLoginResult> {
   const data = await getAuth().authControllerLogin(dto);
-  setAuthToken(data.data.accessToken);
-  broadcastAuth({
-    type: "TOKEN_REFRESHED",
-    accessToken: data.data.accessToken,
-    timestamp: Date.now(),
-  });
+  const accessToken = data.data.accessToken;
+
+  setAuthToken(accessToken);
+
+  // Source epic: Epic 2.7 — cross-tab login sync (US-2.7.2).
+  // Source ticket: 2.7.T15 — broadcast LOGGED_IN so other tabs can pick up
+  // the new session and trigger their bootstrap path.
+  //
+  // `user` is the current-user identity returned by the login endpoint; we
+  // forward its `id` to other tabs so the AuthBootstrapContext (T16) can
+  // detect a "different user" login and re-bootstrap.
+  const userId = (data.data as { user?: { id?: string }; id?: string })?.user?.id
+    ?? (data.data as { id?: string })?.id
+    ?? '';
+
+  if (userId) {
+    broadcastLogin(userId, accessToken);
+  }
+
+  // Keep TOKEN_REFRESHED as a fallback message for older listeners that
+  // only know how to react to token updates (e.g. background tabs without
+  // a mounted AuthBootstrapProvider).
+  broadcastTokenRefreshed(accessToken);
+
   return data;
 }
 
@@ -228,12 +275,23 @@ export async function googleLogin(
   idToken: string,
 ): Promise<AuthControllerGoogleLoginResult> {
   const data = await getAuth().authControllerGoogleLogin({ idToken });
-  setAuthToken(data.data.accessToken);
-  broadcastAuth({
-    type: "TOKEN_REFRESHED",
-    accessToken: data.data.accessToken,
-    timestamp: Date.now(),
-  });
+  const accessToken = data.data.accessToken;
+
+  setAuthToken(accessToken);
+
+  // Source epic: Epic 2.7 — cross-tab login sync (US-2.7.2).
+  // Source ticket: 2.7.T15.
+  const userId = (data.data as { user?: { id?: string }; id?: string })?.user?.id
+    ?? (data.data as { id?: string })?.id
+    ?? '';
+
+  if (userId) {
+    broadcastLogin(userId, accessToken);
+  }
+
+  // Legacy TOKEN_REFRESHED for older listeners.
+  broadcastTokenRefreshed(accessToken);
+
   return data;
 }
 
@@ -272,7 +330,7 @@ export async function logout(): Promise<AuthControllerLogoutResult> {
   } finally {
     clearAuthToken();
     clearAllAuthCache();
-    broadcastAuth({ type: "LOGGED_OUT" });
+    broadcastLogout();
   }
 }
 
@@ -286,7 +344,7 @@ export async function logoutAll(): Promise<AuthControllerLogoutAllResult> {
   } finally {
     clearAuthToken();
     clearAllAuthCache();
-    broadcastAuth({ type: "LOGGED_OUT" });
+    broadcastLogout();
   }
 }
 

@@ -67,6 +67,19 @@ const COPY = {
       title: "Unable to sign in",
       body: "Something went wrong on our end. Please try again in a moment.",
     },
+    // Terminal refresh error copy (Epic 2.7)
+    sessionExpired: {
+      title: "Session expired",
+      body: "Your session has expired. Please sign in again to continue.",
+    },
+    securityAlert: {
+      title: "Security alert",
+      body: "We detected unusual activity and have secured your account. Please sign in again.",
+    },
+    reloginRequired: {
+      title: "Please sign in again",
+      body: "For your security, please sign in again to continue.",
+    },
     // OAuth-specific error copy
     google: {
       invalidToken: {

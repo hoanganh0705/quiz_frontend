@@ -54,6 +54,10 @@ import { singleflight } from '@/features/auth/utils/bootstrap-deduplicator';
 import { sharedBootstrapRefresh } from '@/features/auth/utils/token-refresh';
 import { handleTerminal401 } from '@/features/auth/utils/auth-redirect';
 import { clearAllAuthCache } from '@/features/auth/utils/user-scoped-cache';
+import {
+  subscribeToAuthEvents,
+  type AuthEvent,
+} from '@/lib/api/core/broadcast-channel';
 import type { CurrentUserResponseDto } from '@/features/auth/types';
 import type { UserMeResponseDto } from '@/features/users/types';
 import type { ApiError } from '@/lib/api';
@@ -115,6 +119,11 @@ export function AuthBootstrapProvider({
 
   // Track if this is the first mount to trigger bootstrap
   const isFirstMount = useRef(true);
+
+  // Track the userId of the last successful bootstrap. The cross-tab
+  // LOGGED_IN listener (Epic 2.7, Ticket 2.7.T16) compares incoming
+  // userIds against this to avoid double-bootstrapping the same user.
+  const lastBootstrappedUserIdRef = useRef<string | null>(null);
 
   // ─── Bootstrap function ─────────────────────────────────────────────────────
 
@@ -244,35 +253,104 @@ export function AuthBootstrapProvider({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // ─── Listen for logout events ───────────────────────────────────────────────
+  // ─── Listen for cross-tab auth events ─────────────────────────────────────
+  //
+  // Source epic: Epic 2.7 — Access-token refresh and cross-tab session sync.
+  // Source tickets: 2.7.T12, 2.7.T15, 2.7.T16.
+  //
+  // Subscribes to BroadcastChannel events from other tabs:
+  //
+  //   - `LOGGED_OUT`: another tab logged out — clear our bootstrap state.
+  //   - `LOGGED_IN`:  another tab logged in — if it's the same user we
+  //                   already know about, do nothing (avoid double bootstrap).
+  //                   If it's a different user, clear our state and
+  //                   bootstrap the new user.
+  //   - `TOKEN_REFRESHED`: same user, only the token rotated — no action.
 
   useEffect(() => {
-    const handleLogout = () => {
-      clearBootstrap();
+    const handleAuthEvent = (event: AuthEvent) => {
+      switch (event.type) {
+        case 'LOGGED_OUT': {
+          // Another tab logged out — clear our state in lockstep.
+          clearBootstrap();
+          lastBootstrappedUserIdRef.current = null;
+          break;
+        }
+
+        case 'LOGGED_IN': {
+          // Same user who is already bootstrapped here? Nothing to do.
+          // This is the common case when opening multiple tabs as the
+          // same logged-in user.
+          if (
+            lastBootstrappedUserIdRef.current !== null &&
+            lastBootstrappedUserIdRef.current === event.userId
+          ) {
+            return;
+          }
+
+          // Different user (or no prior bootstrap) — clear the stale state
+          // and trigger a fresh bootstrap for the new user. The cookie
+          // has already been updated by the other tab (via the LOGGED_IN
+          // handler in custom-instance), so the next request carries the
+          // new token.
+          clearAllAuthCache();
+          clearBootstrap();
+          lastBootstrappedUserIdRef.current = event.userId;
+          doBootstrap();
+          break;
+        }
+
+        case 'TOKEN_REFRESHED': {
+          // A new access token arrived from another tab. We do not need
+          // to re-bootstrap because the user identity is unchanged —
+          // only the credential rotated. Custom-instance already updates
+          // its in-memory token when it receives the event.
+          break;
+        }
+      }
     };
 
-    // Listen for BroadcastChannel logout events
-    if (typeof BroadcastChannel !== 'undefined') {
-      const channel = new BroadcastChannel('auth');
-      channel.addEventListener('message', (event) => {
-        if (event.data?.type === 'LOGGED_OUT') {
-          handleLogout();
-        }
-      });
+    // Subscribe via the broadcast channel manager
+    const unsubscribe = subscribeToAuthEvents(handleAuthEvent);
 
-      return () => {
-        channel.close();
-      };
+    // Cleanup on unmount
+    return () => {
+      unsubscribe();
+    };
+
+    // `clearBootstrap`, `doBootstrap`, and `clearAllAuthCache` are stable
+    // callbacks / module imports, so the empty deps are correct.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Capture the bootstrapped userId into the ref so the cross-tab listener
+  // (registered above) can detect "same user" vs "different user" without
+  // re-rendering every time the bootstrap completes.
+  useEffect(() => {
+    if (bootstrapState === 'authenticated' && currentUser) {
+      const id = (currentUser as { id?: string; userId?: string }).id
+        ?? (currentUser as { userId?: string }).userId;
+      if (id && id !== lastBootstrappedUserIdRef.current) {
+        lastBootstrappedUserIdRef.current = id;
+      }
+    } else if (bootstrapState === 'unauthenticated' || bootstrapState === 'idle') {
+      lastBootstrappedUserIdRef.current = null;
     }
+  }, [bootstrapState, currentUser]);
 
-    // Fallback: listen for auth state change events (cleared)
+  // ─── Listen for local 'storage' + 'auth-state-change' fallbacks ───────────
+  //
+  // When BroadcastChannel is unavailable, fall back to the storage sync
+  // mechanism via the existing `auth-state-change` DOM event (dispatched
+  // by `clearAuthToken` in auth-cookies.ts).
+
+  useEffect(() => {
     const handleAuthStateChange = () => {
-      // Check if token is gone
-      if (typeof document !== 'undefined') {
-        const hasToken = document.cookie.includes('auth_token=');
-        if (!hasToken) {
-          handleLogout();
-        }
+      if (typeof document === 'undefined') return;
+      const hasToken = document.cookie.includes('auth_token=');
+      if (!hasToken) {
+        clearBootstrap();
+        lastBootstrappedUserIdRef.current = null;
       }
     };
 
