@@ -15,6 +15,7 @@ import { getAuth } from '@/lib/api';
 
 import { isInCooldown, startCooldown, clearCooldown } from './refresh-cooldown';
 import { isRefreshTerminalError } from '@/features/auth/errors/refresh-error-codes';
+import { clearVerificationFlags } from '@/features/auth/utils/verification-flag';
 import {
   initAuthChannel,
   subscribeToAuthEvents,
@@ -42,6 +43,9 @@ const API_BASE_URL =
 // Source epic: Epic 2.8 — Security dashboard and active-session management.
 // Source ticket: 2.8.T22.
 //
+// Source epic: Epic 2.9 — Password re-verification and password change.
+// Source ticket: 2.9.T16.
+//
 // Session-management endpoints must NOT trigger a refresh on
 // 401: the request itself is what the user asked for, and
 // auto-retrying via refresh would mask a real session-loss or
@@ -49,12 +53,20 @@ const API_BASE_URL =
 // these 401s into `auth_terminal` so the hook / UI surface
 // them directly.
 //
-// Array is alphabetically grouped (T22 acceptance criterion 4):
-// `/auth/login`, `/auth/logout-all`, `/auth/oauth/...`,
-// `/auth/register`, `/auth/refresh-token`,
+// Password-management endpoints (`/auth/verify-password`,
+// `/auth/change-password`) follow the same rule: a 401 there
+// means the user's session is gone, and the right action is
+// forced reauthentication, not a silent refresh. The shared
+// final-logout policy in Epic 2.7 still applies to terminal
+// 401s.
+//
+// Array is alphabetically grouped (T22 / T16 acceptance criterion 4):
+// `/auth/change-password`, `/auth/login`, `/auth/logout-all`,
+// `/auth/oauth/...`, `/auth/register`, `/auth/refresh-token`,
 // `/auth/resend-verification-email`, `/auth/security/dashboard`,
-// `/auth/sessions`, `/auth/verify-email`.
+// `/auth/sessions`, `/auth/verify-email`, `/auth/verify-password`.
 const AUTH_PATHS = [
+  '/auth/change-password',
   '/auth/login',
   '/auth/logout-all',
   '/auth/oauth/google',      // Google OAuth exchanges do not use refresh tokens
@@ -68,6 +80,7 @@ const AUTH_PATHS = [
   //   - DELETE /auth/sessions/:id    (single revoke)
   '/auth/sessions',
   '/auth/verify-email',
+  '/auth/verify-password',
 ];
 
 type CustomConfig = InternalAxiosRequestConfig & { _retry?: boolean };
@@ -284,6 +297,10 @@ customInstance.interceptors.response.use(
           );
         }
 
+        // Epic 2.9 / 2.9.T10 — wipe any in-memory "recently verified"
+        // flags so a stale flag cannot survive a forced logout.
+        clearVerificationFlags();
+
         // Clear all caches and tokens
         clearAllAuthCache();
         clearAuthToken();
@@ -298,6 +315,10 @@ customInstance.interceptors.response.use(
 
         return Promise.reject(error);
       }
+
+      // Epic 2.9 / 2.9.T10 — wipe any in-memory "recently verified"
+      // flags so a stale flag cannot survive a forced logout.
+      clearVerificationFlags();
 
       // Non-terminal failures: clear token and redirect
       clearAuthToken();
@@ -459,6 +480,13 @@ if (typeof window !== 'undefined') {
         // can be filtered.
         markLogout('remote');
 
+        // Epic 2.9 / 2.9.T10 — wipe any in-memory "recently verified"
+        // flags so a stale flag cannot survive a logout broadcast from
+        // a sibling tab. The flag is purely a UX optimization; this
+        // wipe is what guarantees a fresh verify on the next sensitive
+        // action in this tab.
+        clearVerificationFlags();
+
         clearAuthToken();
         if (typeof window !== 'undefined') {
           window.location.href = '/login';
@@ -470,6 +498,15 @@ if (typeof window !== 'undefined') {
         // T19 — a fresh login resets the logout marker so future
         // TOKEN_REFRESHED events in the new session are not blocked.
         clearLogoutMarker();
+
+        // Epic 2.9 / 2.9.T10 — wipe any stale "recently verified"
+        // flags. A `LOGGED_IN` from another tab means the previous
+        // session's verification is invalid for the new session
+        // (different `userId`); even when the `userId` matches, the
+        // local-tab flag was not tied to the broadcast-tab's
+        // verify-password call, so it must not carry across.
+        clearVerificationFlags();
+
         setAuthToken(event.accessToken);
         break;
       }

@@ -54,6 +54,7 @@ import { singleflight } from '@/features/auth/utils/bootstrap-deduplicator';
 import { sharedBootstrapRefresh } from '@/features/auth/utils/token-refresh';
 import { handleTerminal401 } from '@/features/auth/utils/auth-redirect';
 import { clearAllAuthCache } from '@/features/auth/utils/user-scoped-cache';
+import { clearVerificationFlags } from '@/features/auth/utils/verification-flag';
 import {
   subscribeToAuthEvents,
   type AuthEvent,
@@ -274,6 +275,12 @@ export function AuthBootstrapProvider({
           // Another tab logged out — clear our state in lockstep.
           clearBootstrap();
           lastBootstrappedUserIdRef.current = null;
+
+          // Epic 2.9 / 2.9.T10 — wipe any in-memory "recently
+          // verified" flags. A logout broadcast from a sibling tab
+          // means the local session is now unauthenticated; any
+          // pending verification must not survive the auth change.
+          clearVerificationFlags();
           break;
         }
 
@@ -295,6 +302,16 @@ export function AuthBootstrapProvider({
           // new token.
           clearAllAuthCache();
           clearBootstrap();
+
+          // Epic 2.9 / 2.9.T10 — wipe any in-memory "recently
+          // verified" flags. The prior session's verification must
+          // not carry over to the new user. Even when the userId
+          // matches (a re-login path), the local-tab flag was set
+          // by THIS tab's verify-password call and is not tied to
+          // the broadcast-tab's credential, so it must not survive
+          // a fresh login.
+          clearVerificationFlags();
+
           lastBootstrappedUserIdRef.current = event.userId;
           doBootstrap();
           break;
