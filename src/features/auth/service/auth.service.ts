@@ -79,6 +79,8 @@ import type {
   AccountSecurityDto,
   ChangePasswordDto,
   ChangePasswordResponseDto,
+  DeleteAccountDto,
+  DeleteAccountResponseDto,
   SessionListResponseDto,
   SessionManagementResultDto,
   VerifyPasswordDto,
@@ -86,6 +88,7 @@ import type {
 } from "@/lib/api";
 import {
   AuthControllerChangePasswordResult,
+  AuthControllerDeleteAccountResult,
   AuthControllerVerifyPasswordResult,
 } from "@/lib/api/generated/auth/auth";
 import { ApiError } from "@/lib/api/core/ApiError";
@@ -1073,3 +1076,352 @@ export {
   passwordChangeSuccessSnapshot,
   hasPasswordCopyKey,
 } from "@/features/auth/copy/password-copy";
+
+// ─── Account Deletion ────────────────────────────────────────────────────────
+//
+// Source epic: Epic 2.10 — Permanent account deletion.
+// Source tickets: 2.10.T5 (deleteAccount), 2.10.T6 (verifyPassword reuse),
+// 2.10.T7 (deletion success boundary).
+//
+// The deletion flow is intentionally non-trivial: a successful delete
+// is terminal and the backend invalidates every active session and
+// clears the refresh-token cookie atomically. Therefore:
+//
+//   - The deletion wrappers are pure SDK forwarders (T5, T6).
+//     They do NOT call `setAuthToken`, `clearAuthToken`,
+//     `broadcastLogout`, or `clearAllAuthCache`. The backend owns
+//     session invalidation; the frontend owns local cleanup, which
+//     lives behind `runDeletionFinalization()` (T7) and runs only
+//     after the service-level result contract proves the request
+//     succeeded.
+//
+//   - The success boundary (T7) is the single place that distinguishes
+//     "the backend committed deletion" from "the user is signed out
+//     locally". It does NOT issue a `logout` / `logoutAll` request;
+//     the backend's contract guarantees session termination.
+
+/**
+ * `DELETE /api/v1/auth/account`
+ *
+ * Source epic: Epic 2.10 — Permanent account deletion.
+ * Source ticket: 2.10.T5.
+ *
+ * Permanently deletes the authenticated user's account after password
+ * confirmation. The backend contract:
+ *
+ *   - requires a Bearer access token (this function does not handle
+ *     token refresh; the axios interceptor owns it, but the endpoint
+ *     is in `AUTH_PATHS` so a 401 will NOT trigger a silent refresh),
+ *   - requires `DeleteAccountDto.password` (the current password,
+ *     minimum length 1, maximum 128 — see the generated DTO),
+ *   - on success returns `DeleteAccountResponseDto` and atomically
+ *     invalidates every active session and clears the refresh-token
+ *     cookie,
+ *   - on wrong password returns `AUTH_INVALID_CURRENT_PASSWORD`
+ *     without modifying the account,
+ *   - on concurrent / already-deleted returns `AUTH_DELETION_FAILED`,
+ *   - on stale token returns `AUTH_INVALID_TOKEN`.
+ *
+ * ## Side-effect ownership
+ *
+ * This function is a pure SDK forwarder. It does NOT:
+ *
+ *   - call `setAuthToken` / `clearAuthToken`,
+ *   - call `broadcastLogout` / `broadcastTokenRefreshed`,
+ *   - call `clearAllAuthCache`,
+ *   - navigate, mutate history, or redirect.
+ *
+ * The hook layer (`useDeleteAccount`, 2.10.T12) is responsible for
+ * detecting authoritative success and running local cleanup via
+ * `runDeletionFinalization()` (2.10.T7). Issuing a logout request
+ * against a deleted account is a documented anti-pattern: the
+ * backend has already invalidated every session, and any logout
+ * attempt could race with the deletion commit.
+ *
+ * ## Password hygiene
+ *
+ * The `password` argument goes out of scope when this function
+ * returns. The wrapper does not capture the value in any closure,
+ * module-level state, or log payload. The hook layer must not store
+ * the password in React state beyond the synchronous call.
+ *
+ * @param dto - The `DeleteAccountDto` (`{ password: string }`)
+ * @returns `DeleteAccountResponseDto` (`{ message: string }`)
+ * @throws `ApiError` on any non-2xx response. The hook layer is
+ *         responsible for routing the failure through
+ *         `mapDeletionError`.
+ */
+export async function deleteAccount(
+  dto: DeleteAccountDto,
+): Promise<DeleteAccountResponseDto> {
+  const data: AuthControllerDeleteAccountResult =
+    await getAuth().authControllerDeleteAccount(dto);
+  if (!data.data) {
+    throw new ApiError({
+      status: 500,
+      code: "GLOBAL_INTERNAL_ERROR",
+      message: "Delete account response missing data envelope",
+    } as unknown as ConstructorParameters<typeof ApiError>[0]);
+  }
+  return data.data;
+}
+
+// ─── Account Deletion — Optional Verify-Password Wrapper ─────────────────────
+//
+// Source epic: Epic 2.10 — Permanent account deletion.
+// Source ticket: 2.10.T6.
+//
+// The Epic 2.10 design allows the destructive modal to optionally
+// re-prompt with `POST /auth/verify-password` BEFORE the
+// `DELETE /auth/account` call. This is a UX nicety — the `DELETE`
+// call still requires the current password in its body, so the
+// verify-password result cannot replace the proof.
+//
+// To avoid duplicating Epic 2.9's verify-password implementation
+// (2.9.T4), we re-export the existing `verifyPassword()` wrapper
+// here so deletion flows can consume it without importing the
+// password-management service surface directly.
+//
+// ## What this re-export guarantees
+//
+//   - The underlying `authControllerVerifyPassword` call is the same
+//     function Epic 2.9 uses. There is NO alternate "deletion-grade"
+//     verification path.
+//   - A successful verify-password call MUST NOT cause the deletion
+//     hook to skip the password field in the destructive modal. The
+//     `DeleteAccountDto.password` body field remains mandatory.
+//   - The wrapper returns `{ valid: boolean }` (no tokens, no
+//     cookies, no broadcasts). It is a pure forwarder.
+
+export { verifyPassword as verifyPasswordForDeletion };
+
+// ─── Account Deletion — Error Mapper / Codes Re-export ───────────────────────
+//
+// Source epic: Epic 2.10.
+// Source tickets: 2.10.T2 (codes), 2.10.T3 (mapper).
+//
+// Re-exported here so the destructive deletion modal and hook
+// (planned at 2.10.T15 / 2.10.T12) can pull every error-mapping
+// type and code from `auth.service` rather than reaching into the
+// errors subdirectory. Same convention as the Session and Password
+// re-exports above.
+
+export {
+  mapDeletionError,
+  isInvalidCurrentPasswordDeletion,
+  isDeletionConflict,
+  isDeletionNotFound,
+  isAuthTerminalDeletionError,
+  isDeletionValidation,
+  isDeletionUncertain,
+  type DeletionErrorClassification,
+  type DeletionErrorInput,
+} from "@/features/auth/errors/deletion-error-mapper";
+
+export {
+  AUTH_DELETION_FAILED,
+  // AUTH_INVALID_CURRENT_PASSWORD, AUTH_INVALID_TOKEN,
+  // AUTH_RESOURCE_CONFLICT, and GLOBAL_VALIDATION_FAILED are already
+  // exported from the session and password error-codes re-exports
+  // above — re-exporting them here would collide.
+  USER_NOT_FOUND,
+  isInvalidCurrentPasswordError as isInvalidCurrentPasswordDeletionCode,
+  isDeletionFailedError,
+  isUserNotFoundError,
+  isDeletionErrorCode,
+  isDeletionRecoverableStatus,
+  type DeletionErrorCode,
+} from "@/features/auth/errors/deletion-error-codes";
+
+// ─── Account Deletion — Copy Registry Re-export ──────────────────────────────
+//
+// Source epic: Epic 2.10.
+// Source ticket: 2.10.T4.
+
+export {
+  COPY_KEYS as DELETION_COPY_KEYS,
+  resolveCopy as resolveDeletionCopy,
+  deletionConfirmTitleSnapshot,
+  deletionConsequenceSnapshot,
+  deletionUncertainSnapshot,
+  hasDeletionCopyKey,
+} from "@/features/auth/copy/deletion-copy";
+
+// ─── Account Deletion — Finalization Coordinator Re-export ───────────────────
+//
+// Source epic: Epic 2.10.
+// Source tickets: 2.10.T7 (initial success boundary), 2.10.T14
+// (coordinator refactor — composes the T9–T11 cleanup primitives).
+//
+// Re-exported here so the deletion hook (2.10.T12) and the cross-tab
+// receiver (2.10.T24) can import the finalization entry point from
+// the auth service barrel. The coordinator itself lives in
+// `@/features/auth/lifecycle/deletion-finalization.ts`.
+
+export {
+  runDeletionFinalization,
+  isDeletionFinalized,
+  resetDeletionFinalizationForTesting,
+  type DeletionFinalizationResult,
+  type DeletionCleanupStep,
+} from "@/features/auth/lifecycle/deletion-finalization";
+
+// ─── Account Deletion — Cleanup Primitives (T9–T11) ──────────────────────────
+//
+// Source epic: Epic 2.10.
+// Source tickets: 2.10.T9 (auth-marker cleanup), 2.10.T10 (cache
+// cleanup), 2.10.T11 (persisted state + form-state cleanup).
+//
+// Each primitive has a single responsibility. The deletion
+// coordinator composes them; the hook layer can call them
+// independently for fine-grained tests or alternative integration
+// paths. They are re-exported through the auth service barrel so
+// feature code has a single import surface.
+
+export {
+  finalizeDeletedAccountAuthMarkers,
+} from "@/features/auth/lifecycle/deletion-auth-markers";
+
+export {
+  clearAllDeletionCaches,
+  type DeletionCacheCleanupReport,
+} from "@/features/auth/lifecycle/deletion-cache-cleanup";
+
+export {
+  AUTH_PERSISTENT_KEYS,
+  clearPersistedUserStore,
+  clearDeletionPersistedAccountState,
+  clearSensitiveDeletionFormValues,
+  type DeletionFormSetters,
+} from "@/features/auth/lifecycle/deletion-persisted-state";
+
+// ─── Account Deletion — Revalidation Helper (T13) ────────────────────────────
+//
+// Source epic: Epic 2.10.
+// Source ticket: 2.10.T13.
+//
+// Re-exported so the deletion hook (`useDeleteAccount`) and any
+// future revalidation CTA can import the helper from the auth
+// service barrel without reaching into the lifecycle subdirectory.
+
+export {
+  revalidateAccountExists,
+  type DeletionAccountExistence,
+  type DeletionRevalidationResult,
+  type RevalidateAccountExistsDeps,
+} from "@/features/auth/lifecycle/deletion-revalidation";
+
+// ─── Account Deletion — History Replacement (T20) ───────────────────────────
+//
+// Source epic: Epic 2.10.
+// Source ticket: 2.10.T20.
+//
+// Re-exported so the settings page (2.10.T18) and any future
+// deletion-aware navigation helper can import the
+// `buildDeletionReplaceHistory()` thunk from the auth service
+// barrel without reaching into the lifecycle subdirectory.
+
+export {
+  buildDeletionReplaceHistory,
+  DELETION_PUBLIC_LANDING_PATH,
+} from "@/features/auth/lifecycle/deletion-history";
+
+// ─── Account Deletion — Protected-Route Guard (T21) ─────────────────────────
+//
+// Source epic: Epic 2.10.
+// Source ticket: 2.10.T21.
+//
+// Re-exported so protected surfaces (the settings layout and
+// future shared layouts) can wrap their children with
+// `<DeletionGuard>` without reaching into the guards subdirectory.
+
+export {
+  DeletionGuard,
+  useDeletionGuardActive,
+  type DeletionGuardProps,
+} from "@/features/auth/guards/deletion-guard";
+
+// ─── Account Deletion — Lifecycle State Model (T8) ────────────────────────────
+//
+// Source epic: Epic 2.10.
+// Source ticket: 2.10.T8.
+//
+// Re-exported so feature code (modal, hook, tests) can pull the
+// discriminated-union types from the auth service barrel.
+
+export {
+  initialDeletionState,
+  assertNeverExhaustiveDeletionState,
+  isTerminalDeletionState,
+  type DeletionState,
+  type DeletionIdleState,
+  type DeletionPendingState,
+  type DeletionUncertainState,
+  type DeletionCleanupState,
+  type DeletionCompletedState,
+  type DeletionStateError,
+} from "@/features/auth/types/deletion-state";
+
+// ─── Account Deletion — Hook (T12) ────────────────────────────────────────────
+//
+// Source epic: Epic 2.10.
+// Source ticket: 2.10.T12.
+//
+// Re-exported so the modal component imports the hook through the
+// auth service barrel, matching the discipline used by
+// `useVerifyPassword`, `useRevokeSession`, `useLogout`, etc.
+
+export {
+  useDeleteAccount,
+  DELETION_INTENT_TOKEN,
+  type UseDeleteAccountDeps,
+  type UseDeleteAccountResult,
+  type UseDeleteAccountSubmitResult,
+} from "@/features/auth/hooks/use-delete-account";
+
+// ─── Account Deletion — Cross-Tab Channel Event (T22) ────────────────────────
+//
+// Source epic: Epic 2.10.
+// Source ticket: 2.10.T22.
+//
+// Re-exported so feature code can publish the deletion terminal
+// event from outside the auth service (e.g. directly from a test
+// harness or a manual repair flow) without reaching into the
+// core transport layer.
+
+export {
+  broadcastAccountDeleted,
+} from "@/lib/api/core/broadcast-channel";
+
+// ─── Account Deletion — Refresh Suppression Marker (T23) ─────────────────────
+//
+// Source epic: Epic 2.10.
+// Source ticket: 2.10.T23.
+//
+// Re-exported so the deletion hook (2.10.T12) and the cross-tab
+// receiver (2.10.T24) can both read the terminal state via a
+// single import surface. The underlying implementation lives in
+// `deletion-terminal.ts` so the lifecycle modules do not depend
+// on `custom-instance.ts`.
+
+export {
+  isDeletionTerminal,
+  markDeletionTerminal,
+  clearDeletionTerminal,
+  _isDeletionTerminalForTesting,
+} from "@/features/auth/lifecycle/deletion-terminal";
+
+// ─── Account Deletion — Cross-Tab Receiver (T24) ──────────────────────────────
+//
+// Source epic: Epic 2.10.
+// Source ticket: 2.10.T24.
+//
+// Re-exported so the cross-tab listener (wired in
+// `custom-instance.ts`) can dispatch the receiver through the
+// auth service barrel. Tests can call `handleRemoteAccountDeleted`
+// directly to simulate a sibling tab's deletion event without
+// touching the BroadcastChannel.
+
+export {
+  handleRemoteAccountDeleted,
+} from "@/features/auth/lifecycle/deletion-cross-tab";

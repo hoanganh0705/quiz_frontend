@@ -2,8 +2,6 @@
 
 import { useState, memo } from 'react'
 import { Button } from '@/components/ui/Button'
-import { Input } from '@/components/ui/Input'
-import { Label } from '@/components/ui/Label'
 import {
   Card,
   CardContent,
@@ -20,10 +18,19 @@ import {
   DialogTitle,
   DialogTrigger
 } from '@/components/ui/Dialog'
-import { Checkbox } from '@/components/ui/Checkbox'
 import { AlertTriangle, Trash2, Download, LogOut, XCircle } from 'lucide-react'
 
 interface DangerZoneProps {
+  /**
+   * Called when the user clicks the destructive "Delete Account"
+   * trigger. The parent (settings page) is responsible for opening
+   * the destructive modal — the trigger itself does NOT submit a
+   * request. Mirrors the `onSignOutAll` discipline: the trigger
+   * only opens a confirmation surface.
+   *
+   * Source epic: Epic 2.10 — Permanent account deletion.
+   * Source ticket: 2.10.T18.
+   */
   onDeleteAccount: () => void
   onExportData: () => void
   onSignOutAll: () => void
@@ -37,48 +44,28 @@ interface DangerZoneProps {
    * Source ticket: 2.8.T21 — wire `useLogoutAll`.
    */
   isSignOutAllPending?: boolean
+  /**
+   * Whether the destructive deletion flow is currently in a
+   * pending, cleanup, or completed state. While `true`, the
+   * Delete Account trigger is disabled so the user cannot open
+   * a second modal during a terminal flow.
+   *
+   * Source epic: Epic 2.10.
+   * Source ticket: 2.10.T18.
+   */
+  isDeleteAccountPending?: boolean
 }
 
 export const DangerZone = memo(function DangerZone({
   onDeleteAccount,
   onExportData,
   onSignOutAll,
-  isSignOutAllPending = false
+  isSignOutAllPending = false,
+  isDeleteAccountPending = false,
 }: DangerZoneProps) {
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
-  const [confirmText, setConfirmText] = useState('')
-  const [confirmations, setConfirmations] = useState({
-    understand: false,
-    permanent: false,
-    noRecovery: false
-  })
   // T21: controlled open state for the "Sign Out All Sessions" modal,
   // so the pending spinner can be toggled without losing the modal.
   const [signOutAllDialogOpen, setSignOutAllDialogOpen] = useState(false)
-
-  const canDelete =
-    confirmText === 'DELETE' &&
-    confirmations.understand &&
-    confirmations.permanent &&
-    confirmations.noRecovery
-
-  const handleDeleteAccount = () => {
-    if (canDelete) {
-      onDeleteAccount()
-      setDeleteDialogOpen(false)
-      setConfirmText('')
-      setConfirmations({
-        understand: false,
-        permanent: false,
-        noRecovery: false
-      })
-    }
-  }
-
-  const resetDeleteDialog = () => {
-    setConfirmText('')
-    setConfirmations({ understand: false, permanent: false, noRecovery: false })
-  }
 
   return (
     <div className='space-y-6'>
@@ -232,7 +219,10 @@ export const DangerZone = memo(function DangerZone({
         </CardContent>
       </Card>
 
-      {/* Delete Account */}
+      {/* Delete Account — T18: thin trigger. The real modal lives in
+          `DeleteAccountModal` (Epic 2.10) and is wired by the parent
+          (settings/page.tsx). The trigger does NOT submit; it only
+          opens the parent-owned modal. */}
       <Card className='border-destructive/50 py-5'>
         <CardHeader>
           <CardTitle className='flex items-center gap-2 text-destructive'>
@@ -245,138 +235,15 @@ export const DangerZone = memo(function DangerZone({
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Dialog
-            open={deleteDialogOpen}
-            onOpenChange={(open) => {
-              setDeleteDialogOpen(open)
-              if (!open) resetDeleteDialog()
-            }}
+          <Button
+            variant='destructive'
+            onClick={onDeleteAccount}
+            disabled={isDeleteAccountPending}
+            aria-label='Delete your account permanently'
           >
-            <DialogTrigger asChild>
-              <Button
-                variant='destructive'
-                aria-label='Delete your account permanently'
-              >
-                <Trash2 className='w-4 h-4 mr-2' aria-hidden='true' />
-                Delete Account
-              </Button>
-            </DialogTrigger>
-            <DialogContent className='sm:max-w-md'>
-              <DialogHeader>
-                <DialogTitle className='flex items-center gap-2 text-destructive'>
-                  <AlertTriangle className='w-5 h-5' aria-hidden='true' />
-                  Delete Your Account
-                </DialogTitle>
-                <DialogDescription>
-                  This action is permanent and cannot be reversed. All your data
-                  will be permanently deleted.
-                </DialogDescription>
-              </DialogHeader>
-
-              <div className='space-y-4 py-4'>
-                <div className='p-3 rounded-lg bg-destructive/10 border border-destructive/20'>
-                  <p className='text-sm text-destructive font-medium'>
-                    What will be deleted:
-                  </p>
-                  <ul className='mt-2 text-sm text-destructive/80 space-y-1'>
-                    <li>• All your quiz history and scores</li>
-                    <li>• Your achievements and badges</li>
-                    <li>• Your created quizzes</li>
-                    <li>• Your friends list and social connections</li>
-                    <li>• All account settings and preferences</li>
-                  </ul>
-                </div>
-
-                <div className='space-y-3'>
-                  <div className='flex items-start space-x-3'>
-                    <Checkbox
-                      id='understand'
-                      checked={confirmations.understand}
-                      onCheckedChange={(checked) =>
-                        setConfirmations({
-                          ...confirmations,
-                          understand: checked === true
-                        })
-                      }
-                    />
-                    <Label
-                      htmlFor='understand'
-                      className='text-sm cursor-pointer'
-                    >
-                      I understand that deleting my account is permanent
-                    </Label>
-                  </div>
-                  <div className='flex items-start space-x-3'>
-                    <Checkbox
-                      id='permanent'
-                      checked={confirmations.permanent}
-                      onCheckedChange={(checked) =>
-                        setConfirmations({
-                          ...confirmations,
-                          permanent: checked === true
-                        })
-                      }
-                    />
-                    <Label
-                      htmlFor='permanent'
-                      className='text-sm cursor-pointer'
-                    >
-                      I understand that all my data will be permanently deleted
-                    </Label>
-                  </div>
-                  <div className='flex items-start space-x-3'>
-                    <Checkbox
-                      id='noRecovery'
-                      checked={confirmations.noRecovery}
-                      onCheckedChange={(checked) =>
-                        setConfirmations({
-                          ...confirmations,
-                          noRecovery: checked === true
-                        })
-                      }
-                    />
-                    <Label
-                      htmlFor='noRecovery'
-                      className='text-sm cursor-pointer'
-                    >
-                      I understand that this action cannot be recovered
-                    </Label>
-                  </div>
-                </div>
-
-                <div className='space-y-2'>
-                  <Label htmlFor='confirmDelete'>
-                    Type <strong>DELETE</strong> to confirm:
-                  </Label>
-                  <Input
-                    id='confirmDelete'
-                    value={confirmText}
-                    onChange={(e) => setConfirmText(e.target.value)}
-                    placeholder='DELETE'
-                    className='font-mono'
-                  />
-                </div>
-              </div>
-
-              <DialogFooter>
-                <Button
-                  variant='outline'
-                  onClick={() => setDeleteDialogOpen(false)}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  variant='destructive'
-                  disabled={!canDelete}
-                  onClick={handleDeleteAccount}
-                  aria-label='Confirm account deletion'
-                >
-                  <Trash2 className='w-4 h-4 mr-2' aria-hidden='true' />
-                  Delete My Account
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+            <Trash2 className='w-4 h-4 mr-2' aria-hidden='true' />
+            Delete Account
+          </Button>
         </CardContent>
       </Card>
     </div>

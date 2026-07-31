@@ -29,6 +29,18 @@
  * | `TOKEN_REFRESHED` | → other tabs | `accessToken`, `timestamp`, `tabId` |
  * | `LOGGED_OUT` | → other tabs | `tabId` |
  * | `LOGGED_IN` | → other tabs | `userId`, `accessToken`, `timestamp`, `tabId` |
+ * | `ACCOUNT_DELETED` | → other tabs | `tabId`, `timestamp` |
+ *
+ * Source epic: Epic 2.10 — Permanent account deletion.
+ * Source ticket: 2.10.T22.
+ *
+ * `ACCOUNT_DELETED` is distinct from `LOGGED_OUT` because the
+ * terminal state requires both tab-level cleanup (the same
+ * `LOGGED_OUT` machinery) AND refresh suppression (T23) AND
+ * remote-tab cleanup of caches and persisted state (T24). Treating
+ * the deletion as an ordinary logout would let a sibling tab
+ * attempt a refresh that the backend has already invalidated by
+ * invalidating every active session.
  *
  * ## Usage
  *
@@ -86,7 +98,11 @@ function getTabId(): string {
 /**
  * Event types for auth broadcast messages.
  */
-export type AuthEventType = 'TOKEN_REFRESHED' | 'LOGGED_OUT' | 'LOGGED_IN';
+export type AuthEventType =
+  | 'TOKEN_REFRESHED'
+  | 'LOGGED_OUT'
+  | 'LOGGED_IN'
+  | 'ACCOUNT_DELETED';
 
 /**
  * Base interface for all auth broadcast events.
@@ -127,9 +143,37 @@ export interface LoggedInEvent extends BaseAuthEvent {
 }
 
 /**
+ * Event emitted when an account has been permanently deleted.
+ *
+ * Source epic: Epic 2.10 — Permanent account deletion.
+ * Source ticket: 2.10.T22.
+ *
+ * Distinct from `LOGGED_OUT` so receiving tabs can:
+ *
+ *   - apply the deletion-aware refresh suppression (T23),
+ *   - run the full cleanup chain (T24) — identity, profile,
+ *     security, session caches, persisted account-scoped state,
+ *     and sensitive form values — without writing anything back,
+ *   - replace history (T20) and route to the public landing page
+ *     instead of `/login`.
+ *
+ * The payload carries NO password, NO access token, NO user id —
+ * only the originating `tabId` so the same-tab filter can drop it.
+ * This is the T22 anti-leak guarantee: a receiving tab that wires
+ * analytics or logging must see a payload that is safe to record.
+ */
+export interface AccountDeletedEvent extends BaseAuthEvent {
+  type: 'ACCOUNT_DELETED';
+}
+
+/**
  * Union of all possible auth broadcast events.
  */
-export type AuthEvent = TokenRefreshedEvent | LoggedOutEvent | LoggedInEvent;
+export type AuthEvent =
+  | TokenRefreshedEvent
+  | LoggedOutEvent
+  | LoggedInEvent
+  | AccountDeletedEvent;
 
 // ─── Channel Singleton ───────────────────────────────────────────────────────
 
@@ -268,7 +312,12 @@ function handleMessage(event: MessageEvent): void {
   const data = event.data as Partial<AuthEvent>;
 
   // Must have a valid type
-  if (!data.type || !['TOKEN_REFRESHED', 'LOGGED_OUT', 'LOGGED_IN'].includes(data.type)) {
+  if (
+    !data.type ||
+    !['TOKEN_REFRESHED', 'LOGGED_OUT', 'LOGGED_IN', 'ACCOUNT_DELETED'].includes(
+      data.type,
+    )
+  ) {
     return;
   }
 
@@ -354,9 +403,11 @@ export function getCurrentTabId(): string {
  * ```
  */
 export function broadcastAuthEvent(
-  event: Omit<TokenRefreshedEvent, 'tabId' | 'timestamp'> |
-          Omit<LoggedOutEvent, 'tabId' | 'timestamp'> |
-          Omit<LoggedInEvent, 'tabId' | 'timestamp'>
+  event:
+    | Omit<TokenRefreshedEvent, 'tabId' | 'timestamp'>
+    | Omit<LoggedOutEvent, 'tabId' | 'timestamp'>
+    | Omit<LoggedInEvent, 'tabId' | 'timestamp'>
+    | Omit<AccountDeletedEvent, 'tabId' | 'timestamp'>,
 ): void {
   // Ensure channel is initialized (sets up listener if not already)
   initAuthChannel();
@@ -405,5 +456,23 @@ export function broadcastLoggedIn(userId: string, accessToken: string): void {
     type: 'LOGGED_IN',
     userId,
     accessToken,
+  });
+}
+
+/**
+ * Broadcast an account-deleted event.
+ *
+ * Source epic: Epic 2.10 — Permanent account deletion.
+ * Source ticket: 2.10.T22.
+ *
+ * Published exactly once after authoritative deletion success,
+ * from the deletion finalization coordinator (T14). The payload
+ * carries no password, no access token, no user id — the receiving
+ * tab's listener resolves the deletion-terminal state via the
+ * module-level marker (`isDeletionFinalized()`).
+ */
+export function broadcastAccountDeleted(): void {
+  broadcastAuthEvent({
+    type: 'ACCOUNT_DELETED',
   });
 }

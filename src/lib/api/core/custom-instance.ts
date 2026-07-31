@@ -23,6 +23,8 @@ import {
   broadcastLoggedOut,
   type AuthEvent,
 } from './broadcast-channel';
+import { isDeletionTerminal, clearDeletionTerminal } from '@/features/auth/lifecycle/deletion-terminal';
+import { handleRemoteAccountDeleted } from '@/features/auth/lifecycle/deletion-cross-tab';
 
 const fromAxios = ApiError.fromAxios.bind(ApiError);
 
@@ -131,7 +133,7 @@ let inFlightRefreshWaiters: Array<{
  * Source epic: Epic 2.7.
  * Source ticket: 2.7.T18 — Handle logout event arriving while refresh is pending.
  */
-function cancelInFlightRefresh(): void {
+export function cancelInFlightRefresh(): void {
   if (inFlightRefresh === null) return;
 
   const error = new ApiError({
@@ -202,6 +204,23 @@ export function _getLastLogoutTimestampForTesting(): number | null {
   return lastLogoutTimestamp;
 }
 
+/**
+ * Source epic: Epic 2.10 — Permanent account deletion.
+ * Source ticket: 2.10.T23.
+ *
+ * The deletion-terminal marker lives in
+ * `@/features/auth/lifecycle/deletion-terminal` so the
+ * lifecycle modules can read it without depending on
+ * `custom-instance.ts`. We re-export it through `custom-instance.ts`
+ * for compatibility with existing call sites.
+ */
+export {
+  isDeletionTerminal,
+  markDeletionTerminal,
+  clearDeletionTerminal,
+  _isDeletionTerminalForTesting,
+} from '@/features/auth/lifecycle/deletion-terminal';
+
 export const customInstance: AxiosInstance = axios.create({
   baseURL: API_BASE_URL,
   withCredentials: true,
@@ -238,6 +257,35 @@ customInstance.interceptors.response.use(
     // Not a 401, or an auth endpoint → reject immediately
     if (!originalRequest || error.response?.status !== 401) {
       return Promise.reject(fromAxios(error));
+    }
+
+    // Source epic: Epic 2.10 — Permanent account deletion.
+    // Source ticket: 2.10.T23.
+    //
+    // After deletion is terminal, the access token presented by the
+    // browser is no longer valid (the backend has invalidated every
+    // session the cookie might resolve to). Attempting a refresh
+    // would:
+    //   - hit the backend's already-deleted session,
+    //   - return a terminal refresh error,
+    //   - feed the error into the 401 handler's redirect path,
+    //   - possibly re-establish a transient session via the broadcast
+    //     channel if the late response is mishandled.
+    // None of those are acceptable. Short-circuit with a synthetic
+    // auth-cookie-gone error so the caller's promise rejects cleanly
+    // and the protected UI sees the deletion-terminal state.
+    if (isDeletionTerminal()) {
+      const cancelled = new ApiError({
+        config: originalRequest,
+        request: undefined,
+        response: undefined,
+        isAxiosError: true,
+        name: 'AxiosError',
+        message: 'Request rejected: account deletion terminal',
+        code: 'AUTH_DELETION_TERMINAL',
+        toJSON: () => ({}),
+      } as unknown as Parameters<typeof ApiError.fromAxios>[0]);
+      return Promise.reject(cancelled);
     }
 
     if (requestPath && AUTH_PATHS.some((path) => requestPath.includes(path))) {
@@ -499,6 +547,11 @@ if (typeof window !== 'undefined') {
         // TOKEN_REFRESHED events in the new session are not blocked.
         clearLogoutMarker();
 
+        // Source epic: Epic 2.10.
+        // Source ticket: 2.10.T23 — a fresh login also clears the
+        // deletion-terminal marker so the new session can refresh.
+        clearDeletionTerminal();
+
         // Epic 2.9 / 2.9.T10 — wipe any stale "recently verified"
         // flags. A `LOGGED_IN` from another tab means the previous
         // session's verification is invalid for the new session
@@ -508,6 +561,20 @@ if (typeof window !== 'undefined') {
         clearVerificationFlags();
 
         setAuthToken(event.accessToken);
+        break;
+      }
+
+      case 'ACCOUNT_DELETED': {
+        // Source epic: Epic 2.10.
+        // Source tickets: 2.10.T22 + 2.10.T23 + 2.10.T24.
+        //
+        // The originator tab has committed deletion. This tab must
+        // converge on the deletion-terminal state without itself
+        // issuing a DELETE request. The handler is dynamically
+        // imported so the cross-tab receiver is a leaf module —
+        // `custom-instance.ts` does not need to know about the
+        // lifecycle primitives.
+        void handleRemoteAccountDeleted(event);
         break;
       }
     }

@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, memo } from "react";
+import { useCallback, useEffect, memo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { ScrollArea } from "@/components/ui/ScrollArea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/Tabs";
 import {
@@ -16,6 +17,11 @@ import { UserSettings, UserSettingsTabId } from "@/features/users/types";
 import { defaultSettings } from "@/features/users/constants/settings";
 import { User, Bell, Shield, Globe, Link2, AlertTriangle } from "lucide-react";
 import { useLogoutAll } from "@/features/auth/hooks/use-logout-all";
+import { useDeleteAccount } from "@/features/auth/hooks/use-delete-account";
+import { DeleteAccountModal } from "@/features/auth/components/delete-account-modal";
+import { runDeletionFinalization } from "@/features/auth/lifecycle/deletion-finalization";
+import { buildDeletionReplaceHistory } from "@/features/auth/lifecycle/deletion-history";
+import { DELETION_PUBLIC_LANDING_PATH } from "@/features/auth/lifecycle/deletion-history";
 
 const settingsTabs: {
   id: UserSettingsTabId;
@@ -62,6 +68,30 @@ const SettingsPage = memo(function SettingsPage() {
 
   const logoutAll = useLogoutAll();
 
+  // T18: real destructive-deletion flow. The hook owns the request
+  // lifecycle; the modal owns the UI. We inject `finalize` so the
+  // coordinator runs history replacement (T20) before navigation.
+  const router = useRouter();
+  const deletion = useDeleteAccount({
+    finalize: async () => {
+      const result = await runDeletionFinalization({
+        replaceHistory: buildDeletionReplaceHistory(),
+      });
+      return { alreadyFinalized: result.alreadyFinalized };
+    },
+  });
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+
+  // T18: route away once the hook transitions to `completed`. The
+  // modal hides the close X during cleanup/completed so the user
+  // cannot dismiss; the page also refuses to render protected
+  // content via the DeletionGuard pattern (see Epic 2.10 T21).
+  useEffect(() => {
+    if (deletion.state.kind === "completed") {
+      router.replace(DELETION_PUBLIC_LANDING_PATH);
+    }
+  }, [deletion.state.kind, router]);
+
   const handleUpdateSettings = useCallback(
     (updates: Partial<UserSettings>) => {
       setSettings((prev) => ({
@@ -72,8 +102,10 @@ const SettingsPage = memo(function SettingsPage() {
     [setSettings],
   );
 
-  const handleDeleteAccount = useCallback(() => {
-    alert("Account deletion would be processed here");
+  // T18: the trigger only opens the modal. The actual delete request
+  // is fired from inside the modal via `deletion.submit()`.
+  const handleOpenDeleteAccount = useCallback(() => {
+    setDeleteDialogOpen(true);
   }, []);
 
   const handleExportData = useCallback(() => {
@@ -96,6 +128,10 @@ const SettingsPage = memo(function SettingsPage() {
   const handleSignOutAll = useCallback(() => {
     void logoutAll.logoutAll({ confirmed: true });
   }, [logoutAll]);
+
+  const isDeleteTerminal =
+    deletion.state.kind === "cleanup" ||
+    deletion.state.kind === "completed";
 
   return (
     <main className="min-h-screen bg-transparent text-foreground mt-20">
@@ -166,10 +202,11 @@ const SettingsPage = memo(function SettingsPage() {
                 </TabsContent>
                 <TabsContent value="danger">
                   <DangerZone
-                    onDeleteAccount={handleDeleteAccount}
+                    onDeleteAccount={handleOpenDeleteAccount}
                     onExportData={handleExportData}
                     onSignOutAll={handleSignOutAll}
                     isSignOutAllPending={logoutAll.status === 'pending'}
+                    isDeleteAccountPending={isDeleteTerminal}
                   />
                 </TabsContent>
               </div>
@@ -177,6 +214,14 @@ const SettingsPage = memo(function SettingsPage() {
           </div>
         </Tabs>
       </div>
+
+      {/* T18: destructive-deletion modal owned by the settings page,
+          driven by the trigger on the DangerZone card. */}
+      <DeleteAccountModal
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        hook={deletion}
+      />
     </main>
   );
 });

@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import { buildMetadata } from '@/shared/lib/seo'
+import { SettingsDeletionGuardWrapper } from '@/features/auth/components/settings-deletion-guard-wrapper'
 
 export const metadata = buildMetadata({
   title: 'Settings | QuizHub',
@@ -8,5 +9,9 @@ export const metadata = buildMetadata({
 })
 
 export default function SettingsLayout({ children }: { children: ReactNode }) {
-  return children
+  // T21: the deletion-terminal guard wraps the entire settings
+  // surface so cached protected content cannot render after a
+  // deletion commits. The wrapper itself is a no-op while the
+  // marker is unset.
+  return <SettingsDeletionGuardWrapper>{children}</SettingsDeletionGuardWrapper>
 }
