@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 /**
  * `SessionRow` — renders a single `SessionListItemDto` row.
@@ -53,14 +53,11 @@
  * renders the disabled state.
  */
 
-import { memo, useMemo } from 'react';
-import { Button } from '@/components/ui/Button';
-import { Badge } from '@/components/ui/Badge';
-import {
-  COPY_KEYS,
-  resolveCopy,
-} from '@/features/auth/copy/security-copy';
-import type { SessionListItemDto } from '@/lib/api';
+import { memo, useMemo } from "react";
+import { Button } from "@/components/ui/Button";
+import { Badge } from "@/components/ui/Badge";
+import { COPY_KEYS, resolveCopy } from "@/features/auth/copy/security-copy";
+import type { SessionListItemDto } from "@/lib/api";
 
 export interface SessionRowProps {
   session: SessionListItemDto;
@@ -87,12 +84,12 @@ function formatTimestamp(iso: string): string {
   const date = new Date(iso);
   if (Number.isNaN(date.getTime())) return iso;
   const locale =
-    typeof navigator !== 'undefined' && navigator.language
+    typeof navigator !== "undefined" && navigator.language
       ? navigator.language
       : undefined;
   return new Intl.DateTimeFormat(locale, {
-    dateStyle: 'medium',
-    timeStyle: 'short',
+    dateStyle: "medium",
+    timeStyle: "short",
   }).format(date);
 }
 
@@ -103,23 +100,24 @@ function formatTimestamp(iso: string): string {
  * field is missing.
  */
 function buildDeviceLine(session: SessionListItemDto): string {
-  const browser = session.deviceBrowser
-    ?? resolveCopy(COPY_KEYS.sessionList.browserFallback);
-  const os = session.deviceOs
-    ?? resolveCopy(COPY_KEYS.sessionList.osFallback);
+  const browser =
+    session.deviceBrowser ?? resolveCopy(COPY_KEYS.sessionList.browserFallback);
+  const os = session.deviceOs ?? resolveCopy(COPY_KEYS.sessionList.osFallback);
   return `${browser} on ${os} · ${session.deviceType}`;
 }
 
-function SessionRowInner({ session, pending = false, onRevoke }: SessionRowProps) {
+function SessionRowInner({
+  session,
+  pending = false,
+  onRevoke,
+}: SessionRowProps) {
   const deviceLine = useMemo(() => buildDeviceLine(session), [session]);
   const lastActiveText = useMemo(
     () => formatTimestamp(session.lastActiveAt),
     [session.lastActiveAt],
   );
   const ipDisplay = useMemo(
-    () =>
-      session.ipAddress
-        ?? resolveCopy(COPY_KEYS.sessionList.ipFallback),
+    () => session.ipAddress ?? resolveCopy(COPY_KEYS.sessionList.ipFallback),
     [session.ipAddress],
   );
 
@@ -130,49 +128,49 @@ function SessionRowInner({ session, pending = false, onRevoke }: SessionRowProps
 
   return (
     <div
-      className='flex items-start gap-4 py-4 border-b border-border last:border-b-0'
-      data-testid='session-row'
+      className="flex items-start gap-4 py-4 border-b border-border last:border-b-0"
+      data-testid="session-row"
       data-current={session.isCurrentSession}
       data-session-id={session.sessionId}
     >
       {/* Device summary column */}
-      <div className='flex-1 min-w-0'>
-        <div className='flex items-center gap-2 mb-1 flex-wrap'>
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2 mb-1 flex-wrap">
           <span
-            className='text-base font-medium truncate'
-            data-testid='session-row-device'
+            className="text-base font-medium truncate"
+            data-testid="session-row-device"
           >
             {deviceLine}
           </span>
           {session.isCurrentSession && (
             <Badge
-              variant='secondary'
-              data-testid='session-row-current-badge'
+              variant="secondary"
+              data-testid="session-row-current-badge"
               aria-label={resolveCopy(COPY_KEYS.sessionList.currentBadge)}
             >
               {resolveCopy(COPY_KEYS.sessionList.currentBadge)}
             </Badge>
           )}
         </div>
-        <div className='flex items-center gap-3 text-sm text-foreground/70 flex-wrap'>
-          <span data-testid='session-row-ip'>
-            <span className='sr-only'>IP address: </span>
+        <div className="flex items-center gap-3 text-sm text-foreground/70 flex-wrap">
+          <span data-testid="session-row-ip">
+            <span className="sr-only">IP address: </span>
             {ipDisplay}
           </span>
-          <span aria-hidden='true'>·</span>
-          <span data-testid='session-row-last-active'>
-            <span className='sr-only'>Last active: </span>
+          <span aria-hidden="true">·</span>
+          <span data-testid="session-row-last-active">
+            <span className="sr-only">Last active: </span>
             {lastActiveText}
           </span>
         </div>
       </div>
 
       {/* Action column — current-session row is non-actionable. */}
-      <div className='flex-shrink-0'>
+      <div className="shrink-0">
         {session.isCurrentSession ? (
           <span
-            className='text-sm text-foreground/60 italic'
-            data-testid='session-row-current-marker'
+            className="text-sm text-foreground/60 italic"
+            data-testid="session-row-current-marker"
           >
             {/* Inert marker so the layout reserves the same
                 column width as the revoke button on sibling rows. */}
@@ -180,15 +178,15 @@ function SessionRowInner({ session, pending = false, onRevoke }: SessionRowProps
           </span>
         ) : (
           <Button
-            variant='outline'
-            size='sm'
+            variant="outline"
+            size="sm"
             onClick={handleRevoke}
             disabled={pending || !onRevoke}
             aria-busy={pending}
-            data-testid='session-row-revoke-button'
+            data-testid="session-row-revoke-button"
             data-pending={pending}
           >
-            {pending ? 'Revoking…' : 'Revoke'}
+            {pending ? "Revoking…" : "Revoke"}
           </Button>
         )}
       </div>
