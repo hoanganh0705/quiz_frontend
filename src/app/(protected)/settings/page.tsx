@@ -15,6 +15,7 @@ import { useLocalStorage } from "@/shared/hooks/use-local-storage";
 import { UserSettings, UserSettingsTabId } from "@/features/users/types";
 import { defaultSettings } from "@/features/users/constants/settings";
 import { User, Bell, Shield, Globe, Link2, AlertTriangle } from "lucide-react";
+import { useLogoutAll } from "@/features/auth/hooks/use-logout-all";
 
 const settingsTabs: {
   id: UserSettingsTabId;
@@ -59,6 +60,8 @@ const SettingsPage = memo(function SettingsPage() {
     defaultSettings,
   );
 
+  const logoutAll = useLogoutAll();
+
   const handleUpdateSettings = useCallback(
     (updates: Partial<UserSettings>) => {
       setSettings((prev) => ({
@@ -84,9 +87,15 @@ const SettingsPage = memo(function SettingsPage() {
     URL.revokeObjectURL(url);
   }, [settings]);
 
+  // T21: replace the placeholder `alert()` with the real
+  // `useLogoutAll()` flow. The hook owns the confirmation
+  // discipline (T20) and the service owns the finalization
+  // (T6). When the modal's "Sign Out All" button fires
+  // `onSignOutAll`, we forward to the hook with `confirmed: true`
+  // because the modal UX already implies confirmation.
   const handleSignOutAll = useCallback(() => {
-    alert("All sessions would be signed out here");
-  }, []);
+    void logoutAll.logoutAll({ confirmed: true });
+  }, [logoutAll]);
 
   return (
     <main className="min-h-screen bg-transparent text-foreground mt-20">
@@ -160,6 +169,7 @@ const SettingsPage = memo(function SettingsPage() {
                     onDeleteAccount={handleDeleteAccount}
                     onExportData={handleExportData}
                     onSignOutAll={handleSignOutAll}
+                    isSignOutAllPending={logoutAll.status === 'pending'}
                   />
                 </TabsContent>
               </div>

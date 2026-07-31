@@ -63,6 +63,7 @@ import type {
   AuthControllerCheckEmailResult,
   AuthControllerCheckUsernameResult,
   AuthControllerForgotPasswordResult,
+  AuthControllerGetActiveSessionsResult,
   AuthControllerGoogleLoginResult,
   AuthControllerLoginResult,
   AuthControllerLogoutResult,
@@ -72,6 +73,12 @@ import type {
   AuthControllerResetPasswordResult,
   AuthControllerVerifyEmailResult,
 } from "@/lib/api/generated/auth/auth";
+import type {
+  AccountSecurityDto,
+  SessionListResponseDto,
+  SessionManagementResultDto,
+} from "@/lib/api";
+import { ApiError } from "@/lib/api/core/ApiError";
 
 /**
  * Broadcast a login event for cross-tab synchronization.
@@ -83,12 +90,9 @@ import type {
  * in `src/lib/api/core/custom-instance.ts` and auth bootstrap context can
  * pick up the new session.
  */
-function broadcastLogin(
-  userId: string,
-  accessToken: string,
-): void {
-  const event: Omit<LoggedInEvent, 'tabId' | 'timestamp'> = {
-    type: 'LOGGED_IN',
+function broadcastLogin(userId: string, accessToken: string): void {
+  const event: Omit<LoggedInEvent, "tabId" | "timestamp"> = {
+    type: "LOGGED_IN",
     userId,
     accessToken,
   };
@@ -102,7 +106,7 @@ function broadcastLogin(
  * storage sync fallback will handle cross-tab sync.
  */
 function broadcastLogout(): void {
-  broadcastAuthEvent({ type: 'LOGGED_OUT' });
+  broadcastAuthEvent({ type: "LOGGED_OUT" });
 }
 
 /**
@@ -110,7 +114,7 @@ function broadcastLogout(): void {
  */
 function broadcastTokenRefreshed(accessToken: string): void {
   broadcastAuthEvent({
-    type: 'TOKEN_REFRESHED',
+    type: "TOKEN_REFRESHED",
     accessToken,
   });
 }
@@ -214,9 +218,10 @@ export async function login(
   // `user` is the current-user identity returned by the login endpoint; we
   // forward its `id` to other tabs so the AuthBootstrapContext (T16) can
   // detect a "different user" login and re-bootstrap.
-  const userId = (data.data as { user?: { id?: string }; id?: string })?.user?.id
-    ?? (data.data as { id?: string })?.id
-    ?? '';
+  const userId =
+    (data.data as { user?: { id?: string }; id?: string })?.user?.id ??
+    (data.data as { id?: string })?.id ??
+    "";
 
   if (userId) {
     broadcastLogin(userId, accessToken);
@@ -281,9 +286,10 @@ export async function googleLogin(
 
   // Source epic: Epic 2.7 — cross-tab login sync (US-2.7.2).
   // Source ticket: 2.7.T15.
-  const userId = (data.data as { user?: { id?: string }; id?: string })?.user?.id
-    ?? (data.data as { id?: string })?.id
-    ?? '';
+  const userId =
+    (data.data as { user?: { id?: string }; id?: string })?.user?.id ??
+    (data.data as { id?: string })?.id ??
+    "";
 
   if (userId) {
     broadcastLogin(userId, accessToken);
@@ -336,7 +342,27 @@ export async function logout(): Promise<AuthControllerLogoutResult> {
 
 /**
  * `POST /api/v1/auth/logout-all` — invalidates ALL active sessions.
- * Same cookie / broadcast invariant as `logout()`.
+ *
+ * Source epic: Epic 2.8 — Security dashboard and active-session management.
+ * Source ticket: 2.8.T6 — verify `logoutAll()` discipline.
+ *
+ * Identical cookie / broadcast invariant as `logout()`:
+ *
+ *   - Wrapped in `try { ... } finally { ... }` so the local cleanup
+ *     (`clearAuthToken()` + `clearAllAuthCache()` + `LOGGED_OUT`
+ *     broadcast) runs on EVERY code path — successful `200`,
+ *     thrown `ApiError` (`401`, `5xx`, network), or synchronous
+ *     throw.
+ *
+ *   - Hooks that wrap this function (`useLogoutAll`,
+ *     `useLogoutMenu`) MUST NOT clear the cookie or fire the
+ *     broadcast themselves. Centralising the side-effect in this
+ *     module guarantees every consumer reaches the same finalization
+ *     order.
+ *
+ * The contract is non-negotiable: the backend terminates every
+ * session for this user on success, so the user must always reach a
+ * public surface (`/login`) regardless of the backend's response.
  */
 export async function logoutAll(): Promise<AuthControllerLogoutAllResult> {
   try {
@@ -345,6 +371,272 @@ export async function logoutAll(): Promise<AuthControllerLogoutAllResult> {
     clearAuthToken();
     clearAllAuthCache();
     broadcastLogout();
+  }
+}
+
+// ─── Session Management SDK Wrappers ──────────────────────────────────────────
+//
+// Source epic: Epic 2.8 — Security dashboard and active-session management.
+// Source tickets: 2.8.T4 (SDK wrappers), 2.8.T5 (current-session helper).
+//
+// ## Boundary discipline
+//
+// All four wrappers below are pure forwarders: they call the SDK and
+// propagate `ApiError` unchanged, with NO side-effects:
+//
+//   - They never call `setAuthToken` / `clearAuthToken`.
+//   - They never call `clearAllAuthCache` (except `revokeCurrentSession`
+//     below, and only on backend success).
+//   - They never broadcast `LOGGED_IN` / `LOGGED_OUT`.
+//
+// Revoking *another* session preserves the caller's session
+// (verified against the backend contract per Epic 2.8 verification
+// checklist); the SDK wrapper therefore must not touch local state.
+// The single exception is `revokeCurrentSession` (2.8.T5), which is
+// the only place the "current-session revoked → finalize" path lives.
+//
+// Errors are propagated to the caller. The session-error mapper
+// (`session-error-mapper.ts`, 2.8.T2) classifies them into
+// `already_revoked | current_revoked | auth_terminal | conflict |
+// retryable`; the hooks read the classification and decide what UI
+// to surface.
+
+/**
+ * `GET /api/v1/auth/security/dashboard`
+ *
+ * Returns the security summary (`AccountSecurityDto`) used by the
+ * `/settings/security` page. Calling this endpoint never changes
+ * auth state — it is a pure read.
+ *
+ * Two fields on `AccountSecurityDto` are nullable on purpose:
+ *
+ *   - `lastPasswordChangeAt` — `null` when the password has never
+ *     been changed.
+ *   - `passwordAgeDays` — `null` when `lastPasswordChangeAt` is
+ *     `null`. Derived server-side; never stored.
+ *
+ * The UI renders the documented "Never changed" / "Not available"
+ * fallbacks (see `security-copy.ts`) for those nulls. Never render a
+ * numeric `0` for either of them — that would be a value, not a
+ * fallback.
+ *
+ * @throws `ApiError` on any non-2xx response.
+ */
+export async function getSecurityDashboard(): Promise<AccountSecurityDto> {
+  const data = await getAuth().authControllerGetSecurityDashboard();
+  if (!data.data) {
+    throw new ApiError({
+      status: 500,
+      code: "GLOBAL_INTERNAL_ERROR",
+      message: "Security dashboard response missing data envelope",
+    } as unknown as ConstructorParameters<typeof ApiError>[0]);
+  }
+  return data.data;
+}
+
+/**
+ * `GET /api/v1/auth/sessions`
+ *
+ * Returns the list of active sessions (`SessionListResponseDto`).
+ * The backend orders rows by most-recent activity first; the
+ * `useActiveSessions` hook (2.8.T8) defensively normalises the order
+ * but does not re-sort.
+ *
+ * Exactly one row carries `isCurrentSession: true` — it always
+ * references the caller's session. The UI uses that flag both for
+ * the "This device" badge and to disable the per-row revoke button
+ * on the current session.
+ *
+ * Missing device fields (`deviceBrowser`, `deviceOs`, `ipAddress`)
+ * are the backend's privacy signal — they fall back to
+ * `null`. The UI renders the documented "Unknown browser" /
+ * "Unknown OS" / "Unknown IP" labels (see `security-copy.ts`).
+ *
+ * @throws `ApiError` on any non-2xx response.
+ */
+export async function getActiveSessions(): Promise<SessionListResponseDto> {
+  const data: AuthControllerGetActiveSessionsResult =
+    await getAuth().authControllerGetActiveSessions();
+  if (!data.data) {
+    throw new ApiError({
+      status: 500,
+      code: "GLOBAL_INTERNAL_ERROR",
+      message: "Active sessions response missing data envelope",
+    } as unknown as ConstructorParameters<typeof ApiError>[0]);
+  }
+  return data.data;
+}
+
+/**
+ * `DELETE /api/v1/auth/sessions/others` — revoke every other
+ * session, keep the calling session.
+ *
+ * Per the Epic 2.8 verification checklist, the backend preserves the
+ * caller's session. This wrapper therefore MUST NOT touch local auth
+ * state — successful other-revokes leave the user still
+ * authenticated on this tab.
+ *
+ * Cross-tab propagation: the backend does not invalidate this
+ * session (it does not get deleted), and we never broadcast
+ * `LOGGED_OUT` for an other-revoke — the other tabs that were
+ * revoked *do* still hold a now-stale access token, but they will
+ * learn that on their next `401`, at which point the shared refresh
+ * path handles reauthentication cleanly.
+ *
+ * @throws `ApiError`. The mapper classifies the failure (`conflict`,
+ * `retryable`, `auth_terminal`); the caller surfaces a banner.
+ */
+export async function revokeOtherSessions(): Promise<SessionManagementResultDto> {
+  const data = await getAuth().authControllerRevokeOtherSessions();
+  return {
+    message: (data.data as { message?: string })?.message ?? "",
+  };
+}
+
+/**
+ * `DELETE /api/v1/auth/sessions/:sessionId` — revoke a single session
+ * by id.
+ *
+ * This wrapper is the unconditional "delete by id" call. It does
+ * NOT inspect whether the targeted session is the current one. The
+ * caller is responsible for routing through:
+ *
+ *   - `useRevokeSession` (2.8.T17) for the row-level revoke, which
+ *     optimistically removes the row and routes the response through
+ *     the session-error mapper; OR
+ *   - `revokeCurrentSession()` (2.8.T5) when the caller *knows* it
+ *     is revoking the current session (the only path that runs the
+ *     logout finalization).
+ *
+ * Per Epic 2.8 verification: revoking another session does NOT clear
+ * the caller's refresh cookie; revoking the current session *does*.
+ * Both branches preserve the caller's session when the target is
+ * someone else; both branches must therefore avoid the finalization
+ * path on their own. `revokeCurrentSession` is the only entry-point
+ * that runs it.
+ *
+ * @param sessionId - The opaque session UUID. Passed verbatim.
+ * @throws `ApiError` on any non-2xx response.
+ */
+export async function revokeSession(
+  sessionId: string,
+): Promise<SessionManagementResultDto> {
+  const data = await getAuth().authControllerRevokeSession(sessionId);
+  return {
+    message: (data.data as { message?: string })?.message ?? "",
+  };
+}
+
+/**
+ * Result of `revokeCurrentSession()`. Mirrors the `logout()` /
+ * `logoutAll()` discipline: the discriminated union lets the caller
+ * branch on success-vs-error without try/catch gymnastics.
+ */
+export type RevokeCurrentSessionResult =
+  | { kind: "success"; message: string }
+  | { kind: "error"; error: ApiError };
+
+/**
+ * Revoke the caller's own session and run the shared logout
+ * finalization only on backend success.
+ *
+ * Source epic: Epic 2.8 — Security dashboard and active-session management.
+ * Source ticket: 2.8.T5 (initial), 2.8.T23 (cross-tab broadcast confirmation).
+ *
+ * This helper is the SINGLE place that combines `revokeSession` with
+ * the logout finalization path. It exists for one reason: revoking
+ * your own session via the active-sessions list must behave like
+ * `logout()` — the local cookie/cache/broadcast cleanup runs on
+ * backend success.
+ *
+ * ## Discipline (mirrors `logout()`, TKT-2.4.B1)
+ *
+ *   1. The SDK call runs FIRST. No cookie is cleared before the
+ *      backend confirms. The token remains valid until expiry
+ *      anyway; clearing it early would only matter if the backend
+ *      *refused* the revoke, in which case the user's local state
+ *      is still consistent.
+ *
+ *   2. On backend `2xx`:
+ *
+ *        - `clearAuthToken()`          — drop the access-token cookie.
+ *        - `clearAllAuthCache()`       — drop identity/profile cache.
+ *        - `broadcastLogout()`         — fire `LOGGED_OUT` via the
+ *          centralized `broadcastAuthEvent({ type: 'LOGGED_OUT' })`
+ *          channel. Other tabs receive the broadcast, run
+ *          `clearAuthToken` + `markLogout('remote')`, and redirect
+ *          to `/login` via the listener in `custom-instance.ts`.
+ *          The same-tab filter (by `tabId`) prevents the originating
+ *          tab from re-receiving its own broadcast, so the
+ *          same-tab redirect is handled by the hook's
+ *          `router.push('/login')` after this function resolves.
+ *
+ *   3. On backend error: NONE of the above runs. The caller decides
+ *      what to surface based on the session-error mapper output
+ *      (`auth_terminal | conflict | retryable`).
+ *
+ *   4. Hooks MUST NOT call `clearAuthToken` / `clearAllAuthCache` /
+ *      `broadcastLogout` themselves; doing so duplicates the cleanup
+ *      and races against the broadcast ordering. The
+ *      `useRevokeSession` hook (2.8.T17) is the only consumer and it
+ *      branches on `result.kind` instead of doing its own cleanup.
+ *
+ *   5. **Cross-tab contract (T23):** the same-tab filter on the
+ *      listener (Epic 2.7 / `broadcast-channel.ts`) ensures this
+ *      tab does NOT receive its own broadcast, so no infinite
+ *      redirect loop is possible. Other tabs converge via the
+ *      listener's `LOGGED_OUT` handler (which already runs
+ *      `clearAuthToken`, `markLogout('remote')`, and
+ *      `window.location.href = '/login'`).
+ *
+ * @param sessionId - The opaque session UUID of the caller's own session.
+ * @returns `{ kind: 'success', message } | { kind: 'error', error }`.
+ *          The caller MUST branch on `kind` and MUST NOT inspect
+ *          the `ApiError` directly for routing.
+ *
+ * @example
+ * ```typescript
+ * const result = await revokeCurrentSession(currentSessionId);
+ * if (result.kind === 'success') {
+ *   router.push('/login');
+ * } else {
+ *   // The session-error mapper has already classified; the hook
+ *   // surfaces the right banner. Nothing to do here.
+ * }
+ * ```
+ */
+export async function revokeCurrentSession(
+  sessionId: string,
+): Promise<RevokeCurrentSessionResult> {
+  try {
+    const data = await getAuth().authControllerRevokeSession(sessionId);
+    const message = (data.data as { message?: string })?.message ?? "";
+    // Finalize ONLY on backend success. Mirrors `logout()` discipline.
+    //
+    // Cross-tab broadcast (2.8.T23): the LOGGED_OUT event fires via
+    // the centralized broadcastAuthEvent so other tabs converge
+    // (clearAuthToken + redirect to /login) via the listener in
+    // custom-instance.ts. The same-tab filter on `tabId` prevents
+    // this tab from re-receiving its own broadcast; the hook handles
+    // the same-tab redirect via `router.push('/login')` after this
+    // resolves.
+    clearAuthToken();
+    clearAllAuthCache();
+    broadcastAuthEvent({ type: "LOGGED_OUT" });
+    return { kind: "success", message };
+  } catch (error) {
+    const err =
+      error instanceof ApiError
+        ? error
+        : new ApiError({
+            status: 0,
+            code: "GLOBAL_INTERNAL_ERROR",
+            message:
+              error instanceof Error
+                ? error.message
+                : "Unknown error revoking current session",
+          } as unknown as ConstructorParameters<typeof ApiError>[0]);
+    return { kind: "error", error: err };
   }
 }
 
@@ -419,9 +711,7 @@ export async function forgotPassword(
  * not a transport concern.
  */
 export async function resetPassword(
-  dto: Parameters<
-    ReturnType<typeof getAuth>["authControllerResetPassword"]
-  >[0],
+  dto: Parameters<ReturnType<typeof getAuth>["authControllerResetPassword"]>[0],
 ): Promise<AuthControllerResetPasswordResult> {
   return getAuth().authControllerResetPassword(dto);
 }
@@ -445,3 +735,51 @@ export {
   type GoogleLoginErrorKind,
   type GoogleLoginErrorResult,
 } from "@/features/auth/errors/oauth-error-mapper";
+
+// ─── Session Error Mapper / Codes Re-export ────────────────────────────────────
+//
+// Source epic: Epic 2.8 — Security dashboard and active-session management.
+// Source tickets: 2.8.T1 (codes), 2.8.T2 (mapper).
+//
+// Re-exported here so callers import session-error types from the
+// service barrel (`auth.service`) rather than reaching into the
+// errors subdirectory. Same convention as the OAuth mapper above.
+
+export {
+  mapSessionError,
+  isAlreadyRevoked,
+  isCurrentRevoked,
+  isAuthTerminalSessionError,
+  isSessionErrorRetryable,
+  isSessionConflict,
+  type SessionErrorTarget,
+  type SessionErrorClassification,
+  type SessionErrorInput,
+} from "@/features/auth/errors/session-error-mapper";
+
+export {
+  AUTH_SESSION_NOT_FOUND,
+  AUTH_INVALID_TOKEN,
+  AUTH_RESOURCE_CONFLICT,
+  isSessionNotFoundError,
+  isSessionErrorCode,
+  isSessionRecoverableStatus,
+  type SessionErrorCode,
+} from "@/features/auth/errors/session-error-codes";
+
+// ─── Security Copy Registry Re-export ──────────────────────────────────────────
+//
+// Source epic: Epic 2.8.
+// Source ticket: 2.8.T3.
+//
+// Re-exported so the Security view (planned at 2.8.T9 / 2.8.T12) can
+// pull every visible string from `auth.service` rather than the
+// copy subdirectory.
+
+export {
+  COPY_KEYS as SECURITY_COPY_KEYS,
+  resolveCopy as resolveSecurityCopy,
+  passwordAgeUnknownSnapshot,
+  sessionListEmptySnapshot,
+  lastPasswordChangeUnknownSnapshot,
+} from "@/features/auth/copy/security-copy";

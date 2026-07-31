@@ -27,12 +27,23 @@ interface DangerZoneProps {
   onDeleteAccount: () => void
   onExportData: () => void
   onSignOutAll: () => void
+  /**
+   * Pending state for the "Sign Out All Sessions" destructive
+   * action. While `true`, the destructive button shows a spinner
+   * and is disabled, so a double-click cannot fire a second
+   * `onSignOutAll`.
+   *
+   * Source epic: Epic 2.8 — Security dashboard and active-session management.
+   * Source ticket: 2.8.T21 — wire `useLogoutAll`.
+   */
+  isSignOutAllPending?: boolean
 }
 
 export const DangerZone = memo(function DangerZone({
   onDeleteAccount,
   onExportData,
-  onSignOutAll
+  onSignOutAll,
+  isSignOutAllPending = false
 }: DangerZoneProps) {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [confirmText, setConfirmText] = useState('')
@@ -41,6 +52,9 @@ export const DangerZone = memo(function DangerZone({
     permanent: false,
     noRecovery: false
   })
+  // T21: controlled open state for the "Sign Out All Sessions" modal,
+  // so the pending spinner can be toggled without losing the modal.
+  const [signOutAllDialogOpen, setSignOutAllDialogOpen] = useState(false)
 
   const canDelete =
     confirmText === 'DELETE' &&
@@ -119,12 +133,22 @@ export const DangerZone = memo(function DangerZone({
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Dialog>
+          <Dialog
+            open={signOutAllDialogOpen}
+            onOpenChange={(open) => {
+              // T21: don't let the user dismiss the modal while the
+              // request is in flight — that would leak the pending
+              // state without surfacing the redirect.
+              if (isSignOutAllPending && !open) return;
+              setSignOutAllDialogOpen(open);
+            }}
+          >
             <DialogTrigger asChild>
               <Button
                 variant='outline'
                 className='text-amber-500 hover:text-amber-500'
                 aria-label='Sign out from all sessions'
+                disabled={isSignOutAllPending}
               >
                 <LogOut className='w-4 h-4 mr-2' aria-hidden='true' />
                 Sign Out All Sessions
@@ -139,9 +163,26 @@ export const DangerZone = memo(function DangerZone({
                 </DialogDescription>
               </DialogHeader>
               <DialogFooter>
-                <Button variant='outline'>Cancel</Button>
-                <Button variant='destructive' onClick={onSignOutAll}>
-                  Sign Out All
+                <Button
+                  variant='outline'
+                  onClick={() => setSignOutAllDialogOpen(false)}
+                  disabled={isSignOutAllPending}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  variant='destructive'
+                  onClick={() => {
+                    onSignOutAll();
+                    // Leave the modal open while pending; the route
+                    // change on success navigates away. If the
+                    // request errors, the page stays put and the
+                    // caller can dismiss manually.
+                  }}
+                  disabled={isSignOutAllPending}
+                  aria-busy={isSignOutAllPending}
+                >
+                  {isSignOutAllPending ? 'Signing out…' : 'Sign Out All'}
                 </Button>
               </DialogFooter>
             </DialogContent>
