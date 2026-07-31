@@ -109,7 +109,7 @@ customInstance.interceptors.response.use(
       originalRequest.headers = originalRequest.headers ?? {};
       originalRequest.headers.Authorization = `Bearer ${accessToken}`;
       return customInstance(originalRequest);
-    } catch (refreshError) {
+    } catch {
       clearAuthToken();
 
       if (typeof BroadcastChannel !== 'undefined') {
@@ -160,6 +160,8 @@ async function doRefresh(): Promise<string> {
 
   return accessToken;
 }
+
+export { doRefresh as refreshAccessToken };
 
 // ─── Cross-Tab Sync ───────────────────────────────────────────────────────────
 

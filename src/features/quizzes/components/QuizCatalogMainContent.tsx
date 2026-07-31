@@ -26,7 +26,6 @@ const QuizCatalogMainContent = memo(function QuizCatalogMainContent({
   const [difficultyFilter, setDifficultyFilter] = useState<string>('all')
   const [sortBy, setSortBy] = useState<string>('newest')
   const [maxDuration, setMaxDuration] = useState<number[]>([60])
-  const [minRating, setMinRating] = useState<number[]>([0])
   const loadMoreRef = useRef<HTMLDivElement | null>(null)
 
   // Fetch quizzes from API
@@ -56,6 +55,7 @@ const QuizCatalogMainContent = memo(function QuizCatalogMainContent({
     setLoading(true)
     setCursor(undefined)
     fetchQuizzes(false)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [categorySlug, searchQuery, difficultyFilter])
 
   // Load more when scrolling
@@ -75,6 +75,7 @@ const QuizCatalogMainContent = memo(function QuizCatalogMainContent({
 
     observer.observe(element)
     return () => observer.disconnect()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hasMore, loading, cursor])
 
   if (loading && quizzes.length === 0) {

@@ -1,90 +1,27 @@
-// Auth domain types — request/response contracts for the auth API
+/**
+ * Auth domain types — aligned with backend DTOs.
+ *
+ * Source epic: Epic 2.5 — Auth bootstrap and full-profile hydration.
+ * Source tickets: TKT-2.5.1, TKT-2.5.2.
+ */
 
-export type RegisterRequest = {
-  username: string
-  email: string
-  password: string
-}
+// Re-export from generated SDK — CurrentUserResponseDto is the slim identity payload
+// returned by GET /auth/me. It contains only userId, username, email, role, and isVerified.
+// This is used to bootstrap auth state without fetching the full profile.
+export type {
+  CurrentUserResponseDto,
+} from '@/lib/api/generated/schemas';
 
-export type LoginRequest = {
-  email: string
-  password: string
-}
+// Re-export wrapped response type for SDK calls
+export type {
+  AuthControllerGetCurrentUserResult,
+} from '@/lib/api/generated/auth/auth';
 
-export type VerifyEmailRequest = {
-  token: string
-}
-
-export type ResendVerificationRequest = {
-  email: string
-}
-
-// ─── Response Types (matching backend DTOs) ────────────────────────────────────
-
-export type LoginResponse = {
-  userId: string
-  username: string
-  email: string
-  accessToken: string
-}
-
-export type RegisterResponse = {
-  message: string
-}
-
-export type LogoutResponse = {
-  message: string
-}
-
-export type RefreshTokenResponse = {
-  accessToken: string
-}
-
-export type VerifyEmailResponse = {
-  message: string
-}
-
-// ─── Legacy types (deprecated — for backward compat only) ──────────────────────
-
-/** @deprecated Use LoginResponse.accessToken instead */
-export type TokenResponse = {
-  accessToken: string
-}
-
-/** @deprecated Use LoginResponse instead */
-export type LoginResponseLegacy = {
-  userId: string
-  username: string
-  email: string
-  token: TokenResponse
-}
-
-/** @deprecated Use RefreshTokenResponse instead */
-export type RefreshTokenResponseLegacy = {
-  token: TokenResponse
-}
-
-// ─── Unimplemented (backend doesn't support yet) ───────────────────────────────
-
-export type ForgotPasswordRequest = {
-  email: string
-}
-
-export type ForgotPasswordResponse = {
-  message: string
-}
-
-export type ResetPasswordRequest = {
-  token: string
-  password: string
-}
-
-export type ResetPasswordResponse = {
-  message: string
-}
-
-export type SocialProvider = 'google' | 'facebook' | 'github'
-
-export type SocialAuthResponse = {
-  url: string
-}
+/**
+ * Re-export UserMeResponseDto for useAuth/useUser hooks.
+ * UserMeResponseDto is the full profile payload returned by GET /users/me.
+ * It contains displayName, avatarUrl, bio, XP, streaks, settings, and timestamps.
+ */
+export type {
+  UserMeResponseDto,
+} from '@/lib/api/generated/schemas';

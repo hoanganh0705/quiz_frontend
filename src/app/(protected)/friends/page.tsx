@@ -177,6 +177,7 @@ const FriendsPage = memo(function FriendsPage() {
         ]
       }))
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [inviteSelections, updateState]
   )
 

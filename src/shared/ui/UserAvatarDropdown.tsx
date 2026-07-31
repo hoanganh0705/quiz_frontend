@@ -8,7 +8,7 @@ import {
   LogOut,
   ChevronDown
 } from 'lucide-react'
-import { Avatar, AvatarFallback } from '@/components/ui/Avatar'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/Avatar'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -50,15 +50,15 @@ export function UserAvatarDropdown({ variant = 'header' }: UserAvatarDropdownPro
               : 'h-auto text-foreground'
           }`}
         >
-          <Avatar className='h-7 w-7 shrink-0'>
+          <Avatar className="h-7 w-7 shrink-0">
             {user.avatarUrl ? (
-              <img
+              <AvatarImage
                 src={user.avatarUrl}
                 alt={user.displayName || user.username || 'User'}
-                className='object-cover w-full h-full rounded-full'
+                className="object-cover w-full h-full rounded-full"
               />
             ) : (
-              <AvatarFallback className='bg-brand text-white-primary text-xs'>
+              <AvatarFallback className="bg-brand text-white-primary text-xs">
                 {avatarLabel}
               </AvatarFallback>
             )}

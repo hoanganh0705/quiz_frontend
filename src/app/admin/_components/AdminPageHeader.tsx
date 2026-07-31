@@ -3,7 +3,6 @@
 import type React from 'react'
 import type { LucideIcon } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
-import { Plus } from 'lucide-react'
 
 interface AdminPageHeaderProps {
   title: string

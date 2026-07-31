@@ -54,6 +54,7 @@ import {
   setAuthToken,
   clearAuthToken,
 } from "@/features/auth/utils/auth-cookies";
+import { clearAllAuthCache } from "@/features/auth/utils/user-scoped-cache";
 import type {
   AuthControllerCheckEmailResult,
   AuthControllerCheckUsernameResult,
@@ -215,6 +216,7 @@ export async function logout(): Promise<AuthControllerLogoutResult> {
     return await getAuth().authControllerLogout();
   } finally {
     clearAuthToken();
+    clearAllAuthCache();
     broadcastAuth({ type: "LOGGED_OUT" });
   }
 }
@@ -228,6 +230,7 @@ export async function logoutAll(): Promise<AuthControllerLogoutAllResult> {
     return await getAuth().authControllerLogoutAll();
   } finally {
     clearAuthToken();
+    clearAllAuthCache();
     broadcastAuth({ type: "LOGGED_OUT" });
   }
 }

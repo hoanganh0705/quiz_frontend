@@ -101,16 +101,16 @@ export function useCheckEmail({
     [enabled, email]
   );
 
+  // Cleanup: abort pending request and reset state when input becomes invalid.
+  // Setting state here is intentional to clear stale availability status.
   useEffect(() => {
     if (!shouldFire) {
-      // Reset to idle when the gate is closed. Do not surface
-      // stale 'unavailable'/'available' values across an invalid input
-      // because that would itself be an oracle ("the form cleared; the
-      // field was bad — clear your answer to make it work").
       if (controllerRef.current) controllerRef.current.abort();
       controllerRef.current = null;
+      /* eslint-disable react-hooks/set-state-in-effect */
       setDebouncedEmail('');
       setStatus('idle');
+      /* eslint-enable react-hooks/set-state-in-effect */
       return;
     }
 

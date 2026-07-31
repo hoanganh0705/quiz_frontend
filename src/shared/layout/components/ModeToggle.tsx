@@ -8,7 +8,10 @@ export function ModeToggle() {
   const { setTheme, resolvedTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
 
+  // Mount detection is required to avoid hydration mismatch with useTheme.
+  // This is a documented pattern for SSR/hydration compatibility.
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true)
   }, [])
 
