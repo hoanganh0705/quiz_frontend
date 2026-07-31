@@ -15,9 +15,27 @@ const AUTH_STATE_EVENT = 'auth-state-change'
 const AUTH_TOKEN_NAME = 'auth_token'
 const REFRESH_TOKEN_NAME = 'refresh_token'
 
+// Storage sync keys for cross-tab fallback (Epic 2.7 T14)
+const STORAGE_SYNC_TOKEN_REFRESHED = 'auth_sync_TOKEN_REFRESHED'
+const STORAGE_SYNC_LOGGED_OUT = 'auth_sync_LOGGED_OUT'
+const STORAGE_SYNC_LOGGED_IN = 'auth_sync_LOGGED_IN'
+
 function notifyAuthStateChange() {
   if (typeof window === 'undefined') return
   window.dispatchEvent(new Event(AUTH_STATE_EVENT))
+}
+
+/**
+ * Write a storage-sync payload to localStorage for cross-tab fallback.
+ * Used when BroadcastChannel is unavailable.
+ */
+function writeSyncPayload(key: string, payload: Record<string, unknown>) {
+  if (typeof localStorage === 'undefined') return
+  try {
+    localStorage.setItem(key, JSON.stringify(payload))
+  } catch {
+    // Storage full or unavailable — fail silently
+  }
 }
 
 // ── Server-side utilities (for use in middleware / Server Components) ───────────
@@ -71,6 +89,17 @@ export function setAuthToken(token: string, options: CookieOptions = {}) {
     'SameSite=Lax',
     'Secure'
   ].join('; ')
+
+  // Cross-tab sync fallback (Epic 2.7 T14):
+  // Write to localStorage so other tabs can pick up the new token
+  // when BroadcastChannel is unavailable.
+  writeSyncPayload(STORAGE_SYNC_TOKEN_REFRESHED, {
+    type: 'TOKEN_REFRESHED',
+    accessToken: token,
+    timestamp: Date.now(),
+    tabId: 'cookie-sync',
+  })
+
   notifyAuthStateChange()
 }
 
@@ -103,6 +132,16 @@ export function clearAuthToken(path: string = DEFAULT_PATH) {
   document.cookie = `${AUTH_TOKEN_NAME}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=${path}`
   // Clear refresh token
   document.cookie = `${REFRESH_TOKEN_NAME}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=${path}`
+
+  // Cross-tab sync fallback (Epic 2.7 T14):
+  // Write to localStorage so other tabs can clear their tokens
+  // when BroadcastChannel is unavailable.
+  writeSyncPayload(STORAGE_SYNC_LOGGED_OUT, {
+    type: 'LOGGED_OUT',
+    timestamp: Date.now(),
+    tabId: 'cookie-sync',
+  })
+
   notifyAuthStateChange()
 }
 
@@ -118,4 +157,21 @@ export function subscribeToAuthChanges(listener: () => void) {
     window.removeEventListener(AUTH_STATE_EVENT, listener)
     window.removeEventListener('storage', listener)
   }
+}
+
+/**
+ * Write a login event to storage sync (Epic 2.7 T14).
+ * Called after successful login to sync across tabs via fallback.
+ *
+ * @param userId - The authenticated user's ID
+ * @param accessToken - The access token for the new session
+ */
+export function writeLoginSync(userId: string, accessToken: string): void {
+  writeSyncPayload(STORAGE_SYNC_LOGGED_IN, {
+    type: 'LOGGED_IN',
+    userId,
+    accessToken,
+    timestamp: Date.now(),
+    tabId: 'cookie-sync',
+  })
 }
