@@ -12,3 +12,4 @@ export {
   ProfileGate,
   DegradedProfileBanner,
 } from './auth-gate'
+export { GoogleSignInButton } from './google-sign-in-button'

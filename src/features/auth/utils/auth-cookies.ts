@@ -3,6 +3,12 @@ type CookieOptions = {
   path?: string
 }
 
+/**
+ * The function signature of `clearAuthToken`. Exported so it can be
+ * used as a dependency-injection type in submit functions and hooks.
+ */
+export type ClearAuthTokenFn = (path?: string) => void;
+
 const DEFAULT_COOKIE_DAYS = 7
 const DEFAULT_PATH = '/'
 const AUTH_STATE_EVENT = 'auth-state-change'
