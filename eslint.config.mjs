@@ -155,12 +155,18 @@ const eslintConfig = [
       ],
     },
   },
-  // Allow-list for the E3 rule — the fetcher-adapter file and the
+  // Allow-list for the E3 rule — the fetcher-adapter files and the
   // type-only backend mirror. See note above.
   {
     files: [
       'src/features/quizzes/components/QuizCatalogMainContent.tsx',
       'src/features/quizzes/types/quiz-backend.ts',
+      // Epic 3.3 / TKT-3.3.B4 — `useCategoryQuizzes` is the fetcher
+      // adapter for the `/categories/{slug}/quizzes` endpoint. It is
+      // the single place in the categories feature permitted to read
+      // `pagination.nextCursor` / `meta.pagination` (the same role
+      // `QuizCatalogMainContent.tsx` plays for the quizzes endpoint).
+      'src/features/categories/hooks/useCategoryQuizzes.ts',
     ],
     rules: {
       'no-restricted-syntax': 'off',
