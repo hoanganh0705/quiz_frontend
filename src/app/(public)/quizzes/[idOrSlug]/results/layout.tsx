@@ -6,17 +6,17 @@ import { buildMetadata } from '@/shared/lib/seo'
 export async function generateMetadata({
   params
 }: {
-  params: Promise<{ id: string }>
+  params: Promise<{ idOrSlug: string }>
 }): Promise<Metadata> {
-  const { id } = await params
-  const quiz = quizzes.find((item) => item.id === id)
+  const { idOrSlug } = await params
+  const quiz = quizzes.find((item) => item.id === idOrSlug)
 
   return buildMetadata({
     title: quiz ? `${quiz.title} Results | QuizHub` : 'Quiz Results | QuizHub',
     description: quiz
       ? `View your score and detailed performance for ${quiz.title}.`
       : 'View your quiz score and detailed performance.',
-    path: `/quizzes/${id}/results`
+    path: `/quizzes/${idOrSlug}/results`
   })
 }
 

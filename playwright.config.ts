@@ -1,8 +1,7 @@
 /**
- * Playwright config for the registration Epic 2.1.
+ * Playwright config for the Next.js frontend.
  *
- * Source epic: Epic 2.1 — Registration form and availability guidance.
- * Source tickets: TKT-2.1.F1, TKT-2.1.F2.
+ * Source epics: Epic 2.1 (auth), Epic 2.4 (login), Epic 3.6 (quiz detail).
  *
  * What this config does NOT do
  *   - It does NOT spin up its own backend. The dev backend is
@@ -26,7 +25,7 @@ const BASE_URL = process.env.PLAYWRIGHT_BASE_URL ?? 'http://localhost:3000';
 const HEADLESS = process.env.PLAYWRIGHT_HEADLESS !== '0';
 
 export default defineConfig({
-  testDir: './e2e/auth',
+  testDir: './e2e',
   testMatch: /.*\.spec\.ts/,
   fullyParallel: false,
   forbidOnly: !!process.env.CI,

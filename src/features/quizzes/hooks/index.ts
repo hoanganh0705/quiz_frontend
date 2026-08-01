@@ -22,3 +22,11 @@ export type {
 
 // Epic 3.5 — URL sync hook (TKT-3.5.C2)
 export { useQuizFiltersUrlSync } from './useQuizFiltersUrlSync'
+
+// Epic 3.6 — Quiz detail (player view) + stats (TKT-3.6.B2 / B3 / B4)
+export { useQuizByIdOrSlug } from './useQuizByIdOrSlug'
+export type { UseQuizByIdOrSlugResult } from './useQuizByIdOrSlug'
+export { useQuizStatsByIdOrSlug } from './useQuizStatsByIdOrSlug'
+export type { UseQuizStatsByIdOrSlugResult } from './useQuizStatsByIdOrSlug'
+export { useIsBookmarked } from './useIsBookmarked'
+export type { UseIsBookmarkedResult } from './useIsBookmarked'

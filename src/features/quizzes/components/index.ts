@@ -20,3 +20,30 @@ export type {
 
 export { QuizGridLoadMore } from './QuizGridLoadMore'
 export type { QuizGridLoadMoreProps } from './QuizGridLoadMore'
+
+// Epic 3.6 — Quiz detail (player view) + stats
+// (TKT-3.6.C1, C2, C3, C4, D1, D2, E1, E2, E3)
+export { QuizHeader } from './QuizHeader'
+export type { QuizHeaderProps } from './QuizHeader'
+export { QuizByline } from './QuizByline'
+export type { QuizBylineProps, PublicAuthorSummary } from './QuizByline'
+export { QuizMetadataRow } from './QuizMetadataRow'
+export type { QuizMetadataRowProps } from './QuizMetadataRow'
+export { QuizDescription } from './QuizDescription'
+export type { QuizDescriptionProps } from './QuizDescription'
+export { QuizQuestionCard } from './QuizQuestionCard'
+export type { QuizQuestionCardProps } from './QuizQuestionCard'
+export { QuizQuestionList } from './QuizQuestionList'
+export type { QuizQuestionListProps } from './QuizQuestionList'
+export { QuizStatsPanel, QuizStatsPanelSkeleton } from './QuizStatsPanel'
+export type {
+  QuizStatsPanelProps,
+  QuizStatsPanelSkeletonProps
+} from './QuizStatsPanel'
+export { QuizCtaStrip, QUIZ_START_ATTEMPT_TOOLTIP } from './QuizCtaStrip'
+export type { QuizCtaStripProps } from './QuizCtaStrip'
+export { QuizRelatedQuizzesSlot } from './QuizRelatedQuizzesSlot'
+export type { QuizRelatedQuizzesSlotProps } from './QuizRelatedQuizzesSlot'
+export { QuizDetailPageSkeleton } from './QuizDetailPageSkeleton'
+export { QuizDetailPage } from './QuizDetailPage'
+export type { QuizDetailPageProps } from './QuizDetailPage'
