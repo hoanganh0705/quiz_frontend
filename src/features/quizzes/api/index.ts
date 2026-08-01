@@ -7,6 +7,8 @@
 
 import {
   listQuizzes,
+  getQuizzesPopular,
+  getQuizzesTrending,
   getQuizBySlug,
   createQuiz,
   updateQuiz,
@@ -22,6 +24,8 @@ import {
 
 export {
   listQuizzes,
+  getQuizzesPopular,
+  getQuizzesTrending,
   getQuizBySlug,
   createQuiz,
   updateQuiz,

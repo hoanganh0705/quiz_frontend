@@ -1,218 +1,26 @@
-'use client'
+/**
+ * `/quizzes` route entry.
+ *
+ * Source epic: Epic 3.5 — Global quizzes list + filters.
+ * Source ticket: TKT-3.5.E1.
+ *
+ * Thin pass-through that renders the new `<QuizzesDirectoryPage />`
+ * from the quizzes feature. The metadata lives in the sibling
+ * `layout.tsx` (so search engines and the Next.js metadata API still
+ * see the canonical title/description for the route).
+ *
+ * The legacy `QuizPlatform` implementation (and the search input +
+ * category swiper it owned) is superseded by the directory page's
+ * `<FilterBar />` slot + the URL-driven filter state — the new
+ * surface is filter-aware, debounced, and round-trips through the
+ * URL for hard-reload persistence (Story 3.5 AC #3).
+ *
+ * Server component (no `'use client'`); the page itself is a client
+ * component (per its directive in `QuizzesDirectoryPage.tsx`).
+ */
 
-import 'swiper/css'
-import 'swiper/css/free-mode'
-import 'swiper/css/scrollbar'
-import { useState, useCallback, useEffect } from 'react'
-import { Input } from '@/components/ui/Input'
-import { Button } from '@/components/ui/Button'
-import FeaturedQuiz from '@/features/quizzes/components/FeaturedQuiz'
-import { QuizCatalogMainContent } from '@/features/quizzes'
-import { Swiper, SwiperSlide } from 'swiper/react'
-import { FreeMode } from 'swiper/modules'
-import { useLocalStorage } from '@/shared/hooks'
-import { Search } from 'lucide-react'
-import { useAppLanguage } from '@/shared/hooks/use-app-language'
-import { listCategories } from '@/features/categories/api'
-import type { Category } from '@/features/categories/types'
+import { QuizzesDirectoryPage } from '@/features/quizzes'
 
-interface SwiperCategory {
-  categoryId: string;
-  name: string;
-  slug: string;
-}
-
-export default function QuizPlatform() {
-  const { t } = useAppLanguage();
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCategory, setSelectedCategory] =
-    useState<string>("all-categories");
-  const [showSuggestions, setShowSuggestions] = useState(false);
-  const [swiperCategories, setSwiperCategories] = useState<SwiperCategory[]>(
-    [],
-  );
-  const [recentSearches, setRecentSearches] = useLocalStorage<string[]>(
-    "quiz_search_recent_v1",
-    [],
-  );
-
-  useEffect(() => {
-    listCategories({ limit: 100 })
-      .then((data) =>
-        setSwiperCategories(
-          data.items.map((c: Category) => ({
-            categoryId: c.categoryId,
-            name: c.name,
-            slug: c.slug,
-          })),
-        ),
-      )
-      .catch(() => {});
-  }, []);
-
-  const suggestions = searchQuery.trim()
-    ? recentSearches
-        .filter((item) => item.toLowerCase().includes(searchQuery.trim().toLowerCase()))
-        .slice(0, 6)
-    : recentSearches.slice(0, 6)
-
-  const saveRecentSearch = useCallback(
-    (query: string) => {
-      const normalized = query.trim();
-      if (!normalized) return;
-
-      setRecentSearches((prev) =>
-        [
-          normalized,
-          ...prev.filter(
-            (item) => item.toLowerCase() !== normalized.toLowerCase(),
-          ),
-        ].slice(0, 8),
-      );
-    },
-    [setRecentSearches],
-  );
-
-  const applySearchTerm = useCallback(
-    (value: string) => {
-      setSearchQuery(value);
-      saveRecentSearch(value);
-      setShowSuggestions(false);
-    },
-    [saveRecentSearch],
-  );
-
-  return (
-    <main className="min-h-screen text-foreground p-4 md:p-8 lg:p-12">
-      <header className="mb-8">
-        <h1 className="text-3xl font-bold mb-2 text-foreground">
-          {t("exploreQuizzes", "Explore Quizzes")}
-        </h1>
-        <p className="text-foreground/70 text-base">
-          Discover and play quizzes from our community
-        </p>
-      </header>
-
-      <search className="relative mb-8 flex items-center gap-4 rounded-full">
-        <form
-          className="relative flex-1"
-          onSubmit={(event) => {
-            event.preventDefault();
-            saveRecentSearch(searchQuery);
-            setShowSuggestions(false);
-          }}
-        >
-          <label htmlFor="quiz-search" className="sr-only">
-            Search quizzes
-          </label>
-          <Search
-            className="absolute left-3 top-1/2 transform -translate-y-1/2 text-foreground/70 w-5 h-4"
-            aria-hidden="true"
-          />
-          <Input
-            id="quiz-search"
-            name="search"
-            placeholder="Search quizzes by title, category, or creator…"
-            value={searchQuery}
-            onChange={(event) => {
-              setSearchQuery(event.target.value);
-              setShowSuggestions(true);
-            }}
-            onFocus={() => setShowSuggestions(true)}
-            onBlur={() => {
-              window.setTimeout(() => setShowSuggestions(false), 100);
-            }}
-            className="pl-10 bg-transparent border-x border-border text-foreground placeholder:text-foreground/70 h-8 placeholder:text-sm"
-          />
-
-          {showSuggestions && suggestions.length > 0 && (
-            <div className="absolute z-10 mt-2 w-full rounded-md border border-border bg-background shadow-md p-1">
-              {suggestions.map((suggestion) => (
-                <button
-                  key={suggestion}
-                  type="button"
-                  className="block w-full text-left text-sm px-3 py-2 rounded-sm hover:bg-main-hover"
-                  onMouseDown={(event) => event.preventDefault()}
-                  onClick={() => applySearchTerm(suggestion)}
-                >
-                  {suggestion}
-                </button>
-              ))}
-            </div>
-          )}
-
-          {!searchQuery && recentSearches.length > 0 && (
-            <div className="mt-3 flex flex-wrap gap-2">
-              {recentSearches.slice(0, 6).map((recent) => (
-                <button
-                  key={recent}
-                  type="button"
-                  onClick={() => applySearchTerm(recent)}
-                  className="text-xs px-2.5 py-1 rounded-full border border-border hover:bg-main-hover"
-                >
-                  {recent}
-                </button>
-              ))}
-            </div>
-          )}
-        </form>
-      </search>
-
-      <nav className="mb-12 hidden sm:block" aria-label="Quiz categories">
-        <Swiper
-          modules={[FreeMode]}
-          spaceBetween={12}
-          slidesPerView="auto"
-          freeMode={true}
-          className="category-swiper"
-        >
-          <SwiperSlide className="w-auto">
-            <Button
-              aria-current={
-                selectedCategory === "all-categories" ? "true" : undefined
-              }
-              aria-label="Show all categories"
-              onClick={() => setSelectedCategory("all-categories")}
-              className={`whitespace-nowrap rounded-full border border-border ${
-                selectedCategory === "all-categories"
-                  ? "bg-brand hover:bg-brand/90 text-white"
-                  : "bg-transparent hover:bg-main/90"
-              }`}
-            >
-              All
-            </Button>
-          </SwiperSlide>
-          {swiperCategories.map((category) => (
-            <SwiperSlide key={category.categoryId} className="w-auto">
-              <Button
-                aria-current={
-                  selectedCategory === category.slug ? "true" : undefined
-                }
-                aria-label={`Filter by ${category.name}`}
-                onClick={() => setSelectedCategory(category.slug)}
-                className={`whitespace-nowrap rounded-full border border-border ${
-                  selectedCategory === category.slug
-                    ? "bg-brand hover:bg-brand/90 text-white"
-                    : "bg-transparent hover:bg-main/90"
-                }`}
-              >
-                {category.name}
-              </Button>
-            </SwiperSlide>
-          ))}
-        </Swiper>
-      </nav>
-
-      <FeaturedQuiz />
-
-      <section aria-label="Quiz listings">
-        <QuizCatalogMainContent
-          categorySlug={
-            selectedCategory === "all-categories" ? undefined : selectedCategory
-          }
-          searchQuery={searchQuery}
-        />
-      </section>
-    </main>
-  );
+export default function QuizzesPage() {
+  return <QuizzesDirectoryPage />
 }
