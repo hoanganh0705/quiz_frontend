@@ -56,3 +56,7 @@ export type { TagPillSkeletonProps } from './TagPill/TagPillSkeleton'
 export { Sparkline } from './Sparkline'
 export type { SparklineProps } from './Sparkline'
 export type { CategoryCardGridProps } from './CategoryCard/CategoryCardGrid'
+
+// Epic 3.5 / TKT-3.5.C3 — the cross-feature filter slot primitive.
+export { FilterBar } from './FilterBar'
+export type { FilterBarProps } from './FilterBar'
