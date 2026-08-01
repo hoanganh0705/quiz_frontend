@@ -45,6 +45,17 @@
  * - `getQuizStatsByIdOrSlug` wraps `quizControllerGetQuizStats`. No
  *   version / author endpoint is used. Stats 404 is mapped to the
  *   no-stats state in the B3 hook, not here.
+ *
+ * ## Story 3.7 additions (TKT-3.7.A2)
+ *
+ * - `getQuizzesFeatured` wraps `quizControllerGetFeaturedQuizzes`. The
+ *   editorial fixed-set endpoint accepts `{ limit?: number }` only —
+ *   NO `cursor`, NO `categoryId` (see TKT-3.7.A1 §4.1). The planning
+ *   doc (Story 3.7 line 760) named the SDK operation
+ *   `quizzesControllerGetQuizzesFeatured`; the regenerated SDK name
+ *   is `quizControllerGetFeaturedQuizzes` — the wrapper renames to
+ *   `getQuizzesFeatured` to preserve planning intent. The hook
+ *   `useQuizzesFeatured` (TKT-3.7.C1) consumes this wrapper.
  */
 
 import { getQuizzes } from "@/lib/api/generated/quizzes/quizzes";
@@ -55,6 +66,7 @@ import type {
   UpdateQuizVersionDto,
   CreateQuizQuestionDto,
   CreateQuizQuestionsDto,
+  QuizListItemDto,
   QuizResponseDto,
   QuizStatsResponseDto,
 } from "@/lib/api/generated/schemas";
@@ -75,6 +87,8 @@ export type {
   // TKT-3.6.A2 — detail + stats result aliases
   QuizControllerGetQuizByIdResult,
   QuizControllerGetQuizStatsResult,
+  // TKT-3.7.A2 — featured result alias
+  QuizControllerGetFeaturedQuizzesResult,
 } from "@/lib/api/generated/quizzes/quizzes";
 
 // ─── Query Parameters ──────────────────────────────────────────────────────────
@@ -170,6 +184,29 @@ export async function getQuizzesTrending(params?: {
 }> {
   const sdk = getQuizzes();
   return sdk.quizControllerGetTrendingQuizzes(params);
+}
+
+/**
+ * Non-paginated fixed editorial set of featured quizzes.
+ *
+ * Source epic: Story 3.7 — Featured / trending / popular rails on `/`.
+ * Source ticket: TKT-3.7.A2.
+ *
+ * Wraps `getQuizzes().quizControllerGetFeaturedQuizzes(params)`.
+ * Returns the inner unwrapped `{ data?: QuizListItemDto[] }` envelope
+ * (a plain array — NO `meta.pagination`, see TKT-3.7.A1 §2.1). The
+ * endpoint accepts `{ limit?: number }` only (1–100) — NO `cursor`,
+ * NO `categoryId` (see TKT-3.7.A1 §4.1).
+ *
+ * The hook `useQuizzesFeatured` (TKT-3.7.C1) is the intended consumer.
+ */
+export async function getQuizzesFeatured(params?: {
+  limit?: number;
+}): Promise<{
+  data?: QuizListItemDto[];
+}> {
+  const sdk = getQuizzes();
+  return sdk.quizControllerGetFeaturedQuizzes(params);
 }
 
 /**

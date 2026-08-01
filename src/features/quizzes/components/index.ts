@@ -4,10 +4,6 @@ export { default as QuizCard, QuizCardDifficulty, QuizCardDetail } from './QuizC
 export type { QuizCardDifficultyProps as QuizCardProps } from './QuizCard/QuizCardDifficulty'
 export { default as PlayQuizClient } from './PlayQuizClient'
 
-// Migrated from homepage
-export { default as FeaturedQuiz } from './FeaturedQuiz'
-export { default as QuizCardDifficultyList } from './QuizCardDifficultyList'
-
 // Epic 3.5 — Global quizzes directory composition (TKT-3.5.D1).
 export { QuizzesDirectoryPage } from './QuizzesDirectoryPage'
 export type { QuizzesDirectoryPageProps } from './QuizzesDirectoryPage'
@@ -47,3 +43,27 @@ export type { QuizRelatedQuizzesSlotProps } from './QuizRelatedQuizzesSlot'
 export { QuizDetailPageSkeleton } from './QuizDetailPageSkeleton'
 export { QuizDetailPage } from './QuizDetailPage'
 export type { QuizDetailPageProps } from './QuizDetailPage'
+
+// Story 3.7 — Featured / trending / popular rails on `/`
+// (TKT-3.7.B2 / B3 / B4 / B5 — slot primitives)
+export { HomeCategoryFilter, HOME_CATEGORY_FILTER_ALL } from './HomeCategoryFilter'
+export type { HomeCategoryFilterProps } from './HomeCategoryFilter'
+export { QuizRail } from './QuizRail'
+export type { QuizRailProps, QuizRailLayout } from './QuizRail'
+export { QuizRailEmpty, QuizRailEmptyActionButton } from './QuizRailEmpty'
+export type { QuizRailEmptyProps } from './QuizRailEmpty'
+export { QuizRailSkeleton } from './QuizRailSkeleton'
+export type { QuizRailSkeletonProps } from './QuizRailSkeleton'
+
+// Story 3.7 — Featured / trending / popular rails on `/`
+// (TKT-3.7.C2 / C3 / C4 — rail compositions)
+export { HomeFeaturedRail } from './HomeFeaturedRail'
+export type { HomeFeaturedRailProps } from './HomeFeaturedRail'
+export { HomeTrendingRail } from './HomeTrendingRail'
+export type { HomeTrendingRailProps } from './HomeTrendingRail'
+export { HomePopularRail } from './HomePopularRail'
+export type { HomePopularRailProps } from './HomePopularRail'
+
+// Story 3.7 — Home page composition (TKT-3.7.D1) + route entry
+export { HomePage } from './HomePage'
+export type { HomePageProps } from './HomePage'
