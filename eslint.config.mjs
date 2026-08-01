@@ -167,6 +167,18 @@ const eslintConfig = [
       // `pagination.nextCursor` / `meta.pagination` (the same role
       // `QuizCatalogMainContent.tsx` plays for the quizzes endpoint).
       'src/features/categories/hooks/useCategoryQuizzes.ts',
+      // Epic 3.4 / TKT-3.4.B4 — `useTagQuizzes` is the fetcher adapter
+      // for the `/tags/{slug}/quizzes` endpoint. Same role as
+      // `useCategoryQuizzes` above: it is the single place in the tags
+      // feature permitted to read `pagination.nextCursor` and adapt the
+      // SDK envelope to the `useCursorPaginated` `CursorPage` shape.
+      'src/features/tags/hooks/useTagQuizzes.ts',
+      // Epic 3.4 / TKT-3.4.E1 — `useTagsDirectory` is the fetcher
+      // adapter for the `/tags` directory endpoint. Same role as
+      // `useTagQuizzes` above: it is the single place in the tags
+      // feature permitted to read `pagination.nextCursor` and adapt the
+      // SDK envelope to the `useCursorPaginated` `CursorPage` shape.
+      'src/features/tags/hooks/useTagsDirectory.ts',
     ],
     rules: {
       'no-restricted-syntax': 'off',

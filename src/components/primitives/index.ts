@@ -44,4 +44,15 @@ export { CategoryCardSkeleton } from './CategoryCard/CategoryCardSkeleton'
 export type { CategoryCardSkeletonProps } from './CategoryCard/CategoryCardSkeleton'
 
 export { CategoryCardGrid } from './CategoryCard/CategoryCardGrid'
+
+// Phase-3 reusable primitives introduced by Epic 3.4 (TKT-3.4.C2 /
+// TKT-3.4.C6). Exported as named exports so the strips + analytics
+// panel can import them from the same stable barrel as the rest of
+// the design-system primitives. Future phases (3.6 quiz analytics,
+// 3.7 home rails) reuse these primitives.
+export { TagPillSkeleton } from './TagPill/TagPillSkeleton'
+export type { TagPillSkeletonProps } from './TagPill/TagPillSkeleton'
+
+export { Sparkline } from './Sparkline'
+export type { SparklineProps } from './Sparkline'
 export type { CategoryCardGridProps } from './CategoryCard/CategoryCardGrid'
