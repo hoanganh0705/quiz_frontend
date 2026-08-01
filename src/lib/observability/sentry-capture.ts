@@ -81,11 +81,18 @@ export function captureException(
  * single grep target.
  */
 export const CAPTURE_SURFACES = {
-  useCursorPaginated: 'useCursorPaginated'
+  useCursorPaginated: 'useCursorPaginated',
+  // TKT-3.6.A3 — defensive player-view projection correctness-leak detection.
+  useQuizByIdOrSlug: 'useQuizByIdOrSlug',
 } as const;
 
 export const CAPTURE_REASONS = {
-  cursorDecode: 'cursor-decode'
+  cursorDecode: 'cursor-decode',
+  // TKT-3.6.A3 — emitted when a quiz-detail payload contains `isCorrect`
+  // on an answer option. The detail endpoint is documented to strip
+  // `isCorrect` for player views; this reason is reserved for the
+  // boundary-level invariant violation.
+  isCorrectLeak: 'isCorrect-leak',
 } as const;
 
 export type CaptureSurface =

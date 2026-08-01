@@ -1,14 +1,9 @@
-/**
- * Quiz API layer.
- *
- * @deprecated Use wrappers instead:
- * - import { listQuizzes, getQuizBySlug, ... } from '@/features/quizzes/api/quizzes.wrapper'
- */
-
 import {
   listQuizzes,
   getQuizzesPopular,
   getQuizzesTrending,
+  getQuizByIdOrSlug,
+  getQuizStatsByIdOrSlug,
   getQuizBySlug,
   createQuiz,
   updateQuiz,
@@ -26,6 +21,8 @@ export {
   listQuizzes,
   getQuizzesPopular,
   getQuizzesTrending,
+  getQuizByIdOrSlug,
+  getQuizStatsByIdOrSlug,
   getQuizBySlug,
   createQuiz,
   updateQuiz,

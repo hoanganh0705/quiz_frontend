@@ -1,3 +1,5 @@
 export * from './quiz-results-utils'
 export * from './format-duration'
 export * from './quiz-discovery-score'
+export * from './quiz-player-view'
+export * from './sanitize-description-markdown'

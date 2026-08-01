@@ -34,6 +34,17 @@
  * - `sort` is NOT on the wire (drift #2 in A1). The directory
  *   applies the sort client-side on the items returned for the
  *   current page.
+ *
+ * ## Story 3.6 additions (TKT-3.6.A2)
+ *
+ * - `getQuizByIdOrSlug` wraps `quizControllerGetQuizById`, which
+ *   accepts a UUID or a slug at the same path parameter. The legacy
+ *   `getQuizBySlug` is retained as a compatibility alias because the
+ *   existing detail page still imports it; the body forwards to the
+ *   same SDK operation. Story 3.6 hooks should use `getQuizByIdOrSlug`.
+ * - `getQuizStatsByIdOrSlug` wraps `quizControllerGetQuizStats`. No
+ *   version / author endpoint is used. Stats 404 is mapped to the
+ *   no-stats state in the B3 hook, not here.
  */
 
 import { getQuizzes } from "@/lib/api/generated/quizzes/quizzes";
@@ -44,6 +55,8 @@ import type {
   UpdateQuizVersionDto,
   CreateQuizQuestionDto,
   CreateQuizQuestionsDto,
+  QuizResponseDto,
+  QuizStatsResponseDto,
 } from "@/lib/api/generated/schemas";
 
 // Re-export types for convenience
@@ -59,6 +72,9 @@ export type {
   // TKT-3.5.A2 — popular + trending result aliases
   QuizControllerGetPopularQuizzesResult,
   QuizControllerGetTrendingQuizzesResult,
+  // TKT-3.6.A2 — detail + stats result aliases
+  QuizControllerGetQuizByIdResult,
+  QuizControllerGetQuizStatsResult,
 } from "@/lib/api/generated/quizzes/quizzes";
 
 // ─── Query Parameters ──────────────────────────────────────────────────────────
@@ -156,9 +172,61 @@ export async function getQuizzesTrending(params?: {
   return sdk.quizControllerGetTrendingQuizzes(params);
 }
 
-export async function getQuizBySlug(slug: string) {
+/**
+ * Public read: full quiz by ID or slug.
+ *
+ * Source epic: Epic 3.6 — Quiz detail (player view) + stats.
+ * Source ticket: TKT-3.6.A2.
+ *
+ * Wraps `getQuizzes().quizControllerGetQuizById(idOrSlug)`. The
+ * generated SDK accepts either a UUID or a slug at the same path
+ * parameter; do not branch to `listQuizVersions` or any author-view
+ * endpoint here. The published-version questions arrive player-safe
+ * (no `isCorrect`), but `A3` enforces the boundary anyway.
+ *
+ * The `useQuizByIdOrSlug` hook (TKT-3.6.B2) is the only intended
+ * consumer. Components reach the wrapper indirectly through the hook.
+ */
+export async function getQuizByIdOrSlug(
+  idOrSlug: string,
+): Promise<QuizResponseDto> {
   const sdk = getQuizzes();
-  return sdk.quizControllerGetQuizBySlug(slug);
+  return (await sdk.quizControllerGetQuizById(
+    idOrSlug,
+  )) as unknown as QuizResponseDto;
+}
+
+/**
+ * Public read: aggregate stats for a quiz identified by ID or slug.
+ *
+ * Source epic: Epic 3.6 — Quiz detail (player view) + stats.
+ * Source ticket: TKT-3.6.A2.
+ *
+ * Wraps `getQuizzes().quizControllerGetQuizStats(idOrSlug)`. The
+ * response is a `QuizStatsResponseDto` with aggregate metrics only —
+ * no historical activity series. A `404` is mapped to the no-stats
+ * state in the `useQuizStatsByIdOrSlug` hook (TKT-3.6.B3), not here.
+ *
+ * The wrapper declares the unwrapped DTO type explicitly because
+ * the generated SDK still types the return as `WrappedDto & AllOf`,
+ * while `orvalCustomInstance` unwraps the envelope at runtime.
+ */
+export async function getQuizStatsByIdOrSlug(
+  idOrSlug: string,
+): Promise<QuizStatsResponseDto> {
+  const sdk = getQuizzes();
+  return (await sdk.quizControllerGetQuizStats(
+    idOrSlug,
+  )) as unknown as QuizStatsResponseDto;
+}
+
+/**
+ * @deprecated Use `getQuizByIdOrSlug` instead. Retained for the
+ * legacy detail page until the migration in TKT-3.6.F3 deletes the
+ * import. The body forwards to the same SDK operation.
+ */
+export async function getQuizBySlug(slug: string) {
+  return getQuizByIdOrSlug(slug);
 }
 
 // ─── Admin-only Functions ───────────────────────────────────────────────────────

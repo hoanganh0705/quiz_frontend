@@ -5,10 +5,10 @@ import Link from 'next/link'
 export default async function QuizResultsPage({
   params
 }: {
-  params: Promise<{ id: string }>
+  params: Promise<{ idOrSlug: string }>
 }) {
-  const { id } = await params
-  const quiz = quizzes.find((q) => q.id === id)
+  const { idOrSlug } = await params
+  const quiz = quizzes.find((q) => q.id === idOrSlug)
 
   if (!quiz) {
     return (
