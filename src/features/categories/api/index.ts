@@ -2,6 +2,10 @@
 export {
   listCategories,
   getCategoryBySlug,
+  getCategory,
+  getCategoriesRanked,
+  getCategoriesTrending,
+  getCategoryQuizzes,
   createCategory,
   updateCategory,
   deleteCategory,
