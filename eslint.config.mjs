@@ -77,6 +77,95 @@ const eslintConfig = [
       'no-restricted-imports': 'off',
     },
   },
+  // ──────────────────────────────────────────────────────────────────────────
+  // Epic 3.2 / TKT-3.2.E3 — cursor-pagination envelope lockdown.
+  //
+  // The `useCursorPaginated` hook (Epic 3.2) is the only place in the
+  // codebase that reads `nextCursor` / `data.pagination` / `meta.pagination`
+  // — components and feature pages must consume the hook's public result
+  // shape (`items`, `hasMore`, `loadMore`, …) and never reach into the
+  // raw envelope. The rule below encodes that contract as an ESLint
+  // gate so a future regression is caught at lint time, not in code
+  // review.
+  //
+  // Scope:
+  //   - `src/features/**` — feature pages and components.
+  //   - `src/app/(public)/**` — public-route pages (which already
+  //     import features but may also have ad-hoc fetch handlers).
+  //
+  // Allow-list:
+  //   - `src/features/quizzes/components/QuizCatalogMainContent.tsx` —
+  //     the fetcher adapter in this file is the single place the
+  //     contract permits a `pagination` / `nextCursor` read. After
+  //     TKT-3.2.E2 the read is confined to the module-scoped
+  //     `quizzesFetcher`; the rule keeps the rest of the component
+  //     blocked.
+  //   - `src/features/quizzes/types/quiz-backend.ts` — type-only
+  //     definitions that mirror the SDK's response shape. The
+  //     `Identifier[name='nextCursor']` selector would otherwise flag
+  //     type-field declarations, which are not component-state reads.
+  //
+  // AST selectors:
+  //   - `MemberExpression[object.name='data'][property.name='pagination']`
+  //     matches `data.pagination` (the legacy flat-envelope shape).
+  //   - `MemberExpression[object.name='meta'][property.name='pagination']`
+  //     matches `meta.pagination` (the wrapped-envelope shape).
+  //   - `Identifier[name='nextCursor']` matches any free reference to
+  //     the cursor identifier (covers destructured locals, shorthand
+  //     object keys, and TS property keys).
+  //
+  // The error message names the hook and the contract so the dev
+  // experience is "go use the hook, not the wire shape".
+  // ──────────────────────────────────────────────────────────────────────────
+  {
+    files: [
+      'src/features/**/*',
+      'src/app/(public)/**/*',
+    ],
+    rules: {
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector:
+            "MemberExpression[object.name='data'][property.name='pagination']",
+          message:
+            "Reading 'data.pagination' in a feature or public page bypasses the " +
+            "useCursorPaginated hook (Epic 3.2). Move the read into the fetcher " +
+            "adapter at the SDK boundary; the rest of the component must consume " +
+            "the hook's { items, hasMore, loadMore, … } result.",
+        },
+        {
+          selector:
+            "MemberExpression[object.name='meta'][property.name='pagination']",
+          message:
+            "Reading 'meta.pagination' in a feature or public page bypasses the " +
+            "useCursorPaginated hook (Epic 3.2). Move the read into the fetcher " +
+            "adapter at the SDK boundary; the rest of the component must consume " +
+            "the hook's { items, hasMore, loadMore, … } result.",
+        },
+        {
+          selector: "Identifier[name='nextCursor']",
+          message:
+            "Using 'nextCursor' directly in a feature or public page bypasses the " +
+            "useCursorPaginated hook (Epic 3.2). The hook owns cursor handling; " +
+            "consume the hook's { items, hasMore, loadMore, refresh } result " +
+            "instead. The only allowed read is inside a fetcher adapter that " +
+            "translates the SDK envelope to the hook's CursorPage shape.",
+        },
+      ],
+    },
+  },
+  // Allow-list for the E3 rule — the fetcher-adapter file and the
+  // type-only backend mirror. See note above.
+  {
+    files: [
+      'src/features/quizzes/components/QuizCatalogMainContent.tsx',
+      'src/features/quizzes/types/quiz-backend.ts',
+    ],
+    rules: {
+      'no-restricted-syntax': 'off',
+    },
+  },
 ]
 
 export default eslintConfig

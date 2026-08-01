@@ -1,13 +1,14 @@
 'use client'
 
-import { memo, useEffect, useState, useRef } from 'react'
+import { memo, useEffect, useRef, useState } from 'react'
 import { Label } from '@/components/ui/Label'
 import { Slider } from '@/components/ui/Slider'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/RadioGroup'
 import QuizCardCompact from '@/features/quizzes/components/QuizCard/QuizCardCompact'
-import { listQuizzes } from '@/features/quizzes/api'
-import type { QuizResponseDto } from '@/lib/api/generated/schemas'
-import type { ListQuizzesParams } from '@/features/quizzes/api'
+import { getQuizzes } from '@/lib/api'
+import { useCursorPaginated } from '@/lib/api'
+import type { CursorFetcher } from '@/lib/api'
+import type { QuizListItemDto } from '@/lib/api/generated/schemas'
 import { Button } from '@/components/ui/Button'
 
 interface QuizCatalogMainContentProps {
@@ -15,50 +16,143 @@ interface QuizCatalogMainContentProps {
   searchQuery: string
 }
 
+/**
+ * Minimal item shape consumed by `<QuizCardCompact />` — narrowed from
+ * `QuizListItemDto` so the hook's `T extends { id: string }` constraint
+ * is satisfied (the SDK uses `quizId` as the unique identifier; we
+ * surface it as `id` so the hook's `appendUniqueById` deduplication
+ * works without an adapter layer). The original DTO is preserved on
+ * `dto` for fields the card does not read.
+ */
+interface QuizCatalogItem {
+  id: string
+  title: string
+  imageUrl: string | undefined
+  difficulty: string | undefined
+  dto: QuizListItemDto
+}
+
+interface FetcherParams {
+  limit: number
+  categoryId?: string
+  difficulty?: 'easy' | 'medium' | 'hard'
+}
+
+/**
+ * Fetcher adapter for the live `/quizzes` endpoint.
+ *
+ * This is the single, well-defined place in this file where the SDK
+ * response's pagination meta is read (`data` / `meta.pagination`). The
+ * contract is locked by Epic 3.2 / E2: the rest of the component
+ * never sees `nextCursor` or `pagination`. Any future consumer that
+ * needs the raw cursor for some reason must do the same here — at the
+ * fetcher boundary — never in component state.
+ */
+const quizzesFetcher: CursorFetcher<QuizCatalogItem, FetcherParams> = async ({
+  cursor,
+  params
+}) => {
+  const sdk = getQuizzes()
+  // Post-`unwrap` payload: `{ data: QuizListItemDto[], meta: { pagination: ... } }`.
+  // Defensive narrowing keeps the contract narrow at the boundary; if the
+  // SDK ever switches to a different envelope shape, the read here is the
+  // only place to update.
+  //
+  // The `signal` arg from `CursorFetcher` is intentionally unused here:
+  // the SDK call goes through orval's mutator which does not expose
+  // AbortSignal forwarding. D4 race handling at the hook layer still
+  // aborts in-flight fetches via `loadMoreAbortRef` — the hook checks
+  // `signal?.aborted` BEFORE invoking this fetcher, so the cancellation
+  // path is exercised; the SDK request simply completes in the background
+  // and is discarded by SWR's per-page cache (which has already been
+  // replaced by `refresh` / `loadMore`).
+  const result = (await sdk.quizControllerListQuizzes({
+    limit: params.limit,
+    cursor: cursor ?? undefined,
+    ...(params.categoryId !== undefined && { categoryId: params.categoryId }),
+    ...(params.difficulty !== undefined && { difficulty: params.difficulty })
+  })) as unknown as {
+    data?: readonly QuizListItemDto[]
+    meta?: { pagination?: PaginationMeta }
+  }
+
+  const rawItems = result.data ?? []
+  const meta = result.meta?.pagination
+
+  return {
+    items: rawItems.map((quiz): QuizCatalogItem => ({
+      id: quiz.quizId,
+      title: quiz.title,
+      imageUrl: quiz.imageUrl ?? undefined,
+      difficulty: quiz.publishedVersion?.difficulty ?? undefined,
+      dto: quiz
+    })),
+    nextCursor: meta?.nextCursor ?? null,
+    hasNextPage: meta?.hasNextPage ?? false,
+    limit: params.limit
+  }
+}
+
+interface PaginationMeta {
+  kind?: string
+  limit?: number
+  nextCursor: string | null
+  hasNextPage: boolean
+}
+
 const QuizCatalogMainContent = memo(function QuizCatalogMainContent({
   categorySlug,
   searchQuery
 }: QuizCatalogMainContentProps) {
-  const [quizzes, setQuizzes] = useState<QuizResponseDto[]>([])
-  const [loading, setLoading] = useState(true)
-  const [cursor, setCursor] = useState<string | undefined>()
-  const [hasMore, setHasMore] = useState(true)
+  // Local UI state — filters the hook does NOT own. (The hook owns
+  // pagination only; filter selection is component state because the
+  // filter values are part of the SWR key — see the `key` array below.)
   const [difficultyFilter, setDifficultyFilter] = useState<string>('all')
   const [sortBy, setSortBy] = useState<string>('newest')
   const [maxDuration, setMaxDuration] = useState<number[]>([60])
   const loadMoreRef = useRef<HTMLDivElement | null>(null)
 
-  // Fetch quizzes from API
-  const fetchQuizzes = async (append = false) => {
-    try {
-      const params: ListQuizzesParams = {
-        limit: 12,
-        ...(categorySlug && { categoryId: categorySlug }),
-        ...(searchQuery && { search: searchQuery }),
-        ...(difficultyFilter !== 'all' && { difficulty: difficultyFilter as 'easy' | 'medium' | 'hard' }),
-        ...(cursor && { cursor }),
-      }
-
-      const data = await listQuizzes(params)
-      setQuizzes(prev => append ? [...prev, ...data.items] : data.items)
-      setHasMore(data.pagination.hasNextPage)
-      setCursor(data.pagination.nextCursor ?? undefined)
-    } catch (error) {
-      console.error('Failed to fetch quizzes:', error)
-    } finally {
-      setLoading(false)
-    }
+  // The cursor-pagination primitive owns everything pagination-related.
+  // No `useState` for cursor / hasMore / items — they all flow through
+  // the hook now.
+  //
+  // Note: `searchQuery` is NOT forwarded to the SDK — the live
+  // `/quizzes` endpoint does not expose a `search` query parameter
+  // (the SDC's `QuizControllerListQuizzesParams` lacks one). It is
+  // still included in the SWR `key` below so a future search-feature
+  // rollout can drop the cache without changing the component's
+  // external API.
+  const fetcherParams: FetcherParams = {
+    limit: 12,
+    ...(categorySlug !== undefined && { categoryId: categorySlug }),
+    ...(difficultyFilter !== 'all' && {
+      difficulty: difficultyFilter as 'easy' | 'medium' | 'hard'
+    })
   }
 
-  // Initial fetch
-  useEffect(() => {
-    setLoading(true)
-    setCursor(undefined)
-    fetchQuizzes(false)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [categorySlug, searchQuery, difficultyFilter])
+  const {
+    items,
+    isLoading,
+    isLoadingMore,
+    hasMore,
+    loadMore,
+    error
+  } = useCursorPaginated<QuizCatalogItem, FetcherParams>({
+    key: [
+      'quizzes',
+      'catalog',
+      categorySlug ?? '',
+      searchQuery,
+      difficultyFilter
+    ],
+    fetcher: quizzesFetcher,
+    params: fetcherParams,
+    paginationKind: 'cursor'
+  })
 
-  // Load more when scrolling
+  // IntersectionObserver — unchanged. Watches the sentinel and calls
+  // `loadMore()` from the hook. No cursor state, no ref-tracked
+  // previous-load flag, no inline fetch function.
   useEffect(() => {
     const element = loadMoreRef.current
     if (!element) return
@@ -66,8 +160,8 @@ const QuizCatalogMainContent = memo(function QuizCatalogMainContent({
     const observer = new IntersectionObserver(
       (entries) => {
         const entry = entries[0]
-        if (entry.isIntersecting && hasMore && !loading) {
-          fetchQuizzes(true)
+        if (entry?.isIntersecting && hasMore && !isLoading) {
+          loadMore()
         }
       },
       { threshold: 0.2 }
@@ -75,10 +169,9 @@ const QuizCatalogMainContent = memo(function QuizCatalogMainContent({
 
     observer.observe(element)
     return () => observer.disconnect()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hasMore, loading, cursor])
+  }, [hasMore, isLoading, loadMore])
 
-  if (loading && quizzes.length === 0) {
+  if (isLoading) {
     return (
       <div className='text-foreground'>
         <div className='flex xl:flex-row flex-col gap-7'>
@@ -100,6 +193,21 @@ const QuizCatalogMainContent = memo(function QuizCatalogMainContent({
               ))}
             </div>
           </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className='text-foreground'>
+        <div className='text-center py-12' role='alert'>
+          <p className='text-destructive text-lg mb-2'>
+            {error.message || 'Failed to load quizzes'}
+          </p>
+          <p className='text-foreground/60 text-sm'>
+            Please check that the backend server is running and try again.
+          </p>
         </div>
       </div>
     )
@@ -186,11 +294,11 @@ const QuizCatalogMainContent = memo(function QuizCatalogMainContent({
         <div className='flex-1'>
           <div className='mb-6'>
             <p className='text-foreground/70 text-sm' aria-live='polite'>
-              {quizzes.length} quizzes found
+              {items.length} quizzes found
             </p>
           </div>
 
-          {quizzes.length === 0 ? (
+          {items.length === 0 ? (
             <div className='text-center py-12'>
               <p className='text-muted-foreground'>No quizzes found matching your criteria.</p>
             </div>
@@ -200,13 +308,13 @@ const QuizCatalogMainContent = memo(function QuizCatalogMainContent({
               role='list'
               aria-label='Quiz results'
             >
-              {quizzes.map((quiz) => (
+              {items.map((item) => (
                 <QuizCardCompact
-                  key={quiz.quizId}
-                  id={quiz.slug}
-                  title={quiz.title}
-                  image={quiz.imageUrl ?? '/placeholder.webp'}
-                  difficulty={quiz.publishedVersion?.difficulty}
+                  key={item.id}
+                  id={item.dto.slug}
+                  title={item.title}
+                  image={item.imageUrl ?? '/placeholder.webp'}
+                  difficulty={item.difficulty}
                 />
               ))}
             </div>
@@ -216,10 +324,10 @@ const QuizCatalogMainContent = memo(function QuizCatalogMainContent({
             <div className='mt-6 flex justify-center'>
               <Button
                 variant='outline'
-                onClick={() => fetchQuizzes(true)}
-                disabled={loading}
+                onClick={loadMore}
+                disabled={isLoadingMore}
               >
-                {loading ? 'Loading...' : 'Load more'}
+                {isLoadingMore ? 'Loading...' : 'Load more'}
               </Button>
             </div>
           )}

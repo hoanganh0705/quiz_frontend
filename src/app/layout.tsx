@@ -1,7 +1,7 @@
 import type React from 'react'
 import type { Metadata } from 'next'
 import { inter } from '@/shared/config/fonts'
-import { ThemeProvider } from '@/providers/ThemeProvider'
+import { SwrProvider, ThemeProvider } from '@/providers'
 import { LayoutShell } from '@/shared/layout'
 import { PwaServiceWorker } from '@/shared/ui/PwaServiceWorker'
 import './globals.css'
@@ -29,8 +29,10 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <PwaServiceWorker />
-          <LayoutShell>{children}</LayoutShell>
+          <SwrProvider>
+            <PwaServiceWorker />
+            <LayoutShell>{children}</LayoutShell>
+          </SwrProvider>
         </ThemeProvider>
       </body>
     </html>
