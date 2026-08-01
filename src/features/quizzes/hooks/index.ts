@@ -20,6 +20,13 @@ export type {
   UseQuizzesTrendingResult,
 } from './useQuizzesTrending'
 
+// Story 3.7 — Featured rail hook (TKT-3.7.C1)
+export { useFeaturedQuizzes } from './useFeaturedQuizzes'
+export type {
+  UseFeaturedQuizzesParams,
+  UseFeaturedQuizzesResult,
+} from './useFeaturedQuizzes'
+
 // Epic 3.5 — URL sync hook (TKT-3.5.C2)
 export { useQuizFiltersUrlSync } from './useQuizFiltersUrlSync'
 

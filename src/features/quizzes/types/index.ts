@@ -51,6 +51,16 @@ export {
   serializeQuizFilterUrl,
 } from './quiz-filter-params'
 
+// Home-rails types (Story 3.7 / TKT-3.7.A3) — the per-rail category
+// state shape + the three rail-limit constants + the three wire DTOs
+// re-exported from the generated SDK.
+export type { HomeRailCategory } from './home-rails'
+export {
+  FEATURED_RAIL_LIMIT,
+  TRENDING_RAIL_LIMIT,
+  POPULAR_RAIL_LIMIT,
+} from './home-rails'
+
 // Results/History types
 export type { QuizResult, QuizProgress, QuestionReview, QuizResultsProps, ScoreHeroProps, StatsOverviewProps, AnswerReviewTabProps, LeaderboardTabProps, ShareResultsTabProps, TimeAnalysisProps, BottomActionsProps, QuestionReviewItemProps, LeaderboardItemProps, SharePreviewProps, ShareButtonsProps, ChallengeFriendsProps, TimeAnalysisItemProps } from './quiz-results'
 export type { QuizActivityType, QuizResultStatus, DateRangeFilter, SortOption, QuizHistoryEntry, QuizHistoryStats, CategoryStat, DifficultyBreakdown, WeeklyActivity, MonthlyScoreTrend, QuizHistoryFilters, ExportFormat } from './quiz-history'
