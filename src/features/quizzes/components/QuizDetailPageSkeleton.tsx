@@ -81,7 +81,7 @@ export function QuizDetailPageSkeleton() {
       <section className='mt-10 flex flex-col gap-4' aria-label='Loading related quizzes' data-testid='quiz-detail-related-skeleton'>
         <Skeleton className='h-8 w-44' />
         <div className='grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3'>
-          {Array.from({ length: 3 }, (_, index) => (
+          {Array.from({ length: 4 }, (_, index) => (
             <QuizCardSkeleton key={index} />
           ))}
         </div>

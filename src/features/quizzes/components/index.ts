@@ -38,8 +38,14 @@ export type {
 } from './QuizStatsPanel'
 export { QuizCtaStrip, QUIZ_START_ATTEMPT_TOOLTIP } from './QuizCtaStrip'
 export type { QuizCtaStripProps } from './QuizCtaStrip'
-export { QuizRelatedQuizzesSlot } from './QuizRelatedQuizzesSlot'
-export type { QuizRelatedQuizzesSlotProps } from './QuizRelatedQuizzesSlot'
+// Story 3.8 — Related quizzes block (TKT-3.8.B2 / B3).
+// Live replacement for the legacy `<QuizRelatedQuizzesSlot />`
+// placeholder (TKT-3.8.D3 deleted the placeholder file); consumed
+// by `<QuizDetailPage />`.
+export { QuizRelatedQuizzes } from './QuizRelatedQuizzes'
+export type { QuizRelatedQuizzesProps } from './QuizRelatedQuizzes'
+export { QuizRelatedQuizzesSkeleton } from './QuizRelatedQuizzesSkeleton'
+export type { QuizRelatedQuizzesSkeletonProps } from './QuizRelatedQuizzesSkeleton'
 export { QuizDetailPageSkeleton } from './QuizDetailPageSkeleton'
 export { QuizDetailPage } from './QuizDetailPage'
 export type { QuizDetailPageProps } from './QuizDetailPage'

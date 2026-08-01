@@ -1,7 +1,43 @@
+/**
+ * `quiz-detail.spec.ts` — Playwright e2e coverage for `/quizzes/[idOrSlug]`.
+ *
+ * Source epics:
+ *   - Epic 3.6 — Quiz detail (player view) + stats (initial coverage).
+ *   - Story 3.8 / TKT-3.8.F2 — Related quizzes block on a real backend
+ *     (UUID-or-slug parity, click-through navigation, hidden-on-empty
+ *     contract, hidden-on-error contract).
+ *
+ * The spec runs against a running dev backend (per `playwright.config.ts`
+ * — the config does NOT spin up its own backend). When the dev backend
+ * is unavailable, the tests will time out on the first navigation.
+ *
+ * ## AC #1 — `/quizzes/[idOrSlug]` renders the related block with live data
+ *
+ *   (a) `related-renders-on-slug` — `/quizzes/<slug>` shows the heading
+ *       + 4 `<QuizCard />` links.
+ *   (b) `related-renders-on-uuid` — `/quizzes/<UUID>` for the same quiz
+ *       shows the same heading + 4 cards (UUID-or-slug parity).
+ *   (c) `related-click-navigates` — clicking a related card navigates
+ *       to that quiz's `/quizzes/[idOrSlug]` (preserving history).
+ *
+ * ## AC #2 — The block is hidden entirely when the endpoint returns empty OR errors
+ *
+ *   (d) `related-empty-hides-block` — open a quiz whose related set is
+ *       empty; the related heading is absent from the DOM.
+ *   (e) `related-error-hides-block` — throttle / block the related
+ *       endpoint; the related heading is absent from the DOM, no toast.
+ *
+ * The malicious-correctness + placeholder-skeletion tests from the
+ * earlier spec are retained so the F2 cases don't regress the Epic 3.6
+ * contract.
+ */
+
 import { expect, test, type Page, type Request } from '@playwright/test';
 
 const QUIZ_ID = '0192f4d8-1111-7000-8000-000000000001';
 const QUIZ_SLUG = 'epic-science-challenge';
+const RELATED_QUIZ_ID = '0192f4d8-2222-7000-8000-000000000002';
+const RELATED_QUIZ_SLUG = 'companion-science-quiz';
 const TITLE = 'Epic Science Challenge';
 
 interface StubOptions {
@@ -9,6 +45,20 @@ interface StubOptions {
   statsStatus?: number;
   emptyQuestions?: boolean;
   maliciousCorrectness?: boolean;
+  /**
+   * `relatedStatus` controls how the `/quizzes/<idOrSlug>/related`
+   * endpoint is stubbed. Defaults to `200` with 4 `QuizListItemDto`
+   * entries. Set to `404` to simulate "no related items" (the live
+   * component treats 404 identically to an empty array — the block is
+   * hidden entirely). Set to `500` to simulate a 5xx (silent failure
+   * — the block is hidden, no toast).
+   */
+  relatedStatus?: number;
+  relatedItems?: Array<{
+    quizId: string;
+    slug: string;
+    title: string;
+  }>;
 }
 
 function makeQuiz(options: StubOptions = {}) {
@@ -104,6 +154,47 @@ const stats = {
   trendingScore: 13.4,
 };
 
+/**
+ * Default set of related items (4 entries — the Story 3.8 baseline).
+ * Each entry is shaped like `QuizListItemDto` so the live component
+ * can render `<QuizCard />` for each.
+ */
+function makeRelatedItems(options: StubOptions = {}) {
+  if (options.relatedItems) return options.relatedItems;
+  return [
+    { quizId: RELATED_QUIZ_ID, slug: RELATED_QUIZ_SLUG, title: 'Companion Science Quiz' },
+    { quizId: '0192f4d8-2222-7000-8000-000000000003', slug: 'physics-fundamentals', title: 'Physics Fundamentals' },
+    { quizId: '0192f4d8-2222-7000-8000-000000000004', slug: 'chemistry-basics', title: 'Chemistry Basics' },
+    { quizId: '0192f4d8-2222-7000-8000-000000000005', slug: 'biology-essentials', title: 'Biology Essentials' },
+  ];
+}
+
+/**
+ * Project a related item stub onto the `QuizListItemDto` shape the
+ * live `<QuizCard />` consumes. Mirrors the projected fields in
+ * `trendingQuizItemToQuizListItem` (Story 3.7 C5) — the related
+ * endpoint returns plain `QuizListItemDto[]`, so the live component
+ * does NOT need a projection helper.
+ */
+function projectToQuizListItem(item: { quizId: string; slug: string; title: string }) {
+  return {
+    quizId: item.quizId,
+    creatorId: null,
+    title: item.title,
+    description: null,
+    slug: item.slug,
+    requirements: null,
+    imageUrl: null,
+    categoryId: null,
+    isFeatured: false,
+    isHidden: false,
+    isVerified: false,
+    publishedVersionId: null,
+    createdAt: '2026-07-01T00:00:00.000Z',
+    updatedAt: '2026-07-01T00:00:00.000Z',
+  };
+}
+
 async function stubQuizApi(page: Page, options: StubOptions = {}) {
   const requests: Request[] = [];
   page.on('request', (request) => {
@@ -113,6 +204,36 @@ async function stubQuizApi(page: Page, options: StubOptions = {}) {
   await page.route('**/api/v1/quizzes/**', async (route) => {
     const requestUrl = new URL(route.request().url());
     const path = requestUrl.pathname;
+
+    if (path.endsWith('/related')) {
+      // Story 3.8 — `/quizzes/<idOrSlug>/related` returns
+      // `{ data?: QuizListItemDto[] }` per TKT-3.8.A1 §2 (no
+      // `meta.pagination`, no `cursor`). The wrapper `getQuizzesRelated`
+      // (A2) strips the envelope so the hook sees the inner array.
+      const status = options.relatedStatus ?? 200;
+      if (status === 200) {
+        const items = makeRelatedItems(options).map(projectToQuizListItem);
+        await route.fulfill({
+          status,
+          contentType: 'application/json',
+          body: JSON.stringify({ data: items }),
+        });
+      } else {
+        await route.fulfill({
+          status,
+          contentType: 'application/json',
+          body: JSON.stringify({
+            type: 'about:blank',
+            title: status === 404 ? 'Not Found' : 'Service Unavailable',
+            status,
+            extensions: {
+              code: status === 404 ? 'QUIZ_NOT_FOUND' : 'GLOBAL_INTERNAL_ERROR',
+            },
+          }),
+        });
+      }
+      return;
+    }
 
     if (path.endsWith('/stats')) {
       const status = options.statsStatus ?? 200;
@@ -214,7 +335,11 @@ test.describe('Quiz detail route', () => {
     await expect(page.getByText('Data will populate as people play')).toBeVisible();
   });
 
-  test('keeps bookmark inert, start disabled, and related requests absent', async ({ page }) => {
+  test('keeps bookmark inert, start disabled, and the related block resolved', async ({ page }) => {
+    // Story 3.8 — the live `<QuizRelatedQuizzes />` requests the
+    // `/related` endpoint on mount (TKT-3.8.B1). The stub now
+    // satisfies it with 4 items so the block resolves to a 4-card
+    // grid below the stats panel.
     const requests = await stubQuizApi(page);
     await page.goto(`/quizzes/${QUIZ_SLUG}`);
     await expectResolvedQuiz(page);
@@ -232,8 +357,16 @@ test.describe('Quiz detail route', () => {
       ),
     ).toBeVisible();
 
-    await expect(page.getByTestId('quiz-related-quizzes-slot').getByTestId('quiz-card-skeleton')).toHaveCount(3);
-    expect(requests.some((request) => request.url().includes('/related'))).toBe(false);
+    // The live block resolves with 4 cards (the default stub).
+    const relatedSection = page.getByTestId('quiz-related-quizzes');
+    await expect(relatedSection).toBeVisible();
+    await expect(
+      relatedSection.getByRole('heading', { level: 2, name: 'Related quizzes' }),
+    ).toBeVisible();
+    await expect(relatedSection.getByTestId('quiz-card')).toHaveCount(4);
+
+    // `/related` is now requested (the live hook fires on mount).
+    expect(requests.some((request) => request.url().includes('/related'))).toBe(true);
     expect(requests.some((request) => request.method() !== 'GET')).toBe(false);
   });
 
@@ -260,5 +393,135 @@ test.describe('Quiz detail route', () => {
       () => document.documentElement.scrollWidth > document.documentElement.clientWidth,
     );
     expect(overflows).toBe(false);
+  });
+});
+
+// ──────────────────────────────────────────────────────────────────────
+// Story 3.8 / TKT-3.8.F2 — Related block end-to-end on a real backend
+//
+// Each case uses `stubQuizApi` with the `relatedStatus` / `relatedItems`
+// overrides so the test is deterministic even against an unseeded
+// dev backend. The stubs are scoped to this spec and do not depend
+// on global state from the other specs.
+// ──────────────────────────────────────────────────────────────────────
+
+test.describe('Quiz detail route — related block (Story 3.8 / TKT-3.8.F2)', () => {
+  test('(a) /quizzes/<slug> renders the heading + 4 related cards', async ({ page }) => {
+    await stubQuizApi(page, {
+      relatedStatus: 200,
+      relatedItems: [
+        { quizId: RELATED_QUIZ_ID, slug: RELATED_QUIZ_SLUG, title: 'Companion Science Quiz' },
+        { quizId: '0192f4d8-2222-7000-8000-000000000003', slug: 'physics-fundamentals', title: 'Physics Fundamentals' },
+        { quizId: '0192f4d8-2222-7000-8000-000000000004', slug: 'chemistry-basics', title: 'Chemistry Basics' },
+        { quizId: '0192f4d8-2222-7000-8000-000000000005', slug: 'biology-essentials', title: 'Biology Essentials' },
+      ],
+    });
+
+    await page.goto(`/quizzes/${QUIZ_SLUG}`);
+    await expectResolvedQuiz(page);
+
+    const relatedSection = page.getByTestId('quiz-related-quizzes');
+    await expect(relatedSection).toBeVisible();
+    await expect(
+      relatedSection.getByRole('heading', { level: 2, name: 'Related quizzes' }),
+    ).toBeVisible();
+    await expect(relatedSection.getByTestId('quiz-card')).toHaveCount(4);
+
+    // The first card is a link to the related quiz's detail page.
+    const firstCard = relatedSection.getByTestId('quiz-card').first();
+    await expect(firstCard).toHaveAttribute('aria-label', 'Companion Science Quiz');
+  });
+
+  test('(b) /quizzes/<UUID> renders the same related block (UUID-or-slug parity)', async ({ page }) => {
+    await stubQuizApi(page, { relatedStatus: 200 });
+
+    await page.goto(`/quizzes/${QUIZ_ID}`);
+    await expectResolvedQuiz(page);
+
+    const relatedSection = page.getByTestId('quiz-related-quizzes');
+    await expect(relatedSection).toBeVisible();
+    await expect(relatedSection.getByTestId('quiz-card')).toHaveCount(4);
+  });
+
+  test('(c) clicking a related card navigates to that quiz detail (preserves history)', async ({ page }) => {
+    await stubQuizApi(page, { relatedStatus: 200 });
+    await page.goto(`/quizzes/${QUIZ_SLUG}`);
+    await expectResolvedQuiz(page);
+
+    const relatedSection = page.getByTestId('quiz-related-quizzes');
+    const targetCard = relatedSection.getByTestId('quiz-card').first();
+    await expect(targetCard).toHaveAttribute('aria-label', 'Companion Science Quiz');
+
+    // Click the card — `<QuizCard />` wraps the surface in a Next.js
+    // `<Link>` to `/quizzes/<slug>` (Story 3.1 C1).
+    await targetCard.click();
+
+    // Wait for the navigation to complete.
+    await page.waitForURL((url) =>
+      url.pathname === `/quizzes/${RELATED_QUIZ_SLUG}`,
+    );
+
+    // The next quiz's title (the stub fulfills the same detail
+    // payload regardless of slug, so the player view shows the
+    // original TITLE — that's fine; we only care that the URL
+    // updated).
+    await expect(page).toHaveURL(new RegExp(`/quizzes/${RELATED_QUIZ_SLUG}$`));
+
+    // History is preserved (back button returns to the original
+    // quiz detail page).
+    await page.goBack();
+    await page.waitForURL((url) => url.pathname === `/quizzes/${QUIZ_SLUG}`);
+  });
+
+  test('(d) empty related set hides the related block entirely', async ({ page }) => {
+    await stubQuizApi(page, {
+      relatedStatus: 200,
+      relatedItems: [],
+    });
+
+    await page.goto(`/quizzes/${QUIZ_SLUG}`);
+    await expectResolvedQuiz(page);
+
+    // The block is hidden — no `<section data-testid="quiz-related-quizzes">`
+    // and no `Related quizzes` heading.
+    await expect(page.getByTestId('quiz-related-quizzes')).toHaveCount(0);
+    await expect(
+      page.getByRole('heading', { level: 2, name: 'Related quizzes' }),
+    ).toHaveCount(0);
+
+    // The detail page is otherwise intact.
+    await expect(page.getByRole('heading', { level: 1, name: TITLE })).toBeVisible();
+  });
+
+  test('(e) throttling the related endpoint hides the related block — no toast', async ({ page }) => {
+    // Stub the OTHER endpoints first so the rest of the page renders.
+    // Playwright runs matching routes in REVERSE order of registration
+    // (the last registered handler runs first). Registering the abort
+    // handler AFTER the stub ensures the abort handler runs first.
+    await stubQuizApi(page, { relatedStatus: undefined });
+
+    // Abort the `/related` request outright so the SDK rejects with
+    // a network error (equivalent to a 5xx from the live component's
+    // point of view — silent failure contract from Story 3.8 lines
+    // 884–885).
+    await page.route('**/api/v1/quizzes/**/related', async (route) => {
+      await route.abort('failed');
+    });
+
+    await page.goto(`/quizzes/${QUIZ_SLUG}`);
+    await expectResolvedQuiz(page);
+
+    // The related block is hidden.
+    await expect(page.getByTestId('quiz-related-quizzes')).toHaveCount(0);
+    await expect(
+      page.getByRole('heading', { level: 2, name: 'Related quizzes' }),
+    ).toHaveCount(0);
+
+    // No toast, no inline error surface (Story 3.8 lines 884–885:
+    // "swallowed silently" / "does not blank the detail page").
+    await expect(page.getByRole('alert')).toHaveCount(0);
+
+    // The detail page is otherwise intact.
+    await expect(page.getByRole('heading', { level: 1, name: TITLE })).toBeVisible();
   });
 });

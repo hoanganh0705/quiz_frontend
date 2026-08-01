@@ -14,7 +14,7 @@ import { QuizDetailPageSkeleton } from './QuizDetailPageSkeleton';
 import { QuizHeader } from './QuizHeader';
 import { QuizMetadataRow } from './QuizMetadataRow';
 import { QuizQuestionList } from './QuizQuestionList';
-import { QuizRelatedQuizzesSlot } from './QuizRelatedQuizzesSlot';
+import { QuizRelatedQuizzes } from './QuizRelatedQuizzes';
 import { QuizStatsPanel } from './QuizStatsPanel';
 
 export interface QuizDetailPageProps {
@@ -109,7 +109,7 @@ export function QuizDetailPage({ idOrSlug }: QuizDetailPageProps) {
         className='mt-10'
       />
       <QuizCtaStrip quizId={quiz.quizId} className='mt-6' />
-      <QuizRelatedQuizzesSlot className='mt-10' />
+      <QuizRelatedQuizzes idOrSlug={idOrSlug} className='mt-10' />
     </div>
   );
 }

@@ -37,3 +37,7 @@ export { useQuizStatsByIdOrSlug } from './useQuizStatsByIdOrSlug'
 export type { UseQuizStatsByIdOrSlugResult } from './useQuizStatsByIdOrSlug'
 export { useIsBookmarked } from './useIsBookmarked'
 export type { UseIsBookmarkedResult } from './useIsBookmarked'
+
+// Story 3.8 — Related quizzes block (TKT-3.8.B1)
+export { useQuizRelated, QUIZ_RELATED_LIMIT } from './useQuizRelated'
+export type { UseQuizRelatedResult } from './useQuizRelated'

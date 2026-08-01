@@ -89,6 +89,8 @@ export type {
   QuizControllerGetQuizStatsResult,
   // TKT-3.7.A2 — featured result alias
   QuizControllerGetFeaturedQuizzesResult,
+  // TKT-3.8.A2 — related result alias (Story 3.8)
+  QuizControllerGetRelatedQuizzesResult,
 } from "@/lib/api/generated/quizzes/quizzes";
 
 // ─── Query Parameters ──────────────────────────────────────────────────────────
@@ -255,6 +257,35 @@ export async function getQuizStatsByIdOrSlug(
   return (await sdk.quizControllerGetQuizStats(
     idOrSlug,
   )) as unknown as QuizStatsResponseDto;
+}
+
+/**
+ * Non-paginated top list of related quizzes for the quiz identified by
+ * `idOrSlug`.
+ *
+ * Source epic: Story 3.8 — Related quizzes block.
+ * Source ticket: TKT-3.8.A2.
+ *
+ * Wraps `getQuizzes().quizControllerGetRelatedQuizzes(slug, params)`.
+ * The endpoint accepts UUID or slug at the same `:slug` path
+ * parameter (matches the Story 3.6 detail convention on
+ * `quizControllerGetQuizById`); the backend disambiguates.
+ *
+ * Returns the inner-unwrapped `{ data?: QuizListItemDto[] }` envelope
+ * (TKT-3.8.A1 §2 — NO `meta.pagination`, NO `cursor`).
+ *
+ * The hook `useQuizRelated` (TKT-3.8.B1) consumes this wrapper with
+ * `{ limit: 4 }` to match the Story 3.8 line 878 baseline
+ * "Skeleton grid × 4".
+ */
+export async function getQuizzesRelated(
+  idOrSlug: string,
+  params?: { limit?: number },
+): Promise<{
+  data?: import("@/lib/api/generated/schemas").QuizListItemDto[];
+}> {
+  const sdk = getQuizzes();
+  return sdk.quizControllerGetRelatedQuizzes(idOrSlug, params);
 }
 
 /**

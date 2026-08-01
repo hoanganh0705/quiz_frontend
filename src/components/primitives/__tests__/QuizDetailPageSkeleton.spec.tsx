@@ -23,7 +23,11 @@ describe('QuizDetailPageSkeleton', () => {
     expect(screen.getAllByTestId('quiz-detail-cta-button-skeleton')).toHaveLength(2);
 
     const related = screen.getByTestId('quiz-detail-related-skeleton');
-    expect(within(related).getAllByTestId('quiz-card-skeleton')).toHaveLength(3);
+    // Story 3.8 line 878 — Skeleton grid × 4 (matches the live
+    // `<QuizRelatedQuizzes />` baseline of 4 cards). The page-skeleton
+    // mirrors the live block's count so the page-skeleton ↔ live-block
+    // transition produces zero CLS (TKT-3.8.D2).
+    expect(within(related).getAllByTestId('quiz-card-skeleton')).toHaveLength(4);
   });
 
   it('uses responsive, overflow-safe outer geometry', () => {
