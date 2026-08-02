@@ -179,14 +179,42 @@ const eslintConfig = [
       // feature permitted to read `pagination.nextCursor` and adapt the
       // SDK envelope to the `useCursorPaginated` `CursorPage` shape.
       'src/features/tags/hooks/useTagsDirectory.ts',
-      // Epic 3.5 / TKT-3.5.B1 — `useQuizzesList` is the fetcher
-      // adapter for the `/quizzes` directory endpoint. Same role as
-      // `useTagQuizzes` / `useTagsDirectory` above: it is the single
-      // place in the quizzes feature permitted to read
-      // `pagination.nextCursor` and adapt the SDK envelope to the
-      // `useCursorPaginated` `CursorPage` shape.
-      'src/features/quizzes/hooks/useQuizzesList.ts',
-    ],
+            // Epic 3.5 / TKT-3.5.B1 — `useQuizzesList` is the fetcher
+            // adapter for the `/quizzes` directory endpoint. Same role as
+            // `useTagQuizzes` / `useTagsDirectory` above: it is the single
+            // place in the quizzes feature permitted to read
+            // `pagination.nextCursor` and adapt the SDK envelope to the
+            // `useCursorPaginated` `CursorPage` shape.
+            'src/features/quizzes/hooks/useQuizzesList.ts',
+            // TKT-3.12.A3 — `daily-challenge.types.dto` declares the
+            // planning-intent `DailyChallengeHistoryPage.nextCursor`
+            // type field. The `Identifier[name='nextCursor']` AST
+            // selector would otherwise flag the type declaration (a
+            // type-only construct that is not a component-state read),
+            // so the file is added to the allow-list per the same
+            // convention as `quiz-backend.ts`.
+            'src/features/daily-challenge/types/dto.ts',
+            // TKT-3.12.B1 — `useDailyChallengeHistory.spec.tsx` mocks
+            // the wrapper's `DailyChallengeHistoryPage` shape (which
+            // includes `nextCursor`) so the test fixture must be
+            // permitted to construct the page object. The `mock.calls`
+            // assertions also re-inspect cursor forwarding; both are
+            // co-located reads of the cursor shape.
+            'src/features/daily-challenge/hooks/__tests__/useDailyChallengeHistory.spec.tsx',
+            // TKT-3.12.B1 — `useDailyChallengeHistory` is the fetcher
+            // adapter for the (planning-intent) `/daily-challenge/history`
+            // endpoint. The hook is the single place in the
+            // daily-challenge feature permitted to read `nextCursor`
+            // and adapt the wrapper's discriminated
+            // `DailyChallengeResult<DailyChallengeHistoryPage>` shape to
+            // the `useCursorPaginated` `CursorPage` shape.
+            'src/features/daily-challenge/hooks/useDailyChallengeHistory.ts',
+            // TKT-3.12.A3 — the daily-challenge wrapper's `CursorPage`
+            // view (`DailyChallengeHistoryPage.nextCursor`) is the
+            // single place permitted to read `nextCursor` in the wrapper
+            // layer.
+            'src/features/daily-challenge/wrappers/daily-challenge.wrapper.ts',
+          ],
     rules: {
       'no-restricted-syntax': 'off',
     },

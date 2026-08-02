@@ -1,465 +1,72 @@
 'use client'
 
-import { useState, useEffect, memo, useCallback, useMemo } from 'react'
-import {
-  Clock,
-  Calendar,
-  Trophy,
-  Flame,
-  ChevronRight,
-  ChevronLeft,
-  Star
-} from 'lucide-react'
-import { Card } from '@/components/ui/Card'
-import { CardContent } from '@/components/ui/Card'
-import { CardHeader } from '@/components/ui/Card'
-import { CardTitle } from '@/components/ui/Card'
-import { Button } from '@/components/ui/Button'
-import { Progress } from '@/components/ui/Progress'
-import { RadioGroup } from '@/components/ui/RadioGroup'
-import { RadioGroupItem } from '@/components/ui/RadioGroup'
-import { Label } from '@/components/ui/Label'
-import { Tabs } from '@/components/ui/Tabs'
-import { TabsContent } from '@/components/ui/Tabs'
-import { TabsList } from '@/components/ui/Tabs'
-import { TabsTrigger } from '@/components/ui/Tabs'
-import { leaderboardData } from '@/features/leaderboard/constants/leaderboard'
-import { streakRewards } from '@/features/daily-challenge/constants/streak-rewards'
-import ChallengeChart from './ChallengeChart'
-import { Badge } from '@/components/ui/Badge'
-import { badges } from '@/features/leaderboard/constants/badges'
-import { challengeData } from '@/features/daily-challenge/constants/challenge-history-data'
-import Image from 'next/image'
-import { useUser } from '@/features/users/store/user-store'
-import { Gem, Medal } from 'lucide-react'
+/**
+ * `DailyChallengeMainContent` — the route-level composition wrapper
+ * for the `/daily-challenge` page.
+ *
+ * Source epic:   Epic 3.12 — `/daily-challenge` read-only render.
+ * Source story:  `projectDocs/Epics/PHASE_3_EPICS.md` → Story 3.12.
+ * Source ticket: TKT-3.12.C2.
+ *
+ * ## Purpose
+ *
+ * The route-level `app/(public)/daily-challenge/page.tsx` (TKT-3.12.D2)
+ * imports the default export of this file. The historical
+ * (pre-Epic-3.12) body of this file was a single mock-data
+ * composition (timer / question UI / leaderboard preview / streak
+ * card). Story 3.12 replaces that body with a thin delegation to
+ * `<DailyChallengePage />` (TKT-3.12.C1). The default export is
+ * preserved so the `page.tsx` import does not change.
+ *
+ * The `flagValue` prop is forwarded from `page.tsx` (the route-level
+ * read site of the `dailyChallengePage` feature flag — see D2). The
+ * composition passes the value through so the page boundary is the
+ * only place the env-var-override `NEXT_PUBLIC_DAILY_CHALLENGE_PAGE`
+ * is consulted.
+ *
+ * ## What this file is NOT
+ *
+ *   - It does NOT own state. The streak signal, the today challenge,
+ *     the history pagination, and the loading / empty / error
+ *     branches all live inside `DailyChallengePage` (C1) and the
+ *     Batch B hooks.
+ *   - It does NOT read the `useUser()` store. The legacy streak read
+ *     (`useUser()?.streak`) is gone — `DailyChallengeStreakIndicator`
+ *     is rendered inside the live page composition (C1) via the
+ *     `useDailyChallengeStreakView` hook (B2).
+ *   - It does NOT render the question UI, the timer, the leaderboard
+ *     preview, the streak-rewards card, or the badges card. Those
+ *     are out of scope for Story 3.12 ("read-only and intentionally
+ *     small" — `PHASE_3_EPICS.md` line 1234).
+ *
+ * The legacy sibling components (e.g. `ChallengeChart`,
+ * `ChallengePieChart`) remain in the codebase for out-of-scope
+ * consumers; they are no longer imported here.
+ */
 
-const badgeIcons: Record<string, React.ReactNode> = {
-  Diamond: <Gem className='text-cyan-400 w-5 h-5' />,
-  Platinum: <Gem className='text-slate-300 w-5 h-5' />,
-  Gold: <Medal className='text-yellow-500 w-5 h-5' />,
-  Silver: <Medal className='text-gray-400 w-5 h-5' />,
-  Bronze: <Medal className='text-orange-600 w-5 h-5' />
+import { memo } from 'react'
+
+import { DailyChallengePage } from './DailyChallengePage'
+
+export interface DailyChallengeMainContentProps {
+  /**
+   * The `dailyChallengePage` feature flag value, read at the route
+   * boundary in `app/(public)/daily-challenge/page.tsx`. When
+   * `'placeholder'`, `DailyChallengePage` renders the static
+   * placeholder surface regardless of the wrappers' status.
+   */
+  flagValue: 'v1' | 'placeholder'
 }
 
-const QUIZ_OPTIONS = ['Java', 'Python', 'HTML', 'JavaScript']
-
-const DailyChallengeMainContent = memo(function DailyChallengeMainContent() {
-  const [questionTime, setQuestionTime] = useState<string>('5:00')
-  const [selectedAnswer, setSelectedAnswer] = useState('')
-  const [isTimerActive, setIsTimerActive] = useState(false)
-  const [showAllHistory, setShowAllHistory] = useState(false)
-  const currentStreak = useUser()?.streak ?? 0
-
-  useEffect(() => {
-    if (!isTimerActive || selectedAnswer === '') return
-
-    let seconds = 5 * 60
-
-    const updateTimer = () => {
-      if (seconds <= 0) {
-        setQuestionTime('00:00')
-        setIsTimerActive(false)
-        return
-      }
-
-      const minutes = Math.floor(seconds / 60)
-      const remainingSeconds = seconds % 60
-
-      setQuestionTime(
-        `${minutes.toString().padStart(2, '0')}:${remainingSeconds
-          .toString()
-          .padStart(2, '0')}`
-      )
-      seconds--
-    }
-
-    updateTimer()
-    const interval = setInterval(updateTimer, 1000)
-
-    return () => clearInterval(interval)
-  }, [isTimerActive, selectedAnswer])
-
-  useEffect(() => {
-    if (selectedAnswer !== '') {
-      setIsTimerActive(true)
-    }
-  }, [selectedAnswer])
-
-  const displayedHistory = useMemo(
-    () => (showAllHistory ? challengeData : challengeData.slice(0, 3)),
-    [showAllHistory]
-  )
-
-  const toggleHistory = useCallback(() => {
-    setShowAllHistory((prev) => !prev)
-  }, [])
-
-  return (
-    <main className='grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6 items-start'>
-      {/* Left Block */}
-      <div className='lg:col-span-2 space-y-6'>
-        {/* Quiz Section */}
-        <Card className='bg-background text-foreground border border-border lg:col-span-2 py-6'>
-          <CardHeader>
-            <div className='flex justify-between items-start'>
-              <div>
-                <CardTitle className='text-xl font-bold'>
-                  Science & Technology Challenge
-                </CardTitle>
-                <p className='text-foreground/70 mt-1'>
-                  Test your knowledge of scientific discoveries and
-                  technological innovations.
-                </p>
-              </div>
-              <div className='flex items-center space-x-2 text-muted-foreground'>
-                <Clock className='h-4 w-4' aria-hidden='true' />
-                <span
-                  className='font-mono'
-                  aria-live='polite'
-                  aria-label='Time remaining'
-                >
-                  {questionTime}
-                </span>
-              </div>
-            </div>
-            <div className='space-y-2'>
-              <div className='flex justify-between text-sm text-foreground/70'>
-                <span>Question 1 of 5</span>
-                <span>20% Complete</span>
-              </div>
-              <Progress value={20} className='h-2' />
-            </div>
-          </CardHeader>
-          <CardContent className='space-y-6'>
-            <div role='group' aria-labelledby='question-text'>
-              <h3 id='question-text' className='text-lg font-semibold mb-4'>
-                Which of these is NOT a programming language?
-              </h3>
-              <RadioGroup
-                value={selectedAnswer}
-                onValueChange={setSelectedAnswer}
-                className='space-y-3'
-              >
-                {QUIZ_OPTIONS.map((option) => (
-                  <div
-                    key={option}
-                    className='flex items-center space-x-3 p-3 border rounded-lg hover:bg-main-hover'
-                  >
-                    <RadioGroupItem
-                      value={option.toLowerCase()}
-                      id={option.toLowerCase()}
-                    />
-                    <Label
-                      htmlFor={option.toLowerCase()}
-                      className='flex-1 cursor-pointer'
-                    >
-                      {option}
-                    </Label>
-                  </div>
-                ))}
-              </RadioGroup>
-            </div>
-            <div
-              className='flex justify-between'
-              role='navigation'
-              aria-label='Quiz navigation'
-            >
-              <Button variant='outline' disabled aria-label='Previous question'>
-                Previous
-              </Button>
-              <Button
-                disabled={!selectedAnswer}
-                className='text-white transition-colors'
-                aria-label='Next question'
-              >
-                Next
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Challenge Stats */}
-        <ChallengeChart />
-
-        {/* Challenge History */}
-        <Card className='bg-background text-foreground border border-border py-6'>
-          <CardHeader>
-            <div className='flex items-center justify-between'>
-              <h1 className='text-xl font-bold'>Challenge History</h1>
-              <Button
-                className='flex items-center gap-1 bg-background text-foreground/70 hover:text-foreground hover:bg-transparent transition-colors  shadow-none '
-                onClick={toggleHistory}
-                aria-label={
-                  showAllHistory
-                    ? 'View less challenge history'
-                    : 'View all challenge history'
-                }
-              >
-                <span className='text-xs'>
-                  {showAllHistory ? 'View Less' : 'View All'}
-                </span>
-                {showAllHistory ? (
-                  <ChevronLeft className='w-4 h-4' aria-hidden='true' />
-                ) : (
-                  <ChevronRight className='w-4 h-4' aria-hidden='true' />
-                )}
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className='space-y-6'>
-              {displayedHistory.map((challenge) => (
-                <Card
-                  key={challenge.id}
-                  className='bg-background border-b border-border last:border-b-0'
-                >
-                  <CardContent className='p-4'>
-                    <div className='flex items-center justify-between'>
-                      <div className='flex-1'>
-                        <div className='text-base font-medium mb-3'>
-                          {challenge.date}
-                        </div>
-                        <div className='flex items-center gap-3'>
-                          <Badge className='bg-background text-foreground hover:bg-main-hover transition-colors border border-border py-0.5 px-2 rounded-3xl'>
-                            {challenge.category}
-                          </Badge>
-                          {challenge.isTopTen && (
-                            <Badge className='bg-orange-300 hover:bg-orange-400 text-foreground border border-border py-0.5 px-2 rounded-3xl'>
-                              Top 10
-                            </Badge>
-                          )}
-                        </div>
-                      </div>
-
-                      <div className='text-right'>
-                        <div className='text-base font-bold mb-1'>
-                          {challenge.score}%
-                        </div>
-                        <div className='text-foreground/70 text-sm'>
-                          Rank #{challenge.rank}
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Right Block */}
-      <div className='space-y-6'>
-        {/* Leaderboard */}
-        <Card className='bg-background text-foreground border border-border/50 py-6'>
-          <CardHeader>
-            <CardTitle>Leaderboard</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Tabs defaultValue='today' className='w-full'>
-              <TabsList className='text-white grid grid-cols-3 w-full bg-main'>
-                <TabsTrigger
-                  className='text-foreground data-[state=active]:bg-brand data-[state=active]:text-white'
-                  value='today'
-                >
-                  Today
-                </TabsTrigger>
-                <TabsTrigger
-                  className='text-foreground data-[state=active]:bg-brand data-[state=active]:text-white'
-                  value='week'
-                >
-                  Week
-                </TabsTrigger>
-                <TabsTrigger
-                  className='text-foreground data-[state=active]:bg-brand data-[state=active]:text-white'
-                  value='allTime'
-                >
-                  All Time
-                </TabsTrigger>
-              </TabsList>
-              {Object.entries(leaderboardData).map(([period, data]) => (
-                <TabsContent
-                  key={period}
-                  value={period}
-                  className='space-y-3 mt-4'
-                >
-                  {data.map((player) => (
-                    <div
-                      key={player.id}
-                      className='flex items-center space-x-3 p-3 border rounded-lg hover:bg-main-hover'
-                    >
-                      <span className='text-lg' aria-hidden='true'>
-                        {badgeIcons[player.badge]}
-                      </span>
-                      <div className='w-8 h-8 rounded-full flex items-center justify-center text-white'>
-                        <Image
-                          src={player.avatar}
-                          alt={player.name}
-                          width={8}
-                          height={8}
-                          className='w-8 h-8 rounded-full flex items-center justify-center text-white'
-                        />
-                      </div>
-                      <div className='flex-1'>
-                        <p className='font-medium text-sm'>{player.name}</p>
-                        <p className='text-xs text-muted-foreground'>
-                          {player.time}
-                        </p>
-                      </div>
-                      <p
-                        className='font-bold text-sm'
-                        aria-label={`${player.score} points`}
-                      >
-                        {player.score} pts
-                      </p>
-                    </div>
-                  ))}
-                </TabsContent>
-              ))}
-            </Tabs>
-          </CardContent>
-        </Card>
-
-        {/* Rewards & Streaks */}
-        <Card className='bg-background text-foreground border border-border py-6'>
-          <CardHeader>
-            <CardTitle className='flex items-center space-x-2'>
-              <Trophy className='h-5 w-5' />
-              <span className='text-foreground font-bold'>
-                Rewards & Streaks
-              </span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className='space-y-6'>
-            <div>
-              <div className='flex items-center space-x-2 mb-3'>
-                <Calendar
-                  className='h-4 w-4 text-blue-500'
-                  aria-hidden='true'
-                />
-                <span className='font-medium text-foreground text-sm'>
-                  Daily Streak
-                </span>
-              </div>
-              <div
-                className='flex space-x-2 mb-2'
-                role='list'
-                aria-label='Daily streak progress'
-              >
-                {[1, 2, 3, 4, 5, 6, 7].map((day) => (
-                  <div
-                    key={day}
-                    role='listitem'
-                    aria-label={`Day ${day}${day <= currentStreak ? ' completed' : ' not completed'}`}
-                    className={`w-8 h-8 text-foreground relative rounded-full flex items-center justify-center text-xs font-medium ${
-                      day <= currentStreak
-                        ? day === 7 && currentStreak >= 7
-                          ? 'bg-[#f59e0b] border border-yellow-500'
-                          : 'border bg-[#dbeafe] dark:bg-[#1e3a8a] dark:border-[#1d4ed8] border-[#93c5fd]'
-                        : 'bg-muted'
-                    }`}
-                  >
-                    {day}
-                  </div>
-                ))}
-              </div>
-              <p className='text-xs text-foreground/70 font-medium'>
-                Current streak: {currentStreak} days. Keep playing daily!
-              </p>
-            </div>
-
-            <div>
-              <div className='flex items-center space-x-2 mb-3'>
-                <Flame className='h-4 w-4 text-orange-400' aria-hidden='true' />
-                <span className='font-medium text-foreground text-sm'>
-                  Streak Rewards
-                </span>
-              </div>
-              <div className='grid grid-cols-2 gap-2 mb-2'>
-                {streakRewards
-                  .filter((reward) => reward.days <= 7)
-                  .map((reward) => {
-                    const isCurrentStreak = reward.days === currentStreak
-                    const isUnlocked = reward.days <= currentStreak
-
-                    return (
-                      <div
-                        key={reward.days}
-                        className={`rounded-lg p-3 text-center transition-all ${
-                          isCurrentStreak
-                            ? 'bg-orange-400 dark:bg-orange-400 border-2 border-orange-300 dark:border-orange-200'
-                            : isUnlocked
-                              ? 'bg-green-500 dark:bg-emerald-400'
-                              : 'bg-muted'
-                        }`}
-                      >
-                        <div className='font-bold text-xs text-foreground'>
-                          {reward.days} Days
-                        </div>
-                        <div className='text-xs text-foreground/80 mt-1'>
-                          {reward.reward}
-                        </div>
-                        {isCurrentStreak && (
-                          <div className='text-xs mt-1 font-medium text-foreground/80'>
-                            Current Streak!
-                          </div>
-                        )}
-                        {isUnlocked && !isCurrentStreak && (
-                          <div className='text-xs mt-1 text-foreground'>
-                            ✓ Unlocked
-                          </div>
-                        )}
-                      </div>
-                    )
-                  })}
-              </div>
-            </div>
-
-            <div className='flex items-center gap-3 mb-8'>
-              <div className='w-6 h-6 rounded-lg flex items-center justify-center'>
-                <Star className='h-4 w-4 text-violet-500' aria-hidden='true' />
-              </div>
-              <h1 className='text-medium text-foreground font-bold'>
-                Daily Challenge Badges
-              </h1>
-            </div>
-
-            <div className='grid grid-cols-3 gap-2'>
-              {badges.map((badge) => {
-                const IconComponent = badge.icon
-                return (
-                  <Card
-                    key={badge.id}
-                    className={`
-                  bg-card rounded-lg p-3 text-center border border-border
-                  ${!badge.unlocked ? 'opacity-60' : ''}
-                `}
-                  >
-                    <div className='flex flex-col justify-center items-center gap-2'>
-                      <div
-                        className={`w-6 h-6 rounded-full  flex items-center justify-center ${badge.bgColor}`}
-                      >
-                        <IconComponent className={`w-4 h-4 ${badge.color}`} />
-                      </div>
-                      <span
-                        className={`font-bold text-xs ${
-                          badge.unlocked
-                            ? 'text-foreground/90'
-                            : 'text-foreground/70'
-                        }`}
-                      >
-                        {badge.name}
-                      </span>
-                    </div>
-                  </Card>
-                )
-              })}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    </main>
-  )
+/**
+ * Thin wrapper that forwards the route-level flag value to
+ * `<DailyChallengePage />`. Memoized because `page.tsx` wraps this
+ * component in `memo()` and re-renders only when the flag changes.
+ */
+const DailyChallengeMainContent = memo(function DailyChallengeMainContent({
+  flagValue,
+}: DailyChallengeMainContentProps) {
+  return <DailyChallengePage flagValue={flagValue} />
 })
 
 export default DailyChallengeMainContent
