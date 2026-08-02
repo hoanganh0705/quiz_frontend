@@ -38,3 +38,14 @@ export { TagsDirectoryPage } from './TagsDirectoryPage'
 
 export { TagDetailPage } from './TagDetailPage'
 export type { TagDetailPageProps } from './TagDetailPage'
+
+// Epic 3.9 — TKT-3.9.B5 — the per-feature follow button slot wired to
+// `useIsFollowingTag` + `useFollowTag` + `useUnfollowTag`.
+export { TagFollowButtonSlot } from './TagFollowButtonSlot'
+export type { TagFollowButtonSlotProps } from './TagFollowButtonSlot'
+
+// Epic 3.9 — TKT-3.9.D2 — the route-level SWR hydration shim. The
+// hydrator mounts `useFollowedLookup()` at the top of the public
+// layout so the lookup's SWR cache is populated on the first
+// authenticated render.
+export { FollowedLookupHydrator } from './FollowedLookupHydrator'

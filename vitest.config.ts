@@ -38,7 +38,29 @@ export default defineConfig({
         extends: true,
         test: {
           name: 'jsdom',
-          include: ['src/components/primitives/**/*.spec.tsx'],
+          include: [
+            'src/components/primitives/**/*.spec.tsx',
+            // F1 — page-level composition tests for the detail pages.
+            // These render React components (CategoryDetailPage /
+            // TagDetailPage) and need a DOM environment. The ticket
+            // TKT-3.9.F1 specifies the location as
+            // `src/features/{categories,tags}/components/__tests__/`
+            // so the test files are co-located with the unit under
+            // test. The `setup.ts` (jest-dom matchers + ResizeObserver
+            // + cleanup) is the same one the Story 3.1 primitives
+            // already use.
+            'src/features/categories/components/__tests__/**/*.spec.tsx',
+            'src/features/tags/components/__tests__/**/*.spec.tsx',
+            // TKT-3.11.B1 — `useLeaderboard` hook uses SWR and
+            // renders the test probe via `@testing-library/react`,
+            // so it needs the DOM environment. Co-located with the
+            // hook under test.
+            'src/features/leaderboard/hooks/__tests__/**/*.spec.tsx',
+            // TKT-3.11.B2 — `LeaderboardPeriodSelector` is a presentational
+            // component rendered with `@testing-library/react`. Co-located
+            // with the component under test.
+            'src/features/leaderboard/components/__tests__/**/*.spec.tsx',
+          ],
           environment: 'jsdom',
           setupFiles: ['./src/components/primitives/__tests__/setup.ts'],
         },

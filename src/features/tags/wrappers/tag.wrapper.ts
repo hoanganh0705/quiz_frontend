@@ -3,7 +3,9 @@
  * Uses the generated SDK from orval.
  *
  * Source epic: Epic 3.4 — Tag browse + detail (read-only).
- * Source ticket: TKT-3.4.A2.
+ * Source tickets: TKT-3.4.A2 (browse + detail surface) + TKT-3.9.A2
+ *                 (follow / unfollow / me/followed surface added in
+ *                 Story 3.9 — Batch A).
  *
  * The wrapper is the ONLY place the tags SDK is imported. Hooks
  * and components in `src/features/tags/**` import from
@@ -27,11 +29,22 @@
  * - `/tags/popular` and `/tags/trending` are non-paginated
  *   (limit-bounded) — the SDK returns `RankedTagResponseDto[]` (no
  *   `meta.pagination`).
+ *
+ * ## Drift notes (TKT-3.9.A1 §1.2)
+ *
+ * The `me/followed` endpoint (`GET /api/v1/users/me/followed-tags`)
+ * is exported by `getTags()` as `userTagControllerListFollowedTags`
+ * (the backend controller lives on the tags module). The planning
+ * doc named it `tagsControllerGetMyFollowedTags`. The public surface
+ * is `followedTags(params)` (camelCase; planning-intent).
  */
 
 import { getTags } from '@/lib/api/generated/tags/tags'
 import { orvalCustomInstance } from '@/lib/api/core/custom-instance';
-import type { CreateTagDto, UpdateTagDto } from '@/lib/api/generated/schemas';
+import type {
+  CreateTagDto,
+  UpdateTagDto,
+} from '@/lib/api/generated/schemas';
 
 import type { TagQuizzesResponse } from '../hooks/useTagQuizzes';
 
@@ -47,6 +60,9 @@ export type {
   TagControllerGetRelatedTagsResult,
   TagControllerGetTagAnalyticsResult,
   TagControllerGetTagByIdResult,
+  TagControllerFollowTagResult,
+  TagControllerUnfollowTagResult,
+  UserTagControllerListFollowedTagsResult,
 } from '@/lib/api/generated/tags/tags';
 
 export interface ListTagsParams {
@@ -180,4 +196,72 @@ export async function getRelatedTags(
 export async function getTagAnalytics(id: string) {
   const sdk = getTags();
   return sdk.tagControllerGetTagAnalytics(id);
+}
+
+/**
+ * Follow a tag. POST `/api/v1/tags/:id/follow`.
+ *
+ * Wraps `getTags().tagControllerFollowTag(id)` and returns
+ * `Promise<void>` (the backend returns 204 No Content).
+ *
+ * Source epic: Story 3.9 — Follow / unfollow for categories + tags.
+ * Source ticket: TKT-3.9.A2.
+ *
+ * Thin pass-through — no business logic, no error wrapping, no SWR
+ * cache invalidation (the per-feature hook `useFollowTag` /
+ * `useUnfollowTag` in B4 owns cache invalidation through the
+ * `useOptimisticToggle` primitive, B1).
+ */
+export async function followTag(id: string): Promise<void> {
+  const sdk = getTags();
+  await sdk.tagControllerFollowTag(id);
+}
+
+/**
+ * Unfollow a tag. DELETE `/api/v1/tags/:id/follow`.
+ *
+ * Wraps `getTags().tagControllerUnfollowTag(id)` and returns
+ * `Promise<void>` (the backend returns 204 No Content).
+ *
+ * Source epic: Story 3.9 — Follow / unfollow for categories + tags.
+ * Source ticket: TKT-3.9.A2.
+ *
+ * Thin pass-through — same constraints as `followTag`.
+ */
+export async function unfollowTag(id: string): Promise<void> {
+  const sdk = getTags();
+  await sdk.tagControllerUnfollowTag(id);
+}
+
+/**
+ * Cursor-paginated list of tags the authenticated user follows.
+ *
+ * Wraps `getTags().userTagControllerListFollowedTags(params)` and
+ * returns the post-`unwrap` envelope:
+ *
+ * ```
+ * {
+ *   data?: FollowedTagItemDto[]
+ *   meta?: {
+ *     pagination?: {
+ *       nextCursor?: string | null
+ *       hasNextPage?: boolean
+ *     }
+ *   }
+ * }
+ * ```
+ *
+ * Source epic: Story 3.9 — Follow / unfollow for categories + tags.
+ * Source ticket: TKT-3.9.A2.
+ *
+ * Drift (TKT-3.9.A1 §1.2): the planning doc named this operation
+ * `tagsControllerGetMyFollowedTags(params)`. The regenerated SDK
+ * renamed it to `userTagControllerListFollowedTags(params)` but kept
+ * it on `getTags()` (the backend controller is in the tags module).
+ * The public surface is `followedTags(params)` (camelCase;
+ * planning-intent).
+ */
+export async function followedTags(params?: { cursor?: string; limit?: number }) {
+  const sdk = getTags();
+  return sdk.userTagControllerListFollowedTags(params);
 }
