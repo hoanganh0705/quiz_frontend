@@ -60,6 +60,24 @@ export default defineConfig({
             // component rendered with `@testing-library/react`. Co-located
             // with the component under test.
             'src/features/leaderboard/components/__tests__/**/*.spec.tsx',
+            // TKT-3.12.B1 — `useDailyChallengeToday` uses
+            // `useSingleWithRetry` and `useDailyChallengeHistory` uses
+            // `useCursorPaginated` (SWR). Both need a DOM environment.
+            // Co-located with the hooks under test.
+            'src/features/daily-challenge/hooks/__tests__/**/*.spec.tsx',
+            // TKT-3.12.B2 — `useDailyChallengeStreakView` reads from
+            // the Zustand user store and the `DailyChallengeStreakIndicator`
+            // is a presentational component. Both need a DOM environment.
+            // Co-located with the hook / component under test.
+            'src/features/daily-challenge/components/__tests__/**/*.spec.tsx',
+            // TKT-3.12.E1 — page-boundary integration test for the
+            // `/daily-challenge` route. The spec imports the
+            // `app/(public)/daily-challenge/page.tsx` default export
+            // and asserts the `getFeatureFlagValue('dailyChallengePage')`
+            // read is forwarded to the composition. Needs a DOM
+            // environment because the page renders
+            // `<DailyChallengeMainContent />` which is a React tree.
+            'src/app/(public)/daily-challenge/page.spec.tsx',
           ],
           environment: 'jsdom',
           setupFiles: ['./src/components/primitives/__tests__/setup.ts'],
