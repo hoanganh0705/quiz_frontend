@@ -7,6 +7,13 @@
  * Covers the happy path + the four Story 3.1 edge cases (no imageUrl,
  * long title, missing description, id-only entity with no slug).
  *
+ * The Story 3.10 / TKT-3.10.E1 bookmark integration has its own focused
+ * test file (`quiz-card-bookmark-slot.spec.tsx`) so the Story 3.1
+ * assertions here can run without the SWR / SDK / auth mocking that
+ * the slot requires. We pass `bookmarkSlot={null}` here so the test
+ * renders the canonical Story 3.1 surface without a real
+ * `<BookmarkButtonSlot />` mounted.
+ *
  * Mocks `next/link` to render a plain anchor so we don't need the
  * Next.js runtime in the unit layer (jsdom does not provide one).
  */
@@ -33,8 +40,16 @@ import { render, screen } from '@testing-library/react'
 import { QuizCard } from '../QuizCard'
 import { mockQuizListItemDto } from '../../__tests__/render-helpers'
 
-function renderQuiz(props: Parameters<typeof QuizCard>[0]) {
-  return render(<QuizCard {...props} />)
+/**
+ * Story 3.1 — render the canonical card with no bookmark slot. The
+ * Story 3.10 integration is verified in the dedicated spec file.
+ */
+function renderQuiz(
+  props: Parameters<typeof QuizCard>[0] & {
+    bookmarkSlot?: never
+  },
+) {
+  return render(<QuizCard {...props} bookmarkSlot={null} />)
 }
 
 describe('QuizCard', () => {

@@ -60,3 +60,23 @@ export type { CategoryCardGridProps } from './CategoryCard/CategoryCardGrid'
 // Epic 3.5 / TKT-3.5.C3 — the cross-feature filter slot primitive.
 export { FilterBar } from './FilterBar'
 export type { FilterBarProps } from './FilterBar'
+
+// Epic 3.9 / TKT-3.9.B2 — the follow / unfollow controlled primitive +
+// inline notice + loading skeleton. Reused by Story 3.10 (bookmarks).
+export { FollowButton, FollowErrorNotice, FollowButtonSkeleton } from './FollowButton'
+export type {
+  FollowButtonProps,
+  FollowErrorNoticeProps,
+  FollowButtonSkeletonProps,
+} from './FollowButton'
+
+// Epic 3.10 / TKT-3.10.D1 — the bookmark icon button primitive +
+// inline error notice. Composed into surfaces by the slot (D4).
+export { BookmarkButton, BookmarkButtonErrorNotice, BookmarkButtonSlot } from './BookmarkButton'
+export type {
+  BookmarkButtonProps,
+  BookmarkButtonVariant,
+  BookmarkButtonErrorNoticeProps,
+  BookmarkButtonSlotProps,
+  BookmarkButtonSlotVariant,
+} from './BookmarkButton'

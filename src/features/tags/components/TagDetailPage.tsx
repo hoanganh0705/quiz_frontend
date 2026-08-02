@@ -52,6 +52,7 @@ import Link from 'next/link'
 import { Home, Search } from 'lucide-react'
 
 import { TagBreadcrumb } from './TagBreadcrumb'
+import { TagFollowButtonSlot } from './TagFollowButtonSlot'
 import { TagHeader } from './TagHeader'
 import { TagAnalyticsPanel } from './TagAnalyticsPanel'
 import { TagQuizGrid } from './TagQuizGrid'
@@ -186,7 +187,17 @@ export function TagDetailPage({
       data-testid={PAGE_RESOLVED_TESTID}
     >
       <TagBreadcrumb tag={tag} />
-      <TagHeader tag={tag} />
+      <div className='flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between'>
+        <TagHeader tag={tag} />
+        {/*
+         * Story 3.9 / TKT-3.9.C2 — the follow slot lives beside the
+         * header. The slot receives the resolved `tag.tagId` (NOT
+         * the route `slug` — A1 §7 records the drift). When the tag
+         * is loading, `tagId` is `null` and the slot renders `null`
+         * (no CLS during the hydration window).
+         */}
+        <TagFollowButtonSlot tagId={tag.tagId} />
+      </div>
       <TagAnalyticsPanel id={tag.tagId} className='mb-8' />
       <TagQuizGrid slug={slug} />
       <RelatedTagsStrip slug={slug} />

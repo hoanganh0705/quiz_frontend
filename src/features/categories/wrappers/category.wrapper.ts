@@ -3,7 +3,9 @@
  * Uses the generated SDK from orval.
  *
  * Source epic: Epic 3.3 — Category browse + detail (read-only).
- * Source ticket: TKT-3.3.A2.
+ * Source tickets: TKT-3.3.A2 (browse + detail surface) + TKT-3.9.A2
+ *                 (follow / unfollow / me/followed surface added in
+ *                 Story 3.9 — Batch A).
  *
  * The wrapper is the ONLY place the categories SDK is imported. Hooks
  * and components in `src/features/categories/**` import from
@@ -11,9 +13,19 @@
  * `@/lib/api/generated/categories/categories` directly. This is the
  * cross-story contract rule #1 (no direct axios calls / SDK imports
  * outside `src/lib/api/**` and the wrapper).
+ *
+ * ## Drift notes (TKT-3.9.A1 §1.2)
+ *
+ * The `me/followed` endpoint (`GET /api/v1/users/me/followed-categories`)
+ * is exported by `getUsers()` as `userCategoryControllerListFollowedCategories`
+ * — NOT by `getCategories()`. The planning doc places it on
+ * `getCategories()`. The wrapper calls `getUsers()` so the drift is
+ * invisible to feature hooks. The public surface is
+ * `followedCategories(params)` (camelCase; planning-intent).
  */
 
 import { getCategories } from '@/lib/api/generated/categories/categories';
+import { getUsers } from '@/lib/api/generated/users/users';
 import type {
   CategoryControllerGetCategoryQuizzesParams,
   CreateCategoryDto,
@@ -30,7 +42,11 @@ export type {
   CategoryControllerGetPopularCategoriesResult,
   CategoryControllerGetTrendingCategoriesResult,
   CategoryControllerGetCategoryQuizzesResult,
+  CategoryControllerFollowCategoryResult,
+  CategoryControllerUnfollowCategoryResult,
 } from '@/lib/api/generated/categories/categories';
+
+export type { UserCategoryControllerListFollowedCategoriesResult } from '@/lib/api/generated/users/users';
 
 export interface ListCategoriesParams {
   cursor?: string;
@@ -138,4 +154,83 @@ export async function updateCategory(id: string, params: UpdateCategoryDto) {
 export async function deleteCategory(id: string) {
   const sdk = getCategories();
   return sdk.categoryControllerDeleteCategory(id);
+}
+
+/**
+ * Follow a category. POST `/api/v1/categories/:id/follow`.
+ *
+ * Wraps `getCategories().categoryControllerFollowCategory(id)` and
+ * returns `Promise<void>` (the backend returns 204 No Content).
+ *
+ * Source epic: Story 3.9 — Follow / unfollow for categories + tags.
+ * Source ticket: TKT-3.9.A2.
+ *
+ * Thin pass-through — no business logic, no error wrapping, no SWR
+ * cache invalidation (the per-feature hook `useFollowCategory` /
+ * `useUnfollowCategory` in B4 owns cache invalidation through the
+ * `useOptimisticToggle` primitive, B1).
+ *
+ * Drift (TKT-3.9.A1 §1.1): the planning doc named this operation
+ * `categoriesControllerFollowCategory` (plural prefix); the SDK uses
+ * singular `categoryControllerFollowCategory`. The wrapper preserves
+ * the singular naming to match the wire.
+ */
+export async function followCategory(id: string): Promise<void> {
+  const sdk = getCategories();
+  await sdk.categoryControllerFollowCategory(id);
+}
+
+/**
+ * Unfollow a category. DELETE `/api/v1/categories/:id/follow`.
+ *
+ * Wraps `getCategories().categoryControllerUnfollowCategory(id)` and
+ * returns `Promise<void>` (the backend returns 204 No Content).
+ *
+ * Source epic: Story 3.9 — Follow / unfollow for categories + tags.
+ * Source ticket: TKT-3.9.A2.
+ *
+ * Thin pass-through — same constraints as `followCategory`.
+ *
+ * Drift (TKT-3.9.A1 §1.1): the planning doc named this operation
+ * `categoriesControllerUnfollowCategory` (plural prefix); the SDK
+ * uses singular `categoryControllerUnfollowCategory`.
+ */
+export async function unfollowCategory(id: string): Promise<void> {
+  const sdk = getCategories();
+  await sdk.categoryControllerUnfollowCategory(id);
+}
+
+/**
+ * Cursor-paginated list of categories the authenticated user follows.
+ *
+ * Wraps `getUsers().userCategoryControllerListFollowedCategories(params)`
+ * and returns the post-`unwrap` envelope:
+ *
+ * ```
+ * {
+ *   data?: FollowedCategoryItemDto[]
+ *   meta?: {
+ *     pagination?: {
+ *       nextCursor?: string | null
+ *       hasNextPage?: boolean
+ *     }
+ *   }
+ * }
+ * ```
+ *
+ * Source epic: Story 3.9 — Follow / unfollow for categories + tags.
+ * Source ticket: TKT-3.9.A2.
+ *
+ * Drift (TKT-3.9.A1 §1.2): the planning doc placed this operation on
+ * `getCategories()` as `categoriesControllerGetMyFollowedCategories(params)`.
+ * The regenerated SDK places it on `getUsers()` as
+ * `userCategoryControllerListFollowedCategories(params)`. The wrapper
+ * calls `getUsers()` so the drift is invisible to feature hooks; the
+ * planning-intent public name (`followedCategories`) is preserved.
+ */
+export async function followedCategories(
+  params?: { cursor?: string; limit?: number },
+) {
+  const sdk = getUsers();
+  return sdk.userCategoryControllerListFollowedCategories(params);
 }

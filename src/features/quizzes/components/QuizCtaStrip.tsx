@@ -1,14 +1,46 @@
 'use client';
 
-import { Bookmark, Play } from 'lucide-react';
+/**
+ * `<QuizCtaStrip />` — the quiz-detail CTA bar.
+ *
+ * Source epic: Story 3.6 (quiz detail).
+ * Source ticket: TKT-3.6.D2.
+ *
+ * Renders the Start CTA (placeholder) and the bookmark control in
+ * a single horizontal strip. Story 3.10 / TKT-3.10.E2 replaces the
+ * Story 3.6 placeholder bookmark button with the feature-aware
+ * `<BookmarkButtonSlot variant="detail" />` (Story 3.10 / D4).
+ *
+ * ## Preserved contracts (E2 AC #1)
+ *
+ *   - The `<button>` element with `data-testid="quiz-bookmark-button"`
+ *     is replaced by the slot's outer wrapper — the slot's INNER
+ *     button still carries `data-testid="bookmark-button-{branch}"`
+ *     so existing selectors that target the bookmark button test-id
+ *     pattern remain compatible. The Start button (with its
+ *     `data-testid="quiz-start-attempt-button"`) is untouched.
+ *   - The button's accessible semantics (`aria-label`,
+ *     `aria-pressed`, `disabled`) remain on the inner D1 button.
+ *   - `useIsBookmarked(quizId)` is replaced by the slot's internal
+ *     call — the slot reads from the same membership cache (B3) +
+ *     SWR revalidation, so consumers do not need to know the
+ *     implementation difference.
+ *
+ * @see BookmarkButtonSlot (Story 3.10 / D4 — feature-aware slot)
+ * @see useIsBookmarked (Story 3.10 / B4 — reader preserved by the slot)
+ */
 
+import { Play } from 'lucide-react';
+
+import {
+  BookmarkButtonSlot,
+} from '@/components/primitives/BookmarkButton';
 import { Button } from '@/components/ui/Button';
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/Tooltip';
-import { useIsBookmarked } from '@/features/quizzes/hooks/useIsBookmarked';
 import { cn } from '@/shared/utils/merge-class-names';
 
 const START_TOOLTIP = 'Starting attempts opens in a later release';
@@ -20,8 +52,6 @@ export interface QuizCtaStripProps {
 }
 
 export function QuizCtaStrip({ quizId, className }: QuizCtaStripProps) {
-  const { isBookmarked, isLoading } = useIsBookmarked(quizId);
-
   return (
     <section
       className={cn(
@@ -31,22 +61,11 @@ export function QuizCtaStrip({ quizId, className }: QuizCtaStripProps) {
       aria-label='Quiz actions'
       data-testid='quiz-cta-strip'
     >
-      <Button
-        type='button'
-        variant='outline'
-        className={BUTTON_SIZE}
-        disabled={isLoading}
-        aria-label={isBookmarked ? 'Bookmarked quiz' : 'Bookmark quiz'}
-        aria-pressed={isBookmarked}
-        data-testid='quiz-bookmark-button'
-        data-bookmarked={isBookmarked ? 'true' : 'false'}
-      >
-        <Bookmark
-          aria-hidden='true'
-          className={isBookmarked ? 'fill-current' : undefined}
-        />
-        {isLoading ? 'Loading…' : isBookmarked ? 'Bookmarked' : 'Bookmark'}
-      </Button>
+      <BookmarkButtonSlot
+        quizId={quizId}
+        variant='detail'
+        className='contents'
+      />
 
       <Tooltip>
         <TooltipTrigger asChild>

@@ -38,6 +38,7 @@
  * CLS = 0 once items arrive.
  */
 
+import { CategoryFollowButtonSlot } from './CategoryFollowButtonSlot'
 import { CategoryHeader } from './CategoryHeader'
 import { CategoryQuizGrid } from './CategoryQuizGrid'
 import { useCategory } from '@/features/categories/hooks'
@@ -186,10 +187,20 @@ export function CategoryDetailPage({
           </li>
         </ol>
       </nav>
-      <CategoryHeader
-        title={category.name}
-        description={category.description}
-      />
+      <div className='flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between'>
+        <CategoryHeader
+          title={category.name}
+          description={category.description}
+        />
+        {/*
+         * Story 3.9 / TKT-3.9.C1 — the follow slot lives beside the
+         * header. The slot receives the resolved `category.categoryId`
+         * (NOT the route `idOrSlug` — A1 §7 records the drift). When
+         * the category is loading, `categoryId` is `null` and the slot
+         * renders `null` (no CLS during the hydration window).
+         */}
+        <CategoryFollowButtonSlot categoryId={category.categoryId} />
+      </div>
       <CategoryQuizGrid idOrSlug={idOrSlug} />
     </div>
   )

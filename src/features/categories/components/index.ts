@@ -21,3 +21,8 @@ export { CategoriesDirectoryPage } from './CategoriesDirectoryPage'
 
 export { CategoryDetailPage } from './CategoryDetailPage'
 
+// Epic 3.9 — TKT-3.9.B5 — the per-feature follow button slot wired to
+// `useIsFollowingCategory` + `useFollowCategory` + `useUnfollowCategory`.
+export { CategoryFollowButtonSlot } from './CategoryFollowButtonSlot'
+export type { CategoryFollowButtonSlotProps } from './CategoryFollowButtonSlot'
+

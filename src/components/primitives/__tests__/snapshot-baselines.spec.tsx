@@ -77,6 +77,7 @@ describe('Snapshot baselines — QuizCard', () => {
             updatedAt: '2026-07-01T00:00:00.000Z'
           }
         })}
+        bookmarkSlot={null}
       />
     )
     expect(snapshotHTML(container)).toMatchSnapshot()
@@ -89,6 +90,7 @@ describe('Snapshot baselines — QuizCard', () => {
           title: 'No image quiz',
           imageUrl: null
         })}
+        bookmarkSlot={null}
       />
     )
     expect(snapshotHTML(container)).toMatchSnapshot()
