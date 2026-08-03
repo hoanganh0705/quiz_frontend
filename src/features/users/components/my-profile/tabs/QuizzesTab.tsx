@@ -1,112 +1,279 @@
-import { memo } from 'react'
-// Fix barrel imports (bundle-barrel-imports)
-import { Card } from '@/components/ui/Card'
-import { CardContent } from '@/components/ui/Card'
-import { CardHeader } from '@/components/ui/Card'
-import { CardTitle } from '@/components/ui/Card'
-import { BookOpen, Edit, Trophy } from 'lucide-react'
+/**
+ * `QuizzesTab` — displays user's quiz attempts.
+ *
+ * Source epic:   Epic 4.5 — Personal activity feed + ranking + badges + tournament history + my-attempts list.
+ * Source ticket: T-4.5-D4.
+ *
+ * Rewrites QuizzesTab to display user's quiz attempts with cursor pagination.
+ * This is separate from the authored-quizzes tab (story 4.4).
+ */
 
-interface QuizEntry {
-  id: string
-  date: string
-  category: string
-  score: number
-  rank: number
-  isTopTen?: boolean
-}
+import { memo, useCallback } from 'react';
+import Link from 'next/link';
 
-interface QuizzesTabProps {
-  totalQuizzes: number
-  quizzesCreated: number
-  quizHistory: QuizEntry[]
-}
+import { Button } from '@/components/ui/Button';
+import { Card } from '@/components/ui/Card';
+import { CardContent } from '@/components/ui/Card';
+import { CardHeader } from '@/components/ui/Card';
+import { CardTitle } from '@/components/ui/Card';
+import { Skeleton } from '@/components/ui/Skeleton';
+import {
+  BookOpen,
+  Trophy,
+  CheckCircle,
+  Clock,
+  Inbox,
+  ChevronRight,
+} from 'lucide-react';
 
-export const QuizzesTab = memo(function QuizzesTab({
-  totalQuizzes,
-  quizzesCreated,
-  quizHistory
-}: QuizzesTabProps) {
+import { useMyAttempts } from '@/features/attempts';
+
+/**
+ * Number of skeleton rows during loading.
+ */
+const SKELETON_COUNT = 8;
+
+/**
+ * Attempt skeleton for loading state.
+ */
+function AttemptSkeleton() {
   return (
-    <div className='mt-6'>
-      <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+    <div className='flex items-center justify-between p-3 border rounded-lg'>
+      <div className='flex items-center gap-3'>
+        <Skeleton className='h-10 w-10 rounded-full' />
+        <div className='space-y-2'>
+          <Skeleton className='h-4 w-40' />
+          <Skeleton className='h-3 w-24' />
+        </div>
+      </div>
+      <div className='text-right space-y-2'>
+        <Skeleton className='h-5 w-12 ml-auto' />
+        <Skeleton className='h-3 w-16 ml-auto' />
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Formats attempt date for display.
+ */
+function formatDate(isoString: string): string {
+  const date = new Date(isoString);
+  return date.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  });
+}
+
+/**
+ * Gets status icon and color.
+ */
+function getStatusDisplay(status: string): {
+  icon: React.ComponentType<{ className?: string }>;
+  color: string;
+  label: string;
+} {
+  switch (status) {
+    case 'completed':
+      return { icon: CheckCircle, color: 'text-green-500', label: 'Completed' };
+    case 'abandoned':
+      return { icon: Clock, color: 'text-amber-500', label: 'Abandoned' };
+    default:
+      return { icon: Clock, color: 'text-muted-foreground', label: 'In Progress' };
+  }
+}
+
+/**
+ * Quizzes tab with user's quiz attempts.
+ */
+export const QuizzesTab = memo(function QuizzesTab() {
+  const {
+    items: attempts,
+    isLoading,
+    hasMore,
+    loadMore,
+  } = useMyAttempts({ limit: 20 });
+
+  const handleLoadMore = useCallback(() => {
+    loadMore();
+  }, [loadMore]);
+
+  // Loading state
+  if (isLoading && attempts.length === 0) {
+    return (
+      <div className='mt-6'>
         <Card>
-          <CardContent className='p-6'>
-            <div className='flex items-center gap-4'>
-              <div className='p-3 rounded-lg bg-brand/10' aria-hidden='true'>
-                <BookOpen className='w-6 h-6 text-brand' />
+          <CardHeader>
+            <CardTitle className='text-base'>Quiz Attempts</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className='space-y-2'>
+              {Array.from({ length: SKELETON_COUNT }).map((_, i) => (
+                <AttemptSkeleton key={i} />
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Empty state
+  if (attempts.length === 0) {
+    return (
+      <div className='mt-6'>
+        <Card>
+          <CardHeader>
+            <CardTitle className='text-base'>Quiz Attempts</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className='flex flex-col items-center justify-center py-12 text-center'>
+              <Inbox className='w-12 h-12 text-muted-foreground mb-4' aria-hidden='true' />
+              <p className='text-sm text-muted-foreground mb-4'>
+                You haven't started an attempt yet.
+              </p>
+              <Button variant='outline' size='sm' asChild>
+                <Link href='/quizzes'>
+                  Browse Quizzes
+                  <ChevronRight className='w-4 h-4 ml-1' aria-hidden='true' />
+                </Link>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Content
+  return (
+    <div className='mt-6 space-y-6'>
+      {/* Stats summary */}
+      <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
+        <Card>
+          <CardContent className='p-4'>
+            <div className='flex items-center gap-3'>
+              <div className='p-2 rounded-lg bg-brand/10'>
+                <BookOpen className='w-5 h-5 text-brand' aria-hidden='true' />
               </div>
               <div>
-                <p className='text-xl font-bold text-foreground'>
-                  {totalQuizzes}
-                </p>
-                <p className='text-sm text-muted-foreground'>
-                  Quizzes Completed
-                </p>
+                <p className='text-xl font-bold'>{attempts.length}</p>
+                <p className='text-xs text-muted-foreground'>Total Attempts</p>
               </div>
             </div>
           </CardContent>
         </Card>
-
         <Card>
-          <CardContent className='p-6'>
-            <div className='flex items-center gap-4'>
-              <div
-                className='p-3 rounded-lg bg-green-500/10'
-                aria-hidden='true'
-              >
-                <Edit className='w-6 h-6 text-green-500' />
+          <CardContent className='p-4'>
+            <div className='flex items-center gap-3'>
+              <div className='p-2 rounded-lg bg-green-500/10'>
+                <CheckCircle className='w-5 h-5 text-green-500' aria-hidden='true' />
               </div>
               <div>
-                <p className='text-xl font-bold text-foreground'>
-                  {quizzesCreated}
+                <p className='text-xl font-bold'>
+                  {attempts.filter((a) => a.status === 'completed').length}
                 </p>
-                <p className='text-sm text-muted-foreground'>Quizzes Created</p>
+                <p className='text-xs text-muted-foreground'>Completed</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className='p-4'>
+            <div className='flex items-center gap-3'>
+              <div className='p-2 rounded-lg bg-amber-500/10'>
+                <Trophy className='w-5 h-5 text-amber-500' aria-hidden='true' />
+              </div>
+              <div>
+                <p className='text-xl font-bold'>
+                  {attempts.filter((a) => a.status === 'completed').length > 0
+                    ? (
+                        attempts
+                          .filter((a) => a.status === 'completed')
+                          .reduce((sum, a) => sum + (a.scorePercent ?? 0), 0) /
+                        attempts.filter((a) => a.status === 'completed').length
+                      ).toFixed(1)
+                    : '0'}
+                  %
+                </p>
+                <p className='text-xs text-muted-foreground'>Avg Score</p>
               </div>
             </div>
           </CardContent>
         </Card>
       </div>
 
-      <Card className='p-4 mt-4'>
+      {/* Attempts list */}
+      <Card>
         <CardHeader>
-          <CardTitle className='text-base'>Quiz History</CardTitle>
+          <CardTitle className='text-base'>Recent Attempts</CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className='space-y-2' role='list' aria-label='Quiz history'>
-            {quizHistory.map((quiz) => (
+        <CardContent className='space-y-2'>
+          {attempts.map((attempt) => {
+            const statusDisplay = getStatusDisplay(attempt.status);
+            const StatusIcon = statusDisplay.icon;
+
+            return (
               <div
-                key={quiz.id}
-                className='flex items-center justify-between rounded-lg hover:bg-brand/10 transition-colors border p-3 border-brand/20'
-                role='listitem'
+                key={attempt.attemptId}
+                className='flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors'
               >
-                <div className='flex items-center gap-3 '>
-                  <div className={`p-2 rounded-lg`} aria-hidden='true'>
-                    {quiz.isTopTen ? (
-                      <Trophy className='w-4 h-4 text-amber-500' />
-                    ) : (
-                      <BookOpen className='w-4 h-4 text-muted-foreground' />
-                    )}
+                <div className='flex items-center gap-3'>
+                  <div className={`p-2 rounded-full ${statusDisplay.color} bg-muted/50`}>
+                    <StatusIcon className={`w-5 h-5 ${statusDisplay.color}`} aria-hidden='true' />
                   </div>
                   <div>
-                    <p className='text-sm font-medium text-foreground'>
-                      {quiz.category}
-                    </p>
-                    <p className='text-xs text-muted-foreground'>{quiz.date}</p>
+                    <p className='text-sm font-medium'>{attempt.quizTitle}</p>
+                    <div className='flex items-center gap-2 text-xs text-muted-foreground'>
+                      <span>{formatDate(attempt.startedAt)}</span>
+                      <span>•</span>
+                      <span>{attempt.difficulty}</span>
+                      {attempt.xpEarned > 0 && (
+                        <>
+                          <span>•</span>
+                          <span>+{attempt.xpEarned} XP</span>
+                        </>
+                      )}
+                    </div>
                   </div>
                 </div>
                 <div className='text-right'>
-                  <p className='text-sm font-bold text-foreground'>
-                    {quiz.score}%
-                  </p>
-                  <p className='text-xs text-muted-foreground'>
-                    Rank #{quiz.rank}
-                  </p>
+                  {attempt.status === 'completed' && attempt.scorePercent !== null ? (
+                    <p className={`text-lg font-bold ${
+                      (attempt.scorePercent ?? 0) >= 80
+                        ? 'text-green-500'
+                        : (attempt.scorePercent ?? 0) >= 60
+                          ? 'text-amber-500'
+                          : 'text-red-500'
+                    }`}>
+                      {attempt.scorePercent?.toFixed(0)}%
+                    </p>
+                  ) : (
+                    <p className='text-sm text-muted-foreground'>
+                      {statusDisplay.label}
+                    </p>
+                  )}
+                  {attempt.status === 'completed' && (
+                    <p className='text-xs text-muted-foreground'>
+                      {attempt.correctCount ?? 0} correct
+                    </p>
+                  )}
                 </div>
               </div>
-            ))}
-          </div>
+            );
+          })}
+
+          {/* Load more */}
+          {hasMore && (
+            <div className='flex justify-center pt-4'>
+              <Button variant='outline' size='sm' onClick={handleLoadMore}>
+                Load More
+              </Button>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
-  )
-})
+  );
+});

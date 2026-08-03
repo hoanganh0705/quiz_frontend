@@ -172,3 +172,10 @@ export interface Testimonial {
   followers?: string;
   rating: number;
 }
+
+// ─── Epic 4.5 — Personal activity feed types ─────────────────────────────────────
+
+export * from "./activity.types";
+export * from "./badge.types";
+export * from "./tournament.types";
+export * from "./user-analytics.types";
