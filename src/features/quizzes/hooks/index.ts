@@ -51,3 +51,14 @@ export { useMyQuizzesPublished } from './useMyQuizzesPublished'
 export type { UseMyQuizzesPublishedParams, UseMyQuizzesPublishedResult } from './useMyQuizzesPublished'
 export { useMyQuizzesAnalytics } from './useMyQuizzesAnalytics'
 export type { UseMyQuizzesAnalyticsResult } from './useMyQuizzesAnalytics'
+
+// Epic 4.8 — Quiz create form (TKT-4.8-B1, B2, B3)
+export { useCreateQuiz } from './useCreateQuiz'
+export type {
+  UseCreateQuizOptions,
+  UseCreateQuizReturn,
+} from './useCreateQuiz'
+export { useCheckQuizSlug } from './useCheckQuizSlug'
+export type { UseCheckQuizSlugReturn } from './useCheckQuizSlug'
+export { useTagSlugsToIds } from './useTagSlugsToIds'
+export type { UseTagSlugsToIdsReturn } from './useTagSlugsToIds'

@@ -1,16 +1,15 @@
-import { Skeleton } from '@/components/ui/Skeleton'
+/**
+ * `app/(protected)/create-quiz/loading.tsx` — streaming loading state.
+ *
+ * Source epic:   Epic 4.8 — Quiz create form.
+ * Source ticket: TKT-4.8-E3 (loading skeleton update).
+ *
+ * Renders `CreateQuizFormSkeleton` while the page streams / hydrates.
+ * The skeleton mirrors the layout of `CreateQuizForm`.
+ */
+
+import { CreateQuizFormSkeleton } from '@/features/quizzes/components/CreateQuizFormSkeleton';
 
 export default function CreateQuizLoading() {
-  return (
-    <div className='min-h-screen p-4 md:p-6 space-y-6'>
-      <Skeleton className='h-10 w-full' />
-      <Skeleton className='h-80 w-full rounded-xl' />
-      <div className='flex gap-3'>
-        <Skeleton className='h-10 w-28' />
-        <Skeleton className='h-10 w-28' />
-        <Skeleton className='h-10 w-28' />
-      </div>
-      <Skeleton className='h-64 w-full' />
-    </div>
-  )
+  return <CreateQuizFormSkeleton />;
 }

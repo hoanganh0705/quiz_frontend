@@ -65,6 +65,14 @@ export {
 export type { MyQuizzesTab, MyQuizListItem, MyQuizzesAnalytics } from "./my-quizzes";
 export { myQuizzesKey } from "./my-quizzes";
 
+// Quiz create-form types (Epic 4.8 / TKT-4.8-A4)
+export type {
+  SlugAvailabilityResult,
+  TagResolutionResult,
+  CreateQuizSubmitPayload,
+  CreateQuizSuccessResult,
+} from './quiz-create-form.types';
+
 // Results/History types
 export type { QuizResult, QuizProgress, QuestionReview, QuizResultsProps, ScoreHeroProps, StatsOverviewProps, AnswerReviewTabProps, LeaderboardTabProps, ShareResultsTabProps, TimeAnalysisProps, BottomActionsProps, QuestionReviewItemProps, LeaderboardItemProps, SharePreviewProps, ShareButtonsProps, ChallengeFriendsProps, TimeAnalysisItemProps } from './quiz-results'
 export type { QuizActivityType, QuizResultStatus, DateRangeFilter, SortOption, QuizHistoryEntry, QuizHistoryStats, CategoryStat, DifficultyBreakdown, WeeklyActivity, MonthlyScoreTrend, QuizHistoryFilters, ExportFormat } from './quiz-history'

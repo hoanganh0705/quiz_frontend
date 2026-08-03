@@ -150,27 +150,57 @@ export const quizQuestionFormSchema = z.object({
 // ────────────────────────────────────────────────────────────────────────
 
 /**
- * Form schema for the quiz-create authoring form.
+ * Form schema for the quiz-create authoring form (story 4.8).
  *
  * Composes:
- *   - The four required `CreateQuizDto` fields.
- *   - Five optional / nullable fields (`description`, `slug`, …).
- *   - The nested `initialVersion` (required) — uses
- *     `initialQuizVersionFormSchema`.
+ *   - The required `CreateQuizDto` fields (`title`, `description`,
+ *     `slug`, `requirements`, `imageUrl`, `isFeatured`, `isHidden`,
+ *     `categoryId`, `tagIds`, `initialVersion`).
+ *   - Form-only fields (`tagSlugs`, `acknowledgements`).
  *
- * Form-only fields:
- *   - `tagSlugs` — the form uses a multi-select that produces an
- *     array of validated slugs; the DTO expects an array of UUIDs
- *     (`tagIds?: string[]`). Consumers are expected to resolve the
- *     slugs to UUIDs in the submit handler.
- *   - `acknowledgements` — a confirm-the-rules checkbox. Not part of
- *     the DTO.
+ * ## Field mapping
+ *
+ * | Form field     | DTO field  | Note |
+ * |----------------|------------|------|
+ * | `title`        | `title`    | Required, 1–255 chars. |
+ * | `description`  | `description` | Optional, ≤ 2000 chars. |
+ * | `slug`         | `slug`     | Optional, auto-derived if blank. |
+ * | `requirements` | `requirements` | Optional, ≤ 5000 chars. |
+ * | `imageUrl`     | `imageUrl` | Optional, ≤ 2048 chars. |
+ * | `categoryId`   | `categoryId` | Optional UUID. |
+ * | `tagSlugs`     | — (form-only, resolved to `tagIds` in submit handler) |
+ * | `initialVersion` | `initialVersion` | Required, nested schema. |
+ * | `acknowledgements` | — (form-only) | Confirm-rules checkbox. |
+ *
+ * ## Tag slugs → tag IDs
+ *
+ * `tagSlugs` holds validated slugs from the tag picker. The submit handler
+ * resolves slugs → UUIDs via `useTagSlugsToIds` before calling
+ * `createQuiz()`. The DTO field `tagIds` is NOT in this schema — it is
+ * injected at submit time.
+ *
+ * ## Slug auto-derivation
+ *
+ * When `slug` is `null | undefined`, the backend auto-derives the slug from
+ * `title`. The `QuizSlugField` component shows a live preview of the
+ * derived slug beneath the input.
+ *
+ * ## Title constraint alignment
+ *
+ * The epic specifies 1–120 chars for title; the generated `CreateQuizDto`
+ * specifies `@minLength 1 / @maxLength 255`. We align with the epic's
+ * 120-char constraint for the Phase 4 form. If the backend's constraint
+ * is confirmed to be 255, this should be updated to match.
+ *
+ * Source: `CreateQuizDto` + `CreateInitialQuizVersionDto` from
+ *   `lib/api/generated/schemas/`.
+ * Epic: `PHASE_4_EPICS.md` Story 4.8, Validation Rules.
  */
 export const quizCreateFormSchema = z.object({
   title: z
     .string({ error: 'Title is required.' })
     .min(1, 'Title cannot be empty.')
-    .max(255, 'Title cannot exceed 255 characters.'),
+    .max(120, 'Title cannot exceed 120 characters.'),
   description: z
     .string()
     .max(2000, 'Description cannot exceed 2000 characters.')
@@ -198,7 +228,13 @@ export const quizCreateFormSchema = z.object({
   isFeatured: z.boolean().nullable().optional(),
   isHidden: z.boolean().nullable().optional(),
   categoryId: z.string().uuid().nullable().optional(),
-  tagSlugs: z.array(tagSlugSchema).max(50, 'At most 50 tags per quiz.').default([]),
+  /**
+   * Form-only field. The user picks tags by slug; the submit handler
+   * resolves slugs → UUIDs via `useTagSlugsToIds` before calling the
+   * service. The DTO field is `tagIds`.
+   * @maxItems 10
+   */
+  tagSlugs: z.array(tagSlugSchema).max(10, 'At most 10 tags per quiz.').default([]),
   initialVersion: initialQuizVersionFormSchema,
   // Form-only field; not in the DTO.
   acknowledgements: z.boolean().default(false).optional(),

@@ -84,3 +84,10 @@ export { MyQuizzesTable } from './MyQuizzesTable'
 export { MyQuizzesTabs } from './MyQuizzesTabs'
 export { MyQuizzesAnalyticsTab } from './MyQuizzesAnalyticsTab'
 export { MyQuizzesDashboardPage } from './MyQuizzesDashboardPage'
+
+// Epic 4.8 — Quiz create form (TKT-4.8-C1/C2/C3/C4)
+export { QuizSlugField } from './QuizSlugField'
+export { CreateQuizForm, CREATE_QUIZ_FORM_DEFAULT_VALUES } from './CreateQuizForm'
+export type { CreateQuizFormProps } from './CreateQuizForm'
+export { CreateQuizPage } from './CreateQuizPage'
+export { CreateQuizFormSkeleton } from './CreateQuizFormSkeleton'
