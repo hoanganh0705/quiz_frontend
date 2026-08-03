@@ -142,6 +142,15 @@ export default defineConfig({
           // Render React components and use hooks that need jsdom.
           'src/features/users/components/settings/__tests__/*.spec.tsx',
           'src/features/users/components/my-profile/__tests__/*.spec.tsx',
+          // TKT-4.4.E3–E7 — Epic 4.4 hook specs. Use SWR hooks that need
+          // jsdom; co-located with the hooks under test.
+          'src/features/quizzes/hooks/__tests__/*.spec.tsx',
+          // TKT-4.4.E7 — MyQuizzesTableRow RTL component spec. Needs jsdom.
+          'src/features/quizzes/components/__tests__/MyQuizzesTableRow.spec.tsx',
+          // TKT-4.4.F1 — MyQuizzesDashboardPage integration spec. Needs jsdom.
+          'src/features/quizzes/components/__tests__/MyQuizzesDashboardPage.integration.spec.tsx',
+          // TKT-4.4.F2 — MyQuizzes dashboard a11y spec. Uses axe-core in jsdom.
+          'src/features/quizzes/components/__tests__/my-quizzes.a11y.spec.tsx',
         ],
           environment: 'jsdom',
           setupFiles: ['./src/components/primitives/__tests__/setup.ts'],

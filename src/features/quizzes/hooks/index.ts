@@ -41,3 +41,13 @@ export type { UseIsBookmarkedResult } from './useIsBookmarked'
 // Story 3.8 — Related quizzes block (TKT-3.8.B1)
 export { useQuizRelated, QUIZ_RELATED_LIMIT } from './useQuizRelated'
 export type { UseQuizRelatedResult } from './useQuizRelated'
+
+// Epic 4.4 — Authored quizzes list + analytics (TKT-4.4.A2, A3, A4, A5)
+export { useMyQuizzes } from './useMyQuizzes'
+export type { UseMyQuizzesParams, UseMyQuizzesResult } from './useMyQuizzes'
+export { useMyQuizzesDrafts } from './useMyQuizzesDrafts'
+export type { UseMyQuizzesDraftsParams, UseMyQuizzesDraftsResult } from './useMyQuizzesDrafts'
+export { useMyQuizzesPublished } from './useMyQuizzesPublished'
+export type { UseMyQuizzesPublishedParams, UseMyQuizzesPublishedResult } from './useMyQuizzesPublished'
+export { useMyQuizzesAnalytics } from './useMyQuizzesAnalytics'
+export type { UseMyQuizzesAnalyticsResult } from './useMyQuizzesAnalytics'

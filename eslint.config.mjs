@@ -214,6 +214,19 @@ const eslintConfig = [
             // single place permitted to read `nextCursor` in the wrapper
             // layer.
             'src/features/daily-challenge/wrappers/daily-challenge.wrapper.ts',
+            // TKT-4.4.A2/A3/A4 — `useMyQuizzes`, `useMyQuizzesDrafts`,
+            // and `useMyQuizzesPublished` are the fetcher adapters for the
+            // `GET /quizzes/me*` endpoints. They are the single places in
+            // the quizzes feature permitted to read `meta.pagination` and
+            // `nextCursor` and adapt the SDK envelope to the
+            // `useCursorPaginated` `CursorPage` shape.
+            'src/features/quizzes/hooks/useMyQuizzes.ts',
+            'src/features/quizzes/hooks/useMyQuizzesDrafts.ts',
+            'src/features/quizzes/hooks/useMyQuizzesPublished.ts',
+            // TKT-4.4.A1 — the JSDoc example for `myQuizzesKey` mentions
+            // `nextCursor` as part of the conceptual SWR key shape.
+            // The type-only declaration is not a component-state read.
+            'src/features/quizzes/types/my-quizzes.ts',
           ],
     rules: {
       'no-restricted-syntax': 'off',

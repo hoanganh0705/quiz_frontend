@@ -73,3 +73,14 @@ export type { HomePopularRailProps } from './HomePopularRail'
 // Story 3.7 — Home page composition (TKT-3.7.D1) + route entry
 export { HomePage } from './HomePage'
 export type { HomePageProps } from './HomePage'
+
+// Epic 4.4 — Authored quizzes list + analytics (TKT-4.4.C1/C2/C3/C4/D1/D2/D3/D4/E1)
+export { MyQuizzesSkeleton } from './MyQuizzesSkeleton'
+export { MyQuizzesTableEmpty } from './MyQuizzesTableEmpty'
+export { MyQuizzesAnalyticsSkeleton } from './MyQuizzesAnalyticsSkeleton'
+export { MyQuizzesAnalyticsEmpty } from './MyQuizzesAnalyticsEmpty'
+export { MyQuizzesTableRow } from './MyQuizzesTableRow'
+export { MyQuizzesTable } from './MyQuizzesTable'
+export { MyQuizzesTabs } from './MyQuizzesTabs'
+export { MyQuizzesAnalyticsTab } from './MyQuizzesAnalyticsTab'
+export { MyQuizzesDashboardPage } from './MyQuizzesDashboardPage'

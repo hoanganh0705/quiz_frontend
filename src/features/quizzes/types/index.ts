@@ -61,6 +61,10 @@ export {
   POPULAR_RAIL_LIMIT,
 } from './home-rails'
 
+// My Quizzes types (Epic 4.4 / TKT-4.4.A1)
+export type { MyQuizzesTab, MyQuizListItem, MyQuizzesAnalytics } from "./my-quizzes";
+export { myQuizzesKey } from "./my-quizzes";
+
 // Results/History types
 export type { QuizResult, QuizProgress, QuestionReview, QuizResultsProps, ScoreHeroProps, StatsOverviewProps, AnswerReviewTabProps, LeaderboardTabProps, ShareResultsTabProps, TimeAnalysisProps, BottomActionsProps, QuestionReviewItemProps, LeaderboardItemProps, SharePreviewProps, ShareButtonsProps, ChallengeFriendsProps, TimeAnalysisItemProps } from './quiz-results'
 export type { QuizActivityType, QuizResultStatus, DateRangeFilter, SortOption, QuizHistoryEntry, QuizHistoryStats, CategoryStat, DifficultyBreakdown, WeeklyActivity, MonthlyScoreTrend, QuizHistoryFilters, ExportFormat } from './quiz-history'
