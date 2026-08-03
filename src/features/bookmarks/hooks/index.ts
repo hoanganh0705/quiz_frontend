@@ -82,3 +82,51 @@ export type {
   UseDeleteCollectionOptions,
   UseDeleteCollectionReturn,
 } from './useDeleteCollection'
+
+// Epic 4.7 / EPIC-4.7-B1-3 — collection-specific cross-tab cache invalidation.
+export {
+  useCollectionInvalidation,
+  invalidateCollectionQuizzesCache,
+  invalidateCollectionAnalyticsCache,
+  invalidateCollectionCache,
+  collectionQuizzesSWRKey,
+  collectionAnalyticsSWRKey,
+  broadcastCollectionQuizzesInvalidated,
+  broadcastCollectionAnalyticsInvalidated,
+  type CollectionInvalidationEvent,
+} from './useCollectionInvalidation'
+export type {
+  UseCollectionInvalidationResult,
+} from './useCollectionInvalidation'
+
+// Epic 4.7 / EPIC-4.7-B2-1 — cursor-paginated collection quizzes.
+export {
+  useCollectionQuizzes,
+} from './useCollectionQuizzes'
+export type {
+  UseCollectionQuizzesResult,
+} from './useCollectionQuizzes'
+
+// Epic 4.7 / EPIC-4.7-B2-2 — bulk add quizzes to collection.
+export {
+  useAddQuizzesToCollection,
+} from './useAddQuizzesToCollection'
+export type {
+  UseAddQuizzesToCollectionResult,
+} from './useAddQuizzesToCollection'
+
+// Epic 4.7 / EPIC-4.7-B2-3 — bulk remove quizzes from collection.
+export {
+  useRemoveQuizzesFromCollection,
+} from './useRemoveQuizzesFromCollection'
+export type {
+  UseRemoveQuizzesFromCollectionResult,
+} from './useRemoveQuizzesFromCollection'
+
+// Epic 4.7 / EPIC-4.7-B2-4 — collection analytics.
+export {
+  useCollectionAnalytics,
+} from './useCollectionAnalytics'
+export type {
+  UseCollectionAnalyticsResult,
+} from './useCollectionAnalytics'
