@@ -76,3 +76,37 @@ export type {
 // Results/History types
 export type { QuizResult, QuizProgress, QuestionReview, QuizResultsProps, ScoreHeroProps, StatsOverviewProps, AnswerReviewTabProps, LeaderboardTabProps, ShareResultsTabProps, TimeAnalysisProps, BottomActionsProps, QuestionReviewItemProps, LeaderboardItemProps, SharePreviewProps, ShareButtonsProps, ChallengeFriendsProps, TimeAnalysisItemProps } from './quiz-results'
 export type { QuizActivityType, QuizResultStatus, DateRangeFilter, SortOption, QuizHistoryEntry, QuizHistoryStats, CategoryStat, DifficultyBreakdown, WeeklyActivity, MonthlyScoreTrend, QuizHistoryFilters, ExportFormat } from './quiz-history'
+
+// Epic 4.10 — Question Editor types (Author DTOs)
+export type {
+  QuizAuthorQuestionDto,
+  QuizAuthorAnswerOptionDto,
+  CreateQuestionDto,
+  CreateAnswerOptionDto,
+  BulkCreateQuestionsDto,
+  BulkQuestionResultItem,
+  BulkQuestionsResultDto,
+  QuestionType,
+} from './author-dtos';
+export {
+  QUESTION_TYPE_VALUES,
+  QUESTION_VALIDATION,
+} from './author-dtos';
+export type {
+  CreateQuestionFormValues,
+  BulkQuestionRow,
+  BulkQuestionsFormValues,
+  ParsedBulkRow,
+} from './validation/question-schemas';
+export {
+  createQuestionSchema,
+  bulkQuestionsSchema,
+  questionTypeSchema,
+  parseBulkText,
+} from './validation/question-schemas';
+export {
+  QUESTION_EDITOR_USER_COPY,
+  FIELD_ERROR_MESSAGES,
+  getQuestionEditorCopy,
+  getRateLimitCopy,
+} from './constants/question-errors';

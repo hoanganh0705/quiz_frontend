@@ -105,3 +105,26 @@ export { VersionImmutableBanner } from './VersionImmutableBanner'
 export { QuizEditForm, QuizEditFormSkeleton } from './QuizEditForm'
 export { PublishReadinessBanner } from './PublishReadinessBanner'
 export type { PublishReadinessBannerProps } from './PublishReadinessBanner'
+
+// Epic 4.10 — Question Editor (T-4.10.9, T-4.10.10, T-4.10.11, T-4.10.12, T-4.10.13, T-4.10.14, T-4.10.15, T-4.10.16, T-4.10.20)
+export { QuestionEditorPage } from './QuestionEditor'
+export { QuestionEditor } from './QuestionEditor'
+export { QuestionList } from './QuestionEditor'
+export { QuestionListItem } from './QuestionEditor'
+export { SingleQuestionForm } from './QuestionEditor'
+export { BulkQuestionForm } from './QuestionEditor'
+export { QuestionTypeSelect } from './QuestionEditor'
+export { AnswerOptionsEditor } from './QuestionEditor'
+export { QuestionCorrectMark } from './QuestionEditor'
+export { PublishReadinessCounter } from './QuestionEditor'
+export type {
+  QuestionEditorProps,
+  QuestionListProps,
+  QuestionListItemProps,
+  SingleQuestionFormProps,
+  BulkQuestionFormProps,
+  QuestionTypeSelectProps,
+  AnswerOptionsEditorProps,
+  QuestionCorrectMarkProps,
+  PublishReadinessCounterProps,
+} from './QuestionEditor'
