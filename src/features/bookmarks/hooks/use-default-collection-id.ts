@@ -4,8 +4,8 @@
  * `useDefaultCollectionId` — derive the Phase 3 default bookmark
  * collection identifier from the authenticated user's collection list.
  *
- * Source epic:   Story 3.10 — Bookmarks add / remove + membership lookup.
- * Source ticket: TKT-3.10.B2.
+ * Source epic:   Epic 4.6 — Bookmark collections CRUD.
+ * Source ticket: T-4.6-E3.
  *
  * ## Phase 3 default-collection rule (locked at TKT-3.10.A1 §1.3)
  *
@@ -15,33 +15,14 @@
  *      `createdAt` timestamp.
  *   3. If the user owns zero collections, return `null`.
  *
- * ## Why a client heuristic
+ * ## Updated for Epic 4.6
  *
- * The backend does NOT expose an `isDefault` field on
- * `BookmarkCollectionResponseDto` and does NOT auto-create a default
- * collection (verified at TKT-3.10.A1 §1.3). The server-side default
- * is a deferred backend optimization; until then this client heuristic
- * is the canonical Phase 3 behavior. It is deterministic, total (handles
- * zero / one / many collections), and pure (no mutation, no side
- * effects on the input array).
- *
- * ## Pure selector export
- *
- * `selectDefaultCollectionId(collections)` is the pure function that
- * does the work. The hook wraps it with the loading-state distinction
- * required by `useBookmarkQuiz` (TKT-3.10.C1). Tests target the pure
- * selector directly so the deterministic tie-break and immutability
- * properties are locked without rendering React.
- *
- * ## Immutability
- *
- * The selector never mutates the input array. It computes a sorted
- * copy and discards it; the caller's reference is left untouched
- * (verified by the immutability assertion in B2's test file).
+ * This hook now uses `useCollections` (T-4.6-B1) which returns
+ * `BookmarkCollection` objects instead of the raw DTO.
  */
 
-import type { BookmarkCollectionResponseDto } from '@/lib/api/generated/schemas';
-import { useBookmarkCollections } from '@/features/bookmarks/hooks/use-bookmark-collections';
+import type { BookmarkCollection } from '@/features/bookmarks/types';
+import { useCollections } from '@/features/bookmarks/hooks';
 
 /** The canonical Phase 3 default-collection name (case-insensitive). */
 export const DEFAULT_COLLECTION_NAME = 'Favourites';
@@ -54,23 +35,20 @@ export interface UseDefaultCollectionIdResult {
    *   - the user owns zero collections.
    *
    * Consumers MUST distinguish `defaultCollectionId === null` from
-   * `isLoading`. The hook surfaces both fields precisely so the
-   * action hook (TKT-3.10.C1) can render the "create a collection"
-   * CTA only when hydration is complete AND the list is empty.
+   * `isLoading`. The hook surfaces both fields precisely so callers
+   * can render the "create a collection" CTA only when hydration
+   * is complete AND the list is empty.
    */
   defaultCollectionId: string | null;
   /**
-   * `true` while the underlying collections list is hydrating. The
-   * consumer MUST NOT show the "create a collection" prompt while
-   * `isLoading === true` — only after hydration completes with an
-   * empty array.
+   * `true` while the underlying collections list is hydrating.
    */
   isLoading: boolean;
 }
 
 /**
  * Pure selector: derive the Phase 3 default collection identifier
- * from a list of owned collections. Exported for direct testing.
+ * from a list of collections. Exported for direct testing.
  *
  * - Returns the case-insensitive `Favourites` match when present.
  * - Otherwise returns the collection with the earliest valid
@@ -83,7 +61,7 @@ export interface UseDefaultCollectionIdResult {
  * order that does not depend on the backend's array order.
  */
 export function selectDefaultCollectionId(
-  collections: ReadonlyArray<BookmarkCollectionResponseDto>,
+  collections: ReadonlyArray<BookmarkCollection>,
 ): string | null {
   if (collections.length === 0) {
     return null;
@@ -101,7 +79,7 @@ export function selectDefaultCollectionId(
 
   // Step 2 — earliest createdAt, tie-broken by collectionId ascending.
   // We copy the array before sorting so the caller's reference is
-  // untouched (B2 AC #5).
+  // untouched.
   const sorted = [...collections].sort((a, b) => {
     const aCreated = Date.parse(a.createdAt);
     const bCreated = Date.parse(b.createdAt);
@@ -125,8 +103,11 @@ export function selectDefaultCollectionId(
   return sorted[0]?.collectionId ?? null;
 }
 
+/**
+ * Hook that derives the default collection ID from the collections list.
+ */
 export function useDefaultCollectionId(): UseDefaultCollectionIdResult {
-  const { collections, isLoading } = useBookmarkCollections();
+  const { items: collections, isLoading } = useCollections();
 
   // The default selector is deterministic and pure; we compute it
   // every render. The cost is `O(n log n)` on the collection list

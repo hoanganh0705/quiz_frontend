@@ -46,3 +46,39 @@ export { useUnbookmarkQuiz } from './use-unbookmark-quiz'
 export type {
   UseUnbookmarkQuizResult,
 } from './use-unbookmark-quiz'
+
+// Epic 4.6 / T-4.6-B1 — cursor-paginated collections list with Map-based lookup.
+export {
+  useCollections,
+  invalidateCollections,
+  BOOKMARK_COLLECTIONS_KEY,
+} from './useCollections'
+export type { UseCollectionsResult } from './useCollections'
+
+// Epic 4.6 / T-4.6-B2 — single collection fetch by ID.
+export {
+  useCollection,
+  bookmarkCollectionKey,
+} from './useCollection'
+export type { UseCollectionResult } from './useCollection'
+
+// Epic 4.6 / T-4.6-B3 — optimistic collection creation with 409 conflict handling.
+export { useCreateCollection } from './useCreateCollection'
+export type {
+  UseCreateCollectionOptions,
+  UseCreateCollectionReturn,
+} from './useCreateCollection'
+
+// Epic 4.6 / T-4.6-B4 (update) — optimistic collection update with partial PATCH.
+export { useUpdateCollection } from './useUpdateCollection'
+export type {
+  UseUpdateCollectionOptions,
+  UseUpdateCollectionReturn,
+} from './useUpdateCollection'
+
+// Epic 4.6 / T-4.6-B4 (delete) — optimistic collection deletion with 404 mute.
+export { useDeleteCollection } from './useDeleteCollection'
+export type {
+  UseDeleteCollectionOptions,
+  UseDeleteCollectionReturn,
+} from './useDeleteCollection'

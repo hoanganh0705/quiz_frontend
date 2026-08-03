@@ -5,6 +5,12 @@ export { default as BookmarkFilters } from './BookmarkFilters'
 export { default as CollectionCard } from './CollectionCard'
 export { default as CollectionDialog } from './CollectionDialog'
 export { default as EmptyBookmarks } from './EmptyBookmarks'
+export { default as CollectionGrid } from './CollectionGrid'
+export { default as CollectionColorPicker } from './CollectionColorPicker'
+export { default as CollectionCreateDialog } from './CollectionCreateDialog'
+export { default as CollectionRenameDialog } from './CollectionRenameDialog'
+export { default as CollectionDeleteConfirm } from './CollectionDeleteConfirm'
+export { default as BookmarksDashboardPage } from './BookmarksDashboardPage'
 
 // Story 3.10 / TKT-3.10.D3 — the reusable empty-collections content
 // body used by the setup prompt (D2) and any future zero-collection

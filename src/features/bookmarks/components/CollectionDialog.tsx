@@ -65,7 +65,7 @@ export default function CollectionDialog({
         if (collection) {
           setName(collection.name)
           setDescription(collection.description || '')
-          setColor(collection.color)
+          setColor(collection.color ?? PRESET_COLORS[0])
         } else {
           setName('')
           setDescription('')
