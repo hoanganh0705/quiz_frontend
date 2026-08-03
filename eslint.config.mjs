@@ -227,6 +227,17 @@ const eslintConfig = [
             // `nextCursor` as part of the conceptual SWR key shape.
             // The type-only declaration is not a component-state read.
             'src/features/quizzes/types/my-quizzes.ts',
+            // T-4.12.4 — `useQuizComments` is the fetcher adapter for the
+            // `GET /quizzes/:quizId/comments` endpoint. It is the single
+            // place in the comments feature permitted to read
+            // `meta.pagination` and `nextCursor` and adapt the SDK
+            // envelope to the `useCursorPaginated` `CursorPage` shape.
+            'src/features/comments/hooks/useQuizComments.ts',
+            // T-4.12.5 — the unit spec for `useQuizComments` constructs
+            // mock page responses with `nextCursor` so it can assert the
+            // hook's pagination contract. The fixture is co-located with
+            // the hook under test.
+            'src/features/comments/hooks/__tests__/useQuizComments.spec.tsx',
           ],
     rules: {
       'no-restricted-syntax': 'off',

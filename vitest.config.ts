@@ -154,6 +154,15 @@ export default defineConfig({
           // T-4.11.9 — PublishCta + PublishConfirmDialog integration tests. Needs jsdom.
           'src/features/quizzes/components/__tests__/PublishCta.spec.tsx',
           // (T-4.11.14 EditPublishedQuizCTA tests run in node env to avoid jsdom issues.)
+            // T-4.12.5 — useQuizComments read hook. Uses SWR via useCursorPaginated
+            // and renderHook from @testing-library/react; needs jsdom.
+            'src/features/comments/hooks/__tests__/useQuizComments.spec.tsx',
+            // T-4.12.21 — CommentsWidget integration spec. Mocks all
+            // comment hooks (useAuth, useQuizComments, useCreateComment,
+            // useVoteComment, useReportComment, useCommentThreadLookup,
+            // etc.) and renders the full widget tree. Needs jsdom because
+            // the widget renders SWR + React subtrees.
+            'src/features/comments/components/__tests__/CommentsWidget.integration.spec.tsx',
         ],
           environment: 'jsdom',
           setupFiles: ['./src/components/primitives/__tests__/setup.ts'],
