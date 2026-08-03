@@ -62,3 +62,24 @@ export { useCheckQuizSlug } from './useCheckQuizSlug'
 export type { UseCheckQuizSlugReturn } from './useCheckQuizSlug'
 export { useTagSlugsToIds } from './useTagSlugsToIds'
 export type { UseTagSlugsToIdsReturn } from './useTagSlugsToIds'
+
+// Epic 4.9 — Quiz version lifecycle + edit version metadata (TKT-4.9.1, 4.9.2, 4.9.3, 4.9.4, 4.9.5)
+export { useQuizAuthorView } from './useQuizAuthorView'
+export type { UseQuizAuthorViewResult } from './useQuizAuthorView'
+export { useQuizVersions } from './useQuizVersions'
+export type {
+  UseQuizVersionsParams,
+  UseQuizVersionsResult,
+} from './useQuizVersions'
+export { useQuizVersion } from './useQuizVersion'
+export type { UseQuizVersionResult } from './useQuizVersion'
+export { useCreateVersion } from './useCreateVersion'
+export type {
+  UseCreateVersionOptions,
+  UseCreateVersionReturn,
+} from './useCreateVersion'
+export { useUpdateVersion } from './useUpdateVersion'
+export type {
+  UseUpdateVersionOptions,
+  UseUpdateVersionReturn,
+} from './useUpdateVersion'

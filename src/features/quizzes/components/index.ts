@@ -91,3 +91,17 @@ export { CreateQuizForm, CREATE_QUIZ_FORM_DEFAULT_VALUES } from './CreateQuizFor
 export type { CreateQuizFormProps } from './CreateQuizForm'
 export { CreateQuizPage } from './CreateQuizPage'
 export { CreateQuizFormSkeleton } from './CreateQuizFormSkeleton'
+
+// Epic 4.9 — Quiz version lifecycle + edit version metadata (TKT-4.9.6, 4.9.7, 4.9.9, 4.9.10, 4.9.11, 4.9.12, 4.9.13, 4.9.14, 4.9.17)
+export { QuizEditPage } from './QuizEditPage'
+export { QuizEditPageSkeleton } from './QuizEditPageSkeleton'
+export { QuizEditHeader } from './QuizEditHeader'
+export { QuizVersionTabs } from './QuizVersionTabs'
+export { QuizVersionList } from './QuizVersionList'
+export { QuizVersionListItem } from './QuizVersionListItem'
+export { QuizVersionActionsMenu } from './QuizVersionActionsMenu'
+export type { QuizVersionActionsMenuProps } from './QuizVersionActionsMenu'
+export { VersionImmutableBanner } from './VersionImmutableBanner'
+export { QuizEditForm, QuizEditFormSkeleton } from './QuizEditForm'
+export { PublishReadinessBanner } from './PublishReadinessBanner'
+export type { PublishReadinessBannerProps } from './PublishReadinessBanner'
