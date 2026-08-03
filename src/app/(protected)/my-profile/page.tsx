@@ -3,9 +3,8 @@
 import { memo } from "react";
 import { Button } from "@/components/ui/Button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/Tabs";
-import ActivityItem from "@/features/users/components/profile/ActivityItem";
+import { ActivityTimeline } from "@/features/users/components/my-profile/ActivityTimeline";
 import { ProfileHeader } from "@/features/users/components/my-profile/ProfileHeader";
-import { StatsCard } from "@/features/users/components/my-profile/StatsCard";
 import { QuickStatsSidebar } from "@/features/users/components/my-profile/QuickStatsSidebar";
 import { QuickActions } from "@/features/users/components/my-profile/QuickActions";
 import { OverviewTab } from "@/features/users/components/my-profile/tabs/OverviewTab";
@@ -14,23 +13,26 @@ import { AchievementsTab } from "@/features/users/components/my-profile/tabs/Ach
 import { StatisticsTab } from "@/features/users/components/my-profile/tabs/StatisticsTab";
 import { ProfileEditTab } from "@/features/users/components/my-profile/ProfileEditTab";
 import { Pencil } from "lucide-react";
-import { challengeData } from "@/features/daily-challenge/constants/challenge-history-data";
-import { badges } from "@/features/leaderboard/constants/badges";
-import { streakRewards } from "@/features/daily-challenge/constants/streak-rewards";
-import { Trophy, ArrowLeft, TrendingUp, Target, Flame } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { useMyProfilePage } from "@/features/users/hooks/use-my-profile-page";
 
+/**
+ * MyProfilePage — T-4.5-E2: Implements 60-second polling on active profile tab.
+ *
+ * Source epic:   Epic 4.5 — Personal activity feed + ranking + badges + tournament history + my-attempts list.
+ * Source ticket: T-4.5-E2.
+ *
+ * Features:
+ * - Active tab polls every 60 seconds for new badges/ranking
+ * - Inactive tabs do not poll
+ * - SWR revalidation on window focus still works
+ */
 const MyProfilePage = memo(function MyProfilePage() {
   const {
     activeTab,
     setActiveTab,
     currentUser,
-    recentActivities,
-    averageScore,
-    winRate,
-    totalQuizzes,
-    quizzesCreated,
     currentLevelXP,
     nextLevelXP,
     levelProgress,
@@ -51,9 +53,6 @@ const MyProfilePage = memo(function MyProfilePage() {
     );
   }
 
-  // Unlocked badges count
-  const unlockedBadges = badges.filter((b) => b.unlocked).length;
-
   return (
     <main className="min-h-screen flex items-start justify-center pt-10 pb-20">
       <div className="w-full max-w-7xl">
@@ -71,38 +70,6 @@ const MyProfilePage = memo(function MyProfilePage() {
 
         {/* Profile Header */}
         <ProfileHeader user={currentUser} />
-
-        {/* Quick Stats Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
-          <StatsCard
-            icon={TrendingUp}
-            iconColor="text-green-500"
-            iconBgColor="bg-green-500/10"
-            value={`${averageScore.toFixed(1)}%`}
-            label="Average Score"
-          />
-          <StatsCard
-            icon={Flame}
-            iconColor="text-amber-500"
-            iconBgColor="bg-amber-500/10"
-            value={currentUser.streak || 0}
-            label="Day Streak"
-          />
-          <StatsCard
-            icon={Trophy}
-            iconColor="text-purple-500"
-            iconBgColor="bg-purple-500/10"
-            value={`#${currentUser.rank}`}
-            label="Global Rank"
-          />
-          <StatsCard
-            icon={Target}
-            iconColor="text-blue-500"
-            iconBgColor="bg-blue-500/10"
-            value={`${winRate}%`}
-            label="Win Rate"
-          />
-        </div>
 
         {/* Main Content */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
@@ -160,57 +127,33 @@ const MyProfilePage = memo(function MyProfilePage() {
               {/* Overview Tab */}
               <TabsContent value="overview">
                 <OverviewTab
-                  user={currentUser}
+                  level={currentUser.level ?? 1}
                   currentLevelXP={currentLevelXP}
                   nextLevelXP={nextLevelXP}
                   levelProgress={levelProgress}
-                  recentActivities={recentActivities}
-                  badges={badges}
-                  unlockedBadges={unlockedBadges}
-                  onViewAllActivity={() => setActiveTab("activity")}
-                  onViewAllBadges={() => setActiveTab("achievements")}
                 />
               </TabsContent>
 
               {/* Activity Tab */}
               <TabsContent value="activity" className="space-y-4 mt-6">
-                {recentActivities.map((activity) => (
-                  <ActivityItem
-                    key={activity.id}
-                    icon={activity.icon}
-                    title={activity.title}
-                    date={activity.date}
-                  />
-                ))}
+                <ActivityTimeline />
               </TabsContent>
 
               {/* My Quizzes Tab */}
               <TabsContent value="quizzes">
-                <QuizzesTab
-                  totalQuizzes={totalQuizzes}
-                  quizzesCreated={quizzesCreated}
-                  quizHistory={challengeData}
-                />
+                <QuizzesTab />
               </TabsContent>
 
               {/* Achievements Tab */}
               <TabsContent value="achievements">
                 <AchievementsTab
-                  badges={badges}
-                  unlockedBadges={unlockedBadges}
-                  streakRewards={streakRewards}
-                  currentStreak={currentUser.streak || 0}
+                  refreshInterval={activeTab === 'achievements' ? 60000 : undefined}
                 />
               </TabsContent>
 
               {/* Statistics Tab */}
               <TabsContent value="stats">
-                <StatisticsTab
-                  user={currentUser}
-                  averageScore={averageScore}
-                  winRate={winRate}
-                  quizHistory={challengeData}
-                />
+                <StatisticsTab />
               </TabsContent>
 
               {/* Edit Tab — TKT-4.3.D2 */}
@@ -222,11 +165,7 @@ const MyProfilePage = memo(function MyProfilePage() {
 
           {/* Right Column - Sidebar */}
           <div className="lg:col-span-1 space-y-6">
-            <QuickStatsSidebar
-              user={currentUser}
-              bestCategory={challengeData[0]?.category || "History"}
-              mostPlayed={challengeData[1]?.category || "Science"}
-            />
+            <QuickStatsSidebar />
             <QuickActions />
           </div>
         </div>

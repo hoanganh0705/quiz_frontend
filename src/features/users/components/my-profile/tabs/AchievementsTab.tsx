@@ -1,130 +1,47 @@
-import { memo } from 'react'
-// Fix barrel imports (bundle-barrel-imports)
-import { Card } from '@/components/ui/Card'
-import { CardContent } from '@/components/ui/Card'
-import { CardHeader } from '@/components/ui/Card'
-import { CardTitle } from '@/components/ui/Card'
-import { Badge } from '@/components/ui/Badge'
-import { Award, Gift, Flame } from 'lucide-react'
+/**
+ * `AchievementsTab` — displays badges and ranking.
+ *
+ * Source epic:   Epic 4.5 — Personal activity feed + ranking + badges + tournament history + my-attempts list.
+ * Source ticket: T-4.5-D2.
+ *
+ * Rewrites AchievementsTab to display BadgeGallery and RankingPanel side by side.
+ */
 
-interface BadgeItem {
-  id: string
-  name: string
-  icon: React.ComponentType<{ className?: string }>
-  color: string
-  bgColor: string
-  unlocked: boolean
-}
+import { memo } from 'react';
 
-interface StreakReward {
-  id: string
-  days: number
-  reward: string
-}
+import { Card } from '@/components/ui/Card';
+import { CardContent } from '@/components/ui/Card';
+import { CardHeader } from '@/components/ui/Card';
+import { CardTitle } from '@/components/ui/Card';
 
-interface AchievementsTabProps {
-  badges: BadgeItem[]
-  unlockedBadges: number
-  streakRewards: StreakReward[]
-  currentStreak: number
-}
+import { BadgeGallery } from '../BadgeGallery';
+import { RankingPanel } from '../RankingPanel';
 
+/**
+ * Achievements tab with badges gallery and ranking panel.
+ *
+ * @param refreshInterval - Optional polling interval in ms (e.g., 60000 for 60s)
+ */
 export const AchievementsTab = memo(function AchievementsTab({
-  badges,
-  unlockedBadges,
-  streakRewards,
-  currentStreak
-}: AchievementsTabProps) {
+  refreshInterval,
+}: {
+  /** Optional polling interval in ms (e.g., 60000 for 60s) */
+  refreshInterval?: number;
+}) {
   return (
-    <div className='mt-6'>
-      <Card className='p-4'>
-        <CardHeader>
-          <CardTitle className='text-base flex items-center gap-2'>
-            <Award className='w-4 h-4 text-purple-500' aria-hidden='true' />
-            All Badges ({unlockedBadges}/{badges.length} Unlocked)
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div
-            className='grid grid-cols-2 md:grid-cols-3 gap-4'
-            role='list'
-            aria-label='Achievement badges'
-          >
-            {badges.map((badge) => {
-              const IconComponent = badge.icon
-              return (
-                <div
-                  key={badge.id}
-                  className={`flex flex-col items-center gap-2 p-4 rounded-lg border transition-transform ${badge.unlocked ? 'border-border hover:scale-[1.02] animate-in fade-in zoom-in-95 duration-300' : 'border-border/50 opacity-50'} ${badge.bgColor}`}
-                  role='listitem'
-                  aria-label={`${badge.name} badge - ${badge.unlocked ? 'unlocked' : 'locked'}`}
-                >
-                  <IconComponent
-                    className={`w-8 h-8 ${badge.color}`}
-                    aria-hidden='true'
-                  />
-                  <span className={`text-sm font-medium ${badge.color}`}>
-                    {badge.name}
-                  </span>
-                  <span className='text-xs text-muted-foreground'>
-                    {badge.unlocked ? 'Unlocked' : 'Locked'}
-                  </span>
-                  {badge.unlocked && (
-                    <span className='text-xs text-amber-500 animate-pulse'>
-                      New achievement
-                    </span>
-                  )}
-                </div>
-              )
-            })}
-          </div>
-        </CardContent>
-      </Card>
+    <div className='mt-6 space-y-6'>
+      {/* Ranking Section */}
+      <RankingPanel refreshInterval={refreshInterval} />
 
-      {/* Streak Rewards */}
-      <Card className='mt-4 p-4'>
+      {/* Badges Section */}
+      <Card>
         <CardHeader>
-          <CardTitle className='text-base flex items-center gap-2'>
-            <Gift className='w-4 h-4 text-amber-500' aria-hidden='true' />
-            Streak Rewards
-          </CardTitle>
+          <CardTitle className='text-base'>Badges</CardTitle>
         </CardHeader>
         <CardContent>
-          <div
-            className='grid grid-cols-2 md:grid-cols-4 gap-4'
-            role='list'
-            aria-label='Streak rewards'
-          >
-            {streakRewards.map((reward) => (
-              <div
-                key={reward.id}
-                className={`flex flex-col items-center gap-2 p-4 rounded-lg border ${currentStreak >= reward.days ? 'border-amber-500/50 bg-amber-500/10 animate-in fade-in zoom-in-95 duration-300' : 'border-border bg-muted/30'}`}
-                role='listitem'
-                aria-label={`${reward.days} day streak reward - ${currentStreak >= reward.days ? 'claimed' : 'locked'}`}
-              >
-                <Flame
-                  className={`w-6 h-6 ${currentStreak >= reward.days ? 'text-amber-500' : 'text-muted-foreground'}`}
-                  aria-hidden='true'
-                />
-                <span className='text-lg font-bold text-foreground'>
-                  {reward.days} Days
-                </span>
-                <span className='text-xs text-muted-foreground text-center'>
-                  {reward.reward}
-                </span>
-                {currentStreak >= reward.days && (
-                  <Badge
-                    variant='outline'
-                    className='text-xs border-green-500/30 text-green-500'
-                  >
-                    Claimed
-                  </Badge>
-                )}
-              </div>
-            ))}
-          </div>
+          <BadgeGallery refreshInterval={refreshInterval} />
         </CardContent>
       </Card>
     </div>
-  )
-})
+  );
+});
