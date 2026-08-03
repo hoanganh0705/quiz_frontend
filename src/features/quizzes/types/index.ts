@@ -110,3 +110,14 @@ export {
   getQuestionEditorCopy,
   getRateLimitCopy,
 } from './constants/question-errors';
+
+// Epic 4.11 — Publish flow types (T-4.11.2)
+export {
+  PUBLISH_MIN_QUESTIONS,
+  publishResultKey,
+  computePublishReadiness,
+} from './publish.types';
+export type {
+  PublishReadiness,
+  PublishResult,
+} from './publish.types';

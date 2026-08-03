@@ -37,6 +37,8 @@ import {
   useQuizVersion,
   useCreateVersion,
   useUpdateVersion,
+  usePublishVersion,
+  usePublishReadiness,
 } from '@/features/quizzes/hooks';
 
 import { QuizEditHeader } from './QuizEditHeader';
@@ -44,8 +46,9 @@ import { QuizVersionTabs } from './QuizVersionTabs';
 import { QuizVersionList } from './QuizVersionList';
 import { VersionImmutableBanner } from './VersionImmutableBanner';
 import { QuizEditForm } from './QuizEditForm';
-
-import type { QuizVersionSummary } from '@/features/quizzes/types/quiz-version.types';
+import { PublishReadinessBanner } from './PublishReadinessBanner';
+import { PublishConfirmDialog } from './PublishConfirmDialog';
+import { EditPublishedQuizCTA } from './EditPublishedQuizCTA';
 
 // ─── Tab type ────────────────────────────────────────────────────────────────
 
@@ -134,6 +137,9 @@ export const QuizEditPage = memo(function QuizEditPage({
   const [versionNotFoundError, setVersionNotFoundError] = useState(false);
   const [slugConflictError, setSlugConflictError] = useState<string | null>(null);
 
+  // ── Publish state ─────────────────────────────────────────────────────────
+  const [showPublishConfirm, setShowPublishConfirm] = useState(false);
+
   // ── Toast helper ─────────────────────────────────────────────────────────
 
   const showToast = useCallback(
@@ -217,6 +223,38 @@ export const QuizEditPage = memo(function QuizEditPage({
       void versionsResult.refresh();
     },
   });
+
+  // ── Publish version ──────────────────────────────────────────────────────
+
+  const {
+    publishVersion,
+    isLoading: isPublishing,
+    error: publishError,
+    resetError: resetPublishError,
+  } = usePublishVersion({
+    onSuccess: (version) => {
+      addSentryBreadcrumb('user-action', 'Published quiz version', {
+        versionId: version.quizVersionId,
+      });
+      showToast('Published', 'Your quiz is now live on /quizzes!');
+      void versionsResult.refresh();
+      // Navigate to the public quiz page
+      if (quiz?.slug) {
+        router.push(`/quizzes/${quiz.slug}`);
+      }
+    },
+    onError: (error) => {
+      addSentryBreadcrumb('error', 'Publish failed', {
+        code: error.code,
+        status: error.status,
+      });
+    },
+  });
+
+  // ── Publish readiness ────────────────────────────────────────────────────
+
+  const questionCount = activeVersion?.questions?.length ?? 0;
+  const readiness = usePublishReadiness({ questionCount });
 
   // ── Handle version selection ──────────────────────────────────────────────
 
@@ -353,6 +391,35 @@ export const QuizEditPage = memo(function QuizEditPage({
     }
   }, [createVersionError, updateVersionError, addSentryBreadcrumb, showToast]);
 
+  // ── Handle publish errors ─────────────────────────────────────────────────
+
+  useEffect(() => {
+    if (!publishError) return;
+
+    if (publishError.code === 'QUIZ_INSUFFICIENT_QUESTIONS') {
+      showToast(
+        'Cannot publish yet',
+        'Add at least 5 questions to publish this quiz.'
+      );
+    } else if (publishError.code === 'QUIZ_VERSION_IMMUTABLE') {
+      showToast(
+        'Version already published',
+        'Reloading to show the published state.'
+      );
+      router.reload();
+    } else if (publishError.code === 'GLOBAL_RATE_LIMITED') {
+      showToast('Too many requests', 'Please wait a moment before trying again.');
+    } else if ((publishError.status ?? 0) >= 500) {
+      showToast(
+        'Something went wrong',
+        'Please try again. If the problem persists, contact support.'
+      );
+    } else {
+      const copy = getUserCopy(publishError.code);
+      showToast(copy.title, copy.body);
+    }
+  }, [publishError, showToast, router]);
+
   // ── Handle update version errors ─────────────────────────────────────────
 
   useEffect(() => {
@@ -387,17 +454,6 @@ export const QuizEditPage = memo(function QuizEditPage({
     activeTab === 'drafts' ? v.status === 'draft' : v.status === 'published'
   );
 
-  // ── Check if version has enough questions to publish ─────────────────────
-
-  const isVersionReadyToPublish = useCallback(
-    (version: QuizVersionSummary) => {
-      const questionCount = (version as { questions?: unknown[] }).questions
-        ?.length ?? 0;
-      return questionCount >= 5;
-    },
-    []
-  );
-
   // ── Compute isImmutable (for published version selected) ─────────────────
 
   const isImmutableBannerShown =
@@ -424,14 +480,22 @@ export const QuizEditPage = memo(function QuizEditPage({
     [addSentryBreadcrumb, router, quizId]
   );
 
-  const handlePublish = useCallback(
-    (_versionId: string) => {
-      addSentryBreadcrumb('user-action', 'Publish version clicked');
-      // Publish action would be implemented here
-      showToast('Publish', 'Publish functionality is coming soon.');
-    },
-    [addSentryBreadcrumb, showToast]
-  );
+  // ── Handle publish ──────────────────────────────────────────────────────────
+
+  const handlePublishClick = useCallback(() => {
+    addSentryBreadcrumb('user-action', 'Publish clicked');
+    setShowPublishConfirm(true);
+  }, [addSentryBreadcrumb]);
+
+  const handlePublishConfirm = useCallback(async () => {
+    if (!quizId || !activeVersionId) return;
+    resetPublishError();
+    try {
+      await publishVersion(quizId, activeVersionId);
+    } catch {
+      // Error is handled by the hook's onError callback
+    }
+  }, [quizId, activeVersionId, publishVersion, resetPublishError]);
 
   const handleDelete = useCallback(
     (_versionId: string) => {
@@ -501,9 +565,9 @@ export const QuizEditPage = memo(function QuizEditPage({
             isCreatingDraft={isCreatingVersion}
             onEdit={handleEdit}
             onAddQuestions={handleAddQuestions}
-            onPublish={handlePublish}
+            onPublish={handlePublishClick}
             onDelete={handleDelete}
-            isVersionReadyToPublish={isVersionReadyToPublish}
+            isVersionReadyToPublish={(v) => (v.questions?.length ?? 0) >= 5}
           />
         </div>
 
@@ -516,6 +580,18 @@ export const QuizEditPage = memo(function QuizEditPage({
                 <VersionImmutableBanner
                   onCreateNewDraft={handleNewVersion}
                   isCreating={isCreatingVersion}
+                />
+              )}
+
+              {/* Publish readiness banner — drafts only */}
+              {activeVersion && activeVersionIsDraft && (
+                <PublishReadinessBanner
+                  questionCount={questionCount}
+                  isReady={readiness.isReady}
+                  onPublish={handlePublishClick}
+                  onAddQuestions={() => handleAddQuestions(activeVersionId)}
+                  isPublishing={isPublishing}
+                  className="mb-4"
                 />
               )}
 
@@ -537,26 +613,22 @@ export const QuizEditPage = memo(function QuizEditPage({
                 />
               )}
 
-              {/* Published version view (read-only) */}
+              {/* Published version view — show EditPublishedQuizCTA */}
               {activeVersion && !activeVersionIsDraft && !isImmutableBannerShown && (
-                <div className="rounded-lg border border-muted p-6">
-                  <div className="space-y-4">
-                    <h2 className="text-lg font-medium">
-                      Version {activeVersion.versionNumber}
-                    </h2>
-                    <p className="text-sm text-muted-foreground">
-                      This version was published. To make changes, create a new
-                      draft version.
-                    </p>
-                    <button
-                      type="button"
-                      className="text-sm text-primary hover:underline"
-                      onClick={handleNewVersion}
-                    >
-                      Create new draft version
-                    </button>
-                  </div>
-                </div>
+                <EditPublishedQuizCTA
+                  quizId={quizId}
+                  version={activeVersion}
+                  onDraftCreated={(newVersion) => {
+                    // Navigate to the new draft version
+                    router.push(`/my-quizzes/${quizId}/edit?versionId=${newVersion.quizVersionId}`);
+                  }}
+                  onError={(error) => {
+                    addSentryBreadcrumb('error', 'Failed to create draft from published version', {
+                      error: error instanceof Error ? error.message : String(error),
+                    });
+                  }}
+                  className="mb-4"
+                />
               )}
             </>
           ) : (
@@ -568,6 +640,18 @@ export const QuizEditPage = memo(function QuizEditPage({
           )}
         </div>
       </div>
+
+      {/* Publish confirmation dialog */}
+      <PublishConfirmDialog
+        open={showPublishConfirm}
+        quizTitle={quiz?.title}
+        onConfirm={handlePublishConfirm}
+        onCancel={() => {
+          setShowPublishConfirm(false);
+          resetPublishError();
+        }}
+        loading={isPublishing}
+      />
     </div>
   );
 });
