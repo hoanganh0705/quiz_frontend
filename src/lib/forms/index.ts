@@ -91,6 +91,10 @@ export {
   quizQuestionFormSchema,
   reviewFormSchema,
   versionEditFormSchema,
+  // User schemas (TKT-4.3.A1)
+  AT_LEAST_ONE_CHANNEL_MESSAGE,
+  updateMyProfileSchema,
+  updateMySettingsSchema,
 } from './presets';
 export type {
   BulkQuestionsFormValues,
@@ -102,4 +106,7 @@ export type {
   QuizQuestionFormValues,
   ReviewFormValues,
   VersionEditFormValues,
+  // User schema types (TKT-4.3.A1)
+  UpdateMyProfileFormValues,
+  UpdateMySettingsFormValues,
 } from './presets';

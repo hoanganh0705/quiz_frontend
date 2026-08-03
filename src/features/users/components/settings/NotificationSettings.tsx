@@ -1,353 +1,312 @@
-'use client'
+'use client';
 
-import { useState, memo, useMemo, useEffect } from 'react'
-import { Button } from '@/components/ui/Button'
-import { Switch } from '@/components/ui/Switch'
-import { Label } from '@/components/ui/Label'
+/**
+ * `NotificationSettings` — notification channel settings section.
+ *
+ * Source epic:   Epic 4.3 — Edit profile + user settings.
+ * Source ticket: TKT-4.3.C2.
+ *
+ * ## What this component owns
+ *
+ * Reads `notificationChannels` from `profile.settings` (passed as prop),
+ * renders toggle switches for each channel, and calls
+ * `useUpdateMySettings.mutate({ notificationChannels: updated })` on
+ * every change. The at-least-one-channel guard (schema-level validation
+ * in `updateMySettingsSchema`) is enforced at the UI level: the last
+ * enabled channel cannot be disabled — the toggle is blocked and a
+ * tooltip explains why.
+ *
+ * ## Diff from the previous version
+ *
+ * The old component managed state via `useState` and wrote to `localStorage`
+ * via an `onUpdate` prop. This version calls `PATCH /users/me/settings`
+ * and broadcasts `profile/updated` to other tabs.
+ */
+
+import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle
-} from '@/components/ui/Card'
-import { UserSettings } from '@/features/users/types'
-import { defaultSettings } from '@/features/users/constants/settings'
+  CardTitle,
+} from '@/components/ui/Card';
+import { Switch } from '@/components/ui/Switch';
+import { Label } from '@/components/ui/Label';
+import { Button } from '@/components/ui/Button';
+import { useToast } from '@/lib/forms/useToast';
+import { FormErrorBanner } from '@/components/primitives/form/FormErrorBanner';
+import { useUpdateMySettings } from '@/features/users/hooks/useUpdateMySettings';
+import type { UserMeResponseDto } from '@/features/users/types/user-backend';
 import {
   Bell,
   Mail,
   Smartphone,
-  Clock,
-  Users,
-  Trophy,
   Megaphone,
   Check,
-  Sparkles
-} from 'lucide-react'
+  Loader2,
+} from 'lucide-react';
 
-interface NotificationSettingsProps {
-  settings: UserSettings
-  onUpdate: (settings: Partial<UserSettings>) => void
+// ─── Props ─────────────────────────────────────────────────────────────────
+
+export interface NotificationSettingsProps {
+  /** The authenticated user's profile from `useMyProfile()`. */
+  profile: UserMeResponseDto | null;
 }
 
-interface NotificationItemProps {
-  icon: React.ReactNode
-  title: string
-  description: string
-  checked: boolean
-  onCheckedChange: (checked: boolean) => void
+// ─── Types ─────────────────────────────────────────────────────────────────
+
+interface NotificationChannel {
+  key: 'inApp' | 'email' | 'push' | 'marketing';
+  label: string;
+  description: string;
+  icon: React.ReactNode;
 }
 
-const NotificationItem = memo(function NotificationItem({
-  icon,
-  title,
-  description,
+const CHANNEL_ITEMS: NotificationChannel[] = [
+  {
+    key: 'inApp',
+    label: 'In-App Notifications',
+    description: 'Show notifications inside the app interface.',
+    icon: <Bell className="w-4 h-4" aria-hidden="true" />,
+  },
+  {
+    key: 'email',
+    label: 'Email Channel',
+    description: 'Allow notifications to be delivered to your email.',
+    icon: <Mail className="w-4 h-4" aria-hidden="true" />,
+  },
+  {
+    key: 'push',
+    label: 'Push Channel',
+    description: 'Allow browser/mobile push delivery when available.',
+    icon: <Smartphone className="w-4 h-4" aria-hidden="true" />,
+  },
+  {
+    key: 'marketing',
+    label: 'Marketing Channel',
+    description: 'Allow product updates, campaigns, and promotions.',
+    icon: <Megaphone className="w-4 h-4" aria-hidden="true" />,
+  },
+];
+
+// ─── Channel toggle item ─────────────────────────────────────────────────────
+
+interface ChannelToggleProps {
+  channel: NotificationChannel;
+  checked: boolean;
+  disabled: boolean;
+  isSaving: boolean;
+  isBlocked: boolean;
+  blockReason: string;
+  onToggle: (key: NotificationChannel['key'], checked: boolean) => void;
+}
+
+const ChannelToggle = memo(function ChannelToggle({
+  channel,
   checked,
-  onCheckedChange
-}: NotificationItemProps) {
+  disabled,
+  isSaving,
+  isBlocked,
+  blockReason,
+  onToggle,
+}: ChannelToggleProps) {
+  const [showBlockTooltip, setShowBlockTooltip] = useState(false);
+
+  const handleToggle = useCallback(
+    (nextChecked: boolean) => {
+      if (isBlocked) {
+        setShowBlockTooltip(true);
+        setTimeout(() => setShowBlockTooltip(false), 2500);
+        return;
+      }
+      onToggle(channel.key, nextChecked);
+    },
+    [isBlocked, channel.key, onToggle],
+  );
+
   return (
-    <div className='flex items-center justify-between py-4 border-b border-border/40 last:border-0'>
-      <div className='flex items-start gap-3'>
-        <div className='p-2 rounded-lg bg-primary/10 text-primary'>{icon}</div>
+    <div className="flex items-center justify-between py-4 border-b border-border/40 last:border-0">
+      <div className="flex items-start gap-3">
+        <div className="p-2 rounded-lg bg-primary/10 text-primary">{channel.icon}</div>
         <div>
-          <Label className='text-base font-medium'>{title}</Label>
-          <p className='text-sm text-muted-foreground'>{description}</p>
+          <Label className="text-base font-medium">{channel.label}</Label>
+          <p className="text-sm text-muted-foreground">{channel.description}</p>
+          {isBlocked && showBlockTooltip && (
+            <p className="text-xs text-destructive mt-1" role="alert">
+              {blockReason}
+            </p>
+          )}
         </div>
       </div>
-      <Switch
-        checked={checked}
-        onCheckedChange={onCheckedChange}
-        aria-label={`Toggle ${title}`}
-      />
+      <div className="flex items-center gap-2">
+        {isSaving && (
+          <Loader2
+            className="h-4 w-4 animate-spin text-muted-foreground"
+            aria-hidden="true"
+          />
+        )}
+        <Switch
+          checked={checked}
+          onCheckedChange={handleToggle}
+          disabled={disabled || isSaving}
+          aria-label={`Toggle ${channel.label}`}
+          aria-describedby={isBlocked ? `channel-blocked-${channel.key}` : undefined}
+        />
+        {isBlocked && (
+          <span
+            id={`channel-blocked-${channel.key}`}
+            className="sr-only"
+          >
+            {blockReason}
+          </span>
+        )}
+      </div>
     </div>
-  )
-})
+  );
+});
 
+// ─── Root component ─────────────────────────────────────────────────────────
+
+/**
+ * `<NotificationSettings profile={profile} />` — notification channel
+ * settings section. Calls `useUpdateMySettings` on each toggle change.
+ */
 export const NotificationSettings = memo(function NotificationSettings({
-  settings,
-  onUpdate
+  profile,
 }: NotificationSettingsProps) {
-  const [saveSuccess, setSaveSuccess] = useState(false)
-  const initialNotifications = useMemo(
-    () => ({ ...defaultSettings.notifications, ...settings.notifications }),
-    [settings.notifications]
-  )
-  const initialChannels = useMemo(
-    () => ({
-      ...defaultSettings.notificationChannels,
-      ...settings.notificationChannels
-    }),
-    [settings.notificationChannels]
-  )
-  const [notifications, setNotifications] = useState(initialNotifications)
-  const [channels, setChannels] = useState(initialChannels)
+  const updateSettings = useUpdateMySettings({});
+  const toast = useToast();
 
+  // Extract channels from the profile. Falls back to all-on defaults.
+  const defaultChannels = useMemo<
+    Record<'inApp' | 'email' | 'push' | 'marketing', boolean>
+  >(() => {
+    const stored =
+      (profile?.settings as Record<string, unknown> | undefined)
+        ?.notificationChannels as
+        | Record<string, boolean>
+        | undefined;
+    return {
+      inApp: stored?.inApp ?? true,
+      email: stored?.email ?? true,
+      push: stored?.push ?? true,
+      marketing: stored?.marketing ?? false,
+    };
+  }, [profile]);
+
+  // Current channel state (local optimistic state while saving).
+  const [localChannels, setLocalChannels] = useState(defaultChannels);
+
+  // Sync local channels when profile changes (after successful save).
   useEffect(() => {
-    setNotifications(initialNotifications)
-  }, [initialNotifications])
+    setLocalChannels(defaultChannels);
+  }, [defaultChannels]);
 
+  // Show toast on success.
   useEffect(() => {
-    setChannels(initialChannels)
-  }, [initialChannels])
-
-  const updateNotification = (
-    key: keyof typeof notifications,
-    value: boolean
-  ) => {
-    const updated = { ...notifications, [key]: value }
-    setNotifications(updated)
-    onUpdate({ notifications: updated })
-    setSaveSuccess(true)
-    setTimeout(() => setSaveSuccess(false), 2000)
-  }
-
-  const updateChannel = (key: keyof typeof channels, value: boolean) => {
-    const updatedChannels = { ...channels, [key]: value }
-    setChannels(updatedChannels)
-    onUpdate({ notificationChannels: updatedChannels })
-    setSaveSuccess(true)
-    setTimeout(() => setSaveSuccess(false), 2000)
-  }
-
-  const enableAll = () => {
-    const allEnabled = Object.keys(notifications).reduce(
-      (acc, key) => ({ ...acc, [key]: true }),
-      {}
-    ) as typeof notifications
-    const enabledChannels = Object.keys(channels).reduce(
-      (acc, key) => ({ ...acc, [key]: true }),
-      {}
-    ) as typeof channels
-
-    setNotifications(allEnabled)
-    setChannels(enabledChannels)
-    onUpdate({
-      notifications: allEnabled,
-      notificationChannels: enabledChannels
-    })
-    setSaveSuccess(true)
-    setTimeout(() => setSaveSuccess(false), 2000)
-  }
-
-  const disableAll = () => {
-    const allDisabled = Object.keys(notifications).reduce(
-      (acc, key) => ({ ...acc, [key]: false }),
-      {}
-    ) as typeof notifications
-    const disabledChannels = Object.keys(channels).reduce(
-      (acc, key) => ({ ...acc, [key]: false }),
-      {}
-    ) as typeof channels
-
-    setNotifications(allDisabled)
-    setChannels(disabledChannels)
-    onUpdate({
-      notifications: allDisabled,
-      notificationChannels: disabledChannels
-    })
-    setSaveSuccess(true)
-    setTimeout(() => setSaveSuccess(false), 2000)
-  }
-
-  const channelItems: Array<{
-    key: keyof typeof channels
-    title: string
-    description: string
-    icon: React.ReactNode
-  }> = [
-    {
-      key: 'inApp',
-      title: 'In-App Notifications',
-      description: 'Show notifications inside the app interface',
-      icon: <Bell className='w-4 h-4' aria-hidden='true' />
-    },
-    {
-      key: 'email',
-      title: 'Email Channel',
-      description: 'Allow notifications to be delivered to your email',
-      icon: <Mail className='w-4 h-4' aria-hidden='true' />
-    },
-    {
-      key: 'push',
-      title: 'Push Channel',
-      description: 'Allow browser/mobile push delivery when available',
-      icon: <Smartphone className='w-4 h-4' aria-hidden='true' />
-    },
-    {
-      key: 'marketing',
-      title: 'Marketing Channel',
-      description: 'Allow product updates, campaigns, and promotions',
-      icon: <Megaphone className='w-4 h-4' aria-hidden='true' />
+    if (updateSettings.isSuccess) {
+      toast.push({
+        title: 'Notification preferences saved',
+        body: 'Your changes have been saved.',
+        durationMs: 3000,
+      });
+      updateSettings.resetError();
     }
-  ]
+  }, [updateSettings.isSuccess, toast, updateSettings]);
+
+  // Count how many channels are currently enabled.
+  const enabledCount = useMemo(
+    () => Object.values(localChannels).filter(Boolean).length,
+    [localChannels],
+  );
+
+  const blockReason = 'At least one notification channel is required.';
+
+  const handleToggle = useCallback(
+    async (key: NotificationChannel['key'], checked: boolean) => {
+      // At-least-one-channel guard: if this is the last enabled channel,
+      // block the toggle at the UI level.
+      if (!checked && enabledCount === 1) {
+        return; // blocked — the ChannelToggle handles the tooltip.
+      }
+
+      const updatedChannels = { ...localChannels, [key]: checked };
+      setLocalChannels(updatedChannels);
+
+      await updateSettings.mutate(
+        { preferences: { notificationChannels: updatedChannels } as unknown as Record<string, unknown> } as Parameters<typeof updateSettings.mutate>[0],
+      );
+    },
+    [localChannels, enabledCount, updateSettings],
+  );
+
+  const isSaving = updateSettings.isPending;
+
+  if (!profile) {
+    return (
+      <div className="space-y-6">
+        <div className="h-16 animate-pulse rounded-lg bg-muted" />
+        <div className="h-48 animate-pulse rounded-lg bg-muted" />
+      </div>
+    );
+  }
 
   return (
-    <div className='space-y-6'>
-      {/* Quick Actions */}
-      <div className='flex items-center justify-between'>
-        <div>
-          <h3 className='text-lg font-semibold'>Notification Preferences</h3>
-          <p className='text-sm text-muted-foreground'>
-            Choose what notifications you want to receive
-          </p>
-        </div>
-        <div className='flex gap-2'>
-          <Button variant='outline' size='sm' onClick={enableAll}>
-            Enable All
-          </Button>
-          <Button variant='outline' size='sm' onClick={disableAll}>
-            Disable All
-          </Button>
-        </div>
-      </div>
-
-      {saveSuccess && (
-        <div className='flex items-center gap-2 text-green-500 text-sm p-3 bg-green-500/10 rounded-lg'>
-          <Check className='w-4 h-4' aria-hidden='true' />
-          Notification preferences saved!
-        </div>
+    <div className="space-y-6">
+      {/* Error banner */}
+      {updateSettings.lastError && (
+        <FormErrorBanner
+          lastError={
+            updateSettings.lastError
+              ? {
+                  ...updateSettings.lastError,
+                  code: updateSettings.lastApiError?.code ?? 'GLOBAL_UNKNOWN',
+                }
+              : null
+          }
+          onDismiss={updateSettings.resetError}
+        />
       )}
 
-      <Card className='border-border/40 py-4'>
+      {/* Header */}
+      <div>
+        <h3 className="text-lg font-semibold">Notification Preferences</h3>
+        <p className="text-sm text-muted-foreground">
+          Choose what notifications you want to receive.
+        </p>
+      </div>
+
+      {/* Delivery channels */}
+      <Card className="border-border/40 py-4">
         <CardHeader>
-          <CardTitle className='flex items-center gap-2'>
-            <Smartphone className='w-5 h-5 text-primary' aria-hidden='true' />
+          <CardTitle className="flex items-center gap-2">
+            <Smartphone className="w-5 h-5 text-primary" aria-hidden="true" />
             Delivery Channels
           </CardTitle>
           <CardDescription>
-            Choose where notifications are delivered (stored locally for now)
+            Choose where notifications are delivered. At least one channel must
+            remain enabled.
           </CardDescription>
         </CardHeader>
-        <CardContent className='space-y-0'>
-          {channelItems.map((item) => (
-            <NotificationItem
-              key={item.key}
-              icon={item.icon}
-              title={item.title}
-              description={item.description}
-              checked={channels[item.key]}
-              onCheckedChange={(checked) => updateChannel(item.key, checked)}
-            />
-          ))}
-        </CardContent>
-      </Card>
-
-      {/* Email & Push Notifications */}
-      <Card className='border-border/40 py-4'>
-        <CardHeader>
-          <CardTitle className='flex items-center gap-2'>
-            <Bell className='w-5 h-5 text-primary' aria-hidden='true' />
-            General Notifications
-          </CardTitle>
-          <CardDescription>
-            Manage how you receive notifications
-          </CardDescription>
-        </CardHeader>
-        <CardContent className='space-y-0'>
-          <NotificationItem
-            icon={<Mail className='w-4 h-4' aria-hidden='true' />}
-            title='Email Notifications'
-            description='Receive notifications via email'
-            checked={notifications.emailNotifications}
-            onCheckedChange={(checked) =>
-              updateNotification('emailNotifications', checked)
-            }
-          />
-          <NotificationItem
-            icon={<Smartphone className='w-4 h-4' aria-hidden='true' />}
-            title='Push Notifications'
-            description='Receive push notifications on your devices'
-            checked={notifications.pushNotifications}
-            onCheckedChange={(checked) =>
-              updateNotification('pushNotifications', checked)
-            }
-          />
-        </CardContent>
-      </Card>
-
-      {/* Activity Notifications */}
-      <Card className='border-border/40 py-4'>
-        <CardHeader>
-          <CardTitle className='flex items-center gap-2'>
-            <Sparkles className='w-5 h-5 text-primary' aria-hidden='true' />
-            Activity Notifications
-          </CardTitle>
-          <CardDescription>
-            Stay updated on quiz activities and social interactions
-          </CardDescription>
-        </CardHeader>
-        <CardContent className='space-y-0'>
-          <NotificationItem
-            icon={<Clock className='w-4 h-4' aria-hidden='true' />}
-            title='Quiz Reminders'
-            description='Get reminded about scheduled quizzes and daily challenges'
-            checked={notifications.quizReminders}
-            onCheckedChange={(checked) =>
-              updateNotification('quizReminders', checked)
-            }
-          />
-          <NotificationItem
-            icon={<Users className='w-4 h-4' aria-hidden='true' />}
-            title='Friend Requests'
-            description='Notify when someone sends you a friend request'
-            checked={notifications.friendRequests}
-            onCheckedChange={(checked) =>
-              updateNotification('friendRequests', checked)
-            }
-          />
-          <NotificationItem
-            icon={<Trophy className='w-4 h-4' aria-hidden='true' />}
-            title='Challenge Invites'
-            description='Get notified when friends challenge you to a quiz'
-            checked={notifications.challengeInvites}
-            onCheckedChange={(checked) =>
-              updateNotification('challengeInvites', checked)
-            }
-          />
-          <NotificationItem
-            icon={<Sparkles className='w-4 h-4' aria-hidden='true' />}
-            title='Achievement Alerts'
-            description='Celebrate when you unlock new achievements'
-            checked={notifications.achievementAlerts}
-            onCheckedChange={(checked) =>
-              updateNotification('achievementAlerts', checked)
-            }
-          />
-        </CardContent>
-      </Card>
-
-      {/* Marketing & Updates */}
-      <Card className='border-border/40 py-4'>
-        <CardHeader>
-          <CardTitle className='flex items-center gap-2'>
-            <Megaphone className='w-5 h-5 text-primary' aria-hidden='true' />
-            Updates & Marketing
-          </CardTitle>
-          <CardDescription>
-            Stay informed about new features and promotions
-          </CardDescription>
-        </CardHeader>
-        <CardContent className='space-y-0'>
-          <NotificationItem
-            icon={<Mail className='w-4 h-4' aria-hidden='true' />}
-            title='Weekly Digest'
-            description='Receive a weekly summary of your quiz activities'
-            checked={notifications.weeklyDigest}
-            onCheckedChange={(checked) =>
-              updateNotification('weeklyDigest', checked)
-            }
-          />
-          <NotificationItem
-            icon={<Megaphone className='w-4 h-4' aria-hidden='true' />}
-            title='Marketing Emails'
-            description='Receive promotional offers and new feature announcements'
-            checked={notifications.marketingEmails}
-            onCheckedChange={(checked) =>
-              updateNotification('marketingEmails', checked)
-            }
-          />
+        <CardContent className="space-y-0">
+          {CHANNEL_ITEMS.map((channel) => {
+            const isLastEnabled = !localChannels[channel.key] && enabledCount === 1;
+            return (
+              <ChannelToggle
+                key={channel.key}
+                channel={channel}
+                checked={localChannels[channel.key]}
+                disabled={false}
+                isSaving={isSaving}
+                isBlocked={isLastEnabled}
+                blockReason={blockReason}
+                onToggle={handleToggle}
+              />
+            );
+          })}
         </CardContent>
       </Card>
     </div>
-  )
-})
+  );
+});

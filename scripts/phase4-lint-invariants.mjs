@@ -69,7 +69,7 @@ const USAGE = `Usage:
   node scripts/phase4-lint-invariants.mjs [--check <name>] [--strict] [--help]
 
 Default checks (always run):
-  no-axios       No \`from 'axios'\` or \`fetch(\` under the six Phase 4 features.
+  no-axios       No \`from 'axios'\` or \`fetch(\` under the seven Phase 4 features.
   no-leaks       No \`data\` / \`meta\` envelope reads under src/features/<feature>/components/.
 
 Opt-in check (requires --check consumers OR --strict):
@@ -78,6 +78,7 @@ Opt-in check (requires --check consumers OR --strict):
 Flags:
   --check <name>  Run only the named check (repeatable).
   --strict        Enable ALL checks, including consumers.
+  --users-only    Run only the users feature checks (shortcut for --check no-axios --check no-leaks).
   --openapi <p>   Override the OpenAPI artifact path.
   --features <d>  Override the features directory root.
   --sdk <d>       Override the generated SDK directory.
@@ -113,6 +114,8 @@ for (let i = 0; i < args.length; i += 1) {
     featuresDir = path.resolve(process.cwd(), args[++i]);
   } else if (a === "--sdk") {
     sdkDir = path.resolve(process.cwd(), args[++i]);
+  } else if (a === "--users-only") {
+    selectedChecks.add("users-only");
   } else if (a === "--strict") {
     // Late-applied in the strict-detection pass below.
   } else {
@@ -123,11 +126,15 @@ for (let i = 0; i < args.length; i += 1) {
 
 const RUN_ALL = selectedChecks.size === 0;
 let strict = false;
-for (const a of args) if (a === "--strict") strict = true;
+let usersOnly = false;
+for (const a of args) {
+  if (a === "--strict") strict = true;
+  if (a === "--users-only") usersOnly = true;
+}
 
 const checks = [
-  ["no-axios", RUN_ALL || selectedChecks.has("no-axios")],
-  ["no-leaks", RUN_ALL || selectedChecks.has("no-leaks")],
+  ["no-axios", RUN_ALL || selectedChecks.has("no-axios") || usersOnly],
+  ["no-leaks", RUN_ALL || selectedChecks.has("no-leaks") || usersOnly],
   ["consumers", strict || selectedChecks.has("consumers")],
 ];
 
@@ -161,6 +168,9 @@ const PHASE4_FEATURES = [
   "attempts",
   "users",
 ];
+
+// When --users-only is set, scope all checks to the users feature only.
+const targetFeatures = usersOnly ? ["users"] : PHASE4_FEATURES;
 
 // ─── Recursive file walker ───────────────────────────────────────────
 
@@ -199,7 +209,7 @@ async function walkFiles(root, filter = () => true) {
 
 async function checkNoAxios() {
   const offenders = [];
-  for (const feature of PHASE4_FEATURES) {
+  for (const feature of targetFeatures) {
     const root = path.join(featuresDir, feature);
     try {
       statSync(root);
@@ -257,10 +267,14 @@ const LEAK_PATTERNS = [
 
 async function checkNoLeaks() {
   const offenders = [];
+  // When --users-only, scope to features/users only; otherwise all Phase 4 features.
+  const leakRoot = usersOnly
+    ? path.join(featuresDir, "users")
+    : featuresDir;
   // Scope: any .ts/.tsx file under src/features/**/components/**
   // (recursive). App routes are excluded.
   const files = await walkFiles(
-    featuresDir,
+    leakRoot,
     (f) =>
       /\.(ts|tsx)$/.test(f) &&
       !/\.spec\.tsx?$/.test(f) &&

@@ -18,12 +18,17 @@
  */
 
 import { getUsers } from '@/lib/api';
+import type { UserMeResponseDto } from '@/lib/api/generated/schemas';
 
 export type {
   UserControllerMeResult,
 } from '@/lib/api/generated/users/users';
 
-export async function getCurrentUser() {
+export async function getCurrentUser(): Promise<UserMeResponseDto> {
   const sdk = getUsers();
-  return sdk.userControllerMe();
+  const response = await sdk.userControllerMe();
+  if (!response.data) {
+    throw new Error('User not found');
+  }
+  return response.data;
 }
