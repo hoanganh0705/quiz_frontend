@@ -6,6 +6,7 @@ import { notFound } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 import { useQuizByIdOrSlug } from '@/features/quizzes/hooks/useQuizByIdOrSlug';
 import { useQuizStatsByIdOrSlug } from '@/features/quizzes/hooks/useQuizStatsByIdOrSlug';
+import { CommentsWidget } from '@/features/comments/components/CommentsWidget';
 
 import { QuizByline } from './QuizByline';
 import { QuizCtaStrip } from './QuizCtaStrip';
@@ -110,6 +111,7 @@ export function QuizDetailPage({ idOrSlug }: QuizDetailPageProps) {
       />
       <QuizCtaStrip quizId={quiz.quizId} className='mt-6' />
       <QuizRelatedQuizzes idOrSlug={idOrSlug} className='mt-10' />
+      <CommentsWidget quizId={quiz.quizId} />
     </div>
   );
 }

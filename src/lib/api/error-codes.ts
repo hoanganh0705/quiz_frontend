@@ -757,6 +757,16 @@ const PHASE4_PRIORITY_COPY: Partial<Record<ErrorCode, UserCopyEntry>> = {
     body: 'You have already reported this comment. A moderator will review it shortly.',
     toast: 'inline',
   },
+  COMMENT_PARENT_COMMENT_CROSS_THREAD: {
+    title: 'Replies must stay in the same thread',
+    body: 'Replies must be posted under the same comment thread.',
+    toast: 'inline',
+  },
+  COMMENT_MODERATOR_REQUIRED: {
+    title: 'Moderator access required',
+    body: 'You need moderator permissions for this action.',
+    toast: 'top',
+  },
   COLLECTION_CONFLICT: {
     title: 'Collection name already in use',
     body: 'You already have a bookmark collection with this name. Choose a different name.',
