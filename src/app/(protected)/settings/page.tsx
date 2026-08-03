@@ -12,19 +12,17 @@ import {
   ConnectedAccounts,
   DangerZone,
 } from "@/features/users/components/settings";
-import { useLocalStorage } from "@/shared/hooks/use-local-storage";
-import { UserSettings, UserSettingsTabId } from "@/features/users/types";
-import { defaultSettings } from "@/features/users/constants/settings";
-import { User, Bell, Shield, Globe, Link2, AlertTriangle } from "lucide-react";
+import { useMyProfile } from "@/features/users/hooks/useMyProfile";
 import { useLogoutAll } from "@/features/auth/hooks/use-logout-all";
 import { useDeleteAccount } from "@/features/auth/hooks/use-delete-account";
 import { DeleteAccountModal } from "@/features/auth/components/delete-account-modal";
 import { runDeletionFinalization } from "@/features/auth/lifecycle/deletion-finalization";
 import { buildDeletionReplaceHistory } from "@/features/auth/lifecycle/deletion-history";
 import { DELETION_PUBLIC_LANDING_PATH } from "@/features/auth/lifecycle/deletion-history";
+import { User, Bell, Shield, Globe, Link2, AlertTriangle } from "lucide-react";
 
 const settingsTabs: {
-  id: UserSettingsTabId;
+  id: string;
   label: string;
   icon: React.ReactNode;
 }[] = [
@@ -60,17 +58,31 @@ const settingsTabs: {
   },
 ];
 
+/**
+ * `SettingsPage` — the settings page, rewritten to use the API.
+ *
+ * Source epic:   Epic 4.3 — Edit profile + user settings.
+ * Source batch:  Batch E (TKT-4.3.E1).
+ *
+ * ## Diff from the previous version
+ *
+ * The old page managed `settings` via `useLocalStorage` and passed them down
+ * via `settings` + `onUpdate` props. This version:
+ *
+ *   - Reads `profile` from `useMyProfile()` (which wraps the Zustand user store
+ *     and subscribes to `profile/updated` cross-tab events).
+ *   - Passes `profile` to each settings section.
+ *   - Each section owns its own mutation via `useUpdateMySettings` /
+ *     `useUpdateMyProfile`.
+ *   - The page only orchestrates: `useLogoutAll`, `useDeleteAccount`,
+ *     and the `DeleteAccountModal`.
+ */
 const SettingsPage = memo(function SettingsPage() {
-  const [settings, setSettings] = useLocalStorage<UserSettings>(
-    "user_settings",
-    defaultSettings,
-  );
-
+  const { profile, isHydrated } = useMyProfile();
   const logoutAll = useLogoutAll();
 
-  // T18: real destructive-deletion flow. The hook owns the request
-  // lifecycle; the modal owns the UI. We inject `finalize` so the
-  // coordinator runs history replacement (T20) before navigation.
+  // ── Deletion flow (unchanged — Epic 2.10) ─────────────────────────────
+
   const router = useRouter();
   const deletion = useDeleteAccount({
     finalize: async () => {
@@ -82,49 +94,19 @@ const SettingsPage = memo(function SettingsPage() {
   });
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
-  // T18: route away once the hook transitions to `completed`. The
-  // modal hides the close X during cleanup/completed so the user
-  // cannot dismiss; the page also refuses to render protected
-  // content via the DeletionGuard pattern (see Epic 2.10 T21).
+  // Route away once deletion completes.
   useEffect(() => {
     if (deletion.state.kind === "completed") {
       router.replace(DELETION_PUBLIC_LANDING_PATH);
     }
   }, [deletion.state.kind, router]);
 
-  const handleUpdateSettings = useCallback(
-    (updates: Partial<UserSettings>) => {
-      setSettings((prev) => ({
-        ...prev,
-        ...updates,
-      }));
-    },
-    [setSettings],
-  );
-
-  // T18: the trigger only opens the modal. The actual delete request
-  // is fired from inside the modal via `deletion.submit()`.
+  // Open the deletion modal.
   const handleOpenDeleteAccount = useCallback(() => {
     setDeleteDialogOpen(true);
   }, []);
 
-  const handleExportData = useCallback(() => {
-    const dataStr = JSON.stringify(settings, null, 2);
-    const dataBlob = new Blob([dataStr], { type: "application/json" });
-    const url = URL.createObjectURL(dataBlob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = "quiz-app-data.json";
-    link.click();
-    URL.revokeObjectURL(url);
-  }, [settings]);
-
-  // T21: replace the placeholder `alert()` with the real
-  // `useLogoutAll()` flow. The hook owns the confirmation
-  // discipline (T20) and the service owns the finalization
-  // (T6). When the modal's "Sign Out All" button fires
-  // `onSignOutAll`, we forward to the hook with `confirmed: true`
-  // because the modal UX already implies confirmation.
+  // Trigger logout-all sessions.
   const handleSignOutAll = useCallback(() => {
     void logoutAll.logoutAll({ confirmed: true });
   }, [logoutAll]);
@@ -132,6 +114,27 @@ const SettingsPage = memo(function SettingsPage() {
   const isDeleteTerminal =
     deletion.state.kind === "cleanup" ||
     deletion.state.kind === "completed";
+
+  // ── Loading / unauthenticated state ────────────────────────────────────
+
+  if (!isHydrated) {
+    return (
+      <main className="min-h-screen bg-transparent text-foreground mt-20">
+        <header className="text-center px-4 mb-8">
+          <h1 className="text-3xl font-bold mb-4">Settings</h1>
+        </header>
+        <div className="px-4 pb-12">
+          <div className="animate-pulse space-y-6">
+            <div className="h-48 rounded-lg bg-muted" />
+            <div className="h-32 rounded-lg bg-muted" />
+            <div className="h-48 rounded-lg bg-muted" />
+          </div>
+        </div>
+      </main>
+    );
+  }
+
+  // ── Render ─────────────────────────────────────────────────────────────
 
   return (
     <main className="min-h-screen bg-transparent text-foreground mt-20">
@@ -171,39 +174,38 @@ const SettingsPage = memo(function SettingsPage() {
             <ScrollArea className="h-full">
               <div className="p-1">
                 <TabsContent value="account">
-                  <AccountSettings
-                    settings={settings}
-                    onUpdate={handleUpdateSettings}
-                  />
+                  <AccountSettings profile={profile} />
                 </TabsContent>
                 <TabsContent value="notifications">
-                  <NotificationSettings
-                    settings={settings}
-                    onUpdate={handleUpdateSettings}
-                  />
+                  <NotificationSettings profile={profile} />
                 </TabsContent>
                 <TabsContent value="privacy">
-                  <PrivacySettings
-                    settings={settings}
-                    onUpdate={handleUpdateSettings}
-                  />
+                  <PrivacySettings profile={profile} />
                 </TabsContent>
                 <TabsContent value="language">
-                  <LanguageSettings
-                    settings={settings}
-                    onUpdate={handleUpdateSettings}
-                  />
+                  <LanguageSettings profile={profile} />
                 </TabsContent>
                 <TabsContent value="connections">
-                  <ConnectedAccounts
-                    settings={settings}
-                    onUpdate={handleUpdateSettings}
-                  />
+                  <ConnectedAccounts profile={profile} />
                 </TabsContent>
                 <TabsContent value="danger">
                   <DangerZone
                     onDeleteAccount={handleOpenDeleteAccount}
-                    onExportData={handleExportData}
+                    onExportData={() => {
+                      // Export user data as JSON. In the future this could
+                      // call a dedicated export API; for now, export the
+                      // profile as a downloadable JSON file.
+                      const dataStr = JSON.stringify(profile, null, 2);
+                      const dataBlob = new Blob([dataStr], {
+                        type: "application/json",
+                      });
+                      const url = URL.createObjectURL(dataBlob);
+                      const link = document.createElement("a");
+                      link.href = url;
+                      link.download = "quiz-app-data.json";
+                      link.click();
+                      URL.revokeObjectURL(url);
+                    }}
                     onSignOutAll={handleSignOutAll}
                     isSignOutAllPending={logoutAll.status === 'pending'}
                     isDeleteAccountPending={isDeleteTerminal}
@@ -215,8 +217,7 @@ const SettingsPage = memo(function SettingsPage() {
         </Tabs>
       </div>
 
-      {/* T18: destructive-deletion modal owned by the settings page,
-          driven by the trigger on the DangerZone card. */}
+      {/* Deletion modal — T18 */}
       <DeleteAccountModal
         open={deleteDialogOpen}
         onOpenChange={setDeleteDialogOpen}

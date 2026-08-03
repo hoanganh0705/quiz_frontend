@@ -1,15 +1,19 @@
 import { create } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'
 import { getCurrentUser } from '@/features/users/services/users.reads.service'
-import type { CurrentUserResponse } from '@/features/users/types'
+import type { UserMeResponseDto } from '@/lib/api/generated/schemas'
+import {
+  subscribeToProfileEvents,
+  type ProfileUpdatedEvent,
+} from '@/lib/api/core/profile-broadcast-channel'
 
 type UserState = {
-  user: CurrentUserResponse | null
+  user: UserMeResponseDto | null
   isLoading: boolean
   error: string | null
-  setUser: (user: CurrentUserResponse | null) => void
+  setUser: (user: UserMeResponseDto | null) => void
   clearUser: () => void
-  fetchCurrentUser: () => Promise<CurrentUserResponse | null>
+  fetchCurrentUser: () => Promise<UserMeResponseDto | null>
 }
 
 export const useUserStore = create<UserState>()(
@@ -61,3 +65,31 @@ export const useUserError = () => useUserStore((state) => state.error)
 export const useSetUser = () => useUserStore((state) => state.setUser)
 export const useClearUser = () => useUserStore((state) => state.clearUser)
 export const useFetchCurrentUser = () => useUserStore((state) => state.fetchCurrentUser)
+
+// ─── Cross-tab profile sync ───────────────────────────────────────────────────
+//
+// Register a profile-mutation listener once on module load so every tab
+// revalidates the store when another tab saves a profile or settings change.
+// This is the mechanism that makes Epic 4.3 AC4 ("Cross-tab: a profile update
+// in one tab is reflected in the other within ~1 second") true.
+//
+// The `subscribeToProfileEvents` listener ignores same-tab events internally
+// via `tabId` (see profile-broadcast-channel.ts).
+
+/** Guard to prevent double-subscription during Next.js HMR. */
+let hasProfileListener = false
+
+if (typeof window !== 'undefined' && !hasProfileListener) {
+  const unsubscribe = subscribeToProfileEvents((event: ProfileUpdatedEvent) => {
+    // Only revalidate for profile-surface changes that affect the user store.
+    // 'preferences' is not included — it targets other caches, not this store.
+    if (event.kind === 'me' || event.kind === 'settings' || event.kind === 'avatar') {
+      void useUserStore.getState().fetchCurrentUser()
+    }
+  })
+
+  // Keep the unsubscribe reference in case explicit teardown is needed.
+  // We intentionally do NOT call it on module reload (HMR handles it).
+  void unsubscribe
+  hasProfileListener = true
+}

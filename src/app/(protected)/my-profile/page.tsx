@@ -12,6 +12,8 @@ import { OverviewTab } from "@/features/users/components/my-profile/tabs/Overvie
 import { QuizzesTab } from "@/features/users/components/my-profile/tabs/QuizzesTab";
 import { AchievementsTab } from "@/features/users/components/my-profile/tabs/AchievementsTab";
 import { StatisticsTab } from "@/features/users/components/my-profile/tabs/StatisticsTab";
+import { ProfileEditTab } from "@/features/users/components/my-profile/ProfileEditTab";
+import { Pencil } from "lucide-react";
 import { challengeData } from "@/features/daily-challenge/constants/challenge-history-data";
 import { badges } from "@/features/leaderboard/constants/badges";
 import { streakRewards } from "@/features/daily-challenge/constants/streak-rewards";
@@ -146,6 +148,13 @@ const MyProfilePage = memo(function MyProfilePage() {
                 >
                   Statistics
                 </TabsTrigger>
+                <TabsTrigger
+                  value="edit"
+                  className=" text-sm font-semibold data-[state=active]:bg-brand dark:data-[state=active]:text-brand text-foreground/70 data-[state=active]:text-foreground transition-transform"
+                >
+                  <Pencil className="w-4 h-4 mr-1" aria-hidden="true" />
+                  Edit
+                </TabsTrigger>
               </TabsList>
 
               {/* Overview Tab */}
@@ -202,6 +211,11 @@ const MyProfilePage = memo(function MyProfilePage() {
                   winRate={winRate}
                   quizHistory={challengeData}
                 />
+              </TabsContent>
+
+              {/* Edit Tab — TKT-4.3.D2 */}
+              <TabsContent value="edit">
+                <ProfileEditTab />
               </TabsContent>
             </Tabs>
           </div>

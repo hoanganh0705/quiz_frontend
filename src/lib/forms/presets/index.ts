@@ -340,3 +340,17 @@ export type QuizQuestionFormValues = z.infer<typeof quizQuestionFormSchema>;
 
 // Re-export the question type so consumers can stay on a single import.
 export type { QuestionType };
+
+// ────────────────────────────────────────────────────────────────────────
+// User schemas — profile + settings (TKT-4.3.A1).
+// ────────────────────────────────────────────────────────────────────────
+
+export {
+  AT_LEAST_ONE_CHANNEL_MESSAGE,
+  updateMyProfileSchema,
+  updateMySettingsSchema,
+} from './user-schemas';
+export type {
+  UpdateMyProfileFormValues,
+  UpdateMySettingsFormValues,
+} from './user-schemas';

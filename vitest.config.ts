@@ -23,7 +23,7 @@ export default defineConfig({
     projects: [
       {
         extends: true,
-test: {
+        test: {
         name: 'node',
         include: [
           'tests/unit/**/*.test.ts',
@@ -50,10 +50,13 @@ test: {
           // TKT-4.2.C3 — `useUnsavedChangesGuard` spec uses
           // `renderHook` + window event dispatch.
           'src/lib/forms/__tests__/useUnsavedChangesGuard.spec.tsx',
-          // TKT-4.2.E3 — integration smoke test mounts a full React
-          // tree with `ToastProvider` + `useDraftAutoSave` fake timers;
-          // requires jsdom.
+          // TKT-4.2.E3 — integration smoke test.
           'src/lib/forms/__tests__/useQuizForm-integration.spec.tsx',
+          // TKT-4.3.B — Epic 4.3 hook specs need jsdom; excluded from node.
+          'src/features/users/hooks/__tests__/*.spec.tsx',
+          // TKT-4.3.C / D — component specs need jsdom; excluded from node.
+          'src/features/users/components/settings/__tests__/*.spec.tsx',
+          'src/features/users/components/my-profile/__tests__/*.spec.tsx',
         ],
       },
       },
@@ -86,7 +89,7 @@ test: {
             // TKT-3.12.B1 — `useDailyChallengeToday` uses
             // `useSingleWithRetry` and `useDailyChallengeHistory` uses
             // `useCursorPaginated` (SWR). Both need a DOM environment.
-            // Co-located with the hooks under test.
+            // Co-located with the hook under test.
             'src/features/daily-challenge/hooks/__tests__/**/*.spec.tsx',
             // TKT-3.12.B2 — `useDailyChallengeStreakView` reads from
             // the Zustand user store and the `DailyChallengeStreakIndicator`
@@ -123,15 +126,22 @@ test: {
             // and drives fake timers + setInterval + form.watch, all
             // of which settle through React's effects in jsdom.
             'src/lib/forms/__tests__/useDraftAutoSave.spec.ts',
-          // TKT-4.2.C3 — `useUnsavedChangesGuard` spec mocks
-          // `next/navigation` and drives `beforeunload` / `popstate`
-          // events; needs jsdom for `window` event dispatch.
-          'src/lib/forms/__tests__/useUnsavedChangesGuard.spec.tsx',
-          // TKT-4.2.E3 — integration smoke test exercising the
-          // primitive + atoms + banners + auto-save end-to-end. Renders
-          // a React tree with `ToastProvider`, `useDraftAutoSave` fake
-          // timers, and the full atom ecosystem; jsdom required.
-          'src/lib/forms/__tests__/useQuizForm-integration.spec.tsx',
+            // TKT-4.2.C3 — `useUnsavedChangesGuard` spec mocks
+            // `next/navigation` and drives `beforeunload` / `popstate`
+            // events; needs jsdom for `window` event dispatch.
+            'src/lib/forms/__tests__/useUnsavedChangesGuard.spec.tsx',
+            // TKT-4.2.E3 — integration smoke test exercising the
+            // primitive + atoms + banners + auto-save end-to-end. Renders
+            // a React tree with `ToastProvider`, `useDraftAutoSave` fake
+            // timers, and the full atom ecosystem; jsdom required.
+            'src/lib/forms/__tests__/useQuizForm-integration.spec.tsx',
+          // TKT-4.3.B — Epic 4.3 hook specs. All use `useOptimisticMutation`
+          // and `BroadcastChannel`; needs jsdom.
+          'src/features/users/hooks/__tests__/*.spec.tsx',
+          // TKT-4.3.C / D — settings section + my-profile component specs.
+          // Render React components and use hooks that need jsdom.
+          'src/features/users/components/settings/__tests__/*.spec.tsx',
+          'src/features/users/components/my-profile/__tests__/*.spec.tsx',
         ],
           environment: 'jsdom',
           setupFiles: ['./src/components/primitives/__tests__/setup.ts'],

@@ -1,8 +1,9 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useCallback, useMemo } from 'react'
 import { useLocalStorage } from '@/shared/hooks/use-local-storage'
 import { defaultSettings } from '@/features/users/constants/settings'
+import type { UserSettings } from '@/features/users/types'
 
 type Translations = Record<string, Record<string, string>>
 
@@ -27,15 +28,41 @@ const translations: Translations = {
   }
 }
 
+/**
+ * Read and update the app's UI language.
+ *
+ * The hook reads `settings.locale.language` from `localStorage`. When
+ * `setLanguage(newLang)` is called (e.g. after the backend confirms a
+ * language change), the localStorage is updated so the hook re-renders
+ * with the new language immediately — no page navigation required.
+ */
 export function useAppLanguage() {
-  const [settings] = useLocalStorage('user_settings', defaultSettings)
+  const [settings, setSettings] = useLocalStorage<UserSettings>('user_settings', defaultSettings)
   const lang = settings.locale.language
 
   const language = useMemo(() => (lang in translations ? lang : 'en'), [lang])
 
-  const t = (key: string, fallback: string) => {
+  const t = useCallback((key: string, fallback: string) => {
     return translations[language]?.[key] ?? fallback
-  }
+  }, [language])
 
-  return { language, t }
+  /**
+   * Update the UI language in localStorage. Call this after the backend
+   * confirms a language change so `useAppLanguage()` picks it up and
+   * re-renders the UI with the new language without navigation.
+   *
+   * This function is idempotent — calling it with the same language
+   * as the current one is a no-op.
+   */
+  const setLanguage = useCallback((newLang: string) => {
+    setSettings((prev) => ({
+      ...prev,
+      locale: {
+        ...prev.locale,
+        language: newLang,
+      },
+    }))
+  }, [setSettings])
+
+  return { language, t, setLanguage }
 }
