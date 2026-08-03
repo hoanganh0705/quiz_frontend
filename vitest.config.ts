@@ -151,6 +151,9 @@ export default defineConfig({
           'src/features/quizzes/components/__tests__/MyQuizzesDashboardPage.integration.spec.tsx',
           // TKT-4.4.F2 — MyQuizzes dashboard a11y spec. Uses axe-core in jsdom.
           'src/features/quizzes/components/__tests__/my-quizzes.a11y.spec.tsx',
+          // T-4.11.9 — PublishCta + PublishConfirmDialog integration tests. Needs jsdom.
+          'src/features/quizzes/components/__tests__/PublishCta.spec.tsx',
+          // (T-4.11.14 EditPublishedQuizCTA tests run in node env to avoid jsdom issues.)
         ],
           environment: 'jsdom',
           setupFiles: ['./src/components/primitives/__tests__/setup.ts'],

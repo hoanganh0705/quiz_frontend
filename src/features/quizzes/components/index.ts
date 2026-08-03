@@ -128,3 +128,11 @@ export type {
   QuestionCorrectMarkProps,
   PublishReadinessCounterProps,
 } from './QuestionEditor'
+
+// Epic 4.11 — Publish flow components (T-4.11.7, T-4.11.8, T-4.11.14)
+export { PublishCta } from './PublishCta'
+export type { PublishCtaProps } from './PublishCta'
+export { PublishConfirmDialog } from './PublishConfirmDialog'
+export type { PublishConfirmDialogProps } from './PublishConfirmDialog'
+export { EditPublishedQuizCTA } from './EditPublishedQuizCTA'
+export type { EditPublishedQuizCTAProps } from './EditPublishedQuizCTA'
