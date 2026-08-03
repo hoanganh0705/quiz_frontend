@@ -83,3 +83,32 @@ export type {
   UseUpdateVersionOptions,
   UseUpdateVersionReturn,
 } from './useUpdateVersion'
+
+// Epic 4.10 — Question Editor hooks (T-4.10.5, T-4.10.6, T-4.10.7, T-4.10.8)
+export { useVersionQuestions } from './useVersionQuestions'
+export type {
+  UseVersionQuestionsOptions,
+  UseVersionQuestionsResult,
+} from './useVersionQuestions'
+export { useCreateVersionQuestion } from './useCreateVersionQuestion'
+export type {
+  UseCreateVersionQuestionOptions,
+  UseCreateVersionQuestionReturn,
+} from './useCreateVersionQuestion'
+export { useBulkCreateVersionQuestions } from './useBulkCreateVersionQuestions'
+export type {
+  BulkProgress,
+  BulkCreateResult,
+  UseBulkCreateVersionQuestionsOptions,
+  UseBulkCreateVersionQuestionsReturn,
+} from './useBulkCreateVersionQuestions'
+export { useQuestionForm, getDefaultQuestionValues } from './useQuestionForm'
+export type {
+  UseQuestionFormOptions,
+  UseQuestionFormReturn,
+  UseBulkQuestionFormOptions,
+} from './useQuestionForm'
+export {
+  ANSWER_OPTIONS_LIMITS,
+  QUESTION_TYPE_VALUES as EDITOR_QUESTION_TYPE_VALUES,
+} from './useQuestionForm'
