@@ -2,8 +2,8 @@
  * `selectDefaultCollectionId.spec.ts` — locks the deterministic
  * default-collection selector contract.
  *
- * Source epic:   Story 3.10 — Bookmarks add / remove + membership lookup.
- * Source ticket: TKT-3.10.B2.
+ * Source epic:   Epic 4.6 — Bookmark collections CRUD.
+ * Source ticket: T-4.6-E3.
  *
  * Cases per the ticket AC #1–5:
  *
@@ -25,7 +25,7 @@
 
 import { describe, expect, it } from 'vitest';
 
-import type { BookmarkCollectionResponseDto } from '@/lib/api/generated/schemas';
+import type { BookmarkCollection } from '@/features/bookmarks/types';
 import {
   DEFAULT_COLLECTION_NAME,
   selectDefaultCollectionId,
@@ -35,16 +35,18 @@ import {
 // Helpers
 // ---------------------------------------------------------------------------
 
-function collection(
+function makeCollection(
   collectionId: string,
   name: string,
   createdAt: string,
-): BookmarkCollectionResponseDto {
+): BookmarkCollection {
   return {
     collectionId,
+    id: collectionId,
     userId: '0192f4d8-0000-7000-8000-000000000002',
     name,
     description: null,
+    color: null,
     quizCount: 0,
     createdAt,
     updatedAt: createdAt,
@@ -67,7 +69,7 @@ describe('selectDefaultCollectionId — empty input', () => {
 
 describe('selectDefaultCollectionId — single collection', () => {
   it('(b) returns that collectionId when only one is present', () => {
-    const only = collection(
+    const only = makeCollection(
       '0192f4d8-0000-7000-8000-000000000010',
       'Science',
       '2026-07-01T00:00:00.000Z',
@@ -84,17 +86,17 @@ describe('selectDefaultCollectionId — single collection', () => {
 
 describe('selectDefaultCollectionId — multiple collections', () => {
   it('(c1) returns the earliest createdAt when no Favourites match', () => {
-    const oldest = collection(
+    const oldest = makeCollection(
       '0192f4d8-0000-7000-8000-000000000010',
       'Science',
       '2026-05-01T00:00:00.000Z',
     );
-    const middle = collection(
+    const middle = makeCollection(
       '0192f4d8-0000-7000-8000-000000000020',
       'History',
       '2026-06-01T00:00:00.000Z',
     );
-    const newest = collection(
+    const newest = makeCollection(
       '0192f4d8-0000-7000-8000-000000000030',
       'Math',
       '2026-07-01T00:00:00.000Z',
@@ -105,12 +107,12 @@ describe('selectDefaultCollectionId — multiple collections', () => {
   });
 
   it('(c2) handles an unsorted input array', () => {
-    const a = collection(
+    const a = makeCollection(
       '0192f4d8-0000-7000-8000-000000000010',
       'Science',
       '2026-05-01T00:00:00.000Z',
     );
-    const b = collection(
+    const b = makeCollection(
       '0192f4d8-0000-7000-8000-000000000020',
       'History',
       '2026-06-01T00:00:00.000Z',
@@ -128,12 +130,12 @@ describe('selectDefaultCollectionId — multiple collections', () => {
 
 describe('selectDefaultCollectionId — Favourites preference', () => {
   it('(d1) Favourites wins regardless of createdAt order', () => {
-    const older = collection(
+    const older = makeCollection(
       '0192f4d8-0000-7000-8000-000000000010',
       'Science',
       '2026-05-01T00:00:00.000Z',
     );
-    const newer = collection(
+    const newer = makeCollection(
       '0192f4d8-0000-7000-8000-000000000020',
       'Favourites',
       '2026-07-01T00:00:00.000Z',
@@ -144,17 +146,17 @@ describe('selectDefaultCollectionId — Favourites preference', () => {
   });
 
   it('(d2) case-insensitive Favourites match', () => {
-    const older = collection(
+    const older = makeCollection(
       '0192f4d8-0000-7000-8000-000000000010',
       'Science',
       '2026-05-01T00:00:00.000Z',
     );
-    const upper = collection(
+    const upper = makeCollection(
       '0192f4d8-0000-7000-8000-000000000020',
       'FAVOURITES',
       '2026-07-01T00:00:00.000Z',
     );
-    const mixed = collection(
+    const mixed = makeCollection(
       '0192f4d8-0000-7000-8000-000000000030',
       'fAvOuRiTeS',
       '2026-07-02T00:00:00.000Z',
@@ -165,12 +167,12 @@ describe('selectDefaultCollectionId — Favourites preference', () => {
   });
 
   it('(d3) the FIRST Favourites match in iteration order wins', () => {
-    const first = collection(
+    const first = makeCollection(
       '0192f4d8-0000-7000-8000-000000000010',
       'Favourites',
       '2026-07-01T00:00:00.000Z',
     );
-    const second = collection(
+    const second = makeCollection(
       '0192f4d8-0000-7000-8000-000000000020',
       'favourites',
       '2026-05-01T00:00:00.000Z',
@@ -188,17 +190,17 @@ describe('selectDefaultCollectionId — Favourites preference', () => {
 describe('selectDefaultCollectionId — createdAt tie-break', () => {
   it('(e) breaks ties on createdAt by collectionId ascending', () => {
     const sameTime = '2026-07-01T00:00:00.000Z';
-    const a = collection(
+    const a = makeCollection(
       '0192f4d8-0000-7000-8000-000000000030',
       'History',
       sameTime,
     );
-    const b = collection(
+    const b = makeCollection(
       '0192f4d8-0000-7000-8000-000000000010',
       'Science',
       sameTime,
     );
-    const c = collection(
+    const c = makeCollection(
       '0192f4d8-0000-7000-8000-000000000020',
       'Math',
       sameTime,
@@ -215,18 +217,18 @@ describe('selectDefaultCollectionId — createdAt tie-break', () => {
 
 describe('selectDefaultCollectionId — immutability', () => {
   it('(f) does NOT mutate the input array', () => {
-    const a = collection(
+    const a = makeCollection(
       '0192f4d8-0000-7000-8000-000000000030',
       'History',
       '2026-07-01T00:00:00.000Z',
     );
-    const b = collection(
+    const b = makeCollection(
       '0192f4d8-0000-7000-8000-000000000010',
       'Science',
       '2026-05-01T00:00:00.000Z',
     );
-    const input = [a, b];
-    const snapshot = JSON.parse(JSON.stringify(input)) as BookmarkCollectionResponseDto[];
+    const input: readonly BookmarkCollection[] = [a, b];
+    const snapshot = JSON.parse(JSON.stringify(input));
 
     selectDefaultCollectionId(input);
 

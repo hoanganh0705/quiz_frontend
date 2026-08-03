@@ -1,35 +1,59 @@
 'use client'
 
 import { memo } from 'react'
+import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/Button'
 import { DropdownMenu } from '@/components/ui/DropdownMenu'
 import { DropdownMenuContent } from '@/components/ui/DropdownMenu'
 import { DropdownMenuItem } from '@/components/ui/DropdownMenu'
 import { DropdownMenuTrigger } from '@/components/ui/DropdownMenu'
 import type { BookmarkCollection } from '@/features/bookmarks/types'
+import { getCollectionColor } from '@/features/bookmarks/types'
 import { MoreHorizontal, Pencil, Trash2, FolderOpen } from 'lucide-react'
 
 interface CollectionCardProps {
   collection: BookmarkCollection
-  count: number
-  isSelected: boolean
-  onSelect: () => void
-  onEdit: () => void
-  onDelete: () => void
+  /** Whether this card is selected (for multi-select mode). */
+  isSelected?: boolean
+  /** Callback when the card is clicked (navigates to detail page). */
+  onSelect?: () => void
+  /** Callback when "Rename" is clicked. */
+  onRename?: () => void
+  /** Callback when "Change color" is clicked. */
+  onChangeColor?: () => void
+  /** Callback when "Delete" is clicked. */
+  onDelete?: () => void
 }
 
-// Use memo to prevent unnecessary re-renders
+/**
+ * Collection card for the bookmarks dashboard.
+ * Displays collection name, description, color indicator, and quiz count.
+ * Includes kebab menu with Rename, Change color, and Delete actions.
+ */
 const CollectionCard = memo(function CollectionCard({
   collection,
-  count,
-  isSelected,
+  isSelected = false,
   onSelect,
-  onEdit,
+  onRename,
+  onChangeColor,
   onDelete
 }: CollectionCardProps) {
+  const router = useRouter()
+  const displayColor = getCollectionColor(collection)
+  const hasActions = onRename || onChangeColor || onDelete
+
+  const handleSelect = () => {
+    if (onSelect) {
+      onSelect()
+    } else {
+      // Default: navigate to collection detail page (story 4.7)
+      router.push(`/bookmarks/${collection.collectionId}`)
+    }
+  }
+
   return (
     <div
-      onClick={onSelect}
+      onClick={handleSelect}
       className={`group relative p-4 rounded-lg border cursor-pointer transition-all ${
         isSelected
           ? 'border-default bg-default/5 shadow-sm'
@@ -39,7 +63,7 @@ const CollectionCard = memo(function CollectionCard({
       {/* Color indicator */}
       <div
         className='absolute top-0 left-0 w-1 h-full rounded-l-lg'
-        style={{ backgroundColor: collection.color }}
+        style={{ backgroundColor: displayColor }}
       />
 
       <div className='flex items-start justify-between pl-2'>
@@ -47,7 +71,7 @@ const CollectionCard = memo(function CollectionCard({
           <div className='flex items-center gap-2 mb-1'>
             <FolderOpen
               className='h-4 w-4 shrink-0'
-              style={{ color: collection.color }}
+              style={{ color: displayColor }}
               aria-hidden='true'
             />
             <h4 className='font-medium text-sm truncate'>{collection.name}</h4>
@@ -60,43 +84,63 @@ const CollectionCard = memo(function CollectionCard({
           )}
 
           <span className='text-xs text-muted-foreground'>
-            {count} {count === 1 ? 'quiz' : 'quizzes'}
+            {collection.quizCount === 0
+              ? 'No quizzes saved yet'
+              : `${collection.quizCount} ${collection.quizCount === 1 ? 'quiz' : 'quizzes'}`
+            }
           </span>
         </div>
 
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-            <Button
-              variant='ghost'
-              size='icon'
-              className='h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity'
-              aria-label='Collection options'
-            >
-              <MoreHorizontal className='h-4 w-4' aria-hidden='true' />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align='end'>
-            <DropdownMenuItem
-              onClick={(e) => {
-                e.stopPropagation()
-                onEdit()
-              }}
-            >
-              <Pencil className='mr-2 h-4 w-4' />
-              Edit
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={(e) => {
-                e.stopPropagation()
-                onDelete()
-              }}
-              className='text-red-600 dark:text-red-400'
-            >
-              <Trash2 className='mr-2 h-4 w-4' />
-              Delete
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        {hasActions && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+              <Button
+                variant='ghost'
+                size='icon'
+                className='h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity'
+                aria-label='Collection options'
+              >
+                <MoreHorizontal className='h-4 w-4' aria-hidden='true' />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align='end'>
+              {onRename && (
+                <DropdownMenuItem
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    onRename()
+                  }}
+                >
+                  <Pencil className='mr-2 h-4 w-4' />
+                  Rename
+                </DropdownMenuItem>
+              )}
+              {onChangeColor && (
+                <DropdownMenuItem
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    onChangeColor()
+                  }}
+                >
+                  <FolderOpen className='mr-2 h-4 w-4' />
+                  Change color
+                </DropdownMenuItem>
+              )}
+              {onDelete && (
+                <DropdownMenuItem
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    onDelete()
+                  }}
+                  className='text-red-600 dark:text-red-400'
+                >
+                  <Trash2 className='mr-2 h-4 w-4' />
+                  Delete
+                </DropdownMenuItem>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
       </div>
     </div>
   )
