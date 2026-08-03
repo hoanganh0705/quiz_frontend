@@ -47,8 +47,8 @@ import useSWR from 'swr';
 
 import { ApiError, isApiError } from '@/lib/api';
 import { useAuthState } from '@/features/auth/hooks/use-auth-state';
-import { followedCategories } from '@/features/categories/wrappers/category.wrapper';
-import { followedTags } from '@/features/tags/wrappers/tag.wrapper';
+import { followedCategories } from '@/features/categories/services/categories.service';
+import { followedTags } from '@/features/tags/services/tags.service';
 
 /**
  * SWR key for the categories lookup. Stable across renders; the

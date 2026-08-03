@@ -50,11 +50,11 @@ vi.mock('@/lib/api', async () => {
 const followCategoryMock = vi.fn();
 const unfollowCategoryMock = vi.fn();
 
-vi.mock('@/features/categories/wrappers/category.wrapper', async () => {
+vi.mock('@/features/categories/services/categories.service', async () => {
   const actual =
     await vi.importActual<
-      typeof import('@/features/categories/wrappers/category.wrapper')
-    >('@/features/categories/wrappers/category.wrapper');
+      typeof import('@/features/categories/services/categories.service')
+    >('@/features/categories/services/categories.service');
   return {
     ...actual,
     followCategory: (...args: unknown[]) => followCategoryMock(...args),
@@ -65,11 +65,11 @@ vi.mock('@/features/categories/wrappers/category.wrapper', async () => {
 const followTagMock = vi.fn();
 const unfollowTagMock = vi.fn();
 
-vi.mock('@/features/tags/wrappers/tag.wrapper', async () => {
+vi.mock('@/features/tags/services/tags.service', async () => {
   const actual =
     await vi.importActual<
-      typeof import('@/features/tags/wrappers/tag.wrapper')
-    >('@/features/tags/wrappers/tag.wrapper');
+      typeof import('@/features/tags/services/tags.service')
+    >('@/features/tags/services/tags.service');
   return {
     ...actual,
     followTag: (...args: unknown[]) => followTagMock(...args),

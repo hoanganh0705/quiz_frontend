@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { memo } from 'react'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
-import { listQuizzes } from '@/features/quizzes/api'
+import { listQuizzes } from '@/features/quizzes/services/quizzes.service'
 import { difficultyColors } from '@/features/quizzes/constants/difficulty-color'
 import {
   ArrowLeft,

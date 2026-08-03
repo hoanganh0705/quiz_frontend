@@ -68,7 +68,7 @@ import {
 import {
   getDailyChallengeToday,
   type DailyChallengeView,
-} from '@/features/daily-challenge/wrappers/daily-challenge.wrapper'
+} from '@/features/daily-challenge/services/daily-challenge.service'
 
 // ---------------------------------------------------------------------------
 // Public types

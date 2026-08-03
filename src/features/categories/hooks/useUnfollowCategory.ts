@@ -37,7 +37,7 @@ import {
   useOptimisticToggle,
 } from '@/lib/api';
 import { followedCategoriesKey } from '@/features/tags/hooks/useFollowedLookup';
-import { unfollowCategory } from '@/features/categories/wrappers/category.wrapper';
+import { unfollowCategory } from '@/features/categories/services/categories.service';
 
 export interface UseUnfollowCategoryResult {
   /**

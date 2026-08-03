@@ -30,7 +30,7 @@ import {
   useOptimisticToggle,
 } from '@/lib/api';
 import { followedTagsKey } from '@/features/tags/hooks/useFollowedLookup';
-import { followTag } from '@/features/tags/wrappers/tag.wrapper';
+import { followTag } from '@/features/tags/services/tags.service';
 
 export interface UseFollowTagResult {
   isPending: boolean;

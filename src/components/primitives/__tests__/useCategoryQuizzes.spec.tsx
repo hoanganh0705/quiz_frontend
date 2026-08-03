@@ -44,7 +44,7 @@ import { useCategoryQuizzes } from '@/features/categories/hooks/useCategoryQuizz
 
 const getCategoryQuizzesMock = vi.fn()
 
-vi.mock('@/features/categories/wrappers/category.wrapper', () => ({
+vi.mock('@/features/categories/services/categories.service', () => ({
   getCategoryQuizzes: (...args: unknown[]) =>
     getCategoryQuizzesMock(...args),
   listCategories: vi.fn(),

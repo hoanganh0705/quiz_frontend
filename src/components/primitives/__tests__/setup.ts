@@ -8,10 +8,19 @@
  * and configures a sane default for cleanup so each test starts with a
  * fresh DOM. cleanup is the testing-library default; we set it
  * explicitly for clarity.
+ *
+ * Also polyfills the native `value` setter on `HTMLInputElement` /
+ * `HTMLTextAreaElement` / `HTMLSelectElement` because React 19 + jsdom
+ * refuses to fire `change` events on inputs whose prototype has been
+ * overridden (the "The given element does not have a value setter"
+ * guard in `@testing-library/dom`). The polyfill re-installs the
+ * native setter after React's override so `fireEvent.change` /
+ * `userEvent.type` work as expected on controlled inputs — notably the
+ * chip-style input that `<TagMultiSelect />` renders.
  */
 
 import '@testing-library/jest-dom/vitest'
-import { afterEach } from 'vitest'
+import { afterEach, beforeAll } from 'vitest'
 import { cleanup } from '@testing-library/react'
 
 class TestResizeObserver implements ResizeObserver {
@@ -21,6 +30,30 @@ class TestResizeObserver implements ResizeObserver {
 }
 
 globalThis.ResizeObserver ??= TestResizeObserver
+
+beforeAll(() => {
+  const elements = [
+    window.HTMLInputElement.prototype,
+    window.HTMLTextAreaElement.prototype,
+    window.HTMLSelectElement.prototype,
+  ];
+  for (const proto of elements) {
+    const descriptor = Object.getOwnPropertyDescriptor(proto, 'value');
+    const nativeSetter = descriptor?.set;
+    if (!nativeSetter) continue;
+    Object.defineProperty(proto, 'value', {
+      configurable: true,
+      enumerable: descriptor.enumerable,
+      get: descriptor.get,
+      set(value: string) {
+        // Forward to the captured native setter so React's internal
+        // "has the value changed?" tracker (`Object.is(prev, next)`)
+        // sees the new value.
+        nativeSetter.call(this, value);
+      },
+    });
+  }
+});
 
 afterEach(() => {
   cleanup()

@@ -38,7 +38,7 @@ import { useCategory } from '@/features/categories/hooks/useCategory'
 
 const getCategoryBySlugMock = vi.fn()
 
-vi.mock('@/features/categories/wrappers/category.wrapper', () => ({
+vi.mock('@/features/categories/services/categories.service', () => ({
   getCategoryBySlug: (...args: unknown[]) =>
     getCategoryBySlugMock(...args),
   // Other exports retained as no-ops; the hook under test only

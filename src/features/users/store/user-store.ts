@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'
-import { getCurrentUser } from '@/features/users/wrappers/user.wrapper'
+import { getCurrentUser } from '@/features/users/services/users.reads.service'
 import type { CurrentUserResponse } from '@/features/users/types'
 
 type UserState = {

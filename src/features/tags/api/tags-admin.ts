@@ -1,12 +1,12 @@
 /**
- * Tags Admin API - Re-exports from wrapper for admin compatibility
- * @deprecated Use wrappers instead: import { listTags, createTag, ... } from '@/features/tags/wrappers'
+ * Tags Admin API - Re-exports from the service layer.
+ * @deprecated Use the service directly: import { listTags, createTag, ... } from '@/features/tags/services/tags.service'
  */
 
-import { listTags, createTag, updateTag, deleteTag } from '@/features/tags/wrappers/tag.wrapper';
+import { listTags, createTag, updateTag, deleteTag } from '@/features/tags/services/tags.service';
 import type { CreateTagDto, UpdateTagDto } from '@/lib/api/generated/schemas';
 
-export type { ListTagsParams } from '@/features/tags/wrappers/tag.wrapper';
+export type { ListTagsParams } from '@/features/tags/services/tags.service';
 
 export interface Tag {
   tagId: string;

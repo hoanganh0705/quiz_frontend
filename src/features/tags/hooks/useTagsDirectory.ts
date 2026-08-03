@@ -55,7 +55,7 @@ import { ApiError, useCursorPaginated } from '@/lib/api'
 import type { CursorPage } from '@/lib/api/use-cursor-paginated.types'
 import type { TagResponseDto } from '@/lib/api/generated/schemas'
 
-import { listTags } from '@/features/tags/wrappers/tag.wrapper'
+import { listTags } from '@/features/tags/services/tags.service'
 import { useDebouncedValue } from '@/lib/utils/use-debounced-value'
 
 const FILTER_DEBOUNCE_MS = 250

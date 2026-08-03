@@ -43,7 +43,9 @@
  * 2. Add the flag's per-flag value type to `FeatureFlagValueMap`.
  * 3. Add a default entry to `FLAG_DEFAULTS`.
  * 4. Add an env-var override entry to `FLAG_ENV_OVERRIDES`.
- * 5. Add a test case in the co-located spec covering the default, the
+ * 5. Extend `isFlagValue` so the supported-value guard is exhaustive
+ *    per flag (the type-narrowing helper).
+ * 6. Add a test case in the co-located spec covering the default, the
  *    env-var override, and the unsupported-value fallback.
  *
  * ## Importable from two paths
@@ -59,7 +61,11 @@
  * (TKT-3.12.A2 testing checklist item 5/6) locks this invariant.
  */
 
-export type FeatureFlag = 'dailyChallengePage'
+export type FeatureFlag =
+  | 'dailyChallengePage'
+  | 'phase4_authoring'
+  | 'phase4_personal'
+  | 'phase4_attempts'
 
 export type FeatureFlagValueMap = {
   /**
@@ -73,16 +79,96 @@ export type FeatureFlagValueMap = {
    *   default at this commit (see `EPIC_3_12_A1.md` §6.3).
    */
   dailyChallengePage: 'v1' | 'placeholder'
+  /**
+   * Phase 4 authoring lane gate.
+   *
+   * Source epic:   Epic 4.1.
+   * Source ticket: TKT-4.1.B1.
+   *
+   * Gates the three writer-side write flows introduced in Phase 4:
+   *
+   *   - Create / edit / publish a quiz (quiz + version + question CRUD)
+   *   - Comment write (vote/edit/hide/report/restore) on a published quiz
+   *   - Review write on a completed attempt
+   *   - Bookmark collection CRUD + bulk add/remove
+   *
+   * The lane is independent of `phase4_personal` (the read-side personal
+   * area) and `phase4_attempts` (the attempt lifecycle). One lane can be
+   * flipped to `'live'` in production without unblocking the others.
+   *
+   *   - `'live'`       — service wrappers used by the authoring surfaces
+   *                      fire `orvalCustomInstance<>` calls. UI is the
+   *                      live surface (e.g. real `<QuizForm>`,
+   *                      `<ReviewForm>`, `<CommentEditor>`).
+   *   - `'placeholder'`— the static "Coming soon" rendering used today;
+   *                      default at this commit.
+   */
+  phase4_authoring: 'live' | 'placeholder'
+  /**
+   * Phase 4 personal-area gate.
+   *
+   * Source epic:   Epic 4.1.
+   * Source ticket: TKT-4.1.B1.
+   *
+   * Gates the read-side personal-area surfaces:
+   *
+   *   - `/my-profile`, `/quiz-history`, `/settings`, `/bookmarks`,
+   *     `/my-attempts`, `/my-reviews`, `/my-reported-reviews`,
+   *     `/my-badges`, `/my-activity`, `/my-ranking`
+   *   - All `users/me/*` reads and all per-user bookmark collections
+   *     reads
+   *
+   * Independent of `phase4_authoring` (write-side) and `phase4_attempts`
+   * (the attempt lifecycle).
+   *
+   *   - `'live'`       — wrappers fire real `orvalCustomInstance` calls;
+   *                      UI is the live personal area.
+   *   - `'placeholder'`— the static "Coming soon" rendering; default.
+   */
+  phase4_personal: 'live' | 'placeholder'
+  /**
+   * Phase 4 attempts lane gate.
+   *
+   * Source epic:   Epic 4.1.
+   * Source ticket: TKT-4.1.B1.
+   *
+   * Gates the attempt lifecycle (start/submit/withdraw/abandon/complete)
+   * and the per-attempt read-side surfaces (attempt analytics, attempt
+   * review, my attempts list, my attempt stats).
+   *
+   * Independent of `phase4_authoring` and `phase4_personal`.
+   *
+   *   - `'live'`       — `<AttemptRunner />` orchestration wraps SDK
+   *                      calls against `attemptControllerStartAttempt`,
+   *                      `attemptControllerSubmitAnswer`,
+   *                      `attemptControllerWithdrawAnswer`,
+   *                      `attemptControllerAbandonAttempt`,
+   *                      `attemptControllerCompleteAttempt`, plus the
+   *                      subsequent reads.
+   *   - `'placeholder'`— placeholder surface; default at this commit.
+   */
+  phase4_attempts: 'live' | 'placeholder'
 }
 
-export const FEATURE_FLAGS: readonly FeatureFlag[] = ['dailyChallengePage']
+export const FEATURE_FLAGS: readonly FeatureFlag[] = [
+  'dailyChallengePage',
+  'phase4_authoring',
+  'phase4_personal',
+  'phase4_attempts',
+]
 
 const FLAG_DEFAULTS: FeatureFlagValueMap = {
   dailyChallengePage: 'placeholder',
+  phase4_authoring: 'placeholder',
+  phase4_personal: 'placeholder',
+  phase4_attempts: 'placeholder',
 }
 
 const FLAG_ENV_OVERRIDES: Record<FeatureFlag, string | undefined> = {
   dailyChallengePage: process.env.NEXT_PUBLIC_DAILY_CHALLENGE_PAGE,
+  phase4_authoring: process.env.NEXT_PUBLIC_PHASE4_AUTHORING,
+  phase4_personal: process.env.NEXT_PUBLIC_PHASE4_PERSONAL,
+  phase4_attempts: process.env.NEXT_PUBLIC_PHASE4_ATTEMPTS,
 }
 
 function isFlagValue<K extends FeatureFlag>(
@@ -91,6 +177,13 @@ function isFlagValue<K extends FeatureFlag>(
 ): candidate is FeatureFlagValueMap[K] {
   if (flag === 'dailyChallengePage') {
     return candidate === 'v1' || candidate === 'placeholder'
+  }
+  if (
+    flag === 'phase4_authoring' ||
+    flag === 'phase4_personal' ||
+    flag === 'phase4_attempts'
+  ) {
+    return candidate === 'live' || candidate === 'placeholder'
   }
   return false
 }

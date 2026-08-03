@@ -46,7 +46,7 @@ import {
 const getCategoriesRankedMock = vi.fn()
 const getCategoriesTrendingMock = vi.fn()
 
-vi.mock('@/features/categories/wrappers/category.wrapper', () => ({
+vi.mock('@/features/categories/services/categories.service', () => ({
   getCategoriesRanked: (...args: unknown[]) =>
     getCategoriesRankedMock(...args),
   getCategoriesTrending: (...args: unknown[]) =>

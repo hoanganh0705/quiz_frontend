@@ -59,7 +59,7 @@ import { ApiError } from '@/lib/api'
 
 import { useAuthState } from '@/features/auth/hooks/use-auth-state'
 import { useLeaderboard } from '@/features/leaderboard/hooks/useLeaderboard'
-import type { LeaderboardPeriod } from '@/features/leaderboard/wrappers/leaderboard.wrapper'
+import type { LeaderboardPeriod } from '@/features/leaderboard/services/leaderboard.service'
 import { LeaderboardPeriodSelector } from './LeaderboardPeriodSelector'
 import { LeaderboardEntryRow } from './LeaderboardEntryRow'
 import { LeaderboardSkeleton } from './LeaderboardSkeleton'

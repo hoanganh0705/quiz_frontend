@@ -39,7 +39,7 @@ import { ApiError, useCursorPaginated } from '@/lib/api'
 import type { CursorPage } from '@/lib/api/use-cursor-paginated.types'
 import type { QuizListItemDto } from '@/lib/api/generated/schemas'
 
-import { getCategoryQuizzes } from '@/features/categories/wrappers/category.wrapper'
+import { getCategoryQuizzes } from '@/features/categories/services/categories.service'
 
 export interface UseCategoryQuizzesParams {
   /** Page size passed to the SDK (1–100). */

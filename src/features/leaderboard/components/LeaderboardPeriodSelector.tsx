@@ -41,7 +41,7 @@ import { useId } from 'react'
 
 import { cn } from '@/shared/utils/merge-class-names'
 
-import type { LeaderboardPeriod } from '@/features/leaderboard/wrappers/leaderboard.wrapper'
+import type { LeaderboardPeriod } from '@/features/leaderboard/services/leaderboard.service'
 
 // ──────────────────────────────────────────────────────────────────────────
 // Public types

@@ -1,5 +1,5 @@
 // Bookmarks API layer
-// Re-exports from wrappers (wrappers use generated SDK)
+// Re-exports from the new service module (TKT-4.1.G2).
 
 export {
   listCollections,
@@ -11,10 +11,13 @@ export {
   removeBookmark,
   listBookmarksInCollection,
   getBookmarkStatus,
-} from '@/features/bookmarks/wrappers/bookmark.wrapper';
+  addBookmarksBulk,
+  removeBookmarksBulk,
+  getCollectionAnalytics,
+} from '@/features/bookmarks/services/bookmarks.service';
 
 export type {
   ListCollectionsParams,
   ListBookmarksParams,
   BookmarkControllerGetBookmarkStatusResult,
-} from '@/features/bookmarks/wrappers/bookmark.wrapper';
+} from '@/features/bookmarks/services/bookmarks.service';

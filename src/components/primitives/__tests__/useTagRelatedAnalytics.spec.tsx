@@ -49,7 +49,7 @@ import { useTagAnalytics } from '@/features/tags/hooks/useTagAnalytics'
 const getRelatedTagsMock = vi.fn()
 const getTagAnalyticsMock = vi.fn()
 
-vi.mock('@/features/tags/wrappers/tag.wrapper', () => ({
+vi.mock('@/features/tags/services/tags.service', () => ({
   listTags: vi.fn(),
   getTagBySlug: vi.fn(),
   getTag: vi.fn(),

@@ -23,16 +23,39 @@ export default defineConfig({
     projects: [
       {
         extends: true,
-        test: {
-          name: 'node',
-          include: [
-            'tests/unit/**/*.test.ts',
-            'src/**/*.spec.ts',
-          ],
-          exclude: [
-            'src/components/primitives/**/*.spec.tsx',
-          ],
-        },
+test: {
+        name: 'node',
+        include: [
+          'tests/unit/**/*.test.ts',
+          'src/**/*.spec.ts',
+        ],
+        exclude: [
+          'src/components/primitives/**/*.spec.tsx',
+          // TKT-4.1.E3 — `useOptimisticMutation` hook spec exercises
+          // SWR + `BroadcastChannel`, which need a DOM environment.
+          // The spec is discovered in the jsdom project below; this
+          // exclusion prevents the node project from also picking it
+          // up (which would crash on `document` / `BroadcastChannel`
+          // being undefined).
+          'src/lib/api/__tests__/useOptimisticMutation.spec.ts',
+          // TKT-4.2.A2 — `useQuizForm` spec uses `@testing-library/react`'s
+          // `renderHook`, which requires a DOM environment. The hook
+          // does not need jsdom itself, but the test driver does.
+          // Discovered in the jsdom project below.
+          'src/lib/forms/__tests__/useQuizForm.spec.ts',
+          // TKT-4.2.C2 — `useDraftAutoSave` spec uses `renderHook` and
+          // drives fake timers + setInterval + form.watch, all of which
+          // settle through React's effects in jsdom.
+          'src/lib/forms/__tests__/useDraftAutoSave.spec.ts',
+          // TKT-4.2.C3 — `useUnsavedChangesGuard` spec uses
+          // `renderHook` + window event dispatch.
+          'src/lib/forms/__tests__/useUnsavedChangesGuard.spec.tsx',
+          // TKT-4.2.E3 — integration smoke test mounts a full React
+          // tree with `ToastProvider` + `useDraftAutoSave` fake timers;
+          // requires jsdom.
+          'src/lib/forms/__tests__/useQuizForm-integration.spec.tsx',
+        ],
+      },
       },
       {
         extends: true,
@@ -78,7 +101,38 @@ export default defineConfig({
             // environment because the page renders
             // `<DailyChallengeMainContent />` which is a React tree.
             'src/app/(public)/daily-challenge/page.spec.tsx',
-          ],
+            // TKT-4.1.E3 — `useOptimisticMutation` hook consumes
+            // SWR's global `mutate` and `BroadcastChannel`. The spec
+            // exercises the hook via `@testing-library/react`'s
+            // `renderHook` and asserts the snapshot/revert/cooldown/
+            // typed-confirm/cross-tab broadcast contract end-to-end.
+            // jsdom is required because `BroadcastChannel` is
+            // a browser-only API.
+            'src/lib/api/__tests__/useOptimisticMutation.spec.ts',
+            // TKT-4.1.H1 — cross-feature integration smoke check.
+            // Renders React components (ConfirmDialog) and uses
+            // BroadcastChannel via useOptimisticMutation, so the
+            // jsdom environment is required.
+            'src/features/shared/__tests__/phase4-4-1.integration.spec.tsx',
+            // TKT-4.2.A2 — `useQuizForm` primitive spec uses
+            // `@testing-library/react`'s `renderHook`, which requires
+            // a DOM environment. The hook does not need jsdom
+            // itself, but the test driver does.
+            'src/lib/forms/__tests__/useQuizForm.spec.ts',
+            // TKT-4.2.C2 — `useDraftAutoSave` spec uses `renderHook`
+            // and drives fake timers + setInterval + form.watch, all
+            // of which settle through React's effects in jsdom.
+            'src/lib/forms/__tests__/useDraftAutoSave.spec.ts',
+          // TKT-4.2.C3 — `useUnsavedChangesGuard` spec mocks
+          // `next/navigation` and drives `beforeunload` / `popstate`
+          // events; needs jsdom for `window` event dispatch.
+          'src/lib/forms/__tests__/useUnsavedChangesGuard.spec.tsx',
+          // TKT-4.2.E3 — integration smoke test exercising the
+          // primitive + atoms + banners + auto-save end-to-end. Renders
+          // a React tree with `ToastProvider`, `useDraftAutoSave` fake
+          // timers, and the full atom ecosystem; jsdom required.
+          'src/lib/forms/__tests__/useQuizForm-integration.spec.tsx',
+        ],
           environment: 'jsdom',
           setupFiles: ['./src/components/primitives/__tests__/setup.ts'],
         },

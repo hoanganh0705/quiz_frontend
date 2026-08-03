@@ -48,11 +48,11 @@ import { LeaderboardPage } from '@/features/leaderboard/components/LeaderboardPa
 
 const getLeaderboardWithPaginationMock = vi.fn()
 
-vi.mock('@/features/leaderboard/wrappers/leaderboard.wrapper', async () => {
+vi.mock('@/features/leaderboard/services/leaderboard.service', async () => {
   const actual =
     await vi.importActual<
-      typeof import('@/features/leaderboard/wrappers/leaderboard.wrapper')
-    >('@/features/leaderboard/wrappers/leaderboard.wrapper')
+      typeof import('@/features/leaderboard/services/leaderboard.service')
+    >('@/features/leaderboard/services/leaderboard.service')
   return {
     ...actual,
     getLeaderboardWithPagination: (...args: unknown[]) =>
