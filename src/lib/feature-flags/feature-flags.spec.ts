@@ -103,3 +103,77 @@ describe("feature-flags — dailyChallengePage default", () => {
     );
   });
 });
+
+/**
+ * Phase 4 lane gates — added by TKT-4.1.B1.
+ *
+ * Same six cases per flag as the dailyChallengePage spec (default,
+ * env-var override, unsupported value, isFeatureEnabled for each value,
+ * isFeatureEnabled(flag) without value, barrel / implementation
+ * equivalence). The shared "barrel / implementation equivalence" case is
+ * collapsed into a single round-trip per flag for brevity — the global
+ * `(5)` case above already locks the structural invariant.
+ */
+const phase4Flags = [
+  'phase4_authoring',
+  'phase4_personal',
+  'phase4_attempts',
+] as const;
+
+const phase4EnvVars = {
+  phase4_authoring: 'NEXT_PUBLIC_PHASE4_AUTHORING',
+  phase4_personal: 'NEXT_PUBLIC_PHASE4_PERSONAL',
+  phase4_attempts: 'NEXT_PUBLIC_PHASE4_ATTEMPTS',
+} as const;
+
+for (const flag of phase4Flags) {
+  describe(`feature-flags — ${flag}`, () => {
+    beforeEach(() => {
+      vi.unstubAllEnvs();
+    });
+
+    afterEach(() => {
+      vi.unstubAllEnvs();
+    });
+
+    it('(1) defaults to "placeholder" when the env-var is unset', async () => {
+      vi.stubEnv(phase4EnvVars[flag], undefined);
+      const { getFeatureFlagValue } = await importFresh();
+      expect(getFeatureFlagValue(flag)).toBe('placeholder');
+    });
+
+    it('(2) returns "live" when the env-var is set to "live"', async () => {
+      vi.stubEnv(phase4EnvVars[flag], 'live');
+      const { getFeatureFlagValue } = await importFresh();
+      expect(getFeatureFlagValue(flag)).toBe('live');
+    });
+
+    it('(3) returns the default when the env-var is an unsupported value', async () => {
+      vi.stubEnv(phase4EnvVars[flag], 'unsupported-value');
+      const { getFeatureFlagValue } = await importFresh();
+      expect(getFeatureFlagValue(flag)).toBe('placeholder');
+    });
+
+    it('(4) isFeatureEnabled returns the correct boolean for each value', async () => {
+      vi.stubEnv(phase4EnvVars[flag], 'live');
+      const enabled = await importFresh();
+      expect(enabled.isFeatureEnabled(flag, 'live')).toBe(true);
+      expect(enabled.isFeatureEnabled(flag, 'placeholder')).toBe(false);
+
+      vi.stubEnv(phase4EnvVars[flag], undefined);
+      const disabled = await importFresh();
+      expect(disabled.isFeatureEnabled(flag, 'live')).toBe(false);
+      expect(disabled.isFeatureEnabled(flag, 'placeholder')).toBe(true);
+    });
+
+    it('isFeatureEnabled(flag) without a value returns true when an env-var override is active', async () => {
+      vi.stubEnv(phase4EnvVars[flag], 'live');
+      const overridden = await importFresh();
+      expect(overridden.isFeatureEnabled(flag)).toBe(true);
+
+      vi.stubEnv(phase4EnvVars[flag], undefined);
+      const atDefault = await importFresh();
+      expect(atDefault.isFeatureEnabled(flag)).toBe(false);
+    });
+  });
+}

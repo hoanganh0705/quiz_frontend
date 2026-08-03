@@ -37,7 +37,7 @@ import useSWR from 'swr'
 import { ApiError } from '@/lib/api'
 import type { TagResponseDto } from '@/lib/api/generated/schemas'
 
-import { getTagBySlug } from '@/features/tags/wrappers/tag.wrapper'
+import { getTagBySlug } from '@/features/tags/services/tags.service'
 
 export interface UseTagBySlugResult {
   tag: TagResponseDto | null

@@ -43,7 +43,7 @@ import { useTagsTrending } from '@/features/tags/hooks/useTagsTrending'
 const getTagsPopularMock = vi.fn()
 const getTagsTrendingMock = vi.fn()
 
-vi.mock('@/features/tags/wrappers/tag.wrapper', () => ({
+vi.mock('@/features/tags/services/tags.service', () => ({
   listTags: vi.fn(),
   getTagBySlug: vi.fn(),
   getTag: vi.fn(),

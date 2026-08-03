@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { Plus } from "lucide-react";
 import { Badge } from "@/components/ui/Badge";
 import { AdminPageHeader } from "../_components";
-import { listQuizzes } from "@/features/quizzes/api";
+import { listQuizzes } from "@/features/quizzes/services/quizzes.service";
 import type { QuizResponseDto } from "@/lib/api/generated/schemas";
 
 export default function AdminQuizzesPage() {

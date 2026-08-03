@@ -31,7 +31,7 @@ import useSWR from 'swr'
 import { ApiError } from '@/lib/api'
 import type { TagAnalyticsResponseDto } from '@/lib/api/generated/schemas'
 
-import { getTagAnalytics } from '@/features/tags/wrappers/tag.wrapper'
+import { getTagAnalytics } from '@/features/tags/services/tags.service'
 
 export interface UseTagAnalyticsResult {
   analytics: TagAnalyticsResponseDto | null

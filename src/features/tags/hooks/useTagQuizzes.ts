@@ -49,7 +49,7 @@ import { ApiError, useCursorPaginated } from '@/lib/api'
 import type { CursorPage } from '@/lib/api/use-cursor-paginated.types'
 import type { QuizListItemDto } from '@/lib/api/generated/schemas'
 
-import { getTagQuizzes } from '@/features/tags/wrappers/tag.wrapper'
+import { getTagQuizzes } from '@/features/tags/services/tags.service'
 
 /**
  * Wire-shape envelope returned by `getTagQuizzes` (TKT-3.4.A2).
@@ -60,7 +60,7 @@ import { getTagQuizzes } from '@/features/tags/wrappers/tag.wrapper'
  * `meta.pagination` shape (the lint rule disallows repeating the
  * `nextCursor` field outside the fetcher adapter).
  *
- * Exported so the wrapper (`@/features/tags/wrappers/tag.wrapper.ts`)
+ * Exported so the wrapper (`@/features/tags/services/tags.service.ts`)
  * can import the type without re-declaring the cursor-pagination
  * envelope inline.
  */

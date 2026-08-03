@@ -27,7 +27,7 @@ import useSWR from 'swr'
 import { ApiError } from '@/lib/api'
 import type { RankedCategoryResponseDto } from '@/lib/api/generated/schemas'
 
-import { getCategoriesRanked } from '@/features/categories/wrappers/category.wrapper'
+import { getCategoriesRanked } from '@/features/categories/services/categories.service'
 
 export interface UseCategoriesRankedParams {
   limit?: number

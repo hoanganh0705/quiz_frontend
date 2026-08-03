@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
 
-import { getQuizByIdOrSlug } from '@/features/quizzes/api';
+import { getQuizByIdOrSlug } from '@/features/quizzes/services/quizzes.service';
 import { projectQuizToPlayerView } from '@/features/quizzes/lib';
 import { buildMetadata, siteConfig } from '@/shared/lib/seo';
 

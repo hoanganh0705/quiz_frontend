@@ -28,7 +28,7 @@ import useSWR from 'swr'
 import { ApiError } from '@/lib/api'
 import type { TagResponseDto } from '@/lib/api/generated/schemas'
 
-import { getRelatedTags } from '@/features/tags/wrappers/tag.wrapper'
+import { getRelatedTags } from '@/features/tags/services/tags.service'
 
 export interface UseTagRelatedParams {
   limit?: number

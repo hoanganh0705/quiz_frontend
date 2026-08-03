@@ -37,7 +37,7 @@ import useSWR from 'swr'
 import { ApiError } from '@/lib/api'
 import type { CategoryResponseDto } from '@/lib/api/generated/schemas'
 
-import { getCategoryBySlug } from '@/features/categories/wrappers/category.wrapper'
+import { getCategoryBySlug } from '@/features/categories/services/categories.service'
 
 export interface UseCategoryResult {
   category: CategoryResponseDto | null

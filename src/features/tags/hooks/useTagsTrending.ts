@@ -21,7 +21,7 @@ import useSWR from 'swr'
 import { ApiError } from '@/lib/api'
 import type { RankedTagResponseDto } from '@/lib/api/generated/schemas'
 
-import { getTagsTrending } from '@/features/tags/wrappers/tag.wrapper'
+import { getTagsTrending } from '@/features/tags/services/tags.service'
 
 export interface UseTagsTrendingParams {
   limit?: number

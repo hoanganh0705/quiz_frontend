@@ -76,7 +76,7 @@ import {
 import {
   getDailyChallengeHistoryPage,
   type DailyChallengeHistoryItemView,
-} from '@/features/daily-challenge/wrappers/daily-challenge.wrapper'
+} from '@/features/daily-challenge/services/daily-challenge.service'
 
 // ---------------------------------------------------------------------------
 // Public types

@@ -44,11 +44,11 @@ import {
 const followedCategoriesMock = vi.fn();
 const followedTagsMock = vi.fn();
 
-vi.mock('@/features/categories/wrappers/category.wrapper', () => ({
+vi.mock('@/features/categories/services/categories.service', () => ({
   followedCategories: (...args: unknown[]) => followedCategoriesMock(...args),
 }));
 
-vi.mock('@/features/tags/wrappers/tag.wrapper', () => ({
+vi.mock('@/features/tags/services/tags.service', () => ({
   followedTags: (...args: unknown[]) => followedTagsMock(...args),
 }));
 

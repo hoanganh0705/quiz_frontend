@@ -80,3 +80,61 @@ export type {
   BookmarkButtonSlotProps,
   BookmarkButtonSlotVariant,
 } from './BookmarkButton'
+
+// Epic 4.1 / TKT-4.1.D2 — the destructive / state-changing confirm
+// dialog primitive. Wraps the shadcn `AlertDialog` under
+// `src/components/ui/AlertDialog.tsx` and reads the 5-variant
+// vocabulary from `./ConfirmDialog/confirm-copy` (TKT-4.1.D1). Used
+// by Phase 4 stories 4.6 (bookmark collection delete), 4.7 (bulk
+// bookmark remove), 4.11 (attempt submit-and-complete), 4.13
+// (review delete), 4.15 (quiz publish) etc.
+export {
+  ConfirmDialog } from './ConfirmDialog/ConfirmDialog'
+export type { ConfirmDialogProps } from './ConfirmDialog/ConfirmDialog'
+export {
+  CONFIRM_COPY,
+  CONFIRM_KINDS,
+  getConfirmCopy,
+} from './ConfirmDialog/confirm-copy'
+export type {
+  ConfirmKind,
+  ConfirmCopy,
+  ConfirmTone,
+} from './ConfirmDialog/confirm-copy'
+
+// Epic 4.2 / Batch B — shared form atoms. Each atom is a
+// `useController`-driven, `FormProvider`-registered input primitive.
+// The atoms form the typing + UX foundation that every Phase 4
+// authoring form (quiz create, question create, review edit, …) builds
+// on. The barrel is co-located with the components so the import path
+// mirrors `@/components/ui` for the shadcn primitives.
+export {
+  TextField,
+  RichTextArea,
+  TagMultiSelect,
+  DifficultySelect,
+  QuestionTypeSelect,
+  QUESTION_TYPE_VALUES,
+  ImageUploadField,
+  // TKT-4.2.C1 — top-of-form error banner.
+  FormErrorBanner,
+  // TKT-4.2.C2 — restore-from-draft CTA.
+  DraftBanner,
+  // TKT-4.2.D2 — per-row bulk-error renderer.
+  BulkErrorList,
+  // TKT-4.2.E1 — read-only banner.
+  ReadOnlyBanner,
+} from './form'
+export type {
+  TextFieldProps,
+  RichTextAreaProps,
+  TagMultiSelectProps,
+  DifficultySelectProps,
+  QuestionTypeSelectProps,
+  QuestionType,
+  ImageUploadFieldProps,
+  FormErrorBannerProps,
+  DraftBannerProps,
+  BulkErrorListProps,
+  ReadOnlyBannerProps,
+} from './form'

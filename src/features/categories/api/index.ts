@@ -9,8 +9,8 @@ export {
   createCategory,
   updateCategory,
   deleteCategory,
-} from '@/features/categories/wrappers/category.wrapper';
+} from '@/features/categories/services/categories.service';
 
-export type { ListCategoriesParams } from '@/features/categories/wrappers/category.wrapper';
+export type { ListCategoriesParams } from '@/features/categories/services/categories.service';
 
 // Admin functions (deprecated - use wrappers instead)

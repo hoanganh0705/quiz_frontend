@@ -1,12 +1,12 @@
 /**
- * Categories Admin API - Re-exports from wrapper for admin compatibility
- * @deprecated Use wrappers instead: import { listCategories, createCategory, ... } from '@/features/categories/wrappers'
+ * Categories Admin API - Re-exports from the service layer.
+ * @deprecated Use the service directly: import { listCategories, createCategory, ... } from '@/features/categories/services/categories.service'
  */
 
-import { listCategories, createCategory, updateCategory, deleteCategory } from '@/features/categories/wrappers/category.wrapper';
+import { listCategories, createCategory, updateCategory, deleteCategory } from '@/features/categories/services/categories.service';
 import type { CreateCategoryDto, UpdateCategoryDto } from '@/lib/api/generated/schemas';
 
-export type { ListCategoriesParams } from '@/features/categories/wrappers/category.wrapper';
+export type { ListCategoriesParams } from '@/features/categories/services/categories.service';
 
 export interface Category {
   categoryId: string;

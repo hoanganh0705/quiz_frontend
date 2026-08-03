@@ -40,7 +40,7 @@ import { useTagBySlug } from '@/features/tags/hooks/useTagBySlug'
 
 const getTagBySlugMock = vi.fn()
 
-vi.mock('@/features/tags/wrappers/tag.wrapper', () => ({
+vi.mock('@/features/tags/services/tags.service', () => ({
   listTags: vi.fn(),
   getTagBySlug: (...args: unknown[]) => getTagBySlugMock(...args),
   getTag: vi.fn(),

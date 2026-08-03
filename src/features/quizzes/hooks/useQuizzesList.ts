@@ -96,7 +96,7 @@ import type {
 } from '@/lib/api/generated/schemas'
 
 import { listQuizzes } from '@/features/quizzes/api/quizzes.wrapper'
-import { listTags } from '@/features/tags/wrappers/tag.wrapper'
+import { listTags } from '@/features/tags/services/tags.service'
 import type { QuizFilterUrlState } from '@/features/quizzes/types/quiz-filter-params'
 
 // ---------------------------------------------------------------------------

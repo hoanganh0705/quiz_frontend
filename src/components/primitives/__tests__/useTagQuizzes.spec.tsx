@@ -45,7 +45,7 @@ import { useTagQuizzes } from '@/features/tags/hooks/useTagQuizzes'
 
 const getTagQuizzesMock = vi.fn()
 
-vi.mock('@/features/tags/wrappers/tag.wrapper', () => ({
+vi.mock('@/features/tags/services/tags.service', () => ({
   listTags: vi.fn(),
   getTagBySlug: vi.fn(),
   getTag: vi.fn(),

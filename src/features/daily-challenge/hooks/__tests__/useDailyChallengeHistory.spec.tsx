@@ -51,12 +51,12 @@ const getDailyChallengeHistoryPageMock = vi.fn(
 )
 
 vi.mock(
-  '@/features/daily-challenge/wrappers/daily-challenge.wrapper',
+  '@/features/daily-challenge/services/daily-challenge.service',
   async () => {
     const actual =
       await vi.importActual<
-        typeof import('@/features/daily-challenge/wrappers/daily-challenge.wrapper')
-      >('@/features/daily-challenge/wrappers/daily-challenge.wrapper')
+        typeof import('@/features/daily-challenge/services/daily-challenge.service')
+      >('@/features/daily-challenge/services/daily-challenge.service')
     return {
       ...actual,
       // The mock wrapper re-types the args list as a tuple so the

@@ -64,7 +64,7 @@ import type { LeaderboardEntryDto } from '@/lib/api/generated/schemas'
 import {
   getLeaderboardWithPagination,
   type LeaderboardPeriod,
-} from '@/features/leaderboard/wrappers/leaderboard.wrapper'
+} from '@/features/leaderboard/services/leaderboard.service'
 
 // ---------------------------------------------------------------------------
 // Public types

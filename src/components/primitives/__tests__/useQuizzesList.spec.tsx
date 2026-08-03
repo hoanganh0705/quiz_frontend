@@ -64,7 +64,7 @@ vi.mock('@/features/quizzes/api/quizzes.wrapper', () => ({
   addQuestionsBulk: vi.fn(),
 }))
 
-vi.mock('@/features/tags/wrappers/tag.wrapper', () => ({
+vi.mock('@/features/tags/services/tags.service', () => ({
   listTags: (...args: unknown[]) => listTagsMock(...args),
   getTagBySlug: vi.fn(),
   getTag: vi.fn(),
