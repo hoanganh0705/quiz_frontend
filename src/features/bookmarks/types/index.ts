@@ -122,3 +122,23 @@ export function getCollectionColor(collection: BookmarkCollection): string {
  * Used by useCollectionsLookup() for fast O(1) access by collectionId.
  */
 export const BOOKMARK_COLLECTIONS_LOOKUP_KEY = ['bookmark-collections-lookup'] as const;
+
+// ─── Phase 4.7 — Collection Detail Types ─────────────────────────────────────
+
+export type {
+  CollectionQuiz,
+  BulkOperationResult,
+  BulkAddResult,
+  BulkRemoveResult,
+  CollectionAnalytics,
+  BulkAddQuizzesPayload,
+  BulkRemoveQuizzesPayload,
+} from './collection-detail.types';
+export {
+  toCollectionQuiz,
+  toCollectionAnalytics,
+  collectionQuizzesKey,
+  collectionAnalyticsKey,
+  BULK_OPERATION_MAX_ITEMS,
+  BULK_OPERATION_MIN_ITEMS,
+} from './collection-detail.types';

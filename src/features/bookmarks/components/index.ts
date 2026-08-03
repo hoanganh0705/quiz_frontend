@@ -34,3 +34,11 @@ export type { BookmarksSetupPromptProps } from './BookmarksSetupPrompt'
 // layout (E4) so cards and detail strips see a warm cache without a
 // perceptible state swap.
 export { BookmarksLookupHydrator } from './BookmarksLookupHydrator'
+
+// Epic 4.7 / EPIC-4.7-B3-1 — collection detail page components.
+export { default as CollectionHeader } from './CollectionHeader'
+export { default as CollectionQuizGrid } from './CollectionQuizGrid'
+export { default as CollectionAddQuizzesDialog } from './CollectionAddQuizzesDialog'
+export { default as CollectionRemoveConfirm } from './CollectionRemoveConfirm'
+export { default as BulkResultList } from './BulkResultList'
+export { default as CollectionAnalyticsPanel } from './CollectionAnalyticsPanel'
