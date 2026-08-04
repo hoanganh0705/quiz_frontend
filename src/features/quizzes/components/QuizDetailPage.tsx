@@ -110,7 +110,11 @@ export function QuizDetailPage({ idOrSlug }: QuizDetailPageProps) {
         isRetrying={stats.isRetrying}
         className='mt-10'
       />
-      <QuizCtaStrip quizId={quiz.quizId} className='mt-6' />
+      <QuizCtaStrip
+        quizId={quiz.quizId}
+        idOrSlug={idOrSlug}
+        className='mt-6'
+      />
       <QuizRelatedQuizzes idOrSlug={idOrSlug} className='mt-10' />
       <ReviewsWidget
         quizId={quiz.quizId}

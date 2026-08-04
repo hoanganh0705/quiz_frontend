@@ -660,7 +660,7 @@ const PHASE4_PRIORITY_COPY: Partial<Record<ErrorCode, UserCopyEntry>> = {
   ATTEMPT_ALREADY_STARTED: {
     title: 'Attempt already in progress',
     body: 'You already have an in-progress attempt for this quiz. Resume it or abandon the existing one first.',
-    toast: 'inline',
+    toast: 'top',
   },
   ATTEMPT_NOT_ACTIVE: {
     title: 'Attempt is no longer active',
@@ -685,7 +685,7 @@ const PHASE4_PRIORITY_COPY: Partial<Record<ErrorCode, UserCopyEntry>> = {
   ATTEMPT_ANSWER_NOT_FOUND: {
     title: 'Answer not found',
     body: 'We could not find an answer for this question on your attempt.',
-    toast: 'inline',
+    toast: 'silent',
   },
   ATTEMPT_QUESTION_INVALID: {
     title: 'Question is not valid',

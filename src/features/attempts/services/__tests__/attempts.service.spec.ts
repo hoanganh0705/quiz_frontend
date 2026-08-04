@@ -2,18 +2,33 @@
  * `attempts.service.spec.ts` — locks the attempts service contract.
  *
  * Source epic:   Epic 4.1.
- * Source ticket: TKT-4.1.F7.
+ * Source tickets: TKT-4.1.F7, TKT-4.1.F5.
  *
- * Coverage: pass-through + the ATTEMPT_* error codes the F5 ticket
- * calls out (`ATTEMPT_ALREADY_STARTED`, `ATTEMPT_NOT_ACTIVE`,
- * `ATTEMPT_QUIZ_NOT_PUBLISHED`, `ATTEMPT_QUESTION_INVALID`).
+ * Source story:  4.14 — Attempt start + answer + withdraw/abandon.
+ * Source ticket: T-4.14.1.
+ *
+ * Coverage:
+ *
+ *   - Pass-through + ATTEMPT_* error codes from the F5/F7 tickets.
+ *   - The Story 4.14 active-attempt lookup (T-4.14.1) normalises
+ *     the empty page and 404 to `null` and propagates 401/403/429/5xx.
+ *   - The Story 4.14 hydration answers read (T-4.14.1) returns the
+ *     canonical `AttemptAnswersResponseDto` projection.
+ *   - The Story 4.14 typed result aliases (`AttemptDto`,
+ *     `AttemptAnswersDto`, `SubmitAnswerResultDto`,
+ *     `WithdrawAnswerResultDto`, `AbandonAttemptDto`) are exported
+ *     and the helper signatures accept them.
  */
 
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { ApiError } from '@/lib/api';
 import {
+  abandonAttempt,
   completeAttempt,
+  getActiveAttempt,
+  getAttempt,
+  getAttemptAnswers,
   startAttempt,
   submitAnswer,
   withdrawAnswer,
@@ -23,6 +38,10 @@ const attemptControllerStartAttemptMock = vi.fn();
 const attemptControllerSubmitAnswerMock = vi.fn();
 const attemptControllerWithdrawAnswerMock = vi.fn();
 const attemptControllerCompleteAttemptMock = vi.fn();
+const attemptControllerAbandonAttemptMock = vi.fn();
+const attemptControllerGetAttemptByIdMock = vi.fn();
+const attemptControllerGetAttemptAnswersMock = vi.fn();
+const attemptControllerListMyAttemptsMock = vi.fn();
 
 vi.mock('@/lib/api', async () => {
   const actual =
@@ -34,6 +53,11 @@ vi.mock('@/lib/api', async () => {
       attemptControllerSubmitAnswer: attemptControllerSubmitAnswerMock,
       attemptControllerWithdrawAnswer: attemptControllerWithdrawAnswerMock,
       attemptControllerCompleteAttempt: attemptControllerCompleteAttemptMock,
+      attemptControllerAbandonAttempt: attemptControllerAbandonAttemptMock,
+      attemptControllerGetAttemptById: attemptControllerGetAttemptByIdMock,
+      attemptControllerGetAttemptAnswers:
+        attemptControllerGetAttemptAnswersMock,
+      attemptControllerListMyAttempts: attemptControllerListMyAttemptsMock,
     }),
   };
 });
@@ -90,6 +114,31 @@ describe('attempts.service — pass-through', () => {
     expect(attemptControllerCompleteAttemptMock).toHaveBeenCalledTimes(1);
     expect(result).toMatchObject({ status: 'completed' });
   });
+
+  it('getAttempt forwards attemptId and returns the canonical projection', async () => {
+    attemptControllerGetAttemptByIdMock.mockResolvedValue({
+      data: { attemptId: 'a1', status: 'started' },
+    });
+
+    const result = await getAttempt('a1');
+
+    expect(attemptControllerGetAttemptByIdMock).toHaveBeenCalledWith('a1');
+    expect(result).toMatchObject({ data: { attemptId: 'a1' } });
+  });
+
+  it('getAttemptAnswers forwards attemptId and returns the canonical projection', async () => {
+    attemptControllerGetAttemptAnswersMock.mockResolvedValue({
+      data: {
+        attemptId: 'a1',
+        answers: [{ questionId: 'q1', selectedOptionId: 'o1', submittedAt: '2026-08-01T00:00:00.000Z' }],
+      },
+    });
+
+    const result = await getAttemptAnswers('a1');
+
+    expect(attemptControllerGetAttemptAnswersMock).toHaveBeenCalledWith('a1');
+    expect(result.data?.answers[0]?.questionId).toBe('q1');
+  });
 });
 
 describe('attempts.service — ApiError code exposure', () => {
@@ -119,6 +168,32 @@ describe('attempts.service — ApiError code exposure', () => {
     });
   });
 
+  it('submitAnswer surfaces 409 ATTEMPT_QUESTION_ALREADY_ANSWERED', async () => {
+    attemptControllerSubmitAnswerMock.mockRejectedValue(
+      makeApiError(409, 'ATTEMPT_QUESTION_ALREADY_ANSWERED', 'already answered'),
+    );
+
+    await expect(
+      submitAnswer('a1', {} as Parameters<typeof submitAnswer>[1]),
+    ).rejects.toMatchObject({
+      code: 'ATTEMPT_QUESTION_ALREADY_ANSWERED',
+      status: 409,
+    });
+  });
+
+  it('submitAnswer surfaces 422 ATTEMPT_VALIDATION_FAILED', async () => {
+    attemptControllerSubmitAnswerMock.mockRejectedValue(
+      makeApiError(422, 'ATTEMPT_VALIDATION_FAILED', 'invalid payload'),
+    );
+
+    await expect(
+      submitAnswer('a1', {} as Parameters<typeof submitAnswer>[1]),
+    ).rejects.toMatchObject({
+      code: 'ATTEMPT_VALIDATION_FAILED',
+      status: 422,
+    });
+  });
+
   it('submitAnswer surfaces 400 ATTEMPT_NOT_ACTIVE', async () => {
     attemptControllerSubmitAnswerMock.mockRejectedValue(
       makeApiError(400, 'ATTEMPT_NOT_ACTIVE', 'no longer active'),
@@ -132,6 +207,17 @@ describe('attempts.service — ApiError code exposure', () => {
     });
   });
 
+  it('withdrawAnswer surfaces 404 ATTEMPT_ANSWER_NOT_FOUND', async () => {
+    attemptControllerWithdrawAnswerMock.mockRejectedValue(
+      makeApiError(404, 'ATTEMPT_ANSWER_NOT_FOUND', 'no answer'),
+    );
+
+    await expect(withdrawAnswer('a1', 'q999')).rejects.toMatchObject({
+      code: 'ATTEMPT_ANSWER_NOT_FOUND',
+      status: 404,
+    });
+  });
+
   it('withdrawAnswer surfaces 400 ATTEMPT_QUESTION_INVALID', async () => {
     attemptControllerWithdrawAnswerMock.mockRejectedValue(
       makeApiError(400, 'ATTEMPT_QUESTION_INVALID', 'invalid question'),
@@ -140,6 +226,103 @@ describe('attempts.service — ApiError code exposure', () => {
     await expect(withdrawAnswer('a1', 'q999')).rejects.toMatchObject({
       code: 'ATTEMPT_QUESTION_INVALID',
       status: 400,
+    });
+  });
+
+  it('abandonAttempt surfaces 409 ATTEMPT_NOT_ACTIVE', async () => {
+    attemptControllerAbandonAttemptMock.mockRejectedValue(
+      makeApiError(409, 'ATTEMPT_NOT_ACTIVE', 'no longer active'),
+    );
+
+    await expect(abandonAttempt('a1')).rejects.toMatchObject({
+      code: 'ATTEMPT_NOT_ACTIVE',
+      status: 409,
+    });
+  });
+});
+
+describe('attempts.service — getActiveAttempt (T-4.14.1)', () => {
+  it('forwards quizId + status=started + limit=1 to listMyAttempts', async () => {
+    attemptControllerListMyAttemptsMock.mockResolvedValue({ data: [] });
+
+    await getActiveAttempt('q1');
+
+    expect(attemptControllerListMyAttemptsMock).toHaveBeenCalledTimes(1);
+    expect(attemptControllerListMyAttemptsMock).toHaveBeenCalledWith({
+      quizId: 'q1',
+      status: 'started',
+      limit: 1,
+    });
+  });
+
+  it('resolves to the first item when the list returns one summary', async () => {
+    const summary = { attemptId: 'a1', quizId: 'q1', status: 'started' };
+    attemptControllerListMyAttemptsMock.mockResolvedValue({ data: [summary] });
+
+    await expect(getActiveAttempt('q1')).resolves.toEqual(summary);
+  });
+
+  it('resolves to null when the page is empty', async () => {
+    attemptControllerListMyAttemptsMock.mockResolvedValue({ data: [] });
+
+    await expect(getActiveAttempt('q1')).resolves.toBeNull();
+  });
+
+  it('resolves to null when the envelope has no data field', async () => {
+    attemptControllerListMyAttemptsMock.mockResolvedValue({});
+
+    await expect(getActiveAttempt('q1')).resolves.toBeNull();
+  });
+
+  it('resolves to null when the service returns 404', async () => {
+    attemptControllerListMyAttemptsMock.mockRejectedValue(
+      makeApiError(404, 'GLOBAL_NOT_FOUND', 'no attempts'),
+    );
+
+    await expect(getActiveAttempt('q1')).resolves.toBeNull();
+  });
+
+  it('propagates 401 as a typed ApiError (not as null)', async () => {
+    attemptControllerListMyAttemptsMock.mockRejectedValue(
+      makeApiError(401, 'GLOBAL_UNAUTHENTICATED', 'expired'),
+    );
+
+    await expect(getActiveAttempt('q1')).rejects.toMatchObject({
+      code: 'GLOBAL_UNAUTHENTICATED',
+      status: 401,
+    });
+  });
+
+  it('propagates 403 as a typed ApiError', async () => {
+    attemptControllerListMyAttemptsMock.mockRejectedValue(
+      makeApiError(403, 'ATTEMPT_FORBIDDEN', 'cross-user'),
+    );
+
+    await expect(getActiveAttempt('q1')).rejects.toMatchObject({
+      code: 'ATTEMPT_FORBIDDEN',
+      status: 403,
+    });
+  });
+
+  it('propagates 429 as a typed ApiError', async () => {
+    attemptControllerListMyAttemptsMock.mockRejectedValue(
+      makeApiError(429, 'GLOBAL_RATE_LIMITED', 'slow down'),
+    );
+
+    await expect(getActiveAttempt('q1')).rejects.toMatchObject({
+      code: 'GLOBAL_RATE_LIMITED',
+      status: 429,
+    });
+  });
+
+  it('propagates 5xx as a typed ApiError', async () => {
+    attemptControllerListMyAttemptsMock.mockRejectedValue(
+      makeApiError(500, 'GLOBAL_INTERNAL_ERROR', 'oops'),
+    );
+
+    await expect(getActiveAttempt('q1')).rejects.toMatchObject({
+      code: 'GLOBAL_INTERNAL_ERROR',
+      status: 500,
     });
   });
 });
