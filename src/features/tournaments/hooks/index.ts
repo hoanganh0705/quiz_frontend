@@ -21,3 +21,16 @@ export type { UseTournamentFiltersResult } from './useTournamentFilters'
 
 export { useTournamentFeatureFlag } from './useTournamentFeatureFlag'
 export type { UseTournamentFeatureFlagResult } from './useTournamentFeatureFlag'
+
+// Story 5.3 — Tournament registration and participant-state mutations
+export { useTournamentParticipation } from './useTournamentParticipation'
+export type { UseTournamentParticipationResult } from './useTournamentParticipation'
+
+export { useRegisterTournament } from './useRegisterTournament'
+export type { UseRegisterTournamentResult } from './useRegisterTournament'
+
+export { useWithdrawTournament } from './useWithdrawTournament'
+export type { UseWithdrawTournamentResult } from './useWithdrawTournament'
+
+export { useTournamentRegistration } from './useTournamentRegistration'
+export type { UseTournamentRegistrationResult } from './useTournamentRegistration'

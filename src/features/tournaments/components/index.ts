@@ -60,3 +60,29 @@ export {
 export {
   LeaderboardSkeleton,
 } from "./shared/LeaderboardSkeleton";
+
+// Story 5.3 — Registration components
+export {
+  WithdrawDialog,
+} from "./shared/WithdrawDialog";
+export type { WithdrawDialogProps } from "./shared/WithdrawDialog";
+
+export {
+  RegistrationErrorBanner,
+} from "./shared/RegistrationErrorBanner";
+export type { RegistrationErrorBannerProps } from "./shared/RegistrationErrorBanner";
+
+export {
+  TournamentCapacityIndicator,
+} from "./shared/TournamentCapacityIndicator";
+export type { TournamentCapacityIndicatorProps } from "./shared/TournamentCapacityIndicator";
+
+export {
+  TournamentRegistrationCta,
+} from "./TournamentRegistrationCta";
+export type { TournamentRegistrationCtaProps } from "./TournamentRegistrationCta";
+
+export {
+  RegistrationState,
+} from "./RegistrationState";
+export type { RegistrationStateProps } from "./RegistrationState";
