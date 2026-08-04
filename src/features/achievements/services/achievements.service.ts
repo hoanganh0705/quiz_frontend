@@ -50,8 +50,6 @@ import type {
   GetMyAchievementHistoryResult,
   GetMyBadgeAnalyticsResult,
   GetUserAchievementHistoryResult,
-  GetMyBadgeAnalyticsResult,
-  GetUserAchievementHistoryResult,
   ReevaluateUserBadgesResult,
 } from "@/lib/api/generated/achievements/achievements";
 

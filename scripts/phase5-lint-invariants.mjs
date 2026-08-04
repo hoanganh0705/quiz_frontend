@@ -35,6 +35,33 @@
  *      from `notification.types.ts` must be referenced at least once by a
  *      test file. This ensures every domain shape has a test consumer.
  *
+ *   8. **rankings-achievements-no-axios-or-fetch** (Epic 5.5 G3) — No file
+ *      under `features/rankings/` or `features/achievements/` (excluding
+ *      `services/`) may import `axios` or call `fetch(`. All traffic
+ *      must go through the service layer.
+ *
+ *   9. **rankings-achievements-no-analytics-widgets** (Epic 5.5 G3) — No
+ *      component or page (`components/`, top-level route entry, or
+ *      `__tests__/`) under `features/rankings/` or `features/achievements/`
+ *      may import `getMyBadgeAnalytics` (or other analytics widgets
+ *      known to return zeros). The flag stops those widgets from being
+ *      accidentally surfaced before the dashboard lands.
+ *
+ *  10. **ranking-types-have-consumers** (Epic 5.5 G3) — Every export
+ *      from `rankings/types/ranking.types.ts` must have at least one
+ *      consumer under `features/rankings/` (covered by the broader
+ *      search below).
+ *
+ *  11. **achievement-types-have-consumers** (Epic 5.5 G3) — Every export
+ *      from `achievements/types/achievement.types.ts` must have at
+ *      least one consumer under `features/achievements/`.
+ *
+ *  12. **useEventuallyConsistentQuery-has-tests** (Epic 5.5 G3) — The
+ *      shared `useEventuallyConsistentQuery` primitive added in Batch C
+ *      must have a unit test. The check fails if the test file in
+ *      `features/rankings/hooks/__tests__/useEventuallyConsistentQuery.spec.tsx`
+ *      is absent.
+ *
  * ## Usage
  *
  *   node scripts/phase5-lint-invariants.mjs [--help]
@@ -89,6 +116,11 @@ Checks (always run):
   notifications-no-axios-or-fetch  No axios/fetch under features/notifications/.
   notifications-no-direct-socket  No direct Socket.IO listener under features/notifications/.
   notification-types-have-consumers  Every export from notification.types.ts has a test consumer.
+  rankings-achievements-no-axios-or-fetch  No axios/fetch under features/{rankings,achievements}/ (excl. services/).
+  rankings-achievements-no-analytics-widgets  No getMyBadgeAnalytics in components/pages under features/{rankings,achievements}/.
+  ranking-types-have-consumers    Every export from ranking.types.ts has a consumer under features/rankings/.
+  achievement-types-have-consumers  Every export from achievement.types.ts has a consumer under features/achievements/.
+  useEventuallyConsistentQuery-has-tests  useEventuallyConsistentQuery.spec.tsx exists.
 
 Flags:
   --help    Print this help and exit 64.
@@ -713,6 +745,243 @@ async function checkRegistrationTypes() {
   return orphanTypes;
 }
 
+// ─── Check: rankings/achievements have no axios or fetch (Epic 5.5 G3) ────
+
+/**
+ * Walk all non-service files under `features/rankings/` and
+ * `features/achievements/` (excluding `services/` and `__tests__/`)
+ * and assert no file imports axios or calls fetch directly. The
+ * ranking + achievement features must route all HTTP traffic
+ * through the service wrappers under `services/`.
+ *
+ * @returns {Promise<Array<{ file: string; line: number; text: string; pattern: string }>>}
+ */
+async function checkRankingsAchievementsNoAxiosOrFetch() {
+  /** @type {Array<{ file: string; line: number; text: string; pattern: string }>} */
+  const violations = [];
+  const featureDirs = ["rankings", "achievements"];
+
+  for (const feature of featureDirs) {
+    const featureDir = path.resolve(FEATURES_DIR, feature);
+    const files = await walkFiles(
+      featureDir,
+      (f) =>
+        (f.endsWith(".ts") || f.endsWith(".tsx") || f.endsWith(".mts") || f.endsWith(".cts")) &&
+        !f.includes(`${path.sep}services${path.sep}`) &&
+        !f.includes("__tests__"),
+    );
+
+    for (const file of files) {
+      const src = readFileSync(file, "utf-8");
+      const lines = src.split("\n");
+      for (let i = 0; i < lines.length; i += 1) {
+        const raw = lines[i];
+        const text = raw.trimStart();
+        if (
+          text.startsWith("//") ||
+          text.startsWith("/*") ||
+          text.startsWith("*") ||
+          text.startsWith("<!--")
+        )
+          continue;
+
+        if (
+          raw.includes('from "axios"') ||
+          raw.includes("from 'axios'")
+        ) {
+          violations.push({
+            file: path.relative(CWD, file),
+            line: i + 1,
+            text: raw.trim(),
+            pattern: 'from "axios"',
+          });
+        }
+        if (raw.includes("fetch(")) {
+          violations.push({
+            file: path.relative(CWD, file),
+            line: i + 1,
+            text: raw.trim(),
+            pattern: "fetch(",
+          });
+        }
+      }
+    }
+  }
+
+  return violations;
+}
+
+// ─── Check: rankings/achievements have no analytics widgets (Epic 5.5 G3) ─
+
+/**
+ * Walk all `components/` files and the top-level `*.tsx` entries under
+ * `features/rankings/` and `features/achievements/`, and assert no
+ * file imports zero-returning analytics wrappers. The flagged functions
+ * are known to return zeros and must never be rendered in the
+ * Story 5.5 surfaces.
+ *
+ * @returns {Promise<Array<{ file: string; line: number; text: string; pattern: string }>>}
+ */
+async function checkRankingsAchievementsNoAnalyticsWidgets() {
+  /** @type {Array<{ file: string; line: number; text: string; pattern: string }>} */
+  const violations = [];
+
+  const FORBIDDEN_WIDGETS = ["getMyBadgeAnalytics"];
+
+  const featureDirs = ["rankings", "achievements"];
+
+  for (const feature of featureDirs) {
+    const featureDir = path.resolve(FEATURES_DIR, feature);
+    const files = await walkFiles(
+      featureDir,
+      (f) =>
+        (f.endsWith(".ts") || f.endsWith(".tsx") || f.endsWith(".mts") || f.endsWith(".cts")) &&
+        !f.includes(`${path.sep}services${path.sep}`) &&
+        !f.includes("__tests__"),
+    );
+
+    for (const file of files) {
+      const src = readFileSync(file, "utf-8");
+      const lines = src.split("\n");
+      for (let i = 0; i < lines.length; i += 1) {
+        const raw = lines[i];
+        const text = raw.trimStart();
+        if (
+          text.startsWith("//") ||
+          text.startsWith("/*") ||
+          text.startsWith("*") ||
+          text.startsWith("<!--")
+        )
+          continue;
+
+        for (const widget of FORBIDDEN_WIDGETS) {
+          // A violation is any reference to the widget name in a non-service,
+          // non-test file under ranking/achievement features.
+          if (new RegExp(`\\b${widget}\\b`).test(raw)) {
+            violations.push({
+              file: path.relative(CWD, file),
+              line: i + 1,
+              text: raw.trim(),
+              pattern: widget,
+            });
+          }
+        }
+      }
+    }
+  }
+
+  return violations;
+}
+
+// ─── Check: ranking + achievement types have consumers (Epic 5.5 G3) ──────
+
+/**
+ * Walk `rankings/types/ranking.types.ts` and ensure every export has
+ * a consumer under `features/rankings/`.
+ *
+ * @returns {Promise<Array<{ file: string; type: string; consumers: Array<{ file: string; line: number }> }>>}
+ */
+async function checkRankingTypesHaveConsumers() {
+  /** @type {Array<{ file: string; type: string; consumers: Array<{ file: string; line: number }> }>> */
+  const orphanTypes = [];
+  const typesFile = path.resolve(
+    FEATURES_DIR,
+    "rankings",
+    "types",
+    "ranking.types.ts",
+  );
+
+  try {
+    const exports = extractTypeExports(typesFile);
+    for (const type of exports) {
+      const consumers = await findTypeConsumersInDir(
+        type,
+        typesFile,
+        path.resolve(FEATURES_DIR, "rankings"),
+        () => true,
+      );
+      if (consumers.length === 0) {
+        orphanTypes.push({
+          file: path.relative(CWD, typesFile),
+          type,
+          consumers: [],
+        });
+      }
+    }
+  } catch {
+    // File doesn't exist yet — skip silently.
+  }
+
+  return orphanTypes;
+}
+
+/**
+ * Walk `achievements/types/achievement.types.ts` and ensure every
+ * export has a consumer under `features/achievements/`.
+ *
+ * @returns {Promise<Array<{ file: string; type: string; consumers: Array<{ file: string; line: number }> }>>}
+ */
+async function checkAchievementTypesHaveConsumers() {
+  /** @type {Array<{ file: string; type: string; consumers: Array<{ file: string; line: number }> }>> */
+  const orphanTypes = [];
+  const typesFile = path.resolve(
+    FEATURES_DIR,
+    "achievements",
+    "types",
+    "achievement.types.ts",
+  );
+
+  try {
+    const exports = extractTypeExports(typesFile);
+    for (const type of exports) {
+      const consumers = await findTypeConsumersInDir(
+        type,
+        typesFile,
+        path.resolve(FEATURES_DIR, "achievements"),
+        () => true,
+      );
+      if (consumers.length === 0) {
+        orphanTypes.push({
+          file: path.relative(CWD, typesFile),
+          type,
+          consumers: [],
+        });
+      }
+    }
+  } catch {
+    // File doesn't exist yet — skip silently.
+  }
+
+  return orphanTypes;
+}
+
+// ─── Check: useEventuallyConsistentQuery has tests (Epic 5.5 G3) ──────────
+
+/**
+ * Assert that the shared `useEventuallyConsistentQuery` primitive has a
+ * unit test file. The check is binary — present or absent — so it does
+ * not parse the spec, just looks for the file.
+ *
+ * @returns {Promise<{ exists: boolean; path: string }>}
+ */
+async function checkEventuallyConsistentQueryHasTests() {
+  const testFile = path.resolve(
+    FEATURES_DIR,
+    "rankings",
+    "hooks",
+    "__tests__",
+    "useEventuallyConsistentQuery.spec.tsx",
+  );
+  let exists = false;
+  try {
+    readFileSync(testFile, "utf-8");
+    exists = true;
+  } catch {
+    exists = false;
+  }
+  return { exists, path: testFile };
+}
+
 // ─── Report helpers ─────────────────────────────────────────────────────
 
 function reportNoAxios(violations) {
@@ -887,6 +1156,112 @@ function reportNotificationTypesHaveConsumers(orphanTypes) {
   return false;
 }
 
+// ─── Report helpers: Epic 5.5 G3 ─────────────────────────────────────────
+
+function reportRankingsAchievementsNoAxiosOrFetch(violations) {
+  if (violations.length === 0) {
+    process.stdout.write(
+      `${GREEN("✓")} rankings-achievements-no-axios-or-fetch — no axios/fetch in non-service files under features/{rankings,achievements}/\n`,
+    );
+    return true;
+  }
+
+  process.stdout.write(
+    `${RED("✗")} rankings-achievements-no-axios-or-fetch — ${BOLD(String(violations.length))} violation(s) found\n\n`,
+  );
+
+  for (const v of violations) {
+    process.stdout.write(
+      `  ${RED("forbidden pattern:")} ${BOLD(v.pattern)}  ${DIM(v.file)}:${DIM(String(v.line))}\n`,
+    );
+    const snippet =
+      v.text.length > 72 ? v.text.slice(0, 69) + "..." : v.text;
+    process.stdout.write(`  ${snippet}\n\n`);
+  }
+
+  return false;
+}
+
+function reportRankingsAchievementsNoAnalyticsWidgets(violations) {
+  if (violations.length === 0) {
+    process.stdout.write(
+      `${GREEN("✓")} rankings-achievements-no-analytics-widgets — no zero-returning analytics wrappers referenced from components or pages\n`,
+    );
+    return true;
+  }
+
+  process.stdout.write(
+    `${RED("✗")} rankings-achievements-no-analytics-widgets — ${BOLD(String(violations.length))} violation(s) found\n\n`,
+  );
+
+  for (const v of violations) {
+    process.stdout.write(
+      `  ${RED("forbidden widget:")} ${BOLD(v.pattern)}  ${DIM(v.file)}:${DIM(String(v.line))}\n`,
+    );
+    const snippet =
+      v.text.length > 72 ? v.text.slice(0, 69) + "..." : v.text;
+    process.stdout.write(`  ${snippet}\n\n`);
+  }
+
+  return false;
+}
+
+function reportRankingTypesHaveConsumers(orphanTypes) {
+  if (orphanTypes.length === 0) {
+    process.stdout.write(
+      `${GREEN("✓")} ranking-types-have-consumers — all exports from ranking.types.ts have at least one consumer\n`,
+    );
+    return true;
+  }
+
+  process.stdout.write(
+    `${RED("✗")} ranking-types-have-consumers — ${BOLD(String(orphanTypes.length))} orphaned export(s) with no consumer\n\n`,
+  );
+
+  for (const t of orphanTypes) {
+    process.stdout.write(
+      `  ${RED("no consumer for:")} ${BOLD(t.type)}  ${DIM(t.file)}\n`,
+    );
+  }
+
+  return false;
+}
+
+function reportAchievementTypesHaveConsumers(orphanTypes) {
+  if (orphanTypes.length === 0) {
+    process.stdout.write(
+      `${GREEN("✓")} achievement-types-have-consumers — all exports from achievement.types.ts have at least one consumer\n`,
+    );
+    return true;
+  }
+
+  process.stdout.write(
+    `${RED("✗")} achievement-types-have-consumers — ${BOLD(String(orphanTypes.length))} orphaned export(s) with no consumer\n\n`,
+  );
+
+  for (const t of orphanTypes) {
+    process.stdout.write(
+      `  ${RED("no consumer for:")} ${BOLD(t.type)}  ${DIM(t.file)}\n`,
+    );
+  }
+
+  return false;
+}
+
+function reportEventuallyConsistentQueryHasTests(result) {
+  if (result.exists) {
+    process.stdout.write(
+      `${GREEN("✓")} useEventuallyConsistentQuery-has-tests — ${DIM(path.relative(CWD, result.path))}\n`,
+    );
+    return true;
+  }
+
+  process.stdout.write(
+    `${RED("✗")} useEventuallyConsistentQuery-has-tests — ${DIM(path.relative(CWD, result.path))} is missing\n`,
+  );
+  return false;
+}
+
 // ─── Main ────────────────────────────────────────────────────────────────
 
 async function main() {
@@ -944,6 +1319,42 @@ async function main() {
   // least one __tests__ file under features/notifications/.
   const orphanNotificationTypes = await checkNotificationTypesHaveConsumers();
   if (!reportNotificationTypesHaveConsumers(orphanNotificationTypes)) {
+    ok = false;
+  }
+
+  // Check 8: rankings-achievements-no-axios-or-fetch (Epic 5.5 G3)
+  // No file under features/{rankings,achievements}/ outside services/ may
+  // import axios or call fetch directly. The features must route all
+  // HTTP traffic through their service wrappers.
+  const rankingsAchievementsAxios = await checkRankingsAchievementsNoAxiosOrFetch();
+  if (!reportRankingsAchievementsNoAxiosOrFetch(rankingsAchievementsAxios)) {
+    ok = false;
+  }
+
+  // Check 9: rankings-achievements-no-analytics-widgets (Epic 5.5 G3)
+  // No component / page entry under features/{rankings,achievements}/ may
+  // import zero-returning analytics wrappers like getMyBadgeAnalytics.
+  const rankingsAchievementsAnalytics =
+    await checkRankingsAchievementsNoAnalyticsWidgets();
+  if (!reportRankingsAchievementsNoAnalyticsWidgets(rankingsAchievementsAnalytics)) {
+    ok = false;
+  }
+
+  // Check 10: ranking-types-have-consumers (Epic 5.5 G3)
+  const orphanRankingTypes = await checkRankingTypesHaveConsumers();
+  if (!reportRankingTypesHaveConsumers(orphanRankingTypes)) {
+    ok = false;
+  }
+
+  // Check 11: achievement-types-have-consumers (Epic 5.5 G3)
+  const orphanAchievementTypes = await checkAchievementTypesHaveConsumers();
+  if (!reportAchievementTypesHaveConsumers(orphanAchievementTypes)) {
+    ok = false;
+  }
+
+  // Check 12: useEventuallyConsistentQuery-has-tests (Epic 5.5 G3)
+  const eventConsistentTests = await checkEventuallyConsistentQueryHasTests();
+  if (!reportEventuallyConsistentQueryHasTests(eventConsistentTests)) {
     ok = false;
   }
 
