@@ -55,7 +55,9 @@ import type {
   SubmitAnswerDto,
 } from '@/lib/api/generated/schemas';
 
-export type {
+import type { AttemptControllerListMyAttemptsParams } from '@/lib/api/generated/schemas/attemptControllerListMyAttemptsParams';
+
+import type {
   AttemptControllerStartAttemptResult,
   AttemptControllerGetAttemptByIdResult,
   AttemptControllerSubmitAnswerResult,
@@ -69,10 +71,16 @@ export type {
   AttemptControllerGetAttemptReviewResult,
 } from '@/lib/api/generated/attempts/attempts';
 
-export interface ListMyAttemptsParams {
-  cursor?: string;
-  limit?: number;
-}
+/**
+ * Feature-level argument type for `listMyAttempts`.
+ *
+ * The generated `AttemptControllerListMyAttemptsParams` already
+ * supports the status, quizId, limit, and cursor filters the
+ * Story 4.13 eligibility check (T-4.13.6) needs. Aliasing the
+ * SDK type keeps the wire contract single-sourced while still
+ * exposing a stable feature-level name to consumers.
+ */
+export type ListMyAttemptsParams = AttemptControllerListMyAttemptsParams;
 
 // ─── Attempt lifecycle ──────────────────────────────────────────────────
 

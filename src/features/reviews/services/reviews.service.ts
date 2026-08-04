@@ -12,9 +12,13 @@
  * Review CRUD lives on the **quizzes** tag
  * (`getQuizzes().quizReviewController*`) per the backend's
  * `QuizReviewController`. Helpful / report / dashboard operations live
- * on the **reviews** tag (`getReviews().reviewController*`). This
- * service unifies both behind the planning-intent names from master
- * plan lines 302–304 so the drift is invisible to feature hooks.
+ * on the **reviews** tag (`getReviews().reviewController*`). The
+ * authenticated "my review for this quiz" lookup lives on the
+ * **users** tag (`getUsers().userReviewControllerGetMyReviewForQuiz`)
+ * per the backend's `UserReviewController` — the parent route is
+ * `/api/v1/users/me/reviews/:quizId`. This service unifies all three
+ * controllers behind the planning-intent names from master plan lines
+ * 302–304 so the drift is invisible to feature hooks.
  *
  * ## Code exposure
  *
@@ -28,17 +32,30 @@
  * These are surfaced through the `ApiError.code` thrown from the
  * service; the spec in F7 asserts the typed contract.
  *
+ * ## Story 4.13 read additions (T-4.13.1)
+ *
+ * `getMyQuizReview(quizId)` is the single authenticated lookup
+ * consumed by the gate hook. The endpoint returns
+ * `WrappedDto<ReviewDetailResponseDto>`; a "no review yet" state
+ * surfaces as HTTP 404 (the backend omits the row rather than
+ * returning `{ data: null }`). To keep feature hooks from branching
+ * on raw HTTP statuses, the wrapper normalises 404 to a typed
+ * `null` return — but only when the call returns 404 cleanly. Any
+ * other failure (401, 403, 429, 5xx) propagates as a typed
+ * `ApiError` so the gate hook can map it to its `error` state.
+ *
  * @see useOptimisticMutation (TKT-4.1.E1) — canonical mutation primitive.
  * @see error-codes.ts (TKT-4.1.C1) — `USER_COPY` lookup via `getUserCopy(apiError.code)`.
  */
 
-import { getQuizzes, getReviews } from '@/lib/api';
+import { ApiError, getQuizzes, getReviews, getUsers } from '@/lib/api';
 
 import type {
   CreateReviewDto,
   UpdateReviewDto,
   HelpfulReviewDto,
   ReportReviewDto,
+  ReviewDetailResponseDto,
 } from '@/lib/api/generated/schemas';
 
 export type {
@@ -57,6 +74,8 @@ export type {
   ReviewControllerGetReviewByIdResult,
   ReviewControllerGetMyReviewDashboardResult,
 } from '@/lib/api/generated/reviews/reviews';
+
+export type { UserReviewControllerGetMyReviewForQuizResult } from '@/lib/api/generated/users/users';
 
 export interface ListReviewsParams {
   cursor?: string;
@@ -96,6 +115,42 @@ export async function getQuizReviewStats(quizId: string) {
 export async function getCreatorQuizReviewAnalytics(quizId: string) {
   const sdk = getQuizzes();
   return sdk.quizReviewControllerGetCreatorQuizReviewAnalytics(quizId);
+}
+
+// ─── Authenticated my-review lookup (users tag) ────────────────────────
+
+/**
+ * Authenticated "my review for this quiz" lookup.
+ *
+ * Returns the authenticated user's `ReviewDetailResponseDto` when one
+ * exists. The backend returns HTTP 404 when the user has not yet
+ * reviewed the quiz; in that case this wrapper resolves to `null`
+ * so the gate hook can map the result to its `existing-review` vs
+ * `eligible` branches without inspecting `ApiError`. All other
+ * errors (401, 403, 429, 5xx) propagate as typed `ApiError`
+ * rejections.
+ *
+ * The deployed contract for the gate relies on this normalisation;
+ * a follow-up ticket in `EPIC_4_13_TICKETS.md` documents the
+ * `REVIEW_NOT_FOUND` branch in case the backend switches from a 404
+ * to a typed error code in a future release.
+ */
+export async function getMyQuizReview(
+  quizId: string,
+): Promise<ReviewDetailResponseDto | null> {
+  const sdk = getUsers();
+  try {
+    const result = await sdk.userReviewControllerGetMyReviewForQuiz(quizId);
+    const envelope = result as unknown as {
+      data?: ReviewDetailResponseDto;
+    };
+    return envelope.data ?? null;
+  } catch (err) {
+    if (err instanceof ApiError && err.status === 404) {
+      return null;
+    }
+    throw err;
+  }
 }
 
 // ─── Helpful / report (reviews tag) ────────────────────────────────────

@@ -305,17 +305,29 @@ export const bulkQuestionsFormSchema = z.object({
 
 /**
  * Form schema for the review-submission form. Mirrors the generated
- * `CreateReviewDto`:
+ * `CreateReviewDto` shape:
  *
  *   - `rating`: integer 1–5.
- *   - `comment`: string ≤ 1000 chars, nullable.
+ *   - `comment`: string, trimmed, 1–2000 characters.
  *   - `idempotencyKey`: string, optional, used by the client to
  *     dedupe retries (the backend reads it from the header in some
  *     endpoints; the body field is documented for completeness).
  *
- * The `questionType` field from the body is intentionally omitted
- * — reviews don't have a question type. The form-only
- * `acknowledgements` checkbox mirrors the quiz-create preset.
+ * ## Comment length (Story 4.13 / T-4.13.3)
+ *
+ * The approved Story 4.13 contract is **1–2000** characters. The
+ * generated `CreateReviewDto` currently ships `@maxLength 1000`,
+ * which is a documented Story 4.13 / T-4.13.1 contract-drift item.
+ * The form preset is locked to the approved 2000 cap; the next
+ * backend regeneration is expected to widen the DTO to match.
+ *
+ * Empty or whitespace-only comments are rejected so the form never
+ * sends a no-op body. The text is trimmed via `z.string().trim()`
+ * before the length check so trailing whitespace cannot push a
+ * 2000-character body past the limit.
+ *
+ * The form-only `acknowledgements` checkbox mirrors the quiz-create
+ * preset.
  */
 export const reviewFormSchema = z.object({
   rating: z
@@ -324,10 +336,10 @@ export const reviewFormSchema = z.object({
     .min(1, 'Rating must be at least 1 star.')
     .max(5, 'Rating cannot exceed 5 stars.'),
   comment: z
-    .string()
-    .max(1000, 'Review cannot exceed 1000 characters.')
-    .nullable()
-    .optional(),
+    .string({ error: 'Review text is required.' })
+    .trim()
+    .min(1, 'Review text cannot be empty.')
+    .max(2000, 'Review cannot exceed 2000 characters.'),
   idempotencyKey: z.string().min(1).max(120).optional(),
 });
 

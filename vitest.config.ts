@@ -163,6 +163,82 @@ export default defineConfig({
             // etc.) and renders the full widget tree. Needs jsdom because
             // the widget renders SWR + React subtrees.
             'src/features/comments/components/__tests__/CommentsWidget.integration.spec.tsx',
+            // T-4.13.4 — useQuizReviews read hook. Uses
+            // useCursorPaginated + renderHook; needs jsdom.
+            'src/features/reviews/hooks/__tests__/useQuizReviews.spec.tsx',
+            // T-4.13.5 — useMyQuizReview hook. Uses useSingleWithRetry
+            // + renderHook; needs jsdom.
+            'src/features/reviews/hooks/__tests__/useMyQuizReview.spec.tsx',
+            // T-4.13.6 — useCompletedQuizAttempt hook. Uses
+            // useSingleWithRetry + renderHook; needs jsdom.
+            'src/features/reviews/hooks/__tests__/useCompletedQuizAttempt.spec.tsx',
+            // T-4.13.7 — useReviewGate composition hook. Composites
+            // useMyQuizReview + useCompletedQuizAttempt with auth
+            // bootstrap state; needs jsdom for renderHook.
+            'src/features/reviews/hooks/__tests__/useReviewGate.spec.tsx',
+            // T-4.13.8 — useCreateReview mutation hook. Uses
+            // useAuthBootstrap + SWR global mutate + renderHook;
+            // needs jsdom.
+            'src/features/reviews/hooks/__tests__/useCreateReview.spec.tsx',
+            // T-4.13.9 — useEditReview mutation hook. Uses
+            // useAuthBootstrap + SWR global mutate + renderHook;
+            // needs jsdom.
+            'src/features/reviews/hooks/__tests__/useEditReview.spec.tsx',
+            // T-4.13.10 — useDeleteReview mutation hook. Uses
+            // useAuthBootstrap + SWR global mutate + renderHook;
+            // needs jsdom.
+            'src/features/reviews/hooks/__tests__/useDeleteReview.spec.tsx',
+            // T-4.13.11 — useHelpfulReview optimistic hook. Uses
+            // SWR global mutate (cache updater) + renderHook;
+            // needs jsdom.
+            'src/features/reviews/hooks/__tests__/useHelpfulReview.spec.tsx',
+            // T-4.13.12 — StarRatingInput RTL component spec. Uses
+            // Radix RadioGroup + userEvent; needs jsdom.
+            'src/features/reviews/components/__tests__/StarRatingInput.spec.tsx',
+            // T-4.13.13 — ReviewGateState RTL component spec. Needs
+            // jsdom for the rendered DOM assertions.
+            'src/features/reviews/components/__tests__/ReviewGateState.spec.tsx',
+            // T-4.13.14 — ReviewHelpfulButton RTL component spec.
+            // Needs jsdom for the rendered DOM assertions.
+            'src/features/reviews/components/__tests__/ReviewHelpfulButton.spec.tsx',
+            // T-4.13.15 — ReviewForm RTL component spec. Renders
+            // gate branches through mocked useReviewGate +
+            // useCreateReview; needs jsdom.
+            'src/features/reviews/components/__tests__/ReviewForm.spec.tsx',
+            // T-4.13.16 — ReviewEditInline RTL component spec.
+            // Renders the owner-only edit + typed-delete controls
+            // through mocked useEditReview / useDeleteReview;
+            // needs jsdom for the ConfirmDialog + Radix RadioGroup.
+            'src/features/reviews/components/__tests__/ReviewEditInline.spec.tsx',
+            // T-4.13.17 — ReviewItem RTL component spec. Renders
+            // a single review row with rating / text / byline /
+            // ownership branches; needs jsdom.
+            'src/features/reviews/components/__tests__/ReviewItem.spec.tsx',
+            // T-4.13.18 — ReviewsList RTL component spec.
+            // Renders the public list with cursor pagination,
+            // skeletons, empty state, and retry. Mocks
+            // useQuizReviews; needs jsdom for the rendered DOM.
+            'src/features/reviews/components/__tests__/ReviewsList.spec.tsx',
+            // T-4.13.19 — ReviewsWidget RTL component spec.
+            // Renders the section composition (heading + form +
+            // list) under mocked auth bootstrap / my-review.
+            // Needs jsdom for the rendered DOM.
+            'src/features/reviews/components/__tests__/ReviewsWidget.spec.tsx',
+            // T-4.13.21 — ReviewsWidget integration spec. Mocks all
+            // review hooks (useAuthBootstrap, useMyQuizReview,
+            // useReviewGate, useCreateReview, useEditReview,
+            // useDeleteReview, useHelpfulReview, useQuizReviews) and
+            // exercises the full Story 4.13 critical flow end-to-end:
+            // public list, gate branches, create races, edit + typed
+            // delete, helpful toggle, cache isolation. Needs jsdom
+            // for the rendered DOM.
+            'src/features/reviews/components/__tests__/ReviewsWidget.integration.spec.tsx',
+            // T-4.13.21 — QuizDetailPage reviews integration spec.
+            // Mounts the full QuizDetailPage under mocked hooks and
+            // asserts the reviews section integrates cleanly with the
+            // existing quiz layout (heading, canonical quiz id, error
+            // isolation). Needs jsdom for the rendered DOM.
+            'src/features/quizzes/components/__tests__/QuizDetailPage.reviews.spec.tsx',
         ],
           environment: 'jsdom',
           setupFiles: ['./src/components/primitives/__tests__/setup.ts'],

@@ -24,21 +24,21 @@
  * @see `QuestionCorrectMark` — correct answer indicator
  */
 
-'use client';
+"use client";
 
-import { memo } from 'react';
-import { Plus, Trash2, GripVertical } from 'lucide-react';
+import { memo } from "react";
+import { Plus, Trash2, GripVertical } from "lucide-react";
 
-import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
-import { Skeleton } from '@/components/ui/Skeleton';
+import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Input";
+import { Skeleton } from "@/components/ui/Skeleton";
 
-import { cn } from '@/shared/utils/merge-class-names';
+import { cn } from "@/shared/utils/merge-class-names";
 
-import type { QuestionType } from '@/features/quizzes/types/author-dtos';
-import type { CreateAnswerOptionDto } from '@/features/quizzes/types/author-dtos';
+import type { QuestionType } from "@/features/quizzes/types/author-dtos";
+import type { CreateAnswerOptionDto } from "@/features/quizzes/types/author-dtos";
 
-import { QuestionCorrectMark } from './QuestionCorrectMark';
+import { QuestionCorrectMark } from "./QuestionCorrectMark";
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
@@ -46,8 +46,8 @@ const MIN_OPTIONS = 2;
 const MAX_OPTIONS = 6;
 
 const TRUE_FALSE_OPTIONS = [
-  { id: 'true', value: 'True' },
-  { id: 'false', value: 'False' },
+  { id: "true", value: "True" },
+  { id: "false", value: "False" },
 ];
 
 // ─── Props ─────────────────────────────────────────────────────────────────
@@ -93,9 +93,10 @@ const OptionRow = memo(function OptionRow({
   canRemove,
   disabled,
 }: OptionRowProps): React.ReactElement {
-  const isRadio = questionType === 'single_choice' || questionType === 'true_false';
-  const isTrueFalse = questionType === 'true_false';
-  const isShortAnswer = questionType === 'short_answer';
+  const isRadio =
+    questionType === "single_choice" || questionType === "true_false";
+  const isTrueFalse = questionType === "true_false";
+  const isShortAnswer = questionType === "short_answer";
 
   // Don't render option inputs for short_answer
   if (isShortAnswer) return <></>;
@@ -155,8 +156,8 @@ const OptionRow = memo(function OptionRow({
           variant="ghost"
           size="sm"
           className={cn(
-            'h-8 w-8 p-0 text-muted-foreground hover:text-destructive',
-            disabled && 'cursor-not-allowed opacity-50',
+            "h-8 w-8 p-0 text-muted-foreground hover:text-destructive",
+            disabled && "cursor-not-allowed opacity-50",
           )}
           disabled={disabled || !canRemove}
           onClick={onRemove}
@@ -249,8 +250,8 @@ export const AnswerOptionsEditor = memo(function AnswerOptionsEditor({
 }: AnswerOptionsEditorProps): React.ReactElement {
   const canAdd = options.length < MAX_OPTIONS;
   const canRemove = options.length > MIN_OPTIONS;
-  const isTrueFalse = questionType === 'true_false';
-  const isShortAnswer = questionType === 'short_answer';
+  const isTrueFalse = questionType === "true_false";
+  const isShortAnswer = questionType === "short_answer";
 
   // Handle adding an option
   const handleAdd = () => {
@@ -260,7 +261,7 @@ export const AnswerOptionsEditor = memo(function AnswerOptionsEditor({
     const newOption: AnswerOption = {
       id: crypto.randomUUID(),
       position: newPosition,
-      value: '',
+      value: "",
       isCorrect: false,
     };
 
@@ -308,8 +309,8 @@ export const AnswerOptionsEditor = memo(function AnswerOptionsEditor({
           questionType={questionType}
           onUpdate={(updates) => {
             // For true/false, update the corresponding option
-            const trueIdx = options.findIndex((o) => o.value === 'True');
-            const falseIdx = options.findIndex((o) => o.value === 'False');
+            const trueIdx = options.findIndex((o) => o.value === "True");
+            const falseIdx = options.findIndex((o) => o.value === "False");
 
             if (updates.isCorrect !== undefined) {
               // If marking one as correct, unmark the other
@@ -317,19 +318,23 @@ export const AnswerOptionsEditor = memo(function AnswerOptionsEditor({
               if (trueIdx !== -1) {
                 newOptions[trueIdx] = {
                   ...newOptions[trueIdx]!,
-                  isCorrect: updates.isCorrect && 'True'.includes(options[trueIdx]?.value ?? ''),
+                  isCorrect:
+                    updates.isCorrect &&
+                    "True".includes(options[trueIdx]?.value ?? ""),
                 };
               }
               if (falseIdx !== -1) {
                 newOptions[falseIdx] = {
                   ...newOptions[falseIdx]!,
-                  isCorrect: updates.isCorrect && 'False'.includes(options[falseIdx]?.value ?? ''),
+                  isCorrect:
+                    updates.isCorrect &&
+                    "False".includes(options[falseIdx]?.value ?? ""),
                 };
               }
               onChange(newOptions);
             }
           }}
-          disabled={disabled}
+          disabled={disabled ?? false}
         />
         {error && (
           <p className="text-sm text-destructive" role="alert">
@@ -361,7 +366,7 @@ export const AnswerOptionsEditor = memo(function AnswerOptionsEditor({
             onUpdate={(updates) => handleUpdate(index, updates)}
             onRemove={() => handleRemove(index)}
             canRemove={canRemove}
-            disabled={disabled}
+            disabled={disabled ?? false}
           />
         ))}
       </div>

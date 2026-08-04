@@ -284,28 +284,42 @@ describe('lib/forms/presets', () => {
   });
 
   describe('reviewFormSchema', () => {
-    it('accepts a 5-star review with no comment', () => {
+    it('accepts a 5-star review with a non-empty comment', () => {
       const result = reviewFormSchema.safeParse({
         rating: 5,
-        comment: null,
+        comment: 'Great quiz!',
       });
       expect(result.success).toBe(true);
     });
 
     it('rejects rating > 5', () => {
-      const result = reviewFormSchema.safeParse({ rating: 6 });
+      const result = reviewFormSchema.safeParse({
+        rating: 6,
+        comment: 'ok',
+      });
       expect(result.success).toBe(false);
     });
 
     it('rejects rating < 1', () => {
-      const result = reviewFormSchema.safeParse({ rating: 0 });
+      const result = reviewFormSchema.safeParse({
+        rating: 0,
+        comment: 'ok',
+      });
       expect(result.success).toBe(false);
     });
 
-    it('rejects over-length comments', () => {
+    it('rejects empty comments (T-4.13.3)', () => {
       const result = reviewFormSchema.safeParse({
         rating: 4,
-        comment: 'x'.repeat(1001),
+        comment: '',
+      });
+      expect(result.success).toBe(false);
+    });
+
+    it('rejects 2001-character comments (T-4.13.3 cap)', () => {
+      const result = reviewFormSchema.safeParse({
+        rating: 4,
+        comment: 'x'.repeat(2001),
       });
       expect(result.success).toBe(false);
     });

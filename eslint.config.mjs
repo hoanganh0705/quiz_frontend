@@ -238,6 +238,41 @@ const eslintConfig = [
             // hook's pagination contract. The fixture is co-located with
             // the hook under test.
             'src/features/comments/hooks/__tests__/useQuizComments.spec.tsx',
+            // T-4.13.4 — `useQuizReviews` is the fetcher adapter for the
+            // `GET /quizzes/:quizId/reviews` endpoint. It is the single
+            // place in the reviews feature permitted to read
+            // `meta.pagination` and `nextCursor` and adapt the SDK
+            // envelope to the `useCursorPaginated` `CursorPage` shape.
+            'src/features/reviews/hooks/useQuizReviews.ts',
+            // T-4.13.4 — the unit spec for `useQuizReviews` constructs
+            // mock page responses with `nextCursor` so it can assert the
+            // hook's pagination contract. The fixture is co-located with
+            // the hook under test.
+            'src/features/reviews/hooks/__tests__/useQuizReviews.spec.tsx',
+            // T-4.13.4 — `ReviewPage` mirrors the
+            // `useCursorPaginated` `CursorPage` shape so the hook
+            // returns a feature-typed page. The `nextCursor` field
+            // is the canonical `CursorPage.nextCursor` projection
+            // and is not a component-state read.
+            'src/features/reviews/types/review.types.ts',
+            // T-4.13.6 — `useCompletedQuizAttempt`'s fetcher inspects
+            // only `data` and never reads `nextCursor`; the JSDoc
+            // references the field as part of the response contract.
+            'src/features/reviews/hooks/useCompletedQuizAttempt.ts',
+            // T-4.13.6 — the unit spec for `useCompletedQuizAttempt`
+            // constructs mock envelopes with the cursor field to
+            // match the backend's `WrappedPaginatedDto` shape.
+            'src/features/reviews/hooks/__tests__/useCompletedQuizAttempt.spec.tsx',
+            // T-4.13.7 — `useReviewGate` composes the gate inputs
+            // and surfaces the gate state union documented in the
+            // type file. It does not read pagination metadata.
+            'src/features/reviews/hooks/useReviewGate.ts',
+            // T-4.13.11 — the unit spec for `useHelpfulReview`
+            // builds `CursorPage` fixtures via the same factory as
+            // the real fetcher adapter (mirroring the SDK
+            // envelope); the cursor field is on the type, not on a
+            // direct read of pagination metadata.
+            'src/features/reviews/hooks/__tests__/useHelpfulReview.spec.tsx',
           ],
     rules: {
       'no-restricted-syntax': 'off',
