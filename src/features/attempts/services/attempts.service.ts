@@ -84,7 +84,9 @@ import type {
   SubmitAnswerDto,
   AttemptSummaryResponseDto,
   AttemptAnswersResponseDto,
+  CompleteAttemptResponseDto,
   AttemptControllerListMyAttemptsParams,
+  AttemptReviewResponseDto,
 } from '@/lib/api/generated/schemas';
 
 import type {
@@ -195,9 +197,45 @@ export async function abandonAttempt(
   return sdk.attemptControllerAbandonAttempt(attemptId);
 }
 
-export async function completeAttempt(attemptId: string) {
+export async function completeAttempt(
+  attemptId: string,
+): Promise<CompleteAttemptResponseDto> {
   const sdk = getAttempts();
-  return sdk.attemptControllerCompleteAttempt(attemptId);
+  // Story 4.15 (T-4.15.1) — the runtime contract unwraps the
+  // `WrappedDto` envelope so hooks can read `attemptId`, `scorePercent`,
+  // `correctCount`, `timeTakenMs`, `xpEarned`, and `finishedAt` without
+  // inspecting the envelope. The transport still uses the wire shape;
+  // the unwrap lives at the service seam so the rest of the feature
+  // never sees `{ data: … }`.
+  const wire = (await sdk.attemptControllerCompleteAttempt(
+    attemptId,
+  )) as unknown as { data?: CompleteAttemptResponseDto };
+  if (!wire.data) {
+    throw new ApiError({
+      name: 'AxiosError',
+      message: 'complete_attempt_missing_envelope',
+      isAxiosError: true,
+      response: {
+        status: 500,
+        statusText: 'X',
+        data: {
+          type: 'https://api.quiz.local/problems/internal',
+          title: 'Internal',
+          status: 500,
+          detail: 'Complete-attempt response envelope was missing the data field',
+          instance: `/api/v1/attempts/${attemptId}/complete`,
+          extensions: {
+            code: 'GLOBAL_INTERNAL_ERROR',
+            requestId: 'req-missing',
+          },
+        },
+        headers: {},
+        config: undefined as never,
+      },
+      toJSON: () => ({}),
+    });
+  }
+  return wire.data;
 }
 
 export async function listMyAttempts(params?: ListMyAttemptsParams) {
@@ -299,6 +337,72 @@ export async function getActiveAttempt(
     })) as unknown as ListMyAttemptsWireResponse;
     const items = wire.data ?? [];
     return items[0] ?? null;
+  } catch (err) {
+    if (err instanceof ApiError && err.status === 404) {
+      return null;
+    }
+    throw err;
+  }
+}
+
+// ─── Story 4.15 attempt-result read (T-4.15.1) ─────────────────────────────
+
+/**
+ * Wire envelope returned by `attemptControllerGetAttemptReview` (post-unwrap).
+ *
+ * The reviewer endpoint is the documented correct-answer-key source
+ * (master plan line 336). Hooks never inspect this shape directly; the
+ * helper below is the only place that reads `data` to expose the
+ * canonical `AttemptReviewResponseDto`.
+ */
+type GetAttemptReviewWireResponse = {
+  data?: AttemptReviewResponseDto;
+};
+
+/**
+ * Resolve the canonical completed-attempt review projection (the
+ * verified correct-answer key source per master plan line 336), or
+ * `null` when the attempt is not yet completed.
+ *
+ * ## Why this exists
+ *
+ * The deployed OpenAPI exposes `attemptControllerGetAttemptReview` as
+ * the canonical post-completion review surface. The wrapper is the
+ * only place that normalises:
+ *
+ *   - 200 → the documented `AttemptReviewResponseDto` (the
+ *     complete-attempt projection the result page renders).
+ *   - 404 → `null` (the attempt has no completed review yet — the
+ *     runner may still be in progress). Hooks MUST branch on this
+ *     `null` and never on a raw HTTP status.
+ *   - Missing `data` envelope → `null` (defensive — the SDK
+ *     conventionally wraps the body, but a malformed response is
+ *     treated as "no result yet" rather than an error).
+ *
+ * All other failures — 401 (token expired), 403 (cross-user access),
+ * 429 (rate-limit), 5xx — propagate as typed `ApiError` so the hook
+ * layer can map them to the result page's error branch.
+ *
+ * ## Authentication
+ *
+ * The reviewer endpoint requires an authenticated user; the helper
+ * does NOT enforce auth itself — the caller (`useAttemptResult`)
+ * gates the call on `useAuthBootstrap` per the cross-story contract
+ * rule.
+ *
+ * @param attemptId Attempt identifier to fetch the review for. Must
+ *                  be a non-empty UUID; the helper forwards the value
+ *                  verbatim to `attemptControllerGetAttemptReview`.
+ */
+export async function getAttemptResult(
+  attemptId: string,
+): Promise<AttemptReviewResponseDto | null> {
+  const sdk = getAttempts();
+  try {
+    const wire = (await sdk.attemptControllerGetAttemptReview(
+      attemptId,
+    )) as unknown as GetAttemptReviewWireResponse;
+    return wire.data ?? null;
   } catch (err) {
     if (err instanceof ApiError && err.status === 404) {
       return null;

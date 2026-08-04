@@ -25,10 +25,12 @@ import { ApiError } from '@/lib/api';
 
 import {
   beginAbandon,
+  beginCompletion,
   beginSubmit,
   dropForeignEntries,
   hydrateAttemptEntry,
   recordAbandonSuccess,
+  recordCompletionSuccess,
   recordMutationFailure,
   recordSubmitSuccess,
   recordWithdrawSuccess,
@@ -493,5 +495,68 @@ describe('useAttemptsStore — backend `started` → frontend `in_progress`', ()
     expect(
       useAttemptsStore.getState().attemptsById[ATTEMPT_1]?.status,
     ).toBe('submitting');
+  });
+});
+
+describe('useAttemptsStore — Story 4.15 completion actions (T-4.15.15)', () => {
+  it('beginCompletion writes the reserved `completing` state with a cooldown', () => {
+    beginCompletion(ATTEMPT_1, QV_1, SESSION_A, 500);
+    const entry = useAttemptsStore.getState().attemptsById[ATTEMPT_1]!;
+    expect(entry.status).toBe('completing');
+    expect(entry.cooldownUntil).not.toBeNull();
+  });
+
+  it('recordCompletionSuccess writes the terminal `completed` status with a snapshot', () => {
+    beginCompletion(ATTEMPT_1, QV_1, SESSION_A, 500);
+    recordCompletionSuccess(ATTEMPT_1, QV_1, SESSION_A, {
+      scorePercent: 80,
+      correctCount: 4,
+      xpEarned: 120,
+      finishedAt: '2026-01-01T00:00:00.000Z',
+    });
+    const entry = useAttemptsStore.getState().attemptsById[ATTEMPT_1]!;
+    expect(entry.status).toBe('completed');
+    expect(entry.cooldownUntil).toBeNull();
+    expect(entry.error).toBeNull();
+    expect(entry.completedSnapshot).toEqual({
+      scorePercent: 80,
+      correctCount: 4,
+      xpEarned: 120,
+      finishedAt: '2026-01-01T00:00:00.000Z',
+    });
+  });
+
+  it('recordCompletionSuccess refuses to overwrite an entry owned by another session', () => {
+    // Seed an entry owned by SESSION_B.
+    hydrateAttemptEntry(ATTEMPT_1, QV_1, SESSION_B, {
+      status: 'in_progress',
+    });
+    // SESSION_A tries to write through.
+    recordCompletionSuccess(ATTEMPT_1, QV_1, SESSION_A, {
+      scorePercent: 100,
+      correctCount: 5,
+      xpEarned: 200,
+      finishedAt: '2026-01-02T00:00:00.000Z',
+    });
+    const entry = useAttemptsStore.getState().attemptsById[ATTEMPT_1]!;
+    // Status survives intact; the snapshot did not leak through.
+    expect(entry.status).toBe('in_progress');
+    expect(entry.completedSnapshot).toBeUndefined();
+  });
+
+  it('the completed snapshot carries no correctness metadata (player-DTO invariant)', () => {
+    recordCompletionSuccess(ATTEMPT_1, QV_1, SESSION_A, {
+      scorePercent: 80,
+      correctCount: 4,
+      xpEarned: 120,
+      finishedAt: '2026-01-01T00:00:00.000Z',
+    });
+    const entry = useAttemptsStore.getState().attemptsById[ATTEMPT_1]!;
+    expect(Object.keys(entry.completedSnapshot ?? {})).not.toContain(
+      'isCorrect',
+    );
+    expect(Object.keys(entry.completedSnapshot ?? {})).not.toContain(
+      'correctAnswer',
+    );
   });
 });

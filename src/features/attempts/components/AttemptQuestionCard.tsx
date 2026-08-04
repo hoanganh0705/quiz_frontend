@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 /**
  * `AttemptQuestionCard` — player-safe question card.
@@ -26,19 +26,15 @@
  * parent-level mutation callbacks. Every callback here is a prop.
  */
 
-import * as React from 'react';
+import * as React from "react";
 
-import { Button } from '@/components/ui/Button';
-import { cn } from '@/shared/utils/merge-class-names';
+import { Button } from "@/components/ui/Button";
+import { cn } from "@/shared/utils/merge-class-names";
 
-import { AttemptAnswerPicker } from './AttemptAnswerPicker';
-import type {
-  AnswerSelection,
-} from '@/features/attempts/types/attempt-runner.types';
+import { AttemptAnswerPicker } from "./AttemptAnswerPicker";
+import type { AnswerSelection } from "@/features/attempts/types/attempt-runner.types";
 
-import type {
-  QuizQuestionPlayerDto,
-} from '@/lib/api/generated/schemas';
+import type { QuizQuestionPlayerDto } from "@/lib/api/generated/schemas";
 
 // ─── Public types ────────────────────────────────────────────────────────────
 
@@ -96,14 +92,17 @@ export function AttemptQuestionCard(
   } = props;
 
   const isLocked = isSubmitted;
-  const canSubmit = !isLocked && !isPending && value !== null
-    && validateLocalSelection(question, value).isValid;
+  const canSubmit =
+    !isLocked &&
+    !isPending &&
+    value !== null &&
+    validateLocalSelection(question, value).isValid;
 
   return (
     <article
       className={cn(
-        'rounded-lg border border-border bg-card p-4 space-y-3 text-card-foreground',
-        isQuestionInvalid && 'opacity-50',
+        "rounded-lg border border-border bg-card p-4 space-y-3 text-card-foreground",
+        isQuestionInvalid && "opacity-50",
       )}
       data-testid={`question-card-${question.questionId}`}
       aria-labelledby={`q-${question.questionId}-heading`}
@@ -111,7 +110,7 @@ export function AttemptQuestionCard(
       <header className="flex items-center justify-between gap-2">
         <h3
           id={`q-${question.questionId}-heading`}
-          className="text-base font-semibold break-words"
+          className="text-base font-semibold wrap-break-word"
         >
           <span className="text-muted-foreground mr-2">
             {index}/{total}
@@ -146,7 +145,9 @@ export function AttemptQuestionCard(
               className="text-sm text-muted-foreground"
               data-testid={`question-card-${question.questionId}-submitted`}
             >
-              {submittedAt ? `Submitted ${formatSubmittedAt(submittedAt)}` : 'Submitted'}
+              {submittedAt
+                ? `Submitted ${formatSubmittedAt(submittedAt)}`
+                : "Submitted"}
             </span>
             <Button
               type="button"
@@ -168,7 +169,7 @@ export function AttemptQuestionCard(
             onClick={onSubmit}
             data-testid={`question-card-${question.questionId}-submit`}
           >
-            {isPending ? 'Submitting…' : 'Submit answer'}
+            {isPending ? "Submitting…" : "Submit answer"}
           </Button>
         )}
       </footer>
@@ -190,11 +191,11 @@ function validateLocalSelection(
   if (selection.questionId !== question.questionId) {
     return { isValid: false };
   }
-  if (selection.kind === 'multiple_choice') {
+  if (selection.kind === "multiple_choice") {
     return { isValid: selection.selectedOptionIds.length > 0 };
   }
-  if (selection.kind === 'true_false') {
-    return { isValid: typeof selection.value === 'boolean' };
+  if (selection.kind === "true_false") {
+    return { isValid: typeof selection.value === "boolean" };
   }
   return { isValid: false };
 }
@@ -204,6 +205,6 @@ function formatSubmittedAt(iso: string): string {
     const date = new Date(iso);
     return date.toLocaleString();
   } catch {
-    return '';
+    return "";
   }
 }

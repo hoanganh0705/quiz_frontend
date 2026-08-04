@@ -57,6 +57,9 @@ export default defineConfig({
           // TKT-4.3.C / D — component specs need jsdom; excluded from node.
           'src/features/users/components/settings/__tests__/*.spec.tsx',
           'src/features/users/components/my-profile/__tests__/*.spec.tsx',
+          // T-4.15.24 — URL-sync hook integration spec uses renderHook +
+          // vi.mock; excluded from node, discovered in jsdom project below.
+          'src/features/attempts/hooks/__tests__/useAttemptHistoryFilters.integration.spec.tsx',
         ],
       },
       },
@@ -242,7 +245,8 @@ export default defineConfig({
             // T-4.14.5 / T-4.14.6 / T-4.14.8 — Story 4.14 read hooks.
             // All use `useSingleWithRetry` + `useAuthBootstrap` +
             // `renderHook`; jsdom required. Co-located with the
-            // hooks under test.
+            // hooks under test. Also covers T-4.15.24 URL-sync hook
+            // integration spec.
             'src/features/attempts/hooks/__tests__/*.spec.tsx',
             // T-4.14.13 / T-4.14.14 / T-4.14.15 / T-4.14.16 /
             // T-4.14.17 / T-4.14.20 / T-4.14.21 / T-4.14.22 /

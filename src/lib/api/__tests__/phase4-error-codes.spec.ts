@@ -20,6 +20,9 @@
  * `error-codes.ts`'s structural `Record<ErrorCode, …>` type and the
  * existing `error-codes.spec.ts`; this spec only locks the codes
  * Phase 4 specifically depends on.
+ *
+ * Source story:  4.15 — Attempt complete + score breakdown + my-attempts page.
+ * Source ticket: T-4.15.4.
  */
 import { describe, expect, it } from 'vitest';
 import {
@@ -141,6 +144,17 @@ describe('phase4-error-codes — USER_COPY coverage', () => {
   it('ATTEMPT_VALIDATION_FAILED uses inline placement (field-addressable)', () => {
     // T-4.14.4 — the picker renders this against the answer field.
     expect(USER_COPY.ATTEMPT_VALIDATION_FAILED.toast).toBe('inline');
+  });
+
+  it('ATTEMPT_VALIDATION_FAILED uses the Story 4.15 banner copy (T-4.15.4)', () => {
+    // T-4.15.4 — the runner surfaces the complete-attempt validation
+    // failure as an inline banner with the approved wording. The
+    // Story 4.15 priority override must win against the Phase 4
+    // generic copy.
+    expect(USER_COPY.ATTEMPT_VALIDATION_FAILED.title).toBe(
+      'Submit at least one answer',
+    );
+    expect(USER_COPY.ATTEMPT_VALIDATION_FAILED.body).toMatch(/at least one/);
   });
 
   it('remaining ATTEMPT_* codes use inline placement', () => {

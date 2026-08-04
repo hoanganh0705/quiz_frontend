@@ -80,6 +80,16 @@ export interface AttemptEntry {
   error: import('@/lib/api').ApiError | null;
   /** The authenticated user the entry is scoped to. Used by reconciliation to drop stale entries. */
   sessionId: string | null;
+  /**
+   * Score snapshot for a completed attempt. `undefined` for any
+   * non-terminal status. The snapshot carries no correctness metadata
+   * — the player-DTO invariant (Story 4.10) is preserved.
+   *
+   * Added in T-4.15.15 to let the result page render the headline
+   * score without a re-fetch. Populated exclusively by
+   * `recordCompletionSuccess`.
+   */
+  completedSnapshot?: CompletedAttemptSnapshot;
 }
 
 export interface AttemptsDataState {
@@ -422,6 +432,122 @@ export function recordMutationFailure(
       },
     };
   });
+}
+
+// ─── Story 4.15 completion actions (T-4.15.15) ──────────────────────────────
+//
+// Story 4.14's `setAttemptStatus` deliberately refuses to write the
+// reserved `completing` / `completed` states so a Story 4.14 caller
+// cannot accidentally write them. Story 4.15 introduces two
+// dedicated actions:
+//
+//   - `beginCompletion` — writes the transient `completing` state.
+//   - `recordCompletionSuccess` — writes the terminal `completed`
+//     state plus the verified score snapshot.
+//
+// Both refuse to overwrite an entry owned by another session so the
+// cross-tab reconciliation adapter cannot clobber a foreign user's
+// attempt. Selectors are unchanged.
+
+/**
+ * Snapshot attached to a completed attempt. The store intentionally
+ * carries no correctness metadata — the player-DTO invariant
+ * (Story 4.10) is preserved. The snapshot only contains the
+ * headline score the result page needs to render without a round
+ * trip back to the result endpoint.
+ */
+export interface CompletedAttemptSnapshot {
+  /** Final score percent (0–100). `null` when the backend has not yet scored. */
+  scorePercent: number | null;
+  /** Number of correct answers. `null` when the backend has not yet scored. */
+  correctCount: number | null;
+  /** Total XP earned. */
+  xpEarned: number;
+  /** Completion timestamp (ISO 8601). */
+  finishedAt: string;
+}
+
+/**
+ * Entry shape extension for a completed attempt. The snapshot is
+ * optional so a runner-owned entry that has not yet been completed
+ * remains valid.
+ */
+export interface CompletedAttemptEntryExtras {
+  completedSnapshot?: CompletedAttemptSnapshot;
+}
+
+/**
+ * Begin a completion attempt. Sets `status: 'completing'` and stamps
+ * the cooldown timer so a rapid double click cannot fire two
+ * parallel complete requests.
+ *
+ * Story 4.14 callers continue to be refused when writing
+ * `completing` via `setAttemptStatus`; this dedicated action is the
+ * only Story 4.15 write surface.
+ */
+export function beginCompletion(
+  attemptId: string,
+  quizVersionId: string,
+  sessionId: string,
+  cooldownMs: number,
+): number {
+  ensureEntry(attemptId, quizVersionId, sessionId);
+  const cooldownUntil = Date.now() + cooldownMs;
+  useAttemptsStore.setState((s) => {
+    const entry = s.attemptsById[attemptId]!;
+    return {
+      attemptsById: {
+        ...s.attemptsById,
+        [attemptId]: {
+          ...entry,
+          status: 'completing',
+          cooldownUntil,
+          error: null,
+        },
+      },
+    };
+  });
+  return cooldownUntil;
+}
+
+/**
+ * Record a successful completion. Sets the terminal `completed`
+ * status, clears the cooldown / error / draft fields, and persists
+ * the verified score snapshot so the result page can render without
+ * an extra read.
+ *
+ * The function refuses to overwrite an entry owned by another
+ * session so a stale tab cannot clobber another user's attempt.
+ */
+export function recordCompletionSuccess(
+  attemptId: string,
+  quizVersionId: string,
+  sessionId: string,
+  snapshot: CompletedAttemptSnapshot,
+): void {
+  const current = useAttemptsStore.getState().attemptsById[attemptId];
+  if (current && current.sessionId !== null && current.sessionId !== sessionId) {
+    // Cross-session overwrite guard: drop silently. Cross-tab
+    // reconciliation subscribes BEFORE this branch can run for the
+    // same attempt in the source tab.
+    return;
+  }
+  const base = current ?? makeEmptyEntry(sessionId);
+  const next: AttemptEntry = {
+    ...base,
+    status: 'completed',
+    cooldownUntil: null,
+    draftSelection: null,
+    error: null,
+    completedSnapshot: snapshot,
+  };
+  useAttemptsStore.setState((s) => ({
+    attemptsById: { ...s.attemptsById, [attemptId]: next },
+    attemptsByQuizVersionId: {
+      ...s.attemptsByQuizVersionId,
+      [quizVersionId]: attemptId,
+    },
+  }));
 }
 
 /**

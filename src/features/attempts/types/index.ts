@@ -47,3 +47,27 @@ export {
   statusFromAttemptSummary,
   ATTEMPT_CACHE_KEYS,
 } from './attempt-runner.types';
+
+// Story 4.15 result types (T-4.15.2).
+export type {
+  AttemptResultDto,
+  AttemptQuestionScoreDto,
+  AttemptScoreSummaryDto,
+} from './attempt-result.types';
+export {
+  scoreSummaryFromResult,
+  ATTEMPT_RESULT_CACHE_KEYS,
+} from './attempt-result.types';
+
+// Story 4.15 history types (T-4.15.3).
+export type {
+  AttemptHistoryStatusFilter,
+  AttemptHistoryDateRange,
+  AttemptHistoryFilters,
+  AttemptHistoryPage,
+  AttemptHistoryRow,
+} from './attempt-history.types';
+export {
+  ATTEMPT_HISTORY_CACHE_KEYS,
+  serializeAttemptHistoryFilters,
+} from './attempt-history.types';

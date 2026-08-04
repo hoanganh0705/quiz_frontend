@@ -18,6 +18,11 @@
  *     `AttemptAnswersDto`, `SubmitAnswerResultDto`,
  *     `WithdrawAnswerResultDto`, `AbandonAttemptDto`) are exported
  *     and the helper signatures accept them.
+ *   - The Story 4.15 complete-attempt envelope unwrap (T-4.15.1)
+ *     resolves the verified `CompleteAttemptResponseDto` projection
+ *     and surfaces typed errors.
+ *   - The Story 4.15 attempt-result read (T-4.15.1) normalises the
+ *     empty page and 404 to `null` and propagates 401/403/429/5xx.
  */
 
 import { afterEach, describe, expect, it, vi } from 'vitest';
@@ -29,6 +34,7 @@ import {
   getActiveAttempt,
   getAttempt,
   getAttemptAnswers,
+  getAttemptResult,
   startAttempt,
   submitAnswer,
   withdrawAnswer,
@@ -41,6 +47,7 @@ const attemptControllerCompleteAttemptMock = vi.fn();
 const attemptControllerAbandonAttemptMock = vi.fn();
 const attemptControllerGetAttemptByIdMock = vi.fn();
 const attemptControllerGetAttemptAnswersMock = vi.fn();
+const attemptControllerGetAttemptReviewMock = vi.fn();
 const attemptControllerListMyAttemptsMock = vi.fn();
 
 vi.mock('@/lib/api', async () => {
@@ -57,6 +64,8 @@ vi.mock('@/lib/api', async () => {
       attemptControllerGetAttemptById: attemptControllerGetAttemptByIdMock,
       attemptControllerGetAttemptAnswers:
         attemptControllerGetAttemptAnswersMock,
+      attemptControllerGetAttemptReview:
+        attemptControllerGetAttemptReviewMock,
       attemptControllerListMyAttempts: attemptControllerListMyAttemptsMock,
     }),
   };
@@ -103,16 +112,104 @@ describe('attempts.service — pass-through', () => {
     expect(result).toMatchObject({ attemptId: 'a1' });
   });
 
-  it('completeAttempt forwards attemptId', async () => {
-    attemptControllerCompleteAttemptMock.mockResolvedValue({
+  it('completeAttempt forwards attemptId and unwraps the completed projection', async () => {
+    const completedDto = {
       attemptId: 'a1',
+      quizId: 'q1',
       status: 'completed',
+      scorePercent: 80,
+      correctCount: 4,
+      timeTakenMs: 12_345,
+      xpEarned: 25,
+      finishedAt: '2026-08-01T00:00:00.000Z',
+    };
+    attemptControllerCompleteAttemptMock.mockResolvedValue({
+      data: completedDto,
     });
 
     const result = await completeAttempt('a1');
 
     expect(attemptControllerCompleteAttemptMock).toHaveBeenCalledTimes(1);
-    expect(result).toMatchObject({ status: 'completed' });
+    expect(attemptControllerCompleteAttemptMock).toHaveBeenCalledWith('a1');
+    expect(result).toEqual(completedDto);
+    // Runtime contract: hooks read the canonical projection directly,
+    // never inspect the `{ data: … }` envelope.
+    expect((result as unknown as { data?: unknown }).data).toBeUndefined();
+  });
+
+  it('completeAttempt surfaces 403 ATTEMPT_NOT_ACTIVE', async () => {
+    attemptControllerCompleteAttemptMock.mockRejectedValue(
+      makeApiError(403, 'ATTEMPT_NOT_ACTIVE', 'no longer active'),
+    );
+
+    await expect(completeAttempt('a1')).rejects.toMatchObject({
+      code: 'ATTEMPT_NOT_ACTIVE',
+      status: 403,
+    });
+  });
+
+  it('completeAttempt surfaces 404 ATTEMPT_NOT_FOUND', async () => {
+    attemptControllerCompleteAttemptMock.mockRejectedValue(
+      makeApiError(404, 'ATTEMPT_NOT_FOUND', 'missing'),
+    );
+
+    await expect(completeAttempt('a1')).rejects.toMatchObject({
+      code: 'ATTEMPT_NOT_FOUND',
+      status: 404,
+    });
+  });
+
+  it('completeAttempt surfaces 403 ATTEMPT_FORBIDDEN', async () => {
+    attemptControllerCompleteAttemptMock.mockRejectedValue(
+      makeApiError(403, 'ATTEMPT_FORBIDDEN', 'cross-user'),
+    );
+
+    await expect(completeAttempt('a1')).rejects.toMatchObject({
+      code: 'ATTEMPT_FORBIDDEN',
+      status: 403,
+    });
+  });
+
+  it('completeAttempt surfaces 422 ATTEMPT_VALIDATION_FAILED', async () => {
+    attemptControllerCompleteAttemptMock.mockRejectedValue(
+      makeApiError(422, 'ATTEMPT_VALIDATION_FAILED', 'no answers'),
+    );
+
+    await expect(completeAttempt('a1')).rejects.toMatchObject({
+      code: 'ATTEMPT_VALIDATION_FAILED',
+      status: 422,
+    });
+  });
+
+  it('completeAttempt surfaces 429 as a typed ApiError', async () => {
+    attemptControllerCompleteAttemptMock.mockRejectedValue(
+      makeApiError(429, 'GLOBAL_RATE_LIMITED', 'slow down'),
+    );
+
+    await expect(completeAttempt('a1')).rejects.toMatchObject({
+      code: 'GLOBAL_RATE_LIMITED',
+      status: 429,
+    });
+  });
+
+  it('completeAttempt surfaces 5xx as a typed ApiError', async () => {
+    attemptControllerCompleteAttemptMock.mockRejectedValue(
+      makeApiError(500, 'GLOBAL_INTERNAL_ERROR', 'oops'),
+    );
+
+    await expect(completeAttempt('a1')).rejects.toMatchObject({
+      code: 'GLOBAL_INTERNAL_ERROR',
+      status: 500,
+    });
+  });
+
+  it('completeAttempt throws a typed ApiError when the envelope has no data field', async () => {
+    attemptControllerCompleteAttemptMock.mockResolvedValue({});
+
+    await expect(completeAttempt('a1')).rejects.toMatchObject({
+      code: 'GLOBAL_INTERNAL_ERROR',
+      status: 500,
+    });
   });
 
   it('getAttempt forwards attemptId and returns the canonical projection', async () => {
@@ -321,6 +418,89 @@ describe('attempts.service — getActiveAttempt (T-4.14.1)', () => {
     );
 
     await expect(getActiveAttempt('q1')).rejects.toMatchObject({
+      code: 'GLOBAL_INTERNAL_ERROR',
+      status: 500,
+    });
+  });
+});
+
+describe('attempts.service — getAttemptResult (T-4.15.1)', () => {
+  it('forwards attemptId to the reviewer SDK operation', async () => {
+    attemptControllerGetAttemptReviewMock.mockResolvedValue({ data: null });
+
+    await getAttemptResult('a1');
+
+    expect(attemptControllerGetAttemptReviewMock).toHaveBeenCalledTimes(1);
+    expect(attemptControllerGetAttemptReviewMock).toHaveBeenCalledWith('a1');
+  });
+
+  it('resolves to the canonical reviewer projection on 200', async () => {
+    const review = {
+      attemptId: 'a1',
+      quizId: 'q1',
+      totalQuestions: 5,
+      correctCount: 4,
+      scorePercent: 80,
+      questionScores: [],
+    };
+    attemptControllerGetAttemptReviewMock.mockResolvedValue({ data: review });
+
+    await expect(getAttemptResult('a1')).resolves.toEqual(review);
+  });
+
+  it('resolves to null when the envelope has no data field', async () => {
+    attemptControllerGetAttemptReviewMock.mockResolvedValue({});
+
+    await expect(getAttemptResult('a1')).resolves.toBeNull();
+  });
+
+  it('resolves to null when the service returns 404 (no completed review yet)', async () => {
+    attemptControllerGetAttemptReviewMock.mockRejectedValue(
+      makeApiError(404, 'GLOBAL_NOT_FOUND', 'no review'),
+    );
+
+    await expect(getAttemptResult('a1')).resolves.toBeNull();
+  });
+
+  it('propagates 401 as a typed ApiError (not as null)', async () => {
+    attemptControllerGetAttemptReviewMock.mockRejectedValue(
+      makeApiError(401, 'GLOBAL_UNAUTHENTICATED', 'expired'),
+    );
+
+    await expect(getAttemptResult('a1')).rejects.toMatchObject({
+      code: 'GLOBAL_UNAUTHENTICATED',
+      status: 401,
+    });
+  });
+
+  it('propagates 403 ATTEMPT_FORBIDDEN as a typed ApiError', async () => {
+    attemptControllerGetAttemptReviewMock.mockRejectedValue(
+      makeApiError(403, 'ATTEMPT_FORBIDDEN', 'cross-user'),
+    );
+
+    await expect(getAttemptResult('a1')).rejects.toMatchObject({
+      code: 'ATTEMPT_FORBIDDEN',
+      status: 403,
+    });
+  });
+
+  it('propagates 429 as a typed ApiError', async () => {
+    attemptControllerGetAttemptReviewMock.mockRejectedValue(
+      makeApiError(429, 'GLOBAL_RATE_LIMITED', 'slow down'),
+    );
+
+    await expect(getAttemptResult('a1')).rejects.toMatchObject({
+      code: 'GLOBAL_RATE_LIMITED',
+      status: 429,
+    });
+  });
+
+  it('propagates 5xx as a typed ApiError', async () => {
+    attemptControllerGetAttemptReviewMock.mockRejectedValue(
+      makeApiError(500, 'GLOBAL_INTERNAL_ERROR', 'oops'),
+    );
+
+    await expect(getAttemptResult('a1')).rejects.toMatchObject({
       code: 'GLOBAL_INTERNAL_ERROR',
       status: 500,
     });
