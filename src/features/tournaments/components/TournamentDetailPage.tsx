@@ -6,25 +6,34 @@
  * Source epic:   Epic 5.1 — SDK coverage & realtime contract foundation.
  * Source story:  5.2 — Tournament discovery and read-only detail surfaces.
  * Source ticket: TKT-5.2.G2.
+ *
+ * ## Story 5.3 updates
+ *
+ * - Integrated `TournamentRegistrationCta` in the header area.
+ * - Integrated `TournamentCapacityIndicator` near the participant count.
+ * - Integrated `RegistrationState` indicator for authenticated users.
  */
 
 import * as React from "react";
 
-import { useTournamentFeatureFlag } from "@/features/tournaments/hooks";
-import { useTournament } from "@/features/tournaments/hooks";
-import { useTournamentParticipants } from "@/features/tournaments/hooks";
-import { useTournamentLeaderboard } from "@/features/tournaments/hooks";
+import {
+  useTournamentFeatureFlag,
+  useTournament,
+  useTournamentParticipants,
+  useTournamentLeaderboard,
+  useTournamentParticipation,
+} from "@/features/tournaments/hooks";
 
 import {
   TournamentPlaceholder,
   TournamentDetailSkeleton,
   TournamentErrorState,
-} from "@/features/tournaments/components";
-
-import {
   TournamentHeader,
   ParticipantList,
   TournamentLeaderboard,
+  TournamentRegistrationCta,
+  TournamentCapacityIndicator,
+  RegistrationState,
 } from "@/features/tournaments/components";
 
 export interface TournamentDetailPageProps {
@@ -45,6 +54,7 @@ export function TournamentDetailPage({
   const tournamentResult = useTournament(tournamentId);
   const participantsResult = useTournamentParticipants(tournamentId);
   const leaderboardResult = useTournamentLeaderboard(tournamentId);
+  const participationResult = useTournamentParticipation(tournamentId);
 
   // Loading state
   if (tournamentResult.isLoading) {
@@ -112,7 +122,30 @@ export function TournamentDetailPage({
     <div className={className}>
       <div className="space-y-8">
         {/* Header */}
-        <TournamentHeader tournament={tournament} />
+        <div className="flex flex-col gap-4">
+          <TournamentHeader tournament={tournament} />
+
+          {/* Registration area: CTA + capacity indicator + status */}
+          <div className="flex flex-col sm:flex-row sm:items-center gap-4 p-4 rounded-lg border bg-card">
+            <div className="flex-1">
+              {/* Registration state indicator */}
+              <div className="flex items-center gap-3">
+                <RegistrationState status={participationResult.participation?.registrationStatus ?? null} />
+                <TournamentCapacityIndicator
+                  currentParticipants={tournament.totalParticipants}
+                  maxParticipants={tournament.maxParticipants}
+                />
+              </div>
+            </div>
+            {/* Registration CTA */}
+            <div className="shrink-0">
+              <TournamentRegistrationCta
+                tournamentId={tournament.id}
+                tournamentName={tournament.title}
+              />
+            </div>
+          </div>
+        </div>
 
         {/* Participants and Leaderboard panels */}
         <div className="grid gap-8 lg:grid-cols-2">

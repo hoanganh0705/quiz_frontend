@@ -76,3 +76,18 @@ export type {
   TournamentLeaderboardEntry,
   TournamentStatus,
 } from './tournament.types';
+
+// Story 5.3 — Registration types and cache key factories
+export {
+  TOURNAMENT_REGISTRATION_CACHE_KEYS,
+} from './registration.types';
+
+export type {
+  RegistrationStatus,
+  RegistrationErrorCode,
+  ParticipationState,
+  RegistrationResult,
+  WithdrawalResult,
+  RegistrationMutationState,
+  RegistrationInvalidationKeys,
+} from './registration.types';

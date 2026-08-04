@@ -3,9 +3,9 @@
  * phase5-lint-invariants.mjs — Phase 5 cross-batch invariant gate.
  *
  * Source epic:   Epic 5.1.
- * Source ticket: TKT-5.1.F7 (initial) / TKT-5.1.I1 (extended).
+ * Source ticket: TKT-5.1.F7 (initial) / TKT-5.1.I1 (extended) / TKT-5.3.G3 (Epic 5.3 extension).
  *
- * Encodes three Phase 5 cross-batch invariants:
+ * Encodes four Phase 5 cross-batch invariants:
  *
  *   1. **no-axios** — No Phase 5 service file may import `axios` or call
  *      `fetch(` directly. All HTTP traffic must go through the generated SDK.
@@ -16,6 +16,10 @@
  *   3. **service-consumers** — Every function exported from a Phase 5 service
  *      module must be referenced at least once outside that module (i.e. it has
  *      a consumer). Stub functions with no consumers are a maintenance liability.
+ *
+ *   4. **registration-types** (Epic 5.3 G3) — Every export from
+ *      `registration.types.ts` must have at least one consumer in the codebase.
+ *      This ensures types are used, not just defined.
  *
  * ## Usage
  *
@@ -381,6 +385,97 @@ async function checkServiceConsumers() {
   return orphanServices;
 }
 
+// ─── Check: registration types have consumers (Epic 5.3 G3) ──────────────
+
+/**
+ * Extract exported types and interfaces from a types file.
+ * Matches: `export type Name =` or `export interface Name`
+ * @param {string} filePath
+ * @returns {string[]}
+ */
+function extractTypeExports(filePath) {
+  const src = readFileSync(filePath, "utf-8");
+  const typeMatches = [...src.matchAll(/^export\s+type\s+(\w+)\s*=/gm)];
+  const interfaceMatches = [...src.matchAll(/^export\s+interface\s+(\w+)/gm)];
+  const constMatches = [...src.matchAll(/^export\s+const\s+(\w+)\s*=/gm)];
+
+  const allMatches = [
+    ...typeMatches.map((m) => m[1]),
+    ...interfaceMatches.map((m) => m[1]),
+    ...constMatches.map((m) => m[1]),
+  ];
+
+  // Deduplicate
+  return [...new Set(allMatches)];
+}
+
+/**
+ * Search all source and test files for references to a type/const name.
+ * @param {string} name
+ * @param {string} homeFile
+ * @returns {Promise<Array<{ file: string; line: number; text: string }>>}
+ */
+async function findTypeConsumers(name, homeFile) {
+  const consumers = [];
+  const allFiles = await walkFiles(
+    path.resolve(CWD, "src"),
+    (f) =>
+      (f.endsWith(".ts") || f.endsWith(".tsx")) &&
+      !f.includes("node_modules") &&
+      !f.includes(".next") &&
+      !f.includes(".git"),
+  );
+
+  for (const file of allFiles) {
+    if (file === homeFile) continue;
+    const src = readFileSync(file, "utf-8");
+    const lines = src.split("\n");
+    for (let i = 0; i < lines.length; i += 1) {
+      const line = lines[i];
+      if (new RegExp(`\\b${name}\\b`).test(line)) {
+        consumers.push({
+          file: path.relative(CWD, file),
+          line: i + 1,
+          text: line.trim(),
+        });
+      }
+    }
+  }
+
+  return consumers;
+}
+
+async function checkRegistrationTypes() {
+  /** @type {Array<{ file: string; type: string; consumers: Array<{ file: string; line: number }> }>} */
+  const orphanTypes = [];
+
+  // Check registration.types.ts
+  const registrationTypesPath = path.resolve(
+    FEATURES_DIR,
+    "tournaments",
+    "types",
+    "registration.types.ts",
+  );
+
+  try {
+    const exports = extractTypeExports(registrationTypesPath);
+    for (const type of exports) {
+      const consumers = await findTypeConsumers(type, registrationTypesPath);
+      if (consumers.length === 0) {
+        orphanTypes.push({
+          file: path.relative(CWD, registrationTypesPath),
+          type,
+          consumers: consumers.map(({ file: f, line }) => ({ file: f, line })),
+        });
+      }
+    }
+  } catch {
+    // File doesn't exist yet, skip
+  }
+
+  return orphanTypes;
+}
+
 // ─── Report helpers ─────────────────────────────────────────────────────
 
 function reportNoAxios(violations) {
@@ -463,6 +558,27 @@ function reportServiceConsumers(orphanServices) {
   return false;
 }
 
+function reportRegistrationTypes(orphanTypes) {
+  if (orphanTypes.length === 0) {
+    process.stdout.write(
+      `${GREEN("✓")} registration-types — all exports from registration.types.ts have at least one consumer\n`,
+    );
+    return true;
+  }
+
+  process.stdout.write(
+    `${RED("✗")} registration-types — ${BOLD(String(orphanTypes.length))} orphaned export(s) with no consumers\n\n`,
+  );
+
+  for (const t of orphanTypes) {
+    process.stdout.write(
+      `  ${RED("no consumer for:")} ${BOLD(t.type)}  ${DIM(t.file)}\n`,
+    );
+  }
+
+  return false;
+}
+
 // ─── Main ────────────────────────────────────────────────────────────────
 
 async function main() {
@@ -490,6 +606,13 @@ async function main() {
     } else {
       ok = false;
     }
+  }
+
+  // Check 4: registration types have consumers (Epic 5.3 G3)
+  // Every export from registration.types.ts should be used by at least one consumer.
+  const orphanTypes = await checkRegistrationTypes();
+  if (!reportRegistrationTypes(orphanTypes)) {
+    ok = false;
   }
 
   if (ok) {
