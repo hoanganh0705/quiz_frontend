@@ -22,6 +22,7 @@ const SHELL_PREFIXES = [
   '/friends',
   '/leaderboard',
   '/my-profile',
+  '/notifications',
   '/onboarding',
   '/profile',
   '/quiz-history',
@@ -74,6 +75,7 @@ export function LayoutShell({ children }: { children: React.ReactNode }) {
       '/quiz-history',
       '/friends',
       '/discussions',
+      '/notifications',
       '/tournament',
       '/create-quiz',
       '/onboarding'

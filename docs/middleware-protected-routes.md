@@ -9,7 +9,7 @@ This file lists every URL prefix the middleware redirects to `/login?redirect=<o
 
 ## Summary
 
-- **Protected prefixes:** 9 (see `PROTECTED_PREFIXES` constant, lines 5–15 of `middleware.ts`).
+- **Protected prefixes:** 10 (see `PROTECTED_PREFIXES` constant, lines 5–15 of `middleware.ts`).
 - **Admin prefixes:** 1 (`/admin`, `ADMIN_PREFIXES` constant, line 21).
 - **Match mechanism:** `pathname.startsWith(prefix)` against the union of `PROTECTED_PREFIXES ∪ ADMIN_PREFIXES` (see `isProtected()`, lines 26–28).
 - **Redirect target:** `/login?redirect=<original-pathname>` (lines 51–54).
@@ -24,11 +24,12 @@ This file lists every URL prefix the middleware redirects to `/login?redirect=<o
 | 3 | `/discussions` | `PROTECTED_PREFIXES[2]` | prefix | Comment/forum threads on quizzes. |
 | 4 | `/friends` | `PROTECTED_PREFIXES[3]` | prefix | Social graph (friend requests, blocks). |
 | 5 | `/my-profile` | `PROTECTED_PREFIXES[4]` | prefix | The current user's own profile (distinct from the public `/profile/[name]` route). |
-| 6 | `/onboarding` | `PROTECTED_PREFIXES[5]` | prefix | First-run UX (preferences, role selection). |
-| 7 | `/quiz-history` | `PROTECTED_PREFIXES[6]` | prefix | The current user's attempt history. |
-| 8 | `/settings` | `PROTECTED_PREFIXES[7]` | prefix | Account-level preferences. |
-| 9 | `/tournament` | `PROTECTED_PREFIXES[8]` | prefix | Tournament listings and the user's tournament state. |
-| 10 | `/admin` | `ADMIN_PREFIXES[0]` | prefix | Admin console (admin role is checked separately by the backend; the middleware only requires *any* authenticated user). |
+| 6 | `/notifications` | `PROTECTED_PREFIXES[5]` | prefix | Notification center page and notification preferences (Story 5.4). |
+| 7 | `/onboarding` | `PROTECTED_PREFIXES[6]` | prefix | First-run UX (preferences, role selection). |
+| 8 | `/quiz-history` | `PROTECTED_PREFIXES[7]` | prefix | The current user's attempt history. |
+| 9 | `/settings` | `PROTECTED_PREFIXES[8]` | prefix | Account-level preferences. |
+| 10 | `/tournament` | `PROTECTED_PREFIXES[9]` | prefix | Tournament listings and the user's tournament state. |
+| 11 | `/admin` | `ADMIN_PREFIXES[0]` | prefix | Admin console (admin role is checked separately by the backend; the middleware only requires *any* authenticated user). |
 
 > Note: prefixed match (`startsWith`) means `/bookmarks/abc` is also gated. Sub-paths inherit the gate.
 
@@ -51,11 +52,12 @@ The first match returns the constant arrays; mirror them into this table row by 
 | 3 | `/discussions` | `comment` | `GET /api/v1/comments?...`, `POST /api/v1/comments` | **yes** | Comment/forum threads on quizzes. The frontend uses the term "discussions"; the backend exposes the same surface as `comments`. |
 | 4 | `/friends` | `social` | `GET /api/v1/social/friends`, … | **yes** | Social graph (friend requests, blocks). |
 | 5 | `/my-profile` | `user` | `GET /api/v1/users/me`, `PATCH /api/v1/users/me/settings` | **yes** | The current user's own profile (distinct from the public `/profile/[name]` route). |
-| 6 | `/onboarding` | _none_ (frontend-only multi-step UI that POSTs to `auth` once) | `POST /api/v1/auth/...` only at submit time | **frontend-only** | First-run UX (preferences, role selection). No direct backend owner until submit. |
-| 7 | `/quiz-history` | `attempt` | `GET /api/v1/users/me/attempts`, `GET /api/v1/users/me/attempts/stats` | **yes** | The current user's attempt history. |
-| 8 | `/settings` | `user` (with `auth` for password change) | `PATCH /api/v1/users/me/settings` | **yes** | Account-level preferences. |
-| 9 | `/tournament` | `tournament` | `GET /api/v1/tournaments`, tournament-specific endpoints | **yes** | Tournament listings and the user's tournament state. |
-| 10 | `/admin` | multi (`admin` namespace) | `admin/users`, `admin/quizzes`, `admin/tags`, `admin/categories`, `admin/achievements`, `admin/ranking`, `admin/reviews` (all under `/api/v1/admin/*`) | **yes (with caveat — see Findings)** | Admin console. Admin role is enforced server-side; the middleware only enforces "authenticated, not role". |
+| 6 | `/notifications` | `notification` | `GET /api/v1/notifications`, `GET /api/v1/notifications/unread-count`, `POST /api/v1/notifications/:id/read`, `DELETE /api/v1/notifications/:id`, `GET /api/v1/notifications/preferences`, `PUT /api/v1/notifications/preferences` | **yes** | Notification center page and notification preferences. Story 5.4. |
+| 7 | `/onboarding` | _none_ (frontend-only multi-step UI that POSTs to `auth` once) | `POST /api/v1/auth/...` only at submit time | **frontend-only** | First-run UX (preferences, role selection). No direct backend owner until submit. |
+| 8 | `/quiz-history` | `attempt` | `GET /api/v1/users/me/attempts`, `GET /api/v1/users/me/attempts/stats` | **yes** | The current user's attempt history. |
+| 9 | `/settings` | `user` (with `auth` for password change) | `PATCH /api/v1/users/me/settings` | **yes** | Account-level preferences. |
+| 10 | `/tournament` | `tournament` | `GET /api/v1/tournaments`, tournament-specific endpoints | **yes** | Tournament listings and the user's tournament state. |
+| 11 | `/admin` | multi (`admin` namespace) | `admin/users`, `admin/quizzes`, `admin/tags`, `admin/categories`, `admin/achievements`, `admin/ranking`, `admin/reviews` (all under `/api/v1/admin/*`) | **yes (with caveat — see Findings)** | Admin console. Admin role is enforced server-side; the middleware only enforces "authenticated, not role". |
 
 ---
 
