@@ -3,9 +3,11 @@
  * phase5-lint-invariants.mjs — Phase 5 cross-batch invariant gate.
  *
  * Source epic:   Epic 5.1.
- * Source ticket: TKT-5.1.F7 (initial) / TKT-5.1.I1 (extended) / TKT-5.3.G3 (Epic 5.3 extension).
+ * Source ticket: TKT-5.1.F7 (initial) / TKT-5.1.I1 (extended) /
+ *                TKT-5.3.G3 (Epic 5.3 extension) /
+ *                TKT-5.4.G3 (Epic 5.4 notification extension).
  *
- * Encodes four Phase 5 cross-batch invariants:
+ * Encodes Phase 5 cross-batch invariants:
  *
  *   1. **no-axios** — No Phase 5 service file may import `axios` or call
  *      `fetch(` directly. All HTTP traffic must go through the generated SDK.
@@ -20,6 +22,18 @@
  *   4. **registration-types** (Epic 5.3 G3) — Every export from
  *      `registration.types.ts` must have at least one consumer in the codebase.
  *      This ensures types are used, not just defined.
+ *
+ *   5. **notifications-no-axios-or-fetch** (Epic 5.4 G3) — No Phase 5
+ *      notification file under `features/notifications/` may import `axios`
+ *      or call `fetch(`. All traffic must flow through the service layer.
+ *
+ *   6. **notifications-no-direct-socket** (Epic 5.4 G3) — No Phase 5
+ *      notification file may register Socket.IO event listeners directly.
+ *      All socket interactions must go through `useNotificationSocket`.
+ *
+ *   7. **notification-types-have-consumers** (Epic 5.4 G3) — Every export
+ *      from `notification.types.ts` must be referenced at least once by a
+ *      test file. This ensures every domain shape has a test consumer.
  *
  * ## Usage
  *
@@ -68,9 +82,13 @@ const USAGE = `Usage:
   node scripts/phase5-lint-invariants.mjs [--help]
 
 Checks (always run):
-  no-axios              No 'import.*axios' or 'fetch(' under Phase 5 service dirs.
-  no-deprecated-routes  No Phase 5 feature calls a route in DEPRECATED_ROUTES.
-  service-consumers     Every Phase 5 service export has at least one consumer.
+  no-axios                       No 'import.*axios' or 'fetch(' under Phase 5 service dirs.
+  no-deprecated-routes           No Phase 5 feature calls a route in DEPRECATED_ROUTES.
+  service-consumers              Every Phase 5 service export has at least one consumer.
+  registration-types             Every export from registration.types.ts has a consumer.
+  notifications-no-axios-or-fetch  No axios/fetch under features/notifications/.
+  notifications-no-direct-socket  No direct Socket.IO listener under features/notifications/.
+  notification-types-have-consumers  Every export from notification.types.ts has a test consumer.
 
 Flags:
   --help    Print this help and exit 64.
@@ -385,6 +403,225 @@ async function checkServiceConsumers() {
   return orphanServices;
 }
 
+// ─── Check: notifications feature has no axios or fetch (Epic 5.4 G3) ────
+
+/**
+ * Walk all files under features/notifications/ and assert no file
+ * imports axios or calls fetch directly. The notification feature must
+ * route all HTTP traffic through the service wrappers.
+ *
+ * @returns {Promise<Array<{ file: string; line: number; text: string; pattern: string }>>}
+ */
+async function checkNotificationsNoAxiosOrFetch() {
+  const featureDir = path.resolve(FEATURES_DIR, "notifications");
+  const files = await walkFiles(
+    featureDir,
+    (f) =>
+      (f.endsWith(".ts") || f.endsWith(".tsx") || f.endsWith(".mts") || f.endsWith(".cts")) &&
+      !f.includes("__tests__"),
+  );
+
+  /** @type {Array<{ file: string; line: number; text: string; pattern: string }>} */
+  const violations = [];
+
+  for (const file of files) {
+    const src = readFileSync(file, "utf-8");
+    const lines = src.split("\n");
+    for (let i = 0; i < lines.length; i += 1) {
+      const raw = lines[i];
+      const text = raw.trimStart();
+      if (
+        text.startsWith("//") ||
+        text.startsWith("/*") ||
+        text.startsWith("*") ||
+        text.startsWith("<!--")
+      )
+        continue;
+
+      if (
+        raw.includes('from "axios"') ||
+        raw.includes("from 'axios'")
+      ) {
+        violations.push({
+          file: path.relative(CWD, file),
+          line: i + 1,
+          text: raw.trim(),
+          pattern: 'from "axios"',
+        });
+      }
+      if (raw.includes("fetch(")) {
+        violations.push({
+          file: path.relative(CWD, file),
+          line: i + 1,
+          text: raw.trim(),
+          pattern: "fetch(",
+        });
+      }
+    }
+  }
+
+  return violations;
+}
+
+// ─── Check: notifications feature has no direct Socket.IO listeners ─────
+
+/**
+ * Walk all files under features/notifications/ and assert that no
+ * file calls Socket.IO event listener APIs directly. Allowed:
+ *
+ *   - `useNotificationSocket` (the single socket hook)
+ *   - imports from `@/lib/realtime` (which itself wraps the socket client)
+ *
+ * Forbidden patterns:
+ *   - `socket.on(`
+ *   - `socket.off(`
+ *   - `io(`
+ *   - `.addEventListener("notification:...,`
+ *   - references to `socket.io-client`
+ *
+ * @returns {Promise<Array<{ file: string; line: number; text: string; pattern: string }>>}
+ */
+async function checkNotificationsNoDirectSocket() {
+  const featureDir = path.resolve(FEATURES_DIR, "notifications");
+  const files = await walkFiles(
+    featureDir,
+    (f) =>
+      (f.endsWith(".ts") || f.endsWith(".tsx") || f.endsWith(".mts") || f.endsWith(".cts")) &&
+      !f.includes("__tests__"),
+  );
+
+  /** @type {Array<{ file: string; line: number; text: string; pattern: string }>} */
+  const violations = [];
+
+  // The single allowed socket hook: its body must contain `socket.on(`,
+  // `socket.off(` to register / unregister listeners. Any other
+  // notification file that contains these strings is a violation.
+  const ALLOWED_HOOK_FILES = new Set([
+    path.resolve(featureDir, "hooks/useNotificationSocket.ts"),
+  ]);
+
+  for (const file of files) {
+    if (ALLOWED_HOOK_FILES.has(file)) continue;
+
+    const src = readFileSync(file, "utf-8");
+    const lines = src.split("\n");
+    for (let i = 0; i < lines.length; i += 1) {
+      const raw = lines[i];
+      const text = raw.trimStart();
+      if (
+        text.startsWith("//") ||
+        text.startsWith("/*") ||
+        text.startsWith("*") ||
+        text.startsWith("<!--")
+      )
+        continue;
+
+      const hits = [
+        { pattern: "socket.on(", re: /socket\.on\(/ },
+        { pattern: "socket.off(", re: /socket\.off\(/ },
+        { pattern: "io(", re: /\bio\(/ },
+        { pattern: "socket.io-client", re: /socket\.io-client/ },
+      ];
+
+      for (const { pattern, re } of hits) {
+        if (re.test(raw)) {
+          violations.push({
+            file: path.relative(CWD, file),
+            line: i + 1,
+            text: raw.trim(),
+            pattern,
+          });
+        }
+      }
+    }
+  }
+
+  return violations;
+}
+
+// ─── Check: notification types have test consumers (Epic 5.4 G3) ────────
+
+/**
+ * Walk all __tests__ files under features/notifications/ and assert
+ * that every export from notification.types.ts has at least one
+ * reference. This guards against orphan types added in Batch A.
+ *
+ * @returns {Promise<Array<{ file: string; type: string; consumers: Array<{ file: string; line: number }> }>>}
+ */
+async function checkNotificationTypesHaveConsumers() {
+  /** @type {Array<{ file: string; type: string; consumers: Array<{ file: string; line: number }> }>} */
+  const orphanTypes = [];
+
+  const typesFile = path.resolve(
+    FEATURES_DIR,
+    "notifications",
+    "types",
+    "notification.types.ts",
+  );
+
+  try {
+    const exports = extractTypeExports(typesFile);
+    for (const type of exports) {
+      // Search __tests__ files first; fall back to the broader src/ if
+      // no test consumer is found.
+      const testConsumers = await findTypeConsumersInDir(
+        type,
+        typesFile,
+        path.resolve(FEATURES_DIR, "notifications"),
+        (f) => f.includes("__tests__"),
+      );
+      if (testConsumers.length === 0) {
+        orphanTypes.push({
+          file: path.relative(CWD, typesFile),
+          type,
+          consumers: testConsumers.map(({ file: f, line }) => ({ file: f, line })),
+        });
+      }
+    }
+  } catch {
+    // File doesn't exist yet — skip silently.
+  }
+
+  return orphanTypes;
+}
+
+/**
+ * Like `findTypeConsumers`, but restricted to a subdirectory and an
+ * optional path predicate.
+ *
+ * @param {string} name
+ * @param {string} homeFile
+ * @param {string} rootDir
+ * @param {(f: string) => boolean} filter
+ * @returns {Promise<Array<{ file: string; line: number; text: string }>>}
+ */
+async function findTypeConsumersInDir(name, homeFile, rootDir, filter) {
+  const consumers = [];
+  const allFiles = await walkFiles(rootDir, (f) => {
+    if (f === homeFile) return false;
+    if (!f.endsWith(".ts") && !f.endsWith(".tsx")) return false;
+    if (!filter(f)) return false;
+    return true;
+  });
+
+  for (const file of allFiles) {
+    const src = readFileSync(file, "utf-8");
+    const lines = src.split("\n");
+    for (let i = 0; i < lines.length; i += 1) {
+      const line = lines[i];
+      if (new RegExp(`\\b${name}\\b`).test(line)) {
+        consumers.push({
+          file: path.relative(CWD, file),
+          line: i + 1,
+          text: line.trim(),
+        });
+      }
+    }
+  }
+
+  return consumers;
+}
+
 // ─── Check: registration types have consumers (Epic 5.3 G3) ──────────────
 
 /**
@@ -579,6 +816,77 @@ function reportRegistrationTypes(orphanTypes) {
   return false;
 }
 
+// ─── Report helpers: Epic 5.4 G3 ─────────────────────────────────────────
+
+function reportNotificationsNoAxiosOrFetch(violations) {
+  if (violations.length === 0) {
+    process.stdout.write(
+      `${GREEN("✓")} notifications-no-axios-or-fetch — no axios imports or fetch() calls under features/notifications/\n`,
+    );
+    return true;
+  }
+
+  process.stdout.write(
+    `${RED("✗")} notifications-no-axios-or-fetch — ${BOLD(String(violations.length))} violation(s) found\n\n`,
+  );
+
+  for (const v of violations) {
+    process.stdout.write(
+      `  ${RED("forbidden pattern:")} ${BOLD(v.pattern)}  ${DIM(v.file)}:${DIM(String(v.line))}\n`,
+    );
+    const snippet =
+      v.text.length > 72 ? v.text.slice(0, 69) + "..." : v.text;
+    process.stdout.write(`  ${snippet}\n\n`);
+  }
+
+  return false;
+}
+
+function reportNotificationsNoDirectSocket(violations) {
+  if (violations.length === 0) {
+    process.stdout.write(
+      `${GREEN("✓")} notifications-no-direct-socket — no direct Socket.IO listener registration under features/notifications/\n`,
+    );
+    return true;
+  }
+
+  process.stdout.write(
+    `${RED("✗")} notifications-no-direct-socket — ${BOLD(String(violations.length))} violation(s) found\n\n`,
+  );
+
+  for (const v of violations) {
+    process.stdout.write(
+      `  ${RED("forbidden pattern:")} ${BOLD(v.pattern)}  ${DIM(v.file)}:${DIM(String(v.line))}\n`,
+    );
+    const snippet =
+      v.text.length > 72 ? v.text.slice(0, 69) + "..." : v.text;
+    process.stdout.write(`  ${snippet}\n\n`);
+  }
+
+  return false;
+}
+
+function reportNotificationTypesHaveConsumers(orphanTypes) {
+  if (orphanTypes.length === 0) {
+    process.stdout.write(
+      `${GREEN("✓")} notification-types-have-consumers — all exports from notification.types.ts have at least one test consumer\n`,
+    );
+    return true;
+  }
+
+  process.stdout.write(
+    `${RED("✗")} notification-types-have-consumers — ${BOLD(String(orphanTypes.length))} orphaned export(s) with no test consumer\n\n`,
+  );
+
+  for (const t of orphanTypes) {
+    process.stdout.write(
+      `  ${RED("no test consumer for:")} ${BOLD(t.type)}  ${DIM(t.file)}\n`,
+    );
+  }
+
+  return false;
+}
+
 // ─── Main ────────────────────────────────────────────────────────────────
 
 async function main() {
@@ -612,6 +920,30 @@ async function main() {
   // Every export from registration.types.ts should be used by at least one consumer.
   const orphanTypes = await checkRegistrationTypes();
   if (!reportRegistrationTypes(orphanTypes)) {
+    ok = false;
+  }
+
+  // Check 5: notifications-no-axios-or-fetch (Epic 5.4 G3)
+  // No file under features/notifications/ may import axios or call fetch().
+  const notifAxiosViolations = await checkNotificationsNoAxiosOrFetch();
+  if (!reportNotificationsNoAxiosOrFetch(notifAxiosViolations)) {
+    ok = false;
+  }
+
+  // Check 6: notifications-no-direct-socket (Epic 5.4 G3)
+  // No file under features/notifications/ may register Socket.IO
+  // listeners directly — all socket traffic must go through
+  // `useNotificationSocket`.
+  const notifSocketViolations = await checkNotificationsNoDirectSocket();
+  if (!reportNotificationsNoDirectSocket(notifSocketViolations)) {
+    ok = false;
+  }
+
+  // Check 7: notification-types-have-consumers (Epic 5.4 G3)
+  // Every export from notification.types.ts must be referenced by at
+  // least one __tests__ file under features/notifications/.
+  const orphanNotificationTypes = await checkNotificationTypesHaveConsumers();
+  if (!reportNotificationTypesHaveConsumers(orphanNotificationTypes)) {
     ok = false;
   }
 

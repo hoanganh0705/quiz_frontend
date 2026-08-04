@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/DropdownMenu'
 import { ModeToggle } from '@/shared/layout/components/ModeToggle'
 import { SidebarTrigger, useSidebar } from '@/components/ui/Sidebar'
-import { NotificationDropdown } from '@/features/notifications/components/NotificationDropdown'
+import { NotificationBell } from '@/features/notifications/components/NotificationBell'
 import { useIsMobile, useAsyncAction } from '@/shared/hooks'
 import { useAppLanguage } from '@/shared/hooks/use-app-language'
 import { useAuthState } from '@/features/auth/hooks'
@@ -187,7 +187,7 @@ export function AppHeader() {
 
       <div className='flex items-center gap-2 sm:gap-2 md:gap-3 shrink-0'>
         <MessagesButton />
-        <NotificationDropdown />
+        <NotificationBell />
         <div>
           <ModeToggle />
         </div>

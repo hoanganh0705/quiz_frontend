@@ -61,6 +61,7 @@ const PROTECTED_PREFIXES = [
   "/discussions",
   "/friends",
   "/my-profile",
+  "/notifications",
   "/onboarding",
   "/quiz-history",
   "/settings",
