@@ -55,6 +55,123 @@ vi.mock('@/features/quizzes/hooks/useQuizRelated', () => ({
   useQuizRelated: relatedHookMock,
 }));
 
+// Story 4.13 — ReviewsWidget reads `useAuthBootstrap` for the
+// auth gate. The CommentsWidget already does the same in Story
+// 4.12; stub the hook so the existing QuizDetailPage tests
+// continue to render without wrapping in AuthBootstrapProvider.
+vi.mock('@/features/auth/contexts/auth-bootstrap-context', () => ({
+  useAuthBootstrap: () => ({
+    bootstrapState: 'unauthenticated',
+    isAuthenticated: false,
+    currentUser: null,
+    user: null,
+    error: null,
+    profileError: null,
+    refetch: vi.fn(),
+    clearBootstrap: vi.fn(),
+    isBootstrapping: false,
+    isDegraded: false,
+  }),
+}));
+
+// Story 4.13 — ReviewsWidget's `useQuizReviews` and `useMyQuizReview`
+// would otherwise fire real HTTP requests through SWR. The widget
+// is not the unit-under-test in this file; stub both hooks so the
+// page renders deterministically.
+vi.mock('@/features/reviews/hooks/useQuizReviews', () => ({
+  useQuizReviews: () => ({
+    items: [],
+    isLoading: false,
+    isLoadingMore: false,
+    hasMore: false,
+    loadMore: vi.fn(),
+    error: null,
+    refresh: vi.fn(),
+    reviews: [],
+  }),
+}));
+
+vi.mock('@/features/reviews/hooks/useMyQuizReview', () => ({
+  useMyQuizReview: () => ({
+    review: null,
+    isLoading: false,
+    hasResolved: true,
+    error: null,
+    retry: vi.fn(),
+  }),
+}));
+
+// Story 4.12 — CommentsWidget's `useQuizComments` (and its
+// children) would otherwise fire real HTTP requests. The widget
+// is not the unit-under-test in this file; stub the comment
+// hooks so the page renders deterministically.
+vi.mock('@/features/comments/hooks/useQuizComments', () => ({
+  useQuizComments: () => ({
+    items: [],
+    isLoading: false,
+    isLoadingMore: false,
+    hasMore: false,
+    loadMore: vi.fn(),
+    error: null,
+    refresh: vi.fn(),
+  }),
+}));
+vi.mock('@/features/comments/hooks/useCreateComment', () => ({
+  useCreateComment: () => ({
+    createComment: vi.fn(),
+    isLoading: false,
+    error: null,
+    errorCopy: null,
+    lastOutcome: null,
+    reset: vi.fn(),
+  }),
+}));
+vi.mock('@/features/comments/hooks/useEditComment', () => ({
+  useEditComment: () => ({
+    editComment: vi.fn(),
+    isLoading: false,
+    error: null,
+    lastOutcome: null,
+    reset: vi.fn(),
+  }),
+}));
+vi.mock('@/features/comments/hooks/useDeleteComment', () => ({
+  useDeleteComment: () => ({
+    deleteComment: vi.fn(),
+    isLoading: false,
+    error: null,
+    lastOutcome: null,
+    reset: vi.fn(),
+  }),
+}));
+vi.mock('@/features/comments/hooks/useVoteComment', () => ({
+  useVoteComment: () => ({
+    upvote: vi.fn(),
+    downvote: vi.fn(),
+    isLoading: false,
+    error: null,
+    lastOutcome: null,
+    reset: vi.fn(),
+  }),
+}));
+vi.mock('@/features/comments/hooks/useReportComment', () => ({
+  useReportComment: () => ({
+    reportComment: vi.fn(),
+    isLoading: false,
+    error: null,
+    lastOutcome: null,
+    reset: vi.fn(),
+  }),
+}));
+vi.mock('@/features/comments/stores/useCommentThreadLookup', () => ({
+  useCommentThreadLookup: () => ({
+    incrementReplyCount: vi.fn(),
+    decrementReplyCount: vi.fn(),
+    reset: vi.fn(),
+    getReplyCount: () => 0,
+  }),
+}));
+
 import { QuizDetailPage } from '@/features/quizzes/components/QuizDetailPage';
 
 function makeQuiz(
