@@ -47,6 +47,32 @@ export {
 } from './useAbandonAttempt';
 
 export {
+  useCompleteAttempt,
+  type UseCompleteAttemptParams,
+  type UseCompleteAttemptResult,
+  type CompleteAttemptOutcome,
+} from './useCompleteAttempt';
+
+export {
+  useAttemptResult,
+  type UseAttemptResultParams,
+  type AttemptResultView,
+} from './useAttemptResult';
+
+export {
+  useMyAttemptsWithFilters,
+  type UseMyAttemptsWithFiltersParams,
+  type UseMyAttemptsWithFiltersResult,
+  type AttemptHistoryPage,
+} from './useMyAttemptsWithFilters';
+
+export {
+  useAttemptHistoryFilters,
+  type UseAttemptHistoryFiltersResult,
+  serializeAttemptHistoryFiltersToParams,
+} from './useAttemptHistoryFilters';
+
+export {
   useAttemptRunner,
   type UseAttemptRunnerParams,
   type UseAttemptRunnerResult,

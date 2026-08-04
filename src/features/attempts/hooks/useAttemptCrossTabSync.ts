@@ -7,14 +7,15 @@
  * Source epic:   Epic 4.1 — SDK coverage & cross-cutting contracts.
  * Source story:  4.14 — Attempt start + answer + withdraw/abandon.
  * Source ticket: T-4.14.8.
+ * Extended for Story 4.15: T-4.15.7.
  *
  * ## Purpose
  *
  * Subscribes to the existing `attempts/changed` BroadcastChannel
- * (TKT-4.1.B2) and reconciles the Story 4.14 SWR caches for any
- * remote-tab event the source tab broadcasts. The adapter is the
+ * (TKT-4.1.B2) and reconciles the Story 4.14 + 4.15 SWR caches for
+ * any remote-tab event the source tab broadcasts. The adapter is the
  * bridge between the Story 4.1 cross-tab envelope and the Story
- * 4.14 runner cache keys (`ATTEMPT_CACHE_KEYS`).
+ * 4.14 / 4.15 cache keys.
  *
  * ## Cache reconciliation
  *
@@ -35,10 +36,16 @@
  *   - `kind: 'abandon'`   → revalidate the active + detail caches and
  *                            converge the runner's status to
  *                            `abandoned` (T-4.14.7 store mapping).
- *   - `kind: 'complete'`  → reserved for Story 4.15; the adapter
- *                            revalidates only — no completion
- *                            mutation or result-page transition is
- *                            implemented here.
+ *   - `kind: 'complete'`  → Story 4.15 (T-4.15.7): revalidate the
+ *                            detail, result, and history caches so a
+ *                            second tab's "my attempts" page renders
+ *                            the completed row, and the result page
+ *                            renders fresh server data on entry. The
+ *                            receiving tab never calls `completeAttempt`
+ *                            again (cross-tab is read-only) and never
+ *                            auto-navigates to the result page
+ *                            (navigation is user-driven per the
+ *                            Story 4.15 §Cross-Tab rule).
  *
  * ## Scoping
  *
@@ -57,9 +64,11 @@
  *
  * ## Reserved completion events
  *
- * The `complete` kind is reserved for the Story 4.15 handoff. The
- * adapter revalidates the detail cache only; no result page, no
- * completion mutation.
+ * The `complete` kind was reserved in Story 4.14 and is now owned
+ * by Story 4.15 (T-4.15.7). The Story 4.14 reserved semantics —
+ * revalidate only, no completion mutation, no result-page transition
+ * — are preserved; Story 4.15 extends the revalidation surface to
+ * the result and history caches without modifying those semantics.
  */
 
 import { useEffect } from 'react';
@@ -73,8 +82,10 @@ import {
 
 import { useAuthBootstrap } from '@/features/auth/contexts/auth-bootstrap-context';
 import { ATTEMPT_CACHE_KEYS } from '@/features/attempts/types/attempt-runner.types';
+import { ATTEMPT_RESULT_CACHE_KEYS } from '@/features/attempts/types/attempt-result.types';
 import {
   recordAbandonSuccess,
+  recordCompletionSuccess,
   useAttemptsStore,
 } from '@/features/attempts/stores/useAttemptsStore';
 
@@ -215,9 +226,61 @@ function handleRemoteAttemptEvent(
     }
 
     case 'complete': {
-      // Reserved for Story 4.15. Revalidate the detail cache so
-      // the future completion screen renders fresh server data.
+      // T-4.15.7 + T-4.15.16 — Story 4.15 completion reconciliation.
+      // The receiving tab revalidates the detail + answers + result
+      // caches for the affected attempt, and every paginated history
+      // list page for the session. The receiving tab does NOT call
+      // `completeAttempt` again (the cross-tab channel is read-only)
+      // and does NOT auto-navigate to the result page (navigation is
+      // user-driven per the Story 4.15 §Cross-Tab rule).
+      //
+      // T-4.15.16 extension: we ALSO converge the runner's local
+      // status to `completed` via the new `recordCompletionSuccess`
+      // store action so the second tab's picker stops accepting
+      // input. The reverse index lookup mirrors the `abandon` branch;
+      // if the receiving tab does not know this attempt id yet the
+      // reverse index has no entry and we drop the convergence
+      // (the next user-driven navigation will hydrate the entry).
       void mutate(ATTEMPT_CACHE_KEYS.detail(event.attemptId, event.userId));
+      void mutate(ATTEMPT_CACHE_KEYS.answers(event.attemptId, event.userId));
+      void mutate(
+        ATTEMPT_RESULT_CACHE_KEYS.result(event.attemptId, event.userId),
+      );
+      // Invalidate every paginated history list page for the
+      // session. The pattern matches `useCompleteAttempt`'s
+      // success branch.
+      void mutate(
+        (key) =>
+          Array.isArray(key) &&
+          key[0] === 'attempts' &&
+          key[1] === 'history' &&
+          key[2] === event.userId,
+        undefined,
+        { revalidate: true },
+      );
+      // History-stats cache (placeholder for the future stats
+      // hook — invalidating an absent key is a no-op).
+      void mutate(['attempts', 'history', 'stats', event.userId]);
+      // Converge the runner's status to `completed`. The snapshot
+      // is intentionally minimal — the source tab wrote the score
+      // already; the receiving tab fetches the detailed result via
+      // the result cache invalidation above when the user navigates
+      // there.
+      const reverseIndex = useAttemptsStore.getState().attemptsByQuizVersionId;
+      for (const [qvId, attemptId] of Object.entries(reverseIndex)) {
+        if (attemptId === event.attemptId) {
+          recordCompletionSuccess(event.attemptId, qvId, event.userId, {
+            scorePercent: null,
+            correctCount: null,
+            xpEarned: 0,
+            finishedAt: '',
+          });
+          return;
+        }
+      }
+      // The receiving tab does not know this attempt id yet (no
+      // hydration). Drop the convergence gracefully — the cache
+      // invalidations above already refreshed the data layer.
       return;
     }
   }

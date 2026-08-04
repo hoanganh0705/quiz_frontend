@@ -779,18 +779,44 @@ const PHASE4_PRIORITY_COPY: Partial<Record<ErrorCode, UserCopyEntry>> = {
   },
 };
 
+// ─── Story 4.15 priority-copy overrides (T-4.15.4) ──────────────────────
+//
+// Story 4.15 owns the complete-attempt and history-read user-facing
+// copy. The overrides below refine the ATTEMPT_* copy to the exact
+// wording the result page, the inline banner, and the history page
+// render — these win against both the TKT-4.1.C2 priority copy and
+// the deterministic template at table-build time. The history-read
+// errors intentionally share copy with the existing 401/403/429/5xx
+// default copy and do not introduce new toast strings.
+
+const STORY_4_15_PRIORITY_COPY: Partial<Record<ErrorCode, UserCopyEntry>> = {
+  ATTEMPT_VALIDATION_FAILED: {
+    // T-4.15.4 — the runner surfaces this code as an inline banner
+    // ("Submit at least one answer") and keeps the runner mounted
+    // (Story 4.15 §User Flow #5, §Error Handling bullet). The banner
+    // copy is the canonical user-facing wording.
+    title: 'Submit at least one answer',
+    body: 'You need to answer at least one question before completing the attempt.',
+    toast: 'inline',
+  },
+};
+
 // ─── Final table ────────────────────────────────────────────────────────
 
 /**
- * Build the final USER_COPY table by overlaying `PHASE4_PRIORITY_COPY`
- * onto the deterministically derived copy. The result is a complete
- * `Record<ErrorCode, UserCopyEntry>` (TypeScript enforces coverage).
+ * Build the final USER_COPY table by overlaying `STORY_4_15_PRIORITY_COPY`
+ * and `PHASE4_PRIORITY_COPY` onto the deterministically derived copy.
+ * The result is a complete `Record<ErrorCode, UserCopyEntry>`
+ * (TypeScript enforces coverage). Story 4.15 wins so its banner copy
+ * for `ATTEMPT_VALIDATION_FAILED` overrides the Phase 4 generic copy.
  */
 function buildUserCopy(): Record<ErrorCode, UserCopyEntry> {
   const out = {} as Record<ErrorCode, UserCopyEntry>;
   for (const code of KNOWN_ERROR_CODES) {
-    if (code in PHASE4_PRIORITY_COPY) {
+    if (code in STORY_4_15_PRIORITY_COPY) {
       // Object.freeze at the leaf so the table is deeply immutable.
+      out[code] = Object.freeze({ ...STORY_4_15_PRIORITY_COPY[code]! });
+    } else if (code in PHASE4_PRIORITY_COPY) {
       out[code] = Object.freeze({ ...PHASE4_PRIORITY_COPY[code]! });
     } else {
       out[code] = deriveCopyFor(code);
