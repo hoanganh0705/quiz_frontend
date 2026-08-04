@@ -134,6 +134,8 @@ export { getCategories } from './generated/categories/categories';
 export { getComments } from './generated/comments/comments';
 export { getInstances } from './generated/instances/instances';
 export { getLeaderboards } from './generated/leaderboards/leaderboards';
+export { getAchievements } from './generated/achievements/achievements';
+export { getSearch } from './generated/search/search';
 export { getQuizzes } from './generated/quizzes/quizzes';
 export { getReviews } from './generated/reviews/reviews';
 export { getTags } from './generated/tags/tags';

@@ -126,6 +126,26 @@ const phase4EnvVars = {
   phase4_attempts: 'NEXT_PUBLIC_PHASE4_ATTEMPTS',
 } as const;
 
+const phase5Flags = [
+  'phase5_realtime_infrastructure',
+  'phase5_tournaments',
+  'phase5_notifications',
+  'phase5_instances',
+  'phase5_rankings',
+  'phase5_achievements',
+  'phase5_search',
+] as const;
+
+const phase5EnvVars = {
+  phase5_realtime_infrastructure: 'NEXT_PUBLIC_PHASE5_REALTIME_INFRASTRUCTURE',
+  phase5_tournaments: 'NEXT_PUBLIC_PHASE5_TOURNAMENTS',
+  phase5_notifications: 'NEXT_PUBLIC_PHASE5_NOTIFICATIONS',
+  phase5_instances: 'NEXT_PUBLIC_PHASE5_INSTANCES',
+  phase5_rankings: 'NEXT_PUBLIC_PHASE5_RANKINGS',
+  phase5_achievements: 'NEXT_PUBLIC_PHASE5_ACHIEVEMENTS',
+  phase5_search: 'NEXT_PUBLIC_PHASE5_SEARCH',
+} as const;
+
 for (const flag of phase4Flags) {
   describe(`feature-flags — ${flag}`, () => {
     beforeEach(() => {
@@ -172,6 +192,65 @@ for (const flag of phase4Flags) {
       expect(overridden.isFeatureEnabled(flag)).toBe(true);
 
       vi.stubEnv(phase4EnvVars[flag], undefined);
+      const atDefault = await importFresh();
+      expect(atDefault.isFeatureEnabled(flag)).toBe(false);
+    });
+  });
+}
+
+/**
+ * Phase 5 realtime and feature gates — added by TKT-5.1.B1.
+ *
+ * Same six cases per flag as the Phase 4 spec. The shared
+ * "barrel / implementation equivalence" case is already asserted
+ * globally at the top of the file.
+ */
+for (const flag of phase5Flags) {
+  describe(`feature-flags — ${flag}`, () => {
+    beforeEach(() => {
+      vi.unstubAllEnvs();
+    });
+
+    afterEach(() => {
+      vi.unstubAllEnvs();
+    });
+
+    it('(1) defaults to "placeholder" when the env-var is unset', async () => {
+      vi.stubEnv(phase5EnvVars[flag], undefined);
+      const { getFeatureFlagValue } = await importFresh();
+      expect(getFeatureFlagValue(flag)).toBe('placeholder');
+    });
+
+    it('(2) returns "live" when the env-var is set to "live"', async () => {
+      vi.stubEnv(phase5EnvVars[flag], 'live');
+      const { getFeatureFlagValue } = await importFresh();
+      expect(getFeatureFlagValue(flag)).toBe('live');
+    });
+
+    it("(3) returns the default when the env-var is an unsupported value", async () => {
+      vi.stubEnv(phase5EnvVars[flag], 'unsupported-value');
+      const { getFeatureFlagValue } = await importFresh();
+      expect(getFeatureFlagValue(flag)).toBe('placeholder');
+    });
+
+    it("(4) isFeatureEnabled returns the correct boolean for each value", async () => {
+      vi.stubEnv(phase5EnvVars[flag], 'live');
+      const enabled = await importFresh();
+      expect(enabled.isFeatureEnabled(flag, 'live')).toBe(true);
+      expect(enabled.isFeatureEnabled(flag, 'placeholder')).toBe(false);
+
+      vi.stubEnv(phase5EnvVars[flag], undefined);
+      const disabled = await importFresh();
+      expect(disabled.isFeatureEnabled(flag, 'live')).toBe(false);
+      expect(disabled.isFeatureEnabled(flag, 'placeholder')).toBe(true);
+    });
+
+    it('isFeatureEnabled(flag) without a value returns true when an env-var override is active', async () => {
+      vi.stubEnv(phase5EnvVars[flag], 'live');
+      const overridden = await importFresh();
+      expect(overridden.isFeatureEnabled(flag)).toBe(true);
+
+      vi.stubEnv(phase5EnvVars[flag], undefined);
       const atDefault = await importFresh();
       expect(atDefault.isFeatureEnabled(flag)).toBe(false);
     });

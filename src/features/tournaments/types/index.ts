@@ -1,22 +1,19 @@
 // Tournaments types — aligned with backend DTOs
 
-// Re-export from generated SDK
-export type {
-  TournamentResponseDto,
+import type {
   TournamentDetailResponseDto,
-  TournamentListResponseDto,
-  TournamentPaginationResponseDto,
   TournamentRoundResponseDto,
-  TournamentLeaderboardResponseDto,
   TournamentLeaderboardEntryDto,
   CreateTournamentDto,
   RegisterTournamentResponseDto,
-  UnregisterTournamentResponseDto,
-  StartTournamentAttemptResponseDto,
   TournamentControllerListTournamentsParams,
+  TournamentControllerGetTournamentParticipantsParams,
+  TournamentControllerGetLeaderboardParams,
 } from '@/lib/api/generated/schemas';
 
-export type {
+import type { TournamentResponseDto } from '@/lib/api/generated/schemas/tournamentResponseDto';
+
+import type {
   TournamentControllerCreateTournamentResult,
   TournamentControllerListTournamentsResult,
   TournamentControllerGetTournamentByIdResult,
@@ -26,9 +23,56 @@ export type {
   TournamentControllerStartRoundAttemptResult,
 } from '@/lib/api/generated/tournaments/tournaments';
 
-// Backward-compatible type aliases
-export type TournamentStatus = 'upcoming' | 'registration' | 'active' | 'completed' | 'cancelled';
+// Re-export SDK types
+export type {
+  TournamentDetailResponseDto,
+  TournamentRoundResponseDto,
+  TournamentLeaderboardEntryDto,
+  CreateTournamentDto,
+  RegisterTournamentResponseDto,
+  TournamentControllerListTournamentsParams,
+  TournamentControllerGetTournamentParticipantsParams,
+  TournamentControllerGetLeaderboardParams,
+};
+
+export type { TournamentResponseDto } from '@/lib/api/generated/schemas/tournamentResponseDto';
+
+export type {
+  TournamentControllerCreateTournamentResult,
+  TournamentControllerListTournamentsResult,
+  TournamentControllerGetTournamentByIdResult,
+  TournamentControllerRegisterForTournamentResult,
+  TournamentControllerUnregisterFromTournamentResult,
+  TournamentControllerGetLeaderboardResult,
+  TournamentControllerStartRoundAttemptResult,
+};
+
+// Backward-compatible type aliases (for legacy consumers)
 export type TournamentDifficulty = 'easy' | 'medium' | 'hard';
 export type Tournament = TournamentResponseDto;
-export type GetTournamentsResponse = TournamentListResponseDto;
-export type TournamentLeaderboardEntry = TournamentLeaderboardResponseDto;
+export type GetTournamentsResponse = TournamentResponseDto;
+export type GetTournamentsParams = TournamentControllerListTournamentsParams;
+export type GetTournamentDetailsResponse = TournamentDetailResponseDto;
+export type TournamentRegistrationResponse = RegisterTournamentResponseDto;
+export type TournamentRegistrationRequest = CreateTournamentDto;
+
+// Story 5.2 domain types and cache key factories
+export {
+  DEFAULT_TOURNAMENT_LIST_FILTERS,
+  TOURNAMENT_CACHE_KEYS,
+  serializeTournamentFilters,
+} from './tournament.types';
+
+export type {
+  TournamentListFilters,
+  TournamentParticipantsFilters,
+  TournamentLeaderboardFilters,
+  TournamentListPage,
+  TournamentParticipantsPage,
+  TournamentLeaderboardPage,
+  TournamentSummary,
+  TournamentDetail,
+  TournamentParticipant,
+  TournamentLeaderboardEntry,
+  TournamentStatus,
+} from './tournament.types';
