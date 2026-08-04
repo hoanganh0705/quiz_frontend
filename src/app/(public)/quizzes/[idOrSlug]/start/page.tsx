@@ -1,19 +1,28 @@
-import PlayQuizClient from '@/features/quizzes/components/PlayQuizClient'
-import { quizzes } from '@/features/quizzes/constants/mock-quizzes'
+import { redirect } from 'next/navigation';
 
-export default async function QuizStart({
-  params
+/**
+ * Legacy `/quizzes/[idOrSlug]/start` route — redirects to the
+ * canonical `/quizzes/[idOrSlug]/attempt` route.
+ *
+ * Source epic:   Epic 4.1 — SDK coverage & cross-cutting contracts.
+ * Source story:  4.14 — Attempt start + answer + withdraw/abandon.
+ * Source ticket: T-4.14.26.
+ *
+ * The mock client-graded player that previously lived at this URL
+ * has been retired (Story 4.14 establishes the server-backed,
+ * no-spoiler runner as the only attempt entry path). Any visit to
+ * the legacy URL lands on the canonical attempt route so users
+ * cannot bypass the server-backed attempt flow.
+ *
+ * Slug and UUID `idOrSlug` values are preserved verbatim through the
+ * redirect.
+ */
+
+export default async function QuizStartRedirectPage({
+  params,
 }: {
-  params: Promise<{ idOrSlug: string }>
+  params: Promise<{ idOrSlug: string }>;
 }) {
-  const { idOrSlug } = await params
-  const quiz = quizzes.find((q) => q.id === idOrSlug)
-
-  if (!quiz) {
-    return (
-      <div className='text-center mt-10 text-red-500'>Quiz không tồn tại</div>
-    )
-  }
-
-  return <PlayQuizClient quiz={quiz} />
+  const { idOrSlug } = await params;
+  redirect(`/quizzes/${encodeURIComponent(idOrSlug)}/attempt`);
 }

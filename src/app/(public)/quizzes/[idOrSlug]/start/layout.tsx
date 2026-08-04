@@ -1,25 +1,20 @@
-import type { Metadata } from 'next'
-import type { ReactNode } from 'react'
-import { quizzes } from '@/features/quizzes/constants/mock-quizzes'
-import { buildMetadata } from '@/shared/lib/seo'
+import type { ReactNode } from 'react';
 
-export async function generateMetadata({
-  params
+/**
+ * Layout for the legacy `/quizzes/[idOrSlug]/start` route.
+ *
+ * Source story:  4.14 — Attempt start + answer + withdraw/abandon.
+ * Source ticket: T-4.14.26.
+ *
+ * The page performs a server-side redirect, so the layout only
+ * renders its children (which immediately redirect). No metadata is
+ * emitted because no content is reachable through this URL.
+ */
+
+export default function QuizStartRedirectLayout({
+  children,
 }: {
-  params: Promise<{ idOrSlug: string }>
-}): Promise<Metadata> {
-  const { idOrSlug } = await params
-  const quiz = quizzes.find((item) => item.id === idOrSlug)
-
-  return buildMetadata({
-    title: quiz ? `Start ${quiz.title} | QuizHub` : 'Start Quiz | QuizHub',
-    description: quiz
-      ? `Start playing ${quiz.title} and test your knowledge.`
-      : 'Start your quiz challenge on QuizHub.',
-    path: `/quizzes/${idOrSlug}/start`
-  })
-}
-
-export default function QuizStartLayout({ children }: { children: ReactNode }) {
-  return children
+  children: ReactNode;
+}) {
+  return children;
 }

@@ -239,6 +239,24 @@ export default defineConfig({
             // existing quiz layout (heading, canonical quiz id, error
             // isolation). Needs jsdom for the rendered DOM.
             'src/features/quizzes/components/__tests__/QuizDetailPage.reviews.spec.tsx',
+            // T-4.14.5 / T-4.14.6 / T-4.14.8 — Story 4.14 read hooks.
+            // All use `useSingleWithRetry` + `useAuthBootstrap` +
+            // `renderHook`; jsdom required. Co-located with the
+            // hooks under test.
+            'src/features/attempts/hooks/__tests__/*.spec.tsx',
+            // T-4.14.13 / T-4.14.14 / T-4.14.15 / T-4.14.16 /
+            // T-4.14.17 / T-4.14.20 / T-4.14.21 / T-4.14.22 /
+            // T-4.14.23 — Story 4.14 atomic runner components,
+            // composition, page container, and CTA components. All
+            // render React subtrees via `@testing-library/react`
+            // and need a DOM environment. Co-located with the
+            // components under test.
+            'src/features/attempts/components/__tests__/**/*.spec.tsx',
+            // T-4.14.24 — QuizCtaStrip live-mode integration spec.
+            // Mounts the live branch through mocked attempt hooks
+            // and verifies the canonical Start / Continue / loading
+            // / retry branches render exclusively.
+            'src/features/quizzes/components/__tests__/QuizCtaStrip.live.spec.tsx',
         ],
           environment: 'jsdom',
           setupFiles: ['./src/components/primitives/__tests__/setup.ts'],

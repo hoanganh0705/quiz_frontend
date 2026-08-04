@@ -11,6 +11,8 @@
  *   - non-empty title + body per code
  *   - the explicit action verb (e.g. "in-progress" for
  *     `ATTEMPT_ALREADY_STARTED`) the ticket calls out
+ *   - the placement field (`toast: 'top' | 'inline' | 'silent'`)
+ *     the Story 4.14 runner depends on for cross-tab reconciliation
  *   - the fallback path (`getUserCopy('NOT_A_REAL_CODE')` returns
  *     `UNKNOWN_USER_COPY`)
  *
@@ -120,6 +122,42 @@ describe('phase4-error-codes — USER_COPY coverage', () => {
       expect(entry.title === entry.body, `${code} body repeats title verbatim`).toBe(
         false,
       );
+    }
+  });
+
+  it('ATTEMPT_ALREADY_STARTED uses top placement (cross-tab toast)', () => {
+    // T-4.14.4 — the runner surfaces this code as a top-of-page toast
+    // because cross-tab reconciliation expects a placement that does
+    // not collide with the runner's inline question error.
+    expect(USER_COPY.ATTEMPT_ALREADY_STARTED.toast).toBe('top');
+  });
+
+  it('ATTEMPT_ANSWER_NOT_FOUND uses silent placement (withdrawal reconciliation)', () => {
+    // T-4.14.4 — the withdrawal reconciliation hook consumes this
+    // code as a non-actionable reconciliation cue. No toast.
+    expect(USER_COPY.ATTEMPT_ANSWER_NOT_FOUND.toast).toBe('silent');
+  });
+
+  it('ATTEMPT_VALIDATION_FAILED uses inline placement (field-addressable)', () => {
+    // T-4.14.4 — the picker renders this against the answer field.
+    expect(USER_COPY.ATTEMPT_VALIDATION_FAILED.toast).toBe('inline');
+  });
+
+  it('remaining ATTEMPT_* codes use inline placement', () => {
+    // The runner surfaces the rest of the attempt codes against the
+    // closest form-error slot. Regression guard so a future edit
+    // cannot silently flip them to silent or top.
+    const inlineCodes: ErrorCode[] = [
+      'ATTEMPT_NOT_FOUND',
+      'ATTEMPT_FORBIDDEN',
+      'ATTEMPT_NOT_ACTIVE',
+      'ATTEMPT_QUESTION_ALREADY_ANSWERED',
+      'ATTEMPT_QUIZ_NOT_PUBLISHED',
+      'ATTEMPT_QUESTION_INVALID',
+      'ATTEMPT_NOT_COMPLETED',
+    ];
+    for (const code of inlineCodes) {
+      expect(USER_COPY[code].toast, `${code} should stay inline`).toBe('inline');
     }
   });
 
