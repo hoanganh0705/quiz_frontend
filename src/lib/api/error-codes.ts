@@ -145,6 +145,7 @@ export type ErrorCode =
   | 'RANKING_INVALID_XP_EVENT'
   | 'RANKING_RANK_CALCULATION_ERROR'
   | 'RANKING_PERIOD_RESET_ERROR'
+  | 'RANKING_NOT_AVAILABLE'      // Phase 5 — rankings not yet available for user
   /** REVIEW module — 6 codes */
   | 'REVIEW_NOT_FOUND'
   | 'REVIEW_FORBIDDEN'
@@ -182,10 +183,12 @@ export type ErrorCode =
   | 'TOURNAMENT_ALREADY_WITHDRAWN'
   | 'TOURNAMENT_VALIDATION'
   | 'TOURNAMENT_REGISTRATION_CLOSED'
-  | 'TOURNAMENT_FULL'
+  | 'TOURNAMENT_FULL'           // Phase 5 — from KNOWN_ERROR_CODES but missing from union
   | 'TOURNAMENT_ROUND_NOT_OPEN'
   | 'TOURNAMENT_UNREGISTER_CLOSED'
   | 'TOURNAMENT_WITHDRAW_CLOSED'
+  /** INSTANCE module — Phase 5 additions */
+  | 'HOST_REQUIRED'             // Phase 5 — only host can perform this action
   /** USER module — 4 codes */
   | 'USER_NOT_FOUND'
   | 'USER_ANALYTICS_NOT_FOUND'
@@ -273,6 +276,7 @@ export const KNOWN_ERROR_CODES = [
   'INSTANCE_OPTIMISTIC_LOCK',
   'INSTANCE_NOT_IN_COUNTDOWN',
   'INSTANCE_COUNTDOWN_ALREADY_STARTED',
+  'HOST_REQUIRED',             // Phase 5
   // MIN
   'MIN_PLAYERS_NOT_MET',
   // NOTIFICATION
@@ -299,6 +303,7 @@ export const KNOWN_ERROR_CODES = [
   'RANKING_INVALID_XP_EVENT',
   'RANKING_RANK_CALCULATION_ERROR',
   'RANKING_PERIOD_RESET_ERROR',
+  'RANKING_NOT_AVAILABLE',     // Phase 5
   // REVIEW
   'REVIEW_NOT_FOUND',
   'REVIEW_FORBIDDEN',
@@ -503,6 +508,8 @@ const TOKEN_PHRASE: Readonly<Record<string, string>> = {
   NOT_REGISTERED: 'is not registered',
   FULL: 'is full',
   PLAYERS_NOT_MET: 'requires more players',
+  HOST_REQUIRED: 'only the host can perform this action',
+  RANKING_NOT_AVAILABLE: 'is not yet available',
   SELF_FRIEND_REQUEST: 'cannot be sent to yourself',
   SELF_VOTE: 'cannot be voted on by the author',
   SELF_REPORT: 'cannot be reported by the author',
@@ -775,6 +782,93 @@ const PHASE4_PRIORITY_COPY: Partial<Record<ErrorCode, UserCopyEntry>> = {
   BOOKMARK_COLLECTION_NOT_FOUND: {
     title: 'Bookmark collection not found',
     body: 'The bookmark collection you are looking for no longer exists or has been deleted.',
+    toast: 'inline',
+  },
+
+  // ─── Phase 5 — Epic 5.1 priority copy (TKT-5.1.D3) ─────────────────────
+  // Tournament codes
+  TOURNAMENT_NOT_FOUND: {
+    title: 'Tournament not found',
+    body: 'This tournament does not exist or has been removed.',
+    toast: 'inline',
+  },
+  TOURNAMENT_FULL: {
+    title: 'Tournament is full',
+    body: 'This tournament has reached its maximum number of participants. Try joining another tournament.',
+    toast: 'inline',
+  },
+  TOURNAMENT_REGISTRATION_CLOSED: {
+    title: 'Registration is closed',
+    body: 'This tournament is no longer accepting new participants.',
+    toast: 'inline',
+  },
+  TOURNAMENT_ALREADY_REGISTERED: {
+    title: 'Already registered',
+    body: 'You are already registered for this tournament.',
+    toast: 'inline',
+  },
+  TOURNAMENT_NOT_REGISTERED: {
+    title: 'Not registered',
+    body: 'You must be registered for this tournament to perform this action.',
+    toast: 'inline',
+  },
+  TOURNAMENT_FORBIDDEN: {
+    title: 'Tournament access denied',
+    body: 'You do not have permission to perform this tournament action.',
+    toast: 'inline',
+  },
+  TOURNAMENT_ALREADY_WITHDRAWN: {
+    title: 'Already withdrawn',
+    body: 'You have already withdrawn from this tournament.',
+    toast: 'inline',
+  },
+  // Instance codes
+  INSTANCE_FULL: {
+    title: 'Instance is full',
+    body: 'This quiz instance has reached its maximum number of players.',
+    toast: 'inline',
+  },
+  INSTANCE_NOT_FOUND: {
+    title: 'Instance not found',
+    body: 'This quiz instance does not exist or has ended.',
+    toast: 'inline',
+  },
+  INSTANCE_ALREADY_STARTED: {
+    title: 'Instance already started',
+    body: 'This quiz instance has already started and cannot be joined.',
+    toast: 'inline',
+  },
+  INSTANCE_ALREADY_CLOSED: {
+    title: 'Instance is closed',
+    body: 'This quiz instance has been closed and is no longer accepting players.',
+    toast: 'inline',
+  },
+  HOST_REQUIRED: {
+    title: 'Host action required',
+    body: 'Only the instance host can perform this action.',
+    toast: 'inline',
+  },
+  // Ranking codes
+  RANKING_NOT_AVAILABLE: {
+    title: 'Rankings not yet available',
+    body: 'Your rankings will appear once you complete more quizzes.',
+    toast: 'inline',
+  },
+  // Achievement codes
+  BADGE_NOT_FOUND: {
+    title: 'Badge not found',
+    body: 'This badge does not exist or has been removed.',
+    toast: 'inline',
+  },
+  ACHIEVEMENT_USER_NOT_FOUND: {
+    title: 'Achievement not found',
+    body: 'This achievement does not exist or you have not earned it yet.',
+    toast: 'inline',
+  },
+  // Notification codes
+  NOTIFICATION_NOT_FOUND: {
+    title: 'Notification not found',
+    body: 'This notification no longer exists.',
     toast: 'inline',
   },
 };

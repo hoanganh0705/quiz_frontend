@@ -1,66 +1,62 @@
 #!/usr/bin/env node
 /**
- * verify-sdk-coverage.mjs — Phase 4 SDK coverage gate.
+ * verify-sdk-coverage.mjs — Phase 4 and Phase 5 SDK coverage gate.
  *
  * Reads the cached OpenAPI artifact at
  * `quiz_backend/docs/generated/openapi.json` and the regenerated SDK
- * under `quiz_frontend/src/lib/api/generated/`. For every Phase-4
- * `(method, path)` pair, the script asserts that a regenerated
- * orval/axios function exists in the SDK and emits a fixed-shape
- * result suitable for CI logs.
+ * under `quiz_frontend/src/lib/api/generated/`. For every
+ * `(method, path)` pair belonging to the selected phase, the script
+ * asserts that a regenerated orval/axios function exists in the SDK
+ * and (optionally) has at least one feature-consumer import.
  *
  * Source epic:   Epic 4.1 — SDK coverage & cross-cutting contracts.
- * Source ticket: TKT-4.1.A2.
+ * Source tickets: TKT-4.1.A2 (Phase 4), TKT-5.1.A2 (Phase 5).
  *
- * ## What is "Phase 4"
+ * ## What is "Phase 4" vs "Phase 5"
  *
- * Phase 4 endpoints are those whose OpenAPI path matches one of:
- *   /api/v1/attempts/...
- *   /api/v1/bookmarks/...
- *   /api/v1/comments/...
- *   /api/v1/quizzes/...
- *   /api/v1/reviews/...
- *   /api/v1/users/...
+ * Phase 4 endpoints match:
+ *   /api/v1/attempts/...  /api/v1/bookmarks/...
+ *   /api/v1/comments/...  /api/v1/quizzes/...
+ *   /api/v1/reviews/...    /api/v1/users/...
  *
- * This is the same Phase-4 slice used by TKT-4.1.A1
- * (`projectDocs/Tickets/Phase4/evidence/EPIC_4_1_A1.md`).
+ * Phase 5 endpoints match:
+ *   /api/v1/tournaments/...  /api/v1/instances/...
+ *   /api/v1/notifications/... /api/v1/leaderboard/...
+ *   /api/v1/achievements/... /api/v1/search/...
+ *
+ * Select which phase to gate with `--phase <n>` (default: 4).
+ * Use `--phase all` to run both phases in sequence.
  *
  * ## Checks
  *
- * Two checks are wired in. Until the F6 / F7 tickets land (which
- * formalise "every Phase 4 endpoint must have a feature consumer"),
- * only the SDK-existence check (`--check sdk`) is enforced by default.
- * Use `--check all` to enable the consumer-import check too.
- *
- *   1. `sdk`  — every Phase-4 (method, path) has an SDK function with
- *               the same `(method, path)` pair. Always run by default.
- *   2. `consumers` — every Phase-4 (method, path) has at least one
- *               `import` of a function that calls it inside
- *               `quiz_frontend/src/features/**`. Run with `--check all`
- *               (Phase 4 enforcement kicks in at F6/F7).
+ *   1. `sdk`  — every (method, path) in the selected phase has an SDK
+ *               function with the same (method, path) pair. Always run.
+ *   2. `consumers` — every (method, path) has at least one `import`
+ *               of a function that calls it inside `src/features/**`.
+ *               Run with `--check all`. Phase 5 enforcement activates
+ *               at TKT-5.1.F7.
  *
  * ## Exit codes
  *
  *   0  every required check passed
- *   1  a required check failed (any `absent` row in the SDK check, or
- *      any unmatched row in the consumer check)
+ *   1  a required check failed
  *   2  usage error (bad flags, missing files, etc.)
  *   64 usage (after `--help`)
  *
  * ## Usage
  *
- *   node scripts/verify-sdk-coverage.mjs                # default check
+ *   node scripts/verify-sdk-coverage.mjs               # Phase 4 default
+ *   node scripts/verify-sdk-coverage.mjs --phase 5     # Phase 5 only
+ *   node scripts/verify-sdk-coverage.mjs --phase all   # Both phases
  *   node scripts/verify-sdk-coverage.mjs --ci           # CI mode
- *   node scripts/verify-sdk-coverage.mjs --check all    # enforce both
+ *   node scripts/verify-sdk-coverage.mjs --check all   # Enforce consumers
  *   node scripts/verify-sdk-coverage.mjs --help
  *
  *   # Via `pnpm`:
- *   pnpm verify:sdk-coverage
- *   pnpm verify:sdk-coverage:ci
+ *   pnpm verify:sdk-coverage --phase 5
+ *   pnpm verify:sdk-coverage --phase all
  *
- * The script does not modify any tracked file. It only reads the
- * OpenAPI artifact, the regenerated SDK, and (optionally) scans
- * `src/features/**` for imports.
+ * The script does not modify any tracked file.
  */
 
 import fs from 'node:fs';
@@ -75,27 +71,39 @@ const defaultOpenApi = path.join(repoRoot, 'quiz_backend/docs/generated/openapi.
 const defaultSdkRoot = path.join(frontendRoot, 'src/lib/api/generated');
 const defaultFeaturesRoot = path.join(frontendRoot, 'src/features');
 
-const phase4Tags = ['attempts', 'bookmarks', 'reviews', 'comments', 'quizzes', 'users'];
-const phase4Prefix = /^\/api\/v1\/(quizzes|bookmarks|reviews|comments|attempts|users)/;
+// ─── Phase definitions ───────────────────────────────────────────────────────
+const PHASES = {
+  4: {
+    label: 'Phase 4',
+    tags: ['attempts', 'bookmarks', 'reviews', 'comments', 'quizzes', 'users'],
+    prefix: /^\/api\/v1\/(quizzes|bookmarks|reviews|comments|attempts|users)/,
+  },
+  5: {
+    label: 'Phase 5',
+    tags: ['tournaments', 'instances', 'notifications', 'leaderboards', 'achievements', 'search'],
+    prefix: /^\/api\/v1\/(tournaments|instances|notifications|leaderboard|achievements|search)/,
+  },
+};
 
 const HELP = `Usage: node scripts/verify-sdk-coverage.mjs [flags]
 
 Flags:
-  --ci               Treat warnings as errors (currently: no warnings emitted).
-  --check <subset>   Which checks to run. <subset> is "sdk" (default) or "all".
-  --openapi <path>   Override OpenAPI artifact path. Default:
-                       quiz_backend/docs/generated/openapi.json
-  --sdk <path>       Override generated SDK root. Default:
-                       quiz_frontend/src/lib/api/generated
-  --features <path>  Override features root for the consumer-import check.
-                       Default: quiz_frontend/src/features
-  --help, -h         Show this help and exit.
+  --phase <n>      Which phase to gate: 4, 5, or "all". Default: 4.
+  --ci             Treat warnings as errors.
+  --check <subset> Which checks to run: "sdk" (default) or "all".
+  --openapi <path> Override OpenAPI artifact path. Default:
+                     quiz_backend/docs/generated/openapi.json
+  --sdk <path>     Override generated SDK root. Default:
+                     quiz_frontend/src/lib/api/generated
+  --features <path> Override features root for the consumer-import check.
+                     Default: quiz_frontend/src/features
+  --help, -h       Show this help and exit.
 
 Exit codes:
   0  all required checks passed
-  1  at least one required check failed (see stdout for the offending rows)
-  2  configuration error (missing files, unknown flag, etc.)
-  64 usage (after --help)
+  1  at least one required check failed
+  2  configuration error
+ 64  usage (after --help)
 `;
 
 function fail(msg, code = 2) {
@@ -111,6 +119,7 @@ const opts = {
   openApi: defaultOpenApi,
   sdkRoot: defaultSdkRoot,
   featuresRoot: defaultFeaturesRoot,
+  phases: [4],
 };
 
 function parseFlags(args) {
@@ -124,6 +133,17 @@ function parseFlags(args) {
       case '-h':
         process.stdout.write(HELP);
         process.exit(64);
+      case '--phase': {
+        const v = args[++i];
+        if (v === 'all') {
+          opts.phases = [4, 5];
+        } else if (v === '4' || v === '5') {
+          opts.phases = [parseInt(v, 10)];
+        } else {
+          fail(`--phase must be 4, 5, or "all" (got ${JSON.stringify(v)})`);
+        }
+        break;
+      }
       case '--check': {
         const v = args[++i];
         if (v !== 'sdk' && v !== 'all') fail(`--check must be 'sdk' or 'all' (got ${JSON.stringify(v)})`);
@@ -155,20 +175,44 @@ if (!fs.existsSync(opts.sdkRoot)) {
 
 // ─── SDK scan ──────────────────────────────────────────────────────────────
 /**
- * Walk <sdkRoot>/<tag>/<tag>.ts and return a Map {`METHOD /api/v1/...` -> {tag, name, file}}.
+ * Walk <sdkRoot>/<tag>/<tag>.ts for the given phase and return a Map
+ * {`METHOD /api/v1/...` -> {tag, name, file}}.
  */
-function scanSdk(sdkRoot) {
+function scanSdk(sdkRoot, phase) {
   const out = new Map();
-  for (const tag of phase4Tags) {
+  for (const tag of PHASES[phase].tags) {
     const file = path.join(sdkRoot, tag, tag + '.ts');
     if (!fs.existsSync(file)) continue;
     const content = fs.readFileSync(file, 'utf8');
-    // Match every JSDoc-block-then-function with `orvalCustomInstance<...>(url:... method:...)`.
-    // We only target endpoint-shaped functions, not the outer `get<tag>` builder.
-    const re = /\/\*[\s\S]*?\*\s+@summary[^\n]*\n\s*\*\/\s*\nconst (\w+)\s*=\s*\([\s\S]*?\) => \{\s*return orvalCustomInstance<\w+>\(\s*\{url:\s*`([^`]+)`,\s*method:\s*'([A-Z]+)'/g;
-    let m;
-    while ((m = re.exec(content)) !== null) {
-      const [, funcName, rawUrl, method] = m;
+    // Extract every function that calls orvalCustomInstance.
+    // Strategy: scan the file char-by-char to handle multi-line return statements.
+    // We look for:
+    //   const NAME = ( ... ) => { return orvalCustomInstance<...>({url:`...`, method:'...'});
+    // The orval output has {url:`...`} and method:'...' on the same or adjacent lines.
+    const matches = [];
+    const funcRe = /const (\w+)\s*=\s*\(/g;
+    const urlMethodRe = /return orvalCustomInstance<[^>]+>\(\s*\{url:\s*`([^`]+)`,\s*method:\s*'([A-Z]+)'[^}]*\}/;
+
+    let pos = 0;
+    const text = content;
+    while (pos < text.length) {
+      funcRe.lastIndex = pos;
+      const nameMatch = funcRe.exec(text);
+      if (!nameMatch) break;
+      const funcName = nameMatch[1];
+      const afterName = nameMatch.index + nameMatch[0].length;
+
+      // Search forward from after the name for the return orvalCustomInstance call
+      const searchWindow = text.slice(afterName, afterName + 500);
+      const returnMatch = urlMethodRe.exec(searchWindow);
+      if (returnMatch) {
+        matches.push({ funcName, rawUrl: returnMatch[1], method: returnMatch[2] });
+        pos = afterName + returnMatch.index + returnMatch[0].length;
+      } else {
+        pos = afterName;
+      }
+    }
+    for (const { funcName, rawUrl, method } of matches) {
       const p = rawUrl.replace(/\$\{([a-zA-Z]+)\}/g, '{$1}');
       out.set(`${method.toUpperCase()} ${p}`, {
         tag,
@@ -205,12 +249,12 @@ function scanFeatureConsumers(featuresRoot, sdkMap) {
 }
 
 // ─── Check: SDK existence ───────────────────────────────────────────────────
-function checkSdk(sdkMap, openApiPath) {
+function checkSdk(sdkMap, openApiPath, phase) {
   const openapi = JSON.parse(fs.readFileSync(openApiPath, 'utf8'));
   const rows = [];
   let absents = 0;
   for (const [p, ops] of Object.entries(openapi.paths || {})) {
-    if (!phase4Prefix.test(p)) continue;
+    if (!PHASES[phase].prefix.test(p)) continue;
     for (const method of Object.keys(ops)) {
       const key = `${method.toUpperCase()} ${p}`;
       const entry = sdkMap.get(key);
@@ -226,13 +270,13 @@ function checkSdk(sdkMap, openApiPath) {
 }
 
 // ─── Check: consumer imports ──────────────────────────────────────────────
-function checkConsumers(sdkMap, openApiPath, featuresRoot) {
+function checkConsumers(sdkMap, openApiPath, featuresRoot, phase) {
   const openapi = JSON.parse(fs.readFileSync(openApiPath, 'utf8'));
   const used = scanFeatureConsumers(featuresRoot, sdkMap);
   const rows = [];
   let orphan = 0;
   for (const [p, ops] of Object.entries(openapi.paths || {})) {
-    if (!phase4Prefix.test(p)) continue;
+    if (!PHASES[phase].prefix.test(p)) continue;
     for (const method of Object.keys(ops)) {
       const key = `${method.toUpperCase()} ${p}`;
       const entry = sdkMap.get(key);
@@ -246,42 +290,45 @@ function checkConsumers(sdkMap, openApiPath, featuresRoot) {
 }
 
 // ─── Main ─────────────────────────────────────────────────────────────────
-const sdkMap = scanSdk(opts.sdkRoot);
-
 let anyFailure = false;
 const useColor = process.stdout.isTTY && !process.env.NO_COLOR;
 const fmt = (ok, label) =>
   useColor ? `\u001b[${ok ? '32' : '31'}m${label}\u001b[0m` : label;
 
-process.stdout.write(`\n[verify-sdk-coverage] Phase 4 SDK coverage gate\n`);
-process.stdout.write(`  openapi   = ${opts.openApi}\n`);
-process.stdout.write(`  sdk root  = ${opts.sdkRoot}\n`);
-process.stdout.write(`  checks    = ${opts.check}${opts.ci ? ' (CI mode)' : ''}\n\n`);
+for (const phase of opts.phases) {
+  const { label, prefix } = PHASES[phase];
+  process.stdout.write(`\n[verify-sdk-coverage] ${label} SDK coverage gate\n`);
+  process.stdout.write(`  openapi   = ${opts.openApi}\n`);
+  process.stdout.write(`  sdk root  = ${opts.sdkRoot}\n`);
+  process.stdout.write(`  checks    = ${opts.check}${opts.ci ? ' (CI mode)' : ''}\n\n`);
 
-// Check 1: SDK existence.
-{
-  const r = checkSdk(sdkMap, opts.openApi);
-  process.stdout.write(`[sdk]  ${r.absents} absent / ${r.total} (method, path) pairs\n`);
-  if (r.absents > 0) {
-    anyFailure = true;
-    for (const row of r.rows.filter((x) => !x.ok)) {
-      process.stdout.write(`       ${fmt(false, 'MISSING')} ${row.method} ${row.path}\n`);
+  const sdkMap = scanSdk(opts.sdkRoot, phase);
+
+  // Check 1: SDK existence.
+  {
+    const r = checkSdk(sdkMap, opts.openApi, phase);
+    process.stdout.write(`[sdk]  ${r.absents} absent / ${r.total} (method, path) pairs\n`);
+    if (r.absents > 0) {
+      anyFailure = true;
+      for (const row of r.rows.filter((x) => !x.ok)) {
+        process.stdout.write(`       ${fmt(false, 'MISSING')} ${row.method} ${row.path}\n`);
+      }
     }
   }
-}
 
-// Check 2: consumer imports. Only enforced with --check all.
-if (opts.check === 'all') {
-  const r = checkConsumers(sdkMap, opts.openApi, opts.featuresRoot);
-  process.stdout.write(`\n[features]  ${r.orphan} endpoint(s) have no feature consumer\n`);
-  if (r.orphan > 0) {
-    anyFailure = true;
-    for (const row of r.rows.filter((x) => !x.used)) {
-      process.stdout.write(`       ${fmt(false, 'NO CONSUMER')} ${row.method} ${row.path}  (${row.name})\n`);
+  // Check 2: consumer imports.
+  if (opts.check === 'all') {
+    const r = checkConsumers(sdkMap, opts.openApi, opts.featuresRoot, phase);
+    process.stdout.write(`\n[features]  ${r.orphan} endpoint(s) have no feature consumer\n`);
+    if (r.orphan > 0) {
+      anyFailure = true;
+      for (const row of r.rows.filter((x) => !x.used)) {
+        process.stdout.write(`       ${fmt(false, 'NO CONSUMER')} ${row.method} ${row.path}  (${row.name})\n`);
+      }
     }
+  } else {
+    process.stdout.write(`\n[features]  skipped (use --check all to enable)\n`);
   }
-} else {
-  process.stdout.write(`\n[features]  skipped (use --check all to enable the F6/F7 enforcement)\n`);
 }
 
 if (anyFailure) {

@@ -60,6 +60,14 @@ export default defineConfig({
           // T-4.15.24 — URL-sync hook integration spec uses renderHook +
           // vi.mock; excluded from node, discovered in jsdom project below.
           'src/features/attempts/hooks/__tests__/useAttemptHistoryFilters.integration.spec.tsx',
+          // TKT-5.1.B2 — `connection-registry` spec requires jsdom.
+          'src/lib/realtime/__tests__/connection-registry.spec.ts',
+          // TKT-5.1.E1–E3 — hook specs require jsdom (renderHook).
+          'src/lib/realtime/__tests__/useSocket.spec.tsx',
+          'src/lib/realtime/__tests__/useRealtimeEvent.spec.tsx',
+          'src/lib/realtime/__tests__/useRealtimeQuery.spec.tsx',
+          // TKT-5.1.H1 — integration spec uses renderHook; jsdom required.
+          'src/features/shared/__tests__/phase5-5-1.integration.spec.tsx',
         ],
       },
       },
@@ -120,6 +128,11 @@ export default defineConfig({
             // BroadcastChannel via useOptimisticMutation, so the
             // jsdom environment is required.
             'src/features/shared/__tests__/phase4-4-1.integration.spec.tsx',
+            // TKT-5.1.H1 — cross-feature integration smoke check.
+            // Exercises useSocket → connected, useRealtimeQuery invalidation,
+            // WsError → authRequired, and all six Phase 5 service wrappers.
+            // Uses renderHook + mocked Socket.IO; jsdom required.
+            'src/features/shared/__tests__/phase5-5-1.integration.spec.tsx',
             // TKT-4.2.A2 — `useQuizForm` primitive spec uses
             // `@testing-library/react`'s `renderHook`, which requires
             // a DOM environment. The hook does not need jsdom
@@ -261,6 +274,27 @@ export default defineConfig({
             // and verifies the canonical Start / Continue / loading
             // / retry branches render exclusively.
             'src/features/quizzes/components/__tests__/QuizCtaStrip.live.spec.tsx',
+            // TKT-5.1.B2 — `connection-registry` unit spec. Tests require a
+            // browser-like environment (window, Map) — specifically, `isBrowser()`
+            // must return true so the registry stores connections. The
+            // `SocketLike` interface means no real socket.io-client import, so
+            // the spec is safe in jsdom. SSR guard is tested implicitly via
+            // the `isBrowser()` guard already exercised by the singleton tests.
+            'src/lib/realtime/__tests__/connection-registry.spec.ts',
+            // TKT-5.1.C1 — `events` unit spec. Pure TypeScript; no DOM required.
+            'src/lib/realtime/__tests__/events.spec.ts',
+            // TKT-5.1.C2 — `dto-adapters` unit spec. Pure TypeScript.
+            'src/lib/realtime/__tests__/dto-adapters.spec.ts',
+            // TKT-5.1.D1 — `ws-error` unit spec. Pure TypeScript.
+            'src/lib/realtime/__tests__/ws-error.spec.ts',
+            // TKT-5.1.D2 — `connection-state` unit spec. Pure TypeScript.
+            'src/lib/realtime/__tests__/connection-state.spec.ts',
+            // TKT-5.1.E1 — `useSocket` spec. Uses `renderHook` + `@testing-library/react`.
+            'src/lib/realtime/__tests__/useSocket.spec.tsx',
+            // TKT-5.1.E2 — `useRealtimeEvent` spec. Uses `renderHook`.
+            'src/lib/realtime/__tests__/useRealtimeEvent.spec.tsx',
+            // TKT-5.1.E3 — `useRealtimeQuery` spec. Uses `renderHook`.
+            'src/lib/realtime/__tests__/useRealtimeQuery.spec.tsx',
         ],
           environment: 'jsdom',
           setupFiles: ['./src/components/primitives/__tests__/setup.ts'],
