@@ -5,7 +5,9 @@
  * Source epic:   Epic 5.1.
  * Source ticket: TKT-5.1.F7 (initial) / TKT-5.1.I1 (extended) /
  *                TKT-5.3.G3 (Epic 5.3 extension) /
- *                TKT-5.4.G3 (Epic 5.4 notification extension).
+ *                TKT-5.4.G3 (Epic 5.4 notification extension) /
+ *                TKT-5.5.G3 (Epic 5.5 rankings/achievements extension) /
+ *                TKT-5.6.G3 (Epic 5.6 search extension).
  *
  * Encodes Phase 5 cross-batch invariants:
  *
@@ -61,6 +63,35 @@
  *      must have a unit test. The check fails if the test file in
  *      `features/rankings/hooks/__tests__/useEventuallyConsistentQuery.spec.tsx`
  *      is absent.
+ *
+ *  13. **search-no-axios-or-fetch** (Epic 5.6 G3) — No file under
+ *      `features/search/` (excluding `services/`) may import `axios` or call
+ *      `fetch(`. All traffic must flow through the service layer.
+ *
+ *  14. **search-no-social-write-dto** (Epic 5.6 G3) — No file under
+ *      `features/search/` may import `FriendRequestDto` or `FollowDto`.
+ *      Only read-only social DTOs are permitted.
+ *
+ *  15. **search-no-unstable-social-ids** (Epic 5.6 G3) — No file under
+ *      `features/search/` may reference `followId` or `friendshipId` in
+ *      string literals (hrefs, router push calls, etc.). These are
+ *      unstable social identifiers and must not appear in rendered URLs.
+ *
+ *  16. **instances-no-axios-or-fetch** (Epic 5.7 G4) — No file under
+ *      `features/instances/` (excluding `services/`) may import `axios`
+ *      or call `fetch(`. All traffic must flow through the service layer.
+ *
+ *  17. **instances-no-deprecated-routes** (Epic 5.7 G4) — No file under
+ *      `features/instances/` may call any route listed in `DEPRECATED_ROUTES`.
+ *
+ *  18. **instances-no-direct-socket** (Epic 5.7 G4) — No file under
+ *      `features/instances/` (excluding `useInstanceSocket.ts`) may register
+ *      Socket.IO event listeners directly. All socket interactions must
+ *      flow through `useInstanceSocket`.
+ *
+ *  19. **instance-types-have-consumers** (Epic 5.7 G4) — Every export from
+ *      `instances/types/instance.types.ts` must have at least one test
+ *      consumer under `features/instances/`.
  *
  * ## Usage
  *
@@ -121,6 +152,13 @@ Checks (always run):
   ranking-types-have-consumers    Every export from ranking.types.ts has a consumer under features/rankings/.
   achievement-types-have-consumers  Every export from achievement.types.ts has a consumer under features/achievements/.
   useEventuallyConsistentQuery-has-tests  useEventuallyConsistentQuery.spec.tsx exists.
+  search-no-axios-or-fetch       No axios/fetch in non-service files under features/search/.
+  search-no-social-write-dto     No FriendRequestDto/FollowDto imports under features/search/.
+  search-no-unstable-social-ids  No followId/friendshipId references in features/search/.
+  instances-no-axios-or-fetch    No axios/fetch in non-service files under features/instances/.
+  instances-no-deprecated-routes No DEPRECATED_ROUTES calls from features/instances/.
+  instances-no-direct-socket     No direct Socket.IO listener outside useInstanceSocket.ts under features/instances/.
+  instance-types-have-consumers  Every export from instance.types.ts has a test consumer.
 
 Flags:
   --help    Print this help and exit 64.
@@ -982,6 +1020,433 @@ async function checkEventuallyConsistentQueryHasTests() {
   return { exists, path: testFile };
 }
 
+// ─── Check: search has no axios or fetch (Epic 5.6 G3) ─────────────────
+
+/**
+ * Walk all non-service files under `features/search/` and assert no file
+ * imports axios or calls fetch directly. The search feature must route all
+ * HTTP traffic through the service wrappers under `services/`.
+ *
+ * @returns {Promise<Array<{ file: string; line: number; text: string; pattern: string }>>}
+ */
+async function checkSearchNoAxiosOrFetch() {
+  /** @type {Array<{ file: string; line: number; text: string; pattern: string }>} */
+  const violations = [];
+  const featureDir = path.resolve(FEATURES_DIR, "search");
+
+  try {
+    const files = await walkFiles(
+      featureDir,
+      (f) =>
+        (f.endsWith(".ts") || f.endsWith(".tsx") || f.endsWith(".mts") || f.endsWith(".cts")) &&
+        !f.includes(`${path.sep}services${path.sep}`) &&
+        !f.includes("__tests__"),
+    );
+
+    for (const file of files) {
+      const src = readFileSync(file, "utf-8");
+      const lines = src.split("\n");
+      for (let i = 0; i < lines.length; i += 1) {
+        const raw = lines[i];
+        const text = raw.trimStart();
+        if (
+          text.startsWith("//") ||
+          text.startsWith("/*") ||
+          text.startsWith("*") ||
+          text.startsWith("<!--")
+        )
+          continue;
+
+        if (
+          raw.includes('from "axios"') ||
+          raw.includes("from 'axios'")
+        ) {
+          violations.push({
+            file: path.relative(CWD, file),
+            line: i + 1,
+            text: raw.trim(),
+            pattern: 'from "axios"',
+          });
+        }
+        if (raw.includes("fetch(")) {
+          violations.push({
+            file: path.relative(CWD, file),
+            line: i + 1,
+            text: raw.trim(),
+            pattern: "fetch(",
+          });
+        }
+      }
+    }
+  } catch {
+    // Directory doesn't exist yet — skip silently.
+  }
+
+  return violations;
+}
+
+// ─── Check: search has no social write DTO imports (Epic 5.6 G3) ──────
+
+/**
+ * Walk all files under `features/search/` (excluding services/) and assert
+ * no file imports social write DTOs. Only read-only DTOs are permitted.
+ * The forbidden DTOs are FriendRequestDto and FollowDto.
+ *
+ * @returns {Promise<Array<{ file: string; line: number; text: string; pattern: string }>>}
+ */
+async function checkSearchNoSocialWriteDtoImports() {
+  /** @type {Array<{ file: string; line: number; text: string; pattern: string }>} */
+  const violations = [];
+  const featureDir = path.resolve(FEATURES_DIR, "search");
+
+  const FORBIDDEN_DTOS = [
+    "FriendRequestDto",
+    "FollowDto",
+  ];
+
+  try {
+    const files = await walkFiles(
+      featureDir,
+      (f) =>
+        (f.endsWith(".ts") || f.endsWith(".tsx") || f.endsWith(".mts") || f.endsWith(".cts")) &&
+        !f.includes(`${path.sep}services${path.sep}`) &&
+        !f.includes("__tests__"),
+    );
+
+    for (const file of files) {
+      const src = readFileSync(file, "utf-8");
+      const lines = src.split("\n");
+      for (let i = 0; i < lines.length; i += 1) {
+        const raw = lines[i];
+        const text = raw.trimStart();
+        if (
+          text.startsWith("//") ||
+          text.startsWith("/*") ||
+          text.startsWith("*") ||
+          text.startsWith("<!--")
+        )
+          continue;
+
+        for (const dto of FORBIDDEN_DTOS) {
+          // Match import of the DTO from any path
+          const re = new RegExp(`\\b${dto}\\b`);
+          if (re.test(raw)) {
+            violations.push({
+              file: path.relative(CWD, file),
+              line: i + 1,
+              text: raw.trim(),
+              pattern: dto,
+            });
+          }
+        }
+      }
+    }
+  } catch {
+    // Directory doesn't exist yet — skip silently.
+  }
+
+  return violations;
+}
+
+// ─── Check: search has no unstable social IDs in hrefs (Epic 5.6 G3) ───
+
+/**
+ * Walk all non-test files under `features/search/` and assert no file
+ * references followId or friendshipId in string literals (hrefs, router
+ * push calls, etc.). These are unstable social identifiers and must not
+ * appear in any rendered navigation.
+ *
+ * @returns {Promise<Array<{ file: string; line: number; text: string; pattern: string }>>}
+ */
+async function checkSearchNoUnstableSocialIds() {
+  /** @type {Array<{ file: string; line: number; text: string; pattern: string }>} */
+  const violations = [];
+  const featureDir = path.resolve(FEATURES_DIR, "search");
+
+  const FORBIDDEN_PATTERNS = [
+    { pattern: "followId", re: /followId/ },
+    { pattern: "friendshipId", re: /friendshipId/ },
+  ];
+
+  try {
+    const files = await walkFiles(
+      featureDir,
+      (f) =>
+        (f.endsWith(".ts") || f.endsWith(".tsx") || f.endsWith(".mts") || f.endsWith(".cts")) &&
+        !f.includes("__tests__"),
+    );
+
+    for (const file of files) {
+      const src = readFileSync(file, "utf-8");
+      const lines = src.split("\n");
+      for (let i = 0; i < lines.length; i += 1) {
+        const raw = lines[i];
+        const text = raw.trimStart();
+        if (
+          text.startsWith("//") ||
+          text.startsWith("/*") ||
+          text.startsWith("*") ||
+          text.startsWith("<!--")
+        )
+          continue;
+
+        for (const { pattern, re } of FORBIDDEN_PATTERNS) {
+          if (re.test(raw)) {
+            violations.push({
+              file: path.relative(CWD, file),
+              line: i + 1,
+              text: raw.trim(),
+              pattern,
+            });
+          }
+        }
+      }
+    }
+  } catch {
+    // Directory doesn't exist yet — skip silently.
+  }
+
+  return violations;
+}
+
+// ─── Check: instances feature has no axios or fetch (Epic 5.7 G4) ────────
+
+/**
+ * Walk all non-service files under `features/instances/` and assert no
+ * file imports axios or calls fetch directly. The instance feature must
+ * route all HTTP traffic through the service wrappers under `services/`.
+ *
+ * @returns {Promise<Array<{ file: string; line: number; text: string; pattern: string }>>}
+ */
+async function checkInstancesNoAxiosOrFetch() {
+  /** @type {Array<{ file: string; line: number; text: string; pattern: string }>} */
+  const violations = [];
+  const featureDir = path.resolve(FEATURES_DIR, "instances");
+
+  try {
+    const files = await walkFiles(
+      featureDir,
+      (f) =>
+        (f.endsWith(".ts") || f.endsWith(".tsx") || f.endsWith(".mts") || f.endsWith(".cts")) &&
+        !f.includes(`${path.sep}services${path.sep}`) &&
+        !f.includes("__tests__"),
+    );
+
+    for (const file of files) {
+      const src = readFileSync(file, "utf-8");
+      const lines = src.split("\n");
+      for (let i = 0; i < lines.length; i += 1) {
+        const raw = lines[i];
+        const text = raw.trimStart();
+        if (
+          text.startsWith("//") ||
+          text.startsWith("/*") ||
+          text.startsWith("*") ||
+          text.startsWith("<!--")
+        )
+          continue;
+
+        if (raw.includes('from "axios"') || raw.includes("from 'axios'")) {
+          violations.push({
+            file: path.relative(CWD, file),
+            line: i + 1,
+            text: raw.trim(),
+            pattern: 'from "axios"',
+          });
+        }
+        if (raw.includes("fetch(")) {
+          violations.push({
+            file: path.relative(CWD, file),
+            line: i + 1,
+            text: raw.trim(),
+            pattern: "fetch(",
+          });
+        }
+      }
+    }
+  } catch {
+    // Directory doesn't exist yet — skip silently.
+  }
+
+  return violations;
+}
+
+// ─── Check: instances feature has no deprecated route calls (Epic 5.7 G4) ─
+
+/**
+ * Walk all files under `features/instances/` and assert no file calls a
+ * route listed in `DEPRECATED_ROUTES`. The instance feature must always
+ * use the live SDK routes.
+ *
+ * @returns {Promise<Array<{ file: string; line: number; text: string; route: string }>>}
+ */
+async function checkInstancesNoDeprecatedRoutes() {
+  const featureDir = path.resolve(FEATURES_DIR, "instances");
+  /** @type {Array<{ file: string; line: number; text: string; route: string }>} */
+  const violations = [];
+
+  try {
+    const files = await walkFiles(
+      featureDir,
+      (f) =>
+        (f.endsWith(".ts") ||
+          f.endsWith(".tsx") ||
+          f.endsWith(".mts") ||
+          f.endsWith(".cts")) &&
+        !f.includes("__tests__"),
+    );
+
+    for (const file of files) {
+      const src = readFileSync(file, "utf-8");
+      const lines = src.split("\n");
+      for (let i = 0; i < lines.length; i += 1) {
+        const raw = lines[i];
+        const text = raw.trimStart();
+        if (
+          text.startsWith("//") ||
+          text.startsWith("/*") ||
+          text.startsWith("*") ||
+          text.startsWith("<!--")
+        )
+          continue;
+
+        for (const route of deprecatedRoutes) {
+          if (raw.includes(route)) {
+            violations.push({
+              file: path.relative(CWD, file),
+              line: i + 1,
+              text: raw.trim(),
+              route,
+            });
+            break;
+          }
+        }
+      }
+    }
+  } catch {
+    // Directory doesn't exist yet — skip silently.
+  }
+
+  return violations;
+}
+
+// ─── Check: instances feature has no direct Socket.IO listeners (Epic 5.7 G4)
+
+/**
+ * Walk all files under `features/instances/` (excluding
+ * `hooks/useInstanceSocket.ts`) and assert no file calls Socket.IO
+ * event listener APIs directly. The only allowed file is the dedicated
+ * socket hook; every other file must dispatch through it.
+ *
+ * Forbidden patterns:
+ *   - `socket.on(`, `socket.off(`, `socket.emit(`
+ *   - `io(`
+ *   - references to `socket.io-client`
+ *
+ * @returns {Promise<Array<{ file: string; line: number; text: string; pattern: string }>>}
+ */
+async function checkInstancesNoDirectSocket() {
+  const featureDir = path.resolve(FEATURES_DIR, "instances");
+  /** @type {Array<{ file: string; line: number; text: string; pattern: string }>} */
+  const violations = [];
+
+  const ALLOWED_HOOK_FILES = new Set([
+    path.resolve(featureDir, "hooks/useInstanceSocket.ts"),
+  ]);
+
+  try {
+    const files = await walkFiles(
+      featureDir,
+      (f) =>
+        (f.endsWith(".ts") || f.endsWith(".tsx") || f.endsWith(".mts") || f.endsWith(".cts")) &&
+        !f.includes("__tests__"),
+    );
+
+    for (const file of files) {
+      if (ALLOWED_HOOK_FILES.has(file)) continue;
+
+      const src = readFileSync(file, "utf-8");
+      const lines = src.split("\n");
+      for (let i = 0; i < lines.length; i += 1) {
+        const raw = lines[i];
+        const text = raw.trimStart();
+        if (
+          text.startsWith("//") ||
+          text.startsWith("/*") ||
+          text.startsWith("*") ||
+          text.startsWith("<!--")
+        )
+          continue;
+
+        const hits = [
+          { pattern: "socket.on(", re: /socket\.on\(/ },
+          { pattern: "socket.off(", re: /socket\.off\(/ },
+          { pattern: "io(", re: /\bio\(/ },
+          { pattern: "socket.io-client", re: /socket\.io-client/ },
+        ];
+
+        for (const { pattern, re } of hits) {
+          if (re.test(raw)) {
+            violations.push({
+              file: path.relative(CWD, file),
+              line: i + 1,
+              text: raw.trim(),
+              pattern,
+            });
+          }
+        }
+      }
+    }
+  } catch {
+    // Directory doesn't exist yet — skip silently.
+  }
+
+  return violations;
+}
+
+// ─── Check: instance types have consumers (Epic 5.7 G4) ──────────────────
+
+/**
+ * Walk `instances/types/instance.types.ts` and assert every export has
+ * at least one consumer under `features/instances/__tests__/`. This
+ * guards against orphan types added during the implementation.
+ *
+ * @returns {Promise<Array<{ file: string; type: string; consumers: Array<{ file: string; line: number }> }>>}
+ */
+async function checkInstanceTypesHaveConsumers() {
+  /** @type {Array<{ file: string; type: string; consumers: Array<{ file: string; line: number }> }>> */
+  const orphanTypes = [];
+  const typesFile = path.resolve(
+    FEATURES_DIR,
+    "instances",
+    "types",
+    "instance.types.ts",
+  );
+
+  try {
+    const exports = extractTypeExports(typesFile);
+    for (const type of exports) {
+      const consumers = await findTypeConsumersInDir(
+        type,
+        typesFile,
+        path.resolve(FEATURES_DIR, "instances"),
+        (f) => f.includes("__tests__"),
+      );
+      if (consumers.length === 0) {
+        orphanTypes.push({
+          file: path.relative(CWD, typesFile),
+          type,
+          consumers: [],
+        });
+      }
+    }
+  } catch {
+    // File doesn't exist yet — skip silently.
+  }
+
+  return orphanTypes;
+}
+
 // ─── Report helpers ─────────────────────────────────────────────────────
 
 function reportNoAxios(violations) {
@@ -1262,6 +1727,186 @@ function reportEventuallyConsistentQueryHasTests(result) {
   return false;
 }
 
+// ─── Report helpers: Epic 5.6 G3 ─────────────────────────────────────────
+
+function reportSearchNoAxiosOrFetch(violations) {
+  if (violations.length === 0) {
+    process.stdout.write(
+      `${GREEN("✓")} search-no-axios-or-fetch — no axios/fetch in non-service files under features/search/\n`,
+    );
+    return true;
+  }
+
+  process.stdout.write(
+    `${RED("✗")} search-no-axios-or-fetch — ${BOLD(String(violations.length))} violation(s) found\n\n`,
+  );
+
+  for (const v of violations) {
+    process.stdout.write(
+      `  ${RED("forbidden pattern:")} ${BOLD(v.pattern)}  ${DIM(v.file)}:${DIM(String(v.line))}\n`,
+    );
+    const snippet =
+      v.text.length > 72 ? v.text.slice(0, 69) + "..." : v.text;
+    process.stdout.write(`  ${snippet}\n\n`);
+  }
+
+  return false;
+}
+
+function reportSearchNoSocialWriteDtoImports(violations) {
+  if (violations.length === 0) {
+    process.stdout.write(
+      `${GREEN("✓")} search-no-social-write-dto — no FriendRequestDto/FollowDto imports under features/search/\n`,
+    );
+    return true;
+  }
+
+  process.stdout.write(
+    `${RED("✗")} search-no-social-write-dto — ${BOLD(String(violations.length))} violation(s) found\n\n`,
+  );
+
+  for (const v of violations) {
+    process.stdout.write(
+      `  ${RED("forbidden DTO:")} ${BOLD(v.pattern)}  ${DIM(v.file)}:${DIM(String(v.line))}\n`,
+    );
+    const snippet =
+      v.text.length > 72 ? v.text.slice(0, 69) + "..." : v.text;
+    process.stdout.write(`  ${snippet}\n\n`);
+  }
+
+  return false;
+}
+
+function reportSearchNoUnstableSocialIds(violations) {
+  if (violations.length === 0) {
+    process.stdout.write(
+      `${GREEN("✓")} search-no-unstable-social-ids — no followId/friendshipId references in features/search/\n`,
+    );
+    return true;
+  }
+
+  process.stdout.write(
+    `${RED("✗")} search-no-unstable-social-ids — ${BOLD(String(violations.length))} violation(s) found\n\n`,
+  );
+
+  for (const v of violations) {
+    process.stdout.write(
+      `  ${RED("forbidden identifier:")} ${BOLD(v.pattern)}  ${DIM(v.file)}:${DIM(String(v.line))}\n`,
+    );
+    const snippet =
+      v.text.length > 72 ? v.text.slice(0, 69) + "..." : v.text;
+    process.stdout.write(`  ${snippet}\n\n`);
+  }
+
+  return false;
+}
+
+// ─── Report helpers: Epic 5.7 G4 ─────────────────────────────────────────
+
+function reportInstancesNoAxiosOrFetch(violations) {
+  if (violations.length === 0) {
+    process.stdout.write(
+      `${GREEN("✓")} instances-no-axios-or-fetch — no axios/fetch in non-service files under features/instances/\n`,
+    );
+    return true;
+  }
+
+  process.stdout.write(
+    `${RED("✗")} instances-no-axios-or-fetch — ${BOLD(String(violations.length))} violation(s) found\n\n`,
+  );
+
+  for (const v of violations) {
+    process.stdout.write(
+      `  ${RED("forbidden pattern:")} ${BOLD(v.pattern)}  ${DIM(v.file)}:${DIM(String(v.line))}\n`,
+    );
+    const snippet =
+      v.text.length > 72 ? v.text.slice(0, 69) + "..." : v.text;
+    process.stdout.write(`  ${snippet}\n\n`);
+  }
+
+  return false;
+}
+
+function reportInstancesNoDeprecatedRoutes(violations) {
+  if (violations.length === 0) {
+    process.stdout.write(
+      `${GREEN("✓")} instances-no-deprecated-routes — no DEPRECATED_ROUTES calls from features/instances/\n`,
+    );
+    return true;
+  }
+
+  process.stdout.write(
+    `${RED("✗")} instances-no-deprecated-routes — ${BOLD(String(violations.length))} violation(s) found\n\n`,
+  );
+
+  const byRoute = new Map();
+  for (const v of violations) {
+    if (!byRoute.has(v.route)) byRoute.set(v.route, []);
+    byRoute.get(v.route).push(v);
+  }
+
+  for (const [route, hits] of byRoute) {
+    process.stdout.write(
+      `${RED("deprecated route:")} ${BOLD(route)}\n`,
+    );
+    for (const hit of hits) {
+      process.stdout.write(
+        `  ${DIM(hit.file)}:${DIM(String(hit.line))}\n`,
+      );
+      const snippet =
+        hit.text.length > 72 ? hit.text.slice(0, 69) + "..." : hit.text;
+      process.stdout.write(`  ${snippet}\n\n`);
+    }
+  }
+
+  return false;
+}
+
+function reportInstancesNoDirectSocket(violations) {
+  if (violations.length === 0) {
+    process.stdout.write(
+      `${GREEN("✓")} instances-no-direct-socket — no direct Socket.IO listener registration under features/instances/\n`,
+    );
+    return true;
+  }
+
+  process.stdout.write(
+    `${RED("✗")} instances-no-direct-socket — ${BOLD(String(violations.length))} violation(s) found\n\n`,
+  );
+
+  for (const v of violations) {
+    process.stdout.write(
+      `  ${RED("forbidden pattern:")} ${BOLD(v.pattern)}  ${DIM(v.file)}:${DIM(String(v.line))}\n`,
+    );
+    const snippet =
+      v.text.length > 72 ? v.text.slice(0, 69) + "..." : v.text;
+    process.stdout.write(`  ${snippet}\n\n`);
+  }
+
+  return false;
+}
+
+function reportInstanceTypesHaveConsumers(orphanTypes) {
+  if (orphanTypes.length === 0) {
+    process.stdout.write(
+      `${GREEN("✓")} instance-types-have-consumers — all exports from instance.types.ts have at least one test consumer\n`,
+    );
+    return true;
+  }
+
+  process.stdout.write(
+    `${RED("✗")} instance-types-have-consumers — ${BOLD(String(orphanTypes.length))} orphaned export(s) with no test consumer\n\n`,
+  );
+
+  for (const t of orphanTypes) {
+    process.stdout.write(
+      `  ${RED("no test consumer for:")} ${BOLD(t.type)}  ${DIM(t.file)}\n`,
+    );
+  }
+
+  return false;
+}
+
 // ─── Main ────────────────────────────────────────────────────────────────
 
 async function main() {
@@ -1355,6 +2000,58 @@ async function main() {
   // Check 12: useEventuallyConsistentQuery-has-tests (Epic 5.5 G3)
   const eventConsistentTests = await checkEventuallyConsistentQueryHasTests();
   if (!reportEventuallyConsistentQueryHasTests(eventConsistentTests)) {
+    ok = false;
+  }
+
+  // Check 13: search-no-axios-or-fetch (Epic 5.6 G3)
+  const searchAxiosViolations = await checkSearchNoAxiosOrFetch();
+  if (!reportSearchNoAxiosOrFetch(searchAxiosViolations)) {
+    ok = false;
+  }
+
+  // Check 14: search-no-social-write-dto (Epic 5.6 G3)
+  const searchWriteDtoViolations = await checkSearchNoSocialWriteDtoImports();
+  if (!reportSearchNoSocialWriteDtoImports(searchWriteDtoViolations)) {
+    ok = false;
+  }
+
+  // Check 15: search-no-unstable-social-ids (Epic 5.6 G3)
+  const searchSocialIdViolations = await checkSearchNoUnstableSocialIds();
+  if (!reportSearchNoUnstableSocialIds(searchSocialIdViolations)) {
+    ok = false;
+  }
+
+  // Check 16: instances-no-axios-or-fetch (Epic 5.7 G4)
+  // No file under features/instances/ (excluding services/) may import
+  // axios or call fetch. The feature must route all HTTP traffic
+  // through the service wrappers.
+  const instancesAxiosViolations = await checkInstancesNoAxiosOrFetch();
+  if (!reportInstancesNoAxiosOrFetch(instancesAxiosViolations)) {
+    ok = false;
+  }
+
+  // Check 17: instances-no-deprecated-routes (Epic 5.7 G4)
+  // No file under features/instances/ may call a route listed in
+  // DEPRECATED_ROUTES. The feature must always use the live SDK routes.
+  const instancesDeprecatedViolations = await checkInstancesNoDeprecatedRoutes();
+  if (!reportInstancesNoDeprecatedRoutes(instancesDeprecatedViolations)) {
+    ok = false;
+  }
+
+  // Check 18: instances-no-direct-socket (Epic 5.7 G4)
+  // No file under features/instances/ (other than
+  // hooks/useInstanceSocket.ts) may register Socket.IO listeners
+  // directly. All socket interactions must flow through the hook.
+  const instancesSocketViolations = await checkInstancesNoDirectSocket();
+  if (!reportInstancesNoDirectSocket(instancesSocketViolations)) {
+    ok = false;
+  }
+
+  // Check 19: instance-types-have-consumers (Epic 5.7 G4)
+  // Every export from instance.types.ts must have at least one test
+  // consumer under features/instances/__tests__/.
+  const orphanInstanceTypes = await checkInstanceTypesHaveConsumers();
+  if (!reportInstanceTypesHaveConsumers(orphanInstanceTypes)) {
     ok = false;
   }
 

@@ -60,6 +60,7 @@ const PROTECTED_PREFIXES = [
   "/create-quiz",
   "/discussions",
   "/friends",
+  "/instances",
   "/my-profile",
   "/notifications",
   "/onboarding",

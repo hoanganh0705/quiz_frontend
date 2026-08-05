@@ -273,6 +273,23 @@ const eslintConfig = [
             // envelope); the cursor field is on the type, not on a
             // direct read of pagination metadata.
             'src/features/reviews/hooks/__tests__/useHelpfulReview.spec.tsx',
+            // TKT-5.7.B2 — `useInstancePlayers` is the fetcher adapter
+            // for the `GET /api/v1/instances/:id/players` endpoint.
+            // It is the single place in the instances feature
+            // permitted to read `meta.pagination.nextCursor` and adapt
+            // the SDK envelope to the `useCursorPaginated` `CursorPage`
+            // shape.
+            'src/features/instances/hooks/useInstancePlayers.ts',
+            // TKT-5.7.A1 — `instance.types.ts` declares the
+            // feature-typed `InstancePlayersPage.nextCursor` field.
+            // The `Identifier[name='nextCursor']` AST selector would
+            // otherwise flag the type declaration (a type-only
+            // construct that is not a component-state read).
+            'src/features/instances/types/instance.types.ts',
+            // TKT-5.7.G1 — `useInstancePlayers.spec.tsx` constructs
+            // mock `InstancePlayersPage` envelopes with `nextCursor`
+            // so it can assert the hook's pagination contract.
+            'src/features/instances/hooks/__tests__/useInstancePlayers.spec.tsx',
           ],
     rules: {
       'no-restricted-syntax': 'off',
