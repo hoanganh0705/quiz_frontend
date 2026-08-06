@@ -4,10 +4,6 @@ import type * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
-  LayoutDashboard,
-  Tag,
-  BookOpen,
-  Users,
   Settings,
   Shield,
   ChevronLeft,
@@ -25,18 +21,7 @@ import {
   SidebarSeparator,
 } from "@/components/ui/Sidebar";
 
-const adminNavItems = [
-  { title: "Dashboard", url: "/admin", icon: LayoutDashboard },
-  { title: "Categories", url: "/admin/categories", icon: BookOpen },
-  { title: "Tags", url: "/admin/tags", icon: Tag },
-  { title: "Quizzes", url: "/admin/quizzes", icon: BookOpen },
-  { title: "Users", url: "/admin/users", icon: Users },
-] as const;
-
-const bottomNavItems = [
-  { title: "Settings", url: "/admin/settings", icon: Settings },
-  { title: "Roles & Permissions", url: "/admin/roles", icon: Shield },
-] as const;
+import { AdminNav } from "@/features/admin/components/AdminNav";
 
 export function AdminSidebar({
   ...props
@@ -76,53 +61,52 @@ export function AdminSidebar({
         </SidebarMenu>
       </SidebarHeader>
 
+      {/* Permission-derived nav — driven by useAdminNav */}
       <SidebarContent className="bg-background border border-sidebar-border">
-        <SidebarMenu className="space-y-1 px-2">
-          {adminNavItems.map((item) => (
-            <SidebarMenuItem key={item.title}>
-              <SidebarMenuButton
-                asChild
-                isActive={isActive(item.url)}
-                className={`${
-                  isActive(item.url)
-                    ? "text-white-primary bg-brand hover:bg-brand-hover data-[active=true]:bg-brand-hover"
-                    : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-                } transition-colors`}
-              >
-                <Link href={item.url}>
-                  <item.icon />
-                  <span className="text-sm font-medium">{item.title}</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          ))}
-        </SidebarMenu>
+        <AdminNav />
       </SidebarContent>
 
       <SidebarSeparator className="mx-2" />
 
       <SidebarFooter className="bg-background border-x border-sidebar-border">
+        {/* Settings link — always visible when admin */}
         <SidebarMenu className="space-y-1 px-2 pb-2">
-          {bottomNavItems.map((item) => (
-            <SidebarMenuItem key={item.title}>
-              <SidebarMenuButton
-                asChild
-                isActive={isActive(item.url)}
-                className={`${
-                  isActive(item.url)
-                    ? "text-white-primary bg-brand hover:bg-brand-hover data-[active=true]:bg-brand-hover"
-                    : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-                } transition-colors`}
-              >
-                <Link href={item.url}>
-                  <item.icon />
-                  <span className="text-sm font-medium">{item.title}</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          ))}
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              asChild
+              isActive={isActive("/admin/settings")}
+              className={
+                isActive("/admin/settings")
+                  ? "text-white-primary bg-brand hover:bg-brand-hover data-[active=true]:bg-brand-hover"
+                  : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+              }
+            >
+              <Link href="/admin/settings">
+                <Settings className="h-4 w-4" aria-hidden="true" />
+                <span className="text-sm font-medium">Settings</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          {/* Roles & Permissions — always visible when admin (links to roles page) */}
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              asChild
+              isActive={isActive("/admin/roles")}
+              className={
+                isActive("/admin/roles")
+                  ? "text-white-primary bg-brand hover:bg-brand-hover data-[active=true]:bg-brand-hover"
+                  : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+              }
+            >
+              <Link href="/admin/roles">
+                <Shield className="h-4 w-4" aria-hidden="true" />
+                <span className="text-sm font-medium">Roles & Permissions</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
         </SidebarMenu>
 
+        {/* Back to app */}
         <SidebarMenu className="px-2 pt-0">
           <SidebarMenuItem>
             <SidebarMenuButton className="text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors">

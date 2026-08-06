@@ -9,6 +9,7 @@ import { ModeToggle } from '@/shared/layout/components/ModeToggle'
 import { SidebarTrigger, useSidebar } from '@/components/ui/Sidebar'
 import { useIsMobile } from '@/shared/hooks/use-mobile'
 import { useLogout } from '@/features/auth/hooks/use-logout'
+import { AdminBreadcrumb } from '@/features/admin/components/AdminBreadcrumb'
 
 export function AdminHeader() {
   const { state } = useSidebar()
@@ -26,28 +27,22 @@ export function AdminHeader() {
 
   return (
     <header
-      className='fixed top-0 z-50 h-14 flex items-center
+      className='fixed top-0 z-50 flex h-14 items-center
                  bg-background border-b border-border px-4
-                 transition-all duration-300'
+                 transition-all duration-300 gap-4'
       style={{ left: sidebarWidth, right: 0 }}
     >
       <SidebarTrigger
-        className='text-foreground/70 hover:text-foreground hover:bg-transparent bg-transparent'
+        className='text-foreground/70 hover:text-foreground hover:bg-transparent bg-transparent shrink-0'
         aria-label='Toggle sidebar'
       />
-
-      <div className='flex-1 max-w-md mx-4'>
-        <div className='relative'>
-          <Search className='absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4' />
-          <Input
-            type='search'
-            placeholder='Search anything...'
-            className='pl-10 bg-muted/40 border-border text-foreground placeholder-muted-foreground w-full text-sm focus:border-ring'
-          />
-        </div>
+      {/* Breadcrumb landmark — primary navigation orientation */}
+      <div className='flex-1 min-w-0'>
+        <AdminBreadcrumb />
       </div>
 
-      <div className='flex items-center gap-2 ml-auto'>
+      {/* Header-right cluster */}
+      <div className='flex items-center gap-2 shrink-0'>
         <Button
           variant='ghost'
           size='icon'

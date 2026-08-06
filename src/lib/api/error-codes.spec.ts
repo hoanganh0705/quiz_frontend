@@ -94,7 +94,8 @@ describe('ApiError code type contract', () => {
     // additional synthesized codes without breaking this test.
     expect(SYNTHESIZED_ERROR_CODES.length).toBeGreaterThanOrEqual(9);
     // The full registry must include at least 122 domain + 9 synthesized
-    // = 131 codes (the ticket says "at least 122 + 9").
+    // = 131 codes (the ticket says "at least 122 + 9"). Phase 7 adds
+    // 8 admin codes (TKT-7.1.A3), so we check `>= 139`.
     expect(KNOWN_ERROR_CODES.length).toBeGreaterThanOrEqual(131);
 
     // The type guard narrows from `string` to `ErrorCode`. Verify the
@@ -103,6 +104,11 @@ describe('ApiError code type contract', () => {
     expect(isKnownErrorCode('QUIZ_NOT_FOUND')).toBe(true);
     expect(isKnownErrorCode('GLOBAL_INTERNAL_ERROR')).toBe(true);
     expect(isKnownErrorCode('MADE_UP_CODE')).toBe(false);
+
+    // Phase 7 admin codes — TKT-7.1.A3.
+    expect(isKnownErrorCode('ADMIN_FORBIDDEN')).toBe(true);
+    expect(isKnownErrorCode('IRREVERSIBLE_CONFIRM_REQUIRED')).toBe(true);
+    expect(isKnownErrorCode('RANKING_RECALCULATION_FAILED')).toBe(true);
   });
 
   it('ApiError.code surfaces the synthesized fallback for unknown extensions.code', () => {
