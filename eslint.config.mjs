@@ -290,6 +290,120 @@ const eslintConfig = [
             // mock `InstancePlayersPage` envelopes with `nextCursor`
             // so it can assert the hook's pagination contract.
             'src/features/instances/hooks/__tests__/useInstancePlayers.spec.tsx',
+            // TKT-6.1.D3 — the seven social read hooks are the
+            // fetcher adapters for the social list endpoints
+            // (`/api/v1/social/users/:id/{followers,following,friends}`,
+            // `/api/v1/social/blocked`,
+            // `/api/v1/social/friend-requests/{incoming,outgoing}`).
+            // They are the single places in the social feature
+            // permitted to read `meta.pagination.nextCursor` and
+            // adapt the SDK envelope to the `useCursorPaginated`
+            // `CursorPage` shape.
+            'src/features/social/hooks/useFollowers.ts',
+            'src/features/social/hooks/useFollowing.ts',
+            'src/features/social/hooks/useFriends.ts',
+            'src/features/social/hooks/useBlockedUsers.ts',
+            'src/features/social/hooks/useIncomingRequests.ts',
+            'src/features/social/hooks/useOutgoingRequests.ts',
+            // TKT-6.1.D3 — the unit spec for the social read hooks
+            // constructs mock page envelopes with `nextCursor` so it
+            // can assert the hook's pagination contract. The fixture
+            // is co-located with the hook under test.
+            'src/features/social/hooks/__tests__/d3-read-hooks.spec.tsx',
+            // TKT-6.1.C1 — `relationship.ts` declares the
+            // `SocialPage<T>` discriminated union whose `cursor`
+            // variant carries `nextCursor`. The
+            // `Identifier[name='nextCursor']` AST selector would
+            // otherwise flag the type declaration (a type-only
+            // construct that is not a component-state read), so the
+            // file is added to the allow-list per the same convention
+            // as `quiz-backend.ts`.
+            'src/features/social/types/relationship.ts',
+            // TKT-6.1.C2 — `dto-adapters.ts` documents the
+            // `nextCursor` field on the cursor-page variant in its
+            // JSDoc and accepts the SDK envelope (which carries the
+            // cursor shape) as an `unknown` input. Both are
+            // type-/JSDoc-only constructs that are not component-state
+            // reads.
+            'src/features/social/dto-adapters.ts',
+            // TKT-6.1.C2 — the unit spec for the DTO adapters
+            // constructs `SocialPage<T>` fixtures with `nextCursor`
+            // so it can assert the discriminated-union narrowing. The
+            // fixture is co-located with the adapters under test.
+            'src/features/social/__tests__/dto-adapters.spec.ts',
+            // TKT-6.1.E2 — `social-graph.service.ts` is the fetcher
+            // adapter for the social graph read endpoints
+            // (`/api/v1/social/users/:id/{followers,following,friends,mutual-friends,mutual-followers,activity}`,
+            // `/api/v1/social/blocked`, `/api/v1/social/counts`). It
+            // reads `meta.pagination.nextCursor` from the SDK envelope
+            // to normalise the cursor page, and synthesises a
+            // single-page cursor response for `getBlockedUsers` (the
+            // SDK endpoint is non-paginated). Both reads are at the
+            // SDK boundary; the rest of the application only sees
+            // the canonical `SocialPage<T>` projection.
+            'src/features/social/services/social-graph.service.ts',
+            // TKT-6.1.E2 — the unit spec for the social-graph service
+            // constructs `SocialPage<T>` fixtures with `nextCursor`
+            // so it can assert the discriminated-union narrowing and
+            // the cursor-page synthesis. The fixture is co-located
+            // with the service under test.
+            'src/features/social/services/__tests__/social-graph.service.spec.ts',
+            // TKT-6.4.C1 — `mutuals.service.ts` is the Story 6.4
+            // fetcher adapter for the mutual-friends and
+            // mutual-followers endpoints. It returns the canonical
+            // cursor-paginated envelope (`items` + `total`) so the
+            // consumer hooks can branch on a single shape.
+            'src/features/social/services/mutuals.service.ts',
+            // TKT-6.4.D1 — `activity.service.ts` is the Story 6.4
+            // fetcher adapter for the user activity endpoint. It
+            // returns the canonical cursor-paginated envelope
+            // (`items` + `total` + `cooldownSeconds?`) so the
+            // consumer hook can branch on a single shape.
+            'src/features/social/services/activity.service.ts',
+            // TKT-6.4.C2 / TKT-6.4.C3 / TKT-6.4.D2 — the three
+            // Story 6.4 read hooks (`useMutualFriends`,
+            // `useMutualFollowers`, `useUserActivity`) are the
+            // fetcher adapters for the mutuals and activity
+            // endpoints. They are the single places in the social
+            // feature permitted to read the cursor envelope and
+            // adapt it to the `useCursorPaginated` `CursorPage`
+            // shape.
+            'src/features/social/hooks/useMutualFriends.ts',
+            'src/features/social/hooks/useMutualFollowers.ts',
+            'src/features/social/hooks/useUserActivity.ts',
+            // TKT-6.4.C1 / TKT-6.4.D1 — the unit specs for the Story
+            // 6.4 mutuals and activity service wrappers construct
+            // mock `meta.pagination` envelopes with `nextCursor` so
+            // they can assert the service's `CursorPage` synthesis
+            // and the cursor-page narrowing branches. The fixtures
+            // are co-located with the services under test.
+            'src/features/social/services/__tests__/mutuals.service.spec.ts',
+            'src/features/social/services/__tests__/activity.service.spec.ts',
+            // TKT-6.4.C2 / TKT-6.4.C3 / TKT-6.4.D2 — the unit specs
+            // for the three Story 6.4 read hooks construct mock SDK
+            // envelopes with `nextCursor` so they can assert the
+            // hook's privacy-mapping and pagination behaviour. The
+            // fixtures are co-located with the hooks under test.
+            'src/features/social/hooks/__tests__/useMutualFriends.spec.tsx',
+            'src/features/social/hooks/__tests__/useMutualFollowers.spec.tsx',
+            'src/features/social/hooks/__tests__/useUserActivity.spec.tsx',
+            // TKT-7.1.E3 / TKT-7.1.E4 — `review-moderation.service.ts`
+            // and `comment-moderation.service.ts` are the Epic 7.1
+            // fetcher adapters for the platform-wide review and comment
+            // moderation queue endpoints. They are the single places in
+            // the admin feature permitted to read `meta.pagination` and
+            // `nextCursor` and adapt the SDK envelope to a
+            // `useCursorPaginated`-compatible `CursorPage` shape
+            // (`items` + `hasNextPage` + `nextCursor`).
+            'src/features/admin/services/review-moderation.service.ts',
+            'src/features/admin/services/comment-moderation.service.ts',
+            // TKT-7.1.E3 / TKT-7.1.E4 — the unit specs for the review
+            // and comment moderation services construct mock
+            // `meta.pagination` envelopes with `nextCursor` so they can
+            // assert the service's `CursorPage` synthesis. The fixtures
+            // are co-located with the services under test.
+            'src/features/admin/services/__tests__/review-moderation.service.spec.ts',
+            'src/features/admin/services/__tests__/comment-moderation.service.spec.ts',
           ],
     rules: {
       'no-restricted-syntax': 'off',

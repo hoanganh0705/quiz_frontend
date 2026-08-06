@@ -7,7 +7,8 @@
  *                TKT-5.3.G3 (Epic 5.3 extension) /
  *                TKT-5.4.G3 (Epic 5.4 notification extension) /
  *                TKT-5.5.G3 (Epic 5.5 rankings/achievements extension) /
- *                TKT-5.6.G3 (Epic 5.6 search extension).
+ *                TKT-5.6.G3 (Epic 5.6 search extension) /
+ *                TKT-5.8.H4 (Epic 5.8 gameplay extension).
  *
  * Encodes Phase 5 cross-batch invariants:
  *
@@ -89,9 +90,26 @@
  *      Socket.IO event listeners directly. All socket interactions must
  *      flow through `useInstanceSocket`.
  *
- *  19. **instance-types-have-consumers** (Epic 5.7 G4) — Every export from
- *      `instances/types/instance.types.ts` must have at least one test
- *      consumer under `features/instances/`.
+ *  20. **gameplay-no-axios-or-fetch** (Epic 5.8 H4) — No file under
+ *      `features/instances/play/` (excluding `services/`) may import `axios`
+ *      or call `fetch(`. All traffic must flow through the service layer.
+ *
+ *  21. **gameplay-no-direct-socket** (Epic 5.8 H4) — No file under
+ *      `features/instances/play/` (excluding
+ *      `hooks/useInstanceGameSocket.ts`) may register Socket.IO event
+ *      listeners directly. All socket interactions must flow through
+ *      `useInstanceGameSocket`.
+ *
+ *  22. **gameplay-no-author-correctness-fields** (Epic 5.8 H4) — No file
+ *      under `features/instances/play/` may import author-only correctness
+ *      field names (`isCorrect`, `correctOptionId`, `explanation`, `solution`,
+ *      `weight`, `correctness`) from the gameplay type barrel. The exception
+ *      is `AnswerResultDto.isCorrect` which is gated by `revealed: true` in
+ *      `useInstanceLifecycle`.
+ *
+ *  23. **gameplay-hooks-have-tests** (Epic 5.8 H4) — Every gameplay hook
+ *      exported from `hooks/index.ts` must have at least one test file
+ *      consumer under `hooks/__tests__/`.
  *
  * ## Usage
  *
@@ -159,6 +177,10 @@ Checks (always run):
   instances-no-deprecated-routes No DEPRECATED_ROUTES calls from features/instances/.
   instances-no-direct-socket     No direct Socket.IO listener outside useInstanceSocket.ts under features/instances/.
   instance-types-have-consumers  Every export from instance.types.ts has a test consumer.
+  gameplay-no-axios-or-fetch     No axios/fetch in non-service files under features/instances/play/.
+  gameplay-no-direct-socket      No direct Socket.IO listener outside useInstanceGameSocket.ts under features/instances/play/.
+  gameplay-no-author-correctness-fields  No author-only correctness fields imported into features/instances/play/.
+  gameplay-hooks-have-tests      Every gameplay hook has at least one test file.
 
 Flags:
   --help    Print this help and exit 64.
@@ -571,7 +593,7 @@ async function checkNotificationsNoDirectSocket() {
   ]);
 
   for (const file of files) {
-    if (ALLOWED_HOOK_FILES.has(file)) continue;
+    if (ALLOWED_HOOK_FILES.has(path.resolve(file))) continue;
 
     const src = readFileSync(file, "utf-8");
     const lines = src.split("\n");
@@ -1363,7 +1385,7 @@ async function checkInstancesNoDirectSocket() {
     );
 
     for (const file of files) {
-      if (ALLOWED_HOOK_FILES.has(file)) continue;
+      if (ALLOWED_HOOK_FILES.has(path.resolve(file))) continue;
 
       const src = readFileSync(file, "utf-8");
       const lines = src.split("\n");
@@ -1445,6 +1467,281 @@ async function checkInstanceTypesHaveConsumers() {
   }
 
   return orphanTypes;
+}
+
+// ─── Check: gameplay feature has no axios or fetch (Epic 5.8 H4) ───────
+
+/**
+ * Walk all non-service files under `features/instances/play/` and assert no
+ * file imports axios or calls fetch directly. The gameplay feature must
+ * route all HTTP traffic through the service wrappers.
+ *
+ * @returns {Promise<Array<{ file: string; line: number; text: string; pattern: string }>>}
+ */
+async function checkGameplayNoAxiosOrFetch() {
+  /** @type {Array<{ file: string; line: number; text: string; pattern: string }>} */
+  const violations = [];
+  const featureDir = path.resolve(FEATURES_DIR, "instances", "play");
+
+  try {
+    const files = await walkFiles(
+      featureDir,
+      (f) =>
+        (f.endsWith(".ts") || f.endsWith(".tsx") || f.endsWith(".mts") || f.endsWith(".cts")) &&
+        !f.includes(`${path.sep}services${path.sep}`) &&
+        !f.includes("__tests__"),
+    );
+
+    for (const file of files) {
+      const src = readFileSync(file, "utf-8");
+      const lines = src.split("\n");
+      for (let i = 0; i < lines.length; i += 1) {
+        const raw = lines[i];
+        const text = raw.trimStart();
+        if (
+          text.startsWith("//") ||
+          text.startsWith("/*") ||
+          text.startsWith("*") ||
+          text.startsWith("<!--")
+        )
+          continue;
+
+        if (raw.includes('from "axios"') || raw.includes("from 'axios'")) {
+          violations.push({
+            file: path.relative(CWD, file),
+            line: i + 1,
+            text: raw.trim(),
+            pattern: 'from "axios"',
+          });
+        }
+        if (raw.includes("fetch(")) {
+          violations.push({
+            file: path.relative(CWD, file),
+            line: i + 1,
+            text: raw.trim(),
+            pattern: "fetch(",
+          });
+        }
+      }
+    }
+  } catch {
+    // Directory doesn't exist yet — skip silently.
+  }
+
+  return violations;
+}
+
+// ─── Check: gameplay feature has no direct Socket.IO listeners (Epic 5.8 H4) ──
+
+/**
+ * Walk all files under `features/instances/play/` (excluding
+ * `hooks/useInstanceGameSocket.ts`) and assert no file calls Socket.IO
+ * event listener APIs directly. The only allowed file is the dedicated
+ * gameplay socket hook; every other file must dispatch through it.
+ *
+ * Forbidden patterns:
+ *   - `socket.on(`, `socket.off(`, `socket.emit(`
+ *   - `io(`
+ *   - references to `socket.io-client`
+ *
+ * @returns {Promise<Array<{ file: string; line: number; text: string; pattern: string }>>}
+ */
+async function checkGameplayNoDirectSocket() {
+  const featureDir = path.resolve(FEATURES_DIR, "instances", "play");
+  /** @type {Array<{ file: string; line: number; text: string; pattern: string }>} */
+  const violations = [];
+
+  const ALLOWED_HOOK_FILES = new Set([
+    path.resolve(featureDir, "hooks/useInstanceGameSocket.ts"),
+  ]);
+
+  try {
+    const files = await walkFiles(
+      featureDir,
+      (f) =>
+        (f.endsWith(".ts") || f.endsWith(".tsx") || f.endsWith(".mts") || f.endsWith(".cts")) &&
+        !f.includes("__tests__"),
+    );
+
+    for (const file of files) {
+      if (ALLOWED_HOOK_FILES.has(path.resolve(file))) continue;
+
+      const src = readFileSync(file, "utf-8");
+      const lines = src.split("\n");
+      for (let i = 0; i < lines.length; i += 1) {
+        const raw = lines[i];
+        const text = raw.trimStart();
+        if (
+          text.startsWith("//") ||
+          text.startsWith("/*") ||
+          text.startsWith("*") ||
+          text.startsWith("<!--")
+        )
+          continue;
+
+        const hits = [
+          { pattern: "socket.on(", re: /socket\.on\(/ },
+          { pattern: "socket.off(", re: /socket\.off\(/ },
+          { pattern: "io(", re: /\bio\(/ },
+          { pattern: "socket.io-client", re: /socket\.io-client/ },
+        ];
+
+        for (const { pattern, re } of hits) {
+          if (re.test(raw)) {
+            violations.push({
+              file: path.relative(CWD, file),
+              line: i + 1,
+              text: raw.trim(),
+              pattern,
+            });
+          }
+        }
+      }
+    }
+  } catch {
+    // Directory doesn't exist yet — skip silently.
+  }
+
+  return violations;
+}
+
+// ─── Check: gameplay has no author-only correctness fields (Epic 5.8 H4) ──
+
+/**
+ * Walk all non-test files under `features/instances/play/` and assert no
+ * file imports author-only correctness field names from any module. These
+ * fields must never appear in player-facing code:
+ *
+ *   - `isCorrect` (except via `AnswerResultDto.revealed === true` gate)
+ *   - `correctOptionId`
+ *   - `explanation`
+ *   - `solution`
+ *   - `weight`
+ *   - `correctness`
+ *
+ * The exception is `AnswerResultDto.isCorrect` accessed after the
+ * `revealed: true` check — this is enforced by `useInstanceLifecycle`
+ * (TKT-5.8.B6) and the lint invariant.
+ *
+ * @returns {Promise<Array<{ file: string; line: number; text: string; pattern: string }>>}
+ */
+async function checkGameplayNoAuthorCorrectnessFields() {
+  /** @type {Array<{ file: string; line: number; text: string; pattern: string }>} */
+  const violations = [];
+  const featureDir = path.resolve(FEATURES_DIR, "instances", "play");
+
+  // Fields that must not appear as named imports (i.e. from any module path).
+  // The check is a word-boundary match on the import statement itself.
+  // Comment lines are skipped so JSDoc exclusion lists in type files don't
+  // cause false violations.
+  const FORBIDDEN_FIELDS = [
+    { pattern: "isCorrect", re: /\bisCorrect\b/ },
+    { pattern: "correctOptionId", re: /\bcorrectOptionId\b/ },
+    { pattern: "explanation", re: /\bexplanation\b/ },
+    { pattern: "solution", re: /\bsolution\b/ },
+    { pattern: "weight", re: /\bweight\b/ },
+    { pattern: "correctness", re: /\bcorrectness\b/ },
+  ];
+
+  try {
+    const files = await walkFiles(
+      featureDir,
+      (f) =>
+        (f.endsWith(".ts") || f.endsWith(".tsx") || f.endsWith(".mts") || f.endsWith(".cts")) &&
+        !f.includes("__tests__"),
+    );
+
+    for (const file of files) {
+      const src = readFileSync(file, "utf-8");
+      const lines = src.split("\n");
+      for (let i = 0; i < lines.length; i += 1) {
+        const raw = lines[i];
+        const trimmed = raw.trimStart();
+
+        // Skip comment lines so JSDoc exclusion lists in type files don't
+        // produce false violations.
+        if (
+          trimmed.startsWith("//") ||
+          trimmed.startsWith("/*") ||
+          trimmed.startsWith("*") ||
+          trimmed.startsWith("<!--")
+        )
+          continue;
+
+        // Only check import statements.
+        if (!raw.includes("from ")) continue;
+
+        for (const { pattern, re } of FORBIDDEN_FIELDS) {
+          if (re.test(raw)) {
+            violations.push({
+              file: path.relative(CWD, file),
+              line: i + 1,
+              text: raw.trim(),
+              pattern,
+            });
+          }
+        }
+      }
+    }
+  } catch {
+    // Directory doesn't exist yet — skip silently.
+  }
+
+  return violations;
+}
+
+// ─── Check: gameplay hooks have tests (Epic 5.8 H4) ──────────────────────
+
+/**
+ * Walk `features/instances/play/hooks/` and assert every exported hook
+ * has at least one test file consumer under `hooks/__tests__/`.
+ *
+ * This guards that every gameplay hook is covered by unit tests.
+ *
+ * @returns {Promise<Array<{ file: string; type: string; consumers: Array<{ file: string; line: number }> }>>}
+ */
+async function checkGameplayHooksHaveTests() {
+  /** @type {Array<{ file: string; type: string; consumers: Array<{ file: string; line: number }> }>} */
+  const orphanHooks = [];
+  const hooksDir = path.resolve(FEATURES_DIR, "instances", "play", "hooks");
+  const testsDir = path.resolve(FEATURES_DIR, "instances", "play", "hooks", "__tests__");
+
+  try {
+    const hookFiles = await walkFiles(
+      hooksDir,
+      (f) =>
+        (f.endsWith(".ts") || f.endsWith(".tsx")) &&
+        !f.includes("__tests__") &&
+        !f.endsWith("index.ts"),
+    );
+
+    for (const hookFile of hookFiles) {
+      // Extract the hook name from the filename (e.g. useFooBar.ts → useFooBar)
+      const baseName = path.basename(hookFile, path.extname(hookFile));
+
+      // Check if a corresponding test file exists.
+      const testFile = path.resolve(testsDir, `${baseName}.spec.tsx`);
+      let testExists = false;
+      try {
+        readFileSync(testFile, "utf-8");
+        testExists = true;
+      } catch {
+        testExists = false;
+      }
+
+      if (!testExists) {
+        orphanHooks.push({
+          file: path.relative(CWD, hookFile),
+          type: baseName,
+          consumers: [],
+        });
+      }
+    }
+  } catch {
+    // Directory doesn't exist yet — skip silently.
+  }
+
+  return orphanHooks;
 }
 
 // ─── Report helpers ─────────────────────────────────────────────────────
@@ -1907,6 +2204,101 @@ function reportInstanceTypesHaveConsumers(orphanTypes) {
   return false;
 }
 
+// ─── Report helpers: Epic 5.8 H4 ───────────────────────────────────────
+
+function reportGameplayNoAxiosOrFetch(violations) {
+  if (violations.length === 0) {
+    process.stdout.write(
+      `${GREEN("✓")} gameplay-no-axios-or-fetch — no axios/fetch in non-service files under features/instances/play/\n`,
+    );
+    return true;
+  }
+
+  process.stdout.write(
+    `${RED("✗")} gameplay-no-axios-or-fetch — ${BOLD(String(violations.length))} violation(s) found\n\n`,
+  );
+
+  for (const v of violations) {
+    process.stdout.write(
+      `  ${RED("forbidden pattern:")} ${BOLD(v.pattern)}  ${DIM(v.file)}:${DIM(String(v.line))}\n`,
+    );
+    const snippet =
+      v.text.length > 72 ? v.text.slice(0, 69) + "..." : v.text;
+    process.stdout.write(`  ${snippet}\n\n`);
+  }
+
+  return false;
+}
+
+function reportGameplayNoDirectSocket(violations) {
+  if (violations.length === 0) {
+    process.stdout.write(
+      `${GREEN("✓")} gameplay-no-direct-socket — no direct Socket.IO listener registration under features/instances/play/\n`,
+    );
+    return true;
+  }
+
+  process.stdout.write(
+    `${RED("✗")} gameplay-no-direct-socket — ${BOLD(String(violations.length))} violation(s) found\n\n`,
+  );
+
+  for (const v of violations) {
+    process.stdout.write(
+      `  ${RED("forbidden pattern:")} ${BOLD(v.pattern)}  ${DIM(v.file)}:${DIM(String(v.line))}\n`,
+    );
+    const snippet =
+      v.text.length > 72 ? v.text.slice(0, 69) + "..." : v.text;
+    process.stdout.write(`  ${snippet}\n\n`);
+  }
+
+  return false;
+}
+
+function reportGameplayNoAuthorCorrectnessFields(violations) {
+  if (violations.length === 0) {
+    process.stdout.write(
+      `${GREEN("✓")} gameplay-no-author-correctness-fields — no author-only correctness fields imported into features/instances/play/\n`,
+    );
+    return true;
+  }
+
+  process.stdout.write(
+    `${RED("✗")} gameplay-no-author-correctness-fields — ${BOLD(String(violations.length))} violation(s) found\n\n`,
+  );
+
+  for (const v of violations) {
+    process.stdout.write(
+      `  ${RED("forbidden field:")} ${BOLD(v.pattern)}  ${DIM(v.file)}:${DIM(String(v.line))}\n`,
+    );
+    const snippet =
+      v.text.length > 72 ? v.text.slice(0, 69) + "..." : v.text;
+    process.stdout.write(`  ${snippet}\n\n`);
+  }
+
+  return false;
+}
+
+function reportGameplayHooksHaveTests(orphanHooks) {
+  if (orphanHooks.length === 0) {
+    process.stdout.write(
+      `${GREEN("✓")} gameplay-hooks-have-tests — all gameplay hooks have at least one test file\n`,
+    );
+    return true;
+  }
+
+  process.stdout.write(
+    `${RED("✗")} gameplay-hooks-have-tests — ${BOLD(String(orphanHooks.length))} hook(s) missing test files\n\n`,
+  );
+
+  for (const h of orphanHooks) {
+    process.stdout.write(
+      `  ${RED("no test for:")} ${BOLD(h.type)}  ${DIM(h.file)}\n`,
+    );
+  }
+
+  return false;
+}
+
 // ─── Main ────────────────────────────────────────────────────────────────
 
 async function main() {
@@ -2052,6 +2444,40 @@ async function main() {
   // consumer under features/instances/__tests__/.
   const orphanInstanceTypes = await checkInstanceTypesHaveConsumers();
   if (!reportInstanceTypesHaveConsumers(orphanInstanceTypes)) {
+    ok = false;
+  }
+
+  // Check 20: gameplay-no-axios-or-fetch (Epic 5.8 H4)
+  // No file under features/instances/play/ (excluding services/) may import
+  // axios or call fetch. The gameplay feature must route all HTTP traffic
+  // through the service wrappers.
+  const gameplayAxiosViolations = await checkGameplayNoAxiosOrFetch();
+  if (!reportGameplayNoAxiosOrFetch(gameplayAxiosViolations)) {
+    ok = false;
+  }
+
+  // Check 21: gameplay-no-direct-socket (Epic 5.8 H4)
+  // No file under features/instances/play/ (other than
+  // hooks/useInstanceGameSocket.ts) may register Socket.IO listeners
+  // directly. All socket interactions must flow through the hook.
+  const gameplaySocketViolations = await checkGameplayNoDirectSocket();
+  if (!reportGameplayNoDirectSocket(gameplaySocketViolations)) {
+    ok = false;
+  }
+
+  // Check 22: gameplay-no-author-correctness-fields (Epic 5.8 H4)
+  // No file under features/instances/play/ may import author-only
+  // correctness fields. These must never appear in player-facing code.
+  const gameplayAuthorViolations = await checkGameplayNoAuthorCorrectnessFields();
+  if (!reportGameplayNoAuthorCorrectnessFields(gameplayAuthorViolations)) {
+    ok = false;
+  }
+
+  // Check 23: gameplay-hooks-have-tests (Epic 5.8 H4)
+  // Every gameplay hook exported from hooks/index.ts must have at least
+  // one test file consumer under hooks/__tests__/.
+  const orphanGameplayHooks = await checkGameplayHooksHaveTests();
+  if (!reportGameplayHooksHaveTests(orphanGameplayHooks)) {
     ok = false;
   }
 

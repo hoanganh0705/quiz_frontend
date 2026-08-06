@@ -377,6 +377,33 @@ export function AuthBootstrapProvider({
     };
   }, [clearBootstrap]);
 
+  // ─── TKT-6.2.G4 — detach social-list-loaded handlers on logout ────────────
+  //
+  // The social-list-loaded channel carries cross-tab list events that
+  // the `useSocialCountsBadge` hook uses to converge with rendered list
+  // lengths. After a logout, those handlers must NOT silently update
+  // counts for a subsequent user in the same browser context. The
+  // install helper subscribes to the same `'auth-state-change'` event
+  // the rest of the auth surface uses and detaches every active handler.
+  useEffect(() => {
+    // Lazy import keeps the social module out of the critical
+    // path for non-Phase 6 builds.
+    let cleanup: (() => void) | undefined;
+    let cancelled = false;
+    void import('@/lib/social/social-list-loaded-broadcast-channel').then(
+      (mod) => {
+        if (cancelled) return;
+        cleanup = mod.installSocialListLoadedLogoutReset();
+      },
+    );
+    return () => {
+      cancelled = true;
+      if (typeof cleanup === 'function') {
+        cleanup();
+      }
+    };
+  }, []);
+
   // ─── Derived values ─────────────────────────────────────────────────────────
 
   const value = useMemo<AuthBootstrapValue>(

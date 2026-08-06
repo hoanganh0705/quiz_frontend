@@ -122,10 +122,15 @@ export type {
 // mapping to backend controllers).
 //
 // Tags named in the parent ticket that do NOT exist on disk at this commit:
-//   achievements, discussions, health, leaderboard, notification, search,
-//   social. They are not in `./generated/`, so they are not re-exported here.
-// They will appear automatically when the backend exposes the matching
+//   discussions, health, leaderboard, notification.
+// They are not in `./generated/`, so they are not re-exported here. They
+// will appear automatically when the backend exposes the matching
 // controllers and `pnpm generate:api` is run.
+//
+// TKT-6.1.E1 — `getSocial` was added with the Phase 6 SDK regeneration.
+// Social controllers (`SocialController`) now exist and ship a stable
+// social SDK surface.
+export { getSocial } from './generated/social/social';
 
 export { getAttempts } from './generated/attempts/attempts';
 export { getAuth } from './generated/auth/auth';

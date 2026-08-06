@@ -20,7 +20,7 @@
  */
 
 import '@testing-library/jest-dom/vitest'
-import { afterEach, beforeAll } from 'vitest'
+import { afterEach, beforeAll, vi } from 'vitest'
 import { cleanup } from '@testing-library/react'
 
 class TestResizeObserver implements ResizeObserver {
@@ -30,6 +30,22 @@ class TestResizeObserver implements ResizeObserver {
 }
 
 globalThis.ResizeObserver ??= TestResizeObserver
+
+// `window.matchMedia` is used by `use-mobile.ts` (SidebarProvider).
+// jsdom does not implement it, so we polyfill it here.
+Object.defineProperty(globalThis, 'matchMedia', {
+  writable: true,
+  value: vi.fn((query: string) => ({
+    matches: false,
+    media: query,
+    onchange: null,
+    addListener: vi.fn(),
+    removeListener: vi.fn(),
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+    dispatchEvent: vi.fn(() => true),
+  })),
+});
 
 beforeAll(() => {
   const elements = [

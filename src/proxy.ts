@@ -23,16 +23,17 @@
  * to `PROTECTED_PREFIXES` or `ADMIN_PREFIXES`, both files must be updated
  * in the same commit.
  *
- *   - `/bookmarks`   — bookmarked quizzes (backend: `bookmark` module)
- *   - `/create-quiz` — quiz authoring (backend: `quiz` module)
- *   - `/discussions` — comment threads on quizzes (backend: `comment` module)
- *   - `/friends`     — social graph (backend: `social` module)
- *   - `/my-profile`  — current user's own profile (backend: `user` module)
- *   - `/onboarding`  — first-run UX (frontend-only until submit)
- *   - `/quiz-history`— user's attempt history (backend: `attempt` module)
- *   - `/settings`    — account-level preferences (backend: `user` module)
- *   - `/tournament`  — tournament listings and personal tournament state
- *   - `/admin`       — admin console (admin role enforced server-side only)
+ *   - `/bookmarks`    — bookmarked quizzes (backend: `bookmark` module)
+ *   - `/create-quiz`  — quiz authoring (backend: `quiz` module)
+ *   - `/discussions`  — comment threads on quizzes (backend: `comment` module)
+ *   - `/friends`      — social graph (backend: `social` module)
+ *   - `/my-profile`   — current user's own profile (backend: `user` module)
+ *   - `/onboarding`   — first-run UX (frontend-only until submit)
+ *   - `/quiz-history` — user's attempt history (backend: `attempt` module)
+ *   - `/settings`     — account-level preferences (backend: `user` module)
+ *   - `/social`       — read-only social-graph lists (Story 6.2)
+ *   - `/tournament`   — tournament listings and personal tournament state
+ *   - `/admin`        — admin console (admin role enforced server-side only)
  *
  * # Excluded paths
  *
@@ -66,6 +67,13 @@ const PROTECTED_PREFIXES = [
   "/onboarding",
   "/quiz-history",
   "/settings",
+  // Story 6.2 / TKT-6.2.B1+B2 — `/social/*` requires an authenticated
+  // viewer because every list page is either viewer-only
+  // (`/social/blocked`) or surfaces viewer-specific relationships
+  // (counts, follow status, pending requests). The `phase6_social`
+  // and `phase6_social_relationship` feature flags gate the live
+  // rendering; the middleware enforces the *authentication* contract.
+  "/social",
   "/tournament",
 ] as const;
 

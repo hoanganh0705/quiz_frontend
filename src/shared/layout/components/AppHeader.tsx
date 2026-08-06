@@ -1,7 +1,7 @@
 'use client'
 
 import { useMemo, useEffect, useState, useSyncExternalStore } from 'react'
-import { ChevronDown, LogOut, Search, Settings, User as UserIcon, MessageSquare } from 'lucide-react'
+import { ChevronDown, LogOut, Search, Settings, User as UserIcon, MessageSquare, Shield } from 'lucide-react'
 import { Input } from '@/components/ui/Input'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/Avatar'
 import {
@@ -27,6 +27,10 @@ import { logout } from '@/features/auth/service/auth.service'
 import { useRouter } from 'next/navigation'
 import { useUser, useClearUser } from '@/features/users/store/user-store'
 import { getUnreadCount } from '@/features/notifications/api'
+// TKT-7.2.C4: admin entry gate — imports are safe here because
+// the admin hooks consume the same auth primitives used by the public app.
+import { useAdminRole } from '@/features/admin/hooks/useAdminRole'
+import { useAdminFeatureFlag } from '@/features/admin/hooks/useAdminFeatureFlag'
 
 // Detect Mac only on the client (navigator is undefined on the server).
 // useSyncExternalStore keeps the server snapshot stable and avoids hydration mismatches.
@@ -93,6 +97,14 @@ export function AppHeader() {
   const user = useUser()
   const clearUser = useClearUser()
   const isMac = useIsMac()
+
+  // TKT-7.2.C4 — gate the admin entry behind role + feature flag.
+  // The hooks are safe to call unconditionally: both are SSR-safe
+  // (useAdminRole reads from the same auth store used by the public app;
+  // useAdminFeatureFlag is a synchronous build-time flag reader).
+  const { isLoading: isAdminLoading, role } = useAdminRole()
+  const { isLive } = useAdminFeatureFlag('phase7_admin')
+  const canSeeAdmin = isLive && !isAdminLoading && role === 'admin'
 
   const avatarLabel = useMemo(() => {
     const value = user?.displayName || user?.username || user?.email || 'User'
@@ -265,6 +277,16 @@ export function AppHeader() {
                   <span>Settings</span>
                 </Link>
               </DropdownMenuItem>
+
+              {/* TKT-7.2.C4 — admin console entry, visible only when phase7_admin is live and the user is an admin. */}
+              {canSeeAdmin && (
+                <DropdownMenuItem asChild>
+                  <Link href='/admin' className='flex items-center gap-2'>
+                    <Shield className='h-4 w-4' />
+                    <span>Admin Console</span>
+                  </Link>
+                </DropdownMenuItem>
+              )}
 
               <DropdownMenuSeparator />
 

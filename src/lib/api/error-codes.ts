@@ -165,6 +165,8 @@ export type ErrorCode =
   | 'SOCIAL_FRIENDSHIP_NOT_FOUND'
   | 'SOCIAL_USER_NOT_BLOCKED'
   | 'SOCIAL_FOLLOW_NOT_FOUND'
+  /** ACTIVITY module — Epic 6.4 user activity stream (Story 6.4) */
+  | 'ACTIVITY_RATE_LIMITED' /** 429 specific to the activity endpoint */
   /** TAG module — 5 codes */
   | 'TAG_NOT_FOUND'
   | 'TAG_ANALYTICS_NOT_FOUND'
@@ -194,6 +196,15 @@ export type ErrorCode =
   | 'USER_ANALYTICS_NOT_FOUND'
   | 'USER_PROFILE_PRIVATE'
   | 'USER_BADGE_OWNERSHIP_NOT_FOUND'
+  /** ADMIN module — Phase 7 admin surfaces (Epic 7.1) */
+  | 'ADMIN_FORBIDDEN' /** target is not an admin */
+  | 'ADMIN_ROLE_NOT_FOUND' /** role grant references a missing role */
+  | 'ADMIN_ROLE_ALREADY_GRANTED' /** idempotent guard */
+  | 'ADMIN_USER_NOT_FOUND' /** the admin's user record was deleted */
+  | 'IRREVERSIBLE_CONFIRM_REQUIRED' /** destructive op without matching confirm string */
+  | 'RANKING_RECALCULATION_FAILED' /** Phase 7 ranking admin */
+  | 'RANKING_PERIOD_RESET_FAILED' /** Phase 7 ranking admin */
+  | 'RANKING_CONSISTENCY_FAILED' /** Phase 7 ranking admin */
   /** Synthesized GLOBAL_* codes for native HttpException paths (RFC 7807 §8.5) */
   | 'GLOBAL_BAD_REQUEST' /** 400 */
   | 'GLOBAL_VALIDATION_FAILED' /** 400 (string[] ValidationPipe) */
@@ -323,6 +334,8 @@ export const KNOWN_ERROR_CODES = [
   'SOCIAL_FRIENDSHIP_NOT_FOUND',
   'SOCIAL_USER_NOT_BLOCKED',
   'SOCIAL_FOLLOW_NOT_FOUND',
+  // ACTIVITY (Epic 6.4 / Story 6.4 — user activity stream)
+  'ACTIVITY_RATE_LIMITED',
   // TAG
   'TAG_NOT_FOUND',
   'TAG_ANALYTICS_NOT_FOUND',
@@ -350,6 +363,15 @@ export const KNOWN_ERROR_CODES = [
   'USER_ANALYTICS_NOT_FOUND',
   'USER_PROFILE_PRIVATE',
   'USER_BADGE_OWNERSHIP_NOT_FOUND',
+  // ADMIN (Phase 7 — Epic 7.1)
+  'ADMIN_FORBIDDEN',
+  'ADMIN_ROLE_NOT_FOUND',
+  'ADMIN_ROLE_ALREADY_GRANTED',
+  'ADMIN_USER_NOT_FOUND',
+  'IRREVERSIBLE_CONFIRM_REQUIRED',
+  'RANKING_RECALCULATION_FAILED',
+  'RANKING_PERIOD_RESET_FAILED',
+  'RANKING_CONSISTENCY_FAILED',
   // Synthesized GLOBAL_* codes
   'GLOBAL_BAD_REQUEST',
   'GLOBAL_VALIDATION_FAILED',
@@ -461,8 +483,9 @@ export const UNKNOWN_USER_COPY: UserCopyEntry = Object.freeze({
 // the leading module prefix) to the predicate phrase used in the
 // derived sentence. The phrase is the *clause* that follows the noun;
 // e.g. `NOT_FOUND` → `'was not found'`, `FORBIDDEN` → `'is forbidden'`.
-const MODULE_NOUN: Readonly<Record<string, string>> = {
+const   MODULE_NOUN: Readonly<Record<string, string>> = {
   ACHIEVEMENT: 'Achievement',
+  ADMIN: 'Admin action',
   ATTEMPT: 'Attempt',
   AUTH: 'Authentication',
   BADGE: 'Badge',
@@ -483,7 +506,7 @@ const MODULE_NOUN: Readonly<Record<string, string>> = {
   USER: 'User',
 };
 
-const TOKEN_PHRASE: Readonly<Record<string, string>> = {
+const   TOKEN_PHRASE: Readonly<Record<string, string>> = {
   NOT_FOUND: 'was not found',
   FORBIDDEN: 'is not allowed',
   VALIDATION: 'is invalid',
@@ -500,6 +523,10 @@ const TOKEN_PHRASE: Readonly<Record<string, string>> = {
   ALREADY_REPORTED: 'has already been reported',
   ALREADY_ACTIVE: 'is already active',
   ALREADY_WITHDRAWN: 'has already been withdrawn',
+  ALREADY_GRANTED: 'has already been granted',
+  RECALCULATION_FAILED: 'failed to recalculate',
+  PERIOD_RESET_FAILED: 'failed to reset the period',
+  CONSISTENCY_FAILED: 'failed the consistency check',
   COUNTDOWN_ALREADY_STARTED: 'countdown has already started',
   OPTIMISTIC_LOCK: 'was modified by someone else',
   NOT_IN_COUNTDOWN: 'is not in countdown',
@@ -870,6 +897,48 @@ const PHASE4_PRIORITY_COPY: Partial<Record<ErrorCode, UserCopyEntry>> = {
     title: 'Notification not found',
     body: 'This notification no longer exists.',
     toast: 'inline',
+  },
+  // ─── Phase 7 — Epic 7.1 priority copy (TKT-7.1.A3) ─────────────────────
+  // Admin codes
+  ADMIN_FORBIDDEN: {
+    title: 'Admin access required',
+    body: 'You need admin permissions to perform this action.',
+    toast: 'top',
+  },
+  ADMIN_ROLE_NOT_FOUND: {
+    title: 'Role not found',
+    body: 'The role you are trying to grant does not exist.',
+    toast: 'inline',
+  },
+  ADMIN_ROLE_ALREADY_GRANTED: {
+    title: 'Role already granted',
+    body: 'This role has already been granted to this user.',
+    toast: 'inline',
+  },
+  ADMIN_USER_NOT_FOUND: {
+    title: 'User not found',
+    body: 'The user you are trying to grant a role to no longer exists.',
+    toast: 'inline',
+  },
+  IRREVERSIBLE_CONFIRM_REQUIRED: {
+    title: 'Confirmation required',
+    body: 'You must type the exact confirmation phrase to confirm this irreversible action.',
+    toast: 'top',
+  },
+  RANKING_RECALCULATION_FAILED: {
+    title: 'Ranking recalculation failed',
+    body: 'The ranking system failed to recalculate. Try again or contact support.',
+    toast: 'top',
+  },
+  RANKING_PERIOD_RESET_FAILED: {
+    title: 'Ranking period reset failed',
+    body: 'The ranking period could not be reset. Try again or contact support.',
+    toast: 'top',
+  },
+  RANKING_CONSISTENCY_FAILED: {
+    title: 'Ranking consistency check failed',
+    body: 'The consistency check detected drift. Recalculate before retrying.',
+    toast: 'top',
   },
 };
 

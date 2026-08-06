@@ -11,12 +11,19 @@
  *   - `<SearchInput />` (TKT-5.6.D1) — at the top for re-submission.
  *   - `<SearchResults />` (TKT-5.6.D2) — grouped results below the input.
  *   - `<SearchGuard />` (TKT-5.6.E1) — gates the entire surface.
+ *   - `<SocialSearchGroup />` (TKT-6.5.F4) — social search suggestions (TKT-6.5.G4).
  *
  * ## Feature flag gating (F1 AC #2)
  *
  * When `phase5_search === 'placeholder'`, the page renders `null` via
  * `SearchGuard`. This is a thin wrapper — the flag check lives in the
  * guard module so flag flips are a single-file edit.
+ *
+ * ## Social search integration (TKT-6.5.G4)
+ *
+ * When `phase6_social_search === 'live'`, the `SocialSearchGroup` is
+ * rendered below the main search results. This allows users to see social
+ * search suggestions alongside the main search results.
  *
  * ## URL state
  *
@@ -33,6 +40,7 @@
 import * as React from "react";
 import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
+import { useMemo } from "react";
 
 import { isSearchSurfaceEnabled } from "@/features/search/flags";
 import { SearchGuard } from "@/features/search/lib/guard";
@@ -41,6 +49,10 @@ import { SearchResults } from "@/features/search/components/SearchResults";
 import { SearchEmptyState } from "@/features/search/components/shared/SearchEmptyState";
 import { useSearchUrlState, URL_PARAM_QUERY, URL_PARAM_KINDS } from "@/features/search/hooks/useSearchUrlState";
 import type { SearchQueryParams } from "@/features/search/types/search.types";
+import { getFeatureFlagValue } from "@/lib/feature-flags";
+
+import { SocialSearchGroup } from "@/features/social/discovery/SocialSearchGroup";
+import { SocialSearchPlaceholder } from "@/features/social/components/SocialSearchPlaceholder";
 
 // ─── Sub-components ──────────────────────────────────────────────────────
 
@@ -54,6 +66,12 @@ import type { SearchQueryParams } from "@/features/search/types/search.types";
 function SearchPageInner() {
   const searchParams = useSearchParams();
   const { query: urlQuery, kinds: urlKinds, setQuery, setKinds } = useSearchUrlState();
+
+  // TKT-6.5.G4 — read the social search feature flag.
+  const socialSearchFlag = useMemo(
+    () => getFeatureFlagValue("phase6_social_search"),
+    [],
+  );
 
   // Re-parse from URL on every search param change (back/forward nav).
   const params: SearchQueryParams = React.useMemo(() => {
@@ -100,15 +118,31 @@ function SearchPageInner() {
 
       {/* Results or empty state */}
       {hasQuery ? (
-        <SearchResults
-          params={params}
-          renderItem={(item) => {
-            // Render item is provided by per-kind cards in SearchResults.
-            // This is a pass-through; the actual rendering is done by
-            // SearchResultGroup via its renderItem prop.
-            return null;
-          }}
-        />
+        <div className="flex flex-col gap-6">
+          {/* Main search results */}
+          <SearchResults
+            params={params}
+            renderItem={(item) => {
+              // Render item is provided by per-kind cards in SearchResults.
+              // This is a pass-through; the actual rendering is done by
+              // SearchResultGroup via its renderItem prop.
+              return null;
+            }}
+          />
+
+          {/* TKT-6.5.G4 — Social search group (conditionally rendered) */}
+          {socialSearchFlag === "placeholder" && (
+            <SocialSearchPlaceholder />
+          )}
+          {socialSearchFlag === "live" && (
+            <section
+              data-testid="social-search-group"
+              aria-label="Social search suggestions"
+            >
+              <SocialSearchGroup query={urlQuery} />
+            </section>
+          )}
+        </div>
       ) : (
         <SearchEmptyState variant="no-query" />
       )}
