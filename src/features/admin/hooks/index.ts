@@ -16,6 +16,12 @@ export type { UseAdminFeatureFlag, AdminFeatureFlag } from './useAdminFeatureFla
 export { useAdminIdentity } from './useAdminIdentity';
 export type { UseAdminIdentityResult } from './useAdminIdentity';
 
+export { useAdminNav } from './useAdminNav';
+export type {
+  AdminNavEntry,
+  UseAdminNavResult,
+} from './useAdminNav';
+
 export { useAdminRequestId, useAdminRequestIdStore } from './useAdminRequestId';
 export type {
   AdminRequestIdEntry,

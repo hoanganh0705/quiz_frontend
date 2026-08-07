@@ -183,6 +183,8 @@ export type ErrorCode =
   | 'TOURNAMENT_ATTEMPT_ALREADY_EXISTS'
   | 'TOURNAMENT_PARTICIPANT_STATE'
   | 'TOURNAMENT_ALREADY_WITHDRAWN'
+  | 'TOURNAMENT_ALREADY_STARTED'        // Phase 7 — Story 7.7 (TKT-7.7.B2)
+  | 'TOURNAMENT_HAS_PARTICIPANTS'       // Phase 7 — Story 7.7 (TKT-7.7.B2)
   | 'TOURNAMENT_VALIDATION'
   | 'TOURNAMENT_REGISTRATION_CLOSED'
   | 'TOURNAMENT_FULL'           // Phase 5 — from KNOWN_ERROR_CODES but missing from union
@@ -205,6 +207,22 @@ export type ErrorCode =
   | 'RANKING_RECALCULATION_FAILED' /** Phase 7 ranking admin */
   | 'RANKING_PERIOD_RESET_FAILED' /** Phase 7 ranking admin */
   | 'RANKING_CONSISTENCY_FAILED' /** Phase 7 ranking admin */
+  /** ACHIEVEMENT_ADMIN module — Epic 7.8 achievement admin */
+  | 'REVAL_RUNNING' /** concurrent re-evaluation for the same user */
+  | 'BADGE_NOT_GRANTED' /** badge revoke when user does not hold the badge */
+  | 'ACHIEVEMENT_NOT_FOUND' /** achievement entity not found */
+  | 'SELF_ACTION_FORBIDDEN' /** self-action on a destructive admin endpoint */
+  /** RANKING_ADMIN module — Epic 7.9 ranking admin (TKT-7.9.B1) */
+  | 'OPERATION_RUNNING' /** another ranking operation is already in flight */
+  | 'OPERATION_COOLDOWN' /** ranking operation is in cooldown */
+  | 'INVALID_PERIOD' /** requested period identifier is not valid */
+  /** USER_ROLE_ADMIN module — Epic 7.10 user role admin (TKT-7.10.B1) */
+  | 'ROLE_NOT_FOUND' /** role does not exist */
+  | 'ALREADY_GRANTED' /** user already has the role */
+  | 'NOT_GRANTED' /** user does not have the role */
+  | 'SELF_ROLE_REVOKE_FORBIDDEN' /** cannot revoke own role */
+  /** AUDIT_LOG module — Epic 7.11 audit log (TKT-7.11.A1) */
+  | 'AUDIT_LOG_NOT_EXPOSED' /** audit log endpoint not exposed by backend */
   /** Synthesized GLOBAL_* codes for native HttpException paths (RFC 7807 §8.5) */
   | 'GLOBAL_BAD_REQUEST' /** 400 */
   | 'GLOBAL_VALIDATION_FAILED' /** 400 (string[] ValidationPipe) */
@@ -352,6 +370,8 @@ export const KNOWN_ERROR_CODES = [
   'TOURNAMENT_ATTEMPT_ALREADY_EXISTS',
   'TOURNAMENT_PARTICIPANT_STATE',
   'TOURNAMENT_ALREADY_WITHDRAWN',
+  'TOURNAMENT_ALREADY_STARTED',         // Phase 7 — Story 7.7 (TKT-7.7.B2)
+  'TOURNAMENT_HAS_PARTICIPANTS',        // Phase 7 — Story 7.7 (TKT-7.7.B2)
   'TOURNAMENT_VALIDATION',
   'TOURNAMENT_REGISTRATION_CLOSED',
   'TOURNAMENT_FULL',
@@ -372,6 +392,22 @@ export const KNOWN_ERROR_CODES = [
   'RANKING_RECALCULATION_FAILED',
   'RANKING_PERIOD_RESET_FAILED',
   'RANKING_CONSISTENCY_FAILED',
+  // ACHIEVEMENT_ADMIN (Epic 7.8)
+  'REVAL_RUNNING',
+  'BADGE_NOT_GRANTED',
+  'ACHIEVEMENT_NOT_FOUND',
+  'SELF_ACTION_FORBIDDEN',
+  // RANKING_ADMIN (Epic 7.9 — TKT-7.9.B1)
+  'OPERATION_RUNNING',
+  'OPERATION_COOLDOWN',
+  'INVALID_PERIOD',
+  // USER_ROLE_ADMIN (Epic 7.10 — TKT-7.10.B1)
+  'ROLE_NOT_FOUND',
+  'ALREADY_GRANTED',
+  'NOT_GRANTED',
+  'SELF_ROLE_REVOKE_FORBIDDEN',
+  // AUDIT_LOG (Epic 7.11 — TKT-7.11.A1)
+  'AUDIT_LOG_NOT_EXPOSED',
   // Synthesized GLOBAL_* codes
   'GLOBAL_BAD_REQUEST',
   'GLOBAL_VALIDATION_FAILED',
@@ -573,6 +609,9 @@ const   TOKEN_PHRASE: Readonly<Record<string, string>> = {
   PROFILE_PRIVATE: 'is private',
   BADGE_OWNERSHIP_NOT_FOUND: 'was not found',
   GRANT_ERROR: 'failed to grant',
+  OPERATION_RUNNING: 'another operation is already running',
+  OPERATION_COOLDOWN: 'is in cooldown — please wait',
+  INVALID_PERIOD: 'is not a valid period identifier',
   ATTEMPT_NOT_FOUND: 'was not found',
   ATTEMPT_FORBIDDEN: 'is not allowed',
   ATTEMPT_VALIDATION_FAILED: 'is invalid',
@@ -613,6 +652,8 @@ const   TOKEN_PHRASE: Readonly<Record<string, string>> = {
   TOURNAMENT_CONFLICT: 'is already in use',
   TOURNAMENT_VALIDATION: 'is invalid',
   TOURNAMENT_REGISTRATION_CLOSED: 'is closed',
+  TOURNAMENT_ALREADY_STARTED: 'has already started',
+  TOURNAMENT_HAS_PARTICIPANTS: 'has registered participants — remove them first',
   TOURNAMENT_ROUND_NOT_OPEN: 'is not open',
   TOURNAMENT_UNREGISTER_CLOSED: 'is closed',
   TOURNAMENT_WITHDRAW_CLOSED: 'is closed',
@@ -964,20 +1005,143 @@ const STORY_4_15_PRIORITY_COPY: Partial<Record<ErrorCode, UserCopyEntry>> = {
   },
 };
 
+// ─── Story 7.7 priority-copy overrides (TKT-7.7.B3) ──────────────────────
+//
+// Story 7.7 owns the user-facing copy for the tournament admin surface.
+// The overrides below refine the deterministic copy for the two stable
+// codes the destructive actions (edit, delete) and the cascade notice
+// surface. The copy explicitly mentions the cascade scope and the
+// action the admin can take to recover.
+//
+// These win against `STORY_4_15_PRIORITY_COPY`, `PHASE4_PRIORITY_COPY`,
+// and the deterministic template at table-build time (TKT-7.7.B3 AC #4).
+
+const STORY_7_7_PRIORITY_COPY: Partial<Record<ErrorCode, UserCopyEntry>> = {
+  TOURNAMENT_ALREADY_STARTED: {
+    title: 'Tournament already started',
+    body: 'This tournament has already started. You cannot edit or delete it. To stop it, cancel the tournament from the host controls.',
+    toast: 'inline',
+  },
+  TOURNAMENT_HAS_PARTICIPANTS: {
+    title: 'Tournament has participants',
+    body: 'This tournament has registered participants. Remove them or cancel the tournament from the host controls before deleting it.',
+    toast: 'inline',
+  },
+};
+
+// ─── Story 7.8 — Achievement admin priority copy ────────────────────────────
+
+/**
+ * Author-driven copy for the achievement admin stable codes.
+ * These win against `STORY_7_7_PRIORITY_COPY`, `STORY_4_15_PRIORITY_COPY`,
+ * and `PHASE4_PRIORITY_COPY`.
+ *
+ * @see EPIC_7_8_A1.md §3 for the gap list
+ * @see TKT-7.8.B3
+ */
+const STORY_7_8_PRIORITY_COPY: Partial<Record<ErrorCode, UserCopyEntry>> = {
+  REVAL_RUNNING: {
+    title: 'Re-evaluation already running',
+    body: 'A re-evaluation is already in progress for this user. We will refresh the badge list when it completes.',
+    toast: 'inline',
+  },
+  BADGE_NOT_GRANTED: {
+    title: 'Badge not held',
+    body: 'This user no longer holds this badge. The badge list will reflect the current state on the next refresh.',
+    toast: 'inline',
+  },
+  ACHIEVEMENT_NOT_FOUND: {
+    title: 'Achievement not found',
+    body: 'We could not find this achievement or badge. Refresh and try again.',
+    toast: 'inline',
+  },
+  SELF_ACTION_FORBIDDEN: {
+    title: 'Cannot modify your own badge',
+    body: 'You cannot re-evaluate or revoke your own badges through the admin surface. Use the user-facing badge flow instead.',
+    toast: 'inline',
+  },
+};
+
+// ─── Story 7.9 — Ranking admin priority copy ────────────────────────────────
+
+/**
+ * Author-driven copy for the ranking admin stable codes.
+ * These win against `STORY_7_8_PRIORITY_COPY`, `STORY_7_7_PRIORITY_COPY`,
+ * `STORY_4_15_PRIORITY_COPY`, and `PHASE4_PRIORITY_COPY`.
+ *
+ * @see EPIC_7_9_A1.md §2.2 for the gap list
+ * @see TKT-7.9.B1
+ */
+const STORY_7_9_PRIORITY_COPY: Partial<Record<ErrorCode, UserCopyEntry>> = {
+  OPERATION_RUNNING: {
+    title: 'Operation already running',
+    body: 'A ranking operation is already in progress. Please wait for it to complete before starting another.',
+    toast: 'inline',
+  },
+  OPERATION_COOLDOWN: {
+    title: 'Cooldown active',
+    body: 'This operation is in cooldown. Please wait before trying again.',
+    toast: 'inline',
+  },
+  INVALID_PERIOD: {
+    title: 'Invalid period',
+    body: 'The requested period identifier is not valid. Please check the available periods and try again.',
+    toast: 'inline',
+  },
+};
+
+// ─── Story 7.11 — Audit log priority copy ─────────────────────────────────
+
+/**
+ * Author-driven copy for the audit log stable codes.
+ * These win against `STORY_7_9_PRIORITY_COPY`, `STORY_7_8_PRIORITY_COPY`,
+ * `STORY_7_7_PRIORITY_COPY`, `STORY_4_15_PRIORITY_COPY`, and `PHASE4_PRIORITY_COPY`.
+ *
+ * @see docs/AUDIT_ENDPOINT_CONTRACT.md
+ * @see TKT-7.11.A1
+ */
+const STORY_7_11_PRIORITY_COPY: Partial<Record<ErrorCode, UserCopyEntry>> = {
+  AUDIT_LOG_NOT_EXPOSED: {
+    title: 'Audit log not available',
+    body: 'The audit log endpoint is not exposed by the backend. Admin actions are still recorded in Sentry breadcrumbs for triage.',
+    toast: 'inline',
+  },
+};
+
 // ─── Final table ────────────────────────────────────────────────────────
 
 /**
- * Build the final USER_COPY table by overlaying `STORY_4_15_PRIORITY_COPY`
- * and `PHASE4_PRIORITY_COPY` onto the deterministically derived copy.
- * The result is a complete `Record<ErrorCode, UserCopyEntry>`
- * (TypeScript enforces coverage). Story 4.15 wins so its banner copy
- * for `ATTEMPT_VALIDATION_FAILED` overrides the Phase 4 generic copy.
+ * Build the final USER_COPY table by overlaying `STORY_7_9_PRIORITY_COPY`,
+ * `STORY_7_8_PRIORITY_COPY`, `STORY_7_7_PRIORITY_COPY`,
+ * `STORY_4_15_PRIORITY_COPY`, and `PHASE4_PRIORITY_COPY` onto the
+ * deterministically derived copy. The result is a complete
+ * `Record<ErrorCode, UserCopyEntry>` (TypeScript enforces coverage).
+ *
+ * Overlay order (highest priority first):
+ *
+ *   1. `STORY_7_9_PRIORITY_COPY` — Story 7.9 ranking admin copy (TKT-7.9.B1).
+ *   2. `STORY_7_8_PRIORITY_COPY` — Story 7.8 achievement admin copy (TKT-7.8.B3).
+ *   3. `STORY_7_7_PRIORITY_COPY` — Story 7.7 tournament admin copy.
+ *   4. `STORY_4_15_PRIORITY_COPY` — Story 4.15 attempt-runner copy.
+ *   5. `PHASE4_PRIORITY_COPY` — Phase 4 surface copy.
+ *   6. The deterministic template (`deriveCopyFor`).
+ *
+ * Story 7.9 wins so its ranking-admin-specific copy for
+ * `OPERATION_RUNNING`, `OPERATION_COOLDOWN`, and `INVALID_PERIOD`
+ * overrides every other overlay (TKT-7.9.B1 AC #3).
  */
 function buildUserCopy(): Record<ErrorCode, UserCopyEntry> {
   const out = {} as Record<ErrorCode, UserCopyEntry>;
   for (const code of KNOWN_ERROR_CODES) {
-    if (code in STORY_4_15_PRIORITY_COPY) {
-      // Object.freeze at the leaf so the table is deeply immutable.
+    if (code in STORY_7_11_PRIORITY_COPY) {
+      out[code] = Object.freeze({ ...STORY_7_11_PRIORITY_COPY[code]! });
+    } else if (code in STORY_7_9_PRIORITY_COPY) {
+      out[code] = Object.freeze({ ...STORY_7_9_PRIORITY_COPY[code]! });
+    } else if (code in STORY_7_8_PRIORITY_COPY) {
+      out[code] = Object.freeze({ ...STORY_7_8_PRIORITY_COPY[code]! });
+    } else if (code in STORY_7_7_PRIORITY_COPY) {
+      out[code] = Object.freeze({ ...STORY_7_7_PRIORITY_COPY[code]! });
+    } else if (code in STORY_4_15_PRIORITY_COPY) {
       out[code] = Object.freeze({ ...STORY_4_15_PRIORITY_COPY[code]! });
     } else if (code in PHASE4_PRIORITY_COPY) {
       out[code] = Object.freeze({ ...PHASE4_PRIORITY_COPY[code]! });

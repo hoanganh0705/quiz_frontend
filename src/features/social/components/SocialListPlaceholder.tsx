@@ -77,6 +77,22 @@ const COPY: Record<
     description:
       "See the users you have blocked. Sign in to view your full list.",
   },
+  "mutual-friends": {
+    title: "Mutual friends",
+    description: "See the friends you share with this user.",
+  },
+  "mutual-followers": {
+    title: "Mutual followers",
+    description: "See the followers you share with this user.",
+  },
+  activity: {
+    title: "Activity",
+    description: "See this user's recent activity.",
+  },
+  feed: {
+    title: "Feed",
+    description: "See the latest community activity.",
+  },
 };
 
 /**

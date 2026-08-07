@@ -39,7 +39,7 @@ import { useQuizzesTrending } from '@/features/quizzes/hooks/useQuizzesTrending'
 const getQuizzesPopularMock = vi.fn()
 const getQuizzesTrendingMock = vi.fn()
 
-vi.mock('@/features/quizzes/api/quizzes.wrapper', () => ({
+vi.mock('@/features/quizzes/services/quizzes.service', () => ({
   listQuizzes: vi.fn(),
   getQuizBySlug: vi.fn(),
   getQuizzesPopular: (...args: unknown[]) => getQuizzesPopularMock(...args),

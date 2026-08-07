@@ -1,5 +1,8 @@
 'use client';
 
+import type { ReactNode } from 'react';
+import React from 'react';
+
 /**
  * `features/admin/components/TypedConfirmDialog.tsx`
  *
@@ -66,6 +69,12 @@ export interface TypedConfirmDialogProps {
    * and for surface-specific overrides (none today).
    */
   expectedConfirmString?: string;
+  /**
+   * Optional content rendered between the dialog header and the typed-confirm
+   * form. Used by `TournamentDeleteDialog` (TKT-7.7.D4) to render the
+   * cascade notice above the confirm input.
+   */
+  children?: React.ReactNode;
 }
 
 export function TypedConfirmDialog({
@@ -76,6 +85,7 @@ export function TypedConfirmDialog({
   pending = false,
   previousError = null,
   expectedConfirmString,
+  children,
 }: TypedConfirmDialogProps) {
   const [input, setInput] = useState('');
   const inputId = useId();
@@ -124,6 +134,10 @@ export function TypedConfirmDialog({
         </AlertDialogHeader>
 
         {previousError ? <RequestIdBanner error={previousError} /> : null}
+
+        {children !== undefined ? (
+          <div data-testid="typed-confirm-dialog-children">{children}</div>
+        ) : null}
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-3">
           <div className="flex flex-col gap-2">

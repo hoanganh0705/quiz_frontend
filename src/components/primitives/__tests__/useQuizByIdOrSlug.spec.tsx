@@ -40,18 +40,18 @@ const { getQuizByIdOrSlugMock } = vi.hoisted(() => ({
   getQuizByIdOrSlugMock: vi.fn(),
 }));
 
-vi.mock('@/features/quizzes/api/quizzes.wrapper', async () => {
+vi.mock('@/features/quizzes/services/quizzes.service', async () => {
   const actual =
     await vi.importActual<
-      typeof import('@/features/quizzes/api/quizzes.wrapper')
-    >('@/features/quizzes/api/quizzes.wrapper');
+      typeof import('@/features/quizzes/services/quizzes.service')
+    >('@/features/quizzes/services/quizzes.service');
   return {
     ...actual,
     getQuizByIdOrSlug: getQuizByIdOrSlugMock,
   };
 });
 
-import { getQuizByIdOrSlug } from '@/features/quizzes/api/quizzes.wrapper';
+import { getQuizByIdOrSlug } from '@/features/quizzes/services/quizzes.service';
 
 function makeResponse(quizId: string): QuizResponseDto {
   return {

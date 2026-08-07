@@ -54,7 +54,7 @@ import useSWR from 'swr';
 import { ApiError, isApiError } from '@/lib/api';
 import type { QuizListItemDto } from '@/lib/api/generated/schemas';
 
-import { getQuizzesRelated } from '@/features/quizzes/api/quizzes.wrapper';
+import { getQuizzesRelated } from '@/features/quizzes/services/quizzes.service';
 
 /**
  * Baseline of 4 related quizzes, matching Story 3.8 line 878

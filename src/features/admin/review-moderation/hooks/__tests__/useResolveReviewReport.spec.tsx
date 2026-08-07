@@ -2,7 +2,7 @@
  * `useResolveReviewReport` unit tests.
  *
  * Source epic:   Epic 7.5 — Review moderation queue.
- * Source ticket: TKT-7.5.C2.
+ * Source ticket: TKT-7.5.C2 (with TKT-7.5.G2 cross-tab broadcast assertions).
  *
  * Coverage map (TKT-7.5.C2 acceptance criteria):
  *
@@ -20,6 +20,13 @@
  *   AC #7 — the consumer-side action maps to the SDK `status` value
  *           (e.g. `dismiss` → `'dismissed'`, `delete_review` →
  *           `'actioned'` + companion DELETE)
+ *
+ * Coverage map (TKT-7.5.G2 acceptance criteria):
+ *
+ *   AC #3 — `useResolveReviewReport` calls `broadcastReviewModerationInvalidate`
+ *           on success with the documented shape (action, reportId,
+ *           reviewId).
+ *   AC #4 — The hook does NOT broadcast on failure.
  */
 
 import { act, renderHook, waitFor } from '@testing-library/react';
@@ -36,6 +43,7 @@ const mockPatchReviewReport = vi.hoisted(() => vi.fn());
 const mockAdminDeleteReview = vi.hoisted(() => vi.fn());
 const mockMutate = vi.hoisted(() => vi.fn());
 const mockAddReviewModerationBreadcrumb = vi.hoisted(() => vi.fn());
+const mockBroadcastReviewModerationInvalidate = vi.hoisted(() => vi.fn());
 
 vi.mock('@/features/admin/services/review-moderation.service', () => ({
   listReviewReports: vi.fn(),
@@ -64,6 +72,11 @@ vi.mock('swr', async (importOriginal) => {
 vi.mock('@/lib/admin/phase7_admin_sentry', () => ({
   addReviewModerationBreadcrumb: (...args: unknown[]) =>
     mockAddReviewModerationBreadcrumb(...args),
+}));
+
+vi.mock('@/features/admin/review-moderation/cache/review-moderation-cross-tab', () => ({
+  broadcastReviewModerationInvalidate: (...args: unknown[]) =>
+    mockBroadcastReviewModerationInvalidate(...args),
 }));
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
@@ -132,6 +145,7 @@ afterEach(() => {
   mockAdminDeleteReview.mockReset();
   mockMutate.mockReset();
   mockAddReviewModerationBreadcrumb.mockReset();
+  mockBroadcastReviewModerationInvalidate.mockReset();
 });
 
 beforeEach(() => {
@@ -139,6 +153,7 @@ beforeEach(() => {
   mockAdminDeleteReview.mockReset();
   mockMutate.mockReset();
   mockAddReviewModerationBreadcrumb.mockReset();
+  mockBroadcastReviewModerationInvalidate.mockReset();
 });
 
 // ─── Tests ───────────────────────────────────────────────────────────────────
@@ -478,5 +493,149 @@ describe('TKT-7.5.C2 — useResolveReviewReport: state management', () => {
     expect(secondCall).toBeDefined();
     await expect(firstCall!).resolves.toMatchObject({ status: 'dismissed' });
     await expect(secondCall!).resolves.toMatchObject({ status: 'dismissed' });
+  });
+});
+
+// ─── TKT-7.5.G2 — cross-tab broadcast wiring on the resolve hook ────────────
+
+describe('TKT-7.5.G2 — useResolveReviewReport cross-tab broadcast', () => {
+  it('broadcasts on success with the resolved reviewId', async () => {
+    mockPatchReviewReport.mockResolvedValueOnce(
+      makeUpdatedReport({ reportId: 'r-1', reviewId: 'review-1', status: 'dismissed' }),
+    );
+
+    const { result } = renderUseResolveReviewReport();
+
+    await act(async () => {
+      await result.current.resolve('r-1', 'dismiss');
+    });
+
+    expect(mockBroadcastReviewModerationInvalidate).toHaveBeenCalledTimes(1);
+    expect(mockBroadcastReviewModerationInvalidate).toHaveBeenCalledWith(
+      'resolve',
+      'r-1',
+      'review-1',
+    );
+  });
+
+  it('broadcasts with reviewId=null when the resolved report does not expose one', async () => {
+    // The SDK envelope can omit `reviewId` for pure status mutations;
+    // the broadcast must still fire, with `null`.
+    mockPatchReviewReport.mockResolvedValueOnce({
+      reportId: 'r-2',
+      // no reviewId field
+      quizId: 'q-1',
+      quizTitle: 'Sample Quiz',
+      reviewerUsername: 'reporter-1',
+      reportedUserId: 'author-1',
+      rating: 1,
+      comment: 'spam',
+      reason: 'spam',
+      status: 'dismissed',
+      details: null,
+      createdAt: '2024-01-01T00:00:00.000Z',
+      updatedAt: '2024-01-01T01:00:00.000Z',
+    });
+
+    const { result } = renderUseResolveReviewReport();
+
+    await act(async () => {
+      await result.current.resolve('r-2', 'dismiss');
+    });
+
+    expect(mockBroadcastReviewModerationInvalidate).toHaveBeenCalledWith(
+      'resolve',
+      'r-2',
+      null,
+    );
+  });
+
+  it('does NOT broadcast on REVIEW_NOT_FOUND', async () => {
+    mockPatchReviewReport.mockRejectedValueOnce(
+      makeApiError('REVIEW_NOT_FOUND', 404, 'req-404-bc'),
+    );
+
+    const { result } = renderUseResolveReviewReport();
+
+    await act(async () => {
+      try {
+        await result.current.resolve('r-1', 'dismiss');
+      } catch {
+        // expected
+      }
+    });
+
+    expect(mockBroadcastReviewModerationInvalidate).not.toHaveBeenCalled();
+  });
+
+  it('does NOT broadcast on GLOBAL_FORBIDDEN', async () => {
+    mockPatchReviewReport.mockRejectedValueOnce(
+      makeApiError('GLOBAL_FORBIDDEN', 403, 'req-403-bc'),
+    );
+
+    const { result } = renderUseResolveReviewReport();
+
+    await act(async () => {
+      try {
+        await result.current.resolve('r-1', 'dismiss');
+      } catch {
+        // expected
+      }
+    });
+
+    expect(mockBroadcastReviewModerationInvalidate).not.toHaveBeenCalled();
+  });
+
+  it('does NOT broadcast on generic 5xx', async () => {
+    mockPatchReviewReport.mockRejectedValueOnce(
+      makeApiError('GLOBAL_INTERNAL', 500, 'req-500-bc'),
+    );
+
+    const { result } = renderUseResolveReviewReport();
+
+    await act(async () => {
+      try {
+        await result.current.resolve('r-1', 'dismiss');
+      } catch {
+        // expected
+      }
+    });
+
+    expect(mockBroadcastReviewModerationInvalidate).not.toHaveBeenCalled();
+  });
+
+  it('broadcasts exactly once on success (no double-fire across duplicate in-flight calls)', async () => {
+    let resolvePatch: ((value: unknown) => void) | null = null;
+    mockPatchReviewReport.mockImplementationOnce(
+      () =>
+        new Promise((r) => {
+          resolvePatch = r;
+        }),
+    );
+
+    const { result } = renderUseResolveReviewReport();
+
+    let firstCall: Promise<unknown> | undefined;
+    let secondCall: Promise<unknown> | undefined;
+    act(() => {
+      firstCall = result.current.resolve('r-1', 'dismiss');
+    });
+    act(() => {
+      secondCall = result.current.resolve('r-1', 'dismiss');
+    });
+
+    await act(async () => {
+      if (resolvePatch) {
+        resolvePatch(
+          makeUpdatedReport({ status: 'dismissed', reviewId: 'review-1' }),
+        );
+      }
+      await Promise.all([firstCall, secondCall]);
+    });
+
+    // Both `resolve()` calls share the same in-flight chain → exactly
+    // one underlying PATCH + one underlying broadcast.
+    expect(mockPatchReviewReport).toHaveBeenCalledTimes(1);
+    expect(mockBroadcastReviewModerationInvalidate).toHaveBeenCalledTimes(1);
   });
 });

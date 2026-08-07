@@ -78,6 +78,23 @@ export type {
   UseCursorPaginatedResult
 } from './use-cursor-paginated.types'
 
+// `useOffsetPaginated` — Phase-6 offset-aware pagination primitive
+// (Epic 6.9 / TKT-6.9.D1). The hook wraps `useCursorPaginated` with
+// `paginationKind: 'offset'` and exposes an offset-numbered API
+// surface (`offset` / `limit` / `hasMore` / `loadMore`). Public
+// contract types are re-exported so consumers can import them from
+// the public barrel.
+export {
+  useOffsetPaginated,
+  FEED_DEFAULT_LIMIT,
+  FEED_MAX_LIMIT,
+} from './use-offset-paginated'
+export type {
+  OffsetPaginatedFetcher,
+  UseOffsetPaginatedParams,
+  UseOffsetPaginatedResult,
+} from './use-offset-paginated'
+
 // `useSingleWithRetry` — Phase-3 single-resource read primitive (Epic 3.6).
 // The hook shares the 429 backoff policy with `useCursorPaginated`
 // (250 / 500 / 1000 ms), exposes a manual `retry()` action, and
@@ -140,6 +157,7 @@ export { getComments } from './generated/comments/comments';
 export { getInstances } from './generated/instances/instances';
 export { getLeaderboards } from './generated/leaderboards/leaderboards';
 export { getAchievements } from './generated/achievements/achievements';
+export { getNotifications } from './generated/notifications/notifications';
 export { getSearch } from './generated/search/search';
 export { getQuizzes } from './generated/quizzes/quizzes';
 export { getReviews } from './generated/reviews/reviews';

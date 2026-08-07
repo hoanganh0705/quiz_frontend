@@ -77,23 +77,23 @@ function makeReview(overrides: Partial<ReviewDetailResponseDto> = {}): ReviewDet
     rating: 4,
     comment: 'Looks fine',
     helpfulCount: 0,
-    hasMarkedHelpful: false,
-    isOwn: false,
-    status: 'visible',
-    moderationStatus: 'clean',
     createdAt: '2024-01-01T00:00:00.000Z',
     updatedAt: '2024-01-01T00:00:00.000Z',
-    isEdited: false,
     ...overrides,
   };
 }
 
-function withFreshSWRCache(): React.PropsWithChildren<unknown> {
+function withFreshSWRCache({
+  children,
+}: {
+  children: React.ReactNode;
+}): React.ReactElement {
   // Provide a fresh SWR cache per render so re-renders do not bleed
   // cache between test cases.
-  return ({ children }) =>
+  return (
     // eslint-disable-next-line react/no-unknown-property
-    <SWRConfig value={{ provider: () => new Map() }}>{children}</SWRConfig>;
+    <SWRConfig value={{ provider: () => new Map() }}>{children}</SWRConfig>
+  );
 }
 
 // ─── Lifecycle ──────────────────────────────────────────────────────────────
@@ -113,7 +113,7 @@ describe('TKT-7.5.C3 — useReview', () => {
     getReviewByIdMock.mockResolvedValue({ data: makeReview() });
 
     const { result } = renderHook(() => useReview(null), {
-      wrapper: withFreshSWRCache(),
+      wrapper: withFreshSWRCache,
     });
 
     expect(result.current.isLoading).toBe(false);
@@ -127,7 +127,7 @@ describe('TKT-7.5.C3 — useReview', () => {
     getReviewByIdMock.mockResolvedValue({ data: review });
 
     const { result } = renderHook(() => useReview('rv-42'), {
-      wrapper: withFreshSWRCache(),
+      wrapper: withFreshSWRCache,
     });
 
     await waitFor(() => expect(result.current.isLoading).toBe(false));
@@ -145,7 +145,7 @@ describe('TKT-7.5.C3 — useReview', () => {
     getReviewByIdMock.mockResolvedValue({});
 
     const { result } = renderHook(() => useReview('rv-ghost'), {
-      wrapper: withFreshSWRCache(),
+      wrapper: withFreshSWRCache,
     });
 
     await waitFor(() => expect(result.current.isLoading).toBe(false));
@@ -158,7 +158,7 @@ describe('TKT-7.5.C3 — useReview', () => {
     getReviewByIdMock.mockRejectedValue(makeApiError(404, 'REVIEW_NOT_FOUND'));
 
     const { result } = renderHook(() => useReview('rv-missing'), {
-      wrapper: withFreshSWRCache(),
+      wrapper: withFreshSWRCache,
     });
 
     await waitFor(() => expect(result.current.error).not.toBeNull());
@@ -172,7 +172,7 @@ describe('TKT-7.5.C3 — useReview', () => {
     getReviewByIdMock.mockRejectedValue(makeApiError(500, 'GLOBAL_INTERNAL_ERROR'));
 
     renderHook(() => useReview('rv-err'), {
-      wrapper: withFreshSWRCache(),
+      wrapper: withFreshSWRCache,
     });
 
     // Allow the first request to resolve.
@@ -193,7 +193,7 @@ describe('TKT-7.5.C3 — useReview', () => {
     const { result, rerender } = renderHook(
       ({ id }: { id: string | null }) => useReview(id),
       {
-        wrapper: withFreshSWRCache(),
+        wrapper: withFreshSWRCache,
         initialProps: { id: 'rv-a' as string | null },
       },
     );
@@ -219,7 +219,7 @@ describe('TKT-7.5.C3 — useReview', () => {
     const { result, rerender } = renderHook(
       ({ id }: { id: string | null }) => useReview(id),
       {
-        wrapper: withFreshSWRCache(),
+        wrapper: withFreshSWRCache,
         initialProps: { id: 'rv-x' as string | null },
       },
     );
@@ -243,7 +243,7 @@ describe('TKT-7.5.C3 — useReview', () => {
     );
 
     const { result } = renderHook(() => useReview('rv-dedupe'), {
-      wrapper: withFreshSWRCache(),
+      wrapper: withFreshSWRCache,
     });
 
     // Force several re-renders that observe the same id and an

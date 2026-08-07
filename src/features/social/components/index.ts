@@ -180,3 +180,64 @@ export { OutgoingRequestsListPage } from "./../pages/OutgoingRequestsListPage";
 export type {
   OutgoingRequestsListPageProps,
 } from "./../pages/OutgoingRequestsListPage";
+
+// Epic 6.9 / TKT-6.9.E1 — type-discriminated feed-item dispatcher.
+export { FeedItemRenderer } from "./FeedItemRenderer";
+export type { FeedItemRendererProps } from "./FeedItemRenderer";
+export { FEED_ITEM_RENDERER_INVARIANTS } from "./FeedItemRenderer";
+
+// Epic 6.9 / TKT-6.9.E2 — per-type feed item sub-renderers.
+export * as FeedItem from "./feed-item";
+
+// Epic 6.9 / TKT-6.9.E3 — shared feed row primitive.
+export { SocialFeedItem } from "./SocialFeedItem";
+export type { SocialFeedItemProps } from "./SocialFeedItem";
+
+// Epic 6.9 / TKT-6.9.F1 — feed-loading skeleton primitive.
+export { FeedSkeleton } from "./FeedSkeleton";
+export type { FeedSkeletonProps } from "./FeedSkeleton";
+
+// Epic 6.9 / TKT-6.9.F2 — feed empty-state primitive.
+export { FeedEmptyState } from "./FeedEmptyState";
+export type { FeedEmptyStateProps } from "./FeedEmptyState";
+
+// Epic 6.9 / TKT-6.9.F3 — feed error-state primitive.
+export { FeedErrorState } from "./FeedErrorState";
+export type { FeedErrorStateProps } from "./FeedErrorState";
+
+// Epic 6.9 / TKT-6.9.F4 — feed revalidation indicator primitive.
+export { FeedStaleMarker } from "./FeedStaleMarker";
+export type { FeedStaleMarkerProps } from "./FeedStaleMarker";
+
+// Epic 6.9 / TKT-6.9.F5 — "global feed" labelling component.
+export { FeedGlobalNotice } from "./FeedGlobalNotice";
+
+// Epic 6.9 / TKT-6.9.F6 — feed load-more affordance primitive.
+export { FeedLoadMore } from "./FeedLoadMore";
+export type { FeedLoadMoreProps } from "./FeedLoadMore";
+
+// Epic 6.9 / TKT-6.9.G1 — global-feed route gate + placeholder.
+export { SocialFeedRouteGate } from "./SocialFeedRouteGate";
+export { SocialFeedPlaceholder } from "./SocialFeedPlaceholder";
+export { SocialFeedPage } from "./../pages/SocialFeedPage";
+
+// Epic 6.10 / TKT-6.10.E8 — side-effect-only shell that mounts the
+// social-aware badge listeners (notification router + unread count).
+export { BadgeSyncLayer } from "./BadgeSyncLayer";
+
+// Epic 6.10 / TKT-6.10.E9 — small inline pill that surfaces the
+// current `/notifications` socket connection state.
+export {
+  ConnectionStatusBadge,
+  STATUS_COPY,
+  shouldRenderStatusBadge,
+} from "./ConnectionStatusBadge";
+export type { ConnectionStatusBadgeCopy } from "./ConnectionStatusBadge";
+
+// Epic 6.10 / TKT-6.10.F1 — inline toast for the most recent WS error.
+export { RealtimeWsErrorToast } from "./RealtimeWsErrorToast";
+
+// Epic 6.10 / TKT-6.10.G1 — integration shell that wires every social
+// realtime listener hook and UI primitive into a single provider tree.
+export { RealtimeSocialShell } from "./RealtimeSocialShell";
+export type { RealtimeSocialShellProps } from "./RealtimeSocialShell";

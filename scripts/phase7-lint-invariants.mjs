@@ -92,6 +92,80 @@
  *      integration specs under
  *      `src/features/shared/__tests__/phase7-*.spec.tsx` remain exempt.
  *
+ *  12. **review-moderation-no-sdk-leak** (TKT-7.5.H3) — No file under
+ *      `features/admin/review-moderation/**` may import the regenerated
+ *      review SDK directly (`@/lib/api/generated/reviews/reviews` or
+ *      `@/lib/api/generated/reviews/...`). All review-moderation HTTP
+ *      traffic must flow through
+ *      `features/admin/services/review-moderation.service.ts`. Mirrors
+ *      the tag-admin (`tag-admin-no-legacy-imports`) and category-admin
+ *      (`category-admin-sdk-boundary`) enforcement shape.
+ *
+ *  13. **review-moderation-service-boundary** (TKT-7.5.H3) — Outside
+ *      `features/admin/review-moderation/**`, only the
+ *      `features/admin/services/**` folder, the admin route group
+ *      (`src/app/admin/**`), and the admin feature folder
+ *      (`src/features/admin/**`) may import the review-moderation
+ *      service (`@/features/admin/services/review-moderation.service`).
+ *      Cross-feature integration specs under
+ *      `src/features/shared/__tests__/phase7-*.spec.tsx` remain exempt.
+ *
+ *  14. **comment-moderation-no-sdk-leak** (TKT-7.6.H3) — No file under
+ *      `features/admin/comment-moderation/**` may import the
+ *      regenerated comment SDK directly
+ *      (`@/lib/api/generated/comments/...`). All comment-moderation
+ *      HTTP traffic must flow through
+ *      `features/admin/services/comment-moderation.service.ts`. Mirrors
+ *      the review-moderation (`review-moderation-no-sdk-leak`),
+ *      tag-admin (`tag-admin-no-legacy-imports`), and category-admin
+ *      (`category-admin-sdk-boundary`) enforcement shape.
+ *
+ *  15. **comment-moderation-service-boundary** (TKT-7.6.H3) — Outside
+ *      `features/admin/comment-moderation/**`, only the
+ *      `features/admin/services/**` folder, the admin route group
+ *      (`src/app/admin/**`), and the admin feature folder
+ *      (`src/features/admin/**`) may import the comment-moderation
+ *      service (`@/features/admin/services/comment-moderation.service`).
+ *      Cross-feature integration specs under
+ *      `src/features/shared/__tests__/phase7-*.spec.tsx` remain exempt.
+ *      Mirrors `review-moderation-service-boundary`.
+ *
+ * 16. **tournament-admin-no-sdk-leak** (TKT-7.7.H3) — No file under
+ *      `features/admin/tournament-admin/**` may import the
+ *      regenerated tournament SDK directly. All tournament-admin HTTP
+ *      traffic must flow through
+ *      `features/admin/services/tournament-admin.service.ts`. Mirrors
+ *      the review-moderation (`review-moderation-no-sdk-leak`),
+ *      tag-admin (`tag-admin-no-legacy-imports`), and category-admin
+ *      (`category-admin-sdk-boundary`) enforcement shapes.
+ *
+ * 17. **tournament-admin-service-boundary** (TKT-7.7.H3) — Outside
+ *      `features/admin/tournament-admin/**`, only the
+ *      `features/admin/services/**` folder, the admin route group
+ *      (`src/app/admin/**`), and the admin feature folder
+ *      (`src/features/admin/**`) may import the tournament admin
+ *      service (`@/features/admin/services/tournament-admin.service`).
+ *      Cross-feature integration specs under
+ *      `src/features/shared/__tests__/phase7-*.spec.tsx` remain exempt.
+ *      Mirrors `comment-moderation-service-boundary`.
+ *
+ * 18. **achievement-admin-no-sdk-leak** (TKT-7.8.H3) — No file under
+ *      `features/admin/achievement-admin/**` may import the
+ *      regenerated achievement SDK directly. All achievement-admin HTTP
+ *      traffic must flow through
+ *      `features/admin/services/achievement-admin.service.ts`. Mirrors
+ *      the tournament-admin (`tournament-admin-no-sdk-leak`) enforcement shape.
+ *
+ * 19. **achievement-admin-service-boundary** (TKT-7.8.H3) — Outside
+ *      `features/admin/achievement-admin/**`, only the
+ *      `features/admin/services/**` folder, the admin route group
+ *      (`src/app/admin/**`), and the admin feature folder
+ *      (`src/features/admin/**`) may import the achievement admin
+ *      service (`@/features/admin/services/achievement-admin.service`).
+ *      Cross-feature integration specs under
+ *      `src/features/shared/__tests__/phase7-*.spec.tsx` remain exempt.
+ *      Mirrors `tournament-admin-service-boundary`.
+ *
  * ## Usage
  *
  *   node scripts/phase7-lint-invariants.mjs [--help]
@@ -135,6 +209,30 @@ const CATEGORY_ADMIN_SERVICE_PATH = path.resolve(
   ADMIN_DIR,
   "services",
   "category-admin.service.ts",
+);
+const REVIEW_MODERATION_DIR = path.resolve(ADMIN_DIR, "review-moderation");
+const REVIEW_MODERATION_SERVICE_PATH = path.resolve(
+  ADMIN_DIR,
+  "services",
+  "review-moderation.service.ts",
+);
+const COMMENT_MODERATION_DIR = path.resolve(ADMIN_DIR, "comment-moderation");
+const COMMENT_MODERATION_SERVICE_PATH = path.resolve(
+  ADMIN_DIR,
+  "services",
+  "comment-moderation.service.ts",
+);
+const TOURNAMENT_ADMIN_DIR = path.resolve(ADMIN_DIR, "tournament-admin");
+const TOURNAMENT_ADMIN_SERVICE_PATH = path.resolve(
+  ADMIN_DIR,
+  "services",
+  "tournament-admin.service.ts",
+);
+const ACHIEVEMENT_ADMIN_DIR = path.resolve(ADMIN_DIR, "achievement-admin");
+const ACHIEVEMENT_ADMIN_SERVICE_PATH = path.resolve(
+  ADMIN_DIR,
+  "services",
+  "achievement-admin.service.ts",
 );
 
 // Category-admin-internal service-list helper. The category-admin
@@ -210,6 +308,14 @@ Checks (always run):
   tag-admin-no-legacy-imports    features/admin/tag-admin/** files must not import legacy tags-admin api.
   tag-admin-sdk-boundary         Non-admin features must not import features/admin/services/tag-admin.service.
   category-admin-sdk-boundary   Non-admin features must not import features/admin/services/category-admin.service.
+  review-moderation-no-sdk-leak features/admin/review-moderation/** must not import the regenerated review SDK directly.
+  review-moderation-service-boundary Non-admin features must not import features/admin/services/review-moderation.service.
+  comment-moderation-no-sdk-leak features/admin/comment-moderation/** must not import the regenerated comment SDK directly.
+  comment-moderation-service-boundary Non-admin features must not import features/admin/services/comment-moderation.service.
+  tournament-admin-no-sdk-leak features/admin/tournament-admin/** must not import the regenerated tournament SDK directly.
+  tournament-admin-service-boundary Non-admin features must not import features/admin/services/tournament-admin.service.
+  achievement-admin-no-sdk-leak features/admin/achievement-admin/** must not import the regenerated achievement SDK directly.
+  achievement-admin-service-boundary Non-admin features must not import features/admin/services/achievement-admin.service.
 
 Flags:
   --help    Print this help and exit 64.
@@ -921,7 +1027,640 @@ async function checkCategoryAdminSdkBoundary() {
   return violations;
 }
 
+// ─── Check 12: review-moderation-no-sdk-leak (TKT-7.5.H3) ─────────────────
+
+/**
+ * Review-moderation files (`features/admin/review-moderation/**`)
+ * must NOT import the regenerated review SDK directly. They must
+ * reach the SDK exclusively through
+ * `features/admin/services/review-moderation.service.ts`. Mirrors the
+ * tag-admin and category-admin enforcement shape.
+ *
+ * Pattern scanned per source file line:
+ *   - `from '@/lib/api/generated/reviews/reviews'`
+ *   - `from "@/lib/api/generated/reviews/reviews"`
+ *   - `from '@/lib/api/generated/reviews/...'`
+ *   - `from "@/lib/api/generated/reviews/..."`
+ */
+async function checkReviewModerationNoSdkLeak() {
+  const violations = [];
+  let files = [];
+  try {
+    files = await walkFiles(
+      REVIEW_MODERATION_DIR,
+      (f) => (f.endsWith(".ts") || f.endsWith(".tsx")) && !f.includes("__tests__"),
+    );
+  } catch {
+    return [];
+  }
+  for (const file of files) {
+    const src = readFileSync(file, "utf-8");
+    const lines = src.split("\n");
+    for (let i = 0; i < lines.length; i += 1) {
+      const raw = lines[i];
+      const trimmed = raw.trimStart();
+      if (
+        trimmed.startsWith("//") ||
+        trimmed.startsWith("/*") ||
+        trimmed.startsWith("*") ||
+        trimmed.startsWith("<!--")
+      )
+        continue;
+      const m = /from\s+['"]@\/lib\/api\/generated\/reviews(\/|\b)/.exec(raw);
+      if (m !== null) {
+        violations.push({
+          file: path.relative(CWD, file),
+          line: i + 1,
+          text: raw.trim(),
+          pattern: "from '@/lib/api/generated/reviews/...'",
+        });
+      }
+    }
+  }
+  return violations;
+}
+
+// ─── Check 13: review-moderation-service-boundary (TKT-7.5.H3) ───────────
+
+/**
+ * Outside `features/admin/review-moderation/**`, only the
+ * `features/admin/services/**` folder, the admin route group
+ * (`src/app/admin/**`), and the admin feature folder
+ * (`src/features/admin/**`) may import the review-moderation
+ * service (`@/features/admin/services/review-moderation.service`).
+ * Cross-feature integration specs under
+ * `src/features/shared/__tests__/phase7-*.spec.tsx` remain exempt.
+ *
+ * Pattern scanned per source file line:
+ *   - `from '@/features/admin/services/review-moderation.service'`
+ *   - `from "@/features/admin/services/review-moderation.service"`
+ */
+async function checkReviewModerationServiceBoundary() {
+  const violations = [];
+
+  async function collectAllSrcFiles() {
+    const out = [];
+    const stack = [path.resolve(CWD, "src")];
+    while (stack.length > 0) {
+      const dir = stack.pop();
+      let entries;
+      try {
+        entries = await readdir(dir, { withFileTypes: true });
+      } catch {
+        continue;
+      }
+      for (const e of entries) {
+        const full = path.join(dir, e.name);
+        if (e.isDirectory()) {
+          if (
+            e.name === "node_modules" ||
+            e.name === ".next" ||
+            e.name === ".git"
+          )
+            continue;
+          stack.push(full);
+        } else if (
+          (full.endsWith(".ts") || full.endsWith(".tsx")) &&
+          !full.includes("__tests__")
+        ) {
+          out.push(full);
+        }
+      }
+    }
+    return out;
+  }
+
+  const files = await collectAllSrcFiles();
+  for (const file of files) {
+    // Permitted locations:
+    //   - features/admin/services/review-moderation.service.ts (itself)
+    //   - features/admin/review-moderation/** (the feature)
+    //   - src/app/admin/** (admin route group)
+    //   - features/admin/** (admin feature folder broadly)
+    if (file === REVIEW_MODERATION_SERVICE_PATH) continue;
+    if (file.startsWith(REVIEW_MODERATION_DIR + path.sep)) continue;
+    if (file.includes(`${path.sep}app${path.sep}admin${path.sep}`)) continue;
+    if (file.startsWith(ADMIN_DIR + path.sep)) continue;
+    if (isModuleException(file)) continue;
+
+    const src = readFileSync(file, "utf-8");
+    const lines = src.split("\n");
+    for (let i = 0; i < lines.length; i += 1) {
+      const raw = lines[i];
+      const trimmed = raw.trimStart();
+      if (
+        trimmed.startsWith("//") ||
+        trimmed.startsWith("/*") ||
+        trimmed.startsWith("*") ||
+        trimmed.startsWith("<!--")
+      )
+        continue;
+      const m = /from\s+['"]@\/features\/admin\/services\/review-moderation\.service['"]/.exec(raw);
+      if (m !== null) {
+        violations.push({
+          file: path.relative(CWD, file),
+          line: i + 1,
+          text: raw.trim(),
+          pattern: "from '@/features/admin/services/review-moderation.service'",
+        });
+      }
+    }
+  }
+  return violations;
+}
+
+// ─── Check 14: comment-moderation-no-sdk-leak (TKT-7.6.H3) ────────────────
+
+/**
+ * Comment-moderation files (`features/admin/comment-moderation/**`)
+ * must NOT import the regenerated comment SDK directly. They must
+ * reach the SDK exclusively through
+ * `features/admin/services/comment-moderation.service.ts`. Mirrors the
+ * review-moderation enforcement (check 12).
+ *
+ * Pattern scanned per source file line:
+ *   - `from '@/lib/api/generated/comments/...'`
+ *   - `from "@/lib/api/generated/comments/..."`
+ */
+async function checkCommentModerationNoSdkLeak() {
+  const violations = [];
+  let files = [];
+  try {
+    files = await walkFiles(
+      COMMENT_MODERATION_DIR,
+      (f) => (f.endsWith(".ts") || f.endsWith(".tsx")) && !f.includes("__tests__"),
+    );
+  } catch {
+    return [];
+  }
+  for (const file of files) {
+    const src = readFileSync(file, "utf-8");
+    const lines = src.split("\n");
+    for (let i = 0; i < lines.length; i += 1) {
+      const raw = lines[i];
+      const trimmed = raw.trimStart();
+      if (
+        trimmed.startsWith("//") ||
+        trimmed.startsWith("/*") ||
+        trimmed.startsWith("*") ||
+        trimmed.startsWith("<!--")
+      )
+        continue;
+      const m = /from\s+['"]@\/lib\/api\/generated\/comments(\/|\b)/.exec(raw);
+      if (m !== null) {
+        violations.push({
+          file: path.relative(CWD, file),
+          line: i + 1,
+          text: raw.trim(),
+          pattern: "from '@/lib/api/generated/comments/...'",
+        });
+      }
+    }
+  }
+  return violations;
+}
+
+// ─── Check 15: comment-moderation-service-boundary (TKT-7.6.H3) ──────────
+
+/**
+ * Outside `features/admin/comment-moderation/**`, only the
+ * `features/admin/services/**` folder, the admin route group
+ * (`src/app/admin/**`), and the admin feature folder
+ * (`src/features/admin/**`) may import the comment-moderation
+ * service (`@/features/admin/services/comment-moderation.service`).
+ * Cross-feature integration specs under
+ * `src/features/shared/__tests__/phase7-*.spec.tsx` remain exempt.
+ *
+ * Pattern scanned per source file line:
+ *   - `from '@/features/admin/services/comment-moderation.service'`
+ *   - `from "@/features/admin/services/comment-moderation.service"`
+ */
+async function checkCommentModerationServiceBoundary() {
+  const violations = [];
+
+  async function collectAllSrcFiles() {
+    const out = [];
+    const stack = [path.resolve(CWD, "src")];
+    while (stack.length > 0) {
+      const dir = stack.pop();
+      let entries;
+      try {
+        entries = await readdir(dir, { withFileTypes: true });
+      } catch {
+        continue;
+      }
+      for (const e of entries) {
+        const full = path.join(dir, e.name);
+        if (e.isDirectory()) {
+          if (
+            e.name === "node_modules" ||
+            e.name === ".next" ||
+            e.name === ".git"
+          )
+            continue;
+          stack.push(full);
+        } else if (
+          (full.endsWith(".ts") || full.endsWith(".tsx")) &&
+          !full.includes("__tests__")
+        ) {
+          out.push(full);
+        }
+      }
+    }
+    return out;
+  }
+
+  const files = await collectAllSrcFiles();
+  for (const file of files) {
+    // Permitted locations:
+    //   - features/admin/services/comment-moderation.service.ts (itself)
+    //   - features/admin/comment-moderation/** (the feature)
+    //   - src/app/admin/** (admin route group)
+    //   - features/admin/** (admin feature folder broadly)
+    if (file === COMMENT_MODERATION_SERVICE_PATH) continue;
+    if (file.startsWith(COMMENT_MODERATION_DIR + path.sep)) continue;
+    if (file.includes(`${path.sep}app${path.sep}admin${path.sep}`)) continue;
+    if (file.startsWith(ADMIN_DIR + path.sep)) continue;
+    if (isModuleException(file)) continue;
+
+    const src = readFileSync(file, "utf-8");
+    const lines = src.split("\n");
+    for (let i = 0; i < lines.length; i += 1) {
+      const raw = lines[i];
+      const trimmed = raw.trimStart();
+      if (
+        trimmed.startsWith("//") ||
+        trimmed.startsWith("/*") ||
+        trimmed.startsWith("*") ||
+        trimmed.startsWith("<!--")
+      )
+        continue;
+      const m = /from\s+['"]@\/features\/admin\/services\/comment-moderation\.service['"]/.exec(raw);
+      if (m !== null) {
+        violations.push({
+          file: path.relative(CWD, file),
+          line: i + 1,
+          text: raw.trim(),
+          pattern: "from '@/features/admin/services/comment-moderation.service'",
+        });
+      }
+    }
+  }
+  return violations;
+}
+
+// ─── Check 16: tournament-admin-no-sdk-leak (TKT-7.7.H3) ────────────────
+
+/**
+ * Tournament-admin files (`features/admin/tournament-admin/**`)
+ * must NOT import the regenerated tournament SDK directly. They must
+ * reach the SDK exclusively through
+ * `features/admin/services/tournament-admin.service.ts`. Mirrors the
+ * comment-moderation enforcement (check 15).
+ *
+ * Pattern scanned per source file line:
+ *   - `from '@/lib/api/generated/tournaments/...'`
+ *   - `from "@/lib/api/generated/tournaments/..."`
+ */
+async function checkTournamentAdminNoSdkLeak() {
+  const violations = [];
+  let files = [];
+  try {
+    files = await walkFiles(
+      TOURNAMENT_ADMIN_DIR,
+      (f) => (f.endsWith(".ts") || f.endsWith(".tsx")) && !f.includes("__tests__"),
+    );
+  } catch {
+    return [];
+  }
+  for (const file of files) {
+    const src = readFileSync(file, "utf-8");
+    const lines = src.split("\n");
+    for (let i = 0; i < lines.length; i += 1) {
+      const raw = lines[i];
+      const trimmed = raw.trimStart();
+      if (
+        trimmed.startsWith("//") ||
+        trimmed.startsWith("/*") ||
+        trimmed.startsWith("*") ||
+        trimmed.startsWith("<!--")
+      )
+        continue;
+      const m = /from\s+['"]@\/lib\/api\/generated\/tournaments(\/|\b)/.exec(raw);
+      if (m !== null) {
+        violations.push({
+          file: path.relative(CWD, file),
+          line: i + 1,
+          text: raw.trim(),
+          pattern: "from '@/lib/api/generated/tournaments/...'",
+        });
+      }
+    }
+  }
+  return violations;
+}
+
+// ─── Check 17: tournament-admin-service-boundary (TKT-7.7.H3) ─────────
+
+/**
+ * Outside `features/admin/tournament-admin/**`, only the
+ * `features/admin/services/**` folder, the admin route group
+ * (`src/app/admin/**`), and the admin feature folder
+ * (`src/features/admin/**`) may import the tournament admin
+ * service (`@/features/admin/services/tournament-admin.service`).
+ * Cross-feature integration specs under
+ * `src/features/shared/__tests__/phase7-*.spec.tsx` remain exempt.
+ *
+ * Pattern scanned per source file line:
+ *   - `from '@/features/admin/services/tournament-admin.service'`
+ *   - `from "@/features/admin/services/tournament-admin.service"`
+ */
+async function checkTournamentAdminServiceBoundary() {
+  const violations = [];
+
+  async function collectAllSrcFiles() {
+    const out = [];
+    const stack = [path.resolve(CWD, "src")];
+    while (stack.length > 0) {
+      const dir = stack.pop();
+      let entries;
+      try {
+        entries = await readdir(dir, { withFileTypes: true });
+      } catch {
+        continue;
+      }
+      for (const e of entries) {
+        const full = path.join(dir, e.name);
+        if (e.isDirectory()) {
+          if (
+            e.name === "node_modules" ||
+            e.name === ".next" ||
+            e.name === ".git"
+          )
+            continue;
+          stack.push(full);
+        } else if (
+          (full.endsWith(".ts") || full.endsWith(".tsx")) &&
+          !full.includes("__tests__")
+        ) {
+          out.push(full);
+        }
+      }
+    }
+    return out;
+  }
+
+  const files = await collectAllSrcFiles();
+  for (const file of files) {
+    // Permitted locations:
+    //   - features/admin/services/tournament-admin.service.ts (itself)
+    //   - features/admin/tournament-admin/** (the feature)
+    //   - src/app/admin/** (admin route group)
+    //   - features/admin/** (admin feature folder broadly)
+    if (file === TOURNAMENT_ADMIN_SERVICE_PATH) continue;
+    if (file.startsWith(TOURNAMENT_ADMIN_DIR + path.sep)) continue;
+    if (file.includes(`${path.sep}app${path.sep}admin${path.sep}`)) continue;
+    if (file.startsWith(ADMIN_DIR + path.sep)) continue;
+    if (isModuleException(file)) continue;
+
+    const src = readFileSync(file, "utf-8");
+    const lines = src.split("\n");
+    for (let i = 0; i < lines.length; i += 1) {
+      const raw = lines[i];
+      const trimmed = raw.trimStart();
+      if (
+        trimmed.startsWith("//") ||
+        trimmed.startsWith("/*") ||
+        trimmed.startsWith("*") ||
+        trimmed.startsWith("<!--")
+      )
+        continue;
+      const m = /from\s+['"]@\/features\/admin\/services\/tournament-admin\.service['"]/.exec(raw);
+      if (m !== null) {
+        violations.push({
+          file: path.relative(CWD, file),
+          line: i + 1,
+          text: raw.trim(),
+          pattern: "from '@/features/admin/services/tournament-admin.service'",
+        });
+      }
+    }
+  }
+  return violations;
+}
+
+// ─── Check 18: achievement-admin-no-sdk-leak (TKT-7.8.H3) ────────────────
+
+/**
+ * Achievement-admin files (`features/admin/achievement-admin/**`)
+ * must NOT import the regenerated achievement SDK directly. They must
+ * reach the SDK exclusively through
+ * `features/admin/services/achievement-admin.service.ts`.
+ *
+ * Pattern scanned per source file line:
+ *   - `from '@/lib/api/generated/achievements/...'`
+ *   - `from "@/lib/api/generated/achievements/..."`
+ */
+async function checkAchievementAdminNoSdkLeak() {
+  const violations = [];
+  let files = [];
+  try {
+    files = await walkFiles(
+      ACHIEVEMENT_ADMIN_DIR,
+      (f) => (f.endsWith(".ts") || f.endsWith(".tsx")) && !f.includes("__tests__"),
+    );
+  } catch {
+    return [];
+  }
+  for (const file of files) {
+    const src = readFileSync(file, "utf-8");
+    const lines = src.split("\n");
+    for (let i = 0; i < lines.length; i += 1) {
+      const raw = lines[i];
+      const trimmed = raw.trimStart();
+      if (
+        trimmed.startsWith("//") ||
+        trimmed.startsWith("/*") ||
+        trimmed.startsWith("*") ||
+        trimmed.startsWith("<!--")
+      )
+        continue;
+      const m = /from\s+['"]@\/lib\/api\/generated\/achievements(\/|\b)/.exec(raw);
+      if (m !== null) {
+        violations.push({
+          file: path.relative(CWD, file),
+          line: i + 1,
+          text: raw.trim(),
+          pattern: "from '@/lib/api/generated/achievements/...'",
+        });
+      }
+    }
+  }
+  return violations;
+}
+
+// ─── Check 19: achievement-admin-service-boundary (TKT-7.8.H3) ──────────
+
+/**
+ * Outside `features/admin/achievement-admin/**`, only the
+ * `features/admin/services/**` folder, the admin route group
+ * (`src/app/admin/**`), and the admin feature folder
+ * (`src/features/admin/**`) may import the achievement admin
+ * service (`@/features/admin/services/achievement-admin.service`).
+ * Cross-feature integration specs under
+ * `src/features/shared/__tests__/phase7-*.spec.tsx` remain exempt.
+ *
+ * Pattern scanned per source file line:
+ *   - `from '@/features/admin/services/achievement-admin.service'`
+ *   - `from "@/features/admin/services/achievement-admin.service"`
+ */
+async function checkAchievementAdminServiceBoundary() {
+  const violations = [];
+
+  async function collectAllSrcFiles() {
+    const out = [];
+    const stack = [path.resolve(CWD, "src")];
+    while (stack.length > 0) {
+      const dir = stack.pop();
+      let entries;
+      try {
+        entries = await readdir(dir, { withFileTypes: true });
+      } catch {
+        continue;
+      }
+      for (const e of entries) {
+        const full = path.join(dir, e.name);
+        if (e.isDirectory()) {
+          if (
+            e.name === "node_modules" ||
+            e.name === ".next" ||
+            e.name === ".git"
+          )
+            continue;
+          stack.push(full);
+        } else if (
+          (full.endsWith(".ts") || full.endsWith(".tsx")) &&
+          !full.includes("__tests__")
+        ) {
+          out.push(full);
+        }
+      }
+    }
+    return out;
+  }
+
+  const files = await collectAllSrcFiles();
+  for (const file of files) {
+    // Permitted locations:
+    //   - features/admin/services/achievement-admin.service.ts (itself)
+    //   - features/admin/achievement-admin/** (the feature)
+    //   - src/app/admin/** (admin route group)
+    //   - features/admin/** (admin feature folder broadly)
+    if (file === ACHIEVEMENT_ADMIN_SERVICE_PATH) continue;
+    if (file.startsWith(ACHIEVEMENT_ADMIN_DIR + path.sep)) continue;
+    if (file.includes(`${path.sep}app${path.sep}admin${path.sep}`)) continue;
+    if (file.startsWith(ADMIN_DIR + path.sep)) continue;
+    if (isModuleException(file)) continue;
+
+    const src = readFileSync(file, "utf-8");
+    const lines = src.split("\n");
+    for (let i = 0; i < lines.length; i += 1) {
+      const raw = lines[i];
+      const trimmed = raw.trimStart();
+      if (
+        trimmed.startsWith("//") ||
+        trimmed.startsWith("/*") ||
+        trimmed.startsWith("*") ||
+        trimmed.startsWith("<!--")
+      )
+        continue;
+      const m = /from\s+['"]@\/features\/admin\/services\/achievement-admin\.service['"]/.exec(raw);
+      if (m !== null) {
+        violations.push({
+          file: path.relative(CWD, file),
+          line: i + 1,
+          text: raw.trim(),
+          pattern: "from '@/features/admin/services/achievement-admin.service'",
+        });
+      }
+    }
+  }
+  return violations;
+}
+
 // ─── Report helpers ─────────────────────────────────────────────────────
+
+function reportTournamentAdminNoSdkLeak(violations) {
+  if (violations.length === 0) {
+    process.stdout.write(
+      `${GREEN("✓")} tournament-admin-no-sdk-leak — no tournament-admin file imports the regenerated tournament SDK directly\n`,
+    );
+    return true;
+  }
+  process.stdout.write(
+    `${RED("✗")} tournament-admin-no-sdk-leak — ${BOLD(String(violations.length))} violation(s) found\n\n`,
+  );
+  for (const v of violations) {
+    process.stdout.write(
+      `  ${RED("forbidden SDK import:")} ${BOLD(v.pattern)}  ${DIM(v.file)}:${DIM(String(v.line))}\n`,
+    );
+  }
+  return false;
+}
+
+function reportTournamentAdminServiceBoundary(violations) {
+  if (violations.length === 0) {
+    process.stdout.write(
+      `${GREEN("✓")} tournament-admin-service-boundary — no non-admin file imports features/admin/services/tournament-admin.service\n`,
+    );
+    return true;
+  }
+  process.stdout.write(
+    `${RED("✗")} tournament-admin-service-boundary — ${BOLD(String(violations.length))} violation(s) found\n\n`,
+  );
+  for (const v of violations) {
+    process.stdout.write(
+      `  ${RED("forbidden service import:")} ${DIM(v.file)}:${DIM(String(v.line))}\n    ${DIM(v.text)}\n`,
+    );
+  }
+  return false;
+}
+
+function reportAchievementAdminNoSdkLeak(violations) {
+  if (violations.length === 0) {
+    process.stdout.write(
+      `${GREEN("✓")} achievement-admin-no-sdk-leak — no achievement-admin file imports the regenerated achievement SDK directly\n`,
+    );
+    return true;
+  }
+  process.stdout.write(
+    `${RED("✗")} achievement-admin-no-sdk-leak — ${BOLD(String(violations.length))} violation(s) found\n\n`,
+  );
+  for (const v of violations) {
+    process.stdout.write(
+      `  ${RED("forbidden SDK import:")} ${BOLD(v.pattern)}  ${DIM(v.file)}:${DIM(String(v.line))}\n`,
+    );
+  }
+  return false;
+}
+
+function reportAchievementAdminServiceBoundary(violations) {
+  if (violations.length === 0) {
+    process.stdout.write(
+      `${GREEN("✓")} achievement-admin-service-boundary — no non-admin file imports features/admin/services/achievement-admin.service\n`,
+    );
+    return true;
+  }
+  process.stdout.write(
+    `${RED("✗")} achievement-admin-service-boundary — ${BOLD(String(violations.length))} violation(s) found\n\n`,
+  );
+  for (const v of violations) {
+    process.stdout.write(
+      `  ${RED("forbidden service import:")} ${BOLD(v.pattern)}  ${DIM(v.file)}:${DIM(String(v.line))}\n`,
+    );
+  }
+  return false;
+}
 
 function reportAdminNoAxiosOrFetch(violations) {
   if (violations.length === 0) {
@@ -1103,6 +1842,78 @@ function reportCategoryAdminSdkBoundary(violations) {
   return false;
 }
 
+function reportReviewModerationNoSdkLeak(violations) {
+  if (violations.length === 0) {
+    process.stdout.write(
+      `${GREEN("✓")} review-moderation-no-sdk-leak — no review-moderation file imports the regenerated review SDK directly\n`,
+    );
+    return true;
+  }
+  process.stdout.write(
+    `${RED("✗")} review-moderation-no-sdk-leak — ${BOLD(String(violations.length))} violation(s) found\n\n`,
+  );
+  for (const v of violations) {
+    process.stdout.write(
+      `  ${RED("forbidden SDK import:")} ${BOLD(v.pattern)}  ${DIM(v.file)}:${DIM(String(v.line))}\n`,
+    );
+  }
+  return false;
+}
+
+function reportReviewModerationServiceBoundary(violations) {
+  if (violations.length === 0) {
+    process.stdout.write(
+      `${GREEN("✓")} review-moderation-service-boundary — no non-admin file imports features/admin/services/review-moderation.service\n`,
+    );
+    return true;
+  }
+  process.stdout.write(
+    `${RED("✗")} review-moderation-service-boundary — ${BOLD(String(violations.length))} violation(s) found\n\n`,
+  );
+  for (const v of violations) {
+    process.stdout.write(
+      `  ${RED("forbidden service import:")} ${BOLD(v.pattern)}  ${DIM(v.file)}:${DIM(String(v.line))}\n`,
+    );
+  }
+  return false;
+}
+
+function reportCommentModerationNoSdkLeak(violations) {
+  if (violations.length === 0) {
+    process.stdout.write(
+      `${GREEN("✓")} comment-moderation-no-sdk-leak — no comment-moderation file imports the regenerated comment SDK directly\n`,
+    );
+    return true;
+  }
+  process.stdout.write(
+    `${RED("✗")} comment-moderation-no-sdk-leak — ${BOLD(String(violations.length))} violation(s) found\n\n`,
+  );
+  for (const v of violations) {
+    process.stdout.write(
+      `  ${RED("forbidden SDK import:")} ${BOLD(v.pattern)}  ${DIM(v.file)}:${DIM(String(v.line))}\n`,
+    );
+  }
+  return false;
+}
+
+function reportCommentModerationServiceBoundary(violations) {
+  if (violations.length === 0) {
+    process.stdout.write(
+      `${GREEN("✓")} comment-moderation-service-boundary — no non-admin file imports features/admin/services/comment-moderation.service\n`,
+    );
+    return true;
+  }
+  process.stdout.write(
+    `${RED("✗")} comment-moderation-service-boundary — ${BOLD(String(violations.length))} violation(s) found\n\n`,
+  );
+  for (const v of violations) {
+    process.stdout.write(
+      `  ${RED("forbidden service import:")} ${BOLD(v.pattern)}  ${DIM(v.file)}:${DIM(String(v.line))}\n`,
+    );
+  }
+  return false;
+}
+
 // ─── Main ────────────────────────────────────────────────────────────────
 
 async function main() {
@@ -1146,6 +1957,30 @@ async function main() {
 
   const categorySdkViolations = await checkCategoryAdminSdkBoundary();
   if (!reportCategoryAdminSdkBoundary(categorySdkViolations)) ok = false;
+
+  const reviewModerationSdkLeakViolations = await checkReviewModerationNoSdkLeak();
+  if (!reportReviewModerationNoSdkLeak(reviewModerationSdkLeakViolations)) ok = false;
+
+  const reviewModerationServiceViolations = await checkReviewModerationServiceBoundary();
+  if (!reportReviewModerationServiceBoundary(reviewModerationServiceViolations)) ok = false;
+
+  const commentModerationSdkLeakViolations = await checkCommentModerationNoSdkLeak();
+  if (!reportCommentModerationNoSdkLeak(commentModerationSdkLeakViolations)) ok = false;
+
+  const commentModerationServiceViolations = await checkCommentModerationServiceBoundary();
+  if (!reportCommentModerationServiceBoundary(commentModerationServiceViolations)) ok = false;
+
+  const tournamentAdminSdkLeakViolations = await checkTournamentAdminNoSdkLeak();
+  if (!reportTournamentAdminNoSdkLeak(tournamentAdminSdkLeakViolations)) ok = false;
+
+  const tournamentAdminServiceViolations = await checkTournamentAdminServiceBoundary();
+  if (!reportTournamentAdminServiceBoundary(tournamentAdminServiceViolations)) ok = false;
+
+  const achievementAdminSdkLeakViolations = await checkAchievementAdminNoSdkLeak();
+  if (!reportAchievementAdminNoSdkLeak(achievementAdminSdkLeakViolations)) ok = false;
+
+  const achievementAdminServiceViolations = await checkAchievementAdminServiceBoundary();
+  if (!reportAchievementAdminServiceBoundary(achievementAdminServiceViolations)) ok = false;
 
   if (ok) {
     process.stdout.write(

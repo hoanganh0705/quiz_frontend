@@ -54,6 +54,7 @@ import {
   type SocialActivityItemDto,
   type SocialBlockedUserDto,
   type SocialCountsDto,
+  type SocialFeedItemDto,
   type SocialFeedItemPayload,
   type SocialFeedItemType,
   type SocialFriendRequestDto,
@@ -682,6 +683,76 @@ export function toActivityItem(
     type,
     at,
     actorUser: actor,
+    payload,
+  });
+}
+
+// ─── Feed projection (TKT-6.9.C1) ──────────────────────────────────────
+
+/**
+ * The defensive maximum of the SDK `SocialFeedItemDto` wire shape. The
+ * feed endpoint returns a richer row than the activity endpoint: in
+ * particular, the wire carries a `user` field (the activity actor)
+ * with `userId` + `username`. The projection promotes this field to
+ * `actorUser` so the rest of the Story 6.9 UI (row, dispatcher, page
+ * shell) can render with a single shape.
+ */
+interface FeedItemWireDto {
+  readonly id?: string;
+  readonly type?: string;
+  readonly occurredAt?: string;
+  readonly at?: string;
+  readonly user?: {
+    readonly userId?: string;
+    readonly username?: string;
+  };
+  readonly payload?: unknown;
+}
+
+/**
+ * Project a wire `SocialFeedItemDto` from the
+ * `GET /api/v1/social/feed` endpoint into the canonical
+ * `SocialFeedItemDto`. The function is the Story 6.9 counterpart of
+ * `toActivityItem` (TKT-6.1.C2 / TKT-6.4.D1); the difference is the
+ * actor projection — the feed endpoint emits `user: { userId,
+ * username }` on the wire, which we promote to
+ * `actorUser: SocialUserSummaryDto` via the shared `toUserSummary`
+ * adapter.
+ *
+ * Returns `null` when the payload's `type` discriminator is unknown
+ * so the consumer hook can drop the row via `appendUniqueById`. The
+ * `useFeed` hook (TKT-6.9.D2) is the single consumer of this
+ * projection; the row-dispatcher (TKT-6.9.E1) and per-type sub-
+ * renderers (TKT-6.9.E2) consume the result transitively.
+ */
+export function toFeedItem(
+  input: unknown,
+): SocialFeedItemDto | null {
+  const wire = (input ?? {}) as FeedItemWireDto;
+  const id = typeof wire.id === "string" ? wire.id : "";
+  const type =
+    typeof wire.type === "string" && isFeedItemType(wire.type)
+      ? wire.type
+      : null;
+  if (type === null) return null;
+  const at =
+    typeof wire.occurredAt === "string"
+      ? wire.occurredAt
+      : typeof wire.at === "string"
+        ? wire.at
+        : new Date(0).toISOString();
+  const payload = normalizeSocialFeedItemPayload(wire.payload);
+  if (payload === null) return null;
+  const wireUser = wire.user ?? {};
+  const actorUser = toUserSummary({
+    userId: wireUser.userId,
+    userName: wireUser.username,
+  });
+  return Object.freeze({
+    id,
+    type,
+    at,
+    actorUser,
     payload,
   });
 }

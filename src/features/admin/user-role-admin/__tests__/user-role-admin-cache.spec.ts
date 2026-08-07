@@ -1,0 +1,109 @@
+/**
+ * `features/admin/user-role-admin/__tests__/user-role-admin-cache.spec.ts`
+ *
+ * Source epic:   Epic 7.10 — User Role Grant.
+ * Source ticket: TKT-7.10.B3.
+ */
+
+import { describe, expect, it, vi } from 'vitest';
+
+import {
+  USER_ROLE_ADMIN_PREFIX,
+  userRoleListKey,
+  userRoleAdminSearchKey,
+  invalidateUserRoleCache,
+} from '../user-role-admin-cache';
+
+describe('user-role-admin-cache', () => {
+  describe('USER_ROLE_ADMIN_PREFIX', () => {
+    it('should be a non-empty string', () => {
+      expect(USER_ROLE_ADMIN_PREFIX).toBeTruthy();
+      expect(USER_ROLE_ADMIN_PREFIX.length).toBeGreaterThan(0);
+    });
+  });
+
+  describe('userRoleListKey', () => {
+    it('should return a non-empty string', () => {
+      const key = userRoleListKey('user-123');
+      expect(key).toBeTruthy();
+      expect(key.length).toBeGreaterThan(0);
+    });
+
+    it('should include the user ID', () => {
+      const userId = 'user-123';
+      const key = userRoleListKey(userId);
+      expect(key).toContain(userId);
+    });
+
+    it('should be deterministic for the same input', () => {
+      const key1 = userRoleListKey('user-123');
+      const key2 = userRoleListKey('user-123');
+      expect(key1).toBe(key2);
+    });
+
+    it('should produce different keys for different user IDs', () => {
+      const key1 = userRoleListKey('user-123');
+      const key2 = userRoleListKey('user-456');
+      expect(key1).not.toBe(key2);
+    });
+  });
+
+  describe('userRoleAdminSearchKey', () => {
+    it('should return a non-empty string', () => {
+      const key = userRoleAdminSearchKey('test');
+      expect(key).toBeTruthy();
+      expect(key.length).toBeGreaterThan(0);
+    });
+
+    it('should include the query', () => {
+      const query = 'test-query';
+      const key = userRoleAdminSearchKey(query);
+      expect(key).toContain(query);
+    });
+
+    it('should be deterministic for the same input', () => {
+      const key1 = userRoleAdminSearchKey('test');
+      const key2 = userRoleAdminSearchKey('test');
+      expect(key1).toBe(key2);
+    });
+
+    it('should produce different keys for different queries', () => {
+      const key1 = userRoleAdminSearchKey('query1');
+      const key2 = userRoleAdminSearchKey('query2');
+      expect(key1).not.toBe(key2);
+    });
+  });
+
+  describe('invalidateUserRoleCache', () => {
+    it('should call mutate with the correct key', async () => {
+      const userId = 'user-123';
+      const mutateSpy = vi.spyOn(await import('swr'), 'mutate');
+
+      await invalidateUserRoleCache(userId);
+
+      expect(mutateSpy).toHaveBeenCalledWith(userRoleListKey(userId));
+    });
+
+    it('should also invalidate search cache when query is provided', async () => {
+      const userId = 'user-123';
+      const searchQuery = 'test-query';
+      const mutateSpy = vi.spyOn(await import('swr'), 'mutate');
+
+      await invalidateUserRoleCache(userId, searchQuery);
+
+      expect(mutateSpy).toHaveBeenCalledWith(userRoleListKey(userId));
+      expect(mutateSpy).toHaveBeenCalledWith(
+        userRoleAdminSearchKey(searchQuery),
+      );
+    });
+
+    it('should only call mutate once when no search query', async () => {
+      const userId = 'user-123';
+      const mutateSpy = vi.spyOn(await import('swr'), 'mutate');
+
+      await invalidateUserRoleCache(userId);
+
+      expect(mutateSpy).toHaveBeenCalledTimes(1);
+    });
+  });
+});

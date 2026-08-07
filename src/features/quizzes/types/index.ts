@@ -97,19 +97,19 @@ export type {
   BulkQuestionRow,
   BulkQuestionsFormValues,
   ParsedBulkRow,
-} from './validation/question-schemas';
+} from '../validation/question-schemas';
 export {
   createQuestionSchema,
   bulkQuestionsSchema,
   questionTypeSchema,
   parseBulkText,
-} from './validation/question-schemas';
+} from '../validation/question-schemas';
 export {
   QUESTION_EDITOR_USER_COPY,
   FIELD_ERROR_MESSAGES,
   getQuestionEditorCopy,
   getRateLimitCopy,
-} from './constants/question-errors';
+} from '../constants/question-errors';
 
 // Epic 4.11 — Publish flow types (T-4.11.2)
 export {

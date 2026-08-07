@@ -12,7 +12,12 @@ export default async function QuizHubDashboard() {
     // `listQuizzes({ limit: 8 })` "Latest Quizzes" fetch has been
     // removed (TKT-3.7.D2).
     const categoriesData = await listCategories({ limit: 20 })
-    categories = categoriesData.data
+    // The backend returns `{ data: CategoryResponseDto[], meta: ... }`.
+    // If `data` is missing (e.g. an empty envelope), fall back to `[]`
+    // instead of propagating `undefined` to the client component.
+    categories = Array.isArray(categoriesData?.data)
+      ? categoriesData.data
+      : []
   } catch {
     // Fall back to empty array — don't break the page (the previous
     // route used the same defensive try/catch pattern).

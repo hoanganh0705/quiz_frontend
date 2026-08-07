@@ -156,3 +156,40 @@ export type {
   UnfriendErrorCode,
   UseUnfriendOptions,
 } from "./useUnfriend";
+
+// Epic 6.9 / TKT-6.9.D2 — the read hook for the global social
+// feed surface. Mirrors the Epic 6.4 / TKT-6.4.D2 pattern: a
+// feature-flag-gated, privacy-aware, offset-paginated read hook
+// that consumes the verified service wrapper (`getFeed`,
+// TKT-6.9.C1) via the offset-aware primitive (`useOffsetPaginated`,
+// TKT-6.9.D1).
+export { useFeed, resolveFeedVisibility } from "./useFeed";
+export type { UseFeedResult } from "./useFeed";
+
+// Epic 6.10 / TKT-6.10.E1 — relationship invalidation listener.
+export { useRelationshipInvalidation } from "./useRelationshipInvalidation";
+
+// Epic 6.10 / TKT-6.10.E2 — friend-request invalidation listener.
+export { useFriendRequestInvalidation } from "./useFriendRequestInvalidation";
+
+// Epic 6.10 / TKT-6.10.E3 — follow invalidation listener.
+export { useFollowInvalidation } from "./useFollowInvalidation";
+
+// Epic 6.10 / TKT-6.10.E4 — block invalidation listener.
+export { useBlockInvalidation } from "./useBlockInvalidation";
+
+// Epic 6.10 / TKT-6.10.E5 — social-feed invalidation listener.
+export { useSocialFeedInvalidation } from "./useSocialFeedInvalidation";
+
+// Epic 6.10 / TKT-6.10.E6 — notification-event router.
+export { useNotificationEventRouter } from "./useNotificationEventRouter";
+
+// Epic 6.10 / TKT-6.10.F2 — active-target registration hook.
+export {
+  useActiveTargetUserIds,
+  getActiveTargetUserIds,
+  __resetActiveTargetUserIdsForTests,
+} from "./useActiveTargetUserIds";
+
+// Epic 6.10 / TKT-6.10.F2 — post-reconnect re-hydration hook.
+export { useReconnectReconciliation } from "./useReconnectReconciliation";

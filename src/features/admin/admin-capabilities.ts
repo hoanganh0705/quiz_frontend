@@ -94,6 +94,10 @@ export const ADMIN_ENDPOINTS = [
   // backend OpenAPI artifact in TKT-7.1.A1; this entry covers the social-
   // admin mount.
   'POST /admin/users/:userId/roles',
+
+  // Audit log (Story 7.11) — verified in TKT-7.11.A1
+  'GET /admin/audit',
+  'GET /admin/audit/:entryId',
 ] as const;
 
 export type AdminEndpoint = (typeof ADMIN_ENDPOINTS)[number];
@@ -131,7 +135,11 @@ export type IrreversibleAdminOperation =
   // invariants (minLength 8, uppercase, whitespace-significant,
   // non-trivial) and are unique within this catalogue.
   | 'review.hide'
-  | 'review.delete';
+  | 'review.delete'
+  // TKT-7.8.B3 — achievement admin badge revoke. Irreversibly removes
+  // a granted badge from a user. The confirm string satisfies the documented
+  // invariants (minLength 8, uppercase, whitespace-significant, non-trivial).
+  | 'achievement.badge_revoke';
 
 export const IRREVERSIBLE_OPERATIONS: ReadonlyArray<{
   readonly operation: IrreversibleAdminOperation;
@@ -171,6 +179,14 @@ export const IRREVERSIBLE_OPERATIONS: ReadonlyArray<{
   {
     operation: 'review.delete',
     confirmString: 'DELETE REVIEW',
+    backendCode: 'IRREVERSIBLE_CONFIRM_REQUIRED',
+  },
+  // TKT-7.8.B3 — achievement admin badge revoke. The confirm string
+  // satisfies all documented invariants: minLength 8, uppercase,
+  // whitespace-significant, non-trivial, unique.
+  {
+    operation: 'achievement.badge_revoke',
+    confirmString: 'REVOKE BADGE',
     backendCode: 'IRREVERSIBLE_CONFIRM_REQUIRED',
   },
 ] as const;

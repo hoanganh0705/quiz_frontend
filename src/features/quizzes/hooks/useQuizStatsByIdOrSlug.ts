@@ -33,7 +33,7 @@ import { useMemo } from 'react';
 import { ApiError, isApiError, useSingleWithRetry } from '@/lib/api';
 import type { SingleFetcher } from '@/lib/api/use-single-with-retry';
 
-import { getQuizStatsByIdOrSlug } from '@/features/quizzes/api/quizzes.wrapper';
+import { getQuizStatsByIdOrSlug } from '@/features/quizzes/services/quizzes.service';
 import type { QuizStatsResponseDto } from '@/lib/api/generated/schemas/quizStatsResponseDto';
 
 export interface UseQuizStatsByIdOrSlugResult {

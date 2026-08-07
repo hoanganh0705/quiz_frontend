@@ -21,6 +21,9 @@
  * - On success, invalidates every page of the queue (the
  *   `reviewReportsKeyMatcher` from TKT-7.5.C1) and the offending
  *   review's read SWR keys (`reviews:*`, `reviews:byId:*`).
+ * - On success, broadcasts a `phase7:admin.review-moderation.invalidate`
+ *   event on the cross-tab channel (TKT-7.5.G2) so other admin tabs
+ *   invalidate the same SWR keys. Failure paths do NOT broadcast.
  *
  * ## Error contract
  *
@@ -90,6 +93,9 @@ import {
   type AdminReportDto,
   type ReportAction,
 } from '../admin-report-types';
+import {
+  broadcastReviewModerationInvalidate,
+} from '../cache/review-moderation-cross-tab';
 
 // ─── Public types ───────────────────────────────────────────────────────────
 
@@ -338,6 +344,24 @@ export function useResolveReviewReport(): UseResolveReviewReportResult {
               reviewReportsKeyMatcher(key) || reviewsKeyMatcher(key),
             undefined,
             { revalidate: true },
+          );
+
+          // Cross-tab broadcast (TKT-7.5.G2) — every other admin tab
+          // receives the event and invalidates the same SWR keys via
+          // the helpers in `review-moderation-cache-keys.ts`. The
+          // broadcast only fires on success; failure paths do not
+          // imply a successful state to other tabs. The review id
+          // is sourced from the updated report's `reviewId` field
+          // when present (the backend populates it for every
+          // `PlatformReportItemDto`); when absent (a status-only
+          // mutation the backend treats as pure), `null` is passed
+          // and receiving tabs only invalidate the queue.
+          const updatedReviewId = (updated as { reviewId?: unknown })
+            .reviewId;
+          broadcastReviewModerationInvalidate(
+            'resolve',
+            reportId,
+            typeof updatedReviewId === 'string' ? updatedReviewId : null,
           );
 
           setLastOutcome({ kind: 'success', payload: updated, cause: null });

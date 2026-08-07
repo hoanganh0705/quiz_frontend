@@ -39,11 +39,11 @@ import { useFeaturedQuizzes } from '@/features/quizzes/hooks/useFeaturedQuizzes'
 
 const getQuizzesFeaturedMock = vi.fn()
 
-vi.mock('@/features/quizzes/api/quizzes.wrapper', async () => {
+vi.mock('@/features/quizzes/services/quizzes.service', async () => {
   const actual =
     await vi.importActual<
-      typeof import('@/features/quizzes/api/quizzes.wrapper')
-    >('@/features/quizzes/api/quizzes.wrapper')
+      typeof import('@/features/quizzes/services/quizzes.service')
+    >('@/features/quizzes/services/quizzes.service')
   return {
     ...actual,
     getQuizzesFeatured: (...args: unknown[]) =>
