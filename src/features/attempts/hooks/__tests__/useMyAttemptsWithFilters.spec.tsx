@@ -47,10 +47,10 @@ vi.mock('@/lib/api', async () => {
   };
 });
 
-const useAuthBootstrapMock = vi.fn();
+const useAuthSessionMock = vi.fn();
 
-vi.mock('@/features/auth/contexts/auth-bootstrap-context', () => ({
-  useAuthBootstrap: () => useAuthBootstrapMock(),
+vi.mock('@/features/auth/hooks/use-auth-session', () => ({
+  useAuthSession: () => useAuthSessionMock(),
 }));
 
 // ─── Fixtures ────────────────────────────────────────────────────────────────
@@ -62,7 +62,7 @@ function makeHistoryRow(id: string): { id: string; attemptId: string } {
 // ─── Setup ───────────────────────────────────────────────────────────────────
 
 beforeEach(() => {
-  useAuthBootstrapMock.mockReturnValue({
+  useAuthSessionMock.mockReturnValue({
     bootstrapState: 'authenticated',
     currentUser: { id: 'user-1', userId: 'user-1' },
   });
@@ -77,7 +77,7 @@ afterEach(() => {
 
 describe('useMyAttemptsWithFilters — auth gating', () => {
   it('passes the disabled key to useCursorPaginated when the viewer is unauthenticated', () => {
-    useAuthBootstrapMock.mockReturnValue({
+    useAuthSessionMock.mockReturnValue({
       bootstrapState: 'unauthenticated',
       currentUser: null,
     });

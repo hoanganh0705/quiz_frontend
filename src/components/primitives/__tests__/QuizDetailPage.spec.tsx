@@ -55,12 +55,12 @@ vi.mock('@/features/quizzes/hooks/useQuizRelated', () => ({
   useQuizRelated: relatedHookMock,
 }));
 
-// Story 4.13 — ReviewsWidget reads `useAuthBootstrap` for the
+// Story 4.13 — ReviewsWidget reads `useAuthSession` for the
 // auth gate. The CommentsWidget already does the same in Story
 // 4.12; stub the hook so the existing QuizDetailPage tests
 // continue to render without wrapping in AuthBootstrapProvider.
-vi.mock('@/features/auth/contexts/auth-bootstrap-context', () => ({
-  useAuthBootstrap: () => ({
+vi.mock('@/features/auth/hooks/use-auth-session', () => ({
+  useAuthSession: () => ({
     bootstrapState: 'unauthenticated',
     isAuthenticated: false,
     currentUser: null,

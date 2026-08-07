@@ -76,7 +76,7 @@ import { useBlockInvalidation } from "@/features/social/hooks/useBlockInvalidati
 import { useSocialFeedInvalidation } from "@/features/social/hooks/useSocialFeedInvalidation";
 import { useNotificationEventRouter } from "@/features/social/hooks/useNotificationEventRouter";
 import { useReconnectReconciliation } from "@/features/social/hooks/useReconnectReconciliation";
-import { useAuthBootstrap } from "@/features/auth/contexts/auth-bootstrap-context";
+import { useAuthSession } from "@/features/auth/hooks/use-auth-session";
 
 import { BadgeSyncLayer } from "./BadgeSyncLayer";
 import { ConnectionStatusBadge } from "./ConnectionStatusBadge";
@@ -179,7 +179,7 @@ export function RealtimeSocialShell({
   // socket is never opened (Phase 5 `useSocket` no-ops). Reading
   // `currentUser` here is informational; we use it only to decide
   // whether to instantiate the singletons.
-  const auth = useAuthBootstrap();
+  const auth = useAuthSession();
   const isAuthenticated = auth.currentUser !== null;
 
   // ── Singletons ───────────────────────────────────────────────────────

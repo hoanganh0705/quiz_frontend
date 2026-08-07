@@ -4,15 +4,25 @@
  * Source epic: Epic 1.4 — Custom Instance Hardening.
  * Source ticket: TKT-1.4.4.5.
  *
- * Round-trips six fixture payloads through `unwrapEnvelope` and asserts
- * each of the four documented cases plus two edge cases:
+ * TKT-7.5 cleanup, Phase 5 / P0-18: `unwrapEnvelope` was widened from
+ * `T | null | unknown` to a discriminated union (`UnwrapEnvelopeResult<T>`).
+ * The previous flat-return contract is preserved by the
+ * `unwrapEnvelopeValue` helper, which throws a descriptive `TypeError`
+ * for the non-envelope branches. This spec exercises:
  *
- *   1. { data: <T>, meta: {...} }       → <T>      (envelope present, unwrapped)
- *   2. { data: null }                  → null     (null data preserved)
- *   3. { data: [...] }                 → [...]    (paginated list — meta.pagination is a sibling, not unwrapped)
- *   4. <primitive>                     → <primitive> unchanged (defensive)
- *   5. null                            → null     (null payload preserved)
- *   6. { foo: 'bar' }                  → { foo: 'bar' } (no envelope, passes through)
+ *   - `unwrapEnvelope` — discriminated four-case contract.
+ *   - `unwrapEnvelopeValue` — flat `T | null` ergonomics for hot paths.
+ *   - `isEnvelopeResult` / `isNullResult` — narrowing guards.
+ *
+ * Round-trips six fixture payloads and asserts each of the four
+ * documented cases plus two edge cases:
+ *
+ *   1. { data: <T>, meta: {...} }       → { kind: 'envelope', value: <T> }
+ *   2. { data: null }                  → { kind: 'envelope', value: null }
+ *   3. { data: [...] }                 → { kind: 'envelope', value: [...] }
+ *   4. <primitive>                     → { kind: 'primitive', value: <primitive> }
+ *   5. null                            → { kind: 'null' }
+ *   6. { foo: 'bar' }                  → { kind: 'passthrough', value: { foo: 'bar' } }
  *
  * Also runs an integration check that fires a stubbed axios response
  * through `customInstance` and asserts `response.data` is the unwrapped
@@ -23,20 +33,31 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import type { InternalAxiosRequestConfig } from 'axios';
 import axios from 'axios';
 
-import { unwrapEnvelope } from './unwrap';
+import {
+  unwrapEnvelope,
+  unwrapEnvelopeValue,
+  isEnvelopeResult,
+  isNullResult,
+} from './unwrap';
 import { customInstance } from './custom-instance';
 
 describe('unwrapEnvelope — four-case contract', () => {
   it('case 1: object with data key unwraps to inner value', () => {
     const input = { data: { foo: 'bar' }, meta: { requestId: 'req-1' } };
     const result = unwrapEnvelope(input);
-    expect(result).toEqual({ foo: 'bar' });
+    expect(result.kind).toBe('envelope');
+    if (result.kind === 'envelope') {
+      expect(result.value).toEqual({ foo: 'bar' });
+    }
   });
 
-  it('case 2: { data: null } unwraps to null (preserves null inner)', () => {
+  it('case 2: { data: null } unwraps to { kind: "envelope", value: null }', () => {
     const input = { data: null, meta: {} };
     const result = unwrapEnvelope(input);
-    expect(result).toBeNull();
+    expect(result.kind).toBe('envelope');
+    if (result.kind === 'envelope') {
+      expect(result.value).toBeNull();
+    }
   });
 
   it('case 3: paginated list — returns the array, meta.pagination is sibling', () => {
@@ -45,28 +66,37 @@ describe('unwrapEnvelope — four-case contract', () => {
       meta: { pagination: { total: 100, page: 1 } },
     };
     const result = unwrapEnvelope(input);
-    expect(result).toEqual([1, 2, 3]);
+    expect(result.kind).toBe('envelope');
+    if (result.kind === 'envelope') {
+      expect(result.value).toEqual([1, 2, 3]);
+    }
   });
 
-  it('case 4: non-object payload is returned unchanged', () => {
-    expect(unwrapEnvelope(42)).toBe(42);
-    expect(unwrapEnvelope('hello')).toBe('hello');
-    expect(unwrapEnvelope(true)).toBe(true);
-    expect(unwrapEnvelope(false)).toBe(false);
+  it('case 4: non-object payload returns { kind: "primitive", value }', () => {
+    expect(unwrapEnvelope(42)).toEqual({ kind: 'primitive', value: 42 });
+    expect(unwrapEnvelope('hello')).toEqual({
+      kind: 'primitive',
+      value: 'hello',
+    });
+    expect(unwrapEnvelope(true)).toEqual({ kind: 'primitive', value: true });
+    expect(unwrapEnvelope(false)).toEqual({ kind: 'primitive', value: false });
   });
 
-  it('case 5: null payload returns null (does not throw)', () => {
-    expect(unwrapEnvelope(null)).toBeNull();
+  it('case 5: null payload returns { kind: "null" }', () => {
+    expect(unwrapEnvelope(null)).toEqual({ kind: 'null' });
   });
 
-  it('case 6: object without data key passes through unchanged', () => {
+  it('case 6: object without data key returns { kind: "passthrough", value }', () => {
     const input = { foo: 'bar' };
     const result = unwrapEnvelope(input);
-    expect(result).toEqual({ foo: 'bar' });
+    expect(result.kind).toBe('passthrough');
+    if (result.kind === 'passthrough') {
+      expect(result.value).toEqual({ foo: 'bar' });
+    }
   });
 
-  it('edge: undefined payload returns null', () => {
-    expect(unwrapEnvelope(undefined)).toBeNull();
+  it('edge: undefined payload returns { kind: "null" }', () => {
+    expect(unwrapEnvelope(undefined)).toEqual({ kind: 'null' });
   });
 
   it('edge: nested envelope is unwrapped only one level (does not recurse)', () => {
@@ -75,7 +105,33 @@ describe('unwrapEnvelope — four-case contract', () => {
     // to unwrap again.
     const input = { data: { data: 'inner' } };
     const result = unwrapEnvelope(input);
-    expect(result).toEqual({ data: 'inner' });
+    expect(result.kind).toBe('envelope');
+    if (result.kind === 'envelope') {
+      expect(result.value).toEqual({ data: 'inner' });
+    }
+  });
+});
+
+describe('unwrapEnvelope — narrowing guards', () => {
+  it('isEnvelopeResult narrows the envelope branch', () => {
+    const input = { data: { id: 'x' }, meta: {} };
+    const result = unwrapEnvelope<{ id: string }>(input);
+    expect(isEnvelopeResult(result)).toBe(true);
+    if (isEnvelopeResult(result)) {
+      // Type-narrowed: result.value is { id: string } | null
+      expect(result.value).toEqual({ id: 'x' });
+    }
+  });
+
+  it('isNullResult narrows the null branch', () => {
+    const result = unwrapEnvelope(null);
+    expect(isNullResult(result)).toBe(true);
+  });
+
+  it('isEnvelopeResult is false for non-envelope branches', () => {
+    expect(isEnvelopeResult(unwrapEnvelope(42))).toBe(false);
+    expect(isEnvelopeResult(unwrapEnvelope({ foo: 'bar' }))).toBe(false);
+    expect(isEnvelopeResult(unwrapEnvelope(null))).toBe(false);
   });
 });
 
@@ -88,9 +144,39 @@ describe('unwrapEnvelope — type narrowing with generic parameter', () => {
 
     const input = { data: { id: 'user-1', email: 'u@example.com' } };
     const result = unwrapEnvelope<User>(input);
-    // Type-level: result is User | null | unknown at runtime.
-    // Runtime: result is the User object.
-    expect(result).toEqual({ id: 'user-1', email: 'u@example.com' });
+    expect(result.kind).toBe('envelope');
+    if (result.kind === 'envelope') {
+      // Type-level: result.value is User | null at runtime.
+      // Runtime: result.value is the User object.
+      expect(result.value).toEqual({ id: 'user-1', email: 'u@example.com' });
+    }
+  });
+});
+
+describe('unwrapEnvelopeValue — flat T | null ergonomics', () => {
+  it('returns the inner payload for an envelope', () => {
+    const input = { data: { id: 'x' }, meta: {} };
+    expect(unwrapEnvelopeValue(input)).toEqual({ id: 'x' });
+  });
+
+  it('returns null for an envelope whose data is null', () => {
+    expect(unwrapEnvelopeValue({ data: null })).toBeNull();
+  });
+
+  it('throws a descriptive TypeError for a primitive payload', () => {
+    expect(() => unwrapEnvelopeValue(42)).toThrow(
+      /\[unwrapEnvelopeValue\]/,
+    );
+  });
+
+  it('throws a descriptive TypeError for a passthrough payload', () => {
+    expect(() => unwrapEnvelopeValue({ foo: 'bar' })).toThrow(
+      /\[unwrapEnvelopeValue\]/,
+    );
+  });
+
+  it('returns null for a null payload (preserves the legacy behaviour)', () => {
+    expect(unwrapEnvelopeValue(null)).toBeNull();
   });
 });
 

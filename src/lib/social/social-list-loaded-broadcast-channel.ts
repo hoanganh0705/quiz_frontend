@@ -5,6 +5,11 @@
  * Source epic:   Epic 6.2 — Read-only social-graph views.
  * Source story:  Story 6.2 — Read-only social graph views.
  * Source ticket: TKT-6.2.G1.
+ * Phase 4 (cross-tab infra): rewritten on top of
+ *   `createBroadcastChannel` (TKT-Phase-4.A1). The event shape,
+ *   publisher / subscriber API, and the logout-reset hook are
+ *   preserved; the singleton / listener / same-tab boilerplate
+ *   is now owned by the factory.
  *
  * ## What this file owns
  *
@@ -31,8 +36,8 @@
  * ## SSR safety
  *
  * The channel is lazily constructed on first call. Importing this
- * module from a Server Component never throws; the `getChannel()`
- * helper returns `null` when `window` is undefined.
+ * module from a Server Component never throws; the factory's
+ * `getChannel()` helper returns `null` when `window` is undefined.
  *
  * ## Why a dedicated channel
  *
@@ -43,6 +48,8 @@
  * actions vs. read-side paged loads), so a dedicated channel keeps
  * the message payloads homogeneous.
  */
+
+import { createBroadcastChannel } from "@/lib/broadcast";
 
 // ─── Channel name ─────────────────────────────────────────────────────────
 
@@ -65,105 +72,113 @@ export interface SocialListLoadedPayload {
   tabId: string;
 }
 
-// ─── Channel singleton ───────────────────────────────────────────────────
+const SOCIAL_LIST_LOADED_VALID_KINDS = new Set<SocialListLoadedPayload["kind"]>(
+  ["followers", "following", "friends", "blocked"],
+);
 
-let socialListLoadedChannel: BroadcastChannel | null = null;
-let isSocialListLoadedAvailable: boolean | null = null;
+// ─── Per-tab identity ────────────────────────────────────────────────────
 
-/**
- * Returns true if `BroadcastChannel` is available in the current
- * environment. Cached on first call.
- */
-function checkBroadcastChannelAvailable(): boolean {
-  if (isSocialListLoadedAvailable !== null) {
-    return isSocialListLoadedAvailable;
-  }
-  if (typeof BroadcastChannel === "undefined") {
-    isSocialListLoadedAvailable = false;
-    return false;
-  }
-  // Mark as available without constructing a probe; the singleton
-  // constructs the real channel on first use. Constructing a probe
-  // here would tie this helper to the closure pattern used by the
-  // relationship channel and would create an extra channel
-  // instance visible to test harnesses that track `instances[]`.
-  isSocialListLoadedAvailable = true;
-  return isSocialListLoadedAvailable;
-}
+let cachedSocialListLoadedTabId: string | null = null;
 
 /**
- * Get the singleton BroadcastChannel for `social/list-loaded`,
- * lazily constructed. Returns `null` in SSR or when the API is
- * unavailable.
- */
-export function getSocialListLoadedChannel(): BroadcastChannel | null {
-  if (typeof window === "undefined") {
-    return null;
-  }
-  if (!checkBroadcastChannelAvailable()) {
-    return null;
-  }
-  if (socialListLoadedChannel === null) {
-    socialListLoadedChannel = new BroadcastChannel(
-      SOCIAL_LIST_LOADED_CHANNEL_NAME,
-    );
-  }
-  return socialListLoadedChannel;
-}
-
-/**
- * Close the channel (for cleanup / testing). Subsequent callers
- * get a fresh singleton.
- */
-export function closeSocialListLoadedChannel(): void {
-  if (socialListLoadedChannel !== null) {
-    socialListLoadedChannel.close();
-    socialListLoadedChannel = null;
-  }
-}
-
-// ─── Tab id (shared with the auth / relationship channels) ──────────────
-
-/**
- * Current tab id, re-exported in the same shape as the auth
- * channel (sessionStorage-scoped) so the same-tab filter aligns
- * with the rest of the social broadcast surface.
+ * Returns (and caches) a per-tab id used for same-tab filtering on
+ * the social-list-loaded channel. Stored in `sessionStorage` under
+ * the legacy `social:list-loaded:tabId` key so existing test
+ * fixtures (and any downstream consumer reading the id from
+ * sessionStorage) keep working unchanged.
  *
- * Falls back to `"ssr"` in SSR. Cached lazily.
+ * Phase 4 (TKT-Phase-4.A1): the social-list-loaded channel uses
+ * its own sessionStorage key — NOT the auth channel's
+ * `auth_tab_id` — because the badge's cross-tab contract was
+ * documented against this key and the test suite probes it
+ * directly. We therefore pass this getter into the factory rather
+ * than relying on the default `getCurrentTabId`.
  */
-let cachedTabId: string | null = null;
-
-/** Generate a fresh tab id without persisting. */
-function generateTabId(): string {
-  if (
-    typeof crypto !== "undefined" &&
-    typeof crypto.randomUUID === "function"
-  ) {
-    return crypto.randomUUID();
-  }
-  return `tab-${Math.random().toString(36).slice(2)}`;
-}
-
-/** Get / create the current tab id, persisting in sessionStorage. */
-function getCurrentTabId(): string {
-  if (cachedTabId !== null) {
-    return cachedTabId;
-  }
+function getSocialListLoadedTabId(): string {
+  if (cachedSocialListLoadedTabId !== null) return cachedSocialListLoadedTabId;
   if (typeof sessionStorage === "undefined") {
-    cachedTabId = "ssr";
-    return cachedTabId;
+    cachedSocialListLoadedTabId = "ssr";
+    return cachedSocialListLoadedTabId;
   }
   const KEY = "social:list-loaded:tabId";
   let tabId = sessionStorage.getItem(KEY);
   if (tabId === null) {
-    tabId = generateTabId();
+    tabId =
+      typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
+        ? crypto.randomUUID()
+        : `tab-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
     sessionStorage.setItem(KEY, tabId);
   }
-  cachedTabId = tabId;
-  return cachedTabId;
+  cachedSocialListLoadedTabId = tabId;
+  return cachedSocialListLoadedTabId;
 }
 
-// ─── Publisher ────────────────────────────────────────────────────────────
+// ─── Factory-backed channel ───────────────────────────────────────────────
+
+/**
+ * Singleton factory instance for the `social/list-loaded` channel.
+ * The factory validates incoming messages before delivering to
+ * subscribers; the publisher in this module posts a normalised
+ * (canonical) shape and the factory stamps `tabId` + `at`.
+ *
+ * Note: this channel keeps a public `unsubscribeAll…` helper and a
+ * `installSocialListLoadedLogoutReset` hook that are not in the
+ * generic factory. They live in this module because the social
+ * list-loaded badge is the only consumer that needs the logout
+ * reset today; other channels can grow the same hook when needed.
+ */
+const socialListLoadedChannel = createBroadcastChannel<SocialListLoadedPayload>(
+  SOCIAL_LIST_LOADED_CHANNEL_NAME,
+  {
+    validate: (data): SocialListLoadedPayload | null => {
+      if (typeof data !== "object" || data === null) return null;
+      const d = data as Partial<SocialListLoadedPayload>;
+      if (
+        typeof d.kind !== "string" ||
+        !SOCIAL_LIST_LOADED_VALID_KINDS.has(
+          d.kind as SocialListLoadedPayload["kind"],
+        )
+      ) {
+        return null;
+      }
+      if (typeof d.targetUserId !== "string") return null;
+      if (typeof d.offset !== "number") return null;
+      if (typeof d.limit !== "number") return null;
+      if (typeof d.at !== "number") return null;
+      if (typeof d.tabId !== "string") return null;
+      return d as SocialListLoadedPayload;
+    },
+    timestampField: "at",
+    getCurrentTabId: getSocialListLoadedTabId,
+  },
+);
+
+// ─── Public API ──────────────────────────────────────────────────────────
+
+/**
+ * Back-compat accessor for the singleton channel. Returns the
+ * underlying `BroadcastChannel` instance.
+ */
+export function getSocialListLoadedChannel(): BroadcastChannel | null {
+  return socialListLoadedChannel.getChannel();
+}
+
+/**
+ * Close the social list-loaded channel (for cleanup/testing).
+ * After calling this, the factory closes the channel and the next
+ * `subscribe` call recreates a fresh channel.
+ */
+export function closeSocialListLoadedChannel(): void {
+  socialListLoadedChannel.closeChannel();
+}
+
+/**
+ * Back-compat initializer. The factory installs the listener on
+ * first `subscribe` call, so explicit init is rarely needed.
+ */
+export function initSocialListLoadedChannel(): boolean {
+  return socialListLoadedChannel.isAvailable();
+}
 
 /**
  * Publish a `list.loaded` event on the `social/list-loaded` channel.
@@ -193,15 +208,6 @@ export function publishSocialListLoaded(
       >
     | (Pick<SocialListLoadedPayload, "kind"> & { userId: string }),
 ): boolean {
-  // Ensure the channel adapter is installed so subscribers in
-  // other parts of the application receive cross-tab events.
-  // This mirrors the relationship channel's convention.
-  initSocialListLoadedChannel();
-
-  const channel = getSocialListLoadedChannel();
-  if (channel === null) {
-    return false;
-  }
   // Normalise legacy (D3) shape to the canonical (G1) shape.
   const targetUserId =
     "targetUserId" in input
@@ -211,43 +217,44 @@ export function publishSocialListLoaded(
         : "";
   const offset = "offset" in input ? input.offset : 0;
   const limit = "limit" in input ? input.limit : 20;
-  const payload: SocialListLoadedPayload = {
+
+  // The factory returns silently when the channel is unavailable;
+  // we want a `boolean` for the legacy D3 callers, so probe first.
+  if (!socialListLoadedChannel.isAvailable()) return false;
+  // Phase 4 (TKT-Phase-4.A1): we post directly (rather than via
+  // `socialListLoadedChannel.publish`) so a single postMessage
+  // carries BOTH the canonical `targetUserId` AND the legacy D3
+  // `userId` alias. The factory's `publish` is single-purpose
+  // (stamps `tabId` + `at`); the D3 callers expect the two
+  // identifiers on the wire message so existing test fixtures
+  // and downstream subscribers keep working unchanged.
+  const ch = socialListLoadedChannel.getChannel();
+  if (ch === null) return false;
+  ch.postMessage({
     kind: input.kind,
     targetUserId,
+    userId: targetUserId,
     offset,
     limit,
+    tabId: getSocialListLoadedTabId(),
     at: Date.now(),
-    tabId: getCurrentTabId(),
-  };
-  // The posted message carries both `targetUserId` (canonical /
-  // G1) and `userId` (D3 legacy) so existing subscribers that read
-  // either field continue to work. G1+ consumers prefer
-  // `targetUserId`.
-  channel.postMessage({ ...payload, userId: targetUserId });
+  });
   return true;
 }
 
 // ─── Subscriber registry ─────────────────────────────────────────────────
 
-type SocialListLoadedHandler = (event: SocialListLoadedPayload) => void;
-
-const subscribers = new Set<SocialListLoadedHandler>();
-
 /**
  * Subscribe to social-list-loaded events. The handler is invoked
- * for every event on the channel (callers are responsible for
- * same-tab filtering via the payload's `tabId` field, or for
- * filtering by `targetUserId` themselves).
+ * for every event on the channel (the factory's same-tab filter
+ * drops events from this tab).
  *
  * Returns an unsubscribe function.
  */
 export function subscribeSocialListLoaded(
-  handler: SocialListLoadedHandler,
+  handler: (event: SocialListLoadedPayload) => void,
 ): () => void {
-  subscribers.add(handler);
-  return () => {
-    subscribers.delete(handler);
-  };
+  return socialListLoadedChannel.subscribe(handler);
 }
 
 /**
@@ -256,9 +263,18 @@ export function subscribeSocialListLoaded(
  * Intended for the logout / session-boundary hook (TKT-6.2.G4):
  * after a logout, no listener should silently update counts for a
  * subsequent user in the same browser context.
+ *
+ * Phase 4 (TKT-Phase-4.A1): the factory backs the subscriber
+ * registry; the helper uses the factory's `unsubscribeAll` to
+ * clear the registered handlers WITHOUT closing the underlying
+ * `BroadcastChannel` instance. The legacy implementation only
+ * cleared the in-memory `Set<Handler>` (never closed the channel),
+ * so this preserves the original behavior — the channel instance
+ * stays open so test harnesses can probe it via
+ * `MockBroadcastChannel.instances[0]`.
  */
 export function unsubscribeAllSocialListLoadedHandlers(): void {
-  subscribers.clear();
+  socialListLoadedChannel.unsubscribeAll();
 }
 
 /**
@@ -307,80 +323,3 @@ const socialListLoadedLogoutResetState: {
 } = {
   cleanup: null,
 };
-
-/**
- * Dispatch an event to all subscribers. Internal-only; the channel
- * adapter installs the listener that calls into this helper.
- */
-function dispatchToSubscribers(event: SocialListLoadedPayload): void {
-  subscribers.forEach((handler) => {
-    try {
-      handler(event);
-    } catch (err) {
-      // A buggy subscriber must not break sibling subscribers.
-      console.error(
-        "[social/list-loaded] error in subscriber:",
-        err,
-      );
-    }
-  });
-}
-
-// ─── Channel adapter ─────────────────────────────────────────────────────
-
-let isAdapterInstalled = false;
-
-/**
- * Install the message listener (one-time). Lazy so SSR works and
- * the import has no side effects.
- */
-function ensureChannelAdapterInstalled(): void {
-  if (isAdapterInstalled) {
-    return;
-  }
-  const channel = getSocialListLoadedChannel();
-  if (channel === null) {
-    return;
-  }
-  // Some test harnesses mock `BroadcastChannel` with a barebones
-  // object that does not implement `addEventListener`. Defend
-  // against that — without listener support the publisher still
-  // posts to the channel, so subscribers from sibling tabs / the
-  // future richer publisher surface can be wired progressively.
-  if (
-    typeof (channel as { addEventListener?: unknown }).addEventListener !==
-    "function"
-  ) {
-    return;
-  }
-  channel.addEventListener("message", (event: MessageEvent) => {
-    const data = event.data as Partial<SocialListLoadedPayload> | null;
-    if (data === null) return;
-    if (typeof data.kind !== "string") return;
-    if (typeof data.targetUserId !== "string") return;
-    if (typeof data.offset !== "number") return;
-    if (typeof data.limit !== "number") return;
-    if (typeof data.at !== "number") return;
-    if (typeof data.tabId !== "string") return;
-    // Same-tab filter: drop events we emitted from this tab.
-    if (data.tabId === getCurrentTabId()) {
-      return;
-    }
-    dispatchToSubscribers(data as SocialListLoadedPayload);
-  });
-  isAdapterInstalled = true;
-}
-
-/**
- * Public init helper so `publishSocialListLoaded` can ensure the
- * listener is installed before the first post (matches the
- * relationship-channel convention in `relationship-broadcast-channel.ts`).
- */
-export function initSocialListLoadedChannel(): boolean {
-  ensureChannelAdapterInstalled();
-  return getSocialListLoadedChannel() !== null;
-}
-
-// Ensure the adapter is installed on first publish — the singleton
-// pattern from the relationship channel.
-void initSocialListLoadedChannel;

@@ -45,7 +45,7 @@
  *
  * ## Auth + session
  *
- * The hook derives the session id from `useAuthBootstrap`. The
+ * The hook derives the session id from `useAuthSession`. The
  * mutation only fires when bootstrap is `authenticated` and the
  * caller has provided both `attemptId` and `quizVersionId`.
  */
@@ -58,7 +58,7 @@ import { ApiError, isApiError } from '@/lib/api';
 import {
   abandonAttempt,
 } from '@/features/attempts/services/attempts.service';
-import { useAuthBootstrap } from '@/features/auth/contexts/auth-bootstrap-context';
+import { useAuthSession } from '@/features/auth/hooks/use-auth-session';
 import { ATTEMPT_CACHE_KEYS } from '@/features/attempts/types/attempt-runner.types';
 import {
   beginAbandon,
@@ -117,7 +117,7 @@ export function useAbandonAttempt(
 ): UseAbandonAttemptResult {
   const { attemptId, quizVersionId } = params;
 
-  const { bootstrapState, currentUser } = useAuthBootstrap();
+  const { bootstrapState, currentUser } = useAuthSession();
 
   const sessionId = useMemo<string | null>(() => {
     if (bootstrapState !== 'authenticated') return null;

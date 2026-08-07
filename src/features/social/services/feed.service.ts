@@ -129,11 +129,11 @@ export interface FeedServicePagination {
  */
 function requireEnvelope<T>(wire: T | null | undefined, message: string): T {
   if (wire === null || wire === undefined) {
-    throw new ApiError({
+    throw ApiError.fromInput({
       status: 500,
       code: "GLOBAL_INTERNAL_ERROR",
       message,
-    } as unknown as ConstructorParameters<typeof ApiError>[0]);
+    });
   }
   return wire;
 }

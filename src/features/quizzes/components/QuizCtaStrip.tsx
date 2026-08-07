@@ -52,7 +52,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/Tooltip';
 import { cn } from '@/shared/utils/merge-class-names';
-import { useAuthBootstrap } from '@/features/auth/contexts/auth-bootstrap-context';
+import { useAuthSession } from '@/features/auth/hooks/use-auth-session';
 
 const START_TOOLTIP = 'Starting attempts opens in a later release';
 const BUTTON_SIZE = 'h-10 w-full min-w-40 sm:w-44';
@@ -70,7 +70,7 @@ export interface QuizCtaStripProps {
 
 export function QuizCtaStrip({ quizId, idOrSlug, className }: QuizCtaStripProps) {
   const isPhase4Live = isFeatureEnabled('phase4_attempts', 'live');
-  const { bootstrapState, currentUser } = useAuthBootstrap();
+  const { bootstrapState, currentUser } = useAuthSession();
   const isAuthenticated =
     bootstrapState === 'authenticated' && currentUser !== null;
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * verify-sdk-coverage.mjs — Phase 4, Phase 5, Phase 6, and Phase 7 SDK coverage gate.
+ * verify-sdk-coverage.mjs — Phases 4–7 SDK coverage gate.
  *
  * Reads the cached OpenAPI artifact at
  * `quiz_backend/docs/generated/openapi.json` and the regenerated SDK
@@ -11,7 +11,7 @@
  *
  * Source epic:   Epic 4.1 — SDK coverage & cross-cutting contracts.
  * Source tickets: TKT-4.1.A2 (Phase 4), TKT-5.1.A2 (Phase 5),
- *                 TKT-6.1.A2 (Phase 6), TKT-6.2.A2 (Phase 6 lists),
+ *                 TKT-6.1.A2 (Phase 6 lists),
  *                 TKT-6.3.A2 (Phase 6 analytics),
  *                 TKT-6.4.A2 (Phase 6 mutuals + activity),
  *                 TKT-6.5.A2 (Phase 6 social discovery + search),

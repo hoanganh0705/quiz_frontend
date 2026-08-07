@@ -11,6 +11,7 @@ import { listQuizzes } from '@/features/quizzes/services/quizzes.service'
 import type { CategoryResponseDto, QuizResponseDto } from '@/lib/api/generated/schemas'
 import { useKeyboardShortcut } from '@/shared/hooks/use-keyboard-shortcut'
 import { useLocalStorage } from '@/shared/hooks/use-local-storage'
+import { logger } from '@/shared/log'
 
 interface SearchResult {
   id: string
@@ -94,7 +95,7 @@ export function QuickSearch() {
         setCategories(categoriesData.items)
         setQuizzes(quizzesData.items)
       } catch (error) {
-        console.error('Failed to fetch search data:', error)
+        logger.error('shared.quick-search', 'Failed to fetch search data', error)
       }
     }
     fetchData()

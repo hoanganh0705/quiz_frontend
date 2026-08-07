@@ -57,7 +57,7 @@
 
 import { useCallback, useMemo, type ReactElement } from "react";
 
-import { useAuthBootstrap } from "@/features/auth/contexts/auth-bootstrap-context";
+import { useAuthSession } from "@/features/auth/hooks/use-auth-session";
 import { ConnectionStatusBadge } from "@/features/social/components/ConnectionStatusBadge";
 import { FeedEmptyState } from "@/features/social/components/FeedEmptyState";
 import { FeedErrorState } from "@/features/social/components/FeedErrorState";
@@ -82,7 +82,7 @@ export function SocialFeedPage(): ReactElement {
   // context returns `null` while the bootstrap is in flight; the
   // hook treats that as the unauthenticated branch. Mirrors the
   // `useRelationship` (TKT-6.1.D1) pattern.
-  const auth = useAuthBootstrap();
+  const auth = useAuthSession();
   const viewerUserId = useMemo(
     () => auth.currentUser?.userId ?? null,
     [auth.currentUser],

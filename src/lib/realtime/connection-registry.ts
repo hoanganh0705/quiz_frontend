@@ -30,6 +30,8 @@
  * `socket.io-client`) lives in `socket-adapter.ts`.
  */
 
+import { logger } from '@/shared/log';
+
 export interface SocketLike {
   on(event: string, handler: (...args: unknown[]) => void): void;
   off(event: string, handler: (...args: unknown[]) => void): void;
@@ -85,9 +87,10 @@ export function registerSocketListener(
   state.socket.on(eventName, handler);
 
   if (state.listeners.size > MAX_LISTENERS) {
-    console.warn(
-      `[ConnectionRegistry] namespace "${namespace}" has ${state.listeners.size} ` +
-        `listeners (${MAX_LISTENERS} recommended maximum).`,
+    logger.warn(
+      'realtime.connection-registry',
+      `namespace has ${state.listeners.size} listeners (recommended max ${MAX_LISTENERS})`,
+      { namespace },
     );
   }
   return true;

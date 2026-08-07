@@ -36,7 +36,7 @@ const usePermissionMock = vi.hoisted(() =>
   })),
 );
 
-const useAuthBootstrapMock = vi.hoisted(() =>
+const useAuthSessionMock = vi.hoisted(() =>
   vi.fn(() => ({
     bootstrapState: 'authenticated',
     isAuthenticated: true,
@@ -48,8 +48,8 @@ vi.mock('@/features/admin/hooks/usePermission', () => ({
   usePermission: usePermissionMock,
 }));
 
-vi.mock('@/features/auth/contexts/auth-bootstrap-context', () => ({
-  useAuthBootstrap: useAuthBootstrapMock,
+vi.mock('@/features/auth/hooks/use-auth-session', () => ({
+  useAuthSession: useAuthSessionMock,
 }));
 
 // Mock the Radix DropdownMenu family because jsdom + Radix's
@@ -116,13 +116,13 @@ function makeReport(overrides: Partial<AdminReportDto> = {}): AdminReportDto {
 
 beforeEach(() => {
   usePermissionMock.mockReset();
-  useAuthBootstrapMock.mockReset();
+  useAuthSessionMock.mockReset();
   usePermissionMock.mockReturnValue({
     isLoading: false,
     error: null,
     hasPermission: true,
   });
-  useAuthBootstrapMock.mockReturnValue({
+  useAuthSessionMock.mockReturnValue({
     bootstrapState: 'authenticated',
     isAuthenticated: true,
     currentUser: { userId: 'admin-1' },
@@ -188,7 +188,7 @@ describe('TKT-7.5.D1 — ReviewReportActionMenu', () => {
   });
 
   it('renders the self-moderation notice when the admin authored the review', () => {
-    useAuthBootstrapMock.mockReturnValue({
+    useAuthSessionMock.mockReturnValue({
       bootstrapState: 'authenticated',
       isAuthenticated: true,
       currentUser: { userId: 'author-1' },
@@ -224,7 +224,7 @@ describe('TKT-7.5.D1 — ReviewReportActionMenu', () => {
   it('does not call any services or fetch hooks', () => {
     // Sanity: the menu's render must not introduce any HTTP or
     // service-layer dependencies. The component's mock surface is
-    // exactly the two hooks above (usePermission, useAuthBootstrap);
+    // exactly the two hooks above (usePermission, useAuthSession);
     // any module-level import of `@/features/.../services` or
     // `swr` would surface as an undeclared dependency. We assert
     // that there are no unexpected module fetches by exercising

@@ -34,6 +34,7 @@ import { useCallback, useRef, useState } from 'react';
 
 import { isApiError, type ApiError } from '@/lib/api';
 import { getUserCopy, type UserCopyEntry } from '@/lib/api/error-codes';
+import { logger } from '@/shared/log';
 
 import { reportComment } from '@/features/comments/services/comments.service';
 
@@ -158,7 +159,7 @@ export function useReportComment(
             durationMs: Date.now() - startedAt,
             code: 'GLOBAL_UNKNOWN',
           });
-          console.warn('[useReportComment] unexpected rejection', err);
+          logger.warn('comments.report', 'unexpected rejection', err);
           return false;
         }
       })();

@@ -70,10 +70,10 @@ vi.mock('@/lib/api/core/attempts-broadcast-channel', async () => {
 });
 
 // Auth bootstrap mock — the hook reads `bootstrapState` + `currentUser`.
-const useAuthBootstrapMock = vi.fn();
+const useAuthSessionMock = vi.fn();
 
-vi.mock('@/features/auth/contexts/auth-bootstrap-context', () => ({
-  useAuthBootstrap: () => useAuthBootstrapMock(),
+vi.mock('@/features/auth/hooks/use-auth-session', () => ({
+  useAuthSession: () => useAuthSessionMock(),
 }));
 
 // SWR mutate mock — the hook invalidates several cache keys on success.
@@ -133,7 +133,7 @@ function makeApiError(status: number, code: string, message: string): ApiError {
 }
 
 function authedAs(userId: string): void {
-  useAuthBootstrapMock.mockReturnValue({
+  useAuthSessionMock.mockReturnValue({
     bootstrapState: 'authenticated',
     currentUser: { id: userId, userId },
   });
@@ -143,7 +143,7 @@ function authedAs(userId: string): void {
 
 describe('useCompleteAttempt — gating', () => {
   beforeEach(() => {
-    useAuthBootstrapMock.mockReturnValue({
+    useAuthSessionMock.mockReturnValue({
       bootstrapState: 'unauthenticated',
       currentUser: null,
     });

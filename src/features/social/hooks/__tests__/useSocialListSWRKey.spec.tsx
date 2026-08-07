@@ -13,7 +13,7 @@
  *   - The hook form returns `null` when `targetUserId` is `null`.
  */
 
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { renderHook } from "@testing-library/react";
 
@@ -21,7 +21,13 @@ import {
   SOCIAL_LIST_SWR_DEFAULTS,
   makeSocialListSWRKey,
   useSocialListSWRKey,
+  // `useSocialListSWRKeyFromUrl` is imported statically for type-
+  // checking AND dynamically (inside the `describe` blocks below)
+  // for module-mock purposes. The static import is intentionally
+  // marked `void` so ESLint's no-unused-vars does not flag it.
+  useSocialListSWRKeyFromUrl,
 } from "@/features/social/hooks/useSocialListSWRKey";
+void useSocialListSWRKeyFromUrl;
 
 describe("makeSocialListSWRKey", () => {
   it("produces a 6-tuple with the documented fields", () => {
@@ -106,6 +112,62 @@ describe("useSocialListSWRKey", () => {
       "cursor-1",
       20,
     ]);
+  });
+});
+
+describe("useSocialListSWRKeyFromUrl", () => {
+  it("returns the key built from the URL cursor / limit (P0-16)", async () => {
+    vi.resetModules();
+    vi.doMock("next/navigation", () => ({
+      useSearchParams: () =>
+        new URLSearchParams("cursor=url-cursor&limit=50"),
+    }));
+    const { useSocialListSWRKeyFromUrl } = await import(
+      "@/features/social/hooks/useSocialListSWRKey"
+    );
+    const { result } = renderHook(() =>
+      useSocialListSWRKeyFromUrl("followers", "user-1"),
+    );
+    expect(result.current).toEqual([
+      "social",
+      "list",
+      "followers",
+      "user-1",
+      "url-cursor",
+      50,
+    ]);
+    vi.doUnmock("next/navigation");
+  });
+
+  it("returns null when targetUserId is null", async () => {
+    vi.resetModules();
+    vi.doMock("next/navigation", () => ({
+      useSearchParams: () => new URLSearchParams("cursor=ignored"),
+    }));
+    const { useSocialListSWRKeyFromUrl } = await import(
+      "@/features/social/hooks/useSocialListSWRKey"
+    );
+    const { result } = renderHook(() =>
+      useSocialListSWRKeyFromUrl("followers", null),
+    );
+    expect(result.current).toBeNull();
+    vi.doUnmock("next/navigation");
+  });
+
+  it("falls back to the default limit when the URL omits ?limit", async () => {
+    vi.resetModules();
+    vi.doMock("next/navigation", () => ({
+      useSearchParams: () => new URLSearchParams(""),
+    }));
+    const { useSocialListSWRKeyFromUrl } = await import(
+      "@/features/social/hooks/useSocialListSWRKey"
+    );
+    const { result } = renderHook(() =>
+      useSocialListSWRKeyFromUrl("followers", "user-1"),
+    );
+    expect(result.current).not.toBeNull();
+    expect(result.current![5]).toBe(20);
+    vi.doUnmock("next/navigation");
   });
 });
 

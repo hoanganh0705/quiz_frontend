@@ -36,6 +36,7 @@ import { mutate as globalMutate } from 'swr';
 
 import { isApiError, type ApiError } from '@/lib/api';
 import { getUserCopy, type UserCopyEntry } from '@/lib/api/error-codes';
+import { logger } from '@/shared/log';
 
 import { deleteComment } from '@/features/comments/services/comments.service';
 
@@ -174,7 +175,7 @@ export function useDeleteComment(
             durationMs: Date.now() - startedAt,
             code: 'GLOBAL_UNKNOWN',
           });
-          console.warn('[useDeleteComment] unexpected rejection', err);
+          logger.warn('comments.delete', 'unexpected rejection', err);
           return false;
         }
       })();

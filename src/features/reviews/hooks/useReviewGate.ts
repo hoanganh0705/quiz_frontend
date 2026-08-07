@@ -6,7 +6,7 @@
  *
  * ## What this hook owns
  *
- * Combines authentication (`useAuthBootstrap`), the my-review lookup
+ * Combines authentication (`useAuthSession`), the my-review lookup
  * (`useMyQuizReview`, T-4.13.5) and the completed-attempt eligibility
  * read (`useCompletedQuizAttempt`, T-4.13.6) into ONE deterministic
  * `ReviewGateState` discriminated union. The gated authoring form
@@ -62,7 +62,7 @@ import {
   type ReviewGateState,
   type ReviewGateResult,
 } from '@/features/reviews/types';
-import { useAuthBootstrap } from '@/features/auth/contexts/auth-bootstrap-context';
+import { useAuthSession } from '@/features/auth/hooks/use-auth-session';
 
 import { useMyQuizReview } from './useMyQuizReview';
 import { useCompletedQuizAttempt } from './useCompletedQuizAttempt';
@@ -184,7 +184,7 @@ export function useReviewGate(
 ): ReviewGateResult {
   const { quizId } = params;
 
-  const { bootstrapState, currentUser } = useAuthBootstrap();
+  const { bootstrapState, currentUser } = useAuthSession();
 
   // Stable session id derived from the bootstrap's currentUser.
   // `null` until bootstrap completes — the underlying hooks

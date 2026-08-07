@@ -80,7 +80,7 @@ import {
   type AttemptsChangedEvent,
 } from '@/lib/api/core/attempts-broadcast-channel';
 
-import { useAuthBootstrap } from '@/features/auth/contexts/auth-bootstrap-context';
+import { useAuthSession } from '@/features/auth/hooks/use-auth-session';
 import { ATTEMPT_CACHE_KEYS } from '@/features/attempts/types/attempt-runner.types';
 import { ATTEMPT_RESULT_CACHE_KEYS } from '@/features/attempts/types/attempt-result.types';
 import {
@@ -119,7 +119,7 @@ export function useAttemptCrossTabSync(
 ): void {
   const { quizVersionId } = params;
 
-  const { bootstrapState, currentUser } = useAuthBootstrap();
+  const { bootstrapState, currentUser } = useAuthSession();
 
   const sessionId =
     bootstrapState === 'authenticated' && currentUser

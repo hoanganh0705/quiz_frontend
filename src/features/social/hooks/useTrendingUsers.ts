@@ -68,7 +68,7 @@ import type {
   TrendingUserResponseDtoTrendReason,
 } from "@/lib/api/generated/schemas";
 
-import { useAuthBootstrap } from "@/features/auth/contexts/auth-bootstrap-context";
+import { useAuthSession } from "@/features/auth/hooks/use-auth-session";
 
 // ─── Public surface ──────────────────────────────────────────────────────
 
@@ -132,7 +132,7 @@ export function useTrendingUsers(): UseTrendingUsersResult {
   const flagValue = getFeatureFlagValue("phase6_social_discovery");
   const isFlagPlaceholder = flagValue === "placeholder";
 
-  const auth = useAuthBootstrap();
+  const auth = useAuthSession();
   const isAuthenticated = auth.isAuthenticated;
 
   // Trending is a global surface — no per-user keying.

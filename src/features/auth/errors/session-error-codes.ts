@@ -57,25 +57,37 @@
 // import from this module, not from `@/lib/api/error-codes` (which
 // only exposes the type, not the value).
 //
-// The drift check between these literals and the `ErrorCode` union
-// lives in the planned 2.8.T24 vitest suite: a type assertion
-// `const _t: ErrorCode = AUTH_SESSION_NOT_FOUND;` would fail if the
-// literals ever diverge from the union.
-export const AUTH_SESSION_NOT_FOUND = 'AUTH_SESSION_NOT_FOUND' as const;
-export const AUTH_INVALID_TOKEN = 'AUTH_INVALID_TOKEN' as const;
-export const AUTH_RESOURCE_CONFLICT = 'AUTH_RESOURCE_CONFLICT' as const;
+// P2-29 cleanup: the `SessionErrorCode` union below is now derived
+// from the global `ErrorCode` registry via `Extract<ErrorCode, …>` so
+// the union auto-tracks the registry when new codes land. The
+// `AUTH_SESSION_NOT_FOUND` / `AUTH_INVALID_TOKEN` /
+// `AUTH_RESOURCE_CONFLICT` literals remain as the canonical value
+// exports (callers can import the string without importing the type
+// union), and the `as const satisfies ErrorCode` assertion guarantees
+// each literal is still a member of the global union.
+import type { ErrorCode } from '@/lib/api/error-codes';
+
+export const AUTH_SESSION_NOT_FOUND = 'AUTH_SESSION_NOT_FOUND' as const satisfies ErrorCode;
+export const AUTH_INVALID_TOKEN = 'AUTH_INVALID_TOKEN' as const satisfies ErrorCode;
+export const AUTH_RESOURCE_CONFLICT = 'AUTH_RESOURCE_CONFLICT' as const satisfies ErrorCode;
 
 /**
  * Union of session-management error codes this module recognizes.
  *
+ * P2-29 cleanup: derived from the global `ErrorCode` union via
+ * `Extract<ErrorCode, …>` so the subset auto-tracks the registry
+ * when the backend adds new session codes. To extend the subset,
+ * add the new literal to the `Extract` argument list.
+ *
  * Exhaustive: every member must appear in the `SESSION_KNOWN_CODES`
- * const array below. The vi test suite (planned in 2.8.T24) verifies
- * the union and the array are in lockstep.
+ * const array below.
  */
-export type SessionErrorCode =
+export type SessionErrorCode = Extract<
+  ErrorCode,
   | typeof AUTH_SESSION_NOT_FOUND
   | typeof AUTH_INVALID_TOKEN
-  | typeof AUTH_RESOURCE_CONFLICT;
+  | typeof AUTH_RESOURCE_CONFLICT
+>;
 
 /**
  * Array form of `SessionErrorCode`. Useful for `Array.includes` checks

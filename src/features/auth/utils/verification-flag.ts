@@ -80,6 +80,8 @@
 
 const DEFAULT_TTL_MS = 15_000;
 
+import { useSyncExternalStore } from 'react';
+
 /**
  * A single flag entry — the timestamp it was set, plus the TTL that
  * was in effect at the time of `markRecentlyVerified`. Stored
@@ -100,6 +102,30 @@ interface FlagEntry {
 const flags = new Map<string, FlagEntry>();
 
 /**
+ * Listener registry for `useSyncExternalStore` consumers.
+ *
+ * P0-7 cleanup: the previous implementation exposed a plain
+ * module-scope `Map` with no subscriber hook. React components that
+ * wanted to re-render when a flag changed had to poll (which
+ * defeats the purpose of the TTL) or wire their own
+ * `useEffect`-based pub-sub. We now expose a `subscribe`/`getSnapshot`
+ * pair so `useSyncExternalStore` can subscribe without polling.
+ */
+type FlagListener = () => void;
+const listeners = new Set<FlagListener>();
+
+/**
+ * Notify every registered listener that the flag store changed.
+ * Called from `markRecentlyVerified`, `consumeRecentlyVerified`,
+ * `isRecentlyVerified` (on expiry purge), and `clearVerificationFlags`.
+ */
+function notifyListeners(): void {
+  for (const listener of listeners) {
+    listener();
+  }
+}
+
+/**
  * Mark an action as recently verified. The flag expires after
  * `ttlMs` (default 15_000 ms).
  *
@@ -117,6 +143,9 @@ export function markRecentlyVerified(
     markedAt: Date.now(),
     ttlMs,
   });
+  // P0-7: notify `useSyncExternalStore` consumers so components
+  // re-render without polling.
+  notifyListeners();
 }
 
 /**
@@ -142,11 +171,13 @@ export function consumeRecentlyVerified(actionId: string): boolean {
   if (age >= entry.ttlMs) {
     // Expired — purge so the next call does not pay the lookup cost.
     flags.delete(actionId);
+    notifyListeners();
     return false;
   }
 
   // Single-use: consume wipes the flag.
   flags.delete(actionId);
+  notifyListeners();
   return true;
 }
 
@@ -168,6 +199,7 @@ export function isRecentlyVerified(actionId: string): boolean {
   const age = Date.now() - entry.markedAt;
   if (age >= entry.ttlMs) {
     flags.delete(actionId);
+    notifyListeners();
     return false;
   }
 
@@ -181,6 +213,7 @@ export function isRecentlyVerified(actionId: string): boolean {
  */
 export function clearVerificationFlags(): void {
   flags.clear();
+  notifyListeners();
 }
 
 /**
@@ -198,4 +231,50 @@ export function _debugFlags(): Record<string, FlagEntry> {
  */
 export function _resetVerificationFlags(): void {
   flags.clear();
+  notifyListeners();
+}
+
+/**
+ * `useVerificationFlag` — React subscription primitive for the
+ * verification-flag store.
+ *
+ * P0-7 cleanup: this hook is the recommended way to read flag state
+ * from React components. It uses `useSyncExternalStore` so the
+ * component re-renders whenever the store changes (via
+ * `markRecentlyVerified`, `consumeRecentlyVerified`, or
+ * `clearVerificationFlags`) without `useEffect`-based polling.
+ *
+ * The return value is `true` if the flag is set and not yet expired
+ * (it does NOT consume the flag). Use the imperative
+ * `consumeRecentlyVerified` to consume after the user takes the
+ * action.
+ *
+ * ## SSR
+ *
+ * `useSyncExternalStore` returns the snapshot from
+ * `getServerSnapshot` during SSR. We return `false` (no flag set)
+ * on the server because the flag store is per-tab in-memory state
+ * that does not exist during SSR.
+ *
+ * ## TTL
+ *
+ * The TTL is enforced at read-time (in `isRecentlyVerified` and
+ * `consumeRecentlyVerified`). The `useSyncExternalStore` snapshot
+ * reflects the current `isRecentlyVerified` value, which purges
+ * expired flags on read and notifies listeners — so a component
+ * that re-renders on TTL expiry will see the flag drop to `false`
+ * automatically.
+ */
+export function useVerificationFlag(actionId: string): boolean {
+  const subscribe = (listener: FlagListener): (() => void) => {
+    listeners.add(listener);
+    return () => {
+      listeners.delete(listener);
+    };
+  };
+
+  const getSnapshot = (): boolean => isRecentlyVerified(actionId);
+  const getServerSnapshot = (): boolean => false;
+
+  return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 }

@@ -46,6 +46,9 @@
  * explicitly.
  */
 
+import { useMemo } from "react";
+import { useSearchParams } from "next/navigation";
+
 import type { SocialListKind } from "../components/SocialListKind";
 import {
   SOCIAL_GRAPH_DEFAULT_LIMIT,
@@ -127,10 +130,18 @@ function clampLimit(limit: number): number {
 }
 
 /**
- * Hook form of the key factory. The hook signature mirrors the
- * eventual list-page consumer; the implementation is a thin
- * wrapper over `makeSocialListSWRKey` so test mocks can replace
- * either the hook or the function directly.
+ * Hook form of the key factory.
+ *
+ * Phase 4 (TKT-Phase-4 — P0-16): this signature is preserved as a
+ * pure factory so existing tests / non-list contexts keep working.
+ * The URL-aware form lives in `useSocialListSWRKeyFromUrl` below;
+ * it reads `cursor` / `limit` directly from `useSearchParams()` so
+ * the URL is the single source of truth — list pages should prefer
+ * the URL-aware form so deep links survive a reload.
+ *
+ * The hook signature mirrors the eventual list-page consumer; the
+ * implementation is a thin wrapper over `makeSocialListSWRKey` so
+ * test mocks can replace either the hook or the function directly.
  */
 export function useSocialListSWRKey(
   kind: SocialListKind,
@@ -140,4 +151,38 @@ export function useSocialListSWRKey(
 ): SocialListSWRKey | null {
   if (targetUserId === null) return null;
   return makeSocialListSWRKey(kind, targetUserId, cursor, limit);
+}
+
+/**
+ * Phase 4 (TKT-Phase-4 — P0-16): URL-aware variant of
+ * `useSocialListSWRKey`. Reads `cursor` and `limit` directly from
+ * `useSearchParams()` so the URL — not React state — drives the
+ * SWR cache key. List pages that mount `useSocialListUrlState`
+ * should also use this hook to keep the URL ↔ SWR-key contract
+ * aligned: a deep-link to `?cursor=abc&limit=50` immediately
+ * populates the matching SWR key without an extra render.
+ *
+ * The `useSocialListUrlState` companion hook still owns the
+ * setters (`setCursor`, `setLimit`, `reset`) — this hook only
+ * *reads* the URL, so both hooks share the same source.
+ */
+export function useSocialListSWRKeyFromUrl(
+  kind: SocialListKind,
+  targetUserId: string | null,
+  limit: number = SOCIAL_GRAPH_DEFAULT_LIMIT,
+): SocialListSWRKey | null {
+  const searchParams = useSearchParams();
+  const cursor = useMemo(() => {
+    const raw = searchParams.get("cursor");
+    return raw === null || raw === "" ? null : raw;
+  }, [searchParams]);
+  const limitFromUrl = useMemo(() => {
+    const raw = searchParams.get("limit");
+    if (raw === null || raw === "") return limit;
+    const parsed = Number.parseInt(raw, 10);
+    if (!Number.isFinite(parsed) || parsed <= 0) return limit;
+    return Math.min(parsed, SOCIAL_GRAPH_MAX_LIMIT);
+  }, [searchParams, limit]);
+  if (targetUserId === null) return null;
+  return makeSocialListSWRKey(kind, targetUserId, cursor, limitFromUrl);
 }

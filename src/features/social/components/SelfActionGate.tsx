@@ -33,13 +33,13 @@
  *
  * ## SSR-safety
  *
- * The gate is a Client Component because `useAuthBootstrap` reads
+ * The gate is a Client Component because `useAuthSession` reads
  * from a React context that is only mounted at the client root.
  */
 
 import type { ReactNode } from "react";
 
-import { useAuthBootstrap } from "@/features/auth/contexts/auth-bootstrap-context";
+import { useAuthSession } from "@/features/auth/hooks/use-auth-session";
 
 interface SelfActionGateProps {
   /**
@@ -63,7 +63,7 @@ const DEFAULT_FALLBACK: ReactNode = null;
  */
 export function SelfActionGate(props: SelfActionGateProps): ReactNode {
   const { targetUserId, children, fallback = DEFAULT_FALLBACK } = props;
-  const auth = useAuthBootstrap();
+  const auth = useAuthSession();
   const viewerId = auth.currentUser?.userId ?? null;
 
   if (viewerId !== null && targetUserId === viewerId) {

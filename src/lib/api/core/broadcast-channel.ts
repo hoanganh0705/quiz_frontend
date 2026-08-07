@@ -64,6 +64,8 @@
  */
 export const AUTH_CHANNEL_NAME = 'auth';
 
+import { logger } from '@/shared/log';
+
 /**
  * Storage key for persisting the tab ID across refreshes.
  */
@@ -292,7 +294,7 @@ function dispatchToSubscribers(event: AuthEvent): void {
       handler(event);
     } catch (err) {
       // Prevent a buggy subscriber from breaking other subscribers
-      console.error('[auth] Error in auth event subscriber:', err);
+      logger.error('auth.broadcast', 'Error in auth event subscriber', err);
     }
   });
 }
@@ -476,3 +478,24 @@ export function broadcastAccountDeleted(): void {
     type: 'ACCOUNT_DELETED',
   });
 }
+
+// ─── Factory migration (Phase 4, TKT-Phase-4.A3) ──────────────────────────
+//
+// The auth channel is the largest and oldest cross-tab surface in the
+// codebase. It carries 4 event types, exposes 4 convenience
+// publishers, and is consumed by `custom-instance.ts`,
+// `auth-bootstrap-context.tsx`, the `useAuthSession` hook, and the
+// social / follow / block hooks. Migrating it to
+// `createBroadcastChannel` would force every consumer to switch
+// from `subscribeToAuthEvents(handler)` to
+// `authChannel.subscribe(handler)`.
+//
+// The factory migration is staged: the smaller channels (profile,
+// bookmarks, attempts) move first because their public API is
+// already a thin `subscribeXxx` / `broadcastXxx` shell. The auth
+// channel keeps its bespoke implementation for one more phase so we
+// don't drag the highest-traffic channel through the migration
+// along with the long tail. Phase 5 (or a dedicated auth refactor
+// ticket) will replace the boilerplate below with a single
+// `createBroadcastChannel('auth', { validate: isAuthEvent })` call
+// once the consumer migration is staged.

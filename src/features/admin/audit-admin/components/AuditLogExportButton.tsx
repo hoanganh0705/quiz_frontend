@@ -23,6 +23,7 @@ import { useCallback, useState } from 'react';
 import { Download } from 'lucide-react';
 
 import type { AuditLogFilters } from '../types';
+import { logger } from '@/shared/log';
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 
@@ -57,10 +58,11 @@ export function AuditLogExportButton({
         if (onExport) {
           await onExport(format, filters);
         } else {
-          // Stubbed: log to console until backend export is wired
-          // eslint-disable-next-line no-console
-          console.warn(
-            `[AuditLogExportButton] Export not yet implemented (format=${format})`,
+          // Stubbed: log via the centralized logger until backend export is wired.
+          logger.warn(
+            'admin.audit.export',
+            'Export not yet implemented',
+            { format },
           );
         }
       } finally {

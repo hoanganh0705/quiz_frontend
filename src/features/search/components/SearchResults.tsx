@@ -52,7 +52,7 @@ import type {
   SearchQueryParams,
 } from "@/features/search/types/search.types";
 import { useSearch } from "@/features/search/hooks/useSearch";
-import { useAuthBootstrap } from "@/features/auth/contexts/auth-bootstrap-context";
+import { useAuthSession } from "@/features/auth/hooks/use-auth-session";
 
 // ─── Constants ─────────────────────────────────────────────────────────────
 
@@ -127,7 +127,7 @@ export function SearchResults({
   renderItem,
   className,
 }: SearchResultsProps) {
-  const { bootstrapState } = useAuthBootstrap();
+  const { bootstrapState } = useAuthSession();
   const isAuthenticated = bootstrapState === "authenticated";
 
   const {

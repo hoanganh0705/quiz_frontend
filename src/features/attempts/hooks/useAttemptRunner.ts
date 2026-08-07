@@ -73,7 +73,7 @@ import {
   useAttemptEntry,
 } from '@/features/attempts/stores/useAttemptsStore';
 
-import { useAuthBootstrap } from '@/features/auth/contexts/auth-bootstrap-context';
+import { useAuthSession } from '@/features/auth/hooks/use-auth-session';
 
 import type {
   AttemptSummaryResponseDto,
@@ -179,7 +179,7 @@ export function useAttemptRunner(
   const { quizId, quizVersionId, idOrSlug, questions } = params;
 
   // ─── Auth bootstrap ──────────────────────────────────────────────────────
-  const { bootstrapState, currentUser } = useAuthBootstrap();
+  const { bootstrapState, currentUser } = useAuthSession();
   const sessionId = React.useMemo<string | null>(() => {
     if (bootstrapState !== 'authenticated') return null;
     if (!currentUser) return null;

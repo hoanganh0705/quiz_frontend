@@ -33,7 +33,7 @@
 
 import { Award, Trophy } from "lucide-react";
 
-import { useAuthBootstrap } from "@/features/auth/contexts/auth-bootstrap-context";
+import { useAuthSession } from "@/features/auth/hooks/use-auth-session";
 import { getFeatureFlagValue } from "@/lib/feature-flags";
 
 import { useRankingMilestones } from "@/features/rankings/hooks";
@@ -58,7 +58,7 @@ export function MilestonesList({ className }: MilestonesListProps) {
   const flagValue = getFeatureFlagValue("phase5_rankings");
   const isFlagPlaceholder = flagValue === "placeholder";
 
-  const { isAuthenticated, bootstrapState } = useAuthBootstrap();
+  const { isAuthenticated, bootstrapState } = useAuthSession();
 
   const { milestones, isLoading, error, retry, isStale } =
     useRankingMilestones();

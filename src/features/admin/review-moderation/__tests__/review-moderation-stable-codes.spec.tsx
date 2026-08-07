@@ -49,7 +49,7 @@ const usePermissionMock = vi.hoisted(() =>
     hasPermission: true,
   })),
 );
-const useAuthBootstrapMock = vi.hoisted(() =>
+const useAuthSessionMock = vi.hoisted(() =>
   vi.fn(() => ({
     bootstrapState: 'authenticated',
     isAuthenticated: true,
@@ -77,8 +77,8 @@ vi.mock('@/features/admin/hooks/usePermission', () => ({
   usePermission: usePermissionMock,
 }));
 
-vi.mock('@/features/auth/contexts/auth-bootstrap-context', () => ({
-  useAuthBootstrap: useAuthBootstrapMock,
+vi.mock('@/features/auth/hooks/use-auth-session', () => ({
+  useAuthSession: useAuthSessionMock,
 }));
 
 // ─── UI stubs ───────────────────────────────────────────────────────────────
@@ -243,7 +243,7 @@ function makeApiError(code: string, status: number, requestId: string): ApiError
 beforeEach(() => {
   resolveMock.mockReset();
   usePermissionMock.mockReset();
-  useAuthBootstrapMock.mockReset();
+  useAuthSessionMock.mockReset();
   // Each test sets the specific rejection it exercises via
   // `resolveMock.mockRejectedValue(...)`. Default to a no-op resolved
   // promise so the `mutate` call inside the dialog's onClick does
@@ -258,7 +258,7 @@ beforeEach(() => {
     error: null,
     hasPermission: true,
   });
-  useAuthBootstrapMock.mockReturnValue({
+  useAuthSessionMock.mockReturnValue({
     bootstrapState: 'authenticated',
     isAuthenticated: true,
     currentUser: { userId: 'admin-1' },
@@ -377,7 +377,7 @@ describe('TKT-7.5.H2 — PERMISSION_DENIED branch (live: GLOBAL_FORBIDDEN)', () 
 describe('TKT-7.5.H2 — self-moderation gate', () => {
   it('renders the self-moderation notice and disables every menu item', () => {
     // The admin is the author of the review.
-    useAuthBootstrapMock.mockReturnValue({
+    useAuthSessionMock.mockReturnValue({
       bootstrapState: 'authenticated',
       isAuthenticated: true,
       currentUser: { userId: 'author-1' },

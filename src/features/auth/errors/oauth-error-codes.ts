@@ -9,15 +9,21 @@
  * service layer can import them as named constants rather than raw string
  * literals, reducing the risk of typos.
  *
+ * P2-29 cleanup: each literal now carries `as const satisfies
+ * ErrorCode` so the global registry tracks the membership at compile
+ * time. The `GoogleOAuthErrorCode` union is derived via
+ * `Extract<ErrorCode, …>` so it auto-tracks the registry.
+ *
  * Adding a new OAuth code here requires adding it to the ErrorCode union in
  * `error-codes.ts` first.
  */
+import type { ErrorCode } from '@/lib/api/error-codes';
 
 /**
  * The Google ID token is invalid, expired, or malformed.
  * The user should be prompted to attempt signing in with Google again.
  */
-export const AUTH_OAUTH_INVALID_TOKEN = 'AUTH_OAUTH_INVALID_TOKEN' as const;
+export const AUTH_OAUTH_INVALID_TOKEN = 'AUTH_OAUTH_INVALID_TOKEN' as const satisfies ErrorCode;
 
 /**
  * A Google account already exists for this email, but the account is not
@@ -25,23 +31,25 @@ export const AUTH_OAUTH_INVALID_TOKEN = 'AUTH_OAUTH_INVALID_TOKEN' as const;
  * their password to complete the linking process.
  */
 export const AUTH_OAUTH_ACCOUNT_ALREADY_EXISTS =
-  'AUTH_OAUTH_ACCOUNT_ALREADY_EXISTS' as const;
+  'AUTH_OAUTH_ACCOUNT_ALREADY_EXISTS' as const satisfies ErrorCode;
 
 /**
  * The Google account's email requires linking to an existing password-based
  * account. The user should be directed to use an existing supported
  * login path.
  */
-export const AUTH_OAUTH_LINKING_REQUIRED = 'AUTH_OAUTH_LINKING_REQUIRED' as const;
+export const AUTH_OAUTH_LINKING_REQUIRED = 'AUTH_OAUTH_LINKING_REQUIRED' as const satisfies ErrorCode;
 
 /**
  * Type-level aliases so callers can use these in switch statements
  * and exhaustive checks without casting.
  */
-export type GoogleOAuthErrorCode =
+export type GoogleOAuthErrorCode = Extract<
+  ErrorCode,
   | typeof AUTH_OAUTH_INVALID_TOKEN
   | typeof AUTH_OAUTH_ACCOUNT_ALREADY_EXISTS
-  | typeof AUTH_OAUTH_LINKING_REQUIRED;
+  | typeof AUTH_OAUTH_LINKING_REQUIRED
+>;
 
 /**
  * All OAuth error codes — useful for exhaustive checks and test fixtures.

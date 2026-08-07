@@ -30,7 +30,7 @@
  * - Surface `WS_ERROR_DECODING` for unknown error codes and stop
  *   reconnecting on `INSTANCE_AUTH_REQUIRED` / `AUTH_TOKEN_EXPIRED`.
  * - Tear down the connection on logout via the supabase `auth` events
- *   subscribed through `useAuthBootstrap` (clearing the per-instance
+ *   subscribed through `useAuthSession` (clearing the per-instance
  *   store is the responsibility of `useRealtimeQuery` / B6).
  *
  * ## Feature flag preconditions
@@ -57,7 +57,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import { ApiError, isApiError } from "@/lib/api";
+import { ApiError, coerceToApiError, isApiError } from "@/lib/api";
 import {
   INSTANCES_NAMESPACE,
   useSocket,
@@ -67,7 +67,7 @@ import type { UseSocketReturn } from "@/lib/realtime";
 import { decodeWsError } from "@/lib/realtime";
 import { getFeatureFlagValue } from "@/lib/feature-flags";
 
-import { useAuthBootstrap } from "@/features/auth/contexts/auth-bootstrap-context";
+import { useAuthSession } from "@/features/auth/hooks/use-auth-session";
 
 import {
   type InstanceLifecycleErrorCode,
@@ -280,7 +280,7 @@ export function useInstanceSocket(
     featuresFlag === "live" && realtimeFlag === "live";
   const isFlagPlaceholder = !enabled;
 
-  const auth = useAuthBootstrap();
+  const auth = useAuthSession();
   const isAuthenticated = auth.isAuthenticated;
 
   const { socket, connectionState, error, disconnect } = useSocket(
@@ -334,11 +334,11 @@ export function useInstanceSocket(
     if (source === null) return null;
     const mappedCode = mapWsErrorToLifecycleCode(source.code);
     const baseMessage = source.message ?? "Socket error";
-    return new ApiError({
+    return ApiError.fromInput({
       status: 0,
       code: mappedCode,
       message: baseMessage,
-    } as unknown as ConstructorParameters<typeof ApiError>[0]);
+    });
   }, [error, connectError]);
 
   // ─── Track join state per instanceId ───────────────────────────────────
@@ -370,9 +370,7 @@ export function useInstanceSocket(
       if (isApiError(cause)) {
         throw cause;
       }
-      throw new ApiError(
-        cause as unknown as ConstructorParameters<typeof ApiError>[0],
-      );
+      throw coerceToApiError(cause);
     }
   }, [isFlagPlaceholder, isAuthenticated, instanceId, socket]);
 
@@ -395,9 +393,7 @@ export function useInstanceSocket(
       if (isApiError(cause)) {
         throw cause;
       }
-      throw new ApiError(
-        cause as unknown as ConstructorParameters<typeof ApiError>[0],
-      );
+      throw coerceToApiError(cause);
     }
   }, [isFlagPlaceholder, isAuthenticated, instanceId, socket]);
 
@@ -509,11 +505,11 @@ export function useInstanceSocket(
       const decoded = decodeWsError(raw);
       const mappedCode = mapWsErrorToLifecycleCode(decoded.code);
       setConnectError(
-        new ApiError({
+        ApiError.fromInput({
           status: 0,
           code: mappedCode,
           message: decoded.message ?? "Connection error",
-        } as unknown as ConstructorParameters<typeof ApiError>[0]),
+        }),
       );
     };
     socket.on("connect_error", handler);

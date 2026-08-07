@@ -84,7 +84,7 @@ interface SearchUserWithId {
   readonly isBlocked: boolean;
 }
 
-import { useAuthBootstrap } from "@/features/auth/contexts/auth-bootstrap-context";
+import { useAuthSession } from "@/features/auth/hooks/use-auth-session";
 
 // ─── Public surface ──────────────────────────────────────────────────────
 
@@ -153,7 +153,7 @@ export function useUserSearch(
   const flagValue = getFeatureFlagValue("phase6_social_search");
   const isFlagPlaceholder = flagValue === "placeholder";
 
-  const auth = useAuthBootstrap();
+  const auth = useAuthSession();
   const isAuthenticated = auth.isAuthenticated;
 
   if (isFlagPlaceholder || !isAuthenticated) {

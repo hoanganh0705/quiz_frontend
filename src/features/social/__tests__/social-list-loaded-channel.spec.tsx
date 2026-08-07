@@ -23,7 +23,12 @@ class MockBroadcastChannel {
 
   constructor(name: string) {
     this.name = name;
-    MockBroadcastChannel.instances.push(this);
+    // Availability probes (built internally by the channel
+    // helper) use the `-probe` suffix to avoid polluting the
+    // production instance list.
+    if (!name.endsWith("-probe")) {
+      MockBroadcastChannel.instances.push(this);
+    }
   }
 
   addEventListener(

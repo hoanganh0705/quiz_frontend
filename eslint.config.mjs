@@ -69,9 +69,6 @@ const eslintConfig = [
   {
     files: [
       'src/lib/api/**/*',
-      // Legacy: a hand-rolled axios client that mirrors custom-instance.ts.
-      // Tracked for removal — do not extend consumers here.
-      'src/shared/lib/api/client.ts',
     ],
     rules: {
       'no-restricted-imports': 'off',

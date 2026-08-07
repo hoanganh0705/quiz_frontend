@@ -29,7 +29,7 @@
  * `RankingEmptyState`, and `RankingErrorState` primitives.
  */
 
-import { useAuthBootstrap } from "@/features/auth/contexts/auth-bootstrap-context";
+import { useAuthSession } from "@/features/auth/hooks/use-auth-session";
 import { getFeatureFlagValue } from "@/lib/feature-flags";
 
 import { useRankingHistory } from "@/features/rankings/hooks";
@@ -53,7 +53,7 @@ export function RankingHistory({ className }: RankingHistoryProps) {
   const flagValue = getFeatureFlagValue("phase5_rankings");
   const isFlagPlaceholder = flagValue === "placeholder";
 
-  const { isAuthenticated, bootstrapState } = useAuthBootstrap();
+  const { isAuthenticated, bootstrapState } = useAuthSession();
 
   const {
     items,

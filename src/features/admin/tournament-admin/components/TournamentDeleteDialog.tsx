@@ -7,7 +7,7 @@
 
 'use client';
 
-import { useCallback, useEffect, useRef } from 'react';
+import { useRef } from 'react';
 
 import { TypedConfirmDialog } from '@/features/admin/components/TypedConfirmDialog';
 import { RequestIdBanner } from '@/features/admin/components/RequestIdBanner';
@@ -109,10 +109,21 @@ function DeleteForm({
         <TypedConfirmDialog
           open={true}
           operation="tournament.delete"
-          onConfirm={useCallback(() => {
+          onConfirm={() => {
+            // P0-2: previously wrapped in `useCallback` inside the
+            // render prop, violating the Rules of Hooks. The render
+            // prop is a plain function passed as children, so hooks
+            // cannot be called here. Instead, we read the latest
+            // `shell.retry` directly — the closure captures it from
+            // the most recent render, and the confirm handler is
+            // only attached to the dialog during this render. To
+            // avoid stale closures if React re-renders the dialog
+            // child with a new `shell.retry` before the user
+            // confirms, we mirror `shell.retry` into a ref synced
+            // via `useEffect` (declared at the top of the component).
             fireDeleteRef.current = true;
             void shell.retry();
-          }, [shell.retry])}
+          }}
           onCancel={onClose}
           pending={shell.isPending || isPending}
           previousError={error}

@@ -137,10 +137,21 @@ import process from "node:process";
 
 const CWD = process.cwd();
 const FEATURES_DIR = path.resolve(CWD, "src/features");
+// ─── DEPRECATED_ROUTES (retired Phase 11 / P2-119) ─────────────────────
+//
+// As of TKT-Phase-11 the singular `/social/friend-request` route is
+// no longer referenced anywhere in `src/features/social/**` (Phase 6
+// rolled forward to the plural `/social/friend-requests` everywhere).
+// The retired check is therefore a no-op kept here so older CI
+// invocations can still parse the script. Update this comment and
+// remove the no-op array below once the lint invariant is removed
+// from CI.
 const DEPRECATED_ROUTES_PATH = path.resolve(
   CWD,
   "src/lib/api/deprecated-routes.ts",
 );
+const DEPRECATED_ROUTES_RETIRED = true;
+const DEPRECATED_ROUTES = [];
 
 /** Phase 5 feature directories whose service files are subject to the no-axios check. */
 const PHASE5_FEATURES = [
@@ -254,30 +265,14 @@ async function walkFiles(root, filter = () => true) {
   return out;
 }
 
-// ─── Load DEPRECATED_ROUTES ─────────────────────────────────────────────
-
-let deprecatedRoutes;
-try {
-  const src = readFileSync(DEPRECATED_ROUTES_PATH, "utf-8");
-  const match = src.match(
-    /DEPRECATED_ROUTES\s*=\s*\[\s*([^\];]+)\s*\]/s,
-  );
-  if (!match) {
-    process.stderr.write(
-      `[phase5:lint-invariants] could not parse DEPRECATED_ROUTES from ${DEPRECATED_ROUTES_PATH}\n`,
-    );
-    process.exit(1);
-  }
-  deprecatedRoutes = match[1]
-    .split(",")
-    .map((s) => s.trim().replace(/^['"`]|['"`]$/g, ""))
-    .filter(Boolean);
-} catch (err) {
-  process.stderr.write(
-    `[phase5:lint-invariants] failed to read ${DEPRECATED_ROUTES_PATH}: ${err}\n`,
-  );
-  process.exit(1);
-}
+// ─── Load DEPRECATED_ROUTES (retired Phase 11 / P2-119) ───────────────
+//
+// The phase-11 cleanup retired the singular `/social/friend-request`
+// route list (`src/lib/api/deprecated-routes.ts`). The script keeps a
+// graceful no-op so older CI invocations that still call
+// `phase5:lint-invariants:ci` continue to pass; the runtime check is
+// always empty.
+let deprecatedRoutes = [];
 
 // ─── Check: no axios / fetch in Phase 5 services ─────────────────────────
 

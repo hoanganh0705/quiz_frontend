@@ -68,8 +68,8 @@ vi.mock("@/features/search/hooks/useDebouncedValue", () => ({
 const mockSearchParamsMap = new Map<string, string>();
 const mockGetSearchParam = vi.fn((key: string) => mockSearchParamsMap.get(key) ?? null);
 
-vi.mock("@/features/auth/contexts/auth-bootstrap-context", () => ({
-  useAuthBootstrap: () => ({ bootstrapState: "authenticated" }),
+vi.mock("@/features/auth/hooks/use-auth-session", () => ({
+  useAuthSession: () => ({ bootstrapState: "authenticated" }),
 }));
 
 vi.mock("next/navigation", () => ({

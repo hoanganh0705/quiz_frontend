@@ -27,6 +27,7 @@ import { ShieldAlert } from 'lucide-react';
 import { useAdminFeatureFlag } from '@/features/admin/hooks/useAdminFeatureFlag';
 
 import { AuditLogPage } from '@/features/admin/audit-admin/components';
+import { logger } from '@/shared/log';
 
 /**
  * Placeholder rendered when `phase7_admin_audit` is not `'live'`.
@@ -73,8 +74,7 @@ export function AuditLogRouteHandoff() {
 
   // Emit breadcrumb on mount for observability.
   useEffect(() => {
-    // eslint-disable-next-line no-console
-    console.debug('[audit-admin:mount]', { flag: flagValue });
+    logger.debug('admin.audit', 'mount', { flag: flagValue });
   }, [flagValue]);
 
   // Feature flag not yet live → render the disabled notice.

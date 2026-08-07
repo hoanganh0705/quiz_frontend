@@ -18,8 +18,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { SelfActionGate } from "@/features/social/components/SelfActionGate";
 
 const mockUseAuthBootstrap = vi.fn();
-vi.mock("@/features/auth/contexts/auth-bootstrap-context", () => ({
-  useAuthBootstrap: () => mockUseAuthBootstrap(),
+vi.mock("@/features/auth/hooks/use-auth-session", () => ({
+  useAuthSession: () => mockUseAuthBootstrap(),
 }));
 
 beforeEach(() => {

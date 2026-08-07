@@ -15,7 +15,7 @@
  *   `canStart`, `canCancel`, `canClose`) from the server-provided
  *   `currentUserRole` and `status` on `InstanceDetail`.
  * - The host role is additionally matched by `hostUserId` against the
- *   authenticated user id (read from `useAuthBootstrap`); the match
+ *   authenticated user id (read from `useAuthSession`); the match
  *   upgrades the derived role to `'host'` for hosts that the server
  *   has not yet exposed via `currentUserRole`.
  * - The strictest permission set is returned when the role is unknown
@@ -46,7 +46,7 @@
 
 import { useMemo } from "react";
 
-import { useAuthBootstrap } from "@/features/auth/contexts/auth-bootstrap-context";
+import { useAuthSession } from "@/features/auth/hooks/use-auth-session";
 
 import { useInstance } from "@/features/instances/hooks/useInstance";
 import {
@@ -155,7 +155,7 @@ export function resolveInstancePermissions(args: {
 export interface UseInstancePermissionsOptions {
   /**
    * Optional override for the current user id. When omitted, the hook
-   * reads from `useAuthBootstrap`. Tests and the host-match fallback
+   * reads from `useAuthSession`. Tests and the host-match fallback
    * path use the override.
    */
   currentUserId?: string | null;
@@ -172,7 +172,7 @@ export function useInstancePermissions(
   instanceId: string | null,
   options: UseInstancePermissionsOptions = {},
 ): InstancePermissions {
-  const auth = useAuthBootstrap();
+  const auth = useAuthSession();
   const overrideUserId = options.currentUserId ?? null;
   const currentUserId = overrideUserId ?? auth.currentUser?.userId ?? null;
   const isAuthenticated = auth.isAuthenticated && currentUserId !== null;

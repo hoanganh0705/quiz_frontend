@@ -18,8 +18,8 @@ const mockUseInstancesFeatureFlag = vi.fn();
 const mockUseInstance = vi.fn();
 const mockUseAuthBootstrap = vi.fn();
 
-vi.mock("@/features/auth/contexts/auth-bootstrap-context", () => ({
-  useAuthBootstrap: () => mockUseAuthBootstrap(),
+vi.mock("@/features/auth/hooks/use-auth-session", () => ({
+  useAuthSession: () => mockUseAuthBootstrap(),
 }));
 
 vi.mock("@/features/instances/hooks/useInstance", () => ({

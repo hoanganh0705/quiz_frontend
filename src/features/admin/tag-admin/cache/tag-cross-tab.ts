@@ -67,6 +67,8 @@ import {
  */
 export const TAG_ADMIN_CHANNEL_NAME = 'phase7-admin-tag' as const;
 
+import { logger } from '@/shared/log';
+
 // ─── Event types ────────────────────────────────────────────────────────────
 
 /**
@@ -223,7 +225,7 @@ function dispatchToTagAdminSubscribers(event: TagAdminEvent): void {
       handler(event);
     } catch (err) {
       // Prevent a buggy subscriber from breaking other subscribers
-      console.error('[tag-admin] Error in tag admin event subscriber:', err);
+      logger.error('admin.tag.broadcast', 'Error in tag admin event subscriber', err);
     }
   });
 }

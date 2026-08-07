@@ -21,7 +21,7 @@
  *
  * ## Auth
  *
- * The hook is gated on `useAuthBootstrap`. The attempts service
+ * The hook is gated on `useAuthSession`. The attempts service
  * requires auth, so the fetch never fires when the viewer is
  * unauthenticated or while the bootstrap is unresolved.
  *
@@ -53,7 +53,7 @@ import { useCallback, useMemo } from 'react';
 import { ApiError, useSingleWithRetry } from '@/lib/api';
 
 import { listMyAttempts } from '@/features/attempts/services/attempts.service';
-import { useAuthBootstrap } from '@/features/auth/contexts/auth-bootstrap-context';
+import { useAuthSession } from '@/features/auth/hooks/use-auth-session';
 import {
   reviewQuizAttemptKey,
 } from '@/features/reviews/types';
@@ -105,7 +105,7 @@ export function useCompletedQuizAttempt(
 ): UseCompletedQuizAttemptResult {
   const { quizId } = params;
 
-  const { bootstrapState, currentUser } = useAuthBootstrap();
+  const { bootstrapState, currentUser } = useAuthSession();
 
   const sessionId = useMemo<string | null>(() => {
     if (bootstrapState !== 'authenticated') return null;

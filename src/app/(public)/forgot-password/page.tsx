@@ -28,7 +28,7 @@
  *     via the hook.
  */
 
-import { Suspense, useEffect, useMemo } from 'react'
+import { Suspense, useMemo } from 'react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { useForm } from 'react-hook-form'
@@ -41,7 +41,10 @@ import { useForgotPassword } from '@/features/auth/forms/use-forgot-password'
 import { forgotPasswordSchema, type ForgotPasswordFormValues } from '@/features/auth/forms/schemas/forgot-password.schema'
 import { COPY_KEYS, resolveCopy, resolveCooldown } from '@/features/auth/copy/recovery-copy'
 
-export const dynamic = 'force-dynamic'
+// P2-22: dropped `export const dynamic = 'force-dynamic'` because
+// this file is a client component (`'use client'`). The route
+// segment config is a server-side directive and is meaningless
+// inside a `'use client'` module — it was a no-op previously.
 
 function ForgotPasswordSkeleton() {
   return (
@@ -110,10 +113,6 @@ function ForgotPasswordInner() {
   const cooldownSeconds = isCooldown
     ? Math.ceil(cooldownRemainingMs / 1000)
     : 0
-
-  // Suppress unused-var warnings for `useEffect`; the hook
-  // already triggers itself on mount via the form submit.
-  useEffect(() => {}, [])
 
   return (
     <main

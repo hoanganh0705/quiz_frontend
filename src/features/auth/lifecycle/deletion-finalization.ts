@@ -113,6 +113,7 @@ import {
   broadcastAccountDeleted,
 } from '@/lib/api/core/broadcast-channel';
 import { markDeletionTerminal } from '@/features/auth/lifecycle/deletion-terminal';
+import { logger } from '@/shared/log';
 
 /**
  * Module-level terminal marker.
@@ -188,9 +189,7 @@ function recordError(
   step: DeletionCleanupStep,
   cause: unknown,
 ): void {
-  if (typeof console !== 'undefined') {
-    console.warn('[auth] deletion cleanup step failed:', step, cause);
-  }
+  logger.warn('auth.deletion', 'cleanup step failed', { step, cause });
   errors.push({ step, cause });
 }
 

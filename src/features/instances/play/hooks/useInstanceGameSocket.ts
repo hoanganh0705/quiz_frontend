@@ -60,7 +60,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import { ApiError, isApiError } from "@/lib/api";
+import { ApiError, coerceToApiError, isApiError } from "@/lib/api";
 import {
   INSTANCES_NAMESPACE,
   useSocket,
@@ -70,7 +70,7 @@ import type { UseSocketReturn } from "@/lib/realtime";
 import { decodeWsError } from "@/lib/realtime";
 import { getFeatureFlagValue } from "@/lib/feature-flags";
 
-import { useAuthBootstrap } from "@/features/auth/contexts/auth-bootstrap-context";
+import { useAuthSession } from "@/features/auth/hooks/use-auth-session";
 
 import {
   type AnswerSubmissionAckDto,
@@ -291,7 +291,7 @@ export function useInstanceGameSocket(
     playFlag === "live" && realtimeFlag === "live";
   const isFlagPlaceholder = !enabled;
 
-  const auth = useAuthBootstrap();
+  const auth = useAuthSession();
   const isAuthenticated = auth.isAuthenticated;
 
   const { socket, connectionState, error, disconnect } = useSocket(
@@ -352,11 +352,11 @@ export function useInstanceGameSocket(
     if (source === null) return null;
     const mappedCode = mapWsErrorToGameplayCode(source.code);
     const baseMessage = source.message ?? "Socket error";
-    return new ApiError({
+    return ApiError.fromInput({
       status: 0,
       code: mappedCode,
       message: baseMessage,
-    } as unknown as ConstructorParameters<typeof ApiError>[0]);
+    });
   }, [error, connectError]);
 
   // ─── Track join state per instanceId ───────────────────────────────────
@@ -385,9 +385,7 @@ export function useInstanceGameSocket(
       if (isApiError(cause)) {
         throw cause;
       }
-      throw new ApiError(
-        cause as unknown as ConstructorParameters<typeof ApiError>[0],
-      );
+      throw coerceToApiError(cause);
     }
   }, [isFlagPlaceholder, isAuthenticated, instanceId, socket]);
 
@@ -401,18 +399,18 @@ export function useInstanceGameSocket(
         !isAuthenticated ||
         socket === null
       ) {
-        throw new ApiError({
+        throw ApiError.fromInput({
           status: 0,
           code: "AUTH_REQUIRED",
           message: "Not authenticated",
-        } as unknown as ConstructorParameters<typeof ApiError>[0]);
+        });
       }
       if (connectionState !== "connected") {
-        throw new ApiError({
+        throw ApiError.fromInput({
           status: 0,
           code: "DISCONNECT",
           message: "Socket not connected",
-        } as unknown as ConstructorParameters<typeof ApiError>[0]);
+        });
       }
       try {
         // Socket.IO emit acknowledgement — resolves with the ack payload.
@@ -442,11 +440,11 @@ export function useInstanceGameSocket(
         }
         const decoded = decodeWsError(cause);
         const code = mapWsErrorToGameplayCode(decoded.code);
-        throw new ApiError({
+        throw ApiError.fromInput({
           status: 0,
           code,
           message: decoded.message ?? "Submission failed",
-        } as unknown as ConstructorParameters<typeof ApiError>[0]);
+        });
       }
     },
     [isFlagPlaceholder, isAuthenticated, instanceId, socket, connectionState],
@@ -500,11 +498,11 @@ export function useInstanceGameSocket(
         } else {
           // Malformed or version-mismatched envelope — surface the error.
           setConnectError(
-            new ApiError({
+            ApiError.fromInput({
               status: 0,
               code: "MALFORMED_EVENT",
               message: `Malformed or version-mismatched ${String(eventName)} envelope`,
-            } as unknown as ConstructorParameters<typeof ApiError>[0]),
+            }),
           );
         }
       };
@@ -553,11 +551,11 @@ export function useInstanceGameSocket(
       const decoded = decodeWsError(raw);
       const mappedCode = mapWsErrorToGameplayCode(decoded.code);
       setConnectError(
-        new ApiError({
+        ApiError.fromInput({
           status: 0,
           code: mappedCode,
           message: decoded.message ?? "Connection error",
-        } as unknown as ConstructorParameters<typeof ApiError>[0]),
+        }),
       );
     };
     socket.on("connect_error", handler);

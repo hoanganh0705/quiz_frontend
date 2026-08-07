@@ -3,6 +3,11 @@
  *
  * Source epic:   Epic 7.5 — Review moderation queue.
  * Source ticket: TKT-7.5.G2.
+ * Phase 4 (cross-tab infra): rewritten on top of
+ *   `createBroadcastChannel` (TKT-Phase-4.A1). The event types,
+ *   validation, and the public subscribe / publish surface are
+ *   preserved; the singleton / listener / same-tab boilerplate
+ *   is now owned by the factory.
  *
  * ## Purpose
  *
@@ -24,8 +29,7 @@
  *     tag, and category channels.
  *   - singleton channel instance (lazily created on first broadcast)
  *     so listeners register exactly once per tab.
- *   - same-tab filtering via `getCurrentTabId()` so the source tab
- *     does not echo its own broadcast.
+ *   - same-tab filtering via the factory's same-tab filter.
  *   - graceful degradation: when `BroadcastChannel` is unavailable
  *     (older browsers, private mode, server-side rendering), broadcast
  *     and subscribe are both safe no-ops. Local-tab invalidation is
@@ -68,7 +72,7 @@
  * silent to avoid implying a successful state to other tabs.
  */
 
-import { getCurrentTabId } from '@/lib/api/core/broadcast-channel';
+import { createBroadcastChannel } from '@/lib/broadcast';
 
 import {
   invalidateReviewById,
@@ -109,6 +113,10 @@ export type ReviewModerationEventType =
  */
 export type ReviewModerationMutation = 'resolve';
 
+const REVIEW_MODERATION_VALID_MUTATIONS = new Set<ReviewModerationMutation>([
+  'resolve',
+]);
+
 /**
  * Base interface for all review moderation broadcast events.
  */
@@ -141,249 +149,106 @@ export interface ReviewModerationInvalidatedEvent
  */
 export type ReviewModerationEvent = ReviewModerationInvalidatedEvent;
 
-// ─── Channel singleton ──────────────────────────────────────────────────────
+// ─── Factory-backed channel ────────────────────────────────────────────────
 
 /**
- * The singleton BroadcastChannel instance for review moderation
- * events. Lazily initialized on first access.
+ * Singleton factory instance for the `phase7-admin-review-moderation`
+ * channel.
  */
-let reviewModerationChannel: BroadcastChannel | null = null;
+const reviewModerationChannel = createBroadcastChannel<ReviewModerationEvent>(
+  REVIEW_MODERATION_CHANNEL_NAME,
+  {
+    validate: (data): ReviewModerationEvent | null => {
+      if (typeof data !== 'object' || data === null) return null;
+      const d = data as Partial<ReviewModerationInvalidatedEvent>;
+      if (d.type !== 'phase7:admin.review-moderation.invalidate') return null;
+      if (typeof d.tabId !== 'string' || d.tabId.length === 0) return null;
+      if (typeof d.timestamp !== 'number') return null;
+      if (
+        typeof d.action !== 'string' ||
+        !REVIEW_MODERATION_VALID_MUTATIONS.has(d.action as ReviewModerationMutation)
+      ) {
+        return null;
+      }
+      if (typeof d.reportId !== 'string' || d.reportId.length === 0) return null;
+      // reviewId is optional (string | null). Accept null or a string.
+      if (d.reviewId !== null && typeof d.reviewId !== 'string') return null;
+      return d as ReviewModerationEvent;
+    },
+  },
+);
+
+// ─── Public API ──────────────────────────────────────────────────────────
 
 /**
- * Flag indicating whether BroadcastChannel is available for the
- * review moderation channel. Same availability check as the auth,
- * bookmark, tag, and category channels.
+ * Back-compat accessor for the singleton channel. Returns the
+ * underlying `BroadcastChannel` instance.
  */
-let isReviewModerationBroadcastChannelAvailable: boolean | null = null;
-
-/**
- * Check if BroadcastChannel is available.
- */
-function checkBroadcastChannelAvailable(): boolean {
-  if (isReviewModerationBroadcastChannelAvailable !== null) {
-    return isReviewModerationBroadcastChannelAvailable;
-  }
-
-  if (typeof BroadcastChannel === 'undefined') {
-    isReviewModerationBroadcastChannelAvailable = false;
-    return false;
-  }
-
-  try {
-    // Try to construct to verify it works (some browsers have the
-    // global but it throws on construction).
-    new BroadcastChannel('test');
-    isReviewModerationBroadcastChannelAvailable = true;
-  } catch {
-    isReviewModerationBroadcastChannelAvailable = false;
-  }
-
-  return isReviewModerationBroadcastChannelAvailable;
+export function getReviewModerationChannel(): BroadcastChannel | null {
+  return reviewModerationChannel.getChannel();
 }
 
 /**
- * Get the singleton review moderation BroadcastChannel.
- *
- * Lazily creates the channel on first call. Subsequent calls return
- * the same instance.
- *
- * @returns The BroadcastChannel instance, or null if unavailable.
+ * Back-compat initializer. The factory installs the listener on
+ * first `subscribe` call, so explicit init is rarely needed.
  */
-export function getReviewModerationChannel(): BroadcastChannel | null {
-  if (typeof window === 'undefined') {
-    return null;
-  }
-
-  if (!checkBroadcastChannelAvailable()) {
-    return null;
-  }
-
-  if (reviewModerationChannel === null) {
-    reviewModerationChannel = new BroadcastChannel(
-      REVIEW_MODERATION_CHANNEL_NAME,
-    );
-  }
-
-  return reviewModerationChannel;
+export function initReviewModerationChannel(): BroadcastChannel | null {
+  return reviewModerationChannel.ensureChannel();
 }
 
 /**
  * Close the review moderation channel (for cleanup/testing).
- * After calling this, `getReviewModerationChannel()` will create a new channel.
+ * After calling this, the factory closes the channel and the next
+ * `subscribe` call recreates a fresh channel.
  */
 export function closeReviewModerationChannel(): void {
-  if (reviewModerationChannel !== null) {
-    reviewModerationChannel.close();
-    reviewModerationChannel = null;
-  }
+  reviewModerationChannel.closeChannel();
 }
-
-// ─── External subscribers ──────────────────────────────────────────────────
-
-type ReviewModerationEventHandler = (event: ReviewModerationEvent) => void;
-
-const reviewModerationSubscribers = new Set<ReviewModerationEventHandler>();
 
 /**
  * Subscribe to review moderation broadcast events.
  *
  * The handler is called for all events from other tabs (same-tab
- * events are filtered out by `tabId`).
+ * events are filtered out by the factory).
  *
  * @param handler - Callback invoked for each review moderation event.
  * @returns Unsubscribe function.
  */
 export function subscribeReviewModerationInvalidate(
-  handler: ReviewModerationEventHandler,
+  handler: (event: ReviewModerationEvent) => void,
 ): () => void {
-  reviewModerationSubscribers.add(handler);
-
-  return () => {
-    reviewModerationSubscribers.delete(handler);
-  };
+  return reviewModerationChannel.subscribe(handler);
 }
-
-/**
- * Dispatch an event to all external subscribers.
- * Internal use only — called by the channel message handler.
- */
-function dispatchToReviewModerationSubscribers(
-  event: ReviewModerationEvent,
-): void {
-  reviewModerationSubscribers.forEach((handler) => {
-    try {
-      handler(event);
-    } catch (err) {
-      // Prevent a buggy subscriber from breaking other subscribers
-      console.error(
-        '[review-moderation] Error in review moderation event subscriber:',
-        err,
-      );
-    }
-  });
-}
-
-// ─── Message handler ────────────────────────────────────────────────────────
-
-/**
- * Handle an incoming review moderation broadcast message.
- * Filters out same-tab messages and dispatches to subscribers.
- */
-function handleReviewModerationMessage(event: MessageEvent): void {
-  // Validate the message structure
-  if (!event.data || typeof event.data !== 'object') {
-    return;
-  }
-
-  const data = event.data as Partial<ReviewModerationInvalidatedEvent>;
-
-  // Must have a valid type
-  if (
-    !data.type ||
-    data.type !== 'phase7:admin.review-moderation.invalidate'
-  ) {
-    return;
-  }
-
-  // Must have a tabId
-  if (!data.tabId || typeof data.tabId !== 'string') {
-    return;
-  }
-
-  // Must have a mutation discriminator
-  if (!data.action || data.action !== 'resolve') {
-    return;
-  }
-
-  // Must have a reportId
-  if (!data.reportId || typeof data.reportId !== 'string') {
-    return;
-  }
-
-  // Filter out same-tab broadcasts (prevent event loops)
-  const myTabId = getCurrentTabId();
-  if (data.tabId === myTabId) {
-    return;
-  }
-
-  // Dispatch to subscribers
-  dispatchToReviewModerationSubscribers(data as ReviewModerationEvent);
-}
-
-// ─── Channel initialization ─────────────────────────────────────────────────
-
-/**
- * Initialize the review moderation channel listener.
- * Called internally by `broadcastReviewModerationInvalidate()` but can
- * be called explicitly.
- *
- * @returns true if initialization succeeded, false if BroadcastChannel unavailable
- */
-export function initReviewModerationChannel(): boolean {
-  const channel = getReviewModerationChannel();
-
-  if (channel === null) {
-    return false;
-  }
-
-  // Only add listener once (channel is a singleton)
-  if (
-    !(channel as unknown as { _listenerAdded?: boolean })._listenerAdded
-  ) {
-    channel.addEventListener('message', handleReviewModerationMessage);
-    (channel as unknown as { _listenerAdded?: boolean })._listenerAdded = true;
-  }
-
-  return true;
-}
-
-// ─── Broadcasting ───────────────────────────────────────────────────────────
 
 /**
  * Broadcast a review moderation invalidation to all other tabs.
  *
  * Called by `useResolveReviewReport` (TKT-7.5.C2) exactly once on
  * success. Receiving tabs revalidate the admin queue
- * (`invalidateReviewReportsList`) and, when `reviewId` is present,
- * the offending-review keys (`invalidateReviewById`).
+ * (`invalidateReviewReportsList`) and the offending review keys
+ * (`invalidateReviewById`) when `reviewId` is present.
  *
- * @param action   — the mutation that triggered the broadcast.
- *                   Currently always `'resolve'`.
- * @param reportId — the affected report id.
- * @param reviewId — the offending review id, when applicable. Pass
- *                   `null` when the mutation is a pure status change
- *                   that does not touch a specific review.
+ * @param action    — the mutation that triggered the broadcast.
+ *                    Closed union: `'resolve'`.
+ * @param reportId  — the affected report id (required).
+ * @param reviewId  — the affected review id, when the mutation
+ *                    targets a review (pass `null` when the
+ *                    mutation is a pure status change).
  */
 export function broadcastReviewModerationInvalidate(
   action: ReviewModerationMutation,
   reportId: string,
-  reviewId: string | null = null,
+  reviewId: string | null,
 ): void {
-  // Ensure channel is initialized (sets up listener if not already)
-  initReviewModerationChannel();
-
-  const channel = getReviewModerationChannel();
-  if (channel === null) {
-    // BroadcastChannel unavailable — the local mutation's
-    // `mutate(key)` invalidation still runs so the source tab is
-    // correct.
-    return;
-  }
-
   if (!reportId || typeof reportId !== 'string') {
-    // Defensive: never publish an event without a reportId. Receiving
-    // tabs require the reportId to identify the affected row.
+    // Defensive: never publish an event without a reportId.
     return;
   }
-
-  const fullEvent: ReviewModerationInvalidatedEvent = {
+  if (!REVIEW_MODERATION_VALID_MUTATIONS.has(action)) return;
+  reviewModerationChannel.publish({
     type: 'phase7:admin.review-moderation.invalidate',
     action,
     reportId,
-    reviewId: reviewId ?? null,
-    tabId: getCurrentTabId(),
-    timestamp: Date.now(),
-  };
-
-  channel.postMessage(fullEvent);
+    reviewId,
+  });
 }

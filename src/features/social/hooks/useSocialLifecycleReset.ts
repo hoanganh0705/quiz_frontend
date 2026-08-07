@@ -75,7 +75,7 @@
 import { useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 
-import { useAuthBootstrap } from "@/features/auth/contexts/auth-bootstrap-context";
+import { useAuthSession } from "@/features/auth/hooks/use-auth-session";
 
 const AUTH_STATE_EVENT = "auth-state-change";
 
@@ -126,7 +126,7 @@ export function useSocialLifecycleReset(
 ): void {
   const { targetUserId, listReset, periodReset } = options;
   const pathname = usePathname() ?? "";
-  const auth = useAuthBootstrap();
+  const auth = useAuthSession();
   const isAuthenticated = auth.isAuthenticated;
 
   /**

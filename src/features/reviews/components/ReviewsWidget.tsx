@@ -14,7 +14,7 @@
  *   - Gated authoring surface (`ReviewForm`, T-4.13.15) — visible
  *     only to authenticated users after auth bootstrap resolves.
  *   - Resolve the authenticated viewer's current user id from
- *     `useAuthBootstrap` and forward it to the list / item
+ *     `useAuthSession` and forward it to the list / item
  *     ownership checks.
  *   - Forward the owner's my-review projection to the list so the
  *     owner's own row renders the inline editor.
@@ -34,7 +34,7 @@ import { useMemo } from 'react';
 
 import { ReviewForm } from '@/features/reviews/components/ReviewForm';
 import { ReviewsList } from '@/features/reviews/components/ReviewsList';
-import { useAuthBootstrap } from '@/features/auth/contexts/auth-bootstrap-context';
+import { useAuthSession } from '@/features/auth/hooks/use-auth-session';
 import { useMyQuizReview } from '@/features/reviews/hooks/useMyQuizReview';
 
 // ─── Public types ────────────────────────────────────────────────────────────
@@ -58,7 +58,7 @@ export function ReviewsWidget({
   startAttemptHref,
   className,
 }: ReviewsWidgetProps): React.ReactElement {
-  const { bootstrapState, currentUser } = useAuthBootstrap();
+  const { bootstrapState, currentUser } = useAuthSession();
 
   // Resolve the current user id from the bootstrap. `null` until
   // the bootstrap resolves as `authenticated`.

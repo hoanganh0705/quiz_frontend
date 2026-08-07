@@ -17,7 +17,7 @@
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { cleanup, renderHook } from "@testing-library/react";
+import { act, cleanup, renderHook, waitFor } from "@testing-library/react";
 import { SWRConfig } from "swr";
 
 import { useRespondFriendRequest } from "@/features/social/hooks/useRespondFriendRequest";
@@ -159,15 +159,18 @@ describe("useRespondFriendRequest — TKT-6.8.D2", () => {
         () => useRespondFriendRequest("user-target"),
         { wrapper: TestSwrProvider },
       );
-      result.current.respond({
-        friendshipId: "fi-abc",
-        action: "accept",
+      await act(async () => {
+        result.current.respond({
+          friendshipId: "fi-abc",
+          action: "accept",
+        });
       });
 
-      await new Promise((r) => setTimeout(r, 5));
-      expect(mockRespondFriendRequest).toHaveBeenCalledWith(
-        "fi-abc",
-        "accept",
+      await waitFor(() =>
+        expect(mockRespondFriendRequest).toHaveBeenCalledWith(
+          "fi-abc",
+          "accept",
+        ),
       );
       // Three SWR keys: relationship, incoming-requests, counts.
       expect(mockMutate).toHaveBeenCalledTimes(3);
@@ -179,15 +182,18 @@ describe("useRespondFriendRequest — TKT-6.8.D2", () => {
         () => useRespondFriendRequest("user-target"),
         { wrapper: TestSwrProvider },
       );
-      result.current.respond({
-        friendshipId: "fi-abc",
-        action: "decline",
+      await act(async () => {
+        result.current.respond({
+          friendshipId: "fi-abc",
+          action: "decline",
+        });
       });
 
-      await new Promise((r) => setTimeout(r, 5));
-      expect(mockRespondFriendRequest).toHaveBeenCalledWith(
-        "fi-abc",
-        "decline",
+      await waitFor(() =>
+        expect(mockRespondFriendRequest).toHaveBeenCalledWith(
+          "fi-abc",
+          "decline",
+        ),
       );
     });
   });
@@ -201,19 +207,24 @@ describe("useRespondFriendRequest — TKT-6.8.D2", () => {
         () => useRespondFriendRequest("user-target"),
         { wrapper: TestSwrProvider },
       );
-      result.current.respond({
-        friendshipId: "fi-abc",
-        action: "accept",
+      await act(async () => {
+        result.current.respond({
+          friendshipId: "fi-abc",
+          action: "accept",
+        });
       });
 
-      await new Promise((r) => setTimeout(r, 10));
-      expect(result.current.error).toBe("SOCIAL_FRIEND_REQUEST_NOT_FOUND");
+      await waitFor(() =>
+        expect(result.current.error).toBe(
+          "SOCIAL_FRIEND_REQUEST_NOT_FOUND",
+        ),
+      );
       expect(mockMutate).not.toHaveBeenCalled();
     });
   });
 
   describe("double-click guard", () => {
-    it("drops a second respond() while the first is in-flight", () => {
+    it("drops a second respond() while the first is in-flight", async () => {
       let resolveFirst!: () => void;
       mockRespondFriendRequest.mockReturnValue(
         new Promise<void>((r) => {
@@ -225,11 +236,20 @@ describe("useRespondFriendRequest — TKT-6.8.D2", () => {
         () => useRespondFriendRequest("user-target"),
         { wrapper: TestSwrProvider },
       );
-      result.current.respond({ friendshipId: "fi-abc", action: "accept" });
+      // The previous implementation flipped an `isPendingRef` synchronously
+      // in `respond()`; the new primitive (TKT-7.5 cleanup, Phase 6)
+      // records the cooldown AFTER the snapshot phase. Wait for the
+      // snapshot phase to complete so the cooldown is set.
+      await act(async () => {
+        result.current.respond({ friendshipId: "fi-abc", action: "accept" });
+        await Promise.resolve();
+      });
       result.current.respond({ friendshipId: "fi-abc", action: "decline" });
       expect(mockRespondFriendRequest).toHaveBeenCalledTimes(1);
 
+      // Resolving the first request releases the guard.
       resolveFirst();
+      await waitFor(() => expect(result.current.isPending).toBe(false));
     });
   });
 });

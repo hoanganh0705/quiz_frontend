@@ -52,11 +52,11 @@ vi.mock('swr', async () => {
   };
 });
 
-const useAuthBootstrapMock = vi.hoisted(() => vi.fn());
+const useAuthSessionMock = vi.hoisted(() => vi.fn());
 const subscribeMock = vi.hoisted(() => vi.fn());
 
-vi.mock('@/features/auth/contexts/auth-bootstrap-context', () => ({
-  useAuthBootstrap: useAuthBootstrapMock,
+vi.mock('@/features/auth/hooks/use-auth-session', () => ({
+  useAuthSession: useAuthSessionMock,
 }));
 
 vi.mock('@/lib/api/core/attempts-broadcast-channel', async () => {
@@ -77,7 +77,7 @@ const QV_ID = 'qv-1';
 const MY_TAB_ID = 'tab-mine';
 
 function setBootstrapAuthenticated(sessionId: string = SESSION_ID) {
-  useAuthBootstrapMock.mockReturnValue({
+  useAuthSessionMock.mockReturnValue({
     bootstrapState: 'authenticated',
     isAuthenticated: true,
     currentUser: { userId: sessionId, id: sessionId },
@@ -85,7 +85,7 @@ function setBootstrapAuthenticated(sessionId: string = SESSION_ID) {
 }
 
 function setBootstrapUnauthenticated() {
-  useAuthBootstrapMock.mockReturnValue({
+  useAuthSessionMock.mockReturnValue({
     bootstrapState: 'unauthenticated',
     isAuthenticated: false,
     currentUser: null,
@@ -93,7 +93,7 @@ function setBootstrapUnauthenticated() {
 }
 
 function setBootstrapLoading() {
-  useAuthBootstrapMock.mockReturnValue({
+  useAuthSessionMock.mockReturnValue({
     bootstrapState: 'bootstrapping',
     isAuthenticated: false,
     currentUser: null,
@@ -166,7 +166,7 @@ describe('useAttemptCrossTabSync — lifecycle', () => {
   });
 
   it('re-subscribes when the session id changes', () => {
-    useAuthBootstrapMock.mockReturnValue({
+    useAuthSessionMock.mockReturnValue({
       bootstrapState: 'authenticated',
       isAuthenticated: true,
       currentUser: { userId: SESSION_ID, id: SESSION_ID },
@@ -176,7 +176,7 @@ describe('useAttemptCrossTabSync — lifecycle', () => {
     );
     expect(subscribeMock).toHaveBeenCalledTimes(1);
 
-    useAuthBootstrapMock.mockReturnValue({
+    useAuthSessionMock.mockReturnValue({
       bootstrapState: 'authenticated',
       isAuthenticated: true,
       currentUser: { userId: SESSION_OTHER, id: SESSION_OTHER },

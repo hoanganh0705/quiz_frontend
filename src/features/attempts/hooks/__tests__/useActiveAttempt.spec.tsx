@@ -31,21 +31,21 @@ import { ApiError } from '@/lib/api';
 import { useActiveAttempt } from '@/features/attempts/hooks/useActiveAttempt';
 
 const getActiveAttemptMock = vi.hoisted(() => vi.fn());
-const useAuthBootstrapMock = vi.hoisted(() => vi.fn());
+const useAuthSessionMock = vi.hoisted(() => vi.fn());
 
 vi.mock('@/features/attempts/services/attempts.service', () => ({
   getActiveAttempt: getActiveAttemptMock,
 }));
 
-vi.mock('@/features/auth/contexts/auth-bootstrap-context', () => ({
-  useAuthBootstrap: useAuthBootstrapMock,
+vi.mock('@/features/auth/hooks/use-auth-session', () => ({
+  useAuthSession: useAuthSessionMock,
 }));
 
 const SESSION_ID = 'user-1';
 const QUIZ_ID = 'quiz-1';
 
 function setBootstrapAuthenticated() {
-  useAuthBootstrapMock.mockReturnValue({
+  useAuthSessionMock.mockReturnValue({
     bootstrapState: 'authenticated',
     isAuthenticated: true,
     currentUser: { userId: SESSION_ID, id: SESSION_ID },
@@ -53,7 +53,7 @@ function setBootstrapAuthenticated() {
 }
 
 function setBootstrapUnauthenticated() {
-  useAuthBootstrapMock.mockReturnValue({
+  useAuthSessionMock.mockReturnValue({
     bootstrapState: 'unauthenticated',
     isAuthenticated: false,
     currentUser: null,
@@ -61,7 +61,7 @@ function setBootstrapUnauthenticated() {
 }
 
 function setBootstrapLoading() {
-  useAuthBootstrapMock.mockReturnValue({
+  useAuthSessionMock.mockReturnValue({
     bootstrapState: 'bootstrapping',
     isAuthenticated: false,
     currentUser: null,

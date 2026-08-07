@@ -49,8 +49,8 @@ vi.mock("@/features/social/services/activity.service", () => ({
 }));
 
 const mockUseAuthBootstrap = vi.fn();
-vi.mock("@/features/auth/contexts/auth-bootstrap-context", () => ({
-  useAuthBootstrap: () => mockUseAuthBootstrap(),
+vi.mock("@/features/auth/hooks/use-auth-session", () => ({
+  useAuthSession: () => mockUseAuthBootstrap(),
 }));
 
 // ─── Helpers ─────────────────────────────────────────────────────────────

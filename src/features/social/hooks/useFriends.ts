@@ -27,7 +27,7 @@ import {
   type SocialUserSummaryDto,
 } from "@/features/social/types";
 
-import { useAuthBootstrap } from "@/features/auth/contexts/auth-bootstrap-context";
+import { useAuthSession } from "@/features/auth/hooks/use-auth-session";
 
 export interface UseFriendsResult {
   users: readonly SocialUserSummaryDto[];
@@ -60,7 +60,7 @@ export function useFriends(userId: string | null): UseFriendsResult {
   const flagValue = getFeatureFlagValue("phase6_social_relationship");
   const isFlagPlaceholder = flagValue === "placeholder";
 
-  const auth = useAuthBootstrap();
+  const auth = useAuthSession();
   const isAuthenticated = auth.isAuthenticated;
 
   const key = useMemo<readonly unknown[] | null>(() => {

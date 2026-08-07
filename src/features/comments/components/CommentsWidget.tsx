@@ -35,6 +35,7 @@ import { AlertTriangle, MessageSquare, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { cn } from '@/shared/utils/merge-class-names';
+import { logger } from '@/shared/log';
 import { isApiError } from '@/lib/api';
 import { getUserCopy } from '@/lib/api/error-codes';
 
@@ -123,7 +124,7 @@ class CommentsErrorBoundary extends Component<
   componentDidCatch(error: Error, info: ErrorInfo): void {
     // Surface to the dev console; production telemetry is wired in a
     // separate ticket (T-4.12.19 follow-up).
-    console.error('[CommentsWidget] render error', error, info.componentStack);
+    logger.error('comments.widget', 'render error', { error, componentStack: info.componentStack });
   }
 
   reset = (): void => {

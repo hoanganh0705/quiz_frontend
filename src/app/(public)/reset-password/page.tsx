@@ -68,7 +68,10 @@ import { COPY_KEYS, resolveCopy } from '@/features/auth/copy/recovery-copy'
 import { clearAuthToken } from '@/features/auth/utils/auth-cookies'
 import { broadcastAuth } from '@/features/auth/service/auth.service'
 
-export const dynamic = 'force-dynamic'
+// P2-22: dropped `export const dynamic = 'force-dynamic'` because
+// this file is a client component (`'use client'`). The route
+// segment config is a server-side directive and is meaningless
+// inside a `'use client'` module — it was a no-op previously.
 
 function ResetPasswordSkeleton() {
   return (
@@ -156,7 +159,7 @@ function ResetPasswordInner() {
   }, [state, router])
 
   // Suppress unused-var warnings for the layout's nested layout.
-  useEffect(() => {}, [])
+  // P2-20: empty dependency-mount effect was a no-op. Removed.
 
   return (
     <main

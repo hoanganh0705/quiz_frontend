@@ -1,4 +1,4 @@
-import { apiClient } from '@/shared/lib/api/client'
+import { customInstance } from '@/lib/api'
 
 export type ContactCategory =
   | 'general'
@@ -35,24 +35,6 @@ export interface FAQ {
   answer: string
 }
 
-export async function submitContactForm(payload: ContactFormRequest) {
-  const response = await apiClient.post<ContactFormResponse>(
-    '/support/contact',
-    payload
-  )
-  return response.data
-}
-
-export async function getFAQs() {
-  const response = await apiClient.get<FAQCategory[]>('/support/faqs')
-  return response.data
-}
-
-export async function getSupportArticles() {
-  const response = await apiClient.get<SupportArticle[]>('/support/articles')
-  return response.data
-}
-
 export interface SupportArticle {
   id: string
   title: string
@@ -63,9 +45,37 @@ export interface SupportArticle {
   updatedAt: string
 }
 
+// Phase 1: migrated from `@/shared/lib/api/client` to `@/lib/api`.
+// See docs/frontend-cleanup-audit.md Phase 1.
+export async function submitContactForm(payload: ContactFormRequest) {
+  const response = await customInstance.request<{ data: ContactFormResponse }>({
+    url: '/support/contact',
+    method: 'POST',
+    data: payload,
+  })
+  return response.data.data
+}
+
+export async function getFAQs() {
+  const response = await customInstance.request<{ data: FAQCategory[] }>({
+    url: '/support/faqs',
+    method: 'GET',
+  })
+  return response.data.data
+}
+
+export async function getSupportArticles() {
+  const response = await customInstance.request<{ data: SupportArticle[] }>({
+    url: '/support/articles',
+    method: 'GET',
+  })
+  return response.data.data
+}
+
 export async function getSupportArticle(slug: string) {
-  const response = await apiClient.get<SupportArticle>(
-    `/support/articles/${slug}`
-  )
-  return response.data
+  const response = await customInstance.request<{ data: SupportArticle }>({
+    url: `/support/articles/${slug}`,
+    method: 'GET',
+  })
+  return response.data.data
 }

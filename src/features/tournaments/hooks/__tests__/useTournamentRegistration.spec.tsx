@@ -32,8 +32,8 @@ vi.mock('@/lib/feature-flags', () => ({
 
 // Mock auth bootstrap
 const mockUseAuthBootstrap = vi.fn();
-vi.mock('@/features/auth/contexts/auth-bootstrap-context', () => ({
-  useAuthBootstrap: (...args: unknown[]) => mockUseAuthBootstrap(...args),
+vi.mock('@/features/auth/hooks/use-auth-session', () => ({
+  useAuthSession: (...args: unknown[]) => mockUseAuthBootstrap(...args),
 }));
 
 // Mock useTournament

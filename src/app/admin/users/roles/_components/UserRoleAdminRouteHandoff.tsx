@@ -31,6 +31,7 @@ import { ShieldAlert } from 'lucide-react';
 
 import { useAdminFeatureFlag } from '@/features/admin/hooks/useAdminFeatureFlag';
 import { UserRoleAdminPage } from '@/features/admin/user-role-admin/components/UserRoleAdminPage';
+import { logger } from '@/shared/log';
 
 /**
  * Placeholder rendered when `phase7_admin_user_role` is not `'live'`.
@@ -98,8 +99,7 @@ export function UserRoleAdminRouteHandoff() {
 
   // Emit breadcrumb on mount for observability.
   useEffect(() => {
-    // eslint-disable-next-line no-console
-    console.debug('[user-role-admin:mount]', { flag: flagValue });
+    logger.debug('admin.user-role', 'mount', { flag: flagValue });
   }, [flagValue]);
 
   // Feature flag not yet live → render the disabled notice.

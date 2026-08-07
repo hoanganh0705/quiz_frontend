@@ -6,6 +6,11 @@
  * Source story:  Story 6.1 — SDK coverage, Relationship enum, and
  *                useRelationship hook.
  * Source ticket: TKT-6.1.B2.
+ * Phase 4 (cross-tab infra): rewritten on top of
+ *   `createBroadcastChannel` (TKT-Phase-4.A1). The event types,
+ *   validation, and the public subscribe / publish surface are
+ *   preserved; the singleton / listener / same-tab boilerplate
+ *   is now owned by the factory.
  *
  * ## Purpose
  *
@@ -49,7 +54,7 @@
  *
  * ## SSR safety
  *
- * The module is SSR-safe. `getSocialRelationshipChannel()` checks
+ * The module is SSR-safe. The factory's `getChannel()` checks
  * `typeof window === 'undefined'` before constructing the channel,
  * so importing this module from a server component does not throw.
  *
@@ -62,7 +67,7 @@
  * source tab is correct.
  */
 
-import { getCurrentTabId } from '@/lib/api/core/broadcast-channel';
+import { createBroadcastChannel } from '@/lib/broadcast';
 
 // ─── Channel name ────────────────────────────────────────────────────────────
 
@@ -100,6 +105,14 @@ export type SocialRelationshipInvalidationKind =
   | 'blocklist.changed'
   | 'follow.changed'
   | 'unfriended';
+
+const SOCIAL_RELATIONSHIP_VALID_KINDS = new Set<SocialRelationshipInvalidationKind>([
+  'relationship.changed',
+  'friend_request.changed',
+  'blocklist.changed',
+  'follow.changed',
+  'unfriended',
+]);
 
 /**
  * Base interface for all social relationship invalidation events.
@@ -146,100 +159,45 @@ export type SocialRelationshipInvalidationPayload = {
   userId: string;
 };
 
-// ─── Channel singleton ──────────────────────────────────────────────────────
+// ─── Factory-backed channel ────────────────────────────────────────────────
 
 /**
- * The singleton BroadcastChannel instance for social relationship
- * events. Lazily initialized on first access.
+ * Singleton factory instance for the `social/relationship` channel.
  */
-let socialRelationshipChannel: BroadcastChannel | null = null;
+const socialRelationshipChannel = createBroadcastChannel<SocialRelationshipInvalidationEvent>(
+  SOCIAL_RELATIONSHIP_CHANNEL_NAME,
+  {
+    validate: (data): SocialRelationshipInvalidationEvent | null => {
+      if (typeof data !== 'object' || data === null) return null;
+      const d = data as Partial<BaseSocialRelationshipInvalidationEvent>;
+      if (typeof d.kind !== 'string' || !SOCIAL_RELATIONSHIP_VALID_KINDS.has(d.kind as SocialRelationshipInvalidationKind)) {
+        return null;
+      }
+      if (typeof d.tabId !== 'string' || d.tabId.length === 0) return null;
+      if (typeof d.userId !== 'string' || d.userId.length === 0) return null;
+      if (typeof d.at !== 'number') return null;
+      return d as SocialRelationshipInvalidationEvent;
+    },
+    timestampField: 'at',
+  },
+);
 
-/**
- * Flag indicating whether BroadcastChannel is available for the
- * social relationship channel. Same availability check as the auth
- * / bookmarks channels.
- */
-let isSocialRelationshipBroadcastChannelAvailable: boolean | null = null;
-
-/**
- * Check if BroadcastChannel is available.
- */
-function checkBroadcastChannelAvailable(): boolean {
-  if (isSocialRelationshipBroadcastChannelAvailable !== null) {
-    return isSocialRelationshipBroadcastChannelAvailable;
-  }
-
-  if (typeof BroadcastChannel === 'undefined') {
-    isSocialRelationshipBroadcastChannelAvailable = false;
-    return false;
-  }
-
-  try {
-    // Try to construct to verify it works (some browsers have the
-    // global but it throws on construction).
-    new BroadcastChannel('test');
-    isSocialRelationshipBroadcastChannelAvailable = true;
-  } catch {
-    isSocialRelationshipBroadcastChannelAvailable = false;
-  }
-
-  return isSocialRelationshipBroadcastChannelAvailable;
-}
-
-/**
- * Get the singleton social relationship BroadcastChannel.
- *
- * Lazily creates the channel on first call. Subsequent calls return
- * the same instance. Returns `null` in SSR or when `BroadcastChannel`
- * is unavailable.
- *
- * @returns The BroadcastChannel instance, or null if unavailable.
- */
-export function getSocialRelationshipChannel(): BroadcastChannel | null {
-  if (typeof window === 'undefined') {
-    return null;
-  }
-
-  if (!checkBroadcastChannelAvailable()) {
-    return null;
-  }
-
-  if (socialRelationshipChannel === null) {
-    socialRelationshipChannel = new BroadcastChannel(
-      SOCIAL_RELATIONSHIP_CHANNEL_NAME,
-    );
-  }
-
-  return socialRelationshipChannel;
-}
+// ─── Public API ──────────────────────────────────────────────────────────
 
 /**
  * Close the social relationship channel (for cleanup / testing).
- * After calling this, `getSocialRelationshipChannel()` will create a
- * fresh channel on the next call.
+ * After calling this, the factory closes the channel and the next
+ * `subscribe` call recreates a fresh channel.
  */
 export function closeSocialRelationshipChannel(): void {
-  if (socialRelationshipChannel !== null) {
-    socialRelationshipChannel.close();
-    socialRelationshipChannel = null;
-  }
+  socialRelationshipChannel.closeChannel();
 }
-
-// ─── External subscribers ───────────────────────────────────────────────────
-
-type SocialRelationshipInvalidationHandler = (
-  event: SocialRelationshipInvalidationEvent,
-) => void;
-
-const socialRelationshipSubscribers = new Set<
-  SocialRelationshipInvalidationHandler
->();
 
 /**
  * Subscribe to social relationship broadcast events.
  *
  * The handler is called for all events from other tabs (same-tab
- * events are filtered out by `tabId`).
+ * events are filtered out by the factory).
  *
  * @param handler - Callback invoked for each social relationship
  *   event.
@@ -260,117 +218,16 @@ const socialRelationshipSubscribers = new Set<
  * ```
  */
 export function subscribeSocialRelationshipInvalidation(
-  handler: SocialRelationshipInvalidationHandler,
+  handler: (event: SocialRelationshipInvalidationEvent) => void,
 ): () => void {
-  socialRelationshipSubscribers.add(handler);
-
-  return () => {
-    socialRelationshipSubscribers.delete(handler);
-  };
+  return socialRelationshipChannel.subscribe(handler);
 }
-
-/**
- * Dispatch an event to all external subscribers. Internal use only —
- * called by the channel message handler.
- */
-function dispatchToSocialRelationshipSubscribers(
-  event: SocialRelationshipInvalidationEvent,
-): void {
-  socialRelationshipSubscribers.forEach((handler) => {
-    try {
-      handler(event);
-    } catch (err) {
-      // Prevent a buggy subscriber from breaking other subscribers.
-      console.error(
-        '[social/relationship] Error in subscriber:',
-        err,
-      );
-    }
-  });
-}
-
-// ─── Message handler ────────────────────────────────────────────────────────
-
-/**
- * Handle an incoming social relationship broadcast message. Filters
- * out same-tab messages and dispatches to subscribers.
- */
-function handleSocialRelationshipMessage(event: MessageEvent): void {
-  // Validate the message structure.
-  if (!event.data || typeof event.data !== 'object') {
-    return;
-  }
-
-  const data = event.data as Partial<BaseSocialRelationshipInvalidationEvent>;
-
-  // Must have a valid `kind` discriminator.
-  const validKinds: SocialRelationshipInvalidationKind[] = [
-    'relationship.changed',
-    'friend_request.changed',
-    'blocklist.changed',
-    'follow.changed',
-    'unfriended',
-  ];
-  if (!data.kind || !validKinds.includes(data.kind as SocialRelationshipInvalidationKind)) {
-    return;
-  }
-
-  // Must have a tabId.
-  if (!data.tabId || typeof data.tabId !== 'string') {
-    return;
-  }
-
-  // Must have a userId.
-  if (!data.userId || typeof data.userId !== 'string') {
-    return;
-  }
-
-  // Filter out same-tab broadcasts (prevent event loops).
-  const myTabId = getCurrentTabId();
-  if (data.tabId === myTabId) {
-    return;
-  }
-
-  // Dispatch to subscribers.
-  dispatchToSocialRelationshipSubscribers(
-    data as SocialRelationshipInvalidationEvent,
-  );
-}
-
-// ─── Channel initialization ──────────────────────────────────────────────────
-
-/**
- * Initialize the social relationship channel listener.
- * Called internally by `publishSocialRelationshipInvalidation()` but
- * can be called explicitly.
- *
- * @returns true if initialization succeeded, false if
- *   `BroadcastChannel` is unavailable.
- */
-export function initSocialRelationshipChannel(): boolean {
-  const channel = getSocialRelationshipChannel();
-
-  if (channel === null) {
-    return false;
-  }
-
-  // Only add listener once (channel is a singleton).
-  if (!(channel as unknown as { _listenerAdded?: boolean })._listenerAdded) {
-    channel.addEventListener('message', handleSocialRelationshipMessage);
-    (channel as unknown as { _listenerAdded?: boolean })._listenerAdded = true;
-  }
-
-  return true;
-}
-
-// ─── Broadcasting ───────────────────────────────────────────────────────────
 
 /**
  * Publish a social relationship invalidation to all other tabs.
  *
  * Automatically includes the current tab's ID for same-tab filtering
- * via `getCurrentTabId()` (re-exported from the auth channel so the
- * tab identity is shared across all channels).
+ * via the factory's same-tab filter.
  *
  * @param payload - The event payload (without `tabId` or `at`).
  * @param payload.kind - The event discriminator.
@@ -387,40 +244,20 @@ export function initSocialRelationshipChannel(): boolean {
 export function publishSocialRelationshipInvalidation(
   payload: SocialRelationshipInvalidationPayload,
 ): void {
-  // Ensure channel is initialized (sets up listener if not already).
-  initSocialRelationshipChannel();
-
-  const channel = getSocialRelationshipChannel();
-  if (channel === null) {
-    // BroadcastChannel unavailable — the local mutation's
-    // `mutate(key)` invalidation still runs so the source tab is
-    // correct.
-    return;
-  }
-
+  // Always instantiate the channel up-front (mirrors the original
+  // module's behavior) so callers / test harnesses can probe the
+  // channel instance even when the publish is dropped by the
+  // kind-validation guard below.
+  socialRelationshipChannel.ensureChannel();
   if (!payload.userId || typeof payload.userId !== 'string') {
     // Defensive: never publish an event without a userId.
     return;
   }
-
-  const validKinds: SocialRelationshipInvalidationKind[] = [
-    'relationship.changed',
-    'friend_request.changed',
-    'blocklist.changed',
-    'follow.changed',
-    'unfriended',
-  ];
-  if (!validKinds.includes(payload.kind)) {
-    // Defensive: unknown kinds are dropped at the publisher.
+  if (!SOCIAL_RELATIONSHIP_VALID_KINDS.has(payload.kind)) {
     return;
   }
-
-  const fullEvent: SocialRelationshipInvalidationEvent = {
+  socialRelationshipChannel.publish({
     kind: payload.kind,
     userId: payload.userId,
-    tabId: getCurrentTabId(),
-    at: Date.now(),
-  };
-
-  channel.postMessage(fullEvent);
+  });
 }

@@ -58,29 +58,36 @@
 // import from this module, not from `@/lib/api/error-codes` (which
 // only exposes the type, not the value).
 //
-// The drift check between these literals and the `ErrorCode` union
-// lives in the planned 2.9.T19 vitest suite: a type assertion
-// `const _t: ErrorCode = AUTH_INVALID_CURRENT_PASSWORD;` would fail if
-// the literals ever diverge from the union.
-export const AUTH_INVALID_CURRENT_PASSWORD = 'AUTH_INVALID_CURRENT_PASSWORD' as const;
-export const AUTH_PASSWORD_REUSE = 'AUTH_PASSWORD_REUSE' as const;
-export const AUTH_INVALID_TOKEN = 'AUTH_INVALID_TOKEN' as const;
-export const AUTH_RESOURCE_CONFLICT = 'AUTH_RESOURCE_CONFLICT' as const;
-export const GLOBAL_VALIDATION_FAILED = 'GLOBAL_VALIDATION_FAILED' as const;
+// P2-29 cleanup: each literal now carries `as const satisfies
+// ErrorCode` so the global registry tracks the membership at compile
+// time. The `PasswordErrorCode` union is derived via
+// `Extract<ErrorCode, …>` so it auto-tracks the registry.
+import type { ErrorCode } from '@/lib/api/error-codes';
+
+export const AUTH_INVALID_CURRENT_PASSWORD = 'AUTH_INVALID_CURRENT_PASSWORD' as const satisfies ErrorCode;
+export const AUTH_PASSWORD_REUSE = 'AUTH_PASSWORD_REUSE' as const satisfies ErrorCode;
+export const AUTH_INVALID_TOKEN = 'AUTH_INVALID_TOKEN' as const satisfies ErrorCode;
+export const AUTH_RESOURCE_CONFLICT = 'AUTH_RESOURCE_CONFLICT' as const satisfies ErrorCode;
+export const GLOBAL_VALIDATION_FAILED = 'GLOBAL_VALIDATION_FAILED' as const satisfies ErrorCode;
 
 /**
  * Union of password-management error codes this module recognizes.
+ *
+ * P2-29 cleanup: derived from the global `ErrorCode` union via
+ * `Extract<ErrorCode, …>` so the subset auto-tracks the registry.
  *
  * Exhaustive: every member must appear in the `PASSWORD_KNOWN_CODES`
  * const array below. The vi test suite (planned in 2.9.T19) verifies
  * the union and the array are in lockstep.
  */
-export type PasswordErrorCode =
+export type PasswordErrorCode = Extract<
+  ErrorCode,
   | typeof AUTH_INVALID_CURRENT_PASSWORD
   | typeof AUTH_PASSWORD_REUSE
   | typeof AUTH_INVALID_TOKEN
   | typeof AUTH_RESOURCE_CONFLICT
-  | typeof GLOBAL_VALIDATION_FAILED;
+  | typeof GLOBAL_VALIDATION_FAILED
+>;
 
 /**
  * Array form of `PasswordErrorCode`. Useful for `Array.includes`

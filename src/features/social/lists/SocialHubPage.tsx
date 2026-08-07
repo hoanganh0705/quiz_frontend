@@ -39,7 +39,7 @@
  * client-side state to manage. The Hub is a Server Component
  * candidate in principle, but it reads auth state and
  * feature flag values via client hooks, so it lives as a
- * Client Component inside the `useAuthBootstrap`-mounted
+ * Client Component inside the `useAuthSession`-mounted
  * tree.
  *
  * ## Why a skeleton variant of the counts card
@@ -54,7 +54,7 @@
 import Link from "next/link";
 import { type ReactElement, useEffect, useMemo, useRef } from "react";
 
-import { useAuthBootstrap } from "@/features/auth/contexts/auth-bootstrap-context";
+import { useAuthSession } from "@/features/auth/hooks/use-auth-session";
 import { useSocialCounts } from "@/features/social/hooks/useSocialCounts";
 import { SocialCountsCard } from "@/features/social/components/SocialCountsCard";
 import { SocialListErrorState } from "@/features/social/components/SocialListErrorState";
@@ -94,7 +94,7 @@ const TILES: readonly EntryTileConfig[] = [
 interface SocialHubPageProps {
   /**
    * Override for the entry-tile id. Defaults to the current
-   * viewer's id from `useAuthBootstrap`. Exposed so the
+   * viewer's id from `useAuthSession`. Exposed so the
    * spec can drive the page without an authenticated
    * bootstrap.
    */
@@ -108,7 +108,7 @@ export function SocialHubPage(
   props: SocialHubPageProps = {},
 ): ReactElement {
   const { currentUserIdOverride = null } = props;
-  const auth = useAuthBootstrap();
+  const auth = useAuthSession();
   const viewerId =
     currentUserIdOverride ?? auth.currentUser?.userId ?? null;
 

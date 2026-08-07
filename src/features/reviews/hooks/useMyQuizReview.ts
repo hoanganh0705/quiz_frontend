@@ -12,7 +12,7 @@
  * - Wraps the result in `useSingleWithRetry` (Epic 3.6) for the
  *   250 / 500 / 1000 ms 429 backoff policy and the manual `retry()`
  *   action.
- * - Gated on `useAuthBootstrap` so the private read never fires
+ * - Gated on `useAuthSession` so the private read never fires
  *   while the auth bootstrap is unresolved or the user is
  *   unauthenticated. This preserves the approved cheaper-path
  *   ordering in the gate hook (T-4.13.7).
@@ -47,7 +47,7 @@ import { useCallback, useMemo } from 'react';
 import { useSingleWithRetry } from '@/lib/api';
 
 import { getMyQuizReview } from '@/features/reviews/services/reviews.service';
-import { useAuthBootstrap } from '@/features/auth/contexts/auth-bootstrap-context';
+import { useAuthSession } from '@/features/auth/hooks/use-auth-session';
 import {
   myQuizReviewKey,
   type MyReviewDto,
@@ -92,7 +92,7 @@ export function useMyQuizReview(
 ): UseMyQuizReviewResult {
   const { quizId } = params;
 
-  const { bootstrapState, currentUser } = useAuthBootstrap();
+  const { bootstrapState, currentUser } = useAuthSession();
 
   // Stable session id derived from the bootstrap's currentUser. The
   // session is `null` until bootstrap completes, which the key

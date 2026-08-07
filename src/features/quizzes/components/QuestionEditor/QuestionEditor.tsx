@@ -36,6 +36,7 @@ import { memo, useCallback, useEffect, useState } from 'react';
 
 import type { ApiError } from '@/lib/api';
 import type { QuizAuthorQuestionDto } from '@/features/quizzes/types/author-dtos';
+import { logger } from '@/shared/log';
 
 import { QuestionList } from './QuestionList';
 import { SingleQuestionForm } from './SingleQuestionForm';
@@ -115,7 +116,7 @@ export const QuestionEditor = memo(function QuestionEditor({
     } catch (err) {
       // Log the error to console in development
       if (process.env.NODE_ENV === 'development') {
-        console.error('[QuestionEditor] Author DTO invariant violation:', err);
+        logger.warn('quizzes.question-editor', 'Author DTO invariant violation', err);
       }
 
       // Report to parent via error callback

@@ -66,7 +66,7 @@ import { ApiError, isApiError } from '@/lib/api';
 import {
   startAttempt,
 } from '@/features/attempts/services/attempts.service';
-import { useAuthBootstrap } from '@/features/auth/contexts/auth-bootstrap-context';
+import { useAuthSession } from '@/features/auth/hooks/use-auth-session';
 import {
   ATTEMPT_CACHE_KEYS,
   type AttemptRunnerStatus,
@@ -136,7 +136,7 @@ export function useStartAttempt(
 ): UseStartAttemptResult {
   const { quizId, payload } = params;
 
-  const { bootstrapState, currentUser } = useAuthBootstrap();
+  const { bootstrapState, currentUser } = useAuthSession();
 
   const sessionId = useMemo<string | null>(() => {
     if (bootstrapState !== 'authenticated') return null;

@@ -39,7 +39,21 @@ vi.mock('../../hooks/useAuditLogFilters', () => ({
   }),
 }));
 
-vi.mock('../../hooks/useOffsetPaginated', () => ({
+vi.mock('../../hooks/useOffsetPaginatedAuditLogs', () => ({
+  useOffsetPaginatedAuditLogs: () => ({
+    offset: 0,
+    limit: 20,
+    page: 1,
+    totalPages: 1,
+    hasNextPage: false,
+    hasPrevPage: false,
+    goToPage: vi.fn(),
+    nextPage: vi.fn(),
+    prevPage: vi.fn(),
+    resetPagination: vi.fn(),
+    setOffset: vi.fn(),
+    setLimit: vi.fn(),
+  }),
   useOffsetPaginated: () => ({
     offset: 0,
     limit: 20,

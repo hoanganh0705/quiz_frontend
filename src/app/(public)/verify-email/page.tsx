@@ -32,7 +32,10 @@ import { useSearchParams } from 'next/navigation'
 import { useVerifyEmailAutoRun } from '@/features/auth/forms/use-verify-email'
 import { COPY_KEYS, resolveCopy } from '@/features/auth/copy/verify-email-copy'
 
-export const dynamic = 'force-dynamic'
+// P2-22: dropped `export const dynamic = 'force-dynamic'` because
+// this file is a client component (`'use client'`). The route
+// segment config is a server-side directive and is meaningless
+// inside a `'use client'` module — it was a no-op previously.
 
 function VerifyEmailSkeleton() {
   return (

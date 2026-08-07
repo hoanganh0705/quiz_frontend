@@ -1,4 +1,4 @@
-import { apiClient } from '@/shared/lib/api/client'
+import { customInstance } from '@/lib/api'
 
 export type NotificationType =
   | 'achievement'
@@ -50,43 +50,48 @@ export interface DeleteNotificationResponse {
   success: boolean
 }
 
-// Get notifications with pagination
+// Phase 1: migrated from `@/shared/lib/api/client` to `@/lib/api`.
+// The legacy `apiClient` (a parallel axios instance with no RFC 7807
+// unwrapping, no cross-tab broadcast, no refresh-token dedup) was
+// retired; `customInstance` now owns every notification request.
+// See docs/frontend-cleanup-audit.md Phase 1.
 export async function getNotifications(params?: GetNotificationsParams) {
-  const response = await apiClient.get<GetNotificationsResponse>(
-    '/notifications',
-    { params }
-  )
-  return response.data
+  const response = await customInstance.request<{ data: GetNotificationsResponse }>({
+    url: '/notifications',
+    method: 'GET',
+    params,
+  })
+  return response.data.data
 }
 
-// Get unread count
 export async function getUnreadCount() {
-  const response = await apiClient.get<{ unreadCount: number }>(
-    '/notifications/unread-count'
-  )
-  return response.data
+  const response = await customInstance.request<{ data: { unreadCount: number } }>({
+    url: '/notifications/unread-count',
+    method: 'GET',
+  })
+  return response.data.data
 }
 
-// Mark a single notification as read
 export async function markAsRead(notificationId: string) {
-  const response = await apiClient.post<MarkNotificationReadResponse>(
-    `/notifications/${notificationId}/read`
-  )
-  return response.data
+  const response = await customInstance.request<{ data: MarkNotificationReadResponse }>({
+    url: `/notifications/${notificationId}/read`,
+    method: 'POST',
+  })
+  return response.data.data
 }
 
-// Mark all notifications as read
 export async function markAllAsRead() {
-  const response = await apiClient.post<MarkAllNotificationsReadResponse>(
-    '/notifications/read-all'
-  )
-  return response.data
+  const response = await customInstance.request<{ data: MarkAllNotificationsReadResponse }>({
+    url: '/notifications/read-all',
+    method: 'POST',
+  })
+  return response.data.data
 }
 
-// Delete a notification
 export async function deleteNotification(notificationId: string) {
-  const response = await apiClient.delete<DeleteNotificationResponse>(
-    `/notifications/${notificationId}`
-  )
-  return response.data
+  const response = await customInstance.request<{ data: DeleteNotificationResponse }>({
+    url: `/notifications/${notificationId}`,
+    method: 'DELETE',
+  })
+  return response.data.data
 }

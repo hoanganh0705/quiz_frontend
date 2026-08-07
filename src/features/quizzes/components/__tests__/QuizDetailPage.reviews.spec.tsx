@@ -87,8 +87,8 @@ vi.mock('@/features/quizzes/hooks/useQuizRelated', () => ({
 // page composition, not the SDK. The behaviour of these hooks is
 // covered by the per-hook specs and the
 // `ReviewsWidget.integration.spec.tsx`.
-vi.mock('@/features/auth/contexts/auth-bootstrap-context', () => ({
-  useAuthBootstrap: () => ({
+vi.mock('@/features/auth/hooks/use-auth-session', () => ({
+  useAuthSession: () => ({
     bootstrapState: 'unauthenticated',
     isAuthenticated: false,
     currentUser: null,

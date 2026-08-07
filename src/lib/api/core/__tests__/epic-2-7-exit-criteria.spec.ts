@@ -217,8 +217,8 @@ describe('Epic 2.7 — module wiring (T25 cross-cutting)', () => {
   it('bootstrap provider imports the broadcast-channel module', async () => {
     // Verifies T16's wiring: auth-bootstrap-context.tsx imports
     // subscribeToAuthEvents from the centralized module.
-    const bootstrapContext = await import('@/features/auth/contexts/auth-bootstrap-context');
-    expect(typeof bootstrapContext.useAuthBootstrap).toBe('function');
+    const bootstrapContext = await import('@/features/auth/hooks/use-auth-session');
+    expect(typeof bootstrapContext.useAuthSession).toBe('function');
   });
 
   it('auth service uses broadcast-channel helpers (no inline BroadcastChannel)', async () => {

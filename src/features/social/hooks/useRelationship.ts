@@ -30,7 +30,7 @@
  *
  * ## Auth reads
  *
- * The hook reads the current userId from `useAuthBootstrap` (Phase 2.5).
+ * The hook reads the current userId from `useAuthSession` (Phase 2.5).
  * Auth bootstrap state is the canonical source; the hook does not call
  * `/auth/me` directly.
  *
@@ -44,7 +44,7 @@
 
 import { useCallback, useMemo } from "react";
 
-import { ApiError, useSingleWithRetry } from "@/lib/api";
+import { ApiError, coerceToApiError, useSingleWithRetry } from "@/lib/api";
 import type { ErrorCode } from "@/lib/api/error-codes";
 import { getFeatureFlagValue } from "@/lib/feature-flags";
 
@@ -58,7 +58,7 @@ import {
   type SocialErrorCode,
 } from "@/features/social/types";
 
-import { useAuthBootstrap } from "@/features/auth/contexts/auth-bootstrap-context";
+import { useAuthSession } from "@/features/auth/hooks/use-auth-session";
 
 // ─── Public types ─────────────────────────────────────────────────────────
 
@@ -96,7 +96,7 @@ export interface UseRelationshipResult {
    * reports unauthenticated OR the flag is `'placeholder'` OR the
    * target userId is null. Consumers that need to render an
    * authenticated-only CTA can read this flag without re-reading
-   * `useAuthBootstrap`.
+   * `useAuthSession`.
    */
   isAuthenticated: boolean;
 }
@@ -138,14 +138,11 @@ const SELF_RESULT: UseRelationshipResult = Object.freeze({
 
 /**
  * Wrap an unknown thrown value in a typed `ApiError` so callers can
- * branch on `apiError.code`. Mirrors the helper used by
- * `useInstance` (TKT-5.7.B1).
+ * branch on `apiError.code`. Thin pass-through to the canonical
+ * `coerceToApiError` helper from `@/lib/api`.
  */
 function wrapAsApiError(err: unknown): ApiError {
-  if (err instanceof ApiError) return err;
-  return new ApiError(
-    err as unknown as ConstructorParameters<typeof ApiError>[0],
-  );
+  return coerceToApiError(err);
 }
 
 /**
@@ -171,7 +168,7 @@ export interface UseRelationshipOptions {
   /**
    * Optional override for the current user id. Tests inject this to
    * keep the test pure; production callers omit it so the hook reads
-   * from `useAuthBootstrap`.
+   * from `useAuthSession`.
    */
   currentUserId?: string | null;
 }
@@ -183,7 +180,7 @@ export function useRelationship(
   const flagValue = getFeatureFlagValue("phase6_social_relationship");
   const isFlagPlaceholder = flagValue === "placeholder";
 
-  const auth = useAuthBootstrap();
+  const auth = useAuthSession();
   const overrideUserId = options.currentUserId ?? null;
   const viewerUserId = overrideUserId ?? auth.currentUser?.userId ?? null;
   const isAuthenticated = auth.isAuthenticated && viewerUserId !== null;
@@ -267,10 +264,13 @@ export function useRelationship(
     const mapped: ErrorCode = isSocialErrorCode(raw)
       ? asErrorCode(raw)
       : (raw as ErrorCode | undefined) ?? "GLOBAL_INTERNAL_ERROR";
-    return new ApiError({
-      ...(result.error as unknown as object),
+    return ApiError.fromInput({
+      status: result.error.status,
       code: mapped,
-    } as unknown as ConstructorParameters<typeof ApiError>[0]);
+      message: result.error.detail,
+      title: result.error.title,
+      requestId: result.error.requestId,
+    });
   }, [result.error]);
 
   // Short-circuit paths win over the SWR-driven result. The short-circuit

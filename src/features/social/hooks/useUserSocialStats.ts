@@ -59,7 +59,7 @@
 
 import { useCallback, useMemo } from "react";
 
-import { useAuthBootstrap } from "@/features/auth/contexts/auth-bootstrap-context";
+import { useAuthSession } from "@/features/auth/hooks/use-auth-session";
 import { toSocialUserStatsFromEnvelope } from "@/features/social/dto-adapters-analytics";
 import { getUserSocialStats } from "@/features/social/services";
 import {
@@ -137,7 +137,7 @@ export function useUserSocialStats(
   const flagValue = getFeatureFlagValue("phase6_social");
   const isFlagPlaceholder = flagValue === "placeholder";
 
-  const auth = useAuthBootstrap();
+  const auth = useAuthSession();
   const viewerId = auth.currentUser?.userId ?? null;
   const isAuthenticated = auth.isAuthenticated;
   const isSelf = viewerId !== null && userId === viewerId;

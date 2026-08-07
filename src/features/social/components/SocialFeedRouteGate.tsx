@@ -40,7 +40,7 @@
  * authentication gate (`proxy.ts`) is the authoritative redirect;
  * this gate keeps a defensive branch (`PrivacyRestrictedNotice`) in
  * case the middleware is misconfigured. The auth read uses
- * `useAuthBootstrap` (Phase 2 cookie-based presence check) so the
+ * `useAuthSession` (Phase 2 cookie-based presence check) so the
  * gate is consistent with the rest of the Story 6.x surfaces.
  *
  * The placeholder branch is intentionally rendered *above* the
@@ -51,7 +51,7 @@
 
 import { useMemo } from "react";
 
-import { useAuthBootstrap } from "@/features/auth/contexts/auth-bootstrap-context";
+import { useAuthSession } from "@/features/auth/hooks/use-auth-session";
 import { PrivacyRestrictedNotice } from "@/features/social/components/PrivacyRestrictedNotice";
 import { RealtimeSocialShell } from "@/features/social/components/RealtimeSocialShell";
 import { SocialFeedPlaceholder } from "@/features/social/components/SocialFeedPlaceholder";
@@ -76,7 +76,7 @@ export function SocialFeedRouteGate(): React.ReactElement {
     [],
   );
 
-  const auth = useAuthBootstrap();
+  const auth = useAuthSession();
   const isAuthenticated = auth.isAuthenticated;
 
   // Placeholder branch — the parent flag OR the feed sub-flag being

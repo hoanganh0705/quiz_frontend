@@ -49,6 +49,7 @@ import { SwrProvider } from "@/providers";
 import { useCursorPaginated } from "@/lib/api";
 import type { QuizListItemDto } from "@/lib/api/generated/schemas";
 import type { CursorFetcher } from "@/lib/api/use-cursor-paginated.types";
+import { logger } from "@/shared/log";
 
 // Live API is opt-in. Skipped by default to keep CI hermetic.
 const RUN_LIVE = process.env.RUN_LIVE_API === "1";
@@ -154,8 +155,9 @@ describe("TKT-3.2.E1 / useCursorPaginated — live /quizzes smoke", () => {
 
       // Log the first item for visual confirmation (the AC explicitly
       // asks for this).
-      console.log(
-        "[live smoke] first item:",
+      logger.debug(
+        "primitives.live-smoke",
+        "first item:",
         JSON.stringify(result.current.items[0])
       );
 

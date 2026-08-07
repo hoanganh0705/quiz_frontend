@@ -35,8 +35,8 @@ vi.mock("@/features/search/hooks/useSearch", () => ({
 }));
 
 // Mock the auth bootstrap so the component renders predictably
-vi.mock("@/features/auth/contexts/auth-bootstrap-context", () => ({
-  useAuthBootstrap: () => ({ bootstrapState: "authenticated" }),
+vi.mock("@/features/auth/hooks/use-auth-session", () => ({
+  useAuthSession: () => ({ bootstrapState: "authenticated" }),
 }));
 
 // ─── Helpers ─────────────────────────────────────────────────────────

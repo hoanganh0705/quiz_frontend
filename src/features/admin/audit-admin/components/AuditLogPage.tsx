@@ -36,8 +36,8 @@ import { useAdminAuditLog } from '../hooks/useAdminAuditLog';
 import { useAuditLogFilters } from '../hooks/useAuditLogFilters';
 import {
   AUDIT_LOG_DEFAULT_PAGE_SIZE,
-  useOffsetPaginated,
-} from '../hooks/useOffsetPaginated';
+  useOffsetPaginatedAuditLogs,
+} from '../hooks/useOffsetPaginatedAuditLogs';
 
 import type { AuditLogEntryDto } from '../types';
 
@@ -95,7 +95,7 @@ function AuditLogPageContent(): React.ReactElement {
   const { filters, hasActiveFilters, resetFilters } = useAuditLogFilters();
 
   // Pagination
-  const pagination = useOffsetPaginated({
+  const pagination = useOffsetPaginatedAuditLogs({
     initialOffset: 0,
     initialLimit: AUDIT_LOG_DEFAULT_PAGE_SIZE,
     total: 0, // Will be updated via setOffset logic

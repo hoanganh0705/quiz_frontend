@@ -11,12 +11,22 @@ export type { UseAdminAuditLogEntryResult } from './useAdminAuditLogEntry';
 export { useAuditLogFilters } from './useAuditLogFilters';
 export type { UseAuditLogFiltersResult } from './useAuditLogFilters';
 
-export { useOffsetPaginated } from './useOffsetPaginated';
+// TKT-7.5 cleanup, Phase 5 / P1-2: the audit-log offset hook is now
+// `useOffsetPaginatedAuditLogs` to avoid colliding with the Phase-6
+// `@/lib/api/use-offset-paginated` fetch facade. The old name is
+// kept as a deprecated re-export so existing callers keep compiling
+// until they migrate.
+export {
+  useOffsetPaginatedAuditLogs,
+  useOffsetPaginated,
+} from './useOffsetPaginatedAuditLogs';
 export type {
+  UseOffsetPaginatedAuditLogsParams,
+  UseOffsetPaginatedAuditLogsResult,
   UseOffsetPaginatedParams,
   UseOffsetPaginatedResult,
-} from './useOffsetPaginated';
+} from './useOffsetPaginatedAuditLogs';
 export {
   AUDIT_LOG_DEFAULT_PAGE_SIZE,
   AUDIT_LOG_MAX_PAGE_SIZE,
-} from './useOffsetPaginated';
+} from './useOffsetPaginatedAuditLogs';

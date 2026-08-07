@@ -74,7 +74,7 @@ import {
 } from "@/features/social/rate-limit-decoder";
 import { resolveMutualVisibility } from "@/features/social/hooks/useMutualFriends";
 
-import { useAuthBootstrap } from "@/features/auth/contexts/auth-bootstrap-context";
+import { useAuthSession } from "@/features/auth/hooks/use-auth-session";
 
 // ─── Constants ──────────────────────────────────────────────────────────
 
@@ -165,7 +165,7 @@ export function useUserActivity(
   const flagValue = getFeatureFlagValue("phase6_social_activity");
   const isFlagPlaceholder = flagValue === "placeholder";
 
-  const auth = useAuthBootstrap();
+  const auth = useAuthSession();
   const isAuthenticated = auth.isAuthenticated;
 
   const key = useMemo<readonly unknown[] | null>(() => {

@@ -21,7 +21,7 @@
  *   detail read carries status / metadata.
  * - Wraps each read in `useSingleWithRetry` so the 250 / 500 / 1000
  *   ms 429 backoff and manual `retry()` are reused.
- * - Gated on `useAuthBootstrap` so the private reads never fire while
+ * - Gated on `useAuthSession` so the private reads never fire while
  *   the bootstrap is unresolved or the viewer is unauthenticated.
  *
  * ## What this hook does NOT own
@@ -64,7 +64,7 @@ import {
   getAttempt,
   getAttemptAnswers,
 } from '@/features/attempts/services/attempts.service';
-import { useAuthBootstrap } from '@/features/auth/contexts/auth-bootstrap-context';
+import { useAuthSession } from '@/features/auth/hooks/use-auth-session';
 import {
   ATTEMPT_CACHE_KEYS,
   type SubmittedAnswersMap,
@@ -129,7 +129,7 @@ export function useAttemptHydration(
 ): AttemptHydrationView {
   const { attemptId } = params;
 
-  const { bootstrapState, currentUser } = useAuthBootstrap();
+  const { bootstrapState, currentUser } = useAuthSession();
 
   const sessionId = useMemo<string | null>(() => {
     if (bootstrapState !== 'authenticated') return null;

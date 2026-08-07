@@ -28,7 +28,7 @@
 
 import { useMemo } from 'react';
 
-import { ApiError, isApiError, useSingleWithRetry } from '@/lib/api';
+import { ApiError, coerceToApiError, isApiError, useSingleWithRetry } from '@/lib/api';
 import type { SingleFetcher } from '@/lib/api/use-single-with-retry';
 
 import { getQuizByIdOrSlug } from '@/features/quizzes/services/quizzes.service';
@@ -53,20 +53,19 @@ function isNotFoundError(err: unknown): boolean {
 }
 
 function wrapAsApiError(err: unknown): ApiError {
+  // Pass through existing ApiError instances.
   if (isApiError(err)) return err;
-  return new ApiError({
-    isAxiosError: true,
-    response: {
+  // Synthesize a malformed-envelope error so callers can branch on
+  // `code === 'QUIZ_DETAIL_MALFORMED'`. Used when the SDK returns a
+  // null / non-quiz payload from `getQuizByIdOrSlug`.
+  if (err instanceof Error) {
+    return ApiError.fromInput({
       status: 500,
-      data: {
-        type: 'about:blank',
-        title: 'Quiz detail envelope is malformed',
-        status: 500,
-        code: 'QUIZ_DETAIL_MALFORMED',
-      },
-    },
-    config: undefined,
-  } as unknown as Parameters<typeof ApiError.fromAxios>[0]);
+      code: 'QUIZ_DETAIL_MALFORMED',
+      message: err.message,
+    });
+  }
+  return coerceToApiError(err);
 }
 
 /**

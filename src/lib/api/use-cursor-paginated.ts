@@ -83,6 +83,10 @@ import type {
   UseCursorPaginatedParams,
   UseCursorPaginatedResult
 } from "./use-cursor-paginated.types";
+import {
+  isCursorPage as isCursorPageStrict,
+  isOffsetPage as isOffsetPageStrict,
+} from "./is-cursor-page";
 
 // ---------------------------------------------------------------------------
 // Internal helpers
@@ -119,26 +123,14 @@ function asCursorPage<T extends { id: string }>(
   page: AnyPage<T> | null | undefined
 ): CursorPage<T> | null {
   if (!page) return null;
-  if (
-    Object.prototype.hasOwnProperty.call(page, "nextCursor") &&
-    Object.prototype.hasOwnProperty.call(page, "hasNextPage")
-  ) {
-    return page as CursorPage<T>;
-  }
-  return null;
+  return isCursorPageStrict<T>(page) ? page : null;
 }
 
 function asOffsetPage<T extends { id: string }>(
   page: AnyPage<T> | null | undefined
 ): OffsetPage<T> | null {
   if (!page) return null;
-  if (
-    Object.prototype.hasOwnProperty.call(page, "page") &&
-    Object.prototype.hasOwnProperty.call(page, "hasMore")
-  ) {
-    return page as OffsetPage<T>;
-  }
-  return null;
+  return isOffsetPageStrict<T>(page) ? page : null;
 }
 
 // ---------------------------------------------------------------------------
