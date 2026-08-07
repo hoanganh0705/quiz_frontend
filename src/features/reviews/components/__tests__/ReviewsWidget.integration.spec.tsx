@@ -17,7 +17,7 @@
  * fully exercised here by mocking the gate / list / mutation hooks at
  * the boundary the widget consumes.
  *
- * The widget is wired through `useAuthBootstrap`, `useMyQuizReview`,
+ * The widget is wired through `useAuthSession`, `useMyQuizReview`,
  * `useReviewGate`, `useCreateReview`, `useEditReview`,
  * `useDeleteReview`, `useHelpfulReview`, and `useQuizReviews`. We mock
  * those hooks so the composition is the system under test, not the
@@ -67,7 +67,7 @@ import {
 // Hook mocks
 // ---------------------------------------------------------------------------
 
-const useAuthBootstrapMock = vi.fn();
+const useAuthSessionMock = vi.fn();
 const useMyQuizReviewMock = vi.fn();
 const useReviewGateMock = vi.fn();
 const useCreateReviewMock = vi.fn();
@@ -76,8 +76,8 @@ const useDeleteReviewMock = vi.fn();
 const useHelpfulReviewMock = vi.fn();
 const useQuizReviewsMock = vi.fn();
 
-vi.mock('@/features/auth/contexts/auth-bootstrap-context', () => ({
-  useAuthBootstrap: () => useAuthBootstrapMock(),
+vi.mock('@/features/auth/hooks/use-auth-session', () => ({
+  useAuthSession: () => useAuthSessionMock(),
 }));
 
 vi.mock('@/features/reviews/hooks/useMyQuizReview', () => ({
@@ -262,7 +262,7 @@ const defaultList = {
 // ---------------------------------------------------------------------------
 
 function setUnauthenticated() {
-  useAuthBootstrapMock.mockReturnValue({
+  useAuthSessionMock.mockReturnValue({
     ...defaultAuthBootstrap,
     bootstrapState: 'unauthenticated',
     isAuthenticated: false,
@@ -270,7 +270,7 @@ function setUnauthenticated() {
 }
 
 function setAuthBootstrapLoading() {
-  useAuthBootstrapMock.mockReturnValue({
+  useAuthSessionMock.mockReturnValue({
     ...defaultAuthBootstrap,
     bootstrapState: 'bootstrapping',
     isBootstrapping: true,
@@ -279,7 +279,7 @@ function setAuthBootstrapLoading() {
 }
 
 function setAuthenticated(user: CurrentUserResponseDto = SELF_USER) {
-  useAuthBootstrapMock.mockReturnValue({
+  useAuthSessionMock.mockReturnValue({
     ...defaultAuthBootstrap,
     bootstrapState: 'authenticated',
     isAuthenticated: true,

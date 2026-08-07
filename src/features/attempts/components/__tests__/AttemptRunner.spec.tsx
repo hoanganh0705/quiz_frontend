@@ -16,8 +16,8 @@ vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: vi.fn(), replace: vi.fn() }),
 }));
 
-vi.mock('@/features/auth/contexts/auth-bootstrap-context', () => ({
-  useAuthBootstrap: () => ({
+vi.mock('@/features/auth/hooks/use-auth-session', () => ({
+  useAuthSession: () => ({
     bootstrapState: 'authenticated',
     currentUser: { id: 'user-1' },
   }),

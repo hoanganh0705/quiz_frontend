@@ -3,19 +3,27 @@
  *
  * Source epic:   Epic 7.11 — Admin Audit Log Surface and Backend Capability Verification.
  * Source ticket: TKT-7.11.I2.
+ *
+ * TKT-7.5 cleanup, Phase 5 / P1-2: the hook was renamed to
+ * `useOffsetPaginatedAuditLogs`; the old `useOffsetPaginated` name is
+ * still exported as a back-compat re-export, so the spec exercises
+ * both names.
  */
 
 import { renderHook, act } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
-import { useOffsetPaginated } from '../useOffsetPaginated';
+import {
+  useOffsetPaginatedAuditLogs,
+  useOffsetPaginated,
+} from '../useOffsetPaginatedAuditLogs';
 
-describe('useOffsetPaginated', () => {
+describe('useOffsetPaginatedAuditLogs', () => {
   // ─── Initial state ──────────────────────────────────────────────────
 
   it('starts at offset 0 with default limit', () => {
     const { result } = renderHook(() =>
-      useOffsetPaginated({
+      useOffsetPaginatedAuditLogs({
         total: 100,
       }),
     );
@@ -27,7 +35,7 @@ describe('useOffsetPaginated', () => {
 
   it('respects initialOffset and initialLimit', () => {
     const { result } = renderHook(() =>
-      useOffsetPaginated({
+      useOffsetPaginatedAuditLogs({
         total: 100,
         initialOffset: 40,
         initialLimit: 10,
@@ -43,7 +51,7 @@ describe('useOffsetPaginated', () => {
 
   it('calculates totalPages correctly', () => {
     const { result } = renderHook(() =>
-      useOffsetPaginated({
+      useOffsetPaginatedAuditLogs({
         total: 100,
         initialLimit: 20,
       }),
@@ -54,7 +62,7 @@ describe('useOffsetPaginated', () => {
 
   it('calculates hasNextPage correctly', () => {
     const { result } = renderHook(() =>
-      useOffsetPaginated({
+      useOffsetPaginatedAuditLogs({
         total: 100,
         initialOffset: 0,
         initialLimit: 20,
@@ -72,7 +80,7 @@ describe('useOffsetPaginated', () => {
 
   it('calculates hasPrevPage correctly', () => {
     const { result } = renderHook(() =>
-      useOffsetPaginated({
+      useOffsetPaginatedAuditLogs({
         total: 100,
         initialOffset: 20,
         initialLimit: 20,
@@ -92,7 +100,7 @@ describe('useOffsetPaginated', () => {
 
   it('nextPage advances offset by limit', () => {
     const { result } = renderHook(() =>
-      useOffsetPaginated({
+      useOffsetPaginatedAuditLogs({
         total: 100,
         initialOffset: 0,
         initialLimit: 20,
@@ -109,7 +117,7 @@ describe('useOffsetPaginated', () => {
 
   it('prevPage goes back by limit', () => {
     const { result } = renderHook(() =>
-      useOffsetPaginated({
+      useOffsetPaginatedAuditLogs({
         total: 100,
         initialOffset: 40,
         initialLimit: 20,
@@ -125,7 +133,7 @@ describe('useOffsetPaginated', () => {
 
   it('prevPage does not go below 0', () => {
     const { result } = renderHook(() =>
-      useOffsetPaginated({
+      useOffsetPaginatedAuditLogs({
         total: 100,
         initialOffset: 10,
         initialLimit: 20,
@@ -141,7 +149,7 @@ describe('useOffsetPaginated', () => {
 
   it('goToPage navigates to specified page (1-indexed)', () => {
     const { result } = renderHook(() =>
-      useOffsetPaginated({
+      useOffsetPaginatedAuditLogs({
         total: 100,
         initialLimit: 20,
       }),
@@ -157,7 +165,7 @@ describe('useOffsetPaginated', () => {
 
   it('goToPage clamps to valid range (1 to totalPages)', () => {
     const { result } = renderHook(() =>
-      useOffsetPaginated({
+      useOffsetPaginatedAuditLogs({
         total: 100,
         initialLimit: 20,
       }),
@@ -180,7 +188,7 @@ describe('useOffsetPaginated', () => {
 
   it('resetPagination resets to offset 0', () => {
     const { result } = renderHook(() =>
-      useOffsetPaginated({
+      useOffsetPaginatedAuditLogs({
         total: 100,
         initialOffset: 60,
         initialLimit: 20,
@@ -200,7 +208,7 @@ describe('useOffsetPaginated', () => {
 
   it('setLimit clamps to valid range', () => {
     const { result } = renderHook(() =>
-      useOffsetPaginated({
+      useOffsetPaginatedAuditLogs({
         total: 100,
         initialLimit: 20,
       }),
@@ -215,7 +223,7 @@ describe('useOffsetPaginated', () => {
 
   it('setLimit resets to first page', () => {
     const { result } = renderHook(() =>
-      useOffsetPaginated({
+      useOffsetPaginatedAuditLogs({
         total: 100,
         initialOffset: 60,
         initialLimit: 20,
@@ -231,7 +239,7 @@ describe('useOffsetPaginated', () => {
 
   it('setLimit clamps to maxLimit', () => {
     const { result } = renderHook(() =>
-      useOffsetPaginated({
+      useOffsetPaginatedAuditLogs({
         total: 100,
         maxLimit: 50,
       }),
@@ -248,7 +256,7 @@ describe('useOffsetPaginated', () => {
 
   it('setOffset updates offset', () => {
     const { result } = renderHook(() =>
-      useOffsetPaginated({
+      useOffsetPaginatedAuditLogs({
         total: 100,
         initialLimit: 20,
       }),
@@ -263,7 +271,7 @@ describe('useOffsetPaginated', () => {
 
   it('setOffset clamps to valid range', () => {
     const { result } = renderHook(() =>
-      useOffsetPaginated({
+      useOffsetPaginatedAuditLogs({
         total: 100,
         initialLimit: 20,
       }),
@@ -288,7 +296,7 @@ describe('useOffsetPaginated', () => {
 
   it('handles total=0', () => {
     const { result } = renderHook(() =>
-      useOffsetPaginated({
+      useOffsetPaginatedAuditLogs({
         total: 0,
       }),
     );
@@ -296,5 +304,40 @@ describe('useOffsetPaginated', () => {
     expect(result.current.totalPages).toBe(1);
     expect(result.current.hasNextPage).toBe(false);
     expect(result.current.hasPrevPage).toBe(false);
+  });
+});
+
+// ─── Back-compat alias (TKT-7.5 / Phase 5 / P1-2) ─────────────────────
+
+describe('useOffsetPaginated — deprecated alias', () => {
+  it('is the same hook under the old name', () => {
+    const { result } = renderHook(() =>
+      useOffsetPaginated({
+        total: 50,
+        initialLimit: 10,
+      }),
+    );
+
+    expect(result.current.offset).toBe(0);
+    expect(result.current.limit).toBe(10);
+    expect(result.current.page).toBe(1);
+    expect(result.current.totalPages).toBe(5);
+  });
+
+  it('behaves identically when advanced through nextPage', () => {
+    const { result } = renderHook(() =>
+      useOffsetPaginated({
+        total: 50,
+        initialLimit: 10,
+      }),
+    );
+
+    act(() => {
+      result.current.nextPage();
+    });
+
+    expect(result.current.offset).toBe(10);
+    expect(result.current.page).toBe(2);
+    expect(result.current.hasNextPage).toBe(true);
   });
 });

@@ -54,7 +54,7 @@ import {
   type RankingFreshness,
   type RankingSummary,
 } from "@/features/rankings/types";
-import { useAuthBootstrap } from "@/features/auth/contexts/auth-bootstrap-context";
+import { useAuthSession } from "@/features/auth/hooks/use-auth-session";
 import { getFeatureFlagValue } from "@/lib/feature-flags";
 
 import type { UserRankResponseDto } from "@/lib/api/generated/schemas";
@@ -94,7 +94,7 @@ export function useMyRanking(): UseMyRankingResult {
   const flagValue = getFeatureFlagValue("phase5_rankings");
   const isFlagPlaceholder = flagValue === "placeholder";
 
-  const { bootstrapState, currentUser } = useAuthBootstrap();
+  const { bootstrapState, currentUser } = useAuthSession();
   const isAuthenticated = bootstrapState === "authenticated";
   const userId =
     typeof currentUser?.userId === "string" ? currentUser.userId : "";

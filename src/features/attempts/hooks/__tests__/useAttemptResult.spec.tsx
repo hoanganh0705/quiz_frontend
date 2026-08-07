@@ -46,10 +46,10 @@ vi.mock('@/features/attempts/services/attempts.service', async () => {
   };
 });
 
-const useAuthBootstrapMock = vi.fn();
+const useAuthSessionMock = vi.fn();
 
-vi.mock('@/features/auth/contexts/auth-bootstrap-context', () => ({
-  useAuthBootstrap: () => useAuthBootstrapMock(),
+vi.mock('@/features/auth/hooks/use-auth-session', () => ({
+  useAuthSession: () => useAuthSessionMock(),
 }));
 
 afterEach(() => {
@@ -82,21 +82,21 @@ function makeApiError(status: number, code: string, message: string): ApiError {
 }
 
 function authedAs(userId: string): void {
-  useAuthBootstrapMock.mockReturnValue({
+  useAuthSessionMock.mockReturnValue({
     bootstrapState: 'authenticated',
     currentUser: { id: userId, userId },
   });
 }
 
 function unauthed(): void {
-  useAuthBootstrapMock.mockReturnValue({
+  useAuthSessionMock.mockReturnValue({
     bootstrapState: 'unauthenticated',
     currentUser: null,
   });
 }
 
 function loading(): void {
-  useAuthBootstrapMock.mockReturnValue({
+  useAuthSessionMock.mockReturnValue({
     bootstrapState: 'loading',
     currentUser: null,
   });

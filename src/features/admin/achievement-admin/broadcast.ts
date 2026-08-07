@@ -33,6 +33,7 @@
  */
 
 import { getCurrentTabId } from '@/lib/api/core/broadcast-channel';
+import { logger } from '@/shared/log';
 
 import { invalidateAchievementAdmin } from './cache-keys';
 
@@ -173,8 +174,9 @@ function dispatchToAchievementAdminSubscribers(
     try {
       h(event);
     } catch (err) {
-      console.error(
-        '[achievement-admin] Error in achievement admin event subscriber:',
+      logger.error(
+        'admin.achievement.broadcast',
+        'Error in achievement admin event subscriber',
         err,
       );
     }

@@ -8,6 +8,13 @@
  *                Story 6.9 (lines 428–469).
  * Source ticket: TKT-6.9.D2.
  *
+ * TKT-7.5 cleanup, Phase 5 / P1-3: the hook now uses the cursor
+ * pagination primitive directly (`useCursorPaginated` with
+ * `paginationKind: 'cursor'`), dropping the offset-shaped facade
+ * (`useOffsetPaginated`). The previous wrapper converted offset
+ * numbers into opaque cursors, which made the `nextPage` / `prevPage`
+ * semantics misleading for a strictly cursor-paginated backend.
+ *
  * ## What this hook owns
  *
  * The single read hook the feed page (`SocialFeedPage`,
@@ -15,8 +22,8 @@
  * The hook:
  *
  *   - Calls the verified service wrapper `getFeed`
- *     (TKT-6.9.C1) via the new `useOffsetPaginated` primitive
- *     (TKT-6.9.D1).
+ *     (TKT-6.9.C1) via the cursor pagination primitive
+ *     (`useCursorPaginated`).
  *   - Uses SWR cache key `SOCIAL_CACHE_KEYS.makeFeedKey(viewerUserId)`
  *     (no offset / cursor / page literal in the key).
  *   - Returns a typed result that exposes `items`, `hasMore`,
@@ -56,8 +63,10 @@ import { useSWRConfig } from "swr";
 
 import {
   ApiError,
-  useOffsetPaginated,
-  type UseOffsetPaginatedResult,
+  useCursorPaginated,
+  type CursorFetcher,
+  type CursorPage,
+  type UseCursorPaginatedResult,
 } from "@/lib/api";
 
 import { getFeatureFlagValue } from "@/lib/feature-flags";
@@ -76,7 +85,7 @@ import {
 } from "@/features/social/rate-limit-decoder";
 import type { ConsistencyStaleness } from "@/features/social/components/ConsistencyNotice";
 
-import { useAuthBootstrap } from "@/features/auth/contexts/auth-bootstrap-context";
+import { useAuthSession } from "@/features/auth/hooks/use-auth-session";
 
 // ─── Constants ──────────────────────────────────────────────────────────
 
@@ -180,7 +189,7 @@ export function useFeed(viewerUserId: string | null): UseFeedResult {
   const isFlagPlaceholder =
     parentFlagValue === "placeholder" || subFlagValue === "placeholder";
 
-  const auth = useAuthBootstrap();
+  const auth = useAuthSession();
   const isAuthenticated = auth.isAuthenticated;
 
   const swrConfig = useSWRConfig();
@@ -194,17 +203,15 @@ export function useFeed(viewerUserId: string | null): UseFeedResult {
     return SOCIAL_CACHE_KEYS.makeFeedKey(viewerUserId);
   }, [isFlagPlaceholder, isAuthenticated, viewerUserId]);
 
-  // Adapter fetcher that delegates to the service wrapper.
-  const fetcher = useMemo(
+  // Adapter fetcher that delegates to the service wrapper. The
+  // fetcher is the documented `CursorFetcher<SocialFeedItemDto, {}>`
+  // signature — the cursor primitive's strict runtime guard validates
+  // the page shape (TKT-7.5 cleanup, Phase 5 / P0-20).
+  const fetcher = useMemo<
+    CursorFetcher<SocialFeedItemDto, { readonly limit: number }>
+  >(
     () =>
-      async ({
-        offset,
-        limit,
-      }: {
-        offset: number;
-        limit: number;
-        params: Record<string, never>;
-      }) => {
+      async ({ cursor, params, signal }) => {
         if (
           isFlagPlaceholder ||
           !isAuthenticated ||
@@ -212,41 +219,31 @@ export function useFeed(viewerUserId: string | null): UseFeedResult {
         ) {
           return {
             items: [] as readonly SocialFeedItemDto[],
-            offset,
-            limit,
-            hasMore: false,
+            nextCursor: null,
+            hasNextPage: false,
+            limit: params.limit,
           };
         }
-        try {
-          // The feed endpoint is cursor-paginated; the
-          // offset-aware primitive threads the cursor through
-          // opaquely. We pass `cursor: undefined` on the first
-          // page and forward the SDK's `nextCursor` on
-          // subsequent pages via the service wrapper.
-          const cursor: string | undefined = undefined;
-          const result = await getFeed({ ...(cursor ? { cursor } : {}), limit });
-          return {
-            items: result.items,
-            offset,
-            limit,
-            hasMore: result.hasMore,
-          };
-        } catch (err) {
-          // Privacy / block / 403 / 429 / 404 — rethrow; the hook
-          // visibility resolver maps the error code to the
-          // documented privacy branch.
-          throw err;
-        }
+        const result = await getFeed({
+          ...(cursor ? { cursor } : {}),
+          limit: params.limit,
+        });
+        return {
+          items: result.items,
+          nextCursor: result.nextCursor,
+          hasNextPage: result.hasMore,
+          limit: params.limit,
+        };
       },
     [isFlagPlaceholder, isAuthenticated, viewerUserId],
   );
 
-  const paginated: UseOffsetPaginatedResult<SocialFeedItemDto> =
-    useOffsetPaginated<SocialFeedItemDto, Record<string, never>>({
+  const paginated: UseCursorPaginatedResult<SocialFeedItemDto> =
+    useCursorPaginated<SocialFeedItemDto, { readonly limit: number }>({
       key: key ?? [],
       fetcher,
-      params: {},
-      limit: FEED_PAGE_SIZE,
+      params: { limit: FEED_PAGE_SIZE },
+      paginationKind: "cursor",
     });
 
   // Visibility derivation — pure mapping from the API error code.
@@ -287,7 +284,7 @@ export function useFeed(viewerUserId: string | null): UseFeedResult {
 
   // Auth-state-change listener — clears the SWR feed cache on
   // logout so a subsequent user on the same browser does not
-  // inherit the prior user's feed items. The offset is derived
+  // inherit the prior user's feed items. The cursor is derived
   // from the fresh cache and is therefore implicitly reset.
   useEffect(() => {
     if (typeof window === "undefined") return;

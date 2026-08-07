@@ -68,14 +68,13 @@ import { useCallback, useRef, useState } from 'react';
 
 import { mutate as globalMutate } from 'swr';
 
-import { ApiError } from '@/lib/api/core/ApiError';
+import { ApiError, coerceToApiError } from '@/lib/api';
 import { addTournamentAdminBreadcrumb } from '@/lib/admin/phase7_admin_sentry';
 
 import { createTournament } from '@/features/admin/services/tournament-admin.service';
 import { tournamentAdminListKeyMatcher } from './useTournamentAdminList';
 import {
   adminTournamentsKeyMatcher,
-  coerceToApiError,
   nowMs,
   publicTournamentsKeyMatcher,
 } from './internal/mutation-helpers';

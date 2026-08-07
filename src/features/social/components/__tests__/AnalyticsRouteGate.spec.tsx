@@ -61,8 +61,8 @@ vi.mock("@/features/social/hooks/usePeriodFilter", () => ({
 }));
 
 const mockUseAuthBootstrap = vi.fn();
-vi.mock("@/features/auth/contexts/auth-bootstrap-context", () => ({
-  useAuthBootstrap: (...args: unknown[]) => mockUseAuthBootstrap(...args),
+vi.mock("@/features/auth/hooks/use-auth-session", () => ({
+  useAuthSession: (...args: unknown[]) => mockUseAuthBootstrap(...args),
 }));
 
 const featureFlags: { phase6_social: "live" | "placeholder" } = {

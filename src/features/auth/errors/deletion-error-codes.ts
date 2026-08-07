@@ -64,27 +64,34 @@
  * ```
  */
 
-export const AUTH_INVALID_CURRENT_PASSWORD = 'AUTH_INVALID_CURRENT_PASSWORD' as const;
-export const AUTH_DELETION_FAILED = 'AUTH_DELETION_FAILED' as const;
-export const AUTH_INVALID_TOKEN = 'AUTH_INVALID_TOKEN' as const;
-export const AUTH_RESOURCE_CONFLICT = 'AUTH_RESOURCE_CONFLICT' as const;
-export const GLOBAL_VALIDATION_FAILED = 'GLOBAL_VALIDATION_FAILED' as const;
-export const USER_NOT_FOUND = 'USER_NOT_FOUND' as const;
+import type { ErrorCode } from '@/lib/api/error-codes';
+
+export const AUTH_INVALID_CURRENT_PASSWORD = 'AUTH_INVALID_CURRENT_PASSWORD' as const satisfies ErrorCode;
+export const AUTH_DELETION_FAILED = 'AUTH_DELETION_FAILED' as const satisfies ErrorCode;
+export const AUTH_INVALID_TOKEN = 'AUTH_INVALID_TOKEN' as const satisfies ErrorCode;
+export const AUTH_RESOURCE_CONFLICT = 'AUTH_RESOURCE_CONFLICT' as const satisfies ErrorCode;
+export const GLOBAL_VALIDATION_FAILED = 'GLOBAL_VALIDATION_FAILED' as const satisfies ErrorCode;
+export const USER_NOT_FOUND = 'USER_NOT_FOUND' as const satisfies ErrorCode;
 
 /**
  * Union of account-deletion error codes this module recognizes.
+ *
+ * P2-29 cleanup: derived from the global `ErrorCode` union via
+ * `Extract<ErrorCode, …>` so the subset auto-tracks the registry.
  *
  * Exhaustive: every member must appear in the `DELETION_KNOWN_CODES`
  * const array below. The vitest suite (planned in 2.10.T25) verifies
  * the union and the array are in lockstep.
  */
-export type DeletionErrorCode =
+export type DeletionErrorCode = Extract<
+  ErrorCode,
   | typeof AUTH_INVALID_CURRENT_PASSWORD
   | typeof AUTH_DELETION_FAILED
   | typeof AUTH_INVALID_TOKEN
   | typeof AUTH_RESOURCE_CONFLICT
   | typeof GLOBAL_VALIDATION_FAILED
-  | typeof USER_NOT_FOUND;
+  | typeof USER_NOT_FOUND
+>;
 
 /**
  * Array form of `DeletionErrorCode`. Useful for `Array.includes`

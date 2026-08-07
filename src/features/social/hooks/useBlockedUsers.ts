@@ -26,7 +26,7 @@ import {
   type SocialBlockedUserDto,
 } from "@/features/social/types";
 
-import { useAuthBootstrap } from "@/features/auth/contexts/auth-bootstrap-context";
+import { useAuthSession } from "@/features/auth/hooks/use-auth-session";
 
 export interface UseBlockedUsersResult {
   users: readonly SocialBlockedUserDto[];
@@ -59,7 +59,7 @@ export function useBlockedUsers(): UseBlockedUsersResult {
   const flagValue = getFeatureFlagValue("phase6_social_relationship");
   const isFlagPlaceholder = flagValue === "placeholder";
 
-  const auth = useAuthBootstrap();
+  const auth = useAuthSession();
   const isAuthenticated = auth.isAuthenticated;
 
   const key = useMemo<readonly unknown[] | null>(() => {

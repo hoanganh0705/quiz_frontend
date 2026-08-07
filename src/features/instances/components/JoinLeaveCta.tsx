@@ -34,7 +34,7 @@ import { ApiError } from "@/lib/api";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/shared/utils/merge-class-names";
 
-import { useAuthBootstrap } from "@/features/auth/contexts/auth-bootstrap-context";
+import { useAuthSession } from "@/features/auth/hooks/use-auth-session";
 import { useInstancePermissions } from "@/features/instances/hooks/useInstancePermissions";
 import { useJoinInstance } from "@/features/instances/hooks/useJoinInstance";
 import { useLeaveInstance } from "@/features/instances/hooks/useLeaveInstance";
@@ -101,7 +101,7 @@ export function JoinLeaveCta({
   currentUserId = null,
   className,
 }: JoinLeaveCtaProps) {
-  const auth = useAuthBootstrap();
+  const auth = useAuthSession();
   const isAuthenticated = auth.isAuthenticated;
 
   const permissions = useInstancePermissions(instanceId, {

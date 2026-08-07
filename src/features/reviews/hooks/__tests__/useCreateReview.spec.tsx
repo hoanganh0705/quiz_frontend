@@ -23,7 +23,7 @@
  *   - Unauthenticated state still surfaces the typed error path
  *     (the gate hides the form; this hook is a defensive pass-through).
  *
- * Runs in the jsdom project because the hook uses `useAuthBootstrap`,
+ * Runs in the jsdom project because the hook uses `useAuthSession`,
  * SWR's global `mutate`, and `renderHook` from
  * `@testing-library/react`.
  */
@@ -36,15 +36,15 @@ import { ApiError } from '@/lib/api';
 import { useCreateReview } from '@/features/reviews/hooks/useCreateReview';
 
 const createReviewMock = vi.hoisted(() => vi.fn());
-const useAuthBootstrapMock = vi.hoisted(() => vi.fn());
+const useAuthSessionMock = vi.hoisted(() => vi.fn());
 const globalMutateMock = vi.hoisted(() => vi.fn().mockResolvedValue(undefined));
 
 vi.mock('@/features/reviews/services/reviews.service', () => ({
   createReview: createReviewMock,
 }));
 
-vi.mock('@/features/auth/contexts/auth-bootstrap-context', () => ({
-  useAuthBootstrap: useAuthBootstrapMock,
+vi.mock('@/features/auth/hooks/use-auth-session', () => ({
+  useAuthSession: useAuthSessionMock,
 }));
 
 vi.mock('swr', async (importOriginal) => {
@@ -65,7 +65,7 @@ const QUIZ_ID = 'quiz-1';
 const SESSION_ID = 'user-1';
 
 function setBootstrapAuthenticated() {
-  useAuthBootstrapMock.mockReturnValue({
+  useAuthSessionMock.mockReturnValue({
     bootstrapState: 'authenticated',
     isAuthenticated: true,
     currentUser: { userId: SESSION_ID, id: SESSION_ID },
@@ -73,7 +73,7 @@ function setBootstrapAuthenticated() {
 }
 
 function setBootstrapUnauthenticated() {
-  useAuthBootstrapMock.mockReturnValue({
+  useAuthSessionMock.mockReturnValue({
     bootstrapState: 'unauthenticated',
     isAuthenticated: false,
     currentUser: null,

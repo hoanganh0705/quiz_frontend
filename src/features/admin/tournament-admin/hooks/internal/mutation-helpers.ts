@@ -21,7 +21,7 @@
  * these helpers.
  */
 
-import { ApiError } from '@/lib/api/core/ApiError';
+import { ApiError } from '@/lib/api';
 
 // ─── SWR cache-key matchers ────────────────────────────────────────────────
 
@@ -81,44 +81,9 @@ export function nowMs(): number {
   return typeof performance !== 'undefined' ? performance.now() : Date.now();
 }
 
-// ─── Error coercion ─────────────────────────────────────────────────────────
-
-/**
- * Coerce an arbitrary `unknown` thrown value into an `ApiError`.
- * `ApiError` instances pass through; axios-shaped errors are
- * re-wrapped via `ApiError.fromAxios`; everything else becomes a
- * synthetic `GLOBAL_INTERNAL_ERROR` so the dialog's typed-code
- * branching is total.
- */
-export function coerceToApiError(caught: unknown): ApiError {
-  if (caught instanceof ApiError) return caught;
-  if (
-    typeof caught === 'object' &&
-    caught !== null &&
-    ('isAxiosError' in caught || (caught as { response?: unknown }).response)
-  ) {
-    return ApiError.fromAxios(
-      caught as Parameters<typeof ApiError.fromAxios>[0],
-    );
-  }
-  return new ApiError({
-    isAxiosError: true,
-    name: 'ApiError',
-    message: String(caught),
-    config: undefined,
-    request: undefined,
-    response: {
-      status: 0,
-      data: {
-        status: 0,
-        detail: String(caught),
-        title: 'UnknownError',
-        extensions: {
-          code: 'GLOBAL_INTERNAL_ERROR' as const,
-          requestId: 'client-unknown',
-        },
-      },
-    },
-    toJSON: () => ({}),
-  } as unknown as Parameters<typeof ApiError['fromAxios']>[0]);
-}
+// ─── Note: error coercion ──────────────────────────────────────────────────
+//
+// `coerceToApiError` was hoisted to `@/lib/api/error-coercion.ts` in
+// Phase 3 (P1-23). Tournament-admin mutation hooks now import the
+// canonical helper directly. This module used to export its own
+// `coerceToApiError` — it has been removed.

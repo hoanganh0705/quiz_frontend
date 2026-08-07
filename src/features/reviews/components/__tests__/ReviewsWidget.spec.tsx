@@ -19,11 +19,11 @@ import { ReviewsWidget } from '@/features/reviews/components/ReviewsWidget';
 
 // ─── Mocks ───────────────────────────────────────────────────────────────────
 
-const useAuthBootstrapMock = vi.fn();
+const useAuthSessionMock = vi.fn();
 const useMyQuizReviewMock = vi.fn();
 
-vi.mock('@/features/auth/contexts/auth-bootstrap-context', () => ({
-  useAuthBootstrap: () => useAuthBootstrapMock(),
+vi.mock('@/features/auth/hooks/use-auth-session', () => ({
+  useAuthSession: () => useAuthSessionMock(),
 }));
 
 vi.mock('@/features/reviews/hooks/useMyQuizReview', () => ({
@@ -60,7 +60,7 @@ function setBootstrap(
   state: 'idle' | 'bootstrapping' | 'authenticated' | 'unauthenticated',
   currentUserId: string | null = null,
 ): void {
-  useAuthBootstrapMock.mockReturnValue({
+  useAuthSessionMock.mockReturnValue({
     bootstrapState: state,
     isAuthenticated: state === 'authenticated' || state === 'bootstrapping',
     currentUser:

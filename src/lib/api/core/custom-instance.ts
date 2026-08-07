@@ -9,7 +9,25 @@ import axios, {
   InternalAxiosRequestConfig,
 } from 'axios';
 
-import { unwrapEnvelope } from './unwrap';
+import { unwrapEnvelope, isEnvelopeResult, isNullResult } from './unwrap';
+
+/**
+ * Unwrap a `{ data, meta }` envelope, preserving the original lenient
+ * behaviour of the previous `unwrapEnvelope` flat return:
+ *
+ *   - For `envelope` / `null` / `primitive` / `passthrough`, return the
+ *     best-effort inner payload (the response interceptor historically
+ *     assigned the result back to `response.data` regardless of shape).
+ *   - The discriminated `unwrapEnvelope` is also exported for callers
+ *     that need to branch on the `kind` discriminator; this helper is
+ *     the legacy-compatible unwrap.
+ */
+function unwrapResponseData(payload: unknown): unknown {
+  const result = unwrapEnvelope(payload);
+  if (isEnvelopeResult(result)) return result.value;
+  if (isNullResult(result)) return null;
+  return result.value;
+}
 import { ApiError } from './ApiError';
 import { getAuth } from '@/lib/api';
 
@@ -36,6 +54,7 @@ import {
 } from '@/features/auth/utils/auth-cookies';
 
 import { clearAllAuthCache } from '@/features/auth/utils/user-scoped-cache';
+import { logger } from '@/shared/log';
 
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
@@ -176,9 +195,7 @@ let lastLogoutTimestamp: number | null = null;
  */
 export function markLogout(reason: 'local' | 'remote' = 'local'): void {
   lastLogoutTimestamp = Date.now();
-  if (typeof console !== 'undefined') {
-    console.info('[auth] Logout recorded:', reason, 'at', lastLogoutTimestamp);
-  }
+  logger.info('auth.logout', 'Logout recorded', { reason, at: lastLogoutTimestamp });
 }
 
 /**
@@ -245,7 +262,7 @@ customInstance.interceptors.request.use((config) => {
 customInstance.interceptors.response.use(
   // Success: unwrap { data, meta } → T
   (response) => {
-    response.data = unwrapEnvelope(response.data);
+    response.data = unwrapResponseData(response.data);
     return response;
   },
 
@@ -337,13 +354,10 @@ customInstance.interceptors.response.use(
       // Terminal errors: clear everything and redirect immediately
       if (isRefreshTerminalError(errorCode)) {
         // Security events: log for audit trail
-        if (typeof console !== 'undefined') {
-          console.warn(
-            '[auth] Terminal refresh failure:',
-            errorCode,
-            '- clearing session',
-          );
-        }
+        logger.warn('auth.refresh', 'Terminal refresh failure', {
+          errorCode,
+          action: 'clearing-session',
+        });
 
         // Epic 2.9 / 2.9.T10 — wipe any in-memory "recently verified"
         // flags so a stale flag cannot survive a forced logout.
@@ -505,12 +519,10 @@ if (typeof window !== 'undefined') {
           event.timestamp < lastLogoutTimestamp
         ) {
           // Silent drop — the user logged out, this token is from before.
-          if (typeof console !== 'undefined') {
-            console.warn(
-              '[auth] Ignoring late TOKEN_REFRESHED event after logout',
-              { tokenTimestamp: event.timestamp, logoutAt: lastLogoutTimestamp },
-            );
-          }
+          logger.warn('auth.refresh', 'Ignoring late TOKEN_REFRESHED event after logout', {
+            tokenTimestamp: event.timestamp,
+            logoutAt: lastLogoutTimestamp,
+          });
           break;
         }
 

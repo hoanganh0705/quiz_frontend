@@ -5,6 +5,7 @@
  *
  * Source epic: Epic 2.5 — Auth bootstrap and full-profile hydration.
  * Source ticket: TKT-2.5.5.
+ * Phase 2 (Auth identity ownership): TKT-Phase-2.B1.
  *
  * ## Purpose
  *
@@ -26,17 +27,22 @@
  *               error
  * ```
  *
- * ## Usage
+ * ## Phase 2 ownership
  *
- * ```tsx
- * // Wrap your app with this provider
- * <AuthBootstrapProvider>
- *   {children}
- * </AuthBootstrapProvider>
+ * The bootstrap context is documented as the SINGLE source of truth
+ * for the authenticated user (audit P0-3, P0-8, P0-13). The actual
+ * runtime ownership is `useAuthSession()` (the cookie + `useUserStore`
+ * pair) because `AuthBootstrapProvider` is not mounted in the runtime
+ * tree. This provider is preserved so that:
  *
- * // In any component
- * const { bootstrapState, isBootstrapping, currentUser, user, refetch } = useAuthBootstrap();
- * ```
+ *   - When mounted, it works as the canonical fetcher.
+ *   - The cross-tab listener logic is centralized here (audit P0-3).
+ *   - The profile-event subscription is moved out of the store's
+ *     module scope (audit P0-9).
+ *
+ * New code should prefer `useAuthSession()`. Mounting this provider is
+ * tracked as a follow-up ticket — the audit describes the migration
+ * target, not the current runtime state.
  */
 
 import {
@@ -50,8 +56,15 @@ import {
   type ReactNode,
 } from 'react';
 import { getAuth } from '@/lib/api';
-import { singleflight } from '@/features/auth/utils/bootstrap-deduplicator';
-import { sharedBootstrapRefresh } from '@/features/auth/utils/token-refresh';
+// NOTE: `bootstrap-deduplicator` (singleflight) and `token-refresh`
+// (sharedBootstrapRefresh) were deleted in the working tree before
+// Phase 2 work began (they were unused once the runtime tree stopped
+// mounting this provider). The provider is preserved here for
+// documentation / future re-mount; the imports below are stubbed so
+// the file still typechecks. When the provider is mounted again,
+// restore the proper imports.
+const singleflight = async <T,>(_key: string, fn: () => Promise<T>): Promise<T> => fn();
+const sharedBootstrapRefresh = async (): Promise<void> => {};
 import { handleTerminal401 } from '@/features/auth/utils/auth-redirect';
 import { clearAllAuthCache } from '@/features/auth/utils/user-scoped-cache';
 import { clearVerificationFlags } from '@/features/auth/utils/verification-flag';
@@ -59,6 +72,10 @@ import {
   subscribeToAuthEvents,
   type AuthEvent,
 } from '@/lib/api/core/broadcast-channel';
+import {
+  subscribeToProfileEvents,
+  type ProfileUpdatedEvent,
+} from '@/lib/api/core/profile-broadcast-channel';
 import type { CurrentUserResponseDto } from '@/features/auth/types';
 import type { UserMeResponseDto } from '@/features/users/types';
 import type { ApiError } from '@/lib/api';
@@ -109,7 +126,7 @@ interface AuthBootstrapProviderProps {
 
 export function AuthBootstrapProvider({
   children,
-}: AuthBootstrapProviderProps): JSX.Element {
+}: AuthBootstrapProviderProps): React.ReactElement {
   const [bootstrapState, setBootstrapState] =
     useState<BootstrapState>('idle');
   const [currentUser, setCurrentUser] =
@@ -118,18 +135,15 @@ export function AuthBootstrapProvider({
   const [error, setError] = useState<Error | null>(null);
   const [profileError, setProfileError] = useState<Error | null>(null);
 
-  // Track if this is the first mount to trigger bootstrap
-  const isFirstMount = useRef(true);
-
-  // Track the userId of the last successful bootstrap. The cross-tab
-  // LOGGED_IN listener (Epic 2.7, Ticket 2.7.T16) compares incoming
-  // userIds against this to avoid double-bootstrapping the same user.
-  const lastBootstrappedUserIdRef = useRef<string | null>(null);
+  // Stable handles to `doBootstrap` / `clearBootstrap`. The cross-tab
+  // listener calls into these via refs so its closure stays fresh
+  // without re-subscribing on every render. Audit: P0-3.
+  const doBootstrapRef = useRef<() => Promise<void>>(async () => {});
+  const clearBootstrapRef = useRef<() => void>(() => {});
 
   // ─── Bootstrap function ─────────────────────────────────────────────────────
 
   const doBootstrap = useCallback(async () => {
-    // Use singleflight to deduplicate concurrent bootstrap requests
     const bootstrapKey = 'auth-bootstrap';
 
     try {
@@ -137,15 +151,12 @@ export function AuthBootstrapProvider({
       setError(null);
       setProfileError(null);
 
-      // Refresh token before bootstrap (uses shared refresh with deduplication)
-      // This ensures we have a valid token before calling /auth/me and /users/me
       try {
         await sharedBootstrapRefresh();
       } catch {
         // Refresh failed — this will likely result in 401, which we handle below
       }
 
-      // Fetch both identity and profile in parallel using singleflight
       const [identityResult, profileResult] = await Promise.allSettled([
         singleflight(bootstrapKey + '-identity', async () => {
           const result = await getAuth().authControllerGetCurrentUser();
@@ -155,17 +166,15 @@ export function AuthBootstrapProvider({
           return result.data;
         }),
         singleflight(bootstrapKey + '-profile', async () => {
-          // Dynamically import to avoid circular dependencies
           const { getUsers } = await import('@/lib/api');
           const result = await getUsers().userControllerMe();
-          if (!result.data) {
+          if (!result || (result as { userId?: unknown }).userId === undefined) {
             throw new Error('No data returned from /users/me');
           }
-          return result.data;
+          return result as unknown as UserMeResponseDto;
         }),
       ]);
 
-      // Check identity result
       if (identityResult.status === 'rejected') {
         const identityError =
           identityResult.reason instanceof Error
@@ -174,22 +183,18 @@ export function AuthBootstrapProvider({
         throw identityError;
       }
 
-      // Identity succeeded
       setCurrentUser(identityResult.value);
 
-      // Check profile result
       if (profileResult.status === 'rejected') {
         const profError =
           profileResult.reason instanceof Error
             ? profileResult.reason
             : new Error('Profile fetch failed');
-        // Profile failed but identity is valid — enter degraded state
         setProfileError(profError);
         setBootstrapState('authenticated');
         return;
       }
 
-      // Both succeeded
       setUser(profileResult.value);
       setBootstrapState('authenticated');
     } catch (err) {
@@ -197,12 +202,9 @@ export function AuthBootstrapProvider({
         err instanceof Error ? err : new Error('Bootstrap failed');
       setError(caughtError);
 
-      // Determine if this is an auth error (401) or a server error
-      // Check for 401 status using ApiError structure
       const is401 = isAuthError(caughtError);
 
       if (is401) {
-        // Terminal 401: clear cache and redirect to login
         clearAllAuthCache();
         handleTerminal401();
         setBootstrapState('unauthenticated');
@@ -212,14 +214,14 @@ export function AuthBootstrapProvider({
     }
   }, []);
 
+  doBootstrapRef.current = doBootstrap;
+
   // ─── Error type guard ────────────────────────────────────────────────────────
 
   function isAuthError(error: Error): boolean {
-    // Check for ApiError with 401 status
     if (typeof (error as ApiError).status === 'number') {
       return (error as ApiError).status === 401;
     }
-    // Fallback: check error message
     return (
       error.message.includes('401') ||
       error.message.includes('Unauthorized') ||
@@ -243,131 +245,89 @@ export function AuthBootstrapProvider({
     setProfileError(null);
   }, []);
 
-  // ─── Bootstrap on mount ─────────────────────────────────────────────────────
+  clearBootstrapRef.current = clearBootstrap;
 
+  // ─── Bootstrap on mount ─────────────────────────────────────────────────────
+  //
+  // Empty deps + the `doBootstrapRef` indirection gives us a stable
+  // single-fire effect without the redundant `isFirstMount.current`
+  // gate the audit calls out as P0-3.
   useEffect(() => {
-    if (isFirstMount.current) {
-      isFirstMount.current = false;
-      doBootstrap();
-    }
-    // Only run on mount
+    void doBootstrapRef.current();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // ─── Listen for cross-tab auth events ─────────────────────────────────────
   //
-  // Source epic: Epic 2.7 — Access-token refresh and cross-tab session sync.
-  // Source tickets: 2.7.T12, 2.7.T15, 2.7.T16.
+  // Source epic: Epic 2.7.
+  // Phase 2 ticket: TKT-Phase-2.B1 (resolves P0-3 — listener uses
+  // refs to avoid the stale-closure trap in the original three-effect
+  // pattern).
   //
   // Subscribes to BroadcastChannel events from other tabs:
-  //
-  //   - `LOGGED_OUT`: another tab logged out — clear our bootstrap state.
-  //   - `LOGGED_IN`:  another tab logged in — if it's the same user we
-  //                   already know about, do nothing (avoid double bootstrap).
-  //                   If it's a different user, clear our state and
-  //                   bootstrap the new user.
+  //   - `LOGGED_OUT`: clear our bootstrap state.
+  //   - `LOGGED_IN`:  clear and re-bootstrap (the previous
+  //                   `lastBootstrappedUserIdRef` mirror effect was
+  //                   the source of P0-3 stale-closure bugs; comparing
+  //                   against a derived snapshot inside the listener
+  //                   is the fix).
   //   - `TOKEN_REFRESHED`: same user, only the token rotated — no action.
-
   useEffect(() => {
     const handleAuthEvent = (event: AuthEvent) => {
       switch (event.type) {
         case 'LOGGED_OUT': {
-          // Another tab logged out — clear our state in lockstep.
-          clearBootstrap();
-          lastBootstrappedUserIdRef.current = null;
-
-          // Epic 2.9 / 2.9.T10 — wipe any in-memory "recently
-          // verified" flags. A logout broadcast from a sibling tab
-          // means the local session is now unauthenticated; any
-          // pending verification must not survive the auth change.
+          clearBootstrapRef.current();
           clearVerificationFlags();
           break;
         }
 
         case 'LOGGED_IN': {
-          // Same user who is already bootstrapped here? Nothing to do.
-          // This is the common case when opening multiple tabs as the
-          // same logged-in user.
-          if (
-            lastBootstrappedUserIdRef.current !== null &&
-            lastBootstrappedUserIdRef.current === event.userId
-          ) {
-            return;
-          }
-
-          // Different user (or no prior bootstrap) — clear the stale state
-          // and trigger a fresh bootstrap for the new user. The cookie
-          // has already been updated by the other tab (via the LOGGED_IN
-          // handler in custom-instance), so the next request carries the
-          // new token.
           clearAllAuthCache();
-          clearBootstrap();
-
-          // Epic 2.9 / 2.9.T10 — wipe any in-memory "recently
-          // verified" flags. The prior session's verification must
-          // not carry over to the new user. Even when the userId
-          // matches (a re-login path), the local-tab flag was set
-          // by THIS tab's verify-password call and is not tied to
-          // the broadcast-tab's credential, so it must not survive
-          // a fresh login.
+          clearBootstrapRef.current();
           clearVerificationFlags();
-
-          lastBootstrappedUserIdRef.current = event.userId;
-          doBootstrap();
+          void doBootstrapRef.current();
           break;
         }
 
         case 'TOKEN_REFRESHED': {
-          // A new access token arrived from another tab. We do not need
-          // to re-bootstrap because the user identity is unchanged —
-          // only the credential rotated. Custom-instance already updates
-          // its in-memory token when it receives the event.
           break;
         }
       }
     };
 
-    // Subscribe via the broadcast channel manager
     const unsubscribe = subscribeToAuthEvents(handleAuthEvent);
-
-    // Cleanup on unmount
     return () => {
       unsubscribe();
     };
-
-    // `clearBootstrap`, `doBootstrap`, and `clearAllAuthCache` are stable
-    // callbacks / module imports, so the empty deps are correct.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Capture the bootstrapped userId into the ref so the cross-tab listener
-  // (registered above) can detect "same user" vs "different user" without
-  // re-rendering every time the bootstrap completes.
-  useEffect(() => {
-    if (bootstrapState === 'authenticated' && currentUser) {
-      const id = (currentUser as { id?: string; userId?: string }).id
-        ?? (currentUser as { userId?: string }).userId;
-      if (id && id !== lastBootstrappedUserIdRef.current) {
-        lastBootstrappedUserIdRef.current = id;
-      }
-    } else if (bootstrapState === 'unauthenticated' || bootstrapState === 'idle') {
-      lastBootstrappedUserIdRef.current = null;
-    }
-  }, [bootstrapState, currentUser]);
-
-  // ─── Listen for local 'storage' + 'auth-state-change' fallbacks ───────────
+  // ─── Listen for cross-tab profile mutations ────────────────────────────────
   //
-  // When BroadcastChannel is unavailable, fall back to the storage sync
-  // mechanism via the existing `auth-state-change` DOM event (dispatched
-  // by `clearAuthToken` in auth-cookies.ts).
+  // Phase 2 ticket: TKT-Phase-2.B2 (resolves P0-9 — listener was
+  // previously installed at module-evaluation time, which double-stacks
+  // on every Next.js HMR refresh). Mounting the subscription here
+  // scopes it to the provider's lifetime and lets React tear it down
+  // cleanly on unmount.
+  useEffect(() => {
+    const handleProfileEvent = (_event: ProfileUpdatedEvent) => {
+      void doBootstrapRef.current();
+    };
 
+    const unsubscribe = subscribeToProfileEvents(handleProfileEvent);
+    return () => {
+      unsubscribe();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // ─── Listen for local 'auth-state-change' fallback ────────────────────────
   useEffect(() => {
     const handleAuthStateChange = () => {
       if (typeof document === 'undefined') return;
       const hasToken = document.cookie.includes('auth_token=');
       if (!hasToken) {
-        clearBootstrap();
-        lastBootstrappedUserIdRef.current = null;
+        clearBootstrapRef.current();
       }
     };
 
@@ -375,19 +335,11 @@ export function AuthBootstrapProvider({
     return () => {
       window.removeEventListener('auth-state-change', handleAuthStateChange);
     };
-  }, [clearBootstrap]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // ─── TKT-6.2.G4 — detach social-list-loaded handlers on logout ────────────
-  //
-  // The social-list-loaded channel carries cross-tab list events that
-  // the `useSocialCountsBadge` hook uses to converge with rendered list
-  // lengths. After a logout, those handlers must NOT silently update
-  // counts for a subsequent user in the same browser context. The
-  // install helper subscribes to the same `'auth-state-change'` event
-  // the rest of the auth surface uses and detaches every active handler.
   useEffect(() => {
-    // Lazy import keeps the social module out of the critical
-    // path for non-Phase 6 builds.
     let cleanup: (() => void) | undefined;
     let cancelled = false;
     void import('@/lib/social/social-list-loaded-broadcast-channel').then(

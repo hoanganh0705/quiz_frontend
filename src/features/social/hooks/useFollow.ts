@@ -7,17 +7,24 @@
  * Source story:  Story 6.6.
  * Source ticket: TKT-6.6.D1.
  *
+ * TKT-7.5 cleanup, Phase 6 / P1-4: the hook now delegates to
+ * `useOptimisticMutation` (the canonical Phase 4 mutation primitive).
+ * The previous implementation reinvented optimistic-update +
+ * rollback + cooldown + double-click guard + SWR cache revalidation
+ * inline (~40 lines of state-machine code); the canonical primitive
+ * owns all four concerns.
+ *
  * ## What this hook owns
  *
  * - The `follow(userId)` mutation that calls
  *   `follow-mutation.service.ts → followUser`.
  * - `useSocialPermissions(userId).canFollow` guard before dispatching.
- * - Double-click guard via a per-instance `isPendingRef` ref.
- * - Server-authoritative rollback on error.
+ * - Server-authoritative rollback on error via `useOptimisticMutation`.
  * - SWR cache revalidation on success
  *   (`SOCIAL_CACHE_KEYS.makeRelationshipKey(userId)` and
  *   `SOCIAL_CACHE_KEYS.makeSocialCountsKey(userId)`).
- * - Abort-on-unmount when a request is in-flight.
+ * - Cross-tab invalidation broadcast on success
+ *   (`publishSocialRelationshipInvalidation`).
  * - Safe no-op fallback when `phase6_social_follow_mutation` is
  *   `'placeholder'`.
  *
@@ -25,14 +32,17 @@
  *
  * Returns `{ follow, isPending, error }`. The contract is stable:
  * the object reference never changes; only the field values update.
+ * The `error` field is the typed error code; `null` on success or
+ * before any call has resolved.
  *
  * ## Optimistic update authority
  *
- * The hook optimistically transitions the local relationship display
- * but does NOT mutate the authoritative SWR cache. The authoritative
- * cache is revalidated on success via `mutateCarefully` (the
- * SWR `mutate` global). The optimistic state is discarded on error
- * and the previous authoritative state (from SWR) is preserved.
+ * The hook does NOT mutate the authoritative SWR cache optimistically.
+ * The server is the source of truth — the hook calls the SDK and
+ * invalidates the relationship + counts keys on success. The
+ * `useOptimisticMutation` primitive handles the 500 ms cooldown and
+ * snapshot/revert discipline internally; the per-feature hook owns
+ * the SWR keys + cross-tab broadcast.
  *
  * ## Socket invalidation (Epic 6.10)
  *
@@ -43,15 +53,18 @@
  * integration.
  */
 
-import { useMemo, useRef, useState } from "react";
-
-import { ApiError } from "@/lib/api";
-import { getFeatureFlagValue } from "@/lib/feature-flags";
+import { useCallback, useMemo } from "react";
 import { useSWRConfig } from "swr";
+
+import { ApiError, useOptimisticMutation } from "@/lib/api";
+import { getFeatureFlagValue } from "@/lib/feature-flags";
 
 import { followUser } from "@/features/social/services";
 import { SOCIAL_CACHE_KEYS, type SocialErrorCode } from "@/features/social/types";
 import { useSocialPermissions } from "@/features/social/hooks/useSocialPermissions";
+import {
+  publishSocialRelationshipInvalidation,
+} from "@/lib/social/relationship-broadcast-channel";
 
 // ─── Public types ─────────────────────────────────────────────────────────
 
@@ -90,6 +103,22 @@ export interface UseFollowOptions {
   currentUserId?: string | null;
 }
 
+const COOLDOWN_MS = 500;
+
+// ─── Helpers ──────────────────────────────────────────────────────────────
+
+/**
+ * Map the unknown rejection from `useOptimisticMutation.lastError` to
+ * the typed `FollowErrorCode` discriminator. Non-`ApiError` rejections
+ * fall back to `GLOBAL_INTERNAL_ERROR`.
+ */
+function classifyFollowError(cause: unknown): FollowErrorCode {
+  if (cause instanceof ApiError) {
+    return (cause.code as FollowErrorCode) ?? "GLOBAL_INTERNAL_ERROR";
+  }
+  return "GLOBAL_INTERNAL_ERROR";
+}
+
 /**
  * Mutation hook for the follow action.
  *
@@ -111,16 +140,35 @@ export function useFollow(
     currentUserId: options.currentUserId ?? null,
   });
 
-  // ── SWR mutate ──────────────────────────────────────────────────────
+  // ── SWR mutate (for post-success revalidation) ────────────────────────
   const { mutate } = useSWRConfig();
 
-  // ── Double-click guard (per-instance ref) ───────────────────────────
-  // The ref is stabilised across renders so the guard is
-  // per-instance, not per-render-cycle.
-  const isPendingRef = useRef(false);
+  // ── Optimistic mutation primitive ────────────────────────────────────
+  const { mutate: dispatchMutation, isInFlight, lastResult } =
+    useOptimisticMutation();
 
-  // ── Error state ──────────────────────────────────────────────────────
-  const [error, setError] = useState<FollowErrorCode | null>(null);
+  const revalidate = useCallback(
+    async (userId: string): Promise<void> => {
+      await Promise.all([
+        mutate(SOCIAL_CACHE_KEYS.makeRelationshipKey(userId), undefined, {
+          revalidate: true,
+        }),
+        mutate(SOCIAL_CACHE_KEYS.makeSocialCountsKey(userId), undefined, {
+          revalidate: true,
+        }),
+      ]);
+    },
+    [mutate],
+  );
+
+  // Derive the typed error code from the primitive's `lastResult`.
+  // `lastResult.status === 'reverted'` is the only branch that
+  // surfaces a user-visible error; success / cooldown / pending all
+  // clear the field.
+  const error: FollowErrorCode | null =
+    lastResult && lastResult.status === "reverted"
+      ? classifyFollowError(lastResult.apiError)
+      : null;
 
   // ── Stable result ───────────────────────────────────────────────────
   // The result object is frozen so callers can destructure it without
@@ -161,77 +209,45 @@ export function useFollow(
 
     // ── Core mutation ────────────────────────────────────────────────
     const follow = (): void => {
-      // Double-click guard: skip if a request is already in-flight.
-      if (isPendingRef.current) return;
-
-      // Mark pending synchronously.
-      isPendingRef.current = true;
-      // Reset any prior error.
-      setError(null);
-
-      followUser(targetUserId)
-        .then(() => {
-          // Server success: revalidate the relationship and counts.
-          void mutate(
-            SOCIAL_CACHE_KEYS.makeRelationshipKey(targetUserId),
-            undefined,
-            { revalidate: true },
-          );
-          void mutate(
-            SOCIAL_CACHE_KEYS.makeSocialCountsKey(targetUserId),
-            undefined,
-            { revalidate: true },
-          );
-        })
-        .catch((err: unknown) => {
-          // Surface the error. The optimistic state is discarded
-          // automatically since we don't touch the SWR cache.
-          const apiErr =
-            err instanceof ApiError ? err : new ApiError(err as never);
-          // Map to the typed error code.
-          const code: FollowErrorCode =
-            (apiErr.code as FollowErrorCode) ?? "GLOBAL_INTERNAL_ERROR";
-          setError(code);
-        })
-        .finally(() => {
-          // Reset the pending flag.
-          isPendingRef.current = false;
-        });
+      // Fire-and-forget; the caller doesn't await. The mutation
+      // primitive handles snapshot + revert + cooldown.
+      void dispatchMutation({
+        // The relationship key is the SWR key we want to invalidate
+        // on success; we don't apply an optimistic patch because the
+        // server is the source of truth for the canonical
+        // `Relationship` value (the per-row UI state lives in the
+        // consumer's local state, not the cache).
+        key: SOCIAL_CACHE_KEYS.makeRelationshipKey(targetUserId),
+        optimisticData: <TData,>(current: TData | undefined): TData | undefined => current,
+        run: async () => {
+          await followUser(targetUserId);
+          await revalidate(targetUserId);
+          // Phase 4 (P0-14): broadcast the cross-tab invalidation so
+          // sibling tabs revalidate the relationship + counts keys
+          // without waiting for the next focus / interval cycle.
+          publishSocialRelationshipInvalidation({
+            kind: "follow.changed",
+            userId: targetUserId,
+          });
+        },
+        cooldownMs: COOLDOWN_MS,
+      });
     };
 
     return Object.freeze({
       follow,
-      get isPending() {
-        return isPendingRef.current;
-      },
+      isPending: isInFlight,
       error,
     });
   }, [
     isFlagPlaceholder,
     targetUserId,
     permissions.canFollow,
-    mutate,
+    dispatchMutation,
+    isInFlight,
     error,
+    revalidate,
   ]);
-
-  // ── Abort on unmount ─────────────────────────────────────────────────
-  // We use `useRef` for the abort flag (stable reference), and the
-  // `finally` block above always resets it. On unmount, if a request
-  // is in-flight, we set the abort flag — the in-flight request will
-  // still complete but its result will be discarded.
-  //
-  // NOTE: `followUser` (the service) does not currently support
-  // AbortSignal. Adding AbortSignal support is a future optimisation
-  // (TKT-6.6.G1). For now, the `isPendingRef` guard prevents a
-  // subsequent `follow()` from dispatching a second request, and the
-  // `finally` block ensures the pending flag is reset even if the
-  // component unmounts mid-flight.
-  //
-  // NOTE: A more robust pattern would use a module-level
-  // `AbortController` map keyed by userId, but that introduces
-  // complexity for a case that is unlikely in practice (unmounting
-  // during a 100-300ms request). The `isPendingRef` + `finally` pattern
-  // is sufficient for the initial implementation.
 
   return result;
 }

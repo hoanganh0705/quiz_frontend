@@ -16,7 +16,7 @@
  *
  * Runs in the jsdom project because the hook uses
  * `useSingleWithRetry` (which depends on `useState`/`useEffect`),
- * `useAuthBootstrap`, and `renderHook` from
+ * `useAuthSession`, and `renderHook` from
  * `@testing-library/react`.
  */
 
@@ -32,14 +32,14 @@ import {
 } from '@/features/reviews/types';
 
 const getMyQuizReviewMock = vi.hoisted(() => vi.fn());
-const useAuthBootstrapMock = vi.hoisted(() => vi.fn());
+const useAuthSessionMock = vi.hoisted(() => vi.fn());
 
 vi.mock('@/features/reviews/services/reviews.service', () => ({
   getMyQuizReview: getMyQuizReviewMock,
 }));
 
-vi.mock('@/features/auth/contexts/auth-bootstrap-context', () => ({
-  useAuthBootstrap: useAuthBootstrapMock,
+vi.mock('@/features/auth/hooks/use-auth-session', () => ({
+  useAuthSession: useAuthSessionMock,
 }));
 
 // Stable session id used by the authenticated tests. The key
@@ -49,7 +49,7 @@ const SESSION_ID = 'user-1';
 const QUIZ_ID = 'quiz-1';
 
 function setBootstrapAuthenticated() {
-  useAuthBootstrapMock.mockReturnValue({
+  useAuthSessionMock.mockReturnValue({
     bootstrapState: 'authenticated',
     isAuthenticated: true,
     currentUser: { userId: SESSION_ID, id: SESSION_ID },
@@ -57,7 +57,7 @@ function setBootstrapAuthenticated() {
 }
 
 function setBootstrapUnauthenticated() {
-  useAuthBootstrapMock.mockReturnValue({
+  useAuthSessionMock.mockReturnValue({
     bootstrapState: 'unauthenticated',
     isAuthenticated: false,
     currentUser: null,
@@ -65,7 +65,7 @@ function setBootstrapUnauthenticated() {
 }
 
 function setBootstrapLoading() {
-  useAuthBootstrapMock.mockReturnValue({
+  useAuthSessionMock.mockReturnValue({
     bootstrapState: 'bootstrapping',
     isAuthenticated: false,
     currentUser: null,

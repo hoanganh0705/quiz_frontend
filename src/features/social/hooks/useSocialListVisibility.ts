@@ -57,7 +57,7 @@
 
 import { useMemo } from "react";
 
-import { useAuthBootstrap } from "@/features/auth/contexts/auth-bootstrap-context";
+import { useAuthSession } from "@/features/auth/hooks/use-auth-session";
 import { useRelationship } from "@/features/social/hooks/useRelationship";
 
 import type { Relationship } from "../types";
@@ -110,7 +110,7 @@ export function resolveSocialListVisibility(args: {
 export function useSocialListVisibility(
   targetUserId: string | null,
 ): UseSocialListVisibilityResult {
-  const auth = useAuthBootstrap();
+  const auth = useAuthSession();
   const viewerId = auth.currentUser?.userId ?? null;
 
   const relationshipResult = useRelationship(targetUserId);

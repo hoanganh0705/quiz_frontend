@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useRef } from 'react'
 import { useEffect } from 'react'
+import { logger } from '@/shared/log'
 
 /**
  * Custom hook for managing localStorage with automatic serialization/deserialization
@@ -27,7 +28,7 @@ export function useLocalStorage<T>(
       const item = window.localStorage.getItem(key)
       return item ? JSON.parse(item) : initialValue
     } catch (error) {
-      console.error(`Error loading localStorage key "${key}":`, error)
+      logger.error('local-storage', `Error loading key "${key}"`, error)
       return initialValue
     }
   })
@@ -49,7 +50,7 @@ export function useLocalStorage<T>(
           return valueToStore
         })
       } catch (error) {
-        console.error(`Error setting localStorage key "${key}":`, error)
+        logger.error('local-storage', `Error setting key "${key}"`, error)
       }
     },
     [key]
@@ -63,7 +64,7 @@ export function useLocalStorage<T>(
         window.localStorage.removeItem(key)
       }
     } catch (error) {
-      console.error(`Error removing localStorage key "${key}":`, error)
+      logger.error('local-storage', `Error removing key "${key}"`, error)
     }
   }, [key])
 
@@ -81,7 +82,7 @@ export function useLocalStorage<T>(
 
         setStoredValue(JSON.parse(event.newValue) as T)
       } catch (error) {
-        console.error(`Error syncing localStorage key "${key}":`, error)
+        logger.error('local-storage', `Error syncing key "${key}"`, error)
       }
     }
 

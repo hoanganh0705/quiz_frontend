@@ -8,18 +8,23 @@
  * Source story:  Story 6.7.
  * Source ticket: TKT-6.7.D1.
  *
+ * TKT-7.5 cleanup, Phase 6 / P1-6: the hook now delegates to
+ * `useOptimisticMutation` (the canonical Phase 4 mutation primitive).
+ * The previous implementation reinvented optimistic-update +
+ * rollback + cooldown + SWR cache revalidation + bidirectional
+ * side-effects + cross-tab broadcast inline.
+ *
  * ## What this hook owns
  *
  * - The `block(userId, input?)` mutation that calls
  *   `block-mutation.service.ts → blockUser`.
  * - `useSocialPermissions(userId).canBlock` guard before dispatching.
- * - Double-click guard via a per-instance `isPendingRef` ref.
  * - Server-authoritative rollback on error.
  * - SWR cache revalidation on success:
  *     - `SOCIAL_CACHE_KEYS.makeRelationshipKey(userId)`
  *     - `SOCIAL_CACHE_KEYS.makeBlockedKey()` (viewer-only)
  *     - `SOCIAL_CACHE_KEYS.makeSocialCountsKey(userId)`
- * - Abort-on-unmount when a request is in-flight.
+ * - Cross-tab invalidation broadcast on success.
  * - Safe no-op fallback when `phase6_social_block_mutation` is
  *   `'placeholder'`.
  *
@@ -41,8 +46,7 @@
  * If A was previously following B and A blocks B, the server silently
  * removes that follow. The hook does NOT surface this as an error — the
  * revalidation of the relationship and counts keys is sufficient to
- * converge the UI. (A user-initiated `useUnfollow` invocation is
- * distinct; this silent removal is server-driven and has no error code.)
+ * converge the UI.
  *
  * ## Optimistic update authority
  *
@@ -59,11 +63,11 @@
  * future integration. See TKT-6.7.G1 for the integration spec.
  */
 
-import { useMemo, useRef, useState } from "react";
-
-import { ApiError } from "@/lib/api";
-import { getFeatureFlagValue } from "@/lib/feature-flags";
+import { useCallback, useMemo } from "react";
 import { useSWRConfig } from "swr";
+
+import { ApiError, useOptimisticMutation } from "@/lib/api";
+import { getFeatureFlagValue } from "@/lib/feature-flags";
 
 import {
   blockUser,
@@ -71,6 +75,9 @@ import {
 } from "@/features/social/services";
 import { SOCIAL_CACHE_KEYS, type SocialErrorCode } from "@/features/social/types";
 import { useSocialPermissions } from "@/features/social/hooks/useSocialPermissions";
+import {
+  publishSocialRelationshipInvalidation,
+} from "@/lib/social/relationship-broadcast-channel";
 
 // ─── Public types ─────────────────────────────────────────────────────────
 
@@ -88,12 +95,6 @@ export type UseBlockInput = BlockUserInput;
 
 /**
  * Result of `useBlock`.
- *
- * Field semantics:
- *   - `block`     — call to trigger the block mutation. Accepts an optional
- *                   `BlockUserInput` (e.g. `{ reason }`).
- *   - `isPending` — `true` while a block request is in-flight.
- *   - `error`     — the typed error code, or `null` on success.
  */
 export interface UseBlockResult {
   block: (input?: UseBlockInput) => void;
@@ -113,12 +114,19 @@ export interface UseBlockOptions {
   currentUserId?: string | null;
 }
 
+const COOLDOWN_MS = 500;
+
+// ─── Helpers ──────────────────────────────────────────────────────────────
+
+function classifyBlockError(cause: unknown): BlockErrorCode {
+  if (cause instanceof ApiError) {
+    return (cause.code as BlockErrorCode) ?? "GLOBAL_INTERNAL_ERROR";
+  }
+  return "GLOBAL_INTERNAL_ERROR";
+}
+
 /**
  * Mutation hook for the block action.
- *
- * @param targetUserId The user to block. `null` is safe — the hook
- *   returns a no-op result when the target is null.
- * @param options Optional overrides.
  */
 export function useBlock(
   targetUserId: string | null,
@@ -137,17 +145,33 @@ export function useBlock(
   // ── SWR mutate ──────────────────────────────────────────────────────
   const { mutate } = useSWRConfig();
 
-  // ── Double-click guard (per-instance ref) ───────────────────────────
-  // The ref is stabilised across renders so the guard is
-  // per-instance, not per-render-cycle.
-  const isPendingRef = useRef(false);
+  // ── Optimistic mutation primitive ──────────────────────────────────
+  const { mutate: dispatchMutation, isInFlight, lastResult } =
+    useOptimisticMutation();
 
-  // ── Error state ──────────────────────────────────────────────────────
-  const [error, setError] = useState<BlockErrorCode | null>(null);
+  const revalidate = useCallback(
+    async (userId: string): Promise<void> => {
+      await Promise.all([
+        mutate(SOCIAL_CACHE_KEYS.makeRelationshipKey(userId), undefined, {
+          revalidate: true,
+        }),
+        mutate(SOCIAL_CACHE_KEYS.makeBlockedKey(), undefined, {
+          revalidate: true,
+        }),
+        mutate(SOCIAL_CACHE_KEYS.makeSocialCountsKey(userId), undefined, {
+          revalidate: true,
+        }),
+      ]);
+    },
+    [mutate],
+  );
+
+  const error: BlockErrorCode | null =
+    lastResult && lastResult.status === "reverted"
+      ? classifyBlockError(lastResult.apiError)
+      : null;
 
   // ── Stable result ───────────────────────────────────────────────────
-  // The result object is frozen so callers can destructure it without
-  // referential equality concerns. All mutable state is in fields.
   const result = useMemo<UseBlockResult>(() => {
     // ── Placeholder flag: safe no-op ────────────────────────────────
     if (isFlagPlaceholder) {
@@ -184,84 +208,41 @@ export function useBlock(
 
     // ── Core mutation ────────────────────────────────────────────────
     const block = (input: UseBlockInput = {}): void => {
-      // Double-click guard: skip if a request is already in-flight.
-      if (isPendingRef.current) return;
-
-      // Mark pending synchronously.
-      isPendingRef.current = true;
-      // Reset any prior error.
-      setError(null);
-
-      blockUser(targetUserId, input)
-        .then(() => {
-          // Server success: revalidate the relationship, blocked-users,
-          // and counts keys. The relationship key revalidation refreshes
-          // the canonical Relationship value (now `blocked`). The
-          // blocked-users key revalidation refreshes the viewer's
-          // blocked list (the new row appears). The counts key
-          // revalidation refreshes the badge count.
-          //
-          // The silent follow-removal side effect converges via the
-          // relationship and counts revalidations; no explicit error
-          // banner is needed.
-          void mutate(
-            SOCIAL_CACHE_KEYS.makeRelationshipKey(targetUserId),
-            undefined,
-            { revalidate: true },
-          );
-          void mutate(SOCIAL_CACHE_KEYS.makeBlockedKey(), undefined, {
-            revalidate: true,
+      void dispatchMutation({
+        key: SOCIAL_CACHE_KEYS.makeRelationshipKey(targetUserId),
+        optimisticData: <TData,>(current: TData | undefined): TData | undefined => current,
+        run: async () => {
+          await blockUser(targetUserId, input);
+          await revalidate(targetUserId);
+          // Phase 4 (P0-15): broadcast two events so sibling tabs
+          // revalidate both the relationship + blocklist caches.
+          publishSocialRelationshipInvalidation({
+            kind: "relationship.changed",
+            userId: targetUserId,
           });
-          void mutate(
-            SOCIAL_CACHE_KEYS.makeSocialCountsKey(targetUserId),
-            undefined,
-            { revalidate: true },
-          );
-        })
-        .catch((err: unknown) => {
-          // Surface the error. The optimistic state is discarded
-          // automatically since we don't touch the SWR cache.
-          const apiErr =
-            err instanceof ApiError ? err : new ApiError(err as never);
-          // Map to the typed error code.
-          const code: BlockErrorCode =
-            (apiErr.code as BlockErrorCode) ?? "GLOBAL_INTERNAL_ERROR";
-          setError(code);
-        })
-        .finally(() => {
-          // Reset the pending flag.
-          isPendingRef.current = false;
-        });
+          publishSocialRelationshipInvalidation({
+            kind: "blocklist.changed",
+            userId: targetUserId,
+          });
+        },
+        cooldownMs: COOLDOWN_MS,
+      });
     };
 
     return Object.freeze({
       block,
-      get isPending() {
-        return isPendingRef.current;
-      },
+      isPending: isInFlight,
       error,
     });
   }, [
     isFlagPlaceholder,
     targetUserId,
     permissions.canBlock,
-    mutate,
+    dispatchMutation,
+    isInFlight,
     error,
+    revalidate,
   ]);
-
-  // ── Abort on unmount ─────────────────────────────────────────────────
-  // We use `useRef` for the abort flag (stable reference), and the
-  // `finally` block above always resets it. On unmount, if a request
-  // is in-flight, the `isPendingRef` guard prevents a subsequent
-  // `block()` from dispatching a second request, and the `finally`
-  // block ensures the pending flag is reset even if the component
-  // unmounts mid-flight.
-  //
-  // NOTE: `blockUser` (the service) does not currently support
-  // AbortSignal. Adding AbortSignal support is a future optimisation
-  // (TKT-6.7.G2). The `isPendingRef` + `finally` pattern is sufficient
-  // for the initial implementation, mirroring `useFollow` /
-  // `useUnfollow` (TKT-6.6.D1 / D2).
 
   return result;
 }

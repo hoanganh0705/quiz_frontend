@@ -19,9 +19,12 @@
  *
  * ## Auth gating
  *
- * The page uses `<AuthGate />` with a safe return URL so unauthenticated
+ * The page uses an inline auth gate (formerly the deleted
+ * `<AuthGate />` component) with a safe return URL so unauthenticated
  * entry is redirected to `/login?redirect=<attempt-entry-path>` and
- * resumes on the same URL after successful login.
+ * resumes on the same URL after successful login. The redirect is
+ * driven off `useAuthSession` (the canonical replacement for the
+ * dead `useAuthBootstrap`).
  *
  * ## Page-level isolation
  *
@@ -48,7 +51,8 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 import { Skeleton } from '@/components/ui/Skeleton';
 
-import { AuthGate } from '@/features/auth/components/auth-gate';
+import { useAuthSession } from '@/features/auth/hooks/use-auth-session';
+import { redirectToLogin } from '@/features/auth/utils/auth-redirect';
 import { useQuizByIdOrSlug } from '@/features/quizzes/hooks/useQuizByIdOrSlug';
 
 import { useActiveAttempt } from '@/features/attempts/hooks/useActiveAttempt';
@@ -71,12 +75,43 @@ export function AttemptRunnerPage(
 ): React.ReactElement {
   const { idOrSlug } = props;
   const returnTo = `/quizzes/${encodeURIComponent(idOrSlug)}/attempt`;
+  const { isAuthenticated, isBootstrapping } = useAuthSession();
 
-  return (
-    <AuthGate redirectTo={returnTo}>
-      <AttemptRunnerInner idOrSlug={idOrSlug} />
-    </AuthGate>
-  );
+  // Inline auth gate (formerly <AuthGate redirectTo={...}>).
+  // The redirect is performed in an effect to avoid SSR-time
+  // navigation; the bootstrap skeleton is rendered while the
+  // cookie / profile hydration is in flight.
+  React.useEffect(() => {
+    if (!isBootstrapping && !isAuthenticated && typeof window !== 'undefined') {
+      redirectToLogin(returnTo);
+    }
+  }, [isAuthenticated, isBootstrapping, returnTo]);
+
+  if (isBootstrapping) {
+    return (
+      <div
+        className="mx-auto flex w-full max-w-3xl flex-col gap-4 p-4"
+        data-testid="attempt-runner-page-bootstrap"
+      >
+        <Skeleton className="h-8 w-1/2" />
+        <Skeleton className="h-3 w-full" />
+        <Skeleton className="h-40 w-full" />
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <div
+        className="mx-auto flex w-full max-w-3xl flex-col gap-4 p-4"
+        data-testid="attempt-runner-page-redirect"
+      >
+        <Skeleton className="h-8 w-1/2" />
+      </div>
+    );
+  }
+
+  return <AttemptRunnerInner idOrSlug={idOrSlug} />;
 }
 
 // ─── Inner (authenticated) ──────────────────────────────────────────────────

@@ -53,6 +53,8 @@ const STORAGE_KEY_TOKEN_REFRESHED = `${STORAGE_PREFIX}TOKEN_REFRESHED`;
 
 const DEFAULT_TAB_ID = 'storage';
 
+import { logger } from '@/shared/log';
+
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 export interface SyncPayload {
@@ -167,7 +169,7 @@ function handleStorageEvent(event: StorageEvent): void {
     try {
       handler(payload);
     } catch (err) {
-      console.error('[auth] Error in storage sync handler:', err);
+      logger.error('auth.storage-sync', 'Error in storage sync handler', err);
     }
   });
 }

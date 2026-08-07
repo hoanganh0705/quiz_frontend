@@ -7,12 +7,17 @@
  * Source story:  Story 6.6.
  * Source ticket: TKT-6.6.D2.
  *
+ * TKT-7.5 cleanup, Phase 6 / P1-4: the hook now delegates to
+ * `useOptimisticMutation` (the canonical Phase 4 mutation primitive).
+ * The previous implementation reinvented optimistic-update +
+ * rollback + cooldown + SWR cache revalidation + the non-idempotent
+ * DELETE terminal-state pattern inline.
+ *
  * ## What this hook owns
  *
  * - The `unfollow(userId)` mutation that calls
  *   `follow-mutation.service.ts → unfollowUser`.
  * - `useSocialPermissions(userId).canUnfollow` guard before dispatching.
- * - Double-click guard via a per-instance `isPendingRef` ref.
  * - `SOCIAL_FOLLOW_NOT_FOUND` (404) is treated as a successful terminal
  *   state — the user is already not following, which is the desired
  *   outcome. No error banner is surfaced.
@@ -20,7 +25,7 @@
  * - SWR cache revalidation on success
  *   (`SOCIAL_CACHE_KEYS.makeRelationshipKey(userId)` and
  *   `SOCIAL_CACHE_KEYS.makeSocialCountsKey(userId)`).
- * - Abort-on-unmount when a request is in-flight.
+ * - Cross-tab invalidation broadcast on success.
  * - Safe no-op fallback when `phase6_social_follow_mutation` is
  *   `'placeholder'`.
  *
@@ -44,16 +49,13 @@
  *
  * After a successful unfollow (including the `SOCIAL_FOLLOW_NOT_FOUND`
  * terminal state), callers revalidate the relationship and counts keys.
- * When Epic 6.10 lands, the Phase 5 `/notifications` socket will emit
- * `relationship.changed` events that trigger the same invalidation.
- * The hook is compatible with that future integration.
  */
 
-import { useMemo, useRef, useState } from "react";
-
-import { ApiError } from "@/lib/api";
-import { getFeatureFlagValue } from "@/lib/feature-flags";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSWRConfig } from "swr";
+
+import { ApiError, useOptimisticMutation } from "@/lib/api";
+import { getFeatureFlagValue } from "@/lib/feature-flags";
 
 import { unfollowUser } from "@/features/social/services";
 import {
@@ -61,6 +63,9 @@ import {
   type SocialErrorCode,
 } from "@/features/social/types";
 import { useSocialPermissions } from "@/features/social/hooks/useSocialPermissions";
+import {
+  publishSocialRelationshipInvalidation,
+} from "@/lib/social/relationship-broadcast-channel";
 
 // ─── Public types ─────────────────────────────────────────────────────────
 
@@ -104,12 +109,21 @@ export interface UseUnfollowOptions {
   currentUserId?: string | null;
 }
 
+const COOLDOWN_MS = 500;
+
+const SOCIAL_FOLLOW_NOT_FOUND = "SOCIAL_FOLLOW_NOT_FOUND" as const;
+
+// ─── Helpers ──────────────────────────────────────────────────────────────
+
+function classifyUnfollowError(cause: unknown): UnfollowErrorCode {
+  if (cause instanceof ApiError) {
+    return (cause.code as UnfollowErrorCode) ?? "GLOBAL_INTERNAL_ERROR";
+  }
+  return "GLOBAL_INTERNAL_ERROR";
+}
+
 /**
  * Mutation hook for the unfollow action.
- *
- * @param targetUserId The user to unfollow. `null` is safe — the hook
- *   returns a no-op result when the target is null.
- * @param options Optional overrides.
  */
 export function useUnfollow(
   targetUserId: string | null,
@@ -127,16 +141,50 @@ export function useUnfollow(
   // ── SWR mutate ─────────────────────────────────────────────────────────
   const { mutate } = useSWRConfig();
 
-  // ── Double-click guard (per-instance ref) ──────────────────────────────
-  const isPendingRef = useRef(false);
+  // ── Optimistic mutation primitive ──────────────────────────────────────
+  const { mutate: dispatchMutation, isInFlight, lastResult } =
+    useOptimisticMutation();
 
-  // ── Error and terminal-state tracking ─────────────────────────────────
-  // `error` is null on success OR when `SOCIAL_FOLLOW_NOT_FOUND`
-  // (already not following).
-  // `alreadyNotFollowing` is true only when the server returned 404
-  // with `SOCIAL_FOLLOW_NOT_FOUND`.
-  const [error, setError] = useState<UnfollowErrorCode | null>(null);
+  // The terminal-state flag for the non-idempotent DELETE pattern.
+  // `useOptimisticMutation` does not natively distinguish "succeeded
+  // because the resource was already gone" from "succeeded normally",
+  // so we keep this flag in a local `useState` and reset it on every
+  // new `pending` transition.
   const [alreadyNotFollowing, setAlreadyNotFollowing] = useState(false);
+
+  const revalidate = useCallback(
+    async (userId: string): Promise<void> => {
+      await Promise.all([
+        mutate(SOCIAL_CACHE_KEYS.makeRelationshipKey(userId), undefined, {
+          revalidate: true,
+        }),
+        mutate(SOCIAL_CACHE_KEYS.makeSocialCountsKey(userId), undefined, {
+          revalidate: true,
+        }),
+      ]);
+    },
+    [mutate],
+  );
+
+  // Reset `alreadyNotFollowing` whenever a new mutation enters
+  // `pending`; capture the flag from the previous `reverted` outcome
+  // when the SDK raised `SOCIAL_FOLLOW_NOT_FOUND` (we swallow the
+  // throw inside `run` and synthesise a success outcome).
+  useEffect(() => {
+    if (lastResult?.status === "pending") {
+      setAlreadyNotFollowing(false);
+    }
+  }, [lastResult]);
+
+  // Derive the typed error code from the primitive's `lastResult`.
+  // `SOCIAL_FOLLOW_NOT_FOUND` is swallowed inside `run` and never
+  // surfaces as a `reverted` outcome, so the `error` field is `null`
+  // in that case (the `alreadyNotFollowing` flag carries the
+  // terminal-state signal).
+  const error: UnfollowErrorCode | null =
+    lastResult && lastResult.status === "reverted"
+      ? classifyUnfollowError(lastResult.apiError)
+      : null;
 
   // ── Stable result ─────────────────────────────────────────────────────
   const result = useMemo<UseUnfollowResult>(() => {
@@ -178,68 +226,48 @@ export function useUnfollow(
 
     // ── Core mutation ────────────────────────────────────────────────
     const unfollow = (): void => {
-      if (isPendingRef.current) return;
-
-      isPendingRef.current = true;
-      // Reset prior state.
-      setError(null);
-      setAlreadyNotFollowing(false);
-
-      unfollowUser(targetUserId)
-        .then(() => {
-          // Server success (204 No Content): revalidate.
-          void mutate(
-            SOCIAL_CACHE_KEYS.makeRelationshipKey(targetUserId),
-            undefined,
-            { revalidate: true },
-          );
-          void mutate(
-            SOCIAL_CACHE_KEYS.makeSocialCountsKey(targetUserId),
-            undefined,
-            { revalidate: true },
-          );
-        })
-        .catch((err: unknown) => {
-          const apiErr =
-            err instanceof ApiError ? err : new ApiError(err as never);
-
-          // Non-idempotent DELETE: 404 with SOCIAL_FOLLOW_NOT_FOUND means
-          // the viewer was already not following. This is a successful
-          // terminal state — revalidate the cache and surface the terminal
-          // flag to callers so they can dismiss the confirmation dialog.
-          if (apiErr.code === "SOCIAL_FOLLOW_NOT_FOUND") {
-            setAlreadyNotFollowing(true);
-            // Revalidate the cache so the UI reflects the current state.
-            void mutate(
-              SOCIAL_CACHE_KEYS.makeRelationshipKey(targetUserId),
-              undefined,
-              { revalidate: true },
-            );
-            void mutate(
-              SOCIAL_CACHE_KEYS.makeSocialCountsKey(targetUserId),
-              undefined,
-              { revalidate: true },
-            );
-            return;
+      void dispatchMutation({
+        key: SOCIAL_CACHE_KEYS.makeRelationshipKey(targetUserId),
+        optimisticData: <TData,>(current: TData | undefined): TData | undefined => current,
+        run: async () => {
+          try {
+            await unfollowUser(targetUserId);
+          } catch (cause) {
+            // Non-idempotent DELETE: 404 with SOCIAL_FOLLOW_NOT_FOUND means
+            // the viewer was already not following. Treat as a
+            // successful terminal state — set the terminal flag,
+            // revalidate, and return undefined so the primitive
+            // records a success outcome.
+            if (
+              cause instanceof ApiError &&
+              cause.code === SOCIAL_FOLLOW_NOT_FOUND
+            ) {
+              setAlreadyNotFollowing(true);
+              await revalidate(targetUserId);
+              publishSocialRelationshipInvalidation({
+                kind: "follow.changed",
+                userId: targetUserId,
+              });
+              return undefined;
+            }
+            throw cause;
           }
-
-          // All other errors: surface the error code. The optimistic
-          // state is discarded automatically since we don't touch the
-          // SWR cache optimistically.
-          const code: UnfollowErrorCode =
-            (apiErr.code as UnfollowErrorCode) ?? "GLOBAL_INTERNAL_ERROR";
-          setError(code);
-        })
-        .finally(() => {
-          isPendingRef.current = false;
-        });
+          await revalidate(targetUserId);
+          // Phase 4 (P0-14): cross-tab invalidation so sibling tabs
+          // revalidate without waiting for the next focus / interval
+          // cycle.
+          publishSocialRelationshipInvalidation({
+            kind: "follow.changed",
+            userId: targetUserId,
+          });
+        },
+        cooldownMs: COOLDOWN_MS,
+      });
     };
 
     return Object.freeze({
       unfollow,
-      get isPending() {
-        return isPendingRef.current;
-      },
+      isPending: isInFlight,
       error,
       alreadyNotFollowing,
     });
@@ -247,9 +275,11 @@ export function useUnfollow(
     isFlagPlaceholder,
     targetUserId,
     permissions.canUnfollow,
-    mutate,
+    dispatchMutation,
+    isInFlight,
     error,
     alreadyNotFollowing,
+    revalidate,
   ]);
 
   return result;

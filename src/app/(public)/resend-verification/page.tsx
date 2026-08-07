@@ -22,7 +22,7 @@
  *     via the hook.
  */
 
-import { Suspense, useEffect, useMemo } from 'react'
+import { Suspense, useMemo } from 'react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { useForm } from 'react-hook-form'
@@ -35,7 +35,10 @@ import { useResendVerification } from '@/features/auth/forms/use-resend-verifica
 import { resendVerificationSchema, type ResendVerificationFormValues } from '@/features/auth/forms/schemas/resend-verification.schema'
 import { COPY_KEYS, resolveCopy, resolveCooldown } from '@/features/auth/copy/verify-email-copy'
 
-export const dynamic = 'force-dynamic'
+// P2-22: dropped `export const dynamic = 'force-dynamic'` because
+// this file is a client component (`'use client'`). The route
+// segment config is a server-side directive and is meaningless
+// inside a `'use client'` module — it was a no-op previously.
 
 function ResendVerificationSkeleton() {
   return (
@@ -95,10 +98,6 @@ function ResendVerificationInner() {
   const cooldownSeconds = isCooldown
     ? Math.ceil(state.cooldownRemainingMs / 1000)
     : 0
-
-  // Suppress unused-var warnings for `useEffect`; the hook
-  // already triggers itself on mount via the form submit.
-  useEffect(() => {}, [])
 
   return (
     <main

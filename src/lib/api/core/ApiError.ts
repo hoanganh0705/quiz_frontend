@@ -1,9 +1,27 @@
 /**
- * Custom API Error class — RFC 7807 `application/problem+json` aware.
+ * `ApiError` — RFC 7807 `application/problem+json` aware error class.
  *
  * @see https://tools.ietf.org/html/rfc7807
  * @see quiz_backend/src/common/types/problem-detail.type.ts (wire shape)
  * @see quiz_backend/src/common/filters/global-exception.filter.ts (status → code table)
+ *
+ * ## Constructing
+ *
+ * Three equivalent entry points, each with a different input shape:
+ *
+ *   1. `new ApiError(axiosError)` — legacy, still used by the
+ *      axios interceptors in `custom-instance.ts`. Accepts the
+ *      full `AxiosError<unknown>`.
+ *   2. `ApiError.fromInput({ code, status, message, ... })` —
+ *      structural factory. Use this for synthetic errors and for
+ *      call sites that want to construct an error without an
+ *      axios dependency. This is the recommended path for
+ *      application code.
+ *   3. `coerceToApiError(caught)` — single canonical normalizer
+ *      that turns an `unknown` thrown value into an `ApiError`.
+ *      See `error-coercion.ts`.
+ *
+ * ## Decoding
  *
  * This class decodes the RFC 7807 wire shape produced by the backend's
  * `GlobalExceptionFilter`. Every getter reads from the correct RFC 7807
@@ -33,6 +51,7 @@
 import type { AxiosError, AxiosResponse } from "axios";
 
 import type { ErrorCode } from "@/lib/api/error-codes";
+import type { ApiErrorInput } from "@/lib/api/error-types";
 
 export interface ApiErrorData {
   statusCode: number;
@@ -120,8 +139,21 @@ export class ApiError extends Error {
   private readonly responseStatus: number | undefined;
   private readonly responseStatusText: string | undefined;
 
-  constructor(error: AxiosError<unknown>) {
-    const response = error.response as AxiosResponse | undefined;
+  constructor(error: AxiosError<unknown> | ApiErrorInput) {
+    // Structural-input branch (Phase 3, TKT-Phase-3.A1). When the
+    // caller passes `{ code, status, message, ... }` we normalize it
+    // to the same wire shape the axios branch decodes, so every
+    // getter (`code`, `detail`, `requestId`, `status`, `isXxx`)
+    // returns the value the caller asked for. Equivalent to
+    // `ApiError.fromInput(input)`; the duplication is intentional so
+    // the legacy `as unknown as AxiosError` cast pattern at test
+    // call sites can be retired incrementally.
+    const isStructural = looksLikeApiErrorInput(error);
+    const ax = isStructural
+      ? (synthesizeAxiosErrorFromInput(error) as unknown as AxiosError<unknown>)
+      : (error as AxiosError<unknown>);
+
+    const response = ax.response as AxiosResponse | undefined;
     const data = response?.data as Rfc7807Body | undefined;
 
     const validationMessages = Array.isArray(data?.message)
@@ -131,7 +163,7 @@ export class ApiError extends Error {
     const message =
       validationMessages.length > 0
         ? validationMessages.join(", ")
-        : (data?.detail ?? data?.message ?? error.message ?? "");
+        : (data?.detail ?? data?.message ?? ax.message ?? "");
 
     super(typeof message === "string" ? message : String(message));
 
@@ -408,8 +440,161 @@ export class ApiError extends Error {
   static fromAxios(error: AxiosError<unknown>): ApiError {
     return new ApiError(error);
   }
+
+  /**
+   * Construct an `ApiError` from a structural input. The recommended
+   * path for application code that needs to throw a typed error
+   * without depending on axios.
+   *
+   * Source epic: Phase 3 — `ApiError` constructor + `coerceToApiError`.
+   * Source ticket: TKT-Phase-3.A1.
+   *
+   * Internally the structural input is converted to the same wire
+   * shape (`Rfc7807Body`) the axios constructor decodes, so every
+   * getter (`code`, `detail`, `requestId`, `status`, `isXxx`) returns
+   * the value the caller asked for.
+   *
+   * Field mapping:
+   *
+   *   - `code`    → `data.extensions.code` (canonical RFC 7807 location)
+   *   - `status`  → `data.status` + `response.status`
+   *   - `message` → `data.detail` + `Error.message`
+   *   - `title`   → `data.title` + `response.statusText`
+   *   - `requestId` → `data.extensions.requestId`
+   *   - `instance`  → `data.instance`
+   *
+   * When `code` is omitted, the synthesized-code fallback
+   * (`synthesizedCodeForStatus(status, message)`) runs — same as
+   * for axios-constructed errors. This is what `coerceToApiError`
+   * relies on for non-axios throws.
+   *
+   * @example
+   *   // Throwing a synthetic 404 from a service adapter:
+   *   throw ApiError.fromInput({
+   *     status: 404,
+   *     code: 'QUIZ_NOT_FOUND',
+   *     message: `Quiz ${slug} not found`,
+   *   });
+   */
+  static fromInput(input: ApiErrorInput): ApiError {
+    const status = input.status ?? 0;
+    const code = input.code;
+    const message = input.message ?? '';
+    const title = input.title;
+    const instance = input.instance;
+    const requestId = input.requestId;
+
+    // Build the synthetic wire body in the same shape the backend
+    // emits so every getter returns the input the caller passed.
+    const data: Rfc7807Body = {
+      status,
+      title: title ?? '',
+      detail: message,
+      instance: instance ?? '',
+      ...(code !== undefined ? { extensions: { code } } : {}),
+      ...(requestId !== undefined
+        ? { extensions: { ...(code !== undefined ? { code } : {}), requestId } }
+        : {}),
+    };
+
+    const response = {
+      data,
+      status,
+      statusText: title ?? '',
+    } as AxiosResponse;
+
+    const err = {
+      name: 'ApiError',
+      message: message,
+      response,
+      isAxiosError: true,
+      toJSON: () => ({}),
+    } as AxiosError<unknown>;
+
+    return new ApiError(err);
+  }
 }
 
 export function isApiError(error: unknown): error is ApiError {
   return error instanceof ApiError;
+}
+
+// ─── Constructor input discrimination (Phase 3) ────────────────────────────
+
+/**
+ * Heuristic for "this value was meant to be an `ApiErrorInput`"
+ * rather than an `AxiosError`. We accept it when the caller provided
+ * at least one of the canonical error fields (`code`, `status`,
+ * `message`) and the value is a non-null object.
+ *
+ * Pure structural check; the function is intentionally
+ * permissive because both inputs are common at call sites — the
+ * existing `as unknown as AxiosError` cast pattern from the
+ * pre-Phase-3 codebase still passes through here unchanged.
+ */
+function looksLikeApiErrorInput(
+  value: unknown,
+): value is ApiErrorInput {
+  if (typeof value !== 'object' || value === null) return false;
+  const v = value as Record<string, unknown>;
+  // An AxiosError always carries `response`, `request`, or `config`.
+  // If the input has any of those, treat it as axios-shaped.
+  if ('response' in v || 'request' in v || 'config' in v) return false;
+  if ('isAxiosError' in v) return false;
+  return (
+    typeof v.code === 'string' ||
+    typeof v.status === 'number' ||
+    typeof v.message === 'string'
+  );
+}
+
+/**
+ * Build an axios-shaped input from a structural `ApiErrorInput`. The
+ * resulting object goes through `initFromResponseData` to populate
+ * every getter identically to a real axios error. Centralised here
+ * so the constructor and `ApiError.fromInput` produce the same wire
+ * shape and the duplication stays small.
+ */
+function synthesizeAxiosErrorFromInput(input: ApiErrorInput): {
+  response: AxiosResponse;
+  isAxiosError: true;
+  name: string;
+  message: string;
+  toJSON: () => Record<string, unknown>;
+} {
+  const status = input.status ?? 0;
+  const message = input.message ?? '';
+  const title = input.title ?? '';
+  const instance = input.instance ?? '';
+  const requestId = input.requestId;
+
+  const data: Rfc7807Body = {
+    status,
+    title,
+    detail: message,
+    instance,
+    ...(input.code !== undefined
+      ? {
+          extensions: {
+            ...(requestId !== undefined ? { requestId } : {}),
+            ...(input.code !== undefined ? { code: input.code } : {}),
+          },
+        }
+      : {}),
+    ...(requestId !== undefined && input.code === undefined
+      ? { extensions: { requestId } }
+      : {}),
+  };
+
+  return {
+    isAxiosError: true,
+    name: 'ApiError',
+    message,
+    response: {
+      data,
+      status,
+      statusText: title,
+    } as AxiosResponse,
+    toJSON: () => ({}),
+  };
 }

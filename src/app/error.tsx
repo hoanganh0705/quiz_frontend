@@ -4,6 +4,7 @@ import { useEffect } from 'react'
 import { Button } from '@/components/ui/Button'
 import { AlertTriangle, RefreshCw, Home } from 'lucide-react'
 import Link from 'next/link'
+import { logger } from '@/shared/log'
 
 export default function Error({
   error,
@@ -14,7 +15,7 @@ export default function Error({
 }) {
   useEffect(() => {
     // Log the error to an error reporting service
-    console.error(error)
+    logger.error('app.error-boundary', 'Unhandled error', { error, digest: error.digest })
   }, [error])
 
   return (

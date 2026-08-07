@@ -38,8 +38,8 @@ vi.mock('@/features/quizzes/hooks/useQuizByIdOrSlug', () => ({
 // The CTA strip reads the auth bootstrap context. Provide a stub
 // context that simulates an authenticated session so the live
 // branches fire.
-vi.mock('@/features/auth/contexts/auth-bootstrap-context', () => ({
-  useAuthBootstrap: () => ({
+vi.mock('@/features/auth/hooks/use-auth-session', () => ({
+  useAuthSession: () => ({
     bootstrapState: 'authenticated',
     currentUser: { id: 'user-1' },
     user: { id: 'user-1' },

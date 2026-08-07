@@ -7,12 +7,14 @@
  * Source story:  Story 6.8.
  * Source ticket: TKT-6.8.D2.
  *
+ * TKT-7.5 cleanup, Phase 6 / P1-7: the hook now delegates to
+ * `useOptimisticMutation` (the canonical Phase 4 mutation primitive).
+ *
  * ## What this hook owns
  *
  * - The `respond({ friendshipId, action })` mutation that calls
  *   `friend-request-mutation.service.ts → respondFriendRequest` with
  *   an `'accept' | 'decline'` action.
- * - Double-click guard via a per-instance `isPendingRef` ref.
  * - `useSocialPermissions(targetUserId).canRespond` guard before
  *   dispatching (the viewer must hold the incoming request on the
  *   target user).
@@ -20,7 +22,6 @@
  *     - `SOCIAL_CACHE_KEYS.makeRelationshipKey(targetUserId)`
  *     - `SOCIAL_CACHE_KEYS.makeIncomingRequestsKey()` (viewer-only)
  *     - `SOCIAL_CACHE_KEYS.makeSocialCountsKey(targetUserId)`
- * - Abort-on-unmount when a request is in-flight.
  * - Safe no-op fallback when `phase6_social_friend_request_mutation`
  *   is `'placeholder'`.
  *
@@ -56,11 +57,11 @@
  * that future integration.
  */
 
-import { useMemo, useRef, useState } from "react";
-
-import { ApiError } from "@/lib/api";
-import { getFeatureFlagValue } from "@/lib/feature-flags";
+import { useCallback, useMemo } from "react";
 import { useSWRConfig } from "swr";
+
+import { ApiError, useOptimisticMutation } from "@/lib/api";
+import { getFeatureFlagValue } from "@/lib/feature-flags";
 
 import {
   respondFriendRequest,
@@ -102,12 +103,6 @@ export interface UseRespondFriendRequestInput {
 
 /**
  * Result of `useRespondFriendRequest`.
- *
- * Field semantics:
- *   - `respond`   — call to trigger the respond mutation. Accepts a
- *                   `UseRespondFriendRequestInput` argument.
- *   - `isPending` — `true` while a respond request is in-flight.
- *   - `error`     — the typed error code, or `null` on success.
  */
 export interface UseRespondFriendRequestResult {
   respond: (input: UseRespondFriendRequestInput) => void;
@@ -127,13 +122,22 @@ export interface UseRespondFriendRequestOptions {
   currentUserId?: string | null;
 }
 
+const COOLDOWN_MS = 500;
+
+// ─── Helpers ──────────────────────────────────────────────────────────────
+
+function classifyRespondFriendRequestError(
+  cause: unknown,
+): RespondFriendRequestErrorCode {
+  if (cause instanceof ApiError) {
+    return (cause.code as RespondFriendRequestErrorCode) ??
+      "GLOBAL_INTERNAL_ERROR";
+  }
+  return "GLOBAL_INTERNAL_ERROR";
+}
+
 /**
  * Mutation hook for the respond-to-friend-request action.
- *
- * @param targetUserId The user whose request the viewer is responding
- *   to. `null` is safe — the hook returns a no-op result when the
- *   target is null.
- * @param options Optional overrides.
  */
 export function useRespondFriendRequest(
   targetUserId: string | null,
@@ -153,13 +157,31 @@ export function useRespondFriendRequest(
   // ── SWR mutate ──────────────────────────────────────────────────────
   const { mutate } = useSWRConfig();
 
-  // ── Double-click guard (per-instance ref) ───────────────────────────
-  const isPendingRef = useRef(false);
+  // ── Optimistic mutation primitive ──────────────────────────────────
+  const { mutate: dispatchMutation, isInFlight, lastResult } =
+    useOptimisticMutation();
 
-  // ── Error state ──────────────────────────────────────────────────────
-  const [error, setError] = useState<RespondFriendRequestErrorCode | null>(
-    null,
+  const revalidate = useCallback(
+    async (userId: string): Promise<void> => {
+      await Promise.all([
+        mutate(SOCIAL_CACHE_KEYS.makeRelationshipKey(userId), undefined, {
+          revalidate: true,
+        }),
+        mutate(SOCIAL_CACHE_KEYS.makeIncomingRequestsKey(), undefined, {
+          revalidate: true,
+        }),
+        mutate(SOCIAL_CACHE_KEYS.makeSocialCountsKey(userId), undefined, {
+          revalidate: true,
+        }),
+      ]);
+    },
+    [mutate],
   );
+
+  const error: RespondFriendRequestErrorCode | null =
+    lastResult && lastResult.status === "reverted"
+      ? classifyRespondFriendRequestError(lastResult.apiError)
+      : null;
 
   // ── Stable result ───────────────────────────────────────────────────
   const result = useMemo<UseRespondFriendRequestResult>(() => {
@@ -198,76 +220,31 @@ export function useRespondFriendRequest(
 
     // ── Core mutation ────────────────────────────────────────────────
     const respond = (input: UseRespondFriendRequestInput): void => {
-      // Double-click guard: skip if a request is already in-flight.
-      if (isPendingRef.current) return;
-
-      // Mark pending synchronously.
-      isPendingRef.current = true;
-      // Reset any prior error.
-      setError(null);
-
-      respondFriendRequest(input.friendshipId, input.action)
-        .then(() => {
-          // Server success: revalidate the relationship, incoming-requests,
-          // and counts keys. The relationship key revalidation refreshes
-          // the canonical Relationship value (now `friend` for accept or
-          // `none` for decline). The incoming-requests key revalidation
-          // removes the responded item from the viewer's incoming list.
-          // The counts key revalidation refreshes the badge count.
-          void mutate(
-            SOCIAL_CACHE_KEYS.makeRelationshipKey(targetUserId),
-            undefined,
-            { revalidate: true },
-          );
-          void mutate(
-            SOCIAL_CACHE_KEYS.makeIncomingRequestsKey(),
-            undefined,
-            { revalidate: true },
-          );
-          void mutate(
-            SOCIAL_CACHE_KEYS.makeSocialCountsKey(targetUserId),
-            undefined,
-            { revalidate: true },
-          );
-        })
-        .catch((err: unknown) => {
-          // Surface the error. The optimistic state is discarded
-          // automatically since we don't touch the SWR cache.
-          const apiErr =
-            err instanceof ApiError ? err : new ApiError(err as never);
-          // Map to the typed error code.
-          const code: RespondFriendRequestErrorCode =
-            (apiErr.code as RespondFriendRequestErrorCode) ??
-            "GLOBAL_INTERNAL_ERROR";
-          setError(code);
-        })
-        .finally(() => {
-          // Reset the pending flag.
-          isPendingRef.current = false;
-        });
+      void dispatchMutation({
+        key: SOCIAL_CACHE_KEYS.makeRelationshipKey(targetUserId),
+        optimisticData: <TData,>(current: TData | undefined): TData | undefined => current,
+        run: async () => {
+          await respondFriendRequest(input.friendshipId, input.action);
+          await revalidate(targetUserId);
+        },
+        cooldownMs: COOLDOWN_MS,
+      });
     };
 
     return Object.freeze({
       respond,
-      get isPending() {
-        return isPendingRef.current;
-      },
+      isPending: isInFlight,
       error,
     });
   }, [
     isFlagPlaceholder,
     targetUserId,
     permissions.canRespond,
-    mutate,
+    dispatchMutation,
+    isInFlight,
     error,
+    revalidate,
   ]);
-
-  // ── Abort on unmount ─────────────────────────────────────────────────
-  // Mirrors `useSendFriendRequest` (TKT-6.8.D1). The
-  // `respondFriendRequest` service does not currently support
-  // AbortSignal; the `isPendingRef` guard prevents a subsequent
-  // `respond()` call from dispatching a second request, and the
-  // `finally` block resets the pending flag on unmount.
 
   return result;
 }

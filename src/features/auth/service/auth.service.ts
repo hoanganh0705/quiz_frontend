@@ -56,6 +56,7 @@ import {
   clearAuthToken,
 } from "@/features/auth/utils/auth-cookies";
 import { clearAllAuthCache } from "@/features/auth/utils/user-scoped-cache";
+import { clearAuthState } from "@/features/auth/utils/clear-auth-state";
 import {
   broadcastAuthEvent,
   type LoggedInEvent,
@@ -347,17 +348,14 @@ export async function logout(): Promise<AuthControllerLogoutResult> {
   try {
     return await getAuth().authControllerLogout();
   } finally {
-    // Epic 2.9 / 2.9.T10 — wipe any in-memory "recently verified"
-    // flags so a stale flag cannot survive a local logout. The
-    // broadcast listener in `custom-instance.ts` already wipes
-    // the flag in sibling tabs; this call covers THIS tab's
-    // pending in-memory state. Order matters: wipe before
-    // `broadcastLogout()` so the receiving tab's listener sees a
-    // consistent state.
-    clearVerificationFlags();
-    clearAuthToken();
-    clearAllAuthCache();
-    broadcastLogout();
+    // Phase 4 (TKT-Phase-4 — P1-11): the local cleanup is now
+    // delegated to the canonical `clearAuthState()` helper. The
+    // helper runs `clearVerificationFlags` + `clearAuthToken` +
+    // `clearAllAuthCache` + `broadcastLogout` in the documented
+    // order; the helper is fail-open so the cleanup runs even if a
+    // primitive throws. The `redirectTo` is intentionally omitted
+    // here because `useLogout` / `useLogoutMenu` own the redirect.
+    clearAuthState();
   }
 }
 
@@ -389,13 +387,14 @@ export async function logoutAll(): Promise<AuthControllerLogoutAllResult> {
   try {
     return await getAuth().authControllerLogoutAll();
   } finally {
-    // Epic 2.9 / 2.9.T10 — same discipline as `logout()`; wipe
-    // any in-memory "recently verified" flags before broadcasting
-    // so the receiving tab's listener sees consistent state.
-    clearVerificationFlags();
-    clearAuthToken();
-    clearAllAuthCache();
-    broadcastLogout();
+    // Phase 4 (TKT-Phase-4 — P1-11): same discipline as `logout()`;
+    // delegated to the canonical `clearAuthState()` helper. The
+    // broadcast listener in `custom-instance.ts` already wipes the
+    // verification flag in sibling tabs; the helper covers THIS
+    // tab's pending in-memory state. Order: wipe before
+    // `broadcastLogout()` so the receiving tab's listener sees a
+    // consistent state.
+    clearAuthState();
   }
 }
 
@@ -450,11 +449,11 @@ export async function logoutAll(): Promise<AuthControllerLogoutAllResult> {
 export async function getSecurityDashboard(): Promise<AccountSecurityDto> {
   const data = await getAuth().authControllerGetSecurityDashboard();
   if (!data.data) {
-    throw new ApiError({
+    throw ApiError.fromInput({
       status: 500,
       code: "GLOBAL_INTERNAL_ERROR",
       message: "Security dashboard response missing data envelope",
-    } as unknown as ConstructorParameters<typeof ApiError>[0]);
+    });
   }
   return data.data;
 }
@@ -483,11 +482,11 @@ export async function getActiveSessions(): Promise<SessionListResponseDto> {
   const data: AuthControllerGetActiveSessionsResult =
     await getAuth().authControllerGetActiveSessions();
   if (!data.data) {
-    throw new ApiError({
+    throw ApiError.fromInput({
       status: 500,
       code: "GLOBAL_INTERNAL_ERROR",
       message: "Active sessions response missing data envelope",
-    } as unknown as ConstructorParameters<typeof ApiError>[0]);
+    });
   }
   return data.data;
 }
@@ -658,14 +657,14 @@ export async function revokeCurrentSession(
     const err =
       error instanceof ApiError
         ? error
-        : new ApiError({
+        : ApiError.fromInput({
             status: 0,
             code: "GLOBAL_INTERNAL_ERROR",
             message:
               error instanceof Error
                 ? error.message
                 : "Unknown error revoking current session",
-          } as unknown as ConstructorParameters<typeof ApiError>[0]);
+          });
     return { kind: "error", error: err };
   }
 }
@@ -828,11 +827,11 @@ export async function verifyPassword(
   const data: AuthControllerVerifyPasswordResult =
     await getAuth().authControllerVerifyPassword(dto);
   if (!data.data) {
-    throw new ApiError({
+    throw ApiError.fromInput({
       status: 500,
       code: "GLOBAL_INTERNAL_ERROR",
       message: "Verify password response missing data envelope",
-    } as unknown as ConstructorParameters<typeof ApiError>[0]);
+    });
   }
   return data.data;
 }
@@ -893,11 +892,11 @@ export async function changePassword(
   const data: AuthControllerChangePasswordResult =
     await getAuth().authControllerChangePassword(dto);
   if (!data.data) {
-    throw new ApiError({
+    throw ApiError.fromInput({
       status: 500,
       code: "GLOBAL_INTERNAL_ERROR",
       message: "Change password response missing data envelope",
-    } as unknown as ConstructorParameters<typeof ApiError>[0]);
+    });
   }
   return data.data;
 }
@@ -1157,11 +1156,11 @@ export async function deleteAccount(
   const data: AuthControllerDeleteAccountResult =
     await getAuth().authControllerDeleteAccount(dto);
   if (!data.data) {
-    throw new ApiError({
+    throw ApiError.fromInput({
       status: 500,
       code: "GLOBAL_INTERNAL_ERROR",
       message: "Delete account response missing data envelope",
-    } as unknown as ConstructorParameters<typeof ApiError>[0]);
+    });
   }
   return data.data;
 }

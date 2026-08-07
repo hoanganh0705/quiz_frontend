@@ -4,6 +4,11 @@
  *
  * Source epic:   Story 3.10 — Bookmarks add / remove + membership lookup.
  * Source ticket: TKT-3.10.F1.
+ * Phase 4 (cross-tab infra): rewritten on top of
+ *   `createBroadcastChannel` (TKT-Phase-4.A1). The event types,
+ *   validation, and the public subscribe / publish surface are
+ *   preserved; the singleton / listener / same-tab boilerplate
+ *   is now owned by the factory.
  *
  * ## Purpose
  *
@@ -61,9 +66,7 @@
  * is correct.
  */
 
-import {
-  getCurrentTabId,
-} from '@/lib/api/core/broadcast-channel';
+import { createBroadcastChannel } from '@/lib/broadcast';
 
 /**
  * Channel name used for all bookmark broadcasts.
@@ -117,91 +120,58 @@ export interface BookmarksInvalidatedEvent extends BaseBookmarkEvent {
  */
 export type BookmarkEvent = BookmarksInvalidatedEvent;
 
-// ─── Channel Singleton ───────────────────────────────────────────────────────
+// ─── Factory-backed channel ───────────────────────────────────────────────
 
 /**
- * The singleton BroadcastChannel instance for bookmark events.
- * Lazily initialized on first access.
+ * Singleton factory instance for the `bookmarks` channel.
  */
-let bookmarksChannel: BroadcastChannel | null = null;
+const bookmarksChannel = createBroadcastChannel<BookmarkEvent>(BOOKMARKS_CHANNEL_NAME, {
+  validate: (data): BookmarkEvent | null => {
+    if (typeof data !== 'object' || data === null) return null;
+    const d = data as Partial<BookmarksInvalidatedEvent>;
+    if (d.type !== 'bookmarks/invalidated') return null;
+    if (typeof d.tabId !== 'string' || d.tabId.length === 0) return null;
+    if (typeof d.userId !== 'string' || d.userId.length === 0) return null;
+    return d as BookmarkEvent;
+  },
+});
 
-/**
- * Flag indicating whether BroadcastChannel is available for the
- * bookmarks channel. Same availability check as the auth channel.
- */
-let isBookmarksBroadcastChannelAvailable: boolean | null = null;
+// ─── Public API ──────────────────────────────────────────────────────────
 
-/**
- * Check if BroadcastChannel is available.
- */
-function checkBroadcastChannelAvailable(): boolean {
-  if (isBookmarksBroadcastChannelAvailable !== null) {
-    return isBookmarksBroadcastChannelAvailable;
-  }
-
-  if (typeof BroadcastChannel === 'undefined') {
-    isBookmarksBroadcastChannelAvailable = false;
-    return false;
-  }
-
-  try {
-    // Try to construct to verify it works (some browsers have the
-    // global but it throws on construction).
-    new BroadcastChannel('test');
-    isBookmarksBroadcastChannelAvailable = true;
-  } catch {
-    isBookmarksBroadcastChannelAvailable = false;
-  }
-
-  return isBookmarksBroadcastChannelAvailable;
+/** Close the bookmarks channel (for cleanup/testing). */
+export function closeBookmarksChannel(): void {
+  bookmarksChannel.closeChannel();
 }
 
 /**
- * Get the singleton bookmarks BroadcastChannel.
+ * Back-compat accessor for the singleton channel. Returns the
+ * underlying `BroadcastChannel` instance (or `null` in SSR /
+ * when the API is unavailable).
  *
- * Lazily creates the channel on first call. Subsequent calls return
- * the same instance.
- *
- * @returns The BroadcastChannel instance, or null if unavailable
+ * Phase 4 (TKT-Phase-4.A1): most callers should use
+ * `subscribeToBookmarkEvents` instead. The accessor remains
+ * exported so test harnesses can probe the channel instance.
  */
 export function getBookmarksChannel(): BroadcastChannel | null {
-  if (typeof window === 'undefined') {
-    return null;
-  }
-
-  if (!checkBroadcastChannelAvailable()) {
-    return null;
-  }
-
-  if (bookmarksChannel === null) {
-    bookmarksChannel = new BroadcastChannel(BOOKMARKS_CHANNEL_NAME);
-  }
-
-  return bookmarksChannel;
+  return bookmarksChannel.getChannel();
 }
 
 /**
- * Close the bookmarks channel (for cleanup/testing).
- * After calling this, `getBookmarksChannel()` will create a new channel.
+ * Back-compat initializer. The factory installs the listener on
+ * first `subscribe` call, so explicit init is rarely needed.
  */
-export function closeBookmarksChannel(): void {
-  if (bookmarksChannel !== null) {
-    bookmarksChannel.close();
-    bookmarksChannel = null;
-  }
+export function initBookmarksChannel(): boolean {
+  // The factory's `subscribe` is the canonical entry point; this
+  // helper exists for tests that probe the listener-install side
+  // effect.
+  return bookmarksChannel.isAvailable();
 }
-
-// ─── External Subscribers ─────────────────────────────────────────────────────
-
-type BookmarkEventHandler = (event: BookmarkEvent) => void;
-
-const bookmarkSubscribers = new Set<BookmarkEventHandler>();
 
 /**
  * Subscribe to bookmark broadcast events.
  *
  * The handler is called for all events from other tabs (same-tab events
- * are filtered out by `tabId`).
+ * are filtered out by the factory's same-tab filter).
  *
  * @param handler - Callback invoked for each bookmark event
  * @returns Unsubscribe function
@@ -219,102 +189,13 @@ const bookmarkSubscribers = new Set<BookmarkEventHandler>();
  * ```
  */
 export function subscribeToBookmarkEvents(
-  handler: BookmarkEventHandler,
+  handler: (event: BookmarkEvent) => void,
 ): () => void {
-  bookmarkSubscribers.add(handler);
-
-  return () => {
-    bookmarkSubscribers.delete(handler);
-  };
+  return bookmarksChannel.subscribe(handler);
 }
-
-/**
- * Dispatch an event to all external subscribers.
- * Internal use only — called by the channel message handler.
- */
-function dispatchToBookmarkSubscribers(event: BookmarkEvent): void {
-  bookmarkSubscribers.forEach((handler) => {
-    try {
-      handler(event);
-    } catch (err) {
-      // Prevent a buggy subscriber from breaking other subscribers
-      console.error('[bookmarks] Error in bookmark event subscriber:', err);
-    }
-  });
-}
-
-// ─── Message Handler ─────────────────────────────────────────────────────────
-
-/**
- * Handle an incoming bookmark broadcast message.
- * Filters out same-tab messages and dispatches to subscribers.
- */
-function handleBookmarksMessage(event: MessageEvent): void {
-  // Validate the message structure
-  if (!event.data || typeof event.data !== 'object') {
-    return;
-  }
-
-  const data = event.data as Partial<BookmarksInvalidatedEvent>;
-
-  // Must have a valid type
-  if (!data.type || data.type !== 'bookmarks/invalidated') {
-    return;
-  }
-
-  // Must have a tabId
-  if (!data.tabId || typeof data.tabId !== 'string') {
-    return;
-  }
-
-  // Must have a userId
-  if (!data.userId || typeof data.userId !== 'string') {
-    return;
-  }
-
-  // Filter out same-tab broadcasts (prevent event loops)
-  const myTabId = getCurrentTabId();
-  if (data.tabId === myTabId) {
-    return;
-  }
-
-  // Dispatch to subscribers
-  dispatchToBookmarkSubscribers(data as BookmarkEvent);
-}
-
-// ─── Channel Initialization ───────────────────────────────────────────────────
-
-/**
- * Initialize the bookmark channel listener.
- * Called internally by `broadcastBookmarksInvalidated()` but can be
- * called explicitly.
- *
- * @returns true if initialization succeeded, false if BroadcastChannel unavailable
- */
-export function initBookmarksChannel(): boolean {
-  const channel = getBookmarksChannel();
-
-  if (channel === null) {
-    return false;
-  }
-
-  // Only add listener once (channel is a singleton)
-  if (!(channel as unknown as { _listenerAdded?: boolean })._listenerAdded) {
-    channel.addEventListener('message', handleBookmarksMessage);
-    (channel as unknown as { _listenerAdded?: boolean })._listenerAdded = true;
-  }
-
-  return true;
-}
-
-// ─── Broadcasting ───────────────────────────────────────────────────────────
 
 /**
  * Broadcast a bookmark membership invalidation to all other tabs.
- *
- * Automatically includes the current tab's ID for same-tab filtering
- * via `getCurrentTabId()` (re-exported from the auth channel so the
- * tab identity is shared across both channels).
  *
  * @param params - The event payload
  * @param params.userId - The authenticated user ID whose membership
@@ -328,29 +209,18 @@ export function initBookmarksChannel(): boolean {
 export function broadcastBookmarksInvalidated(params: {
   userId: string;
 }): void {
-  // Ensure channel is initialized (sets up listener if not already)
-  initBookmarksChannel();
-
-  const channel = getBookmarksChannel();
-  if (channel === null) {
-    // BroadcastChannel unavailable — the local mutation's
-    // `mutate(key)` invalidation still runs so the source tab is
-    // correct.
-    return;
-  }
-
+  // Always instantiate the channel up-front (mirrors the original
+  // module's behavior) so callers / test harnesses can probe the
+  // channel instance even when the publish is dropped by the
+  // userId-validation guard below.
+  bookmarksChannel.ensureChannel();
   if (!params.userId || typeof params.userId !== 'string') {
     // Defensive: never publish an event without a userId. Receiving
     // tabs require the userId to scope the revalidation.
     return;
   }
-
-  const fullEvent: BookmarksInvalidatedEvent = {
+  bookmarksChannel.publish({
     type: 'bookmarks/invalidated',
     userId: params.userId,
-    tabId: getCurrentTabId(),
-    timestamp: Date.now(),
-  };
-
-  channel.postMessage(fullEvent);
+  });
 }

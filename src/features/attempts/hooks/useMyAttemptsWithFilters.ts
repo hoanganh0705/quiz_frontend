@@ -57,7 +57,7 @@ import type {
 } from "@/lib/api/use-cursor-paginated.types";
 
 import { listMyAttempts } from "@/features/attempts/services/attempts.service";
-import { useAuthBootstrap } from "@/features/auth/contexts/auth-bootstrap-context";
+import { useAuthSession } from "@/features/auth/hooks/use-auth-session";
 import {
   ATTEMPT_HISTORY_CACHE_KEYS,
   type AttemptHistoryFilters,
@@ -134,7 +134,7 @@ export function useMyAttemptsWithFilters(
 ): UseMyAttemptsWithFiltersResult {
   const { filters } = params;
 
-  const { bootstrapState, currentUser } = useAuthBootstrap();
+  const { bootstrapState, currentUser } = useAuthSession();
 
   const sessionId = useMemo<string | null>(() => {
     if (bootstrapState !== "authenticated") return null;

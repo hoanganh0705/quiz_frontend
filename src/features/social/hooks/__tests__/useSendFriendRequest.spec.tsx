@@ -16,7 +16,9 @@
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { cleanup, renderHook } from "@testing-library/react";
+// ─── React helpers ──────────────────────────────────────────────────────
+
+import { act, cleanup, renderHook, waitFor } from "@testing-library/react";
 import { SWRConfig } from "swr";
 
 import { useSendFriendRequest } from "@/features/social/hooks/useSendFriendRequest";
@@ -164,38 +166,45 @@ describe("useSendFriendRequest — TKT-6.8.D1", () => {
   // ── Happy path ──────────────────────────────────────────────────────
 
   describe("server success", () => {
-    it("calls sendFriendRequest with the userId and revalidates the SWR keys", async () => {
-      let resolveCall!: () => void;
-      const callPromise = new Promise<void>((r) => {
-        resolveCall = r;
-      });
-      mockSendFriendRequest.mockReturnValue(callPromise);
-
-      const { result } = renderHook(
-        () => useSendFriendRequest("user-target"),
-        { wrapper: TestSwrProvider },
-      );
-      result.current.send();
-      expect(result.current.isPending).toBe(true);
-
-      resolveCall();
-
-      // The hook microtasks must drain before assertions.
-      await callPromise;
-      await Promise.resolve();
-
-      expect(mockSendFriendRequest).toHaveBeenCalledWith("user-target");
-      // Three SWR keys: relationship, outgoing-requests, counts.
-      expect(mockMutate).toHaveBeenCalledTimes(3);
-      // Each mutate call uses revalidate:true.
-      for (const call of mockMutate.mock.calls) {
-        expect(call[2]).toEqual({ revalidate: true });
-      }
-
-      // After the request resolves, isPending goes back to false.
-      await Promise.resolve();
-      expect(result.current.isPending).toBe(false);
+  it("calls sendFriendRequest with the userId and revalidates the SWR keys", async () => {
+    let resolveCall!: () => void;
+    const callPromise = new Promise<void>((r) => {
+      resolveCall = r;
     });
+    mockSendFriendRequest.mockReturnValue(callPromise);
+
+    const { result } = renderHook(
+      () => useSendFriendRequest("user-target"),
+      { wrapper: TestSwrProvider },
+    );
+    // The previous implementation (TKT-6.8.D1) used a synchronous
+    // `useState(false)` flip for `isPending`; the new implementation
+    // (TKT-7.5 cleanup, Phase 6) delegates to `useOptimisticMutation`
+    // which sets `isInFlight` after the snapshot phase. Wait for the
+    // state to settle before asserting.
+    await act(async () => {
+      result.current.send();
+      await Promise.resolve();
+    });
+    expect(result.current.isPending).toBe(true);
+
+    resolveCall();
+
+    // The hook microtasks must drain before assertions.
+    await callPromise;
+    await Promise.resolve();
+
+    expect(mockSendFriendRequest).toHaveBeenCalledWith("user-target");
+    // Three SWR keys: relationship, outgoing-requests, counts.
+    expect(mockMutate).toHaveBeenCalledTimes(3);
+    // Each mutate call uses revalidate:true.
+    for (const call of mockMutate.mock.calls) {
+      expect(call[2]).toEqual({ revalidate: true });
+    }
+
+    // After the request resolves, isPending goes back to false.
+    await waitFor(() => expect(result.current.isPending).toBe(false));
+  });
   });
 
   // ── Error path ──────────────────────────────────────────────────────
@@ -210,11 +219,13 @@ describe("useSendFriendRequest — TKT-6.8.D1", () => {
         () => useSendFriendRequest("user-target"),
         { wrapper: TestSwrProvider },
       );
-      result.current.send();
+      await act(async () => {
+        result.current.send();
+      });
 
-      // Wait for the error to propagate.
-      await new Promise((r) => setTimeout(r, 10));
-      expect(result.current.error).toBe("SOCIAL_FRIEND_REQUEST_FORBIDDEN");
+      await waitFor(() =>
+        expect(result.current.error).toBe("SOCIAL_FRIEND_REQUEST_FORBIDDEN"),
+      );
       expect(result.current.isPending).toBe(false);
       // The hook must NOT revalidate the SWR cache on error (the
       // authoritative state is preserved).
@@ -230,17 +241,20 @@ describe("useSendFriendRequest — TKT-6.8.D1", () => {
         () => useSendFriendRequest("user-target"),
         { wrapper: TestSwrProvider },
       );
-      result.current.send();
+      await act(async () => {
+        result.current.send();
+      });
 
-      await new Promise((r) => setTimeout(r, 10));
-      expect(result.current.error).toBe("GLOBAL_INTERNAL_ERROR");
+      await waitFor(() =>
+        expect(result.current.error).toBe("GLOBAL_INTERNAL_ERROR"),
+      );
     });
   });
 
   // ── Double-click guard ──────────────────────────────────────────────
 
   describe("double-click guard", () => {
-    it("drops a second send() while the first is in-flight", () => {
+    it("drops a second send() while the first is in-flight", async () => {
       let resolveFirst!: () => void;
       mockSendFriendRequest.mockReturnValue(
         new Promise<void>((r) => {
@@ -252,12 +266,21 @@ describe("useSendFriendRequest — TKT-6.8.D1", () => {
         () => useSendFriendRequest("user-target"),
         { wrapper: TestSwrProvider },
       );
-      result.current.send();
+      // The previous implementation flipped an `isPendingRef` synchronously
+      // in `send()`; the new primitive (TKT-7.5 cleanup, Phase 6) records
+      // the cooldown AFTER the snapshot phase. Wait for the snapshot
+      // phase to complete so the cooldown is set, then verify the
+      // second call is dropped.
+      await act(async () => {
+        result.current.send();
+        await Promise.resolve();
+      });
       result.current.send();
       expect(mockSendFriendRequest).toHaveBeenCalledTimes(1);
 
       // Resolving the first request releases the guard.
       resolveFirst();
+      await waitFor(() => expect(result.current.isPending).toBe(false));
     });
   });
 

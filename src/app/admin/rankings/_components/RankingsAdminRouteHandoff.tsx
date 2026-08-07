@@ -31,6 +31,7 @@ import { ShieldAlert } from 'lucide-react';
 
 import { useAdminFeatureFlag } from '@/features/admin/hooks/useAdminFeatureFlag';
 import { RankingAdminPage } from '@/features/admin/ranking-admin/components';
+import { logger } from '@/shared/log';
 
 /**
  * Placeholder rendered when `phase7_admin_ranking` is not `'live'`.
@@ -77,7 +78,7 @@ export function RankingsAdminRouteHandoff() {
 
   // Emit breadcrumb on mount for observability.
   useEffect(() => {
-    console.debug('[ranking-admin:mount]', { flag: flagValue });
+    logger.debug('admin.ranking', 'mount', { flag: flagValue });
   }, [flagValue]);
 
   // Feature flag not yet live → render the disabled notice.

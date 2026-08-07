@@ -29,8 +29,8 @@ vi.mock('@/lib/feature-flags', () => ({
 }));
 
 // Mock auth bootstrap
-vi.mock('@/features/auth/contexts/auth-bootstrap-context', () => ({
-  useAuthBootstrap: vi.fn(() => ({
+vi.mock('@/features/auth/hooks/use-auth-session', () => ({
+  useAuthSession: vi.fn(() => ({
     bootstrapState: 'authenticated',
     currentUser: { userId: 'user-123', id: 'user-123' },
   })),
@@ -122,7 +122,7 @@ describe('TournamentRegistrationCta', () => {
 
   describe('unauthenticated state', () => {
     it('renders "Sign in to register" button', () => {
-      vi.mocked(require('@/features/auth/contexts/auth-bootstrap-context').useAuthBootstrap).mockReturnValueOnce({
+      vi.mocked(require('@/features/auth/hooks/use-auth-session').useAuthSession).mockReturnValueOnce({
         bootstrapState: 'unauthenticated',
         currentUser: null,
       });

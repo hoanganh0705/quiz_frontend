@@ -131,8 +131,8 @@ vi.mock('@/lib/forms/useToast', () => ({
   useToast: () => ({ push: vi.fn() }),
 }));
 
-vi.mock('@/features/auth/contexts/auth-bootstrap-context', () => ({
-  useAuthBootstrap: () => ({
+vi.mock('@/features/auth/hooks/use-auth-session', () => ({
+  useAuthSession: () => ({
     bootstrapState: 'authenticated',
     currentUser: { id: USER_ID, userId: USER_ID },
     isAuthenticated: true,

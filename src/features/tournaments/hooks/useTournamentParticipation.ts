@@ -29,7 +29,7 @@
 
 import { useMemo } from "react";
 
-import { useAuthBootstrap } from "@/features/auth/contexts/auth-bootstrap-context";
+import { useAuthSession } from "@/features/auth/hooks/use-auth-session";
 import { useTournament } from "@/features/tournaments/hooks/useTournament";
 import { useTournamentParticipants } from "@/features/tournaments/hooks/useTournamentParticipants";
 import {
@@ -126,7 +126,7 @@ export function useTournamentParticipation(
   const isFlagPlaceholder = flagValue === "placeholder";
 
   // Auth state
-  const { bootstrapState, currentUser } = useAuthBootstrap();
+  const { bootstrapState, currentUser } = useAuthSession();
   const userId = useMemo(
     () => getUserId(currentUser),
     [currentUser],

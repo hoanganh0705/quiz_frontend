@@ -40,22 +40,39 @@
  * invalid credentials.
  */
 
+import type { ErrorCode } from '@/lib/api/error-codes';
+
 /**
  * Error codes that indicate a terminal refresh failure.
  * When any of these codes is received, the client MUST clear all
  * cached tokens and force reauthentication.
+ *
+ * P2-29 cleanup: each literal now carries `as const satisfies
+ * ErrorCode` so the global registry tracks the membership at
+ * compile time. The runtime array is built from the typed literals
+ * so the union is always in lockstep with the registry.
  */
+export const AUTH_TOKEN_REUSED = 'AUTH_TOKEN_REUSED' as const satisfies ErrorCode;
+export const AUTH_SESSION_CONTEXT_MISMATCH = 'AUTH_SESSION_CONTEXT_MISMATCH' as const satisfies ErrorCode;
+export const AUTH_INVALID_REFRESH_TOKEN = 'AUTH_INVALID_REFRESH_TOKEN' as const satisfies ErrorCode;
+
 export const REFRESH_TERMINAL_ERROR_CODES = [
-  'AUTH_TOKEN_REUSED',
-  'AUTH_SESSION_CONTEXT_MISMATCH',
-  'AUTH_INVALID_REFRESH_TOKEN',
+  AUTH_TOKEN_REUSED,
+  AUTH_SESSION_CONTEXT_MISMATCH,
+  AUTH_INVALID_REFRESH_TOKEN,
 ] as const;
 
 /**
- * Type-safe union of terminal refresh error codes.
+ * Type-safe union of terminal refresh error codes. P2-29 cleanup:
+ * derived from the global `ErrorCode` union via `Extract` so the
+ * subset auto-tracks the registry.
  */
-export type RefreshTerminalErrorCode =
-  (typeof REFRESH_TERMINAL_ERROR_CODES)[number];
+export type RefreshTerminalErrorCode = Extract<
+  ErrorCode,
+  | typeof AUTH_TOKEN_REUSED
+  | typeof AUTH_SESSION_CONTEXT_MISMATCH
+  | typeof AUTH_INVALID_REFRESH_TOKEN
+>;
 
 /**
  * Type guard: returns true if the given error code is a terminal
@@ -78,21 +95,3 @@ export function isRefreshTerminalError(
 ): code is RefreshTerminalErrorCode {
   return (REFRESH_TERMINAL_ERROR_CODES as readonly string[]).includes(code);
 }
-
-/**
- * The canonical refresh token reuse error code.
- * Returned by the backend when a rotated refresh token is reused.
- */
-export const AUTH_TOKEN_REUSED = 'AUTH_TOKEN_REUSED';
-
-/**
- * The canonical session context mismatch error code.
- * Returned when strict session binding detects a changed browser/device.
- */
-export const AUTH_SESSION_CONTEXT_MISMATCH = 'AUTH_SESSION_CONTEXT_MISMATCH';
-
-/**
- * The canonical invalid refresh token error code.
- * Returned when the refresh token is expired, unknown, or revoked.
- */
-export const AUTH_INVALID_REFRESH_TOKEN = 'AUTH_INVALID_REFRESH_TOKEN';

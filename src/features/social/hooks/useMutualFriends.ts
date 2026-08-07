@@ -63,7 +63,7 @@ import type {
   SocialListVisibility,
 } from "@/features/social/social-list-visibility";
 
-import { useAuthBootstrap } from "@/features/auth/contexts/auth-bootstrap-context";
+import { useAuthSession } from "@/features/auth/hooks/use-auth-session";
 
 // ─── Public surface ──────────────────────────────────────────────────────
 
@@ -150,7 +150,7 @@ export function useMutualFriends(
   const flagValue = getFeatureFlagValue("phase6_social_mutuals");
   const isFlagPlaceholder = flagValue === "placeholder";
 
-  const auth = useAuthBootstrap();
+  const auth = useAuthSession();
   const isAuthenticated = auth.isAuthenticated;
 
   const key = useMemo<readonly unknown[] | null>(() => {

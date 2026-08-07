@@ -36,7 +36,7 @@
 import { useCallback, useRef, useState } from "react";
 import { mutate as globalMutate } from "swr";
 
-import { ApiError, isApiError } from "@/lib/api";
+import { ApiError, coerceToApiError, isApiError } from "@/lib/api";
 
 import { joinInstance } from "@/features/instances/services/instances.service";
 import {
@@ -98,10 +98,7 @@ function mapToInstanceLifecycleErrorCode(
 }
 
 function wrapAsApiError(err: unknown): ApiError {
-  if (err instanceof ApiError) return err;
-  return new ApiError(
-    err as unknown as ConstructorParameters<typeof ApiError>[0],
-  );
+  return coerceToApiError(err);
 }
 
 // ─── Hook ─────────────────────────────────────────────────────────────────
@@ -162,10 +159,13 @@ export function useJoinInstance(
     } catch (cause: unknown) {
       const wrapped = wrapAsApiError(cause);
       const mappedCode = mapToInstanceLifecycleErrorCode(wrapped.code);
-      const mapped = new ApiError({
-        ...(wrapped as unknown as object),
+      const mapped = ApiError.fromInput({
+        status: wrapped.status,
         code: mappedCode,
-      } as unknown as ConstructorParameters<typeof ApiError>[0]);
+        message: wrapped.detail,
+        title: wrapped.title,
+        requestId: wrapped.requestId,
+      });
 
       // Use the mapped error for the UI; preserve the original for telemetry.
       if (!isApiError(cause)) {

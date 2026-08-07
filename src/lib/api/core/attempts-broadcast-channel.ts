@@ -4,6 +4,11 @@
  *
  * Source epic:   Story 4.13 / 4.14 / 4.15 (Phase 4 attempt lifecycle).
  * Source ticket: TKT-4.1.B2.
+ * Phase 4 (cross-tab infra): rewritten on top of
+ *   `createBroadcastChannel` (TKT-Phase-4.A1). The event types,
+ *   validation, and the public subscribe / publish surface are
+ *   preserved; the singleton / listener / same-tab boilerplate
+ *   is now owned by the factory.
  *
  * ## Purpose
  *
@@ -51,7 +56,7 @@
  * tab's own `mutate(key)` invalidation still runs so the source tab is
  * correct.
  */
-import { getCurrentTabId } from './broadcast-channel';
+import { createBroadcastChannel } from '@/lib/broadcast';
 
 /**
  * Channel name used for all attempt broadcasts.
@@ -119,120 +124,62 @@ export interface AttemptsChangedEvent extends BaseAttemptEvent {
  */
 export type AttemptEvent = AttemptsChangedEvent;
 
-// ─── Channel Singleton ───────────────────────────────────────────────────────
+const ATTEMPT_VALID_KINDS = new Set<AttemptChangeKind>([
+  'start',
+  'submit',
+  'withdraw',
+  'abandon',
+  'complete',
+]);
 
-let attemptsChannel: BroadcastChannel | null = null;
-let isAttemptsBroadcastChannelAvailable: boolean | null = null;
-
-function checkBroadcastChannelAvailable(): boolean {
-  if (isAttemptsBroadcastChannelAvailable !== null) {
-    return isAttemptsBroadcastChannelAvailable;
-  }
-  if (typeof BroadcastChannel === 'undefined') {
-    isAttemptsBroadcastChannelAvailable = false;
-    return false;
-  }
-  try {
-    new BroadcastChannel('attempts.test');
-    isAttemptsBroadcastChannelAvailable = true;
-  } catch {
-    isAttemptsBroadcastChannelAvailable = false;
-  }
-  return isAttemptsBroadcastChannelAvailable;
-}
+// ─── Factory-backed channel ───────────────────────────────────────────────
 
 /**
- * Get the singleton attempts BroadcastChannel.
- * Lazily created on first call; subsequent calls return the same instance.
- * @returns The BroadcastChannel instance, or null if unavailable
+ * Singleton factory instance for the `attempts` channel.
  */
-export function getAttemptsChannel(): BroadcastChannel | null {
-  if (typeof window === 'undefined') return null;
-  if (!checkBroadcastChannelAvailable()) return null;
-  if (attemptsChannel === null) {
-    attemptsChannel = new BroadcastChannel(ATTEMPTS_CHANNEL_NAME);
-  }
-  return attemptsChannel;
-}
+const attemptsChannel = createBroadcastChannel<AttemptEvent>(ATTEMPTS_CHANNEL_NAME, {
+  validate: (data): AttemptEvent | null => {
+    if (typeof data !== 'object' || data === null) return null;
+    const d = data as Partial<AttemptsChangedEvent>;
+    if (d.type !== 'attempts/changed') return null;
+    if (typeof d.tabId !== 'string' || d.tabId.length === 0) return null;
+    if (typeof d.userId !== 'string' || d.userId.length === 0) return null;
+    if (typeof d.attemptId !== 'string' || d.attemptId.length === 0) return null;
+    if (typeof d.kind !== 'string' || !ATTEMPT_VALID_KINDS.has(d.kind as AttemptChangeKind)) {
+      return null;
+    }
+    return d as AttemptEvent;
+  },
+});
+
+// ─── Public API ──────────────────────────────────────────────────────────
 
 /** Close the attempts channel (for cleanup/testing). */
 export function closeAttemptsChannel(): void {
-  if (attemptsChannel !== null) {
-    attemptsChannel.close();
-    attemptsChannel = null;
-  }
+  attemptsChannel.closeChannel();
 }
 
-// ─── External Subscribers ─────────────────────────────────────────────────────
-
-type AttemptEventHandler = (event: AttemptEvent) => void;
-const attemptSubscribers = new Set<AttemptEventHandler>();
+/**
+ * Back-compat accessor for the singleton channel. Returns the
+ * underlying `BroadcastChannel` instance.
+ */
+export function getAttemptsChannel(): BroadcastChannel | null {
+  return attemptsChannel.getChannel();
+}
 
 /**
- * Subscribe to attempt broadcast events.
- * Same-tab events are filtered out by `tabId` in the message handler.
+ * Subscribe to attempt broadcast events. Same-tab events are
+ * filtered out by the factory.
  * @returns Unsubscribe function
  */
 export function subscribeToAttemptEvents(
-  handler: AttemptEventHandler,
+  handler: (event: AttemptEvent) => void,
 ): () => void {
-  attemptSubscribers.add(handler);
-  return () => {
-    attemptSubscribers.delete(handler);
-  };
+  return attemptsChannel.subscribe(handler);
 }
-
-function dispatchToAttemptSubscribers(event: AttemptEvent): void {
-  attemptSubscribers.forEach((handler) => {
-    try {
-      handler(event);
-    } catch (err) {
-      // Prevent a buggy subscriber from breaking other subscribers
-      console.error('[attempts] Error in attempt event subscriber:', err);
-    }
-  });
-}
-
-// ─── Message Handler ─────────────────────────────────────────────────────────
-
-function handleAttemptsMessage(event: MessageEvent): void {
-  if (!event.data || typeof event.data !== 'object') return;
-  const data = event.data as Partial<AttemptsChangedEvent>;
-  if (data.type !== 'attempts/changed') return;
-  if (!data.tabId || typeof data.tabId !== 'string') return;
-  if (!data.userId || typeof data.userId !== 'string') return;
-  if (!data.attemptId || typeof data.attemptId !== 'string') return;
-  if (
-    !data.kind ||
-    !['start', 'submit', 'withdraw', 'abandon', 'complete'].includes(data.kind)
-  ) {
-    return;
-  }
-  const myTabId = getCurrentTabId();
-  if (data.tabId === myTabId) return;
-  dispatchToAttemptSubscribers(data as AttemptEvent);
-}
-
-// ─── Channel Initialization ───────────────────────────────────────────────────
-
-export function initAttemptsChannel(): boolean {
-  const channel = getAttemptsChannel();
-  if (channel === null) return false;
-  if (!(channel as unknown as { _listenerAdded?: boolean })._listenerAdded) {
-    channel.addEventListener('message', handleAttemptsMessage);
-    (channel as unknown as { _listenerAdded?: boolean })._listenerAdded = true;
-  }
-  return true;
-}
-
-// ─── Broadcasting ───────────────────────────────────────────────────────────
 
 /**
  * Broadcast an attempt-lifecycle mutation to all other tabs.
- *
- * Automatically includes the current tab's ID for same-tab filtering
- * via `getCurrentTabId()` (shared with the auth and bookmarks
- * channels).
  *
  * @example
  *   broadcastAttemptsChanged({
@@ -244,9 +191,9 @@ export function broadcastAttemptsChanged(params: {
   attemptId: string;
   kind: AttemptChangeKind;
 }): void {
-  initAttemptsChannel();
-  const channel = getAttemptsChannel();
-  if (channel === null) return;
+  // Always instantiate the channel up-front (mirrors the original
+  // module's behavior).
+  attemptsChannel.ensureChannel();
   if (
     !params.userId ||
     typeof params.userId !== 'string' ||
@@ -256,13 +203,10 @@ export function broadcastAttemptsChanged(params: {
   ) {
     return;
   }
-  const fullEvent: AttemptsChangedEvent = {
+  attemptsChannel.publish({
     type: 'attempts/changed',
     userId: params.userId,
     attemptId: params.attemptId,
     kind: params.kind,
-    tabId: getCurrentTabId(),
-    timestamp: Date.now(),
-  };
-  channel.postMessage(fullEvent);
+  });
 }

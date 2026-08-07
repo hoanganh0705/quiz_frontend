@@ -42,7 +42,7 @@
 import { useCallback, useRef, useState } from "react";
 import { mutate as globalMutate } from "swr";
 
-import { ApiError } from "@/lib/api";
+import { ApiError, coerceToApiError, isApiError } from "@/lib/api";
 
 import { startInstance } from "@/features/instances/services/instances.service";
 import {
@@ -106,10 +106,7 @@ function mapToInstanceLifecycleErrorCode(
 }
 
 function wrapAsApiError(err: unknown): ApiError {
-  if (err instanceof ApiError) return err;
-  return new ApiError(
-    err as unknown as ConstructorParameters<typeof ApiError>[0],
-  );
+  return coerceToApiError(err);
 }
 
 // ─── Hook ─────────────────────────────────────────────────────────────────
@@ -141,11 +138,11 @@ export function useStartInstance(
     if (permissions !== null && !permissions.canStart) {
       setState("error");
       setError(
-        new ApiError({
+        ApiError.fromInput({
           status: 403,
           code: "INSTANCE_HOST_REQUIRED",
           message: "Only the host can start this instance.",
-        } as unknown as ConstructorParameters<typeof ApiError>[0]),
+        }),
       );
       return;
     }
@@ -172,10 +169,13 @@ export function useStartInstance(
     } catch (cause: unknown) {
       const wrapped = wrapAsApiError(cause);
       const mappedCode = mapToInstanceLifecycleErrorCode(wrapped.code);
-      const mapped = new ApiError({
-        ...(wrapped as unknown as object),
+      const mapped = ApiError.fromInput({
+        status: wrapped.status,
         code: mappedCode,
-      } as unknown as ConstructorParameters<typeof ApiError>[0]);
+        message: wrapped.detail,
+        title: wrapped.title,
+        requestId: wrapped.requestId,
+      });
 
       setState("error");
       setError(mapped);

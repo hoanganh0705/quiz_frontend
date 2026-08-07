@@ -60,9 +60,9 @@ vi.mock("@/lib/feature-flags/feature-flags", () => ({
 
 // Auth bootstrap mock — vi.fn() is hoisted; mockReturnValue in beforeEach.
 const mockUseAuthBootstrap = vi.fn();
-vi.mock("@/features/auth/contexts/auth-bootstrap-context", () => ({
+vi.mock("@/features/auth/hooks/use-auth-session", () => ({
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  useAuthBootstrap: (...args: any[]) => mockUseAuthBootstrap(...args),
+  useAuthSession: (...args: any[]) => mockUseAuthBootstrap(...args),
 }));
 
 // ─── Probe component ─────────────────────────────────────────────────────────

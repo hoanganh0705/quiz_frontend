@@ -45,7 +45,7 @@ import {
   type RankingErrorCode,
   type RankingMilestone,
 } from "@/features/rankings/types";
-import { useAuthBootstrap } from "@/features/auth/contexts/auth-bootstrap-context";
+import { useAuthSession } from "@/features/auth/hooks/use-auth-session";
 import { getFeatureFlagValue } from "@/lib/feature-flags";
 
 import type { RankingMilestoneDto } from "@/lib/api/generated/schemas";
@@ -76,7 +76,7 @@ export function useRankingMilestones(): UseRankingMilestonesResult {
   const flagValue = getFeatureFlagValue("phase5_rankings");
   const isFlagPlaceholder = flagValue === "placeholder";
 
-  const { bootstrapState } = useAuthBootstrap();
+  const { bootstrapState } = useAuthSession();
   const isAuthenticated = bootstrapState === "authenticated";
 
   // Disabled sentinel key when flag is off or user is unauthenticated.

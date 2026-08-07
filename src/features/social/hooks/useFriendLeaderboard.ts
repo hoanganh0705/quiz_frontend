@@ -59,7 +59,7 @@
 
 import { useCallback, useMemo } from "react";
 
-import { useAuthBootstrap } from "@/features/auth/contexts/auth-bootstrap-context";
+import { useAuthSession } from "@/features/auth/hooks/use-auth-session";
 import {
   toFriendLeaderboardFromEnvelope,
 } from "@/features/social/dto-adapters-analytics";
@@ -124,7 +124,7 @@ export function useFriendLeaderboard(
   const flagValue = getFeatureFlagValue("phase6_social");
   const isFlagPlaceholder = flagValue === "placeholder";
 
-  const auth = useAuthBootstrap();
+  const auth = useAuthSession();
   const isAuthenticated = auth.isAuthenticated;
 
   const backendPeriod = toBackendPeriod(period);

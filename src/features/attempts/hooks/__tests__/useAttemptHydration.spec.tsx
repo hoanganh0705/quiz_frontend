@@ -33,7 +33,7 @@ const getAttemptMock = vi.hoisted(() => vi.fn());
 const getAttemptAnswersMock = vi.hoisted(() => vi.fn());
 const getAttemptAnalyticsMock = vi.hoisted(() => vi.fn());
 const getAttemptReviewMock = vi.hoisted(() => vi.fn());
-const useAuthBootstrapMock = vi.hoisted(() => vi.fn());
+const useAuthSessionMock = vi.hoisted(() => vi.fn());
 
 vi.mock('@/features/attempts/services/attempts.service', () => ({
   getAttempt: getAttemptMock,
@@ -42,15 +42,15 @@ vi.mock('@/features/attempts/services/attempts.service', () => ({
   getAttemptReview: getAttemptReviewMock,
 }));
 
-vi.mock('@/features/auth/contexts/auth-bootstrap-context', () => ({
-  useAuthBootstrap: useAuthBootstrapMock,
+vi.mock('@/features/auth/hooks/use-auth-session', () => ({
+  useAuthSession: useAuthSessionMock,
 }));
 
 const SESSION_ID = 'user-1';
 const ATTEMPT_ID = 'attempt-1';
 
 function setBootstrapAuthenticated() {
-  useAuthBootstrapMock.mockReturnValue({
+  useAuthSessionMock.mockReturnValue({
     bootstrapState: 'authenticated',
     isAuthenticated: true,
     currentUser: { userId: SESSION_ID, id: SESSION_ID },
@@ -58,7 +58,7 @@ function setBootstrapAuthenticated() {
 }
 
 function setBootstrapUnauthenticated() {
-  useAuthBootstrapMock.mockReturnValue({
+  useAuthSessionMock.mockReturnValue({
     bootstrapState: 'unauthenticated',
     isAuthenticated: false,
     currentUser: null,
@@ -66,7 +66,7 @@ function setBootstrapUnauthenticated() {
 }
 
 function setBootstrapLoading() {
-  useAuthBootstrapMock.mockReturnValue({
+  useAuthSessionMock.mockReturnValue({
     bootstrapState: 'bootstrapping',
     isAuthenticated: false,
     currentUser: null,

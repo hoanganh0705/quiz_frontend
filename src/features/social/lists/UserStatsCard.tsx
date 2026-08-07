@@ -65,7 +65,7 @@
 import { type ReactElement, useEffect, useMemo, useRef } from "react";
 
 import { useUserSocialStats } from "@/features/social/hooks/useUserSocialStats";
-import { useAuthBootstrap } from "@/features/auth/contexts/auth-bootstrap-context";
+import { useAuthSession } from "@/features/auth/hooks/use-auth-session";
 
 import { type AnalyticsWidget } from "@/features/social/components/AnalyticsChart";
 import { AnalyticsEmptyState } from "@/features/social/components/AnalyticsEmptyState";
@@ -130,7 +130,7 @@ export function UserStatsCard({
   const result = useUserSocialStats(targetUserId);
   const { visibility, stats, isLoading, isStale, error, retry } = result;
 
-  const auth = useAuthBootstrap();
+  const auth = useAuthSession();
   const viewerId = auth.currentUser?.userId ?? null;
   const isSelf = viewerId !== null && viewerId === targetUserId;
 

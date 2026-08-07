@@ -16,7 +16,7 @@
  *  - `revalidate` invalidates both my-review and eligibility keys.
  *
  * Runs in the `jsdom` Vitest project because the hook composes
- * React state, `useAuthBootstrap`, and SWR's global `mutate`.
+ * React state, `useAuthSession`, and SWR's global `mutate`.
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -30,7 +30,7 @@ import {
 
 // ─── Mocks ───────────────────────────────────────────────────────────────────
 
-const useAuthBootstrapMock = vi.fn();
+const useAuthSessionMock = vi.fn();
 const useMyQuizReviewMock = vi.fn();
 const useCompletedQuizAttemptMock = vi.fn();
 // `globalMutate` is a singleton imported from `swr`. We override
@@ -40,8 +40,8 @@ const globalMutateMock = vi.hoisted(() =>
   vi.fn().mockResolvedValue(undefined),
 );
 
-vi.mock('@/features/auth/contexts/auth-bootstrap-context', () => ({
-  useAuthBootstrap: () => useAuthBootstrapMock(),
+vi.mock('@/features/auth/hooks/use-auth-session', () => ({
+  useAuthSession: () => useAuthSessionMock(),
 }));
 
 vi.mock('@/features/reviews/hooks/useMyQuizReview', () => ({
@@ -70,7 +70,7 @@ function setBootstrap(
   state: 'idle' | 'bootstrapping' | 'authenticated' | 'unauthenticated',
   currentUser: { id: string; userId?: string } | null = null,
 ): void {
-  useAuthBootstrapMock.mockReturnValue({
+  useAuthSessionMock.mockReturnValue({
     bootstrapState: state,
     isAuthenticated: state === 'authenticated' || state === 'bootstrapping',
     currentUser:

@@ -3,6 +3,11 @@
  *
  * Source epic:   Epic 7.6 — Comment Moderation (Hide, Restore, and Report Queue).
  * Source ticket: TKT-7.6.G2.
+ * Phase 4 (cross-tab infra): rewritten on top of
+ *   `createBroadcastChannel` (TKT-Phase-4.A1). The event types,
+ *   validation, and the public subscribe / publish surface are
+ *   preserved; the singleton / listener / same-tab boilerplate
+ *   is now owned by the factory.
  *
  * ## Purpose
  *
@@ -26,8 +31,7 @@
  *     tag, category, and review channels.
  *   - singleton channel instance (lazily created on first broadcast)
  *     so listeners register exactly once per tab.
- *   - same-tab filtering via `getCurrentTabId()` so the source tab
- *     does not echo its own broadcast.
+ *   - same-tab filtering via the factory's same-tab filter.
  *   - graceful degradation: when `BroadcastChannel` is unavailable
  *     (older browsers, private mode, server-side rendering), broadcast
  *     and subscribe are both safe no-ops. Local-tab invalidation is
@@ -75,14 +79,14 @@
  * stays silent to avoid implying a successful state to other tabs.
  */
 
-import { getCurrentTabId } from '@/lib/api/core/broadcast-channel';
+import { createBroadcastChannel } from '@/lib/broadcast';
 
 import {
   invalidateCommentById,
   invalidateCommentReportsList,
 } from './comment-moderation-cache-keys';
 
-// ─── Channel name ───────────────────────────────────────────────────────────
+// ─── Channel name ────────────────────────────────────────────────────────────
 
 /**
  * Channel name used for all comment moderation broadcasts. Distinct
@@ -116,6 +120,12 @@ export type CommentModerationEventType =
  */
 export type CommentModerationMutation = 'resolve' | 'hide' | 'restore';
 
+const COMMENT_MODERATION_VALID_MUTATIONS = new Set<CommentModerationMutation>([
+  'resolve',
+  'hide',
+  'restore',
+]);
+
 /**
  * Base interface for all comment moderation broadcast events.
  */
@@ -148,210 +158,78 @@ export interface CommentModerationInvalidatedEvent
  */
 export type CommentModerationEvent = CommentModerationInvalidatedEvent;
 
-// ─── Channel singleton ──────────────────────────────────────────────────────
+// ─── Factory-backed channel ────────────────────────────────────────────────
 
 /**
- * The singleton BroadcastChannel instance for comment moderation
- * events. Lazily initialized on first access.
+ * Singleton factory instance for the `phase7-admin-comment-moderation`
+ * channel.
  */
-let commentModerationChannel: BroadcastChannel | null = null;
+const commentModerationChannel = createBroadcastChannel<CommentModerationEvent>(
+  COMMENT_MODERATION_CHANNEL_NAME,
+  {
+    validate: (data): CommentModerationEvent | null => {
+      if (typeof data !== 'object' || data === null) return null;
+      const d = data as Partial<CommentModerationInvalidatedEvent>;
+      if (d.type !== 'phase7:admin.comment-moderation.invalidate') return null;
+      if (typeof d.tabId !== 'string' || d.tabId.length === 0) return null;
+      if (typeof d.timestamp !== 'number') return null;
+      if (
+        typeof d.action !== 'string' ||
+        !COMMENT_MODERATION_VALID_MUTATIONS.has(d.action as CommentModerationMutation)
+      ) {
+        return null;
+      }
+      if (typeof d.commentId !== 'string' || d.commentId.length === 0) {
+        return null;
+      }
+      // reportId is optional (string | null). Accept null or a string.
+      if (d.reportId !== null && typeof d.reportId !== 'string') return null;
+      return d as CommentModerationEvent;
+    },
+  },
+);
+
+// ─── Public API ──────────────────────────────────────────────────────────
 
 /**
- * Flag indicating whether BroadcastChannel is available for the
- * comment moderation channel. Same availability check as the auth,
- * bookmark, tag, category, and review channels.
+ * Back-compat accessor for the singleton channel. Returns the
+ * underlying `BroadcastChannel` instance.
  */
-let isCommentModerationBroadcastChannelAvailable: boolean | null = null;
-
-/**
- * Check if BroadcastChannel is available.
- */
-function checkBroadcastChannelAvailable(): boolean {
-  if (isCommentModerationBroadcastChannelAvailable !== null) {
-    return isCommentModerationBroadcastChannelAvailable;
-  }
-
-  if (typeof BroadcastChannel === 'undefined') {
-    isCommentModerationBroadcastChannelAvailable = false;
-    return false;
-  }
-
-  try {
-    // Try to construct to verify it works (some browsers have the
-    // global but it throws on construction).
-    new BroadcastChannel('test');
-    isCommentModerationBroadcastChannelAvailable = true;
-  } catch {
-    isCommentModerationBroadcastChannelAvailable = false;
-  }
-
-  return isCommentModerationBroadcastChannelAvailable;
+export function getCommentModerationChannel(): BroadcastChannel | null {
+  return commentModerationChannel.getChannel();
 }
 
 /**
- * Get the singleton comment moderation BroadcastChannel.
- *
- * Lazily creates the channel on first call. Subsequent calls return
- * the same instance.
- *
- * @returns The BroadcastChannel instance, or null if unavailable.
+ * Back-compat initializer. The factory installs the listener on
+ * first `subscribe` call, so explicit init is rarely needed.
  */
-export function getCommentModerationChannel(): BroadcastChannel | null {
-  if (typeof window === 'undefined') {
-    return null;
-  }
-
-  if (!checkBroadcastChannelAvailable()) {
-    return null;
-  }
-
-  if (commentModerationChannel === null) {
-    commentModerationChannel = new BroadcastChannel(
-      COMMENT_MODERATION_CHANNEL_NAME,
-    );
-  }
-
-  return commentModerationChannel;
+export function initCommentModerationChannel(): BroadcastChannel | null {
+  return commentModerationChannel.ensureChannel();
 }
 
 /**
  * Close the comment moderation channel (for cleanup/testing).
- * After calling this, `getCommentModerationChannel()` will create a new channel.
+ * After calling this, the factory closes the channel and the next
+ * `subscribe` call recreates a fresh channel.
  */
 export function closeCommentModerationChannel(): void {
-  if (commentModerationChannel !== null) {
-    commentModerationChannel.close();
-    commentModerationChannel = null;
-  }
+  commentModerationChannel.closeChannel();
 }
-
-// ─── External subscribers ──────────────────────────────────────────────────
-
-type CommentModerationEventHandler = (
-  event: CommentModerationEvent,
-) => void;
-
-const commentModerationSubscribers = new Set<CommentModerationEventHandler>();
 
 /**
  * Subscribe to comment moderation broadcast events.
  *
  * The handler is called for all events from other tabs (same-tab
- * events are filtered out by `tabId`).
+ * events are filtered out by the factory).
  *
  * @param handler - Callback invoked for each comment moderation event.
  * @returns Unsubscribe function.
  */
 export function subscribeCommentModerationInvalidate(
-  handler: CommentModerationEventHandler,
+  handler: (event: CommentModerationEvent) => void,
 ): () => void {
-  commentModerationSubscribers.add(handler);
-
-  return () => {
-    commentModerationSubscribers.delete(handler);
-  };
+  return commentModerationChannel.subscribe(handler);
 }
-
-/**
- * Dispatch an event to all external subscribers.
- * Internal use only — called by the channel message handler.
- */
-function dispatchToCommentModerationSubscribers(
-  event: CommentModerationEvent,
-): void {
-  commentModerationSubscribers.forEach((handler) => {
-    try {
-      handler(event);
-    } catch (err) {
-      // Prevent a buggy subscriber from breaking other subscribers
-      console.error(
-        '[comment-moderation] Error in comment moderation event subscriber:',
-        err,
-      );
-    }
-  });
-}
-
-// ─── Message handler ────────────────────────────────────────────────────────
-
-/**
- * Handle an incoming comment moderation broadcast message.
- * Filters out same-tab messages and dispatches to subscribers.
- */
-function handleCommentModerationMessage(event: MessageEvent): void {
-  // Validate the message structure
-  if (!event.data || typeof event.data !== 'object') {
-    return;
-  }
-
-  const data = event.data as Partial<CommentModerationInvalidatedEvent>;
-
-  // Must have a valid type
-  if (
-    !data.type ||
-    data.type !== 'phase7:admin.comment-moderation.invalidate'
-  ) {
-    return;
-  }
-
-  // Must have a tabId
-  if (!data.tabId || typeof data.tabId !== 'string') {
-    return;
-  }
-
-  // Must have a mutation discriminator (closed union of three values)
-  if (
-    !data.action ||
-    (data.action !== 'resolve' &&
-      data.action !== 'hide' &&
-      data.action !== 'restore')
-  ) {
-    return;
-  }
-
-  // Must have a commentId (always required)
-  if (!data.commentId || typeof data.commentId !== 'string') {
-    return;
-  }
-
-  // Filter out same-tab broadcasts (prevent event loops)
-  const myTabId = getCurrentTabId();
-  if (data.tabId === myTabId) {
-    return;
-  }
-
-  // Dispatch to subscribers
-  dispatchToCommentModerationSubscribers(data as CommentModerationEvent);
-}
-
-// ─── Channel initialization ─────────────────────────────────────────────────
-
-/**
- * Initialize the comment moderation channel listener.
- * Called internally by `broadcastCommentModerationInvalidate()` but can
- * be called explicitly.
- *
- * @returns true if initialization succeeded, false if BroadcastChannel unavailable
- */
-export function initCommentModerationChannel(): boolean {
-  const channel = getCommentModerationChannel();
-
-  if (channel === null) {
-    return false;
-  }
-
-  // Only add listener once (channel is a singleton)
-  if (
-    !(channel as unknown as { _listenerAdded?: boolean })._listenerAdded
-  ) {
-    channel.addEventListener('message', handleCommentModerationMessage);
-    (channel as unknown as { _listenerAdded?: boolean })._listenerAdded = true;
-  }
-
-  return true;
-}
-
-// ─── Broadcasting ───────────────────────────────────────────────────────────
 
 /**
  * Broadcast a comment moderation invalidation to all other tabs.
@@ -375,31 +253,17 @@ export function broadcastCommentModerationInvalidate(
   reportId: string | undefined,
   commentId: string,
 ): void {
-  // Ensure channel is initialized (sets up listener if not already)
-  initCommentModerationChannel();
-
-  const channel = getCommentModerationChannel();
-  if (channel === null) {
-    // BroadcastChannel unavailable — the local mutation's
-    // `mutate(key)` invalidation still runs so the source tab is
-    // correct.
-    return;
-  }
-
   if (!commentId || typeof commentId !== 'string') {
     // Defensive: never publish an event without a commentId. Receiving
     // tabs require the commentId to invalidate the affected reads.
     return;
   }
-
-  const fullEvent: CommentModerationInvalidatedEvent = {
+  if (!COMMENT_MODERATION_VALID_MUTATIONS.has(action)) return;
+  commentModerationChannel.publish({
     type: 'phase7:admin.comment-moderation.invalidate',
     action,
-    reportId: typeof reportId === 'string' && reportId.length > 0 ? reportId : null,
+    reportId:
+      typeof reportId === 'string' && reportId.length > 0 ? reportId : null,
     commentId,
-    tabId: getCurrentTabId(),
-    timestamp: Date.now(),
-  };
-
-  channel.postMessage(fullEvent);
+  });
 }

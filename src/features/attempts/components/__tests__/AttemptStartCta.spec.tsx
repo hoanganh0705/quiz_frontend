@@ -18,8 +18,8 @@ vi.mock('next/navigation', () => ({
 const authBootstrap = {
   state: 'authenticated' as 'authenticated' | 'unauthenticated' | 'bootstrapping',
 };
-vi.mock('@/features/auth/contexts/auth-bootstrap-context', () => ({
-  useAuthBootstrap: () => ({
+vi.mock('@/features/auth/hooks/use-auth-session', () => ({
+  useAuthSession: () => ({
     bootstrapState: authBootstrap.state,
     currentUser: authBootstrap.state === 'authenticated' ? { id: 'u' } : null,
   }),

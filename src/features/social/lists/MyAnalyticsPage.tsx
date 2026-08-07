@@ -57,7 +57,7 @@ import { type ReactElement, useEffect, useMemo, useRef } from "react";
 
 import { useMySocialAnalytics } from "@/features/social/hooks/useMySocialAnalytics";
 import { usePeriodFilter } from "@/features/social/hooks/usePeriodFilter";
-import { useAuthBootstrap } from "@/features/auth/contexts/auth-bootstrap-context";
+import { useAuthSession } from "@/features/auth/hooks/use-auth-session";
 
 import { AnalyticsPeriodFilter } from "@/features/social/components/AnalyticsPeriodFilter";
 import { AnalyticsChart } from "@/features/social/components/AnalyticsChart";
@@ -136,7 +136,7 @@ function toAnalyticsWidgets(analytics: {
  * Render the My Analytics page.
  */
 export function MyAnalyticsPage(): ReactElement {
-  const auth = useAuthBootstrap();
+  const auth = useAuthSession();
   const { period } = usePeriodFilter();
   const { analytics, isLoading, isStale, error, retry, staleness } =
     useMySocialAnalytics(period);

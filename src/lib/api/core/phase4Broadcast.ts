@@ -1,28 +1,37 @@
 /**
- * Phase 4 cross-tab invalidation — single import surface.
+ * `phase4Broadcast.ts` — single import surface for cross-tab
+ * invalidation events emitted by the optimistic-mutation
+ * primitive.
  *
  * Source epic:   Epic 4.1.
  * Source ticket: TKT-4.1.B2.
  *
- * ## Purpose
+ * ## Status (Phase 11 / P2-120)
  *
- * Phase 4 needs cross-tab invalidation for two new event families:
+ * Phase 11 cleanup noted that this module started life as a
+ * *temporary* facade grouping the Phase-4 envelopes (`attempts/changed`
+ * and `profile/updated`) behind one union so the E1 hook could
+ * import from a single source. Once Phase 4 shipped and the
+ * per-feature channels (`attempts-broadcast-channel.ts`,
+ * `profile-broadcast-channel.ts`) became stable, the facade was a
+ * candidate for retirement.
  *
- *   1. Attempt lifecycle (`attempts/changed`)
- *   2. Profile mutations (`profile/updated`)
+ * However, `useOptimisticMutation` (Phase 6) leans on the
+ * `emitPhase4Broadcast(env)` dispatcher and the
+ * `Phase4BroadcastBareMessage` discriminated union to keep mutation
+ * hooks (`useFollow` / `useUnfollow` / `useBlock` /
+ * `useSendFriendRequest` / `useRespondFriendRequest`) terse.
+ * Inlining the discriminator into `useOptimisticMutation` would
+ * leak per-feature channel details into a shared primitive.
  *
- * These live next to the existing auth and bookmarks channels
- * (`broadcast-channel.ts`, `bookmarks-broadcast-channel.ts`) and
- * follow the same per-channel module pattern. The `phase4Broadcast`
- * facade groups the two new envelopes under one union (`*` re-export)
- * and a single `emitPhase4Broadcast(env)` helper that dispatches to
- * the right channel based on `env.type`.
- *
- * Downstream consumers (Story 4.1 ticket E1 — the
- * `usePhase4CrossTabInvalidation` hook, and any feature using the
- * `useOptimisticToggle` extension for attempts / profile) import
- * the union from here so the discriminator narrowing lives at a
- * single source of truth.
+ * Decision: keep the facade as permanent integration glue. The
+ * P2-120 ticket is therefore closed by *documenting* the long-term
+ * status, not by deleting the module. New event families should
+ * either join the existing two (`attempts/changed`,
+ * `profile/updated`) or open their own per-feature channel next to
+ * `attempts-broadcast-channel.ts` / `profile-broadcast-channel.ts`
+ * — do **not** add new branches to the `emitPhase4Broadcast`
+ * dispatcher.
  *
  * ## Why a facade (not a new `BroadcastChannel`)
  *
@@ -85,6 +94,8 @@ export type Phase4BroadcastMessage = AttemptsChangedEvent | ProfileUpdatedEvent;
 t
  * narrowing key for `Phase4BroadcastMessage` is `type`.
  */
+export type Phase4BroadcastBareMessage = Phase4BroadcastMessage;
+
 export type Phase4BroadcastEnvelope = {
   [K in Phase4BroadcastMessage as K["type"]]: K;
 };
@@ -128,7 +139,7 @@ export type {
  *
  * @param env - The event to publish.
  */
-export function emitPhase4Broadcast(env: Phase4BroadcastBareMessage): void {
+export function emitPhase4Broadcast(env: Phase4BroadcastMessage): void {
   switch (env.type) {
     case "attempts/changed":
       broadcastAttemptsChanged({

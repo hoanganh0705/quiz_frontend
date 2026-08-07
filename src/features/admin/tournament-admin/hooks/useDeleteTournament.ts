@@ -108,9 +108,9 @@ import { ApiError } from '@/lib/api/core/ApiError';
 import { addTournamentAdminBreadcrumb } from '@/lib/admin/phase7_admin_sentry';
 
 import { deleteTournament } from '@/features/admin/services/tournament-admin.service';
+import { ApiError, coerceToApiError } from '@/lib/api';
 import {
   adminTournamentsKeyMatcher,
-  coerceToApiError,
   nowMs,
   publicTournamentDetailKeyMatcher,
   publicTournamentsKeyMatcher,

@@ -39,7 +39,7 @@
  *
  * ## Auth + session
  *
- * The hook derives the session id from `useAuthBootstrap` and only
+ * The hook derives the session id from `useAuthSession` and only
  * fires the mutation when bootstrap is `authenticated`. The
  * `customInstance` refresh flow (401 replay) does not enqueue a
  * parallel request — the hook awaits the existing promise so the UI
@@ -57,7 +57,7 @@ import {
 import {
   validateAndBuildSubmitPayload,
 } from '@/features/attempts/lib/attempt-answer-validation';
-import { useAuthBootstrap } from '@/features/auth/contexts/auth-bootstrap-context';
+import { useAuthSession } from '@/features/auth/hooks/use-auth-session';
 import {
   ATTEMPT_CACHE_KEYS,
   type AnswerSelection,
@@ -135,7 +135,7 @@ export function useSubmitAnswer(
 ): UseSubmitAnswerResult {
   const { attemptId, quizVersionId } = params;
 
-  const { bootstrapState, currentUser } = useAuthBootstrap();
+  const { bootstrapState, currentUser } = useAuthSession();
 
   const sessionId = useMemo<string | null>(() => {
     if (bootstrapState !== 'authenticated') return null;

@@ -84,7 +84,7 @@ import { ApiError, isApiError } from '@/lib/api';
 import {
   completeAttempt as completeAttemptService,
 } from '@/features/attempts/services/attempts.service';
-import { useAuthBootstrap } from '@/features/auth/contexts/auth-bootstrap-context';
+import { useAuthSession } from '@/features/auth/hooks/use-auth-session';
 import {
   ATTEMPT_CACHE_KEYS,
 } from '@/features/attempts/types/attempt-runner.types';
@@ -200,7 +200,7 @@ export function useCompleteAttempt(
 ): UseCompleteAttemptResult {
   const { attemptId, quizVersionId } = params;
 
-  const { bootstrapState, currentUser } = useAuthBootstrap();
+  const { bootstrapState, currentUser } = useAuthSession();
 
   const sessionId = useMemo<string | null>(() => {
     if (bootstrapState !== 'authenticated') return null;

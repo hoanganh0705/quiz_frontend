@@ -30,7 +30,7 @@ import {
 } from '@/features/attempts/stores/useAttemptsStore';
 
 const withdrawAnswerMock = vi.hoisted(() => vi.fn());
-const useAuthBootstrapMock = vi.hoisted(() => vi.fn());
+const useAuthSessionMock = vi.hoisted(() => vi.fn());
 const mutateMock = vi.hoisted(() => vi.fn());
 const broadcastAttemptsChangedMock = vi.hoisted(() => vi.fn());
 
@@ -38,8 +38,8 @@ vi.mock('@/features/attempts/services/attempts.service', () => ({
   withdrawAnswer: withdrawAnswerMock,
 }));
 
-vi.mock('@/features/auth/contexts/auth-bootstrap-context', () => ({
-  useAuthBootstrap: useAuthBootstrapMock,
+vi.mock('@/features/auth/hooks/use-auth-session', () => ({
+  useAuthSession: useAuthSessionMock,
 }));
 
 vi.mock('swr', async () => {
@@ -63,7 +63,7 @@ const QV_ID = 'qv-1';
 const QUESTION_ID = 'q1';
 
 function setBootstrapAuthenticated() {
-  useAuthBootstrapMock.mockReturnValue({
+  useAuthSessionMock.mockReturnValue({
     bootstrapState: 'authenticated',
     isAuthenticated: true,
     currentUser: { userId: SESSION_ID, id: SESSION_ID },

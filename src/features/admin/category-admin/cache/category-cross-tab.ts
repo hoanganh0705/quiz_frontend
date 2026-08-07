@@ -53,6 +53,7 @@
  */
 
 import { getCurrentTabId } from '@/lib/api/core/broadcast-channel';
+import { logger } from '@/shared/log';
 
 // ─── Channel name ───────────────────────────────────────────────────────────
 
@@ -164,8 +165,9 @@ function dispatchToCategoryAdminSubscribers(event: CategoryAdminEvent): void {
     try {
       handler(event);
     } catch (err) {
-      console.error(
-        '[category-admin] Error in category admin event subscriber:',
+      logger.error(
+        'admin.category.broadcast',
+        'Error in category admin event subscriber',
         err,
       );
     }

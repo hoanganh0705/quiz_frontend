@@ -95,7 +95,7 @@ const usePermissionMock = vi.hoisted(() =>
   })),
 );
 
-const useAuthBootstrapMock = vi.hoisted(() =>
+const useAuthSessionMock = vi.hoisted(() =>
   vi.fn(() => ({
     bootstrapState: 'authenticated',
     isAuthenticated: true,
@@ -107,8 +107,8 @@ vi.mock('@/features/admin/hooks/usePermission', () => ({
   usePermission: usePermissionMock,
 }));
 
-vi.mock('@/features/auth/contexts/auth-bootstrap-context', () => ({
-  useAuthBootstrap: useAuthBootstrapMock,
+vi.mock('@/features/auth/hooks/use-auth-session', () => ({
+  useAuthSession: useAuthSessionMock,
 }));
 
 vi.mock('@/components/ui/DropdownMenu', () => ({
@@ -199,7 +199,7 @@ beforeEach(() => {
     error: null,
     hasPermission: true,
   });
-  useAuthBootstrapMock.mockReturnValue({
+  useAuthSessionMock.mockReturnValue({
     bootstrapState: 'authenticated',
     isAuthenticated: true,
     currentUser: { userId: 'admin-1' },

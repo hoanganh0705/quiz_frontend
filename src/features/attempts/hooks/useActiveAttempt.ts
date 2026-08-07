@@ -18,7 +18,7 @@
  * - Wraps the result in `useSingleWithRetry` (Epic 3.6) so the
  *   250/500/1000 ms 429 backoff policy and the manual `retry()`
  *   action are reused.
- * - Gated on `useAuthBootstrap` so the private read never fires
+ * - Gated on `useAuthSession` so the private read never fires
  *   while the bootstrap is unresolved or the viewer is
  *   unauthenticated.
  * - Exposes an `attempt: AttemptSummaryResponseDto | null` field
@@ -57,7 +57,7 @@ import { useCallback, useMemo } from 'react';
 import { ApiError, useSingleWithRetry } from '@/lib/api';
 
 import { getActiveAttempt } from '@/features/attempts/services/attempts.service';
-import { useAuthBootstrap } from '@/features/auth/contexts/auth-bootstrap-context';
+import { useAuthSession } from '@/features/auth/hooks/use-auth-session';
 import {
   ATTEMPT_CACHE_KEYS,
   type ActiveAttemptView,
@@ -91,7 +91,7 @@ export function useActiveAttempt(
 ): ActiveAttemptView {
   const { quizId } = params;
 
-  const { bootstrapState, currentUser } = useAuthBootstrap();
+  const { bootstrapState, currentUser } = useAuthSession();
 
   // Stable session id derived from the bootstrap's currentUser. The
   // session is `null` until bootstrap completes, which the key

@@ -31,6 +31,7 @@ import { ShieldAlert } from 'lucide-react';
 
 import { useAdminFeatureFlag } from '@/features/admin/hooks/useAdminFeatureFlag';
 import { AchievementAdminUserPage } from '@/features/admin/achievement-admin/components/AchievementAdminUserPage';
+import { logger } from '@/shared/log';
 
 /**
  * Placeholder rendered when `phase7_admin_achievement` is not `'enabled'`.
@@ -83,8 +84,7 @@ export function AchievementAdminUserRouteHandoff({
 
   // Emit breadcrumb on mount for observability.
   useEffect(() => {
-    // eslint-disable-next-line no-console
-    console.debug('[achievement-admin:mount]', { userId, flag: flagValue });
+    logger.debug('admin.achievement', 'mount', { userId, flag: flagValue });
   }, [userId, flagValue]);
 
   // Feature flag not yet live → render the disabled notice.

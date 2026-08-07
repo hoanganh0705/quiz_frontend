@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useCallback, useEffect } from 'react'
+import { logger } from '@/shared/log'
 
 /**
  * Custom hook for managing fullscreen mode.
@@ -45,7 +46,7 @@ export function useFullscreen() {
         setIsFullscreen(true)
       } catch {
         // Fullscreen request may be denied by browser policy
-        console.warn('Fullscreen request was denied')
+        logger.warn('fullscreen', 'request was denied')
       }
     },
     []
@@ -63,7 +64,7 @@ export function useFullscreen() {
       }
       setIsFullscreen(false)
     } catch {
-      console.warn('Exit fullscreen failed')
+      logger.warn('fullscreen', 'exit failed')
     }
   }, [])
 

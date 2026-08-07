@@ -220,8 +220,8 @@ vi.mock('@/features/admin/hooks/usePermission', () => ({
   }),
 }));
 
-vi.mock('@/features/auth/contexts/auth-bootstrap-context', () => ({
-  useAuthBootstrap: () => ({
+vi.mock('@/features/auth/hooks/use-auth-session', () => ({
+  useAuthSession: () => ({
     bootstrapState: 'authenticated',
     isAuthenticated: true,
     currentUser: { userId: 'admin-1' },

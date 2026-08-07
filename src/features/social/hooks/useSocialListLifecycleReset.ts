@@ -50,7 +50,7 @@
 
 import { useEffect, useRef } from "react";
 
-import { useAuthBootstrap } from "@/features/auth/contexts/auth-bootstrap-context";
+import { useAuthSession } from "@/features/auth/hooks/use-auth-session";
 
 const AUTH_STATE_EVENT = "auth-state-change";
 
@@ -81,7 +81,7 @@ export function useSocialListLifecycleReset(
   options: UseSocialListLifecycleResetOptions,
 ): void {
   const { targetUserId, reset } = options;
-  const auth = useAuthBootstrap();
+  const auth = useAuthSession();
   const isAuthenticated = auth.isAuthenticated;
 
   /**

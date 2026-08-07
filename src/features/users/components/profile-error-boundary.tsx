@@ -28,6 +28,7 @@
  */
 
 import { Component, type ReactNode } from 'react';
+import { logger } from '@/shared/log';
 
 interface ProfileErrorBoundaryProps {
   children: ReactNode;
@@ -55,7 +56,7 @@ export class ProfileErrorBoundary extends Component<
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo): void {
     // Log the error for debugging
-    console.error('ProfileErrorBoundary caught an error:', error, errorInfo);
+    logger.error('users.profile-error-boundary', 'caught an error', { error, errorInfo });
   }
 
   handleRetry = (): void => {

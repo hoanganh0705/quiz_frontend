@@ -30,12 +30,12 @@ import type { QuizQuestionPlayerDto } from '@/lib/api/generated/schemas';
 // ─── Mocks ───────────────────────────────────────────────────────────────────
 
 // Stub the auth bootstrap with a stable authenticated session.
-const useAuthBootstrapMock = vi.fn(() => ({
+const useAuthSessionMock = vi.fn(() => ({
   bootstrapState: 'authenticated' as const,
   currentUser: { id: 'user-1' },
 }));
-vi.mock('@/features/auth/contexts/auth-bootstrap-context', () => ({
-  useAuthBootstrap: () => useAuthBootstrapMock(),
+vi.mock('@/features/auth/hooks/use-auth-session', () => ({
+  useAuthSession: () => useAuthSessionMock(),
 }));
 
 // Stub each atomic hook so we can drive the orchestrator end-to-end.

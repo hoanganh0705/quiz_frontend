@@ -41,7 +41,7 @@ import {
 import { useToast } from '@/lib/forms/useToast';
 import { getUserCopy } from '@/lib/api/error-codes';
 
-import { useAuthBootstrap } from '@/features/auth/contexts/auth-bootstrap-context';
+import { useAuthSession } from '@/features/auth/hooks/use-auth-session';
 import {
   useStartAttempt,
   type StartAttemptOutcome,
@@ -94,7 +94,7 @@ export function AttemptStartCta(
 
   const router = useRouter();
   const { push } = useToast();
-  const { bootstrapState, currentUser } = useAuthBootstrap();
+  const { bootstrapState, currentUser } = useAuthSession();
 
   const isAuthenticated =
     bootstrapState === 'authenticated' && currentUser !== null;

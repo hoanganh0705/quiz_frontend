@@ -1,4 +1,4 @@
-import { apiClient } from '@/shared/lib/api/client'
+import { customInstance } from '@/lib/api'
 
 export type DiscussionDifficulty = 'Easy' | 'Medium' | 'Hard'
 
@@ -79,55 +79,60 @@ export interface AddCommentResponse {
   message: string
 }
 
-// Get discussions
+// Phase 1: migrated from `@/shared/lib/api/client` to `@/lib/api`.
+// See docs/frontend-cleanup-audit.md Phase 1.
 export async function getDiscussions(params?: GetDiscussionsParams) {
-  const response = await apiClient.get<GetDiscussionsResponse>('/discussions', {
-    params
+  const response = await customInstance.request<{ data: GetDiscussionsResponse }>({
+    url: '/discussions',
+    method: 'GET',
+    params,
   })
-  return response.data
+  return response.data.data
 }
 
-// Get discussion by ID
 export async function getDiscussion(discussionId: string) {
-  const response = await apiClient.get<Discussion>(`/discussions/${discussionId}`)
-  return response.data
+  const response = await customInstance.request<{ data: Discussion }>({
+    url: `/discussions/${discussionId}`,
+    method: 'GET',
+  })
+  return response.data.data
 }
 
-// Create a new discussion
 export async function createDiscussion(payload: CreateDiscussionRequest) {
-  const response = await apiClient.post<CreateDiscussionResponse>(
-    '/discussions',
-    payload
-  )
-  return response.data
+  const response = await customInstance.request<{ data: CreateDiscussionResponse }>({
+    url: '/discussions',
+    method: 'POST',
+    data: payload,
+  })
+  return response.data.data
 }
 
-// Get discussion comments
 export async function getDiscussionComments(
   discussionId: string,
   page = 1,
   limit = 20
 ) {
-  const response = await apiClient.get<GetDiscussionCommentsResponse>(
-    `/discussions/${discussionId}/comments`,
-    {
-      params: { page, limit }
-    }
-  )
-  return response.data
+  const response = await customInstance.request<{ data: GetDiscussionCommentsResponse }>({
+    url: `/discussions/${discussionId}/comments`,
+    method: 'GET',
+    params: { page, limit },
+  })
+  return response.data.data
 }
 
-// Add a comment to a discussion
 export async function addComment(payload: AddCommentRequest) {
-  const response = await apiClient.post<AddCommentResponse>(
-    `/discussions/${payload.discussionId}/comments`,
-    { content: payload.content }
-  )
-  return response.data
+  const response = await customInstance.request<{ data: AddCommentResponse }>({
+    url: `/discussions/${payload.discussionId}/comments`,
+    method: 'POST',
+    data: { content: payload.content },
+  })
+  return response.data.data
 }
 
-// Get discussion categories
 export async function getDiscussionCategories() {
-  const response = await apiClient.get<string[]>('/discussions/categories')
-  return response.data
+  const response = await customInstance.request<{ data: string[] }>({
+    url: '/discussions/categories',
+    method: 'GET',
+  })
+  return response.data.data
 }

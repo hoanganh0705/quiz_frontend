@@ -46,7 +46,7 @@
  * ## Auth
  *
  * The hook assumes an authenticated viewer. The session id is
- * read from `useAuthBootstrap` so the session-scoped cache keys
+ * read from `useAuthSession` so the session-scoped cache keys
  * (my-review, eligibility) are invalidated with the right
  * session marker.
  */
@@ -59,7 +59,7 @@ import { mutate as globalMutate } from 'swr';
 
 import { isApiError, ApiError } from '@/lib/api';
 
-import { useAuthBootstrap } from '@/features/auth/contexts/auth-bootstrap-context';
+import { useAuthSession } from '@/features/auth/hooks/use-auth-session';
 import { deleteReview } from '@/features/reviews/services/reviews.service';
 import {
   invalidateReviewCaches,
@@ -155,7 +155,7 @@ export function useDeleteReview(
 
   const inFlightRef = useRef<Promise<boolean> | null>(null);
 
-  const { currentUser } = useAuthBootstrap();
+  const { currentUser } = useAuthSession();
   const sessionId = useMemo<string | null>(() => {
     const u = currentUser as { id?: string; userId?: string } | null;
     if (!u) return null;

@@ -38,7 +38,7 @@
  * ## SSR-safety
  *
  * The route reads `phase6_social_search` from env vars and
- * `useAuthBootstrap` from the auth context. Both are client-side
+ * `useAuthSession` from the auth context. Both are client-side
  * reads; the route is a Client Component wrapped in a `<Suspense>`
  * boundary.
  */
@@ -46,7 +46,7 @@
 import { Suspense, useState, useCallback } from "react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 
-import { useAuthBootstrap } from "@/features/auth/contexts/auth-bootstrap-context";
+import { useAuthSession } from "@/features/auth/hooks/use-auth-session";
 import { useMemo } from "react";
 
 import { getFeatureFlagValue } from "@/lib/feature-flags";
@@ -59,7 +59,7 @@ function SearchRouteGate(): React.ReactElement {
   const router = useRouter();
   const pathname = usePathname();
 
-  const { isAuthenticated, isBootstrapping } = useAuthBootstrap();
+  const { isAuthenticated, isBootstrapping } = useAuthSession();
 
   const flagValue = useMemo(
     () => getFeatureFlagValue("phase6_social_search"),

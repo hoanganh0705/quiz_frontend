@@ -31,14 +31,14 @@
  * ## SSR-safety
  *
  * The route reads `phase6_social_discovery` from env vars and
- * `useAuthBootstrap` from the auth context. Both are client-side
+ * `useAuthSession` from the auth context. Both are client-side
  * reads; the route is a Client Component wrapped in a `<Suspense>`
  * boundary.
  */
 
 import { Suspense } from "react";
 
-import { useAuthBootstrap } from "@/features/auth/contexts/auth-bootstrap-context";
+import { useAuthSession } from "@/features/auth/hooks/use-auth-session";
 import { useMemo } from "react";
 
 import { getFeatureFlagValue } from "@/lib/feature-flags";
@@ -47,7 +47,7 @@ import { SocialDiscoveryPlaceholder } from "@/features/social/components/SocialD
 import { TrendingUsersList } from "@/features/social/lists/TrendingUsersList";
 
 function TrendingRouteGate(): React.ReactElement {
-  const { isAuthenticated, isBootstrapping } = useAuthBootstrap();
+  const { isAuthenticated, isBootstrapping } = useAuthSession();
 
   const flagValue = useMemo(
     () => getFeatureFlagValue("phase6_social_discovery"),

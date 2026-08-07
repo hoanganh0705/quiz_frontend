@@ -129,22 +129,16 @@ const VALID_SCOPES: readonly string[] = ['current_period', 'last_period', 'all']
  * (invalid scope) so callers handle them uniformly via `error.code`.
  *
  * The ApiError constructor reads from `response.data.extensions.code` (RFC 7807).
+ *
+ * Phase 3 (P1-22): rewritten on top of `ApiError.fromInput`.
  */
 function makeSyntheticError(code: string, message: string): ApiError {
-  return new ApiError({
-    isAxiosError: true,
-    response: {
-      status: 400,
-      data: {
-        status: 400,
-        detail: message,
-        title: code,
-        extensions: { code },
-      },
-    },
-    name: 'AxiosError',
+  return ApiError.fromInput({
+    status: 400,
+    code,
     message,
-  } as ConstructorParameters<typeof ApiError>[0]);
+    title: code,
+  });
 }
 
 // ─── Hook ─────────────────────────────────────────────────────────────────

@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/Badge";
 import { AdminPageHeader } from "../_components";
 import { listQuizzes } from "@/features/quizzes/services/quizzes.service";
 import type { QuizResponseDto } from "@/lib/api/generated/schemas";
+import { logger } from "@/shared/log";
 
 export default function AdminQuizzesPage() {
   const [quizzes, setQuizzes] = useState<QuizResponseDto[]>([]);
@@ -18,7 +19,7 @@ export default function AdminQuizzesPage() {
         const data = await listQuizzes({ limit: 100 });
         setQuizzes(data.items);
       } catch (error) {
-        console.error("Failed to fetch quizzes:", error);
+        logger.error('admin.quizzes', 'Failed to fetch quizzes', error);
       } finally {
         setLoading(false);
       }
@@ -26,16 +27,20 @@ export default function AdminQuizzesPage() {
     fetchQuizzes();
   }, []);
 
+  // Phase 11 / P2-114: stub admin handlers. The wired paths will
+  // arrive with the upcoming admin quiz-management feature; for now
+  // we route to the centralized logger so the action is observable
+  // instead of vanishing into `console.log`.
   const handleCreate = () => {
-    console.log("Create quiz");
+    logger.debug('admin.quizzes', 'Create quiz (stub)');
   };
 
   const handleEdit = (id: string) => {
-    console.log("Edit quiz:", id);
+    logger.debug('admin.quizzes', 'Edit quiz (stub)', { id });
   };
 
   const handleDelete = (id: string) => {
-    console.log("Delete quiz:", id);
+    logger.debug('admin.quizzes', 'Delete quiz (stub)', { id });
   };
 
   if (loading) {

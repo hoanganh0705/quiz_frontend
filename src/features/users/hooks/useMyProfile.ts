@@ -50,7 +50,7 @@
 
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 
 import {
   subscribeToProfileEvents,
@@ -116,20 +116,20 @@ export function useMyProfile(): UseMyProfileReturn {
 
   const isHydrated = profile !== null;
 
-  // Track whether we are still mounted to avoid state updates after unmount.
-  const isMountedRef = useRef(true);
+  // P2-83: dropped the `isMountedRef` guard. The Zustand store
+  // ignores writes after unmount, and `fetchCurrentUser` returns
+  // a `Promise` that the caller can `await` — the early return
+  // guarded against a race that no longer exists given the
+  // authoritative store.
 
   // Refetch the profile from the server.
   const refetch = useCallback(async (): Promise<UserMeResponseDto | null> => {
-    if (!isMountedRef.current) return null;
     const result = await fetchCurrentUser();
     return result ?? null;
   }, [fetchCurrentUser]);
 
   // Subscribe to cross-tab profile mutation events.
   useEffect(() => {
-    isMountedRef.current = true;
-
     const handler = (event: ProfileUpdatedEvent) => {
       // Only revalidate if the event matches our user.
       if (!profile || event.userId !== profile.userId) return;
@@ -140,7 +140,6 @@ export function useMyProfile(): UseMyProfileReturn {
     const unsubscribe = subscribeToProfileEvents(handler);
 
     return () => {
-      isMountedRef.current = false;
       unsubscribe();
     };
   }, [profile, refetch]);

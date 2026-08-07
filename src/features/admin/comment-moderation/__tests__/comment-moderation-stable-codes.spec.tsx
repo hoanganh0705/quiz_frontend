@@ -80,13 +80,13 @@ vi.mock('@/features/admin/hooks/usePermission', () => ({
   }),
 }));
 
-// useAuthBootstrap — return a current user. The self-moderation
+// useAuthSession — return a current user. The self-moderation
 // gate flips `currentUser.userId === commentAuthorId`. Tests that
 // exercise the gate override the value below.
 const currentUserIdMock = vi.hoisted(() => ({ value: 'admin-1' }));
 
-vi.mock('@/features/auth/contexts/auth-bootstrap-context', () => ({
-  useAuthBootstrap: () => ({
+vi.mock('@/features/auth/hooks/use-auth-session', () => ({
+  useAuthSession: () => ({
     currentUser: { userId: currentUserIdMock.value },
     isLoading: false,
   }),

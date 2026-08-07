@@ -63,7 +63,7 @@
  *
  * ## Auth
  *
- * The hook reads the session id from `useAuthBootstrap` so the
+ * The hook reads the session id from `useAuthSession` so the
  * session-scoped cache keys (my-review, eligibility) are
  * invalidated with the right session marker. When the bootstrap
  * is unresolved, the hook falls back to a predicate-based
@@ -78,7 +78,7 @@ import { mutate as globalMutate } from 'swr';
 
 import { isApiError, ApiError } from '@/lib/api';
 
-import { useAuthBootstrap } from '@/features/auth/contexts/auth-bootstrap-context';
+import { useAuthSession } from '@/features/auth/hooks/use-auth-session';
 import { createReview } from '@/features/reviews/services/reviews.service';
 import {
   invalidateReviewCaches,
@@ -230,7 +230,7 @@ export function useCreateReview(
   // The current session id, derived from the auth bootstrap. Used
   // as the cache key suffix for my-review + eligibility so the
   // shared helper invalidates the right session.
-  const { currentUser } = useAuthBootstrap();
+  const { currentUser } = useAuthSession();
   const sessionId = useMemo<string | null>(() => {
     const u = currentUser as { id?: string; userId?: string } | null;
     if (!u) return null;

@@ -23,8 +23,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const mockUseAuthBootstrap = vi.fn();
 
-vi.mock("@/features/auth/contexts/auth-bootstrap-context", () => ({
-  useAuthBootstrap: () => mockUseAuthBootstrap(),
+vi.mock("@/features/auth/hooks/use-auth-session", () => ({
+  useAuthSession: () => mockUseAuthBootstrap(),
 }));
 
 import {

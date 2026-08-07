@@ -71,7 +71,7 @@ import { usePermission } from '@/features/admin/hooks/usePermission';
 import { PermissionDeniedNotice } from '@/features/admin/components/PermissionDeniedNotice';
 import { PERMISSIONS } from '@/features/admin/permissions';
 
-import { useAuthBootstrap } from '@/features/auth/contexts/auth-bootstrap-context';
+import { useAuthSession } from '@/features/auth/hooks/use-auth-session';
 
 import {
   COMMENT_REPORT_ACTIONS,
@@ -124,7 +124,7 @@ export const CommentReportActionMenu = memo(function CommentReportActionMenu({
   className,
 }: CommentReportActionMenuProps): React.ReactElement {
   const permission = usePermission(PERMISSIONS.comment_report_update);
-  const { currentUser } = useAuthBootstrap();
+  const { currentUser } = useAuthSession();
 
   const isSelfAttempt = isCommentSelfModerationAttempt(
     commentAuthorId,

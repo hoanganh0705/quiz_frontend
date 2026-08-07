@@ -74,7 +74,7 @@ import { usePermission } from '@/features/admin/hooks/usePermission';
 import { PermissionDeniedNotice } from '@/features/admin/components/PermissionDeniedNotice';
 import { PERMISSIONS } from '@/features/admin/permissions';
 
-import { useAuthBootstrap } from '@/features/auth/contexts/auth-bootstrap-context';
+import { useAuthSession } from '@/features/auth/hooks/use-auth-session';
 
 import {
   REPORT_ACTIONS,
@@ -119,7 +119,7 @@ export const ReviewReportActionMenu = memo(function ReviewReportActionMenu({
   className,
 }: ReviewReportActionMenuProps): React.ReactElement {
   const permission = usePermission(PERMISSIONS.review_report_update);
-  const { currentUser } = useAuthBootstrap();
+  const { currentUser } = useAuthSession();
 
   const isSelfAttempt = isSelfModerationAttempt(
     report.reportedUserId,

@@ -74,7 +74,7 @@ const useCommentMock = vi.hoisted(() => vi.fn());
 
 const useAdminFeatureFlagMock = vi.hoisted(() => vi.fn());
 const usePermissionMock = vi.hoisted(() => vi.fn());
-const useAuthBootstrapMock = vi.hoisted(() => vi.fn());
+const useAuthSessionMock = vi.hoisted(() => vi.fn());
 
 const mockAddCommentModerationBreadcrumb = vi.hoisted(() => vi.fn());
 const mockBroadcastCommentModerationInvalidate = vi.hoisted(() => vi.fn());
@@ -179,8 +179,8 @@ vi.mock('@/features/admin/hooks/usePermission', () => ({
   usePermission: usePermissionMock,
 }));
 
-vi.mock('@/features/auth/contexts/auth-bootstrap-context', () => ({
-  useAuthBootstrap: useAuthBootstrapMock,
+vi.mock('@/features/auth/hooks/use-auth-session', () => ({
+  useAuthSession: useAuthSessionMock,
 }));
 
 vi.mock('@/lib/admin/phase7_admin_sentry', () => ({
@@ -594,7 +594,7 @@ useResolveCommentReportMock.mockImplementation(() => {
     hasPermission: true,
   });
 
-  useAuthBootstrapMock.mockReturnValue({
+  useAuthSessionMock.mockReturnValue({
     bootstrapState: 'authenticated',
     isAuthenticated: true,
     currentUser: { userId: 'admin-1' },
@@ -790,7 +790,7 @@ describe('comment-moderation-e2e — non-admin viewer (TKT-7.6.H1 step 6)', () =
 describe('comment-moderation-e2e — self-moderation (TKT-7.6.H1 step 7)', () => {
   it('renders the self-moderation notice and disables every action when admin === author', () => {
     e2eState.listResponse = [SEED_PENDING_REPORT];
-    useAuthBootstrapMock.mockReturnValue({
+    useAuthSessionMock.mockReturnValue({
       bootstrapState: 'authenticated',
       isAuthenticated: true,
       currentUser: { userId: 'admin-1' },

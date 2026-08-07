@@ -4,6 +4,11 @@
  *
  * Source epic:   Story 4.6 (personal area: profile + settings).
  * Source ticket: TKT-4.1.B2.
+ * Phase 4 (cross-tab infra): rewritten on top of
+ *   `createBroadcastChannel` (TKT-Phase-4.A1). The event types,
+ *   validation, and the public subscribe / publish surface are
+ *   preserved; the singleton / listener / same-tab boilerplate
+ *   is now owned by the factory.
  *
  * ## Purpose
  *
@@ -42,7 +47,9 @@
  *
  * Same fallback contract as the auth / bookmarks / attempts channels.
  */
-import { getCurrentTabId } from './broadcast-channel';
+import { createBroadcastChannel } from '@/lib/broadcast';
+
+const PROFILE_VALID_KINDS = new Set(['me', 'settings', 'avatar', 'preferences']);
 
 /**
  * Channel name used for all profile broadcasts.
@@ -100,110 +107,53 @@ export interface ProfileUpdatedEvent extends BaseProfileEvent {
  */
 export type ProfileEvent = ProfileUpdatedEvent;
 
-// ─── Channel Singleton ───────────────────────────────────────────────────────
-
-let profileChannel: BroadcastChannel | null = null;
-let isProfileBroadcastChannelAvailable: boolean | null = null;
-
-function checkBroadcastChannelAvailable(): boolean {
-  if (isProfileBroadcastChannelAvailable !== null) {
-    return isProfileBroadcastChannelAvailable;
-  }
-  if (typeof BroadcastChannel === 'undefined') {
-    isProfileBroadcastChannelAvailable = false;
-    return false;
-  }
-  try {
-    new BroadcastChannel('profile.test');
-    isProfileBroadcastChannelAvailable = true;
-  } catch {
-    isProfileBroadcastChannelAvailable = false;
-  }
-  return isProfileBroadcastChannelAvailable;
-}
+// ─── Factory-backed channel ───────────────────────────────────────────────
 
 /**
- * Get the singleton profile BroadcastChannel.
- * @returns The BroadcastChannel instance, or null if unavailable
+ * Singleton factory instance for the `profile` channel. The factory
+ * owns SSR safety, availability checks, the same-tab filter, the
+ * listener-once install, and the subscriber registry. This module
+ * owns the event-type validation and the public subscribe / publish
+ * helpers.
  */
-export function getProfileChannel(): BroadcastChannel | null {
-  if (typeof window === 'undefined') return null;
-  if (!checkBroadcastChannelAvailable()) return null;
-  if (profileChannel === null) {
-    profileChannel = new BroadcastChannel(PROFILE_CHANNEL_NAME);
-  }
-  return profileChannel;
-}
+const profileChannel = createBroadcastChannel<ProfileEvent>(PROFILE_CHANNEL_NAME, {
+  validate: (data): ProfileEvent | null => {
+    if (typeof data !== 'object' || data === null) return null;
+    const d = data as Partial<ProfileUpdatedEvent>;
+    if (d.type !== 'profile/updated') return null;
+    if (typeof d.tabId !== 'string' || d.tabId.length === 0) return null;
+    if (typeof d.userId !== 'string' || d.userId.length === 0) return null;
+    if (typeof d.kind !== 'string' || !PROFILE_VALID_KINDS.has(d.kind)) return null;
+    return d as ProfileEvent;
+  },
+});
+
+// ─── Public API ──────────────────────────────────────────────────────────
 
 /** Close the profile channel (for cleanup/testing). */
 export function closeProfileChannel(): void {
-  if (profileChannel !== null) {
-    profileChannel.close();
-    profileChannel = null;
-  }
+  profileChannel.closeChannel();
 }
 
-// ─── External Subscribers ─────────────────────────────────────────────────────
-
-type ProfileEventHandler = (event: ProfileEvent) => void;
-const profileSubscribers = new Set<ProfileEventHandler>();
+/**
+ * Back-compat accessor for the singleton channel. Returns the
+ * underlying `BroadcastChannel` instance (or `null` in SSR /
+ * when the API is unavailable).
+ */
+export function getProfileChannel(): BroadcastChannel | null {
+  return profileChannel.getChannel();
+}
 
 /**
- * Subscribe to profile broadcast events.
- * Same-tab events are filtered out by `tabId` in the message handler.
+ * Subscribe to profile broadcast events. Same-tab events are
+ * filtered out by the factory.
  * @returns Unsubscribe function
  */
 export function subscribeToProfileEvents(
-  handler: ProfileEventHandler,
+  handler: (event: ProfileEvent) => void,
 ): () => void {
-  profileSubscribers.add(handler);
-  return () => {
-    profileSubscribers.delete(handler);
-  };
+  return profileChannel.subscribe(handler);
 }
-
-function dispatchToProfileSubscribers(event: ProfileEvent): void {
-  profileSubscribers.forEach((handler) => {
-    try {
-      handler(event);
-    } catch (err) {
-      console.error('[profile] Error in profile event subscriber:', err);
-    }
-  });
-}
-
-// ─── Message Handler ─────────────────────────────────────────────────────────
-
-function handleProfileMessage(event: MessageEvent): void {
-  if (!event.data || typeof event.data !== 'object') return;
-  const data = event.data as Partial<ProfileUpdatedEvent>;
-  if (data.type !== 'profile/updated') return;
-  if (!data.tabId || typeof data.tabId !== 'string') return;
-  if (!data.userId || typeof data.userId !== 'string') return;
-  if (
-    !data.kind ||
-    !['me', 'settings', 'avatar', 'preferences'].includes(data.kind)
-  ) {
-    return;
-  }
-  const myTabId = getCurrentTabId();
-  if (data.tabId === myTabId) return;
-  dispatchToProfileSubscribers(data as ProfileEvent);
-}
-
-// ─── Channel Initialization ───────────────────────────────────────────────────
-
-export function initProfileChannel(): boolean {
-  const channel = getProfileChannel();
-  if (channel === null) return false;
-  if (!(channel as unknown as { _listenerAdded?: boolean })._listenerAdded) {
-    channel.addEventListener('message', handleProfileMessage);
-    (channel as unknown as { _listenerAdded?: boolean })._listenerAdded = true;
-  }
-  return true;
-}
-
-// ─── Broadcasting ───────────────────────────────────────────────────────────
 
 /**
  * Broadcast a profile mutation to all other tabs.
@@ -215,22 +165,15 @@ export function broadcastProfileUpdated(params: {
   userId: string;
   kind: ProfileUpdateKind;
 }): void {
-  initProfileChannel();
-  const channel = getProfileChannel();
-  if (channel === null) return;
-  if (
-    !params.userId ||
-    typeof params.userId !== 'string' ||
-    !params.kind
-  ) {
+  // Always instantiate the channel up-front (mirrors the original
+  // module's behavior).
+  profileChannel.ensureChannel();
+  if (!params.userId || typeof params.userId !== 'string' || !params.kind) {
     return;
   }
-  const fullEvent: ProfileUpdatedEvent = {
+  profileChannel.publish({
     type: 'profile/updated',
     userId: params.userId,
     kind: params.kind,
-    tabId: getCurrentTabId(),
-    timestamp: Date.now(),
-  };
-  channel.postMessage(fullEvent);
+  });
 }

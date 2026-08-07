@@ -26,7 +26,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-import { ApiError } from '@/lib/api/core/ApiError';
+import { ApiError } from '@/lib/api';
 import { addRankingAdminBreadcrumb, addAdminAuditBreadcrumb } from '@/lib/admin/phase7_admin_sentry';
 
 import {
@@ -127,22 +127,20 @@ const VALID_PERIODS: readonly string[] = ['current', 'last', 'all'];
 /**
  * Build a synthetic `ApiError` for hook-boundary rejections
  * (invalid period) so callers handle them uniformly via `error.code`.
+ *
+ * Phase 3 (P1-22): rewritten on top of `ApiError.fromInput` so the
+ * synthetic envelope uses the canonical structural factory instead
+ * of the `as unknown as AxiosError` cast. The wire shape is
+ * identical for the consumer — `code`, `status`, and `detail` all
+ * return the same values.
  */
 function makeSyntheticError(code: string, message: string): ApiError {
-  return new ApiError({
-    isAxiosError: true,
-    response: {
-      status: 400,
-      data: {
-        status: 400,
-        detail: message,
-        title: code,
-        extensions: { code },
-      },
-    },
-    name: 'AxiosError',
+  return ApiError.fromInput({
+    status: 400,
+    code,
     message,
-  } as ConstructorParameters<typeof ApiError>[0]);
+    title: code,
+  });
 }
 
 // ─── Hook ─────────────────────────────────────────────────────────────────

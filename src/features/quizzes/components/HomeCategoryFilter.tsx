@@ -38,6 +38,7 @@
 import { useEffect, useMemo, useRef } from 'react'
 
 import { ApiError } from '@/lib/api'
+import { logger } from '@/shared/log'
 import {
   Select,
   SelectContent,
@@ -90,8 +91,9 @@ export function HomeCategoryFilter({
   useEffect(() => {
     if (error && error !== lastReportedErrorRef.current) {
       lastReportedErrorRef.current = error
-      console.error(
-        '[HomeCategoryFilter] useCategoriesRanked failed:',
+      logger.error(
+        'quizzes.home-category-filter',
+        'useCategoriesRanked failed',
         error,
       )
     }

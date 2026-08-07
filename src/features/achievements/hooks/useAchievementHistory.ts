@@ -49,7 +49,7 @@ import {
   type AchievementHistoryEntry,
   type AchievementHistoryFilters,
 } from "@/features/achievements/types";
-import { useAuthBootstrap } from "@/features/auth/contexts/auth-bootstrap-context";
+import { useAuthSession } from "@/features/auth/hooks/use-auth-session";
 import { getFeatureFlagValue } from "@/lib/feature-flags";
 
 import type {
@@ -108,7 +108,7 @@ export function useAchievementHistory(
   const flagValue = getFeatureFlagValue("phase5_achievements");
   const isFlagPlaceholder = flagValue === "placeholder";
 
-  const { bootstrapState } = useAuthBootstrap();
+  const { bootstrapState } = useAuthSession();
   const isAuthenticated = bootstrapState === "authenticated";
 
   // SWR cache key. Disabled sentinel when flag is off or

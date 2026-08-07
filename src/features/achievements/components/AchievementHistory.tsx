@@ -36,7 +36,7 @@ import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { Award } from "lucide-react";
 
 import { Button } from "@/components/ui/Button";
-import { useAuthBootstrap } from "@/features/auth/contexts/auth-bootstrap-context";
+import { useAuthSession } from "@/features/auth/hooks/use-auth-session";
 import { getFeatureFlagValue } from "@/lib/feature-flags";
 
 import { useAchievementHistory } from "@/features/achievements/hooks";
@@ -90,7 +90,7 @@ export function AchievementHistory({ className }: AchievementHistoryProps) {
   const flagValue = getFeatureFlagValue("phase5_achievements");
   const isFlagPlaceholder = flagValue === "placeholder";
 
-  const { isAuthenticated, bootstrapState } = useAuthBootstrap();
+  const { isAuthenticated, bootstrapState } = useAuthSession();
 
   const searchParams = useSearchParams();
   const router = useRouter();

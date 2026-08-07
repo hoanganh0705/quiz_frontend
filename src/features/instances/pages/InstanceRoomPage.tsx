@@ -41,7 +41,7 @@
 
 import { useMemo } from "react";
 
-import { useAuthBootstrap } from "@/features/auth/contexts/auth-bootstrap-context";
+import { useAuthSession } from "@/features/auth/hooks/use-auth-session";
 import { useInstance } from "@/features/instances/hooks/useInstance";
 import { useInstancesFeatureFlag } from "@/features/instances/hooks/useInstancesFeatureFlag";
 import { useInstanceSocket } from "@/features/instances/hooks/useInstanceSocket";
@@ -96,7 +96,7 @@ export function InstanceRoomPage({
   className,
 }: InstanceRoomPageProps) {
   const { isPlaceholder } = useInstancesFeatureFlag();
-  const { currentUser } = useAuthBootstrap();
+  const { currentUser } = useAuthSession();
   const currentUserId = currentUser?.userId ?? null;
 
   // `useInstanceSocket` mounts on render. When `instanceId === null`

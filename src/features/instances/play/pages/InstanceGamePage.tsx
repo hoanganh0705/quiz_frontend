@@ -43,7 +43,7 @@
 
 import { useMemo } from "react";
 
-import { useAuthBootstrap } from "@/features/auth/contexts/auth-bootstrap-context";
+import { useAuthSession } from "@/features/auth/hooks/use-auth-session";
 
 import {
   useInstanceGameSocket,
@@ -96,7 +96,7 @@ export function InstanceGamePage({
   className,
 }: InstanceGamePageProps) {
   const { isPlaceholder } = useInstancesPlayFeatureFlag();
-  const { currentUser } = useAuthBootstrap();
+  const { currentUser } = useAuthSession();
   const currentPlayerId = currentUser?.userId ?? null;
 
   // ─── Socket + bridge (mounts on render, tears down on unmount) ─────────

@@ -24,21 +24,21 @@ import { ApiError } from '@/lib/api';
 import { useEditReview } from '@/features/reviews/hooks/useEditReview';
 
 const updateReviewMock = vi.hoisted(() => vi.fn());
-const useAuthBootstrapMock = vi.hoisted(() => vi.fn());
+const useAuthSessionMock = vi.hoisted(() => vi.fn());
 
 vi.mock('@/features/reviews/services/reviews.service', () => ({
   updateReview: updateReviewMock,
 }));
 
-vi.mock('@/features/auth/contexts/auth-bootstrap-context', () => ({
-  useAuthBootstrap: useAuthBootstrapMock,
+vi.mock('@/features/auth/hooks/use-auth-session', () => ({
+  useAuthSession: useAuthSessionMock,
 }));
 
 const QUIZ_ID = 'quiz-1';
 const SESSION_ID = 'user-1';
 
 function setBootstrapAuthenticated() {
-  useAuthBootstrapMock.mockReturnValue({
+  useAuthSessionMock.mockReturnValue({
     bootstrapState: 'authenticated',
     isAuthenticated: true,
     currentUser: { userId: SESSION_ID, id: SESSION_ID },

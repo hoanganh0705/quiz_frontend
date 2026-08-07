@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from 'react'
 import { useEffect, useRef } from 'react'
+import { logger } from '@/shared/log'
 
 /**
  * Custom hook for copying text to clipboard with success state
@@ -23,7 +24,7 @@ export function useClipboard(timeout = 2000) {
   const copy = useCallback(
     (text: string) => {
       if (typeof window === 'undefined' || !navigator.clipboard) {
-        console.warn('Clipboard API not available')
+        logger.warn('clipboard', 'Clipboard API not available')
         return
       }
 
@@ -37,7 +38,7 @@ export function useClipboard(timeout = 2000) {
           timeoutRef.current = setTimeout(() => setCopied(false), timeout)
         })
         .catch((error) => {
-          console.error('Failed to copy to clipboard:', error)
+          logger.error('clipboard', 'Failed to copy', error)
         })
     },
     [timeout]

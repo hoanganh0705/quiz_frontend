@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, memo, useMemo } from "react";
+import { Suspense, memo, useMemo, useState } from "react";
 import { Eye } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -186,6 +186,13 @@ const LoginPageContent = memo(function LoginPageContent() {
     }
   });
 
+  // P2-24: track the password-input visibility via `useState` so
+  // the React tree stays the source of truth. The previous
+  // implementation mutated the DOM via `document.getElementById`
+  // inside the toggle handler, which bypassed React's state model
+  // and produced a hydration mismatch on the password input type.
+  const [showPassword, setShowPassword] = useState(false);
+
   return (
     <div className="min-h-screen flex bg-background">
       {/* Left Side - Visual */}
@@ -319,7 +326,7 @@ const LoginPageContent = memo(function LoginPageContent() {
                 <div className="relative">
                   <Input
                     id="password"
-                    type="password"
+                    type={showPassword ? 'text' : 'password'}
                     placeholder={resolveCopy(
                       COPY_KEYS.form.password.placeholder,
                     )}
@@ -334,15 +341,7 @@ const LoginPageContent = memo(function LoginPageContent() {
                   />
                   <button
                     type="button"
-                    onClick={() => {
-                      const input = document.getElementById("password");
-                      if (input) {
-                        (input as HTMLInputElement).type =
-                          (input as HTMLInputElement).type === "password"
-                            ? "text"
-                            : "password";
-                      }
-                    }}
+                    onClick={() => setShowPassword((prev) => !prev)}
                     disabled={isPending || isGooglePending}
                     className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     aria-label="Toggle password visibility"

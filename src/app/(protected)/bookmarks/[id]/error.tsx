@@ -10,6 +10,7 @@
 import { useEffect } from 'react';
 import { Button } from '@/components/ui/Button';
 import { AlertTriangle } from 'lucide-react';
+import { logger } from '@/shared/log';
 
 interface CollectionDetailErrorProps {
   error: Error & {
@@ -21,7 +22,7 @@ interface CollectionDetailErrorProps {
 export default function CollectionDetailError({ error, reset }: CollectionDetailErrorProps) {
   useEffect(() => {
     // Log the error to an error reporting service
-    console.error('[CollectionDetailPage] Error:', error);
+    logger.error('app.bookmarks.collection-detail', 'Error', { error, digest: error.digest });
   }, [error]);
 
   return (

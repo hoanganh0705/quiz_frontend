@@ -16,6 +16,7 @@ import {
 import Image from 'next/image'
 import Link from 'next/link'
 import type { QuizResponseDto } from '@/lib/api/generated/schemas'
+import { logger } from '@/shared/log'
 
 interface QuizRecommendationsStepProps {
   selectedInterests: string[]
@@ -41,7 +42,7 @@ export const QuizRecommendationsStep = memo(function QuizRecommendationsStep({
         const data = await listQuizzes({ featured: true, limit: 6 })
         setQuizzes(data.items)
       } catch (error) {
-        console.error('Failed to fetch quizzes:', error)
+        logger.error('onboarding.recommendations', 'Failed to fetch quizzes', error)
       } finally {
         setLoading(false)
       }

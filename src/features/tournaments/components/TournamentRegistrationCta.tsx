@@ -29,7 +29,7 @@
 import { useCallback, useMemo, useState } from "react";
 import { LoaderCircle } from "lucide-react";
 
-import { useAuthBootstrap } from "@/features/auth/contexts/auth-bootstrap-context";
+import { useAuthSession } from "@/features/auth/hooks/use-auth-session";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/shared/utils/merge-class-names";
 import { getFeatureFlagValue } from "@/lib/feature-flags";
@@ -108,7 +108,7 @@ export function TournamentRegistrationCta({
   const isFlagPlaceholder = flagValue === "placeholder";
 
   // Auth state
-  const { bootstrapState } = useAuthBootstrap();
+  const { bootstrapState } = useAuthSession();
   const isAuthenticated = bootstrapState === "authenticated";
 
   const {

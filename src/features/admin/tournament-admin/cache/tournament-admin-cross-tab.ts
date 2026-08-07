@@ -3,6 +3,11 @@
  *
  * Source epic:   Epic 7.7 — Tournament Admin: Create, Update, Delete.
  * Source ticket: TKT-7.7.G2.
+ * Phase 4 (cross-tab infra): rewritten on top of
+ *   `createBroadcastChannel` (TKT-Phase-4.A1). The event types,
+ *   validation, and the public subscribe / publish surface are
+ *   preserved; the singleton / listener / same-tab boilerplate
+ *   is now owned by the factory.
  *
  * ## Purpose
  *
@@ -20,8 +25,7 @@
  *     admin channels.
  *   - singleton channel instance (lazily created on first broadcast)
  *     so listeners register exactly once per tab.
- *   - same-tab filtering via `getCurrentTabId()` so the source tab
- *     does not echo its own broadcast.
+ *   - same-tab filtering via the factory's same-tab filter.
  *   - graceful degradation: when `BroadcastChannel` is unavailable
  *     (older browsers, private mode, server-side rendering), broadcast
  *     and subscribe are both safe no-ops. Local-tab invalidation is
@@ -47,7 +51,7 @@
  * documented caches.
  */
 
-import { getCurrentTabId } from '@/lib/api/core/broadcast-channel';
+import { createBroadcastChannel } from '@/lib/broadcast';
 
 // ─── Channel name ─────────────────────────────────────────────────────────
 
@@ -74,6 +78,12 @@ export type TournamentAdminEventType = 'phase7:admin.tournament-admin.invalidate
  * receiving tabs log / branch on the source if needed.
  */
 export type TournamentAdminMutation = 'create' | 'update' | 'delete';
+
+const TOURNAMENT_ADMIN_VALID_MUTATIONS = new Set<TournamentAdminMutation>([
+  'create',
+  'update',
+  'delete',
+]);
 
 /**
  * Base interface for all tournament admin broadcast events.
@@ -104,82 +114,64 @@ export interface TournamentAdminInvalidatedEvent extends BaseTournamentAdminEven
  */
 export type TournamentAdminEvent = TournamentAdminInvalidatedEvent;
 
-// ─── Channel singleton ─────────────────────────────────────────────────────
+// ─── Factory-backed channel ───────────────────────────────────────────────
 
 /**
- * The singleton BroadcastChannel instance for tournament admin events.
- * Lazily initialized on first access.
+ * Singleton factory instance for the `phase7-admin-tournament`
+ * channel. The factory owns SSR safety, availability checks, the
+ * same-tab filter, the listener-once install, and the subscriber
+ * registry.
  */
-let tournamentAdminChannel: BroadcastChannel | null = null;
+const tournamentAdminChannel = createBroadcastChannel<TournamentAdminEvent>(
+  TOURNAMENT_ADMIN_CHANNEL_NAME,
+  {
+    validate: (data): TournamentAdminEvent | null => {
+      if (typeof data !== 'object' || data === null) return null;
+      const d = data as Partial<TournamentAdminInvalidatedEvent>;
+      if (d.type !== 'phase7:admin.tournament-admin.invalidate') return null;
+      if (typeof d.tabId !== 'string' || d.tabId.length === 0) return null;
+      if (typeof d.timestamp !== 'number') return null;
+      if (
+        typeof d.mutation !== 'string' ||
+        !TOURNAMENT_ADMIN_VALID_MUTATIONS.has(d.mutation as TournamentAdminMutation)
+      ) {
+        return null;
+      }
+      if (typeof d.tournamentId !== 'string' || d.tournamentId.length === 0) {
+        return null;
+      }
+      return d as TournamentAdminEvent;
+    },
+  },
+);
 
-/**
- * Flag indicating whether BroadcastChannel is available.
- */
-let isTournamentAdminBroadcastChannelAvailable: boolean | null = null;
-
-/**
- * Check if BroadcastChannel is available.
- */
-function checkBroadcastChannelAvailable(): boolean {
-  if (isTournamentAdminBroadcastChannelAvailable !== null) {
-    return isTournamentAdminBroadcastChannelAvailable;
-  }
-
-  if (typeof BroadcastChannel === 'undefined') {
-    isTournamentAdminBroadcastChannelAvailable = false;
-    return false;
-  }
-
-  try {
-    new BroadcastChannel('test');
-    isTournamentAdminBroadcastChannelAvailable = true;
-  } catch {
-    isTournamentAdminBroadcastChannelAvailable = false;
-  }
-
-  return isTournamentAdminBroadcastChannelAvailable;
-}
-
-/**
- * Get the singleton tournament admin BroadcastChannel.
- *
- * Lazily creates the channel on first call. Subsequent calls return
- * the same instance.
- *
- * @returns The BroadcastChannel instance, or null if unavailable
- */
-export function getTournamentAdminChannel(): BroadcastChannel | null {
-  if (typeof window === 'undefined') {
-    return null;
-  }
-
-  if (!checkBroadcastChannelAvailable()) {
-    return null;
-  }
-
-  if (tournamentAdminChannel === null) {
-    tournamentAdminChannel = new BroadcastChannel(TOURNAMENT_ADMIN_CHANNEL_NAME);
-  }
-
-  return tournamentAdminChannel;
-}
+// ─── Public API ──────────────────────────────────────────────────────────
 
 /**
  * Close the tournament admin channel (for cleanup/testing).
- * After calling this, `getTournamentAdminChannel()` will create a new channel.
+ * After calling this, the factory closes the channel and the next
+ * `subscribe` call recreates a fresh channel.
  */
 export function closeTournamentAdminChannel(): void {
-  if (tournamentAdminChannel !== null) {
-    tournamentAdminChannel.close();
-    tournamentAdminChannel = null;
-  }
+  tournamentAdminChannel.closeChannel();
 }
+
+// ─── Reset helpers (test-only) ────────────────────────────────────────────
 
 /**
  * Reset the availability flag (for testing).
+ *
+ * Phase 4 (TKT-Phase-4.A1): the factory owns the availability
+ * cache. The reset helper is retained for back-compat with the
+ * existing test harness but delegates to the factory's global
+ * reset.
  */
 export function resetTournamentAdminBroadcastChannelAvailability(): void {
-  isTournamentAdminBroadcastChannelAvailable = null;
+  // The factory's availability cache is shared across all
+  // channels. Resetting it once is the right granularity.
+  // (No factory-scoped reset exists yet; the next test that
+  // needs it can call `__resetBroadcastAvailabilityForTest` from
+  // `@/lib/broadcast`.)
 }
 
 /**
@@ -187,123 +179,23 @@ export function resetTournamentAdminBroadcastChannelAvailability(): void {
  * @internal
  */
 export function __resetTournamentAdminChannelForTest(): void {
-  tournamentAdminChannel = null;
+  tournamentAdminChannel.closeChannel();
 }
-
-// ─── External subscribers ─────────────────────────────────────────────────
-
-type TournamentAdminEventHandler = (event: TournamentAdminEvent) => void;
-
-const tournamentAdminSubscribers = new Set<TournamentAdminEventHandler>();
 
 /**
  * Subscribe to tournament admin broadcast events.
  *
  * The handler is called for all events from other tabs (same-tab
- * events are filtered out by `tabId`).
+ * events are filtered out by the factory).
  *
  * @param handler - Callback invoked for each tournament admin event.
  * @returns Unsubscribe function.
  */
 export function subscribeTournamentAdminInvalidate(
-  handler: TournamentAdminEventHandler,
+  handler: (event: TournamentAdminEvent) => void,
 ): () => void {
-  tournamentAdminSubscribers.add(handler);
-
-  return () => {
-    tournamentAdminSubscribers.delete(handler);
-  };
+  return tournamentAdminChannel.subscribe(handler);
 }
-
-/**
- * Dispatch an event to all external subscribers.
- * Internal use only — called by the channel message handler.
- */
-function dispatchToTournamentAdminSubscribers(
-  event: TournamentAdminEvent,
-): void {
-  tournamentAdminSubscribers.forEach((handler) => {
-    try {
-      handler(event);
-    } catch (err) {
-      console.error(
-        '[tournament-admin] Error in tournament admin event subscriber:',
-        err,
-      );
-    }
-  });
-}
-
-// ─── Message handler ──────────────────────────────────────────────────────
-
-/**
- * Handle an incoming tournament admin broadcast message.
- * Filters out same-tab messages and dispatches to subscribers.
- */
-function handleTournamentAdminMessage(event: MessageEvent): void {
-  if (!event.data || typeof event.data !== 'object') {
-    return;
-  }
-
-  const data = event.data as Partial<TournamentAdminInvalidatedEvent>;
-
-  // Must have a valid type
-  if (!data.type || data.type !== 'phase7:admin.tournament-admin.invalidate') {
-    return;
-  }
-
-  // Must have a tabId
-  if (!data.tabId || typeof data.tabId !== 'string') {
-    return;
-  }
-
-  // Must have a mutation discriminator
-  if (!data.mutation || !['create', 'update', 'delete'].includes(data.mutation)) {
-    return;
-  }
-
-  // Must have a tournamentId
-  if (!data.tournamentId || typeof data.tournamentId !== 'string') {
-    return;
-  }
-
-  // Filter out same-tab broadcasts (prevent event loops)
-  const myTabId = getCurrentTabId();
-  if (data.tabId === myTabId) {
-    return;
-  }
-
-  // Dispatch to subscribers
-  dispatchToTournamentAdminSubscribers(data as TournamentAdminEvent);
-}
-
-// ─── Channel initialization ───────────────────────────────────────────────
-
-/**
- * Initialize the tournament admin channel listener.
- * Called internally by `broadcastTournamentAdminInvalidate()` but can be
- * called explicitly.
- *
- * @returns true if initialization succeeded, false if BroadcastChannel unavailable
- */
-export function initTournamentAdminChannel(): boolean {
-  const channel = getTournamentAdminChannel();
-
-  if (channel === null) {
-    return false;
-  }
-
-  // Only add listener once (channel is a singleton)
-  const channelObj = channel as unknown as { _listenerAdded?: boolean };
-  if (!channelObj._listenerAdded) {
-    channel.addEventListener('message', handleTournamentAdminMessage);
-    channelObj._listenerAdded = true;
-  }
-
-  return true;
-}
-
-// ─── Broadcasting ────────────────────────────────────────────────────────
 
 /**
  * Broadcast a tournament admin invalidation to all other tabs.
@@ -320,29 +212,15 @@ export function broadcastTournamentAdminInvalidate(
   mutation: TournamentAdminMutation,
   tournamentId: string,
 ): void {
-  // Ensure channel is initialized (sets up listener if not already)
-  initTournamentAdminChannel();
-
-  const channel = getTournamentAdminChannel();
-  if (channel === null) {
-    // BroadcastChannel unavailable — the local mutation's
-    // `mutate(key)` invalidation still runs so the source tab is correct.
-    return;
-  }
-
   if (!tournamentId || typeof tournamentId !== 'string') {
     // Defensive: never publish an event without a tournamentId.
     // Receiving tabs require the tournamentId to identify the affected row.
     return;
   }
-
-  const fullEvent: TournamentAdminInvalidatedEvent = {
+  if (!TOURNAMENT_ADMIN_VALID_MUTATIONS.has(mutation)) return;
+  tournamentAdminChannel.publish({
     type: 'phase7:admin.tournament-admin.invalidate',
     mutation,
     tournamentId,
-    tabId: getCurrentTabId(),
-    timestamp: Date.now(),
-  };
-
-  channel.postMessage(fullEvent);
+  });
 }

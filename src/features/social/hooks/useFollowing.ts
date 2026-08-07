@@ -22,7 +22,7 @@ import {
   type SocialUserSummaryDto,
 } from "@/features/social/types";
 
-import { useAuthBootstrap } from "@/features/auth/contexts/auth-bootstrap-context";
+import { useAuthSession } from "@/features/auth/hooks/use-auth-session";
 
 export interface UseFollowingResult {
   users: readonly SocialUserSummaryDto[];
@@ -55,7 +55,7 @@ export function useFollowing(userId: string | null): UseFollowingResult {
   const flagValue = getFeatureFlagValue("phase6_social_relationship");
   const isFlagPlaceholder = flagValue === "placeholder";
 
-  const auth = useAuthBootstrap();
+  const auth = useAuthSession();
   const isAuthenticated = auth.isAuthenticated;
 
   const key = useMemo<readonly unknown[] | null>(() => {

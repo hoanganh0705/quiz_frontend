@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 /**
  * `features/admin/achievement-admin/hooks/useRevokeUserBadge.ts`
@@ -47,32 +47,28 @@
  * The `badgeId` is NOT redacted from the breadcrumb (badge IDs are not PII).
  */
 
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useRef, useState } from "react";
 
-import { mutate as globalMutate } from 'swr';
+import { mutate as globalMutate } from "swr";
 
-import { ApiError } from '@/lib/api/core/ApiError';
-import { addAchievementAdminBreadcrumb } from '@/lib/admin/phase7_admin_sentry';
+import { ApiError } from "@/lib/api/core/ApiError";
+import { addAchievementAdminBreadcrumb } from "@/lib/admin/phase7_admin_sentry";
 
 import {
   revokeUserBadge,
   type AchievementBadgeRevokeResponseDto,
-} from '@/features/admin/services/achievement-admin.service';
-import type { UserBadgeDto } from '../achievement-admin-types';
+} from "@/features/admin/services/achievement-admin.service";
+import type { UserBadgeDto } from "../achievement-admin-types";
 
 import {
   isSelfRevokeAttempt,
   validateBadgeId,
   validateUserId,
-} from '../validation';
+} from "../validation";
 
-import {
-  invalidateAchievementAdmin,
-} from '../cache-keys';
+import { invalidateAchievementAdmin } from "../cache-keys";
 
-import {
-  broadcastAchievementAdminMutation,
-} from '../broadcast';
+import { broadcastAchievementAdminMutation } from "../broadcast";
 
 // ─── Public types ─────────────────────────────────────────────────────────
 
@@ -112,13 +108,15 @@ export interface UseRevokeUserBadgeResult {
  * Build a synthetic `ApiError` for hook-boundary rejections
  * (invalid UUID, self-action) so callers can handle them uniformly
  * via the `error.code` branch.
+ *
+ * Phase 3 (P1-22): rewritten on top of `ApiError.fromInput`.
  */
 function makeSyntheticError(code: string, message: string): ApiError {
-  return new ApiError({
+  return ApiError.fromInput({
     status: 400,
     code,
     message,
-    // No extensions.requestId — these are client-side rejections.
+    // No requestId — these are client-side rejections.
   });
 }
 
@@ -161,8 +159,8 @@ export function useRevokeUserBadge(): UseRevokeUserBadgeResult {
       const currentUserId: string | null = null; // TODO: wire from useAdminIdentity (TKT-7.1.D1)
       if (isSelfRevokeAttempt(currentUserId, userId)) {
         const err = makeSyntheticError(
-          'SELF_ACTION_FORBIDDEN',
-          'Cannot revoke your own badge.',
+          "SELF_ACTION_FORBIDDEN",
+          "Cannot revoke your own badge.",
         );
         setError(err);
         return Promise.reject(err);
@@ -170,12 +168,18 @@ export function useRevokeUserBadge(): UseRevokeUserBadgeResult {
 
       // UUID validation.
       if (validateUserId(userId).ok === false) {
-        const err = makeSyntheticError('invalid-uuid', 'Invalid userId format.');
+        const err = makeSyntheticError(
+          "invalid-uuid",
+          "Invalid userId format.",
+        );
         setError(err);
         return Promise.reject(err);
       }
       if (validateBadgeId(badgeId).ok === false) {
-        const err = makeSyntheticError('invalid-uuid', 'Invalid badgeId format.');
+        const err = makeSyntheticError(
+          "invalid-uuid",
+          "Invalid badgeId format.",
+        );
         setError(err);
         return Promise.reject(err);
       }
@@ -190,10 +194,10 @@ export function useRevokeUserBadge(): UseRevokeUserBadgeResult {
 
       // Emit "started" breadcrumb.
       addAchievementAdminBreadcrumb({
-        action: 'achievement.revokeBadge',
-        route: 'achievements.revokeUserBadge',
+        action: "achievement.revokeBadge",
+        route: "achievements.revokeUserBadge",
         targetId: userId,
-        status: 'started',
+        status: "started",
         durationMs: 0,
         before: beforeSnapshot,
       });
@@ -209,10 +213,10 @@ export function useRevokeUserBadge(): UseRevokeUserBadgeResult {
 
           // Emit "success" breadcrumb.
           addAchievementAdminBreadcrumb({
-            action: 'achievement.revokeBadge',
-            route: 'achievements.revokeUserBadge',
+            action: "achievement.revokeBadge",
+            route: "achievements.revokeUserBadge",
             targetId: userId,
-            status: 'success',
+            status: "success",
             durationMs,
             before: beforeSnapshot,
             after: revokeResult,
@@ -223,10 +227,10 @@ export function useRevokeUserBadge(): UseRevokeUserBadgeResult {
 
           // Broadcast to other tabs so they revalidate too.
           broadcastAchievementAdminMutation({
-            action: 'revoke',
+            action: "revoke",
             userId,
             badgeId: revokeResult.badgeId,
-            requestId: '', // revoke has no server requestId
+            requestId: "", // revoke has no server requestId
           });
 
           return revokeResult;
@@ -240,15 +244,16 @@ export function useRevokeUserBadge(): UseRevokeUserBadgeResult {
 
           // Emit "failure" breadcrumb.
           addAchievementAdminBreadcrumb({
-            action: 'achievement.revokeBadge',
-            route: 'achievements.revokeUserBadge',
+            action: "achievement.revokeBadge",
+            route: "achievements.revokeUserBadge",
             targetId: userId,
-            status: 'failure',
+            status: "failure",
             durationMs,
             code: apiError.code,
             requestId: apiError.extensions?.requestId as string | undefined,
-            correlationId:
-              apiError.extensions?.correlationId as string | undefined,
+            correlationId: apiError.extensions?.correlationId as
+              | string
+              | undefined,
           });
 
           return Promise.reject(apiError);
