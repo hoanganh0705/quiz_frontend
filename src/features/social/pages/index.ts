@@ -9,6 +9,9 @@
  * Epic 6.8 additions:
  *   - `IncomingRequestsListPage`  (TKT-6.8.E5)
  *   - `OutgoingRequestsListPage`  (TKT-6.8.E6)
+ *
+ * Epic 6.9 additions:
+ *   - `SocialFeedPage`            (TKT-6.9.G1)
  */
 
 export { IncomingRequestsListPage } from "./IncomingRequestsListPage";
@@ -20,3 +23,5 @@ export { OutgoingRequestsListPage } from "./OutgoingRequestsListPage";
 export type {
   OutgoingRequestsListPageProps,
 } from "./OutgoingRequestsListPage";
+
+export { SocialFeedPage } from "./SocialFeedPage";

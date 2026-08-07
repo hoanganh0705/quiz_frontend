@@ -74,6 +74,9 @@ export const PERMISSIONS = {
   // User-role grant (Story 7.10) — privileged; requires `USER_GRANT_ROLE`.
   user_grant_role: 'user_grant_role',
   user_revoke_role: 'user_revoke_role',
+
+  // Audit log (Story 7.11)
+  audit_log_read: 'audit_log_read',
 } as const;
 
 export type AdminPermission = keyof typeof PERMISSIONS;

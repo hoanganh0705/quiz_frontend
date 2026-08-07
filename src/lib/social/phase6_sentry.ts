@@ -101,6 +101,78 @@ export interface SocialMutationBreadcrumbData {
 }
 
 /**
+ * The Epic 6.9 breadcrumb category. Emits a `phase6:6.9` breadcrumb
+ * for the global social feed surface (Story 6.9). The category is
+ * intentionally separate from `phase6:6.1` so the Sentry dashboard
+ * can split feed-specific telemetry from relationship telemetry.
+ */
+export const EPIC_6_9_BREADCRUMB_CATEGORY = "phase6:6.9" as const;
+
+/**
+ * The Epic 6.9 version. The epic-version is emitted as a breadcrumb
+ * data field so the dashboard can split event volumes by Phase 6
+ * release-train.
+ */
+export const EPIC_6_9_VERSION = "6.9.0" as const;
+
+/**
+ * The payload shape for an Epic 6.9 (feed) breadcrumb. The shape
+ * extends the canonical `SocialServiceBreadcrumbData` with feed-
+ * specific fields (`reason`, `discriminator`) so the dashboard can
+ * triage unknown-discriminator drift in production.
+ */
+export interface FeedBreadcrumbData {
+  /** The logical route — e.g. "feed.item.unknown". */
+  route: string;
+  /** The breadcrumb reason. Defaults to `"service"` for the
+   *  standard service call. Set to `"unknown_discriminator"` for
+   *  the defensive fallback renderer. */
+  reason?: "service" | "unknown_discriminator" | "rate_limit";
+  /** The raw discriminator value (truncated to 64 chars). */
+  discriminator?: string;
+  /** The HTTP status. `undefined` while the request is in-flight. */
+  status?: number;
+  /** The measured call duration. `undefined` while the request is in-flight. */
+  durationMs?: number;
+  /** The `ApiError.code` when an error occurred. Omitted on success. */
+  code?: string;
+  /** The Epic 6.9 version, defaults to `EPIC_6_9_VERSION`. */
+  epicVersion?: string;
+}
+
+/**
+ * Emit a `phase6:6.9` breadcrumb for an Epic 6.9 (feed) event.
+ *
+ * The breadcrumb is the canonical telemetry surface for the feed
+ * dispatcher (TKT-6.9.E1) and the feed service (TKT-6.9.C1). The
+ * function is a thin wrapper around `Sentry.addBreadcrumb` so the
+ * callers can stay declarative.
+ *
+ * @example
+ *   addFeedBreadcrumb({
+ *     route: "feed.item.unknown",
+ *     reason: "unknown_discriminator",
+ *     discriminator: "quiz_published",
+ *   });
+ */
+export function addFeedBreadcrumb(data: FeedBreadcrumbData): void {
+  const payload: Record<string, string | number> = {
+    route: data.route,
+    epic: data.epicVersion ?? EPIC_6_9_VERSION,
+  };
+  if (data.reason !== undefined) payload.reason = data.reason;
+  if (data.discriminator !== undefined) payload.discriminator = data.discriminator;
+  if (data.status !== undefined) payload.status = data.status;
+  if (data.durationMs !== undefined) payload.durationMs = data.durationMs;
+  if (data.code !== undefined) payload.code = data.code;
+
+  Sentry.addBreadcrumb({
+    category: EPIC_6_9_BREADCRUMB_CATEGORY,
+    data: payload,
+  });
+}
+
+/**
  * Emit a `phase6:6.1` breadcrumb for a social service call.
  *
  * The breadcrumb payload is the canonical Phase 6 telemetry contract.

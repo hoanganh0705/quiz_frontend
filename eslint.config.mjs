@@ -397,6 +397,29 @@ const eslintConfig = [
             // (`items` + `hasNextPage` + `nextCursor`).
             'src/features/admin/services/review-moderation.service.ts',
             'src/features/admin/services/comment-moderation.service.ts',
+            // TKT-7.5.C1 / TKT-7.6.C1 — `useReviewReports` and
+            // `useCommentReports` are the consumer-facing fetcher
+            // adapters for the platform-wide review and comment
+            // moderation queue hooks. They bridge the service-layer
+            // wire envelope (`meta.pagination.nextCursor` /
+            // `meta.pagination.hasNextPage`) into the hook-level
+            // `CursorPage` consumed by `useCursorPaginated`. They are
+            // the single places in the admin feature permitted to
+            // read `nextCursor` outside of the service-layer adapter
+            // (mirroring `useCategoryQuizzes` / `useTagQuizzes` for
+            // the categories/tags fetcher roles, see TKT-3.3.B4 and
+            // TKT-3.4.B4).
+            'src/features/admin/review-moderation/hooks/useReviewReports.ts',
+            'src/features/admin/comment-moderation/hooks/useCommentReports.ts',
+            // TKT-7.5.C1 / TKT-7.6.C1 — the unit specs for the
+            // review and comment moderation fetcher adapters
+            // construct mock `nextCursor` envelopes so they can
+            // assert the hooks' `CursorPage` synthesis. The
+            // fixtures are co-located with the hooks under test
+            // (mirroring the existing pattern for the review-
+            // moderation service spec).
+            'src/features/admin/review-moderation/hooks/__tests__/useReviewReports.spec.tsx',
+            'src/features/admin/comment-moderation/hooks/__tests__/useCommentReports.spec.tsx',
             // TKT-7.1.E3 / TKT-7.1.E4 — the unit specs for the review
             // and comment moderation services construct mock
             // `meta.pagination` envelopes with `nextCursor` so they can
@@ -404,6 +427,27 @@ const eslintConfig = [
             // are co-located with the services under test.
             'src/features/admin/services/__tests__/review-moderation.service.spec.ts',
             'src/features/admin/services/__tests__/comment-moderation.service.spec.ts',
+            // TKT-6.9.C1 — the Story 6.9 feed service wrapper adapts the
+            // SDK envelope (`data`, `meta.pagination.nextCursor`,
+            // `meta.pagination.hasNextPage`) to the documented
+            // `FeedServiceResult` shape. The service is the single
+            // place in the social feature permitted to read
+            // `nextCursor`; the hook layer (`useFeed`, TKT-6.9.D2)
+            // consumes the wrapper's result verbatim.
+            'src/features/social/services/feed.service.ts',
+            // TKT-6.9.C1 — the unit spec for the feed service
+            // constructs mock `meta.pagination` envelopes with
+            // `nextCursor` so it can assert the service's opaque
+            // cursor forwarding contract. The fixture is co-located
+            // with the service under test.
+            'src/features/social/services/__tests__/feed.service.spec.ts',
+            // TKT-6.9.D2 — the unit spec for the `useFeed` read
+            // hook constructs mock service responses with
+            // `nextCursor` so it can assert the hook's pagination
+            // contract (visibility mapping, success path,
+            // SWR-cache-key identity). The fixture is co-located
+            // with the hook under test.
+            'src/features/social/hooks/__tests__/useFeed.spec.tsx',
           ],
     rules: {
       'no-restricted-syntax': 'off',

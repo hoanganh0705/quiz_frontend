@@ -51,7 +51,8 @@ export type AdminFeatureFlag =
   | 'phase7_admin_ranking'
   | 'phase7_admin_achievement'
   | 'phase7_admin_tournament'
-  | 'phase7_admin_user_role';
+  | 'phase7_admin_user_role'
+  | 'phase7_admin_audit';
 
 export interface UseAdminFeatureFlag {
   flag: AdminFeatureFlag;

@@ -13,7 +13,8 @@
 
 /**
  * `SocialListKind` — Union of the list kinds Story 6.2 renders,
- * extended with the Story 6.4 mutual / activity resource kinds.
+ * extended with the Story 6.4 mutual / activity resource kinds
+ * and the Story 6.9 feed resource kind.
  *
  * Source epic:   Epic 6.2 — Read-only social-graph views.
  * Source story:  Story 6.2.
@@ -33,6 +34,13 @@
  * — for accuracy, the mutual / activity route gates need to pass
  * the matching resource kind. The new variants are intentionally
  * additive so Epic 6.2 / 6.3 consumers compile unchanged.
+ *
+ * ## Story 6.9 extensions
+ *
+ * The empty-state branch for the global feed (`FeedEmptyState`,
+ * TKT-6.9.F2) consumes `PrivacyRestrictedNotice` with a
+ * `feed` resource kind so the `data-resource-kind` attribute
+ * surfaces the right identifier for end-to-end tests.
  */
 export type SocialListKind =
   | "followers"
@@ -41,7 +49,8 @@ export type SocialListKind =
   | "blocked"
   | "mutual-friends"
   | "mutual-followers"
-  | "activity";
+  | "activity"
+  | "feed";
 
 export const SOCIAL_LIST_KINDS: readonly SocialListKind[] = [
   "followers",
@@ -51,4 +60,5 @@ export const SOCIAL_LIST_KINDS: readonly SocialListKind[] = [
   "mutual-friends",
   "mutual-followers",
   "activity",
+  "feed",
 ] as const;

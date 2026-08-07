@@ -1,3 +1,5 @@
+'use client';
+
 /**
  * `useMyQuizzesPublished` — cursor-paginated list of the authenticated user's published quizzes.
  *

@@ -30,7 +30,7 @@ import useSWR from 'swr'
 import { ApiError } from '@/lib/api'
 import type { TrendingQuizItemDto } from '@/lib/api/generated/schemas'
 
-import { getQuizzesTrending } from '@/features/quizzes/api/quizzes.wrapper'
+import { getQuizzesTrending } from '@/features/quizzes/services/quizzes.service'
 
 export interface UseQuizzesTrendingParams {
   limit?: number

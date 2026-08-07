@@ -108,6 +108,13 @@ Checks (always run):
   social67-no-direct-sdk-calls (TKT-6.7.G3) Components do not import socialControllerBlockUser/socialControllerUnblockUser.
   social68-no-deprecated-friend-request-route (TKT-6.8.G2) friend-request-mutation.service.ts does not import the deprecated singular /social/friend-request SDK family.
   social68-no-friendship-id-persistence (TKT-6.8.G2) No friendshipId written to localStorage/sessionStorage/URLSearchParams/window.history/window.location across features/social/.
+  social69-no-client-side-cursor (TKT-6.9.H2) No file under features/social/** builds a cursor string from a numeric offset.
+  social69-no-offset-persistence (TKT-6.9.H2) No file under features/social/** writes offset/cursor/limit into localStorage/sessionStorage/URLSearchParams.
+  social69-no-direct-sdk-feed-calls (TKT-6.9.H2) socialControllerGetFeed is only imported from feed.service.ts.
+  social610-no-deprecated-friend-request-route-realtime (TKT-6.10.G3) No deprecated friend-request SDK calls from realtime/invalidation modules.
+  social610-no-friendship-id-persistence-realtime (TKT-6.10.G3) No friendshipId written to localStorage/sessionStorage/window.history/URLSearchParams in realtime/invalidation modules.
+  social610-no-follow-id-persistence-realtime (TKT-6.10.G3) No followId written to localStorage/sessionStorage/window.history/URLSearchParams in realtime/invalidation modules.
+  social610-no-event-payload-persistence (TKT-6.10.G3) No event payload field beyond actorUserId/targetUserId/correlationId/version written to persistence sinks in realtime/invalidation modules.
 
 Flags:
   --help    Print this help and exit 64.
@@ -1735,6 +1742,718 @@ function reportSocial68NoFriendshipIdPersistence(violations) {
   return false;
 }
 
+// ─── Check: Epic 6.9 — no client-side cursor construction (TKT-6.9.H2) ────
+
+/**
+ * Asserts that no file under `features/social/**` builds a cursor
+ * string from a numeric offset. The feed endpoint is server-paginated
+ * via an opaque `nextCursor`; constructing a cursor from
+ * `String(${offset})` or a template-literal interpolation of an
+ * offset-shaped variable would bypass the server's cursor authority
+ * and is a contract violation.
+ *
+ * The check looks for two patterns on the same line:
+ *
+ *   - `String(...)` whose argument is an `offset`-shaped identifier.
+ *   - Template-literal interpolation `${...offset...}` or
+ *     `${...cursor...}` on a line that also contains the
+ *     word `offset` (so a generic template that happens to contain
+ *     `cursor` does not trip the rule).
+ *
+ * The `feed.service.ts` file is exempted: it forwards the
+ * server-emitted `nextCursor` unchanged (TKT-6.9.C1) and the
+ * `feed-discriminator.ts` / `feed-pagination-invariants.ts` files
+ * re-export the canonical page-size constants but never construct
+ * a cursor.
+ */
+async function checkSocial69NoClientSideCursor() {
+  /** @type {Array<{ file: string; line: number; text: string; pattern: string }>} */
+  const violations = [];
+
+  let files;
+  try {
+    files = await walkFiles(
+      SOCIAL_DIR,
+      (f) =>
+        (f.endsWith(".ts") ||
+          f.endsWith(".tsx") ||
+          f.endsWith(".mts") ||
+          f.endsWith(".cts")) &&
+        !isTestFile(f),
+    );
+  } catch {
+    return violations;
+  }
+
+  // The `String(${offset})` pattern. Matches `String(offset)`,
+  // `String(someOffset)`, `String(numericOffset)`, etc. The pattern
+  // is intentionally strict; a string-literal like `String("offset")`
+  // is fine and does not match.
+  const stringOfOffsetRe = /\bString\s*\(\s*[A-Za-z_$][A-Za-z0-9_$]*[Oo]ffset\b/;
+
+  // The `${...}` template interpolation pattern. Matches a line that
+  // contains BOTH a `${...}` interpolation and the word `offset`.
+  // The `offset` keyword requirement avoids false positives on
+  // unrelated template strings.
+  const templateOffsetRe = /\$\{[^}]*\}/;
+
+  for (const file of files) {
+    const src = readFileSync(file, "utf-8");
+    const lines = src.split("\n");
+    for (let i = 0; i < lines.length; i += 1) {
+      const raw = lines[i];
+      if (isCommentLine(raw)) continue;
+
+      if (stringOfOffsetRe.test(raw)) {
+        violations.push({
+          file: path.relative(CWD, file),
+          line: i + 1,
+          text: raw.trim(),
+          pattern: "String(${offset})",
+        });
+        continue;
+      }
+      if (templateOffsetRe.test(raw) && /\boffset\b/.test(raw)) {
+        violations.push({
+          file: path.relative(CWD, file),
+          line: i + 1,
+          text: raw.trim(),
+          pattern: "template interpolation of `offset`",
+        });
+      }
+    }
+  }
+
+  return violations;
+}
+
+// ─── Check: Epic 6.9 — no offset / cursor / limit persistence (TKT-6.9.H2) ─
+
+/**
+ * Asserts that no file under `features/social/**` writes `offset`,
+ * `cursor`, or `limit` into `localStorage`, `sessionStorage`, or
+ * `URLSearchParams`. The feed endpoint is server-paginated via an
+ * opaque `nextCursor`; persisting the offset / cursor / limit in a
+ * browser sink would leak server-authoritative pagination state to
+ * the client and is a contract violation.
+ *
+ * The check matches the persistence sinks already used by the
+ * Epic 6.8 (TKT-6.8.G2) `social68-no-friendship-id-persistence`
+ * check, restricted to `localStorage.setItem`,
+ * `sessionStorage.setItem`, and `URLSearchParams` (the
+ * `window.history` / `window.location` sinks are covered by the
+ * Epic 6.1 / 6.2 checks).
+ */
+async function checkSocial69NoOffsetPersistence() {
+  /** @type {Array<{ file: string; line: number; text: string; sink: string; identifier: string }>} */
+  const violations = [];
+
+  let files;
+  try {
+    files = await walkFiles(
+      SOCIAL_DIR,
+      (f) =>
+        (f.endsWith(".ts") ||
+          f.endsWith(".tsx") ||
+          f.endsWith(".mts") ||
+          f.endsWith(".cts")) &&
+        !isTestFile(f),
+    );
+  } catch {
+    return violations;
+  }
+
+  const PERSISTENCE_SINKS = [
+    { pattern: "localStorage.setItem", re: /\blocalStorage\.setItem\b/ },
+    {
+      pattern: "sessionStorage.setItem",
+      re: /\bsessionStorage\.setItem\b/ },
+    { pattern: "URLSearchParams", re: /\bURLSearchParams\b/ },
+  ];
+
+  // The forbidden pagination identifiers. `offset` is forbidden
+  // outright. `cursor` is forbidden because the SDK's `nextCursor`
+  // is opaque; persisting it on the client would leak server state.
+  // `limit` is forbidden because the page size is server-clamped
+  // (and the wrapper already forwards it on every call).
+  const FORBIDDEN_IDS = ["offset", "cursor", "limit"];
+
+  for (const file of files) {
+    const src = readFileSync(file, "utf-8");
+    const lines = src.split("\n");
+    for (let i = 0; i < lines.length; i += 1) {
+      const raw = lines[i];
+      if (isCommentLine(raw)) continue;
+
+      for (const { pattern, re } of PERSISTENCE_SINKS) {
+        if (!re.test(raw)) continue;
+
+        for (const id of FORBIDDEN_IDS) {
+          const idRe = new RegExp(`\\b${id}\\b`);
+          if (idRe.test(raw)) {
+            violations.push({
+              file: path.relative(CWD, file),
+              line: i + 1,
+              text: raw.trim(),
+              sink: pattern,
+              identifier: id,
+            });
+          }
+        }
+      }
+    }
+  }
+
+  return violations;
+}
+
+// ─── Check: Epic 6.9 — no direct SDK feed calls outside feed.service.ts (TKT-6.9.H2)
+
+/**
+ * Asserts that the SDK function `socialControllerGetFeed` is only
+ * imported and called from `feed.service.ts`. The single-purpose
+ * service wrapper is the only HTTP entry point for the global feed
+ * surface; a component / hook / page that calls the SDK directly
+ * would bypass the RFC 7807 decoding, the cursor forwarding, and
+ * the `phase6:6.9` breadcrumb emission.
+ *
+ * The check walks `features/social/**` and reports any file that
+ * imports `socialControllerGetFeed` other than
+ * `features/social/services/feed.service.ts`. The
+ * `features/social/services/__tests__/feed.service.spec.ts` is
+ * exempted because it mocks the SDK call to assert the service
+ * behaviour.
+ */
+async function checkSocial69NoDirectSdkFeedCalls() {
+  /** @type {Array<{ file: string; line: number; text: string; pattern: string }>} */
+  const violations = [];
+
+  const FEED_SERVICE_FILE = path.resolve(
+    SOCIAL_DIR,
+    "services/feed.service.ts",
+  );
+
+  let files;
+  try {
+    files = await walkFiles(
+      SOCIAL_DIR,
+      (f) =>
+        (f.endsWith(".ts") ||
+          f.endsWith(".tsx") ||
+          f.endsWith(".mts") ||
+          f.endsWith(".cts")),
+    );
+  } catch {
+    return violations;
+  }
+
+  const FORBIDDEN_SDK_CALL = "socialControllerGetFeed";
+
+  for (const file of files) {
+    if (file === FEED_SERVICE_FILE) continue;
+    // The feed-service spec mocks the SDK function; it is the
+    // single allowed exception.
+    if (
+      file ===
+      path.resolve(
+        SOCIAL_DIR,
+        "services/__tests__/feed.service.spec.ts",
+      )
+    ) {
+      continue;
+    }
+
+    const src = readFileSync(file, "utf-8");
+    const lines = src.split("\n");
+    for (let i = 0; i < lines.length; i += 1) {
+      const raw = lines[i];
+      if (isCommentLine(raw)) continue;
+
+      if (raw.includes(FORBIDDEN_SDK_CALL)) {
+        violations.push({
+          file: path.relative(CWD, file),
+          line: i + 1,
+          text: raw.trim(),
+          pattern: FORBIDDEN_SDK_CALL,
+        });
+      }
+    }
+  }
+
+  return violations;
+}
+
+// ─── Report helpers (TKT-6.9.H2) ─────────────────────────────────────────
+
+function reportSocial69NoClientSideCursor(violations) {
+  if (violations.length === 0) {
+    process.stdout.write(
+      `${GREEN("✓")} social69-no-client-side-cursor — no client-side cursor construction from a numeric offset across features/social/ (TKT-6.9.H2)\n`,
+    );
+    return true;
+  }
+
+  process.stdout.write(
+    `${RED("✗")} social69-no-client-side-cursor — ${BOLD(String(violations.length))} violation(s) found\n\n`,
+  );
+
+  for (const v of violations) {
+    process.stdout.write(
+      `  ${RED("forbidden pattern:")} ${BOLD(v.pattern)}  ${DIM(v.file)}:${DIM(String(v.line))}\n`,
+    );
+    const snippet =
+      v.text.length > 72 ? v.text.slice(0, 69) + "..." : v.text;
+    process.stdout.write(`  ${snippet}\n\n`);
+  }
+
+  return false;
+}
+
+function reportSocial69NoOffsetPersistence(violations) {
+  if (violations.length === 0) {
+    process.stdout.write(
+      `${GREEN("✓")} social69-no-offset-persistence — no offset/cursor/limit written to localStorage/sessionStorage/URLSearchParams across features/social/ (TKT-6.9.H2)\n`,
+    );
+    return true;
+  }
+
+  process.stdout.write(
+    `${RED("✗")} social69-no-offset-persistence — ${BOLD(String(violations.length))} violation(s) found\n\n`,
+  );
+
+  for (const v of violations) {
+    process.stdout.write(
+      `  ${RED("forbidden identifier:")} ${BOLD(v.identifier)}  ${RED("in sink:")} ${BOLD(v.sink)}  ${DIM(v.file)}:${DIM(String(v.line))}\n`,
+    );
+    const snippet =
+      v.text.length > 72 ? v.text.slice(0, 69) + "..." : v.text;
+    process.stdout.write(`  ${snippet}\n\n`);
+  }
+
+  return false;
+}
+
+function reportSocial69NoDirectSdkFeedCalls(violations) {
+  if (violations.length === 0) {
+    process.stdout.write(
+      `${GREEN("✓")} social69-no-direct-sdk-feed-calls — socialControllerGetFeed is only imported from feed.service.ts (TKT-6.9.H2)\n`,
+    );
+    return true;
+  }
+
+  process.stdout.write(
+    `${RED("✗")} social69-no-direct-sdk-feed-calls — ${BOLD(String(violations.length))} violation(s) found\n\n`,
+  );
+
+  for (const v of violations) {
+    process.stdout.write(
+      `  ${RED("forbidden pattern:")} ${BOLD(v.pattern)}  ${DIM(v.file)}:${DIM(String(v.line))}\n`,
+    );
+    const snippet =
+      v.text.length > 72 ? v.text.slice(0, 69) + "..." : v.text;
+    process.stdout.write(`  ${snippet}\n\n`);
+  }
+
+  return false;
+}
+
+// ─── Epic 6.10 G3 checks (TKT-6.10.G3) ──────────────────────────────────────
+
+/**
+ * Asserts that no realtime module under `features/social/realtime/**`
+ * or `features/social/hooks/use*Invalidation*` imports or calls any
+ * `socialControllerDeprecatedFriendRequestPath*` SDK function.
+ *
+ * The deprecated singular `/social/friend-request` path must never be
+ * called from the realtime layer.
+ */
+async function checkSocial610NoDeprecatedFriendRequestRouteRealtime() {
+  /** @type {Array<{ file: string; line: number; text: string; pattern: string }>} */
+  const violations = [];
+
+  const DEPRECATED_FAMILY = "socialControllerDeprecatedFriendRequestPath";
+
+  // Walk both target directories.
+  const targets = [
+    path.resolve(SOCIAL_DIR, "realtime"),
+    path.resolve(SOCIAL_DIR, "hooks"),
+  ];
+
+  let files = [];
+  for (const dir of targets) {
+    try {
+      const found = await walkFiles(
+        dir,
+        (f) =>
+          (f.endsWith(".ts") ||
+            f.endsWith(".tsx") ||
+            f.endsWith(".mts") ||
+            f.endsWith(".cts")) &&
+          !isTestFile(f),
+      );
+      files = files.concat(found);
+    } catch {
+      // Directory may not exist yet — skip silently.
+    }
+  }
+
+  for (const file of files) {
+    const src = readFileSync(file, "utf-8");
+    const lines = src.split("\n");
+    for (let i = 0; i < lines.length; i += 1) {
+      const raw = lines[i];
+      if (isCommentLine(raw)) continue;
+      if (raw.includes(DEPRECATED_FAMILY)) {
+        violations.push({
+          file: path.relative(CWD, file),
+          line: i + 1,
+          text: raw.trim(),
+          pattern: DEPRECATED_FAMILY,
+        });
+      }
+    }
+  }
+
+  return violations;
+}
+
+/**
+ * Asserts that no realtime module writes `friendshipId` to the
+ * documented persistence / URL sinks:
+ * `localStorage.setItem`, `sessionStorage.setItem`,
+ * `window.history.pushState`, `window.history.replaceState`,
+ * `URLSearchParams`.
+ *
+ * `friendshipId` is the unstable internal identifier of a friend-request
+ * row. It must never leave the service layer.
+ */
+async function checkSocial610NoFriendshipIdPersistenceRealtime() {
+  /** @type {Array<{ file: string; line: number; text: string; sink: string; identifier: string }>} */
+  const violations = [];
+
+  const targets = [
+    path.resolve(SOCIAL_DIR, "realtime"),
+    path.resolve(SOCIAL_DIR, "hooks"),
+  ];
+
+  let files = [];
+  for (const dir of targets) {
+    try {
+      const found = await walkFiles(
+        dir,
+        (f) =>
+          (f.endsWith(".ts") ||
+            f.endsWith(".tsx") ||
+            f.endsWith(".mts") ||
+            f.endsWith(".cts")) &&
+          !isTestFile(f),
+      );
+      files = files.concat(found);
+    } catch {
+      // Directory may not exist yet — skip silently.
+    }
+  }
+
+  const PERSISTENCE_SINKS = [
+    { pattern: "localStorage.setItem", re: /\blocalStorage\.setItem\b/ },
+    { pattern: "sessionStorage.setItem", re: /\bsessionStorage\.setItem\b/ },
+    { pattern: "window.history.pushState", re: /\bwindow\.history\.pushState\b/ },
+    { pattern: "window.history.replaceState", re: /\bwindow\.history\.replaceState\b/ },
+    { pattern: "URLSearchParams", re: /\bURLSearchParams\b/ },
+  ];
+
+  const FORBIDDEN_ID = "friendshipId";
+
+  for (const file of files) {
+    const src = readFileSync(file, "utf-8");
+    const lines = src.split("\n");
+    for (let i = 0; i < lines.length; i += 1) {
+      const raw = lines[i];
+      if (isCommentLine(raw)) continue;
+      for (const { pattern, re } of PERSISTENCE_SINKS) {
+        if (!re.test(raw)) continue;
+        const idRe = new RegExp(`\\b${FORBIDDEN_ID}\\b`);
+        if (idRe.test(raw)) {
+          violations.push({
+            file: path.relative(CWD, file),
+            line: i + 1,
+            text: raw.trim(),
+            sink: pattern,
+            identifier: FORBIDDEN_ID,
+          });
+        }
+      }
+    }
+  }
+
+  return violations;
+}
+
+/**
+ * Asserts that no realtime module writes `followId` to the same
+ * persistence / URL sinks as `checkSocial610NoFriendshipIdPersistenceRealtime`.
+ *
+ * `followId` is the unstable internal identifier of a follow row.
+ * It must never leave the service layer.
+ */
+async function checkSocial610NoFollowIdPersistenceRealtime() {
+  /** @type {Array<{ file: string; line: number; text: string; sink: string; identifier: string }>} */
+  const violations = [];
+
+  const targets = [
+    path.resolve(SOCIAL_DIR, "realtime"),
+    path.resolve(SOCIAL_DIR, "hooks"),
+  ];
+
+  let files = [];
+  for (const dir of targets) {
+    try {
+      const found = await walkFiles(
+        dir,
+        (f) =>
+          (f.endsWith(".ts") ||
+            f.endsWith(".tsx") ||
+            f.endsWith(".mts") ||
+            f.endsWith(".cts")) &&
+          !isTestFile(f),
+      );
+      files = files.concat(found);
+    } catch {
+      // Directory may not exist yet — skip silently.
+    }
+  }
+
+  const PERSISTENCE_SINKS = [
+    { pattern: "localStorage.setItem", re: /\blocalStorage\.setItem\b/ },
+    { pattern: "sessionStorage.setItem", re: /\bsessionStorage\.setItem\b/ },
+    { pattern: "window.history.pushState", re: /\bwindow\.history\.pushState\b/ },
+    { pattern: "window.history.replaceState", re: /\bwindow\.history\.replaceState\b/ },
+    { pattern: "URLSearchParams", re: /\bURLSearchParams\b/ },
+  ];
+
+  const FORBIDDEN_ID = "followId";
+
+  for (const file of files) {
+    const src = readFileSync(file, "utf-8");
+    const lines = src.split("\n");
+    for (let i = 0; i < lines.length; i += 1) {
+      const raw = lines[i];
+      if (isCommentLine(raw)) continue;
+      for (const { pattern, re } of PERSISTENCE_SINKS) {
+        if (!re.test(raw)) continue;
+        const idRe = new RegExp(`\\b${FORBIDDEN_ID}\\b`);
+        if (idRe.test(raw)) {
+          violations.push({
+            file: path.relative(CWD, file),
+            line: i + 1,
+            text: raw.trim(),
+            sink: pattern,
+            identifier: FORBIDDEN_ID,
+          });
+        }
+      }
+    }
+  }
+
+  return violations;
+}
+
+/**
+ * Asserts that no realtime module writes any event payload field beyond
+ * the four common fields (`actorUserId`, `targetUserId`, `correlationId`,
+ * `version`) to the same persistence / URL sinks.
+ *
+ * This is the post-batch invariant: the Phase 6.10 cross-batch invariant
+ * "No event payload persistence" requires that the complete event payload
+ * (which may contain `RelationshipDto`, `FriendshipDto`, etc.) never
+ * reaches a persistence sink.
+ *
+ * The check uses the PERSISTENCE_SINKS regexes from the Epic 6.8
+ * `social68-no-friendship-id-persistence` check and scans for any
+ * field assignment that might carry a payload value:
+ *
+ *   - `.push(...)`, `.set(...)`, `= ...` where the RHS references a
+ *     socket event payload variable.
+ *
+ * Because the check is structural (sink-on-line AND suspicious-RHS-on-line),
+ * it catches both direct writes like `localStorage.setItem(k, payload)`
+ * and indirect writes where a variable assigned from a payload is persisted.
+ *
+ * The lint script is intentionally narrow: it only fires on a sink line
+ * that also mentions `payload` / `event` / `socket` / `data` variables.
+ * A more aggressive check would need full AST analysis.
+ */
+async function checkSocial610NoEventPayloadPersistence() {
+  /** @type {Array<{ file: string; line: number; text: string; sink: string; pattern: string }>} */
+  const violations = [];
+
+  const targets = [
+    path.resolve(SOCIAL_DIR, "realtime"),
+    path.resolve(SOCIAL_DIR, "hooks"),
+  ];
+
+  let files = [];
+  for (const dir of targets) {
+    try {
+      const found = await walkFiles(
+        dir,
+        (f) =>
+          (f.endsWith(".ts") ||
+            f.endsWith(".tsx") ||
+            f.endsWith(".mts") ||
+            f.endsWith(".cts")) &&
+          !isTestFile(f),
+      );
+      files = files.concat(found);
+    } catch {
+      // Directory may not exist yet — skip silently.
+    }
+  }
+
+  const PERSISTENCE_SINKS = [
+    { pattern: "localStorage.setItem", re: /\blocalStorage\.setItem\b/ },
+    { pattern: "sessionStorage.setItem", re: /\bsessionStorage\.setItem\b/ },
+    { pattern: "window.history.pushState", re: /\bwindow\.history\.pushState\b/ },
+    { pattern: "window.history.replaceState", re: /\bwindow\.history\.replaceState\b/ },
+    { pattern: "URLSearchParams", re: /\bURLSearchParams\b/ },
+  ];
+
+  // Suspicious RHS patterns that suggest a payload is being persisted.
+  // This catches common patterns without needing AST analysis.
+  const PAYLOAD_RHS_PATTERNS = [
+    /\bpayload\b/,
+    /\bsocketEvent\b/,
+    /\brawEvent\b/,
+    /\bframe\.data\b/,
+    /\bwsData\b/,
+    /\bsocketData\b/,
+  ];
+
+  for (const file of files) {
+    const src = readFileSync(file, "utf-8");
+    const lines = src.split("\n");
+    for (let i = 0; i < lines.length; i += 1) {
+      const raw = lines[i];
+      if (isCommentLine(raw)) continue;
+      for (const { pattern, re } of PERSISTENCE_SINKS) {
+        if (!re.test(raw)) continue;
+        for (const rhsRe of PAYLOAD_RHS_PATTERNS) {
+          if (rhsRe.test(raw)) {
+            violations.push({
+              file: path.relative(CWD, file),
+              line: i + 1,
+              text: raw.trim(),
+              sink: pattern,
+              pattern: "event payload written to persistence sink",
+            });
+            break; // Only report once per line.
+          }
+        }
+      }
+    }
+  }
+
+  return violations;
+}
+
+// ─── Report helpers (TKT-6.10.G3) ─────────────────────────────────────────
+
+function reportSocial610NoDeprecatedFriendRequestRouteRealtime(violations) {
+  if (violations.length === 0) {
+    process.stdout.write(
+      `${GREEN("✓")} social610-no-deprecated-friend-request-route-realtime — no deprecated singular friend-request SDK calls from realtime/invalidation modules (TKT-6.10.G3)\n`,
+    );
+    return true;
+  }
+
+  process.stdout.write(
+    `${RED("✗")} social610-no-deprecated-friend-request-route-realtime — ${BOLD(String(violations.length))} violation(s) found\n\n`,
+  );
+
+  for (const v of violations) {
+    process.stdout.write(
+      `  ${RED("forbidden pattern:")} ${BOLD(v.pattern)}  ${DIM(v.file)}:${DIM(String(v.line))}\n`,
+    );
+    const snippet =
+      v.text.length > 72 ? v.text.slice(0, 69) + "..." : v.text;
+    process.stdout.write(`  ${snippet}\n\n`);
+  }
+
+  return false;
+}
+
+function reportSocial610NoFriendshipIdPersistenceRealtime(violations) {
+  if (violations.length === 0) {
+    process.stdout.write(
+      `${GREEN("✓")} social610-no-friendship-id-persistence-realtime — no friendshipId written to persistence sinks in realtime/invalidation modules (TKT-6.10.G3)\n`,
+    );
+    return true;
+  }
+
+  process.stdout.write(
+    `${RED("✗")} social610-no-friendship-id-persistence-realtime — ${BOLD(String(violations.length))} violation(s) found\n\n`,
+  );
+
+  for (const v of violations) {
+    process.stdout.write(
+      `  ${RED("forbidden identifier:")} ${BOLD(v.identifier)}  ${RED("in sink:")} ${BOLD(v.sink)}  ${DIM(v.file)}:${DIM(String(v.line))}\n`,
+    );
+    const snippet =
+      v.text.length > 72 ? v.text.slice(0, 69) + "..." : v.text;
+    process.stdout.write(`  ${snippet}\n\n`);
+  }
+
+  return false;
+}
+
+function reportSocial610NoFollowIdPersistenceRealtime(violations) {
+  if (violations.length === 0) {
+    process.stdout.write(
+      `${GREEN("✓")} social610-no-follow-id-persistence-realtime — no followId written to persistence sinks in realtime/invalidation modules (TKT-6.10.G3)\n`,
+    );
+    return true;
+  }
+
+  process.stdout.write(
+    `${RED("✗")} social610-no-follow-id-persistence-realtime — ${BOLD(String(violations.length))} violation(s) found\n\n`,
+  );
+
+  for (const v of violations) {
+    process.stdout.write(
+      `  ${RED("forbidden identifier:")} ${BOLD(v.identifier)}  ${RED("in sink:")} ${BOLD(v.sink)}  ${DIM(v.file)}:${DIM(String(v.line))}\n`,
+    );
+    const snippet =
+      v.text.length > 72 ? v.text.slice(0, 69) + "..." : v.text;
+    process.stdout.write(`  ${snippet}\n\n`);
+  }
+
+  return false;
+}
+
+function reportSocial610NoEventPayloadPersistence(violations) {
+  if (violations.length === 0) {
+    process.stdout.write(
+      `${GREEN("✓")} social610-no-event-payload-persistence — no socket event payload written to persistence sinks in realtime/invalidation modules (TKT-6.10.G3)\n`,
+    );
+    return true;
+  }
+
+  process.stdout.write(
+    `${RED("✗")} social610-no-event-payload-persistence — ${BOLD(String(violations.length))} violation(s) found\n\n`,
+  );
+
+  for (const v of violations) {
+    process.stdout.write(
+      `  ${RED("sink:")} ${BOLD(v.sink)}  ${RED("pattern:")} ${BOLD(v.pattern)}  ${DIM(v.file)}:${DIM(String(v.line))}\n`,
+    );
+    const snippet =
+      v.text.length > 72 ? v.text.slice(0, 69) + "..." : v.text;
+    process.stdout.write(`  ${snippet}\n\n`);
+  }
+
+  return false;
+}
+
 // ─── Main ────────────────────────────────────────────────────────────────
 
 async function main() {
@@ -1830,6 +2549,67 @@ async function main() {
   if (
     !reportSocial68NoFriendshipIdPersistence(
       social68FriendshipIdPersistenceViolations,
+    )
+  )
+    ok = false;
+
+  // Check 20: Epic 6.9 — no client-side cursor construction across features/social/ (TKT-6.9.H2)
+  const social69ClientSideCursorViolations =
+    await checkSocial69NoClientSideCursor();
+  if (
+    !reportSocial69NoClientSideCursor(social69ClientSideCursorViolations)
+  )
+    ok = false;
+
+  // Check 21: Epic 6.9 — no offset/cursor/limit written to localStorage/sessionStorage/URLSearchParams (TKT-6.9.H2)
+  const social69OffsetPersistenceViolations =
+    await checkSocial69NoOffsetPersistence();
+  if (
+    !reportSocial69NoOffsetPersistence(social69OffsetPersistenceViolations)
+  )
+    ok = false;
+
+  // Check 22: Epic 6.9 — components / hooks / pages do not import socialControllerGetFeed directly (TKT-6.9.H2)
+  const social69DirectSdkViolations =
+    await checkSocial69NoDirectSdkFeedCalls();
+  if (!reportSocial69NoDirectSdkFeedCalls(social69DirectSdkViolations)) ok = false;
+
+  // Check 23: Epic 6.10 G3 — no deprecated friend-request SDK calls from realtime/invalidation modules (TKT-6.10.G3)
+  const social610DeprecatedRouteViolations =
+    await checkSocial610NoDeprecatedFriendRequestRouteRealtime();
+  if (
+    !reportSocial610NoDeprecatedFriendRequestRouteRealtime(
+      social610DeprecatedRouteViolations,
+    )
+  )
+    ok = false;
+
+  // Check 24: Epic 6.10 G3 — no friendshipId written to persistence sinks in realtime/invalidation modules (TKT-6.10.G3)
+  const social610FriendshipIdViolations =
+    await checkSocial610NoFriendshipIdPersistenceRealtime();
+  if (
+    !reportSocial610NoFriendshipIdPersistenceRealtime(
+      social610FriendshipIdViolations,
+    )
+  )
+    ok = false;
+
+  // Check 25: Epic 6.10 G3 — no followId written to persistence sinks in realtime/invalidation modules (TKT-6.10.G3)
+  const social610FollowIdViolations =
+    await checkSocial610NoFollowIdPersistenceRealtime();
+  if (
+    !reportSocial610NoFollowIdPersistenceRealtime(
+      social610FollowIdViolations,
+    )
+  )
+    ok = false;
+
+  // Check 26: Epic 6.10 G3 — no socket event payload written to persistence sinks in realtime/invalidation modules (TKT-6.10.G3)
+  const social610PayloadPersistenceViolations =
+    await checkSocial610NoEventPayloadPersistence();
+  if (
+    !reportSocial610NoEventPayloadPersistence(
+      social610PayloadPersistenceViolations,
     )
   )
     ok = false;

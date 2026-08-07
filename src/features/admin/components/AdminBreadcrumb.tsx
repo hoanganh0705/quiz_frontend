@@ -32,7 +32,7 @@ const ADMIN_ROUTE_LABELS: Readonly<Record<string, string>> = Object.freeze({
   admin: 'Admin',
   tags: 'Tags',
   users: 'Users',
-  roles: 'Roles',
+  roles: 'User Roles',
   badges: 'Badges',
   achievements: 'Achievements',
   tournaments: 'Tournaments',

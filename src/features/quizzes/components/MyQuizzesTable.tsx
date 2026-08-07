@@ -1,3 +1,5 @@
+'use client';
+
 /**
  * `MyQuizzesTable` — table wrapper for the author's quizzes list.
  *

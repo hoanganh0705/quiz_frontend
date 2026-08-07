@@ -1,19 +1,25 @@
 /**
  * Phase 5 cross-tab invalidation — single import surface.
  *
- * Source epic:   Epic 5.1.
- * Source ticket: TKT-5.1.B2.
+ * Source epic:   Epic 5.1 (original four envelopes) extended by
+ *                Epic 6.10 (two social envelopes).
+ * Source ticket: TKT-5.1.B2 + TKT-6.10.D3.
  *
  * ## Purpose
  *
  * Phase 5 service wrappers and realtime hooks need to invalidate SWR caches
  * in sibling browser tabs when the user acts in one tab. This module provides
- * the Phase 5 `BroadcastChannel` integration for the four Phase 5 source types:
+ * the Phase 5 `BroadcastChannel` integration for the **six** Phase 5 source
+ * types:
  *
- *   1. `notification` — notification list / unread count changed
- *   2. `instance`     — instance roster / state changed
- *   3. `tournament`   — tournament registration / status changed
- *   4. `achievement`  — badge earned / progress changed
+ *   1. `notification`   — notification list / unread count changed
+ *   2. `instance`       — instance roster / state changed
+ *   3. `tournament`     — tournament registration / status changed
+ *   4. `achievement`    — badge earned / progress changed
+ *   5. `relationship`   — Epic 6.10 — viewer→target relationship changed
+ *                         (block, unblock, follow, friend-request lifecycle)
+ *   6. `friend-request` — Epic 6.10 — incoming / outgoing friend-request
+ *                         list changed
  *
  * ## Channel naming
  *
@@ -28,6 +34,16 @@
  * has a unique tab id persisted in `sessionStorage`. The broadcast handler
  * ignores messages whose `tabId` matches the current tab, preventing event
  * loops when the same tab both emits and listens.
+ *
+ * ## `friendshipId` hygiene
+ *
+ * The `friend-request` envelope never carries a `friendshipId` field.
+ * The Epic 6.7.G1 / 6.8.G3 deferral notes explicitly forbid
+ * `friendshipId` on the wire (it is an unstable internal id); the
+ * social realtime layer (TKT-6.10.C2) strips it before any consumer
+ * ever sees it. The lint script
+ * (`scripts/phase6-lint-invariants.mjs`, TKT-6.10.G3) fails the
+ * build if any field named `friendshipId` is added to this file.
  */
 
 import { getCurrentTabId } from "@/lib/api/core/broadcast-channel";
@@ -40,14 +56,16 @@ import { getCurrentTabId } from "@/lib/api/core/broadcast-channel";
 export const PHASE5_INVALIDATION_CHANNEL = "phase5/invalidation" as const;
 
 /**
- * The four Phase 5 invalidation source types. Used as the discriminator
+ * The six Phase 5 invalidation source types. Used as the discriminator
  * in `Phase5InvalidationPayload.type`.
  */
 export type Phase5InvalidationSource =
   | "notification"
   | "instance"
   | "tournament"
-  | "achievement";
+  | "achievement"
+  | "relationship"
+  | "friend-request";
 
 // ─── Event envelopes ─────────────────────────────────────────────────────────
 
@@ -83,6 +101,36 @@ export interface AchievementInvalidationEvent extends Phase5InvalidationBase {
 }
 
 /**
+ * Fired when the viewer's relationship projection to a target user
+ * changes (block / unblock / follow / unfollow / friend-request
+ * lifecycle). Carries only the target user id — the consumer
+ * (TKT-6.10.E1 listener hook) re-fetches the relationship via REST.
+ *
+ * `targetUserId` is the **stable** user id, never a `friendshipId`
+ * or `followId` internal identifier.
+ */
+export interface RelationshipInvalidationEvent
+  extends Phase5InvalidationBase {
+  type: "relationship";
+  targetUserId: string;
+}
+
+/**
+ * Fired when the viewer's incoming / outgoing friend-request list
+ * changes. Carries the optional `decision`, `requesterUserId`, and
+ * `recipientUserId` to let the consumer narrow the SWR
+ * revalidation; `requesterUserId` and `recipientUserId` are stable
+ * user ids (never `friendshipId`).
+ */
+export interface FriendRequestInvalidationEvent
+  extends Phase5InvalidationBase {
+  type: "friend-request";
+  decision?: "accept" | "decline" | "cancel";
+  requesterUserId?: string;
+  recipientUserId?: string;
+}
+
+/**
  * The union of all Phase 5 invalidation event shapes.
  *
  * Discriminator: `type` field.
@@ -91,7 +139,9 @@ export type Phase5InvalidationPayload =
   | NotificationInvalidationEvent
   | InstanceInvalidationEvent
   | TournamentInvalidationEvent
-  | AchievementInvalidationEvent;
+  | AchievementInvalidationEvent
+  | RelationshipInvalidationEvent
+  | FriendRequestInvalidationEvent;
 
 /** Discriminated envelope — keys are the `type` literals. */
 export type Phase5InvalidationEnvelope = {
@@ -101,19 +151,34 @@ export type Phase5InvalidationEnvelope = {
 // ─── Broadcast helpers ────────────────────────────────────────────────────────
 
 /**
+ * The shape of an invalidation event minus the auto-stamped
+ * `tabId` / `timestamp` fields. Each variant retains its own
+ * discriminator and variant-specific fields.
+ *
+ * `Omit<DiscriminatedUnion, ...>` collapses the union to the common
+ * fields and loses variant-specific fields (`notificationId`,
+ * `instanceId`, `targetUserId`, `decision`, …). Distributing the
+ * `Omit` over the union via a mapped type preserves them.
+ */
+export type Phase5InvalidationInput = {
+  [K in Phase5InvalidationSource]: Omit<
+    Extract<Phase5InvalidationPayload, { type: K }>,
+    "tabId" | "timestamp"
+  >;
+}[Phase5InvalidationSource];
+
+/**
  * Broadcast a Phase 5 invalidation event to all other tabs via
  * `BroadcastChannel`.
  *
  * The event is not delivered to the current tab (same-tab filtering via
  * `tabId`).
  *
- * @param payload - The invalidation event to broadcast.
+ * @param payload - The invalidation event to broadcast (without
+ *                  `tabId` / `timestamp`; both are auto-stamped).
  */
 export function emitPhase5Invalidation(
-  payload: Omit<Phase5InvalidationPayload, "tabId" | "timestamp"> & {
-    tabId?: never;
-    timestamp?: never;
-  },
+  payload: Phase5InvalidationInput,
 ): void {
   if (typeof window === "undefined") return;
 
@@ -127,6 +192,31 @@ export function emitPhase5Invalidation(
   } finally {
     channel.close();
   }
+}
+
+// ─── Epic 6.10 helpers ──────────────────────────────────────────────────────
+
+/**
+ * Broadcast a `relationship` invalidation event. Convenience helper
+ * for listener hooks (TKT-6.10.E1); the same semantics as
+ * `emitPhase5Invalidation({ type: 'relationship', targetUserId })`.
+ */
+export function postRelationshipInvalidation(targetUserId: string): void {
+  emitPhase5Invalidation({ type: "relationship", targetUserId });
+}
+
+/**
+ * Broadcast a `friend-request` invalidation event. The optional
+ * `decision`, `requesterUserId`, and `recipientUserId` fields narrow
+ * the consumer-side revalidation; omitting them forces a full
+ * invalidation of both the incoming and outgoing request lists.
+ */
+export function postFriendRequestInvalidation(detail?: {
+  decision?: "accept" | "decline" | "cancel";
+  requesterUserId?: string;
+  recipientUserId?: string;
+}): void {
+  emitPhase5Invalidation({ type: "friend-request", ...detail });
 }
 
 // ─── Subscribe helper ────────────────────────────────────────────────────────

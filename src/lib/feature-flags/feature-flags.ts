@@ -94,6 +94,7 @@ export type FeatureFlag =
   | 'phase7_admin_achievement'
   | 'phase7_admin_tournament'
   | 'phase7_admin_user_role'
+  | 'phase7_admin_audit'
 
 export type FeatureFlagValueMap = {
   /**
@@ -394,20 +395,46 @@ export type FeatureFlagValueMap = {
   /**
    * Phase 6 realtime social notifications lane gate.
    *
-   * Source epic:   Epic 6.1.
-   * Source ticket: TKT-6.1.B1.
+   * Source epic:   Epic 6.10 — Realtime Social Notifications and
+   *                Relationship Invalidation (extends Epic 6.1 / TKT-6.1.B1).
+   * Source story:  `projectDocs/Epics/PHASE_6_IMPLEMENTATION_PLAN.md` →
+   *                Story 6.10 (lines 470–511).
+   * Source ticket: TKT-6.10.B1 (verification + doc-comment patch).
    *
    * Gates the realtime social events delivered over the Phase 5
-   * `/notifications` Socket.IO namespace: friend-request received,
-   * friend-request accepted, follow, mention, and other
-   * relationship-changed notifications.
+   * `/notifications` Socket.IO namespace: `friend.request.received`,
+   * `friend.request.responded`, `friend.request.cancelled`,
+   * `friend.added`, `friend.removed`, `follow.received`,
+   * `blocked.changed`, `relationship.changed`, and `feed.item.added`.
+   * The seven listener hooks (`useRelationshipInvalidation`,
+   * `useFriendRequestInvalidation`, `useFollowInvalidation`,
+   * `useBlockInvalidation`, `useSocialFeedInvalidation`,
+   * `useNotificationEventRouter`, plus the shared
+   * `useSocialRealtimeEvent` helper), the `BadgeSyncLayer`,
+   * `ConnectionStatusBadge`, `RealtimeWsErrorToast`, the
+   * `EventDeduplicator` / `EventSequenceGuard` singletons, the
+   * cross-tab `relationship-invalidation` / `friend-request-invalidation`
+   * envelopes, and the `useReconnectReconciliation` debounced re-hydration
+   * are all gated by this flag.
+   *
+   * The flag flips to `'live'` only after Story 6.10's seven exit
+   * criteria (lines 503–511 of the Phase 6 plan) and the cross-tab
+   * integration smoke test pass — see TKT-6.10.H1.
    *
    * Requires `phase6_social: 'live'` and
    * `phase5_realtime_infrastructure: 'live'` (the notifications
    * socket is built on Phase 5's realtime infra).
    *
-   *   - `'live'`       — realtime social notifications are wired.
-   *   - `'placeholder'`— the static "Coming soon" rendering.
+   *   - `'live'`       — realtime social notifications are wired; the
+   *                      listener hooks register `useRealtimeEvent`
+   *                      handlers against the `/notifications` namespace
+   *                      and dispatch `mutateCarefully` on the relevant
+   *                      social SWR keys (relationship / friend-request /
+   *                      follow / block / feed / counts).
+   *   - `'placeholder'`— listener hooks and UI primitives render
+   *                      no-op fallbacks; REST revalidation after every
+   *                      mutation (Epic 6.6 / 6.7 / 6.8) is the only
+   *                      sync mechanism.
    */
   phase6_social_notifications: 'live' | 'placeholder'
   /**
@@ -725,6 +752,24 @@ export type FeatureFlagValueMap = {
    *   - `'placeholder'`— the static "Coming soon" rendering.
    */
   phase7_admin_user_role: 'live' | 'placeholder'
+  /**
+   * Phase 7 audit log admin surface gate.
+   *
+   * Source epic:   Epic 7.11.
+   * Source ticket: TKT-7.11.A1.
+   *
+   * Gates:
+   *   - Audit log history viewer (if backend exposes GET /admin/audit)
+   *   - Audit log detail panel
+   *   - Audit log filters
+   *
+   * When the backend does not expose the audit endpoint, the surface
+   * renders a degradation notice instead of the audit log list.
+   *
+   *   - `'live'`       — audit log surfaces are wired.
+   *   - `'placeholder'`— the static "Coming soon" rendering.
+   */
+  phase7_admin_audit: 'live' | 'placeholder'
 }
 
 export const FEATURE_FLAGS: readonly FeatureFlag[] = [
@@ -760,6 +805,7 @@ export const FEATURE_FLAGS: readonly FeatureFlag[] = [
   'phase7_admin_achievement',
   'phase7_admin_tournament',
   'phase7_admin_user_role',
+  'phase7_admin_audit',
 ]
 
 const FLAG_DEFAULTS: FeatureFlagValueMap = {
@@ -795,6 +841,7 @@ const FLAG_DEFAULTS: FeatureFlagValueMap = {
   phase7_admin_achievement: 'placeholder',
   phase7_admin_tournament: 'placeholder',
   phase7_admin_user_role: 'placeholder',
+  phase7_admin_audit: 'placeholder',
 }
 
 const FLAG_ENV_OVERRIDES: Record<FeatureFlag, string | undefined> = {
@@ -830,6 +877,7 @@ const FLAG_ENV_OVERRIDES: Record<FeatureFlag, string | undefined> = {
   phase7_admin_achievement: process.env.NEXT_PUBLIC_PHASE7_ADMIN_ACHIEVEMENT,
   phase7_admin_tournament: process.env.NEXT_PUBLIC_PHASE7_ADMIN_TOURNAMENT,
   phase7_admin_user_role: process.env.NEXT_PUBLIC_PHASE7_ADMIN_USER_ROLE,
+  phase7_admin_audit: process.env.NEXT_PUBLIC_PHASE7_ADMIN_AUDIT,
 }
 
 function isFlagValue<K extends FeatureFlag>(

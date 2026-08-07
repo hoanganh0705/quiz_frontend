@@ -29,7 +29,7 @@ import useSWR from 'swr'
 import { ApiError } from '@/lib/api'
 import type { PopularQuizItemDto } from '@/lib/api/generated/schemas'
 
-import { getQuizzesPopular } from '@/features/quizzes/api/quizzes.wrapper'
+import { getQuizzesPopular } from '@/features/quizzes/services/quizzes.service'
 
 export interface UseQuizzesPopularParams {
   limit?: number

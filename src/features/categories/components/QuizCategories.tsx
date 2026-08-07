@@ -154,7 +154,7 @@ export default function QuizCategories({
           }}
           className='w-full max-w-full'
         >
-          {categories.map((category) => (
+          {(categories ?? []).map((category) => (
             <SwiperSlide key={category.categoryId} className='min-w-0 max-w-full'>
               <CategoryCard
                 categoryId={category.categoryId}

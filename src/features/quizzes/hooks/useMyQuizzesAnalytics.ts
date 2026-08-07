@@ -1,3 +1,5 @@
+'use client';
+
 /**
  * `useMyQuizzesAnalytics` — single-fetch hook for the author's aggregate analytics.
  *

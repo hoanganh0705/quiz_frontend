@@ -28,7 +28,7 @@ import useSWR from 'swr'
 import { ApiError } from '@/lib/api'
 import type { QuizListItemDto } from '@/lib/api/generated/schemas'
 
-import { getQuizzesFeatured } from '@/features/quizzes/api/quizzes.wrapper'
+import { getQuizzesFeatured } from '@/features/quizzes/services/quizzes.service'
 
 export interface UseFeaturedQuizzesParams {
   limit?: number

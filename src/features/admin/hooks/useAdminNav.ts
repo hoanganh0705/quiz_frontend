@@ -36,15 +36,12 @@
  * | Roles & Permissions | `user_grant_role` | bottom |
  */
 
-import type { Icon } from 'lucide-react';
-import {
-  LayoutDashboard,
-  BookOpen,
-  Tag,
-  Users,
-  Settings,
-  Shield,
-} from 'lucide-react';
+import { LayoutDashboard, BookOpen, Tag, Users, Settings, Shield, ScrollText, Trophy } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
+
+import { getFeatureFlagValue } from '@/lib/feature-flags';
+
+import { AUDIT_LOG_METADATA, AUDIT_LOG_ROUTE_PATH } from '../audit-admin/metadata';
 
 import { useAdminRole } from './useAdminRole';
 import type { AdminPermission } from '../permissions';
@@ -57,9 +54,14 @@ export interface AdminNavEntry {
   /** User-visible label. */
   label: string;
   /** Lucide icon component. */
-  icon?: Icon;
+  icon?: LucideIcon;
   /** Permission(s) that gate this entry.  Empty = always visible when admin. */
   requiredPermissions: AdminPermission[];
+  /**
+   * Optional feature flag that must be `'live'` for this entry to be
+   * visible.  When undefined, no feature flag is checked.
+   */
+  featureFlag?: 'phase7_admin_audit' | 'phase7_admin_ranking';
 }
 
 // ─── Nav catalogue ───────────────────────────────────────────────────────────
@@ -99,6 +101,34 @@ const MAIN_ENTRIES: AdminNavEntry[] = [
     icon: Users,
     requiredPermissions: ['user_grant_role', 'user_revoke_role'],
   },
+  {
+    href: '/admin/users/roles',
+    label: 'User Roles',
+    icon: Shield,
+    requiredPermissions: ['user_grant_role'],
+  },
+  // TKT-7.11.F1 — audit log nav entry.  Gated on `audit_log_read`
+  // permission AND `phase7_admin_audit` feature flag.
+  {
+    href: AUDIT_LOG_ROUTE_PATH,
+    label: AUDIT_LOG_METADATA.label,
+    icon: AUDIT_LOG_METADATA.icon ?? ScrollText,
+    requiredPermissions: [...AUDIT_LOG_METADATA.requiredPermissions],
+    featureFlag: 'phase7_admin_audit',
+  },
+  // TKT-7.9.F2 — ranking admin nav entry. Gated on `ranking_*` permissions
+  // AND `phase7_admin_ranking` feature flag.
+  {
+    href: '/admin/rankings',
+    label: 'Rankings',
+    icon: Trophy,
+    requiredPermissions: [
+      'ranking_recalculate',
+      'ranking_reset',
+      'ranking_consistency_check',
+    ],
+    featureFlag: 'phase7_admin_ranking',
+  },
 ];
 
 const BOTTOM_ENTRIES: AdminNavEntry[] = [
@@ -128,12 +158,27 @@ export interface UseAdminNavResult {
 }
 
 /**
- * Derive visible admin nav entries filtered by the current user's permissions.
+ * Derive visible admin nav entries filtered by the current user's permissions
+ * and feature flags.
  */
 export function useAdminNav(): UseAdminNavResult {
   const { isLoading, permissions } = useAdminRole();
 
+  // TKT-7.11.F1 — also read the audit log feature flag.  When the flag
+  // is at its default value (`'placeholder'`), the audit nav entry is hidden.
+  const auditFlagValue = getFeatureFlagValueSafe('phase7_admin_audit');
+
+  // TKT-7.9.F2 — read the ranking admin feature flag.  When the flag
+  // is at its default value (`'placeholder'`), the rankings nav entry is hidden.
+  const rankingFlagValue = getFeatureFlagValueSafe('phase7_admin_ranking');
+
   function isVisible(entry: AdminNavEntry): boolean {
+    if (entry.featureFlag && entry.featureFlag === 'phase7_admin_audit') {
+      if (auditFlagValue !== 'live') return false;
+    }
+    if (entry.featureFlag && entry.featureFlag === 'phase7_admin_ranking') {
+      if (rankingFlagValue !== 'live') return false;
+    }
     if (entry.requiredPermissions.length === 0) return true;
     return entry.requiredPermissions.some((p) => permissions.includes(p));
   }
@@ -143,4 +188,18 @@ export function useAdminNav(): UseAdminNavResult {
     mainEntries: MAIN_ENTRIES.filter(isVisible),
     bottomEntries: BOTTOM_ENTRIES.filter(isVisible),
   };
+}
+
+// ─── Internal helper ────────────────────────────────────────────────────────
+
+/**
+ * Read the audit log feature flag value.  Returns `'placeholder'`
+ * when the flag is at its default — defensive against the flag
+ * being added or removed across deploys.
+ */
+function getFeatureFlagValueSafe(
+  flag: 'phase7_admin_audit' | 'phase7_admin_ranking',
+): 'live' | 'placeholder' {
+  const value = getFeatureFlagValue(flag);
+  return value === 'live' ? 'live' : 'placeholder';
 }

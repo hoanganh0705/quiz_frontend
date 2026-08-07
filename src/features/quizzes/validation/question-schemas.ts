@@ -7,12 +7,12 @@
  * @see EPIC_4_10_TICKETS.md — T-4.10.2
  */
 
-import { z } from 'zod';
+import { z } from "zod";
 
 import {
   QUESTION_TYPE_VALUES,
   QUESTION_VALIDATION,
-} from '@/features/quizzes/types/author-dtos';
+} from "@/features/quizzes/types/author-dtos";
 
 // ─── Primitive schemas ────────────────────────────────────────────────────
 
@@ -62,7 +62,7 @@ export const answerOptionTextSchema = z
 export const answerOptionPositionSchema = z
   .number()
   .int()
-  .min(1, 'Position must be at least 1');
+  .min(1, "Position must be at least 1");
 
 /**
  * Question position: 1-based integer.
@@ -70,7 +70,7 @@ export const answerOptionPositionSchema = z
 export const questionPositionSchema = z
   .number()
   .int()
-  .min(1, 'Position must be at least 1');
+  .min(1, "Position must be at least 1");
 
 // ─── Answer option schemas ────────────────────────────────────────────────
 
@@ -114,30 +114,34 @@ export const answerOptionsArraySchema = z
  * - `short_answer`: 0 correct answers (auto-graded server-side)
  */
 function validateCorrectAnswers(
-  options: z.infer<typeof answerOptionsSchema>,
+  options: z.infer<typeof answerOptionSchema>[],
   questionType: z.infer<typeof questionTypeSchema>,
 ): boolean {
   const correctCount = options.filter((o) => o.isCorrect).length;
 
   switch (questionType) {
-    case 'single_choice':
+    case "single_choice":
       return correctCount === 1;
-    case 'multiple_choice':
+    case "multiple_choice":
       return correctCount >= 1;
-    case 'true_false':
+    case "true_false":
       return correctCount === 1;
-    case 'short_answer':
+    case "short_answer":
       return correctCount >= 0; // short_answer allows 0 or more
     default:
       return false;
   }
 }
 
-const CORRECT_ANSWERS_MESSAGES: Record<z.infer<typeof questionTypeSchema>, string> = {
-  single_choice: 'Single choice questions must have exactly 1 correct answer',
-  multiple_choice: 'Multiple choice questions must have at least 1 correct answer',
-  true_false: 'True/False questions must have exactly 1 correct answer',
-  short_answer: 'Short answer questions do not require correct answers',
+const CORRECT_ANSWERS_MESSAGES: Record<
+  z.infer<typeof questionTypeSchema>,
+  string
+> = {
+  single_choice: "Single choice questions must have exactly 1 correct answer",
+  multiple_choice:
+    "Multiple choice questions must have at least 1 correct answer",
+  true_false: "True/False questions must have exactly 1 correct answer",
+  short_answer: "Short answer questions do not require correct answers",
 };
 
 // ─── Single question schema ────────────────────────────────────────────────
@@ -159,8 +163,8 @@ export const createQuestionSchema = z
   .refine(
     (data) => validateCorrectAnswers(data.answerOptions, data.questionType),
     {
-      message: 'Please mark the correct answer(s)',
-      path: ['answerOptions'],
+      message: "Please mark the correct answer(s)",
+      path: ["answerOptions"],
     },
   );
 
@@ -244,9 +248,9 @@ export interface ParsedBulkRow {
  */
 export function parseBulkText(
   text: string,
-  delimiter: ',' | '\t' = ',',
+  delimiter: "," | "\t" = ",",
 ): ParsedBulkRow[] {
-  const lines = text.trim().split('\n');
+  const lines = text.trim().split("\n");
   const results: ParsedBulkRow[] = [];
 
   for (let i = 0; i < lines.length; i++) {
@@ -261,7 +265,7 @@ export function parseBulkText(
         results.push({
           index: i,
           values: null,
-          error: 'Row must have at least: question text, type, and 1 option',
+          error: "Row must have at least: question text, type, and 1 option",
         });
         continue;
       }
@@ -288,7 +292,7 @@ export function parseBulkText(
         results.push({
           index: i,
           values: null,
-          error: 'At least 1 option is required',
+          error: "At least 1 option is required",
         });
         continue;
       }
@@ -317,7 +321,7 @@ export function parseBulkText(
       results.push({
         index: i,
         values: null,
-        error: 'Failed to parse row',
+        error: "Failed to parse row",
       });
     }
   }
@@ -328,9 +332,9 @@ export function parseBulkText(
 /**
  * Simple CSV/TSV line parser that handles quoted values.
  */
-function parseCSVLine(line: string, delimiter: ',' | '\t'): string[] {
+function parseCSVLine(line: string, delimiter: "," | "\t"): string[] {
   const result: string[] = [];
-  let current = '';
+  let current = "";
   let inQuotes = false;
 
   for (let i = 0; i < line.length; i++) {
@@ -346,7 +350,7 @@ function parseCSVLine(line: string, delimiter: ',' | '\t'): string[] {
       }
     } else if (char === delimiter && !inQuotes) {
       result.push(current.trim());
-      current = '';
+      current = "";
     } else {
       current += char;
     }

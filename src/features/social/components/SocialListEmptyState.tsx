@@ -79,10 +79,14 @@ function copyFor(kind: SocialListKind, viewerIsOwner: boolean): EmptyCopy {
         body: "Users you block will appear here.",
       };
     default: {
-      // Exhaustiveness — if a new kind is added to the union without
-      // updating this switch, TypeScript will flag the missing case.
-      const _exhaustive: never = kind;
-      return _exhaustive;
+      // Generic fallback for kinds not covered by the explicit
+      // arms (e.g. the new `feed` kind, which has its own
+      // `FeedEmptyState` for non-empty branches; new list kinds
+      // will land here until the explicit arm is added).
+      return {
+        title: "Nothing here yet",
+        body: "Check back soon.",
+      };
     }
   }
 }

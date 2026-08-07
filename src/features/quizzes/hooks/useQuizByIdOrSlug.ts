@@ -31,7 +31,7 @@ import { useMemo } from 'react';
 import { ApiError, isApiError, useSingleWithRetry } from '@/lib/api';
 import type { SingleFetcher } from '@/lib/api/use-single-with-retry';
 
-import { getQuizByIdOrSlug } from '@/features/quizzes/api/quizzes.wrapper';
+import { getQuizByIdOrSlug } from '@/features/quizzes/services/quizzes.service';
 import {
   projectQuizToPlayerView,
   type PlayerQuizDetail,

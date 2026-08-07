@@ -39,3 +39,9 @@ export {
   unfriend,
   type RespondFriendRequestAction,
 } from "./friend-request-mutation.service";
+
+export {
+  getFeed,
+  type FeedServiceResult,
+  type FeedServicePagination,
+} from "./feed.service";

@@ -1,3 +1,5 @@
+'use client';
+
 /**
  * `useMyQuizzesDrafts` — cursor-paginated list of the authenticated user's draft quizzes.
  *

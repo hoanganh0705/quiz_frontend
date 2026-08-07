@@ -95,7 +95,7 @@ import type {
   TagResponseDto,
 } from '@/lib/api/generated/schemas'
 
-import { listQuizzes } from '@/features/quizzes/api/quizzes.wrapper'
+import { listQuizzes } from '@/features/quizzes/services/quizzes.service'
 import { listTags } from '@/features/tags/services/tags.service'
 import type { QuizFilterUrlState } from '@/features/quizzes/types/quiz-filter-params'
 

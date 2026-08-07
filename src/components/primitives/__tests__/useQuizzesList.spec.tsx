@@ -48,7 +48,7 @@ import { useQuizzesList } from '@/features/quizzes/hooks/useQuizzesList'
 const listQuizzesMock = vi.fn()
 const listTagsMock = vi.fn()
 
-vi.mock('@/features/quizzes/api/quizzes.wrapper', () => ({
+vi.mock('@/features/quizzes/services/quizzes.service', () => ({
   listQuizzes: (...args: unknown[]) => listQuizzesMock(...args),
   getQuizBySlug: vi.fn(),
   getQuizzesPopular: vi.fn(),

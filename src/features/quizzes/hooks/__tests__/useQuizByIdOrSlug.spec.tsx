@@ -36,17 +36,17 @@ import { ApiError } from "@/lib/api";
 import { useQuizByIdOrSlug } from "@/features/quizzes/hooks/useQuizByIdOrSlug";
 import type { QuizResponseDto } from "@/lib/api/generated/schemas/quizResponseDto";
 
-vi.mock("@/features/quizzes/api/quizzes.wrapper", async () => {
+vi.mock("@/features/quizzes/services/quizzes.service", async () => {
   const actual = await vi.importActual<
-    typeof import("@/features/quizzes/api/quizzes.wrapper")
-  >("@/features/quizzes/api/quizzes.wrapper");
+    typeof import("@/features/quizzes/services/quizzes.service")
+  >("@/features/quizzes/services/quizzes.service");
   return {
     ...actual,
     getQuizByIdOrSlug: vi.fn(),
   };
 });
 
-import { getQuizByIdOrSlug } from "@/features/quizzes/api/quizzes.wrapper";
+import { getQuizByIdOrSlug } from "@/features/quizzes/services/quizzes.service";
 
 const getQuizByIdOrSlugMock = vi.mocked(getQuizByIdOrSlug);
 
