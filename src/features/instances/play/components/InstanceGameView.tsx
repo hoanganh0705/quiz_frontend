@@ -67,7 +67,7 @@ export function InstanceGameView({ instanceId, className }: InstanceGameViewProp
   const { currentUser } = useAuth();
   const currentPlayerId = currentUser?.userId ?? null;
 
-  const flagValue = getFeatureFlagValue("phase5_instances_play");
+  const flagValue = getFeatureFlagValue("multiplayer_play_live");
   const isPlaceholder = flagValue === "placeholder";
 
   const { closure } = useInstanceLifecycle(instanceId);

@@ -83,15 +83,20 @@ export async function getTagsTrending(params?: { limit?: number }) {
 export async function getTagQuizzes(
   slug: string,
   params?: { cursor?: string; limit?: number },
-) {
+): Promise<TagQuizzesResponse> {
   const queryParams: Record<string, unknown> = {};
   if (params?.cursor !== undefined) queryParams.cursor = params.cursor;
   if (params?.limit !== undefined) queryParams.limit = params.limit;
-  return orvalCustomInstance<TagQuizzesResponse>({
+  // The response interceptor in `custom-instance.ts` does NOT
+  // unwrap the `{ data, meta }` envelope (see the long-form comment
+  // on the interceptor for the rationale), so the SDK returns the
+  // wrapped envelope and we read `.data` here.
+  const wire = await orvalCustomInstance<{ data: TagQuizzesResponse }>({
     url: `/api/v1/tags/${slug}/quizzes`,
     method: 'GET',
     params: queryParams,
   });
+  return (wire as { data: TagQuizzesResponse }).data;
 }
 
 export async function getRelatedTags(

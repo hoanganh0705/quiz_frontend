@@ -39,7 +39,7 @@ export default function RecentlyPlayedSection() {
                 {item.difficulty && (
                   <Badge variant='outline'>{item.difficulty}</Badge>
                 )}
-                <span className='text-xs text-foreground/60 flex items-center gap-1'>
+                <span className='text-xs text-foreground/70 flex items-center gap-1'>
                   <Clock className='h-3 w-3' />
                   {new Date(item.playedAt).toLocaleDateString()}
                 </span>

@@ -208,7 +208,7 @@ export function useSocket(
         }, delay);
       }
     });
-  }, [enabled, namespace]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [enabled, namespace]);  
 
   // ── Reconnect (manual) ─────────────────────────────────────────────────
 

@@ -141,7 +141,7 @@ const FALLBACK_RESULT: UseSuggestionsResult = Object.freeze({
 export function useSuggestions(
   targetUserId: string | null,
 ): UseSuggestionsResult {
-  const flagValue = getFeatureFlagValue("phase6_social_discovery");
+  const flagValue = getFeatureFlagValue("social_discovery_live");
   const isFlagPlaceholder = flagValue === "placeholder";
 
   const auth = useAuthSession();

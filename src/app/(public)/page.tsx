@@ -1,4 +1,4 @@
-import { listCategories } from '@/features/categories/api'
+import { listCategories } from '@/features/categories/services'
 import { HomePage } from '@/features/quizzes'
 import type { Category } from '@/features/categories/types'
 

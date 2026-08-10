@@ -6,8 +6,8 @@
  * Source ticket: TKT-5.7.G1.
  *
  * Tests cover:
- * - returns isPlaceholder=true when phase5_instances === 'placeholder'
- * - returns isPlaceholder=false when phase5_instances === 'live'
+ * - returns isPlaceholder=true when multiplayer_instances_live === 'placeholder'
+ * - returns isPlaceholder=false when multiplayer_instances_live === 'live'
  * - flagValue reflects the underlying flag value
  * - isLive is true when value is 'live'
  */

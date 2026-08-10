@@ -347,9 +347,9 @@ function PodiumColumn({
         className={cn(
           'flex w-16 items-center justify-center rounded-md text-lg font-bold tabular-nums',
           slot === 1
-            ? 'bg-amber-500 text-white'
+            ? 'bg-amber-500 text-amber-950'
             : slot === 2
-              ? 'bg-slate-400 text-white'
+              ? 'bg-slate-400 text-slate-950'
               : 'bg-orange-600 text-white',
           heightClass,
         )}

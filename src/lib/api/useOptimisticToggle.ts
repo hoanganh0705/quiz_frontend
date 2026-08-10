@@ -72,11 +72,17 @@ import { mutate as globalMutate } from 'swr';
 import { ApiError, isApiError } from '@/lib/api';
 
 /**
- * The opaque SWR key shape. Matches the canonical tuple-of-unknowns
- * used by every consumer in Phase 3 (e.g. `['category', id]`,
- * `['tag', slug]`, `['follow-lookup', 'categories', { limit: 500 }]`).
+ * The opaque SWR key shape. Matches SWR's `Arguments` type
+ * (string | ArgumentsTuple | Record | null | undefined | false).
+ * ArgumentsTuple = readonly [any, ...unknown[]].
  */
-export type OptimisticToggleSWRKey = readonly unknown[];
+export type OptimisticToggleSWRKey =
+  | string
+  | readonly [unknown, ...unknown[]]
+  | Record<PropertyKey, unknown>
+  | null
+  | undefined
+  | false;
 
 /**
  * The error taxonomy the UI branches on. Single source of truth —

@@ -53,7 +53,7 @@ const PLACEHOLDER_RESULT: UseOutgoingRequestsResult = Object.freeze({
 });
 
 export function useOutgoingRequests(): UseOutgoingRequestsResult {
-  const flagValue = getFeatureFlagValue("phase6_social_relationship");
+  const flagValue = getFeatureFlagValue("social_relationship_live");
   const isFlagPlaceholder = flagValue === "placeholder";
 
   const auth = useAuthSession();

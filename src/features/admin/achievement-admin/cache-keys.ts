@@ -68,7 +68,7 @@ export function userHistoryKey(
  */
 export async function invalidateAchievementAdmin(
   userId: string,
-  mutateFn: (key: unknown) => Promise<unknown> = globalMutate,
+  mutateFn: typeof globalMutate = globalMutate,
 ): Promise<void> {
   // Invalidate user badges cache
   await mutateFn(userBadgesKey(userId));

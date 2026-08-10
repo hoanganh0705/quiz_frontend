@@ -54,6 +54,13 @@ import { ApiError } from '@/lib/api';
 export interface AttemptStartCtaProps {
   /** Canonical quiz id (UUID). */
   quizId: string | null;
+  /**
+   * Canonical quiz-version id. Threaded through to `useStartAttempt`
+   * so the runner-store reverse-index write uses the correct
+   * identity and the runner page can resolve the just-started
+   * attempt immediately on mount.
+   */
+  quizVersionId?: string | null;
   /** Route `idOrSlug` — required to build the runner URL on success. */
   idOrSlug: string | null;
   /**
@@ -85,6 +92,7 @@ export function AttemptStartCta(
 ): React.ReactElement | null {
   const {
     quizId,
+    quizVersionId,
     idOrSlug,
     isActiveResolvedEmpty,
     onAlreadyStarted,
@@ -101,6 +109,7 @@ export function AttemptStartCta(
 
   const startHook = useStartAttempt({
     quizId,
+    quizVersionId,
   });
 
   // ─── Outcome side effects ───────────────────────────────────────────────

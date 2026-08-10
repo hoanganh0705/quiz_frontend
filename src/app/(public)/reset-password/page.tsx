@@ -66,7 +66,7 @@ import {
 } from '@/features/auth/forms/schemas/reset-password.schema'
 import { COPY_KEYS, resolveCopy } from '@/features/auth/copy/recovery-copy'
 import { clearAuthToken } from '@/features/auth/utils/auth-cookies'
-import { broadcastAuth } from '@/features/auth/service/auth.service'
+import { broadcastAuth } from '@/features/auth/services/auth.service'
 
 // P2-22: dropped `export const dynamic = 'force-dynamic'` because
 // this file is a client component (`'use client'`). The route

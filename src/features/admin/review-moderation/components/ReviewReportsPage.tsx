@@ -12,7 +12,7 @@
  * The full `/admin/reviews/reports` page composition. It owns:
  *
  *   - the page-level feature-flag gate
- *     (`useAdminFeatureFlag('phase7_admin_review_moderation')`).
+ *     (`useAdminFeatureFlag('admin_review_moderation_live')`).
  *   - the documented page header (`AdminPageHeader`).
  *   - the `ReviewReportsList` (the only list rendered here).
  *
@@ -25,7 +25,7 @@
  *
  * The route file (`app/admin/reviews/reports/page.tsx`) is a thin
  * pass-through to `ReviewReportsRouteHandoff`, which emits a
- * `phase7:admin` breadcrumb on mount and delegates here. This
+ * `admin:7.1` breadcrumb on mount and delegates here. This
  * three-layer pattern (route file → handoff → page) keeps the
  * diagnostic affordances on the boundary and the visible page
  * logic free of side-effects.
@@ -41,7 +41,7 @@
 
 import { Shield, MessageSquareWarning } from 'lucide-react';
 
-import { AdminPageHeader } from '@/app/admin/_components/AdminPageHeader';
+import { AdminPageHeader } from '@/app/(protected)/admin/_components/AdminPageHeader';
 import { EmptyState } from '@/components/ui/EmptyState';
 
 import { useAdminFeatureFlag } from '@/features/admin/hooks';
@@ -56,7 +56,7 @@ function ReviewReportsComingSoon(): React.ReactElement {
       title="Review moderation coming soon"
       description={
         'Review moderation surfaces are not yet enabled. ' +
-        'Set NEXT_PUBLIC_PHASE7_ADMIN_REVIEW_MODERATION=live to preview the feature.'
+        'Set NEXT_PUBLIC_ADMIN_REVIEW_MODERATION_LIVE=live to preview the feature.'
       }
       size="md"
     />
@@ -69,7 +69,7 @@ function ReviewReportsDisabled(): React.ReactElement {
       icon={Shield}
       title="Review moderation is disabled"
       description={
-        'The phase7_admin_review_moderation feature flag is currently set ' +
+        'The admin_review_moderation_live feature flag is currently set ' +
         'to a value other than "enabled". Toggle the flag to live to render ' +
         'the moderation queue.'
       }
@@ -81,7 +81,7 @@ function ReviewReportsDisabled(): React.ReactElement {
 // ─── Component ──────────────────────────────────────────────────────────────
 
 /**
- * Review reports page. Gated by `phase7_admin_review_moderation`.
+ * Review reports page. Gated by `admin_review_moderation_live`.
  *
  * ## Interface contract
  *
@@ -98,7 +98,7 @@ export interface ReviewReportsPageProps {
 export function ReviewReportsPage(
   _props: ReviewReportsPageProps = {},
 ): React.ReactElement {
-  const { isLive, value } = useAdminFeatureFlag('phase7_admin_review_moderation');
+  const { isLive, value } = useAdminFeatureFlag('admin_review_moderation_live');
 
   // The default placeholder shipped with Batch A is replaced by
   // the full composition when the flag is `'enabled'`. The

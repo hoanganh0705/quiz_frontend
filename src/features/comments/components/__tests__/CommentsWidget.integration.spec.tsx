@@ -391,15 +391,27 @@ describe('CommentsWidget — page-level composition', () => {
 
   it('displays top-level comments with the author handle and a relative time', () => {
     setUnauthenticated();
+    // Use `createdAt` inside the relative-time window
+    // (`formatRelativeTime` returns "Just now" / "X min ago" / "X hours
+    // ago" / "X days ago" only for < 7 days; otherwise it falls back
+    // to a locale date, which would break the `/ago|just now/` regex).
+    const RECENT = new Date(Date.now() - 5 * 60 * 1000).toISOString();
     setReadHook({
       items: [
-        makeThread('c-top', [
-          makeComment('c-reply', {
-            authorId: OTHER_USER_ID,
-            body: 'first reply',
-          }),
-        ]),
-      ],
+        makeThread(
+          'c-top',
+          [
+            makeComment('c-reply', {
+              authorId: OTHER_USER_ID,
+              body: 'first reply',
+              createdAt: RECENT,
+            }),
+          ],
+          1,
+        ),
+        // Override the parent thread's `createdAt` so the top-level
+        // `<time>` also renders within the relative-time window.
+      ].map((thread) => ({ ...thread, createdAt: RECENT, updatedAt: RECENT })),
     });
     renderWidget();
 

@@ -287,20 +287,20 @@ describe('useCompleteAttempt — success', () => {
     expect(mutateMock).toHaveBeenCalledWith([
       'attempts',
       'active',
-      'qv1',
       'user-1',
+      'qv1',
     ]);
     expect(mutateMock).toHaveBeenCalledWith([
       'attempts',
       'detail',
-      'a1',
       'user-1',
+      'a1',
     ]);
     expect(mutateMock).toHaveBeenCalledWith([
       'attempts',
       'answers',
-      'a1',
       'user-1',
+      'a1',
     ]);
     expect(mutateMock).toHaveBeenCalledWith([
       'attempts',

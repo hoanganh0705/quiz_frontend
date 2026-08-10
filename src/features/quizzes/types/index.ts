@@ -11,6 +11,7 @@ export type {
   QuizMetadata as QuizMetadataLegacy,
 } from './quiz'
 export type { Quiz as QuizLegacy } from './quiz'
+export type { Quiz } from './quiz'
 
 // Backend-aligned types (for real API integration)
 export type {

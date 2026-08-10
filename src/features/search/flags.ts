@@ -7,14 +7,14 @@
  *
  * ## What this module owns
  *
- * A typed accessor and a boolean predicate for the `phase5_search`
+ * A typed accessor and a boolean predicate for the `search_live`
  * feature flag. The flag is registered globally in
  * `src/lib/feature-flags/feature-flags.ts` (default `'placeholder'`).
  *
  * ## Why this exists
  *
  * TKT-5.6.E1 AC #3 forbids components and hooks from branching on
- * `getFeatureFlagValue("phase5_search") === "placeholder"` directly.
+ * `getFeatureFlagValue("search_live") === "placeholder"` directly.
  * Routing every call site through `isSearchSurfaceEnabled()` makes
  * flag flips a single-file edit and keeps the intent ("is the search
  * surface alive?") semantic rather than value-comparative.
@@ -43,7 +43,7 @@ import {
  * Aliased as a constant so call sites never hardcode the string
  * literal — a typo would otherwise compile silently.
  */
-export const PHASE5_SEARCH_FLAG = "phase5_search" as const satisfies keyof FeatureFlagValueMap;
+export const PHASE5_SEARCH_FLAG = "search_live" as const satisfies keyof FeatureFlagValueMap;
 
 /**
  * Return `true` when the search surface is enabled.

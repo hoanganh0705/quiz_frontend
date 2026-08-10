@@ -7,14 +7,14 @@
  *
  * ## What this module owns
  *
- * A typed accessor and a boolean predicate for the `phase5_achievements`
+ * A typed accessor and a boolean predicate for the `achievements_live`
  * feature flag. The flag is registered globally in
  * `src/lib/feature-flags/feature-flags.ts` (default `'placeholder'`).
  *
  * ## Why this exists
  *
  * TKT-5.5.E1 AC #4 forbids components and hooks from branching on
- * `getFeatureFlagValue("phase5_achievements") === "placeholder"`
+ * `getFeatureFlagValue("achievements_live") === "placeholder"`
  * directly. Routing every call site through
  * `isAchievementSurfaceEnabled()` makes flag flips a single-file edit
  * and keeps the intent ("is the achievement surface alive?")
@@ -35,7 +35,7 @@
  * ## Adding a new flag surface
  *
  * If a sibling epic introduces a new achievement lane (e.g.
- * `phase5_achievements_streaks`), add a sibling `PHASE5_*_FLAG`
+ * `achievements_live_streaks`), add a sibling `PHASE5_*_FLAG`
  * constant here and a `isAchievementXxxEnabled()` predicate. Keep the
  * convention:
  *
@@ -56,7 +56,7 @@ import {
  * Aliased as a constant so call sites never hardcode the string
  * literal — a typo would otherwise compile silently.
  */
-export const PHASE5_ACHIEVEMENTS_FLAG = "phase5_achievements" as const satisfies keyof FeatureFlagValueMap;
+export const PHASE5_ACHIEVEMENTS_FLAG = "achievements_live" as const satisfies keyof FeatureFlagValueMap;
 
 /**
  * Return `true` when the achievement surface is enabled.

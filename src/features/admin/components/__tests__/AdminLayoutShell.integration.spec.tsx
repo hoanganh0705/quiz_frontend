@@ -10,12 +10,12 @@
  * of the wired `AdminLayoutShell`.  The shell composes
  * `<AdminFeatureFlagBoundary>` (TKT-7.2.B1) wrapping
  * `<AdminRoleGuard>` (TKT-7.2.B2), so every combination of
- * `phase7_admin` flag and `useAdminRole` status must produce the
+ * `admin_live` flag and `useAdminRole` status must produce the
  * correct surface.
  *
  * ## Decision matrix
  *
- * | `phase7_admin` | `useAdminRole` status | Surface                        |
+ * | `admin_live` | `useAdminRole` status | Surface                        |
  * |-----------------|------------------------|--------------------------------|
  * | `placeholder`   | any                    | "Admin surfaces coming soon"    |
  * | `live`          | `'unknown'` (loading)  | Loading skeleton               |
@@ -30,7 +30,7 @@ import type { ReactNode } from 'react';
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
-import { AdminLayoutShell } from '../../../../app/admin/_components/AdminLayoutShell';
+import { AdminLayoutShell } from '../../../../app/(protected)/admin/_components/AdminLayoutShell';
 import type { UseAdminFeatureFlag } from '@/features/admin/hooks/useAdminFeatureFlag';
 import type { AdminRoleDocument } from '@/features/admin/hooks/useAdminRole';
 
@@ -83,7 +83,7 @@ import { usePathname } from 'next/navigation';
 
 function setFlag(value: 'live' | 'placeholder') {
   vi.mocked(useAdminFeatureFlag).mockReturnValue({
-    flag: 'phase7_admin',
+    flag: 'admin_live',
     value,
     isLive: value === 'live',
     isPlaceholder: value === 'placeholder',

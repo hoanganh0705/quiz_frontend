@@ -154,13 +154,25 @@ export function decodeSearchRateLimit(
   };
 
   // Path 1: epoch-ms header (preferred).
+  //
+  // The header value is an absolute epoch in milliseconds (the time
+  // at which the rate-limit window expires). We convert it to a
+  // "cooldown in seconds" by subtracting the current clock.
+  // Negative deltas (epoch already in the past) are surfaced as
+  // `null` so the caller can fall back to the seconds header (or
+  // to "no signal").
+  //
+  // We deliberately do NOT clamp the epoch value here — the header
+  // is an absolute timestamp in the far future, not a small
+  // duration. The clamp at the `Math.min(seconds, 3600)` line below
+  // bounds the OUTPUT seconds, not the INPUT epoch.
   const epochStr = getHeader(headers, SEARCH_RATE_LIMIT_HEADER);
   if (epochStr !== null) {
-    const ms = parseNonNegativeInt(epochStr);
-    if (ms !== null) {
-      // Convert milliseconds to seconds, rounding up.
-      const seconds = Math.ceil(ms / 1000);
-      if (seconds > 0) {
+    const epochNum = Number(epochStr);
+    if (Number.isFinite(epochNum) && epochNum >= 0) {
+      const deltaMs = epochNum - Date.now();
+      if (deltaMs > 0) {
+        const seconds = Math.ceil(deltaMs / 1000);
         return { cooldownSeconds: Math.min(seconds, 3600) };
       }
     }

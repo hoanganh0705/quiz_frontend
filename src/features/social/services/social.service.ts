@@ -26,8 +26,8 @@
  *     (Batch D) so a disabled surface does not even fire a request.
  *   - `ApiError` is propagated unchanged so callers can branch on
  *     `apiError.code` and feed the typed code into `getUserCopy`.
- *   - One `phase6:6.1` Sentry breadcrumb per call (via the helpers in
- *     `@/lib/social/phase6_sentry`).
+ *   - One `social:6.1` Sentry breadcrumb per call (via the helpers in
+ *     `@/lib/social/social-sentry`).
  *   - If the SDK response is missing `data` (malformed envelope),
  *     throw a `GLOBAL_INTERNAL_ERROR` so the caller does not have to
  *     handle a `T | undefined` payload.
@@ -67,7 +67,7 @@ import type {
   SocialControllerGetUserSocialStatsResult,
 } from "@/lib/api/generated/social/social";
 
-import { addSocialServiceBreadcrumb } from "@/lib/social/phase6_sentry";
+import { addSocialServiceBreadcrumb } from "@/lib/social/social-sentry";
 
 // ─── Helpers ────────────────────────────────────────────────────────────
 

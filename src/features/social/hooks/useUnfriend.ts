@@ -22,7 +22,7 @@
  *   (`SOCIAL_CACHE_KEYS.makeRelationshipKey(userId)`,
  *   `SOCIAL_CACHE_KEYS.makeSocialCountsKey(userId)`).
  * - Abort-on-unmount when a request is in-flight.
- * - Safe no-op fallback when `phase6_social_friend_request_mutation`
+ * - Safe no-op fallback when `social_friend_request_mutation_live`
  *   is `'placeholder'`.
  *
  * ## Return contract
@@ -123,7 +123,7 @@ export function useUnfriend(
 ): UseUnfriendResult {
   // ── Flag guard ────────────────────────────────────────────────────────
   const flagValue = getFeatureFlagValue(
-    "phase6_social_friend_request_mutation",
+    "social_friend_request_mutation_live",
   );
   const isFlagPlaceholder = flagValue === "placeholder";
 

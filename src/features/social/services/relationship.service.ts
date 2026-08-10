@@ -24,8 +24,8 @@
  *     feature-flag gating. Feature flags live in the read hooks.
  *   - `ApiError` is propagated unchanged so callers can branch on
  *     `apiError.code`.
- *   - One `phase6:6.1` Sentry breadcrumb per call (via the helpers in
- *     `@/lib/social/phase6_sentry`).
+ *   - One `social:6.1` Sentry breadcrumb per call (via the helpers in
+ *     `@/lib/social/social-sentry`).
  *   - If the SDK envelope is missing `data`, throw a
  *     `GLOBAL_INTERNAL_ERROR` so the caller doesn't have to handle a
  *     `T | undefined` payload.
@@ -41,7 +41,7 @@ import type {
   SocialControllerGetRelationshipStatusResult,
 } from "@/lib/api/generated/social/social";
 
-import { addSocialServiceBreadcrumb } from "@/lib/social/phase6_sentry";
+import { addSocialServiceBreadcrumb } from "@/lib/social/social-sentry";
 
 import { stripRelationshipInternalIds } from "@/features/social/dto-adapters";
 import type { RelationshipStatusDto } from "@/features/social/types";

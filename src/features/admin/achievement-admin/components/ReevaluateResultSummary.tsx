@@ -70,7 +70,7 @@ export function ReevaluateResultSummary({
   // depend on the server response structure. For this implementation we
   // surface the response as-is with a summary notice.
   const totalAwarded =
-    (after as Record<string, unknown>).totalBadgesAwarded ?? 0;
+    ((after as unknown) as { totalBadgesAwarded?: number }).totalBadgesAwarded ?? 0;
 
   return (
     <Card

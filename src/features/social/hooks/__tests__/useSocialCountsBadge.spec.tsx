@@ -9,7 +9,7 @@
  *     `userId`.
  *   - `list.loaded` events for a different `userId` do NOT trigger
  *     `refresh()`.
- *   - `phase6_social_relationship === 'placeholder'` returns
+ *   - `social_relationship_live === 'placeholder'` returns
  *     `counts: null` without a service call.
  *   - The retry path (`refresh()`) clears the error and
  *     revalidates.

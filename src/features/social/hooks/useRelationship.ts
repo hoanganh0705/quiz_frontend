@@ -19,7 +19,7 @@
  *   avoid the round-trip).
  * - Short-circuit to `Relationship.none` when the viewer is
  *   unauthenticated.
- * - Short-circuit to `Relationship.none` when `phase6_social_relationship`
+ * - Short-circuit to `Relationship.none` when `social_relationship_live`
  *   is `'placeholder'`.
  * - Map `SOCIAL_USER_NOT_FOUND` (404) to `Relationship.none` with
  *   `error: null` — the target genuinely has no relationship to the
@@ -137,15 +137,6 @@ const SELF_RESULT: UseRelationshipResult = Object.freeze({
 });
 
 /**
- * Wrap an unknown thrown value in a typed `ApiError` so callers can
- * branch on `apiError.code`. Thin pass-through to the canonical
- * `coerceToApiError` helper from `@/lib/api`.
- */
-function wrapAsApiError(err: unknown): ApiError {
-  return coerceToApiError(err);
-}
-
-/**
  * Compose the short-circuit result from the boolean guards. Centralised
  * so the hook body stays linear.
  */
@@ -177,7 +168,7 @@ export function useRelationship(
   targetUserId: string | null,
   options: UseRelationshipOptions = {},
 ): UseRelationshipResult {
-  const flagValue = getFeatureFlagValue("phase6_social_relationship");
+  const flagValue = getFeatureFlagValue("social_relationship_live");
   const isFlagPlaceholder = flagValue === "placeholder";
 
   const auth = useAuthSession();
@@ -223,7 +214,7 @@ export function useRelationship(
         const projection = stripRelationshipInternalIds(envelope?.data);
         return projection.relationship;
       } catch (err) {
-        const apiErr = wrapAsApiError(err);
+        const apiErr = coerceToApiError(err);
         // 404 → the target user genuinely has no relationship with the
         // viewer. Treat as `Relationship.none` with no error surface —
         // the UI renders the "none" CTA. The backend uses either

@@ -52,7 +52,7 @@ const QuizDetailsTab = memo(function QuizDetailsTab({
             placeholder='Untitled Quiz'
             value={values.title}
             onChange={(event) => onChange({ title: event.target.value })}
-            className='bg-transparent text-foreground placeholder:text-foreground/70 focus:ring-offset-0 focus:ring-0 border border-border'
+            className='bg-transparent text-foreground placeholder:text-muted-foreground focus:ring-offset-0 focus:ring-0 border border-border'
             autoComplete='off'
             required
           />
@@ -70,7 +70,7 @@ const QuizDetailsTab = memo(function QuizDetailsTab({
             placeholder='Quiz description'
             value={values.description}
             onChange={(event) => onChange({ description: event.target.value })}
-            className='bg-transparent text-foreground placeholder:text-foreground/70 min-h-25 resize-y focus:ring-offset-0 focus:ring-0 border border-border'
+            className='bg-transparent text-foreground placeholder:text-muted-foreground min-h-25 resize-y focus:ring-offset-0 focus:ring-0 border border-border'
             autoComplete='off'
           />
         </div>
@@ -90,7 +90,7 @@ const QuizDetailsTab = memo(function QuizDetailsTab({
           >
             <SelectTrigger
               id='difficulty-level'
-              className='w-full bg-background text-foreground placeholder:text-foreground/70 focus:ring-offset-0 focus:ring-0 border border-border'
+              className='w-full bg-background text-foreground placeholder:text-muted-foreground focus:ring-offset-0 focus:ring-0 border border-border'
             >
               <SelectValue placeholder='Select difficulty' />
             </SelectTrigger>
@@ -119,7 +119,7 @@ const QuizDetailsTab = memo(function QuizDetailsTab({
                     .filter(Boolean)
                 })
               }
-              className='flex-1 bg-transparent text-foreground placeholder:text-foreground/70 focus:ring-offset-0 focus:ring-0 border border-border'
+              className='flex-1 bg-transparent text-foreground placeholder:text-muted-foreground focus:ring-offset-0 focus:ring-0 border border-border'
               autoComplete='off'
             />
             <Button

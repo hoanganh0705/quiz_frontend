@@ -21,7 +21,7 @@
  * - Surface `isStale` when revalidation fails or the leaderboard has
  *   not been updated within the server cadence.
  * - Expose `retry()` for bounded retry on failure.
- * - Return safe fallbacks when `phase5_instances_play === 'placeholder'`.
+ * - Return safe fallbacks when `multiplayer_play_live === 'placeholder'`.
  *
  * ## REST vs. WS DTO mapping
  *
@@ -41,7 +41,7 @@
  *
  * ## Feature flag
  *
- * Returns safe fallbacks when `phase5_instances_play === 'placeholder'`.
+ * Returns safe fallbacks when `multiplayer_play_live === 'placeholder'`.
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -140,7 +140,7 @@ function orderLeaderboard(entries: LeaderboardEntryDto[]): LeaderboardEntryDto[]
 export function useLiveLeaderboard(
   instanceId: string | null,
 ): UseLiveLeaderboardResult {
-  const flagValue = getFeatureFlagValue("phase5_instances_play");
+  const flagValue = getFeatureFlagValue("multiplayer_play_live");
   const isPlaceholder = flagValue === "placeholder";
 
   const { subscribe } = useInstanceGameSocket(instanceId);

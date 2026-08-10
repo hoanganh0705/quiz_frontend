@@ -48,6 +48,7 @@ import { useMemo } from "react";
 
 import {
   ApiError,
+  projectWithId,
   useCursorPaginated,
 } from "@/lib/api";
 import type {
@@ -187,10 +188,8 @@ export function useMyAttemptsWithFilters(
             ...(typeof filters.limit === "number" ? { limit: filters.limit } : {}),
           })) as unknown as ListMyAttemptsWireResponse;
 
-          const items = (wire.data ?? []).map(
-            (item): AttemptHistoryRow =>
-              Object.assign({}, item, { id: item.attemptId }),
-          );
+          // Project `attemptId` onto `id` via the runtime helper.
+          const items: AttemptHistoryRow[] = projectWithId((wire.data ?? []) as unknown as readonly Record<string, unknown>[], 'attemptId') as unknown as AttemptHistoryRow[];
 
           const pagination = wire.meta?.pagination;
           return {

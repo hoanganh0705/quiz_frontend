@@ -40,6 +40,7 @@ import { mutate as globalMutate } from 'swr';
 import { getBookmarksChannel, subscribeToBookmarkEvents } from '@/lib/api/core/bookmarks-broadcast-channel';
 import { getCurrentTabId } from '@/lib/api/core/broadcast-channel';
 import { useAuthState } from '@/features/auth/hooks/use-auth-state';
+import { useUser } from '@/features/users/store/user-store';
 
 // ─── Event Types ───────────────────────────────────────────────────────────────
 
@@ -284,7 +285,7 @@ export interface UseCollectionInvalidationResult {
 export function useCollectionInvalidation(
   collectionId: string,
 ): UseCollectionInvalidationResult {
-  const { user } = useAuthState();
+  const user = useUser();
 
   // Ensure we subscribe to bookmark messages on mount
   useEffect(() => {
@@ -292,26 +293,26 @@ export function useCollectionInvalidation(
   }, []);
 
   const invalidateQuizzes = useCallback(() => {
-    if (!collectionId || !user?.id) return;
+    if (!collectionId || !user?.userId) return;
     // Invalidate local cache
     void invalidateCollectionQuizzesCache(collectionId);
     // Broadcast to other tabs
     broadcastCollectionQuizzesInvalidated({
       collectionId,
-      userId: user.id,
+      userId: user.userId,
     });
-  }, [collectionId, user?.id]);
+  }, [collectionId, user?.userId]);
 
   const invalidateAnalytics = useCallback(() => {
-    if (!collectionId || !user?.id) return;
+    if (!collectionId || !user?.userId) return;
     // Invalidate local cache
     void invalidateCollectionAnalyticsCache(collectionId);
     // Broadcast to other tabs
     broadcastCollectionAnalyticsInvalidated({
       collectionId,
-      userId: user.id,
+      userId: user.userId,
     });
-  }, [collectionId, user?.id]);
+  }, [collectionId, user?.userId]);
 
   const invalidateAll = useCallback(() => {
     invalidateQuizzes();

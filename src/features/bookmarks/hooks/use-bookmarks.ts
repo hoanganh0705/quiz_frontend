@@ -37,9 +37,9 @@ export function useBookmarks() {
     const syncWithServer = async () => {
       try {
         setLoading(true)
-        const collectionsData = await listCollections({ limit: 100 })
+        const collectionsData = await listCollections()
         setState({
-          collections: collectionsData.items,
+          collections: collectionsData.data?.items ?? [],
           bookmarks: [] // Bookmarks are fetched per collection
         })
       } catch {
@@ -55,7 +55,7 @@ export function useBookmarks() {
   // Check if a quiz is bookmarked
   const isBookmarked = useCallback(
     (quizId: string) => {
-      return state.bookmarks.some((b) => b.quiz?.quizId === quizId)
+      return state.bookmarks.some((b) => b.quizId === quizId)
     },
     [state.bookmarks]
   )
@@ -63,7 +63,7 @@ export function useBookmarks() {
   // Get bookmark info for a quiz
   const getBookmark = useCallback(
     (quizId: string) => {
-      return state.bookmarks.find((b) => b.quiz?.quizId === quizId)
+      return state.bookmarks.find((b) => b.quizId === quizId)
     },
     [state.bookmarks]
   )
@@ -77,7 +77,7 @@ export function useBookmarks() {
         quizId,
         collectionId,
         bookmarkedAt: new Date().toISOString(),
-      } as BookmarkedQuizResponseDto
+      } as unknown as BookmarkedQuizResponseDto
 
       // Optimistic update
       setState((prev) => ({
@@ -85,11 +85,11 @@ export function useBookmarks() {
         bookmarks: [...prev.bookmarks, tempBookmark]
       }))
 
-      // Sync with server
+        // Sync with server
       try {
-        const serverBookmark = collectionId
+        const serverBookmark = (collectionId
           ? await apiAddBookmark(collectionId, { quizId })
-          : await apiAddBookmark('default', { quizId })
+          : await apiAddBookmark('default', { quizId })) as unknown as BookmarkedQuizResponseDto;
 
         // Update with real bookmark
         setState((prev) => ({
@@ -112,13 +112,13 @@ export function useBookmarks() {
   // Remove a bookmark (optimistic update + server sync)
   const removeBookmark = useCallback(
     async (quizId: string) => {
-      const bookmark = state.bookmarks.find((b) => b.quiz?.quizId === quizId)
-      const collectionId = bookmark?.collection?.collectionId ?? 'default'
+      const bookmark = state.bookmarks.find((b) => b.quizId === quizId)
+      const collectionId = (bookmark as unknown as { collectionId?: string }).collectionId ?? 'default'
 
       // Optimistic update
       setState((prev) => ({
         ...prev,
-        bookmarks: prev.bookmarks.filter((b) => b.quiz?.quizId !== quizId)
+        bookmarks: prev.bookmarks.filter((b) => b.quizId !== quizId)
       }))
 
       // Sync with server
@@ -159,10 +159,9 @@ export function useBookmarks() {
         collectionId: tempId,
         name,
         description,
-        color,
         createdAt: new Date().toISOString(),
         quizCount: 0,
-      } as BookmarkCollectionResponseDto
+      } as unknown as BookmarkCollectionResponseDto
 
       // Optimistic update
       setState((prev) => ({
@@ -172,11 +171,10 @@ export function useBookmarks() {
 
       // Sync with server
       try {
-        const serverCollection = await apiCreateCollection({
+        const serverCollection = (await apiCreateCollection({
           name,
           description,
-          color
-        })
+        })) as unknown as BookmarkCollectionResponseDto
 
         // Update temp ID with real server ID
         setState((prev) => ({
@@ -235,8 +233,8 @@ export function useBookmarks() {
       setState((prev) => ({
         collections: prev.collections.filter((c) => c.collectionId !== collectionId),
         bookmarks: prev.bookmarks.map((b) =>
-          b.collection?.collectionId === collectionId
-            ? { ...b, collection: undefined }
+          (b as unknown as { collectionId?: string }).collectionId === collectionId
+            ? { ...b }
             : b
         )
       }))
@@ -255,7 +253,7 @@ export function useBookmarks() {
   // Get bookmarks by collection
   const getBookmarksByCollection = useCallback(
     (collectionId: string | null) => {
-      return state.bookmarks.filter((b) => b.collection?.collectionId === collectionId)
+      return state.bookmarks.filter((b) => (b as unknown as { collectionId?: string }).collectionId === collectionId)
     },
     [state.bookmarks]
   )
@@ -277,7 +275,7 @@ export function useBookmarks() {
     })
 
     state.bookmarks.forEach((b) => {
-      const key = b.collection?.collectionId ?? 'uncategorized'
+      const key = (b as unknown as { collectionId?: string }).collectionId ?? 'uncategorized'
       if (counts[key] !== undefined) {
         counts[key]++
       }

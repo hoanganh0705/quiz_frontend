@@ -15,13 +15,13 @@
  *
  * ## Feature flag gating (F1 AC #2)
  *
- * When `phase5_search === 'placeholder'`, the page renders `null` via
+ * When `search_live === 'placeholder'`, the page renders `null` via
  * `SearchGuard`. This is a thin wrapper — the flag check lives in the
  * guard module so flag flips are a single-file edit.
  *
  * ## Social search integration (TKT-6.5.G4)
  *
- * When `phase6_social_search === 'live'`, the `SocialSearchGroup` is
+ * When `social_user_search_live === 'live'`, the `SocialSearchGroup` is
  * rendered below the main search results. This allows users to see social
  * search suggestions alongside the main search results.
  *
@@ -69,7 +69,7 @@ function SearchPageInner() {
 
   // TKT-6.5.G4 — read the social search feature flag.
   const socialSearchFlag = useMemo(
-    () => getFeatureFlagValue("phase6_social_search"),
+    () => getFeatureFlagValue("social_user_search_live"),
     [],
   );
 
@@ -157,7 +157,7 @@ function SearchPageInner() {
  *
  * Honours TKT-5.6.F1:
  *
- *   - F1 AC #2 — renders nothing when `phase5_search === 'placeholder'`.
+ *   - F1 AC #2 — renders nothing when `search_live === 'placeholder'`.
  *   - F1 AC #3 — reads `q` and `kinds` from URL via `useSearchUrlState`.
  *   - F1 AC #4 — renders `SearchInput` at the top and `SearchResults` below.
  *   - F1 AC #5 — renders `SearchEmptyState` (`variant: 'no-query'`) when

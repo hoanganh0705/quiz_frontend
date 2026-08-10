@@ -214,7 +214,8 @@ export function useQuestionForm(
   const quizFormReturn = useQuizForm(quizFormOptions);
 
   // Extract form methods
-  const { form, setValue, watch } = quizFormReturn;
+  const { form } = quizFormReturn;
+  const { setValue, watch } = form;
 
   // ── Option management helpers ──────────────────────────────────────────
 
@@ -335,3 +336,11 @@ export const ANSWER_OPTIONS_LIMITS = {
   MIN: 2,
   MAX: 6,
 } as const;
+
+// Re-export the canonical `QUESTION_TYPE_VALUES` tuple so the
+// `src/features/quizzes/hooks` barrel can re-export it under the
+// `EDITOR_QUESTION_TYPE_VALUES` alias. The value lives in
+// `@/features/quizzes/types/author-dtos` (the source-of-truth
+// QuestionType union), but the editor surface historically
+// imports it through this hook module.
+export { QUESTION_TYPE_VALUES } from '@/features/quizzes/types/author-dtos';

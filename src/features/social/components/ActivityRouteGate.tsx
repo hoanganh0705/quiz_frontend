@@ -16,12 +16,12 @@
  *
  * The route shell delegates to this component once the `:id`
  * segment has been validated as a UUID. The gate reads the
- * `phase6_social` parent flag and the `phase6_social_activity`
+ * `social_live` parent flag and the `social_activity_live`
  * sub-flag and renders one of three branches:
  *
  *   1. `!isAuthenticated` →
  *      `<PrivacyRestrictedNotice variant="not_available" />`.
- *   2. `phase6_social_activity === 'placeholder'` →
+ *   2. `social_activity_live === 'placeholder'` →
  *      `<SocialActivityPlaceholder />`.
  *   3. Both flags `'live'` → `<UserActivityStream />` (TKT-6.4.F1).
  *
@@ -66,11 +66,11 @@ export function ActivityRouteGate(
   const { targetUserId } = props;
 
   const parentFlag = useMemo(
-    () => getFeatureFlagValue("phase6_social"),
+    () => getFeatureFlagValue("social_live"),
     [],
   );
   const activityFlag = useMemo(
-    () => getFeatureFlagValue("phase6_social_activity"),
+    () => getFeatureFlagValue("social_activity_live"),
     [],
   );
 

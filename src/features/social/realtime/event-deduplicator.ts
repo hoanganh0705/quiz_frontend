@@ -39,7 +39,7 @@
  *
  * The class does NOT construct the dedupKey itself — callers pass
  * the precomputed key. The lint script
- * (`scripts/phase6-lint-invariants.mjs`, TKT-6.10.G3) greps every
+ * (`scripts/social-lint-invariants.mjs`, TKT-6.10.G3) greps every
  * file under `src/features/social/realtime/` for `friendshipId` /
  * `followId` and fails the build if any field is added. The
  * `dedupKey` is `string`, so the class has no way to enforce the

@@ -24,7 +24,7 @@
  * The hook follows the Phase 6 social-store invalidation channel — when
  * the role flips from one slug to another, the `permissions` and
  * `confirmString` chains re-derive. This is the cross-batch invariant
- * the lint script `phase7-lint-invariants.mjs` checks.
+ * the lint script `admin-lint-invariants.mjs` checks.
  *
  * ## Cross-tab consistency
  *

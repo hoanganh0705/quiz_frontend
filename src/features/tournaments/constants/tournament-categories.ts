@@ -1,6 +1,6 @@
-import { Category } from '@/features/tournaments/types'
+import type { TournamentCategory } from '@/features/tournaments/types'
 
-const categories: Category[] = [
+const categories: TournamentCategory[] = [
   { id: 'science', name: 'Science' },
   { id: 'history', name: 'History' },
   { id: 'pop-culture', name: 'Pop Culture' },

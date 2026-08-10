@@ -162,7 +162,7 @@ const FALLBACK_RESULT: UseUserActivityResult = Object.freeze({
 export function useUserActivity(
   targetUserId: string | null,
 ): UseUserActivityResult {
-  const flagValue = getFeatureFlagValue("phase6_social_activity");
+  const flagValue = getFeatureFlagValue("social_activity_live");
   const isFlagPlaceholder = flagValue === "placeholder";
 
   const auth = useAuthSession();

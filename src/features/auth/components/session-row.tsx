@@ -169,7 +169,7 @@ function SessionRowInner({
       <div className="shrink-0">
         {session.isCurrentSession ? (
           <span
-            className="text-sm text-foreground/60 italic"
+            className="text-sm text-foreground/70 italic"
             data-testid="session-row-current-marker"
           >
             {/* Inert marker so the layout reserves the same

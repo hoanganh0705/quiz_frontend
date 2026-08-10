@@ -12,7 +12,7 @@
  *   (`getAuditLogEntry`).
  * - Expose `{ entry, isLoading, isValidating, error }` for the
  *   audit log detail panel.
- * - Feature-flag gating via `phase7_admin_audit`.
+ * - Feature-flag gating via `admin_audit_live`.
  */
 
 import { useMemo } from 'react';
@@ -54,7 +54,7 @@ export interface UseAdminAuditLogEntryResult {
 export function useAdminAuditLogEntry(
   entryId: string | null,
 ): UseAdminAuditLogEntryResult {
-  const flagValue = getFeatureFlagValue('phase7_admin_audit');
+  const flagValue = getFeatureFlagValue('admin_audit_live');
   const isFlagPlaceholder = flagValue === 'placeholder';
 
   const isDisabled = isFlagPlaceholder || entryId === null;

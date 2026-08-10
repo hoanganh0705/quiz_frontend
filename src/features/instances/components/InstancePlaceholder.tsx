@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * `InstancePlaceholder` — safe fallback when `phase5_instances` is
+ * `InstancePlaceholder` — safe fallback when `multiplayer_instances_live` is
  * `'placeholder'`.
  *
  * Source epic:   Epic 5.1 — SDK coverage & realtime contract foundation.

@@ -167,7 +167,7 @@ export function StepProgress({
                     ? 'bg-default border-default text-white'
                     : index === currentStep
                       ? 'border-default text-default bg-background'
-                      : 'border-border text-foreground/50'
+                      : 'border-border text-muted-foreground'
                 )}
               >
                 {index < currentStep ? (
@@ -193,13 +193,13 @@ export function StepProgress({
                   'text-xs font-medium',
                   index <= currentStep
                     ? 'text-foreground'
-                    : 'text-foreground/50'
+                    : 'text-muted-foreground'
                 )}
               >
                 {step.label}
               </p>
               {step.description && (
-                <p className='text-xs text-foreground/50 mt-0.5'>
+                <p className='text-xs text-muted-foreground mt-0.5'>
                   {step.description}
                 </p>
               )}

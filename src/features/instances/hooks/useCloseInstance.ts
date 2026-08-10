@@ -24,7 +24,7 @@
  *   lobby re-renders the closed status.
  * - Double-click prevention: while `state === 'pending'`, subsequent
  *   `close()` calls are a no-op.
- * - Feature-flag gating via `phase5_instances`.
+ * - Feature-flag gating via `multiplayer_instances_live`.
  *
  * ## No blind retry
  *
@@ -101,17 +101,13 @@ function mapToInstanceLifecycleErrorCode(
   }
 }
 
-function wrapAsApiError(err: unknown): ApiError {
-  return coerceToApiError(err);
-}
-
 // ─── Hook ─────────────────────────────────────────────────────────────────
 
 export function useCloseInstance(
   instanceId: string | null,
   permissions: InstancePermissions | null = null,
 ): UseCloseInstanceResult {
-  const flagValue = getFeatureFlagValue("phase5_instances");
+  const flagValue = getFeatureFlagValue("multiplayer_instances_live");
   const isFlagPlaceholder = flagValue === "placeholder";
 
   const [state, setState] = useState<InstanceLifecycleMutationState>("idle");
@@ -163,7 +159,7 @@ export function useCloseInstance(
         setState("idle");
       }, 1000);
     } catch (cause: unknown) {
-      const wrapped = wrapAsApiError(cause);
+      const wrapped = coerceToApiError(cause);
       const mappedCode = mapToInstanceLifecycleErrorCode(wrapped.code);
       const mapped = ApiError.fromInput({
         status: wrapped.status,

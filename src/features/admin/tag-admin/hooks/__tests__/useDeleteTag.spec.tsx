@@ -23,7 +23,7 @@ vi.mock('@/features/admin/services/tag-admin.service', () => ({
   deleteTag: mockDeleteTag,
 }));
 
-vi.mock('@/lib/admin/phase7_admin_sentry', () => ({
+vi.mock('@/lib/admin/admin_live_sentry', () => ({
   addTagAdminBreadcrumb: mockAddTagAdminBreadcrumb,
 }));
 

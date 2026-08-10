@@ -7,25 +7,11 @@ import { Star } from 'lucide-react'
 import { Swiper, SwiperSlide } from 'swiper/react'
 import { Navigation, Pagination, Autoplay } from 'swiper/modules'
 import { testimonials } from '@/features/marketing/constants/testimonialData'
-import { useRef, useState } from 'react'
+import { useRef } from 'react'
 import type { Swiper as SwiperType } from 'swiper'
 
 export default function SuccessStoriesCarousel() {
   const swiperRef = useRef<SwiperType | null>(null)
-  const [isAutoplayPaused, setIsAutoplayPaused] = useState(false)
-
-  const handleToggleAutoplay = () => {
-    const swiper = swiperRef.current
-    if (!swiper?.autoplay) return
-
-    if (isAutoplayPaused) {
-      swiper.autoplay.start()
-    } else {
-      swiper.autoplay.stop()
-    }
-
-    setIsAutoplayPaused((prev) => !prev)
-  }
 
   return (
     <section
@@ -48,21 +34,6 @@ export default function SuccessStoriesCarousel() {
         </div>
 
         <div className='relative mt-12'>
-          <div className='flex justify-end mb-3'>
-            <button
-              type='button'
-              onClick={handleToggleAutoplay}
-              className='rounded-md border border-border px-3 py-1 text-sm hover:bg-main-hover'
-              aria-label={
-                isAutoplayPaused
-                  ? 'Resume auto-rotation'
-                  : 'Pause auto-rotation'
-              }
-              aria-pressed={isAutoplayPaused}
-            >
-              {isAutoplayPaused ? 'Resume' : 'Pause'}
-            </button>
-          </div>
           <Swiper
             onBeforeInit={(swiper) => {
               swiperRef.current = swiper

@@ -4,11 +4,11 @@
  *
  * Asserts:
  *
- *   - `phase6_social_feed === 'placeholder'` → renders
+ *   - `social_feed_live === 'placeholder'` → renders
  *     `<SocialFeedPlaceholder />`.
- *   - `phase6_social === 'placeholder'` → also renders the
+ *   - `social_live === 'placeholder'` → also renders the
  *     placeholder (the parent flag is the first short-circuit).
- *   - `phase6_social === 'live'` + `phase6_social_feed === 'live'`
+ *   - `social_live === 'live'` + `social_feed_live === 'live'`
  *     + authenticated viewer → renders `<SocialFeedPage />` (live
  *     branch).
  *   - Unauthenticated viewer → `PrivacyRestrictedNotice` with the
@@ -95,10 +95,10 @@ describe("SocialFeedRouteGate", () => {
     vi.clearAllMocks();
   });
 
-  it("renders the placeholder for `phase6_social_feed === 'placeholder'`", () => {
+  it("renders the placeholder for `social_feed_live === 'placeholder'`", () => {
     mockGetFeatureFlagValue.mockImplementation((flag: string) => {
-      if (flag === "phase6_social") return "live";
-      if (flag === "phase6_social_feed") return "placeholder";
+      if (flag === "social_live") return "live";
+      if (flag === "social_feed_live") return "placeholder";
       return "live";
     });
     render(<SocialFeedRouteGate />);
@@ -107,10 +107,10 @@ describe("SocialFeedRouteGate", () => {
     ).toBeInTheDocument();
   });
 
-  it("renders the placeholder for `phase6_social === 'placeholder'`", () => {
+  it("renders the placeholder for `social_live === 'placeholder'`", () => {
     mockGetFeatureFlagValue.mockImplementation((flag: string) => {
-      if (flag === "phase6_social") return "placeholder";
-      if (flag === "phase6_social_feed") return "live";
+      if (flag === "social_live") return "placeholder";
+      if (flag === "social_feed_live") return "live";
       return "live";
     });
     render(<SocialFeedRouteGate />);

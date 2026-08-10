@@ -36,7 +36,7 @@
  *
  * ## Feature flag
  *
- * When `phase5_search` is `'placeholder'`, the hook returns safe
+ * When `search_live` is `'placeholder'`, the hook returns safe
  * no-ops so consumers can render without an explicit gate check.
  */
 
@@ -165,7 +165,7 @@ function normaliseForDedupe(query: string): string {
  * navigations inside the same tab and is cleared on tab close.
  */
 export function useSearchHistory(): UseSearchHistoryResult {
-  const flagValue = getFeatureFlagValue("phase5_search");
+  const flagValue = getFeatureFlagValue("search_live");
   const isFlagPlaceholder = flagValue === "placeholder";
 
   const [entries, setEntries] = useState<readonly SearchHistoryEntry[]>(() => {

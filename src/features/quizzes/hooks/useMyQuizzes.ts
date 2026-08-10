@@ -28,7 +28,7 @@
 
 import { useMemo } from "react";
 
-import { ApiError, useCursorPaginated } from "@/lib/api";
+import { ApiError, projectWithId, useCursorPaginated } from "@/lib/api";
 import type {
   CursorFetcherArgs,
   CursorPage,
@@ -79,11 +79,10 @@ export function useMyQuizzes(
           })) as unknown as GetMyQuizzesResponse;
 
           const items = (result.data ?? []) as MyQuizListItem[];
-          // Synthesise `id` alias of `quizId` — the only place this aliasing
-          // happens. Downstream components read `quizId` directly.
-          const itemsWithId: MyQuizListItem[] = items.map((item) =>
-            Object.assign({}, item, { id: item.quizId }),
-          );
+          // Project `quizId` onto `id` via the runtime helper — the only
+          // place this aliasing happens. Downstream components read
+          // `quizId` directly.
+          const itemsWithId = projectWithId(items as unknown as readonly Record<string, unknown>[], 'quizId') as unknown as MyQuizListItem[];
 
           const pagination = result.meta?.pagination;
           return {

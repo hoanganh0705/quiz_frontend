@@ -15,7 +15,7 @@
  *
  *   - `GET /api/v1/social/users/:userId/activity` — `getUserActivity`
  *
- * The wrapper decodes RFC 7807 errors, emits `phase6:6.4` Sentry
+ * The wrapper decodes RFC 7807 errors, emits `social:6.4` Sentry
  * breadcrumbs, strips any leaked `followId` / `friendshipId`
  * through the Epic 6.1 DTO adapter, decodes the rate-limit
  * header, and returns normalised domain objects
@@ -29,7 +29,7 @@
  * Story 6.4 activity wrapper adds the additional behaviour the
  * Story 6.4 read hook requires:
  *
- *   - Story-6.4-specific Sentry breadcrumbs via `phase6_6_4_sentry.ts`.
+ *   - Story-6.4-specific Sentry breadcrumbs via `social-mutuals-sentry.ts`.
  *   - Rate-limit header decoding — the cooldown is surfaced via
  *     the `cooldownSeconds` field so the
  *     `ActivityRateLimitNotice` (TKT-6.4.B3) can render the
@@ -54,8 +54,8 @@
  *
  *   - `ApiError` is propagated unchanged so callers can branch
  *     on `apiError.code`.
- *   - One `phase6:6.4` Sentry breadcrumb per call (via the
- *     helpers in `@/lib/social/phase6_6_4_sentry`).
+ *   - One `social:6.4` Sentry breadcrumb per call (via the
+ *     helpers in `@/lib/social/social-mutuals-sentry`).
  *   - Paginated endpoints return the documented
  *     `{ items, total, visibility, cooldownSeconds? }` shape.
  *   - Items are defensively re-projected through `toActivityItem`
@@ -74,7 +74,7 @@ import type {
   SocialControllerGetUserActivityResult,
 } from "@/lib/api/generated/social/social";
 
-import { addSocialActivityBreadcrumb } from "@/lib/social/phase6_6_4_sentry";
+import { addSocialActivityBreadcrumb } from "@/lib/social/social-mutuals-sentry";
 
 import { toActivityItem } from "@/features/social/dto-adapters";
 import { decodeRateLimit } from "@/features/social/rate-limit-decoder";
@@ -177,7 +177,7 @@ function projectActivityPage(envelope: SocialControllerGetUserActivityResult): {
  *
  * The wrapper:
  *
- *   - Emits a `phase6:6.4` Sentry breadcrumb via
+ *   - Emits a `social:6.4` Sentry breadcrumb via
  *     `addSocialActivityBreadcrumb`.
  *   - Decodes the rate-limit header (when present) via
  *     `decodeRateLimit` and surfaces it via `cooldownSeconds`.

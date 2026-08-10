@@ -29,7 +29,7 @@ import type { CollectionQuiz } from '@/features/bookmarks/types';
 
 interface CollectionQuizGridProps {
   /** Array of quizzes in the collection. */
-  quizzes: CollectionQuiz[];
+  quizzes: readonly CollectionQuiz[];
   /** Currently selected quiz IDs. */
   selectedQuizIds: Set<string>;
   /** Callback when selection changes. */
@@ -176,7 +176,7 @@ const CollectionQuizGrid = memo(function CollectionQuizGrid({
           <Checkbox
             checked={allSelected}
             ref={(el) => {
-              if (el) el.indeterminate = selectAllIndeterminate;
+              if (el) (el as HTMLInputElement).indeterminate = selectAllIndeterminate;
             }}
             onCheckedChange={handleSelectAll}
             aria-label='Select all quizzes on this page'
@@ -236,7 +236,7 @@ const CollectionQuizGrid = memo(function CollectionQuizGrid({
                   {quiz.quizIsFeatured && (
                     <Badge
                       variant='secondary'
-                      className='absolute top-3 right-3 bg-yellow-500 text-white text-xs'
+                      className='absolute top-3 right-3 bg-yellow-500 text-yellow-950 text-xs'
                     >
                       Featured
                     </Badge>

@@ -14,12 +14,12 @@
  *
  * The route shell delegates to this component once the page has
  * been mounted at `/social/feed`. The gate reads the
- * `phase6_social` parent flag and the `phase6_social_feed` sub-flag
+ * `social_live` parent flag and the `social_feed_live` sub-flag
  * and renders one of three branches:
  *
  *   1. `!isAuthenticated` →
  *      `<PrivacyRestrictedNotice variant="not_available" />`.
- *   2. `phase6_social_feed === 'placeholder'` (or the parent flag is
+ *   2. `social_feed_live === 'placeholder'` (or the parent flag is
  *      `'placeholder'`) → `<SocialFeedPlaceholder />`.
  *   3. Both flags `'live'` → `<SocialFeedPage />` (this file's
  *      sibling component, the live surface).
@@ -68,11 +68,11 @@ import { getFeatureFlagValue } from "@/lib/feature-flags";
  */
 export function SocialFeedRouteGate(): React.ReactElement {
   const parentFlag = useMemo(
-    () => getFeatureFlagValue("phase6_social"),
+    () => getFeatureFlagValue("social_live"),
     [],
   );
   const feedFlag = useMemo(
-    () => getFeatureFlagValue("phase6_social_feed"),
+    () => getFeatureFlagValue("social_feed_live"),
     [],
   );
 
@@ -114,6 +114,6 @@ export function SocialFeedRouteGate(): React.ReactElement {
 export const __testing = {
   // Re-exported for the spec to introspect the gate without
   // re-deriving the flag names.
-  PARENT_FLAG: "phase6_social" as const,
-  FEED_FLAG: "phase6_social_feed" as const,
+  PARENT_FLAG: "social_live" as const,
+  FEED_FLAG: "social_feed_live" as const,
 };

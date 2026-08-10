@@ -14,7 +14,7 @@
  *   - Empty state on the right when no user is selected
  *   - Success banner after grant/revoke (auto-dismisses after 5s)
  *   - Permission gate via `usePermission('user_grant_role')`
- *   - Feature flag gate via `useAdminFeatureFlag('phase7_admin_user_role')`
+ *   - Feature flag gate via `useAdminFeatureFlag('admin_user_role_live')`
  */
 
 import { useCallback, useEffect, useState } from 'react';
@@ -47,7 +47,7 @@ export function UserRoleAdminPage(): React.ReactElement {
     null,
   );
 
-  const { value: flagValue } = useAdminFeatureFlag('phase7_admin_user_role');
+  const { value: flagValue } = useAdminFeatureFlag('admin_user_role_live');
   const { hasPermission: canGrant } = usePermission('user_grant_role');
 
   // Auto-dismiss success banner after 5 seconds.
@@ -96,7 +96,7 @@ export function UserRoleAdminPage(): React.ReactElement {
           <p className="text-sm text-muted-foreground">
             The{' '}
             <code className="rounded bg-muted px-1 py-0.5 font-mono text-xs">
-              phase7_admin_user_role
+              admin_user_role_live
             </code>{' '}
             flag is at its default value.
           </p>

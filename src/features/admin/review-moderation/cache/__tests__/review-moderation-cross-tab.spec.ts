@@ -161,7 +161,7 @@ describe('review-moderation-cross-tab — broadcast emits documented event', () 
     channel.listeners.forEach((listener) => {
       listener({
         data: {
-          type: 'phase7:admin.review-moderation.invalidate',
+          type: 'admin:7.1.review-moderation.invalidate',
           action: 'resolve',
           reportId: 'report-1',
           reviewId: 'review-1',
@@ -173,7 +173,7 @@ describe('review-moderation-cross-tab — broadcast emits documented event', () 
 
     expect(received.length).toBe(1);
     expect(received[0]).toMatchObject({
-      type: 'phase7:admin.review-moderation.invalidate',
+      type: 'admin:7.1.review-moderation.invalidate',
       action: 'resolve',
       reportId: 'report-1',
       reviewId: 'review-1',
@@ -200,7 +200,7 @@ describe('review-moderation-cross-tab — broadcast emits documented event', () 
     channel.listeners.forEach((listener) => {
       listener({
         data: {
-          type: 'phase7:admin.review-moderation.invalidate',
+          type: 'admin:7.1.review-moderation.invalidate',
           action: 'resolve',
           reportId: 'report-2',
           reviewId: null,
@@ -241,7 +241,7 @@ describe('review-moderation-cross-tab — same-tab filtering', () => {
     channel.listeners.forEach((listener) => {
       listener({
         data: {
-          type: 'phase7:admin.review-moderation.invalidate',
+          type: 'admin:7.1.review-moderation.invalidate',
           action: 'resolve',
           reportId: 'report-1',
           reviewId: null,
@@ -270,7 +270,7 @@ describe('review-moderation-cross-tab — same-tab filtering', () => {
     channel.listeners.forEach((listener) => {
       listener({
         data: {
-          type: 'phase7:admin.review-moderation.invalidate',
+          type: 'admin:7.1.review-moderation.invalidate',
           action: 'resolve',
           reportId: 'report-1',
           reviewId: null,
@@ -301,7 +301,7 @@ describe('review-moderation-cross-tab — same-tab filtering', () => {
     channel.listeners.forEach((listener) => {
       listener({
         data: {
-          type: 'phase7:admin.review-moderation.invalidate',
+          type: 'admin:7.1.review-moderation.invalidate',
           action: 'resolve',
           reviewId: null,
           tabId: otherTabId,
@@ -332,7 +332,7 @@ describe('review-moderation-cross-tab — same-tab filtering', () => {
     channel.listeners.forEach((listener) => {
       listener({
         data: {
-          type: 'phase7:admin.review-moderation.invalidate',
+          type: 'admin:7.1.review-moderation.invalidate',
           action: 'unknown' as 'resolve',
           reportId: 'report-1',
           reviewId: null,
@@ -364,7 +364,7 @@ describe('review-moderation-cross-tab — same-tab filtering', () => {
     channel.listeners.forEach((listener) => {
       listener({
         data: {
-          type: 'something/else' as 'phase7:admin.review-moderation.invalidate',
+          type: 'something/else' as 'admin:7.1.review-moderation.invalidate',
           action: 'resolve',
           reportId: 'report-1',
           reviewId: null,
@@ -411,7 +411,7 @@ describe('review-moderation-cross-tab — subscribe / unsubscribe', () => {
       channel.listeners.forEach((listener) => {
         listener({
           data: {
-            type: 'phase7:admin.review-moderation.invalidate',
+            type: 'admin:7.1.review-moderation.invalidate',
             action: 'resolve',
             reportId: 'report-1',
             reviewId: null,
@@ -456,7 +456,7 @@ describe('review-moderation-cross-tab — subscribe / unsubscribe', () => {
     channel.listeners.forEach((listener) => {
       listener({
         data: {
-          type: 'phase7:admin.review-moderation.invalidate',
+          type: 'admin:7.1.review-moderation.invalidate',
           action: 'resolve',
           reportId: 'report-x',
           reviewId: null,

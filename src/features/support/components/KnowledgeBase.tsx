@@ -38,7 +38,7 @@ export function KnowledgeBase() {
           <Search className='absolute left-3 top-1/2 transform -translate-y-1/2 text-foreground/70 h-4 w-4' />
           <Input
             placeholder='Search articles...'
-            className='pl-10 bg-transparent border border-border text-foreground placeholder:text-foreground/70'
+            className='pl-10 bg-transparent border border-border text-foreground placeholder:text-muted-foreground'
           />
         </div>
       </div>

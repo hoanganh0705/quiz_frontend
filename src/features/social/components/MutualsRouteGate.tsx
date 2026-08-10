@@ -15,12 +15,12 @@
  *
  * The route shell delegates to this component once the `:id`
  * segment has been validated as a UUID. The gate reads the
- * `phase6_social` parent flag and the `phase6_social_mutuals`
+ * `social_live` parent flag and the `social_mutuals_live`
  * sub-flag and renders one of four branches:
  *
  *   1. `requireAuth && !isAuthenticated` →
  *      `<PrivacyRestrictedNotice variant="not_available" />`.
- *   2. `phase6_social_mutuals === 'placeholder'` → the
+ *   2. `social_mutuals_live === 'placeholder'` → the
  *      `<SocialMutualsPlaceholder>` for the `kind`.
  *   3. Both flags `'live'` → the live list component for the
  *      `kind` (Batch E2 deliverable):
@@ -78,11 +78,11 @@ export function MutualsRouteGate(
   const { kind, targetUserId } = props;
 
   const parentFlag = useMemo(
-    () => getFeatureFlagValue("phase6_social"),
+    () => getFeatureFlagValue("social_live"),
     [],
   );
   const mutualsFlag = useMemo(
-    () => getFeatureFlagValue("phase6_social_mutuals"),
+    () => getFeatureFlagValue("social_mutuals_live"),
     [],
   );
 

@@ -20,7 +20,7 @@
  * - Types: `AuditLogEntryDto`, `AuditLogListDto`, `AuditLogFilters`, etc.
  * - Service: `listAuditLog`, `getAuditLogEntry`
  * - Hooks: `useAdminAuditLog`, `useAdminAuditLogEntry`, `useAuditLogFilters`,
- *          `useOffsetPaginated`
+ *          `useOffsetPaginatedAuditLogs`
  * - Components: `AuditLogPage`, `AuditLogList`, `AuditLogItem`,
  *               `AuditLogNotExposedNotice`, etc.
  * - Metadata: `AUDIT_LOG_METADATA` (route + nav metadata)
@@ -28,7 +28,7 @@
  *
  * ## Feature flag
  *
- * This feature is gated by `phase7_admin_audit`. When the flag is
+ * This feature is gated by `admin_audit_live`. When the flag is
  * set to `placeholder`, the hooks and pages return safe fallback data.
  */
 
@@ -52,23 +52,18 @@ export type { UseAdminAuditLogEntryResult } from './hooks';
 export { useAuditLogFilters } from './hooks';
 export type { UseAuditLogFiltersResult } from './hooks';
 
-// TKT-7.5 cleanup, Phase 5 / P1-2: the audit-log offset hook is now
+// TKT-7.5 cleanup, Phase 5 / P1-2: the audit-log offset hook is
 // `useOffsetPaginatedAuditLogs` to avoid colliding with the Phase-6
-// `@/lib/api/use-offset-paginated` fetch facade. The old name is
-// kept as a deprecated re-export for one release.
+// `@/lib/api/use-offset-paginated` fetch facade. The legacy
+// `useOffsetPaginated` shim was retired in Phase 5.
 export {
   useOffsetPaginatedAuditLogs,
-  useOffsetPaginated,
+  AUDIT_LOG_DEFAULT_PAGE_SIZE,
+  AUDIT_LOG_MAX_PAGE_SIZE,
 } from './hooks';
 export type {
   UseOffsetPaginatedAuditLogsParams,
   UseOffsetPaginatedAuditLogsResult,
-  UseOffsetPaginatedParams,
-  UseOffsetPaginatedResult,
-} from './hooks';
-export {
-  AUDIT_LOG_DEFAULT_PAGE_SIZE,
-  AUDIT_LOG_MAX_PAGE_SIZE,
 } from './hooks';
 
 // ─── Components ──────────────────────────────────────────────────────────

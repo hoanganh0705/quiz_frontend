@@ -91,7 +91,7 @@ function withFreshSWRCache({
   // Provide a fresh SWR cache per render so re-renders do not bleed
   // cache between test cases.
   return (
-    // eslint-disable-next-line react/no-unknown-property
+     
     <SWRConfig value={{ provider: () => new Map() }}>{children}</SWRConfig>
   );
 }

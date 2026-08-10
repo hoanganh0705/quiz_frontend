@@ -70,7 +70,7 @@ import { ConsistencyNotice } from "@/features/social/components/ConsistencyNotic
 import {
   addSocialAnalyticsBreadcrumb,
   SOCIAL_ANALYTICS_ROUTES,
-} from "@/lib/social/phase6_6_3_sentry";
+} from "@/lib/social/social-block-sentry";
 
 const GROWTH_HORIZON_DAYS = 30;
 
@@ -141,7 +141,7 @@ export function MyAnalyticsPage(): ReactElement {
   const { analytics, isLoading, isStale, error, retry, staleness } =
     useMySocialAnalytics(period);
 
-  // TKT-6.3.H2 — emit a single `phase6:6.3` breadcrumb per
+  // TKT-6.3.H2 — emit a single `social:6.3` breadcrumb per
   // period-driven fetch transition so the Sentry dashboard
   // can split the analytics surfaces by period.
   const prevFetchRef = useRef<{

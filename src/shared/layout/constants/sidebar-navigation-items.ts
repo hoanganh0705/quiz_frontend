@@ -6,7 +6,6 @@ import {
   UserPlus,
   Users,
   Crown,
-  MessageCircle,
   Plus,
   Settings,
   Bookmark,
@@ -23,7 +22,6 @@ export const sidebarItems = [
   { icon: History, label: 'Quiz History', href: '/quiz-history' },
   { icon: Users, label: 'Quiz Tournament', href: '/tournament' },
   { icon: Crown, label: 'Leaderboard', href: '/leaderboard' },
-  { icon: MessageCircle, label: 'Quiz Discussions', href: '/discussions' },
   { icon: Plus, label: 'Create Quiz', href: '/create-quiz' },
   { icon: Settings, label: 'Settings', href: '/settings' }
 ]

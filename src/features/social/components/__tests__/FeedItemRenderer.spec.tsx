@@ -8,7 +8,7 @@
  *     matching per-type sub-renderer (the per-type sub-renderer
  *     contract is exercised in `feed-item/feed-item.spec.tsx`).
  *   - An unknown `type` literal routes to the defensive
- *     `FeedItemUnknown` fallback and emits a `phase6:6.9` Sentry
+ *     `FeedItemUnknown` fallback and emits a `social:6.9` Sentry
  *     breadcrumb.
  *   - The dispatcher does not perform any client-side filtering,
  *     ranking, or personalisation — it routes the item unchanged.

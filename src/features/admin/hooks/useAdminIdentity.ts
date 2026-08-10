@@ -37,7 +37,7 @@
  *     fire immediately. When `useAuth().currentUser.role` is absent,
  *     the hook fetches the fallback endpoint and returns the
  *     resolved role.
- *   - The hook is gated by the `phase7_admin` feature flag — when
+ *   - The hook is gated by the `admin_live` feature flag — when
  *     the flag is off, the hook does not fetch.
  *
  * ## Non-blocking semantics
@@ -70,7 +70,7 @@ interface AdminIdentityResponse {
  * Internal: best-effort fetch of the admin-aware identity endpoint.
  *
  * The endpoint is intentionally NOT in the SDK yet (it lands in a
- * later Phase 7 story). The fetch is guarded by the `phase7_admin`
+ * later Phase 7 story). The fetch is guarded by the `admin_live`
  * feature flag so the hook makes no network traffic by default.
  *
  * The endpoint path is documented in TKT-7.1.A1 and recorded in the
@@ -105,7 +105,7 @@ async function fetchAdminIdentityPath(): Promise<AdminIdentityResponse> {
 
 export function useAdminIdentity(): UseAdminIdentityResult {
   const { currentUser } = useAuth();
-  const flag = useAdminFeatureFlag('phase7_admin');
+  const flag = useAdminFeatureFlag('admin_live');
   const [state, setState] = useState<{
     role: 'admin' | null;
     isLoading: boolean;

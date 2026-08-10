@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * `useTournamentFeatureFlag` — hook to check phase5_tournaments flag.
+ * `useTournamentFeatureFlag` — hook to check tournaments_live flag.
  *
  * Source epic:   Epic 5.1 — SDK coverage & realtime contract foundation.
  * Source story:  5.2 — Tournament discovery and read-only detail surfaces.
@@ -28,13 +28,13 @@ export interface UseTournamentFeatureFlagResult {
 }
 
 /**
- * Check the `phase5_tournaments` feature flag.
+ * Check the `tournaments_live` feature flag.
  *
  * Used by page components to conditionally render the live tournament
  * surface or the safe placeholder fallback.
  */
 export function useTournamentFeatureFlag(): UseTournamentFeatureFlagResult {
-  const flagValue = getFeatureFlagValue("phase5_tournaments");
+  const flagValue = getFeatureFlagValue("tournaments_live");
   const isPlaceholder = flagValue === "placeholder";
 
   return {

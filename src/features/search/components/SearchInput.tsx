@@ -23,7 +23,7 @@
  *
  * - URL routing: the caller (e.g. `GlobalSearch`) routes submitted
  *   queries to the search page via `useSearchUrlState`.
- * - Feature flag: the page/container checks `phase5_search === 'placeholder'`
+ * - Feature flag: the page/container checks `search_live === 'placeholder'`
  *   and renders `null`; this component is only mounted when the flag is live.
  *
  * ## No unstable social IDs
@@ -45,10 +45,8 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { cn } from "@/shared/utils/merge-class-names";
 
-import {
-  useDebouncedValue,
-  SEARCH_INPUT_DEBOUNCE_MS,
-} from "@/features/search/hooks/useDebouncedValue";
+import { useDebouncedValue } from "@/lib/utils/use-debounced-value";
+import { SEARCH_INPUT_DEBOUNCE_MS } from "@/features/search/hooks/useDebouncedValue";
 import {
   useSearchHistory,
   SEARCH_HISTORY_MAX_ENTRIES,
@@ -98,7 +96,7 @@ export function SearchInput({
     controlledValue !== undefined ? controlledValue : internalValue;
 
   // ── Debounce ───────────────────────────────────────────────────────────
-  const debouncedValue = useDebouncedValue(inputValue, SEARCH_INPUT_DEBOUNCE_MS);
+  const debouncedValue = useDebouncedValue(inputValue, SEARCH_INPUT_DEBOUNCE_MS).debouncedValue;
 
   // ── Suggestion list state ──────────────────────────────────────────────
   const [isOpen, setIsOpen] = React.useState(false);

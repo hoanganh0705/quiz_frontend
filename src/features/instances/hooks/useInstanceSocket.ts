@@ -12,7 +12,7 @@
  * ## What this hook owns
  *
  * - Open an authenticated Socket.IO connection to the `/instances`
- *   namespace while `phase5_instances === 'live'`. When the flag is
+ *   namespace while `multiplayer_instances_live === 'live'`. When the flag is
  *   `'placeholder'`, the connection is suppressed entirely (no socket
  *   handshake, no listeners, no automatic reconnection).
  * - Join the instance room after the handshake with the supplied
@@ -35,8 +35,8 @@
  *
  * ## Feature flag preconditions
  *
- * The hook requires `phase5_instances === 'live'` AND
- * `phase5_realtime_infrastructure === 'live'`. When either flag is
+ * The hook requires `multiplayer_instances_live === 'live'` AND
+ * `realtime_infrastructure_live === 'live'`. When either flag is
  * `'placeholder'`, the connection is suppressed and the hook returns
  * the safe fallback state.
  *
@@ -274,8 +274,8 @@ function coerceToInstanceSocketEvent(
 export function useInstanceSocket(
   instanceId: string | null,
 ): UseInstanceSocketResult {
-  const featuresFlag = getFeatureFlagValue("phase5_instances");
-  const realtimeFlag = getFeatureFlagValue("phase5_realtime_infrastructure");
+  const featuresFlag = getFeatureFlagValue("multiplayer_instances_live");
+  const realtimeFlag = getFeatureFlagValue("realtime_infrastructure_live");
   const enabled =
     featuresFlag === "live" && realtimeFlag === "live";
   const isFlagPlaceholder = !enabled;

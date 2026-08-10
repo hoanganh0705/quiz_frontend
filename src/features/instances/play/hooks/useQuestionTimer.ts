@@ -18,7 +18,7 @@
  * - Expose `isWindowOpen` derived from the server timing — the client
  *   tick is used only for display, never to drive the window state.
  * - Stop ticking when `instance_closed` is accepted; set `remainingMs = 0`.
- * - Return safe fallbacks when `phase5_instances_play === 'placeholder'`.
+ * - Return safe fallbacks when `multiplayer_play_live === 'placeholder'`.
  *
  * ## Server authority
  *
@@ -59,7 +59,7 @@ const TICK_INTERVAL_MS = 50;
 export function useQuestionTimer(
   instanceId: string | null,
 ): UseQuestionTimerResult {
-  const flagValue = getFeatureFlagValue("phase5_instances_play");
+  const flagValue = getFeatureFlagValue("multiplayer_play_live");
   const isPlaceholder = flagValue === "placeholder";
 
   const { timing } = useQuestionRevealed(instanceId);

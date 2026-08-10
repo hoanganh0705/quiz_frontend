@@ -23,7 +23,7 @@ import { Button } from '@/components/ui/Button'
 // TKT-2.2.E1: migrated off the deprecated `features/auth/api/auth`
 // barrel. `logout` is the same side-effecting wrapper Epic 2.1
 // landed on `auth.service.ts` (cookie + cross-tab broadcast).
-import { logout } from '@/features/auth/service/auth.service'
+import { logout } from '@/features/auth/services/auth.service'
 import { useRouter } from 'next/navigation'
 import { useUser, useClearUser } from '@/features/users/store/user-store'
 import { getUnreadCount } from '@/features/notifications/api'
@@ -50,7 +50,7 @@ function MessagesButton() {
     let cancelled = false
     async function fetchUnreadCount() {
       try {
-        const { unreadCount: count } = await getUnreadCount()
+        const { count } = await getUnreadCount()
         if (!cancelled) {
           setUnreadCount(count)
         }
@@ -103,7 +103,7 @@ export function AppHeader() {
   // (useAdminRole reads from the same auth store used by the public app;
   // useAdminFeatureFlag is a synchronous build-time flag reader).
   const { isLoading: isAdminLoading, role } = useAdminRole()
-  const { isLive } = useAdminFeatureFlag('phase7_admin')
+  const { isLive } = useAdminFeatureFlag('admin_live')
   const canSeeAdmin = isLive && !isAdminLoading && role === 'admin'
 
   const avatarLabel = useMemo(() => {
@@ -173,7 +173,7 @@ export function AppHeader() {
 
       <div className='hidden sm:flex items-center gap-2 flex-1 min-w-0 max-w-sm sm:max-w-md lg:max-w-xl'>
         <div className='relative flex-1 min-w-0'>
-          <Search className='absolute left-3 top-1/2 transform -translate-y-1/2 text-foreground/60 h-4 w-4' />
+          <Search className='absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4' />
           <Input
             type='search'
             placeholder={t(
@@ -189,7 +189,7 @@ export function AppHeader() {
             }}
             readOnly
           />
-          <kbd className='absolute right-3 top-1/2 -translate-y-1/2 hidden md:inline-flex items-center gap-0.5 rounded border border-border bg-muted px-1.5 py-0.5 text-[10px] font-medium text-foreground/50'>
+          <kbd className='absolute right-3 top-1/2 -translate-y-1/2 hidden md:inline-flex items-center gap-0.5 rounded border border-border bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground'>
             {isMac ? '⌘K' : 'Ctrl+K'}
           </kbd>
         </div>
@@ -206,7 +206,7 @@ export function AppHeader() {
 
         <div className='hidden sm:flex items-center gap-1 p-1 sm:p-2 border border-border rounded-lg'>
           <span className='text-foreground text-xs sm:text-sm font-medium'>
-            ${user?.balance != null ? user.balance.toFixed(2) : '124.50'}
+            0.00
           </span>
           <span className='text-green-500 text-xs sm:text-sm font-medium'>
             💰
@@ -230,7 +230,7 @@ export function AppHeader() {
                     {avatarLabel}
                   </AvatarFallback>
                 </Avatar>
-                <ChevronDown className='h-3.5 w-3.5 text-foreground/60' />
+                <ChevronDown className='h-3.5 w-3.5 text-muted-foreground' />
               </Button>
             </DropdownMenuTrigger>
 
@@ -278,7 +278,7 @@ export function AppHeader() {
                 </Link>
               </DropdownMenuItem>
 
-              {/* TKT-7.2.C4 — admin console entry, visible only when phase7_admin is live and the user is an admin. */}
+              {/* TKT-7.2.C4 — admin console entry, visible only when admin_live is live and the user is an admin. */}
               {canSeeAdmin && (
                 <DropdownMenuItem asChild>
                   <Link href='/admin' className='flex items-center gap-2'>

@@ -11,7 +11,7 @@
  *   - SWR cache invalidation for `categoryAdmin:list:*` and the
  *     public `categories:*` keys.
  *   - Cross-tab invalidation broadcast on success.
- *   - `phase7:admin` audit breadcrumb on success and failure.
+ *   - `admin:7.1` audit breadcrumb on success and failure.
  *   - Typed `ApiError` propagation for:
  *       - `CATEGORY_SLUG_CONFLICT`   (slug was claimed while soft-deleted;
  *                                      `CategoryRestoreDialog` re-submits
@@ -29,7 +29,7 @@ import { useCallback, useRef, useState } from 'react';
 import { mutate as globalMutate } from 'swr';
 
 import { ApiError } from '@/lib/api';
-import { addCategoryAdminBreadcrumb } from '@/lib/admin/phase7_admin_sentry';
+import { addCategoryAdminBreadcrumb } from '@/lib/admin/admin_live_sentry';
 
 import { restoreCategory } from '@/features/admin/services/category-admin.service';
 import {

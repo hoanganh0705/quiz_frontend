@@ -1,7 +1,6 @@
 import type { MetadataRoute } from 'next'
 import { siteConfig } from '@/shared/lib/seo'
 import { quizzes } from '@/features/quizzes/constants/mock-quizzes'
-import { players } from '@/features/leaderboard/constants/players'
 
 const staticRoutes = [
   '/',
@@ -9,7 +8,6 @@ const staticRoutes = [
   '/categories',
   '/create-quiz',
   '/daily-challenge',
-  '/discussions',
   '/forgot-password',
   '/leaderboard',
   '/login',
@@ -23,6 +21,14 @@ const staticRoutes = [
   '/tournament'
 ]
 
+/**
+ * `slugify` — preserved for the future server-side username
+ * lookup endpoint (F-29 product decision). The Phase 1 rewrite
+ * of `/profile/[name]/layout.tsx` removed the fake-profile SEO
+ * entries; when the backend ships a username → userId endpoint,
+ * the sitemap should call it server-side and emit one entry per
+ * real profile.
+ */
 const slugify = (value: string) =>
   value
     .trim()
@@ -42,17 +48,16 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   const quizEntries = quizzes.map((quiz) => ({
     url: new URL(`/quizzes/${quiz.id}`, siteConfig.url).toString(),
-    lastModified: new Date(quiz.updatedAt),
+    lastModified: now,
     changeFrequency: 'weekly' as const,
     priority: 0.8
   }))
 
-  const profileEntries = players.map((player) => ({
-    url: new URL(`/profile/${slugify(player.name)}`, siteConfig.url).toString(),
-    lastModified: now,
-    changeFrequency: 'weekly' as const,
-    priority: 0.6
-  }))
+  // Phase 1 removed the 11 fake-profile entries generated from
+  // the hardcoded `players` constant (F-08, F-20b). The next
+  // iteration should replace this with a server-side fetch
+  // against the backend's username → userId endpoint when it
+  // ships (F-29).
 
-  return [...staticEntries, ...quizEntries, ...profileEntries]
+  return [...staticEntries, ...quizEntries]
 }

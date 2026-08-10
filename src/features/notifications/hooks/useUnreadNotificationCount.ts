@@ -19,7 +19,7 @@
  * - Subscribe to `notification:read` and `notification:deleted` events
  *   and revalidate the count via SWR `mutate({ revalidate: true })`.
  * - Guarantee the count never goes below zero (clamped at 0).
- * - Feature-flag gating via `phase5_notifications`.
+ * - Feature-flag gating via `notifications_live`.
  *
  * ## Server authority
  *
@@ -36,7 +36,7 @@
  *
  * ## Feature flag off
  *
- * When `phase5_notifications === 'placeholder'`, the hook returns
+ * When `notifications_live === 'placeholder'`, the hook returns
  * `{ unreadCount: 0, isLoading: false }` without firing a request or
  * opening a socket connection.
  */
@@ -87,7 +87,7 @@ type GetUnreadCountWireResponse = UnreadCount;
  * `notification:deleted` events.
  */
 export function useUnreadNotificationCount(): UseUnreadNotificationCountResult {
-  const flagValue = getFeatureFlagValue("phase5_notifications");
+  const flagValue = getFeatureFlagValue("notifications_live");
   const isFlagPlaceholder = flagValue === "placeholder";
   const realtimeEnabled = !isFlagPlaceholder;
 

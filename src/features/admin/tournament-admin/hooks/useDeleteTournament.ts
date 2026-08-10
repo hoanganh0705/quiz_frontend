@@ -104,8 +104,7 @@ import { useCallback, useRef, useState } from 'react';
 
 import { mutate as globalMutate } from 'swr';
 
-import { ApiError } from '@/lib/api/core/ApiError';
-import { addTournamentAdminBreadcrumb } from '@/lib/admin/phase7_admin_sentry';
+import { addTournamentAdminBreadcrumb } from '@/lib/admin/admin_live_sentry';
 
 import { deleteTournament } from '@/features/admin/services/tournament-admin.service';
 import { ApiError, coerceToApiError } from '@/lib/api';

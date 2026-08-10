@@ -247,7 +247,7 @@ export function CommentReportActionConfirmDialog({
         </AlertDialogHeader>
 
         <div
-          className="rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-800"
+          className="rounded-md border border-border bg-muted/40 px-3 py-2 text-xs text-foreground"
           data-testid={`comment-report-confirm-summary-${report.reportId}`}
         >
           <p className="font-semibold">Offending comment</p>

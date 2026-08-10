@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * `useInstancesFeatureFlag` — hook to check `phase5_instances` flag.
+ * `useInstancesFeatureFlag` — hook to check `multiplayer_instances_live` flag.
  *
  * Source epic:   Epic 5.1 — SDK coverage & realtime contract foundation.
  * Source story:  5.7 — Instance lobby, authenticated room, and host
@@ -41,14 +41,14 @@ export interface UseInstancesFeatureFlagResult {
 }
 
 /**
- * Check the `phase5_instances` feature flag.
+ * Check the `multiplayer_instances_live` feature flag.
  *
  * Used by the instance room page composition (TKT-5.7.F1) and the
  * Next.js route mount (TKT-5.7.F2) to conditionally render the live
  * lobby or the safe placeholder fallback.
  */
 export function useInstancesFeatureFlag(): UseInstancesFeatureFlagResult {
-  const flagValue = getFeatureFlagValue("phase5_instances");
+  const flagValue = getFeatureFlagValue("multiplayer_instances_live");
   const isPlaceholder = flagValue === "placeholder";
   const isLive = flagValue === "live";
 

@@ -14,7 +14,7 @@
  * - Validate the `userId` before any fetch fires.
  * - Expose `{ history, hasMore, isLoading, isLoadingMore, error,
  *   rateLimitedUntil, mutate, loadMore }` for the admin history panel.
- * - Feature-flag gating via `phase7_admin_achievement`.
+ * - Feature-flag gating via `admin_achievement_live`.
  *
  * ## Pagination
  *
@@ -35,7 +35,7 @@
  *
  * ## Feature flag
  *
- * When `phase7_admin_achievement === 'placeholder'`, the hook returns
+ * When `admin_achievement_live === 'placeholder'`, the hook returns
  * safe fallback. No service call fires.
  */
 
@@ -118,7 +118,7 @@ type AdminHistoryWireResponse = {
 export function useUserAchievementHistory(
   userId: string | null,
 ): UseUserAchievementHistoryResult {
-  const flagValue = getFeatureFlagValue('phase7_admin_achievement');
+  const flagValue = getFeatureFlagValue('admin_achievement_live');
   const isFlagPlaceholder = flagValue === 'placeholder';
 
   const isDisabled =

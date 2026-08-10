@@ -158,7 +158,7 @@ export function ReviewReportErrorState({
       <button
         type="button"
         onClick={onRetry}
-        className="rounded-md border border-red-400 bg-white px-3 py-1.5 text-sm font-medium text-red-800 transition-colors hover:bg-red-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2"
+        className="rounded-md border border-red-400 bg-background px-3 py-1.5 text-sm font-medium text-red-600 dark:text-red-400 transition-colors hover:bg-red-100 dark:hover:bg-red-950/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2"
         data-testid="review-report-error-state-retry"
       >
         Try again

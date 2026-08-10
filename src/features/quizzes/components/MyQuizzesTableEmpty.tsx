@@ -44,10 +44,11 @@ const CONTENT: Record<
   },
 };
 
-function IconForTab({ tab }: { tab: MyQuizzesTableEmptyProps["tab"] }): React.ReactElement {
-  if (tab === "published") return <Globe />;
-  return <Inbox />;
-}
+const ICONS: Record<MyQuizzesTableEmptyProps["tab"], React.ComponentType<unknown>> = {
+  all: Inbox as unknown as React.ComponentType<unknown>,
+  drafts: PenLine as unknown as React.ComponentType<unknown>,
+  published: Globe as unknown as React.ComponentType<unknown>,
+};
 
 /**
  * Empty state for the author's quizzes table.
@@ -60,7 +61,7 @@ export function MyQuizzesTableEmpty({
 
   return (
     <EmptyState
-      icon={IconForTab}
+      icon={ICONS[tab]}
       title={content.title}
       description={content.description}
       actions={

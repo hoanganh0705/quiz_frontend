@@ -21,7 +21,7 @@
  * - On success, invalidates every page of the queue (the
  *   `reviewReportsKeyMatcher` from TKT-7.5.C1) and the offending
  *   review's read SWR keys (`reviews:*`, `reviews:byId:*`).
- * - On success, broadcasts a `phase7:admin.review-moderation.invalidate`
+ * - On success, broadcasts a `admin:7.1.review-moderation.invalidate`
  *   event on the cross-tab channel (TKT-7.5.G2) so other admin tabs
  *   invalidate the same SWR keys. Failure paths do NOT broadcast.
  *
@@ -75,7 +75,7 @@ import { useCallback, useRef, useState } from 'react';
 import { mutate as globalMutate } from 'swr';
 
 import { ApiError, getReviews } from '@/lib/api';
-import { addReviewModerationBreadcrumb } from '@/lib/admin/phase7_admin_sentry';
+import { addReviewModerationBreadcrumb } from '@/lib/admin/admin_live_sentry';
 
 import { patchReviewReport } from '@/features/admin/services/review-moderation.service';
 import {

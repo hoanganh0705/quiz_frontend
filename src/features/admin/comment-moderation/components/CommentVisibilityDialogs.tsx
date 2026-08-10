@@ -290,7 +290,7 @@ export function HideCommentDialog({
         </AlertDialogHeader>
 
         <div
-          className="rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-800"
+          className="rounded-md border border-border bg-muted/40 px-3 py-2 text-xs text-foreground"
           data-testid={`comment-hide-confirm-summary-${commentId}`}
         >
           <p className="font-semibold">Offending comment</p>
@@ -456,7 +456,7 @@ export function RestoreCommentDialog({
         </AlertDialogHeader>
 
         <div
-          className="rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-800"
+          className="rounded-md border border-border bg-muted/40 px-3 py-2 text-xs text-foreground"
           data-testid={`comment-restore-confirm-summary-${commentId}`}
         >
           <p className="font-semibold">Offending comment</p>

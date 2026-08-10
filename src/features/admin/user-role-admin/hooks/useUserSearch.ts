@@ -131,7 +131,7 @@ const FALLBACK_RESULT: UseUserSearchResult = Object.freeze({
  */
 export function useUserSearch(query: string): UseUserSearchResult {
   // Feature flag gating
-  const flagValue = getFeatureFlagValue('phase7_admin_user_role');
+  const flagValue = getFeatureFlagValue('admin_user_role_live');
   const isFlagPlaceholder = flagValue === 'placeholder';
 
   if (isFlagPlaceholder) {

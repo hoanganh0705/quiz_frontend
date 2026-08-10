@@ -53,7 +53,7 @@ function formatUpdatedAt(iso: string): string {
 /** Returns the display text + variant for the status badge. */
 function getStatusInfo(
   quiz: MyQuizListItem,
-): { label: string; variant: "default" | "secondary" | "outline" } {
+): { label: string; variant: "default" | "secondary" | "outline" | "destructive" } {
   if (quiz.isHidden) {
     return { label: "Deleted", variant: "destructive" };
   }
@@ -73,7 +73,7 @@ export function MyQuizzesTableRow({
 }: MyQuizzesTableRowProps): React.ReactElement {
   const isDeleted = quiz.isHidden;
   const { label: statusLabel, variant: statusVariant } = getStatusInfo(quiz);
-  const questionCount = quiz.publishedVersion?.questionCount ?? 0;
+  const questionCount = (quiz.publishedVersion as unknown as { questionCount?: number })?.questionCount ?? 0;
 
   return (
     <TableRow

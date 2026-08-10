@@ -25,7 +25,7 @@
  *   the helper `invalidateCommentThreads` (Batch G, forthcoming)
  *   covers the thread invalidation; this hook emits the matching
  *   broadcast event.
- * - On success, broadcasts a `phase7:admin.comment-moderation.invalidate`
+ * - On success, broadcasts a `admin:7.1.comment-moderation.invalidate`
  *   event on the cross-tab channel (Batch G — forthcoming). Failure
  *   paths do NOT broadcast.
  *
@@ -86,7 +86,7 @@ import { useCallback, useRef, useState } from 'react';
 import { mutate as globalMutate } from 'swr';
 
 import { ApiError, getComments } from '@/lib/api';
-import { addCommentModerationBreadcrumb } from '@/lib/admin/phase7_admin_sentry';
+import { addCommentModerationBreadcrumb } from '@/lib/admin/admin_live_sentry';
 
 import {
   patchCommentReport,

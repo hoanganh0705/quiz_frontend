@@ -37,7 +37,7 @@
  *
  * The helper accepts the SWR key verbatim; it does NOT inspect or
  * rewrite the key. The lint script
- * (`scripts/phase6-lint-invariants.mjs`, TKT-6.10.G3) greps every file
+ * (`scripts/social-lint-invariants.mjs`, TKT-6.10.G3) greps every file
  * under `src/features/social/**` for `friendshipId` / `followId` and
  * fails the build if any field is added. The helper lives under
  * `lib/swr/` so the lint scope does not apply — but the realtime

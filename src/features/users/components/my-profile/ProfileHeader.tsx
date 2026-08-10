@@ -281,7 +281,7 @@ export const ProfileHeader = memo(function ProfileHeader({
                 <Avatar className='h-24 w-24 border-4 border-main'>
                   {(avatarPreview || user.avatarUrl) && (
                     <AvatarImage
-                      src={avatarPreview || user.avatarUrl}
+                      src={(avatarPreview || user.avatarUrl) ?? undefined}
                       alt={`${user.name}'s avatar`}
                     />
                   )}

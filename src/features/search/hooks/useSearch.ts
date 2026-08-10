@@ -26,7 +26,7 @@
  *   `SearchErrorCode` union so components branch on a stable string
  *   union instead of HTTP `status`.
  * - Clamp `limit` to the documented backend maximum (20).
- * - Feature-flag gating via `phase5_search`. When the flag is
+ * - Feature-flag gating via `search_live`. When the flag is
  *   `'placeholder'`, the hook returns the empty response without
  *   firing any request.
  *
@@ -68,10 +68,8 @@ import {
   type SearchResponseDto,
   type SearchResultKind,
 } from "@/features/search/types/search.types";
-import {
-  DEFAULT_SEARCH_DEBOUNCE_MS,
-  useDebouncedValue,
-} from "@/features/search/hooks/useDebouncedValue";
+import { DEFAULT_SEARCH_DEBOUNCE_MS } from "@/features/search/hooks/useDebouncedValue";
+import { useDebouncedValue } from "@/lib/utils/use-debounced-value";
 import { search } from "@/features/search/services/search.service";
 import { getFeatureFlagValue } from "@/lib/feature-flags";
 
@@ -357,7 +355,7 @@ export function useSearch(
   params: SearchQueryParams = DEFAULT_SEARCH_QUERY_PARAMS,
   options: { debounceMs?: number } = {},
 ): UseSearchResult {
-  const flagValue = getFeatureFlagValue("phase5_search");
+  const flagValue = getFeatureFlagValue("search_live");
   const isFlagPlaceholder = flagValue === "placeholder";
 
   const debounceMs = options.debounceMs ?? DEFAULT_SEARCH_DEBOUNCE_MS;
@@ -366,7 +364,7 @@ export function useSearch(
   // re-renders that pass the same logical query.
   const rawQuery = params.q ?? "";
   const trimmedQuery = useMemo(() => rawQuery.trim(), [rawQuery]);
-  const debouncedQuery = useDebouncedValue(trimmedQuery, debounceMs);
+  const { debouncedValue: debouncedQuery } = useDebouncedValue(trimmedQuery, debounceMs);
 
   // Clamp limit at the boundary; the backend caps at 20.
   const clampedLimit = useMemo(() => {

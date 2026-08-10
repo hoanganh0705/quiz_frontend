@@ -34,7 +34,7 @@ function mockAuth(currentUser: { userId: string; role?: string } | null) {
 
 function mockFlag(isLive: boolean) {
   vi.mocked(useAdminFeatureFlag).mockReturnValue({
-    flag: 'phase7_admin',
+    flag: 'admin_live',
     value: isLive ? 'live' : 'placeholder',
     isLive,
     isPlaceholder: !isLive,

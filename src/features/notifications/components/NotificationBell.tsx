@@ -16,7 +16,7 @@
  *     cue for socket health)
  *   - is keyboard-accessible (Enter / Space open the popover via
  *     Radix DropdownMenuTrigger)
- *   - renders `null` when the `phase5_notifications` feature flag is
+ *   - renders `null` when the `notifications_live` feature flag is
  *     `'placeholder'`
  *
  * The popover is owned by Radix's `DropdownMenu`; the bell button is
@@ -43,7 +43,7 @@ export interface NotificationBellProps {
 }
 
 export function NotificationBell({ className }: NotificationBellProps) {
-  const flagValue = getFeatureFlagValue("phase5_notifications");
+  const flagValue = getFeatureFlagValue("notifications_live");
   const isFlagPlaceholder = flagValue === "placeholder";
 
   // Open the socket once per tab. The popover and the unread badge

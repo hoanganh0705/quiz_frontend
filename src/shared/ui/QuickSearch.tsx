@@ -6,9 +6,12 @@ import { Dialog, DialogContent, DialogTitle } from '@/components/ui/Dialog'
 import { Input } from '@/components/ui/Input'
 import { Search, ArrowRight, FileText, Layers, Keyboard } from 'lucide-react'
 import { sidebarItems } from '@/shared/layout'
-import { listCategories } from '@/features/categories/api'
+import { listCategories } from '@/features/categories/services'
 import { listQuizzes } from '@/features/quizzes/services/quizzes.service'
-import type { CategoryResponseDto, QuizResponseDto } from '@/lib/api/generated/schemas'
+import type {
+  CategoryResponseDto,
+  QuizListItemDto,
+} from '@/lib/api/generated/schemas'
 import { useKeyboardShortcut } from '@/shared/hooks/use-keyboard-shortcut'
 import { useLocalStorage } from '@/shared/hooks/use-local-storage'
 import { logger } from '@/shared/log'
@@ -35,12 +38,12 @@ const ResultItem = memo(function ResultItem({
 }) {
   const typeIcon = {
     page: (
-      <ArrowRight className='h-4 w-4 text-foreground/50' aria-hidden='true' />
+      <ArrowRight className='h-4 w-4 text-muted-foreground' aria-hidden='true' />
     ),
     category: (
-      <Layers className='h-4 w-4 text-foreground/50' aria-hidden='true' />
+      <Layers className='h-4 w-4 text-muted-foreground' aria-hidden='true' />
     ),
-    quiz: <FileText className='h-4 w-4 text-foreground/50' aria-hidden='true' />
+    quiz: <FileText className='h-4 w-4 text-muted-foreground' aria-hidden='true' />
   }
 
   return (
@@ -61,7 +64,7 @@ const ResultItem = memo(function ResultItem({
       </span>
       <div className='flex-1 min-w-0'>
         <div className='text-sm font-medium truncate'>{result.title}</div>
-        <div className='text-xs text-foreground/50 truncate'>
+        <div className='text-xs text-muted-foreground truncate'>
           {result.subtitle}
         </div>
       </div>
@@ -75,7 +78,7 @@ export function QuickSearch() {
   const [query, setQuery] = useState('')
   const [activeIndex, setActiveIndex] = useState(0)
   const [categories, setCategories] = useState<CategoryResponseDto[]>([])
-  const [quizzes, setQuizzes] = useState<QuizResponseDto[]>([])
+  const [quizzes, setQuizzes] = useState<QuizListItemDto[]>([])
   const [recentQueries, setRecentQueries] = useLocalStorage<string[]>(
     'quick_search_recent',
     []
@@ -92,8 +95,14 @@ export function QuickSearch() {
           listCategories({ limit: 50 }),
           listQuizzes({ limit: 100 }),
         ])
-        setCategories(categoriesData.items)
-        setQuizzes(quizzesData.items)
+        // Both endpoints return a `{ data: T[], meta: ... }` envelope
+        // (see the comment in `app/(public)/page.tsx`). We fall back to
+        // `[]` when `data` is missing so the search surface renders an
+        // empty state instead of crashing on `categories.filter(...)`.
+        setCategories(
+          Array.isArray(categoriesData?.data) ? categoriesData.data : []
+        )
+        setQuizzes(Array.isArray(quizzesData?.data) ? quizzesData.data : [])
       } catch (error) {
         logger.error('shared.quick-search', 'Failed to fetch search data', error)
       }
@@ -281,7 +290,7 @@ export function QuickSearch() {
 
         <div className='flex items-center gap-2 border-b border-border px-3'>
           <Search
-            className='h-4 w-4 text-foreground/50 shrink-0'
+            className='h-4 w-4 text-muted-foreground shrink-0'
             aria-hidden='true'
           />
           <Input
@@ -290,7 +299,7 @@ export function QuickSearch() {
             placeholder='Search pages, quizzes, categories…'
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            className='border-0 shadow-none focus-visible:ring-0 h-11 text-sm placeholder:text-foreground/50'
+            className='border-0 shadow-none focus-visible:ring-0 h-11 text-sm placeholder:text-muted-foreground'
             aria-label='Quick search'
             aria-controls='quick-search-results'
             aria-activedescendant={
@@ -299,7 +308,7 @@ export function QuickSearch() {
                 : undefined
             }
           />
-          <kbd className='hidden sm:inline-flex items-center gap-1 rounded border border-border bg-muted px-1.5 py-0.5 text-[10px] font-medium text-foreground/50'>
+          <kbd className='hidden sm:inline-flex items-center gap-1 rounded border border-border bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground'>
             ESC
           </kbd>
         </div>
@@ -312,7 +321,7 @@ export function QuickSearch() {
           className='max-h-72 overflow-y-auto p-2'
         >
           {results.length === 0 ? (
-            <div className='py-8 text-center text-sm text-foreground/50'>
+            <div className='py-8 text-center text-sm text-muted-foreground'>
               No results found for &ldquo;{query}&rdquo;
             </div>
           ) : (
@@ -328,7 +337,7 @@ export function QuickSearch() {
                       : 'Quizzes'
                 return (
                   <div key={type}>
-                    <div className='px-3 py-1.5 text-xs font-medium text-foreground/40 uppercase tracking-wider'>
+                    <div className='px-3 py-1.5 text-xs font-medium text-muted-foreground uppercase tracking-wider'>
                       {label}
                     </div>
                     {typeResults.map((result) => {
@@ -350,7 +359,7 @@ export function QuickSearch() {
           )}
         </div>
 
-        <div className='flex items-center justify-between border-t border-border px-3 py-2 text-xs text-foreground/40'>
+        <div className='flex items-center justify-between border-t border-border px-3 py-2 text-xs text-muted-foreground'>
           <div className='flex items-center gap-2'>
             <span className='flex items-center gap-1'>
               <kbd className='rounded border border-border bg-muted px-1 py-0.5 text-[10px]'>

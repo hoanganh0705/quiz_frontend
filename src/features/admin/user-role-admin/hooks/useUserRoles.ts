@@ -10,7 +10,7 @@
  *   (`getUserRoles` from `user-role-admin.service.ts`).
  * - Validate the `userId` before any fetch fires.
  * - Expose `{ roles, isLoading, error, refetch }` for the admin surface.
- * - Feature-flag gating via `phase7_admin_user_role`.
+ * - Feature-flag gating via `admin_user_role_live`.
  *
  * ## Validation gate
  *
@@ -55,7 +55,7 @@ export interface UseUserRolesResult {
  * Returns safe fallback when the flag is off or userId is null.
  */
 export function useUserRoles(userId: string | null): UseUserRolesResult {
-  const flagValue = getFeatureFlagValue('phase7_admin_user_role');
+  const flagValue = getFeatureFlagValue('admin_user_role_live');
   const isFlagPlaceholder = flagValue === 'placeholder';
 
   // Disabled sentinel when flag is off or userId is null/empty

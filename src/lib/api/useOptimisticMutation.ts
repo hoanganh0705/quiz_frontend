@@ -59,7 +59,7 @@
  * @see useOptimisticToggle (Phase 3, Story 3.9) — boolean-flip
  *      precedent. `useOptimisticMutation` is the typed, snapshot-owning
  *      superset.
- * @see phase4Broadcast (TKT-4.1.B2) — cross-tab envelope facade.
+ * @see cross-tab-broadcast (TKT-4.1.B2) — cross-tab envelope facade.
  * @see ConfirmDialog (TKT-4.1.D2) — typed-confirm primitive consumed
  *      by the `confirm?` option.
  */
@@ -73,7 +73,7 @@ import type { ApiError } from '@/lib/api';
 import {
   emitPhase4Broadcast,
   type Phase4BroadcastBareMessage,
-} from '@/lib/api/core/phase4Broadcast';
+} from '@/lib/api/core/cross-tab-broadcast';
 
 /**
  * The SWR key shape used for the `key` parameter. Mirrors the
@@ -151,9 +151,9 @@ export type OptimisticMutationConfirm = {
  * (TKT-4.1.E2 acceptance criterion 2.)
  */
 export type OptimisticMutationBroadcast =
-  | import('@/lib/api/core/phase4Broadcast').Phase4BroadcastBareMessage
+  | import('@/lib/api/core/cross-tab-broadcast').Phase4BroadcastBareMessage
   | (() =>
-      | import('@/lib/api/core/phase4Broadcast').Phase4BroadcastBareMessage
+      | import('@/lib/api/core/cross-tab-broadcast').Phase4BroadcastBareMessage
       | null
       | undefined);
 

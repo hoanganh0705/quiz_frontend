@@ -61,7 +61,7 @@ export interface AdminNavEntry {
    * Optional feature flag that must be `'live'` for this entry to be
    * visible.  When undefined, no feature flag is checked.
    */
-  featureFlag?: 'phase7_admin_audit' | 'phase7_admin_ranking';
+  featureFlag?: 'admin_audit_live' | 'admin_ranking_live';
 }
 
 // ─── Nav catalogue ───────────────────────────────────────────────────────────
@@ -108,16 +108,16 @@ const MAIN_ENTRIES: AdminNavEntry[] = [
     requiredPermissions: ['user_grant_role'],
   },
   // TKT-7.11.F1 — audit log nav entry.  Gated on `audit_log_read`
-  // permission AND `phase7_admin_audit` feature flag.
+  // permission AND `admin_audit_live` feature flag.
   {
     href: AUDIT_LOG_ROUTE_PATH,
     label: AUDIT_LOG_METADATA.label,
     icon: AUDIT_LOG_METADATA.icon ?? ScrollText,
     requiredPermissions: [...AUDIT_LOG_METADATA.requiredPermissions],
-    featureFlag: 'phase7_admin_audit',
+    featureFlag: 'admin_audit_live',
   },
   // TKT-7.9.F2 — ranking admin nav entry. Gated on `ranking_*` permissions
-  // AND `phase7_admin_ranking` feature flag.
+  // AND `admin_ranking_live` feature flag.
   {
     href: '/admin/rankings',
     label: 'Rankings',
@@ -127,7 +127,7 @@ const MAIN_ENTRIES: AdminNavEntry[] = [
       'ranking_reset',
       'ranking_consistency_check',
     ],
-    featureFlag: 'phase7_admin_ranking',
+    featureFlag: 'admin_ranking_live',
   },
 ];
 
@@ -166,17 +166,17 @@ export function useAdminNav(): UseAdminNavResult {
 
   // TKT-7.11.F1 — also read the audit log feature flag.  When the flag
   // is at its default value (`'placeholder'`), the audit nav entry is hidden.
-  const auditFlagValue = getFeatureFlagValueSafe('phase7_admin_audit');
+  const auditFlagValue = getFeatureFlagValueSafe('admin_audit_live');
 
   // TKT-7.9.F2 — read the ranking admin feature flag.  When the flag
   // is at its default value (`'placeholder'`), the rankings nav entry is hidden.
-  const rankingFlagValue = getFeatureFlagValueSafe('phase7_admin_ranking');
+  const rankingFlagValue = getFeatureFlagValueSafe('admin_ranking_live');
 
   function isVisible(entry: AdminNavEntry): boolean {
-    if (entry.featureFlag && entry.featureFlag === 'phase7_admin_audit') {
+    if (entry.featureFlag && entry.featureFlag === 'admin_audit_live') {
       if (auditFlagValue !== 'live') return false;
     }
-    if (entry.featureFlag && entry.featureFlag === 'phase7_admin_ranking') {
+    if (entry.featureFlag && entry.featureFlag === 'admin_ranking_live') {
       if (rankingFlagValue !== 'live') return false;
     }
     if (entry.requiredPermissions.length === 0) return true;
@@ -198,7 +198,7 @@ export function useAdminNav(): UseAdminNavResult {
  * being added or removed across deploys.
  */
 function getFeatureFlagValueSafe(
-  flag: 'phase7_admin_audit' | 'phase7_admin_ranking',
+  flag: 'admin_audit_live' | 'admin_ranking_live',
 ): 'live' | 'placeholder' {
   const value = getFeatureFlagValue(flag);
   return value === 'live' ? 'live' : 'placeholder';

@@ -30,7 +30,9 @@ const ITEMS: TagAdminListItem[] = [
   },
 ];
 
-const mockUseDebouncedValue = vi.hoisted(() => (v: string) => v);
+const mockUseDebouncedValue = vi.hoisted(
+  () => (v: string) => ({ debouncedValue: v, cancel: () => undefined }),
+);
 
 vi.mock('@/lib/utils/use-debounced-value', () => ({
   useDebouncedValue: mockUseDebouncedValue,

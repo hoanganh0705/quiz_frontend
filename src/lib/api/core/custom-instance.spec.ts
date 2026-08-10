@@ -43,13 +43,16 @@ const refreshBody = JSON.parse(refreshSuccessFixture) as {
 };
 const NEW_ACCESS_TOKEN = refreshBody.data.accessToken;
 
-import { customInstance } from "./custom-instance";
+import { customInstance, _resetRefreshStateForTesting } from "./custom-instance";
 
 describe("custom-instance — refresh flow", () => {
   let originalAdapter: unknown;
   let originalAxiosAdapter: unknown;
 
   beforeEach(() => {
+    // Reset module-level refresh state (cooldown, in-flight refresh, etc.)
+    // so the previous test's failure does not leak into this one.
+    _resetRefreshStateForTesting();
     // axios.create() snapshots the parent defaults.adapter at creation
     // time, so swapping axios.defaults.adapter at runtime does NOT
     // affect instances created earlier. We must swap the adapter on

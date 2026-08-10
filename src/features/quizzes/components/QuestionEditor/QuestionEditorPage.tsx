@@ -35,6 +35,7 @@ import { Skeleton } from '@/components/ui/Skeleton';
 import { Button } from '@/components/ui/Button';
 import { getUserCopy } from '@/lib/api/error-codes';
 import { useToast } from '@/lib/forms/useToast';
+import { addSentryBreadcrumb } from '@/shared/sentry/add-sentry-breadcrumb';
 
 import {
   useQuizAuthorView,
@@ -149,38 +150,24 @@ export const QuestionEditorPage = memo(function QuestionEditorPage(): React.Reac
     refresh: refreshQuestions,
   } = useVersionQuestions({ quizId, versionId });
 
-  // ── Sentry breadcrumb helper ─────────────────────────────────────────
-
-  const addSentryBreadcrumb = useCallback(
-    (
-      type: 'api-call' | 'error' | 'user-action',
-      message: string,
-      data?: Record<string, unknown>,
-    ) => {
-      const sentry = typeof window !== 'undefined'
-        ? (window as unknown as { Sentry?: { addBreadcrumb?: (crumb: { category: string; message: string; level: string; data: Record<string, unknown> }) => void } }).Sentry
-        : undefined;
-      sentry?.addBreadcrumb?.({
-        category: `question-editor.${type}`,
-        message,
-        level: type === 'error' ? 'error' : 'info',
-        data: { quizId, versionId, ...data },
-      });
-    },
-    [quizId, versionId],
-  );
+  // ── Sentry breadcrumb helper (P2-27) ─────────────────────────────────
+  // Phase 7 / P2-27: extracted to
+  // `@/shared/sentry/add-sentry-breadcrumb`. The `categoryPrefix`
+  // argument namespaces the breadcrumb under `question-editor.*`.
 
   // ── Handle 403 (forbidden) ───────────────────────────────────────────
 
   useEffect(() => {
     if (quizError?.status === 403) {
-      addSentryBreadcrumb('error', 'User forbidden from editing quiz', {
-        errorCode: quizError.code,
-        status: 403,
-      });
+      addSentryBreadcrumb(
+        'error',
+        'User forbidden from editing quiz',
+        { errorCode: quizError.code, status: 403 },
+        { categoryPrefix: 'question-editor', quizId, versionId },
+      );
       // Access denied banner will be shown
     }
-  }, [quizError, addSentryBreadcrumb]);
+  }, [quizError, quizId, versionId]);
 
   // ── Handle 404 (not found) ──────────────────────────────────────────
 
@@ -277,9 +264,12 @@ export const QuestionEditorPage = memo(function QuestionEditorPage(): React.Reac
           onQuestionAdded={refreshQuestions}
           onError={(error) => {
             showToast('Error', getUserCopy(error.code).body);
-            addSentryBreadcrumb('error', 'Question editor error', {
-              code: error.code,
-            });
+            addSentryBreadcrumb(
+              'error',
+              'Question editor error',
+              { code: error.code },
+              { categoryPrefix: 'question-editor', quizId, versionId },
+            );
           }}
         />
       )}

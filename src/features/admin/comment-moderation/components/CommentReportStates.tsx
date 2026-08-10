@@ -62,7 +62,7 @@ export function CommentReportSkeleton({
       {Array.from({ length: count }, (_, index) => (
         <li
           key={index}
-          className="flex items-center gap-4 rounded-md border border-slate-200 bg-white px-4 py-3"
+          className="flex items-center gap-4 rounded-md border border-border bg-background px-4 py-3"
           data-testid={`comment-report-skeleton-row-${index}`}
         >
           {/* Avatar placeholder */}

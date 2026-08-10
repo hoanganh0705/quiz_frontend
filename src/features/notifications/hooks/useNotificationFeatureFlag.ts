@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * `useNotificationFeatureFlag` — hook to check phase5_notifications flag.
+ * `useNotificationFeatureFlag` — hook to check notifications_live flag.
  *
  * Source epic:   Epic 5.1 — SDK coverage & realtime contract foundation.
  * Source story:  5.4 — Live notification stream and notification center.
@@ -28,13 +28,13 @@ export interface UseNotificationFeatureFlagResult {
 }
 
 /**
- * Check the `phase5_notifications` feature flag.
+ * Check the `notifications_live` feature flag.
  *
  * Used by page components and the bell guard to conditionally render
  * the live notification surface or the safe placeholder fallback.
  */
 export function useNotificationFeatureFlag(): UseNotificationFeatureFlagResult {
-  const flagValue = getFeatureFlagValue("phase5_notifications");
+  const flagValue = getFeatureFlagValue("notifications_live");
   const isPlaceholder = flagValue === "placeholder";
 
   return {

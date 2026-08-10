@@ -23,17 +23,49 @@
  * to `PROTECTED_PREFIXES` or `ADMIN_PREFIXES`, both files must be updated
  * in the same commit.
  *
- *   - `/bookmarks`    — bookmarked quizzes (backend: `bookmark` module)
- *   - `/create-quiz`  — quiz authoring (backend: `quiz` module)
- *   - `/discussions`  — comment threads on quizzes (backend: `comment` module)
- *   - `/friends`      — social graph (backend: `social` module)
- *   - `/my-profile`   — current user's own profile (backend: `user` module)
- *   - `/onboarding`   — first-run UX (frontend-only until submit)
- *   - `/quiz-history` — user's attempt history (backend: `attempt` module)
- *   - `/settings`     — account-level preferences (backend: `user` module)
- *   - `/social`       — read-only social-graph lists (Story 6.2)
- *   - `/tournament`   — tournament listings and personal tournament state
- *   - `/admin`        — admin console (admin role enforced server-side only)
+ * > **Source-of-truth split.** This middleware is the source of truth for
+ * > *which URL prefixes* are gated. The folder
+ * > `quiz_frontend/src/app/(protected)/**` is the source of truth for
+ * > *where the protected route components live* in source. Every URL in
+ * > `PROTECTED_PREFIXES` / `ADMIN_PREFIXES` should be backed by a folder
+ * > under `app/(protected)/` (the admin/social/instances/notifications/
+ * > tournaments folders were migrated into the protected route group as
+ * > part of the route-group-consistency refactor).
+ *
+ *   - `/admin`        — admin console (`app/(protected)/admin/**`,
+ *                       admin role enforced server-side only)
+ *   - `/bookmarks`    — bookmarked quizzes (`app/(protected)/bookmarks/**`,
+ *                       backend: `bookmark` module)
+ *   - `/create-quiz`  — quiz authoring (`app/(protected)/create-quiz/**`,
+ *                       backend: `quiz` module)
+ *   - `/friends`      — social graph (`app/(protected)/friends/**`,
+ *                       backend: `social` module)
+ *   - `/instances`    — live quiz sessions
+ *                       (`app/(protected)/instances/**`, backend:
+ *                       `instance` module)
+ *   - `/my-profile`   — current user's own profile
+ *                       (`app/(protected)/my-profile/**`,
+ *                       backend: `user` module)
+ *   - `/notifications`— notification center + preferences
+ *                       (`app/(protected)/notifications/**`,
+ *                       backend: `notification` module)
+ *   - `/onboarding`   — first-run UX (`app/(protected)/onboarding/**`,
+ *                       frontend-only until submit)
+ *   - `/quiz-history` — user's attempt history
+ *                       (`app/(protected)/quiz-history/**`,
+ *                       backend: `attempt` module)
+ *   - `/settings`     — account-level preferences
+ *                       (`app/(protected)/settings/**`,
+ *                       backend: `user` module)
+ *   - `/social`       — read-only social-graph lists
+ *                       (`app/(protected)/social/**`, Story 6.2)
+ *   - `/tournament`   — tournament landing (singular,
+ *                       `app/(protected)/tournament/**`,
+ *                       backend: `tournament` module)
+ *   - `/tournaments`  — tournament listings + detail pages (plural,
+ *                       `app/(protected)/tournaments/**`,
+ *                       backend: `tournament` module;
+ *                       `/tournament` is also caught by the prefix)
  *
  * # Excluded paths
  *
@@ -59,7 +91,6 @@ import { getAuthTokenFromRequest } from "@/features/auth/utils/auth-cookies";
 const PROTECTED_PREFIXES = [
   "/bookmarks",
   "/create-quiz",
-  "/discussions",
   "/friends",
   "/instances",
   "/my-profile",
@@ -70,8 +101,8 @@ const PROTECTED_PREFIXES = [
   // Story 6.2 / TKT-6.2.B1+B2 — `/social/*` requires an authenticated
   // viewer because every list page is either viewer-only
   // (`/social/blocked`) or surfaces viewer-specific relationships
-  // (counts, follow status, pending requests). The `phase6_social`
-  // and `phase6_social_relationship` feature flags gate the live
+  // (counts, follow status, pending requests). The `social_live`
+  // and `social_relationship_live` feature flags gate the live
   // rendering; the middleware enforces the *authentication* contract.
   "/social",
   "/tournament",

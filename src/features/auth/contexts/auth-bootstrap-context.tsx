@@ -159,19 +159,22 @@ export function AuthBootstrapProvider({
 
       const [identityResult, profileResult] = await Promise.allSettled([
         singleflight(bootstrapKey + '-identity', async () => {
-          const result = await getAuth().authControllerGetCurrentUser();
-          if (!result.data) {
+          const wire = await getAuth().authControllerGetCurrentUser();
+          if (!wire || (wire as { data?: unknown }).data === undefined) {
             throw new Error('No data returned from /auth/me');
           }
-          return result.data;
+          return (wire as { data: CurrentUserResponseDto }).data;
         }),
         singleflight(bootstrapKey + '-profile', async () => {
           const { getUsers } = await import('@/lib/api');
-          const result = await getUsers().userControllerMe();
-          if (!result || (result as { userId?: unknown }).userId === undefined) {
+          const wire = await getUsers().userControllerMe();
+          if (
+            !wire ||
+            (wire as { data?: unknown }).data === undefined
+          ) {
             throw new Error('No data returned from /users/me');
           }
-          return result as unknown as UserMeResponseDto;
+          return (wire as { data: UserMeResponseDto }).data;
         }),
       ]);
 
@@ -254,7 +257,7 @@ export function AuthBootstrapProvider({
   // gate the audit calls out as P0-3.
   useEffect(() => {
     void doBootstrapRef.current();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, []);
 
   // ─── Listen for cross-tab auth events ─────────────────────────────────────
@@ -299,7 +302,7 @@ export function AuthBootstrapProvider({
     return () => {
       unsubscribe();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, []);
 
   // ─── Listen for cross-tab profile mutations ────────────────────────────────
@@ -318,7 +321,7 @@ export function AuthBootstrapProvider({
     return () => {
       unsubscribe();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, []);
 
   // ─── Listen for local 'auth-state-change' fallback ────────────────────────
@@ -335,7 +338,7 @@ export function AuthBootstrapProvider({
     return () => {
       window.removeEventListener('auth-state-change', handleAuthStateChange);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, []);
 
   // ─── TKT-6.2.G4 — detach social-list-loaded handlers on logout ────────────

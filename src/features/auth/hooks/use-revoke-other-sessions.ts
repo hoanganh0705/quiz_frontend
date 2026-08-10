@@ -61,7 +61,7 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
 import {
   revokeOtherSessions as defaultRevokeOtherSessions,
-} from '@/features/auth/service/auth.service';
+} from '@/features/auth/services/auth.service';
 import {
   mapSessionError,
   type SessionErrorClassification,

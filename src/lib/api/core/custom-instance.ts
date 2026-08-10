@@ -1,6 +1,17 @@
 /**
  * Custom Axios instance with auth interceptors.
- * Handles token refresh, cross-tab sync, and response envelope unwrapping.
+ * Handles token refresh, cross-tab sync, and 401 refresh retries.
+ *
+ * ## Envelope shape
+ *
+ * The interceptor does **not** unwrap the backend's `{ data, meta }`
+ * envelope — see the long-form comment on the response interceptor
+ * below for the rationale. The generated SDK types
+ * (`orvalCustomInstance<WrapperXxx200>`) already encode the wrapped
+ * shape, and 30+ call sites (every list, every paginated fetcher,
+ * every auth caller) read `.data` / `.meta.pagination` directly, so
+ * the SDK contract is the source of truth and the interceptor
+ * passes the wire shape through unmodified.
  */
 
 import axios, {
@@ -9,29 +20,10 @@ import axios, {
   InternalAxiosRequestConfig,
 } from 'axios';
 
-import { unwrapEnvelope, isEnvelopeResult, isNullResult } from './unwrap';
-
-/**
- * Unwrap a `{ data, meta }` envelope, preserving the original lenient
- * behaviour of the previous `unwrapEnvelope` flat return:
- *
- *   - For `envelope` / `null` / `primitive` / `passthrough`, return the
- *     best-effort inner payload (the response interceptor historically
- *     assigned the result back to `response.data` regardless of shape).
- *   - The discriminated `unwrapEnvelope` is also exported for callers
- *     that need to branch on the `kind` discriminator; this helper is
- *     the legacy-compatible unwrap.
- */
-function unwrapResponseData(payload: unknown): unknown {
-  const result = unwrapEnvelope(payload);
-  if (isEnvelopeResult(result)) return result.value;
-  if (isNullResult(result)) return null;
-  return result.value;
-}
 import { ApiError } from './ApiError';
 import { getAuth } from '@/lib/api';
 
-import { isInCooldown, startCooldown, clearCooldown } from './refresh-cooldown';
+import { isInCooldown, startCooldown, clearCooldown, _resetCooldownForTesting } from './refresh-cooldown';
 import { isRefreshTerminalError } from '@/features/auth/errors/refresh-error-codes';
 import { clearVerificationFlags } from '@/features/auth/utils/verification-flag';
 import {
@@ -222,6 +214,21 @@ export function _getLastLogoutTimestampForTesting(): number | null {
 }
 
 /**
+ * Resets the module-level refresh state for tests. Call from `beforeEach`
+ * to ensure the previous test's cooldown, in-flight refresh, and waiters
+ * do not leak into the next test.
+ *
+ * Source epic: Epic 2.7.
+ * Source ticket: Test cleanup — prevent cooldown / in-flight leakage.
+ */
+export function _resetRefreshStateForTesting(): void {
+  inFlightRefresh = null;
+  inFlightRefreshWaiters = [];
+  lastLogoutTimestamp = null;
+  _resetCooldownForTesting();
+}
+
+/**
  * Source epic: Epic 2.10 — Permanent account deletion.
  * Source ticket: 2.10.T23.
  *
@@ -258,13 +265,42 @@ customInstance.interceptors.request.use((config) => {
 });
 
 // ─── Response Interceptor: Unwrap Envelope + Handle 401 ────────────────────────
-
+//
+// ## Why the interceptor does NOT unwrap the envelope
+//
+// The Axios response interceptor historically did:
+//   response.data = unwrapResponseData(response.data);
+// i.e. it mutated `response.data` to be the inner payload. That was
+// the "unwrapped-everywhere" design that lets consumers write
+// `result` instead of `result.data`.
+//
+// That design conflicts with the **generated SDK contract**:
+// every generated `orvalCustomInstance<WrapperXxx200>` return is
+// typed as the *wrapped* envelope (e.g. `QuizControllerGetFeaturedQuizzes200
+// = WrappedDto & { data?: QuizListItemDto[] }`). 30+ hook/service
+// call sites (every list, every paginated fetcher, every auth
+// caller) do `result.data ?? []`, `result.meta?.pagination?.nextCursor`,
+// or `if (!data.data) throw` — all of which silently return
+// `undefined` / `[]` when the interceptor pre-unwraps the response.
+//
+// Cursor-paginated endpoints are the most visible breakage: the
+// pagination metadata lives in the **outer** envelope
+// (`meta.pagination`), and once the interceptor strips it the
+// fetcher cannot reconstruct `nextCursor` / `hasNextPage` for the
+// next page. Every paginated hook in the app currently shows an
+// empty list on the first page (and never advances).
+//
+// Reverting the unwrap here restores the documented SDK contract:
+// the interceptor passes the raw wire shape through, the SDK
+// returns the wrapped envelope, and consumers that need the inner
+// payload read `.data` (or `.meta.pagination` for cursor pages).
+// The `unwrapEnvelope` / `unwrapEnvelopeValue` helpers remain
+// available for the few callers that need the discriminated form
+// (e.g. `auth-only-instance.ts` for the unauthenticated auth flow).
 customInstance.interceptors.response.use(
-  // Success: unwrap { data, meta } → T
-  (response) => {
-    response.data = unwrapResponseData(response.data);
-    return response;
-  },
+  // Success: pass through (the SDK types and consumers expect the
+  // wrapped envelope, not the inner payload).
+  (response) => response,
 
   // Error: handle 401 token refresh
   async (error) => {
@@ -410,19 +446,22 @@ customInstance.interceptors.response.use(
  * unwrapping and transport configuration.
  */
 async function doRefresh(): Promise<string> {
-  // Use SDK for consistent envelope unwrapping and transport.
-  // `orvalCustomInstance` already unwraps the `{ data, meta }` envelope,
-  // so `response` is the inner payload `{ accessToken, ... }` directly.
+  // Use SDK for consistent transport configuration. `orvalCustomInstance`
+  // returns the wrapped envelope as-is (the response interceptor does
+  // NOT unwrap — see the long-form comment above the interceptor), so
+  // `response` is the full `{ data, meta }` shape with the new
+  // access token nested under `response.data`.
   const response = await getAuth().authControllerRefreshToken();
 
-  // The SDK may surface the unwrapped payload as an object or as the inner
-  // field. We support both shapes to be defensive against SDK wiring drift.
+  // The SDK may surface the payload as the wrapped envelope or as the
+  // inner field (defensive against future SDK wiring drift). Both
+  // shapes are supported.
   const responseObj = response as unknown as {
     data?: { accessToken?: unknown };
     accessToken?: unknown;
   };
   const accessToken =
-    responseObj?.accessToken ?? responseObj?.data?.accessToken;
+    responseObj?.data?.accessToken ?? responseObj?.accessToken;
 
   if (typeof accessToken !== 'string' || accessToken.length === 0) {
     throw new Error('Refresh token response missing accessToken');

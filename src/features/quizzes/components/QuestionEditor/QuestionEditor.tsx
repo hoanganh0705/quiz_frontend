@@ -74,7 +74,7 @@ export interface QuestionEditorProps {
   /** Callback when a question is added. */
   onQuestionAdded: () => void;
   /** Callback when an error occurs. */
-  onError: (error: ApiError) => void;
+  onError: (error: { code: string; message: string }) => void;
 }
 
 // ─── Component ─────────────────────────────────────────────────────────────
@@ -121,12 +121,11 @@ export const QuestionEditor = memo(function QuestionEditor({
 
       // Report to parent via error callback
       onError({
-        status: 500,
         code: 'GLOBAL_INTERNAL_ERROR',
         message: err instanceof AuthorDtoInvariantError
           ? 'Data integrity check failed: expected author DTO with isCorrect field'
           : 'Data integrity check failed',
-      } as ApiError);
+      });
     }
   }, [questions, onError]);
 

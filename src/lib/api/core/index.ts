@@ -19,5 +19,6 @@ export type { ApiErrorData } from './ApiError';
 export type { CustomConfig } from './custom-instance';
 
 // Bind the static factory so it can be imported as a free function.
- 
-export const fromAxios = ApiError.fromAxios.bind(ApiError);
+import { ApiError as _ApiError } from './ApiError';
+
+export const fromAxios = _ApiError.fromAxios.bind(_ApiError);

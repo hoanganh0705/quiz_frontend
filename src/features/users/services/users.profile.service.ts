@@ -172,8 +172,13 @@ export async function listMyTournamentHistory(
 
 export async function getMyTournamentAnalytics(): Promise<MyTournamentAnalyticsResponseDto> {
   const sdk = getUsers();
-  const response = await sdk.userControllerGetMyTournamentAnalytics();
-  return response as unknown as MyTournamentAnalyticsResponseDto;
+  const wire = await sdk.userControllerGetMyTournamentAnalytics();
+  // The SDK returns the wrapped envelope; read `.data` for the
+  // inner `MyTournamentAnalyticsResponseDto`. See the long-form
+  // comment on the response interceptor in
+  // `lib/api/core/custom-instance.ts` for the envelope contract.
+  const data = (wire as { data?: MyTournamentAnalyticsResponseDto }).data;
+  return data as MyTournamentAnalyticsResponseDto;
 }
 
 // ─── Ranking ───────────────────────────────────────────────────────────────────
@@ -198,6 +203,79 @@ export type GetMyAnalyticsResult = {
   tournamentsPlayed?: number;
   tournamentsWon?: number;
 };
+
+export type { UserControllerListUserQuizzesParams } from '@/lib/api/generated/schemas';
+
+export interface ListUserQuizzesResult {
+  data?: import('@/lib/api/generated/schemas').QuizListItemDto[];
+  meta?: {
+    pagination?: {
+      kind: 'cursor';
+      limit: number;
+      nextCursor: string | null;
+      hasNextPage: boolean;
+    };
+  };
+}
+
+export interface ListUserQuizzesParams {
+  cursor?: string;
+  limit?: number;
+  /**
+   * Status filter. Maps to the documented `UserControllerListUserQuizzesStatus`
+   * enum (e.g. `draft`, `published`). When omitted, the backend returns all
+   * quizzes for the user.
+   */
+  status?: 'draft' | 'published';
+}
+
+export async function listUserQuizzes(
+  userId: string,
+  params?: ListUserQuizzesParams,
+): Promise<ListUserQuizzesResult> {
+  const sdk = getUsers();
+  const forwarded: Record<string, unknown> = {};
+  if (params?.cursor !== undefined) forwarded.cursor = params.cursor;
+  if (params?.limit !== undefined) forwarded.limit = params.limit;
+  if (params?.status !== undefined) forwarded.status = params.status;
+  const response = await sdk.userControllerListUserQuizzes(
+    userId,
+    forwarded as Parameters<typeof sdk.userControllerListUserQuizzes>[1],
+  );
+  return response as ListUserQuizzesResult;
+}
+
+// ─── Per-User Quiz Analytics (creator-side) ──────────────────────────────────
+
+export interface CreatorQuizAnalytics {
+  userId: string;
+  totalQuizzes: number;
+  draftQuizzes: number;
+  publishedQuizzes: number;
+  totalAttempts: number;
+  uniquePlayers: number;
+  averageScore: number;
+  averageRating: number;
+  totalBookmarks: number;
+  totalReviews: number;
+  lastUpdated: string;
+}
+
+/**
+ * Get creator-side quiz analytics for a user.
+ *
+ * NOTE: This endpoint is restricted to the authenticated user — calling
+ * for any other `userId` returns 404. The public profile hook
+ * short-circuits to `null` when `userId !== currentUserId`.
+ */
+export async function getUserQuizAnalytics(
+  userId: string,
+): Promise<CreatorQuizAnalytics | null> {
+  const sdk = getUsers();
+  const envelope = await sdk.userControllerGetUserQuizAnalytics(userId);
+  const data = (envelope as { data?: CreatorQuizAnalytics }).data;
+  return data ?? null;
+}
 
 export async function getMyAnalytics(): Promise<GetMyAnalyticsResult> {
   const sdk = getUsers();

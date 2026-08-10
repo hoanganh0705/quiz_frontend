@@ -20,7 +20,7 @@
  *
  * ## Feature flag gating
  *
- * Renders `null` when `phase5_achievements === 'placeholder'`.
+ * Renders `null` when `achievements_live === 'placeholder'`.
  *
  * ## Loading / error / empty
  *
@@ -60,11 +60,11 @@ const TIER_COLOR: Record<BadgeTier, string> = {
 /**
  * Render the authenticated user's earned badges.
  *
- * Returns `null` when `phase5_achievements === 'placeholder'` or when
+ * Returns `null` when `achievements_live === 'placeholder'` or when
  * the user is unauthenticated.
  */
 export function EarnedBadgeList({ className }: EarnedBadgeListProps) {
-  const flagValue = getFeatureFlagValue("phase5_achievements");
+  const flagValue = getFeatureFlagValue("achievements_live");
   const isFlagPlaceholder = flagValue === "placeholder";
 
   const { isAuthenticated, bootstrapState } = useAuthSession();

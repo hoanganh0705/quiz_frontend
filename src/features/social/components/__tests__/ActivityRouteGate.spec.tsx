@@ -8,11 +8,11 @@
  *
  * Asserts:
  *
- *   - `phase6_social_activity === 'placeholder'` → renders
+ *   - `social_activity_live === 'placeholder'` → renders
  *     `<SocialActivityPlaceholder />`.
- *   - `phase6_social === 'placeholder'` → also renders the
+ *   - `social_live === 'placeholder'` → also renders the
  *     placeholder (the parent flag is the second short-circuit).
- *   - `phase6_social === 'live'` + `phase6_social_activity === 'live'`
+ *   - `social_live === 'live'` + `social_activity_live === 'live'`
  *     → renders `<UserActivityStream />` (TKT-6.4.F1 / TKT-6.4.G3).
  *   - Unauthenticated viewer → `PrivacyRestrictedNotice` with the
  *     `not_available` variant (defensive branch; the authoritative
@@ -40,6 +40,8 @@ vi.mock("@/features/auth/hooks/use-auth-state", () => ({
 // the rest of the social-feature surface into the test.
 const mockUseUserActivity = vi.fn();
 const mockUseSocialListVisibility = vi.fn();
+
+const OTHER_USER_ID = "11111111-1111-1111-1111-111111111111";
 
 vi.mock("@/features/social/hooks/useUserActivity", () => ({
   useUserActivity: (...args: unknown[]) => mockUseUserActivity(...args),
@@ -84,10 +86,10 @@ describe("ActivityRouteGate", () => {
     vi.clearAllMocks();
   });
 
-  it("renders the placeholder for `phase6_social_activity === 'placeholder'`", () => {
+  it("renders the placeholder for `social_activity_live === 'placeholder'`", () => {
     mockGetFeatureFlagValue.mockImplementation((flag: string) => {
-      if (flag === "phase6_social") return "live";
-      if (flag === "phase6_social_activity") return "placeholder";
+      if (flag === "social_live") return "live";
+      if (flag === "social_activity_live") return "placeholder";
       return "live";
     });
     render(
@@ -96,10 +98,10 @@ describe("ActivityRouteGate", () => {
     expect(screen.getByTestId("social-activity-placeholder")).toBeInTheDocument();
   });
 
-  it("renders the placeholder for `phase6_social === 'placeholder'`", () => {
+  it("renders the placeholder for `social_live === 'placeholder'`", () => {
     mockGetFeatureFlagValue.mockImplementation((flag: string) => {
-      if (flag === "phase6_social") return "placeholder";
-      if (flag === "phase6_social_activity") return "live";
+      if (flag === "social_live") return "placeholder";
+      if (flag === "social_activity_live") return "live";
       return "live";
     });
     render(
@@ -110,6 +112,39 @@ describe("ActivityRouteGate", () => {
 
   it("renders the live UserActivityStream when both flags are 'live' (TKT-6.4.G3)", () => {
     mockGetFeatureFlagValue.mockImplementation(() => "live");
+    // The live branch renders `<UserActivityStream>`, which only
+    // emits the `data-testid="user-activity-stream"` wrapper when
+    // `items.length > 0`. Pre-populate one item so the assertion
+    // can target the wrapper rather than the empty state.
+    mockUseUserActivity.mockReturnValue({
+      items: [
+        {
+          id: "act-1",
+          kind: "quiz_authored",
+          actorUser: {
+            userId: OTHER_USER_ID,
+            username: "otheruser",
+            displayName: "Other User",
+            avatarUrl: null,
+          },
+          occurredAt: new Date().toISOString(),
+          payload: {
+            quizId: "00000000-0000-0000-0000-000000000001",
+            quizTitle: "A quiz",
+          },
+        },
+      ],
+      total: 1,
+      visibility: "visible",
+      isLoading: false,
+      isStale: false,
+      staleness: "fresh",
+      error: null,
+      loadMore: () => undefined,
+      hasMore: false,
+      retry: () => Promise.resolve(),
+      rateLimitedUntil: null,
+    });
     render(
       <ActivityRouteGate targetUserId="11111111-1111-1111-1111-111111111111" />,
     );

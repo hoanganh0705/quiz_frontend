@@ -15,7 +15,7 @@
  * - Render a privacy-aware empty state ("Ranking hidden") when the
  *   server has marked the user as private, or when the API throws
  *   `RANKING_FORBIDDEN`.
- * - Render nothing when `phase5_rankings === 'placeholder'`.
+ * - Render nothing when `rankings_live === 'placeholder'`.
  *
  * ## Privacy gating (F3 AC #4)
  *
@@ -35,7 +35,7 @@
  *
  * ## Feature flag
  *
- * Renders `null` when `phase5_rankings === 'placeholder'`.
+ * Renders `null` when `rankings_live === 'placeholder'`.
  *
  * ## Loading / error / empty
  *
@@ -186,7 +186,7 @@ function UserRankingErrorState({
  *
  * Returns `null` when:
  *
- *   - `phase5_rankings === 'placeholder'`.
+ *   - `rankings_live === 'placeholder'`.
  *   - `userId === null` (no user context supplied).
  *
  * Otherwise renders:

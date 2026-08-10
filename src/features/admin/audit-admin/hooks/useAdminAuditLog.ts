@@ -12,7 +12,7 @@
  *   (`listAuditLog`).
  * - Expose `{ entries, total, hasMore, isLoading, isValidating, error,
  *   mutate }` for the audit log page.
- * - Feature-flag gating via `phase7_admin_audit`.
+ * - Feature-flag gating via `admin_audit_live`.
  * - Handle the degraded path when audit log is not exposed.
  *
  * ## Pagination
@@ -78,7 +78,7 @@ export function useAdminAuditLog(
   filters: AuditLogFilters = {},
   pagination: AuditLogPagination = { offset: 0, limit: 20 },
 ): UseAdminAuditLogResult {
-  const flagValue = getFeatureFlagValue('phase7_admin_audit');
+  const flagValue = getFeatureFlagValue('admin_audit_live');
   const isFlagPlaceholder = flagValue === 'placeholder';
 
   // Build cache key including filters and pagination

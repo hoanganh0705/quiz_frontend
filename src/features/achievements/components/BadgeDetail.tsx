@@ -27,7 +27,7 @@
  *
  * ## Feature flag gating
  *
- * Renders `null` when `phase5_achievements === 'placeholder'`.
+ * Renders `null` when `achievements_live === 'placeholder'`.
  *
  * ## Loading / error
  *
@@ -63,11 +63,11 @@ const TIER_COLOR: Record<BadgeTier, string> = {
 /**
  * Render a single badge detail view.
  *
- * Returns `null` when `phase5_achievements === 'placeholder'` or when
+ * Returns `null` when `achievements_live === 'placeholder'` or when
  * the code is empty.
  */
 export function BadgeDetail({ code, className }: BadgeDetailProps) {
-  const flagValue = getFeatureFlagValue("phase5_achievements");
+  const flagValue = getFeatureFlagValue("achievements_live");
   const isFlagPlaceholder = flagValue === "placeholder";
   const isCodeEmpty = typeof code !== "string" || code.length === 0;
 

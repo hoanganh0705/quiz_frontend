@@ -52,14 +52,21 @@ import { followedTags } from '@/features/tags/services/tags.service';
 
 /**
  * SWR key for the categories lookup. Stable across renders; the
- * `limit: 500` argument is captured into the key so a future caller
+ * `limit: 100` argument is captured into the key so a future caller
  * that requests a different page size does not collide with the
  * default-snapshot read.
+ *
+ * The backend (`/api/v1/users/me/followed-categories`) caps `limit`
+ * at 100. We request the maximum so the in-memory `Set<id>` mirrors
+ * "everything the user follows", even though no user is realistically
+ * following >100 entities. If that cap is ever raised server-side,
+ * bump this constant together with the backend `Max(100)` validator
+ * — never independently.
  *
  * Exported so the per-feature action hooks (B4) can invalidate the
  * lookup after a successful toggle.
  */
-export const FOLLOWED_LOOKUP_LIMIT = 500;
+export const FOLLOWED_LOOKUP_LIMIT = 100;
 
 export const followedCategoriesKey = () =>
   ['follow-lookup', 'categories', { limit: FOLLOWED_LOOKUP_LIMIT }] as const;

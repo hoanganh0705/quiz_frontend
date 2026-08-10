@@ -31,7 +31,7 @@
  *
  * ## Feature flag gating
  *
- * When `phase6_social_friend_request_mutation === 'placeholder'`,
+ * When `social_friend_request_mutation_live === 'placeholder'`,
  * the CTA renders nothing. This lets Phase 5 / 6.1 / 6.2 / 6.6
  * / 6.7 code paths install and run without Epic 6.8 CTAs visible.
  *
@@ -143,7 +143,7 @@ export function FriendRequestCta({
 }: FriendRequestCtaProps): ReactElement | null {
   // ── Feature flag ───────────────────────────────────────────────────
   const flagValue = getFeatureFlagValue(
-    "phase6_social_friend_request_mutation",
+    "social_friend_request_mutation_live",
   );
   const isFlagPlaceholder = flagValue === "placeholder";
 

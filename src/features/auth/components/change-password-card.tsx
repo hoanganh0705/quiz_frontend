@@ -69,7 +69,7 @@ import { getPasswordStrength } from '@/features/auth/utils/password-strength';
 import {
   PASSWORD_COPY_KEYS,
   resolvePasswordCopy,
-} from '@/features/auth/service/auth.service';
+} from '@/features/auth/services/auth.service';
 import { ChangePasswordSuccessBanner } from './change-password-success-banner';
 
 export interface ChangePasswordCardProps {

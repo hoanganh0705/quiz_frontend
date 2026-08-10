@@ -16,7 +16,7 @@
  *   UI can communicate eventual consistency without showing
  *   contradictory optimistic values.
  * - Return safe fallback state when unauthenticated or when the
- *   `phase5_rankings` feature flag is `'placeholder'`.
+ *   `rankings_live` feature flag is `'placeholder'`.
  *
  * ## Server authority
  *
@@ -37,7 +37,7 @@
  *
  * ## Feature flag
  *
- * When `phase5_rankings === 'placeholder'`, the hook short-circuits
+ * When `rankings_live === 'placeholder'`, the hook short-circuits
  * to safe fallback. No service call fires; the SWR key is the
  * disabled sentinel.
  */
@@ -82,7 +82,7 @@ export interface UseMyRankingResult {
  * Returns safe fallback (`summary: null`, `isLoading: false`,
  * `error: null`) when:
  *
- * - `phase5_rankings` is `'placeholder'`.
+ * - `rankings_live` is `'placeholder'`.
  * - The user is unauthenticated.
  *
  * The hook never invents a rank — `summary` is `null` when the
@@ -91,7 +91,7 @@ export interface UseMyRankingResult {
  * the cached data presence.
  */
 export function useMyRanking(): UseMyRankingResult {
-  const flagValue = getFeatureFlagValue("phase5_rankings");
+  const flagValue = getFeatureFlagValue("rankings_live");
   const isFlagPlaceholder = flagValue === "placeholder";
 
   const { bootstrapState, currentUser } = useAuthSession();

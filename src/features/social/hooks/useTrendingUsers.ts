@@ -129,7 +129,7 @@ const FALLBACK_RESULT: UseTrendingUsersResult = Object.freeze({
  * `visibility` value. The hook never throws for privacy reasons.
  */
 export function useTrendingUsers(): UseTrendingUsersResult {
-  const flagValue = getFeatureFlagValue("phase6_social_discovery");
+  const flagValue = getFeatureFlagValue("social_discovery_live");
   const isFlagPlaceholder = flagValue === "placeholder";
 
   const auth = useAuthSession();

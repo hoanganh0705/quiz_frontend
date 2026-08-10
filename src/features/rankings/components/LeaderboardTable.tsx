@@ -26,7 +26,7 @@
  *
  * ## Feature flag gating
  *
- * Renders `null` when `phase5_rankings === 'placeholder'`. The page
+ * Renders `null` when `rankings_live === 'placeholder'`. The page
  * falls back to a placeholder when the flag is off.
  *
  * ## Loading / error / empty
@@ -62,7 +62,7 @@ interface LeaderboardTableProps {
 /**
  * Render the global leaderboard table.
  *
- * Returns `null` when `phase5_rankings === 'placeholder'`. Renders the
+ * Returns `null` when `rankings_live === 'placeholder'`. Renders the
  * skeleton / error / empty states through the shared primitives.
  */
 export function LeaderboardTable({
@@ -70,7 +70,7 @@ export function LeaderboardTable({
   limit,
   className,
 }: LeaderboardTableProps) {
-  const flagValue = getFeatureFlagValue("phase5_rankings");
+  const flagValue = getFeatureFlagValue("rankings_live");
   const isFlagPlaceholder = flagValue === "placeholder";
 
   // Always call the hook so the Rules of Hooks are satisfied even when

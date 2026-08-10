@@ -20,12 +20,33 @@ import {
   Users
 } from 'lucide-react'
 import Link from 'next/link'
-import type { Quiz } from '@/features/quizzes/types'
+import type { BookmarkedQuizResponseDto } from '@/lib/api/generated/schemas'
 import type { BookmarkedQuiz, BookmarkCollection } from '@/features/bookmarks/types'
 import { formatDistanceToNow } from 'date-fns'
 
+/**
+ * Extended quiz type for display — adds fields that the backend doesn't yet
+ * return on the bookmark response (difficulty, duration, play count).
+ * `id` is an alias for `quizId` for convenience.
+ */
+interface QuizDisplay {
+  id?: string
+  quizId: string
+  quizTitle: string
+  quizSlug: string
+  quizImageUrl?: string | null
+  quizIsFeatured: boolean
+  notes?: string | null
+  bookmarkedAt: string
+  // Extended fields (not in DTO — fall back gracefully)
+  difficulty?: string
+  duration?: number
+  currentPlayers?: number
+  categories?: string[]
+}
+
 interface BookmarkedQuizCardProps {
-  quiz: Quiz
+  quiz: QuizDisplay
   bookmark: BookmarkedQuiz
   collections: BookmarkCollection[]
   onRemove: (quizId: string) => void
@@ -41,15 +62,18 @@ const BookmarkedQuizCard = memo(function BookmarkedQuizCard({
   onMoveToCollection
 }: BookmarkedQuizCardProps) {
   const currentCollection = collections.find(
-    (c) => c.id === bookmark.collectionId
+    (c) => c.id === (bookmark as unknown as { collectionId?: string }).collectionId
   )
+
+  // Resolve the quiz ID — prefer id alias, fall back to quizId
+  const quizId = quiz.id ?? quiz.quizId
 
   return (
     <div className='group rounded-lg border bg-card text-card-foreground shadow-sm overflow-hidden transition-all duration-200 hover:shadow-md hover:border-border'>
       <div className='relative h-40'>
         <Image
-          src={quiz.image || '/placeholder.webp'}
-          alt={quiz.title}
+          src={quiz.quizImageUrl ?? '/placeholder.webp'}
+          alt={quiz.quizTitle}
           fill
           sizes='(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw'
           className='object-cover'
@@ -62,11 +86,11 @@ const BookmarkedQuizCard = memo(function BookmarkedQuizCard({
             <Badge
               className={`${
                 difficultyColors[
-                  quiz.difficulty as keyof typeof difficultyColors
-                ]?.bg || 'bg-gray-500'
+                  (quiz.difficulty?.charAt(0).toUpperCase() + (quiz.difficulty ?? '').slice(1)) as keyof typeof difficultyColors
+                ]?.bg ?? 'bg-gray-500'
               } text-white text-xs`}
             >
-              {quiz.difficulty}
+              {quiz.difficulty ?? 'Unknown'}
             </Badge>
 
             <DropdownMenu>
@@ -82,8 +106,8 @@ const BookmarkedQuizCard = memo(function BookmarkedQuizCard({
               </DropdownMenuTrigger>
               <DropdownMenuContent align='end' className='w-48'>
                 <DropdownMenuItem
-                  onClick={() => onMoveToCollection(quiz.id, null)}
-                  disabled={bookmark.collectionId === null}
+                  onClick={() => onMoveToCollection(quizId, null)}
+                  disabled={(bookmark as unknown as { collectionId?: string | null }).collectionId === null}
                 >
                   <FolderInput className='mr-2 h-4 w-4' />
                   Move to Uncategorized
@@ -91,19 +115,19 @@ const BookmarkedQuizCard = memo(function BookmarkedQuizCard({
                 {collections.map((collection) => (
                   <DropdownMenuItem
                     key={collection.id}
-                    onClick={() => onMoveToCollection(quiz.id, collection.id)}
-                    disabled={bookmark.collectionId === collection.id}
+                    onClick={() => onMoveToCollection(quizId, collection.id)}
+                    disabled={(bookmark as unknown as { collectionId?: string }).collectionId === collection.id}
                   >
                     <div
                       className='w-3 h-3 rounded-full mr-2'
-                      style={{ backgroundColor: collection.color }}
+                      style={{ backgroundColor: (collection.color ?? undefined) as string | undefined }}
                     />
                     Move to {collection.name}
                   </DropdownMenuItem>
                 ))}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
-                  onClick={() => onRemove(quiz.id)}
+                  onClick={() => onRemove(quizId)}
                   className='text-red-600 dark:text-red-400'
                 >
                   <Trash2 className='mr-2 h-4 w-4' />
@@ -119,7 +143,7 @@ const BookmarkedQuizCard = memo(function BookmarkedQuizCard({
               <div className='flex items-center gap-1.5 mb-1.5'>
                 <div
                   className='w-2 h-2 rounded-full'
-                  style={{ backgroundColor: currentCollection.color }}
+                  style={{ backgroundColor: (currentCollection.color ?? undefined) as string | undefined }}
                 />
                 <span className='text-xs text-white/80'>
                   {currentCollection.name}
@@ -127,7 +151,7 @@ const BookmarkedQuizCard = memo(function BookmarkedQuizCard({
               </div>
             )}
             <h3 className='font-semibold text-white line-clamp-2 text-sm'>
-              {quiz.title}
+              {quiz.quizTitle}
             </h3>
           </div>
         </div>
@@ -147,17 +171,13 @@ const BookmarkedQuizCard = memo(function BookmarkedQuizCard({
         <div className='flex items-center gap-4 text-xs text-muted-foreground mb-3'>
           <div className='flex items-center gap-1'>
             <Clock className='h-3.5 w-3.5' aria-hidden='true' />
-            <span>{Math.floor(quiz.duration / 60)} min</span>
+            <span>{Math.floor((quiz.duration ?? 0) / 60)} min</span>
           </div>
           <div className='flex items-center gap-1'>
             <Users className='h-3.5 w-3.5' aria-hidden='true' />
-            <span>{quiz.currentPlayers} plays</span>
+            <span>{quiz.currentPlayers ?? 0} plays</span>
           </div>
-          {quiz.categories?.[0] && (
-            <Badge variant='secondary' className='text-xs py-0 h-5'>
-              {quiz.categories[0]}
-            </Badge>
-          )}
+          {/* categories omitted — not in BookmarkedQuizResponseDto */}
         </div>
 
         {/* Bookmarked date */}
@@ -174,7 +194,7 @@ const BookmarkedQuizCard = memo(function BookmarkedQuizCard({
           className='w-full bg-brand hover:bg-brand-hover text-white'
           size='sm'
         >
-          <Link href={`/quizzes/${quiz.id}`}>
+          <Link href={`/quizzes/${quiz.quizSlug}`}>
             <Play className='mr-2 h-4 w-4' aria-hidden='true' />
             Play Quiz
           </Link>

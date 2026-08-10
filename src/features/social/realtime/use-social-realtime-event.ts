@@ -25,7 +25,7 @@
  *   - Accepts `(socket, eventName, dispatch, options?)`.
  *   - On every event, applies the dedup + sequence guard + validation
  *     trio before calling `dispatch`.
- *   - On drop, emits a `phase6:6.10` Sentry breadcrumb tagged
+ *   - On drop, emits a `social:6.10` Sentry breadcrumb tagged
  *     `deduplicated: true` or `sequenceGuard: 'drop'`.
  *   - Cleans up the socket listener on unmount.
  *   - Returns nothing — the `dispatch` callback owns invalidation.
@@ -57,10 +57,10 @@
  *
  * The wrapper does NOT touch the payload — it forwards the validated
  * payload verbatim to the `dispatch` callback. The lint script
- * (`scripts/phase6-lint-invariants.mjs`, TKT-6.10.G3) greps every
+ * (`scripts/social-lint-invariants.mjs`, TKT-6.10.G3) greps every
  * file under `src/features/social/realtime/` for `friendshipId` /
  * `followId` and fails the build if any field is added. The breadcrumb
- * payload (TKT-6.10.G2, `phase6_6_10_sentry.ts`) likewise never
+ * payload (TKT-6.10.G2, `social-realtime-sentry.ts`) likewise never
  * carries the banned fields.
  */
 
@@ -80,7 +80,7 @@ import {
 
 import {
   addSocialRealtimeBreadcrumb,
-} from "@/lib/social/phase6_6_10_sentry";
+} from "@/lib/social/social-realtime-sentry";
 
 import type { SocialEventKind } from "./social-event-payloads";
 
@@ -148,7 +148,7 @@ function makeSequenceKey(
  * Registers a `useRealtimeEvent` handler for `eventName` and applies
  * the dedup + sequence guard + validation trio before calling
  * `dispatch(payload)`. On drop (deduplicated, out-of-order, or
- * invalid payload), emits a `phase6:6.10` Sentry breadcrumb tagged
+ * invalid payload), emits a `social:6.10` Sentry breadcrumb tagged
  * with the drop reason.
  *
  * The wrapper is a **pass-through** for accepted events — the dispatch
@@ -330,7 +330,7 @@ function deriveSequenceNumber(payload: unknown): number {
 }
 
 /**
- * Emit a `phase6:6.10` breadcrumb for a dropped event.
+ * Emit a `social:6.10` breadcrumb for a dropped event.
  */
 function emitDropBreadcrumb(
   eventName: string,
@@ -355,7 +355,7 @@ function emitDropBreadcrumb(
 }
 
 /**
- * Emit a `phase6:6.10` breadcrumb for an accepted event.
+ * Emit a `social:6.10` breadcrumb for an accepted event.
  */
 function emitAcceptedBreadcrumb(
   eventName: string,

@@ -11,7 +11,7 @@
  * ## What this hook owns
  *
  * - Open an authenticated Socket.IO connection to the `/notifications`
- *   namespace while `phase5_notifications === 'live'`. When the flag is
+ *   namespace while `notifications_live === 'live'`. When the flag is
  *   `'placeholder'`, the connection is suppressed entirely (no socket
  *   handshake, no listeners, no automatic reconnection).
  * - Expose the live socket, the connection state, and the last WS error
@@ -27,7 +27,7 @@
  *
  * ## Feature flag preconditions
  *
- * This hook requires `phase5_realtime_infrastructure === 'live'`. When
+ * This hook requires `realtime_infrastructure_live === 'live'`. When
  * either flag is `'placeholder'`, the socket connection is
  * suppressed and the hook returns a `'idle'` connection state.
  *
@@ -87,8 +87,8 @@ export interface UseNotificationSocketResult {
  * `useUnreadNotificationCount`.
  */
 export function useNotificationSocket(): UseNotificationSocketResult {
-  const notificationsFlag = getFeatureFlagValue("phase5_notifications");
-  const realtimeFlag = getFeatureFlagValue("phase5_realtime_infrastructure");
+  const notificationsFlag = getFeatureFlagValue("notifications_live");
+  const realtimeFlag = getFeatureFlagValue("realtime_infrastructure_live");
   const notificationsLive = notificationsFlag === "live";
   const realtimeLive = realtimeFlag === "live";
   const enabled = notificationsLive && realtimeLive;
@@ -177,7 +177,7 @@ export function useNotificationSocket(): UseNotificationSocketResult {
     if (typeof window === "undefined") return;
     if (typeof BroadcastChannel === "undefined") return;
 
-    const channel = new BroadcastChannel("phase5/invalidation");
+    const channel = new BroadcastChannel("realtime/invalidation");
     const listener = (event: MessageEvent) => {
       const data = event.data as { type?: string };
       if (data?.type !== "notification") return;

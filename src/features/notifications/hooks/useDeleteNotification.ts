@@ -20,7 +20,7 @@
  *   reflects the new total.
  * - Double-click prevention: while `state === 'pending'`, subsequent
  *   `deleteNotification()` calls are a no-op.
- * - Feature-flag gating via `phase5_notifications`.
+ * - Feature-flag gating via `notifications_live`.
  *
  * ## Optimistic update
  *
@@ -79,7 +79,7 @@ export interface UseDeleteNotificationResult {
 export function useDeleteNotification(
   notificationId: string | null,
 ): UseDeleteNotificationResult {
-  const flagValue = getFeatureFlagValue("phase5_notifications");
+  const flagValue = getFeatureFlagValue("notifications_live");
   const isFlagPlaceholder = flagValue === "placeholder";
 
   const [state, setState] = useState<NotificationMutationState>("idle");

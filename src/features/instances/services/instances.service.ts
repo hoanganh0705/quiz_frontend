@@ -34,7 +34,6 @@ import { ApiError } from "@/lib/api/core/ApiError";
 import type {
   CreateInstanceDto,
   StartCountdownDto,
-  CancelCountdownDto,
 } from "@/lib/api/generated/schemas";
 
 import type {
@@ -254,13 +253,12 @@ export async function startCountdown(
  */
 export async function cancelCountdown(
   id: string,
-  params: CancelCountdownDto,
 ): Promise<CancelCountdownResult["data"]> {
   Sentry.addBreadcrumb({
     category: "phase5:service",
     message: `instances.cancelCountdown(${id})`,
   });
-  const data = await getInstances().cancelCountdown(id, params);
+  const data = await getInstances().cancelCountdown(id);
   if (!data.data) {
     throw new ApiError({
       status: 500,

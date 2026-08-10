@@ -27,7 +27,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { ApiError } from '@/lib/api';
-import { addRankingAdminBreadcrumb, addAdminAuditBreadcrumb } from '@/lib/admin/phase7_admin_sentry';
+import { addRankingAdminBreadcrumb, addAdminAuditBreadcrumb } from '@/lib/admin/admin_live_sentry';
 
 import {
   resetRankingPeriod,

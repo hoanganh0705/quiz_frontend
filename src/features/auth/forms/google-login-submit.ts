@@ -62,13 +62,14 @@ import {
 } from "@/features/auth/errors/oauth-error-mapper";
 import {
   googleLogin as authServiceGoogleLogin,
-} from "@/features/auth/service/auth.service";
+} from "@/features/auth/services/auth.service";
 import type {
   AuthControllerGoogleLoginResult,
 } from "@/lib/api/generated/auth/auth";
+import type { LoginResponseDto } from "@/lib/api/generated/schemas/loginResponseDto";
 
 export type GoogleLoginSubmitResult =
-  | { kind: 'success'; user: AuthControllerGoogleLoginResult['data'] }
+  | { kind: 'success'; user: LoginResponseDto }
   | {
       kind: 'error';
       errorKind: GoogleLoginErrorKind;
@@ -117,8 +118,13 @@ export async function googleLoginSubmit(
   deps: GoogleLoginSubmitDeps = defaultGoogleLoginSubmitDeps,
 ): Promise<GoogleLoginSubmitResult> {
   try {
-    const result = await deps.googleLogin(idToken);
-    return { kind: 'success', user: result.data };
+    // Same envelope-unwrap contract as `submitLogin` — the SDK
+    // interceptor in `custom-instance.ts` strips the `{ data, meta }`
+    // envelope before this resolves. The static SDK type still claims
+    // the wrapped envelope, so we cast through `unknown` to narrow to
+    // the inner `LoginResponseDto`.
+    const result = (await deps.googleLogin(idToken)) as unknown as LoginResponseDto;
+    return { kind: 'success', user: result };
   } catch (err: unknown) {
     const mapped = mapGoogleLoginError(err);
     return {

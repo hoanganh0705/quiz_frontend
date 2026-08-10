@@ -57,7 +57,7 @@ const PLACEHOLDER_RESULT: UseFriendsResult = Object.freeze({
 });
 
 export function useFriends(userId: string | null): UseFriendsResult {
-  const flagValue = getFeatureFlagValue("phase6_social_relationship");
+  const flagValue = getFeatureFlagValue("social_relationship_live");
   const isFlagPlaceholder = flagValue === "placeholder";
 
   const auth = useAuthSession();

@@ -12,7 +12,7 @@
  *   (`getUserBadges` — wraps the Phase 5 read).
  * - Validate the `userId` before any fetch fires.
  * - Expose `{ badges, isLoading, error, mutate }` for the admin user page.
- * - Feature-flag gating via `phase7_admin_achievement`.
+ * - Feature-flag gating via `admin_achievement_live`.
  *
  * ## Validation gate
  *
@@ -29,7 +29,7 @@
  *
  * ## Feature flag
  *
- * When `phase7_admin_achievement === 'placeholder'`, the hook returns
+ * When `admin_achievement_live === 'placeholder'`, the hook returns
  * safe fallback. No service call fires.
  */
 
@@ -68,7 +68,7 @@ export interface UseUserBadgesResult {
 export function useUserBadges(
   userId: string | null,
 ): UseUserBadgesResult {
-  const flagValue = getFeatureFlagValue('phase7_admin_achievement');
+  const flagValue = getFeatureFlagValue('admin_achievement_live');
   const isFlagPlaceholder = flagValue === 'placeholder';
 
   // Disabled sentinel when flag is off or id is invalid.

@@ -26,16 +26,16 @@
  * every 10 minutes to bound memory growth).
  *
  * On every deduplicated achievement notification, the hook also
- * emits a `phase5/invalidation` cross-tab invalidation so sibling tabs
+ * emits a `realtime/invalidation` cross-tab invalidation so sibling tabs
  * refetch without opening their own socket.
  *
  * ## Feature flag preconditions
  *
  * The hook is a no-op when:
  *
- *   - `phase5_achievements === 'placeholder'`.
- *   - `phase5_notifications === 'placeholder'`.
- *   - `phase5_realtime_infrastructure === 'placeholder'` (the socket
+ *   - `achievements_live === 'placeholder'`.
+ *   - `notifications_live === 'placeholder'`.
+ *   - `realtime_infrastructure_live === 'placeholder'` (the socket
  *     cannot open without the foundational realtime layer).
  *
  * The mount point must be inside `<AuthBootstrapProvider>` (the
@@ -43,8 +43,8 @@
  *
  * ## Loop prevention
  *
- * The `phase5/invalidation` broadcast uses `getCurrentTabId()` for
- * same-tab filtering (see `phase5-broadcast.ts`). When the receiving
+ * The `realtime/invalidation` broadcast uses `getCurrentTabId()` for
+ * same-tab filtering (see `cross-tab-invalidation.ts`). When the receiving
  * tab mutates the cache, it does NOT re-broadcast — there is no
  * outbound cross-tab emit in the broadcast handler.
  *
@@ -111,9 +111,9 @@ const DEDUPE_WINDOW_MS = 10 * 60 * 1000; // 10 minutes
  * the application shell.
  */
 export function useAchievementNotificationRevalidation(): void {
-  const achievementsFlag = getFeatureFlagValue("phase5_achievements");
-  const notificationsFlag = getFeatureFlagValue("phase5_notifications");
-  const realtimeFlag = getFeatureFlagValue("phase5_realtime_infrastructure");
+  const achievementsFlag = getFeatureFlagValue("achievements_live");
+  const notificationsFlag = getFeatureFlagValue("notifications_live");
+  const realtimeFlag = getFeatureFlagValue("realtime_infrastructure_live");
 
   const achievementsPlaceholder = achievementsFlag === "placeholder";
   const notificationsPlaceholder = notificationsFlag === "placeholder";

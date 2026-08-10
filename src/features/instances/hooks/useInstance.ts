@@ -19,7 +19,7 @@
  *   `hostUserId` field; the player role is mapped from the roster. The
  *   server remains authoritative; the client only derives a UI hint.
  * - Expose `isStale` when revalidation fails with cached data present.
- * - Feature-flag gating via `phase5_instances`.
+ * - Feature-flag gating via `multiplayer_instances_live`.
  *
  * ## Auth reads
  *
@@ -191,7 +191,7 @@ export function useInstance(
   instanceId: string | null,
   currentUserId: string | null = null,
 ): UseInstanceResult {
-  const flagValue = getFeatureFlagValue("phase5_instances");
+  const flagValue = getFeatureFlagValue("multiplayer_instances_live");
   const isFlagPlaceholder = flagValue === "placeholder";
 
   // Disabled sentinel key when flag is off or id is null.

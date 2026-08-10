@@ -157,7 +157,7 @@ const DISPATCH_TABLE: Record<
  * `WsErrorPayload` envelope — the WS error path is owned by Phase 5
  * (`useSocket`), not by the social router. Consumers should drop
  * unknown events silently and log a Sentry soft warning via the
- * `phase6_sentry` helpers (TKT-6.10.G2).
+ * `social-sentry` helpers (TKT-6.10.G2).
  *
  * @param event - The raw socket frame, widened to allow unknown
  *                `event.event` names.

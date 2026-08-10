@@ -16,16 +16,16 @@
  * The route shell delegates to this component once the URL params
  * have been validated (UUID for the per-user stats route; no params
  * for the hub, my-analytics, and leaderboard routes). The gate reads
- * the `phase6_social` parent flag and renders one of four branches:
+ * the `social_live` parent flag and renders one of four branches:
  *
  *   1. `requireAuth && !isAuthenticated` → a privacy notice
  *      (via the Epic 6.2 `PrivacyRestrictedNotice` primitive). This
  *      is the defensive fallback; the authoritative redirect lives
  *      in `proxy.ts` (per the Epic 6.2 / B2 convention).
- *   2. `phase6_social === 'placeholder'` → `<SocialHubPlaceholder />`
+ *   2. `social_live === 'placeholder'` → `<SocialHubPlaceholder />`
  *      for the hub, or `<AnalyticsPlaceholder />` for the analytics
  *      kinds.
- *   3. `phase6_social === 'live'` → the live page component for the
+ *   3. `social_live === 'live'` → the live page component for the
  *      `kind`. The mapping is:
  *        - `hub`           → `SocialHubPage` (TKT-6.3.E1)
  *        - `stats`         → `UserStatsCard` (TKT-6.3.E3)
@@ -102,7 +102,7 @@ export function AnalyticsRouteGate(
   const { kind, targetUserId, requireAuth = false } = props;
 
   const parentFlag = useMemo(
-    () => getFeatureFlagValue("phase6_social"),
+    () => getFeatureFlagValue("social_live"),
     [],
   );
 

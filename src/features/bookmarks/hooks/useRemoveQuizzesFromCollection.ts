@@ -38,7 +38,7 @@
 import { useCallback, useState } from 'react';
 import { mutate as globalMutate } from 'swr';
 
-import { isApiError, type ApiError } from '@/lib/api';
+import { isApiError, ApiError } from '@/lib/api';
 import { getUserCopy } from '@/lib/api/error-codes';
 import {
   useOptimisticMutation,
@@ -118,24 +118,24 @@ export function useRemoveQuizzesFromCollection(
 
       // Validate input
       if (quizIds.length < 1) {
-        const error: ApiError = {
+        const error = ApiError.fromInput({
           status: 400,
-          code: 'VALIDATION_ERROR',
+          code: 'BOOKMARK_VALIDATION',
           message: 'At least 1 quiz ID is required',
-        };
+        });
         setLastApiError(error);
-        onError?.('VALIDATION_ERROR');
+        onError?.('BOOKMARK_VALIDATION');
         return { status: 'reverted', apiError: error };
       }
 
       if (quizIds.length > 100) {
-        const error: ApiError = {
+        const error = ApiError.fromInput({
           status: 400,
-          code: 'VALIDATION_ERROR',
+          code: 'BOOKMARK_VALIDATION',
           message: 'Maximum 100 quiz IDs allowed per operation',
-        };
+        });
         setLastApiError(error);
-        onError?.('VALIDATION_ERROR');
+        onError?.('BOOKMARK_VALIDATION');
         return { status: 'reverted', apiError: error };
       }
 
@@ -174,7 +174,7 @@ export function useRemoveQuizzesFromCollection(
         });
 
         // Get the per-item results after successful mutation
-        if (result.status === 'success' && result.data) {
+        if (result.status === 'success' && result.result) {
           const response = await removeQuizzesFromCollectionBulk(collectionId, quizIds);
           setResults(response.results);
         }
@@ -183,23 +183,23 @@ export function useRemoveQuizzesFromCollection(
       } catch (err) {
         // Handle validation errors (synchronous throws)
         if (err instanceof BulkOperationValidationError) {
-          const error: ApiError = {
+          const error = ApiError.fromInput({
             status: 400,
-            code: 'VALIDATION_ERROR',
+            code: 'BOOKMARK_VALIDATION',
             message: err.message,
-          };
+          });
           setLastApiError(error);
-          onError?.('VALIDATION_ERROR');
+          onError?.('BOOKMARK_VALIDATION');
           return { status: 'reverted', apiError: error };
         }
 
         // Handle other errors
         const code = isApiError(err) ? err.code : 'GLOBAL_UNKNOWN';
-        const error = isApiError(err) ? err : {
+        const error = isApiError(err) ? err : ApiError.fromInput({
           status: 0,
           code: 'GLOBAL_UNKNOWN',
           message: err instanceof Error ? err.message : String(err),
-        } as ApiError;
+        });
         setLastApiError(error);
         onError?.(code);
         return { status: 'reverted', apiError: error };

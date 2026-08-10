@@ -86,7 +86,7 @@ import { useVerifyPassword } from '@/features/auth/hooks/use-verify-password';
 import {
   PASSWORD_COPY_KEYS,
   resolvePasswordCopy,
-} from '@/features/auth/service/auth.service';
+} from '@/features/auth/services/auth.service';
 
 export interface VerifyPasswordModalProps {
   /**

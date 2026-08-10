@@ -5,7 +5,7 @@
  * Tests cover:
  *   - `userId === currentUserId` → no service call; `relationship: 'self'`.
  *   - Unauthenticated → no service call; `relationship: 'none'`.
- *   - `phase6_social_relationship === 'placeholder'` → no service
+ *   - `social_relationship_live === 'placeholder'` → no service
  *     call; `relationship: 'none'`.
  *   - Successful call returns the normalized `Relationship` value.
  *   - `SOCIAL_USER_NOT_FOUND` (404) → `relationship: 'none'`;

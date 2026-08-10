@@ -31,9 +31,9 @@
  *
  * Telemetry contract:
  *
- *   - The shell emits the `phase7:admin` breadcrumb category via
+ *   - The shell emits the `admin:7.1` breadcrumb category via
  *     `addAdminBreadcrumb` and `addAdminAuditBreadcrumb` (the helpers
- *     defined in `phase7_admin_sentry.ts`, TKT-7.1.F1). The breadcrumb
+ *     defined in `admin_live_sentry.ts`, TKT-7.1.F1). The breadcrumb
  *     payload shape matches the helpers' documented contract exactly.
  */
 
@@ -46,7 +46,7 @@ import {
   addAdminAuditBreadcrumb,
   addAdminBreadcrumb,
   type AdminBreadcrumbStatus,
-} from '@/lib/admin/phase7_admin_sentry';
+} from '@/lib/admin/admin_live_sentry';
 
 import { RequestIdBanner } from './RequestIdBanner';
 
@@ -60,7 +60,7 @@ export interface AuditActionShellState {
 }
 
 export interface AuditActionBreadcrumbStarted {
-  surface: 'phase7:admin';
+  surface: 'admin:7.1';
   action: string;
   status: 'started';
   before: unknown;
@@ -68,7 +68,7 @@ export interface AuditActionBreadcrumbStarted {
 }
 
 export interface AuditActionBreadcrumbSuccess {
-  surface: 'phase7:admin';
+  surface: 'admin:7.1';
   action: string;
   status: 'success';
   before: unknown;
@@ -77,7 +77,7 @@ export interface AuditActionBreadcrumbSuccess {
 }
 
 export interface AuditActionBreadcrumbFailure {
-  surface: 'phase7:admin';
+  surface: 'admin:7.1';
   action: string;
   status: 'failure';
   before: unknown;
@@ -170,7 +170,7 @@ export function AuditActionShell({
 
     const startedAt = Date.now();
     emit({
-      surface: 'phase7:admin',
+      surface: 'admin:7.1',
       action,
       status: 'started',
       before: redactedBefore,
@@ -185,7 +185,7 @@ export function AuditActionShell({
       const finishedAt = Date.now();
       const redactedAfter = redactValue(afterSnapshot, redactFields);
       emit({
-        surface: 'phase7:admin',
+        surface: 'admin:7.1',
         action,
         status: 'success',
         before: redactedBefore,
@@ -229,7 +229,7 @@ export function AuditActionShell({
         redactFields,
       );
       emit({
-        surface: 'phase7:admin',
+        surface: 'admin:7.1',
         action,
         status: 'failure',
         before: redactedBefore,

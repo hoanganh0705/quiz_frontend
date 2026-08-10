@@ -38,7 +38,7 @@
  * the success.
  */
 
-import { resendVerificationEmail as defaultResend } from "@/features/auth/service/auth.service";
+import { resendVerificationEmail as defaultResend } from "@/features/auth/services/auth.service";
 
 import {
   mapResendVerificationError,

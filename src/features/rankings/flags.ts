@@ -7,14 +7,14 @@
  *
  * ## What this module owns
  *
- * A typed accessor and a boolean predicate for the `phase5_rankings`
+ * A typed accessor and a boolean predicate for the `rankings_live`
  * feature flag. The flag is registered globally in
  * `src/lib/feature-flags/feature-flags.ts` (default `'placeholder'`).
  *
  * ## Why this exists
  *
  * TKT-5.5.E1 AC #4 forbids components and hooks from branching on
- * `getFeatureFlagValue("phase5_rankings") === "placeholder"` directly.
+ * `getFeatureFlagValue("rankings_live") === "placeholder"` directly.
  * Routing every call site through `isRankingSurfaceEnabled()` makes
  * flag flips a single-file edit and keeps the intent ("is the ranking
  * surface alive?") semantic rather than value-comparative.
@@ -34,7 +34,7 @@
  * ## Adding a new flag surface
  *
  * If a sibling epic introduces a new ranking lane (e.g.
- * `phase5_rankings_tournament`), add a sibling `PHASE5_*_FLAG`
+ * `rankings_live_tournament`), add a sibling `PHASE5_*_FLAG`
  * constant here and a `isRankingXxxEnabled()` predicate. Keep the
  * convention:
  *
@@ -55,7 +55,7 @@ import {
  * Aliased as a constant so call sites never hardcode the string
  * literal — a typo would otherwise compile silently.
  */
-export const PHASE5_RANKINGS_FLAG = "phase5_rankings" as const satisfies keyof FeatureFlagValueMap;
+export const PHASE5_RANKINGS_FLAG = "rankings_live" as const satisfies keyof FeatureFlagValueMap;
 
 /**
  * Return `true` when the ranking surface is enabled.

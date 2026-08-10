@@ -60,7 +60,7 @@ export function AchievementAdminBadgeList({
   // ─── Dialog handlers ──────────────────────────────────────────────────────
 
   const handleRevoke = useCallback((badge: AdminUserBadgeDto) => {
-    setPendingRevokeBadgeId(badge.badgeId ?? badge.id);
+    setPendingRevokeBadgeId(badge.badgeId);
     setDialogOpen(true);
   }, []);
 
@@ -110,7 +110,7 @@ export function AchievementAdminBadgeList({
         <div className="space-y-2" data-testid="badge-list-rows">
           {badges.map((badge) => (
             <UserBadgeRow
-              key={(badge as AdminUserBadgeDto).badgeId ?? (badge as AdminUserBadgeDto).id}
+              key={(badge as AdminUserBadgeDto).badgeId}
               userId={userId}
               badge={badge as AdminUserBadgeDto}
               isRemoving={

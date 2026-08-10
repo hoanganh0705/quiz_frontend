@@ -105,7 +105,10 @@ export {
 // usable with `appendUniqueById`, `useCursorPaginated`, and other
 // `T extends { id: string }`-constrained primitives without a
 // hand-rolled mapping layer.
-export type { ProjectWithId } from './project-with-id'
+export {
+  type ProjectWithId,
+  projectWithId,
+} from './project-with-id'
 
 // `useOffsetPaginated` — Phase-6 offset-aware pagination primitive
 // (Epic 6.9 / TKT-6.9.D1). The hook wraps `useCursorPaginated` with

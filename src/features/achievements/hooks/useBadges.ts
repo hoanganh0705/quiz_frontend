@@ -16,7 +16,7 @@
  *   wire response was a bare array or an envelope.
  * - Project each entry to the `BadgeSummary` feature type.
  * - Map service errors to the typed `AchievementErrorCode` union.
- * - Feature-flag gating via `phase5_achievements`.
+ * - Feature-flag gating via `achievements_live`.
  *
  * ## Bare-array handling
  *
@@ -36,7 +36,7 @@
  *
  * ## Feature flag
  *
- * When `phase5_achievements === 'placeholder'`, the hook returns
+ * When `achievements_live === 'placeholder'`, the hook returns
  * safe fallback. No service call fires.
  */
 
@@ -74,7 +74,7 @@ export interface UseBadgesResult {
  * Read the badge catalog.
  *
  * Returns safe fallback (`badges: []`, `isLoading: false`,
- * `error: null`) when `phase5_achievements === 'placeholder'`.
+ * `error: null`) when `achievements_live === 'placeholder'`.
  *
  * The catalog wire envelope is a bare array at this commit; the
  * service layer applies `normalizeBadgeArray` so the hook surface is
@@ -83,7 +83,7 @@ export interface UseBadgesResult {
 export function useBadges(
   filters: BadgeCatalogFilters = DEFAULT_BADGE_CATALOG_FILTERS,
 ): UseBadgesResult {
-  const flagValue = getFeatureFlagValue("phase5_achievements");
+  const flagValue = getFeatureFlagValue("achievements_live");
   const isFlagPlaceholder = flagValue === "placeholder";
 
   // SWR cache key. Disabled sentinel when flag is off so no fetch fires.

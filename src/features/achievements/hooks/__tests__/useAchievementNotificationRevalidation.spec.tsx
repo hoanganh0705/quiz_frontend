@@ -16,9 +16,9 @@
  *
  * Tests cover:
  * - The hook is a no-op (no mutate, no listener registration) when:
- *   - `phase5_achievements === 'placeholder'`.
- *   - `phase5_notifications === 'placeholder'`.
- *   - `phase5_realtime_infrastructure === 'placeholder'`.
+ *   - `achievements_live === 'placeholder'`.
+ *   - `notifications_live === 'placeholder'`.
+ *   - `realtime_infrastructure_live === 'placeholder'`.
  * - When all three flags are `'live'`, the hook only attempts work
  *   once the socket is connected — until then, no SWR mutation is
  *   triggered (the gating is enforced by the event-name parameter to
@@ -59,9 +59,9 @@ vi.mock("swr", async () => {
 
 function setLiveFlags() {
   mockGetFeatureFlagValue.mockImplementation((flag: string) =>
-    flag === "phase5_achievements" ||
-    flag === "phase5_notifications" ||
-    flag === "phase5_realtime_infrastructure"
+    flag === "achievements_live" ||
+    flag === "notifications_live" ||
+    flag === "realtime_infrastructure_live"
       ? "live"
       : "",
   );
@@ -82,9 +82,9 @@ describe("useAchievementNotificationRevalidation", () => {
     vi.restoreAllMocks();
   });
 
-  it("runs as a no-op when phase5_achievements === 'placeholder'", () => {
+  it("runs as a no-op when achievements_live === 'placeholder'", () => {
     mockGetFeatureFlagValue.mockImplementation((flag: string) =>
-      flag === "phase5_achievements" ? "placeholder" : "live",
+      flag === "achievements_live" ? "placeholder" : "live",
     );
 
     renderHook(() => useAchievementNotificationRevalidation());
@@ -99,9 +99,9 @@ describe("useAchievementNotificationRevalidation", () => {
     expect(typeof lastCall?.[2]).toBe("function");
   });
 
-  it("runs as a no-op when phase5_notifications === 'placeholder'", () => {
+  it("runs as a no-op when notifications_live === 'placeholder'", () => {
     mockGetFeatureFlagValue.mockImplementation((flag: string) =>
-      flag === "phase5_notifications" ? "placeholder" : "live",
+      flag === "notifications_live" ? "placeholder" : "live",
     );
 
     renderHook(() => useAchievementNotificationRevalidation());
@@ -111,9 +111,9 @@ describe("useAchievementNotificationRevalidation", () => {
     expect(lastCall?.[3]).toMatchObject({ enabled: false });
   });
 
-  it("runs as a no-op when phase5_realtime_infrastructure === 'placeholder'", () => {
+  it("runs as a no-op when realtime_infrastructure_live === 'placeholder'", () => {
     mockGetFeatureFlagValue.mockImplementation((flag: string) =>
-      flag === "phase5_realtime_infrastructure" ? "placeholder" : "live",
+      flag === "realtime_infrastructure_live" ? "placeholder" : "live",
     );
 
     renderHook(() => useAchievementNotificationRevalidation());

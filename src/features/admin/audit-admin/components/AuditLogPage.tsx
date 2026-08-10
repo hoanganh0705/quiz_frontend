@@ -24,7 +24,7 @@
  *
  * ## Feature flag
  *
- * Reads `phase7_admin_audit` flag. When flag is `'placeholder'`, renders
+ * Reads `admin_audit_live` flag. When flag is `'placeholder'`, renders
  * the disabled notice instead of the audit log surface.
  */
 
@@ -65,7 +65,7 @@ function AuditLogDisabledNotice() {
         <p className="text-sm text-muted-foreground">
           The{' '}
           <code className="rounded bg-muted px-1 py-0.5 font-mono text-xs">
-            phase7_admin_audit
+            admin_audit_live
           </code>{' '}
           flag is at its default value. Enable it to expose the audit log
           surface.
@@ -78,7 +78,7 @@ function AuditLogDisabledNotice() {
 // ─── Main page component ───────────────────────────────────────────────────
 
 export function AuditLogPage(): React.ReactElement {
-  const { value: flagValue } = useAdminFeatureFlag('phase7_admin_audit');
+  const { value: flagValue } = useAdminFeatureFlag('admin_audit_live');
 
   // Feature flag gate
   if (flagValue !== 'live') {

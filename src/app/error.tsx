@@ -53,7 +53,7 @@ export default function Error({
         </div>
 
         {error.digest && (
-          <p className='mt-6 text-xs text-foreground/50'>
+          <p className='mt-6 text-xs text-muted-foreground'>
             Error ID: {error.digest}
           </p>
         )}

@@ -32,33 +32,33 @@ describe('admin/hooks — useAdminFeatureFlag', () => {
     mockGetFeatureFlagValue.mockReturnValueOnce('placeholder');
 
     const { result } = renderHook(() =>
-      useAdminFeatureFlag('phase7_admin'),
+      useAdminFeatureFlag('admin_live'),
     );
 
     expect(result.current).toEqual({
-      flag: 'phase7_admin',
+      flag: 'admin_live',
       value: 'placeholder',
       isLive: false,
       isPlaceholder: true,
     });
-    expect(mockGetFeatureFlagValue).toHaveBeenCalledWith('phase7_admin');
+    expect(mockGetFeatureFlagValue).toHaveBeenCalledWith('admin_live');
   });
 
   it('returns isLive=true when the flag resolves to live', () => {
     mockGetFeatureFlagValue.mockReturnValueOnce('live');
 
     const { result } = renderHook(() =>
-      useAdminFeatureFlag('phase7_admin_user_role'),
+      useAdminFeatureFlag('admin_user_role_live'),
     );
 
     expect(result.current).toEqual({
-      flag: 'phase7_admin_user_role',
+      flag: 'admin_user_role_live',
       value: 'live',
       isLive: true,
       isPlaceholder: false,
     });
     expect(mockGetFeatureFlagValue).toHaveBeenCalledWith(
-      'phase7_admin_user_role',
+      'admin_user_role_live',
     );
   });
 
@@ -66,7 +66,7 @@ describe('admin/hooks — useAdminFeatureFlag', () => {
     mockGetFeatureFlagValue.mockReturnValueOnce('garbage');
 
     const { result } = renderHook(() =>
-      useAdminFeatureFlag('phase7_admin_ranking'),
+      useAdminFeatureFlag('admin_ranking_live'),
     );
 
     expect(result.current.value).toBe('placeholder');

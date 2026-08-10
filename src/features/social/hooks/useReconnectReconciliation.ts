@@ -32,7 +32,7 @@
  *
  * ## Reconciliation telemetry
  *
- * Every cycle emits a `phase6:6.10:reconnect-reconciliation`
+ * Every cycle emits a `social:6.10:reconnect-reconciliation`
  * Sentry breadcrumb with the set of active user ids, the set of
  * invalidated keys, and the measured duration in milliseconds.
  *
@@ -41,7 +41,7 @@
  * The breadcrumb payload never carries `friendshipId` or
  * `followId`. The helper
  * (`addReconnectReconciliationBreadcrumb` in
- * `phase6_6_10_sentry.ts`) sanitises the payload.
+ * `social-realtime-sentry.ts`) sanitises the payload.
  *
  * ## SSR
  *
@@ -68,7 +68,7 @@ import { getFeatureFlagValue } from "@/lib/feature-flags";
 import { mutateCarefully } from "@/lib/swr/mutate-carefully";
 import {
   addReconnectReconciliationBreadcrumb,
-} from "@/lib/social/phase6_6_10_sentry";
+} from "@/lib/social/social-realtime-sentry";
 
 import { SOCIAL_CACHE_KEYS } from "@/features/social/types/relationship";
 import { getActiveTargetUserIds } from "@/features/social/hooks/useActiveTargetUserIds";
@@ -111,7 +111,7 @@ function isActiveState(state: SocketConnectionState): boolean {
  * ```
  */
 export function useReconnectReconciliation(): void {
-  const flagValue = getFeatureFlagValue("phase6_social_notifications");
+  const flagValue = getFeatureFlagValue("social_realtime_notifications_live");
   const enabled = flagValue !== "placeholder";
 
   const { connectionState } = useSocket(NOTIFICATIONS_NAMESPACE, {

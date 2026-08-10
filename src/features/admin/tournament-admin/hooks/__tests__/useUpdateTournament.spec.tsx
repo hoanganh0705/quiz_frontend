@@ -11,7 +11,7 @@
  *   AC #3 — TOURNAMENT_NOT_FOUND surfaces without retry.
  *   AC #4 — TOURNAMENT_VALIDATION surfaces without retry.
  *   AC #5 — ADMIN_FORBIDDEN surfaces without retry.
- *   AC #6 — `phase7:admin` audit breadcrumb emitted on success and failure.
+ *   AC #6 — `admin:7.1` audit breadcrumb emitted on success and failure.
  *   AC #7 — `RequestIdBanner` data available on failure.
  *   AC #8 — `isPending` reflects in-flight state.
  *   AC #9 — `reset()` clears error without firing another fetch.
@@ -41,10 +41,10 @@ vi.mock('swr', async () => {
   };
 });
 
-vi.mock('@/lib/admin/phase7_admin_sentry', async () => {
+vi.mock('@/lib/admin/admin_live_sentry', async () => {
   const actual =
-    await vi.importActual<typeof import('@/lib/admin/phase7_admin_sentry')>(
-      '@/lib/admin/phase7_admin_sentry',
+    await vi.importActual<typeof import('@/lib/admin/admin_live_sentry')>(
+      '@/lib/admin/admin_live_sentry',
     );
   return {
     ...actual,

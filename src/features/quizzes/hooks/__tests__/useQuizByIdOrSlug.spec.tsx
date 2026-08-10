@@ -245,12 +245,20 @@ describe("useQuizByIdOrSlug — malformed envelope", () => {
 
     const { result } = renderHook(() => useQuizByIdOrSlug("quiz-malformed"));
 
-    await waitFor(() => {
-      expect(result.current.error).toBeDefined();
-    });
+    // The hook unwraps the response with `if ('quizId' in response)` —
+    // when the mock returns `null`, the unwrap throws `ApiError.fromInput`
+    // inside `wrapAsApiError`. `useSingleWithRetry` catches and surfaces
+    // the error on `swr.error`. `waitFor` polls until the post-commit
+    // render exposes `error`; the second assertion then locks the
+    // typed-error contract end-to-end.
+    await waitFor(
+      () => {
+        expect(result.current.error).toBeInstanceOf(ApiError);
+      },
+      { timeout: 3_000 },
+    );
 
     expect(result.current.notFound).toBe(false);
-    expect(result.current.error).toBeInstanceOf(ApiError);
   });
 });
 

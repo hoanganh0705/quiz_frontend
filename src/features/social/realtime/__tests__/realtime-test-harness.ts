@@ -335,7 +335,7 @@ export function createRealtimeSocialStubContext(): RealtimeSocialStubContext {
  *
  * @param tabId - Optional explicit tab id.
  * @returns A stable string suitable for use as a `tabId` discriminator
- *          in `phase5-broadcast` invalidation envelopes.
+ *          in `cross-tab-invalidation` invalidation envelopes.
  */
 export function makeStubTabId(tabId?: string): string {
   if (tabId !== undefined) return tabId;

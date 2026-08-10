@@ -7,11 +7,11 @@
  *     `action: 'bookmark.restore'`. The bookmark-restore surface is
  *     outside the admin envelope; the cross-batch invariant
  *     `no-bookmark-restore-in-admin` is enforced by this test plus
- *     the `phase7-lint-invariants` script.
+ *     the `admin-lint-invariants` script.
  *   - No `features/admin/**` source file contains
  *     `user.role === 'admin'` outside `useAdminRole.ts`. The role
  *     check must flow through `useAdminRole` so the role mapping
- *     stays consistent with the `phase7_admin` feature flag.
+ *     stays consistent with the `admin_live` feature flag.
  *   - `AuditActionShell` redacts `redactFields` from the breadcrumb
  *     payload before emitting it.
  *
@@ -28,7 +28,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 const mockAddAdminAuditBreadcrumb = vi.fn();
 const mockAddAdminBreadcrumb = vi.fn();
 
-vi.mock('@/lib/admin/phase7_admin_sentry', () => ({
+vi.mock('@/lib/admin/admin_live_sentry', () => ({
   addAdminAuditBreadcrumb: (...args: unknown[]) =>
     mockAddAdminAuditBreadcrumb(...args),
   addAdminBreadcrumb: (...args: unknown[]) =>

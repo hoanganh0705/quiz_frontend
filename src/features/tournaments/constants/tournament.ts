@@ -1,6 +1,7 @@
 import { Tournament } from '@/features/tournaments/types'
 
-export const tournaments: Tournament[] = [
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const tournaments: any[] = [
   {
     id: 1,
     title: 'Science Showdown',

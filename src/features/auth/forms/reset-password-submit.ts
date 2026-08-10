@@ -43,7 +43,7 @@
  */
 
 // `resetPassword` is the auth-service re-export (TKT-2.3.B1).
-import { resetPassword as defaultResetPassword } from "@/features/auth/service/auth.service";
+import { resetPassword as defaultResetPassword } from "@/features/auth/services/auth.service";
 
 import {
   mapResetPasswordError,

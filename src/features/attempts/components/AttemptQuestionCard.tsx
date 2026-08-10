@@ -115,7 +115,7 @@ export function AttemptQuestionCard(
           <span className="text-muted-foreground mr-2">
             {index}/{total}
           </span>
-          {question.text}
+          {question.questionText}
         </h3>
       </header>
 

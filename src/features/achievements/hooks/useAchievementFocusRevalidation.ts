@@ -23,7 +23,7 @@
  *
  * ## Feature flag
  *
- * When `phase5_achievements === 'placeholder'`, the hook is a no-op.
+ * When `achievements_live === 'placeholder'`, the hook is a no-op.
  * Focus events are still observed (so we don't accidentally establish
  *   a listener we have to tear down), but no SWR mutation is fired.
  *

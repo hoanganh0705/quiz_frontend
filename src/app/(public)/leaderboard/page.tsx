@@ -1,4 +1,3 @@
-import { memo } from 'react'
 import {
   GlobalLeaderboard,
   LeaderboardHighlights,
@@ -6,7 +5,7 @@ import {
   LeaderboardHeader
 } from '@/features/leaderboard'
 
-const LeaderboardPage = memo(function LeaderboardPage() {
+export default function LeaderboardPage() {
   return (
     <div className='min-h-screen p-4 md:p-8 lg:p-12'>
       <LeaderboardHeader />
@@ -22,6 +21,4 @@ const LeaderboardPage = memo(function LeaderboardPage() {
       <GlobalLeaderboard />
     </div>
   )
-})
-
-export default LeaderboardPage
+}

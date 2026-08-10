@@ -8,7 +8,7 @@
  * Source ticket: TKT-5.4.E1.
  *
  * Rendered by `NotificationCenterPage` and `NotificationPreferencesPage`
- * when the `phase5_notifications` feature flag is `'placeholder'`. The
+ * when the `notifications_live` feature flag is `'placeholder'`. The
  * placeholder contains no socket connection, no SWR fetches, and no
  * notification reads — it is a static surface only.
  */

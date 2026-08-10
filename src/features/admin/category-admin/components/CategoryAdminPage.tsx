@@ -13,7 +13,7 @@
  *     dialogs)
  *   - `CategoryCreateDialog`
  *
- * The entire render is gated by `phase7_admin_category === 'live'`.
+ * The entire render is gated by `admin_category_live === 'live'`.
  * When the flag is `'placeholder'`, this component renders the
  * documented disabled notice.
  *
@@ -44,7 +44,7 @@ function CategoryAdminComingSoon() {
     <EmptyState
       icon={Shield}
       title='Category management coming soon'
-      description='Category admin surfaces are not yet enabled. Set NEXT_PUBLIC_PHASE7_ADMIN_CATEGORY=live to preview the feature.'
+      description='Category admin surfaces are not yet enabled. Set NEXT_PUBLIC_ADMIN_CATEGORY_LIVE=live to preview the feature.'
       size='md'
     />
   );
@@ -58,7 +58,7 @@ export interface CategoryAdminPageProps {
 }
 
 export function CategoryAdminPage(_props: CategoryAdminPageProps) {
-  const { isLive } = useAdminFeatureFlag('phase7_admin_category');
+  const { isLive } = useAdminFeatureFlag('admin_category_live');
   const { hasPermission } = usePermission(PERMISSION_CREATE);
   const { push } = useToast();
 

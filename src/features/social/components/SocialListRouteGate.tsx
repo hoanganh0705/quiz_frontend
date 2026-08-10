@@ -14,13 +14,13 @@
  *
  * The route shell delegates to this component once the `:id`
  * segment has been validated as a UUID. The gate reads the
- * `phase6_social` parent flag and the `phase6_social_relationship`
+ * `social_live` parent flag and the `social_relationship_live`
  * sub-flag and renders one of four branches:
  *
  *   1. `requireAuth && !isAuthenticated` →
  *      `<PrivacyRestrictedNotice variant="not_available" />`.
- *   2. `phase6_social === 'placeholder'` → `<SocialListPlaceholder />`.
- *   3. `phase6_social_relationship === 'placeholder'` → placeholder
+ *   2. `social_live === 'placeholder'` → `<SocialListPlaceholder />`.
+ *   3. `social_relationship_live === 'placeholder'` → placeholder
  *      (the relationship list is gated by the sub-flag, not the
  *      parent — the parent only gates the Phase 6 surface in
  *      general).
@@ -84,11 +84,11 @@ export function SocialListRouteGate(props: SocialListRouteGateProps): React.Reac
   const { kind, targetUserId, requireAuth = false } = props;
 
   const parentFlag = useMemo(
-    () => getFeatureFlagValue("phase6_social"),
+    () => getFeatureFlagValue("social_live"),
     [],
   );
   const relationshipFlag = useMemo(
-    () => getFeatureFlagValue("phase6_social_relationship"),
+    () => getFeatureFlagValue("social_relationship_live"),
     [],
   );
 

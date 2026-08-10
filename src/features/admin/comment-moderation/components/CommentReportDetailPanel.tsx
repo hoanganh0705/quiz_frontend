@@ -238,12 +238,12 @@ export function CommentReportDetailPanel({
       onKeyDown={handleKeyDown}
       data-testid={`comment-report-detail-panel-${report.reportId}`}
       className={cn(
-        'flex h-full w-full flex-col gap-4 overflow-hidden rounded-lg border border-slate-200 bg-white',
+        'flex h-full w-full flex-col gap-4 overflow-hidden rounded-lg border border-border bg-background',
         className ?? '',
       )}
     >
       <header
-        className="flex items-start justify-between gap-2 border-b border-slate-200 px-5 py-3"
+        className="flex items-start justify-between gap-2 border-b border-border px-5 py-3"
         data-testid={`comment-report-detail-header-${report.reportId}`}
       >
         <div className="flex flex-col gap-1">
@@ -274,7 +274,7 @@ export function CommentReportDetailPanel({
         {/* Snapshot block — surfaces the report metadata and the
             reporter / reported-at fields that the DTO carries. */}
         <section
-          className="rounded-md border border-slate-200 bg-slate-50 px-4 py-3"
+          className="rounded-md border border-border bg-muted/40 px-4 py-3"
           data-testid={`comment-report-detail-snapshot-${report.reportId}`}
         >
           <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
@@ -313,7 +313,7 @@ export function CommentReportDetailPanel({
           />
         ) : (
           <section
-            className="rounded-md border border-slate-200 px-4 py-3"
+            className="rounded-md border border-border px-4 py-3"
             data-testid={`comment-report-detail-live-${report.reportId}`}
           >
             <div className="flex items-center justify-between gap-2">
@@ -362,7 +362,7 @@ export function CommentReportDetailPanel({
                   </p>
                 ) : null}
                 <p
-                  className="mt-2 rounded-sm border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800"
+                  className="mt-2 rounded-sm border border-border bg-background px-3 py-2 text-sm text-foreground"
                   data-testid={`comment-report-detail-live-text-${report.reportId}`}
                 >
                   {commentDto.body}
@@ -427,7 +427,7 @@ export function CommentReportDetailPanel({
       </div>
 
       <footer
-        className="flex items-center justify-between gap-2 border-t border-slate-200 px-5 py-3"
+        className="flex items-center justify-between gap-2 border-t border-border px-5 py-3"
         data-testid={`comment-report-detail-footer-${report.reportId}`}
       >
         <p className="text-xs text-muted-foreground">

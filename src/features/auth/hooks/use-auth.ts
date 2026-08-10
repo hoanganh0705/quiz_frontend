@@ -53,29 +53,30 @@ export type UseAuth = UseAuthState & UseAuthActions;
  * Fetch the current user identity from `GET /auth/me`.
  * Returns `CurrentUserResponseDto` or throws on error.
  *
- * ## Envelope-unwrap contract
+ * ## Envelope contract
  *
  * The Axios response interceptor in `lib/api/core/custom-instance.ts`
- * unwraps the backend's `{ data, meta }` envelope (`response.data =
- * unwrapEnvelope(response.data)`) BEFORE the SDK return value reaches
- * this function. That means `result` is already the **inner** payload
- * (`CurrentUserResponseDto`-shaped), NOT the wrapped envelope.
+ * does NOT unwrap the backend's `{ data, meta }` envelope — the SDK
+ * types (`AuthControllerGetCurrentUser200 = WrappedDto & { data?:
+ * CurrentUserResponseDto }`) and every call site that reads
+ * `result.data` / `response.data.data` directly expect the wrapped
+ * shape, so the interceptor passes the wire response through
+ * unmodified. The generated SDK therefore returns the wrapped
+ * envelope; this function unwraps it by reading `.data` (and
+ * throws if the envelope is missing the inner payload, which would
+ * indicate a backend contract change).
  *
- * Earlier revisions mistakenly read `result.data`, which returned
- * `undefined` at runtime (the inner payload has no `data` field) and
- * silently broke every consumer of `useAuth().currentUser`. Returning
- * the unwrapped `result` directly restores the contract.
- *
- * @see features/users/services/users.reads.service.ts — same fix.
+ * @see features/users/services/users.reads.service.ts — same shape.
  */
 async function fetchCurrentUserIdentity(): Promise<CurrentUserResponseDto> {
-  const result =
-    await getAuth().authControllerGetCurrentUser();
-  // Cast via `unknown`: the generated `AuthControllerGetCurrentUser200`
-  // declares the *wrapped* shape, but the runtime value is the
-  // unwrapped inner `CurrentUserResponseDto`. The transport boundary
-  // is the only place where this cast lives.
-  return result as unknown as CurrentUserResponseDto;
+  const result = await getAuth().authControllerGetCurrentUser();
+  // `result` is the wrapped envelope. Read `.data` for the inner
+  // `CurrentUserResponseDto`. The transport boundary is the only
+  // place where this cast lives.
+  if (!result || (result as { data?: unknown }).data === undefined) {
+    throw new Error('No data returned from /auth/me');
+  }
+  return (result as { data: CurrentUserResponseDto }).data;
 }
 
 const initialState: UseAuthState = {

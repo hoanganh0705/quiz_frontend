@@ -46,6 +46,8 @@ import type {
   UpdateQuizVersionDto,
   CreateQuizQuestionDto,
   CreateQuizQuestionsDto,
+  QuizResponseDto,
+  QuizStatsResponseDto,
 } from '@/lib/api/generated/schemas';
 
 export type {
@@ -219,14 +221,48 @@ export async function getQuizzesFeatured(params?: { limit?: number }) {
   return sdk.quizControllerGetFeaturedQuizzes(params);
 }
 
-export async function getQuizByIdOrSlug(idOrSlug: string) {
+/**
+ * `getQuizByIdOrSlug` — player-detail wrapper.
+ *
+ * Source epic:   Epic 3.6 — Quiz detail (player view) + stats.
+ * Source ticket: TKT-3.6.A2.
+ *
+ * ## Envelope contract
+ *
+ * The generated SDK (`quizControllerGetQuizById`) returns the
+ * `{ data: QuizResponseDto, meta: ResponseMetaDto }` envelope as-is
+ * — the response interceptor in `custom-instance.ts` deliberately
+ * does NOT unwrap it (see the long-form comment there). Callers
+ * (`useQuizByIdOrSlug`) expect the inner `QuizResponseDto` so they
+ * can run the player-safe projection without re-discovering the
+ * envelope shape on every call. This wrapper is the single seam
+ * that performs the unwrap; downstream hooks never read `.data`.
+ *
+ * A malformed envelope (missing or non-object `data`) is surfaced
+ * as `null` so callers can map the state to the documented
+ * `QUIZ_DETAIL_MALFORMED` error in `useQuizByIdOrSlug` without
+ * reaching into the envelope shape themselves.
+ */
+export async function getQuizByIdOrSlug(
+  idOrSlug: string,
+): Promise<QuizResponseDto | null> {
   const sdk = getQuizzes();
-  return (await sdk.quizControllerGetQuizById(idOrSlug)) as never;
+  const envelope = await sdk.quizControllerGetQuizById(idOrSlug);
+  return envelope?.data ?? null;
 }
 
-export async function getQuizStatsByIdOrSlug(idOrSlug: string) {
+/**
+ * `getQuizStatsByIdOrSlug` — independently retryable stats wrapper.
+ *
+ * Same envelope contract as `getQuizByIdOrSlug` above. Returns the
+ * unwrapped `QuizStatsResponseDto` or `null` on a malformed envelope.
+ */
+export async function getQuizStatsByIdOrSlug(
+  idOrSlug: string,
+): Promise<QuizStatsResponseDto | null> {
   const sdk = getQuizzes();
-  return (await sdk.quizControllerGetQuizStats(idOrSlug)) as never;
+  const envelope = await sdk.quizControllerGetQuizStats(idOrSlug);
+  return envelope?.data ?? null;
 }
 
 export async function getQuizzesRelated(idOrSlug: string, params?: { limit?: number }) {

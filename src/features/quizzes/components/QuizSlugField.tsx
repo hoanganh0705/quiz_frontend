@@ -173,7 +173,7 @@ export function QuizSlugField<
   const inputDisabled =
     disabled === true ? true : disabled === false ? false : formState.isSubmitting;
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   const slugValue = React.useRef<string>('');
 
   return (

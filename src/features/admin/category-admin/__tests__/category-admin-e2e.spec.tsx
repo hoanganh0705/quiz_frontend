@@ -108,7 +108,7 @@ vi.mock('@/features/admin/services/category-admin.service', () => ({
   restoreCategory: mockRestoreCategory,
 }));
 
-vi.mock('@/lib/admin/phase7_admin_sentry', () => ({
+vi.mock('@/lib/admin/admin_live_sentry', () => ({
   addCategoryAdminBreadcrumb: mockAddCategoryAdminBreadcrumb,
 }));
 
@@ -119,7 +119,7 @@ vi.mock('../cache/category-cross-tab', () => ({
 
 vi.mock('@/features/admin/hooks', () => ({
   useAdminFeatureFlag: vi.fn(() => ({
-    flag: 'phase7_admin_category' as const,
+    flag: 'admin_category_live' as const,
     value: 'live' as const,
     isLive: true,
     isPlaceholder: false,

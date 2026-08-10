@@ -44,7 +44,7 @@
  *
  * ## Feature flag gating
  *
- * `phase6_social_block_mutation` gates the entire component. When the
+ * `social_block_mutation_live` gates the entire component. When the
  * flag value is `'placeholder'`, the hooks return safe no-op result
  * objects (`canBlock === false`, `canUnblock === false`), and the
  * component renders `null`. The pattern is identical to `FollowButton`

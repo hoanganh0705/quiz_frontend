@@ -112,6 +112,7 @@ export function QuizDetailPage({ idOrSlug }: QuizDetailPageProps) {
       />
       <QuizCtaStrip
         quizId={quiz.quizId}
+        quizVersionId={quiz.publishedVersion?.quizVersionId ?? null}
         idOrSlug={idOrSlug}
         className='mt-6'
       />

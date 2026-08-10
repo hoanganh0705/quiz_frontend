@@ -122,7 +122,7 @@ function deriveRegistrationStatus(params: {
 export function useTournamentParticipation(
   tournamentId: string | null,
 ): UseTournamentParticipationResult {
-  const flagValue = getFeatureFlagValue("phase5_tournaments");
+  const flagValue = getFeatureFlagValue("tournaments_live");
   const isFlagPlaceholder = flagValue === "placeholder";
 
   // Auth state

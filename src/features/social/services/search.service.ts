@@ -14,7 +14,7 @@
  *
  *   - `GET /api/v1/social/users/search` — `searchUsers`
  *
- * The wrapper decodes RFC 7807 errors, emits `phase6:6.5` Sentry
+ * The wrapper decodes RFC 7807 errors, emits `social:6.5` Sentry
  * breadcrumbs, strips any leaked `followId` / `friendshipId`
  * (Phase 6 Risks line 54), decodes the per-IP rate-limit response
  * header via `decodeSearchRateLimit` (TKT-6.5.A4), and returns
@@ -26,8 +26,8 @@
  *
  *   - `ApiError` is propagated unchanged so callers can branch
  *     on `apiError.code`.
- *   - One `phase6:6.5` Sentry breadcrumb per call (via
- *     `addSocialServiceBreadcrumb` from `@/lib/social/phase6_sentry`).
+ *   - One `social:6.5` Sentry breadcrumb per call (via
+ *     `addSocialServiceBreadcrumb` from `@/lib/social/social-sentry`).
  *   - On success, the wrapper decodes the rate-limit response header
  *     from the axios response and surfaces it via `cooldownSeconds`
  *     (`null` when no signal was present).
@@ -41,7 +41,7 @@ import type {
   SocialControllerSearchUsersResult,
 } from "@/lib/api/generated/social/social";
 
-import { addSocialServiceBreadcrumb } from "@/lib/social/phase6_sentry";
+import { addSocialServiceBreadcrumb } from "@/lib/social/social-sentry";
 
 import { decodeSearchRateLimit } from "@/features/social/discovery-rate-limit";
 import type { SocialListVisibility } from "@/features/social/social-list-visibility";

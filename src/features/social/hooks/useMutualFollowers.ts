@@ -113,7 +113,7 @@ const FALLBACK_RESULT: UseMutualFollowersResult = Object.freeze({
 export function useMutualFollowers(
   targetUserId: string | null,
 ): UseMutualFollowersResult {
-  const flagValue = getFeatureFlagValue("phase6_social_mutuals");
+  const flagValue = getFeatureFlagValue("social_mutuals_live");
   const isFlagPlaceholder = flagValue === "placeholder";
 
   const auth = useAuthSession();

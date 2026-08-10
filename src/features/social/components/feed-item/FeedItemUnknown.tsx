@@ -13,7 +13,7 @@
  * unknown item type. The fallback:
  *
  *   - Never throws for any unknown discriminator.
- *   - Emits a `phase6:6.9` Sentry breadcrumb with
+ *   - Emits a `social:6.9` Sentry breadcrumb with
  *     `reason: 'unknown_discriminator'` so the Sentry dashboard
  *     surfaces drift in production.
  *   - Uses the documented `data-testid="feed-item-unknown"` marker.
@@ -49,7 +49,7 @@ import { type ReactElement } from "react";
 import { FEED_DEFENSIVE_FALLBACK_TESTID } from "@/features/social/feed-discriminator";
 import type { SocialFeedItemDto } from "@/features/social/types/relationship";
 
-import { addFeedBreadcrumb } from "@/lib/social/phase6_sentry";
+import { addFeedBreadcrumb } from "@/lib/social/social-sentry";
 
 export interface FeedItemUnknownProps {
   /** The item whose discriminator was not recognised. The
@@ -63,7 +63,7 @@ export interface FeedItemUnknownProps {
 
 /**
  * Render the defensive fallback for an unknown feed-item
- * discriminator. Emits a `phase6:6.9` Sentry breadcrumb so the
+ * discriminator. Emits a `social:6.9` Sentry breadcrumb so the
  * Sentry dashboard can surface drift in production.
  */
 export function FeedItemUnknown({

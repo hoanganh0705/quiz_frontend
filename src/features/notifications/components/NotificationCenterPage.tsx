@@ -31,7 +31,7 @@
  *
  * ## Feature flag gating
  *
- * When `phase5_notifications === 'placeholder'`, the page renders
+ * When `notifications_live === 'placeholder'`, the page renders
  * `NotificationPlaceholder` instead of the live surface.
  *
  * ## No service beyond documented hooks

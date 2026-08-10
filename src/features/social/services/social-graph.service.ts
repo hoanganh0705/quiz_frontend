@@ -35,8 +35,8 @@
  *     disabled surface does not even fire a request.
  *   - `ApiError` is propagated unchanged so callers can branch on
  *     `apiError.code`.
- *   - One `phase6:6.1` Sentry breadcrumb per call (via the helpers in
- *     `@/lib/social/phase6_sentry`).
+ *   - One `social:6.1` Sentry breadcrumb per call (via the helpers in
+ *     `@/lib/social/social-sentry`).
  *   - Paginated endpoints return a normalized `SocialPage<T>` — the
  *     `{ data, meta }` envelope never reaches callers. The
  *     `paginationKind: 'offset'` discriminator is preserved so
@@ -69,7 +69,7 @@ import type {
   SocialControllerGetUserFollowingResult,
 } from "@/lib/api/generated/social/social";
 
-import { addSocialServiceBreadcrumb } from "@/lib/social/phase6_sentry";
+import { addSocialServiceBreadcrumb } from "@/lib/social/social-sentry";
 
 import {
   normalizeSocialPage,

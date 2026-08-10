@@ -40,9 +40,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
-import {
-  DEFAULT_SEARCH_DEBOUNCE_MS,
-} from "@/features/search/hooks/useDebouncedValue";
+import { DEFAULT_SEARCH_DEBOUNCE_MS } from "@/features/search/hooks/useDebouncedValue";
 import type { SearchResultKind } from "@/features/search/types/search.types";
 
 // ─── Constants ────────────────────────────────────────────────────────────

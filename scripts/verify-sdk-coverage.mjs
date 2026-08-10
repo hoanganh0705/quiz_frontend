@@ -282,9 +282,31 @@ if (!fs.existsSync(opts.sdkRoot)) {
  * Walk <sdkRoot>/<tag>/<tag>.ts for the given phase and return a Map
  * {`METHOD /api/v1/...` -> {tag, name, file}}.
  */
+/**
+ * Walk every `<sdkRoot>/<tag>/<tag>.ts` and return a Map
+ * {`METHOD /api/v1/...` -> {tag, name, file}}.
+ *
+ * Notes:
+ *  - We scan **every** tag folder present under `sdkRoot`, not just
+ *    `PHASES[phase].tags`. Orval assigns each operationId to one
+ *    OpenAPI tag, but the endpoint URL prefix used to gate a phase
+ *    (e.g. `/api/v1/users/...`) can host endpoints tagged to a
+ *    *different* module (e.g. the `tags` tag's
+ *    `GET /api/v1/users/me/followed-tags`). Restricting the scan to
+ *    the configured phase tags would cause those cross-tag endpoints
+ *    to be reported as absent.
+ *  - `schemas/`, `*.schemas.ts`, and any other non-tag files are
+ *    skipped automatically because they live one level up.
+ */
 function scanSdk(sdkRoot, phase) {
   const out = new Map();
-  for (const tag of PHASES[phase].tags) {
+  if (!fs.existsSync(sdkRoot)) return out;
+  for (const ent of fs.readdirSync(sdkRoot, { withFileTypes: true })) {
+    if (!ent.isDirectory()) continue;
+    const tag = ent.name;
+    // Skip the schemas folder; it contains type definitions, not
+    // SDK request functions.
+    if (tag === 'schemas') continue;
     const file = path.join(sdkRoot, tag, tag + '.ts');
     if (!fs.existsSync(file)) continue;
     const content = fs.readFileSync(file, 'utf8');
@@ -295,7 +317,19 @@ function scanSdk(sdkRoot, phase) {
     // The orval output has {url:`...`} and method:'...' on the same or adjacent lines.
     const matches = [];
     const funcRe = /const (\w+)\s*=\s*\(/g;
-    const urlMethodRe = /return orvalCustomInstance<[^>]+>\(\s*\{url:\s*`([^`]+)`,\s*method:\s*'([A-Z]+)'[^}]*\}/;
+    // Match the return-orval call. The SDK output uses two patterns:
+    //   1. Inline form:
+    //        return orvalCustomInstance<T>({url:`...`, method:'GET'},
+    //        );
+    //   2. Multi-line form (when there is a `params` body):
+    //        return orvalCustomInstance<T>(
+    //        {url:`...`, method:'GET', params
+    //      },
+    //        );
+    // Both shapes have `{url:`...`, method:'GET'` adjacent (i.e. on the
+    // same line). The regex anchors on that adjacency so it works for
+    // both shapes; the trailing `params` is allowed before the `})`.
+    const urlMethodRe = /return orvalCustomInstance<[^>]+>\(\s*\{url:\s*`([^`]+)`,\s*method:\s*'([A-Z]+)'[\s\S]*?\}/;
 
     let pos = 0;
     const text = content;

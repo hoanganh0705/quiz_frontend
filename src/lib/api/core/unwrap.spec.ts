@@ -194,7 +194,7 @@ describe('unwrapEnvelope — integration with customInstance', () => {
     (axios.defaults as { adapter?: unknown }).adapter = originalAxiosAdapter;
   });
 
-  it('success interceptor unwraps { data } envelopes', async () => {
+  it('success interceptor passes the wrapped envelope through (does NOT unwrap)', async () => {
     originalAdapter = customInstance.defaults.adapter;
     originalAxiosAdapter = axios.defaults.adapter;
 
@@ -216,7 +216,15 @@ describe('unwrapEnvelope — integration with customInstance', () => {
       url: '/api/v1/users/me',
     } as never);
 
-    // The interceptor replaced `response.data` with the inner payload.
-    expect(response.data).toEqual({ id: 'user-1', email: 'u@example.com' });
+    // The interceptor does NOT mutate `response.data` — the SDK
+    // contract expects the wrapped envelope, and 30+ call sites
+    // read `response.data.data` / `response.data.meta.pagination`
+    // directly (every list, every paginated fetcher, every auth
+    // caller). See the long-form comment on the interceptor in
+    // `custom-instance.ts` for the rationale.
+    expect(response.data).toEqual({
+      data: { id: 'user-1', email: 'u@example.com' },
+      meta: { requestId: 'req-1' },
+    });
   });
 });

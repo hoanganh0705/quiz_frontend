@@ -1,3 +1,5 @@
+"use client";
+
 /**
  * Verification-flag store — short-lived, action-scoped, in-memory
  * "recently verified" flags for sensitive actions.
@@ -80,7 +82,7 @@
 
 const DEFAULT_TTL_MS = 15_000;
 
-import { useSyncExternalStore } from 'react';
+import { useSyncExternalStore } from "react";
 
 /**
  * A single flag entry — the timestamp it was set, plus the TTL that

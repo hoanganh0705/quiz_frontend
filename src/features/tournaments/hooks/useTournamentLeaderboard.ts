@@ -14,7 +14,7 @@
  * - Synthesise an `id` alias on each entry for deduplication.
  * - Expose `isStale` when revalidation fails with cached data present
  *   (leaderboard is eventually consistent).
- * - Feature-flag gating via `phase5_tournaments`.
+ * - Feature-flag gating via `tournaments_live`.
  *
  * ## Pagination kind
  *
@@ -89,7 +89,7 @@ export function useTournamentLeaderboard(
   tournamentId: string | null,
   filters: TournamentLeaderboardFilters = {},
 ): UseTournamentLeaderboardResult {
-  const flagValue = getFeatureFlagValue("phase5_tournaments");
+  const flagValue = getFeatureFlagValue("tournaments_live");
   const isFlagPlaceholder = flagValue === "placeholder";
 
   // SWR cache key.

@@ -14,7 +14,7 @@
  *
  *   - `useRelationship`  — reads the viewer's current relationship to the
  *                         target user. Short-circuits to `{ relationship: 'none' }`
- *                         when `phase6_social_follow_mutation === 'placeholder'`.
+ *                         when `social_follow_mutation_live === 'placeholder'`.
  *   - `useSocialPermissions` — derives `canFollow` / `canUnfollow`.
  *   - `useFollow`        — executes the follow mutation with optimistic UI.
  *   - `useUnfollow`      — executes the unfollow mutation.

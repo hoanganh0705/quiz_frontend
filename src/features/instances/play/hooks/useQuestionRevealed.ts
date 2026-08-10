@@ -27,7 +27,7 @@
  *
  * ## Feature flag
  *
- * Returns safe fallbacks when `phase5_instances_play === 'placeholder'`.
+ * Returns safe fallbacks when `multiplayer_play_live === 'placeholder'`.
  */
 
 import { useCallback, useEffect } from "react";

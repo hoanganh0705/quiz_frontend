@@ -22,7 +22,7 @@
  *     typo, or a future type this union has not yet caught up
  *     with), renders the defensive fallback with the documented
  *     `data-testid` (`activity-item-unsupported`). The fallback
- *     emits a `phase6:6.4` Sentry breadcrumb with reason
+ *     emits a `social:6.4` Sentry breadcrumb with reason
  *     `unknown_discriminator` so the Sentry dashboard surfaces
  *     drift in production.
  *   - **Never** crashes on an unknown discriminator.
@@ -83,9 +83,9 @@ import type {
 import {
   addSocialActivityBreadcrumb,
   EPIC_6_4_BREADCRUMB_CATEGORY,
-  EPIC_6_4_VERSION,
+  SOCIAL_EPIC_6_4_VERSION,
   SOCIAL_6_4_ROUTES,
-} from "@/lib/social/phase6_6_4_sentry";
+} from "@/lib/social/social-mutuals-sentry";
 
 interface ActivityStreamItemProps {
   /**
@@ -158,7 +158,7 @@ function ActivityItemAchievementEarned({
 /**
  * Render the defensive fallback for unknown discriminators.
  *
- * The fallback emits a `phase6:6.4` Sentry breadcrumb with reason
+ * The fallback emits a `social:6.4` Sentry breadcrumb with reason
  * `unknown_discriminator` via the centralised
  * `addSocialActivityBreadcrumb` helper so the Sentry dashboard can
  * surface drift in production. The breadcrumb payload carries
@@ -204,7 +204,7 @@ function ActivityItemUnsupported({
  *
  * Each documented `ActivityItemType` has a typed sub-renderer. An
  * unknown discriminator renders the defensive fallback with the
- * documented `data-testid` and emits a `phase6:6.4` breadcrumb so
+ * documented `data-testid` and emits a `social:6.4` breadcrumb so
  * the Sentry dashboard can surface the drift.
  */
 export function ActivityStreamItem({
@@ -398,6 +398,6 @@ export function ActivityStreamItem({
 export const ACTIVITY_STREAM_ITEM_RENDERER_INVARIANTS = Object.freeze({
   itemTypes: ACTIVITY_ITEM_TYPES,
   defensiveFallbackTestId: DEFENSIVE_FALLBACK_TESTID,
-  epicVersion: EPIC_6_4_VERSION,
+  epicVersion: SOCIAL_EPIC_6_4_VERSION,
   breadcrumbCategory: EPIC_6_4_BREADCRUMB_CATEGORY,
 });

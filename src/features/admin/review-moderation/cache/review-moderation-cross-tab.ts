@@ -40,7 +40,7 @@
  *
  * ## Event shape
  *
- * Single event type: `phase7:admin.review-moderation.invalidate`. The
+ * Single event type: `admin:7.1.review-moderation.invalidate`. The
  * payload carries:
  *
  *   - `action`     — the mutation that triggered the broadcast.
@@ -101,7 +101,7 @@ export const REVIEW_MODERATION_CHANNEL_NAME =
  * without breaking the discriminated-union contract.
  */
 export type ReviewModerationEventType =
-  'phase7:admin.review-moderation.invalidate';
+  'admin:7.1.review-moderation.invalidate';
 
 /**
  * Discriminator for which mutation triggered the revalidation. Lets
@@ -141,7 +141,7 @@ export interface BaseReviewModerationEvent {
  */
 export interface ReviewModerationInvalidatedEvent
   extends BaseReviewModerationEvent {
-  type: 'phase7:admin.review-moderation.invalidate';
+  type: 'admin:7.1.review-moderation.invalidate';
 }
 
 /**
@@ -161,7 +161,7 @@ const reviewModerationChannel = createBroadcastChannel<ReviewModerationEvent>(
     validate: (data): ReviewModerationEvent | null => {
       if (typeof data !== 'object' || data === null) return null;
       const d = data as Partial<ReviewModerationInvalidatedEvent>;
-      if (d.type !== 'phase7:admin.review-moderation.invalidate') return null;
+      if (d.type !== 'admin:7.1.review-moderation.invalidate') return null;
       if (typeof d.tabId !== 'string' || d.tabId.length === 0) return null;
       if (typeof d.timestamp !== 'number') return null;
       if (
@@ -246,7 +246,7 @@ export function broadcastReviewModerationInvalidate(
   }
   if (!REVIEW_MODERATION_VALID_MUTATIONS.has(action)) return;
   reviewModerationChannel.publish({
-    type: 'phase7:admin.review-moderation.invalidate',
+    type: 'admin:7.1.review-moderation.invalidate',
     action,
     reportId,
     reviewId,

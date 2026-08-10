@@ -168,7 +168,7 @@ function isBroadcastChannelAvailable(): boolean {
     // short-circuit on the cached result. The probe is wrapped in
     // a try/catch so a throw here is converted to `false` rather
     // than bubbling up.
-    new BroadcastChannel('phase4-factory-probe');
+    new BroadcastChannel('factory-probe');
     cachedAvailability = true;
   } catch {
     cachedAvailability = false;

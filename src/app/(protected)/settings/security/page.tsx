@@ -100,7 +100,7 @@
  * from and back to.
  */
 
-import { memo, useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Lock } from 'lucide-react';
 import {
   AlertDialog,
@@ -132,7 +132,7 @@ import {
 import {
   PASSWORD_COPY_KEYS,
   resolvePasswordCopy,
-} from '@/features/auth/service/auth.service';
+} from '@/features/auth/services/auth.service';
 import type {
   AccountSecurityDto,
   SessionListResponseDto,
@@ -172,7 +172,7 @@ function useVerifiedFlagState(
   return verified;
 }
 
-const SecuritySettingsPage = memo(function SecuritySettingsPage() {
+export default function SecuritySettingsPage() {
   const dashboard = useSecurityDashboard();
   const sessions = useActiveSessions();
 
@@ -426,9 +426,7 @@ const SecuritySettingsPage = memo(function SecuritySettingsPage() {
       </div>
     </main>
   );
-});
-
-export default SecuritySettingsPage;
+}
 
 /**
  * The confirmation modal for "Revoke all others". Pure presentational

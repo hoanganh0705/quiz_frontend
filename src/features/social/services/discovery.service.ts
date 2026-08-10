@@ -17,7 +17,7 @@
  *   - `GET /api/v1/social/search/suggestions`   — `getSearchSuggestions`
  *   - `GET /api/v1/social/users/trending`        — `getTrendingUsers`
  *
- * The wrappers decode RFC 7807 errors, emit `phase6:6.5` Sentry
+ * The wrappers decode RFC 7807 errors, emit `social:6.5` Sentry
  * breadcrumbs, strip any leaked `followId` / `friendshipId`
  * (Phase 6 Risks line 54), and return normalised domain objects.
  *
@@ -27,8 +27,8 @@
  *
  *   - `ApiError` is propagated unchanged so callers can branch
  *     on `apiError.code`.
- *   - One `phase6:6.5` Sentry breadcrumb per call (via
- *     `addSocialServiceBreadcrumb` from `@/lib/social/phase6_sentry`).
+ *   - One `social:6.5` Sentry breadcrumb per call (via
+ *     `addSocialServiceBreadcrumb` from `@/lib/social/social-sentry`).
  *   - Paginated endpoints return the documented
  *     `{ items, total, visibility }` shape.
  *   - `getSearchSuggestions` groups the raw `string[]` by kind
@@ -47,7 +47,7 @@ import type {
   SocialControllerGetTrendingUsersResult,
 } from "@/lib/api/generated/social/social";
 
-import { addSocialServiceBreadcrumb } from "@/lib/social/phase6_sentry";
+import { addSocialServiceBreadcrumb } from "@/lib/social/social-sentry";
 
 import {
   isSocialSearchSuggestionKind,
@@ -138,7 +138,7 @@ function clampTotal(total: unknown): number {
  * `SocialSuggestionItemDto` projected from the SDK wire shape.
  * The `visibility` field is always `'visible'` for a successful call.
  *
- * The wrapper emits a `phase6:6.5` Sentry breadcrumb via
+ * The wrapper emits a `social:6.5` Sentry breadcrumb via
  * `addSocialServiceBreadcrumb` and propagates `ApiError` unchanged
  * so the consumer hook can branch on `error.code`.
  *
@@ -201,7 +201,7 @@ export async function getSuggestions(
  * `unsupported` kind group so the renderer can surface them via
  * `DEFENSIVE_FALLBACK_TESTID`.
  *
- * The wrapper emits a `phase6:6.5` Sentry breadcrumb and propagates
+ * The wrapper emits a `social:6.5` Sentry breadcrumb and propagates
  * `ApiError` unchanged.
  *
  * @param query The username prefix to search for.
@@ -276,7 +276,7 @@ export async function getSearchSuggestions(
  * scores. The `visibility` field is always `'visible'` for a successful
  * call.
  *
- * The wrapper emits a `phase6:6.5` Sentry breadcrumb and propagates
+ * The wrapper emits a `social:6.5` Sentry breadcrumb and propagates
  * `ApiError` unchanged.
  *
  * @param pagination Optional limit pagination param.

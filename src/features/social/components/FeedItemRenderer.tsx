@@ -20,7 +20,7 @@
  *     (TKT-6.9.E2).
  *   - Routes unknown discriminators to the defensive
  *     `FeedItemUnknown` fallback (TKT-6.9.E2) and emits a
- *     `phase6:6.9` Sentry breadcrumb with
+ *     `social:6.9` Sentry breadcrumb with
  *     `reason: 'unknown_discriminator'`.
  *   - **Never** crashes on an unknown discriminator.
  *
@@ -65,7 +65,7 @@ import {
 } from "@/features/social/feed-discriminator";
 import type { SocialFeedItemDto } from "@/features/social/types/relationship";
 
-import { addFeedBreadcrumb } from "@/lib/social/phase6_sentry";
+import { addFeedBreadcrumb } from "@/lib/social/social-sentry";
 
 import {
   FeedItemBadgeEarned,
@@ -105,7 +105,7 @@ export interface FeedItemRendererProps {
  *
  * Each documented `FeedItemType` has a typed sub-renderer. An
  * unknown discriminator renders the defensive fallback with the
- * documented `data-testid` and emits a `phase6:6.9` breadcrumb so
+ * documented `data-testid` and emits a `social:6.9` breadcrumb so
  * the Sentry dashboard can surface the drift.
  */
 export function FeedItemRenderer({

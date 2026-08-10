@@ -85,7 +85,7 @@ describe('TournamentAdminCrossTab', () => {
       broadcastTournamentAdminInvalidate('create', 'tournament-1');
 
       expect(MockBroadcastChannel.lastPostedData).toMatchObject({
-        type: 'phase7:admin.tournament-admin.invalidate',
+        type: 'admin:7.1.tournament-admin.invalidate',
         mutation: 'create',
         tournamentId: 'tournament-1',
         tabId: expect.any(String),

@@ -184,7 +184,7 @@ export function TagMultiSelect<
             // Tags are unique by the regex + the duplicate-guard in
             // `commit`, so the index is a stable key for the
             // list-rendering contract.
-            // eslint-disable-next-line react/no-array-index-key
+             
             key={`${tag}-${index}`}
             className='inline-flex items-center gap-1 rounded-full border bg-background px-2 py-0.5 text-xs'
             data-tag-value={tag}

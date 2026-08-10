@@ -12,8 +12,8 @@
  * ## What this hook owns
  *
  * - Open an authenticated Socket.IO connection to the `/instances`
- *   namespace while `phase5_instances_play === 'live'` AND
- *   `phase5_realtime_infrastructure === 'live'`. When the flag is
+ *   namespace while `multiplayer_play_live === 'live'` AND
+ *   `realtime_infrastructure_live === 'live'`. When the flag is
  *   `'placeholder'`, the connection is suppressed entirely (no socket
  *   handshake, no listeners, no automatic reconnection).
  * - Join the instance's gameplay room after the handshake with the
@@ -40,8 +40,8 @@
  *
  * ## Feature flag preconditions
  *
- * The hook requires `phase5_instances_play === 'live'` AND
- * `phase5_realtime_infrastructure === 'live'`. When either flag is
+ * The hook requires `multiplayer_play_live === 'live'` AND
+ * `realtime_infrastructure_live === 'live'`. When either flag is
  * `'placeholder'`, the connection is suppressed and the hook returns
  * the safe fallback state.
  *
@@ -285,8 +285,8 @@ function coerceToGameplayEnvelope<T>(
 export function useInstanceGameSocket(
   instanceId: string | null,
 ): UseInstanceGameSocketResult {
-  const playFlag = getFeatureFlagValue("phase5_instances_play");
-  const realtimeFlag = getFeatureFlagValue("phase5_realtime_infrastructure");
+  const playFlag = getFeatureFlagValue("multiplayer_play_live");
+  const realtimeFlag = getFeatureFlagValue("realtime_infrastructure_live");
   const enabled =
     playFlag === "live" && realtimeFlag === "live";
   const isFlagPlaceholder = !enabled;

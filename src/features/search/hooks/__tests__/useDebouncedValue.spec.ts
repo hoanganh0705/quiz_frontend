@@ -7,6 +7,9 @@
  *
  * ## What this test locks
  *
+ * - The canonical hook returns `{ debouncedValue, cancel }`. This
+ *   test reads `result.current.debouncedValue` (the new contract
+ *   introduced in Phase 8 / P1-16 consolidation).
  * - Timer cancellation: rapid value changes coalesce into a single update.
  * - Unmount cancellation: clearing the timer on component unmount.
  * - Referential identity: unchanged values return the same reference.
@@ -41,7 +44,7 @@ describe("useDebouncedValue", () => {
         useDebouncedValue("hello", 250),
       );
 
-      expect(result.current).toBe("hello");
+      expect(result.current.debouncedValue).toBe("hello");
     });
 
     it("returns the initial value when value is undefined", () => {
@@ -50,7 +53,7 @@ describe("useDebouncedValue", () => {
         useDebouncedValue(undefined as any, 250),
       );
 
-      expect(result.current).toBeUndefined();
+      expect(result.current.debouncedValue).toBeUndefined();
     });
   });
 
@@ -61,13 +64,13 @@ describe("useDebouncedValue", () => {
         { initialProps: { value: "initial", delay: 250 } },
       );
 
-      expect(result.current).toBe("initial");
+      expect(result.current.debouncedValue).toBe("initial");
 
       rerender({ value: "updated", delay: 250 });
 
       // Advance time by half the delay — value should NOT update yet.
       await advanceTime(124);
-      expect(result.current).toBe("initial");
+      expect(result.current.debouncedValue).toBe("initial");
     });
 
     it("returns the debounced value after the full delay", async () => {
@@ -76,13 +79,13 @@ describe("useDebouncedValue", () => {
         { initialProps: { value: "initial", delay: 250 } },
       );
 
-      expect(result.current).toBe("initial");
+      expect(result.current.debouncedValue).toBe("initial");
 
       rerender({ value: "updated", delay: 250 });
 
       // Advance past the full delay.
       await advanceTime(260);
-      expect(result.current).toBe("updated");
+      expect(result.current.debouncedValue).toBe("updated");
     });
 
     it("cancels the pending timer on a rapid change", async () => {
@@ -91,7 +94,7 @@ describe("useDebouncedValue", () => {
         { initialProps: { value: "first", delay: 250 } },
       );
 
-      expect(result.current).toBe("first");
+      expect(result.current.debouncedValue).toBe("first");
 
       rerender({ value: "second", delay: 250 });
       await advanceTime(100);
@@ -101,7 +104,7 @@ describe("useDebouncedValue", () => {
 
       // Advance past 250ms from the latest re-render.
       await advanceTime(260);
-      expect(result.current).toBe("third");
+      expect(result.current.debouncedValue).toBe("third");
     });
 
     it("resets the timer on each value change", async () => {
@@ -110,17 +113,17 @@ describe("useDebouncedValue", () => {
         { initialProps: { value: "a", delay: 300 } },
       );
 
-      expect(result.current).toBe("a");
+      expect(result.current.debouncedValue).toBe("a");
 
       rerender({ value: "b", delay: 300 });
       await advanceTime(200);
 
       rerender({ value: "c", delay: 300 });
       await advanceTime(200); // 200ms from last change
-      expect(result.current).toBe("a");
+      expect(result.current.debouncedValue).toBe("a");
 
       await advanceTime(110); // 310ms from last change
-      expect(result.current).toBe("c");
+      expect(result.current.debouncedValue).toBe("c");
     });
   });
 
@@ -139,7 +142,7 @@ describe("useDebouncedValue", () => {
 
       // No error should be thrown and the value should not have updated.
       await advanceTime(200);
-      expect(result.current).toBe("initial");
+      expect(result.current.debouncedValue).toBe("initial");
     });
   });
 
@@ -151,15 +154,15 @@ describe("useDebouncedValue", () => {
       );
 
       await advanceTime(300);
-      const debouncedRef = result.current;
+      const debouncedRef = result.current.debouncedValue;
 
       // Re-render with the same value.
       rerender({ value: "same", delay: 250 });
       await advanceTime(300);
 
       // The reference should be identical.
-      expect(result.current).toBe("same");
-      expect(result.current).toBe(debouncedRef);
+      expect(result.current.debouncedValue).toBe("same");
+      expect(result.current.debouncedValue).toBe(debouncedRef);
     });
   });
 });

@@ -183,7 +183,7 @@ vi.mock('@/features/auth/hooks/use-auth-session', () => ({
   useAuthSession: useAuthSessionMock,
 }));
 
-vi.mock('@/lib/admin/phase7_admin_sentry', () => ({
+vi.mock('@/lib/admin/admin_live_sentry', () => ({
   addCommentModerationBreadcrumb: (
     ...args: Parameters<typeof mockAddCommentModerationBreadcrumb>
   ) => mockAddCommentModerationBreadcrumb(...args),

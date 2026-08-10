@@ -10,7 +10,7 @@
  * ## What this component owns
  *
  * The static, flag-gated placeholder rendered by the activity
- * route scaffold when `phase6_social_activity === 'placeholder'`.
+ * route scaffold when `social_activity_live === 'placeholder'`.
  * The component:
  *
  *   - Renders the placeholder shell matching the eventual activity

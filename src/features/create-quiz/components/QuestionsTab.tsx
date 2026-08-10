@@ -448,7 +448,7 @@ const QuestionsTab = memo(function QuestionsTab({
                           updateQuestion(question.id, 'text', e.target.value)
                         }
                         onBlur={() => handleBlur(question.id, 'text')}
-                        className={`bg-transparent text-foreground placeholder:text-foreground/70 min-h-25 resize-y focus:ring-offset-0 focus:ring-0 border ${
+                        className={`bg-transparent text-foreground placeholder:text-muted-foreground min-h-25 resize-y focus:ring-offset-0 focus:ring-0 border ${
                           questionErrors?.text && touched[`${question.id}-text`]
                             ? 'border-red-500 focus:border-red-500'
                             : 'border-border'
@@ -502,7 +502,7 @@ const QuestionsTab = memo(function QuestionsTab({
                                     `option-${optionIndex}`
                                   )
                                 }
-                                className={`bg-transparent text-foreground placeholder:text-foreground/70 focus:ring-offset-0 focus:ring-0 border ${
+                                className={`bg-transparent text-foreground placeholder:text-muted-foreground focus:ring-offset-0 focus:ring-0 border ${
                                   questionErrors?.options?.[optionIndex] &&
                                   touched[
                                     `${question.id}-option-${optionIndex}`
@@ -544,7 +544,7 @@ const QuestionsTab = memo(function QuestionsTab({
                             e.target.value
                           )
                         }
-                        className='bg-transparent text-foreground placeholder:text-foreground/70 min-h-20 resize-y focus:ring-offset-0 focus:ring-0 border border-border'
+                        className='bg-transparent text-foreground placeholder:text-muted-foreground min-h-20 resize-y focus:ring-offset-0 focus:ring-0 border border-border'
                       />
                     </div>
                   </div>

@@ -1,6 +1,14 @@
 // Bookmarks types — aligned with backend DTOs
 
-import type { BookmarkCollectionResponseDto } from '@/lib/api/generated/schemas';
+import type { BookmarkCollectionResponseDto, BookmarkedQuizResponseDto } from '@/lib/api/generated/schemas';
+
+// ─── Bookmark filters (used by BookmarkFilters.tsx) ───────────────────────────────
+
+/** Filter value for the bookmark list. */
+export type BookmarkFilter = 'all' | 'recent' | 'easy' | 'medium' | 'hard';
+
+/** Sort option for the bookmark list. */
+export type BookmarkSortOption = 'newest' | 'oldest' | 'name-asc' | 'name-desc' | 'difficulty';
 
 // Re-export from generated SDK
 export type {
@@ -142,3 +150,6 @@ export {
   BULK_OPERATION_MAX_ITEMS,
   BULK_OPERATION_MIN_ITEMS,
 } from './collection-detail.types';
+
+// Alias for BookmarkedQuizResponseDto — used by BookmarkedQuizCard.
+export type BookmarkedQuiz = BookmarkedQuizResponseDto;

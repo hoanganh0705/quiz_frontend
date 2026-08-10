@@ -9,7 +9,7 @@
  * Source ticket: TKT-6.2.G2 — fires `list.loaded` after a successful
  *                load-more so `useSocialCountsBadge` (TKT-6.2.D3) can
  *                revalidate and converge with the rendered list length.
- * Source ticket: TKT-6.2.H2 — emits a `phase6:6.2` Sentry breadcrumb
+ * Source ticket: TKT-6.2.H2 — emits a `social:6.2` Sentry breadcrumb
  *                around the data fetch via the centralised helper.
  *
  * ## What this component owns
@@ -47,7 +47,7 @@ import { useSocialListLifecycleReset } from "@/features/social/hooks/useSocialLi
 import { useSocialListUrlState } from "@/features/social/hooks/useSocialListUrlState";
 
 import { publishSocialListLoaded } from "@/lib/social/social-list-loaded-broadcast-channel";
-import { addSocialListBreadcrumb } from "@/lib/social/phase6_6_2_sentry";
+import { addSocialListBreadcrumb } from "@/lib/social/social-search-sentry";
 
 import { SocialListEmptyState } from "../components/SocialListEmptyState";
 import { SocialListErrorState } from "../components/SocialListErrorState";
@@ -76,7 +76,7 @@ export function FollowersList(props: FollowersListProps): ReactElement {
   const { users, isLoading, isStale, hasMore, loadMore, error, retry } =
     useFollowers(targetUserId);
 
-  // TKT-6.2.H2 — emit a single `phase6:6.2` breadcrumb per fetch
+  // TKT-6.2.H2 — emit a single `social:6.2` breadcrumb per fetch
   // transition. The `useRef` remembers the last reported state so
   // we only emit on transitions, not every render.
   const prevFetchStateRef = useRef<"loading" | "done" | "error">(

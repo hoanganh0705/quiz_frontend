@@ -134,7 +134,7 @@ const SELF_RESULT: UseUserSocialStatsResult = Object.freeze({
 export function useUserSocialStats(
   userId: string,
 ): UseUserSocialStatsResult {
-  const flagValue = getFeatureFlagValue("phase6_social");
+  const flagValue = getFeatureFlagValue("social_live");
   const isFlagPlaceholder = flagValue === "placeholder";
 
   const auth = useAuthSession();

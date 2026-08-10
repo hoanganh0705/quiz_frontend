@@ -157,7 +157,7 @@ describe('tag-cross-tab — broadcast emits documented event', () => {
     channel.listeners.forEach((listener) => {
       listener({
         data: {
-          type: 'phase7:admin.tag.invalidate',
+          type: 'admin:7.1.tag.invalidate',
           mutation: 'delete',
           tagId: 'tag-1',
           tabId: otherTabId,
@@ -168,7 +168,7 @@ describe('tag-cross-tab — broadcast emits documented event', () => {
 
     expect(received.length).toBe(1);
     expect(received[0]).toMatchObject({
-      type: 'phase7:admin.tag.invalidate',
+      type: 'admin:7.1.tag.invalidate',
       mutation: 'delete',
       tagId: 'tag-1',
     });
@@ -199,7 +199,7 @@ describe('tag-cross-tab — broadcast emits documented event', () => {
       channel.listeners.forEach((listener) => {
         listener({
           data: {
-            type: 'phase7:admin.tag.invalidate',
+            type: 'admin:7.1.tag.invalidate',
             mutation,
             tagId: `tag-${mutation}`,
             tabId: otherTabId,
@@ -234,7 +234,7 @@ describe('tag-cross-tab — same-tab filtering', () => {
     channel.listeners.forEach((listener) => {
       listener({
         data: {
-          type: 'phase7:admin.tag.invalidate',
+          type: 'admin:7.1.tag.invalidate',
           mutation: 'delete',
           tagId: 'tag-1',
           tabId: myTabId,
@@ -260,7 +260,7 @@ describe('tag-cross-tab — same-tab filtering', () => {
     channel.listeners.forEach((listener) => {
       listener({
         data: {
-          type: 'phase7:admin.tag.invalidate',
+          type: 'admin:7.1.tag.invalidate',
           mutation: 'delete',
           tagId: 'tag-1',
           timestamp: Date.now(),
@@ -288,7 +288,7 @@ describe('tag-cross-tab — same-tab filtering', () => {
     channel.listeners.forEach((listener) => {
       listener({
         data: {
-          type: 'phase7:admin.tag.invalidate',
+          type: 'admin:7.1.tag.invalidate',
           mutation: 'delete',
           tabId: otherTabId,
           timestamp: Date.now(),
@@ -316,7 +316,7 @@ describe('tag-cross-tab — same-tab filtering', () => {
     channel.listeners.forEach((listener) => {
       listener({
         data: {
-          type: 'phase7:admin.tag.invalidate',
+          type: 'admin:7.1.tag.invalidate',
           mutation: 'unknown' as 'delete',
           tagId: 'tag-1',
           tabId: otherTabId,
@@ -345,7 +345,7 @@ describe('tag-cross-tab — same-tab filtering', () => {
     channel.listeners.forEach((listener) => {
       listener({
         data: {
-          type: 'something/else' as 'phase7:admin.tag.invalidate',
+          type: 'something/else' as 'admin:7.1.tag.invalidate',
           mutation: 'delete',
           tagId: 'tag-1',
           tabId: otherTabId,
@@ -387,7 +387,7 @@ describe('tag-cross-tab — subscribe / unsubscribe', () => {
       channel.listeners.forEach((listener) => {
         listener({
           data: {
-            type: 'phase7:admin.tag.invalidate',
+            type: 'admin:7.1.tag.invalidate',
             mutation: 'delete',
             tagId: 'tag-1',
             tabId: otherTabId,
@@ -429,7 +429,7 @@ describe('tag-cross-tab — subscribe / unsubscribe', () => {
     channel.listeners.forEach((listener) => {
       listener({
         data: {
-          type: 'phase7:admin.tag.invalidate',
+          type: 'admin:7.1.tag.invalidate',
           mutation: 'delete',
           tagId: 'tag-x',
           tabId: otherTabId,

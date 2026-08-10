@@ -56,6 +56,12 @@ export type GetTournamentDetailsResponse = TournamentDetailResponseDto;
 export type TournamentRegistrationResponse = RegisterTournamentResponseDto;
 export type TournamentRegistrationRequest = CreateTournamentDto;
 
+// Category type for tournament categories (local type, not from backend)
+export interface TournamentCategory {
+  id: string;
+  name: string;
+}
+
 // Story 5.2 domain types and cache key factories
 export {
   DEFAULT_TOURNAMENT_LIST_FILTERS,

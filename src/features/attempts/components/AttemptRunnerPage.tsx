@@ -57,6 +57,7 @@ import { useQuizByIdOrSlug } from '@/features/quizzes/hooks/useQuizByIdOrSlug';
 
 import { useActiveAttempt } from '@/features/attempts/hooks/useActiveAttempt';
 import { AttemptRunner } from '@/features/attempts/components/AttemptRunner';
+import { useAttemptsStore } from '@/features/attempts/stores/useAttemptsStore';
 
 import { ApiError } from '@/lib/api';
 
@@ -122,18 +123,41 @@ function AttemptRunnerInner({ idOrSlug }: { idOrSlug: string }): React.ReactElem
   const { attempt: activeAttempt, isLoading: isActiveLoading } =
     useActiveAttempt({ quizId: detail.quiz?.quizId ?? null });
 
+  // Fresh-start signal: when `useStartAttempt` succeeds it writes
+  // the new attempt to the runner store keyed by the canonical
+  // quiz-version id (or the public quiz id when the version is not
+  // yet resolved). The runner page subscribes to the reverse index
+  // so it can short-circuit the "no active attempt → redirect" path
+  // for the in-flight Start without waiting for the read-after-
+  // write on `GET /users/me/attempts` to converge.
+  const attemptsByQuizVersionId = useAttemptsStore(
+    (s) => s.attemptsByQuizVersionId,
+  );
+
   // All hooks first — no early returns before this point.
   // Direct entry without an active attempt: redirect back to the
   // public quiz page so the runner URL never silently starts a new
-  // attempt.
+  // attempt. The fresh-start guard above exempts attempts that the
+  // start hook just wrote — the runner then hydrates the entry via
+  // `useAttemptHydration` once the detail hook resolves the
+  // published version.
   const publicQuizHref = `/quizzes/${encodeURIComponent(idOrSlug)}`;
+  const detailQuizId = detail.quiz?.quizId ?? null;
+  const publishedQuizVersionId =
+    detail.quiz?.publishedVersion?.quizVersionId ?? null;
+  const hasFreshStart =
+    (publishedQuizVersionId !== null
+      && attemptsByQuizVersionId[publishedQuizVersionId] !== undefined)
+    || (detailQuizId !== null
+      && attemptsByQuizVersionId[detailQuizId] !== undefined);
   const shouldRedirectToQuiz =
     !detail.isLoading
     && !detail.error
     && !detail.notFound
     && detail.quiz !== null
     && !isActiveLoading
-    && activeAttempt === null;
+    && activeAttempt === null
+    && !hasFreshStart;
 
   React.useEffect(() => {
     if (shouldRedirectToQuiz) {
@@ -196,6 +220,24 @@ function AttemptRunnerInner({ idOrSlug }: { idOrSlug: string }): React.ReactElem
   // objects are compatible even if the structural alias differs.
   const questions: readonly QuizQuestionPlayerDto[] =
     (publishedVersion?.questions ?? []) as unknown as readonly QuizQuestionPlayerDto[];
+
+  // When the runner store has a fresh-start entry for this quiz /
+  // version, do NOT show the "Returning to the quiz page…" surface —
+  // the start hook is in flight and the entry will hydrate shortly.
+  // Render the bootstrap skeleton instead so the user sees a
+  // consistent loading state during the read-after-write window.
+  if (activeAttempt === null && hasFreshStart) {
+    return (
+      <div
+        className="mx-auto flex w-full max-w-3xl flex-col gap-4 p-4"
+        data-testid="attempt-runner-page-bootstrap"
+      >
+        <Skeleton className="h-8 w-1/2" />
+        <Skeleton className="h-3 w-full" />
+        <Skeleton className="h-40 w-full" />
+      </div>
+    );
+  }
 
   if (activeAttempt === null) {
     return (

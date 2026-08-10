@@ -40,7 +40,7 @@ export const QuizRecommendationsStep = memo(function QuizRecommendationsStep({
     async function fetchQuizzes() {
       try {
         const data = await listQuizzes({ featured: true, limit: 6 })
-        setQuizzes(data.items)
+        setQuizzes(((data as unknown as { data?: QuizResponseDto[] }).data ?? []) as QuizResponseDto[])
       } catch (error) {
         logger.error('onboarding.recommendations', 'Failed to fetch quizzes', error)
       } finally {
@@ -109,7 +109,10 @@ export const QuizRecommendationsStep = memo(function QuizRecommendationsStep({
                 />
                 <Badge
                   className={`absolute top-2 left-2 ${
-                    difficultyColors[quiz.publishedVersion?.difficulty ?? 'medium']?.bg || 'bg-gray-500'
+                    difficultyColors[
+                      ((quiz.publishedVersion?.difficulty ?? 'medium') as string).charAt(0).toUpperCase() +
+                        ((quiz.publishedVersion?.difficulty ?? 'medium') as string).slice(1) as keyof typeof difficultyColors
+                    ]?.bg || 'bg-gray-500'
                   } text-white text-xs`}
                 >
                   {quiz.publishedVersion?.difficulty ?? 'medium'}

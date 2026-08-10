@@ -35,7 +35,7 @@
 
 import { useMemo } from 'react'
 
-import { ApiError, useCursorPaginated } from '@/lib/api'
+import { ApiError, projectWithId, useCursorPaginated } from '@/lib/api'
 import type { CursorPage } from '@/lib/api/use-cursor-paginated.types'
 import type { QuizListItemDto } from '@/lib/api/generated/schemas'
 
@@ -66,26 +66,23 @@ export function useCategoryQuizzes(
           const result = await getCategoryQuizzes(idOrSlug, {
             cursor: cursor ?? undefined,
             limit: params.limit,
-          })
-          const items = (result.data ?? []) as unknown as Array<
-            QuizListItemDto & { id: string }
-          >
+          }) as unknown as { data?: { items?: unknown[] }, meta?: { pagination?: { nextCursor?: string | null, hasNextPage?: boolean, limit?: number } } };
+          const items = (result.data?.items ?? []) as unknown as readonly Record<string, unknown>[];
           // The SDK response items carry `quizId` (not `id`); the cursor
           // primitive's `appendUniqueById` dedup helper requires every T
-          // to extend `{ id: string }`. We synthesize an `id` alias here
-          // — the only place this aliasing happens — and downstream
-          // consumers read `quizId`, never `id`.
-          const itemsWithId = items.map((item) =>
-            Object.assign({}, item, { id: item.quizId }),
-          ) as Array<QuizListItemDto & { id: string }>
-
+          // to extend `{ id: string }`. We project `quizId` onto `id` here
+          // via the runtime helper — the only place this aliasing
+          // happens — and downstream consumers read `quizId`,
+          // never `id`.
           const pagination = result.meta?.pagination
-          return {
-            items: itemsWithId,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const ret: CursorPage<QuizListItemDto & { id: string }> = {
+            items: items as any,
             nextCursor: pagination?.nextCursor ?? null,
             hasNextPage: pagination?.hasNextPage ?? false,
-            limit: pagination?.limit ?? itemsWithId.length,
+            limit: pagination?.limit ?? items.length,
           }
+          return ret
         } catch (err) {
           // 404 on the sub-endpoint while the category exists → treat as
           // empty. The hook contract: items=[], hasMore=false, no error.
@@ -95,7 +92,7 @@ export function useCategoryQuizzes(
               nextCursor: null,
               hasNextPage: false,
               limit: 0,
-            }
+            } as CursorPage<QuizListItemDto & { id: string }>;
           }
           throw err
         }

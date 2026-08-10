@@ -19,7 +19,7 @@ import { useAdminFeatureFlag } from '../../hooks/useAdminFeatureFlag';
 
 function setFlag(value: 'live' | 'placeholder') {
   vi.mocked(useAdminFeatureFlag).mockReturnValue({
-    flag: 'phase7_admin',
+    flag: 'admin_live',
     value,
     isLive: value === 'live',
     isPlaceholder: value === 'placeholder',

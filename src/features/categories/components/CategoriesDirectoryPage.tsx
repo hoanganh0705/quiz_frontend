@@ -88,7 +88,7 @@ export function CategoriesDirectoryPage(): React.ReactElement {
   // keystroke); the debounced value is the applied query (updates
   // 250 ms after the last keystroke).
   const [searchTerm, setSearchTerm] = useState('')
-  const debouncedQuery = useDebouncedValue(searchTerm, SEARCH_DEBOUNCE_MS)
+  const debouncedQuery = useDebouncedValue(searchTerm, SEARCH_DEBOUNCE_MS).debouncedValue
 
   const filteredCategories = useMemo(() => {
     const query = debouncedQuery.trim().toLowerCase()

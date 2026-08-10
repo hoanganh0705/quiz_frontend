@@ -26,7 +26,7 @@
  *   (`SOCIAL_CACHE_KEYS.makeRelationshipKey(userId)` and
  *   `SOCIAL_CACHE_KEYS.makeSocialCountsKey(userId)`).
  * - Cross-tab invalidation broadcast on success.
- * - Safe no-op fallback when `phase6_social_follow_mutation` is
+ * - Safe no-op fallback when `social_follow_mutation_live` is
  *   `'placeholder'`.
  *
  * ## Return contract
@@ -130,7 +130,7 @@ export function useUnfollow(
   options: UseUnfollowOptions = {},
 ): UseUnfollowResult {
   // ── Flag guard ────────────────────────────────────────────────────────
-  const flagValue = getFeatureFlagValue("phase6_social_follow_mutation");
+  const flagValue = getFeatureFlagValue("social_follow_mutation_live");
   const isFlagPlaceholder = flagValue === "placeholder";
 
   // ── Permissions ─────────────────────────────────────────────────────────

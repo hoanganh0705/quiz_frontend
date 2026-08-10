@@ -13,9 +13,9 @@ import {
   ATTEMPTS_CHANNEL_NAME,
   PROFILE_CHANNEL_NAME,
   emitPhase4Broadcast,
-} from '../phase4Broadcast';
+} from '../cross-tab-broadcast';
 
-describe('phase4Broadcast facade', () => {
+describe('cross-tab-broadcast facade', () => {
   it('re-exports the per-feature channel name constants', () => {
     expect(ATTEMPTS_CHANNEL_NAME).toBe('attempts');
     expect(PROFILE_CHANNEL_NAME).toBe('profile');

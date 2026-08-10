@@ -12,7 +12,7 @@
  *       SOCIAL_USER_NOT_FOUND → not_found
  *   - Privacy branches return `{ items: [], total: 0, visibility }`
  *     without surfacing the error.
- *   - `phase6_social_mutuals === 'placeholder'` short-circuits
+ *   - `social_mutuals_live === 'placeholder'` short-circuits
  *     without a service call and returns
  *     `visibility: 'not_found'`.
  *   - Unauthenticated viewers receive
@@ -121,7 +121,7 @@ afterEach(() => {
 // ─── Tests ───────────────────────────────────────────────────────────────
 
 describe("useMutualFriends — short-circuits", () => {
-  it("returns visibility: 'not_found' when phase6_social_mutuals === 'placeholder'", async () => {
+  it("returns visibility: 'not_found' when social_mutuals_live === 'placeholder'", async () => {
     flagPlaceholder();
     const { result } = renderHook(() => useMutualFriends("user-1"), {
       wrapper: TestSwrProvider,

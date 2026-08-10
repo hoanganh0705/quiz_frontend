@@ -26,8 +26,8 @@
  *     feature-flag gating. Feature flags live in the mutation hooks.
  *   - `ApiError` is propagated unchanged so callers can branch on
  *     `apiError.code`.
- *   - One `phase6:6.7` Sentry breadcrumb per block / unblock call
- *     (via `addBlockMutationBreadcrumb` in `phase6_6_7_sentry.ts`).
+ *   - One `social:6.7` Sentry breadcrumb per block / unblock call
+ *     (via `addBlockMutationBreadcrumb` in `social-discovery-search-sentry.ts`).
  *   - Internal `followId` / `friendshipId` are never surfaced: both
  *     `blockUser` and `unblockUser` return `void` on success (the SDK
  *     emits 201/204 No Content).
@@ -63,7 +63,7 @@
  * The service does NOT call any deprecated route. The deprecated
  * `ANY /social/friend-request` (singular) is named in
  * `lib/api/deprecated-routes.ts`; the lint invariants script
- * (`scripts/phase6-lint-invariants.mjs`, extended by TKT-6.7.G3)
+ * (`scripts/social-lint-invariants.mjs`, extended by TKT-6.7.G3)
  * asserts that no path under `features/social/services/` imports
  * `socialControllerDeprecatedFriendRequestPath*`.
  *
@@ -81,7 +81,7 @@ import { ApiError, getSocial } from "@/lib/api";
 import {
   addBlockMutationBreadcrumb,
   SOCIAL_6_7_ROUTES,
-} from "@/lib/social/phase6_6_7_sentry";
+} from "@/lib/social/social-discovery-search-sentry";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -103,7 +103,7 @@ export interface BlockUserInput {
 /**
  * Wraps an async SDK call with timing and breadcrumbs. Mirrors the
  * Epic 6.6 pattern (`follow-mutation.service.ts → measuredCall`) but
- * scoped to the `phase6:6.7` Sentry category.
+ * scoped to the `social:6.7` Sentry category.
  */
 async function measuredCall<T>(args: {
   action: string;

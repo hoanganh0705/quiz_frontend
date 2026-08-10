@@ -37,7 +37,7 @@
  *
  * `friendshipId` and `followId` are **unstable internal ids** and
  * MUST NEVER appear on the wire. The lint script
- * (`scripts/phase6-lint-invariants.mjs`, TKT-6.10.G3) verifies this
+ * (`scripts/social-lint-invariants.mjs`, TKT-6.10.G3) verifies this
  * invariant by grepping every file under
  * `src/features/social/realtime/`. Adding `friendshipId` or `followId`
  * to any payload below will fail lint.

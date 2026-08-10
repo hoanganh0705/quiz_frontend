@@ -25,7 +25,7 @@
  *
  * ## Feature flag gating (F2 AC #1)
  *
- * When `phase5_achievements === 'placeholder'`, the page renders the
+ * When `achievements_live === 'placeholder'`, the page renders the
  * documented Phase 3 placeholder view (`AchievementsPlaceholder`).
  * Without this, every child component would early-return `null` and
  * the shell would be empty — that's a regression from the Phase 3
@@ -83,7 +83,7 @@ interface AchievementsPageProps {
  * Honours TKT-5.5.F2:
  *
  *   - F2 AC #1 — renders a placeholder view when
- *     `phase5_achievements === 'placeholder'`.
+ *     `achievements_live === 'placeholder'`.
  *   - F2 AC #2 — catalog visible to all visitors.
  *   - F2 AC #3 — earned badges / history visible only to authenticated
  *     users (child-component auth gating).

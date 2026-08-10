@@ -58,15 +58,14 @@ function makeLoginResponse(
 function makeSuccessResult(
   payload: LoginResponseDto = makeLoginResponse(),
 ): AuthControllerGoogleLoginResult {
-  // The generated SDK type is `WrappedDto & { data?: LoginResponseDto }`
-  // which intersected with `WrappedDtoData = { [key: string]: unknown }`
-  // makes the runtime contract difficult to satisfy statically. The
-  // cast below is the same one the rest of the suite uses when stubbing
-  // generated SDK responses (see `login-flow.spec.ts`).
-  return {
-    data: payload,
-    message: "Login successful",
-  } as unknown as AuthControllerGoogleLoginResult;
+  // The SDK interceptor in `custom-instance.ts` unwraps the
+  // `{ data, meta }` envelope before the dependency resolves, so the
+  // stub returns the unwrapped `LoginResponseDto` directly — NOT
+  // `{ data: LoginResponseDto }`. The generated SDK type still claims
+  // the envelope shape, so we cast through `unknown` to satisfy the
+  // static surface. See `auth.service.googleLogin` for the long-form
+  // explanation of the unwrap contract.
+  return payload as unknown as AuthControllerGoogleLoginResult;
 }
 
 /**
@@ -171,10 +170,13 @@ describe("googleLoginSubmit", () => {
       const result = await googleLoginSubmit("token", deps);
 
       if (result.kind === "success") {
-        // Narrow the optional `data` field that the wrapped DTO exposes.
-        const data = result.user as LoginResponseDto | undefined;
-        expect(data?.userId).toBe("user-456");
-        expect(data?.email).toBe("different@example.com");
+        // The unwrapped `LoginResponseDto` is returned directly on the
+        // success path. The static type is `AuthControllerGoogleLoginResult`
+        // (the wrapped envelope), so we narrow through `unknown` to read the
+        // inner fields without lint complaints.
+        const data = result.user as unknown as LoginResponseDto;
+        expect(data.userId).toBe("user-456");
+        expect(data.email).toBe("different@example.com");
       } else {
         throw new Error("Expected success");
       }

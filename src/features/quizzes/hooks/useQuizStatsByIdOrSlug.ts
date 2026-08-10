@@ -50,18 +50,6 @@ function isNotFoundError(err: unknown): boolean {
   return err.status === 404;
 }
 
-function wrapAsApiError(err: unknown): ApiError {
-  if (isApiError(err)) return err;
-  if (err instanceof Error) {
-    return ApiError.fromInput({
-      status: 500,
-      code: 'QUIZ_STATS_MALFORMED',
-      message: err.message,
-    });
-  }
-  return coerceToApiError(err);
-}
-
 /**
  * Hook entrypoint.
  *
@@ -83,14 +71,14 @@ export function useQuizStatsByIdOrSlug(
 
   const fetcher = useMemo<SingleFetcher<QuizStatsResponseDto>>(
     () => async ({ signal }) => {
-      let response: QuizStatsResponseDto;
+      let response: QuizStatsResponseDto | null;
       try {
         response = await getQuizStatsByIdOrSlug(idOrSlug!);
       } catch (err) {
         if (isApiError(err)) {
           throw err;
         }
-        throw wrapAsApiError(err);
+        throw coerceToApiError(err);
       }
       if (signal.aborted) {
         throw new DOMException('aborted', 'AbortError');
@@ -100,7 +88,7 @@ export function useQuizStatsByIdOrSlug(
         typeof response !== 'object' ||
         !('quizId' in response)
       ) {
-        throw wrapAsApiError(
+        throw coerceToApiError(
           new Error('[useQuizStatsByIdOrSlug] malformed stats envelope'),
         );
       }

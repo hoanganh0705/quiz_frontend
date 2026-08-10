@@ -16,7 +16,7 @@
  * - `ALREADY_GRANTED` → surfaces a non-blocking notice without retry.
  * - `IRREVERSIBLE_CONFIRM_REQUIRED` → surfaces the typed-confirm dialog.
  * - `PERMISSION_DENIED` → surfaces without retry.
- * - Every error emits a `phase7:admin` breadcrumb with `requestId`.
+ * - Every error emits a `admin:7.1` breadcrumb with `requestId`.
  *
  * ## Role validation
  *
@@ -33,7 +33,7 @@
 import { useCallback, useRef, useState } from 'react';
 
 import { ApiError } from '@/lib/api/core/ApiError';
-import { addRoleGrantBreadcrumb } from '@/lib/admin/phase7_admin_sentry';
+import { addRoleGrantBreadcrumb } from '@/lib/admin/admin_live_sentry';
 
 import {
   grantUserRole,

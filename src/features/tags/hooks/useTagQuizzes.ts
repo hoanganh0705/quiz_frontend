@@ -45,7 +45,7 @@
 
 import { useMemo } from 'react'
 
-import { ApiError, useCursorPaginated } from '@/lib/api'
+import { ApiError, projectWithId, useCursorPaginated } from '@/lib/api'
 import type { CursorPage } from '@/lib/api/use-cursor-paginated.types'
 import type { QuizListItemDto } from '@/lib/api/generated/schemas'
 
@@ -107,16 +107,15 @@ export function useTagQuizzes(
           >
           // The SDK response items carry `quizId` (not `id`); the cursor
           // primitive's `appendUniqueById` dedup helper requires every T
-          // to extend `{ id: string }`. We synthesize an `id` alias here
-          // — the only place this aliasing happens — and downstream
-          // consumers read `quizId`, never `id`.
-          const itemsWithId = items.map((item) =>
-            Object.assign({}, item, { id: item.quizId }),
-          ) as Array<QuizListItemDto & { id: string }>
-
+          // to extend `{ id: string }`. We project `quizId` onto `id` here
+          // via the runtime helper — the only place this aliasing
+          // happens — and downstream consumers read `quizId`,
+          // never `id`.
           const pagination = result.meta?.pagination
+          const itemsWithId = projectWithId(items as unknown as readonly Record<string, unknown>[], 'quizId')
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           return {
-            items: itemsWithId,
+            items: itemsWithId as any,
             nextCursor: pagination?.nextCursor ?? null,
             hasNextPage: pagination?.hasNextPage ?? false,
             limit: pagination?.limit ?? itemsWithId.length,

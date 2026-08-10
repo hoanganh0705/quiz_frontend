@@ -17,7 +17,7 @@
 
 import { useMemo } from "react";
 
-import { ApiError, useCursorPaginated } from "@/lib/api";
+import { ApiError, projectWithId, useCursorPaginated } from "@/lib/api";
 import type {
   CursorFetcherArgs,
   CursorPage,
@@ -65,9 +65,7 @@ export function useMyQuizzesDrafts(
           })) as unknown as GetMyQuizzesDraftsResponse;
 
           const items = (result.data ?? []) as MyQuizListItem[];
-          const itemsWithId: MyQuizListItem[] = items.map((item) =>
-            Object.assign({}, item, { id: item.quizId }),
-          );
+          const itemsWithId = projectWithId(items as unknown as readonly Record<string, unknown>[], 'quizId') as unknown as MyQuizListItem[];
 
           const pagination = result.meta?.pagination;
           return {

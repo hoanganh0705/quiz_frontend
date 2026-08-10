@@ -8,7 +8,7 @@
  *     revalidation.
  *   - Unauthenticated viewer returns the safe fallback without a
  *     service call.
- *   - `phase6_social === 'placeholder'` returns the safe fallback
+ *   - `social_live === 'placeholder'` returns the safe fallback
  *     without a service call.
  *   - Successful response returns the normalized DTO and the
  *     computed `staleness`.

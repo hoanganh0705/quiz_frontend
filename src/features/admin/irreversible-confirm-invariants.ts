@@ -10,7 +10,7 @@
  * irreversible-admin operation must satisfy before the typed-confirm
  * string is dispatched to the backend. The catalogue is consumed by
  * `useTypedConfirm` (TKT-7.1.B4) and `TypedConfirmDialog` (TKT-7.1.C5)
- * to render the dialog, and by `phase7-lint-invariants.mjs`
+ * to render the dialog, and by `admin-lint-invariants.mjs`
  * (TKT-7.1.B6) to verify the invariants structurally.
  *
  * The invariants:

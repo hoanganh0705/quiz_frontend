@@ -47,28 +47,9 @@ import type {
   CreateTournamentRoundDto,
 } from "@/lib/api/generated/schemas";
 
-import type {
-  TournamentControllerGetUpcomingTournaments200,
-  TournamentControllerGetActiveTournaments200,
-  TournamentControllerGetCompletedTournaments200,
-  TournamentControllerGetRelatedTournaments200,
-  TournamentControllerGetTournamentParticipants200,
-  TournamentControllerGetLeaderboard200,
-  TournamentControllerGetTournamentStats200,
-  TournamentControllerGetTournamentWinners200,
-  TournamentControllerGetMyTournamentStanding200,
-  TournamentControllerCreateTournament201,
-  TournamentControllerCancelTournament200,
-  TournamentControllerUpdateTournament200,
-  TournamentControllerSoftDeleteTournament200,
-  TournamentControllerStartRoundAttempt201,
-  TournamentControllerWithdrawFromTournament200,
-  TournamentControllerCreateTournamentRound201,
-} from "@/lib/api/generated/tournaments/tournaments";
-
 // ─── Type exports ────────────────────────────────────────────────────────────────
 
-export type { ListTournamentsParams } from "@/lib/api/generated/schemas";
+export type { TournamentControllerListTournamentsParams as ListTournamentsParams } from "@/lib/api/generated/schemas";
 
 // ─── Phase 3 wrappers ────────────────────────────────────────────────────────
 
@@ -146,7 +127,7 @@ export async function createTournament(params: CreateTournamentDto) {
  */
 export async function getUpcomingTournaments(
   params?: TournamentControllerGetUpcomingTournamentsParams,
-): Promise<TournamentControllerGetUpcomingTournaments200["data"]> {
+): Promise<unknown> {
   Sentry.addBreadcrumb({
     category: "phase5:service",
     message: "tournaments.getUpcomingTournaments",
@@ -171,7 +152,7 @@ export async function getUpcomingTournaments(
  */
 export async function getActiveTournaments(
   params?: TournamentControllerGetActiveTournamentsParams,
-): Promise<TournamentControllerGetActiveTournaments200["data"]> {
+): Promise<unknown> {
   Sentry.addBreadcrumb({
     category: "phase5:service",
     message: "tournaments.getActiveTournaments",
@@ -196,7 +177,7 @@ export async function getActiveTournaments(
  */
 export async function getCompletedTournaments(
   params?: TournamentControllerGetCompletedTournamentsParams,
-): Promise<TournamentControllerGetCompletedTournaments200["data"]> {
+): Promise<unknown> {
   Sentry.addBreadcrumb({
     category: "phase5:service",
     message: "tournaments.getCompletedTournaments",
@@ -219,14 +200,17 @@ export async function getCompletedTournaments(
  * Returns tournaments related to a specific quiz or category.
  */
 export async function getRelatedTournaments(
-  params: TournamentControllerGetRelatedTournamentsParams,
-): Promise<TournamentControllerGetRelatedTournaments200["data"]> {
+  id: string,
+  params?: TournamentControllerGetRelatedTournamentsParams,
+): Promise<unknown> {
   Sentry.addBreadcrumb({
     category: "phase5:service",
-    message: "tournaments.getRelatedTournaments",
+    message: `tournaments.getRelatedTournaments(${id})`,
   });
-  const data =
-    await getTournaments().tournamentControllerGetRelatedTournaments(params);
+  const data = await getTournaments().tournamentControllerGetRelatedTournaments(
+    id,
+    params,
+  );
   if (!data.data) {
     throw new ApiError({
       status: 500,
@@ -245,7 +229,7 @@ export async function getRelatedTournaments(
 export async function getTournamentParticipants(
   id: string,
   params?: TournamentControllerGetTournamentParticipantsParams,
-): Promise<TournamentControllerGetTournamentParticipants200["data"]> {
+): Promise<unknown> {
   Sentry.addBreadcrumb({
     category: "phase5:service",
     message: `tournaments.getTournamentParticipants(${id})`,
@@ -270,14 +254,13 @@ export async function getTournamentParticipants(
  *
  * Returns aggregated stats for a tournament (participant count, submission count, etc.).
  */
-export async function getTournamentStats(
-  id: string,
-): Promise<TournamentControllerGetTournamentStats200["data"]> {
+export async function getTournamentStats(id: string): Promise<unknown> {
   Sentry.addBreadcrumb({
     category: "phase5:service",
     message: `tournaments.getTournamentStats(${id})`,
   });
-  const data = await getTournaments().tournamentControllerGetTournamentStats(id);
+  const data =
+    await getTournaments().tournamentControllerGetTournamentStats(id);
   if (!data.data) {
     throw new ApiError({
       status: 500,
@@ -293,9 +276,7 @@ export async function getTournamentStats(
  *
  * Returns the winners of a finished tournament.
  */
-export async function getTournamentWinners(
-  id: string,
-): Promise<TournamentControllerGetTournamentWinners200["data"]> {
+export async function getTournamentWinners(id: string): Promise<unknown> {
   Sentry.addBreadcrumb({
     category: "phase5:service",
     message: `tournaments.getTournamentWinners(${id})`,
@@ -317,9 +298,7 @@ export async function getTournamentWinners(
  *
  * Returns the current user's standing within a tournament.
  */
-export async function getMyTournamentStanding(
-  id: string,
-): Promise<TournamentControllerGetMyTournamentStanding200["data"]> {
+export async function getMyTournamentStanding(id: string): Promise<unknown> {
   Sentry.addBreadcrumb({
     category: "phase5:service",
     message: `tournaments.getMyTournamentStanding(${id})`,
@@ -346,13 +325,15 @@ export async function getMyTournamentStanding(
 export async function createTournamentRound(
   id: string,
   params: CreateTournamentRoundDto,
-): Promise<TournamentControllerCreateTournamentRound201["data"]> {
+): Promise<unknown> {
   Sentry.addBreadcrumb({
     category: "phase5:service",
     message: `tournaments.createTournamentRound(${id})`,
   });
-  const data =
-    await getTournaments().tournamentControllerCreateTournamentRound(id, params);
+  const data = await getTournaments().tournamentControllerCreateTournamentRound(
+    id,
+    params,
+  );
   if (!data.data) {
     throw new ApiError({
       status: 500,
@@ -369,9 +350,7 @@ export async function createTournamentRound(
  * Withdraws the current user from a tournament (after registration,
  * before the tournament starts).
  */
-export async function withdrawFromTournament(
-  id: string,
-): Promise<TournamentControllerWithdrawFromTournament200["data"]> {
+export async function withdrawFromTournament(id: string): Promise<unknown> {
   Sentry.addBreadcrumb({
     category: "phase5:service",
     message: `tournaments.withdrawFromTournament(${id})`,
@@ -396,13 +375,15 @@ export async function withdrawFromTournament(
 export async function updateTournament(
   id: string,
   params: UpdateTournamentDto,
-): Promise<TournamentControllerUpdateTournament200["data"]> {
+): Promise<unknown> {
   Sentry.addBreadcrumb({
     category: "phase5:service",
     message: `tournaments.updateTournament(${id})`,
   });
-  const data =
-    await getTournaments().tournamentControllerUpdateTournament(id, params);
+  const data = await getTournaments().tournamentControllerUpdateTournament(
+    id,
+    params,
+  );
   if (!data.data) {
     throw new ApiError({
       status: 500,
@@ -418,9 +399,7 @@ export async function updateTournament(
  *
  * Soft-deletes a tournament. Requires `TOURNAMENT_CREATE` permission.
  */
-export async function deleteTournament(
-  id: string,
-): Promise<TournamentControllerSoftDeleteTournament200["data"]> {
+export async function deleteTournament(id: string): Promise<unknown> {
   Sentry.addBreadcrumb({
     category: "phase5:service",
     message: `tournaments.deleteTournament(${id})`,
@@ -442,15 +421,12 @@ export async function deleteTournament(
  *
  * Cancels a tournament. Requires `TOURNAMENT_CREATE` permission.
  */
-export async function cancelTournament(
-  id: string,
-): Promise<TournamentControllerCancelTournament200["data"]> {
+export async function cancelTournament(id: string): Promise<unknown> {
   Sentry.addBreadcrumb({
     category: "phase5:service",
     message: `tournaments.cancelTournament(${id})`,
   });
-  const data =
-    await getTournaments().tournamentControllerCancelTournament(id);
+  const data = await getTournaments().tournamentControllerCancelTournament(id);
   if (!data.data) {
     throw new ApiError({
       status: 500,

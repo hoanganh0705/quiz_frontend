@@ -10,7 +10,7 @@
  * ## What this module owns
  *
  * A single `SearchGuard` component that renders its children when
- * `phase5_search === 'live'` and `null` when it is `'placeholder'`.
+ * `search_live === 'live'` and `null` when it is `'placeholder'`.
  * This is the single gating surface consumed by `GlobalSearch` (TKT-5.6.D5)
  * and the `/search` route guard (TKT-5.6.F1).
  *
@@ -37,7 +37,7 @@ export interface SearchGuardProps {
   /** Children rendered only when the search surface is live. */
   children: React.ReactNode;
   /**
-   * Optional fallback rendered when `phase5_search === 'placeholder'`.
+   * Optional fallback rendered when `search_live === 'placeholder'`.
    * Defaults to `null` (the page or header shows nothing).
    */
   fallback?: React.ReactNode;
@@ -47,7 +47,7 @@ export interface SearchGuardProps {
  * Feature-flag guard for the search surface.
  *
  * Wraps a subtree that requires the search surface to be live. When
- * `phase5_search === 'placeholder'`, renders `fallback` (or `null`).
+ * `search_live === 'placeholder'`, renders `fallback` (or `null`).
  *
  * @example
  *   // In the header:

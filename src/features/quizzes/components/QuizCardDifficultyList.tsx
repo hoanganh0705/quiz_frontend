@@ -15,8 +15,8 @@ import { quizzes } from '@/features/quizzes/constants/mock-quizzes'
 
 const QuizCardDifficultyList = () => {
   const [selectedDifficulty, setSelectedDifficulty] = useState<
-    'Easy' | 'Medium' | 'Hard'
-  >('Easy')
+    'easy' | 'medium' | 'hard'
+  >('easy')
   const [isBeginning, setIsBeginning] = useState(true)
   const [isEnd, setIsEnd] = useState(false)
 
@@ -43,7 +43,7 @@ const QuizCardDifficultyList = () => {
         </div>
         <div className='flex items-center gap-2'>
           <div className='flex rounded-lg bg-muted p-1'>
-            {(['Easy', 'Medium', 'Hard'] as const).map((level) => (
+            {(['easy', 'medium', 'hard'] as const).map((level) => (
               <Button
                 key={level}
                 onClick={() => setSelectedDifficulty(level)}

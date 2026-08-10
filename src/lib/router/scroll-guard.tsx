@@ -98,7 +98,7 @@ interface ScrollGuardProps {
  * ## Sentry integration
  *
  * On each rejection, the guard emits a breadcrumb:
- *   - `category`: `phase6:6.5`
+ *   - `category`: `social:6.5`
  *   - `message`: `url-rejected-id-guard`
  *   - `data.reason`: `rejected_unstable_id`
  *   - `data.href`: The rejected URL
@@ -113,7 +113,7 @@ export function ScrollGuard({ children }: ScrollGuardProps) {
       if (urlContainsUnstableId(currentHref)) {
         // Emit Sentry breadcrumb.
         Sentry.addBreadcrumb({
-          category: "phase6:6.5",
+          category: "social:6.5",
           message: "url-rejected-id-guard",
           level: "warning",
           data: {
@@ -141,7 +141,7 @@ export function ScrollGuard({ children }: ScrollGuardProps) {
       const targetHref = url?.toString() ?? window.location.href;
       if (urlContainsUnstableId(targetHref)) {
         Sentry.addBreadcrumb({
-          category: "phase6:6.5",
+          category: "social:6.5",
           message: "url-rejected-id-guard",
           level: "warning",
           data: {
@@ -165,7 +165,7 @@ export function ScrollGuard({ children }: ScrollGuardProps) {
       const targetHref = url?.toString() ?? window.location.href;
       if (urlContainsUnstableId(targetHref)) {
         Sentry.addBreadcrumb({
-          category: "phase6:6.5",
+          category: "social:6.5",
           message: "url-rejected-id-guard",
           level: "warning",
           data: {

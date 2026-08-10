@@ -20,7 +20,7 @@
  *
  * ## Placeholder mode
  *
- * When `phase4_attempts` is `'placeholder'` (the default), the
+ * When `attempts_live` is `'placeholder'` (the default), the
  * legacy disabled Start button + tooltip are restored so existing
  * consumers (Story 3.6 placeholder tests) keep their contract.
  *
@@ -60,6 +60,14 @@ const BUTTON_SIZE = 'h-10 w-full min-w-40 sm:w-44';
 export interface QuizCtaStripProps {
   quizId: string;
   /**
+   * Canonical quiz-version id from the published version of the
+   * quiz the CTA targets. Threaded through to `<AttemptStartCta>`
+   * so the runner-store reverse-index write uses the correct
+   * identity on a successful Start. Optional — when omitted, the
+   * Start CTA falls back to using `quizId` for the store index.
+   */
+  quizVersionId?: string | null;
+  /**
    * Route `idOrSlug` (UUID or slug) — required to build runner URLs.
    * Optional so the Story 3.6 placeholder tests can omit it; in
    * production the `QuizDetailPage` always passes the route id.
@@ -68,8 +76,8 @@ export interface QuizCtaStripProps {
   className?: string;
 }
 
-export function QuizCtaStrip({ quizId, idOrSlug, className }: QuizCtaStripProps) {
-  const isPhase4Live = isFeatureEnabled('phase4_attempts', 'live');
+export function QuizCtaStrip({ quizId, quizVersionId, idOrSlug, className }: QuizCtaStripProps) {
+  const isPhase4Live = isFeatureEnabled('attempts_live', 'live');
   const { bootstrapState, currentUser } = useAuthSession();
   const isAuthenticated =
     bootstrapState === 'authenticated' && currentUser !== null;
@@ -112,6 +120,7 @@ export function QuizCtaStrip({ quizId, idOrSlug, className }: QuizCtaStripProps)
     attemptSlot = (
       <AttemptStartCta
         quizId={quizId}
+        quizVersionId={quizVersionId ?? null}
         idOrSlug={idOrSlug ?? null}
         isActiveResolvedEmpty
       />

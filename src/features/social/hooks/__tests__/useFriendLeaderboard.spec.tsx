@@ -9,7 +9,7 @@
  *   - SWR key includes the period.
  *   - Unauthenticated viewer returns the safe fallback without a
  *     service call.
- *   - `phase6_social === 'placeholder'` returns the safe fallback.
+ *   - `social_live === 'placeholder'` returns the safe fallback.
  *   - Backend "no friends" returns `entries: []` with
  *     `hasMore: false`; no error.
  *   - `SOCIAL_FRIEND_LIST_FORBIDDEN` returns `entries: []` and the

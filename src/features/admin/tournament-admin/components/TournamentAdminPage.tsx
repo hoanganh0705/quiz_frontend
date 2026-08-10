@@ -9,7 +9,7 @@
  *   1. **Page header** — title, description, and **New tournament** affordance
  *      (gated on `tournament_create` permission).
  *   2. **Feature-flag gate** — renders a disabled notice when
- *      `phase7_admin_tournament` is not `'enabled'`.
+ *      `admin_tournament_live` is not `'enabled'`.
  *   3. **List integration** — mounts `TournamentAdminList` and opens the
  *      create dialog via the list's ref (`requestCreate`).
  *
@@ -26,7 +26,7 @@ import { Plus } from 'lucide-react';
 
 import { useAdminFeatureFlag } from '@/features/admin/hooks/useAdminFeatureFlag';
 import { usePermission } from '@/features/admin/hooks/usePermission';
-import { AdminPageHeader } from '@/app/admin/_components/AdminPageHeader';
+import { AdminPageHeader } from '@/app/(protected)/admin/_components/AdminPageHeader';
 
 import { TournamentAdminList } from './TournamentAdminList';
 import type { TournamentAdminListHandle } from './TournamentAdminList';
@@ -61,7 +61,7 @@ export const TournamentAdminPage = forwardRef<
 >(function TournamentAdminPage(_props, _ref): React.ReactElement {
   // ─── Feature flag ──────────────────────────────────────────────────────────
 
-  const { value: flagValue } = useAdminFeatureFlag('phase7_admin_tournament');
+  const { value: flagValue } = useAdminFeatureFlag('admin_tournament_live');
 
   // ─── Permission ────────────────────────────────────────────────────────────
 

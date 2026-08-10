@@ -16,7 +16,7 @@
  *   wire response was a bare array or an envelope.
  * - Project each entry to the `EarnedBadge` feature type.
  * - Map service errors to the typed `AchievementErrorCode` union.
- * - Feature-flag gating via `phase5_achievements`.
+ * - Feature-flag gating via `achievements_live`.
  *
  * ## Auth requirement
  *
@@ -34,7 +34,7 @@
  *
  * ## Feature flag
  *
- * When `phase5_achievements === 'placeholder'`, the hook returns
+ * When `achievements_live === 'placeholder'`, the hook returns
  * safe fallback. No service call fires.
  */
 
@@ -73,14 +73,14 @@ export interface UseMyBadgesResult {
  * Returns safe fallback (`badges: []`, `isLoading: false`,
  * `error: null`) when:
  *
- * - `phase5_achievements` is `'placeholder'`.
+ * - `achievements_live` is `'placeholder'`.
  * - The user is unauthenticated.
  *
  * The wire envelope may be a bare array; the service layer applies
  * `normalizeBadgeArray` so the hook surface is always `EarnedBadge[]`.
  */
 export function useMyBadges(): UseMyBadgesResult {
-  const flagValue = getFeatureFlagValue("phase5_achievements");
+  const flagValue = getFeatureFlagValue("achievements_live");
   const isFlagPlaceholder = flagValue === "placeholder";
 
   const { bootstrapState } = useAuthSession();

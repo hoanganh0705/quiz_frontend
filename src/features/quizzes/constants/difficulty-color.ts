@@ -1,13 +1,13 @@
 export const difficultyColors = {
-  Easy: {
+  easy: {
     bg: 'bg-green-600',
     hover: 'hover:bg-green-500'
   },
-  Medium: {
+  medium: {
     bg: 'bg-orange-600',
     hover: 'hover:bg-orange-500'
   },
-  Hard: {
+  hard: {
     bg: 'bg-red-600',
     hover: 'hover:bg-red-500'
   }

@@ -182,3 +182,20 @@ export async function getMyReviewDashboard() {
   const sdk = getReviews();
   return sdk.reviewControllerGetMyReviewDashboard();
 }
+
+/**
+ * `listReviews` — alias for `listQuizReviews`.
+ *
+ * Consumer `QuizDetail/Reviews.tsx` calls `getReviews(quizId, { limit: 20 })`.
+ * The canonical service function is `listQuizReviews`. This re-export as
+ * `listReviews` restores the barrel export that `next build` requires.
+ *
+ * Source epic:   Phase 8 production-readiness hardening.
+ * Source ticket: PROD-A4 — restore missing reviews export.
+ */
+export async function listReviews(
+  quizId: string,
+  params?: { limit?: number },
+) {
+  return listQuizReviews(quizId, params as ListReviewsParams | undefined);
+}

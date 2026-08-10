@@ -72,9 +72,16 @@ export interface SupportArticle {
 }
 
 // ─── Internal helpers ─────────────────────────────────────────────────────
+//
+// The response interceptor in `custom-instance.ts` does NOT unwrap
+// the `{ data, meta }` envelope (see the long-form comment on the
+// interceptor). The wire response is therefore the wrapped envelope;
+// `request` here threads that envelope shape through, and the
+// individual call sites that need the inner payload read `.data`
+// at the call boundary.
 
-async function request<T>(config: Parameters<typeof customInstance.request>[0]): Promise<T> {
-  const response = await customInstance.request<T>(config);
+async function requestEnveloped<T>(config: Parameters<typeof customInstance.request>[0]): Promise<{ data: T }> {
+  const response = await customInstance.request<{ data: T }>(config);
   return response.data;
 }
 
@@ -82,12 +89,14 @@ async function request<T>(config: Parameters<typeof customInstance.request>[0]):
 
 export async function getFAQs(): Promise<FAQCategory[]> {
   Sentry.addBreadcrumb({ category: "phase1:service", message: "support.getFAQs" });
-  return request<FAQCategory[]>({ url: "/support/faqs", method: "GET" });
+  const wire = await requestEnveloped<FAQCategory[]>({ url: "/api/v1/support/faqs", method: "GET" });
+  return wire.data;
 }
 
 export async function getSupportArticles(): Promise<SupportArticle[]> {
   Sentry.addBreadcrumb({ category: "phase1:service", message: "support.getSupportArticles" });
-  return request<SupportArticle[]>({ url: "/support/articles", method: "GET" });
+  const wire = await requestEnveloped<SupportArticle[]>({ url: "/api/v1/support/articles", method: "GET" });
+  return wire.data;
 }
 
 export async function getSupportArticle(slug: string): Promise<SupportArticle> {
@@ -95,19 +104,21 @@ export async function getSupportArticle(slug: string): Promise<SupportArticle> {
     category: "phase1:service",
     message: `support.getSupportArticle(${slug})`,
   });
-  return request<SupportArticle>({
-    url: `/support/articles/${slug}`,
+  const wire = await requestEnveloped<SupportArticle>({
+    url: `/api/v1/support/articles/${slug}`,
     method: "GET",
   });
+  return wire.data;
 }
 
 // ─── Writes ───────────────────────────────────────────────────────────────
 
 export async function submitContactForm(payload: ContactFormRequest): Promise<ContactFormResponse> {
   Sentry.addBreadcrumb({ category: "phase1:service", message: "support.submitContactForm" });
-  return request<ContactFormResponse>({
-    url: "/support/contact",
+  const wire = await requestEnveloped<ContactFormResponse>({
+    url: "/api/v1/support/contact",
     method: "POST",
     data: payload,
   });
+  return wire.data;
 }

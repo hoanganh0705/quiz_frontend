@@ -404,3 +404,35 @@ export function NotificationSkeleton({ className }: { className?: string }) {
     </div>
   )
 }
+
+/**
+ * `RouteGateSkeleton` — generic route-gate placeholder for the
+ * social `<Suspense>` fallback (Phase 7 / P2-23).
+ *
+ * Each social route wraps a `*RouteGate` component in
+ * `<Suspense fallback={…}>`. The previous fallback was
+ * `null`, which left the page visually empty during the
+ * client-side hydration step. This skeleton replaces that
+ * silent blank with a low-fidelity placeholder so users see
+ * that something is loading.
+ *
+ * Shape: a single full-width card mirroring the standard
+ * route header (title + subtitle + content block). It is
+ * intentionally feature-agnostic; per-route skeletons would
+ * be the next iteration if load times warrant.
+ */
+export function RouteGateSkeleton({ className }: { className?: string }) {
+  return (
+    <div className={cn('space-y-4 p-4', className)}>
+      <div className='space-y-2'>
+        <Skeleton className='h-6 w-48' />
+        <Skeleton className='h-4 w-72' />
+      </div>
+      <div className='space-y-2'>
+        <Skeleton className='h-24 w-full' />
+        <Skeleton className='h-24 w-full' />
+        <Skeleton className='h-24 w-full' />
+      </div>
+    </div>
+  )
+}

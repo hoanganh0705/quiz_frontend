@@ -51,6 +51,8 @@ import {
 import { LoadingSpinner } from '@/components/ui/loading-states/LoadingSpinner';
 
 import { usePublishVersion } from '@/features/quizzes/hooks/usePublishVersion';
+import type { QuizVersionSummary } from '@/features/quizzes/types/quiz-version.types';
+import { ApiError } from '@/lib/api';
 
 /**
  * Props for the `<PublishCta />` component.
@@ -91,14 +93,14 @@ export const PublishCta = memo(function PublishCta({
 
   const { publishVersion, error } = usePublishVersion({
     onSuccess: useCallback(
-      (_result) => {
+      (_result: QuizVersionSummary) => {
         // Navigate to the public quiz page on success.
         router.push(`/quizzes/${slug}`);
       },
       [router, slug],
     ),
     onError: useCallback(
-      (_apiError) => {
+      (_apiError: { code: string; message: string }) => {
         // Error handling is done by the parent (typically shows a toast).
         // The CTA stays enabled for retry after errors.
       },

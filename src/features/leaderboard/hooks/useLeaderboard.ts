@@ -57,7 +57,7 @@
 
 import { useMemo } from 'react'
 
-import { ApiError, useCursorPaginated } from '@/lib/api'
+import { ApiError, projectWithId, useCursorPaginated } from '@/lib/api'
 import type { OffsetPage } from '@/lib/api/use-cursor-paginated.types'
 import type { LeaderboardEntryDto } from '@/lib/api/generated/schemas'
 
@@ -126,12 +126,10 @@ export function useLeaderboard(
 
         const data = (result as { data?: { entries?: LeaderboardEntryDto[] } }).data
         const entries = (data?.entries ?? []) as Array<LeaderboardEntryWithId>
-        // Synthesise `id` alias of `userId` here — the only place
-        // this aliasing happens. Downstream consumers read `userId`,
-        // never `id`.
-        const itemsWithId = entries.map((entry) =>
-          Object.assign({}, entry, { id: entry.userId }),
-        ) as Array<LeaderboardEntryWithId>
+        // Project `userId` onto `id` via the runtime helper — the
+        // only place this aliasing happens. Downstream consumers
+        // read `userId`, never `id`.
+        const itemsWithId = projectWithId(entries as unknown as readonly Record<string, unknown>[], 'userId') as unknown as Array<LeaderboardEntryWithId>
 
         const pagination = (result as {
           data?: { pagination?: { hasMore?: boolean; limit?: number } }

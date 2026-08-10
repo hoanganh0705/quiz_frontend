@@ -7,7 +7,7 @@
  *   - Happy path: SDK envelope unwraps, rows are projected
  *     through `toActivityItem` (unknown `type` values are
  *     dropped), `visibility: 'visible'`.
- *   - The wrapper emits two `phase6:6.4` breadcrumbs per call
+ *   - The wrapper emits two `social:6.4` breadcrumbs per call
  *     (one in-flight + one resolved) carrying the documented
  *     payload.
  *   - 4xx / 5xx errors propagate as `ApiError` with the
@@ -176,7 +176,7 @@ describe("activity.service — getUserActivity", () => {
     expect(result.items[0]!.id).toBe("activity-1");
   });
 
-  it("emits two phase6:6.4 breadcrumbs (in-flight + resolved)", async () => {
+  it("emits two social:6.4 breadcrumbs (in-flight + resolved)", async () => {
     mockSocialControllerGetUserActivity.mockResolvedValue({
       data: [
         {

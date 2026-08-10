@@ -9,7 +9,7 @@
  * ## Purpose
  *
  * Renders the documented "Admin surfaces coming soon" surface when
- * `phase7_admin` is `'placeholder'` (the production default).  The
+ * `admin_live` is `'placeholder'` (the production default).  The
  * component is a passthrough when the flag is `'live'` so the parent
  * boundary never needs a conditional — it always renders the same
  * node, and this component decides whether to show the unavailable
@@ -53,13 +53,13 @@ export interface AdminShellUnavailableProps {
 }
 
 /**
- * Renders the "Admin coming soon" notice when `phase7_admin` is off,
+ * Renders the "Admin coming soon" notice when `admin_live` is off,
  * or forwards `children` unchanged when the flag is live.
  */
 export function AdminShellUnavailable({
   children,
 }: AdminShellUnavailableProps) {
-  const { isPlaceholder } = useAdminFeatureFlag('phase7_admin');
+  const { isPlaceholder } = useAdminFeatureFlag('admin_live');
 
   if (isPlaceholder) {
     return (
@@ -68,7 +68,7 @@ export function AdminShellUnavailable({
         title="Admin surfaces coming soon"
         description={
           'The admin console is not yet enabled in this environment. ' +
-          'Set NEXT_PUBLIC_PHASE7_ADMIN=live to preview the admin surfaces, ' +
+          'Set NEXT_PUBLIC_ADMIN_LIVE=live to preview the admin surfaces, ' +
           'or contact your administrator to enable the flag.'
         }
         size="md"

@@ -155,9 +155,7 @@ export function useUpdateMyProfile(
           const code = isApiError(apiError) ? apiError.code : 'GLOBAL_UNKNOWN';
           onError?.(code);
         },
-        broadcasts: userId
-          ? { type: 'profile/updated', userId, kind: 'me' satisfies ProfileUpdateKind }
-          : undefined,
+        broadcasts: undefined,
       });
 
       emitBreadcrumb('phase4:4.3:profile', {
@@ -170,7 +168,7 @@ export function useUpdateMyProfile(
 
       return result;
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
     [mutate, storeUser, setUser, onSuccess, onError],
   );
 

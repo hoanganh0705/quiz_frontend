@@ -1,6 +1,7 @@
 'use client'
 
 import { LucideIcon } from 'lucide-react'
+import type { ComponentType } from 'react'
 import { Button } from '@/components/ui/Button'
 import { cn } from '@/shared/utils/merge-class-names'
 
@@ -8,12 +9,12 @@ interface EmptyStateAction {
   label: string
   href?: string
   onClick?: () => void
-  variant?: 'default' | 'outline' | 'secondary' | 'ghost'
+  variant?: 'default' | 'outline' | 'secondary' | 'destructive' | 'ghost'
   icon?: LucideIcon
 }
 
 interface EmptyStateProps {
-  icon: LucideIcon
+  icon: ComponentType<{ className?: string }>
   title: string
   description: string
   actions?: EmptyStateAction[]

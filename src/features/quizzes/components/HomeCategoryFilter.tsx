@@ -50,10 +50,16 @@ import { useCategoriesRanked } from '@/features/categories/hooks/useCategoriesRa
 
 /**
  * Discriminator used in the `<Select />` value to represent the
- * "All categories" affordance. The empty string is the canonical
- * mapping back to `undefined` (Story 3.5 C3 uses the same convention).
+ * "All categories" affordance. Maps back to `undefined` for callers.
+ *
+ * We deliberately use a non-empty sentinel (`__all__`) here instead of
+ * `''` — Radix UI's `<Select.Item />` reserves the empty string to
+ * mean "clear the selection and show the placeholder", and supplying
+ * `value=""` throws
+ * `A <Select.Item /> must have a value prop that is not an empty string`.
+ * The global `<FilterBar />` slot uses the same `__all__` convention.
  */
-export const HOME_CATEGORY_FILTER_ALL = ''
+export const HOME_CATEGORY_FILTER_ALL = '__all__'
 
 export interface HomeCategoryFilterProps {
   /**

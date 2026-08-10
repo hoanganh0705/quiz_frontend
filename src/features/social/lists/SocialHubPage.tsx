@@ -61,7 +61,7 @@ import { SocialListErrorState } from "@/features/social/components/SocialListErr
 import {
   addSocialAnalyticsBreadcrumb,
   SOCIAL_ANALYTICS_ROUTES,
-} from "@/lib/social/phase6_6_3_sentry";
+} from "@/lib/social/social-block-sentry";
 
 interface EntryTileConfig {
   testId: string;
@@ -119,7 +119,7 @@ export function SocialHubPage(
 
   const { counts, isLoading, isStale, error, retry } = useSocialCounts(key);
 
-  // TKT-6.3.H2 — emit a single `phase6:6.3` breadcrumb per
+  // TKT-6.3.H2 — emit a single `social:6.3` breadcrumb per
   // counts fetch transition. The `useRef` remembers the last
   // reported state so we only emit on transitions, not every
   // render.

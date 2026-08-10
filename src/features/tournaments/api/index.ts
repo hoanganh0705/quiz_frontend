@@ -14,7 +14,5 @@ export {
   getTournaments,
   getFeaturedTournament,
   getTournamentDetails,
-  registerForTournament,
-  cancelTournamentRegistration,
   getTournamentCategories
 } from './tournaments'

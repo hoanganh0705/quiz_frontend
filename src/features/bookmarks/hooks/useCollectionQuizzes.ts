@@ -23,25 +23,34 @@
  *   - Returns `loadMore` for triggering next page.
  */
 
-'use client';
+"use client";
 
-import { useMemo } from 'react';
-import useSWR from 'swr';
-import { mutate as globalMutate } from 'swr';
+import { useMemo } from "react";
+import useSWR from "swr";
+import { mutate as globalMutate } from "swr";
 
-import { ApiError, isApiError } from '@/lib/api';
-import type { CursorFetcherArgs, CursorPage } from '@/lib/api/use-cursor-paginated.types';
-import { useAuthState } from '@/features/auth/hooks/use-auth-state';
-import { listBookmarksInCollection } from '@/features/bookmarks/api';
-import type { CollectionQuiz, BookmarkedQuizResponseDto } from '@/features/bookmarks/types';
-import { toCollectionQuiz, collectionQuizzesKey } from '@/features/bookmarks/types';
+import { ApiError, isApiError } from "@/lib/api";
+import type {
+  CursorFetcherArgs,
+  CursorPage,
+} from "@/lib/api/use-cursor-paginated.types";
+import { useAuthState } from "@/features/auth/hooks/use-auth-state";
+import { listBookmarksInCollection } from "@/features/bookmarks/api";
+import type {
+  CollectionQuiz,
+  BookmarkedQuizResponseDto,
+} from "@/features/bookmarks/types";
+import {
+  toCollectionQuiz,
+  collectionQuizzesKey,
+} from "@/features/bookmarks/types";
 
 /**
  * Public result type for `useCollectionQuizzes`.
  */
 export interface UseCollectionQuizzesResult {
   /** Array of quizzes in the collection. */
-  quizzes: CollectionQuiz[];
+  quizzes: readonly CollectionQuiz[];
   /** Cursor for the next page, or null if no more pages. */
   cursor: string | null;
   /** True if there are more pages to load. */
@@ -67,7 +76,7 @@ interface BookmarksListResponse {
   };
   meta?: {
     pagination?: {
-      kind: 'cursor';
+      kind: "cursor";
       limit: number;
       nextCursor: string | null;
       hasNextPage: boolean;
@@ -88,25 +97,31 @@ export function useCollectionQuizzes(
 
   // Build the fetcher that wraps the SDK call.
   const fetcher = useMemo(
-    (): (args: CursorFetcherArgs<Record<string, never>>) => Promise<CursorPage<CollectionQuiz>> =>
-      async ({ cursor, params: _params, signal }) => {
-        const result = (await listBookmarksInCollection(collectionId!)) as BookmarksListResponse;
+    (): ((
+      args: CursorFetcherArgs<Record<string, never>>,
+    ) => Promise<CursorPage<CollectionQuiz>>) =>
+      async ({ cursor }) => {
+        const result = (await listBookmarksInCollection(
+          collectionId!,
+        )) as unknown as BookmarksListResponse;
 
-        const items = (result.data?.items ?? []) as Array<Record<string, unknown>>;
+        const items = (result.data?.items ?? []) as Array<
+          Record<string, unknown>
+        >;
         const quizzes: CollectionQuiz[] = items.map((item) =>
           toCollectionQuiz(item as unknown as BookmarkedQuizResponseDto),
         );
 
-        // Assign `id` alias so cursor pagination deduplication works.
-        const itemsWithId: CollectionQuiz[] = quizzes.map((item) =>
-          Object.assign({}, item, { id: item.bookmarkId }),
-        );
+        // `CollectionQuiz` already has `bookmarkId` as the primary key —
+        // no need to project a new `id` field.
+        const itemsWithId = quizzes as unknown as Array<{ id: string }>;
 
         const pagination = result.meta?.pagination;
 
         return {
-          items: itemsWithId,
-          nextCursor: cursor ?? (pagination?.nextCursor ?? null),
+          items: itemsWithId as unknown as CollectionQuiz[] &
+            Array<{ id: string }>,
+          nextCursor: cursor ?? pagination?.nextCursor ?? null,
           hasNextPage: pagination?.hasNextPage ?? false,
           limit: pagination?.limit ?? itemsWithId.length,
         };
@@ -115,19 +130,22 @@ export function useCollectionQuizzes(
   );
 
   // Build the SWR key.
-  const swrKey = collectionId && isAuthenticated
-    ? collectionQuizzesKey(collectionId)
-    : null;
+  const swrKey =
+    collectionId && isAuthenticated ? collectionQuizzesKey(collectionId) : null;
 
   // Use useSWR directly for now since useCursorPaginated requires specific setup.
   // For a more robust pagination solution, this can be extended.
-  const swr = useSWR(swrKey, () => fetcher({ cursor: null, params: {}, signal: undefined }), {
-    revalidateOnFocus: true,
-  });
+  const swr = useSWR(
+    swrKey,
+    () => fetcher({ cursor: null, params: {}, signal: undefined }),
+    {
+      revalidateOnFocus: true,
+    },
+  );
 
   // Extract data from response
   const data = swr.data;
-  const quizzes: CollectionQuiz[] = data?.items ?? [];
+  const quizzes: readonly CollectionQuiz[] = data?.items ?? [];
 
   // Pagination state
   const cursor = data?.nextCursor ?? null;
@@ -142,7 +160,7 @@ export function useCollectionQuizzes(
     const first = swr.error;
     if (!first) return null;
     if (isApiError(first)) return first;
-    if (first && typeof first === 'object' && 'status' in first) {
+    if (first && typeof first === "object" && "status" in first) {
       return first as unknown as ApiError;
     }
     return {

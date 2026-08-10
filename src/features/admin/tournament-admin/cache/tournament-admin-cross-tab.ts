@@ -36,7 +36,7 @@
  *
  * ## Event shape
  *
- * Single event type: `phase7:admin.tournament-admin.invalidate`. The payload
+ * Single event type: `admin:7.1.tournament-admin.invalidate`. The payload
  * carries `mutation` (the kind of mutation that triggered the
  * revalidation) and `tournamentId` (the affected tournament id). The receiving
  * tab invalidates the admin list and public tournament caches via the
@@ -71,7 +71,7 @@ export const TOURNAMENT_ADMIN_CHANNEL_NAME = 'phase7-admin-tournament' as const;
  * Currently a single event type; the union exists so future tournament
  * admin events can be added without breaking the discriminated-union contract.
  */
-export type TournamentAdminEventType = 'phase7:admin.tournament-admin.invalidate';
+export type TournamentAdminEventType = 'admin:7.1.tournament-admin.invalidate';
 
 /**
  * Discriminator for which mutation triggered the revalidation. Lets
@@ -106,7 +106,7 @@ export interface BaseTournamentAdminEvent {
  * public tournament caches so the next render reflects the new state.
  */
 export interface TournamentAdminInvalidatedEvent extends BaseTournamentAdminEvent {
-  type: 'phase7:admin.tournament-admin.invalidate';
+  type: 'admin:7.1.tournament-admin.invalidate';
 }
 
 /**
@@ -128,7 +128,7 @@ const tournamentAdminChannel = createBroadcastChannel<TournamentAdminEvent>(
     validate: (data): TournamentAdminEvent | null => {
       if (typeof data !== 'object' || data === null) return null;
       const d = data as Partial<TournamentAdminInvalidatedEvent>;
-      if (d.type !== 'phase7:admin.tournament-admin.invalidate') return null;
+      if (d.type !== 'admin:7.1.tournament-admin.invalidate') return null;
       if (typeof d.tabId !== 'string' || d.tabId.length === 0) return null;
       if (typeof d.timestamp !== 'number') return null;
       if (
@@ -219,7 +219,7 @@ export function broadcastTournamentAdminInvalidate(
   }
   if (!TOURNAMENT_ADMIN_VALID_MUTATIONS.has(mutation)) return;
   tournamentAdminChannel.publish({
-    type: 'phase7:admin.tournament-admin.invalidate',
+    type: 'admin:7.1.tournament-admin.invalidate',
     mutation,
     tournamentId,
   });

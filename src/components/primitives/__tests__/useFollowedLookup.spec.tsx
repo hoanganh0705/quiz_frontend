@@ -15,7 +15,11 @@
  *       `error: ApiError` (the wrapper mock simulates a 401).
  *   (d) `mutate()` fans out to both SWR keys (categories + tags).
  *   (e) The SWR keys are stable: `['follow-lookup', 'categories',
- *       { limit: 500 }]` and `['follow-lookup', 'tags', { limit: 500 }]`.
+ *       { limit: 100 }]` and `['follow-lookup', 'tags', { limit: 100 }]`,
+ *       where `100` is the `FOLLOWED_LOOKUP_LIMIT` constant. The limit
+ *       MUST match the backend's `Max(100)` validator on
+ *       `/api/v1/users/me/followed-{categories,tags}`; if either side
+ *       changes, change both together.
  *
  * Test-environment notes: vitest's `jsdom` project picks up files
  * under `src/components/primitives/__tests__/`. The setupFile
@@ -253,6 +257,6 @@ describe('useFollowedLookup — SWR keys', () => {
       'tags',
       { limit: FOLLOWED_LOOKUP_LIMIT },
     ]);
-    expect(FOLLOWED_LOOKUP_LIMIT).toBe(500);
+    expect(FOLLOWED_LOOKUP_LIMIT).toBe(100);
   });
 });

@@ -1,12 +1,12 @@
 import { Button } from '@/components/ui/Button'
-import type { QuizQuestionResponseDto } from '@/lib/api/generated/schemas'
+import type { QuizQuestionAuthorDto } from '@/lib/api/generated/schemas'
 
 interface QuizOverviewPanelProps {
   description: string
   requirements: string
   duration: number
   tags: string[]
-  previewQuestions: QuizQuestionResponseDto[]
+  previewQuestions: QuizQuestionAuthorDto[]
   questionCount: number
 }
 
@@ -57,7 +57,7 @@ export default function QuizOverviewPanel({
             const isLocked = index >= 2
             return (
               <div
-                key={question.quizQuestionId ?? index}
+                key={question.questionId ?? index}
                 className={`rounded-lg border border-border bg-background p-4 ${
                   isLocked ? 'relative overflow-hidden' : ''
                 }`}
@@ -74,7 +74,7 @@ export default function QuizOverviewPanel({
                     isLocked ? 'blur-[3px]' : ''
                   }`}
                 >
-                  {question.answers?.length ?? 0} options
+                  {question.answerOptions?.length ?? 0} options
                 </div>
                 {isLocked && (
                   <div className='absolute inset-0 flex items-center justify-center bg-background/60'>

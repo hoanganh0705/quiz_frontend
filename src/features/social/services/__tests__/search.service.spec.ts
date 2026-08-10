@@ -7,7 +7,7 @@
  *   - Happy path: SDK envelope unwraps, items are returned,
  *     `total` is derived from the meta pagination, `cooldownSeconds`
  *     is decoded from response headers (null when absent).
- *   - The wrapper emits two `phase6:6.1` breadcrumbs per call
+ *   - The wrapper emits two `social:6.1` breadcrumbs per call
  *     (one in-flight + one resolved) carrying the documented payload.
  *   - 4xx / 5xx errors propagate as `ApiError` with the documented
  *     `code` accessible.

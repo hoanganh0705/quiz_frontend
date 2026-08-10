@@ -104,7 +104,7 @@ export function TournamentRegistrationCta({
   className,
 }: TournamentRegistrationCtaProps) {
   // Feature flag check
-  const flagValue = getFeatureFlagValue("phase5_tournaments");
+  const flagValue = getFeatureFlagValue("tournaments_live");
   const isFlagPlaceholder = flagValue === "placeholder";
 
   // Auth state

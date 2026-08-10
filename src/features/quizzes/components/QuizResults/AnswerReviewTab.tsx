@@ -142,7 +142,7 @@ function QuestionReviewItem({
                 />
               ))}
               {!review.userAnswer && (
-                <p className='text-sm text-foreground/50 italic'>
+                <p className='text-sm text-muted-foreground italic'>
                   You didn&apos;t answer this question
                 </p>
               )}

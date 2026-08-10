@@ -16,7 +16,7 @@
  *   type with an `id` alias so SWR deduplication works.
  * - Map service errors to the typed `AchievementErrorCode` union.
  * - Category filter changes reset pagination to the first page.
- * - Feature-flag gating via `phase5_achievements`.
+ * - Feature-flag gating via `achievements_live`.
  *
  * ## Pagination kind
  *
@@ -31,7 +31,7 @@
  *
  * ## Feature flag
  *
- * When `phase5_achievements === 'placeholder'`, the hook returns
+ * When `achievements_live === 'placeholder'`, the hook returns
  * safe fallback. No service call fires.
  */
 
@@ -97,7 +97,7 @@ const DEFAULT_LIMIT = 20;
  * Returns safe fallback (`items: []`, `isLoading: false`,
  * `error: null`) when:
  *
- * - `phase5_achievements` is `'placeholder'`.
+ * - `achievements_live` is `'placeholder'`.
  * - The user is unauthenticated.
  *
  * Category filter changes reset pagination to the first page.
@@ -105,7 +105,7 @@ const DEFAULT_LIMIT = 20;
 export function useAchievementHistory(
   filters: Partial<AchievementHistoryFilters> = DEFAULT_ACHIEVEMENT_HISTORY_FILTERS,
 ): UseAchievementHistoryResult {
-  const flagValue = getFeatureFlagValue("phase5_achievements");
+  const flagValue = getFeatureFlagValue("achievements_live");
   const isFlagPlaceholder = flagValue === "placeholder";
 
   const { bootstrapState } = useAuthSession();

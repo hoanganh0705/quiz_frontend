@@ -183,12 +183,12 @@ export function ReviewReportDetailPanel({
       onKeyDown={handleKeyDown}
       data-testid={`review-report-detail-panel-${report.reportId}`}
       className={cn(
-        'flex h-full w-full flex-col gap-4 overflow-hidden rounded-lg border border-slate-200 bg-white',
+        'flex h-full w-full flex-col gap-4 overflow-hidden rounded-lg border border-border bg-background',
         className ?? '',
       )}
     >
       <header
-        className="flex items-start justify-between gap-2 border-b border-slate-200 px-5 py-3"
+        className="flex items-start justify-between gap-2 border-b border-border px-5 py-3"
         data-testid={`review-report-detail-header-${report.reportId}`}
       >
         <div className="flex flex-col gap-1">
@@ -218,7 +218,7 @@ export function ReviewReportDetailPanel({
       >
         {/* Snapshot block — always rendered. */}
         <section
-          className="rounded-md border border-slate-200 bg-slate-50 px-4 py-3"
+          className="rounded-md border border-border bg-muted/40 px-4 py-3"
           data-testid={`review-report-detail-snapshot-${report.reportId}`}
         >
           <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
@@ -253,7 +253,7 @@ export function ReviewReportDetailPanel({
           </div>
 
           {report.comment !== null && report.comment !== undefined ? (
-            <p className="mt-3 rounded-sm border border-slate-200 bg-white px-3 py-2 text-sm italic text-slate-800">
+            <p className="mt-3 rounded-sm border border-border bg-background px-3 py-2 text-sm italic text-foreground">
               &ldquo;{report.comment}&rdquo;
             </p>
           ) : (
@@ -276,7 +276,7 @@ export function ReviewReportDetailPanel({
         {/* Live-fetch fallback block — only when the DTO doesn't
             carry the live values and `useReview` can fill them in. */}
         <section
-          className="rounded-md border border-slate-200 px-4 py-3"
+          className="rounded-md border border-border px-4 py-3"
           data-testid={`review-report-detail-live-${report.reportId}`}
         >
           <div className="flex items-center justify-between gap-2">
@@ -366,7 +366,7 @@ export function ReviewReportDetailPanel({
       </div>
 
       <footer
-        className="flex items-center justify-between gap-2 border-t border-slate-200 px-5 py-3"
+        className="flex items-center justify-between gap-2 border-t border-border px-5 py-3"
         data-testid={`review-report-detail-footer-${report.reportId}`}
       >
         <p className="text-xs text-muted-foreground">

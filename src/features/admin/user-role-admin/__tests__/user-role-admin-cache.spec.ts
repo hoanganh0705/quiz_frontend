@@ -5,7 +5,7 @@
  * Source ticket: TKT-7.10.B3.
  */
 
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
   USER_ROLE_ADMIN_PREFIX,
@@ -13,6 +13,16 @@ import {
   userRoleAdminSearchKey,
   invalidateUserRoleCache,
 } from '../user-role-admin-cache';
+
+const mutateMock = vi.hoisted(() => vi.fn().mockResolvedValue(undefined));
+
+vi.mock('swr', async () => {
+  const actual = await vi.importActual<typeof import('swr')>('swr');
+  return {
+    ...actual,
+    mutate: mutateMock,
+  };
+});
 
 describe('user-role-admin-cache', () => {
   describe('USER_ROLE_ADMIN_PREFIX', () => {
@@ -75,35 +85,36 @@ describe('user-role-admin-cache', () => {
   });
 
   describe('invalidateUserRoleCache', () => {
+    beforeEach(() => {
+      mutateMock.mockClear();
+    });
+
     it('should call mutate with the correct key', async () => {
       const userId = 'user-123';
-      const mutateSpy = vi.spyOn(await import('swr'), 'mutate');
 
       await invalidateUserRoleCache(userId);
 
-      expect(mutateSpy).toHaveBeenCalledWith(userRoleListKey(userId));
+      expect(mutateMock).toHaveBeenCalledWith(userRoleListKey(userId));
     });
 
     it('should also invalidate search cache when query is provided', async () => {
       const userId = 'user-123';
       const searchQuery = 'test-query';
-      const mutateSpy = vi.spyOn(await import('swr'), 'mutate');
 
       await invalidateUserRoleCache(userId, searchQuery);
 
-      expect(mutateSpy).toHaveBeenCalledWith(userRoleListKey(userId));
-      expect(mutateSpy).toHaveBeenCalledWith(
+      expect(mutateMock).toHaveBeenCalledWith(userRoleListKey(userId));
+      expect(mutateMock).toHaveBeenCalledWith(
         userRoleAdminSearchKey(searchQuery),
       );
     });
 
     it('should only call mutate once when no search query', async () => {
       const userId = 'user-123';
-      const mutateSpy = vi.spyOn(await import('swr'), 'mutate');
 
       await invalidateUserRoleCache(userId);
 
-      expect(mutateSpy).toHaveBeenCalledTimes(1);
+      expect(mutateMock).toHaveBeenCalledTimes(1);
     });
   });
 });

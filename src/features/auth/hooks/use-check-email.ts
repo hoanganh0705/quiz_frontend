@@ -41,7 +41,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 
-import { checkEmail } from '@/features/auth/service/auth.service';
+import { checkEmail } from '@/features/auth/services/auth.service';
 import { mapAvailabilityError } from '@/features/auth/errors/register-error-mapper';
 import type { AvailabilityStatus } from '@/features/auth/errors/register-error-mapper';
 
@@ -127,7 +127,7 @@ export function useCheckEmail({
         .then((result) => {
           if (tokenRef.current !== token) return;
           if (controller.signal.aborted) return;
-          setStatus(result.available ? 'available' : 'unavailable');
+          setStatus(result.data?.available ? 'available' : 'unavailable');
         })
         .catch((err: unknown) => {
           if (tokenRef.current !== token) return;

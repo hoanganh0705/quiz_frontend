@@ -13,7 +13,7 @@
  *
  *   - Renders a small banner above the feed with the text
  *     "Global feed — personalization coming soon".
- *   - Is always visible (not gated by the `phase6_social_feed`
+ *   - Is always visible (not gated by the `social_feed_live`
  *     feature-flag value — the notice is the single source of
  *     truth that the feed is global, not personalised).
  *   - Uses a calm visual style (no aggressive warning icon).

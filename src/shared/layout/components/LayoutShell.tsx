@@ -23,7 +23,6 @@ const SHELL_PREFIXES = [
   "/categories",
   "/create-quiz",
   "/daily-challenge",
-  "/discussions",
   "/friends",
   "/leaderboard",
   "/my-profile",
@@ -37,6 +36,15 @@ const SHELL_PREFIXES = [
   "/tournament",
 ] as const;
 
+// Pages that should be treated as shell pages ONLY when the pathname is
+// an exact match (i.e. not a `startsWith` prefix). The home page is the
+// only such route today — it lives at `/`, and adding `"/"` to
+// `SHELL_PREFIXES` would make every page a shell page because every
+// pathname `startsWith("/")`.
+//
+// Routes added here MUST be exact-matched; do not add nested paths.
+const SHELL_EXACT_PATHS = ["/"] as const;
+
 // Pages that show no shell at all (full-page auth screens)
 const AUTH_PAGES = [
   "/login",
@@ -48,6 +56,7 @@ const AUTH_PAGES = [
 
 function isShellPage(pathname: string | undefined): boolean {
   if (!pathname) return true;
+  if (SHELL_EXACT_PATHS.some((p) => pathname === p)) return true;
   return SHELL_PREFIXES.some((p) => pathname.startsWith(p));
 }
 
@@ -151,7 +160,6 @@ export function LayoutShell({ children }: { children: React.ReactNode }) {
       "/my-profile",
       "/quiz-history",
       "/friends",
-      "/discussions",
       "/notifications",
       "/tournament",
       "/create-quiz",

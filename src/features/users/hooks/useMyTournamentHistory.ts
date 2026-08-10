@@ -19,7 +19,7 @@
 
 import { useMemo } from "react";
 
-import { ApiError, useCursorPaginated } from "@/lib/api";
+import { ApiError, projectWithId, useCursorPaginated } from "@/lib/api";
 import type {
   CursorFetcherArgs,
   CursorPage,
@@ -76,9 +76,7 @@ export function useMyTournamentHistory(
           })) as ListMyTournamentHistoryResponse;
 
           const items = (result.data ?? []) as MyTournamentHistoryItemDto[];
-          const itemsWithId: TournamentHistoryItem[] = items.map((item) =>
-            Object.assign({}, item, { id: item.tournamentId }),
-          );
+          const itemsWithId = projectWithId(items as unknown as readonly Record<string, unknown>[], 'tournamentId') as unknown as TournamentHistoryItem[];
 
           const pagination = result.meta?.pagination;
           return {
