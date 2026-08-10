@@ -25,9 +25,9 @@
 import { useCallback, useEffect } from 'react';
 
 import { useAdminFeatureFlag } from '@/features/admin/hooks/useAdminFeatureFlag';
-import { AdminPageHeader } from '@/app/admin/_components/AdminPageHeader';
+import { AdminPageHeader } from '@/app/(protected)/admin/_components/AdminPageHeader';
 import { AdminRoleGuard } from '@/features/admin/components/AdminRoleGuard';
-import { addAchievementAdminBreadcrumb } from '@/lib/admin/phase7_admin_sentry';
+import { addAchievementAdminBreadcrumb } from '@/lib/admin/admin_live_sentry';
 
 import {
   AchievementAdminBadgeList,
@@ -79,7 +79,7 @@ export function AchievementAdminUserPage({
 
   // ─── Feature flag ────────────────────────────────────────────────────────
 
-  const { value: flagValue } = useAdminFeatureFlag('phase7_admin_achievement');
+  const { value: flagValue } = useAdminFeatureFlag('admin_achievement_live');
 
   // ─── Sentry breadcrumb ──────────────────────────────────────────────────
 
@@ -87,20 +87,20 @@ export function AchievementAdminUserPage({
     if (!isValid) return;
 
     addAchievementAdminBreadcrumb({
+      route: 'achievement-admin.mount',
       action: 'achievement-admin.mount',
       targetId: userId,
       status: 'started',
       durationMs: 0,
-      before: null,
     });
 
     return () => {
       addAchievementAdminBreadcrumb({
+        route: 'achievement-admin.unmount',
         action: 'achievement-admin.unmount',
         targetId: userId,
-        status: 'stopped',
+        status: 'skipped',
         durationMs: 0,
-        before: null,
       });
     };
   }, [isValid, userId]);

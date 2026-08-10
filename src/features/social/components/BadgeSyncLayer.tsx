@@ -22,7 +22,7 @@
  *   3. Mounts `useUnreadNotificationCount` (Phase 5 / TKT-5.4.B2)
  *      which optimistically increments the unread-count badge for
  *      every accepted `notification:sent` (Phase 5 owns this).
- *   4. Returns `null` when the `phase6_social_notifications` feature
+ *   4. Returns `null` when the `social_realtime_notifications_live` feature
  *      flag is `'placeholder'`, so disabled environments render no
  *      extra nodes in the tree.
  *
@@ -38,7 +38,7 @@
  *
  * The component does NOT carry `friendshipId` or `followId` in any
  * breadcrumb. All telemetry is delegated to the underlying hook,
- * whose helper (`phase6_6_10_sentry.ts`) sanitises the payload.
+ * whose helper (`social-realtime-sentry.ts`) sanitises the payload.
  *
  * ## SSR
  *
@@ -78,7 +78,7 @@ export function BadgeSyncLayer(): null {
 
   // Mount the unread-count badge listener. Phase 5 owns this hook;
   // it handles the optimistic increment + revalidation and respects
-  // its own `phase5_notifications` flag gate.
+  // its own `notifications_live` flag gate.
   useUnreadNotificationCount();
 
   return null;

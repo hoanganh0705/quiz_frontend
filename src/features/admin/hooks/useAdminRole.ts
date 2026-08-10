@@ -27,7 +27,7 @@
  * invariant is "every documented Phase 7 capability either has an
  * explicit slugs→permissions mapping here, or it is admin-only". This
  * is verified in the audit-shell integration test (TKT-7.1.E9) and
- * lint-script `phase7-lint-invariants.mjs` (TKT-7.1.B6).
+ * lint-script `admin-lint-invariants.mjs` (TKT-7.1.B6).
  *
  * ## SSR / loading
  *
@@ -63,7 +63,7 @@ export interface AdminRoleDocument {
 /**
  * Static mapping from documented role slugs to the permissions they
  * receive. The mapping is exhaustive over the catalogued phases —
- * see `phase7-lint-invariants.mjs` `role-permission-map-exhaustive`.
+ * see `admin-lint-invariants.mjs` `role-permission-map-exhaustive`.
  */
 export const ROLE_PERMISSION_MAP: Readonly<Record<string, readonly AdminPermission[]>> =
   Object.freeze({

@@ -12,7 +12,7 @@
  * - Fetch a single tournament's detail through the service layer.
  * - Synthesise an `id` alias on the detail.
  * - Expose `isStale` when revalidation fails with cached data present.
- * - Feature-flag gating via `phase5_tournaments`.
+ * - Feature-flag gating via `tournaments_live`.
  */
 
 import { useCallback, useMemo } from "react";
@@ -60,7 +60,7 @@ type GetTournamentWireResponse = {
 export function useTournament(
   tournamentId: string | null,
 ): UseTournamentResult {
-  const flagValue = getFeatureFlagValue("phase5_tournaments");
+  const flagValue = getFeatureFlagValue("tournaments_live");
   const isFlagPlaceholder = flagValue === "placeholder";
 
   // Disabled sentinel key when flag is off or id is null.

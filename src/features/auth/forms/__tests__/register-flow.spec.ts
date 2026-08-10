@@ -499,7 +499,7 @@ describe('service-layer boundary', () => {
       if (
         (file.endsWith('register-submit.ts') ||
           file.endsWith('login-submit.ts')) &&
-        text.includes("from '@/features/auth/service/auth.service'")
+        text.includes("from '@/features/auth/services/auth.service'")
       ) {
         // `registration-submit.ts` and `login-submit.ts` are allowed to
         // import the service; the service then imports the SDK. We treat
@@ -512,6 +512,13 @@ describe('service-layer boundary', () => {
         file.endsWith('use-logout.ts')
       ) {
         // Hook files are allowed to import the service indirectly through the submit helpers.
+        continue;
+      }
+      if (file.endsWith('types/index.ts')) {
+        // `features/auth/types/index.ts` re-exports SDK-derived DTOs
+        // (CurrentUserResponseDto, UserMeResponseDto, etc.) purely
+        // for compile-time typing. These are erased at bundle time
+        // and never reach the runtime.
         continue;
       }
       expect(

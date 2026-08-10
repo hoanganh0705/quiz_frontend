@@ -174,7 +174,7 @@ export function CategoryFormFields({
     setDescription(initialDescription);
     setImageUrl(initialImageUrl ?? '');
     setSlugManuallyEdited(false);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [initialName, initialSlug, initialDescription, initialImageUrl]);
 
   const { status: availabilityStatus, conflictingCategory } =

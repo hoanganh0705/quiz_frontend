@@ -10,7 +10,7 @@
  *
  * The page-level composition that assembles `RecalculateRankingPanel`,
  * `PeriodResetPanel`, and `ConsistencyCheckPanel` into a single page
- * behind the `phase7_admin_ranking` feature flag and the
+ * behind the `admin_ranking_live` feature flag and the
  * `ranking_manage` permission.
  *
  * ## Behaviour
@@ -28,18 +28,18 @@
 import { useAdminFeatureFlag } from '@/features/admin/hooks/useAdminFeatureFlag';
 import { usePermission } from '@/features/admin/hooks/usePermission';
 import { Skeleton } from '@/components/ui/Skeleton';
-import { AdminPageHeader } from '@/app/admin/_components/AdminPageHeader';
+import { AdminPageHeader } from '@/app/(protected)/admin/_components/AdminPageHeader';
 
 import { ConsistencyCheckPanel } from './ConsistencyCheckPanel';
 import { PeriodResetPanel } from './PeriodResetPanel';
 import { RecalculateRankingPanel } from './RecalculateRankingPanel';
 
 /**
- * Page-level composition behind the `phase7_admin_ranking` flag and
+ * Page-level composition behind the `admin_ranking_live` flag and
  * `ranking_manage` permission.
  */
 export function RankingAdminPage(): React.ReactElement {
-  const flag = useAdminFeatureFlag('phase7_admin_ranking');
+  const flag = useAdminFeatureFlag('admin_ranking_live');
   const permission = usePermission('ranking_recalculate');
 
   // Feature flag off → render the disabled notice (the route handoff
@@ -58,7 +58,7 @@ export function RankingAdminPage(): React.ReactElement {
           Ranking admin coming soon
         </p>
         <p className="text-sm text-muted-foreground">
-          The <code>phase7_admin_ranking</code> flag is at its default
+          The <code>admin_ranking_live</code> flag is at its default
           value. Enable it to expose the ranking recalculate, consistency
           check, and period reset surfaces.
         </p>

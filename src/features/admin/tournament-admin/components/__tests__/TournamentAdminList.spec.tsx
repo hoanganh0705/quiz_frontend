@@ -254,7 +254,7 @@ describe('TournamentAdminList', () => {
   const createUseListMock = () => () => ({ ...mockState } as any);
 
   // Helper to render with all mocks injected
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   const renderList = () =>
     render(
       <TournamentAdminList

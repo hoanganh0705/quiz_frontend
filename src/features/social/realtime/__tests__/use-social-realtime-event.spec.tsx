@@ -71,7 +71,7 @@ const breadcrumbCalls: Array<{
   data: Record<string, unknown>;
 }> = [];
 
-vi.mock("@/lib/social/phase6_6_10_sentry", () => ({
+vi.mock("@/lib/social/social-realtime-sentry", () => ({
   addSocialRealtimeBreadcrumb: (data: {
     eventType: string;
     actorUserId?: string;
@@ -81,11 +81,11 @@ vi.mock("@/lib/social/phase6_6_10_sentry", () => ({
     sequenceGuard?: "allow" | "drop";
     reason?: string;
   }) => {
-    breadcrumbCalls.push({ category: "phase6:6.10", data: data as unknown as Record<string, unknown> });
+    breadcrumbCalls.push({ category: "social:6.10", data: data as unknown as Record<string, unknown> });
   },
-  EPIC_6_10_BREADCRUMB_CATEGORY: "phase6:6.10" as const,
-  EPIC_6_10_VERSION: "1.0.0" as const,
-  EPIC_6_10_RECONNECT_CATEGORY: "phase6:6.10:reconnect-reconciliation" as const,
+  EPIC_6_10_BREADCRUMB_CATEGORY: "social:6.10" as const,
+  SOCIAL_EPIC_6_10_VERSION: "1.0.0" as const,
+  EPIC_6_10_RECONNECT_CATEGORY: "social:6.10:reconnect-reconciliation" as const,
   addReconnectReconciliationBreadcrumb: () => undefined,
   phase6Social10Breadcrumb: () => undefined,
 }));

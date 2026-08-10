@@ -34,7 +34,7 @@
  *
  * ## Event shape
  *
- * Single event type: `phase7:admin.tag.invalidate`. The payload
+ * Single event type: `admin:7.1.tag.invalidate`. The payload
  * carries `mutation` (the kind of mutation that triggered the
  * revalidation) and `tagId` (the affected tag id). The receiving
  * tab invalidates the admin list and public tag caches; the exact
@@ -75,10 +75,10 @@ import { logger } from '@/shared/log';
  * Event types for tag admin broadcast messages.
  *
  * Currently a single event type; the union exists so future tag
- * admin events (e.g. `phase7:admin.tag.bulk-invalidate`) can be added
+ * admin events (e.g. `admin:7.1.tag.bulk-invalidate`) can be added
  * without breaking the discriminated-union contract.
  */
-export type TagAdminEventType = 'phase7:admin.tag.invalidate';
+export type TagAdminEventType = 'admin:7.1.tag.invalidate';
 
 /**
  * Discriminator for which mutation triggered the revalidation. Lets
@@ -107,7 +107,7 @@ export interface BaseTagAdminEvent {
  * public tag caches so the next render reflects the new state.
  */
 export interface TagAdminInvalidatedEvent extends BaseTagAdminEvent {
-  type: 'phase7:admin.tag.invalidate';
+  type: 'admin:7.1.tag.invalidate';
 }
 
 /**
@@ -245,7 +245,7 @@ function handleTagAdminMessage(event: MessageEvent): void {
   const data = event.data as Partial<TagAdminInvalidatedEvent>;
 
   // Must have a valid type
-  if (!data.type || data.type !== 'phase7:admin.tag.invalidate') {
+  if (!data.type || data.type !== 'admin:7.1.tag.invalidate') {
     return;
   }
 
@@ -337,7 +337,7 @@ export function broadcastTagAdminInvalidate(
   }
 
   const fullEvent: TagAdminInvalidatedEvent = {
-    type: 'phase7:admin.tag.invalidate',
+    type: 'admin:7.1.tag.invalidate',
     mutation,
     tagId,
     tabId: getCurrentTabId(),

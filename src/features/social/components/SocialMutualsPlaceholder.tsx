@@ -10,7 +10,7 @@
  * ## What this component owns
  *
  * The static, flag-gated placeholder rendered by the mutual route
- * scaffolds when `phase6_social_mutuals === 'placeholder'`. The
+ * scaffolds when `social_mutuals_live === 'placeholder'`. The
  * component:
  *
  *   - Renders the placeholder shell matching the eventual mutual
@@ -18,7 +18,7 @@
  *   - Accepts a `kind: 'friends' | 'followers'` so the route
  *     scaffold renders the appropriate placeholder.
  *   - Emits a Sentry breadcrumb via the centralised
- *     `phase6:6.4` category so `phase6_social_mutuals === 'placeholder'`
+ *     `social:6.4` category so `social_mutuals_live === 'placeholder'`
  *     traffic is observable in Sentry's session-replay stream.
  *
  * The component is statically rendered. It calls no SWR / no hook,

@@ -2,7 +2,7 @@ export interface MockQuiz {
   id: string
   title: string
   image: string
-  difficulty: 'Easy' | 'Medium' | 'Hard'
+  difficulty: 'easy' | 'medium' | 'hard'
   duration: number
   currentPlayers: number
   maxPlayers: number
@@ -20,7 +20,7 @@ export const quizzes: MockQuiz[] = [
     id: '1',
     title: 'JavaScript Fundamentals',
     image: '/placeholder.webp',
-    difficulty: 'Easy',
+    difficulty: 'easy',
     duration: 1800000,
     currentPlayers: 45,
     maxPlayers: 100,
@@ -33,7 +33,7 @@ export const quizzes: MockQuiz[] = [
     id: '2',
     title: 'React Advanced Patterns',
     image: '/placeholder.webp',
-    difficulty: 'Medium',
+    difficulty: 'medium',
     duration: 2400000,
     currentPlayers: 30,
     maxPlayers: 50,
@@ -46,7 +46,7 @@ export const quizzes: MockQuiz[] = [
     id: '3',
     title: 'TypeScript Mastery',
     image: '/placeholder.webp',
-    difficulty: 'Hard',
+    difficulty: 'hard',
     duration: 3600000,
     currentPlayers: 15,
     maxPlayers: 25,

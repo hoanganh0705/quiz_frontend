@@ -72,7 +72,7 @@ import {
   revokeSession as defaultRevokeSession,
   revokeCurrentSession as defaultRevokeCurrentSession,
   type RevokeCurrentSessionResult,
-} from '@/features/auth/service/auth.service';
+} from '@/features/auth/services/auth.service';
 import {
   mapSessionError,
   type SessionErrorClassification,

@@ -110,7 +110,7 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
 import {
   deleteAccount as defaultDeleteAccount,
-} from '@/features/auth/service/auth.service';
+} from '@/features/auth/services/auth.service';
 import {
   mapDeletionError,
   isAuthTerminalDeletionError,

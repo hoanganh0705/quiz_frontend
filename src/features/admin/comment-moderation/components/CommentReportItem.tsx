@@ -272,8 +272,8 @@ export const CommentReportItem = memo(function CommentReportItem({
       onClick={handleRowClick}
       onKeyDown={handleRowKeyDown}
       className={cn(
-        'flex w-full cursor-pointer items-center gap-4 rounded-md border bg-white px-4 py-3 text-left transition-colors',
-        'border-slate-200 hover:border-slate-300 hover:bg-slate-50',
+        'flex w-full cursor-pointer items-center gap-4 rounded-md border border-border bg-background px-4 py-3 text-left transition-colors',
+        'border-border hover:border-input hover:bg-muted',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
         selected ? 'border-primary bg-primary/5 ring-1 ring-primary/30' : '',
         className ?? '',

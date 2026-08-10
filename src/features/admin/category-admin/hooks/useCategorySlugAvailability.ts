@@ -99,7 +99,7 @@ export function useCategorySlugAvailability(
 ): UseCategorySlugAvailability {
   const { all: list } = useCategoryAdminList();
 
-  const debouncedSlug = useDebouncedValue(slug, delayMs);
+  const debouncedSlug = useDebouncedValue(slug, delayMs).debouncedValue;
 
   const result = useMemo((): UseCategorySlugAvailability => {
     if (!debouncedSlug || debouncedSlug.trim().length === 0) {

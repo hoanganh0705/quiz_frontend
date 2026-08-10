@@ -114,8 +114,13 @@ vi.mock('@/lib/api/core/bookmarks-broadcast-channel', () => ({
 }));
 
 const useUserMock = vi.fn();
+const useIsUserLoadingMock = vi.fn();
+const useUserStoreMock = vi.fn();
 vi.mock('@/features/users/store/user-store', () => ({
   useUser: () => useUserMock(),
+  useIsUserLoading: () => useIsUserLoadingMock(),
+  useUserStore: (selector?: (state: unknown) => unknown) =>
+    useUserStoreMock(selector),
 }));
 
 // ---------------------------------------------------------------------------
@@ -274,6 +279,8 @@ beforeEach(() => {
     role: 'user',
     isVerified: true,
   });
+  useIsUserLoadingMock.mockReturnValue(false);
+  useUserStoreMock.mockReturnValue(null);
   listCollectionsMock.mockResolvedValue({
     data: { items: [favouriteCollection()] },
   });
@@ -301,6 +308,8 @@ afterEach(() => {
     role: 'user',
     isVerified: true,
   });
+  useIsUserLoadingMock.mockReturnValue(false);
+  useUserStoreMock.mockReturnValue(null);
   listCollectionsMock.mockResolvedValue({
     data: { items: [favouriteCollection()] },
   });
@@ -662,6 +671,8 @@ describe('Integrated card + detail — no_collection fan-out', () => {
 describe('Integrated card + detail — unauthenticated consistency', () => {
   it('(f1) every consumer renders the disabled sign-in variant when unauthenticated', async () => {
     useAuthStateMock.mockReturnValue({ isAuthenticated: false });
+    useIsUserLoadingMock.mockReturnValue(false);
+    useUserMock.mockReturnValue(null);
 
     const { container } = render(
       <TestSwrProvider>
@@ -692,6 +703,8 @@ describe('Integrated card + detail — unauthenticated consistency', () => {
 
   it('(f2) clicks on disabled sign-in buttons make no HTTP requests on any surface', async () => {
     useAuthStateMock.mockReturnValue({ isAuthenticated: false });
+    useIsUserLoadingMock.mockReturnValue(false);
+    useUserMock.mockReturnValue(null);
 
     const { container } = render(
       <TestSwrProvider>

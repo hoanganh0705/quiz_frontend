@@ -7,7 +7,7 @@
  * Source ticket: TKT-5.5.G1.
  *
  * Tests cover:
- * - The hook is a no-op when `phase5_achievements === 'placeholder'`
+ * - The hook is a no-op when `achievements_live === 'placeholder'`
  *   (no window listener, no SWR mutate).
  * - On `focus` event, mutates the catalog, my-badges, and history
  *   SWR keys with revalidate: true.

@@ -1,15 +1,26 @@
 import type { Metadata } from 'next'
 import type { ReactNode } from 'react'
-import { players } from '@/features/leaderboard/constants/players'
-import { buildMetadata, siteConfig } from '@/shared/lib/seo'
+import { buildMetadata } from '@/shared/lib/seo'
 
-const slugify = (value: string) =>
-  value
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9\s-]/g, '')
-    .replace(/\s+/g, '-')
-
+/**
+ * `/profile/[name]` layout — wraps the public profile page.
+ *
+ * Source epic:   Phase 1 (F-15) — public profile quick-wins.
+ * Source ticket: F-15.
+ *
+ * The previous implementation imported the hardcoded `players`
+ * constant from `features/leaderboard/constants/players` to
+ * generate SEO metadata + JSON-LD for 11 fake profile slugs. F-15
+ * removes that leak: there is no longer any fake-profile SEO copy.
+ * The route renders the generic "Profile | QuizHub" metadata for
+ * every slug, and JSON-LD is omitted entirely until the backend
+ * exposes a username → userId lookup endpoint (Phase 5 / F-29).
+ *
+ * When the backend ships the lookup, the JSON-LD should be
+ * reconstructed from the live `UserMeResponseDto` projection
+ * (avatarUrl, bio, country, createdAt) — the previous hardcoded
+ * shape is the documented seam.
+ */
 export async function generateMetadata({
   params
 }: {
@@ -17,24 +28,11 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { name } = await params
   const decodedName = decodeURIComponent(name)
-
-  const profile = players.find(
-    (player) => slugify(player.name) === slugify(decodedName)
-  )
-
-  if (!profile) {
-    return buildMetadata({
-      title: 'Profile | QuizHub',
-      description: 'View player profiles and activity on QuizHub.',
-      path: `/profile/${name}`
-    })
-  }
+  const displayName = decodedName.charAt(0).toUpperCase() + decodedName.slice(1)
 
   return buildMetadata({
-    title: `${profile.name} | QuizHub Profile`,
-    description:
-      profile.bio ||
-      `View ${profile.name}'s achievements and quiz performance.`,
+    title: `${displayName} | QuizHub Profile`,
+    description: `View ${displayName}'s achievements and quiz performance on QuizHub.`,
     path: `/profile/${name}`
   })
 }
@@ -46,36 +44,10 @@ export default async function ProfileLayout({
   children: ReactNode
   params: Promise<{ name: string }>
 }) {
-  const { name } = await params
-  const decodedName = decodeURIComponent(name)
+  // Phase 5 TODO: render JSON-LD when the backend exposes a
+  // username → userId lookup endpoint. Until then, the profile
+  // page renders without structured-data hints.
+  await params
 
-  const profile = players.find(
-    (player) => slugify(player.name) === slugify(decodedName)
-  )
-
-  const personJsonLd = profile
-    ? {
-        '@context': 'https://schema.org',
-        '@type': 'Person',
-        name: profile.name,
-        description: profile.bio,
-        image: profile.avatarUrl
-          ? new URL(profile.avatarUrl, siteConfig.url).toString()
-          : undefined,
-        homeLocation: profile.country,
-        url: new URL(`/profile/${name}`, siteConfig.url).toString()
-      }
-    : null
-
-  return (
-    <>
-      {personJsonLd ? (
-        <script
-          type='application/ld+json'
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(personJsonLd) }}
-        />
-      ) : null}
-      {children}
-    </>
-  )
+  return <>{children}</>
 }

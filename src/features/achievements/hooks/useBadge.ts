@@ -15,7 +15,7 @@
  * - Surface `BADGE_NOT_FOUND`, `BADGE_HIDDEN`, and `BADGE_DEFERRED`
  *   as typed errors with documented copy.
  * - Render a tombstone view when `BADGE_HIDDEN` is returned.
- * - Feature-flag gating via `phase5_achievements`.
+ * - Feature-flag gating via `achievements_live`.
  *
  * ## Deferred-badge discipline
  *
@@ -34,7 +34,7 @@
  *
  * ## Feature flag
  *
- * When `phase5_achievements === 'placeholder'`, the hook returns
+ * When `achievements_live === 'placeholder'`, the hook returns
  * safe fallback. No service call fires.
  */
 
@@ -78,7 +78,7 @@ export interface UseBadgeResult {
  * Returns safe fallback (`badge: null`, `isLoading: false`,
  * `error: null`, `isPrivate: false`) when:
  *
- * - `phase5_achievements` is `'placeholder'`.
+ * - `achievements_live` is `'placeholder'`.
  * - `code` is `null`.
  *
  * The hook never invents a badge — `badge` is `null` when the server
@@ -86,7 +86,7 @@ export interface UseBadgeResult {
  * `BADGE_HIDDEN`.
  */
 export function useBadge(code: string | null): UseBadgeResult {
-  const flagValue = getFeatureFlagValue("phase5_achievements");
+  const flagValue = getFeatureFlagValue("achievements_live");
   const isFlagPlaceholder = flagValue === "placeholder";
 
   // Disabled sentinel key when flag is off or code is null.

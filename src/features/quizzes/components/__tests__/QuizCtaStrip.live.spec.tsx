@@ -51,7 +51,7 @@ vi.mock('@/features/auth/hooks/use-auth-session', () => ({
   AuthBootstrapProvider: ({ children }: { children: React.ReactNode }) => children,
 }));
 
-// Force the `phase4_attempts` flag to live mode for this spec.
+// Force the `attempts_live` flag to live mode for this spec.
 vi.mock('@/lib/feature-flags', () => ({
   isFeatureEnabled: (_flag: string, expected: string) => expected === 'live',
   getFeatureFlagValue: () => 'live' as const,

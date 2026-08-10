@@ -52,7 +52,7 @@ import {
   type SocialSearchSuggestionKind,
 } from "@/features/social/discovery-discriminator";
 
-import { useDebouncedValue } from "@/features/social/hooks/useDebouncedValue";
+import { useDebouncedValue } from "@/lib/utils/use-debounced-value";
 
 // ─── Public surface ──────────────────────────────────────────────────────
 

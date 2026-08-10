@@ -78,7 +78,7 @@ import { UserStatsSkeleton } from "@/features/social/components/UserStatsSkeleto
 import {
   addSocialAnalyticsBreadcrumb,
   SOCIAL_ANALYTICS_ROUTES,
-} from "@/lib/social/phase6_6_3_sentry";
+} from "@/lib/social/social-block-sentry";
 
 interface UserStatsCardProps {
   /** The target user id whose stats are being rendered. */
@@ -134,7 +134,7 @@ export function UserStatsCard({
   const viewerId = auth.currentUser?.userId ?? null;
   const isSelf = viewerId !== null && viewerId === targetUserId;
 
-  // TKT-6.3.H2 — emit a single `phase6:6.3` breadcrumb per fetch
+  // TKT-6.3.H2 — emit a single `social:6.3` breadcrumb per fetch
   // transition. `error` is intentionally not in the dependency
   // list: the privacy branch renders the privacy notice rather
   // than the error, so emitting an error breadcrumb when the

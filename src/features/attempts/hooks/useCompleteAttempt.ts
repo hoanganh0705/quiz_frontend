@@ -258,10 +258,15 @@ export function useCompleteAttempt(
       });
 
       // Revalidate every cache key that depends on the completed
-      // attempt so every consumer renders fresh server data.
+      // attempt so every consumer renders fresh server data. The
+      // revalidation is best-effort: a single cache-invalidate
+      // failure must not block the cross-tab broadcast (T-4.15.7)
+      // since remote tabs are the fallback path for stale cache.
       await Promise.all(
         revalidateAttemptCaches(attemptId, quizVersionId, sessionId),
-      );
+      ).catch(() => {
+        // Best-effort: swallow so the broadcast still fires.
+      });
 
       // Emit one cross-tab broadcast. Same-tab suppression is
       // handled by the channel layer.

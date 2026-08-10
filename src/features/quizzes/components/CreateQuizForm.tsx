@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 /**
  * `CreateQuizForm` — the quiz creation authoring form.
@@ -45,29 +45,26 @@
  *   - Submit
  */
 
-import { memo, useCallback } from 'react';
-import { FormProvider } from 'react-hook-form';
-import { Loader2 } from 'lucide-react';
-import type { UseFormReturn } from 'react-hook-form';
-import type { z } from 'zod';
+import { memo, useCallback } from "react";
+import { FormProvider } from "react-hook-form";
+import { Loader2 } from "lucide-react";
+import type { UseFormReturn } from "react-hook-form";
+import type { z } from "zod";
 
-import { Button } from '@/components/ui/Button';
-import { cn } from '@/shared/utils/merge-class-names';
-import { Checkbox } from '@/components/ui/Checkbox';
-import { Label } from '@/components/ui/Label';
-import { TextField } from '@/components/primitives/form/TextField';
-import { RichTextArea } from '@/components/primitives/form/RichTextArea';
-import { TagMultiSelect } from '@/components/primitives/form/TagMultiSelect';
-import { DifficultySelect } from '@/components/primitives/form/DifficultySelect';
-import { ImageUploadField } from '@/components/primitives/form/ImageUploadField';
-import { FormErrorBanner } from '@/components/primitives/form/FormErrorBanner';
-import { QuizSlugField } from '@/features/quizzes/components/QuizSlugField';
-import {
-  quizCreateFormSchema,
-  type QuizCreateFormValues,
-} from '@/lib/forms';
-import { useCreateQuiz } from '@/features/quizzes/hooks/useCreateQuiz';
-import { useTagSlugsToIds } from '@/features/quizzes/hooks/useTagSlugsToIds';
+import { Button } from "@/components/ui/Button";
+import { cn } from "@/shared/utils/merge-class-names";
+import { Checkbox } from "@/components/ui/Checkbox";
+import { Label } from "@/components/ui/Label";
+import { TextField } from "@/components/primitives/form/TextField";
+import { RichTextArea } from "@/components/primitives/form/RichTextArea";
+import { TagMultiSelect } from "@/components/primitives/form/TagMultiSelect";
+import { DifficultySelect } from "@/components/primitives/form/DifficultySelect";
+import { ImageUploadField } from "@/components/primitives/form/ImageUploadField";
+import { FormErrorBanner } from "@/components/primitives/form/FormErrorBanner";
+import { QuizSlugField } from "@/features/quizzes/components/QuizSlugField";
+import { quizCreateFormSchema, type QuizCreateFormValues } from "@/lib/forms";
+import { useCreateQuiz } from "@/features/quizzes/hooks/useCreateQuiz";
+import { useTagSlugsToIds } from "@/features/quizzes/hooks/useTagSlugsToIds";
 
 // ─── Default values ─────────────────────────────────────────────────────────────
 
@@ -76,7 +73,7 @@ import { useTagSlugsToIds } from '@/features/quizzes/hooks/useTagSlugsToIds';
  * `acknowledgements` defaults to `false` (the zod schema enforces acknowledgement).
  */
 export const CREATE_QUIZ_FORM_DEFAULT_VALUES: QuizCreateFormValues = {
-  title: '',
+  title: "",
   description: null,
   slug: null,
   requirements: null,
@@ -86,7 +83,7 @@ export const CREATE_QUIZ_FORM_DEFAULT_VALUES: QuizCreateFormValues = {
   categoryId: null,
   tagSlugs: [],
   initialVersion: {
-    difficulty: 'medium',
+    difficulty: "medium",
     durationMs: 60000,
     passingScorePercent: 70,
     rewardXp: 100,
@@ -200,33 +197,31 @@ export const CreateQuizForm = memo(function CreateQuizForm({
     if (createQuiz.error) {
       const code = createQuiz.error.code;
       // 409 slug conflict → shown inline by QuizSlugField; skip banner.
-      if (code === 'QUIZ_SLUG_CONFLICT') return null;
+      if (code === "QUIZ_SLUG_CONFLICT") return null;
       return {
-        title: 'Quiz creation failed',
+        title: "Quiz creation failed",
         body:
-          code === 'GLOBAL_RATE_LIMITED'
-            ? 'Slow down — try again in a minute.'
-            : 'Something went wrong. Please try again.',
+          code === "GLOBAL_RATE_LIMITED"
+            ? "Slow down — try again in a minute."
+            : "Something went wrong. Please try again.",
         code,
       };
     }
     if (tagResolver.error) {
       return {
-        title: 'Could not resolve tags',
+        title: "Could not resolve tags",
         body: tagResolver.error,
-        code: 'GLOBAL_UNKNOWN',
+        code: "GLOBAL_UNKNOWN",
       };
     }
     return null;
   })();
 
-  const titleValue = form.getValues('title') ?? '';
+  const titleValue = form.getValues("title") ?? "";
 
   return (
-    <FormProvider
-      {...((form as unknown) as Parameters<typeof FormProvider>[0])}
-    >
-      <div className="space-y-8">
+    <FormProvider {...(form as unknown as Parameters<typeof FormProvider>[0])}>
+      <div className="space-y-8 space-x-8 p-10">
         {/* Form-level error */}
         {bannerError ? (
           <FormErrorBanner
@@ -281,13 +276,11 @@ export const CreateQuizForm = memo(function CreateQuizForm({
                 className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-2 text-sm disabled:opacity-50"
                 onChange={(e) => {
                   form.setValue(
-                    'categoryId',
-                    e.target.value
-                      ? (e.target.value as never)
-                      : null,
+                    "categoryId",
+                    e.target.value ? (e.target.value as never) : null,
                   );
                 }}
-                value={form.getValues('categoryId') ?? ''}
+                value={form.getValues("categoryId") ?? ""}
               >
                 <option value="">No category</option>
                 {categoryOptions.map((opt) => (
@@ -312,12 +305,12 @@ export const CreateQuizForm = memo(function CreateQuizForm({
             {/* Suggested tags (TKT-4.8-E2) */}
             {suggestedTags.length > 0 && (
               <div className="space-y-1">
-                <p className="text-xs text-muted-foreground">
-                  Suggestions:
-                </p>
+                <p className="text-xs text-muted-foreground">Suggestions:</p>
                 <div className="flex flex-wrap gap-1">
                   {suggestedTags.slice(0, 15).map((slug) => {
-                    const isSelected = (form.getValues('tagSlugs') ?? []).includes(slug);
+                    const isSelected = (
+                      form.getValues("tagSlugs") ?? []
+                    ).includes(slug);
                     return (
                       <button
                         key={slug}
@@ -326,23 +319,33 @@ export const CreateQuizForm = memo(function CreateQuizForm({
                         disabled={isSelected || isSubmitting}
                         onClick={() => {
                           if (!isSelected) {
-                            form.setValue('tagSlugs', [
-                              ...(form.getValues('tagSlugs') ?? []),
+                            form.setValue("tagSlugs", [
+                              ...(form.getValues("tagSlugs") ?? []),
                               slug,
                             ]);
                           }
                         }}
                         className={cn(
-                          'inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs transition-colors',
+                          "inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs transition-colors",
                           isSelected
-                            ? 'border-primary/40 bg-primary/10 text-muted-foreground cursor-not-allowed'
-                            : 'border-border bg-background hover:bg-muted hover:border-muted-foreground/40 cursor-pointer',
+                            ? "border-primary/40 bg-primary/10 text-muted-foreground cursor-not-allowed"
+                            : "border-border bg-background hover:bg-muted hover:border-muted-foreground/40 cursor-pointer",
                         )}
                       >
                         {isSelected ? (
-                          <span aria-hidden="true" className="text-muted-foreground">✓</span>
+                          <span
+                            aria-hidden="true"
+                            className="text-muted-foreground"
+                          >
+                            ✓
+                          </span>
                         ) : (
-                          <span aria-hidden="true" className="text-muted-foreground/50">+</span>
+                          <span
+                            aria-hidden="true"
+                            className="text-muted-foreground/50"
+                          >
+                            +
+                          </span>
                         )}
                         {slug}
                       </button>
@@ -378,10 +381,10 @@ export const CreateQuizForm = memo(function CreateQuizForm({
                 id="durationMs"
                 type="number"
                 className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                value={form.getValues('initialVersion.durationMs') ?? 60000}
+                value={form.getValues("initialVersion.durationMs") ?? 60000}
                 onChange={(e) => {
                   form.setValue(
-                    'initialVersion.durationMs',
+                    "initialVersion.durationMs",
                     parseInt(e.target.value, 10) || 0,
                   );
                 }}
@@ -400,11 +403,11 @@ export const CreateQuizForm = memo(function CreateQuizForm({
                 type="number"
                 className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                 value={
-                  form.getValues('initialVersion.passingScorePercent') ?? 70
+                  form.getValues("initialVersion.passingScorePercent") ?? 70
                 }
                 onChange={(e) => {
                   form.setValue(
-                    'initialVersion.passingScorePercent',
+                    "initialVersion.passingScorePercent",
                     parseInt(e.target.value, 10) || 0,
                   );
                 }}
@@ -421,10 +424,10 @@ export const CreateQuizForm = memo(function CreateQuizForm({
                 id="rewardXp"
                 type="number"
                 className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                value={form.getValues('initialVersion.rewardXp') ?? 100}
+                value={form.getValues("initialVersion.rewardXp") ?? 100}
                 onChange={(e) => {
                   form.setValue(
-                    'initialVersion.rewardXp',
+                    "initialVersion.rewardXp",
                     parseInt(e.target.value, 10) || 0,
                   );
                 }}
@@ -439,9 +442,9 @@ export const CreateQuizForm = memo(function CreateQuizForm({
         <div className="flex items-start gap-3">
           <Checkbox
             id="acknowledgements"
-            checked={form.getValues('acknowledgements') ?? false}
+            checked={form.getValues("acknowledgements") ?? false}
             onCheckedChange={(checked) => {
-              form.setValue('acknowledgements', checked === true);
+              form.setValue("acknowledgements", checked === true);
             }}
             disabled={isSubmitting}
             aria-label="I confirm these settings are correct"
@@ -451,8 +454,8 @@ export const CreateQuizForm = memo(function CreateQuizForm({
               htmlFor="acknowledgements"
               className="cursor-pointer text-sm font-normal leading-snug"
             >
-              I confirm that these quiz settings are correct and I have
-              reviewed the content for accuracy.
+              I confirm that these quiz settings are correct and I have reviewed
+              the content for accuracy.
             </Label>
             {form.formState.errors.acknowledgements?.message ? (
               <p className="text-xs text-destructive" role="alert">
@@ -469,7 +472,7 @@ export const CreateQuizForm = memo(function CreateQuizForm({
             disabled={
               isSubmitting ||
               !form.formState.isDirty ||
-              !form.getValues('acknowledgements')
+              !form.getValues("acknowledgements")
             }
             onClick={handleSubmit}
             className="gap-2"
@@ -481,7 +484,7 @@ export const CreateQuizForm = memo(function CreateQuizForm({
                 Creating…
               </>
             ) : (
-              'Create Draft'
+              "Create Draft"
             )}
           </Button>
           {form.formState.isDirty && !isSubmitting && (

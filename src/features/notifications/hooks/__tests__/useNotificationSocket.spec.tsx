@@ -6,7 +6,7 @@
  * Source ticket: TKT-5.4.G1.
  *
  * Tests cover:
- * - feature flag gating for `phase5_notifications` and `phase5_realtime_infrastructure`
+ * - feature flag gating for `notifications_live` and `realtime_infrastructure_live`
  * - exposed shape (socket, connectionState, error, reconnect, disconnect, isLive)
  * - cross-tab BroadcastChannel listener is registered when window is available
  */
@@ -58,8 +58,8 @@ describe('useNotificationSocket', () => {
     vi.clearAllMocks();
     MockBroadcastChannel.instances = [];
     mockGetFeatureFlagValue.mockImplementation((key: string) => {
-      if (key === 'phase5_notifications') return 'live';
-      if (key === 'phase5_realtime_infrastructure') return 'live';
+      if (key === 'notifications_live') return 'live';
+      if (key === 'realtime_infrastructure_live') return 'live';
       return 'placeholder';
     });
     mockUseSocket.mockReturnValue({
@@ -95,8 +95,8 @@ describe('useNotificationSocket', () => {
   describe('feature flag gating', () => {
     it('does not enable socket when notifications flag is placeholder', () => {
       mockGetFeatureFlagValue.mockImplementation((key: string) => {
-        if (key === 'phase5_notifications') return 'placeholder';
-        if (key === 'phase5_realtime_infrastructure') return 'live';
+        if (key === 'notifications_live') return 'placeholder';
+        if (key === 'realtime_infrastructure_live') return 'live';
         return 'placeholder';
       });
 
@@ -110,8 +110,8 @@ describe('useNotificationSocket', () => {
 
     it('does not enable socket when realtime infrastructure flag is placeholder', () => {
       mockGetFeatureFlagValue.mockImplementation((key: string) => {
-        if (key === 'phase5_notifications') return 'live';
-        if (key === 'phase5_realtime_infrastructure') return 'placeholder';
+        if (key === 'notifications_live') return 'live';
+        if (key === 'realtime_infrastructure_live') return 'placeholder';
         return 'placeholder';
       });
 
@@ -187,11 +187,11 @@ describe('useNotificationSocket', () => {
       expect(MockBroadcastChannel.instances.length).toBeGreaterThan(0);
     });
 
-    it('listens on the phase5/invalidation channel', () => {
+    it('listens on the realtime/invalidation channel', () => {
       renderHook(() => useNotificationSocket());
 
       const channel = MockBroadcastChannel.instances.at(-1);
-      expect(channel?.name).toBe('phase5/invalidation');
+      expect(channel?.name).toBe('realtime/invalidation');
     });
   });
 });

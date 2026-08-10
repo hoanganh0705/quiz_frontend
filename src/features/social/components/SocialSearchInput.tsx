@@ -28,7 +28,7 @@
 
 import { type ReactElement, useEffect, useState } from "react";
 
-import { useDebouncedValue } from "@/features/social/hooks/useDebouncedValue";
+import { useDebouncedValue } from "@/lib/utils/use-debounced-value";
 import { useSearchRateLimit } from "@/features/social/hooks/useSearchRateLimit";
 import { DEBOUNCE_WINDOW_MS } from "@/features/social/discovery-invariants";
 

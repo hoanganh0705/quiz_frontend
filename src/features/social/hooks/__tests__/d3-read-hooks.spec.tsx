@@ -3,7 +3,7 @@
  * (TKT-6.1.D3).
  *
  * Tests cover (per hook):
- *   - `phase6_social_relationship === 'placeholder'` → no service
+ *   - `social_relationship_live === 'placeholder'` → no service
  *     call; safe fallback.
  *   - Unauthenticated → no service call; safe fallback.
  *   - Success path → the projected items are returned.

@@ -43,7 +43,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   getSecurityDashboard,
-} from '@/features/auth/service/auth.service';
+} from '@/features/auth/services/auth.service';
 import { ApiError } from '@/lib/api/core/ApiError';
 import type { AccountSecurityDto } from '@/lib/api';
 

@@ -26,31 +26,32 @@
  * @see useCollectionsLookup — the Map-based store for cross-feature access.
  */
 
-'use client';
+"use client";
 
-import { useMemo, useCallback } from 'react';
-import useSWR from 'swr';
-import { mutate as globalMutate } from 'swr';
+import { useMemo, useCallback } from "react";
+import { mutate as globalMutate } from "swr";
 
-import { ApiError, isApiError, useCursorPaginated } from '@/lib/api';
+import { projectWithId, useCursorPaginated } from "@/lib/api";
 import type {
   CursorFetcherArgs,
   CursorPage,
   UseCursorPaginatedResult,
-} from '@/lib/api/use-cursor-paginated.types';
-import { useAuthState } from '@/features/auth/hooks/use-auth-state';
-import { listCollections } from '@/features/bookmarks/api';
-import type { BookmarkCollection, BookmarkCollectionResponseDto } from '@/features/bookmarks/types';
-import {
-  BOOKMARK_COLLECTIONS_LOOKUP_KEY,
-  toBookmarkCollection,
-} from '@/features/bookmarks/types';
+} from "@/lib/api/use-cursor-paginated.types";
+import { listCollections } from "@/features/bookmarks/api";
+import type {
+  BookmarkCollection,
+  BookmarkCollectionResponseDto,
+} from "@/features/bookmarks/types";
+import { toBookmarkCollection } from "@/features/bookmarks/types";
 
 /**
  * SWR key for the collections list.
  * Exported so mutation hooks can invalidate the cache.
  */
-export const BOOKMARK_COLLECTIONS_KEY = ['bookmark-collections', 'list'] as const;
+export const BOOKMARK_COLLECTIONS_KEY = [
+  "bookmark-collections",
+  "list",
+] as const;
 
 /**
  * Wire response shape from the SDK.
@@ -59,7 +60,7 @@ type ListCollectionsResponse = {
   data?: { items: Array<Record<string, unknown>> };
   meta?: {
     pagination?: {
-      kind: 'cursor';
+      kind: "cursor";
       limit: number;
       nextCursor: string | null;
       hasNextPage: boolean;
@@ -85,23 +86,27 @@ export interface UseCollectionsResult extends UseCursorPaginatedResult<BookmarkC
 export function useCollections(params?: {
   limit?: number;
 }): UseCollectionsResult {
-  const { isAuthenticated } = useAuthState();
-
   // Build the fetcher that wraps the SDK call.
   const fetcher = useMemo(
-    (): (args: CursorFetcherArgs<{ limit?: number }>) => Promise<CursorPage<BookmarkCollection>> =>
+    (): ((
+      args: CursorFetcherArgs<{ limit?: number }>,
+    ) => Promise<CursorPage<BookmarkCollection>>) =>
       async ({ cursor, params: fetcherParams, signal }) => {
-        const result = (await listCollections()) as unknown as ListCollectionsResponse;
+        const result =
+          (await listCollections()) as unknown as ListCollectionsResponse;
 
-        const items = (result.data?.items ?? []) as Array<Record<string, unknown>>;
+        const items = (result.data?.items ?? []) as Array<
+          Record<string, unknown>
+        >;
         const mapped: BookmarkCollection[] = items.map((item) =>
-          toBookmarkCollection(item as unknown as BookmarkCollectionResponseDto),
+          toBookmarkCollection(
+            item as unknown as BookmarkCollectionResponseDto,
+          ),
         );
 
-        // Assign `id` alias so cursor pagination deduplication works.
-        const itemsWithId: BookmarkCollection[] = mapped.map((item) =>
-          Object.assign({}, item, { id: item.collectionId }),
-        );
+        // `BookmarkCollection` already has `collectionId` as the primary key —
+        // no need to project a new `id` field.
+        const itemsWithId = mapped as unknown as Array<BookmarkCollection & { id: string }>;
 
         const pagination = result.meta?.pagination;
         return {
@@ -115,11 +120,14 @@ export function useCollections(params?: {
   );
 
   // Cursor pagination with the base key.
-  const cursorResult = useCursorPaginated<BookmarkCollection, { limit?: number }>({
+  const cursorResult = useCursorPaginated<
+    BookmarkCollection,
+    { limit?: number }
+  >({
     key: BOOKMARK_COLLECTIONS_KEY,
     fetcher,
     params: { limit: params?.limit ?? 20 },
-    paginationKind: 'cursor',
+    paginationKind: "cursor",
     revalidateOnFocus: true,
   });
 
@@ -135,7 +143,7 @@ export function useCollections(params?: {
   // Refresh that triggers a full revalidation.
   const refresh = useCallback(async (): Promise<void> => {
     await cursorResult.refresh();
-  }, [cursorResult.refresh]);
+  }, [cursorResult]);
 
   return {
     ...cursorResult,

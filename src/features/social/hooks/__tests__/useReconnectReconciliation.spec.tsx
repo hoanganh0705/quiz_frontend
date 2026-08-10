@@ -12,7 +12,7 @@
  *   - Bursts of transitions within the debounce window coalesce.
  *   - The cycle invalidates: incoming + outgoing requests + per-
  *     active-target relationship + social-counts keys.
- *   - The cycle emits a `phase6:6.10:reconnect-reconciliation`
+ *   - The cycle emits a `social:6.10:reconnect-reconciliation`
  *     breadcrumb with the documented payload.
  *   - The hook no-ops when the flag is `'placeholder'`.
  *   - The debounce timer is cleared on unmount.
@@ -54,7 +54,7 @@ vi.mock("@/lib/swr/mutate-carefully", () => ({
   },
 }));
 
-vi.mock("@/lib/realtime/phase5-broadcast", () => ({
+vi.mock("@/lib/realtime/cross-tab-invalidation", () => ({
   postRelationshipInvalidation: () => undefined,
   postFriendRequestInvalidation: () => undefined,
   emitPhase5Invalidation: () => undefined,
@@ -62,15 +62,15 @@ vi.mock("@/lib/realtime/phase5-broadcast", () => ({
   PHASE5_INVALIDATION_CHANNEL: "phase5/invalidation" as const,
 }));
 
-vi.mock("@/lib/social/phase6_6_10_sentry", () => ({
+vi.mock("@/lib/social/social-realtime-sentry", () => ({
   addSocialRealtimeBreadcrumb: () => undefined,
   addReconnectReconciliationBreadcrumb: (data: Record<string, unknown>) => {
     breadcrumbCalls.push(data);
   },
   phase6Social10Breadcrumb: () => undefined,
-  EPIC_6_10_BREADCRUMB_CATEGORY: "phase6:6.10" as const,
-  EPIC_6_10_VERSION: "1.0.0" as const,
-  EPIC_6_10_RECONNECT_CATEGORY: "phase6:6.10:reconnect-reconciliation" as const,
+  EPIC_6_10_BREADCRUMB_CATEGORY: "social:6.10" as const,
+  SOCIAL_EPIC_6_10_VERSION: "1.0.0" as const,
+  EPIC_6_10_RECONNECT_CATEGORY: "social:6.10:reconnect-reconciliation" as const,
 }));
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -224,7 +224,7 @@ describe("useReconnectReconciliation (TKT-6.10.F2)", () => {
     expect(flatKeys).toContain(`social/v1/counts/${USER_B}`);
   });
 
-  it("emits a `phase6:6.10:reconnect-reconciliation` breadcrumb with the documented payload", () => {
+  it("emits a `social:6.10:reconnect-reconciliation` breadcrumb with the documented payload", () => {
     function Probe() {
       useReconnectReconciliation();
       useActiveTargetUserIds(USER_A);

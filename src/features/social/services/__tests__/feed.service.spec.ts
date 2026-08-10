@@ -8,7 +8,7 @@
  *     `toFeedItem` (unknown `type` values are dropped), `visibility:
  *     'visible'`, `nextCursor` and `hasMore` are forwarded from the
  *     server response unchanged.
- *   - The wrapper emits a `phase6:6.9` Sentry breadcrumb on every
+ *   - The wrapper emits a `social:6.9` Sentry breadcrumb on every
  *     call carrying the documented payload (`route:
  *     'social.getFeed'`, `durationMs`, `hasMore`, `total`). The
  *     breadcrumb is emitted via the dedicated
@@ -198,7 +198,7 @@ describe("feed.service — getFeed", () => {
     expect(result.items[0]!.id).toBe("feed-1");
   });
 
-  it("emits phase6:6.9 breadcrumbs (TKT-6.9.H1) carrying route 'social.getFeed'", async () => {
+  it("emits social:6.9 breadcrumbs (TKT-6.9.H1) carrying route 'social.getFeed'", async () => {
     mockSocialControllerGetFeed.mockResolvedValue({
       data: [],
       meta: {
@@ -215,7 +215,7 @@ describe("feed.service — getFeed", () => {
 
     // The TKT-6.9.H1 migration moves the breadcrumb emission to
     // the dedicated `addSocialFeedBreadcrumb` helper in
-    // `phase6_6_9_sentry.ts` (category `phase6:6.9`). We assert
+    // `social-feed-sentry.ts` (category `social:6.9`). We assert
     // the new category and the documented route / projection.
     expect(addBreadcrumbMock).toHaveBeenCalled();
     const calls = addBreadcrumbMock.mock.calls.map((c) => c[0] as {
@@ -224,14 +224,14 @@ describe("feed.service — getFeed", () => {
     });
     const successCall = calls.find(
       (c) =>
-        c.category === "phase6:6.9" && c.data.route === "social.getFeed",
+        c.category === "social:6.9" && c.data.route === "social.getFeed",
     );
     expect(successCall).toBeDefined();
     expect(successCall?.data.total).toBe(0);
     expect(successCall?.data.hasMore).toBe(0);
   });
 
-  it("emits a phase6:6.9 breadcrumb on error carrying the code and durationMs", async () => {
+  it("emits a social:6.9 breadcrumb on error carrying the code and durationMs", async () => {
     mockSocialControllerGetFeed.mockRejectedValue(
       makeApiError(429, "GLOBAL_RATE_LIMITED", "Too many requests", {
         retryAfterMs: 30_000,
@@ -246,7 +246,7 @@ describe("feed.service — getFeed", () => {
     });
     const errorCall = calls.find(
       (c) =>
-        c.category === "phase6:6.9" &&
+        c.category === "social:6.9" &&
         c.data.route === "social.getFeed" &&
         c.data.code === "GLOBAL_RATE_LIMITED",
     );

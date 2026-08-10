@@ -26,7 +26,7 @@
  *
  * ## Event shape
  *
- * Single event type: `phase7:admin.achievement-admin.invalidate`.
+ * Single event type: `admin:7.1.achievement-admin.invalidate`.
  * The payload carries `action` ('reevaluate' | 'revoke'), `userId`,
  * optional `badgeId`, and `requestId`. Receiving tabs invalidate
  * the documented SWR keys via the helpers in `cache-keys.ts`.
@@ -51,7 +51,7 @@ export const ACHIEVEMENT_ADMIN_CHANNEL_NAME = 'phase7-admin-achievement' as cons
 /**
  * Event types for achievement admin broadcast messages.
  */
-export type AchievementAdminEventType = 'phase7:admin.achievement-admin.invalidate';
+export type AchievementAdminEventType = 'admin:7.1.achievement-admin.invalidate';
 
 /**
  * Discriminator for which mutation triggered the revalidation.
@@ -82,7 +82,7 @@ export interface BaseAchievementAdminEvent {
  * Receiving tabs revalidate the admin badge list and history caches.
  */
 export interface AchievementAdminInvalidatedEvent extends BaseAchievementAdminEvent {
-  type: 'phase7:admin.achievement-admin.invalidate';
+  type: 'admin:7.1.achievement-admin.invalidate';
 }
 
 /**
@@ -192,7 +192,7 @@ function handleAchievementAdminMessage(event: MessageEvent): void {
 
   const data = event.data as Partial<BaseAchievementAdminEvent>;
 
-  if (!data.type || data.type !== 'phase7:admin.achievement-admin.invalidate') {
+  if (!data.type || data.type !== 'admin:7.1.achievement-admin.invalidate') {
     return;
   }
 
@@ -267,7 +267,7 @@ export function broadcastAchievementAdminMutation(
   }
 
   const fullEvent: AchievementAdminInvalidatedEvent = {
-    type: 'phase7:admin.achievement-admin.invalidate',
+    type: 'admin:7.1.achievement-admin.invalidate',
     action: payload.action,
     userId: payload.userId,
     badgeId: payload.badgeId,

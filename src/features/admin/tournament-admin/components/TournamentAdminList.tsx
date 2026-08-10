@@ -328,13 +328,8 @@ interface ListBodyProps {
     onEdit: (id: string) => void;
     onDelete: (id: string) => void;
   }>;
-  EmptyComponent: React.ComponentType<{
-    filter: { status?: string; search: string };
-  }>;
-  ErrorComponent: React.ComponentType<{
-    error: unknown;
-    onRetry: () => void;
-  }>;
+  EmptyComponent: React.ComponentType<any>; // eslint-disable-line @typescript-eslint/no-explicit-any
+  ErrorComponent: React.ComponentType<any>; // eslint-disable-line @typescript-eslint/no-explicit-any
   SkeletonComponent: React.ComponentType<Record<string, never>>;
 }
 

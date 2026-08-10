@@ -79,7 +79,6 @@ function locationUrlOf(response: Response): URL {
 const PROTECTED_PREFIXES = [
   "/bookmarks",
   "/create-quiz",
-  "/discussions",
   "/friends",
   "/my-profile",
   "/onboarding",

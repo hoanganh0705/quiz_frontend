@@ -47,9 +47,15 @@ export interface SupportArticle {
 
 // Phase 1: migrated from `@/shared/lib/api/client` to `@/lib/api`.
 // See docs/frontend-cleanup-audit.md Phase 1.
+//
+// The response interceptor in `custom-instance.ts` does NOT unwrap
+// the `{ data, meta }` envelope (see the long-form comment on the
+// interceptor for the rationale). The wire response is therefore
+// the wrapped envelope; each helper below reads `.data` at the call
+// boundary to extract the inner payload.
 export async function submitContactForm(payload: ContactFormRequest) {
   const response = await customInstance.request<{ data: ContactFormResponse }>({
-    url: '/support/contact',
+    url: '/api/v1/support/contact',
     method: 'POST',
     data: payload,
   })
@@ -58,7 +64,7 @@ export async function submitContactForm(payload: ContactFormRequest) {
 
 export async function getFAQs() {
   const response = await customInstance.request<{ data: FAQCategory[] }>({
-    url: '/support/faqs',
+    url: '/api/v1/support/faqs',
     method: 'GET',
   })
   return response.data.data
@@ -66,7 +72,7 @@ export async function getFAQs() {
 
 export async function getSupportArticles() {
   const response = await customInstance.request<{ data: SupportArticle[] }>({
-    url: '/support/articles',
+    url: '/api/v1/support/articles',
     method: 'GET',
   })
   return response.data.data
@@ -74,7 +80,7 @@ export async function getSupportArticles() {
 
 export async function getSupportArticle(slug: string) {
   const response = await customInstance.request<{ data: SupportArticle }>({
-    url: `/support/articles/${slug}`,
+    url: `/api/v1/support/articles/${slug}`,
     method: 'GET',
   })
   return response.data.data

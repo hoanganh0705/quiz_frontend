@@ -44,7 +44,7 @@ const LOGIN_PATH_PREFIXES: ReadonlyArray<string> = ["/login"];
  * When the target is hostile, return `false` and let the caller fall
  * back to the default (`/quizzes`).
  */
-export function isSafeRedirectTarget(target: unknown): boolean {
+export function isSafeRedirectTarget(target: unknown): target is string {
   // Reject falsy
   if (!target) return false;
 

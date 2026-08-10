@@ -66,6 +66,7 @@
  */
 
 import { useCallback, useState } from 'react';
+import type { Arguments } from 'swr';
 import { mutate as globalMutate } from 'swr';
 
 import {
@@ -263,13 +264,13 @@ export function useBookmarkQuiz(quizId: string): UseBookmarkQuizResult {
   //     updated `quizCount` totals.
   //   - the targeted status key (`['bookmark-status', quizId]`) —
   //     future per-quiz status reads get the canonical 200 reply.
-  const keysToInvalidate: readonly unknown[] = isAuthenticated && quizId
+  const keysToInvalidate: Arguments[] = (isAuthenticated && quizId
     ? [
         KEY_MEMBERSHIP,
         KEY_COLLECTIONS,
         ['bookmark-status', quizId],
       ]
-    : [];
+    : []) as unknown as Arguments[];
 
   // The toggle function the primitive will invoke. We wrap the
   // wrapper call so we can intercept the 409 path BEFORE handing

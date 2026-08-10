@@ -12,7 +12,7 @@
  * - Fetch and paginate tournament participants through the service layer
  *   using offset pagination.
  * - Synthesise an `id` alias on each participant for deduplication.
- * - Feature-flag gating via `phase5_tournaments`.
+ * - Feature-flag gating via `tournaments_live`.
  *
  * ## Pagination kind
  *
@@ -81,7 +81,7 @@ export function useTournamentParticipants(
   tournamentId: string | null,
   filters: TournamentParticipantsFilters = {},
 ): UseTournamentParticipantsResult {
-  const flagValue = getFeatureFlagValue("phase5_tournaments");
+  const flagValue = getFeatureFlagValue("tournaments_live");
   const isFlagPlaceholder = flagValue === "placeholder";
 
   // SWR cache key.

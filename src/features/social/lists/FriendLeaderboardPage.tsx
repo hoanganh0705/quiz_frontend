@@ -67,7 +67,7 @@ import { FriendLeaderboardSkeleton } from "@/features/social/components/FriendLe
 
 import {
   addSocialLeaderboardBreadcrumb,
-} from "@/lib/social/phase6_6_3_sentry";
+} from "@/lib/social/social-block-sentry";
 import {
   mapAnalyticsPeriodToLeaderboardPeriod,
 } from "@/features/social/types/analytics";
@@ -84,7 +84,7 @@ export function FriendLeaderboardPage(): ReactElement {
   const { entries, isLoading, isStale, error, retry, hasMore, loadMore, staleness } =
     useFriendLeaderboard(periodFilter.period);
 
-  // TKT-6.3.H2 — emit a single `phase6:6.3` breadcrumb per
+  // TKT-6.3.H2 — emit a single `social:6.3` breadcrumb per
   // first-page fetch transition. The leaderboard's `loadMore`
   // path does not emit a breadcrumb; the breadcrumb describes
   // the first page the user actually saw, not each subsequent

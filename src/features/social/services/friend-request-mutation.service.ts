@@ -29,8 +29,8 @@
  *     feature-flag gating. Feature flags live in the mutation hooks.
  *   - `ApiError` is propagated unchanged so callers can branch on
  *     `apiError.code`.
- *   - One `phase6:6.8` Sentry breadcrumb per call (via
- *     `addFriendRequestMutationBreadcrumb` in `phase6_6_8_sentry.ts`).
+ *   - One `social:6.8` Sentry breadcrumb per call (via
+ *     `addFriendRequestMutationBreadcrumb` in `social-friend-request-mutation-sentry.ts`).
  *   - Internal `friendshipId` is never surfaced: `sendFriendRequest`
  *     and `unfriend` return `void` on success (the SDK emits 201/204
  *     No Content); `respondFriendRequest` and `cancelFriendRequest`
@@ -74,7 +74,7 @@
  * The service does NOT call any deprecated route. The deprecated
  * `ANY /social/friend-request` (singular) is named in
  * `lib/api/deprecated-routes.ts`; the lint invariants script
- * (`scripts/phase6-lint-invariants.mjs`, extended by TKT-6.8.G2) asserts
+ * (`scripts/social-lint-invariants.mjs`, extended by TKT-6.8.G2) asserts
  * that `features/social/services/friend-request-mutation.service.ts`
  * does not import `socialControllerDeprecatedFriendRequestPath*`.
  *
@@ -94,7 +94,7 @@ import { ApiError, getSocial } from "@/lib/api";
 import {
   addFriendRequestMutationBreadcrumb,
   SOCIAL_6_8_ROUTES,
-} from "@/lib/social/phase6_6_8_sentry";
+} from "@/lib/social/social-friend-request-mutation-sentry";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -111,7 +111,7 @@ export type RespondFriendRequestAction = "accept" | "decline";
  * Wraps an async SDK call with timing and breadcrumbs. Mirrors the
  * Epic 6.6 / 6.7 pattern (`follow-mutation.service.ts → measuredCall`,
  * `block-mutation.service.ts → measuredCall`) but scoped to the
- * `phase6:6.8` Sentry category.
+ * `social:6.8` Sentry category.
  *
  * `friendshipId` is NOT a parameter here — it is never part of any
  * breadcrumb payload (cross-batch invariant 8: "Unstable `friendshipId`

@@ -43,7 +43,7 @@ import { Button } from '@/components/ui/Button';
 import {
   PASSWORD_COPY_KEYS,
   resolvePasswordCopy,
-} from '@/features/auth/service/auth.service';
+} from '@/features/auth/services/auth.service';
 
 export interface ChangePasswordSuccessBannerProps {
   /**

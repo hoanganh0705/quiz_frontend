@@ -20,7 +20,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 
-import { checkUsername } from "@/features/auth/service/auth.service";
+import { checkUsername } from "@/features/auth/services/auth.service";
 import {
   mapAvailabilityError,
   type AvailabilityStatus,

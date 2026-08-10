@@ -176,7 +176,7 @@ export function AttemptAnswerPicker(
                   data-testid={testIdPrefix ? `${testIdPrefix}-${option.optionId}` : undefined}
                 />
                 <Label htmlFor={`${groupId}-${option.optionId}`}>
-                  {option.text}
+                  {option.value}
                 </Label>
               </div>
             );
@@ -230,7 +230,7 @@ export function AttemptAnswerPicker(
               data-testid={testIdPrefix ? `${testIdPrefix}-${option.optionId}` : undefined}
             />
             <Label htmlFor={`${groupId}-${option.optionId}`}>
-              {option.text}
+              {option.value}
             </Label>
           </div>
         ))}

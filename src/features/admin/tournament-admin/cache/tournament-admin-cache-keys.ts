@@ -68,10 +68,10 @@ export interface TournamentAdminListKeyParams {
  * tournamentAdminListKey({})
  * // → 'tournament-admin:list'
  */
-export function tournamentAdminListKey(params: TournamentListFilters = {}): string {
+export function tournamentAdminListKey(params: TournamentListFilters = { search: '' }): string {
   const parts: string[] = [TOURNAMENT_ADMIN_LIST_PREFIX];
 
-  if (params.status !== undefined && params.status !== '') {
+  if (params.status !== undefined && params.status) {
     parts.push(`status=${params.status}`);
   }
   if (params.search !== undefined && params.search.trim() !== '') {

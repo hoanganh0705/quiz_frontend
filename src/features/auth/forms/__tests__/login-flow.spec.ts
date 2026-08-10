@@ -569,9 +569,14 @@ describe('submitLogin', () => {
       email: 'a@b.co',
       accessToken: 'token123',
     };
-    const login = vi.fn().mockResolvedValue({
-      data: mockUser,
-    });
+    // The SDK interceptor in `custom-instance.ts` unwraps the
+    // `{ data, meta }` envelope before the dependency resolves, so
+    // the stub returns the inner `LoginResponseDto` directly — NOT
+    // `{ data: LoginResponseDto }`. The static SDK type still claims
+    // the wrapped envelope, so we cast through `unknown` to satisfy
+    // the `SubmitLoginDeps.login` signature. See `auth.service.login`
+    // JSDoc for the long-form unwrap contract.
+    const login = vi.fn().mockResolvedValue(mockUser as unknown as AuthControllerLoginResult);
     const clearAuthToken = vi.fn();
 
     const result = await submitLogin(validValues, { login, clearAuthToken });
@@ -587,10 +592,14 @@ describe('submitLogin', () => {
   it('calls clearAuthToken BEFORE login on success', async () => {
     const callOrder: string[] = [];
 
-    // Intercept to record call order
+    // Intercept to record call order. The dependency returns the
+    // unwrapped `LoginResponseDto` (the SDK strips the envelope).
+    // The static SDK type still claims the wrapped envelope, so we
+    // cast through `unknown` to satisfy the `SubmitLoginDeps.login`
+    // signature while exercising the actual runtime contract.
     const loginIntercepted = async () => {
       callOrder.push('login');
-      return { data: mockUser } as AuthControllerLoginResult;
+      return mockUser as unknown as AuthControllerLoginResult;
     };
     const clearIntercepted = () => {
       callOrder.push('clearAuthToken');
@@ -698,9 +707,10 @@ describe('submitLogin', () => {
   });
 
   it('strips rememberMe from the wire call', async () => {
-    const login = vi.fn().mockResolvedValue({
-      data: mockUser,
-    });
+    // The stub returns the unwrapped `LoginResponseDto` (the SDK
+    // interceptor strips the envelope before resolving). Cast through
+    // `unknown` to satisfy the static deps signature.
+    const login = vi.fn().mockResolvedValue(mockUser as unknown as AuthControllerLoginResult);
     const clearAuthToken = vi.fn();
 
     await submitLogin(
@@ -832,7 +842,7 @@ describe('service-layer boundary', () => {
           file.endsWith('login-submit.ts') ||
           file.endsWith('reset-password-submit.ts') ||
           file.endsWith('forgot-password-submit.ts')) &&
-        text.includes("from '@/features/auth/service/auth.service'")
+        text.includes("from '@/features/auth/services/auth.service'")
       ) {
         // These files are allowed to import the service;
         // the service then imports the SDK. We treat it as a
@@ -852,6 +862,13 @@ describe('service-layer boundary', () => {
       if (file.endsWith('login-submit.ts')) {
         // login-submit.ts uses a type import for AuthControllerLoginResult.
         // This is erased at compile time so it's not a runtime SDK import.
+        continue;
+      }
+      if (file.endsWith('types/index.ts')) {
+        // `features/auth/types/index.ts` re-exports SDK-derived DTOs
+        // (CurrentUserResponseDto, UserMeResponseDto, etc.) purely
+        // for compile-time typing. These are erased at bundle time
+        // and never reach the runtime.
         continue;
       }
       expect(

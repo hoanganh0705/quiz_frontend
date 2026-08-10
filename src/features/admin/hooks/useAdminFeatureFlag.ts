@@ -9,7 +9,7 @@
  * ## Purpose
  *
  * Convenience hook that reads one of the eight Phase 7 admin flags
- * (`phase7_admin` or any of the seven sub-flags) and returns a
+ * (`admin_live` or any of the seven sub-flags) and returns a
  * structured document. Consumers wiring an admin page call this
  * instead of importing `getFeatureFlagValue` directly so:
  *
@@ -19,7 +19,7 @@
  *      flag is at its default (`'placeholder'`) without a per-call
  *      `isFeatureEnabled(...)` ceremony.
  *   3. The CI invariant `admin-flag-no-raw-process-env` (in
- *      `phase7-lint-invariants.mjs`) can be enforced by locking on the
+ *      `admin-lint-invariants.mjs`) can be enforced by locking on the
  *      stable `AdminFeatureFlag` union.
  *
  * ## Cross-tab / cross-revalidation
@@ -43,16 +43,16 @@
 import { getFeatureFlagValue } from '@/lib/feature-flags';
 
 export type AdminFeatureFlag =
-  | 'phase7_admin'
-  | 'phase7_admin_review_moderation'
-  | 'phase7_admin_comment_moderation'
-  | 'phase7_admin_tag'
-  | 'phase7_admin_category'
-  | 'phase7_admin_ranking'
-  | 'phase7_admin_achievement'
-  | 'phase7_admin_tournament'
-  | 'phase7_admin_user_role'
-  | 'phase7_admin_audit';
+  | 'admin_live'
+  | 'admin_review_moderation_live'
+  | 'admin_comment_moderation_live'
+  | 'admin_tag_live'
+  | 'admin_category_live'
+  | 'admin_ranking_live'
+  | 'admin_achievement_live'
+  | 'admin_tournament_live'
+  | 'admin_user_role_live'
+  | 'admin_audit_live';
 
 export interface UseAdminFeatureFlag {
   flag: AdminFeatureFlag;

@@ -100,9 +100,9 @@ export default defineConfig({
           'src/features/attempts/hooks/__tests__/useAttemptHistoryFilters.integration.spec.tsx',
           // TKT-5.1.B2 — `connection-registry` spec requires jsdom.
           'src/lib/realtime/__tests__/connection-registry.spec.ts',
-          // TKT-6.10.D3 — phase5-broadcast social-extension spec
+          // TKT-6.10.D3 — cross-tab-invalidation social-extension spec
           // requires jsdom for the BroadcastChannel global.
-          'src/lib/realtime/__tests__/phase5-broadcast.social-extension.spec.ts',
+          'src/lib/realtime/__tests__/cross-tab-invalidation.social-extension.spec.ts',
           // TKT-5.1.E1–E3 — hook specs require jsdom (renderHook).
           'src/lib/realtime/__tests__/useSocket.spec.tsx',
           'src/lib/realtime/__tests__/useRealtimeEvent.spec.tsx',
@@ -161,6 +161,12 @@ export default defineConfig({
           // useSocialPermissions, and the seven read hooks) require
           // jsdom (renderHook); excluded from node.
           'src/features/social/hooks/__tests__/*.spec.tsx',
+          // TKT-6.5.B3 — useSearchRateLimit spec uses renderHook
+          // (jsdom); excluded from node, discovered in jsdom below.
+          'src/features/social/hooks/__tests__/*.spec.ts',
+          // TKT-6.5.B1 — useDebouncedValue spec uses renderHook
+          // (jsdom); excluded from node, discovered in jsdom below.
+          'src/features/social/hooks/__tests__/useDebouncedValue.spec.ts',
           // TKT-6.2.B1 / B2 — the SocialListRouteGate component spec
           // uses @testing-library/react and is co-located under the
           // component. Excluded from node, discovered in jsdom below.
@@ -184,27 +190,27 @@ export default defineConfig({
           'src/features/social/__tests__/*.spec.ts',
           // TKT-6.2.B1 / B2 — the route-scaffold specs render the App
           // Router route module; excluded from node, discovered in jsdom.
-          'src/app/social/**/*.spec.tsx',
+          'src/app/(protected)/social/**/*.spec.tsx',
           // TKT-6.2.G1 — the social-list-loaded broadcast-channel spec
           // uses BroadcastChannel + sessionStorage; needs jsdom.
           'src/lib/social/__tests__/social-list-loaded-broadcast-channel.spec.ts',
           'src/lib/social/__tests__/social-list-loaded-broadcast-channel.spec.tsx',
-          // TKT-6.2.H1 — the phase6_6_2_sentry spec uses jsdom for
+          // TKT-6.2.H1 — the social-search-sentry spec uses jsdom for
           // the Sentry test transport.
-          'src/lib/social/__tests__/phase6_6_2_sentry.spec.ts',
-          'src/lib/social/__tests__/phase6_6_2_sentry.spec.tsx',
+          'src/lib/social/__tests__/social-search-sentry.spec.ts',
+          'src/lib/social/__tests__/social-search-sentry.spec.tsx',
           // TKT-7.4.A3 — category admin route file spec uses
           // @testing-library/react; excluded from node, discovered in jsdom.
-          'src/app/admin/__tests__/admin-categories-page.spec.tsx',
+          'src/app/(protected)/admin/__tests__/admin-categories-page.spec.tsx',
           // TKT-7.4.A3 — category admin categories-sub-route spec uses
           // @testing-library/react; excluded from node, discovered in jsdom.
-          'src/app/admin/categories/__tests__/*.spec.tsx',
+          'src/app/(protected)/admin/categories/__tests__/*.spec.tsx',
           // TKT-7.4.C1–C6 — category admin hook specs require jsdom (renderHook +
           // SWR + @testing-library/react); excluded from node.
           'src/features/admin/category-admin/hooks/__tests__/*.spec.tsx',
           // TKT-7.5.A3 — review reports route file spec uses
           // @testing-library/react; excluded from node, discovered in jsdom.
-          'src/app/admin/reviews/reports/__tests__/*.spec.tsx',
+          'src/app/(protected)/admin/reviews/reports/__tests__/*.spec.tsx',
           // TKT-7.5.B1–B3 — review moderation type/enum/validation specs
           // are pure-function specs but live under the admin folder so
           // they are excluded from node and discovered in jsdom for
@@ -216,8 +222,8 @@ export default defineConfig({
           'src/features/admin/review-moderation/hooks/__tests__/*.spec.tsx',
           // TKT-7.6.A3 — comment reports route file spec uses
           // @testing-library/react; excluded from node, discovered in jsdom.
-          'src/app/admin/comments/__tests__/*.spec.tsx',
-          'src/app/admin/comments/**/__tests__/*.spec.tsx',
+          'src/app/(protected)/admin/comments/__tests__/*.spec.tsx',
+          'src/app/(protected)/admin/comments/**/__tests__/*.spec.tsx',
           // TKT-7.6.B1–B3 — comment moderation type/enum/validation
           // specs; pure-function specs discovered here for a consistent
           // test driver, mirroring the Epic 7.5 convention.
@@ -236,7 +242,13 @@ export default defineConfig({
           // requires jsdom (@testing-library/react with mocked
           // useAdminFeatureFlag and UserRoleAdminPage);
           // excluded from node, discovered in jsdom project below.
-          'src/app/admin/users/roles/_components/__tests__/UserRoleAdminRouteHandoff.spec.tsx',
+          'src/app/(protected)/admin/users/roles/_components/__tests__/UserRoleAdminRouteHandoff.spec.tsx',
+          // TKT-4.4.E3–E7 — Epic 4.4 mutation hook specs (pure
+          // `.spec.ts`) use `renderHook` + SWR and need jsdom;
+          // excluded from node, discovered in jsdom below.
+          'src/features/quizzes/hooks/__tests__/useCreateVersion.spec.ts',
+          'src/features/quizzes/hooks/__tests__/useUpdateVersion.spec.ts',
+          'src/features/quizzes/hooks/__tests__/useQuizAuthorView.spec.ts',
         ],
       },
       },
@@ -313,10 +325,10 @@ export default defineConfig({
             // hooks and asserts flag × role × nav × breadcrumb composition
             // end-to-end. Needs jsdom for @testing-library/react.
             'src/features/shared/__tests__/phase7-7-2.integration.spec.tsx',
-            // TKT-6.10.D3 — phase5-broadcast social-extension spec
+            // TKT-6.10.D3 — cross-tab-invalidation social-extension spec
             // uses BroadcastChannel + jsdom; excluded from node,
             // discovered here.
-            'src/lib/realtime/__tests__/phase5-broadcast.social-extension.spec.ts',
+            'src/lib/realtime/__tests__/cross-tab-invalidation.social-extension.spec.ts',
             // TKT-4.2.A2 — `useQuizForm` primitive spec uses
             // `@testing-library/react`'s `renderHook`, which requires
             // a DOM environment. The hook does not need jsdom
@@ -343,8 +355,14 @@ export default defineConfig({
           'src/features/users/components/settings/__tests__/*.spec.tsx',
           'src/features/users/components/my-profile/__tests__/*.spec.tsx',
           // TKT-4.4.E3–E7 — Epic 4.4 hook specs. Use SWR hooks that need
-          // jsdom; co-located with the hooks under test.
+          // jsdom; co-located with the hooks under test. Both
+          // `.spec.tsx` and `.spec.ts` extensions are included
+          // because some mutation hooks (e.g. `useCreateVersion`,
+          // `useUpdateVersion`, `useQuizAuthorView`) are pure-TS
+          // specs that still drive `renderHook` from
+          // `@testing-library/react` and therefore require a DOM.
           'src/features/quizzes/hooks/__tests__/*.spec.tsx',
+          'src/features/quizzes/hooks/__tests__/*.spec.ts',
           // TKT-4.4.E7 — MyQuizzesTableRow RTL component spec. Needs jsdom.
           'src/features/quizzes/components/__tests__/MyQuizzesTableRow.spec.tsx',
           // TKT-4.4.F1 — MyQuizzesDashboardPage integration spec. Needs jsdom.
@@ -560,6 +578,9 @@ export default defineConfig({
           // TKT-6.1.G1 — social hook specs require jsdom (renderHook);
           // co-located with the hooks under test.
           'src/features/social/hooks/__tests__/*.spec.tsx',
+          // TKT-6.5.B1 / B3 — useDebouncedValue + useSearchRateLimit
+          // specs (renderHook, fake timers); co-located with hooks.
+          'src/features/social/hooks/__tests__/*.spec.ts',
           // TKT-6.2.B1 / B2 — the SocialListRouteGate component spec
           // uses @testing-library/react; co-located with the component
           // under test.
@@ -588,15 +609,15 @@ export default defineConfig({
           // TKT-6.2.B1 — the route-scaffold spec renders the App Router
           // route module via the next-router mock; co-located with the
           // route under test.
-          'src/app/social/**/*.spec.tsx',
+          'src/app/(protected)/social/**/*.spec.tsx',
           // TKT-6.2.G1 — the social-list-loaded broadcast-channel spec
           // uses BroadcastChannel + sessionStorage; needs jsdom.
           'src/lib/social/__tests__/social-list-loaded-broadcast-channel.spec.ts',
           'src/lib/social/__tests__/social-list-loaded-broadcast-channel.spec.tsx',
-          // TKT-6.2.H1 — the phase6_6_2_sentry spec uses jsdom for
+          // TKT-6.2.H1 — the social-search-sentry spec uses jsdom for
           // the Sentry test transport.
-          'src/lib/social/__tests__/phase6_6_2_sentry.spec.ts',
-          'src/lib/social/__tests__/phase6_6_2_sentry.spec.tsx',
+          'src/lib/social/__tests__/social-search-sentry.spec.ts',
+          'src/lib/social/__tests__/social-search-sentry.spec.tsx',
           // TKT-7.1.C1 — AdminRoleGuard boundary component spec;
           // uses @testing-library/react.
           'src/features/admin/components/__tests__/AdminRoleGuard.spec.tsx',
@@ -648,13 +669,13 @@ export default defineConfig({
           'src/features/admin/components/__tests__/AdminNav.spec.tsx',
           // TKT-7.2.D2 — admin nested route integration spec;
           // uses @testing-library/react + mocked flag/role/pathname hooks.
-          'src/app/admin/__tests__/admin-routes.integration.spec.tsx',
+          'src/app/(protected)/admin/__tests__/admin-routes.integration.spec.tsx',
           // uses @testing-library/react + mocked flag and role hooks.
           'src/features/admin/components/__tests__/AdminLayoutShell.integration.spec.tsx',
           // TKT-7.3.A3 — tag admin route file spec; uses @testing-library/react.
-          'src/app/admin/__tests__/admin-tags-page.spec.tsx',
+          'src/app/(protected)/admin/__tests__/admin-tags-page.spec.tsx',
           // TKT-7.9.A3 — rankings admin route file spec; uses @testing-library/react.
-          'src/app/admin/rankings/__tests__/*.spec.tsx',
+          'src/app/(protected)/admin/rankings/__tests__/*.spec.tsx',
           // TKT-7.9.C1–C3 — ranking admin hook specs require jsdom
           // (renderHook + SWR + @testing-library/react);
           // co-located with the hooks under test.
@@ -664,7 +685,7 @@ export default defineConfig({
           // under test.
           'src/features/admin/ranking-admin/components/__tests__/*.spec.tsx',
           // TKT-7.3.F3 — tag admin tags-sub-route spec; uses @testing-library/react.
-          'src/app/admin/tags/__tests__/*.spec.tsx',
+          'src/app/(protected)/admin/tags/__tests__/*.spec.tsx',
           // TKT-7.3.H1 — tag admin e2e integration spec uses
           // @testing-library/react; excluded from node, discovered in jsdom.
           'src/features/admin/tag-admin/__tests__/*.spec.tsx',
@@ -680,9 +701,9 @@ export default defineConfig({
           // uses @testing-library/react + jsdom for the dialog renders.
           'src/features/admin/tag-admin/__tests__/restore-stable-codes.spec.tsx',
           // TKT-7.4.A3 — category admin route file spec; uses @testing-library/react.
-          'src/app/admin/__tests__/admin-categories-page.spec.tsx',
+          'src/app/(protected)/admin/__tests__/admin-categories-page.spec.tsx',
           // TKT-7.4.A3 — category admin categories-sub-route spec; uses @testing-library/react.
-          'src/app/admin/categories/__tests__/*.spec.tsx',
+          'src/app/(protected)/admin/categories/__tests__/*.spec.tsx',
           // TKT-7.4.C1–C6 — category admin hook specs require jsdom
           // (renderHook + SWR + @testing-library/react); discovered here.
           'src/features/admin/category-admin/hooks/__tests__/*.spec.tsx',
@@ -691,7 +712,7 @@ export default defineConfig({
             'src/features/admin/category-admin/components/__tests__/*.spec.tsx',
             // TKT-7.5.A3 — review reports route file spec; uses
             // @testing-library/react.
-            'src/app/admin/reviews/reports/__tests__/*.spec.tsx',
+            'src/app/(protected)/admin/reviews/reports/__tests__/*.spec.tsx',
             // TKT-7.5.B1–B3 — review moderation type/enum/validation
             // specs; discovered here for a consistent test driver.
             'src/features/admin/review-moderation/__tests__/*.spec.ts',
@@ -701,17 +722,17 @@ export default defineConfig({
             'src/features/admin/review-moderation/hooks/__tests__/*.spec.tsx',
             // TKT-7.6.A3 — comment reports route file spec uses
             // @testing-library/react; jsdom required.
-            'src/app/admin/comments/__tests__/*.spec.tsx',
-            'src/app/admin/comments/**/__tests__/*.spec.tsx',
+            'src/app/(protected)/admin/comments/__tests__/*.spec.tsx',
+            'src/app/(protected)/admin/comments/**/__tests__/*.spec.tsx',
 // TKT-7.6.B1–B3 — comment moderation type/enum/validation
           // specs; discovered here for a consistent test driver.
           'src/features/admin/comment-moderation/__tests__/*.spec.ts',
           // TKT-7.7.A3 — tournament admin route file spec uses
           // @testing-library/react; jsdom required.
-          'src/app/admin/tournaments/__tests__/*.spec.tsx',
+          'src/app/(protected)/admin/tournaments/__tests__/*.spec.tsx',
           // TKT-7.8.A3 — achievement admin route file spec uses
           // @testing-library/react; jsdom required.
-          'src/app/admin/achievements/users/[userId]/_components/__tests__/*.spec.tsx',
+          'src/app/(protected)/admin/achievements/users/[userId]/_components/__tests__/*.spec.tsx',
           // TKT-7.7.B1–B4 — tournament admin type / validation specs;
           // discovered here for a consistent test driver, mirroring
           // the Epic 7.5 / 7.6 convention.
@@ -763,7 +784,7 @@ export default defineConfig({
           // requires jsdom (@testing-library/react with mocked
           // useAdminFeatureFlag and UserRoleAdminPage);
           // co-located with the route handoff component.
-          'src/app/admin/users/roles/_components/__tests__/UserRoleAdminRouteHandoff.spec.tsx',
+          'src/app/(protected)/admin/users/roles/_components/__tests__/UserRoleAdminRouteHandoff.spec.tsx',
         // TKT-7.5.D1 — ReviewReportActionMenu component spec uses
           // @testing-library/react with mocked usePermission +
           // useAuthBootstrap; jsdom required.

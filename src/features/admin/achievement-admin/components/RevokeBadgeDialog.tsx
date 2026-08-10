@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 /**
  * `features/admin/achievement-admin/components/RevokeBadgeDialog.tsx`
@@ -27,7 +27,7 @@
  * The dialog never bypasses the typed-confirm ceiling on any failure mode.
  */
 
-import { useCallback, useState } from 'react';
+import { useCallback, useState } from "react";
 
 import {
   AlertDialog,
@@ -36,22 +36,20 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@/components/ui/AlertDialog';
-import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
-import { Label } from '@/components/ui/Label';
-import { LoadingSpinner } from '@/components/ui/loading-states/LoadingSpinner';
-import { ApiError } from '@/lib/api/core/ApiError';
-import {
-  getIrreversibleConfirmString,
-} from '@/features/admin/admin-capabilities';
-import { getUserCopy } from '@/lib/api/error-codes';
+} from "@/components/ui/AlertDialog";
+import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Input";
+import { Label } from "@/components/ui/Label";
+import { LoadingSpinner } from "@/components/ui/loading-states/LoadingSpinner";
+import { ApiError } from "@/lib/api/core/ApiError";
+import { getIrreversibleConfirmString } from "@/features/admin/admin-capabilities";
+import { getUserCopy } from "@/lib/api/error-codes";
 
-import type { UserBadgeDto } from '../achievement-admin-types';
-import { useRevokeUserBadge } from '../hooks';
+import type { AdminUserBadgeDto } from "../achievement-admin-types";
+import { useRevokeUserBadge } from "../hooks";
 
-const OPERATION = 'achievement.badge_revoke' as const;
-const REQUIRED_STRING = getIrreversibleConfirmString(OPERATION);
+const OPERATION = "achievement.badge_revoke" as const;
+const REQUIRED_STRING = getIrreversibleConfirmString(OPERATION) as string;
 
 export interface RevokeBadgeDialogProps {
   /** Whether the dialog is open. */
@@ -59,7 +57,7 @@ export interface RevokeBadgeDialogProps {
   /** The user from whom the badge will be revoked. */
   userId: string;
   /** The badge to revoke. */
-  badge: UserBadgeDto;
+  badge: AdminUserBadgeDto;
   /** Called when the dialog is cancelled or closed. */
   onClose: () => void;
   /** Called after a successful revocation with the revoked badgeId. */
@@ -70,10 +68,9 @@ export interface RevokeBadgeDialogProps {
  * Irreversibility warning copy rendered above the typed-confirm input.
  */
 const IRREVERSIBILITY_WARNING =
-  'This permanently removes the badge from this user. The change cannot be undone.';
+  "This permanently removes the badge from this user. The change cannot be undone.";
 
-const IRREVERSIBILITY_LABEL =
-  'I understand this action is irreversible';
+const IRREVERSIBILITY_LABEL = "I understand this action is irreversible";
 
 /**
  * Revoke badge dialog for the achievement admin surface.
@@ -85,7 +82,7 @@ export function RevokeBadgeDialog({
   onClose,
   onRevoked,
 }: RevokeBadgeDialogProps) {
-  const [confirmInput, setConfirmInput] = useState('');
+  const [confirmInput, setConfirmInput] = useState("");
   const [localError, setLocalError] = useState<ApiError | null>(null);
 
   const { revoke, isPending, error, reset } = useRevokeUserBadge();
@@ -97,11 +94,11 @@ export function RevokeBadgeDialog({
     setLocalError(null);
 
     try {
-      await revoke(userId, badge.badgeId ?? badge.id, {
-        before: badge,
+      await revoke(userId, badge.badgeId, {
+        before: badge as unknown,
       });
-      setConfirmInput('');
-      onRevoked(badge.badgeId ?? badge.id);
+      setConfirmInput("");
+      onRevoked(badge.badgeId);
       onClose();
       reset();
     } catch (err) {
@@ -112,7 +109,7 @@ export function RevokeBadgeDialog({
 
   const handleCancel = useCallback(() => {
     if (isPending) return;
-    setConfirmInput('');
+    setConfirmInput("");
     setLocalError(null);
     reset();
     onClose();
@@ -142,8 +139,7 @@ export function RevokeBadgeDialog({
             Revoke badge
           </AlertDialogTitle>
           <AlertDialogDescription data-testid="revoke-dialog-description">
-            {badge.name ?? 'Badge'} —{' '}
-            {IRREVERSIBILITY_WARNING}
+            {badge.badgeName ?? "Badge"} — {IRREVERSIBILITY_WARNING}
           </AlertDialogDescription>
         </AlertDialogHeader>
 
@@ -159,10 +155,17 @@ export function RevokeBadgeDialog({
         )}
 
         {/* Typed-confirm form. */}
-        <form onSubmit={(e) => { e.preventDefault(); void handleConfirm(); }}>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            void handleConfirm();
+          }}
+        >
           <div className="space-y-2">
             <Label htmlFor="revoke-confirm-input">
-              Type <span className="font-mono font-semibold">{REQUIRED_STRING}</span> to confirm
+              Type{" "}
+              <span className="font-mono font-semibold">{REQUIRED_STRING}</span>{" "}
+              to confirm
             </Label>
             <Input
               id="revoke-confirm-input"
@@ -230,7 +233,7 @@ function getErrorNotice(error: ApiError | null): React.ReactNode {
   );
 
   // Generic notice for non-documented transient codes.
-  if (error.requestId) {
+  if (error?.requestId) {
     return (
       <div
         role="alert"
@@ -239,9 +242,7 @@ function getErrorNotice(error: ApiError | null): React.ReactNode {
         data-error-code={code}
       >
         <p>An error occurred. Please try again.</p>
-        <p className="mt-1 font-mono text-xs">
-          Request ID: {error.requestId}
-        </p>
+        <p className="mt-1 font-mono text-xs">Request ID: {error?.requestId}</p>
       </div>
     );
   }
@@ -252,7 +253,7 @@ function getErrorNotice(error: ApiError | null): React.ReactNode {
       className="rounded-md border border-border bg-muted/50 p-3 text-sm"
       data-error-code={code}
     >
-      {getUserCopy(code).userCopy}
+      {getUserCopy(code).body}
     </p>
   );
 }

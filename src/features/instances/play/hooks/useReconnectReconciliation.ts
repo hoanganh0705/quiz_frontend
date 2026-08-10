@@ -23,7 +23,7 @@
  *   a fresh `instanceClosedEventDto` or a new instance version.
  * - Expose `isReconciling` and `lastReconciledAt`.
  * - Expose `reconcile()` for manual invocation.
- * - Return safe fallbacks when `phase5_instances_play === 'placeholder'`.
+ * - Return safe fallbacks when `multiplayer_play_live === 'placeholder'`.
  *
  * ## Server authority
  *
@@ -33,7 +33,7 @@
  *
  * ## Feature flag
  *
- * Returns safe fallbacks when `phase5_instances_play === 'placeholder'`.
+ * Returns safe fallbacks when `multiplayer_play_live === 'placeholder'`.
  */
 
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -70,7 +70,7 @@ export interface UseReconnectReconciliationResult {
 export function useReconnectReconciliation(
   instanceId: string | null,
 ): UseReconnectReconciliationResult {
-  const flagValue = getFeatureFlagValue("phase5_instances_play");
+  const flagValue = getFeatureFlagValue("multiplayer_play_live");
   const isPlaceholder = flagValue === "placeholder";
 
   const { connectionState } = useInstanceGameSocket(instanceId);

@@ -15,7 +15,7 @@
  *
  * ## Feature flag gating
  *
- * Renders `null` when `phase5_achievements === 'placeholder'`. The
+ * Renders `null` when `achievements_live === 'placeholder'`. The
  * achievements page falls back to a placeholder when the flag is off.
  *
  * ## Loading / error / empty
@@ -118,7 +118,7 @@ const TIER_COLOR: Record<BadgeTier, string> = {
 /**
  * Render the badge catalog gallery.
  *
- * Returns `null` when `phase5_achievements === 'placeholder'`. Filter
+ * Returns `null` when `achievements_live === 'placeholder'`. Filter
  * changes write to URL query state for shareable links.
  */
 export function BadgeGallery({
@@ -130,7 +130,7 @@ export function BadgeGallery({
   initialCategory,
   className,
 }: BadgeGalleryProps) {
-  const flagValue = getFeatureFlagValue("phase5_achievements");
+  const flagValue = getFeatureFlagValue("achievements_live");
   const isFlagPlaceholder = flagValue === "placeholder";
 
   // All hooks below run unconditionally to satisfy the Rules of Hooks

@@ -32,7 +32,7 @@ import { ApiError } from '@/lib/api';
 
 const mockAddCommentModerationBreadcrumb = vi.hoisted(() => vi.fn());
 
-vi.mock('@/lib/admin/phase7_admin_sentry', () => ({
+vi.mock('@/lib/admin/admin_live_sentry', () => ({
   addCommentModerationBreadcrumb: (...args: unknown[]) =>
     mockAddCommentModerationBreadcrumb(...args),
 }));

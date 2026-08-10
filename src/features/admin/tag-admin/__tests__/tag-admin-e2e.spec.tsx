@@ -110,7 +110,7 @@ vi.mock('@/features/admin/services/tag-admin.service', () => ({
   restoreTag: mockRestoreTag,
 }));
 
-vi.mock('@/lib/admin/phase7_admin_sentry', () => ({
+vi.mock('@/lib/admin/admin_live_sentry', () => ({
   addTagAdminBreadcrumb: mockAddTagAdminBreadcrumb,
 }));
 
@@ -121,7 +121,7 @@ vi.mock('@/features/admin/tag-admin/cache/tag-cross-tab', () => ({
 
 vi.mock('@/features/admin/hooks', () => ({
   useAdminFeatureFlag: vi.fn(() => ({
-    flag: 'phase7_admin_tag' as const,
+    flag: 'admin_tag_live' as const,
     value: 'live' as const,
     isLive: true,
     isPlaceholder: false,

@@ -6,7 +6,7 @@
  *
  *   - Happy path: SDK envelope unwraps, items are returned, `total`
  *     is derived from the meta or items length, `visibility: 'visible'`.
- *   - The wrapper emits two `phase6:6.1` breadcrumbs per call
+ *   - The wrapper emits two `social:6.1` breadcrumbs per call
  *     (one in-flight + one resolved) carrying the documented payload.
  *   - 4xx / 5xx errors propagate as `ApiError` with the documented
  *     `code` accessible.
@@ -152,11 +152,11 @@ describe("getSuggestions", () => {
     await getSuggestions({ limit: 10 });
     expect(addBreadcrumbMock).toHaveBeenCalledTimes(2);
     expect(addBreadcrumbMock).toHaveBeenNthCalledWith(1, expect.objectContaining({
-      category: "phase6:6.1",
+      category: "social:6.1",
       data: expect.objectContaining({ route: "social.getSuggestions" }),
     }));
     expect(addBreadcrumbMock).toHaveBeenNthCalledWith(2, expect.objectContaining({
-      category: "phase6:6.1",
+      category: "social:6.1",
       data: expect.objectContaining({ route: "social.getSuggestions", status: 200 }),
     }));
   });

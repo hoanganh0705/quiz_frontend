@@ -11,7 +11,7 @@
  * `features/admin/**` that touches the SDK for tag admin; every
  * `features/admin/hooks/**` consumer of tag admin mutations imports
  * from this service. The cross-batch invariant `service-only-http`
- * is enforced by `scripts/phase7-lint-invariants.mjs` (TKT-7.1.B6).
+ * is enforced by `scripts/admin-lint-invariants.mjs` (TKT-7.1.B6).
  *
  * ## Functions
  *

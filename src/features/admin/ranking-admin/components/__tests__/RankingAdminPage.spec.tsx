@@ -48,7 +48,7 @@ beforeEach(() => {
   vi.mocked(usePermission).mockReset();
   // Default: flag live, permission granted, not loading.
   vi.mocked(useAdminFeatureFlag).mockReturnValue({
-    flag: 'phase7_admin_ranking',
+    flag: 'admin_ranking_live',
     value: 'live',
     isLive: true,
     isPlaceholder: false,
@@ -101,7 +101,7 @@ describe('TKT-7.9.F1 — RankingAdminPage', () => {
 
   it('renders the disabled notice when flag is placeholder', () => {
     vi.mocked(useAdminFeatureFlag).mockReturnValue({
-      flag: 'phase7_admin_ranking',
+      flag: 'admin_ranking_live',
       value: 'placeholder',
       isLive: false,
       isPlaceholder: true,

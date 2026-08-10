@@ -33,7 +33,7 @@
  *
  * ## Feature flag
  *
- * Returns safe fallbacks when `phase5_instances_play === 'placeholder'`.
+ * Returns safe fallbacks when `multiplayer_play_live === 'placeholder'`.
  */
 
 import { useCallback, useRef, useState } from "react";
@@ -102,7 +102,7 @@ export function useSubmitInstanceAnswer(
   instanceId: string | null,
   currentQuestionId: string | null,
 ): UseSubmitInstanceAnswerResult {
-  const flagValue = getFeatureFlagValue("phase5_instances_play");
+  const flagValue = getFeatureFlagValue("multiplayer_play_live");
   const isPlaceholder = flagValue === "placeholder";
 
   const { emitAnswer, connectionState } = useInstanceGameSocket(instanceId);

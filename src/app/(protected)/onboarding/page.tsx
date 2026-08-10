@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, memo, useCallback } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { useLocalStorage } from '@/shared/hooks/use-local-storage'
 import {
@@ -15,7 +15,7 @@ import { OnboardingData } from '@/features/onboarding/types'
 // Hoist constant outside component (data-hoisting)
 const TOTAL_STEPS = 4
 
-const OnboardingPage = memo(function OnboardingPage() {
+const OnboardingPage = function OnboardingPage() {
   const router = useRouter()
   const [currentStep, setCurrentStep] = useState(1)
   const [onboardingData, setOnboardingData] = useLocalStorage<OnboardingData>(
@@ -162,6 +162,6 @@ const OnboardingPage = memo(function OnboardingPage() {
       </section>
     </main>
   )
-})
+}
 
 export default OnboardingPage

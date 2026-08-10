@@ -30,6 +30,7 @@ import { notFound, useParams } from 'next/navigation';
 import { getUserCopy } from '@/lib/api/error-codes';
 import { useToast } from '@/lib/forms/useToast';
 import { Skeleton } from '@/components/ui/Skeleton';
+import { addSentryBreadcrumb } from '@/shared/sentry/add-sentry-breadcrumb';
 
 import {
   useQuizAuthorView,
@@ -149,26 +150,10 @@ export const QuizEditPage = memo(function QuizEditPage({
     [push]
   );
 
-  // ── Sentry breadcrumb helper ─────────────────────────────────────────────
-
-  const addSentryBreadcrumb = useCallback(
-    (
-      type: 'api-call' | 'error' | 'user-action',
-      message: string,
-      data?: Record<string, unknown>
-    ) => {
-      const sentry = typeof window !== 'undefined'
-        ? (window as unknown as { Sentry?: { addBreadcrumb?: (crumb: { category: string; message: string; level: string; data: Record<string, unknown> }) => void } }).Sentry
-        : undefined;
-      sentry?.addBreadcrumb?.({
-        category: `quiz-edit.${type}`,
-        message,
-        level: type === 'error' ? 'error' : 'info',
-        data: { quizId, ...data },
-      });
-    },
-    [quizId]
-  );
+  // ── Sentry breadcrumb helper (P2-27) ────────────────────────────────
+  // Phase 7 / P2-27: extracted to
+  // `@/shared/sentry/add-sentry-breadcrumb`. The `categoryPrefix`
+  // argument namespaces the breadcrumb under `quiz-edit.*`.
 
   // ── Data fetching ────────────────────────────────────────────────────────
 
@@ -198,10 +183,15 @@ export const QuizEditPage = memo(function QuizEditPage({
     error: createVersionError,
   } = useCreateVersion({
     onSuccess: (version) => {
-      addSentryBreadcrumb('user-action', 'Created new quiz version', {
-        versionId: version.quizVersionId,
-        versionNumber: version.versionNumber,
-      });
+      addSentryBreadcrumb(
+        'user-action',
+        'Created new quiz version',
+        {
+          versionId: version.quizVersionId,
+          versionNumber: version.versionNumber,
+        },
+        { categoryPrefix: 'quiz-edit', quizId },
+      );
       // Switch to drafts tab and select the new version
       setActiveTab('drafts');
       setActiveVersionId(version.quizVersionId);
@@ -218,7 +208,12 @@ export const QuizEditPage = memo(function QuizEditPage({
     error: updateVersionError,
   } = useUpdateVersion({
     onSuccess: () => {
-      addSentryBreadcrumb('user-action', 'Updated quiz version metadata');
+      addSentryBreadcrumb(
+        'user-action',
+        'Updated quiz version metadata',
+        {},
+        { categoryPrefix: 'quiz-edit', quizId },
+      );
       showToast('Changes saved', 'Your changes have been saved successfully.');
       void versionsResult.refresh();
     },
@@ -233,9 +228,12 @@ export const QuizEditPage = memo(function QuizEditPage({
     resetError: resetPublishError,
   } = usePublishVersion({
     onSuccess: (version) => {
-      addSentryBreadcrumb('user-action', 'Published quiz version', {
-        versionId: version.quizVersionId,
-      });
+      addSentryBreadcrumb(
+        'user-action',
+        'Published quiz version',
+        { versionId: version.quizVersionId },
+        { categoryPrefix: 'quiz-edit', quizId },
+      );
       showToast('Published', 'Your quiz is now live on /quizzes!');
       void versionsResult.refresh();
       // Navigate to the public quiz page
@@ -244,10 +242,12 @@ export const QuizEditPage = memo(function QuizEditPage({
       }
     },
     onError: (error) => {
-      addSentryBreadcrumb('error', 'Publish failed', {
-        code: error.code,
-        status: error.status,
-      });
+      addSentryBreadcrumb(
+        'error',
+        'Publish failed',
+        { code: error.code, status: error.status },
+        { categoryPrefix: 'quiz-edit', quizId },
+      );
     },
   });
 
@@ -260,7 +260,12 @@ export const QuizEditPage = memo(function QuizEditPage({
 
   const handleSelectVersion = useCallback(
     (versionId: string) => {
-      addSentryBreadcrumb('user-action', 'Selected version', { versionId });
+      addSentryBreadcrumb(
+        'user-action',
+        'Selected version',
+        { versionId },
+        { categoryPrefix: 'quiz-edit', quizId },
+      );
       setActiveVersionId(versionId);
       setVersionNotFoundError(false);
     },
@@ -271,7 +276,12 @@ export const QuizEditPage = memo(function QuizEditPage({
 
   const handleNewVersion = useCallback(async () => {
     if (!quizId) return;
-    addSentryBreadcrumb('user-action', 'Creating new version');
+    addSentryBreadcrumb(
+      'user-action',
+      'Creating new version',
+      {},
+      { categoryPrefix: 'quiz-edit', quizId },
+    );
     try {
       await createVersion(quizId, {
         difficulty: 'medium',
@@ -303,10 +313,12 @@ export const QuizEditPage = memo(function QuizEditPage({
 
   useEffect(() => {
     if (quizError?.status === 403) {
-      addSentryBreadcrumb('error', 'User forbidden from editing quiz', {
-        errorCode: quizError.code,
-        status: 403,
-      });
+      addSentryBreadcrumb(
+        'error',
+        'User forbidden from editing quiz',
+        { errorCode: quizError.code, status: 403 },
+        { categoryPrefix: 'quiz-edit', quizId },
+      );
       // Redirect to public view
       const slug = quiz?.slug ?? params.id;
       router.replace(`/quizzes/${slug}?reason=forbidden`);
@@ -323,9 +335,12 @@ export const QuizEditPage = memo(function QuizEditPage({
 
   useEffect(() => {
     if (activeVersionNotFound) {
-      addSentryBreadcrumb('error', 'Selected version not found', {
-        versionId: activeVersionId,
-      });
+      addSentryBreadcrumb(
+        'error',
+        'Selected version not found',
+        { versionId: activeVersionId },
+        { categoryPrefix: 'quiz-edit', quizId },
+      );
       setVersionNotFoundError(true);
     }
   }, [activeVersionNotFound, activeVersionId, addSentryBreadcrumb]);
@@ -334,9 +349,12 @@ export const QuizEditPage = memo(function QuizEditPage({
 
   useEffect(() => {
     if (updateVersionError?.code === 'QUIZ_VERSION_IMMUTABLE') {
-      addSentryBreadcrumb('error', 'Attempted to update immutable version', {
-        versionId: activeVersionId,
-      });
+      addSentryBreadcrumb(
+        'error',
+        'Attempted to update immutable version',
+        { versionId: activeVersionId },
+        { categoryPrefix: 'quiz-edit', quizId },
+      );
       // The VersionImmutableBanner is already shown, but we can add a toast
       showToast(
         'Version is locked',
@@ -349,9 +367,12 @@ export const QuizEditPage = memo(function QuizEditPage({
 
   useEffect(() => {
     if (updateVersionError?.code === 'QUIZ_SLUG_CONFLICT') {
-      addSentryBreadcrumb('error', 'Slug conflict on update', {
-        errorCode: 'QUIZ_SLUG_CONFLICT',
-      });
+      addSentryBreadcrumb(
+        'error',
+        'Slug conflict on update',
+        { errorCode: 'QUIZ_SLUG_CONFLICT' },
+        { categoryPrefix: 'quiz-edit', quizId },
+      );
       setSlugConflictError(
         'This URL slug is already in use. Please choose a different one.'
       );
@@ -367,9 +388,12 @@ export const QuizEditPage = memo(function QuizEditPage({
       createVersionError?.code === 'GLOBAL_RATE_LIMITED' ||
       updateVersionError?.code === 'GLOBAL_RATE_LIMITED';
     if (hasRateLimit) {
-      addSentryBreadcrumb('error', 'Rate limit hit', {
-        code: 'GLOBAL_RATE_LIMITED',
-      });
+      addSentryBreadcrumb(
+        'error',
+        'Rate limit hit',
+        { code: 'GLOBAL_RATE_LIMITED' },
+        { categoryPrefix: 'quiz-edit', quizId },
+      );
       showToast('Too many requests', 'Please wait a moment before trying again.');
     }
   }, [createVersionError, updateVersionError, addSentryBreadcrumb, showToast]);
@@ -383,7 +407,12 @@ export const QuizEditPage = memo(function QuizEditPage({
     if (hasServerError) {
       const code =
         createVersionError?.code ?? updateVersionError?.code ?? 'GLOBAL_INTERNAL_ERROR';
-      addSentryBreadcrumb('error', 'Server error', { code, status: 500 });
+      addSentryBreadcrumb(
+        'error',
+        'Server error',
+        { code, status: 500 },
+        { categoryPrefix: 'quiz-edit', quizId },
+      );
       showToast(
         'Something went wrong',
         'Please try again. If the problem persists, contact support.'
@@ -406,7 +435,7 @@ export const QuizEditPage = memo(function QuizEditPage({
         'Version already published',
         'Reloading to show the published state.'
       );
-      router.reload();
+      window.location.reload();
     } else if (publishError.code === 'GLOBAL_RATE_LIMITED') {
       showToast('Too many requests', 'Please wait a moment before trying again.');
     } else if ((publishError.status ?? 0) >= 500) {
@@ -428,10 +457,12 @@ export const QuizEditPage = memo(function QuizEditPage({
       updateVersionError.code !== 'QUIZ_VERSION_IMMUTABLE' &&
       updateVersionError.code !== 'QUIZ_SLUG_CONFLICT'
     ) {
-      addSentryBreadcrumb('error', 'Update version failed', {
-        code: updateVersionError.code,
-        status: updateVersionError.status,
-      });
+      addSentryBreadcrumb(
+        'error',
+        'Update version failed',
+        { code: updateVersionError.code, status: updateVersionError.status },
+        { categoryPrefix: 'quiz-edit', quizId },
+      );
     }
   }, [updateVersionError, addSentryBreadcrumb]);
 
@@ -465,7 +496,12 @@ export const QuizEditPage = memo(function QuizEditPage({
 
   const handleEdit = useCallback(
     (versionId: string) => {
-      addSentryBreadcrumb('user-action', 'Edit version clicked', { versionId });
+      addSentryBreadcrumb(
+        'user-action',
+        'Edit version clicked',
+        { versionId },
+        { categoryPrefix: 'quiz-edit', quizId },
+      );
       setActiveVersionId(versionId);
     },
     [addSentryBreadcrumb]
@@ -473,7 +509,12 @@ export const QuizEditPage = memo(function QuizEditPage({
 
   const handleAddQuestions = useCallback(
     (versionId: string) => {
-      addSentryBreadcrumb('user-action', 'Add questions clicked', { versionId });
+      addSentryBreadcrumb(
+        'user-action',
+        'Add questions clicked',
+        { versionId },
+        { categoryPrefix: 'quiz-edit', quizId },
+      );
       // Navigate to question editor (stub for now)
       router.push(`/my-quizzes/${quizId}/versions/${versionId}/questions`);
     },
@@ -483,7 +524,12 @@ export const QuizEditPage = memo(function QuizEditPage({
   // ── Handle publish ──────────────────────────────────────────────────────────
 
   const handlePublishClick = useCallback(() => {
-    addSentryBreadcrumb('user-action', 'Publish clicked');
+    addSentryBreadcrumb(
+      'user-action',
+      'Publish clicked',
+      {},
+      { categoryPrefix: 'quiz-edit', quizId },
+    );
     setShowPublishConfirm(true);
   }, [addSentryBreadcrumb]);
 
@@ -499,7 +545,12 @@ export const QuizEditPage = memo(function QuizEditPage({
 
   const handleDelete = useCallback(
     (_versionId: string) => {
-      addSentryBreadcrumb('user-action', 'Delete version clicked');
+      addSentryBreadcrumb(
+      'user-action',
+      'Delete version clicked',
+      {},
+      { categoryPrefix: 'quiz-edit', quizId },
+    );
       // Delete would be implemented here
       showToast('Delete', 'Delete functionality is coming soon.');
     },
@@ -617,15 +668,20 @@ export const QuizEditPage = memo(function QuizEditPage({
               {activeVersion && !activeVersionIsDraft && !isImmutableBannerShown && (
                 <EditPublishedQuizCTA
                   quizId={quizId}
-                  version={activeVersion}
+                  version={activeVersion as unknown as import('@/features/quizzes/types/quiz-version.types').QuizVersionSummary}
                   onDraftCreated={(newVersion) => {
                     // Navigate to the new draft version
                     router.push(`/my-quizzes/${quizId}/edit?versionId=${newVersion.quizVersionId}`);
                   }}
                   onError={(error) => {
-                    addSentryBreadcrumb('error', 'Failed to create draft from published version', {
-                      error: error instanceof Error ? error.message : String(error),
-                    });
+                    addSentryBreadcrumb(
+                      'error',
+                      'Failed to create draft from published version',
+                      {
+                        error: error instanceof Error ? error.message : String(error),
+                      },
+                      { categoryPrefix: 'quiz-edit', quizId },
+                    );
                   }}
                   className="mb-4"
                 />

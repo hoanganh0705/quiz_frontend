@@ -7,7 +7,7 @@
  * Source ticket: TKT-5.5.G2.
  *
  * Verifies:
- * - F2 AC #1 — placeholder view rendered when `phase5_achievements === 'placeholder'`.
+ * - F2 AC #1 — placeholder view rendered when `achievements_live === 'placeholder'`.
  * - F2 AC #2 — catalog visible to all visitors (live composition mounts `<BadgeGallery />`).
  * - F2 AC #3 — earned-badge / history slots exist (their auth-gating
  *   is a property of the child components, not the page).

@@ -100,7 +100,7 @@ import { useCallback, useRef, useState } from 'react';
 import {
   changePassword as defaultChangePassword,
   revalidateAfterPasswordChange as defaultRevalidateAfterPasswordChange,
-} from '@/features/auth/service/auth.service';
+} from '@/features/auth/services/auth.service';
 import {
   mapPasswordError,
   type PasswordErrorClassification,

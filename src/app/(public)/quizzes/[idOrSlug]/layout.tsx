@@ -37,7 +37,11 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { idOrSlug } = await params;
   try {
-    const quiz = projectQuizToPlayerView(await getQuizByIdOrSlug(idOrSlug));
+    const dto = await getQuizByIdOrSlug(idOrSlug);
+    if (!dto) {
+      throw new Error('quiz detail missing');
+    }
+    const quiz = projectQuizToPlayerView(dto);
     return buildMetadata({
       title: `${quiz.title} | QuizHub`,
       description: quiz.description ?? 'View quiz details, questions, and statistics.',
@@ -63,7 +67,11 @@ export default async function QuizDetailLayout({
 
   let jsonLd: string | null = null;
   try {
-    const quiz = projectQuizToPlayerView(await getQuizByIdOrSlug(idOrSlug));
+    const dto = await getQuizByIdOrSlug(idOrSlug);
+    if (!dto) {
+      throw new Error('quiz detail missing');
+    }
+    const quiz = projectQuizToPlayerView(dto);
     const publishedVersion = quiz.publishedVersion;
     jsonLd = safeJsonLd({
       '@context': 'https://schema.org',

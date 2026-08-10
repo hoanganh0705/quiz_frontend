@@ -162,7 +162,7 @@ describe('comment-moderation-cross-tab — broadcast emits documented event', ()
     channel.listeners.forEach((listener) => {
       listener({
         data: {
-          type: 'phase7:admin.comment-moderation.invalidate',
+          type: 'admin:7.1.comment-moderation.invalidate',
           action: 'resolve',
           reportId: 'report-1',
           commentId: 'comment-1',
@@ -174,7 +174,7 @@ describe('comment-moderation-cross-tab — broadcast emits documented event', ()
 
     expect(received.length).toBe(1);
     expect(received[0]).toMatchObject({
-      type: 'phase7:admin.comment-moderation.invalidate',
+      type: 'admin:7.1.comment-moderation.invalidate',
       action: 'resolve',
       reportId: 'report-1',
       commentId: 'comment-1',
@@ -201,7 +201,7 @@ describe('comment-moderation-cross-tab — broadcast emits documented event', ()
     channel.listeners.forEach((listener) => {
       listener({
         data: {
-          type: 'phase7:admin.comment-moderation.invalidate',
+          type: 'admin:7.1.comment-moderation.invalidate',
           action: 'hide',
           reportId: null,
           commentId: 'comment-2',
@@ -243,7 +243,7 @@ describe('comment-moderation-cross-tab — same-tab filtering', () => {
     channel.listeners.forEach((listener) => {
       listener({
         data: {
-          type: 'phase7:admin.comment-moderation.invalidate',
+          type: 'admin:7.1.comment-moderation.invalidate',
           action: 'resolve',
           reportId: 'report-1',
           commentId: 'comment-1',
@@ -272,7 +272,7 @@ describe('comment-moderation-cross-tab — same-tab filtering', () => {
     channel.listeners.forEach((listener) => {
       listener({
         data: {
-          type: 'phase7:admin.comment-moderation.invalidate',
+          type: 'admin:7.1.comment-moderation.invalidate',
           action: 'resolve',
           reportId: 'report-1',
           commentId: 'comment-1',
@@ -303,7 +303,7 @@ describe('comment-moderation-cross-tab — same-tab filtering', () => {
     channel.listeners.forEach((listener) => {
       listener({
         data: {
-          type: 'phase7:admin.comment-moderation.invalidate',
+          type: 'admin:7.1.comment-moderation.invalidate',
           action: 'resolve',
           reportId: 'report-1',
           tabId: otherTabId,
@@ -334,7 +334,7 @@ describe('comment-moderation-cross-tab — same-tab filtering', () => {
     channel.listeners.forEach((listener) => {
       listener({
         data: {
-          type: 'phase7:admin.comment-moderation.invalidate',
+          type: 'admin:7.1.comment-moderation.invalidate',
           action: 'unknown' as 'resolve',
           reportId: 'report-1',
           commentId: 'comment-1',
@@ -366,7 +366,7 @@ describe('comment-moderation-cross-tab — same-tab filtering', () => {
     channel.listeners.forEach((listener) => {
       listener({
         data: {
-          type: 'something/else' as 'phase7:admin.comment-moderation.invalidate',
+          type: 'something/else' as 'admin:7.1.comment-moderation.invalidate',
           action: 'resolve',
           reportId: 'report-1',
           commentId: 'comment-1',
@@ -413,7 +413,7 @@ describe('comment-moderation-cross-tab — subscribe / unsubscribe', () => {
       channel.listeners.forEach((listener) => {
         listener({
           data: {
-            type: 'phase7:admin.comment-moderation.invalidate',
+            type: 'admin:7.1.comment-moderation.invalidate',
             action: 'resolve',
             reportId: 'report-1',
             commentId: 'comment-1',
@@ -458,7 +458,7 @@ describe('comment-moderation-cross-tab — subscribe / unsubscribe', () => {
     channel.listeners.forEach((listener) => {
       listener({
         data: {
-          type: 'phase7:admin.comment-moderation.invalidate',
+          type: 'admin:7.1.comment-moderation.invalidate',
           action: 'resolve',
           reportId: 'report-1',
           commentId: 'comment-x',

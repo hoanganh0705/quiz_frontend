@@ -7,7 +7,7 @@
  * Source ticket: TKT-5.7.G2.
  *
  * Tests cover:
- * - feature flag gating for `phase5_instances` and `phase5_realtime_infrastructure`
+ * - feature flag gating for `multiplayer_instances_live` and `realtime_infrastructure_live`
  * - exposed shape (connectionState, lastError, subscribe, emitJoin, emitLeave)
  * - join_instance is emitted exactly once per instance lifecycle
  * - duplicate mounts do not duplicate `join_instance`
@@ -54,8 +54,8 @@ function setFeatureFlags(
   realtimeFlag: "live" | "placeholder",
 ) {
   mockGetFeatureFlagValue.mockImplementation((key: string) => {
-    if (key === "phase5_instances") return instancesFlag;
-    if (key === "phase5_realtime_infrastructure") return realtimeFlag;
+    if (key === "multiplayer_instances_live") return instancesFlag;
+    if (key === "realtime_infrastructure_live") return realtimeFlag;
     return "placeholder";
   });
 }
@@ -129,7 +129,7 @@ describe("useInstanceSocket", () => {
   });
 
   describe("feature flag gating", () => {
-    it("disables socket when phase5_instances flag is placeholder", () => {
+    it("disables socket when multiplayer_instances_live flag is placeholder", () => {
       setFeatureFlags("placeholder", "live");
 
       renderHook(() => useInstanceSocket("inst-1"));
@@ -140,7 +140,7 @@ describe("useInstanceSocket", () => {
       );
     });
 
-    it("disables socket when phase5_realtime_infrastructure flag is placeholder", () => {
+    it("disables socket when realtime_infrastructure_live flag is placeholder", () => {
       setFeatureFlags("live", "placeholder");
 
       renderHook(() => useInstanceSocket("inst-1"));

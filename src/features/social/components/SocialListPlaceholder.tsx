@@ -12,11 +12,11 @@
  * ## What this component owns
  *
  * The static, flag-gated placeholder rendered by every list page
- * when `phase6_social === 'placeholder'`. The component:
+ * when `social_live === 'placeholder'`. The component:
  *
  *   - Renders the list-kind-specific title and description copy.
  *   - Emits a Sentry breadcrumb via `addSocialListBreadcrumb` so
- *     `phase6_social === 'placeholder'` traffic is observable in
+ *     `social_live === 'placeholder'` traffic is observable in
  *     Sentry's session-replay stream without needing a backend
  *     instrumentation change.
  *   - Is statically rendered. It calls no SWR / no service, and

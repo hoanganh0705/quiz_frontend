@@ -42,7 +42,7 @@
  *
  * ## Event shape
  *
- * Single event type: `phase7:admin.comment-moderation.invalidate`.
+ * Single event type: `admin:7.1.comment-moderation.invalidate`.
  * The payload carries:
  *
  *   - `action`     — the mutation that triggered the broadcast.
@@ -109,7 +109,7 @@ export const COMMENT_MODERATION_CHANNEL_NAME =
  * without breaking the discriminated-union contract.
  */
 export type CommentModerationEventType =
-  'phase7:admin.comment-moderation.invalidate';
+  'admin:7.1.comment-moderation.invalidate';
 
 /**
  * Discriminator for which mutation triggered the revalidation. Lets
@@ -150,7 +150,7 @@ export interface BaseCommentModerationEvent {
  */
 export interface CommentModerationInvalidatedEvent
   extends BaseCommentModerationEvent {
-  type: 'phase7:admin.comment-moderation.invalidate';
+  type: 'admin:7.1.comment-moderation.invalidate';
 }
 
 /**
@@ -170,7 +170,7 @@ const commentModerationChannel = createBroadcastChannel<CommentModerationEvent>(
     validate: (data): CommentModerationEvent | null => {
       if (typeof data !== 'object' || data === null) return null;
       const d = data as Partial<CommentModerationInvalidatedEvent>;
-      if (d.type !== 'phase7:admin.comment-moderation.invalidate') return null;
+      if (d.type !== 'admin:7.1.comment-moderation.invalidate') return null;
       if (typeof d.tabId !== 'string' || d.tabId.length === 0) return null;
       if (typeof d.timestamp !== 'number') return null;
       if (
@@ -260,7 +260,7 @@ export function broadcastCommentModerationInvalidate(
   }
   if (!COMMENT_MODERATION_VALID_MUTATIONS.has(action)) return;
   commentModerationChannel.publish({
-    type: 'phase7:admin.comment-moderation.invalidate',
+    type: 'admin:7.1.comment-moderation.invalidate',
     action,
     reportId:
       typeof reportId === 'string' && reportId.length > 0 ? reportId : null,

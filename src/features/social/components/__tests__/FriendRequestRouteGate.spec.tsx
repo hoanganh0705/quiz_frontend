@@ -4,7 +4,7 @@
  *
  * The gate is the client-side routing primitive for the
  * `/social/friend-requests/incoming` and `/social/friend-requests/outgoing`
- * routes. It reads the `phase6_social` + `phase6_social_relationship`
+ * routes. It reads the `social_live` + `social_relationship_live`
  * flags plus `useAuthState` and decides between three branches:
  *
  *   1. `requireAuth && !isAuthenticated` → PrivacyRestrictedNotice
@@ -83,7 +83,7 @@ describe("FriendRequestRouteGate", () => {
       expect(mockOutgoingListPage).not.toHaveBeenCalled();
     });
 
-    it("renders the empty-state placeholder when phase6_social is placeholder", () => {
+    it("renders the empty-state placeholder when social_live is placeholder", () => {
       mockGetFeatureFlagValue.mockReturnValueOnce("placeholder");
 
       render(<FriendRequestRouteGate kind="incoming" requireAuth />);
@@ -92,9 +92,9 @@ describe("FriendRequestRouteGate", () => {
       expect(mockIncomingListPage).not.toHaveBeenCalled();
     });
 
-    it("renders the empty-state placeholder when phase6_social_relationship is placeholder", () => {
+    it("renders the empty-state placeholder when social_relationship_live is placeholder", () => {
       mockGetFeatureFlagValue.mockImplementation((name: unknown) =>
-        name === "phase6_social_relationship" ? "placeholder" : "live",
+        name === "social_relationship_live" ? "placeholder" : "live",
       );
 
       render(<FriendRequestRouteGate kind="incoming" requireAuth />);
@@ -122,7 +122,7 @@ describe("FriendRequestRouteGate", () => {
       expect(mockIncomingListPage).not.toHaveBeenCalled();
     });
 
-    it("renders the empty-state placeholder when phase6_social is placeholder", () => {
+    it("renders the empty-state placeholder when social_live is placeholder", () => {
       mockGetFeatureFlagValue.mockReturnValueOnce("placeholder");
 
       render(<FriendRequestRouteGate kind="outgoing" requireAuth />);
@@ -131,9 +131,9 @@ describe("FriendRequestRouteGate", () => {
       expect(mockOutgoingListPage).not.toHaveBeenCalled();
     });
 
-    it("renders the empty-state placeholder when phase6_social_relationship is placeholder", () => {
+    it("renders the empty-state placeholder when social_relationship_live is placeholder", () => {
       mockGetFeatureFlagValue.mockImplementation((name: unknown) =>
-        name === "phase6_social_relationship" ? "placeholder" : "live",
+        name === "social_relationship_live" ? "placeholder" : "live",
       );
 
       render(<FriendRequestRouteGate kind="outgoing" requireAuth />);

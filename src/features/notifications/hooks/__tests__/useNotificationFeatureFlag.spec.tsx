@@ -6,8 +6,8 @@
  * Source ticket: TKT-5.4.G1.
  *
  * Tests cover:
- * - returns isPlaceholder=true when phase5_notifications === 'placeholder'
- * - returns isPlaceholder=false when phase5_notifications === 'live'
+ * - returns isPlaceholder=true when notifications_live === 'placeholder'
+ * - returns isPlaceholder=false when notifications_live === 'live'
  * - flagValue reflects the underlying flag value
  */
 

@@ -33,7 +33,7 @@
  *
  * ## Event shape
  *
- * Single event type: `phase7:admin.category.invalidate`. The payload
+ * Single event type: `admin:7.1.category.invalidate`. The payload
  * carries `mutation` (the kind of mutation that triggered the
  * revalidation) and `categoryId` (the affected category id). The
  * receiving tab invalidates the admin list and public category
@@ -67,7 +67,7 @@ export const CATEGORY_ADMIN_CHANNEL_NAME = 'phase7-admin-category' as const;
 
 // ─── Event types ────────────────────────────────────────────────────────────
 
-export type CategoryAdminEventType = 'phase7:admin.category.invalidate';
+export type CategoryAdminEventType = 'admin:7.1.category.invalidate';
 
 /**
  * Discriminator for which mutation triggered the revalidation. Lets
@@ -90,7 +90,7 @@ export interface BaseCategoryAdminEvent {
  * state.
  */
 export interface CategoryAdminInvalidatedEvent extends BaseCategoryAdminEvent {
-  type: 'phase7:admin.category.invalidate';
+  type: 'admin:7.1.category.invalidate';
 }
 
 export type CategoryAdminEvent = CategoryAdminInvalidatedEvent;
@@ -183,7 +183,7 @@ function handleCategoryAdminMessage(event: MessageEvent): void {
 
   const data = event.data as Partial<CategoryAdminInvalidatedEvent>;
 
-  if (!data.type || data.type !== 'phase7:admin.category.invalidate') {
+  if (!data.type || data.type !== 'admin:7.1.category.invalidate') {
     return;
   }
 
@@ -257,7 +257,7 @@ export function broadcastCategoryAdminInvalidate(
   }
 
   const fullEvent: CategoryAdminInvalidatedEvent = {
-    type: 'phase7:admin.category.invalidate',
+    type: 'admin:7.1.category.invalidate',
     mutation,
     categoryId,
     tabId: getCurrentTabId(),

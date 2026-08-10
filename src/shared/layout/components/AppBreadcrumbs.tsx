@@ -28,7 +28,7 @@ export const AppBreadcrumbs = memo(function AppBreadcrumbs() {
 
   return (
     <nav aria-label='Breadcrumb' className='px-4 md:px-6 pt-3'>
-      <ol className='flex items-center gap-1 text-xs text-foreground/60'>
+      <ol className='flex items-center gap-1 text-xs text-foreground/70'>
         <li>
           <Link href='/' className='hover:text-foreground'>
             Home

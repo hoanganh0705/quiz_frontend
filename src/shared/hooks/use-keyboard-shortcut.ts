@@ -26,6 +26,7 @@ interface CallbackEntry {
 
 const keyCallbacks = new Map<string, Set<CallbackEntry>>()
 let globalListenerAttached = false
+let globalHandler: ((e: KeyboardEvent) => void) | null = null
 
 function matchesModifiers(
   e: KeyboardEvent,

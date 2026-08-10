@@ -16,7 +16,7 @@ vi.mock('@/lib/feature-flags', () => ({
 }));
 
 // Mock the Sentry helper
-vi.mock('@/lib/admin/phase7_admin_sentry', () => ({
+vi.mock('@/lib/admin/admin_live_sentry', () => ({
   addRoleGrantBreadcrumb: vi.fn(),
 }));
 

@@ -16,7 +16,7 @@
  *
  * ## Audit trail
  *
- * `useRestoreCategory` (TKT-7.4.C5) emits its own `phase7:admin`
+ * `useRestoreCategory` (TKT-7.4.C5) emits its own `admin:7.1`
  * `started` / `success` / `failure` breadcrumbs via the
  * `addCategoryAdminBreadcrumb` helper. The dialog therefore wraps the
  * mutation through the hook rather than re-wrapping it in

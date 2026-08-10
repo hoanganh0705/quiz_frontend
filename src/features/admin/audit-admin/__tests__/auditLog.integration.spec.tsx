@@ -32,7 +32,7 @@ vi.mock('next/navigation', () => ({
 }));
 
 // We render the handoff component which is the actual route entry point.
-import { AuditLogRouteHandoff } from '@/app/admin/audit/_components/AuditLogRouteHandoff';
+import { AuditLogRouteHandoff } from '@/app/(protected)/admin/audit/_components/AuditLogRouteHandoff';
 
 afterEach(() => {
   vi.restoreAllMocks();

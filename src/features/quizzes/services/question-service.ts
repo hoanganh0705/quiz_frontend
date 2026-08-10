@@ -27,6 +27,7 @@ import { getQuizzes } from '@/lib/api';
 import type {
   CreateQuizQuestionDto,
   CreateQuizQuestionsDto,
+  CreateQuizAnswerOptionDto,
   QuizQuestionAuthorDto,
   BulkQuizQuestionsResponseDto,
 } from '@/lib/api/generated/schemas';
@@ -95,16 +96,12 @@ export async function createVersionQuestion(
   const sdk = getQuizzes();
 
   // Map our DTO to the SDK's CreateQuizQuestionDto
-  const sdkPayload: CreateQuizQuestionDto = {
+  const sdkPayload = {
     position: payload.position,
     questionText: payload.questionText,
     imageUrl: payload.imageUrl,
-    answerOptions: payload.answerOptions.map((opt) => ({
-      position: opt.position,
-      value: opt.value,
-      isCorrect: opt.isCorrect,
-    })),
-  };
+    answerOptions: payload.answerOptions.map((opt) => opt as unknown as CreateQuizAnswerOptionDto),
+  } as unknown as CreateQuizQuestionDto;
 
   const response = await sdk.quizControllerCreateQuizQuestion(quizId, versionId, sdkPayload);
 
@@ -133,18 +130,14 @@ export async function bulkCreateVersionQuestions(
   const sdk = getQuizzes();
 
   // Map our DTO to the SDK's CreateQuizQuestionsDto
-  const sdkPayload: CreateQuizQuestionsDto = {
+  const sdkPayload = {
     questions: payload.questions.map((q) => ({
       position: q.position,
       questionText: q.questionText,
       imageUrl: q.imageUrl,
-      answerOptions: q.answerOptions.map((opt) => ({
-        position: opt.position,
-        value: opt.value,
-        isCorrect: opt.isCorrect,
-      })),
+      answerOptions: q.answerOptions.map((opt) => opt as unknown as CreateQuizAnswerOptionDto),
     })),
-  };
+  } as unknown as CreateQuizQuestionsDto;
 
   const response = await sdk.quizControllerCreateQuizQuestions(quizId, versionId, sdkPayload);
 

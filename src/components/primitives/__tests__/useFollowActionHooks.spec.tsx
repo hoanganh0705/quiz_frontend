@@ -31,6 +31,8 @@ import type React from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, render, waitFor } from '@testing-library/react';
 
+import { FOLLOWED_LOOKUP_LIMIT } from '@/features/tags/hooks/useFollowedLookup';
+
 // ---------------------------------------------------------------------------
 // Mock the optimistic-toggle primitive so the action hooks can be
 // tested in isolation from the rollback discipline.
@@ -202,7 +204,7 @@ describe('useFollowCategory', () => {
       keysToInvalidate: readonly unknown[][]
     };
     expect(params.keysToInvalidate).toHaveLength(2);
-    expect(params.keysToInvalidate[0]).toEqual(['follow-lookup', 'categories', { limit: 500 }]);
+    expect(params.keysToInvalidate[0]).toEqual(['follow-lookup', 'categories', { limit: FOLLOWED_LOOKUP_LIMIT }]);
     expect(params.keysToInvalidate[1]).toEqual(['category', id]);
   });
 });
@@ -300,7 +302,7 @@ describe('useUnfollowCategory', () => {
       keysToInvalidate: readonly unknown[][]
     };
     expect(params.keysToInvalidate).toHaveLength(2);
-    expect(params.keysToInvalidate[0]).toEqual(['follow-lookup', 'categories', { limit: 500 }]);
+    expect(params.keysToInvalidate[0]).toEqual(['follow-lookup', 'categories', { limit: FOLLOWED_LOOKUP_LIMIT }]);
     expect(params.keysToInvalidate[1]).toEqual(['category', id]);
   });
 });
@@ -398,7 +400,7 @@ describe('useFollowTag', () => {
       keysToInvalidate: readonly unknown[][]
     };
     expect(params.keysToInvalidate).toHaveLength(2);
-    expect(params.keysToInvalidate[0]).toEqual(['follow-lookup', 'tags', { limit: 500 }]);
+    expect(params.keysToInvalidate[0]).toEqual(['follow-lookup', 'tags', { limit: FOLLOWED_LOOKUP_LIMIT }]);
     expect(params.keysToInvalidate[1]).toEqual(['tag', id]);
   });
 });
@@ -496,7 +498,7 @@ describe('useUnfollowTag', () => {
       keysToInvalidate: readonly unknown[][]
     };
     expect(params.keysToInvalidate).toHaveLength(2);
-    expect(params.keysToInvalidate[0]).toEqual(['follow-lookup', 'tags', { limit: 500 }]);
+    expect(params.keysToInvalidate[0]).toEqual(['follow-lookup', 'tags', { limit: FOLLOWED_LOOKUP_LIMIT }]);
     expect(params.keysToInvalidate[1]).toEqual(['tag', id]);
   });
 });

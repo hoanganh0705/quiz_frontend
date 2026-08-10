@@ -12,7 +12,7 @@
  *     public `categories:*` keys.
  *   - Cross-tab invalidation broadcast on success so other tabs see
  *     the category move to the soft-deleted tab.
- *   - `phase7:admin` audit breadcrumb on success and failure so the
+ *   - `admin:7.1` audit breadcrumb on success and failure so the
  *     destructive action is captured for Sentry / audit replay.
  *   - Typed `ApiError` propagation for `CATEGORY_NOT_FOUND`.
  *
@@ -26,7 +26,7 @@ import { useCallback, useRef, useState } from 'react';
 import { mutate as globalMutate } from 'swr';
 
 import { ApiError } from '@/lib/api';
-import { addCategoryAdminBreadcrumb } from '@/lib/admin/phase7_admin_sentry';
+import { addCategoryAdminBreadcrumb } from '@/lib/admin/admin_live_sentry';
 
 import { deleteCategory } from '@/features/admin/services/category-admin.service';
 import {

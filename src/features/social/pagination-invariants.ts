@@ -38,7 +38,7 @@
  *      line 54). This module exports the canonical "do not write
  *      these names to any persistent store or URL key" list. The
  *      Phase-6 lint-invariants script
- *      (`scripts/phase6-lint-invariants.mjs`) enforces this on the
+ *      (`scripts/social-lint-invariants.mjs`) enforces this on the
  *      `features/social/**` tree; this constant is the single import
  *      the list components use to keep themselves compliant.
  *
@@ -107,7 +107,7 @@ export const SOCIAL_GRAPH_MAX_LIMIT = 100;
  * 6.2 surface uses cursor pagination — a literal `offset` URL key
  * would imply the surface supports offset, which it does not.
  *
- * The `phase6-lint-invariants` script enforces this list on
+ * The `social-lint-invariants` script enforces this list on
  * `features/social/**`; this constant is the single import the list
  * components use to keep themselves compliant.
  */

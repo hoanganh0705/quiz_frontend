@@ -14,7 +14,7 @@
  * - Synthesise an `id` alias on each tournament so
  *   `appendUniqueById` deduplication in `useCursorPaginated` works.
  * - Expose `isStale` when revalidation fails with cached data present.
- * - Feature-flag gating via `phase5_tournaments`.
+ * - Feature-flag gating via `tournaments_live`.
  *
  * ## Status filter
  *
@@ -35,6 +35,7 @@ import { useMemo } from "react";
 
 import {
   ApiError,
+  projectWithId,
   useCursorPaginated,
 } from "@/lib/api";
 import type {
@@ -87,7 +88,7 @@ type ListTournamentsWireResponse = TournamentControllerListTournaments200AllOf;
 export function useTournaments(
   filters: TournamentListFilters = DEFAULT_TOURNAMENT_LIST_FILTERS,
 ): UseTournamentsResult {
-  const flagValue = getFeatureFlagValue("phase5_tournaments");
+  const flagValue = getFeatureFlagValue("tournaments_live");
   const isFlagPlaceholder = flagValue === "placeholder";
 
   // SWR cache key: disabled sentinel when flag is off so no fetch fires.
@@ -123,10 +124,9 @@ export function useTournaments(
           ...(typeof filters.limit === "number" ? { limit: filters.limit } : {}),
         })) as unknown as ListTournamentsWireResponse;
 
-        const items: TournamentSummary[] = (wire.data ?? []).map(
-          (item): TournamentSummary =>
-            Object.assign({}, item, { id: item.tournamentId }),
-        );
+        // Project `tournamentId` onto `id` via the runtime helper.
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const items = projectWithId((wire.data ?? []) as unknown as readonly Record<string, unknown>[], 'tournamentId') as any;
 
         const pagination = wire.meta?.pagination;
         const limit = pagination?.limit ?? items.length;

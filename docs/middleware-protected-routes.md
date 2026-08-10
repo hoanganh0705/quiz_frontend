@@ -9,11 +9,44 @@ This file lists every URL prefix the middleware redirects to `/login?redirect=<o
 
 ## Summary
 
-- **Protected prefixes:** 11 (see `PROTECTED_PREFIXES` constant, lines 5–15 of `proxy.ts`).
-- **Admin prefixes:** 1 (`/admin`, `ADMIN_PREFIXES` constant, line 21).
-- **Match mechanism:** `pathname.startsWith(prefix)` against the union of `PROTECTED_PREFIXES ∪ ADMIN_PREFIXES` (see `isProtected()`, lines 26–28).
-- **Redirect target:** `/login?redirect=<original-pathname>` (lines 51–54).
-- **Authentication signal:** presence of the cookie returned by `getAuthTokenFromRequest(request)` (line 46). **The cookie is *not* cryptographically verified** — see `proxy.ts` header for details.
+- **Protected prefixes:** 12 (see `PROTECTED_PREFIXES` constant, lines 5–16 of `proxy.ts`).
+- **Admin prefixes:** 1 (`/admin`, `ADMIN_PREFIXES` constant).
+- **Match mechanism:** `pathname.startsWith(prefix)` against the union of `PROTECTED_PREFIXES ∪ ADMIN_PREFIXES` (see `isProtected()`).
+- **Redirect target:** `/login?redirect=<original-pathname>`.
+- **Authentication signal:** presence of the cookie returned by `getAuthTokenFromRequest(request)`. **The cookie is *not* cryptographically verified** — see `proxy.ts` header for details.
+
+## Source-of-truth split (route-group consistency refactor)
+
+The project now follows the route-group convention that mirrors `app/(public)/`:
+**every protected route lives under `app/(protected)/**` in source.**
+
+- `proxy.ts` (`PROTECTED_PREFIXES` + `ADMIN_PREFIXES`) is the source of truth for **which URL prefixes** are gated.
+- `app/(protected)/**` is the source of truth for **where the protected route components live** in source.
+
+The `/admin`, `/social`, `/instances`, `/notifications`, `/tournaments` folders were migrated into `app/(protected)/**` so that the folder structure itself signals "this requires auth". The folder layout under `app/(protected)/` (alphabetical) is:
+
+```
+app/(protected)/
+├── _components/         ← shared client wrappers (e.g. ProtectedShell)
+├── admin/               ← admin console
+├── bookmarks/           ← saved quizzes
+├── create-quiz/         ← quiz authoring
+├── discussions/         ← comment threads
+├── friends/             ← social graph
+├── instances/           ← live quiz sessions
+├── my-profile/          ← current user's profile
+├── my-quizzes/          ← user's quiz dashboard + version history
+├── notifications/       ← notification center + preferences
+├── onboarding/          ← first-run UX
+├── quiz-history/        ← attempt history
+├── quizzes/[idOrSlug]/attempt/  ← quiz-attempt runtime
+├── settings/            ← account preferences
+├── social/              ← social-graph lists
+├── tournament/          ← singular tournament landing
+└── tournaments/         ← plural tournament listings + detail
+```
+
+`(protected)` is a Next.js route group: the parentheses make it URL-invisible, so `app/(protected)/admin/page.tsx` still resolves to `/admin`. The `(protected)/layout.tsx` root layout wraps every page in `<ProtectedShell>`, a client-side belt-and-braces auth check that catches the rare case where the cookie is cleared between the server-side redirect and client hydration.
 
 ## Base inventory (ET-1.6-A1)
 
@@ -21,12 +54,11 @@ This file lists every URL prefix the middleware redirects to `/login?redirect=<o
 |---|--------|-----------------|------------|------------------|
 | 1 | `/bookmarks` | `PROTECTED_PREFIXES[0]` | prefix | User-saved quiz bookmarks page. |
 | 2 | `/create-quiz` | `PROTECTED_PREFIXES[1]` | prefix | Quiz-authoring UI (drafts, submission, publish). |
-| 3 | `/discussions` | `PROTECTED_PREFIXES[2]` | prefix | Comment/forum threads on quizzes. |
-| 4 | `/friends` | `PROTECTED_PREFIXES[3]` | prefix | Social graph (friend requests, blocks). |
-| 5 | `/my-profile` | `PROTECTED_PREFIXES[4]` | prefix | The current user's own profile (distinct from the public `/profile/[name]` route). |
-| 6 | `/notifications` | `PROTECTED_PREFIXES[5]` | prefix | Notification center page and notification preferences (Story 5.4). |
-| 7 | `/onboarding` | `PROTECTED_PREFIXES[6]` | prefix | First-run UX (preferences, role selection). |
-| 8 | `/quiz-history` | `PROTECTED_PREFIXES[7]` | prefix | The current user's attempt history. |
+| 3 | `/friends` | `PROTECTED_PREFIXES[2]` | prefix | Social graph (friend requests, blocks). |
+| 4 | `/my-profile` | `PROTECTED_PREFIXES[3]` | prefix | The current user's own profile (distinct from the public `/profile/[name]` route). |
+| 5 | `/notifications` | `PROTECTED_PREFIXES[4]` | prefix | Notification center page and notification preferences (Story 5.4). |
+| 6 | `/onboarding` | `PROTECTED_PREFIXES[5]` | prefix | First-run UX (preferences, role selection). |
+| 7 | `/quiz-history` | `PROTECTED_PREFIXES[6]` | prefix | The current user's attempt history. |
 | 9 | `/settings` | `PROTECTED_PREFIXES[8]` | prefix | Account-level preferences. |
 | 10 | `/social` | `PROTECTED_PREFIXES[9]` (added in Story 6.2 B1 / B2) | prefix | Read-only social-graph lists (followers / following / friends / blocked). |
 | 11 | `/tournament` | `PROTECTED_PREFIXES[10]` | prefix | Tournament listings and the user's tournament state. |
@@ -37,10 +69,12 @@ This file lists every URL prefix the middleware redirects to `/login?redirect=<o
 ### How to regenerate the base inventory
 
 ```bash
-rg -n "PROTECTED_PREFIXES|ADMIN_PREFIXES" quiz_frontend/src/middleware.ts
+rg -n "PROTECTED_PREFIXES|ADMIN_PREFIXES" quiz_frontend/src/proxy.ts
 ```
 
 The first match returns the constant arrays; mirror them into this table row by row.
+
+> **Note**: in Next.js 16 the middleware file was renamed from `middleware.ts` to `proxy.ts`. The current path is `quiz_frontend/src/proxy.ts`. The inventory contract described in this file is unchanged.
 
 ---
 

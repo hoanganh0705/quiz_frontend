@@ -26,7 +26,7 @@
  *   (the in-flight request from another tab/admin is the owner); a second `reevaluate()`
  *   call while one is in flight is a no-op (returns the in-flight promise).
  * - `ACHIEVEMENT_NOT_FOUND`, `PERMISSION_DENIED`, `ADMIN_FORBIDDEN` → surfaces without retry.
- * - Every error emits a `phase7:admin` breadcrumb with `requestId` for `RequestIdBanner`.
+ * - Every error emits a `admin:7.1` breadcrumb with `requestId` for `RequestIdBanner`.
  *
  * ## SWR invalidation
  *
@@ -36,7 +36,7 @@
  *
  * ## Audit
  *
- * The hook emits the `phase7:admin` audit breadcrumb on success and failure
+ * The hook emits the `admin:7.1` audit breadcrumb on success and failure
  * via `addAchievementAdminBreadcrumb`. The `audit` handle exposes the
  * `before` snapshot (captured when the mutation starts) so
  * `AuditActionShell` can render the before/after diff without re-implementing
@@ -48,7 +48,7 @@ import { useCallback, useRef, useState } from 'react';
 import { mutate as globalMutate } from 'swr';
 
 import { ApiError } from '@/lib/api/core/ApiError';
-import { addAchievementAdminBreadcrumb } from '@/lib/admin/phase7_admin_sentry';
+import { addAchievementAdminBreadcrumb } from '@/lib/admin/admin_live_sentry';
 
 import {
   reevaluateUserAchievements,
@@ -147,7 +147,6 @@ export function useReevaluateUserAchievements(
       targetId: userId,
       status: 'started',
       durationMs: 0,
-      before: null,
     });
 
     const promise = reevaluateUserAchievements(userId)
@@ -164,8 +163,6 @@ export function useReevaluateUserAchievements(
           targetId: userId,
           status: 'success',
           durationMs,
-          before: audit.before,
-          after: result,
         });
 
         // Invalidate SWR caches so badge list reflects new state.
@@ -206,8 +203,8 @@ export function useReevaluateUserAchievements(
           status: 'failure',
           durationMs,
           code: apiError.code,
-          requestId: apiError.extensions?.requestId as string | undefined,
-          correlationId: apiError.extensions?.correlationId as string | undefined,
+          requestId: apiError.requestId as string | undefined,
+          correlationId: apiError.correlationId as string | undefined,
         });
 
         return Promise.reject(apiError);

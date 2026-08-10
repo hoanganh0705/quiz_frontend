@@ -12,7 +12,7 @@
  * - Drive the button label and disabled state from the lifecycle
  *   returned by `useReevaluateUserAchievements`.
  * - Surface `REVAL_RUNNING` via the priority-copy notice.
- * - Gate on `usePermission('achievement_manage')`.
+ * - Gate on `usePermission('achievement_reevaluate')`.
  *
  * ## Lifecycle → button state
  *
@@ -46,7 +46,7 @@ export interface ReevaluateButtonProps {
  * Renders `PermissionDeniedNotice` when `achievement_manage` is denied.
  */
 export function ReevaluateButton({ userId, onCompleted }: ReevaluateButtonProps) {
-  const { allowed } = usePermission('achievement_manage');
+  const { hasPermission, isLoading } = usePermission('achievement_reevaluate');
   const { reevaluate, lifecycle, isPending, error, reset } =
     useReevaluateUserAchievements(userId);
 
@@ -68,11 +68,11 @@ export function ReevaluateButton({ userId, onCompleted }: ReevaluateButtonProps)
 
   // ── Permission gate ──────────────────────────────────────────────────────
 
-  if (allowed === false) {
+  if (!hasPermission && !isLoading) {
     return <PermissionDeniedNoticeInline variant="control" />;
   }
 
-  if (allowed === null) {
+  if (isLoading) {
     // Permission lookup in flight — render disabled button to avoid FOUC.
     return (
       <Button variant="secondary" disabled>

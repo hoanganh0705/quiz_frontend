@@ -39,3 +39,8 @@ export type { UseMyRankingReturn } from './useMyRanking';
 // T-4.5.B7
 export { useMyAnalytics } from './useMyAnalytics';
 export type { UseMyAnalyticsReturn } from './useMyAnalytics';
+// Phase 1 follow-ups (F-17, F-18)
+export { useUserQuizAnalytics } from './useUserQuizAnalytics';
+export type { UseUserQuizAnalyticsResult } from './useUserQuizAnalytics';
+export { useUserQuizzes } from './useUserQuizzes';
+export type { UseUserQuizzesResult, UseUserQuizzesParams } from './useUserQuizzes';

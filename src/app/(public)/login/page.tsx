@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, memo, useMemo, useState } from "react";
+import { Suspense, useMemo, useState } from "react";
 import { Eye } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -124,7 +124,7 @@ function RenderCredentialError({
   }
 }
 
-const LoginPageContent = memo(function LoginPageContent() {
+function LoginPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const fetchCurrentUser = useFetchCurrentUser();
@@ -448,7 +448,7 @@ const LoginPageContent = memo(function LoginPageContent() {
       </main>
     </div>
   );
-});
+}
 
 export default function LoginPage() {
   return (

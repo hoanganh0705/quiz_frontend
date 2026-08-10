@@ -19,7 +19,7 @@
  *   1. Calls `mutateCarefully` for the per-target relationship key.
  *   2. Calls `mutateCarefully` for the per-target social counts key
  *      (relationship changes affect counts).
- *   3. Emits a `phase6:6.10` breadcrumb via `phase6_6_10_sentry`.
+ *   3. Emits a `social:6.10` breadcrumb via `social-realtime-sentry`.
  *   4. Posts a `relationship-invalidation` cross-tab envelope via
  *      `postRelationshipInvalidation` (TKT-6.10.D3).
  *
@@ -30,7 +30,7 @@
  *
  * The hook NEVER carries `friendshipId` or `followId` in any
  * breadcrumb payload or cross-tab envelope. The lint script
- * (`scripts/phase6-lint-invariants.mjs`, TKT-6.10.G3) greps every
+ * (`scripts/social-lint-invariants.mjs`, TKT-6.10.G3) greps every
  * file under `src/features/social/**` and fails the build if any
  * field named `friendshipId` / `followId` is added.
  *
@@ -51,8 +51,8 @@ import { getFeatureFlagValue } from "@/lib/feature-flags";
 import { mutateCarefully } from "@/lib/swr/mutate-carefully";
 import {
   addSocialRealtimeBreadcrumb,
-} from "@/lib/social/phase6_6_10_sentry";
-import { postRelationshipInvalidation } from "@/lib/realtime/phase5-broadcast";
+} from "@/lib/social/social-realtime-sentry";
+import { postRelationshipInvalidation } from "@/lib/realtime/cross-tab-invalidation";
 
 import { useSocialRealtimeEvent } from "@/features/social/realtime";
 import { SOCIAL_CACHE_KEYS } from "@/features/social/types/relationship";
@@ -81,7 +81,7 @@ import type { RelationshipChangedPayload } from "@/features/social/realtime";
  * ```
  */
 export function useRelationshipInvalidation(targetUserId: string): void {
-  const flagValue = getFeatureFlagValue("phase6_social_notifications");
+  const flagValue = getFeatureFlagValue("social_realtime_notifications_live");
   const realtimeEnabled = flagValue !== "placeholder";
 
   const { socket } = useSocket(NOTIFICATIONS_NAMESPACE, {

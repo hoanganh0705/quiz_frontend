@@ -28,7 +28,7 @@ import { ApiError } from '@/lib/api/core/ApiError';
 import { useReevaluateUserAchievements } from '../hooks/useReevaluateUserAchievements';
 import { useRevokeUserBadge } from '../hooks/useRevokeUserBadge';
 import { ReevaluateButton } from '../components/ReevaluateButton';
-import { AchievementAdminUserRouteHandoff } from '@/app/admin/achievements/users/[userId]/_components/AchievementAdminUserRouteHandoff';
+import { AchievementAdminUserRouteHandoff } from '@/app/(protected)/admin/achievements/users/[userId]/_components/AchievementAdminUserRouteHandoff';
 
 const VALID_USER_ID = '00000000-0000-4000-8000-000000000001';
 const VALID_BADGE_ID = '00000000-0000-4000-8000-000000000002';
@@ -73,8 +73,8 @@ vi.mock('swr', async () => {
   };
 });
 
-vi.mock('@/lib/admin/phase7_admin_sentry', async () => {
-  const actual = await vi.importActual<typeof import('@/lib/admin/phase7_admin_sentry')>('@/lib/admin/phase7_admin_sentry');
+vi.mock('@/lib/admin/admin_live_sentry', async () => {
+  const actual = await vi.importActual<typeof import('@/lib/admin/admin_live_sentry')>('@/lib/admin/admin_live_sentry');
   return {
     ...actual,
     addAchievementAdminBreadcrumb: (...args: unknown[]) => mockAddAchievementAdminBreadcrumb(...args),

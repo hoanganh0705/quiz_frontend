@@ -65,7 +65,7 @@ const PLACEHOLDER_RESULT: UseSocialCountsResult = Object.freeze({
 });
 
 export function useSocialCounts(userId: string | null): UseSocialCountsResult {
-  const flagValue = getFeatureFlagValue("phase6_social_relationship");
+  const flagValue = getFeatureFlagValue("social_relationship_live");
   const isFlagPlaceholder = flagValue === "placeholder";
 
   const auth = useAuthSession();

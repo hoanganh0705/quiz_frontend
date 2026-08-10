@@ -1,5 +1,4 @@
 // Re-export quiz types from shared location
-export type { Quiz } from '@/features/quizzes/types'
 export { BADGE_TYPES } from './badges'
 export type { BadgeType } from './badges'
 import type { BadgeType } from './badges'

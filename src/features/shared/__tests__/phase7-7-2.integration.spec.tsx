@@ -34,7 +34,7 @@
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
-import { AdminLayoutShell } from '../../../app/admin/_components/AdminLayoutShell';
+import { AdminLayoutShell } from '../../../app/(protected)/admin/_components/AdminLayoutShell';
 
 // ── Mock chain ────────────────────────────────────────────────────────────────
 
@@ -88,7 +88,7 @@ import { usePathname } from 'next/navigation';
 
 function setFlag(value: 'live' | 'placeholder') {
   vi.mocked(useAdminFeatureFlag).mockReturnValue({
-    flag: 'phase7_admin',
+    flag: 'admin_live',
     value,
     isLive: value === 'live',
     isPlaceholder: value === 'placeholder',

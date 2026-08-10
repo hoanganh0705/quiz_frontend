@@ -327,7 +327,7 @@ export function ReviewReportsList({
         className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between"
         data-testid="review-reports-list-header"
       >
-        <div role="tablist" aria-label="Filter review reports" className="inline-flex rounded-md border border-slate-200 bg-white p-0.5">
+        <div role="tablist" aria-label="Filter review reports" className="inline-flex rounded-md border border-border bg-background p-0.5">
           {SHOW_TOGGLE_OPTIONS.map((option) => {
             const isActive = option.value === show;
             return (
@@ -364,7 +364,7 @@ export function ReviewReportsList({
         ref={scrollerRef}
         onScroll={handleScroll}
         data-testid="review-reports-list-scroller"
-        className="relative max-h-[70vh] overflow-y-auto rounded-md border border-slate-200 bg-white p-3"
+        className="relative max-h-[70vh] overflow-y-auto rounded-md border border-border bg-background p-3"
       >
         {renderRows()}
 

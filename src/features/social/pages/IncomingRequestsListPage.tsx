@@ -18,9 +18,9 @@
  *
  * ## Feature flag gating
  *
- * The list is gated by `phase6_social_relationship` (Epic 6.1 read
+ * The list is gated by `social_relationship_live` (Epic 6.1 read
  * flag). The respond actions are gated by
- * `phase6_social_friend_request_mutation` (TKT-6.8.B1).
+ * `social_friend_request_mutation_live` (TKT-6.8.B1).
  */
 
 import { type ReactElement } from "react";
@@ -46,7 +46,7 @@ export function IncomingRequestsListPage({
   // ── Read flag guard (no-op if 'placeholder') ───────────────────
   // The call to useIncomingRequests is unconditional so the
   // hook order is stable across renders.
-  const readFlag = getFeatureFlagValue("phase6_social_relationship");
+  const readFlag = getFeatureFlagValue("social_relationship_live");
   const isFlagPlaceholder = readFlag === "placeholder";
 
   // ── Read hook ───────────────────────────────────────────────────

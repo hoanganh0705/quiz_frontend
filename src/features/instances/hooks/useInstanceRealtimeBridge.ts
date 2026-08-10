@@ -20,8 +20,8 @@
  *   realtime hint.
  * - Reset the realtime entry on unmount / logout so subsequent
  *   mounts of a different instance do not see stale state.
- * - Feature-flag gating via `phase5_instances` and
- *   `phase5_realtime_infrastructure`.
+ * - Feature-flag gating via `multiplayer_instances_live` and
+ *   `realtime_infrastructure_live`.
  *
  * ## Server authority
  *
@@ -71,8 +71,8 @@ import {
 export function useInstanceRealtimeBridge(
   instanceId: string | null,
 ): void {
-  const featuresFlag = getFeatureFlagValue("phase5_instances");
-  const realtimeFlag = getFeatureFlagValue("phase5_realtime_infrastructure");
+  const featuresFlag = getFeatureFlagValue("multiplayer_instances_live");
+  const realtimeFlag = getFeatureFlagValue("realtime_infrastructure_live");
   const enabled =
     featuresFlag === "live" && realtimeFlag === "live";
 
@@ -118,7 +118,7 @@ export function useInstanceRealtimeBridge(
           applyLifecycleEvent(event);
           // Cross-tab invalidation so sibling tabs refetch the
           // canonical REST data without each opening a socket.
-          emitPhase5Invalidation({ type: "instance" });
+          emitPhase5Invalidation({ type: "instance", instanceId: instanceId ?? "" });
           if (instanceId !== null) {
             void globalMutate(
               INSTANCE_CACHE_KEYS.detail(instanceId),

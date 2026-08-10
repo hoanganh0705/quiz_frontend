@@ -7,7 +7,7 @@
  *   - Happy path: SDK envelope unwraps, rows are projected through
  *     `toMutual`, `total` is clamped against
  *     `MUTUAL_TOTAL_HARD_CAP`, `visibility: 'visible'`.
- *   - The wrapper emits two `phase6:6.4` breadcrumbs per call
+ *   - The wrapper emits two `social:6.4` breadcrumbs per call
  *     (one in-flight + one resolved) carrying the documented
  *     payload.
  *   - `getMutualFriends` emits `surface: 'mutuals-friends'`.
@@ -167,7 +167,7 @@ describe("mutuals.service — getMutualFriends", () => {
     expect(MUTUAL_TOTAL_HARD_CAP).toBe(500);
   });
 
-  it("emits two phase6:6.4 breadcrumbs (in-flight + resolved)", async () => {
+  it("emits two social:6.4 breadcrumbs (in-flight + resolved)", async () => {
     mockSocialControllerGetMutualFriends.mockResolvedValue({
       data: [{ userId: "user-a", username: "alice", mutualFriends: 1, mutualFollowers: 0 }],
       meta: {

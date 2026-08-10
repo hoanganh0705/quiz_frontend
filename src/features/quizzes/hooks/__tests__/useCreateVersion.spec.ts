@@ -11,7 +11,7 @@
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { renderHook, waitFor } from '@testing-library/react';
+import { act, renderHook, waitFor } from '@testing-library/react';
 
 import { ApiError } from '@/lib/api';
 
@@ -51,7 +51,12 @@ function makeApiError(
         type: 'about:blank',
         title: `Error ${status}`,
         status,
-        code,
+        // The wire body puts `code` inside `extensions` (per RFC 7807).
+        // The `ApiError` getter reads `data.extensions.code` first and
+        // falls back to a synthesized code by status when the field is
+        // absent — placing `code` at the top level would silently fall
+        // back to `GLOBAL_*` and break the per-code assertions below.
+        extensions: { code },
       },
     },
     config: undefined,
@@ -71,7 +76,24 @@ describe('useCreateVersion', () => {
 
   it('creates version successfully', async () => {
     const mockVersion = makeVersionSummary('new-version-123');
-    mockCreateQuizVersion.mockResolvedValueOnce(mockVersion);
+    // The hook unwraps the response envelope via `(response as
+    // { data }).data`, so the service mock must return the
+    // `{ data: QuizVersionSummary }` shape rather than the bare
+    // summary. A flat object would make `data` undefined and the
+    // hook would throw "Unexpected response shape".
+    //
+    // Use a deferred promise so the test can observe the loading
+    // state mid-flight. `mockResolvedValueOnce` would resolve on the
+    // next microtask, faster than the `waitFor` polling, and the
+    // hook would flip `isLoading` back to `false` before the
+    // assertion ever runs.
+    let resolveCreate!: (value: { data: typeof mockVersion }) => void;
+    const pendingCreate = new Promise<{ data: typeof mockVersion }>(
+      (resolve) => {
+        resolveCreate = resolve;
+      },
+    );
+    mockCreateQuizVersion.mockReturnValueOnce(pendingCreate);
 
     const onSuccess = vi.fn();
     const { result } = renderHook(() =>
@@ -89,6 +111,7 @@ describe('useCreateVersion', () => {
       expect(result.current.isLoading).toBe(true);
     });
 
+    resolveCreate({ data: mockVersion });
     await createPromise;
 
     await waitFor(() => {
@@ -101,7 +124,10 @@ describe('useCreateVersion', () => {
 
   it('surfaces GLOBAL_RATE_LIMITED error', async () => {
     const error = makeApiError(429, 'GLOBAL_RATE_LIMITED');
-    mockCreateQuizVersion.mockRejectedValueOnce(error);
+    // Use `mockRejectedValue` (not `mockRejectedValueOnce`) so the
+    // hook's internal 429 retry loop sees the same error on every
+    // attempt; otherwise the second attempt resolves to `undefined`.
+    mockCreateQuizVersion.mockRejectedValue(error);
 
     const onError = vi.fn();
     const { result } = renderHook(() =>
@@ -109,19 +135,23 @@ describe('useCreateVersion', () => {
     );
 
     let caughtError: ApiError | undefined;
-    try {
-      await result.current.createVersion(quizId, {
-        difficulty: 'medium',
-        durationMs: 300_000,
-        passingScorePercent: 70,
-        rewardXp: 100,
-      });
-    } catch (e) {
-      caughtError = e as ApiError;
-    }
+    // Wrap the mutating call in `act` so React commits the
+    // queued `setError` before the await unwinds.
+    await act(async () => {
+      try {
+        await result.current.createVersion(quizId, {
+          difficulty: 'medium',
+          durationMs: 300_000,
+          passingScorePercent: 70,
+          rewardXp: 100,
+        });
+      } catch (e) {
+        caughtError = e as ApiError;
+      }
+    });
 
     await waitFor(() => {
-      expect(result.current.isLoading).toBe(false);
+      expect(result.current.error).not.toBeNull();
     });
 
     expect(result.current.error).toEqual(error);
@@ -135,19 +165,21 @@ describe('useCreateVersion', () => {
 
     const { result } = renderHook(() => useCreateVersion({}));
 
-    try {
-      await result.current.createVersion(quizId, {
-        difficulty: 'medium',
-        durationMs: 300_000,
-        passingScorePercent: 70,
-        rewardXp: 100,
-      });
-    } catch {
-      // Expected
-    }
+    await act(async () => {
+      try {
+        await result.current.createVersion(quizId, {
+          difficulty: 'medium',
+          durationMs: 300_000,
+          passingScorePercent: 70,
+          rewardXp: 100,
+        });
+      } catch {
+        // Expected
+      }
+    });
 
     await waitFor(() => {
-      expect(result.current.isLoading).toBe(false);
+      expect(result.current.error).not.toBeNull();
     });
 
     expect(result.current.error?.status).toBe(500);
@@ -156,7 +188,9 @@ describe('useCreateVersion', () => {
 
   it('prevents concurrent submissions (single-flight)', async () => {
     const mockVersion = makeVersionSummary('new-version-123');
-    mockCreateQuizVersion.mockResolvedValueOnce(mockVersion);
+    // The hook unwraps `(response as { data }).data`; return the
+    // wrapped shape so the in-flight promise resolves successfully.
+    mockCreateQuizVersion.mockResolvedValueOnce({ data: mockVersion });
 
     const { result } = renderHook(() => useCreateVersion({}));
 
@@ -201,7 +235,12 @@ describe('useCreateVersion', () => {
       expect(result.current.error).not.toBeNull();
     });
 
-    result.current.resetError();
+    // `resetError` triggers a React state update; wrap the call in
+    // `act` so the assertion reads the post-commit value rather than
+    // the pre-render snapshot.
+    act(() => {
+      result.current.resetError();
+    });
 
     expect(result.current.error).toBeNull();
   });

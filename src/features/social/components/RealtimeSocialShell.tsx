@@ -25,7 +25,7 @@
  *      - `BadgeSyncLayer` (TKT-6.10.E8)
  *      - `ConnectionStatusBadge` (TKT-6.10.E9)
  *      - `RealtimeWsErrorToast` (TKT-6.10.F1)
- *   5. When the feature flag `phase6_social_notifications` is
+ *   5. When the feature flag `social_realtime_notifications_live` is
  *      `'placeholder'`, renders `children` and still mounts the
  *      UI primitives (which themselves short-circuit on the flag)
  *      but does NOT instantiate any listener hooks. This keeps the
@@ -54,8 +54,8 @@
  *
  * The shell does NOT carry `friendshipId` or `followId` in any
  * telemetry. The breadcrumb helpers
- * (`phase6_6_10_sentry.ts`) sanitise the payload; the lint script
- * (`scripts/phase6-lint-invariants.mjs`, TKT-6.10.G3) fails the
+ * (`social-realtime-sentry.ts`) sanitise the payload; the lint script
+ * (`scripts/social-lint-invariants.mjs`, TKT-6.10.G3) fails the
  * build if any realtime module under `features/social/realtime/`
  * writes either identifier.
  *
@@ -117,7 +117,7 @@ function TabScopedListeners(): null {
   useFriendRequestInvalidation();
   useFollowInvalidation();
   useBlockInvalidation();
-  useSocialFeedInvalidation();
+  useSocialFeedInvalidation(null);
   useNotificationEventRouter();
   useReconnectReconciliation();
   return null;
@@ -171,7 +171,7 @@ export function RealtimeSocialShell({
   // `'placeholder'`. The UI primitives are always mounted so the
   // connection-status and WS-error toast can still surface
   // (otherwise the badge would silently disappear).
-  const flagValue = getFeatureFlagValue("phase6_social_notifications");
+  const flagValue = getFeatureFlagValue("social_realtime_notifications_live");
 
   // ── Auth bootstrap ───────────────────────────────────────────────────
   // The shell is only meaningful for an authenticated user. While the

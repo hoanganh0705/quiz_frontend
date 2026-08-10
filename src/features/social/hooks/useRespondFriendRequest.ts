@@ -22,7 +22,7 @@
  *     - `SOCIAL_CACHE_KEYS.makeRelationshipKey(targetUserId)`
  *     - `SOCIAL_CACHE_KEYS.makeIncomingRequestsKey()` (viewer-only)
  *     - `SOCIAL_CACHE_KEYS.makeSocialCountsKey(targetUserId)`
- * - Safe no-op fallback when `phase6_social_friend_request_mutation`
+ * - Safe no-op fallback when `social_friend_request_mutation_live`
  *   is `'placeholder'`.
  *
  * ## Return contract
@@ -38,7 +38,7 @@
  *   - persisted in SWR cache keys,
  *   - written to `localStorage` / `sessionStorage`,
  *   - appended to a URL or `window.history.pushState`,
- *   - logged to Sentry (the `phase6_6_8_sentry.ts` breadcrumb helper
+ *   - logged to Sentry (the `social-friend-request-mutation-sentry.ts` breadcrumb helper
  *     deliberately strips it — see TKT-6.8.C1 / G1).
  *
  * The `friendshipId` is unstable (regenerated on demand by the
@@ -145,7 +145,7 @@ export function useRespondFriendRequest(
 ): UseRespondFriendRequestResult {
   // ── Flag guard ────────────────────────────────────────────────────────
   const flagValue = getFeatureFlagValue(
-    "phase6_social_friend_request_mutation",
+    "social_friend_request_mutation_live",
   );
   const isFlagPlaceholder = flagValue === "placeholder";
 

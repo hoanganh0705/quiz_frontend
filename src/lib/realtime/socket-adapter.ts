@@ -25,7 +25,7 @@ export type { Socket };
 // Fallback stub when socket.io-client is unavailable (during early development
 // before the package is a runtime dependency).
 function createNoopSocket(): Socket {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   return {
     on: () => createNoopSocket(),
     off: () => {},

@@ -7,9 +7,9 @@
  *
  * Coverage contract (TKT-7.5.F1 acceptance criteria):
  *
- *   AC #1 — `phase7_admin_review_moderation === 'placeholder'`
+ *   AC #1 — `admin_review_moderation_live === 'placeholder'`
  *           renders the documented "coming soon" disabled notice.
- *   AC #2 — `phase7_admin_review_moderation === 'live'` renders
+ *   AC #2 — `admin_review_moderation_live === 'live'` renders
  *           the header, the list, and no extra CTA.
  *   AC #3 — no service / axios / fetch calls originate from this
  *           component.
@@ -152,10 +152,10 @@ describe('TKT-7.5.F1 — ReviewReportsPage: flag gate', () => {
     expect(screen.getByTestId('review-reports-list')).toBeInTheDocument();
   });
 
-  it('reads the phase7_admin_review_moderation flag', () => {
+  it('reads the admin_review_moderation_live flag', () => {
     renderPage();
     expect(useAdminFeatureFlagMock).toHaveBeenCalledWith(
-      'phase7_admin_review_moderation',
+      'admin_review_moderation_live',
     );
   });
 });

@@ -20,7 +20,7 @@
  *     - `SOCIAL_CACHE_KEYS.makeRelationshipKey(userId)`
  *     - `SOCIAL_CACHE_KEYS.makeOutgoingRequestsKey()` (viewer-only)
  *     - `SOCIAL_CACHE_KEYS.makeSocialCountsKey(userId)`
- * - Safe no-op fallback when `phase6_social_friend_request_mutation`
+ * - Safe no-op fallback when `social_friend_request_mutation_live`
  *   is `'placeholder'`.
  *
  * ## Return contract
@@ -117,7 +117,7 @@ export function useSendFriendRequest(
 ): UseSendFriendRequestResult {
   // ── Flag guard ────────────────────────────────────────────────────────
   const flagValue = getFeatureFlagValue(
-    "phase6_social_friend_request_mutation",
+    "social_friend_request_mutation_live",
   );
   const isFlagPlaceholder = flagValue === "placeholder";
 

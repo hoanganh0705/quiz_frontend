@@ -201,9 +201,7 @@ export function useUpdateMySettings(
           const code = isApiError(apiError) ? apiError.code : 'GLOBAL_UNKNOWN';
           onError?.(code);
         },
-        broadcasts: userId
-          ? { type: 'profile/updated', userId, kind: 'settings' satisfies ProfileUpdateKind }
-          : undefined,
+        broadcasts: undefined,
       });
 
       // Emit breadcrumb on resolve (success or error).

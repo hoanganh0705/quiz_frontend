@@ -33,11 +33,12 @@
 
 import { useCallback, useState } from 'react';
 
-import { isApiError, type ApiError } from '@/lib/api';
+import { isApiError, ApiError } from '@/lib/api';
 import { getUserCopy } from '@/lib/api/error-codes';
 import {
   useOptimisticMutation,
   type OptimisticMutationResult,
+  type OptimisticMutationSWRKey,
 } from '@/lib/api/useOptimisticMutation';
 import { addQuizzesToCollectionBulk, BulkOperationValidationError } from '@/features/bookmarks/services';
 import type { BulkOperationResult, BulkAddResult } from '@/features/bookmarks/types';
@@ -115,31 +116,32 @@ export function useAddQuizzesToCollection(
 
       // Validate input
       if (quizIds.length < 1) {
-        const error: ApiError = {
+        const error = ApiError.fromInput({
           status: 400,
-          code: 'VALIDATION_ERROR',
+          code: 'BOOKMARK_VALIDATION',
           message: 'At least 1 quiz ID is required',
-        };
+        });
         setLastApiError(error);
-        onError?.('VALIDATION_ERROR');
+        onError?.('BOOKMARK_VALIDATION');
         return { status: 'reverted', apiError: error };
       }
 
       if (quizIds.length > 100) {
-        const error: ApiError = {
+        const error = ApiError.fromInput({
           status: 400,
-          code: 'VALIDATION_ERROR',
+          code: 'BOOKMARK_VALIDATION',
           message: 'Maximum 100 quiz IDs allowed per operation',
-        };
+        });
         setLastApiError(error);
-        onError?.('VALIDATION_ERROR');
+        onError?.('BOOKMARK_VALIDATION');
         return { status: 'reverted', apiError: error };
       }
 
       try {
         const result = await mutate({
           // No optimistic data needed for bulk add (it doesn't affect the list view directly)
-          key: null,
+          key: null as unknown as OptimisticMutationSWRKey,
+          optimisticData: (cur) => cur,
           run: async () => {
             const response = await addQuizzesToCollectionBulk(collectionId, quizIds);
             return response.summary;
@@ -163,7 +165,7 @@ export function useAddQuizzesToCollection(
         });
 
         // Get the per-item results after successful mutation
-        if (result.status === 'success' && result.data) {
+        if (result.status === 'success' && result.result) {
           const response = await addQuizzesToCollectionBulk(collectionId, quizIds);
           setResults(response.results);
         }
@@ -172,23 +174,23 @@ export function useAddQuizzesToCollection(
       } catch (err) {
         // Handle validation errors (synchronous throws)
         if (err instanceof BulkOperationValidationError) {
-          const error: ApiError = {
+          const error = ApiError.fromInput({
             status: 400,
-            code: 'VALIDATION_ERROR',
+            code: 'BOOKMARK_VALIDATION',
             message: err.message,
-          };
+          });
           setLastApiError(error);
-          onError?.('VALIDATION_ERROR');
+          onError?.('BOOKMARK_VALIDATION');
           return { status: 'reverted', apiError: error };
         }
 
         // Handle other errors
         const code = isApiError(err) ? err.code : 'GLOBAL_UNKNOWN';
-        const error = isApiError(err) ? err : {
+        const error = isApiError(err) ? err : ApiError.fromInput({
           status: 0,
           code: 'GLOBAL_UNKNOWN',
           message: err instanceof Error ? err.message : String(err),
-        } as ApiError;
+        });
         setLastApiError(error);
         onError?.(code);
         return { status: 'reverted', apiError: error };

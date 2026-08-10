@@ -11,9 +11,9 @@
  *       SOCIAL_FRIEND_LIST_FORBIDDEN → private
  *   - Privacy branches return `{ items: [], visibility }` without
  *     surfacing the error.
- *   - `phase6_social === 'placeholder'` short-circuits without a
+ *   - `social_live === 'placeholder'` short-circuits without a
  *     service call and returns `visibility: 'not_found'`.
- *   - `phase6_social_feed === 'placeholder'` short-circuits without
+ *   - `social_feed_live === 'placeholder'` short-circuits without
  *     a service call and returns `visibility: 'not_found'`.
  *   - Unauthenticated viewers receive `visibility: 'not_found'`
  *     without a service call.
@@ -95,7 +95,7 @@ function makeApiError(
 function flagsAllLive() {
   mockGetFeatureFlagValue.mockReturnValue("live");
 }
-function flagPlaceholder(name: "phase6_social" | "phase6_social_feed") {
+function flagPlaceholder(name: "social_live" | "social_feed_live") {
   mockGetFeatureFlagValue.mockImplementation((key: string) => {
     if (key === name) return "placeholder";
     return "live";
@@ -202,8 +202,8 @@ describe("TKT-6.9.D2 / useFeed — privacy mapping", () => {
 });
 
 describe("TKT-6.9.D2 / useFeed — feature-flag gating", () => {
-  it("phase6_social === 'placeholder' short-circuits without dispatching", async () => {
-    flagPlaceholder("phase6_social");
+  it("social_live === 'placeholder' short-circuits without dispatching", async () => {
+    flagPlaceholder("social_live");
 
     const { result } = renderHook(() => useFeed("viewer-1"), {
       wrapper: TestSwrProvider,
@@ -215,8 +215,8 @@ describe("TKT-6.9.D2 / useFeed — feature-flag gating", () => {
     expect(result.current.isLoading).toBe(false);
   });
 
-  it("phase6_social_feed === 'placeholder' short-circuits without dispatching", async () => {
-    flagPlaceholder("phase6_social_feed");
+  it("social_feed_live === 'placeholder' short-circuits without dispatching", async () => {
+    flagPlaceholder("social_feed_live");
 
     const { result } = renderHook(() => useFeed("viewer-1"), {
       wrapper: TestSwrProvider,

@@ -7,7 +7,7 @@
  * Source epic:   Epic 6.2 — Read-only social-graph views.
  * Source story:  Story 6.2 — Read-only social graph views.
  * Source ticket: TKT-6.2.F4.
- * Source ticket: TKT-6.2.H2 — emits a `phase6:6.2` Sentry breadcrumb
+ * Source ticket: TKT-6.2.H2 — emits a `social:6.2` Sentry breadcrumb
  *                on every fetch-state transition via the centralised
  *                helper.
  *
@@ -48,7 +48,7 @@ import Link from "next/link";
 import { useSocialCountsBadge } from "@/features/social/hooks/useSocialCountsBadge";
 import { useSocialListVisibility } from "@/features/social/hooks/useSocialListVisibility";
 
-import { addSocialCountsBadgeBreadcrumb } from "@/lib/social/phase6_6_2_sentry";
+import { addSocialCountsBadgeBreadcrumb } from "@/lib/social/social-search-sentry";
 
 import { type SocialCountsDto } from "../types";
 
@@ -90,7 +90,7 @@ export function SocialCountsBadge({
   const { counts, isLoading, isStale } = useSocialCountsBadge(targetUserId);
   const visibility = useSocialListVisibility(targetUserId);
 
-  // TKT-6.2.H2 — emit a single `phase6:6.2` breadcrumb per fetch
+  // TKT-6.2.H2 — emit a single `social:6.2` breadcrumb per fetch
   // transition. `error` is intentionally not in the dependency
   // list: the badge does not surface errors visually (it returns
   // null), so emitting an error breadcrumb would be noisy.

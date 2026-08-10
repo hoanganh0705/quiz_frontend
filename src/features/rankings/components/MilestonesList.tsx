@@ -21,7 +21,7 @@
  *
  * ## Feature flag gating
  *
- * Renders `null` when `phase5_rankings === 'placeholder'`.
+ * Renders `null` when `rankings_live === 'placeholder'`.
  *
  * ## Loading / error / empty
  *
@@ -51,11 +51,11 @@ const FEATURED_MILESTONES = new Set(["TOP_100", "TOP_10", "TOP_1"]);
 /**
  * Render the authenticated user's ranking milestones.
  *
- * Returns `null` when `phase5_rankings === 'placeholder'` or when the
+ * Returns `null` when `rankings_live === 'placeholder'` or when the
  * user is unauthenticated.
  */
 export function MilestonesList({ className }: MilestonesListProps) {
-  const flagValue = getFeatureFlagValue("phase5_rankings");
+  const flagValue = getFeatureFlagValue("rankings_live");
   const isFlagPlaceholder = flagValue === "placeholder";
 
   const { isAuthenticated, bootstrapState } = useAuthSession();

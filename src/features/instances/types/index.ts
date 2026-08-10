@@ -14,12 +14,12 @@ export type {
 } from '@/lib/api/generated/schemas';
 
 export type {
-  InstanceControllerCreateInstanceResult,
-  InstanceControllerGetInstanceByIdResult,
-  InstanceControllerJoinInstanceResult,
-  InstanceControllerStartInstanceResult,
-  InstanceControllerCloseInstanceResult,
-  InstanceControllerGetLeaderboardResult,
+  CreateInstanceResult,
+  GetInstanceByIdResult,
+  JoinInstanceResult,
+  StartInstanceResult,
+  CloseInstanceResult,
+  GetInstanceLeaderboardResult,
 } from '@/lib/api/generated/instances/instances';
 
 // Story 5.7 — Instance lobby, authenticated room, and host lifecycle

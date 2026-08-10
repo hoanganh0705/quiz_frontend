@@ -35,7 +35,7 @@
  * ## Privacy contract
  *
  *   - Unauthenticated viewer → safe fallback.
- *   - `phase6_social === 'placeholder'` → safe fallback.
+ *   - `social_live === 'placeholder'` → safe fallback.
  *   - Backend "no friends" → `entries: []` with `hasMore: false`
  *     (NOT an error).
  *   - `SOCIAL_FRIEND_LIST_FORBIDDEN` → `entries: []` and the typed
@@ -121,7 +121,7 @@ type EntryWithId = FriendLeaderboardEntryDto & { id: string };
 export function useFriendLeaderboard(
   period: AnalyticsPeriod,
 ): UseFriendLeaderboardResult {
-  const flagValue = getFeatureFlagValue("phase6_social");
+  const flagValue = getFeatureFlagValue("social_live");
   const isFlagPlaceholder = flagValue === "placeholder";
 
   const auth = useAuthSession();

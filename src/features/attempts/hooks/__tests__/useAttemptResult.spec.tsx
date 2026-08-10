@@ -269,9 +269,14 @@ describe('useAttemptResult — error and no-result', () => {
       useAttemptResult({ attemptId: 'a1' }),
     );
 
-    await waitFor(() => {
-      expect(result.current.error?.code).toBe('GLOBAL_RATE_LIMITED');
-    });
+    // The hook backs off 250/500/1000 ms before surfacing the 429;
+    // wait long enough for the full retry budget to elapse.
+    await waitFor(
+      () => {
+        expect(result.current.error?.code).toBe('GLOBAL_RATE_LIMITED');
+      },
+      { timeout: 5000 },
+    );
   });
 
   it('5xx surfaces a typed ApiError', async () => {

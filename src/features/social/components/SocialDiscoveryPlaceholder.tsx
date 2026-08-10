@@ -13,7 +13,7 @@
  * ## What this component owns
  *
  * The static, flag-gated placeholder rendered by the discovery route
- * scaffolds when `phase6_social_discovery === 'placeholder'`. The
+ * scaffolds when `social_discovery_live === 'placeholder'`. The
  * component:
  *
  *   - Renders the surface-specific title and description copy.

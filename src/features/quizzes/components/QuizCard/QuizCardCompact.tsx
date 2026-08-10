@@ -39,7 +39,7 @@ export default function QuizCardCompact({
 
       <div className='p-4 flex justify-between items-center'>
         {categories && categories.length > 0 && (
-          <div className='inline-flex items-center rounded-full border px-2.5 py-0.5 text-[12px] font-semibold text-foreground bg-slate-50 dark:bg-slate-700'>
+          <div className='inline-flex items-center rounded-full border px-2.5 py-0.5 text-[12px] font-semibold text-foreground bg-muted dark:bg-muted/50'>
             {categories[0]}
           </div>
         )}

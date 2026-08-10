@@ -9,7 +9,7 @@
  * Source ticket: TKT-6.2.E3.
  * Source ticket: TKT-6.2.G2 — fires `list.loaded` after a successful
  *                load-more so the counts badge can revalidate.
- * Source ticket: TKT-6.2.H2 — emits a `phase6:6.2` Sentry breadcrumb
+ * Source ticket: TKT-6.2.H2 — emits a `social:6.2` Sentry breadcrumb
  *                around the data fetch via the centralised helper.
  *
  * ## What this component owns
@@ -49,7 +49,7 @@ import { useSocialListVisibility } from "@/features/social/hooks/useSocialListVi
 import type { ApiError } from "@/lib/api";
 
 import { publishSocialListLoaded } from "@/lib/social/social-list-loaded-broadcast-channel";
-import { addSocialListBreadcrumb } from "@/lib/social/phase6_6_2_sentry";
+import { addSocialListBreadcrumb } from "@/lib/social/social-search-sentry";
 
 import { SocialListEmptyState } from "../components/SocialListEmptyState";
 import { SocialListErrorState } from "../components/SocialListErrorState";
@@ -97,7 +97,7 @@ export function FriendsList(props: FriendsListProps): ReactElement {
   const { users, isLoading, isStale, hasMore, loadMore, error, retry } =
     useFriends(targetUserId);
 
-  // TKT-6.2.H2 — emit a single `phase6:6.2` breadcrumb per fetch
+  // TKT-6.2.H2 — emit a single `social:6.2` breadcrumb per fetch
   // transition. We skip the privacy-gated branches (no fetch was
   // performed) so the breadcrumb shape stays consistent with the
   // /social/users/{id}/friends route even when the endpoint is

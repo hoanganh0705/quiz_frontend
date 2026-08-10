@@ -7,8 +7,8 @@
  *
  * ## What this test locks (TKT-5.6.G2 AC #7)
  *
- * (1) Renders the search surface when `phase5_search === 'live'`.
- * (2) Renders null when `phase5_search === 'placeholder'`.
+ * (1) Renders the search surface when `search_live === 'live'`.
+ * (2) Renders null when `search_live === 'placeholder'`.
  * (3) Reads 'q' and 'kinds' from URL on mount.
  * (4) Renders the `no-query` empty state when no query is in the URL.
  * (5) The page never throws — every branch renders SOMETHING.
@@ -62,7 +62,10 @@ vi.mock("@/features/search/hooks/useSearchHistory", () => ({
 vi.mock("@/features/search/hooks/useDebouncedValue", () => ({
   DEFAULT_SEARCH_DEBOUNCE_MS: 250,
   SEARCH_INPUT_DEBOUNCE_MS: 250,
-  useDebouncedValue: (value: string) => value,
+  useDebouncedValue: (value: string) => ({
+    debouncedValue: value,
+    cancel: () => undefined,
+  }),
 }));
 
 const mockSearchParamsMap = new Map<string, string>();

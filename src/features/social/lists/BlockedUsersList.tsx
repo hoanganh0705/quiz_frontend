@@ -46,7 +46,7 @@
  *      terminal state and revalidates the cache.
  *   4. On other errors, surfaces `BlockErrorBanner` inline.
  *
- * The unblock affordance is gated by `phase6_social_block_mutation`
+ * The unblock affordance is gated by `social_block_mutation_live`
  * (Epic 6.7 / TKT-6.7.B1). When the flag is `'placeholder'`, the
  * `useUnblock` hook returns a no-op result and the buttons are not
  * rendered.
@@ -68,7 +68,7 @@ import { useUnblock } from "@/features/social/hooks/useUnblock";
 import type { ApiError } from "@/lib/api";
 import { getFeatureFlagValue } from "@/lib/feature-flags";
 
-import { addSocialListBreadcrumb } from "@/lib/social/phase6_6_2_sentry";
+import { addSocialListBreadcrumb } from "@/lib/social/social-search-sentry";
 
 import { BlockErrorBanner } from "../components/BlockErrorBanner";
 import { SocialListEmptyState } from "../components/SocialListEmptyState";
@@ -99,7 +99,7 @@ function isPermissionDeniedError(error: ApiError | null): boolean {
  * is per-row; promoting it to a standalone file would require an
  * extra props surface for the dialog state.
  *
- * The unblock affordance is gated by `phase6_social_block_mutation`.
+ * The unblock affordance is gated by `social_block_mutation_live`.
  * When the flag is `'placeholder'`, the hook returns safe no-op
  * result objects and the button renders `null`.
  */
@@ -116,7 +116,7 @@ function BlockedUserRowWithUnblock({
   // Hide the unblock affordance when the feature flag is off. The
   // hook itself returns a no-op under `'placeholder'`, but we also
   // want to hide the button so the UI matches the gating intent.
-  const flagValue = getFeatureFlagValue("phase6_social_block_mutation");
+  const flagValue = getFeatureFlagValue("social_block_mutation_live");
   const isFlagPlaceholder = flagValue === "placeholder";
 
   return (
@@ -177,10 +177,10 @@ export function BlockedUsersList(): ReactElement {
   // affordance at all — this avoids spawning `useUnblock` instances
   // when the feature is gated off.
   const isFlagPlaceholder =
-    getFeatureFlagValue("phase6_social_block_mutation") === "placeholder";
+    getFeatureFlagValue("social_block_mutation_live") === "placeholder";
   const showUnblockAffordance = !isFlagPlaceholder;
 
-  // TKT-6.2.H2 — emit a single `phase6:6.2` breadcrumb per fetch
+  // TKT-6.2.H2 — emit a single `social:6.2` breadcrumb per fetch
   // transition. The blocked list is owner-only and not paginated,
   // so the offset/limit are fixed (0 / single-page) and the
   // visibility-gated branches are skipped (no fetch occurred).

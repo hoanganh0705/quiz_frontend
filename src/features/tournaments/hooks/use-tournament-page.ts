@@ -22,14 +22,14 @@ export function useTournamentPage() {
       try {
         const params: GetTournamentsParams = {}
         if (selectedCategory !== 'all') {
-          params.category = selectedCategory
+          params.categoryId = selectedCategory
         }
         if (filter !== 'all') {
           params.status = filter as GetTournamentsParams['status']
         }
 
         const data = await getTournaments(params)
-        setTournaments(data.tournaments)
+        setTournaments((data as unknown as { data?: Tournament[] }).data ?? [])
       } catch {
         // Use mock data if API fails
         setTournaments(mockTournaments)
@@ -42,7 +42,7 @@ export function useTournamentPage() {
   }, [filter, selectedCategory])
 
   const uniqueCategories = useMemo(
-    () => ['all', ...new Set(tournaments.map((tournament) => tournament.category))],
+    () => ['all', ...new Set(tournaments.map((tournament) => tournament.categoryId ?? 'General'))],
     [tournaments]
   )
 
@@ -51,27 +51,27 @@ export function useTournamentPage() {
 
     if (selectedCategory !== 'all') {
       filtered = filtered.filter(
-        (tournament) => tournament.category === selectedCategory
+        (tournament) => tournament.categoryId === selectedCategory
       )
     }
 
     switch (filter) {
       case 'upcoming':
         return filtered.filter(
-          (tournament) => new Date(tournament.startDate) > TOURNAMENT_NOW
+          (tournament) => new Date(tournament.startAt) > TOURNAMENT_NOW
         )
       case 'ongoing':
         return filtered.filter(
           (tournament) =>
-            new Date(tournament.startDate) <= TOURNAMENT_NOW &&
-            new Date(tournament.endDate) >= TOURNAMENT_NOW
+            new Date(tournament.startAt) <= TOURNAMENT_NOW &&
+            new Date(tournament.endAt) >= TOURNAMENT_NOW
         )
       case 'completed':
         return filtered.filter(
-          (tournament) => new Date(tournament.endDate) < TOURNAMENT_NOW
+          (tournament) => new Date(tournament.endAt) < TOURNAMENT_NOW
         )
       case 'registration':
-        return filtered.filter((tournament) => tournament.registrationOpen)
+        return filtered.filter((tournament) => tournament.status === 'registration')
       default:
         return filtered
     }

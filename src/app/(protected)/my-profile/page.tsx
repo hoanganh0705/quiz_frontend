@@ -1,6 +1,5 @@
 "use client";
 
-import { memo } from "react";
 import { Button } from "@/components/ui/Button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/Tabs";
 import { ActivityTimeline } from "@/features/users/components/my-profile/ActivityTimeline";
@@ -12,6 +11,10 @@ import { QuizzesTab } from "@/features/users/components/my-profile/tabs/QuizzesT
 import { AchievementsTab } from "@/features/users/components/my-profile/tabs/AchievementsTab";
 import { StatisticsTab } from "@/features/users/components/my-profile/tabs/StatisticsTab";
 import { ProfileEditTab } from "@/features/users/components/my-profile/ProfileEditTab";
+import {
+  ProfileHeaderSkeleton,
+  StatsCardSkeleton,
+} from "@/components/ui/loading-states";
 import { Pencil } from "lucide-react";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
@@ -28,17 +31,42 @@ import { useMyProfilePage } from "@/features/users/hooks/use-my-profile-page";
  * - Inactive tabs do not poll
  * - SWR revalidation on window focus still works
  */
-const MyProfilePage = memo(function MyProfilePage() {
+export default function MyProfilePage() {
   const {
     activeTab,
     setActiveTab,
     currentUser,
+    isLoading,
     currentLevelXP,
     nextLevelXP,
     levelProgress,
   } = useMyProfilePage();
 
+  // While the user is signed in but the profile fetch is still in
+  // flight, render the skeleton that `loading.tsx` would have shown
+  // before the client component mounted. The "Profile unavailable"
+  // empty-state is reserved for the case where the user is *not*
+  // authenticated (or the fetch has failed and there is no in-flight
+  // attempt), so a fresh sign-up navigation does not flash a
+  // misleading "Sign in to view your profile" message.
   if (!currentUser) {
+    if (isLoading) {
+      return (
+        <main className="min-h-screen text-foreground p-4 md:p-8 lg:p-12">
+          <div className="max-w-4xl mx-auto mb-8">
+            <ProfileHeaderSkeleton />
+          </div>
+          <div className="max-w-4xl mx-auto mb-8">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <StatsCardSkeleton key={i} />
+              ))}
+            </div>
+          </div>
+        </main>
+      );
+    }
+
     return (
       <main className="min-h-screen flex items-center justify-center px-6">
         <div className="text-center max-w-md">
@@ -172,6 +200,4 @@ const MyProfilePage = memo(function MyProfilePage() {
       </div>
     </main>
   );
-});
-
-export default MyProfilePage;
+}

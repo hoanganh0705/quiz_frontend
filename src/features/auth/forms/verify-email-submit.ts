@@ -57,7 +57,7 @@
 // `verifyEmail` is the auth-service re-export (TKT-2.1.E2). The
 // helper calls it through a dependency so the unit suite can stub
 // the network without module mocks.
-import { verifyEmail as defaultVerifyEmail } from "@/features/auth/service/auth.service";
+import { verifyEmail as defaultVerifyEmail } from "@/features/auth/services/auth.service";
 
 import {
   mapVerifyEmailError,

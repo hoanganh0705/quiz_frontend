@@ -16,7 +16,7 @@
  * - Render a privacy-aware empty state ("Badges hidden") when the
  *   server marks the user as private, or when the API throws
  *   `ACHIEVEMENT_FORBIDDEN`.
- * - Render nothing when `phase5_achievements === 'placeholder'`.
+ * - Render nothing when `achievements_live === 'placeholder'`.
  *
  * ## Privacy gating (F3 AC #4)
  *
@@ -35,7 +35,7 @@
  *
  * ## Feature flag
  *
- * Renders `null` when `phase5_achievements === 'placeholder'`.
+ * Renders `null` when `achievements_live === 'placeholder'`.
  *
  * ## Loading / error / empty
  *
@@ -196,7 +196,7 @@ function BadgeChip({ badge }: { badge: EarnedBadge }) {
  *
  * Returns `null` when:
  *
- *   - `phase5_achievements === 'placeholder'`.
+ *   - `achievements_live === 'placeholder'`.
  *   - `userId === null` (no user context supplied).
  *
  * Otherwise renders:

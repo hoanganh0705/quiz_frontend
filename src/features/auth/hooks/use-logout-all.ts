@@ -66,7 +66,7 @@ import { useCallback, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   logoutAll as defaultLogoutAll,
-} from '@/features/auth/service/auth.service';
+} from '@/features/auth/services/auth.service';
 import {
   mapSessionError,
   type SessionErrorClassification,
@@ -74,7 +74,6 @@ import {
 import { ApiError } from '@/lib/api/core/ApiError';
 import { useClearUser } from '@/features/users/store/user-store';
 import { useAuthState } from '@/features/auth/hooks/use-auth-state';
-import type { AuthControllerLogoutAllResult } from '@/lib/api/generated/auth/auth';
 
 export type UseLogoutAllStatus =
   | 'idle'
@@ -117,7 +116,13 @@ export interface UseLogoutAllResult {
 }
 
 export interface UseLogoutAllDeps {
-  logoutAll: () => Promise<AuthControllerLogoutAllResult>;
+  /**
+   * The `logoutAll` service function. The return type is intentionally
+   * opaque (`Promise<unknown>`) so the hook does not depend on the
+   * generated SDK types — the service layer is the canonical owner of
+   * the SDK boundary.
+   */
+  logoutAll: () => Promise<unknown>;
 }
 
 export const defaultLogoutAllDeps: UseLogoutAllDeps = {

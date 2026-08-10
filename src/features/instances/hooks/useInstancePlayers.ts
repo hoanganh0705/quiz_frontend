@@ -18,7 +18,7 @@
  *   and `isCurrentUser` (derived from the supplied current user id).
  * - Dedup by `playerId` when the same `eventSequence` repeats.
  * - Expose `isStale` when revalidation fails with cached data present.
- * - Feature-flag gating via `phase5_instances`.
+ * - Feature-flag gating via `multiplayer_instances_live`.
  *
  * ## Pagination kind
  *
@@ -193,7 +193,7 @@ export function useInstancePlayers(
   instanceId: string | null,
   filters: InstancePlayersFilters = {},
 ): UseInstancePlayersResult {
-  const flagValue = getFeatureFlagValue("phase5_instances");
+  const flagValue = getFeatureFlagValue("multiplayer_instances_live");
   const isFlagPlaceholder = flagValue === "placeholder";
 
   const { hostUserId = null, currentUserId = null } = filters;

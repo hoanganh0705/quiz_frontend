@@ -1,4 +1,5 @@
 import { QuizResults } from '@/features/quizzes/components/QuizPlayer'
+import type { Quiz } from '@/features/quizzes/types'
 import { quizzes } from '@/features/quizzes/constants/mock-quizzes'
 import Link from 'next/link'
 
@@ -28,5 +29,5 @@ export default async function QuizResultsPage({
       </div>
     )
   }
-  return <QuizResults quiz={quiz} />
+  return <QuizResults quiz={quiz as unknown as Quiz} />
 }

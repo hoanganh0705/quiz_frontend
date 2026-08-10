@@ -121,8 +121,8 @@ describe("isQueryLengthValid", () => {
 
   it("returns true for strings at the minimum length", () => {
     expect(isQueryLengthValid("ab")).toBe(true); // 2 chars
-    expect(isQueryLengthValid(" a ")).toBe(true); // 2 chars after trim
     expect(isQueryLengthValid("ab ")).toBe(true); // 2 chars after trim
+    expect(isQueryLengthValid(" ab")).toBe(true); // 2 chars after trim
   });
 
   it("returns true for strings within the range", () => {

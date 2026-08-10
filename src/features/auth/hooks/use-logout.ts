@@ -20,7 +20,7 @@ import { useRouter } from 'next/navigation';
 import { useClearUser } from '@/features/users/store/user-store';
 import { useAuthState } from '@/features/auth/hooks/use-auth-state';
 import { mapLogoutError, type LogoutErrorKind } from '@/features/auth/errors/login-error-mapper';
-import { logout as defaultLogout } from '@/features/auth/service/auth.service';
+import { logout as defaultLogout } from '@/features/auth/services/auth.service';
 import type { AuthControllerLogoutResult } from '@/lib/api/generated/auth/auth';
 
 export type UseLogoutState =

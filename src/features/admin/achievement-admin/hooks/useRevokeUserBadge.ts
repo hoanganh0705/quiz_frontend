@@ -20,7 +20,7 @@
  * - `PERMISSION_DENIED`, `ADMIN_FORBIDDEN` → surfaces without retry.
  * - `IRREVERSIBLE_CONFIRM_REQUIRED` → surfaces without retry (the dialog
  *   re-renders the typed-confirm input).
- * - Every error emits a `phase7:admin` breadcrumb with `requestId`.
+ * - Every error emits a `admin:7.1` breadcrumb with `requestId`.
  *
  * ## Self-action guard
  *
@@ -41,7 +41,7 @@
  *
  * ## Audit
  *
- * The hook emits the `phase7:admin` audit breadcrumb on success and failure.
+ * The hook emits the `admin:7.1` audit breadcrumb on success and failure.
  * The `audit` handle exposes the `before` snapshot (the badge being revoked)
  * so `AuditActionShell` can render the before/after diff.
  * The `badgeId` is NOT redacted from the breadcrumb (badge IDs are not PII).
@@ -52,7 +52,7 @@ import { useCallback, useRef, useState } from "react";
 import { mutate as globalMutate } from "swr";
 
 import { ApiError } from "@/lib/api/core/ApiError";
-import { addAchievementAdminBreadcrumb } from "@/lib/admin/phase7_admin_sentry";
+import { addAchievementAdminBreadcrumb } from "@/lib/admin/admin_live_sentry";
 
 import {
   revokeUserBadge,
@@ -90,7 +90,7 @@ export interface UseRevokeUserBadgeResult {
   readonly revoke: (
     userId: string,
     badgeId: string,
-    options?: { before?: UserBadgeDto | null },
+    options?: { before?: unknown },
   ) => Promise<AchievementBadgeRevokeResponseDto>;
   /** True while a revocation is in flight. */
   readonly isPending: boolean;
@@ -146,7 +146,7 @@ export function useRevokeUserBadge(): UseRevokeUserBadgeResult {
     (
       userId: string,
       badgeId: string,
-      options?: { before?: UserBadgeDto | null },
+      options?: { before?: unknown },
     ): Promise<AchievementBadgeRevokeResponseDto> => {
       // Concurrent call guard.
       if (inFlightRef.current) {
@@ -194,12 +194,11 @@ export function useRevokeUserBadge(): UseRevokeUserBadgeResult {
 
       // Emit "started" breadcrumb.
       addAchievementAdminBreadcrumb({
-        action: "achievement.revokeBadge",
-        route: "achievements.revokeUserBadge",
+          route: 'achievements.revokeUserBadge',
+          action: "achievement.revokeBadge",
         targetId: userId,
         status: "started",
         durationMs: 0,
-        before: beforeSnapshot,
       });
 
       const promise = revokeUserBadge(userId, badgeId)
@@ -213,13 +212,11 @@ export function useRevokeUserBadge(): UseRevokeUserBadgeResult {
 
           // Emit "success" breadcrumb.
           addAchievementAdminBreadcrumb({
-            action: "achievement.revokeBadge",
-            route: "achievements.revokeUserBadge",
-            targetId: userId,
-            status: "success",
+          route: 'achievements.revokeUserBadge',
+          action: "achievement.revokeBadge",
+          targetId: userId,
+          status: "success",
             durationMs,
-            before: beforeSnapshot,
-            after: revokeResult,
           });
 
           // Invalidate SWR caches so badge list reflects new state.
@@ -227,7 +224,7 @@ export function useRevokeUserBadge(): UseRevokeUserBadgeResult {
 
           // Broadcast to other tabs so they revalidate too.
           broadcastAchievementAdminMutation({
-            action: "revoke",
+        action: "revoke",
             userId,
             badgeId: revokeResult.badgeId,
             requestId: "", // revoke has no server requestId
@@ -244,14 +241,14 @@ export function useRevokeUserBadge(): UseRevokeUserBadgeResult {
 
           // Emit "failure" breadcrumb.
           addAchievementAdminBreadcrumb({
-            action: "achievement.revokeBadge",
-            route: "achievements.revokeUserBadge",
-            targetId: userId,
-            status: "failure",
+          route: 'achievements.revokeUserBadge',
+          action: "achievement.revokeBadge",
+          targetId: userId,
+          status: "failure",
             durationMs,
-            code: apiError.code,
-            requestId: apiError.extensions?.requestId as string | undefined,
-            correlationId: apiError.extensions?.correlationId as
+          code: apiError.code,
+          requestId: apiError.requestId as string | undefined,
+          correlationId: apiError.correlationId as
               | string
               | undefined,
           });

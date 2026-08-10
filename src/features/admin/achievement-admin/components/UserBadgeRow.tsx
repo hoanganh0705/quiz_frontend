@@ -68,7 +68,7 @@ export const UserBadgeRow = memo(
     isRemoving = false,
     onRevoke,
   }: UserBadgeRowProps): React.ReactElement {
-    const permission = usePermission('achievement_manage');
+    const permission = usePermission('achievement_badge_revoke');
 
     const isLoading = permission.isLoading;
     const hasPermission =

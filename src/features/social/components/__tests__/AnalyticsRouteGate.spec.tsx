@@ -8,20 +8,20 @@
  *
  * Asserts:
  *
- *   - `phase6_social === 'placeholder'` renders
+ *   - `social_live === 'placeholder'` renders
  *     `<SocialHubPlaceholder />` for the hub and
  *     `<AnalyticsPlaceholder />` for the other kinds.
- *   - `phase6_social === 'live'` with `requireAuth && !isAuthenticated`
+ *   - `social_live === 'live'` with `requireAuth && !isAuthenticated`
  *     renders `<PrivacyRestrictedNotice variant="not_available" />`.
- *   - `phase6_social === 'live'` for the hub renders `<SocialHubPage />`
+ *   - `social_live === 'live'` for the hub renders `<SocialHubPage />`
  *     (TKT-6.3.E1 / E4).
- *   - `phase6_social === 'live'` with a UUID `targetUserId` for
+ *   - `social_live === 'live'` with a UUID `targetUserId` for
  *     `stats` renders `<UserStatsCard targetUserId={id} />`
  *     (TKT-6.3.E3 / E4).
- *   - `phase6_social === 'live'` with `requireAuth && isAuthenticated`
+ *   - `social_live === 'live'` with `requireAuth && isAuthenticated`
  *     for `my-analytics` renders `<MyAnalyticsPage />`
  *     (TKT-6.3.F2 / F3).
- *   - `phase6_social === 'live'` with `requireAuth && isAuthenticated`
+ *   - `social_live === 'live'` with `requireAuth && isAuthenticated`
  *     for `leaderboard` renders the analytics placeholder (until
  *     Batch G replaces it with `<FriendLeaderboardPage />`).
  */
@@ -65,13 +65,13 @@ vi.mock("@/features/auth/hooks/use-auth-session", () => ({
   useAuthSession: (...args: unknown[]) => mockUseAuthBootstrap(...args),
 }));
 
-const featureFlags: { phase6_social: "live" | "placeholder" } = {
-  phase6_social: "placeholder",
+const featureFlags: { social_live: "live" | "placeholder" } = {
+  social_live: "placeholder",
 };
 
 vi.mock("@/lib/feature-flags", () => ({
   getFeatureFlagValue: (name: string) => {
-    if (name === "phase6_social") return featureFlags.phase6_social;
+    if (name === "social_live") return featureFlags.social_live;
     return "placeholder";
   },
 }));
@@ -80,7 +80,7 @@ import { AnalyticsRouteGate } from "@/features/social/components/AnalyticsRouteG
 
 describe("AnalyticsRouteGate — placeholder branch", () => {
   beforeEach(() => {
-    featureFlags.phase6_social = "placeholder";
+    featureFlags.social_live = "placeholder";
     mockUseSocialCounts.mockReset();
     mockUseUserSocialStats.mockReset();
     mockUseAuthBootstrap.mockReset();
@@ -128,7 +128,7 @@ describe("AnalyticsRouteGate — placeholder branch", () => {
 
 describe("AnalyticsRouteGate — live branch (Batch E / F)", () => {
   beforeEach(() => {
-    featureFlags.phase6_social = "live";
+    featureFlags.social_live = "live";
     mockUseSocialCounts.mockReset();
     mockUseUserSocialStats.mockReset();
     mockUseMySocialAnalytics.mockReset();

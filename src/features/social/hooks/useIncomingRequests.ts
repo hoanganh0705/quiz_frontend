@@ -53,7 +53,7 @@ const PLACEHOLDER_RESULT: UseIncomingRequestsResult = Object.freeze({
 });
 
 export function useIncomingRequests(): UseIncomingRequestsResult {
-  const flagValue = getFeatureFlagValue("phase6_social_relationship");
+  const flagValue = getFeatureFlagValue("social_relationship_live");
   const isFlagPlaceholder = flagValue === "placeholder";
 
   const auth = useAuthSession();

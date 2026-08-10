@@ -51,20 +51,6 @@ export default function QuizCategories({
   const swiperRef = useRef<SwiperType | null>(null)
   const [isBeginning, setIsBeginning] = useState(true)
   const [isEnd, setIsEnd] = useState(false)
-  const [isAutoplayPaused, setIsAutoplayPaused] = useState(false)
-
-  const handleToggleAutoplay = () => {
-    const swiper = swiperRef.current
-    if (!swiper?.autoplay) return
-
-    if (isAutoplayPaused) {
-      swiper.autoplay.start()
-    } else {
-      swiper.autoplay.stop()
-    }
-
-    setIsAutoplayPaused((prev) => !prev)
-  }
 
   return (
     <section
@@ -78,17 +64,6 @@ export default function QuizCategories({
           Quiz Categories
         </h2>
         <div className='flex gap-2'>
-          <Button
-            size='sm'
-            variant='outline'
-            onClick={handleToggleAutoplay}
-            aria-label={
-              isAutoplayPaused ? 'Resume auto-rotation' : 'Pause auto-rotation'
-            }
-            aria-pressed={isAutoplayPaused}
-          >
-            {isAutoplayPaused ? 'Resume' : 'Pause'}
-          </Button>
           <Button
             size='icon'
             className='h-10 w-10'

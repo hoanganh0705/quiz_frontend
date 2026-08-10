@@ -103,12 +103,17 @@ export async function grantUserRole(
       `Invalid role: ${input.role} is not a member of PERMISSIONS (${ADMIN_PERMISSIONS.join(', ')})`,
     );
   }
-  return orvalCustomInstance<UserRoleGrantResponseDto>({
+  const wire = await orvalCustomInstance<{ data: UserRoleGrantResponseDto }>({
     url: `/api/v1/admin/users/${userId}/roles`,
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     data: { role: input.role },
   });
+  // The response interceptor in `custom-instance.ts` does NOT
+  // unwrap the `{ data, meta }` envelope (see the long-form comment
+  // on the interceptor for the rationale), so the SDK returns the
+  // wrapped envelope and we read `.data` here.
+  return (wire as { data: UserRoleGrantResponseDto }).data;
 }
 
 /**
@@ -154,10 +159,11 @@ export async function revokeUserRole(
       toJSON: () => ({}),
     } as unknown as Parameters<typeof ApiError.fromAxios>[0]);
   }
-  return orvalCustomInstance<UserRoleGrantResponseDto>({
+  const wire = await orvalCustomInstance<{ data: UserRoleGrantResponseDto }>({
     url: `/api/v1/admin/users/${userId}/roles/${role}`,
     method: 'DELETE',
   });
+  return (wire as { data: UserRoleGrantResponseDto }).data;
 }
 
 /**
@@ -167,10 +173,11 @@ export async function revokeUserRole(
  *         user does not exist.
  */
 export async function getUserRoles(userId: string): Promise<UserRoleDto[]> {
-  return orvalCustomInstance<UserRoleDto[]>({
+  const wire = await orvalCustomInstance<{ data: UserRoleDto[] }>({
     url: `/api/v1/admin/users/${userId}/roles`,
     method: 'GET',
   });
+  return (wire as { data: UserRoleDto[] }).data;
 }
 
 // ─── Re-export the PERMISSIONS singleton for hook-side consumers ───────

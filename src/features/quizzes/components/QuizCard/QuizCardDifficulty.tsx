@@ -72,7 +72,7 @@ export function QuizCardDifficulty({
           </div>
         </div>
       </div>
-      <div className='p-4 text-white'>
+      <div className='p-4 bg-background text-foreground'>
         <div className='mb-2 flex items-center justify-between text-sm text-gray-400'>
           <span className='rounded-full text-foreground border border-border px-2 py-0.5 text-xs'>
             {category}

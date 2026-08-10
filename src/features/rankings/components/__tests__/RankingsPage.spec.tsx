@@ -6,7 +6,7 @@
  * Source ticket: TKT-5.5.G2.
  *
  * The page-level tests verify the F1 acceptance criteria:
- * - F1 AC #1 — placeholder view rendered when `phase5_rankings === 'placeholder'`.
+ * - F1 AC #1 — placeholder view rendered when `rankings_live === 'placeholder'`.
  * - F1 AC #2 — personal surfaces self-gate on auth bootstrap (their
  *   own mocks return `null` to authenticated users, so children
  *   register on the page).

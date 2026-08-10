@@ -46,7 +46,7 @@ import {
   AUTH_RESOURCE_CONFLICT,
 } from '@/features/auth/errors/session-error-codes';
 import type { SessionListItemDto } from '@/lib/api';
-import type { RevokeCurrentSessionResult } from '@/features/auth/service/auth.service';
+import type { RevokeCurrentSessionResult } from '@/features/auth/services/auth.service';
 
 // ─── Simulated hook state ────────────────────────────────────────────────────
 

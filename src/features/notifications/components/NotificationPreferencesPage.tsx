@@ -9,7 +9,7 @@
  *
  * The preferences page composes the `NotificationPreferencesForm`
  * inside a page-level layout. A back link returns to the notification
- * center. The page is gated by the `phase5_notifications` feature
+ * center. The page is gated by the `notifications_live` feature
  * flag — when set to `'placeholder'`, it renders
  * `NotificationPlaceholder`.
  *

@@ -6,7 +6,7 @@
  *
  *   - `userId === currentUserId` short-circuits without a service
  *     call and returns `visibility: 'visible'`.
- *   - `phase6_social === 'placeholder'` returns `visibility:
+ *   - `social_live === 'placeholder'` returns `visibility:
  *     'not_found'` without a service call.
  *   - `SOCIAL_USER_BLOCKED` → `visibility: 'blocked_by_viewer'`;
  *     `stats: null`; `error: null`.

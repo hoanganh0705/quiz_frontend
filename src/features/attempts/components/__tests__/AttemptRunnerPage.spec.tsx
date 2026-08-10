@@ -5,7 +5,7 @@
  * Source ticket: T-4.14.21.
  */
 
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 
 import { AttemptRunnerPage } from '@/features/attempts/components/AttemptRunnerPage';
@@ -17,10 +17,12 @@ vi.mock('next/navigation', () => ({
 
 const authBootstrapState: {
   state: 'authenticated' | 'unauthenticated' | 'bootstrapping';
-} = { state: 'bootstrapping' };
+} = { state: 'authenticated' };
 vi.mock('@/features/auth/hooks/use-auth-session', () => ({
   useAuthSession: () => ({
     bootstrapState: authBootstrapState.state,
+    isAuthenticated: authBootstrapState.state === 'authenticated',
+    isBootstrapping: authBootstrapState.state === 'bootstrapping',
     currentUser: authBootstrapState.state === 'authenticated' ? { id: 'u' } : null,
   }),
 }));
@@ -76,6 +78,10 @@ vi.mock('@/features/attempts/components/AttemptRunner', () => ({
 // ─── Tests ───────────────────────────────────────────────────────────────────
 
 describe('AttemptRunnerPage — direct entry', () => {
+  beforeEach(() => {
+    authBootstrapState.state = 'authenticated';
+  });
+
   it('redirects to the public quiz page when there is no active attempt', async () => {
     activeState.attempt = null;
     activeState.loading = false;
@@ -91,6 +97,10 @@ describe('AttemptRunnerPage — direct entry', () => {
 });
 
 describe('AttemptRunnerPage — not-found', () => {
+  beforeEach(() => {
+    authBootstrapState.state = 'authenticated';
+  });
+
   it('redirects when the quiz is not found', () => {
     quizState.notFound = true;
     quizState.error = null;

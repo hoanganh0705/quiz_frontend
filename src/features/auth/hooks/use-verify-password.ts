@@ -63,7 +63,7 @@
 import { useCallback, useRef, useState } from 'react';
 import {
   verifyPassword as defaultVerifyPassword,
-} from '@/features/auth/service/auth.service';
+} from '@/features/auth/services/auth.service';
 import {
   mapPasswordError,
   type PasswordErrorClassification,

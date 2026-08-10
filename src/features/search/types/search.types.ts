@@ -337,7 +337,7 @@ export interface SearchResponseDto {
 /**
  * Empty flat search response.
  *
- * Returned by `useSearch` when `phase5_search` is `'placeholder'` or
+ * Returned by `useSearch` when `search_live` is `'placeholder'` or
  * when the query is below the backend minimum length.
  */
 export const EMPTY_SEARCH_RESPONSE: SearchResponseDto = {

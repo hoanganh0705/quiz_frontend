@@ -52,22 +52,6 @@ function isNotFoundError(err: unknown): boolean {
   return err.status === 404;
 }
 
-function wrapAsApiError(err: unknown): ApiError {
-  // Pass through existing ApiError instances.
-  if (isApiError(err)) return err;
-  // Synthesize a malformed-envelope error so callers can branch on
-  // `code === 'QUIZ_DETAIL_MALFORMED'`. Used when the SDK returns a
-  // null / non-quiz payload from `getQuizByIdOrSlug`.
-  if (err instanceof Error) {
-    return ApiError.fromInput({
-      status: 500,
-      code: 'QUIZ_DETAIL_MALFORMED',
-      message: err.message,
-    });
-  }
-  return coerceToApiError(err);
-}
-
 /**
  * Hook entrypoint.
  *
@@ -88,14 +72,14 @@ export function useQuizByIdOrSlug(
 
   const fetcher = useMemo<SingleFetcher<PlayerQuizDetail>>(
     () => async ({ signal }) => {
-      let response: QuizResponseDto;
+      let response: QuizResponseDto | null;
       try {
         response = await getQuizByIdOrSlug(idOrSlug!);
       } catch (err) {
         if (isApiError(err)) {
           throw err;
         }
-        throw wrapAsApiError(err);
+        throw coerceToApiError(err);
       }
       if (signal.aborted) {
         throw new DOMException('aborted', 'AbortError');
@@ -105,7 +89,7 @@ export function useQuizByIdOrSlug(
         typeof response !== 'object' ||
         !('quizId' in response)
       ) {
-        throw wrapAsApiError(
+        throw coerceToApiError(
           new Error(
             '[useQuizByIdOrSlug] malformed quiz detail envelope',
           ),

@@ -14,7 +14,7 @@
  * - On success, invalidate every page of the queue, the affected
  *   comment's read SWR keys (`comments:*`, `comments:byId:*`), and
  *   the thread caches containing the affected comment.
- * - On success, broadcast a `phase7:admin.comment-moderation.invalidate`
+ * - On success, broadcast a `admin:7.1.comment-moderation.invalidate`
  *   event on the cross-tab channel (Batch G — forthcoming).
  *
  * ## Idempotency contracts
@@ -69,7 +69,7 @@ import { useCallback, useRef, useState } from 'react';
 import { mutate as globalMutate } from 'swr';
 
 import { ApiError } from '@/lib/api';
-import { addCommentModerationBreadcrumb } from '@/lib/admin/phase7_admin_sentry';
+import { addCommentModerationBreadcrumb } from '@/lib/admin/admin_live_sentry';
 
 import {
   hideComment,

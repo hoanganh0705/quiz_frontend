@@ -20,7 +20,7 @@
  *
  * ## Feature flag gating
  *
- * Renders `null` when `phase5_rankings === 'placeholder'`. The page
+ * Renders `null` when `rankings_live === 'placeholder'`. The page
  * falls back to a placeholder when the flag is off.
  *
  * ## Loading / error / empty
@@ -46,11 +46,11 @@ interface RankingHistoryProps {
 /**
  * Render the personal ranking history.
  *
- * Returns `null` when `phase5_rankings === 'placeholder'` or when the
+ * Returns `null` when `rankings_live === 'placeholder'` or when the
  * user is unauthenticated.
  */
 export function RankingHistory({ className }: RankingHistoryProps) {
-  const flagValue = getFeatureFlagValue("phase5_rankings");
+  const flagValue = getFeatureFlagValue("rankings_live");
   const isFlagPlaceholder = flagValue === "placeholder";
 
   const { isAuthenticated, bootstrapState } = useAuthSession();

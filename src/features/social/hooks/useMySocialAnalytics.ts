@@ -86,7 +86,7 @@ const SAFE_FALLBACK: UseMySocialAnalyticsResult = Object.freeze({
 export function useMySocialAnalytics(
   period: AnalyticsPeriod,
 ): UseMySocialAnalyticsResult {
-  const flagValue = getFeatureFlagValue("phase6_social");
+  const flagValue = getFeatureFlagValue("social_live");
   const isFlagPlaceholder = flagValue === "placeholder";
 
   const auth = useAuthSession();

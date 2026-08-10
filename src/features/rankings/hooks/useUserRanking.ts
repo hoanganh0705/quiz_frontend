@@ -15,7 +15,7 @@
  * - Expose a privacy-aware `isPrivate` flag derived from the
  *   `RANKING_FORBIDDEN` typed error and the null response shape.
  * - Map service errors to the typed `RankingErrorCode` union.
- * - Feature-flag gating via `phase5_rankings`.
+ * - Feature-flag gating via `rankings_live`.
  *
  * ## Privacy gating
  *
@@ -41,7 +41,7 @@
  *
  * ## Feature flag
  *
- * When `phase5_rankings === 'placeholder'`, the hook returns safe
+ * When `rankings_live === 'placeholder'`, the hook returns safe
  * fallback. No service call fires.
  */
 
@@ -86,7 +86,7 @@ export interface UseUserRankingResult {
  * Returns safe fallback (`ranking: null`, `isLoading: false`,
  * `error: null`, `isPrivate: false`) when:
  *
- * - `phase5_rankings` is `'placeholder'`.
+ * - `rankings_live` is `'placeholder'`.
  * - `userId` is `null`.
  *
  * `isPrivate` is `true` when:
@@ -98,7 +98,7 @@ export interface UseUserRankingResult {
 export function useUserRanking(
   userId: string | null,
 ): UseUserRankingResult {
-  const flagValue = getFeatureFlagValue("phase5_rankings");
+  const flagValue = getFeatureFlagValue("rankings_live");
   const isFlagPlaceholder = flagValue === "placeholder";
 
   // Disabled sentinel key when flag is off or userId is null.

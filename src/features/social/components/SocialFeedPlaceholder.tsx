@@ -10,7 +10,7 @@
  * ## What this component owns
  *
  * The static, flag-gated placeholder rendered by the feed route
- * scaffold when `phase6_social_feed === 'placeholder'`. The
+ * scaffold when `social_feed_live === 'placeholder'`. The
  * component:
  *
  *   - Renders the placeholder shell matching the eventual feed page

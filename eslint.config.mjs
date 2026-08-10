@@ -11,15 +11,16 @@ import nextTypescript from 'eslint-config-next/typescript'
  * "no feature imports `axios` directly" from the Phase 1 master plan.
  * The exempt paths are:
  *   - `src/lib/api/**` — owns the HTTP surface (TKT-1.2.1.1).
- *   - `src/shared/lib/api/client.ts` — legacy parallel client. Tracked
- *     for removal in a future epic; not blocking today.
  *   - `src/app/(public)/login/page.tsx` — uses `axios.isAxiosError` for
  *     narrowing. Tracked for migration to `@/lib/api`'s `isApiError`.
  *
- * When those two callers are migrated, tighten the exempt glob back to
- * `src/lib/api/**` only. The barrel migration is scheduled for the auth
- * wrapper work (Epic 1.2 US-1.2.2) and a separate ticket for the
- * shared client (probably Phase 2).
+ * When that caller is migrated, tighten the exempt glob back to
+ * `src/lib/api/**` only. The login-page migration is tracked for the
+ * auth wrapper work (Epic 1.2 US-1.2.2).
+ *
+ * The legacy `src/shared/lib/api/client.ts` parallel axios client
+ * (Phase 1 / P0-1) was retired — both the file and the exemption are
+ * gone.
  */
 const eslintConfig = [
   ...nextCoreWebVitals,

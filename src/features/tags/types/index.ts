@@ -1,14 +1,8 @@
 // Tags types — aligned with backend DTOs
 
 // Re-export from generated SDK
-export type {
-  TagResponseDto,
-  TagListResponseDto,
-  TagPaginationResponseDto,
-  CreateTagDto,
-  UpdateTagDto,
-  DeleteTagResponseDto,
-} from '@/lib/api/generated/schemas';
+import type { TagResponseDto, CreateTagDto, UpdateTagDto, DeleteTagResponseDto } from '@/lib/api/generated/schemas';
+export type { TagResponseDto, CreateTagDto, UpdateTagDto, DeleteTagResponseDto };
 
 export type {
   TagControllerListTagsResult,
@@ -20,4 +14,3 @@ export type {
 
 // Backward compatibility aliases
 export type Tag = TagResponseDto;
-export type TagListResponse = TagPaginationResponseDto;

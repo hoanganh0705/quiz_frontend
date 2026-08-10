@@ -16,7 +16,7 @@
  * - Expose `isStale` while revalidation is in flight and cached data
  *   is present.
  * - Return safe fallback state when unauthenticated or when
- *   `phase5_rankings` is `'placeholder'`.
+ *   `rankings_live` is `'placeholder'`.
  *
  * ## Pagination
  *
@@ -76,13 +76,13 @@ export interface UseRankingHistoryResult {
  * reserved for a future backend addition. Returns safe fallback
  * (`items: []`, `isLoading: false`, `error: null`) when:
  *
- * - `phase5_rankings` is `'placeholder'`.
+ * - `rankings_live` is `'placeholder'`.
  * - The user is unauthenticated.
  */
 export function useRankingHistory(
   _filters: RankingHistoryFilters = {},
 ): UseRankingHistoryResult {
-  const flagValue = getFeatureFlagValue("phase5_rankings");
+  const flagValue = getFeatureFlagValue("rankings_live");
   const isFlagPlaceholder = flagValue === "placeholder";
 
   const { bootstrapState } = useAuthSession();

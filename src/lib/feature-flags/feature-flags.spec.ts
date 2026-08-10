@@ -115,66 +115,66 @@ describe("feature-flags — dailyChallengePage default", () => {
  * `(5)` case above already locks the structural invariant.
  */
 const phase4Flags = [
-  'phase4_authoring',
-  'phase4_personal',
-  'phase4_attempts',
+  'authoring_live',
+  'personal_area_live',
+  'attempts_live',
 ] as const;
 
 const phase4EnvVars = {
-  phase4_authoring: 'NEXT_PUBLIC_PHASE4_AUTHORING',
-  phase4_personal: 'NEXT_PUBLIC_PHASE4_PERSONAL',
-  phase4_attempts: 'NEXT_PUBLIC_PHASE4_ATTEMPTS',
+  authoring_live: 'NEXT_PUBLIC_AUTHORING_LIVE',
+  personal_area_live: 'NEXT_PUBLIC_PERSONAL_AREA_LIVE',
+  attempts_live: 'NEXT_PUBLIC_ATTEMPTS_LIVE',
 } as const;
 
 const phase5Flags = [
-  'phase5_realtime_infrastructure',
-  'phase5_tournaments',
-  'phase5_notifications',
-  'phase5_instances',
-  'phase5_rankings',
-  'phase5_achievements',
-  'phase5_search',
+  'realtime_infrastructure_live',
+  'tournaments_live',
+  'notifications_live',
+  'multiplayer_instances_live',
+  'rankings_live',
+  'achievements_live',
+  'search_live',
 ] as const;
 
 const phase5EnvVars = {
-  phase5_realtime_infrastructure: 'NEXT_PUBLIC_PHASE5_REALTIME_INFRASTRUCTURE',
-  phase5_tournaments: 'NEXT_PUBLIC_PHASE5_TOURNAMENTS',
-  phase5_notifications: 'NEXT_PUBLIC_PHASE5_NOTIFICATIONS',
-  phase5_instances: 'NEXT_PUBLIC_PHASE5_INSTANCES',
-  phase5_rankings: 'NEXT_PUBLIC_PHASE5_RANKINGS',
-  phase5_achievements: 'NEXT_PUBLIC_PHASE5_ACHIEVEMENTS',
-  phase5_search: 'NEXT_PUBLIC_PHASE5_SEARCH',
+  realtime_infrastructure_live: 'NEXT_PUBLIC_REALTIME_INFRASTRUCTURE_LIVE',
+  tournaments_live: 'NEXT_PUBLIC_TOURNAMENTS_LIVE',
+  notifications_live: 'NEXT_PUBLIC_NOTIFICATIONS_LIVE',
+  multiplayer_instances_live: 'NEXT_PUBLIC_MULTIPLAYER_INSTANCES_LIVE',
+  rankings_live: 'NEXT_PUBLIC_RANKINGS_LIVE',
+  achievements_live: 'NEXT_PUBLIC_ACHIEVEMENTS_LIVE',
+  search_live: 'NEXT_PUBLIC_SEARCH_LIVE',
 } as const;
 
 /**
  * Phase 6 social graph & discovery hub flags — added by TKT-6.1.B1.
  * Updated by TKT-6.4.A2 to include the two Story 6.4 sub-lane gates
- * (`phase6_social_mutuals`, `phase6_social_activity`).
+ * (`social_mutuals_live`, `social_activity_live`).
  *
- * Includes the `phase6_social` parent gate plus the four sub-lane
+ * Includes the `social_live` parent gate plus the four sub-lane
  * gates from Epic 6.1 (`relationship`, `feed`, `discovery`,
  * `notifications`) and the two sub-lane gates from Epic 6.4
  * (`mutuals`, `activity`). Each flag is exercised with the same
  * six-case pattern as Phase 4 / 5.
  */
 const phase6Flags = [
-  'phase6_social',
-  'phase6_social_relationship',
-  'phase6_social_feed',
-  'phase6_social_discovery',
-  'phase6_social_notifications',
-  'phase6_social_mutuals',
-  'phase6_social_activity',
+  'social_live',
+  'social_relationship_live',
+  'social_feed_live',
+  'social_discovery_live',
+  'social_realtime_notifications_live',
+  'social_mutuals_live',
+  'social_activity_live',
 ] as const;
 
 const phase6EnvVars = {
-  phase6_social: 'NEXT_PUBLIC_PHASE6_SOCIAL',
-  phase6_social_relationship: 'NEXT_PUBLIC_PHASE6_SOCIAL_RELATIONSHIP',
-  phase6_social_feed: 'NEXT_PUBLIC_PHASE6_SOCIAL_FEED',
-  phase6_social_discovery: 'NEXT_PUBLIC_PHASE6_SOCIAL_DISCOVERY',
-  phase6_social_notifications: 'NEXT_PUBLIC_PHASE6_SOCIAL_NOTIFICATIONS',
-  phase6_social_mutuals: 'NEXT_PUBLIC_PHASE6_SOCIAL_MUTUALS',
-  phase6_social_activity: 'NEXT_PUBLIC_PHASE6_SOCIAL_ACTIVITY',
+  social_live: 'NEXT_PUBLIC_SOCIAL_LIVE',
+  social_relationship_live: 'NEXT_PUBLIC_SOCIAL_RELATIONSHIP_LIVE',
+  social_feed_live: 'NEXT_PUBLIC_SOCIAL_FEED_LIVE',
+  social_discovery_live: 'NEXT_PUBLIC_SOCIAL_DISCOVERY_LIVE',
+  social_realtime_notifications_live: 'NEXT_PUBLIC_SOCIAL_REALTIME_NOTIFICATIONS_LIVE',
+  social_mutuals_live: 'NEXT_PUBLIC_SOCIAL_MUTUALS_LIVE',
+  social_activity_live: 'NEXT_PUBLIC_SOCIAL_ACTIVITY_LIVE',
 } as const;
 
 for (const flag of phase4Flags) {
@@ -348,15 +348,15 @@ for (const flag of phase6Flags) {
 }
 
 /**
- * Phase 6 social sub-flags must reference `phase6_social` as their
+ * Phase 6 social sub-flags must reference `social_live` as their
  * prerequisite — this is acceptance criterion #2 of TKT-6.1.B1 and a
  * cross-batch invariant of Epic 6.1. The parent gate stays on its own;
  * this test pins the documented relationship so a future refactor that
  * loses the dependency will fail here.
  *
  * The dependency is documented in the per-flag JSDoc on
- * `phase6_social_relationship`, `phase6_social_feed`,
- * `phase6_social_discovery`, and `phase6_social_notifications`.
+ * `social_relationship_live`, `social_feed_live`,
+ * `social_discovery_live`, and `social_realtime_notifications_live`.
  */
 describe('feature-flags — Phase 6 sub-flag prerequisites', () => {
   beforeEach(() => {
@@ -367,55 +367,55 @@ describe('feature-flags — Phase 6 sub-flag prerequisites', () => {
     vi.unstubAllEnvs();
   });
 
-  it('every phase6_social_* sub-flag is documented as requiring phase6_social', () => {
-    expect(featureFlagsImpl.FEATURE_FLAGS).toContain('phase6_social');
+  it('every social_live_* sub-flag is documented as requiring social_live', () => {
+    expect(featureFlagsImpl.FEATURE_FLAGS).toContain('social_live');
     for (const sub of [
-      'phase6_social_relationship',
-      'phase6_social_feed',
-      'phase6_social_discovery',
-      'phase6_social_notifications',
+      'social_relationship_live',
+      'social_feed_live',
+      'social_discovery_live',
+      'social_realtime_notifications_live',
     ] as const) {
       expect(featureFlagsImpl.FEATURE_FLAGS).toContain(sub);
     }
   });
 
-  it('phase6_social default is "placeholder" with no env-var override', async () => {
-    vi.stubEnv('NEXT_PUBLIC_PHASE6_SOCIAL', undefined);
+  it('social_live default is "placeholder" with no env-var override', async () => {
+    vi.stubEnv('NEXT_PUBLIC_SOCIAL_LIVE', undefined);
     const mod = await importFresh();
-    expect(mod.getFeatureFlagValue('phase6_social')).toBe('placeholder');
+    expect(mod.getFeatureFlagValue('social_live')).toBe('placeholder');
   });
 });
 
 /**
  * Phase 7 admin flags — added by TKT-7.1.B1.
  *
- * Eight flags: the `phase7_admin` parent gate plus seven sub-lane
+ * Eight flags: the `admin_live` parent gate plus seven sub-lane
  * gates (`review_moderation`, `comment_moderation`, `tag`,
  * `category`, `ranking`, `achievement`, `tournament`, `user_role`).
  * Each is exercised with the same six-case pattern as Phase 4 / 5 / 6.
  */
 const phase7Flags = [
-  'phase7_admin',
-  'phase7_admin_review_moderation',
-  'phase7_admin_comment_moderation',
-  'phase7_admin_tag',
-  'phase7_admin_category',
-  'phase7_admin_ranking',
-  'phase7_admin_achievement',
-  'phase7_admin_tournament',
-  'phase7_admin_user_role',
+  'admin_live',
+  'admin_review_moderation_live',
+  'admin_comment_moderation_live',
+  'admin_tag_live',
+  'admin_category_live',
+  'admin_ranking_live',
+  'admin_achievement_live',
+  'admin_tournament_live',
+  'admin_user_role_live',
 ] as const;
 
 const phase7EnvVars = {
-  phase7_admin: 'NEXT_PUBLIC_PHASE7_ADMIN',
-  phase7_admin_review_moderation: 'NEXT_PUBLIC_PHASE7_ADMIN_REVIEW_MODERATION',
-  phase7_admin_comment_moderation: 'NEXT_PUBLIC_PHASE7_ADMIN_COMMENT_MODERATION',
-  phase7_admin_tag: 'NEXT_PUBLIC_PHASE7_ADMIN_TAG',
-  phase7_admin_category: 'NEXT_PUBLIC_PHASE7_ADMIN_CATEGORY',
-  phase7_admin_ranking: 'NEXT_PUBLIC_PHASE7_ADMIN_RANKING',
-  phase7_admin_achievement: 'NEXT_PUBLIC_PHASE7_ADMIN_ACHIEVEMENT',
-  phase7_admin_tournament: 'NEXT_PUBLIC_PHASE7_ADMIN_TOURNAMENT',
-  phase7_admin_user_role: 'NEXT_PUBLIC_PHASE7_ADMIN_USER_ROLE',
+  admin_live: 'NEXT_PUBLIC_ADMIN_LIVE',
+  admin_review_moderation_live: 'NEXT_PUBLIC_ADMIN_REVIEW_MODERATION_LIVE',
+  admin_comment_moderation_live: 'NEXT_PUBLIC_ADMIN_COMMENT_MODERATION_LIVE',
+  admin_tag_live: 'NEXT_PUBLIC_ADMIN_TAG_LIVE',
+  admin_category_live: 'NEXT_PUBLIC_ADMIN_CATEGORY_LIVE',
+  admin_ranking_live: 'NEXT_PUBLIC_ADMIN_RANKING_LIVE',
+  admin_achievement_live: 'NEXT_PUBLIC_ADMIN_ACHIEVEMENT_LIVE',
+  admin_tournament_live: 'NEXT_PUBLIC_ADMIN_TOURNAMENT_LIVE',
+  admin_user_role_live: 'NEXT_PUBLIC_ADMIN_USER_ROLE_LIVE',
 } as const;
 
 for (const flag of phase7Flags) {
@@ -471,24 +471,24 @@ for (const flag of phase7Flags) {
 }
 
 /**
- * Phase 7 admin sub-flags must reference `phase7_admin` as their
+ * Phase 7 admin sub-flags must reference `admin_live` as their
  * prerequisite — this is acceptance criterion #2 of TKT-7.1.B1 and a
  * cross-batch invariant of Epic 7.1. The parent gate stays on its own;
  * this test pins the documented relationship so a future refactor that
  * loses the dependency will fail here.
  */
 describe('feature-flags — Phase 7 admin sub-flag prerequisites', () => {
-  it('every phase7_admin_* sub-flag is documented as requiring phase7_admin', () => {
-    expect(featureFlagsImpl.FEATURE_FLAGS).toContain('phase7_admin');
+  it('every admin_live_* sub-flag is documented as requiring admin_live', () => {
+    expect(featureFlagsImpl.FEATURE_FLAGS).toContain('admin_live');
     for (const sub of [
-      'phase7_admin_review_moderation',
-      'phase7_admin_comment_moderation',
-      'phase7_admin_tag',
-      'phase7_admin_category',
-      'phase7_admin_ranking',
-      'phase7_admin_achievement',
-      'phase7_admin_tournament',
-      'phase7_admin_user_role',
+      'admin_review_moderation_live',
+      'admin_comment_moderation_live',
+      'admin_tag_live',
+      'admin_category_live',
+      'admin_ranking_live',
+      'admin_achievement_live',
+      'admin_tournament_live',
+      'admin_user_role_live',
     ] as const) {
       expect(featureFlagsImpl.FEATURE_FLAGS).toContain(sub);
     }

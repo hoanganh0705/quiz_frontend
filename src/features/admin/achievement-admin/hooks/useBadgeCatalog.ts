@@ -14,7 +14,7 @@
  *   to `BadgeSummary[]` via the Phase 5 `toBadgeSummary` projector.
  * - Expose `{ badges, isLoading, error }` for the badge filter or any
  *   surface that needs the full catalog.
- * - Feature-flag gating via `phase7_admin_achievement`.
+ * - Feature-flag gating via `admin_achievement_live`.
  *
  * ## Catalog is read-only
  *
@@ -22,7 +22,7 @@
  *
  * ## Feature flag
  *
- * When `phase7_admin_achievement === 'placeholder'`, the hook returns
+ * When `admin_achievement_live === 'placeholder'`, the hook returns
  * safe fallback. No service call fires.
  */
 
@@ -37,6 +37,8 @@ import { listBadges } from '@/features/achievements/services/achievements.servic
 import {
   toBadgeSummary,
   type BadgeSummary,
+  type BadgeTier,
+  type BadgeCategory,
   ACHIEVEMENT_CACHE_KEYS,
 } from '@/features/achievements/types';
 
@@ -70,7 +72,7 @@ export function useBadgeCatalog(
 ): UseBadgeCatalogResult {
   const { tier = null, category = null } = options ?? {};
 
-  const flagValue = getFeatureFlagValue('phase7_admin_achievement');
+  const flagValue = getFeatureFlagValue('admin_achievement_live');
   const isFlagPlaceholder = flagValue === 'placeholder';
 
   // Admin-scoped cache key that mirrors the Phase 5 catalog key shape.
@@ -79,8 +81,8 @@ export function useBadgeCatalog(
       isFlagPlaceholder
         ? (['admin', 'achievement', 'catalog', 'disabled'] as const)
         : ACHIEVEMENT_CACHE_KEYS.catalog({
-            tier: tier ?? undefined,
-            category: category ?? undefined,
+            tier: (tier ?? undefined) as BadgeTier | undefined,
+            category: (category ?? undefined) as import('@/features/achievements/types').BadgeCategory | undefined,
           }),
     [isFlagPlaceholder, tier, category],
   );

@@ -8,7 +8,7 @@
  * Source ticket: TKT-6.2.E2.
  * Source ticket: TKT-6.2.G2 — fires `list.loaded` after a successful
  *                load-more (mirrors FollowersList).
- * Source ticket: TKT-6.2.H2 — emits a `phase6:6.2` Sentry breadcrumb
+ * Source ticket: TKT-6.2.H2 — emits a `social:6.2` Sentry breadcrumb
  *                around the data fetch via the centralised helper.
  *
  * ## What this component owns
@@ -30,7 +30,7 @@ import { useSocialListLifecycleReset } from "@/features/social/hooks/useSocialLi
 import { useSocialListUrlState } from "@/features/social/hooks/useSocialListUrlState";
 
 import { publishSocialListLoaded } from "@/lib/social/social-list-loaded-broadcast-channel";
-import { addSocialListBreadcrumb } from "@/lib/social/phase6_6_2_sentry";
+import { addSocialListBreadcrumb } from "@/lib/social/social-search-sentry";
 
 import { SocialListEmptyState } from "../components/SocialListEmptyState";
 import { SocialListErrorState } from "../components/SocialListErrorState";
@@ -53,7 +53,7 @@ export function FollowingList(props: FollowingListProps): ReactElement {
   const { users, isLoading, isStale, hasMore, loadMore, error, retry } =
     useFollowing(targetUserId);
 
-  // TKT-6.2.H2 — emit a single `phase6:6.2` breadcrumb per fetch
+  // TKT-6.2.H2 — emit a single `social:6.2` breadcrumb per fetch
   // transition.
   const prevFetchStateRef = useRef<"loading" | "done" | "error">(
     isLoading ? "loading" : error !== null ? "error" : "done",

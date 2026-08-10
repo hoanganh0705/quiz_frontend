@@ -20,7 +20,7 @@
 
 import { useMemo } from "react";
 
-import { ApiError, useCursorPaginated } from "@/lib/api";
+import { ApiError, projectWithId, useCursorPaginated } from "@/lib/api";
 import type {
   CursorFetcherArgs,
   CursorPage,
@@ -75,9 +75,7 @@ export function useMyAttempts(
           const result = raw as unknown as ListMyAttemptsResponse;
 
           const items = (result.data ?? []) as AttemptSummaryResponseDto[];
-          const itemsWithId: AttemptSummary[] = items.map((item) =>
-            Object.assign({}, item, { id: item.attemptId }),
-          );
+          const itemsWithId = projectWithId(items as unknown as readonly Record<string, unknown>[], 'attemptId') as unknown as AttemptSummary[];
 
           const pagination = result.meta?.pagination;
           return {

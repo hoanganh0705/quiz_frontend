@@ -46,3 +46,45 @@ export type ProjectWithId<
   T,
   Alias extends keyof T = keyof T & 'id',
 > = T & { readonly id: T[Alias & keyof T] };
+
+/**
+ * Runtime mirror of the `ProjectWithId<T, Alias>` type alias.
+ *
+ * Given an array of items that name their primary identifier under
+ * a non-`id` field (`userId`, `quizId`, `tournamentId`, …),
+ * `projectWithId` returns a new array where each item also exposes
+ * that primary identifier as `id`. This is the runtime counterpart
+ * to the type-level `ProjectWithId` helper; both should be used in
+ * tandem so consumers can pass projected items to primitives that
+ * require `T extends { id: string }` (e.g. `appendUniqueById`,
+ * `useCursorPaginated`) without losing the original alias field.
+ *
+ * The function is **pure**: it allocates a new array and new
+ * objects, leaving the inputs untouched. The output objects are
+ * type-compatible with `ProjectWithId<T, Alias>` because `id` is
+ * `readonly` on the type but writable at runtime — the structural
+ * shape is identical.
+ *
+ * @example
+ * ```typescript
+ * const projected = projectWithId(items, 'quizId');
+ * // → Array<ProjectWithId<QuizListItemDto, 'quizId'>>
+ * appendUniqueById(prev, projected); // works.
+ * ```
+ *
+ * @typeParam T      — The original item type.
+ * @typeParam Alias  — The field name on `T` that should be aliased
+ *                     as `id`. Defaults to `'id'` (no-op passthrough).
+ * @param items      — The items to project.
+ * @param alias      — The alias field on each item.
+ * @returns          — A new array with `id` added to each item.
+ */
+export function projectWithId<
+  T extends Record<string, unknown>,
+  Alias extends keyof T,
+>(items: readonly T[], alias: Alias): Array<ProjectWithId<T, Alias>> {
+  return items.map((item) => ({
+    ...item,
+    id: item[alias],
+  })) as Array<ProjectWithId<T, Alias>>;
+}

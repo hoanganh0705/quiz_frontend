@@ -78,7 +78,7 @@ export function TagFilterInput({
   // Local typed-value state — drives both the validation UI
   // (instant) and the debounced parent state (250 ms later).
   const [typed, setTyped] = useState(value)
-  const debounced = useDebouncedValue(typed, SEARCH_DEBOUNCE_MS)
+  const { debouncedValue: debounced } = useDebouncedValue(typed, SEARCH_DEBOUNCE_MS)
 
   // Sync the local typed state when the parent's value changes
   // externally (e.g. a "Clear filter" link resets the input).

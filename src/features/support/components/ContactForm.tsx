@@ -110,7 +110,7 @@ export function ContactForm() {
               id='name'
               placeholder='Your name'
               {...register('name')}
-              className={`bg-transparent border text-foreground placeholder:text-foreground/70 focus:border-blue-500 ${
+              className={`bg-transparent border text-foreground placeholder:text-muted-foreground focus:border-blue-500 ${
                 errors.name
                   ? 'border-red-500 focus:border-red-500'
                   : 'border-border'
@@ -129,7 +129,7 @@ export function ContactForm() {
               type='email'
               placeholder='your.email@example.com'
               {...register('email')}
-              className={`bg-transparent border text-foreground placeholder:text-foreground/70 focus:border-blue-500 ${
+              className={`bg-transparent border text-foreground placeholder:text-muted-foreground focus:border-blue-500 ${
                 errors.email
                   ? 'border-red-500 focus:border-red-500'
                   : 'border-border'
@@ -151,7 +151,7 @@ export function ContactForm() {
               id='subject'
               placeholder='Brief description of your issue'
               {...register('subject')}
-              className={`bg-transparent border text-foreground placeholder:text-foreground/70 focus:border-blue-500 ${
+              className={`bg-transparent border text-foreground placeholder:text-muted-foreground focus:border-blue-500 ${
                 errors.subject
                   ? 'border-red-500 focus:border-red-500'
                   : 'border-border'
@@ -236,7 +236,7 @@ export function ContactForm() {
             placeholder='Please describe your issue in detail (minimum 20 characters)'
             rows={8}
             {...register('message')}
-            className={`bg-transparent border text-foreground placeholder:text-foreground/70 focus:border-brand resize-none ${
+            className={`bg-transparent border text-foreground placeholder:text-muted-foreground focus:border-brand resize-none ${
               errors.message
                 ? 'border-red-500 focus:border-red-500'
                 : 'border-border'

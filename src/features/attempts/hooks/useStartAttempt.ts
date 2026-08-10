@@ -90,6 +90,25 @@ export interface UseStartAttemptParams {
    */
   quizId: string | null;
   /**
+   * Quiz-version identifier the Start CTA targets. The start
+   * service does NOT echo `quizVersionId` back in its response, so
+   * the caller must thread it from the quiz detail. The hook uses
+   * it to write the runner-store reverse index (`useAttemptsStore`)
+   * under the correct identity so the runner page can resolve
+   * `attemptsByQuizVersionId[quizVersionId]` immediately after a
+   * successful start and skip its "no active attempt → redirect"
+   * branch.
+   *
+   * Pass `null` when the viewer has not yet picked a quiz or the
+   * hook is disabled. When `quizId` is non-null but
+   * `quizVersionId` is null (e.g. the quiz detail hasn't resolved
+   * the published version yet), the hook falls back to writing
+   * the store under `quizId` as the legacy key so the runner can
+   * still observe the entry — the runner's reverse-index lookup
+   * tolerates either identity.
+   */
+  quizVersionId?: string | null;
+  /**
    * Optional body forwarded to the service. Defaults to `{}` so the
    * solo-context payload is the empty object.
    */
@@ -134,7 +153,7 @@ const DEFAULT_COOLDOWN_MS = 500;
 export function useStartAttempt(
   params: UseStartAttemptParams,
 ): UseStartAttemptResult {
-  const { quizId, payload } = params;
+  const { quizId, quizVersionId, payload } = params;
 
   const { bootstrapState, currentUser } = useAuthSession();
 
@@ -192,15 +211,26 @@ export function useStartAttempt(
       // Hydrate the runner store with the canonical server snapshot.
       // We deliberately do NOT write a placeholder attemptId — the
       // server-confirmed id is the only identity the runner accepts.
+      //
+      // The reverse-index key MUST be the canonical `quizVersionId`
+      // (not the public `quizId`) so the runner page can resolve
+      // `attemptsByQuizVersionId[detail.quiz.publishedVersion.quizVersionId]`
+      // immediately after a successful start. The start response does
+      // not echo `quizVersionId`; the caller threads it via the
+      // `quizVersionId` param. When the caller has not yet resolved
+      // the published version, we fall back to `quizId` so the
+      // legacy `useActiveAttempt`-driven path still converges — the
+      // store lookup tolerates either identity.
       if (resultAttemptId !== null) {
         const status: AttemptRunnerStatus = 'in_progress';
+        const reverseIndexKey = quizVersionId ?? quizId;
         setAttemptStatus(
           resultAttemptId,
-          quizId,
+          reverseIndexKey,
           sessionId,
           status,
         );
-        hydrateAttemptEntry(resultAttemptId, quizId, sessionId, { status });
+        hydrateAttemptEntry(resultAttemptId, reverseIndexKey, sessionId, { status });
       }
 
       // Revalidate the active-attempt cache so a second tab renders
@@ -277,7 +307,7 @@ export function useStartAttempt(
       }, DEFAULT_COOLDOWN_MS);
       return retryable;
     }
-  }, [sessionId, quizId, payload]);
+  }, [sessionId, quizId, quizVersionId, payload]);
 
   return {
     isPending,

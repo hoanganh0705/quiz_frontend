@@ -3,7 +3,11 @@
 import { useState } from 'react'
 import { getActivityIcon } from '@/features/users/lib/activity-type-icon'
 import type { Player } from '@/features/users/types'
-import { useUser } from '@/features/users/store/user-store'
+import {
+  useUser,
+  useIsUserLoading,
+  useUserError,
+} from '@/features/users/store/user-store'
 import { challengeData } from '@/features/daily-challenge/constants/challenge-history-data'
 
 function calculateStats() {
@@ -18,27 +22,29 @@ function calculateStats() {
 export function useMyProfilePage() {
   const [activeTab, setActiveTab] = useState('overview')
   const user = useUser()
+  const isLoading = useIsUserLoading()
+  const error = useUserError()
   const currentUser: Player | null = user
     ? {
-        id: user.userId ?? user.id ?? 'me',
-        rank: user.rank ?? 0,
-        avatarUrl: user.avatarUrl,
+        id: user.userId,
+        rank: 0,
+        avatarUrl: user.avatarUrl ?? undefined,
         name: user.displayName ?? user.username ?? user.email ?? 'User',
-        country: user.country ?? '',
+        country: undefined,
         flag: undefined,
-        streak: user.streak,
+        streak: user.currentStreak,
         score: undefined,
-        level: user.level,
+        level: undefined,
         levelString: undefined,
-        quizzes: user.quizzes,
-        quizzesCreated: user.quizzesCreated,
+        quizzes: undefined,
+        quizzesCreated: undefined,
         wins: undefined,
         badge: undefined,
         earned: undefined,
-        followers: user.followers,
-        following: user.following,
+        followers: undefined,
+        following: undefined,
         bgImageUrl: undefined,
-        bio: user.bio
+        bio: user.bio ?? undefined
       }
     : null
 
@@ -61,6 +67,8 @@ export function useMyProfilePage() {
     activeTab,
     setActiveTab,
     currentUser,
+    isLoading,
+    error,
     recentActivities,
     averageScore,
     winRate,

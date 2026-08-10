@@ -4,58 +4,47 @@
 
 // ─── Backend-aligned types ───────────────────────────────────────────────────────
 
-export interface UserMeResponseDto {
-  userId: string
-  username: string
-  email: string
-  displayName: string | null
-  avatarUrl: string | null
-  bio: string | null
-  xpTotal: number
-  currentStreak: number
-  longestStreak: number
-  settings: Record<string, unknown>
-  createdAt: string
-  updatedAt: string
-}
+// The canonical `UserMeResponseDto` lives in the SDK barrel
+// (`@/lib/api/generated/schemas`). Re-exporting it here is the
+// documented Phase 1 action — historic callers that imported
+// `UserMeResponseDto` from `@/features/users/types/user-backend`
+// now receive the same shape. The previous in-file declaration was
+// a structural duplicate that created a TS2322 latent bug whenever
+// SDK-typed code (`useUserStore.setUser`) and user-backend-typed
+// code (`useMyProfile.profile`) exchanged the type.
+import type {
+  UserMeResponseDto,
+  UpdateMeDto,
+  UpdateMeSettingsDto,
+} from "@/lib/api/generated/schemas";
 
-export interface UpdateMeDto {
-  displayName?: string
-  bio?: string
-}
-
-export interface UpdateMeSettingsDto {
-  settings: Record<string, unknown>
-}
+export type {
+  UserMeResponseDto,
+  UpdateMeDto,
+  UpdateMeSettingsDto,
+};
 
 // ─── Legacy types (deprecated — for backward compat) ────────────────────────────
 
-/** @deprecated Use UserMeResponseDto instead */
-export interface CurrentUserResponse {
-  userId: string
-  username: string
-  email: string
-  displayName: string | null
-  avatarUrl: string | null
-  bio: string | null
-  xpTotal: number
-  currentStreak: number
-  longestStreak: number
-  settings: Record<string, unknown>
-  createdAt: string
-  updatedAt: string
-}
+/**
+ * @deprecated Use UserMeResponseDto (the SDK shape) instead. The
+ * legacy declaration was a structural duplicate of the SDK type
+ * with subtly different nullability (`string | null` vs optional).
+ * Historic consumers were already using either interchangeably;
+ * Phase 1 unifies them so SDK-typed code (e.g. `useUserStore`) and
+ * user-backend-typed code (e.g. `useMyProfile.profile`) agree.
+ */
+export type CurrentUserResponse = UserMeResponseDto
 
-/** @deprecated Use UpdateMeDto instead */
-export type EditProfileRequest = {
-  displayName?: string
-  bio?: string
-}
+/**
+ * @deprecated Use UpdateMeDto (the SDK shape) instead.
+ */
+export type EditProfileRequest = UpdateMeDto
 
-/** @deprecated Use UpdateMeSettingsDto instead */
-export type EditSettingsRequest = {
-  settings: Record<string, unknown>
-}
+/**
+ * @deprecated Use UpdateMeSettingsDto (the SDK shape) instead.
+ */
+export type EditSettingsRequest = UpdateMeSettingsDto
 
 // ─── Frontend-only types (gamification - not in backend yet) ──────────────────
 
@@ -64,7 +53,7 @@ export interface Player {
   rank: number
   name: string
   username?: string
-  avatarUrl?: string
+  avatarUrl?: string | null
   country?: string
   flag?: string
   streak?: number
@@ -79,7 +68,7 @@ export interface Player {
   followers?: string | number
   following?: string | number
   bgImageUrl?: string
-  bio?: string
+  bio?: string | null
   joinedAt?: string
 }
 
@@ -147,42 +136,14 @@ export interface ConnectedAccount {
 }
 
 // Friend-related types
-export interface FriendStats {
-  quizzesPlayed: number
-  averageScore: number
-  winRate: number
-  streak: number
-}
-
-export interface FriendProfile {
-  id: number
-  name: string
-  username: string
-  avatar: string
-  onlineStatus: 'online' | 'offline' | 'away'
-  stats: FriendStats
-}
-
-export interface QuizInvitation {
-  id: string
-  friendId: string | number
-  friendName: string
-  friendAvatar: string
-  inviterId: string
-  inviterName: string
-  inviterAvatar: string
-  quizId: string
-  quizTitle: string
-  sentAt: string
-  status: 'pending' | 'accepted' | 'declined'
-}
-
-export interface SocialState {
-  friends: number[]
-  incomingRequests: number[]
-  outgoingRequests: number[]
-  invitations: QuizInvitation[]
-}
+// REMOVED 2026-08-09 (Phase 2 F-05/F-21): the following mock-only
+// types are no longer referenced by the new `/friends` page.
+// `FriendStats`, `FriendProfile`, `QuizInvitation`, `SocialState`
+// were defined to back the deleted `features/users/constants/friends.ts`
+// localStorage shim. The new page consumes the live `SocialUserSummaryDto`
+// and `SocialFriendRequestDto` from `features/social/types` and the
+// read hooks from `features/social/hooks`. Reintroduce them only if
+// a non-mock surface requires them.
 
 export type UserSettingsTabId =
   | 'account'

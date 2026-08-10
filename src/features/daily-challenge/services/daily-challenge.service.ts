@@ -72,7 +72,7 @@ export async function getDailyChallengeToday(): Promise<
   }
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+ 
 export async function getDailyChallengeHistoryPage(
   _params: GetDailyChallengeHistoryParams,
 ): Promise<DailyChallengeResult<DailyChallengeHistoryPage>> {

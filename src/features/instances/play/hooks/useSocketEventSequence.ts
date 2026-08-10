@@ -23,7 +23,7 @@
  * - Emit a `Sentry.addBreadcrumb` on every accept/drop with the
  *   event name, instance ID, sequence, and outcome — without logging
  *   payload content.
- * - Return safe fallbacks when `phase5_instances_play` is `'placeholder'`.
+ * - Return safe fallbacks when `multiplayer_play_live` is `'placeholder'`.
  *
  * ## Usage
  *
@@ -41,7 +41,7 @@
  *
  * ## Feature flag
  *
- * When `phase5_instances_play === 'placeholder'`, `shouldAccept` always
+ * When `multiplayer_play_live === 'placeholder'`, `shouldAccept` always
  * returns `false` and `markAccepted` is a no-op. This allows hooks
  * that depend on this module to remain mounted without opening sockets.
  */
@@ -84,12 +84,12 @@ function compareSeq(a: number | undefined, b: number | undefined): number {
 export interface UseSocketEventSequenceResult {
   /**
    * Returns `true` only when `sequence > lastAcceptedSequence(event)`.
-   * Returns `false` when `phase5_instances_play` is `'placeholder'`.
+   * Returns `false` when `multiplayer_play_live` is `'placeholder'`.
    */
   shouldAccept: (event: GameplayEventName, sequence: number) => boolean;
   /**
    * Updates `lastAcceptedSequence(event)` to `sequence` atomically.
-   * No-op when `phase5_instances_play` is `'placeholder'`.
+   * No-op when `multiplayer_play_live` is `'placeholder'`.
    */
   markAccepted: (event: GameplayEventName, sequence: number) => void;
   /**
@@ -116,7 +116,7 @@ export interface UseSocketEventSequenceResult {
 export function useSocketEventSequence(
   instanceId: string | null,
 ): UseSocketEventSequenceResult {
-  const flagValue = getFeatureFlagValue("phase5_instances_play");
+  const flagValue = getFeatureFlagValue("multiplayer_play_live");
   const isPlaceholder = flagValue === "placeholder";
 
   // ─── Per-instance sequence registry ────────────────────────────────────
@@ -131,7 +131,7 @@ export function useSocketEventSequence(
     if (!registry.current.has(id)) {
       registry.current.set(id, {});
     }
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+     
     return registry.current.get(id)!;
   }
 

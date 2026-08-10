@@ -69,6 +69,7 @@
  */
 
 import { useCallback, useState } from 'react';
+import type { Arguments } from 'swr';
 import { mutate as globalMutate } from 'swr';
 
 import {
@@ -190,13 +191,13 @@ export function useUnbookmarkQuiz(quizId: string): UseUnbookmarkQuizResult {
   // Keys to invalidate on success / 404. Same as C1's set, since
   // the membership + status + collection-summary caches all need
   // to refresh after a successful remove.
-  const keysToInvalidate: readonly unknown[] = isAuthenticated && quizId
+  const keysToInvalidate: Arguments[] = (isAuthenticated && quizId
     ? [
         KEY_MEMBERSHIP,
         KEY_COLLECTIONS,
         ['bookmark-status', quizId],
       ]
-    : [];
+    : []) as unknown as Arguments[];
 
   // The wrapped toggle: look up the targeted status, pick the
   // first owned collection, fire the deletion. Catch 404 (the
@@ -236,7 +237,7 @@ export function useUnbookmarkQuiz(quizId: string): UseUnbookmarkQuizResult {
     if (statusCollections.length === 0) {
       await Promise.all(
         keysToInvalidate.map((key) =>
-          globalMutate(key, undefined, { revalidate: true }),
+          globalMutate(key as Parameters<typeof globalMutate>[0], undefined, { revalidate: true }),
         ),
       );
       // F2 — publish a cross-tab invalidation so any tab whose

@@ -51,7 +51,7 @@
 
 import { useMemo } from 'react'
 
-import { ApiError, useCursorPaginated } from '@/lib/api'
+import { ApiError, projectWithId, useCursorPaginated } from '@/lib/api'
 import type { CursorPage } from '@/lib/api/use-cursor-paginated.types'
 import type { TagResponseDto } from '@/lib/api/generated/schemas'
 
@@ -71,7 +71,7 @@ export interface UseTagsDirectoryQuery {
 type TagDirItem = TagResponseDto & { id: string }
 
 export function useTagsDirectory(query: UseTagsDirectoryQuery) {
-  const debouncedFilter = useDebouncedValue(query.filter, FILTER_DEBOUNCE_MS)
+  const debouncedFilter = useDebouncedValue(query.filter, FILTER_DEBOUNCE_MS).debouncedValue
 
   // The fetcher is a useMemo so the hook's identity is stable across
   // renders (Epic 3.2 D4 — race handling depends on a stable fetcher
@@ -96,16 +96,15 @@ export function useTagsDirectory(query: UseTagsDirectoryQuery) {
           >
           // The SDK response items carry `tagId` (not `id`); the cursor
           // primitive's `appendUniqueById` dedup helper requires every T
-          // to extend `{ id: string }`. We synthesize an `id` alias here
-          // — the only place this aliasing happens — and downstream
-          // consumers read `tagId`, never `id`.
-          const itemsWithId = items.map((item) =>
-            Object.assign({}, item, { id: item.tagId }),
-          ) as Array<TagResponseDto & { id: string }>
+          // to extend `{ id: string }`. We project `tagId` onto `id` here
+          // via the runtime helper — the only place this aliasing
+          // happens — and downstream consumers read `tagId`,
+          // never `id`.
+          const itemsWithId = projectWithId(items as unknown as readonly Record<string, unknown>[], 'tagId')
 
           const pagination = result.meta?.pagination
           return {
-            items: itemsWithId,
+            items: itemsWithId as any,
             nextCursor: pagination?.nextCursor ?? null,
             hasNextPage: pagination?.hasNextPage ?? false,
             limit: pagination?.limit ?? itemsWithId.length,

@@ -157,15 +157,15 @@ export function useRealtimeQuery<T>(
   // All hook calls are at the top level. The maximum of 5 unique events
   // is an architectural constraint (see ticket).
 
-  // eslint-disable-next-line react-hooks/rules-of-hooks
+   
   useRealtimeEvent(socket, uniqueEvents[0] ?? null, buildDispatcher(swr, uniqueEvents[0] ?? "", ruleGroups) as (payload: unknown) => void, { enabled: realtimeEnabled && swrKey !== null && uniqueEvents[0] !== undefined });
-  // eslint-disable-next-line react-hooks/rules-of-hooks
+   
   useRealtimeEvent(socket, uniqueEvents[1] ?? null, buildDispatcher(swr, uniqueEvents[1] ?? "", ruleGroups) as (payload: unknown) => void, { enabled: realtimeEnabled && swrKey !== null && uniqueEvents[1] !== undefined });
-  // eslint-disable-next-line react-hooks/rules-of-hooks
+   
   useRealtimeEvent(socket, uniqueEvents[2] ?? null, buildDispatcher(swr, uniqueEvents[2] ?? "", ruleGroups) as (payload: unknown) => void, { enabled: realtimeEnabled && swrKey !== null && uniqueEvents[2] !== undefined });
-  // eslint-disable-next-line react-hooks/rules-of-hooks
+   
   useRealtimeEvent(socket, uniqueEvents[3] ?? null, buildDispatcher(swr, uniqueEvents[3] ?? "", ruleGroups) as (payload: unknown) => void, { enabled: realtimeEnabled && swrKey !== null && uniqueEvents[3] !== undefined });
-  // eslint-disable-next-line react-hooks/rules-of-hooks
+   
   useRealtimeEvent(socket, uniqueEvents[4] ?? null, buildDispatcher(swr, uniqueEvents[4] ?? "", ruleGroups) as (payload: unknown) => void, { enabled: realtimeEnabled && swrKey !== null && uniqueEvents[4] !== undefined });
 
   return swr;

@@ -25,6 +25,7 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { renderHook, waitFor } from '@testing-library/react';
+import { SWRConfig } from 'swr';
 
 import { ApiError } from '@/lib/api';
 
@@ -40,6 +41,32 @@ vi.mock('@/features/attempts/services/attempts.service', () => ({
 vi.mock('@/features/auth/hooks/use-auth-session', () => ({
   useAuthSession: useAuthSessionMock,
 }));
+
+/**
+ * Wraps a `renderHook` call in a fresh `SWRConfig` with an isolated
+ * cache provider. `useActiveAttempt` is backed by SWR (so that
+ * `globalMutate(activeKey)` from `useStartAttempt` actually
+ * invalidates the cache — see T-4.14.5 / the fix for the
+ * read-after-write race). Without the isolated cache, SWR's
+ * process-wide cache leaks results across tests in this file.
+ */
+function renderIsolatedHook<HookResult, Props>(
+  callback: (props: Props) => HookResult,
+  initialProps?: Props,
+) {
+  return renderHook(callback, {
+    initialProps,
+    wrapper: ({ children }) => (
+      // Each `provider` invocation returns a brand-new `Map` so
+      // SWR's cache cannot leak state between tests in this file.
+      // `useActiveAttempt` is backed by SWR (so `globalMutate` from
+      // `useStartAttempt` actually invalidates the cache — see the
+      // fix for the read-after-write race). Without the isolated
+      // cache, SWR's process-wide cache leaks results across tests.
+      <SWRConfig value={{ provider: () => new Map() }}>{children}</SWRConfig>
+    ),
+  });
+}
 
 const SESSION_ID = 'user-1';
 const QUIZ_ID = 'quiz-1';
@@ -132,7 +159,7 @@ describe('useActiveAttempt — happy path', () => {
   it('forwards the quizId to the service and resolves the active attempt', async () => {
     getActiveAttemptMock.mockResolvedValue(makeSummary());
 
-    const { result } = renderHook(() =>
+    const { result } = renderIsolatedHook(() =>
       useActiveAttempt({ quizId: QUIZ_ID }),
     );
 
@@ -160,7 +187,7 @@ describe('useActiveAttempt — happy path', () => {
       makeSummary({ status: 'completed' }),
     );
 
-    const { result } = renderHook(() =>
+    const { result } = renderIsolatedHook(() =>
       useActiveAttempt({ quizId: QUIZ_ID }),
     );
 
@@ -182,7 +209,7 @@ describe('useActiveAttempt — no active attempt', () => {
   it('resolves to null when the service returns null', async () => {
     getActiveAttemptMock.mockResolvedValue(null);
 
-    const { result } = renderHook(() =>
+    const { result } = renderIsolatedHook(() =>
       useActiveAttempt({ quizId: QUIZ_ID }),
     );
 
@@ -199,7 +226,7 @@ describe('useActiveAttempt — no active attempt', () => {
     // hook never sees a 404-shaped error here.
     getActiveAttemptMock.mockResolvedValue(null);
 
-    const { result } = renderHook(() =>
+    const { result } = renderIsolatedHook(() =>
       useActiveAttempt({ quizId: QUIZ_ID }),
     );
 
@@ -216,7 +243,7 @@ describe('useActiveAttempt — auth gating', () => {
   it('does not fetch when the viewer is unauthenticated', async () => {
     setBootstrapUnauthenticated();
 
-    const { result } = renderHook(() =>
+    const { result } = renderIsolatedHook(() =>
       useActiveAttempt({ quizId: QUIZ_ID }),
     );
 
@@ -232,7 +259,7 @@ describe('useActiveAttempt — auth gating', () => {
   it('does not fetch while the auth bootstrap is loading', async () => {
     setBootstrapLoading();
 
-    const { result } = renderHook(() =>
+    const { result } = renderIsolatedHook(() =>
       useActiveAttempt({ quizId: QUIZ_ID }),
     );
 
@@ -245,7 +272,7 @@ describe('useActiveAttempt — auth gating', () => {
   });
 
   it('does not fetch when quizId is null', async () => {
-    const { result } = renderHook(() =>
+    const { result } = renderIsolatedHook(() =>
       useActiveAttempt({ quizId: null }),
     );
 
@@ -264,7 +291,7 @@ describe('useActiveAttempt — error handling', () => {
       makeApiError(500, 'GLOBAL_INTERNAL_ERROR'),
     );
 
-    const { result } = renderHook(() =>
+    const { result } = renderIsolatedHook(() =>
       useActiveAttempt({ quizId: QUIZ_ID }),
     );
 
@@ -288,7 +315,7 @@ describe('useActiveAttempt — error handling', () => {
       makeApiError(403, 'ATTEMPT_FORBIDDEN'),
     );
 
-    const { result } = renderHook(() =>
+    const { result } = renderIsolatedHook(() =>
       useActiveAttempt({ quizId: QUIZ_ID }),
     );
 
@@ -310,7 +337,7 @@ describe('useActiveAttempt — error handling', () => {
       makeApiError(429, 'GLOBAL_RATE_LIMITED'),
     );
 
-    const { result } = renderHook(() =>
+    const { result } = renderIsolatedHook(() =>
       useActiveAttempt({ quizId: QUIZ_ID }),
     );
 
@@ -332,16 +359,23 @@ describe('useActiveAttempt — cache key isolation', () => {
       makeSummary({ attemptId: `a-${quizId}` }),
     );
 
-    const { result, rerender } = renderHook(
-      ({ quizId }) => useActiveAttempt({ quizId }),
-      { initialProps: { quizId: QUIZ_ID } },
+    // The fetcher inside `useActiveAttempt` reads `quizId` from its
+    // closure, not from the SWR args tuple. To make the first call
+    // deterministic in test isolation, drive the props through
+    // React state rather than destructuring — `renderHook` calls
+    // the callback with the props exactly once per render, and the
+    // closure captures the committed value.
+    let currentQuizId: string = QUIZ_ID;
+    const { result, rerender } = renderIsolatedHook(
+      () => useActiveAttempt({ quizId: currentQuizId }),
     );
 
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false);
     });
 
-    rerender({ quizId: 'quiz-2' });
+    currentQuizId = 'quiz-2';
+    rerender();
 
     await waitFor(() => {
       expect(result.current.attempt?.attemptId).toBe('a-quiz-2');

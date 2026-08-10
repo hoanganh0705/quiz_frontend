@@ -33,7 +33,7 @@ import type { AdminPermission } from '../permissions';
 export const AUDIT_LOG_ROUTE_PATH = '/admin/audit' as const;
 
 /** Feature flag that gates the audit log surface. */
-export const AUDIT_LOG_FEATURE_FLAG = 'phase7_admin_audit' as const;
+export const AUDIT_LOG_FEATURE_FLAG = 'admin_audit_live' as const;
 
 // ─── Metadata ──────────────────────────────────────────────────────────────
 

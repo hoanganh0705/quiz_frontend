@@ -225,7 +225,7 @@ describe('Epic 2.7 — module wiring (T25 cross-cutting)', () => {
     // T15's contract: auth.service.ts imports broadcastAuthEvent from
     // the manager module instead of constructing inline
     // `new BroadcastChannel('auth')`.
-    const service = await import('@/features/auth/service/auth.service');
+    const service = await import('@/features/auth/services/auth.service');
     expect(typeof service.login).toBe('function');
     expect(typeof service.googleLogin).toBe('function');
     expect(typeof service.logout).toBe('function');

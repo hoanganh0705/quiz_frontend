@@ -8,12 +8,12 @@
  *
  * Asserts:
  *
- *   - `phase6_social === 'placeholder'` (default) → renders the
+ *   - `social_live === 'placeholder'` (default) → renders the
  *     `<SocialListPlaceholder>` for every kind.
- *   - `phase6_social_relationship === 'placeholder'` → also renders
+ *   - `social_relationship_live === 'placeholder'` → also renders
  *     the placeholder (the relationship sub-flag is the second
  *     short-circuit gate).
- *   - `phase6_social === 'live'` + `phase6_social_relationship ===
+ *   - `social_live === 'live'` + `social_relationship_live ===
  *     'live'` → renders the live list component (the live branch
  *     lands in Batches E / F).
  *   - `requireAuth` + unauthenticated viewer → `PrivacyRestrictedNotice`
@@ -137,10 +137,10 @@ describe("SocialListRouteGate", () => {
     vi.clearAllMocks();
   });
 
-  it("renders the placeholder for `phase6_social === 'placeholder'`", () => {
+  it("renders the placeholder for `social_live === 'placeholder'`", () => {
     mockGetFeatureFlagValue.mockImplementation((flag: string) => {
-      if (flag === "phase6_social") return "placeholder";
-      if (flag === "phase6_social_relationship") return "live";
+      if (flag === "social_live") return "placeholder";
+      if (flag === "social_relationship_live") return "live";
       return "live";
     });
     render(<SocialListRouteGate kind="followers" />);
@@ -149,10 +149,10 @@ describe("SocialListRouteGate", () => {
     ).toBeInTheDocument();
   });
 
-  it("renders the placeholder for `phase6_social_relationship === 'placeholder'`", () => {
+  it("renders the placeholder for `social_relationship_live === 'placeholder'`", () => {
     mockGetFeatureFlagValue.mockImplementation((flag: string) => {
-      if (flag === "phase6_social") return "live";
-      if (flag === "phase6_social_relationship") return "placeholder";
+      if (flag === "social_live") return "live";
+      if (flag === "social_relationship_live") return "placeholder";
       return "live";
     });
     render(<SocialListRouteGate kind="friends" />);
@@ -163,8 +163,8 @@ describe("SocialListRouteGate", () => {
 
   it("renders the live list component when both flags are 'live' (followers)", () => {
     mockGetFeatureFlagValue.mockImplementation((flag: string) => {
-      if (flag === "phase6_social") return "live";
-      if (flag === "phase6_social_relationship") return "live";
+      if (flag === "social_live") return "live";
+      if (flag === "social_relationship_live") return "live";
       return "live";
     });
     render(
@@ -182,8 +182,8 @@ describe("SocialListRouteGate", () => {
 
   it("renders the live list component when both flags are 'live' (following)", () => {
     mockGetFeatureFlagValue.mockImplementation((flag: string) => {
-      if (flag === "phase6_social") return "live";
-      if (flag === "phase6_social_relationship") return "live";
+      if (flag === "social_live") return "live";
+      if (flag === "social_relationship_live") return "live";
       return "live";
     });
     render(
@@ -199,8 +199,8 @@ describe("SocialListRouteGate", () => {
 
   it("renders the live list component when both flags are 'live' (friends)", () => {
     mockGetFeatureFlagValue.mockImplementation((flag: string) => {
-      if (flag === "phase6_social") return "live";
-      if (flag === "phase6_social_relationship") return "live";
+      if (flag === "social_live") return "live";
+      if (flag === "social_relationship_live") return "live";
       return "live";
     });
     render(
@@ -216,8 +216,8 @@ describe("SocialListRouteGate", () => {
 
   it("renders the live BlockedUsersList when both flags are 'live' (blocked)", () => {
     mockGetFeatureFlagValue.mockImplementation((flag: string) => {
-      if (flag === "phase6_social") return "live";
-      if (flag === "phase6_social_relationship") return "live";
+      if (flag === "social_live") return "live";
+      if (flag === "social_relationship_live") return "live";
       return "live";
     });
     render(<SocialListRouteGate kind="blocked" requireAuth />);

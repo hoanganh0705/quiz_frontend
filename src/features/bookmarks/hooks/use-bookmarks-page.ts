@@ -43,10 +43,11 @@ export function useBookmarksPage() {
   const filteredBookmarks = useMemo(() => {
     let result: BookmarkedQuizResponseDto[] = [...bookmarks];
 
-    // Filter by collection
+    // Filter by collection — bookmarks may not have collectionId in the DTO;
+    // when collectionId is absent, the bookmark is treated as uncategorized.
     if (activeTab === "collections" && selectedCollection) {
       result = result.filter(
-        (b) => b.collection?.collectionId === selectedCollection,
+        (b) => (b as unknown as { collectionId?: string }).collectionId === selectedCollection,
       );
     }
 
@@ -54,7 +55,7 @@ export function useBookmarksPage() {
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
       result = result.filter((b) =>
-        b.quiz?.title?.toLowerCase().includes(query),
+        b.quizTitle?.toLowerCase().includes(query),
       );
     }
 
@@ -72,9 +73,9 @@ export function useBookmarksPage() {
             new Date(b.bookmarkedAt).getTime()
           );
         case "name-asc":
-          return (a.quiz?.title ?? "").localeCompare(b.quiz?.title ?? "");
+          return (a.quizTitle ?? "").localeCompare(b.quizTitle ?? "");
         case "name-desc":
-          return (b.quiz?.title ?? "").localeCompare(a.quiz?.title ?? "");
+          return (b.quizTitle ?? "").localeCompare(a.quizTitle ?? "");
         default:
           return 0;
       }

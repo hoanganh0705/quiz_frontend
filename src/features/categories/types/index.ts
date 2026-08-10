@@ -1,13 +1,11 @@
 // Categories types — aligned with backend DTOs
 
-import { CategoryPaginationResponseDto, CategoryResponseDto } from '@/lib/api/generated/schemas';
+import { CategoryResponseDto, CategoryControllerListCategories200 } from '@/lib/api/generated/schemas';
 
 // Re-export from generated schemas
 export type {
-  CategoryListResponseDto,
   CreateCategoryDto,
   UpdateCategoryDto,
-  DeleteCategoryResponseDto,
 } from '@/lib/api/generated/schemas';
 
 export type {
@@ -20,4 +18,4 @@ export type {
 
 // Backward compatibility aliases
 export type Category = CategoryResponseDto;
-export type CategoryListResponse = CategoryPaginationResponseDto;
+export type CategoryListResponse = CategoryControllerListCategories200;

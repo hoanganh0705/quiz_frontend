@@ -298,7 +298,7 @@ export default function CollectionAddQuizzesDialog({
                           <p className='font-medium text-sm truncate'>{result.quizTitle}</p>
                         </div>
                         {result.isFeatured && (
-                          <span className='text-xs bg-yellow-500 text-white px-2 py-0.5 rounded'>
+                          <span className='text-xs bg-yellow-500 text-yellow-950 px-2 py-0.5 rounded'>
                             Featured
                           </span>
                         )}

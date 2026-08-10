@@ -56,7 +56,7 @@ const PLACEHOLDER_RESULT: UseBlockedUsersResult = Object.freeze({
 });
 
 export function useBlockedUsers(): UseBlockedUsersResult {
-  const flagValue = getFeatureFlagValue("phase6_social_relationship");
+  const flagValue = getFeatureFlagValue("social_relationship_live");
   const isFlagPlaceholder = flagValue === "placeholder";
 
   const auth = useAuthSession();

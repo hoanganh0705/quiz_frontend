@@ -8,11 +8,11 @@
  *
  * Asserts:
  *
- *   - `phase6_social_mutuals === 'placeholder'` → renders the
+ *   - `social_mutuals_live === 'placeholder'` → renders the
  *     `<SocialMutualsPlaceholder>` for every kind.
- *   - `phase6_social === 'placeholder'` → also renders the
+ *   - `social_live === 'placeholder'` → also renders the
  *     placeholder (the parent flag is the second short-circuit).
- *   - `phase6_social === 'live'` + `phase6_social_mutuals === 'live'`
+ *   - `social_live === 'live'` + `social_mutuals_live === 'live'`
  *     → renders the live list component (the live branch lands in
  *     TKT-6.4.G3).
  *   - Unauthenticated viewer → `PrivacyRestrictedNotice` with the
@@ -92,10 +92,10 @@ describe("MutualsRouteGate", () => {
     vi.clearAllMocks();
   });
 
-  it("renders the placeholder for `phase6_social_mutuals === 'placeholder'`", () => {
+  it("renders the placeholder for `social_mutuals_live === 'placeholder'`", () => {
     mockGetFeatureFlagValue.mockImplementation((flag: string) => {
-      if (flag === "phase6_social") return "live";
-      if (flag === "phase6_social_mutuals") return "placeholder";
+      if (flag === "social_live") return "live";
+      if (flag === "social_mutuals_live") return "placeholder";
       return "live";
     });
     render(
@@ -109,10 +109,10 @@ describe("MutualsRouteGate", () => {
     ).toBeInTheDocument();
   });
 
-  it("renders the placeholder for `phase6_social === 'placeholder'`", () => {
+  it("renders the placeholder for `social_live === 'placeholder'`", () => {
     mockGetFeatureFlagValue.mockImplementation((flag: string) => {
-      if (flag === "phase6_social") return "placeholder";
-      if (flag === "phase6_social_mutuals") return "live";
+      if (flag === "social_live") return "placeholder";
+      if (flag === "social_mutuals_live") return "live";
       return "live";
     });
     render(
@@ -128,6 +128,30 @@ describe("MutualsRouteGate", () => {
 
   it("renders the live MutualFriendsList when both flags are 'live' (TKT-6.4.G3)", () => {
     mockGetFeatureFlagValue.mockImplementation(() => "live");
+    // The live branch renders `<MutualFriendsList>`, which only emits
+    // `data-testid="mutual-friends-list"` when `items.length > 0`.
+    // Pre-populate one item so the wrapper renders.
+    mockUseMutualFriends.mockReturnValue({
+      items: [
+        {
+          id: "mutual-1",
+          user: {
+            userId: "11111111-1111-1111-1111-111111111111",
+            userName: "mutualperson",
+            displayName: "Mutual Person",
+            avatarUrl: null,
+          },
+        },
+      ],
+      total: 1,
+      visibility: "visible",
+      isLoading: false,
+      isStale: false,
+      hasMore: false,
+      loadMore: () => undefined,
+      error: null,
+      retry: () => Promise.resolve(),
+    });
     render(
       <MutualsRouteGate
         kind="friends"
@@ -141,6 +165,30 @@ describe("MutualsRouteGate", () => {
 
   it("renders the live MutualFollowersList when both flags are 'live' (TKT-6.4.G3)", () => {
     mockGetFeatureFlagValue.mockImplementation(() => "live");
+    // The live branch renders `<MutualFollowersList>`, which only
+    // emits `data-testid="mutual-followers-list"` when `items.length > 0`.
+    // Pre-populate one item so the wrapper renders.
+    mockUseMutualFollowers.mockReturnValue({
+      items: [
+        {
+          id: "follower-mutual-1",
+          user: {
+            userId: "11111111-1111-1111-1111-111111111111",
+            userName: "followerperson",
+            displayName: "Follower Person",
+            avatarUrl: null,
+          },
+        },
+      ],
+      total: 1,
+      visibility: "visible",
+      isLoading: false,
+      isStale: false,
+      hasMore: false,
+      loadMore: () => undefined,
+      error: null,
+      retry: () => Promise.resolve(),
+    });
     render(
       <MutualsRouteGate
         kind="followers"

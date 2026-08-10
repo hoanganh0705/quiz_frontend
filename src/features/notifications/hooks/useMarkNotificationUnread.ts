@@ -18,7 +18,7 @@
  *   page refresh.
  * - Double-click prevention: while `state === 'pending'`, subsequent
  *   `markUnread()` calls are a no-op.
- * - Feature-flag gating via `phase5_notifications`.
+ * - Feature-flag gating via `notifications_live`.
  *
  * ## Double-click guard
  *
@@ -74,7 +74,7 @@ export interface UseMarkNotificationUnreadResult {
 export function useMarkNotificationUnread(
   notificationId: string | null,
 ): UseMarkNotificationUnreadResult {
-  const flagValue = getFeatureFlagValue("phase5_notifications");
+  const flagValue = getFeatureFlagValue("notifications_live");
   const isFlagPlaceholder = flagValue === "placeholder";
 
   const [state, setState] = useState<NotificationMutationState>("idle");

@@ -17,7 +17,7 @@
  * envelope at the DTO adapter boundary, projects each wire item
  * through the new `toFeedItem` adapter (which uses the wire `user`
  * field as the `actorUser`), forwards the SDK's opaque
- * `nextCursor` unchanged, and emits a `phase6:6.9` Sentry breadcrumb.
+ * `nextCursor` unchanged, and emits a `social:6.9` Sentry breadcrumb.
  *
  * ## Why a separate file from `social.service.ts`
  *
@@ -58,9 +58,9 @@
  *
  *   - `ApiError` is propagated unchanged so callers can branch on
  *     `apiError.code`.
- *   - One `phase6:6.9` Sentry breadcrumb per call (via the
+ *   - One `social:6.9` Sentry breadcrumb per call (via the
  *     dedicated `addSocialFeedBreadcrumb` helper in
- *     `@/lib/social/phase6_6_9_sentry`, TKT-6.9.H1).
+ *     `@/lib/social/social-feed-sentry`, TKT-6.9.H1).
  *   - Paginated endpoints return the documented
  *     `{ items, nextCursor, hasMore, visibility }` shape.
  *   - Items are defensively re-projected through `toFeedItem`
@@ -74,7 +74,7 @@ import type {
   SocialControllerGetFeedResult,
 } from "@/lib/api/generated/social/social";
 
-import { addSocialFeedBreadcrumb } from "@/lib/social/phase6_6_9_sentry";
+import { addSocialFeedBreadcrumb } from "@/lib/social/social-feed-sentry";
 
 import { toFeedItem } from "@/features/social/dto-adapters";
 import type { SocialFeedItemDto } from "@/features/social/types";
@@ -177,7 +177,7 @@ function projectFeedPage(envelope: SocialControllerGetFeedResult): {
  *
  * The wrapper:
  *
- *   - Emits a `phase6:6.9` Sentry breadcrumb via
+ *   - Emits a `social:6.9` Sentry breadcrumb via
  *     `addSocialFeedBreadcrumb` (TKT-6.9.H1). The breadcrumb
  *     carries `route`, `status`, `durationMs`, `code?`,
  *     `viewerUserId?`, `hasMore?`, and `total?`. The payload

@@ -14,7 +14,7 @@
  *   `TOURNAMENT_REGISTRATION_CLOSED`, etc.) to typed `ApiError`.
  * - Invalidate the tournament detail, participants, and leaderboard SWR keys
  *   on success.
- * - Feature-flag gating via `phase5_tournaments`.
+ * - Feature-flag gating via `tournaments_live`.
  *
  * ## Double-click prevention
  *
@@ -62,7 +62,7 @@ export interface UseRegisterTournamentResult {
 export function useRegisterTournament(
   tournamentId: string | null,
 ): UseRegisterTournamentResult {
-  const flagValue = getFeatureFlagValue("phase5_tournaments");
+  const flagValue = getFeatureFlagValue("tournaments_live");
   const isFlagPlaceholder = flagValue === "placeholder";
 
   const [state, setState] = useState<RegistrationMutationState>("idle");

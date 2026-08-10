@@ -58,13 +58,14 @@ import {
 } from '@/features/auth/errors/login-error-mapper';
 import {
   login as authServiceLogin,
-} from '@/features/auth/service/auth.service';
+} from '@/features/auth/services/auth.service';
 import type {
   AuthControllerLoginResult,
 } from '@/lib/api/generated/auth/auth';
+import type { LoginResponseDto } from '@/lib/api/generated/schemas/loginResponseDto';
 
 export type LoginSubmitResult =
-  | { kind: 'success'; user: AuthControllerLoginResult['data'] }
+  | { kind: 'success'; user: LoginResponseDto }
   | {
       kind: 'error';
       errorKind: LoginErrorKind;
@@ -112,8 +113,15 @@ export async function submitLogin(
   deps.clearAuthToken();
 
   try {
-    const result = await deps.login(toLoginDto(values));
-    return { kind: 'success', user: result.data };
+    // The SDK interceptor in `custom-instance.ts` unwraps the
+    // `{ data, meta }` envelope before this resolves, so `result`
+    // IS the `LoginResponseDto` (not `{ data: LoginResponseDto }`).
+    // See `auth.service.login` for the long-form explanation of the
+    // unwrap contract. The static SDK type still claims the wrapped
+    // envelope, so we cast through `unknown` to narrow to the inner
+    // payload.
+    const result = (await deps.login(toLoginDto(values))) as unknown as LoginResponseDto;
+    return { kind: 'success', user: result };
   } catch (err: unknown) {
     const mapped = mapLoginError(err);
     return {

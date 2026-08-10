@@ -556,7 +556,7 @@ export const AccountSettings = memo(function AccountSettings({
 
         {/* Avatar */}
         <AvatarSection
-          avatarUrl={avatarDataUrl ?? profile.avatarUrl}
+          avatarUrl={avatarDataUrl ?? profile.avatarUrl ?? null}
           displayName={profile.displayName ?? profile.username}
           disabled={isSaving}
           onAvatarChange={setAvatarDataUrl}

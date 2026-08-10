@@ -13,7 +13,7 @@
  *   - `TagAdminList` (active / soft-deleted tabs with row-level dialogs)
  *   - `TagCreateDialog`
  *
- * The entire render is gated by `phase7_admin_tag === 'live'`. When the
+ * The entire render is gated by `admin_tag_live === 'live'`. When the
  * flag is `'placeholder'`, this component renders the documented disabled
  * notice.
  */
@@ -41,7 +41,7 @@ function TagAdminComingSoon() {
     <EmptyState
       icon={Shield}
       title='Tag management coming soon'
-      description='Tag admin surfaces are not yet enabled. Set NEXT_PUBLIC_PHASE7_ADMIN_TAG=live to preview the feature.'
+      description='Tag admin surfaces are not yet enabled. Set NEXT_PUBLIC_ADMIN_TAG_LIVE=live to preview the feature.'
       size='md'
     />
   );
@@ -50,7 +50,7 @@ function TagAdminComingSoon() {
 const PERMISSION_CREATE = 'tag_create';
 
 /**
- * Tag admin page. Gated by `phase7_admin_tag`.
+ * Tag admin page. Gated by `admin_tag_live`.
  *
  * ## Interface contract
  *
@@ -64,7 +64,7 @@ export interface TagAdminPageProps {
 }
 
 export function TagAdminPage(_props: TagAdminPageProps) {
-  const { isLive } = useAdminFeatureFlag('phase7_admin_tag');
+  const { isLive } = useAdminFeatureFlag('admin_tag_live');
   const { hasPermission } = usePermission(PERMISSION_CREATE);
   const { push } = useToast();
 

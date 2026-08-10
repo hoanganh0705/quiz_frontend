@@ -22,8 +22,8 @@
  * The class is pure with respect to Sentry — `accept` returns the
  * decision only. The caller is responsible for logging the Sentry
  * soft warning when the decision is `'drop'`, tagged with
- * `category: 'phase6:6.10:sequence-guard-drop'` (see
- * `phase6_sentry` helpers, TKT-6.10.G2).
+ * `category: 'social:6.10:sequence-guard-drop'` (see
+ * `social-sentry` helpers, TKT-6.10.G2).
  *
  * ## State survives reconnects within the tab session
  *
@@ -37,7 +37,7 @@
  *
  * The key string format is `${eventType}::${actorUserId}::${targetUserId}`;
  * the lint script
- * (`scripts/phase6-lint-invariants.mjs`, TKT-6.10.G3) greps every
+ * (`scripts/social-lint-invariants.mjs`, TKT-6.10.G3) greps every
  * file under `src/features/social/realtime/` for `friendshipId` /
  * `followId` and fails the build if any field is added. The class
  * has no way to enforce the invariant on the wire payload; it is

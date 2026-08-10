@@ -131,6 +131,14 @@ describe("useDebouncedValue — cancel", () => {
 
     act(() => {
       rerender({ value: "pending" });
+    });
+
+    // The `cancel()` call lives in its own `act()` so React commits
+    // the rerender (and the new `useEffect` timer) before we cancel.
+    // Splitting the acts avoids a React 19 batching quirk where the
+    // queued `setDebouncedValue` from `cancel` is coalesced with the
+    // rerender's effect-driven timer commit.
+    act(() => {
       result.current.cancel();
     });
 
@@ -170,11 +178,20 @@ describe("useDebouncedValue — cleanup on unmount", () => {
   it("clears the timeout when the hook unmounts", () => {
     const clearSpy = vi.spyOn(globalThis, "clearTimeout");
 
-    const { unmount } = renderHook(() => {
-      return useDebouncedValue("value");
+    // Start with one value, then rerender with a different value to
+    // schedule a pending timer. Without a pending timer, the hook
+    // returns early from `useEffect` and the cleanup function is a
+    // no-op — `clearTimeout` would never be called.
+    const { rerender, unmount } = renderHook(
+      ({ value }: { value: string }) => useDebouncedValue(value),
+      { initialProps: { value: "initial" } },
+    );
+    act(() => {
+      rerender({ value: "pending" });
     });
-    unmount();
+    expect(clearSpy).not.toHaveBeenCalled();
 
+    unmount();
     expect(clearSpy).toHaveBeenCalled();
     clearSpy.mockRestore();
   });

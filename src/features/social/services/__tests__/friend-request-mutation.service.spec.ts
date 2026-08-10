@@ -178,7 +178,7 @@ describe("friend-request-mutation.service — sendFriendRequest", () => {
     });
   });
 
-  it("emits a phase6:6.8 Sentry breadcrumb on success", async () => {
+  it("emits a social:6.8 Sentry breadcrumb on success", async () => {
     mockSendFriendRequest.mockResolvedValue(undefined);
 
     await sendFriendRequest("user-2");
@@ -251,7 +251,7 @@ describe("friend-request-mutation.service — respondFriendRequest", () => {
     });
   });
 
-  it("emits a phase6:6.8 Sentry breadcrumb that does NOT include friendshipId", async () => {
+  it("emits a social:6.8 Sentry breadcrumb that does NOT include friendshipId", async () => {
     mockRespondToFriendRequest.mockResolvedValue(undefined);
 
     await respondFriendRequest("fs-abc", "accept");
@@ -303,7 +303,7 @@ describe("friend-request-mutation.service — cancelFriendRequest", () => {
     });
   });
 
-  it("emits a phase6:6.8 Sentry breadcrumb that does NOT include friendshipId", async () => {
+  it("emits a social:6.8 Sentry breadcrumb that does NOT include friendshipId", async () => {
     mockCancelFriendRequest.mockResolvedValue(undefined);
 
     await cancelFriendRequest("fs-abc");
@@ -364,7 +364,7 @@ describe("friend-request-mutation.service — unfriend", () => {
     });
   });
 
-  it("emits a phase6:6.8 Sentry breadcrumb on success", async () => {
+  it("emits a social:6.8 Sentry breadcrumb on success", async () => {
     mockRemoveFriend.mockResolvedValue(undefined);
 
     await unfriend("user-2");

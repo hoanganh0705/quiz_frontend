@@ -17,7 +17,7 @@
  *   on success.
  * - Map domain-specific error codes (`GLOBAL_VALIDATION_FAILED`,
  *   `INVALID_PREFERENCE_VALUE`, `UNAUTHORIZED`, …) to typed `ApiError`.
- * - Feature-flag gating via `phase5_notifications`.
+ * - Feature-flag gating via `notifications_live`.
  *
  * ## PATCH vs PUT
  *
@@ -106,7 +106,7 @@ const EMPTY_PREFERENCES: NotificationPreferences = {
  * Read and update the user's notification preferences.
  */
 export function useNotificationPreferences(): UseNotificationPreferencesResult {
-  const flagValue = getFeatureFlagValue("phase5_notifications");
+  const flagValue = getFeatureFlagValue("notifications_live");
   const isFlagPlaceholder = flagValue === "placeholder";
 
   const [state, setState] = useState<NotificationMutationState>("idle");

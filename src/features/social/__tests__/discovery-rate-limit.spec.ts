@@ -16,7 +16,7 @@
  *   - Header name lookup is case-insensitive.
  */
 
-import { describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   decodeSearchRateLimit,
@@ -89,8 +89,18 @@ describe("decodeSearchRateLimit — seconds header (X-RateLimit-Reset-Search-Sec
 });
 
 describe("decodeSearchRateLimit — epoch-ms header (X-RateLimit-Reset-Search) takes priority", () => {
+  beforeEach(() => {
+    // Pin `Date.now()` via fake timers so the epoch-delta calculation
+    // is deterministic. Set the system time to a known fixed value.
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(1_700_000_000_000));
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   it("prefers the epoch-ms header over the seconds header when both are present", () => {
-    // We set a fixed system time so the epoch calculation is deterministic.
     // The seconds header is 60s from "now", but the epoch header is 30s from "now".
     const FIXED_NOW = 1_700_000_000_000; // 2023-11-13T12:26:40Z
     const headers = {

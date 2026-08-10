@@ -95,7 +95,7 @@ export function useTagSlugAvailability(
 ): UseTagSlugAvailability {
   const { all: list } = useTagAdminList();
 
-  const debouncedSlug = useDebouncedValue(slug, delayMs);
+  const debouncedSlug = useDebouncedValue(slug, delayMs).debouncedValue;
 
   const result = useMemo((): UseTagSlugAvailability => {
     if (!debouncedSlug || debouncedSlug.trim().length === 0) {

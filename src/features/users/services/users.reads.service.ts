@@ -24,11 +24,34 @@ export type {
   UserControllerMeResult,
 } from '@/lib/api/generated/users/users';
 
+/**
+ * Fetch the current user profile from `GET /users/me`.
+ * Returns the `UserMeResponseDto` directly.
+ *
+ * ## Envelope contract
+ *
+ * The Axios response interceptor in `lib/api/core/custom-instance.ts`
+ * does NOT unwrap the backend's `{ data, meta }` envelope — the
+ * generated SDK types (`UserControllerMe200 = WrappedDto & { data?:
+ * UserMeResponseDto }`) and every other read-side call site that
+ * reads `result.data` directly expect the wrapped shape, so the
+ * interceptor passes the wire response through unmodified. The
+ * generated SDK therefore returns the wrapped envelope; this
+ * function unwraps it by reading `.data` (and throws if the
+ * envelope is missing the inner payload, which would indicate a
+ * backend contract change).
+ *
+ * Mirrors `fetchCurrentUserIdentity()` in
+ * `features/auth/hooks/use-auth.ts`, which is the canonical pattern
+ * for wrapped-SDK consumers.
+ *
+ * @see features/auth/hooks/use-auth.ts — same shape.
+ */
 export async function getCurrentUser(): Promise<UserMeResponseDto> {
   const sdk = getUsers();
-  const response = await sdk.userControllerMe();
-  if (!response.data) {
-    throw new Error('User not found');
+  const result = await sdk.userControllerMe();
+  if (!result || (result as { data?: unknown }).data === undefined) {
+    throw new Error('No data returned from /users/me');
   }
-  return response.data;
+  return (result as { data: UserMeResponseDto }).data;
 }

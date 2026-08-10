@@ -13,7 +13,7 @@
  * ## What this component owns
  *
  * The static, flag-gated placeholder rendered by the social user-search
- * route scaffold when `phase6_social_search === 'placeholder'`. The
+ * route scaffold when `social_user_search_live === 'placeholder'`. The
  * component:
  *
  *   - Renders the search bar shell and "Coming soon" copy.

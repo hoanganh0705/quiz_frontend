@@ -369,7 +369,7 @@ export function CommentReportsList({
         <div
           role="status"
           data-testid={`comment-reports-list-empty-${show}`}
-          className="rounded-md border border-slate-200 bg-white px-4 py-6 text-center text-sm text-muted-foreground"
+          className="rounded-md border border-border bg-background px-4 py-6 text-center text-sm text-muted-foreground"
         >
           <Inbox className="mx-auto h-6 w-6" aria-hidden="true" />
           <p className="mt-2 font-medium text-foreground">
@@ -427,7 +427,7 @@ export function CommentReportsList({
         className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between"
         data-testid="comment-reports-list-header"
       >
-        <div role="tablist" aria-label="Filter comment reports" className="inline-flex rounded-md border border-slate-200 bg-white p-0.5">
+        <div role="tablist" aria-label="Filter comment reports" className="inline-flex rounded-md border border-border bg-background p-0.5">
           {SHOW_TOGGLE_OPTIONS.map((option) => {
             const isActive = option.value === show;
             return (
@@ -464,7 +464,7 @@ export function CommentReportsList({
         ref={scrollerRef}
         onScroll={handleScroll}
         data-testid="comment-reports-list-scroller"
-        className="relative max-h-[70vh] overflow-y-auto rounded-md border border-slate-200 bg-white p-3"
+        className="relative max-h-[70vh] overflow-y-auto rounded-md border border-border bg-background p-3"
       >
         {renderRows()}
 

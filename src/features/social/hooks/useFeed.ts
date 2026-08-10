@@ -36,8 +36,8 @@
  *     the dedicated `resolveFeedVisibility` resolver.
  *   - Decodes rate-limit via `decodeRateLimit` and surfaces
  *     `rateLimitedUntil: number | null` (epoch ms).
- *   - Checks the `phase6_social_feed` flag (and the parent
- *     `phase6_social` flag) and returns a safe no-op fallback when
+ *   - Checks the `social_feed_live` flag (and the parent
+ *     `social_live` flag) and returns a safe no-op fallback when
  *     the surface is `'placeholder'`.
  *   - Checks viewer authentication and returns a safe fallback when
  *     the viewer is unauthenticated.
@@ -184,8 +184,8 @@ const AUTH_STATE_EVENT = "auth-state-change";
  * `visibility` value. The hook never throws for privacy reasons.
  */
 export function useFeed(viewerUserId: string | null): UseFeedResult {
-  const parentFlagValue = getFeatureFlagValue("phase6_social");
-  const subFlagValue = getFeatureFlagValue("phase6_social_feed");
+  const parentFlagValue = getFeatureFlagValue("social_live");
+  const subFlagValue = getFeatureFlagValue("social_feed_live");
   const isFlagPlaceholder =
     parentFlagValue === "placeholder" || subFlagValue === "placeholder";
 

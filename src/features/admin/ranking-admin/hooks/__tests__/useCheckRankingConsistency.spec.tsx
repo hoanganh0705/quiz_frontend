@@ -22,10 +22,10 @@ vi.mock('@/features/admin/services/ranking-admin.service', () => ({
     mockCheckRankingConsistency(...args),
 }));
 
-vi.mock('@/lib/admin/phase7_admin_sentry', async () => {
+vi.mock('@/lib/admin/admin_live_sentry', async () => {
   const actual =
-    await vi.importActual<typeof import('@/lib/admin/phase7_admin_sentry')>(
-      '@/lib/admin/phase7_admin_sentry',
+    await vi.importActual<typeof import('@/lib/admin/admin_live_sentry')>(
+      '@/lib/admin/admin_live_sentry',
     );
   return {
     ...actual,

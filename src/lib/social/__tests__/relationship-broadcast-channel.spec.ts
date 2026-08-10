@@ -170,11 +170,11 @@ describe('relationship broadcast channel — channel name', () => {
     const bookmarksModule = await import(
       '@/lib/api/core/bookmarks-broadcast-channel'
     );
-    const phase4Broadcast = await import(
-      '@/lib/api/core/phase4Broadcast'
+    const crossTabBroadcast = await import(
+      '@/lib/api/core/cross-tab-broadcast'
     );
     const phase5Broadcast = await import(
-      '@/lib/realtime/phase5-broadcast'
+      '@/lib/realtime/cross-tab-invalidation'
     );
     const socialModule = await import(
       '../relationship-broadcast-channel'
@@ -189,13 +189,13 @@ describe('relationship broadcast channel — channel name', () => {
       bookmarksModule.BOOKMARKS_CHANNEL_NAME,
     );
     expect(socialModule.SOCIAL_RELATIONSHIP_CHANNEL_NAME).not.toBe(
-      phase4Broadcast.ATTEMPTS_CHANNEL_NAME,
+      crossTabBroadcast.ATTEMPTS_CHANNEL_NAME,
     );
     expect(socialModule.SOCIAL_RELATIONSHIP_CHANNEL_NAME).not.toBe(
-      phase4Broadcast.PROFILE_CHANNEL_NAME,
+      crossTabBroadcast.PROFILE_CHANNEL_NAME,
     );
     expect(socialModule.SOCIAL_RELATIONSHIP_CHANNEL_NAME).not.toBe(
-      phase5Broadcast.PHASE5_INVALIDATION_CHANNEL,
+      phase5Broadcast.CROSS_TAB_INVALIDATION_CHANNEL,
     );
   });
 });

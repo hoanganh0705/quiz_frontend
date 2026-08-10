@@ -14,7 +14,7 @@
  * - Synthesise an `id` alias on each notification so
  *   `appendUniqueById` deduplication in `useCursorPaginated` works.
  * - Expose `isStale` when revalidation fails with cached data present.
- * - Feature-flag gating via `phase5_notifications`.
+ * - Feature-flag gating via `notifications_live`.
  *
  * ## Status / type filters
  *
@@ -41,7 +41,7 @@
 
 import { useMemo } from "react";
 
-import { ApiError, useCursorPaginated } from "@/lib/api";
+import { ApiError, projectWithId, useCursorPaginated } from "@/lib/api";
 import type {
   CursorFetcherArgs,
   CursorPage,
@@ -92,7 +92,7 @@ const DEFAULT_LIMIT = 20;
 export function useNotifications(
   filters: NotificationListFilters = DEFAULT_NOTIFICATION_LIST_FILTERS,
 ): UseNotificationsResult {
-  const flagValue = getFeatureFlagValue("phase5_notifications");
+  const flagValue = getFeatureFlagValue("notifications_live");
   const isFlagPlaceholder = flagValue === "placeholder";
 
   // SWR cache key: disabled sentinel when flag is off so no fetch fires.
@@ -137,10 +137,8 @@ export function useNotifications(
           params,
         )) as unknown as ListNotificationsWireResponse;
 
-        const items: Notification[] = (wire.data ?? []).map(
-          (item): Notification =>
-            Object.assign({}, item, { id: item.notificationId }),
-        );
+        // Project `notificationId` onto `id` via the runtime helper.
+        const items: Notification[] = projectWithId((wire.data ?? []) as unknown as readonly Record<string, unknown>[], 'notificationId') as unknown as Notification[];
 
         const pagination = wire.meta?.pagination;
         const limit =

@@ -32,7 +32,7 @@ import * as socketAdapterModule from "@/lib/realtime/socket-adapter";
 import * as authCookiesModule from "@/features/auth/utils/auth-cookies";
 import * as featureFlagsModule from "@/lib/feature-flags";
 import * as mutateCarefullyModule from "@/lib/swr/mutate-carefully";
-import * as phase5BroadcastModule from "@/lib/realtime/phase5-broadcast";
+import * as phase5BroadcastModule from "@/lib/realtime/cross-tab-invalidation";
 
 import {
   useRelationshipInvalidation,
@@ -63,9 +63,9 @@ vi.mock("@/lib/swr/mutate-carefully", () => ({
   },
 }));
 
-vi.mock("@/lib/realtime/phase5-broadcast", async () => {
-  const actual = await vi.importActual<typeof import("@/lib/realtime/phase5-broadcast")>(
-    "@/lib/realtime/phase5-broadcast",
+vi.mock("@/lib/realtime/cross-tab-invalidation", async () => {
+  const actual = await vi.importActual<typeof import("@/lib/realtime/cross-tab-invalidation")>(
+    "@/lib/realtime/cross-tab-invalidation",
   );
   return {
     ...actual,
@@ -335,13 +335,13 @@ describe("useRelationshipInvalidation (TKT-6.10.E1)", () => {
   it("never includes `friendshipId` or `followId` in any breadcrumb payload", async () => {
     const breadcrumbCalls: Array<Record<string, unknown>> = [];
 
-    vi.doMock("@/lib/social/phase6_6_10_sentry", () => ({
+    vi.doMock("@/lib/social/social-realtime-sentry", () => ({
       addSocialRealtimeBreadcrumb: (data: Record<string, unknown>) => {
         breadcrumbCalls.push(data);
       },
-      EPIC_6_10_BREADCRUMB_CATEGORY: "phase6:6.10" as const,
-      EPIC_6_10_VERSION: "1.0.0" as const,
-      EPIC_6_10_RECONNECT_CATEGORY: "phase6:6.10:reconnect-reconciliation" as const,
+      EPIC_6_10_BREADCRUMB_CATEGORY: "social:6.10" as const,
+      SOCIAL_EPIC_6_10_VERSION: "1.0.0" as const,
+      EPIC_6_10_RECONNECT_CATEGORY: "social:6.10:reconnect-reconciliation" as const,
       addReconnectReconciliationBreadcrumb: () => undefined,
       phase6Social10Breadcrumb: () => undefined,
     }));

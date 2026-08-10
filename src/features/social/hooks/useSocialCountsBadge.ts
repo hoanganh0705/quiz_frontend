@@ -26,7 +26,7 @@
  *      "Counts badge is consistent with the rendered list lengths
  *      on a revalidation cycle").
  *
- *   3. The placeholder flag `phase6_social_relationship` is
+ *   3. The placeholder flag `social_relationship_live` is
  *      enabled — the hook returns `counts: null` and does not
  *      fire a service call.
  *
@@ -74,7 +74,7 @@ export interface UseSocialCountsBadgeResult {
 export function useSocialCountsBadge(
   targetUserId: string | null,
 ): UseSocialCountsBadgeResult {
-  const flagValue = getFeatureFlagValue("phase6_social_relationship");
+  const flagValue = getFeatureFlagValue("social_relationship_live");
   const isFlagPlaceholder = flagValue === "placeholder";
 
   const base = useSocialCounts(isFlagPlaceholder ? null : targetUserId);

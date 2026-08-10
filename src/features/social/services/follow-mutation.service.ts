@@ -25,8 +25,8 @@
  *     feature-flag gating. Feature flags live in the mutation hooks.
  *   - `ApiError` is propagated unchanged so callers can branch on
  *     `apiError.code`.
- *   - One `phase6:6.6` Sentry breadcrumb per follow/unfollow call
- *     (via `addFollowMutationBreadcrumb` in `phase6_6_6_sentry.ts`);
+ *   - One `social:6.6` Sentry breadcrumb per follow/unfollow call
+ *     (via `addFollowMutationBreadcrumb` in `social-follow-mutation-sentry.ts`);
  *     `refreshSocialStats` uses the generic Epic 6.1 helper.
  *   - The `followId` / `friendshipId` internal ids are never surfaced:
  *     `followUser` and `unfollowUser` return `void` on success (the SDK
@@ -67,9 +67,9 @@ import type {
 import {
   addFollowMutationBreadcrumb,
   SOCIAL_6_6_ROUTES,
-} from "@/lib/social/phase6_6_6_sentry";
+} from "@/lib/social/social-follow-mutation-sentry";
 
-import { addSocialServiceBreadcrumb } from "@/lib/social/phase6_sentry";
+import { addSocialServiceBreadcrumb } from "@/lib/social/social-sentry";
 
 import type { SocialUserStatsDto } from "@/features/social/types";
 

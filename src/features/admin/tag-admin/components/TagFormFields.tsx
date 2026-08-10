@@ -105,7 +105,7 @@ export function TagFormFields({
     setName(initialName);
     setSlug(initialSlug);
     setSlugManuallyEdited(false);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [initialName, initialSlug]);
 
   const { status: availabilityStatus, conflictingTag } = useTagSlugAvailability(

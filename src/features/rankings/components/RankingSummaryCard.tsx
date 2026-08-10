@@ -18,7 +18,7 @@
  *
  * ## Feature flag gating
  *
- * Renders `null` when `phase5_rankings === 'placeholder'`. The
+ * Renders `null` when `rankings_live === 'placeholder'`. The
  * `LeaderboardPage` falls back to a placeholder when the flag is off.
  *
  * ## Auth gating
@@ -52,13 +52,13 @@ interface RankingSummaryCardProps {
  *
  * Returns `null` when:
  *
- *   - `phase5_rankings === 'placeholder'`.
+ *   - `rankings_live === 'placeholder'`.
  *   - The user is unauthenticated.
  *
  * Otherwise renders the summary with the freshness indicator.
  */
 export function RankingSummaryCard({ className }: RankingSummaryCardProps) {
-  const flagValue = getFeatureFlagValue("phase5_rankings");
+  const flagValue = getFeatureFlagValue("rankings_live");
   const isFlagPlaceholder = flagValue === "placeholder";
 
   const { bootstrapState, isAuthenticated } = useAuthSession();

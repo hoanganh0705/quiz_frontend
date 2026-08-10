@@ -36,7 +36,7 @@
  * | File                   | Purpose                                          |
  * |------------------------|--------------------------------------------------|
  * | `connection-registry.ts`| Singleton socket registry + listener management    |
- * | `phase5-broadcast.ts`  | Cross-tab BroadcastChannel invalidation           |
+ * | `cross-tab-invalidation.ts`  | Cross-tab BroadcastChannel invalidation           |
  * | `events.ts`            | Typed event names, payloads, discriminated unions |
  * | `dto-adapters.ts`      | Response normalisation utilities                  |
  * | `ws-error.ts`         | Socket.IO error decoder                         |
@@ -51,11 +51,11 @@
  */
 
 export { ConnectionRegistry } from "./connection-registry";
-export { emitPhase5Invalidation, PHASE5_INVALIDATION_CHANNEL } from "./phase5-broadcast";
+export { emitPhase5Invalidation, CROSS_TAB_INVALIDATION_CHANNEL } from "./cross-tab-invalidation";
 export type {
   Phase5InvalidationPayload,
   Phase5InvalidationSource,
-} from "./phase5-broadcast";
+} from "./cross-tab-invalidation";
 
 export {
   // Event catalogue

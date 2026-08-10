@@ -22,7 +22,7 @@
  *   so the lobby re-renders after the player leaves.
  * - Double-click prevention: while `state === 'pending'`, subsequent
  *   `leave()` calls are a no-op.
- * - Feature-flag gating via `phase5_instances`.
+ * - Feature-flag gating via `multiplayer_instances_live`.
  *
  * ## No blind retry
  *
@@ -107,17 +107,13 @@ function mapToInstanceLifecycleErrorCode(
   }
 }
 
-function wrapAsApiError(err: unknown): ApiError {
-  return coerceToApiError(err);
-}
-
 // ─── Hook ─────────────────────────────────────────────────────────────────
 
 export function useLeaveInstance(
   instanceId: string | null,
   options: UseLeaveInstanceOptions = {},
 ): UseLeaveInstanceResult {
-  const flagValue = getFeatureFlagValue("phase5_instances");
+  const flagValue = getFeatureFlagValue("multiplayer_instances_live");
   const isFlagPlaceholder = flagValue === "placeholder";
 
   const { emitLeave = null } = options;
@@ -156,7 +152,7 @@ export function useLeaveInstance(
         setState("idle");
       }, 1000);
     } catch (cause: unknown) {
-      const wrapped = wrapAsApiError(cause);
+      const wrapped = coerceToApiError(cause);
       const mappedCode = mapToInstanceLifecycleErrorCode(wrapped.code);
       const mapped = ApiError.fromInput({
         status: wrapped.status,

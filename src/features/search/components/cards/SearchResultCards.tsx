@@ -232,7 +232,7 @@ export function CommentResultCard({ item }: { item: CommentResultDto }) {
   return (
     <BaseCardRow
       icon={MessageSquare}
-      iconClassName="bg-slate-50 dark:bg-slate-950/30"
+      iconClassName="bg-muted dark:bg-muted/50"
       title={item.displayName}
       subtitle={item.subtitle}
       href={item.href}

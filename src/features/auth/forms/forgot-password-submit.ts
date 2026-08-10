@@ -50,7 +50,7 @@
 // `forgotPassword` is the auth-service re-export (TKT-2.3.B1). The
 // helper calls it through a dependency so the unit suite can stub
 // the network without module mocks.
-import { forgotPassword as defaultForgotPassword } from "@/features/auth/service/auth.service";
+import { forgotPassword as defaultForgotPassword } from "@/features/auth/services/auth.service";
 
 import {
   mapForgotPasswordError,
@@ -130,7 +130,7 @@ export async function submitForgotPassword(
   email: string,
   deps: SubmitForgotPasswordDeps = defaultSubmitForgotPasswordDeps,
 ): Promise<ForgotSubmitResult> {
-  const cooldownMs = deps.cooldownMs ?? FORGOT_PASSWORD_COOLDOWN_MS;
+  const cooldownMs = (deps.cooldownMs ?? FORGOT_PASSWORD_COOLDOWN_MS) as typeof FORGOT_PASSWORD_COOLDOWN_MS;
   try {
     await deps.forgotPassword({ email });
     return { kind: "cooldown", cooldownMs };

@@ -9,7 +9,7 @@
  * ## Purpose
  *
  * Composes `AdminShellUnavailable` around any admin shell content, using the
- * `phase7_admin` feature flag as the gate.  When the flag is `'placeholder'`
+ * `admin_live` feature flag as the gate.  When the flag is `'placeholder'`
  * the entire admin shell is replaced with the "coming soon" notice.  When the
  * flag is `'live'` the children are rendered unchanged.
  *
@@ -39,7 +39,7 @@ export interface AdminFeatureFlagBoundaryProps {
 }
 
 /**
- * Gates admin shell content with the `phase7_admin` feature flag.
+ * Gates admin shell content with the `admin_live` feature flag.
  * Renders the "coming soon" surface when the flag is off.
  */
 export function AdminFeatureFlagBoundary({

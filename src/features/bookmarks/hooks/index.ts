@@ -1,5 +1,5 @@
 // Bookmarks hooks
-export { useBookmarks, useBookmarkedQuizzes } from './use-bookmarks'
+export { useBookmarks } from './use-bookmarks'
 export { useBookmarksPage } from './use-bookmarks-page'
 
 // Story 3.10 / TKT-3.10.B1 — the auth-gated SWR-backed read of the
@@ -112,7 +112,7 @@ export {
   useAddQuizzesToCollection,
 } from './useAddQuizzesToCollection'
 export type {
-  UseAddQuizzesToCollectionResult,
+  UseAddQuizzesToCollectionReturn,
 } from './useAddQuizzesToCollection'
 
 // Epic 4.7 / EPIC-4.7-B2-3 — bulk remove quizzes from collection.
@@ -120,7 +120,7 @@ export {
   useRemoveQuizzesFromCollection,
 } from './useRemoveQuizzesFromCollection'
 export type {
-  UseRemoveQuizzesFromCollectionResult,
+  UseRemoveQuizzesFromCollectionReturn,
 } from './useRemoveQuizzesFromCollection'
 
 // Epic 4.7 / EPIC-4.7-B2-4 — collection analytics.

@@ -98,12 +98,13 @@ export interface RankingConsistencyCheckResponseDto {
 export async function recalculateRanking(
   input: RankingRecalculateRequestDto = {},
 ): Promise<RankingRecalculateResponseDto> {
-  return orvalCustomInstance<RankingRecalculateResponseDto>({
+  const wire = await orvalCustomInstance<{ data: RankingRecalculateResponseDto }>({
     url: '/api/v1/admin/ranking/recalculate',
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     data: input,
   });
+  return (wire as { data: RankingRecalculateResponseDto }).data;
 }
 
 /**
@@ -119,12 +120,13 @@ export async function recalculateRanking(
 export async function resetRankingPeriod(
   input: RankingPeriodResetRequestDto,
 ): Promise<RankingPeriodResetResponseDto> {
-  return orvalCustomInstance<RankingPeriodResetResponseDto>({
+  const wire = await orvalCustomInstance<{ data: RankingPeriodResetResponseDto }>({
     url: '/api/v1/admin/ranking/reset',
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     data: input,
   });
+  return (wire as { data: RankingPeriodResetResponseDto }).data;
 }
 
 /**
@@ -134,8 +136,9 @@ export async function resetRankingPeriod(
  * caller surfaces the error directly.
  */
 export async function checkRankingConsistency(): Promise<RankingConsistencyCheckResponseDto> {
-  return orvalCustomInstance<RankingConsistencyCheckResponseDto>({
+  const wire = await orvalCustomInstance<{ data: RankingConsistencyCheckResponseDto }>({
     url: '/api/v1/admin/ranking/consistency-check',
     method: 'GET',
   });
+  return (wire as { data: RankingConsistencyCheckResponseDto }).data;
 }

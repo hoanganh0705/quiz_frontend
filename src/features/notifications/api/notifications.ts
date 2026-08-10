@@ -57,7 +57,7 @@ export interface DeleteNotificationResponse {
 // See docs/frontend-cleanup-audit.md Phase 1.
 export async function getNotifications(params?: GetNotificationsParams) {
   const response = await customInstance.request<{ data: GetNotificationsResponse }>({
-    url: '/notifications',
+    url: '/api/v1/notifications',
     method: 'GET',
     params,
   })
@@ -65,8 +65,8 @@ export async function getNotifications(params?: GetNotificationsParams) {
 }
 
 export async function getUnreadCount() {
-  const response = await customInstance.request<{ data: { unreadCount: number } }>({
-    url: '/notifications/unread-count',
+  const response = await customInstance.request<{ data: { count: number } }>({
+    url: '/api/v1/notifications/unread-count',
     method: 'GET',
   })
   return response.data.data
@@ -74,7 +74,7 @@ export async function getUnreadCount() {
 
 export async function markAsRead(notificationId: string) {
   const response = await customInstance.request<{ data: MarkNotificationReadResponse }>({
-    url: `/notifications/${notificationId}/read`,
+    url: `/api/v1/notifications/${notificationId}/read`,
     method: 'POST',
   })
   return response.data.data
@@ -82,7 +82,7 @@ export async function markAsRead(notificationId: string) {
 
 export async function markAllAsRead() {
   const response = await customInstance.request<{ data: MarkAllNotificationsReadResponse }>({
-    url: '/notifications/read-all',
+    url: '/api/v1/notifications/read-all',
     method: 'POST',
   })
   return response.data.data
@@ -90,7 +90,7 @@ export async function markAllAsRead() {
 
 export async function deleteNotification(notificationId: string) {
   const response = await customInstance.request<{ data: DeleteNotificationResponse }>({
-    url: `/notifications/${notificationId}`,
+    url: `/api/v1/notifications/${notificationId}`,
     method: 'DELETE',
   })
   return response.data.data

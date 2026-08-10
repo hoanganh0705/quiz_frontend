@@ -27,7 +27,7 @@
  *
  * ## Feature flag gating (F1 AC #1)
  *
- * When `phase5_rankings === 'placeholder'`, the page renders the
+ * When `rankings_live === 'placeholder'`, the page renders the
  * documented Phase 3 placeholder view (`RankingsPlaceholder`).
  * Without this, every child component would early-return `null` and
  * the shell would be empty — that's a regression from the Phase 3
@@ -225,7 +225,7 @@ function RankingsPageInner({ className }: RankingsPageProps) {
  * Honours TKT-5.5.F1:
  *
  *   - F1 AC #1 — renders a placeholder view when
- *     `phase5_rankings === 'placeholder'`.
+ *     `rankings_live === 'placeholder'`.
  *   - F1 AC #2 — personal surfaces self-gate on auth bootstrap.
  *   - F1 AC #3 — public leaderboard visible to all visitors.
  *   - F1 AC #4 — period filter writes to URL query state.

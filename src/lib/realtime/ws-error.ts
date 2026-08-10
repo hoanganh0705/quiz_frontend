@@ -114,7 +114,7 @@ const AUTH_REQUIRED_PATTERNS: Array<{ prefix?: string; code: string }> = [
   { code: "AUTH_TOKEN_EXPIRED" },
   { code: "AUTH_INVALID_TOKEN" },
   { code: "AUTH_FORBIDDEN" },
-  { prefix: "AUTH_" }, // catch-all for any future AUTH_* codes
+  { code: "", prefix: "AUTH_" }, // catch-all for any future AUTH_* codes
 ];
 
 /**
@@ -122,7 +122,7 @@ const AUTH_REQUIRED_PATTERNS: Array<{ prefix?: string; code: string }> = [
  */
 const RETRYABLE_PATTERNS: Array<{ prefix?: string; code: string }> = [
   { code: "RATE_LIMITED" },
-  { prefix: "TIMEOUT" },
+  { code: "", prefix: "TIMEOUT" },
   { code: "SERVER_ERROR" },
 ];
 

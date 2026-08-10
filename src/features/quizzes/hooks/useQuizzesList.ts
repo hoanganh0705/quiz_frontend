@@ -88,7 +88,7 @@
 
 import { useCallback, useMemo, useState } from 'react'
 
-import { ApiError, useCursorPaginated } from '@/lib/api'
+import { ApiError, projectWithId, useCursorPaginated, type ProjectWithId } from '@/lib/api'
 import type { CursorPage } from '@/lib/api/use-cursor-paginated.types'
 import type {
   QuizListItemDto,
@@ -136,8 +136,8 @@ export interface UseQuizzesListQuery {
   limit?: number
 }
 
-/** Each item carries a synthesised `id` (alias of `quizId`) so the cursor primitive's `appendUniqueById` works. */
-type QuizListItemWithId = QuizListItemDto & { id: string }
+/** Each item is projected via `ProjectWithId<QuizListItemDto, 'quizId'>` so the cursor primitive's `appendUniqueById` works. */
+type QuizListItemWithId = ProjectWithId<QuizListItemDto, 'quizId'>
 
 /**
  * Public return type of `useQuizzesList`. Extends the cursor
@@ -211,12 +211,10 @@ export function useQuizzesList(query: UseQuizzesListQuery): UseQuizzesListResult
           })
 
           const items = (result.data ?? []) as unknown as Array<QuizListItemWithId>
-          // Synthesise `id` alias of `quizId` here — the only place
-          // this aliasing happens. Downstream consumers read `quizId`,
-          // never `id`.
-          const itemsWithId = items.map((item) =>
-            Object.assign({}, item, { id: item.quizId }),
-          ) as Array<QuizListItemWithId>
+          // Project `quizId` onto `id` via the runtime helper — the
+          // only place this aliasing happens. Downstream consumers
+          // read `quizId`, never `id`.
+          const itemsWithId = projectWithId(items as unknown as readonly Record<string, unknown>[], 'quizId') as unknown as QuizListItemWithId[]
 
           // Soft-delete contract lock (TKT-3.5.F2). The backend
           // filters `isHidden: true` quizzes server-side per Story 3.5
@@ -272,9 +270,7 @@ export function useQuizzesList(query: UseQuizzesListQuery): UseQuizzesListResult
                 tagIds: undefined,
               })
               const items = (result.data ?? []) as unknown as Array<QuizListItemWithId>
-              const itemsWithId = items.map((item) =>
-                Object.assign({}, item, { id: item.quizId }),
-              ) as Array<QuizListItemWithId>
+              const itemsWithId = projectWithId(items as unknown as readonly Record<string, unknown>[], 'quizId') as unknown as QuizListItemWithId[]
               // Soft-delete filter — see primary fetch path above.
               const visibleItems = itemsWithId.filter(
                 (item) => item.isHidden !== true

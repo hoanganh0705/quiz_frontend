@@ -16,7 +16,7 @@
  *   - `GET /api/v1/social/users/:userId/mutual-friends`  — `getMutualFriends`
  *   - `GET /api/v1/social/users/:userId/mutual-followers` — `getMutualFollowers`
  *
- * The wrappers decode RFC 7807 errors, emit `phase6:6.4` Sentry
+ * The wrappers decode RFC 7807 errors, emit `social:6.4` Sentry
  * breadcrumbs, normalise the response envelope (`data` / `meta`),
  * apply the mutual-count cap invariants (`mutual-count-invariants.ts`),
  * and return normalised domain objects (`SocialMutualDto[]`).
@@ -29,7 +29,7 @@
  * Epic 6.7 search, etc.). The Story 6.4 service wrappers add the
  * additional behaviour the Story 6.4 read hooks require:
  *
- *   - Story-6.4-specific Sentry breadcrumbs via `phase6_6_4_sentry.ts`.
+ *   - Story-6.4-specific Sentry breadcrumbs via `social-mutuals-sentry.ts`.
  *   - Cap clamping against the mutual-count invariants
  *     (`MUTUAL_TOTAL_HARD_CAP`).
  *   - Mutual-count-only projection (`SocialMutualDto[]`) — the
@@ -49,8 +49,8 @@
  *
  *   - `ApiError` is propagated unchanged so callers can branch
  *     on `apiError.code`.
- *   - One `phase6:6.4` Sentry breadcrumb per call (via the
- *     helpers in `@/lib/social/phase6_6_4_sentry`).
+ *   - One `social:6.4` Sentry breadcrumb per call (via the
+ *     helpers in `@/lib/social/social-mutuals-sentry`).
  *   - Paginated endpoints return the documented
  *     `{ items, total, visibility }` shape — the canonical
  *     `SocialPage<T>` discriminated union is preserved as an
@@ -79,7 +79,7 @@ import type {
 import {
   addSocialMutualBreadcrumb,
   type MutualSurface,
-} from "@/lib/social/phase6_6_4_sentry";
+} from "@/lib/social/social-mutuals-sentry";
 
 import { MUTUAL_TOTAL_HARD_CAP } from "@/features/social/mutual-count-invariants";
 import { toMutual } from "@/features/social/dto-adapters";
@@ -172,7 +172,7 @@ function projectMutualPage(
  * nested `user` summary). `total` is clamped against
  * `MUTUAL_TOTAL_HARD_CAP`.
  *
- * The wrapper emits a `phase6:6.4` Sentry breadcrumb via
+ * The wrapper emits a `social:6.4` Sentry breadcrumb via
  * `addSocialMutualBreadcrumb` and propagates `ApiError` unchanged
  * so the consumer hook can branch on `error.code`.
  *
@@ -220,7 +220,7 @@ export async function getMutualFriends(
  * to the mutual-friends row, so the same `toMutual` adapter is
  * used. `total` is clamped against `MUTUAL_TOTAL_HARD_CAP`.
  *
- * The wrapper emits a `phase6:6.4` Sentry breadcrumb via
+ * The wrapper emits a `social:6.4` Sentry breadcrumb via
  * `addSocialMutualBreadcrumb` and propagates `ApiError` unchanged
  * so the consumer hook can branch on `error.code`.
  *

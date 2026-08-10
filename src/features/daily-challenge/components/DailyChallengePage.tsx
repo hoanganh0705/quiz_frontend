@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 /**
  * `DailyChallengePage` — the live composition for the
@@ -69,19 +69,13 @@
  * tickets (Phase 5) can hoist these to a shared toast primitive.
  */
 
-import { AlertCircle } from 'lucide-react'
+import { AlertCircle } from "lucide-react";
 
-import { ApiError } from '@/lib/api'
+import { ApiError } from "@/lib/api";
 
-import {
-  useDailyChallengeToday,
-} from '@/features/daily-challenge/hooks/useDailyChallengeToday'
-import {
-  useDailyChallengeHistory,
-} from '@/features/daily-challenge/hooks/useDailyChallengeHistory'
-import {
-  useDailyChallengeStreakView,
-} from '@/features/daily-challenge/hooks/useDailyChallengeStreakView'
+import { useDailyChallengeToday } from "@/features/daily-challenge/hooks/useDailyChallengeToday";
+import { useDailyChallengeHistory } from "@/features/daily-challenge/hooks/useDailyChallengeHistory";
+import { useDailyChallengeStreakView } from "@/features/daily-challenge/hooks/useDailyChallengeStreakView";
 import {
   DailyChallengeCard,
   DailyChallengeCardSkeleton,
@@ -89,7 +83,7 @@ import {
   DailyChallengeHistorySkeleton,
   DailyChallengePlaceholder,
   DailyChallengeStreakIndicator,
-} from '@/features/daily-challenge/components'
+} from "@/features/daily-challenge/components";
 
 // ---------------------------------------------------------------------------
 // Props
@@ -104,8 +98,8 @@ import {
  * of the wrappers' status.
  */
 export interface DailyChallengePageProps {
-  flagValue: 'v1' | 'placeholder'
-  className?: string
+  flagValue: "v1" | "placeholder";
+  className?: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -121,11 +115,11 @@ export interface DailyChallengePageProps {
  * right now" copy renders.
  */
 function isPermanentUnavailable(error: ApiError): boolean {
-  return error.status === 404
+  return error.status === 404;
 }
 
 function isTransient5xx(error: ApiError): boolean {
-  return error.status >= 500
+  return error.status >= 500;
 }
 
 // ---------------------------------------------------------------------------
@@ -143,7 +137,7 @@ export function DailyChallengePage({
     isLoading: isTodayLoading,
     error: todayError,
     isMissingEndpoint: todayIsMissingEndpoint,
-  } = useDailyChallengeToday()
+  } = useDailyChallengeToday();
 
   const {
     items,
@@ -153,28 +147,28 @@ export function DailyChallengePage({
     loadMore,
     error: historyError,
     isMissingEndpoint: historyIsMissingEndpoint,
-  } = useDailyChallengeHistory()
+  } = useDailyChallengeHistory();
 
-  const { streak, isAuthenticated } = useDailyChallengeStreakView()
+  const { streak, isAuthenticated } = useDailyChallengeStreakView();
 
   // ── Branch 1: placeholder ───────────────────────────────────────────────
 
   const shouldRenderPlaceholder =
-    flagValue === 'placeholder' ||
+    flagValue === "placeholder" ||
     todayIsMissingEndpoint ||
-    historyIsMissingEndpoint
+    historyIsMissingEndpoint;
 
   if (shouldRenderPlaceholder) {
     return (
       <div
-        role='region'
-        aria-label='Daily challenge'
-        data-testid='daily-challenge-page-placeholder'
+        role="region"
+        aria-label="Daily challenge"
+        data-testid="daily-challenge-page-placeholder"
         className={className}
       >
         <DailyChallengePlaceholder />
       </div>
-    )
+    );
   }
 
   // ── Branch 2: loading skeleton ──────────────────────────────────────────
@@ -182,16 +176,16 @@ export function DailyChallengePage({
   if (isTodayLoading || isHistoryLoading) {
     return (
       <div
-        role='region'
-        aria-label='Daily challenge'
+        role="region"
+        aria-label="Daily challenge"
         aria-busy={true}
-        data-testid='daily-challenge-page-skeleton'
-        className={['space-y-6', className].filter(Boolean).join(' ')}
+        data-testid="daily-challenge-page-skeleton"
+        className={["space-y-6", className].filter(Boolean).join(" ")}
       >
         <DailyChallengeCardSkeleton />
         <DailyChallengeHistorySkeleton />
       </div>
-    )
+    );
   }
 
   // ── Branch 5 (partial): history error surfaced before the today branch
@@ -201,17 +195,17 @@ export function DailyChallengePage({
 
   const historyErrorRegion = historyError ? (
     <div
-      role='alert'
-      data-testid='daily-challenge-history-error'
-      className='flex items-center gap-2 rounded-md border border-yellow-500/30 bg-yellow-500/10 px-4 py-3 text-sm text-yellow-900 dark:text-yellow-100'
+      role="alert"
+      data-testid="daily-challenge-history-error"
+      className="flex items-center gap-2 rounded-md border border-yellow-500/30 bg-yellow-500/10 px-4 py-3 text-sm text-yellow-900 dark:text-yellow-100"
     >
-      <AlertCircle className='h-4 w-4' aria-hidden='true' />
+      <AlertCircle className="h-4 w-4" aria-hidden="true" />
       <span>
-        History is unavailable right now. Today&apos;s challenge below
-        is unaffected.
+        History is unavailable right now. Today&apos;s challenge below is
+        unaffected.
       </span>
     </div>
-  ) : null
+  ) : null;
 
   // ── Branch 5: today error ──────────────────────────────────────────────
 
@@ -219,20 +213,20 @@ export function DailyChallengePage({
     if (isTransient5xx(todayError)) {
       return (
         <div
-          role='alert'
-          data-testid='daily-challenge-page-error'
-          className={['space-y-6', className].filter(Boolean).join(' ')}
+          role="alert"
+          data-testid="daily-challenge-page-error"
+          className={["space-y-6", className].filter(Boolean).join(" ")}
         >
-          <div className='flex items-center gap-2 rounded-md border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive'>
-            <AlertCircle className='h-4 w-4' aria-hidden='true' />
+          <div className="flex items-center gap-2 rounded-md border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+            <AlertCircle className="h-4 w-4" aria-hidden="true" />
             <span>
-              We&apos;re having trouble loading today&apos;s challenge.
-              Please try again in a moment.
+              We&apos;re having trouble loading today&apos;s challenge. Please
+              try again in a moment.
             </span>
           </div>
           {historyErrorRegion}
         </div>
-      )
+      );
     }
     if (isPermanentUnavailable(todayError)) {
       // The wrapper normally short-circuits 404s to `missing-endpoint`,
@@ -241,39 +235,39 @@ export function DailyChallengePage({
       // copy mirrors the Story 3.12 AC #8 wording.
       return (
         <div
-          role='alert'
-          data-testid='daily-challenge-page-error-inline'
-          className={['space-y-6', className].filter(Boolean).join(' ')}
+          role="alert"
+          data-testid="daily-challenge-page-error-inline"
+          className={["space-y-6", className].filter(Boolean).join(" ")}
         >
-          <div className='flex items-center gap-2 rounded-md border border-border bg-muted/50 px-4 py-3 text-sm text-foreground/80'>
-            <AlertCircle className='h-4 w-4' aria-hidden='true' />
+          <div className="flex items-center gap-2 rounded-md border border-border bg-muted/50 px-4 py-3 text-sm text-foreground/80">
+            <AlertCircle className="h-4 w-4" aria-hidden="true" />
             <span>
-              Today&apos;s challenge isn&apos;t available right now.
-              Please check back later.
+              Today&apos;s challenge isn&apos;t available right now. Please
+              check back later.
             </span>
           </div>
           {historyErrorRegion}
         </div>
-      )
+      );
     }
     // 4xx non-404 — also treated as inline (per AC #8 — "any other 4xx
     // is an inline error").
     return (
       <div
-        role='alert'
-        data-testid='daily-challenge-page-error-inline'
-        className={['space-y-6', className].filter(Boolean).join(' ')}
+        role="alert"
+        data-testid="daily-challenge-page-error-inline"
+        className={["space-y-6", className].filter(Boolean).join(" ")}
       >
-        <div className='flex items-center gap-2 rounded-md border border-border bg-muted/50 px-4 py-3 text-sm text-foreground/80'>
-          <AlertCircle className='h-4 w-4' aria-hidden='true' />
+        <div className="flex items-center gap-2 rounded-md border border-border bg-muted/50 px-4 py-3 text-sm text-foreground/80">
+          <AlertCircle className="h-4 w-4" aria-hidden="true" />
           <span>
-            Today&apos;s challenge isn&apos;t available right now.
-            Please check back later.
+            Today&apos;s challenge isn&apos;t available right now. Please check
+            back later.
           </span>
         </div>
         {historyErrorRegion}
       </div>
-    )
+    );
   }
 
   // ── Branch 3: empty (challenge is null after loading, no missing-endpoint) ─
@@ -281,12 +275,12 @@ export function DailyChallengePage({
   if (challenge === null) {
     return (
       <div
-        role='region'
-        aria-label='Daily challenge'
-        data-testid='daily-challenge-page-empty'
-        className={['space-y-6', className].filter(Boolean).join(' ')}
+        role="region"
+        aria-label="Daily challenge"
+        data-testid="daily-challenge-page-empty"
+        className={["space-y-6", className].filter(Boolean).join(" ")}
       >
-        <div className='rounded-md border border-border bg-muted/50 px-4 py-6 text-center text-sm text-foreground/80'>
+        <div className="rounded-md border border-border bg-muted/50 px-4 py-6 text-center text-sm text-foreground/80">
           No daily challenge today — check back tomorrow.
         </div>
         {historyErrorRegion}
@@ -297,21 +291,21 @@ export function DailyChallengePage({
           onLoadMore={loadMore}
         />
       </div>
-    )
+    );
   }
 
   // ── Branch 4: live surface ──────────────────────────────────────────────
 
   return (
     <div
-      role='region'
-      aria-label='Daily challenge'
-      data-testid='daily-challenge-page-live'
-      className={['space-y-6', className].filter(Boolean).join(' ')}
+      role="region"
+      aria-label="Daily challenge"
+      data-testid="daily-challenge-page-live"
+      className={["space-y-6", className].filter(Boolean).join(" ")}
     >
       <DailyChallengeCard challenge={challenge} />
       {isAuthenticated && streak !== null ? (
-        <div className='flex justify-end'>
+        <div className="flex justify-end">
           <DailyChallengeStreakIndicator streak={streak} />
         </div>
       ) : null}
@@ -323,5 +317,5 @@ export function DailyChallengePage({
         onLoadMore={loadMore}
       />
     </div>
-  )
+  );
 }

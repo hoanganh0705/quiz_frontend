@@ -12,7 +12,7 @@
  * ## What this component owns
  *
  * The static, flag-gated placeholder rendered by the Social Hub
- * landing page when `phase6_social === 'placeholder'`. The
+ * landing page when `social_live === 'placeholder'`. The
  * component:
  *
  *   - Renders the Social Hub landing copy (counts summary + entry

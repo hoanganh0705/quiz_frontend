@@ -29,7 +29,7 @@ import { getNotifications } from "@/lib/api";
 import { ApiError } from "@/lib/api/core/ApiError";
 
 import type {
-  UpdateNotificationPreferencesDto,
+  UpdatePreferencesDto,
 } from "@/lib/api/generated/schemas";
 
 import type {
@@ -48,7 +48,7 @@ import type {
 
 import type {
   GetNotificationsParams,
-} from "@/lib/api/generated/notifications/notifications";
+} from "@/lib/api/generated/schemas";
 
 // ─── Reads ─────────────────────────────────────────────────────────────────
 
@@ -165,7 +165,7 @@ export async function getNotificationDetail(
  * `PUT /api/v1/notifications/preferences`
  */
 export async function updateNotificationPreferences(
-  params: UpdateNotificationPreferencesDto,
+  params: UpdatePreferencesDto,
 ): Promise<UpdateNotificationPreferencesResult["data"]> {
   Sentry.addBreadcrumb({
     category: "phase5:service",
@@ -187,20 +187,13 @@ export async function updateNotificationPreferences(
  */
 export async function deleteNotification(
   id: string,
-): Promise<NotificationControllerDeleteNotificationResult["data"]> {
+): Promise<void> {
   Sentry.addBreadcrumb({
     category: "phase5:service",
     message: `notifications.deleteNotification(${id})`,
   });
-  const data = await getNotifications().notificationControllerDeleteNotification(id);
-  if (!data.data) {
-    throw new ApiError({
-      status: 500,
-      code: "GLOBAL_INTERNAL_ERROR",
-      message: "Delete notification response missing data envelope",
-    } as unknown as ConstructorParameters<typeof ApiError>[0]);
-  }
-  return data.data;
+  const _data = await getNotifications().notificationControllerDeleteNotification(id);
+  void _data;
 }
 
 /**
@@ -208,20 +201,12 @@ export async function deleteNotification(
  */
 export async function markNotificationRead(
   id: string,
-): Promise<NotificationControllerMarkAsReadResult["data"]> {
+): Promise<void> {
   Sentry.addBreadcrumb({
     category: "phase5:service",
     message: `notifications.markNotificationRead(${id})`,
   });
-  const data = await getNotifications().notificationControllerMarkAsRead(id);
-  if (!data.data) {
-    throw new ApiError({
-      status: 500,
-      code: "GLOBAL_INTERNAL_ERROR",
-      message: "Mark notification read response missing data envelope",
-    } as unknown as ConstructorParameters<typeof ApiError>[0]);
-  }
-  return data.data;
+  await getNotifications().notificationControllerMarkAsRead(id);
 }
 
 /**
@@ -229,41 +214,23 @@ export async function markNotificationRead(
  */
 export async function markNotificationUnread(
   id: string,
-): Promise<NotificationControllerMarkAsUnreadResult["data"]> {
+): Promise<void> {
   Sentry.addBreadcrumb({
     category: "phase5:service",
     message: `notifications.markNotificationUnread(${id})`,
   });
-  const data = await getNotifications().notificationControllerMarkAsUnread(id);
-  if (!data.data) {
-    throw new ApiError({
-      status: 500,
-      code: "GLOBAL_INTERNAL_ERROR",
-      message: "Mark notification unread response missing data envelope",
-    } as unknown as ConstructorParameters<typeof ApiError>[0]);
-  }
-  return data.data;
+  await getNotifications().notificationControllerMarkAsUnread(id);
 }
 
 /**
  * `POST /api/v1/notifications/read-all`
  */
-export async function markAllNotificationsRead(): Promise<
-  NotificationControllerMarkAllAsReadResult["data"]
-> {
+export async function markAllNotificationsRead(): Promise<void> {
   Sentry.addBreadcrumb({
     category: "phase5:service",
     message: "notifications.markAllNotificationsRead",
   });
-  const data = await getNotifications().notificationControllerMarkAllAsRead();
-  if (!data.data) {
-    throw new ApiError({
-      status: 500,
-      code: "GLOBAL_INTERNAL_ERROR",
-      message: "Mark all notifications read response missing data envelope",
-    } as unknown as ConstructorParameters<typeof ApiError>[0]);
-  }
-  return data.data;
+  await getNotifications().notificationControllerMarkAllAsRead();
 }
 
 /**
@@ -271,21 +238,10 @@ export async function markAllNotificationsRead(): Promise<
  *
  * Deletes all read notifications.
  */
-export async function deleteReadNotifications(): Promise<
-  NotificationControllerDeleteReadNotificationsResult["data"]
-> {
+export async function deleteReadNotifications(): Promise<void> {
   Sentry.addBreadcrumb({
     category: "phase5:service",
     message: "notifications.deleteReadNotifications",
   });
-  const data =
-    await getNotifications().notificationControllerDeleteReadNotifications();
-  if (!data.data) {
-    throw new ApiError({
-      status: 500,
-      code: "GLOBAL_INTERNAL_ERROR",
-      message: "Delete read notifications response missing data envelope",
-    } as unknown as ConstructorParameters<typeof ApiError>[0]);
-  }
-  return data.data;
+  await getNotifications().notificationControllerDeleteReadNotifications();
 }

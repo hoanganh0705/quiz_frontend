@@ -26,7 +26,7 @@ vi.mock('@/features/admin/hooks/usePermission', () => ({
 
 // ─── Mock design-system primitives ─────────────────────────────────────────────
 
-vi.mock('@/app/admin/_components/AdminPageHeader', () => ({
+vi.mock('@/app/(protected)/admin/_components/AdminPageHeader', () => ({
   AdminPageHeader: ({
     title,
     description,

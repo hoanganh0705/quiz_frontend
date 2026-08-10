@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * `useInstancesPlayFeatureFlag` — hook to check `phase5_instances_play` flag.
+ * `useInstancesPlayFeatureFlag` — hook to check `multiplayer_play_live` flag.
  *
  * Source epic:   Phase 5 — Realtime, Tournaments, Multiplayer.
  * Source story:  5.8 — Realtime multiplayer question play and post-game
@@ -29,7 +29,7 @@
  * exists so the page composition layer can decide whether to render
  * the live game or a static placeholder surface.
  *
- * Independent of `phase5_instances` — disabling play does not affect
+ * Independent of `multiplayer_instances_live` — disabling play does not affect
  * the lobby.
  */
 
@@ -45,14 +45,14 @@ export interface UseInstancesPlayFeatureFlagResult {
 }
 
 /**
- * Check the `phase5_instances_play` feature flag.
+ * Check the `multiplayer_play_live` feature flag.
  *
  * Used by the instance game page composition (TKT-5.8.G1) and the
  * Next.js route mount (TKT-5.8.G2) to conditionally render the live
  * gameplay surface or the safe placeholder fallback.
  */
 export function useInstancesPlayFeatureFlag(): UseInstancesPlayFeatureFlagResult {
-  const flagValue = getFeatureFlagValue("phase5_instances_play");
+  const flagValue = getFeatureFlagValue("multiplayer_play_live");
   const isPlaceholder = flagValue === "placeholder";
   const isLive = flagValue === "live";
 

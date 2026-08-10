@@ -18,8 +18,8 @@
  * `/social/friend-requests/outgoing/page.tsx`) delegates to this
  * component. The gate reads:
  *
- *   - `phase6_social` (the parent flag)
- *   - `phase6_social_relationship` (the read sub-flag)
+ *   - `social_live` (the parent flag)
+ *   - `social_relationship_live` (the read sub-flag)
  *
  * and renders one of three branches:
  *
@@ -88,11 +88,11 @@ export function FriendRequestRouteGate(
   const { kind, requireAuth = false } = props;
 
   const parentFlag = useMemo(
-    () => getFeatureFlagValue("phase6_social"),
+    () => getFeatureFlagValue("social_live"),
     [],
   );
   const readFlag = useMemo(
-    () => getFeatureFlagValue("phase6_social_relationship"),
+    () => getFeatureFlagValue("social_relationship_live"),
     [],
   );
 

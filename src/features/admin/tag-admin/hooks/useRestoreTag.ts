@@ -12,7 +12,7 @@ import { useCallback, useRef, useState } from 'react';
 import { mutate as globalMutate } from 'swr';
 
 import { ApiError } from '@/lib/api';
-import { addTagAdminBreadcrumb } from '@/lib/admin/phase7_admin_sentry';
+import { addTagAdminBreadcrumb } from '@/lib/admin/admin_live_sentry';
 
 import { restoreTag } from '@/features/admin/services/tag-admin.service';
 import type { TagDto } from '../tag-types';

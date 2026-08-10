@@ -41,7 +41,7 @@
  * handler makes that branch literally inexpressible.
  */
 
-import { register as defaultRegister } from "@/features/auth/service/auth.service";
+import { register as defaultRegister } from "@/features/auth/services/auth.service";
 
 import type { RegisterFormValues } from "./schemas/register.schema";
 import { toRegisterDto } from "./schemas/register.schema";

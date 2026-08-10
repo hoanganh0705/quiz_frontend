@@ -150,7 +150,7 @@ export function useUserSearch(
   query: string,
 ): UseUserSearchResult {
   // ── Auth / flag gating ─────────────────────────────────────────────
-  const flagValue = getFeatureFlagValue("phase6_social_search");
+  const flagValue = getFeatureFlagValue("social_user_search_live");
   const isFlagPlaceholder = flagValue === "placeholder";
 
   const auth = useAuthSession();
@@ -178,7 +178,7 @@ export function useUserSearch(
   // ── Debouncing ───────────────────────────────────────────────────
   const { debouncedValue: debouncedQuery } = useMemo(() => {
     // Import the hook at call time so the mock in the spec works.
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
+     
     const { useDebouncedValue } = require("@/features/social/hooks/useDebouncedValue");
     return useDebouncedValue(normalisedQuery, DEBOUNCE_WINDOW_MS);
     // eslint-disable-next-line react-hooks/exhaustive-deps

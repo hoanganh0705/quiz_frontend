@@ -40,7 +40,7 @@
  * leakage as a privacy-critical concern. Centralising the gate here
  * means there is exactly one place that decides whether to hide
  * blocked / blocked-by content, and the lint invariant script
- * (`scripts/phase6-lint-invariants.mjs`) only needs to assert one
+ * (`scripts/social-lint-invariants.mjs`) only needs to assert one
  * pattern instead of every call-site.
  *
  * ## SSR-safety

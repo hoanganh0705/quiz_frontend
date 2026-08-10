@@ -24,19 +24,19 @@
  * @see `getQuestionEditorCopy` — error message classification
  */
 
-'use client';
+"use client";
 
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useRef, useState } from "react";
 
-import { isApiError, type ApiError } from '@/lib/api';
+import { isApiError, ApiError } from "@/lib/api";
 
-import { createVersionQuestion } from '@/features/quizzes/services/question-service';
-import { getQuestionEditorCopy, type getRateLimitCopy } from '@/features/quizzes/constants/question-errors';
+import { createVersionQuestion } from "@/features/quizzes/services/question-service";
+import { getQuestionEditorCopy } from "@/features/quizzes/constants/question-errors";
 import type {
   QuizAuthorQuestionDto,
   CreateQuestionDto,
-} from '@/features/quizzes/types/author-dtos';
-import type { UserCopyEntry } from '@/lib/api/error-codes';
+} from "@/features/quizzes/types/author-dtos";
+import type { UserCopyEntry } from "@/lib/api/error-codes";
 
 // ─── Public types ─────────────────────────────────────────────────────────
 
@@ -115,7 +115,9 @@ export function useCreateVersionQuestion(
   const [cooldownSeconds, setCooldownSeconds] = useState<number | null>(null);
 
   // Single-flight ref
-  const inFlightRef = useRef<Promise<QuizAuthorQuestionDto | null> | null>(null);
+  const inFlightRef = useRef<Promise<QuizAuthorQuestionDto | null> | null>(
+    null,
+  );
 
   // Classify error for user display
   const errorCopy = error ? getQuestionEditorCopy(error.code) : null;
@@ -143,12 +145,16 @@ export function useCreateVersionQuestion(
 
       const core = (async (): Promise<QuizAuthorQuestionDto | null> => {
         try {
-          const question = await createVersionQuestion(quizId, versionId, payload);
+          const question = await createVersionQuestion(
+            quizId,
+            versionId,
+            payload,
+          );
 
           onSuccess?.(question);
 
-          emitBreadcrumb('phase4:4.10:create-question', {
-            status: 'success',
+          emitBreadcrumb("phase4:4.10:create-question", {
+            status: "success",
             durationMs: Date.now() - startedAt,
           });
 
@@ -174,8 +180,8 @@ export function useCreateVersionQuestion(
 
               onRateLimit?.(seconds);
 
-              emitBreadcrumb('phase4:4.10:create-question', {
-                status: 'cooldown',
+              emitBreadcrumb("phase4:4.10:create-question", {
+                status: "cooldown",
                 durationMs: Date.now() - startedAt,
                 code: err.code,
               });
@@ -187,30 +193,31 @@ export function useCreateVersionQuestion(
             if (err.status === 422) {
               // Extract field errors from the error response
               const errors: Record<string, string> = {};
+              const detail = err.detail as unknown;
 
               // Try to parse field errors from the error detail
-              if (typeof err.detail === 'string') {
+              if (typeof detail === "string") {
                 // Simple case: single error message
                 // Map common fields
-                if (err.detail.toLowerCase().includes('questiontext')) {
-                  errors.questionText = err.detail;
-                } else if (err.detail.toLowerCase().includes('position')) {
-                  errors.position = err.detail;
+                if (detail.toLowerCase().includes("questiontext")) {
+                  errors.questionText = detail;
+                } else if (detail.toLowerCase().includes("position")) {
+                  errors.position = detail;
                 } else {
-                  errors._general = err.detail;
+                  errors._general = detail;
                 }
-              } else if (Array.isArray(err.detail)) {
+              } else if (Array.isArray(detail)) {
                 // Array of field errors
-                for (const detail of err.detail) {
-                  if (typeof detail === 'object' && detail !== null) {
-                    const d = detail as Record<string, unknown>;
-                    const field = String(d.field ?? d.path ?? '_general');
-                    const message = String(d.message ?? 'Validation error');
+                for (const item of detail) {
+                  if (typeof item === "object" && item !== null) {
+                    const d = item as Record<string, unknown>;
+                    const field = String(d.field ?? d.path ?? "_general");
+                    const message = String(d.message ?? "Validation error");
                     errors[field] = message;
                   }
                 }
               } else {
-                errors._general = 'Please check your answers';
+                errors._general = "Please check your answers";
               }
 
               setFieldErrors(errors);
@@ -219,8 +226,8 @@ export function useCreateVersionQuestion(
             setError(err);
             onError?.(err);
 
-            emitBreadcrumb('phase4:4.10:create-question', {
-              status: 'error',
+            emitBreadcrumb("phase4:4.10:create-question", {
+              status: "error",
               durationMs: Date.now() - startedAt,
               code: err.code,
             });
@@ -229,20 +236,21 @@ export function useCreateVersionQuestion(
           }
 
           // Non-ApiError
-          const unknownErr = err instanceof Error ? err.message : 'Unknown error';
+          const unknownErr =
+            err instanceof Error ? err.message : "Unknown error";
           const apiErr = new ApiError({
             status: 0,
-            code: 'GLOBAL_UNKNOWN',
+            code: "GLOBAL_UNKNOWN",
             message: unknownErr,
           });
 
           setError(apiErr);
           onError?.(apiErr);
 
-          emitBreadcrumb('phase4:4.10:create-question', {
-            status: 'error',
+          emitBreadcrumb("phase4:4.10:create-question", {
+            status: "error",
             durationMs: Date.now() - startedAt,
-            code: 'GLOBAL_UNKNOWN',
+            code: "GLOBAL_UNKNOWN",
           });
 
           throw apiErr;

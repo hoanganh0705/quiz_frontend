@@ -78,6 +78,6 @@ export function useMyQuizzesAnalytics(): UseMyQuizzesAnalyticsResult {
     analytics: data ?? null,
     isLoading,
     isValidating,
-    error: normalisedError,
+    error: normalisedError ?? null,
   };
 }

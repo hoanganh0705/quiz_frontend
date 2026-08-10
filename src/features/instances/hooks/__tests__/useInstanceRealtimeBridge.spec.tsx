@@ -75,8 +75,8 @@ function setFeatureFlags(
   realtimeFlag: "live" | "placeholder",
 ) {
   mockGetFeatureFlagValue.mockImplementation((key: string) => {
-    if (key === "phase5_instances") return instancesFlag;
-    if (key === "phase5_realtime_infrastructure") return realtimeFlag;
+    if (key === "multiplayer_instances_live") return instancesFlag;
+    if (key === "realtime_infrastructure_live") return realtimeFlag;
     return "placeholder";
   });
 }
@@ -148,7 +148,7 @@ function makePlayerJoinEvent(
 
 describe("useInstanceRealtimeBridge", () => {
   describe("feature flag gating", () => {
-    it("does not subscribe when phase5_instances flag is placeholder", () => {
+    it("does not subscribe when multiplayer_instances_live flag is placeholder", () => {
       setFeatureFlags("placeholder", "live");
 
       renderHook(() => useInstanceRealtimeBridge("inst-1"));
@@ -156,7 +156,7 @@ describe("useInstanceRealtimeBridge", () => {
       expect(subscribeHandler).toBeNull();
     });
 
-    it("does not subscribe when phase5_realtime_infrastructure flag is placeholder", () => {
+    it("does not subscribe when realtime_infrastructure_live flag is placeholder", () => {
       setFeatureFlags("live", "placeholder");
 
       renderHook(() => useInstanceRealtimeBridge("inst-1"));

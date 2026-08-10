@@ -83,7 +83,7 @@ describe('UserRoleAdminPage', () => {
 
   it('renders disabled notice when flag is placeholder', () => {
     mockedUseAdminFeatureFlag.mockReturnValue({
-      flag: 'phase7_admin_user_role',
+      flag: 'admin_user_role_live',
       value: 'placeholder',
       isLive: false,
       isPlaceholder: true,
@@ -98,7 +98,7 @@ describe('UserRoleAdminPage', () => {
 
   it('renders search panel and empty state when no user selected', () => {
     mockedUseAdminFeatureFlag.mockReturnValue({
-      flag: 'phase7_admin_user_role',
+      flag: 'admin_user_role_live',
       value: 'live',
       isLive: true,
       isPlaceholder: false,
@@ -112,7 +112,7 @@ describe('UserRoleAdminPage', () => {
 
   it('renders the user role card when a user is selected', async () => {
     mockedUseAdminFeatureFlag.mockReturnValue({
-      flag: 'phase7_admin_user_role',
+      flag: 'admin_user_role_live',
       value: 'live',
       isLive: true,
       isPlaceholder: false,
@@ -130,7 +130,7 @@ describe('UserRoleAdminPage', () => {
 
   it('renders success banner after onChanged callback', async () => {
     mockedUseAdminFeatureFlag.mockReturnValue({
-      flag: 'phase7_admin_user_role',
+      flag: 'admin_user_role_live',
       value: 'live',
       isLive: true,
       isPlaceholder: false,
@@ -155,7 +155,7 @@ describe('UserRoleAdminPage', () => {
 
   it('renders permission denied notice when canGrant is false', () => {
     mockedUseAdminFeatureFlag.mockReturnValue({
-      flag: 'phase7_admin_user_role',
+      flag: 'admin_user_role_live',
       value: 'live',
       isLive: true,
       isPlaceholder: false,

@@ -13,7 +13,7 @@
  * ## What this component owns
  *
  * The static, flag-gated placeholder rendered by every analytics
- * route when `phase6_social === 'placeholder'`. The component:
+ * route when `social_live === 'placeholder'`. The component:
  *
  *   - Renders kind-specific copy for each analytics surface.
  *   - Is statically rendered. It calls no SWR / no service, and

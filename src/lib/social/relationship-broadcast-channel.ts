@@ -42,7 +42,7 @@
  * (`broadcast-channel.ts`), the bookmarks channel
  * (`bookmarks-broadcast-channel.ts`), the attempts / profile
  * channels (Phase 4), and the Phase 5 invalidation channel
- * (`phase5-broadcast.ts`) all continue to handle their own events.
+ * (`cross-tab-invalidation.ts`) all continue to handle their own events.
  *
  * ## Same-tab filtering
  *
@@ -76,7 +76,7 @@ import { createBroadcastChannel } from '@/lib/broadcast';
  *
  * Distinct from the auth channel (`AUTH_CHANNEL_NAME = 'auth'`),
  * the bookmarks channel (`BOOKMARKS_CHANNEL_NAME = 'bookmarks'`),
- * the Phase 5 invalidation channel (`phase5/invalidation`), and the
+ * the Phase 5 invalidation channel (`realtime/invalidation`), and the
  * Phase 4 per-feature channels (`attempts/changed`, `profile/updated`)
  * so the five channels' messages are independent BroadcastChannels at
  * the browser level. A single browser session opens one channel per

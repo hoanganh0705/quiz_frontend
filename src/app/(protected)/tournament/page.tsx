@@ -1,17 +1,26 @@
-'use client'
-import { memo } from 'react'
-import { Badge } from '@/components/ui/Badge'
-import { Button } from '@/components/ui/Button'
-import { Card, CardContent } from '@/components/ui/Card'
+"use client";
+import { memo } from "react";
+import { Badge } from "@/components/ui/Badge";
+import { Button } from "@/components/ui/Button";
+import { Card, CardContent } from "@/components/ui/Card";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue
-} from '@/components/ui/Select'
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/Tabs'
-import { difficultyColors } from '@/features/quizzes/constants/difficulty-color'
+  SelectValue,
+} from "@/components/ui/Select";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/Tabs";
+import { difficultyColors } from "@/features/quizzes/constants/difficulty-color";
+
+/** Maps TournamentResponseDto.status to badge background class. */
+const statusColors: Record<string, string> = {
+  upcoming: "bg-blue-600",
+  registration: "bg-green-600",
+  ongoing: "bg-brand",
+  completed: "bg-muted-foreground",
+  cancelled: "bg-destructive",
+};
 import {
   CalendarDays,
   Users,
@@ -21,207 +30,203 @@ import {
   Calendar,
   ChevronDown,
   Check,
-  Tag
-} from 'lucide-react'
-import Image from 'next/image'
-import Link from 'next/link'
-import { Tournament } from '@/features/tournaments/types'
-import { useTournamentPage } from '@/features/tournaments/hooks'
+  Tag,
+} from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
+import { Tournament } from "@/features/tournaments/types";
+import { useTournamentPage } from "@/features/tournaments/hooks";
 
 const FeaturedTournament = memo(function FeaturedTournament() {
   return (
     <section
-      className='relative bg-linear-to-br bg-brand to-indigo-950 rounded-xl p-6 md:p-10 lg:p-12 overflow-hidden shadow-lg'
-      aria-labelledby='featured-title'
+      className="relative bg-linear-to-br bg-brand to-indigo-950 rounded-xl p-6 md:p-10 lg:p-12 overflow-hidden shadow-lg"
+      aria-labelledby="featured-title"
     >
       {/* Abstract background shapes */}
-      <div className='absolute inset-0 opacity-20' aria-hidden='true'>
-        <div className='absolute w-64 h-64 bg-brand rounded-full -top-16 -left-16 blur-3xl'></div>
-        <div className='absolute w-96 h-96 bg-indigo-700 rounded-full -bottom-32 -right-32 blur-3xl'></div>
-        <div className='absolute w-48 h-48 bg-brand rounded-full top-1/2 left-1/4 -translate-x-1/2 -translate-y-1/2 blur-3xl'></div>
+      <div className="absolute inset-0 opacity-20" aria-hidden="true">
+        <div className="absolute w-64 h-64 bg-brand rounded-full -top-16 -left-16 blur-3xl"></div>
+        <div className="absolute w-96 h-96 bg-indigo-700 rounded-full -bottom-32 -right-32 blur-3xl"></div>
+        <div className="absolute w-48 h-48 bg-brand rounded-full top-1/2 left-1/4 -translate-x-1/2 -translate-y-1/2 blur-3xl"></div>
       </div>
 
-      <div className='relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-8 items-center'>
+      <div className="relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
         {/* Left Section */}
-        <div className='space-y-6'>
-          <span className='inline-flex items-center rounded-full bg-red-500 px-3 py-1 text-xs font-medium text-white'>
+        <div className="space-y-6">
+          <span className="inline-flex items-center rounded-full bg-red-500 px-3 py-1 text-xs font-medium text-white">
             FEATURED
           </span>
           <h2
-            id='featured-title'
-            className='text-xl md:text-3xl font-extrabold leading-tight text-white'
+            id="featured-title"
+            className="text-xl md:text-3xl font-extrabold leading-tight text-white"
           >
             Global Knowledge Championship
           </h2>
-          <p className='text-base text-white'>
+          <p className="text-base text-white">
             Test your knowledge against the best quiz enthusiasts from around
             the world in this premier tournament with multiple rounds of
             challenging questions.
           </p>
-          <div className='flex flex-wrap items-center gap-4 text-white text-sm'>
-            <div className='flex items-center gap-2'>
-              <CalendarDays className='w-5 h-5' aria-hidden='true' />
+          <div className="flex flex-wrap items-center gap-4 text-white text-sm">
+            <div className="flex items-center gap-2">
+              <CalendarDays className="w-5 h-5" aria-hidden="true" />
               <span>May 15 - June 10, 2023</span>
             </div>
-            <div className='flex items-center gap-2'>
-              <Users className='w-5 h-5' aria-hidden='true' />
-              <span className='tabular-nums'>1,248 participants</span>
+            <div className="flex items-center gap-2">
+              <Users className="w-5 h-5" aria-hidden="true" />
+              <span className="tabular-nums">1,248 participants</span>
             </div>
-            <div className='flex items-center gap-2'>
-              <Trophy className='w-5 h-5' aria-hidden='true' />
+            <div className="flex items-center gap-2">
+              <Trophy className="w-5 h-5" aria-hidden="true" />
               <span>$5,000 prize pool</span>
             </div>
           </div>
           <Button
-            className='bg-brand text-white px-6 py-3 rounded-lg text-sm font-semibold flex items-center gap-2'
-            aria-label='Join Global Knowledge Championship tournament'
+            className="bg-brand text-white px-6 py-3 rounded-lg text-sm font-semibold flex items-center gap-2"
+            aria-label="Join Global Knowledge Championship tournament"
           >
             Join Tournament
-            <ArrowRight className='w-5 h-5' aria-hidden='true' />
+            <ArrowRight className="w-5 h-5" aria-hidden="true" />
           </Button>
         </div>
 
         {/* Right Section */}
-        <div className='bg-brand/30 backdrop-blur-sm rounded-lg p-6 space-y-6 lg:ml-auto lg:max-w-sm w-full'>
-          <div className='flex items-center justify-between text-white'>
+        <div className="bg-brand/30 backdrop-blur-sm rounded-lg p-6 space-y-6 lg:ml-auto lg:max-w-sm w-full">
+          <div className="flex items-center justify-between text-white">
             <span>Registration closes in</span>
-            <div className='flex items-center gap-1'>
-              <Clock className='w-4 h-4' aria-hidden='true' />
-              <span className='tabular-nums'>3 days</span>
+            <div className="flex items-center gap-1">
+              <Clock className="w-4 h-4" aria-hidden="true" />
+              <span className="tabular-nums">3 days</span>
             </div>
           </div>
           <div
-            className='w-full bg-brand rounded-full h-2.5'
-            role='progressbar'
+            className="w-full bg-brand rounded-full h-2.5"
+            role="progressbar"
             aria-valuenow={70}
             aria-valuemin={0}
             aria-valuemax={100}
-            aria-label='Registration progress'
+            aria-label="Registration progress"
           >
             <div
-              className='bg-white h-2.5 rounded-full'
-              style={{ width: '70%' }}
+              className="bg-white h-2.5 rounded-full"
+              style={{ width: "70%" }}
             ></div>
           </div>
-          <div className='grid grid-cols-3 gap-4'>
-            <div className='bg-brand rounded-lg p-4 text-center'>
-              <div className='text-2xl font-bold text-white tabular-nums'>
+          <div className="grid grid-cols-3 gap-4">
+            <div className="bg-brand rounded-lg p-4 text-center">
+              <div className="text-2xl font-bold text-white tabular-nums">
                 3
               </div>
-              <div className='text-white text-sm'>Rounds</div>
+              <div className="text-white text-sm">Rounds</div>
             </div>
-            <div className='bg-brand rounded-lg p-4 text-center'>
-              <div className='text-2xl font-bold text-white tabular-nums'>
+            <div className="bg-brand rounded-lg p-4 text-center">
+              <div className="text-2xl font-bold text-white tabular-nums">
                 15
               </div>
-              <div className='text-white text-sm'>Categories</div>
+              <div className="text-white text-sm">Categories</div>
             </div>
-            <div className='bg-brand rounded-lg p-4 text-center'>
-              <div className='text-2xl font-bold text-white tabular-nums'>
+            <div className="bg-brand rounded-lg p-4 text-center">
+              <div className="text-2xl font-bold text-white tabular-nums">
                 50
               </div>
-              <div className='text-white text-sm'>Questions</div>
+              <div className="text-white text-sm">Questions</div>
             </div>
           </div>
-          <p className='text-white text-sm text-center'>
+          <p className="text-white text-sm text-center">
             Top 100 participants advance to the final round
           </p>
         </div>
       </div>
     </section>
-  )
-})
+  );
+});
 
 const TournamentCard = memo(function TournamentCard({
-  tournament
+  tournament,
 }: {
-  tournament: Tournament
+  tournament: Tournament;
 }) {
   return (
     <Card
-      className='bg-background border-border overflow-hidden'
-      role='article'
-      aria-labelledby={`tournament-${tournament.id}`}
+      className="bg-background border-border overflow-hidden"
+      role="article"
+      aria-labelledby={`tournament-${tournament.tournamentId}`}
     >
-      <div className='relative'>
+      <div className="relative">
         <Image
-          src={tournament.image || '/placeholder.svg'}
+          src={"/placeholder.svg"}
           alt={`${tournament.title} tournament banner`}
           width={350}
           height={200}
-          className='w-full h-48 object-cover'
-          loading='lazy'
+          className="w-full h-48 object-cover"
+          loading="lazy"
         />
-        <div className='absolute top-3 left-3'>
-          <Badge className={`${difficultyColors[tournament.difficulty].bg}`}>
+        <div className="absolute top-3 left-3">
+          <Badge className={`${difficultyColors[tournament.difficulty.charAt(0).toUpperCase() + tournament.difficulty.slice(1) as keyof typeof difficultyColors].bg}`}>
             {tournament.difficulty}
           </Badge>
         </div>
-        <div className='absolute top-3 right-3'>
-          <Badge className={`${tournament.statusColor} text-white`}>
+        <div className="absolute top-3 right-3">
+          <Badge className={`${statusColors[tournament.status as keyof typeof statusColors] ?? ''} text-white`}>
             {tournament.status}
           </Badge>
         </div>
       </div>
 
-      <CardContent className='p-4'>
+      <CardContent className="p-4">
         <h3
-          id={`tournament-${tournament.id}`}
-          className='text-xl font-bold mb-2 text-foreground'
+          id={`tournament-${tournament.tournamentId}`}
+          className="text-xl font-bold mb-2 text-foreground"
         >
           {tournament.title}
         </h3>
-        <p className='text-foreground/70 text-sm mb-4 line-clamp-2'>
+        <p className="text-foreground/70 text-sm mb-4 line-clamp-2">
           {tournament.description}
         </p>
 
-        <div className='space-y-2 mb-4'>
-          <div className='flex items-center gap-2 text-foreground/70 text-sm'>
-            <Tag className='w-4 h-4' aria-hidden='true' />
-            <span>{tournament.category}</span>
+        <div className="space-y-2 mb-4">
+          <div className="flex items-center gap-2 text-foreground/70 text-sm">
+            <Tag className="w-4 h-4" aria-hidden="true" />
+            <span>{tournament.categoryId ?? "General"}</span>
           </div>
-          <div className='flex items-center gap-2 text-foreground/70 text-sm'>
-            <Calendar className='w-4 h-4' aria-hidden='true' />
-            <span>{tournament.dateRange}</span>
+          <div className="flex items-center gap-2 text-foreground/70 text-sm">
+            <Calendar className="w-4 h-4" aria-hidden="true" />
+            <span>{`${new Date(tournament.startAt).toLocaleDateString()} - ${new Date(tournament.endAt).toLocaleDateString()}`}</span>
           </div>
-          <div className='flex items-center gap-2 text-foreground/70 text-sm'>
-            <Users className='w-4 h-4' aria-hidden='true' />
-            <span className='tabular-nums'>
-              {tournament.participants} participants
+          <div className="flex items-center gap-2 text-foreground/70 text-sm">
+            <Users className="w-4 h-4" aria-hidden="true" />
+            <span className="tabular-nums">
+              {tournament.maxParticipants ? `${tournament.maxParticipants} participants` : "— participants"}
             </span>
           </div>
-          <div className='flex items-center gap-2 text-foreground/70 text-sm'>
-            <Trophy className='w-4 h-4' aria-hidden='true' />
+          <div className="flex items-center gap-2 text-foreground/70 text-sm">
+            <Trophy className="w-4 h-4" aria-hidden="true" />
             <span>{tournament.prize} prize</span>
           </div>
         </div>
 
-        {tournament.closingInfo && (
-          <div className='flex items-center gap-2 dark:text-yellow-400 text-foreground text-sm mb-4'>
-            <Clock className='w-4 h-4 text-yellow-500' aria-hidden='true' />
-            <span>{tournament.closingInfo}</span>
-          </div>
-        )}
+        {/* closingInfo not in TournamentResponseDto — omitted */}
+        
 
         <Button
           asChild
-          className='w-full bg-brand hover:bg-brand-hover text-white'
+          className="w-full bg-brand hover:bg-brand-hover text-white"
         >
           <Link
-            href={`/tournament/${tournament.id}`}
+            href={`/tournament/${tournament.tournamentId}`}
             aria-label={`View details for ${tournament.title}`}
           >
             View Details
             <ChevronDown
-              className='w-4 h-4 ml-2 -rotate-90'
-              aria-hidden='true'
+              className="w-4 h-4 ml-2 -rotate-90"
+              aria-hidden="true"
             />
           </Link>
         </Button>
       </CardContent>
     </Card>
-  )
-})
+  );
+});
 
 function QuizTournament() {
   const {
@@ -230,15 +235,15 @@ function QuizTournament() {
     uniqueCategories,
     filteredTournaments,
     handleFilterChange,
-    handleCategoryChange
-  } = useTournamentPage()
+    handleCategoryChange,
+  } = useTournamentPage();
 
   return (
-    <main className='min-h-screen text-foreground p-4 md:p-8 lg:p-12'>
+    <main className="min-h-screen text-foreground p-4 md:p-8 lg:p-12">
       <div>
-        <header className='mb-8'>
-          <h1 className='text-3xl font-bold mb-2'>Quiz Tournaments</h1>
-          <p className='text-foreground/70 text-base'>
+        <header className="mb-8">
+          <h1 className="text-3xl font-bold mb-2">Quiz Tournaments</h1>
+          <p className="text-foreground/70 text-base">
             Compete against other quiz enthusiasts and win amazing prizes
           </p>
         </header>
@@ -246,34 +251,34 @@ function QuizTournament() {
         <FeaturedTournament />
       </div>
 
-      <div className='mt-10'>
+      <div className="mt-10">
         {/* Header */}
-        <header className='flex items-center justify-between mb-8'>
-          <h2 className='text-2xl font-bold'>All Tournaments</h2>
+        <header className="flex items-center justify-between mb-8">
+          <h2 className="text-2xl font-bold">All Tournaments</h2>
           <Select value={filter} onValueChange={handleFilterChange}>
             <SelectTrigger
-              className='w-48 bg-background border-border'
-              aria-label='Filter tournaments'
+              className="w-48 bg-background border-border"
+              aria-label="Filter tournaments"
             >
-              <SelectValue placeholder='All Tournaments' />
+              <SelectValue placeholder="All Tournaments" />
             </SelectTrigger>
-            <SelectContent className='bg-background border-border'>
-              <SelectItem value='all' className='text-foreground border'>
-                <div className='flex items-center gap-2'>
-                  <Check className='w-4 h-4' aria-hidden='true' />
+            <SelectContent className="bg-background border-border">
+              <SelectItem value="all" className="text-foreground border">
+                <div className="flex items-center gap-2">
+                  <Check className="w-4 h-4" aria-hidden="true" />
                   All Tournaments
                 </div>
               </SelectItem>
-              <SelectItem value='upcoming' className='text-foreground'>
+              <SelectItem value="upcoming" className="text-foreground">
                 Upcoming
               </SelectItem>
-              <SelectItem value='ongoing' className='text-foreground'>
+              <SelectItem value="ongoing" className="text-foreground">
                 Ongoing
               </SelectItem>
-              <SelectItem value='completed' className='text-foreground'>
+              <SelectItem value="completed" className="text-foreground">
                 Completed
               </SelectItem>
-              <SelectItem value='registration' className='text-foreground'>
+              <SelectItem value="registration" className="text-foreground">
                 Registration Open
               </SelectItem>
             </SelectContent>
@@ -284,20 +289,20 @@ function QuizTournament() {
         <Tabs
           value={selectedCategory}
           onValueChange={handleCategoryChange}
-          className='mb-8 w-full'
+          className="mb-8 w-full"
         >
           <TabsList
-            className='flex flex-nowrap gap-2 mx-2 sm:mx-0 sm:gap-3 overflow-x-auto pb-2 bg-transparent scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent'
-            role='tablist'
-            aria-label='Tournament categories'
+            className="flex flex-nowrap gap-2 mx-2 sm:mx-0 sm:gap-3 overflow-x-auto pb-2 bg-transparent scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent"
+            role="tablist"
+            aria-label="Tournament categories"
           >
             {uniqueCategories.map((category) => (
               <TabsTrigger
                 key={category}
                 value={category}
-                className='shrink-0 whitespace-nowrap px-2.5 py-1 text-xs sm:text-sm border-border rounded-full  sm:px-4 sm:py-1.5 font-medium text-foreground/70 data-[state=active]:bg-brand data-[state=active]:text-white hover:bg-brand-hover hover:text-white transition-all duration-200'
+                className="shrink-0 whitespace-nowrap px-2.5 py-1 text-xs sm:text-sm border-border rounded-full  sm:px-4 sm:py-1.5 font-medium text-foreground/70 data-[state=active]:bg-brand data-[state=active]:text-white hover:bg-brand-hover hover:text-white transition-all duration-200"
               >
-                {category === 'all' ? 'All Categories' : category}
+                {category === "all" ? "All Categories" : category}
               </TabsTrigger>
             ))}
           </TabsList>
@@ -305,16 +310,19 @@ function QuizTournament() {
 
         {/* Tournament Grid */}
         <section
-          className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6'
-          aria-label='Tournament listings'
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
+          aria-label="Tournament listings"
         >
           {filteredTournaments.map((tournament) => (
-            <TournamentCard key={tournament.id} tournament={tournament} />
+            <TournamentCard
+              key={tournament.tournamentId}
+              tournament={tournament}
+            />
           ))}
         </section>
       </div>
     </main>
-  )
+  );
 }
 
-export default memo(QuizTournament)
+export default memo(QuizTournament);

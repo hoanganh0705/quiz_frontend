@@ -15,7 +15,7 @@
  * - Expose `userPosition` from the server response — never computed
  *   client-side.
  * - Filter changes reset pagination to the first offset.
- * - Feature-flag gating via `phase5_rankings`.
+ * - Feature-flag gating via `rankings_live`.
  *
  * ## Period filter
  *
@@ -40,7 +40,7 @@
  *
  * ## Feature flag
  *
- * When `phase5_rankings === 'placeholder'`, the hook returns safe
+ * When `rankings_live === 'placeholder'`, the hook returns safe
  * fallback (empty items, `isLoading: false`, `userPosition: null`).
  */
 
@@ -132,12 +132,12 @@ function toLeaderboardEntry(
  * opaque next-offset value returned by the backend.
  *
  * Returns safe fallback (`items: []`, `isLoading: false`,
- * `userPosition: null`) when `phase5_rankings === 'placeholder'`.
+ * `userPosition: null`) when `rankings_live === 'placeholder'`.
  */
 export function useRankingLeaderboard(
   filters: Partial<RankingLeaderboardFilters> = DEFAULT_RANKING_LEADERBOARD_FILTERS,
 ): UseRankingLeaderboardResult {
-  const flagValue = getFeatureFlagValue("phase5_rankings");
+  const flagValue = getFeatureFlagValue("rankings_live");
   const isFlagPlaceholder = flagValue === "placeholder";
 
   // SWR cache key. Disabled sentinel when flag is off so no fetch fires.

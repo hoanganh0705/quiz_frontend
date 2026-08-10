@@ -82,12 +82,12 @@ export function useQuizAuthorView(
       );
 
       try {
-        const response = await getQuizByIdOrSlug(quizId);
-
-        // The response is the wire envelope { data: QuizResponseDto }
-        // Map to our author view shape.
-        const data = (response as unknown as { data?: QuizAuthorView }).data;
-        if (!data) {
+        // `getQuizByIdOrSlug` already unwraps the backend's
+        // `{ data: QuizResponseDto, meta }` envelope and returns the
+        // inner `QuizResponseDto`. The author view is the same wire
+        // shape as the player view for the fields we read below.
+        const quiz = await getQuizByIdOrSlug(quizId);
+        if (!quiz) {
           throw new Error('Unexpected response shape');
         }
 
@@ -96,7 +96,7 @@ export function useQuizAuthorView(
           durationMs: Date.now() - startedAt,
         });
 
-        return data;
+        return quiz as unknown as QuizAuthorView;
       } catch (err) {
         if (isApiError(err)) {
           emitBreadcrumb('phase4:4.9:author-view', {

@@ -12,7 +12,7 @@
  * The full `/admin/comments/reports` page composition. It owns:
  *
  *   - the page-level feature-flag gate
- *     (`useAdminFeatureFlag('phase7_admin_comment_moderation')`).
+ *     (`useAdminFeatureFlag('admin_comment_moderation_live')`).
  *   - the documented page header (`AdminPageHeader`).
  *   - the `CommentReportsList` (the only list rendered here).
  *
@@ -25,7 +25,7 @@
  *
  * The route file (`app/admin/comments/reports/page.tsx`) is a thin
  * pass-through to `CommentReportsRouteHandoff`, which emits a
- * `phase7:admin` breadcrumb on mount and delegates here. This
+ * `admin:7.1` breadcrumb on mount and delegates here. This
  * three-layer pattern (route file → handoff → page) keeps the
  * diagnostic affordances on the boundary and the visible page
  * logic free of side-effects.
@@ -41,7 +41,7 @@
 
 import { Shield, MessageSquareWarning } from 'lucide-react';
 
-import { AdminPageHeader } from '@/app/admin/_components/AdminPageHeader';
+import { AdminPageHeader } from '@/app/(protected)/admin/_components/AdminPageHeader';
 import { EmptyState } from '@/components/ui/EmptyState';
 
 import { useAdminFeatureFlag } from '@/features/admin/hooks';
@@ -56,7 +56,7 @@ function CommentReportsComingSoon(): React.ReactElement {
       title="Comment moderation coming soon"
       description={
         'Comment moderation surfaces are not yet enabled. ' +
-        'Set NEXT_PUBLIC_PHASE7_ADMIN_COMMENT_MODERATION=live to preview the feature.'
+        'Set NEXT_PUBLIC_ADMIN_COMMENT_MODERATION_LIVE=live to preview the feature.'
       }
       size="md"
     />
@@ -69,7 +69,7 @@ function CommentReportsDisabled(): React.ReactElement {
       icon={Shield}
       title="Comment moderation is disabled"
       description={
-        'The phase7_admin_comment_moderation feature flag is currently set ' +
+        'The admin_comment_moderation_live feature flag is currently set ' +
         'to a value other than "enabled". Toggle the flag to live to render ' +
         'the moderation queue.'
       }
@@ -81,7 +81,7 @@ function CommentReportsDisabled(): React.ReactElement {
 // ─── Component ──────────────────────────────────────────────────────────────
 
 /**
- * Comment reports page. Gated by `phase7_admin_comment_moderation`.
+ * Comment reports page. Gated by `admin_comment_moderation_live`.
  *
  * ## Interface contract
  *
@@ -98,7 +98,7 @@ export interface CommentReportsPageProps {
 export function CommentReportsPage(
   _props: CommentReportsPageProps = {},
 ): React.ReactElement {
-  const { isLive, value } = useAdminFeatureFlag('phase7_admin_comment_moderation');
+  const { isLive, value } = useAdminFeatureFlag('admin_comment_moderation_live');
 
   // The default placeholder shipped with Batch A is replaced by
   // the full composition when the flag is `'enabled'`. The

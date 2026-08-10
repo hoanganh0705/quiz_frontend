@@ -23,7 +23,7 @@
  *     - `SOCIAL_CACHE_KEYS.makeBlockedKey()` (viewer-only)
  *     - `SOCIAL_CACHE_KEYS.makeSocialCountsKey(userId)`
  * - Abort-on-unmount when a request is in-flight.
- * - Safe no-op fallback when `phase6_social_block_mutation` is
+ * - Safe no-op fallback when `social_block_mutation_live` is
  *   `'placeholder'`.
  *
  * ## Return contract
@@ -124,7 +124,7 @@ export function useUnblock(
   options: UseUnblockOptions = {},
 ): UseUnblockResult {
   // ── Flag guard ────────────────────────────────────────────────────────
-  const flagValue = getFeatureFlagValue("phase6_social_block_mutation");
+  const flagValue = getFeatureFlagValue("social_block_mutation_live");
   const isFlagPlaceholder = flagValue === "placeholder";
 
   // ── Permissions ───────────────────────────────────────────────────────
