@@ -30,3 +30,16 @@ export interface LeaderboardEntry {
   score: number
   time: string
 }
+
+// Phase 3 (S-14) — re-export the planning-intent DTOs from the
+// feature-internal types module so consumers can read the full
+// surface without reaching into the DTO module directly.
+export type {
+  DailyChallengeAnswerResponseView,
+  DailyChallengeHistoryItemView,
+  DailyChallengeHistoryPage,
+  DailyChallengeResult,
+  DailyChallengeView,
+  GetDailyChallengeHistoryParams,
+  SubmitDailyChallengeAnswerParams,
+} from './dto'

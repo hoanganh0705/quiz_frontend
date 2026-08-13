@@ -112,7 +112,6 @@ export interface QuizListItem {
   rating: number
   isPopular: boolean
   badges: string[]
-  bgGradient: string
 }
 
 export interface QuizCreator {
@@ -230,7 +229,6 @@ export function toQuizListItem(dto: QuizResponseDto): QuizListItem {
     rating: 0,
     isPopular: false,
     badges: [],
-    bgGradient: '',
   };
 }
 

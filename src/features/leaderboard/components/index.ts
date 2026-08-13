@@ -8,14 +8,7 @@ export { LeaderboardEntryRow } from './LeaderboardEntryRow'
 export { LeaderboardSkeleton } from './LeaderboardSkeleton'
 export { LeaderboardEmptyState } from './LeaderboardEmptyState'
 export { LeaderboardPage } from './LeaderboardPage'
-export {
-  LeaderboardHighlights,
-  mockUsers,
-  categoryUsers,
-  trendingUsers,
-  categories,
-  mockLeaderboardUsers
-} from './LeaderboardHighlights'
+export { LeaderboardHighlights } from './LeaderboardHighlights'
 export { YourRankingPopup } from './YourRankingPopup'
 export { PlayerCard } from './PlayerCard'
 
@@ -25,5 +18,4 @@ export { default as CategoryTab } from './CategoryTab'
 export { default as TrendingTab } from './TrendingTab'
 
 // Migrated from homepage
-export { default as LiveWinner } from './LiveWinner'
 export { default as PlayerRanking } from './PlayerRanking'

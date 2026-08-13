@@ -20,6 +20,7 @@ export { DailyChallengeHistoryEmptyState } from './DailyChallengeHistoryEmptySta
 export { DailyChallengeStreakIndicator } from './DailyChallengeStreakIndicator'
 export { DailyChallengePlaceholder } from './DailyChallengePlaceholder'
 export { DailyChallengePage } from './DailyChallengePage'
+export { DailyChallengePlaySurface } from './DailyChallengePlaySurface'
 export {
   DailyChallengeCardSkeleton,
   DailyChallengeHistorySkeleton,

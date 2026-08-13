@@ -1,6 +1,5 @@
 import type { MetadataRoute } from 'next'
 import { siteConfig } from '@/shared/lib/seo'
-import { quizzes } from '@/features/quizzes/constants/mock-quizzes'
 
 const staticRoutes = [
   '/',
@@ -28,36 +27,26 @@ const staticRoutes = [
  * entries; when the backend ships a username → userId endpoint,
  * the sitemap should call it server-side and emit one entry per
  * real profile.
+ *
+ * NOTE: Static quiz URLs removed from sitemap. Previously used
+ * mock-quizzes.ts for quiz URLs, but this is stale data.
+ * When the backend ships a quiz listing endpoint, uncomment and
+ * fetch from: GET /api/v1/quizzes (with pagination).
  */
-const slugify = (value: string) =>
-  value
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9\s-]/g, '')
-    .replace(/\s+/g, '-')
+// const slugify = (value: string) =>
+//   value
+//     .trim()
+//     .toLowerCase()
+//     .replace(/[^a-z0-9\s-]/g, '')
+//     .replace(/\s+/g, '-')
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date()
 
-  const staticEntries = staticRoutes.map((path) => ({
+  return staticRoutes.map((path) => ({
     url: new URL(path, siteConfig.url).toString(),
     lastModified: now,
     changeFrequency: 'weekly' as const,
     priority: path === '/' ? 1 : 0.7
   }))
-
-  const quizEntries = quizzes.map((quiz) => ({
-    url: new URL(`/quizzes/${quiz.id}`, siteConfig.url).toString(),
-    lastModified: now,
-    changeFrequency: 'weekly' as const,
-    priority: 0.8
-  }))
-
-  // Phase 1 removed the 11 fake-profile entries generated from
-  // the hardcoded `players` constant (F-08, F-20b). The next
-  // iteration should replace this with a server-side fetch
-  // against the backend's username → userId endpoint when it
-  // ships (F-29).
-
-  return [...staticEntries, ...quizEntries]
 }

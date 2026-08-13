@@ -217,7 +217,11 @@ export const ActivityItem = memo(function ActivityItem({
   const colorClass = getActivityColor(activity.type);
   const title = getActivityTitle(activity);
   const description = getActivityDescription(activity);
-  const timeAgo = formatTimeAgo(activity.occurredAt);
+  // Phase 3 (S-21): the wire field was renamed from `occurredAt`
+  // to `at`. The dto-adapters project both shapes; the activity
+  // surface here uses the canonical `at` field on the
+  // `UserActivityItemDto` payload.
+  const timeAgo = formatTimeAgo((activity as { at?: string }).at ?? '');
 
   return (
     <div

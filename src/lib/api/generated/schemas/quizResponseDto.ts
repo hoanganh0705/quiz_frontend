@@ -5,6 +5,7 @@
  * REST API for the quiz application
  * OpenAPI spec version: 1.0
  */
+import type { QuizResponseDtoCreator } from './quizResponseDtoCreator';
 import type { QuizResponseDtoPublishedVersion } from './quizResponseDtoPublishedVersion';
 import type { QuizTagDto } from './quizTagDto';
 
@@ -16,6 +17,11 @@ export interface QuizResponseDto {
    * @nullable
    */
   creatorId?: string | null;
+  /**
+   * Embedded author summary
+   * @nullable
+   */
+  creator: QuizResponseDtoCreator;
   /** Quiz title */
   title: string;
   /**
@@ -40,6 +46,16 @@ export interface QuizResponseDto {
    * @nullable
    */
   categoryId?: string | null;
+  /**
+   * Resolved category display name
+   * @nullable
+   */
+  categoryName?: string | null;
+  /**
+   * Resolved category URL-friendly slug
+   * @nullable
+   */
+  categorySlug?: string | null;
   /** Whether the quiz is featured */
   isFeatured: boolean;
   /** Whether the quiz is hidden from public listings */

@@ -14,12 +14,25 @@ import type { SearchTagResultDto } from './searchTagResultDto';
 export interface SearchResponseDto {
   /** The query string echoed back as performed */
   query: string;
+  /**
+   * Per-section result cap applied to this response. Same value used for every section; configurable via the `limit` query param.
+   * @minimum 1
+   * @maximum 20
+   */
+  limit: number;
+  /**
+   * Opaque pagination cursor. `null` means the response is the final page (search is currently cursor-less).
+   * @nullable
+   */
+  nextCursor: string | null;
+  /** `true` when there are more results beyond this page. */
+  hasNextPage: boolean;
   /** Matching users, ordered by relevance */
   users: SearchUserResultDto[];
   /** Matching quizzes, ordered by relevance */
   quizzes: SearchQuizResultDto[];
   /** Matching comments, ordered by relevance */
-  commentss: SearchCommentResultDto[];
+  comments: SearchCommentResultDto[];
   /** Matching categories, ordered by relevance */
   categories: SearchCategoryResultDto[];
   /** Matching tags, ordered by relevance */

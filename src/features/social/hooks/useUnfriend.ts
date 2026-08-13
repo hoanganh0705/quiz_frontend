@@ -108,6 +108,26 @@ export interface UseUnfriendOptions {
    * `useSocialPermissions`.
    */
   currentUserId?: string | null;
+  /**
+   * When `true`, the hook skips the `useSocialPermissions` permission
+   * guard and dispatches the unfriend mutation as long as the target id
+   * is non-null and the feature flag is live. The caller asserts that
+   * the row came from a server-authoritative friends-list source
+   * (i.e. `GET /social/friends/:userId`), so the relationship is by
+   * definition `friend` and the redundant `useRelationship` round-trip
+   * would race against the optimistic UI.
+   *
+   * Set this to `true` from the `/friends` page's "Friends List"
+   * panel and the Compare Stats panel so the unfriend button is
+   * immediately interactive (the user has clearly already seen the
+   * row in their friends list). Leave it `false` (the default) for
+   * callers that mount the button outside of the friends-list
+   * context.
+   *
+   * Defaults to `false` so the strict-permission semantics are
+   * preserved across every other call-site.
+   */
+  assumeCanUnfriend?: boolean;
 }
 
 /**
@@ -172,7 +192,10 @@ export function useUnfriend(
     }
 
     // ── Permissions guard ─────────────────────────────────────────────
-    if (!permissions.canUnfriend) {
+    // Skipped when the caller asserts the row came from the friends
+    // list (server-authoritative). The strict check still applies in
+    // every other context.
+    if (!options.assumeCanUnfriend && !permissions.canUnfriend) {
       return Object.freeze({
         unfriend: () => {
           // no-op — permission denied
@@ -252,6 +275,7 @@ export function useUnfriend(
     isFlagPlaceholder,
     targetUserId,
     permissions.canUnfriend,
+    options.assumeCanUnfriend,
     mutate,
     error,
     alreadyNotFriends,

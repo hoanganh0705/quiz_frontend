@@ -130,3 +130,16 @@ export type {
   UsePublishVersionOptions,
   UsePublishVersionReturn,
 } from "./usePublishVersion";
+
+// Phase 5 (S-29) — Quiz history (real API)
+export { useQuizHistory } from "./useQuizHistory";
+export type {
+  UseQuizHistoryFilters,
+  UseQuizHistoryReturn,
+} from "./useQuizHistory";
+export { useQuizHistoryStats } from "./useQuizHistoryStats";
+export type {
+  QuizHistoryStatsData,
+  UseQuizHistoryStatsReturn,
+} from "./useQuizHistoryStats";
+export { exportQuizHistory } from "./exportQuizHistory";

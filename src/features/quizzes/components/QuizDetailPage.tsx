@@ -4,8 +4,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
 import { Button } from '@/components/ui/Button';
-import { useQuizByIdOrSlug } from '@/features/quizzes/hooks/useQuizByIdOrSlug';
-import { useQuizStatsByIdOrSlug } from '@/features/quizzes/hooks/useQuizStatsByIdOrSlug';
+import { useQuizAggregate } from '@/features/quizzes/hooks/useQuizAggregate';
 import { CommentsWidget } from '@/features/comments/components/CommentsWidget';
 import { ReviewsWidget } from '@/features/reviews/components/ReviewsWidget';
 
@@ -24,18 +23,17 @@ export interface QuizDetailPageProps {
 }
 
 export function QuizDetailPage({ idOrSlug }: QuizDetailPageProps) {
-  const detail = useQuizByIdOrSlug(idOrSlug);
-  const stats = useQuizStatsByIdOrSlug(idOrSlug);
+  const aggregate = useQuizAggregate(idOrSlug);
 
-  if (detail.notFound) {
+  if (aggregate.notFound) {
     notFound();
   }
 
-  if (detail.isLoading) {
+  if (aggregate.isLoading) {
     return <QuizDetailPageSkeleton />;
   }
 
-  if (detail.error || !detail.quiz) {
+  if (aggregate.error || !aggregate.quiz) {
     return (
       <div
         className='mx-auto min-h-[60vh] w-full max-w-6xl overflow-x-hidden px-4 py-6 sm:px-6 sm:py-8 lg:px-8'
@@ -51,19 +49,20 @@ export function QuizDetailPage({ idOrSlug }: QuizDetailPageProps) {
             type='button'
             variant='outline'
             className='mt-4 min-w-24'
-            onClick={() => void detail.retry()}
-            disabled={detail.isRetrying}
+            onClick={() => void aggregate.retry()}
+            disabled={aggregate.isRetrying}
             data-testid='quiz-detail-retry'
           >
-            {detail.isRetrying ? 'Retrying…' : 'Retry'}
+            {aggregate.isRetrying ? 'Retrying…' : 'Retry'}
           </Button>
         </div>
       </div>
     );
   }
 
-  const quiz = detail.quiz;
-  const questions = quiz.publishedVersion?.questions ?? [];
+  const quiz = aggregate.quiz;
+  const stats = aggregate.stats;
+  const questions = aggregate.previewQuestions;
 
   return (
     <div
@@ -91,29 +90,38 @@ export function QuizDetailPage({ idOrSlug }: QuizDetailPageProps) {
         </ol>
       </nav>
 
-      <QuizHeader quiz={quiz} />
+      <QuizHeader quiz={aggregate.playerQuiz!} />
       <QuizByline author={null} className='mt-6' />
       <QuizMetadataRow
-        quiz={quiz}
-        stats={stats.stats}
-        isStatsLoading={stats.isLoading}
+        quiz={aggregate.playerQuiz!}
+        stats={stats}
+        isStatsLoading={false}
         className='mt-5'
       />
-      <QuizDescription description={quiz.description} className='mt-8' />
-      <QuizQuestionList questions={questions} className='mt-10' />
+      <QuizDescription description={quiz.description ?? null} className='mt-8' />
+      <QuizQuestionList
+        questions={aggregate.previewQuestions as unknown as Parameters<typeof QuizQuestionList>[0]['questions']}
+        className='mt-10'
+      />
       <QuizStatsPanel
-        stats={stats.stats}
-        isLoading={stats.isLoading}
-        noStats={stats.noStats}
-        error={stats.error}
-        onRetry={stats.retry}
-        isRetrying={stats.isRetrying}
+        stats={stats}
+        isLoading={false}
+        noStats={stats === null}
+        error={null}
+        onRetry={() => void aggregate.retry()}
+        isRetrying={aggregate.isRetrying}
         className='mt-10'
       />
       <QuizCtaStrip
         quizId={quiz.quizId}
         quizVersionId={quiz.publishedVersion?.quizVersionId ?? null}
         idOrSlug={idOrSlug}
+        authorUserId={quiz.creatorId ?? null}
+        authorDisplayName={
+          (quiz as unknown as { creator?: { username?: string } }).creator?.username ?? null
+        }
+        quizTitle={quiz.title}
+        alreadySuppressed={false}
         className='mt-6'
       />
       <QuizRelatedQuizzes idOrSlug={idOrSlug} className='mt-10' />

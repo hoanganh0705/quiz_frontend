@@ -82,13 +82,22 @@ export function setAuthToken(token: string, options: CookieOptions = {}) {
   const path = options.path ?? DEFAULT_PATH
   const expires = new Date(Date.now() + days * 864e5).toUTCString()
 
-  document.cookie = [
+  // Only set 'Secure' flag when running on HTTPS (production)
+  // Local development typically uses HTTP, so 'Secure' would prevent cookie from being set
+  const isSecure = window.location.protocol === 'https:'
+
+  const cookieParts = [
     `${AUTH_TOKEN_NAME}=${encodeURIComponent(token)}`,
     `expires=${expires}`,
     `path=${path}`,
     'SameSite=Lax',
-    'Secure'
-  ].join('; ')
+  ]
+
+  if (isSecure) {
+    cookieParts.push('Secure')
+  }
+
+  document.cookie = cookieParts.join('; ')
 
   // Cross-tab sync fallback (Epic 2.7 T14):
   // Write to localStorage so other tabs can pick up the new token
@@ -114,14 +123,23 @@ export function setRefreshToken(token: string, options: CookieOptions = {}) {
   const path = options.path ?? DEFAULT_PATH
   const expires = new Date(Date.now() + days * 864e5).toUTCString()
 
-  document.cookie = [
+  // Only set 'Secure' flag when running on HTTPS (production)
+  // Local development typically uses HTTP, so 'Secure' would prevent cookie from being set
+  const isSecure = window.location.protocol === 'https:'
+
+  const cookieParts = [
     `${REFRESH_TOKEN_NAME}=${encodeURIComponent(token)}`,
     `expires=${expires}`,
     `path=${path}`,
     'SameSite=Lax',
-    'Secure',
-    'HttpOnly' // refresh token is never needed in JS
-  ].join('; ')
+    'HttpOnly', // refresh token is never needed in JS
+  ]
+
+  if (isSecure) {
+    cookieParts.push('Secure')
+  }
+
+  document.cookie = cookieParts.join('; ')
   notifyAuthStateChange()
 }
 

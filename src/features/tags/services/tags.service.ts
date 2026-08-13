@@ -19,7 +19,6 @@
  */
 
 import { getTags } from '@/lib/api';
-import { orvalCustomInstance } from '@/lib/api/core/custom-instance';
 
 import type {
   CreateTagDto,
@@ -76,27 +75,21 @@ export async function getTagsTrending(params?: { limit?: number }) {
 }
 
 /**
- * `getTagQuizzes(slug, params)` — direct `orvalCustomInstance` call
- * to forward `cursor` + `limit` (the orval SDK function does not
- * accept params).
+ * `getTagQuizzes(slug, params)` — page through the quizzes in a tag.
+ *
+ * Phase 6: the orval SDK now exposes a typed `params` argument on
+ * `tagControllerGetTagQuizzes` after the swagger decorator change
+ * in `tag.controller.ts` documented `cursor` + `limit`. The
+ * `orvalCustomInstance` workaround is gone — the SDK function
+ * forwards through the canonical `customInstance` interceptor
+ * and unwraps the envelope the same way.
  */
 export async function getTagQuizzes(
   slug: string,
   params?: { cursor?: string; limit?: number },
 ): Promise<TagQuizzesResponse> {
-  const queryParams: Record<string, unknown> = {};
-  if (params?.cursor !== undefined) queryParams.cursor = params.cursor;
-  if (params?.limit !== undefined) queryParams.limit = params.limit;
-  // The response interceptor in `custom-instance.ts` does NOT
-  // unwrap the `{ data, meta }` envelope (see the long-form comment
-  // on the interceptor for the rationale), so the SDK returns the
-  // wrapped envelope and we read `.data` here.
-  const wire = await orvalCustomInstance<{ data: TagQuizzesResponse }>({
-    url: `/api/v1/tags/${slug}/quizzes`,
-    method: 'GET',
-    params: queryParams,
-  });
-  return (wire as { data: TagQuizzesResponse }).data;
+  const sdk = getTags();
+  return sdk.tagControllerGetTagQuizzes(slug, params);
 }
 
 export async function getRelatedTags(

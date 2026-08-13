@@ -274,7 +274,7 @@ function adaptWireToFeature(
     };
   }
 
-  const comments = (wire.commentss ?? []).map((c: WireComment) => ({
+  const comments = (wire.comments ?? []).map((c: WireComment) => ({
     id: c.commentId,
     commentId: c.commentId,
     quizId: c.quizId,

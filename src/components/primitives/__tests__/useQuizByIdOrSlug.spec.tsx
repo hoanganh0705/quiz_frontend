@@ -57,6 +57,12 @@ function makeResponse(quizId: string): QuizResponseDto {
   return {
     quizId,
     creatorId: null,
+    creator: {
+      userId: '0192f4d8-0000-7000-8000-000000000002',
+      username: 'testuser',
+      displayName: 'Test User',
+      avatarUrl: null,
+    },
     title: `Quiz ${quizId}`,
     description: null,
     slug: quizId,
@@ -134,6 +140,7 @@ describe('useQuizByIdOrSlug — success', () => {
       durationMs: 60000,
       passingScorePercent: 70,
       rewardXp: 50,
+      questionCount: 1,
       creatorId: null,
       createdAt: '2026-01-01T00:00:00.000Z',
       publishedAt: '2026-01-02T00:00:00.000Z',

@@ -5,6 +5,7 @@
  * REST API for the quiz application
  * OpenAPI spec version: 1.0
  */
+import type { MySocialAnalyticsResponseDtoStaleAt } from './mySocialAnalyticsResponseDtoStaleAt';
 
 export interface MySocialAnalyticsResponseDto {
   /** Current accepted friendship count */
@@ -15,4 +16,11 @@ export interface MySocialAnalyticsResponseDto {
   following: number;
   /** Net follower growth over the last 30 days */
   growth30Days: number;
+  /**
+   * Phase 3 (S-17): timestamp at which the analytics snapshot is stale (ISO 8601).
+   * @nullable
+   */
+  staleAt?: MySocialAnalyticsResponseDtoStaleAt;
+  /** Phase 3 (S-17): whether the analytics snapshot is stale. */
+  isStale: boolean;
 }

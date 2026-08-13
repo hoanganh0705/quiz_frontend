@@ -55,6 +55,7 @@ import {
 } from "@/features/achievements/types";
 import { getFeatureFlagValue } from "@/lib/feature-flags";
 
+import type { BadgeCatalogItemResponseDto } from "@/lib/api/generated/schemas";
 import type { NormalizedBadge } from "@/lib/realtime/dto-adapters";
 
 // ─── Public types ─────────────────────────────────────────────────────────
@@ -100,7 +101,15 @@ export function useBadges(
       if (isFlagPlaceholder) {
         return [] as BadgeSummary[];
       }
-      const wire = ((await listBadges()) as NormalizedBadge[]) ?? [];
+      // Phase 6: the service no longer applies the legacy
+      // `normalizeBadgeArray` adapter — the SDK now returns the
+      // paginated envelope directly. The structural cast preserves
+      // the `toBadgeSummary` overload union (it accepts either the
+      // legacy normalized shape or the SDK shape).
+      const wire =
+        ((await listBadges()) as unknown as Array<
+          BadgeCatalogItemResponseDto | NormalizedBadge
+        >) ?? [];
       return wire.map(toBadgeSummary);
     },
     [isFlagPlaceholder],

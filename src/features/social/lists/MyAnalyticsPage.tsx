@@ -82,6 +82,13 @@ const GROWTH_HORIZON_DAYS = 30;
  * expected to grow as the backend adds new analytics fields; the
  * `AnalyticsWidgetId` union is the single source of truth for the
  * available widget ids.
+ *
+ * Phase 6: the `quizzes_published` and `attempts_completed` widgets
+ * were dropped — they rendered `0` because the wire DTO has no
+ * per-period counts for those metrics. Surfacing a guaranteed-zero
+ * widget is the silent-fallback anti-pattern the audit W-29
+ * targeted; the chart grid now only shows fields the backend
+ * actually returns.
  */
 function toAnalyticsWidgets(analytics: {
   friends: number;
@@ -107,21 +114,6 @@ function toAnalyticsWidgets(analytics: {
       value: analytics.following,
       label: "Following",
       description: "Users you follow.",
-    },
-    {
-      id: "quizzes_published",
-      // Placeholder field — the deep-analytics DTO currently has
-      // no per-period quizzes-published count, so we render a
-      // zero that the zero-widget catalogue allows through.
-      value: 0,
-      label: "Quizzes published",
-      description: "Quizzes you've created and published.",
-    },
-    {
-      id: "attempts_completed",
-      value: 0,
-      label: "Attempts completed",
-      description: "Quiz attempts you've finished.",
     },
     {
       id: "ranking_xp_week",

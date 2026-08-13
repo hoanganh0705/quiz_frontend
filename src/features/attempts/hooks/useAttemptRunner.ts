@@ -21,22 +21,16 @@
  *
  *   - **Answer coordination (T-4.14.19):**
  *
- *       - Per-question draft, submit, lock, withdraw, navigation.
- *       - Submit moves only the target question through
- *         `pending` → `locked`.
+ *       - Per-question drafts stored in a map.
+ *       - Complete quiz submits all drafts at once.
  *       - 409 `ATTEMPT_QUESTION_ALREADY_ANSWERED` reconciliation
  *         refreshes and locks the server answer.
- *       - Withdrawal unlocks only after success or silent
- *         `already_missing` convergence.
- *       - Re-submission after withdrawal uses a fresh `POST`.
- *       - 429 cooldown is per-action; navigation stays live.
- *       - `question_invalid` outcome marks the question skipped and
- *         advances to another available question.
+ *       - `question_invalid` outcome marks the question skipped.
  *
  * ## What this hook does NOT own
  *
  *   - No router navigation (returns intent only via the result).
- *   - No completion / score / review / analytics (reserved for 4.15).
+ *   - No completion / score / result logic (reserved for 4.15).
  *
  * ## Cross-tab contract
  *
@@ -55,8 +49,8 @@ import { useActiveAttempt } from '@/features/attempts/hooks/useActiveAttempt';
 import { useAttemptCrossTabSync } from '@/features/attempts/hooks/useAttemptCrossTabSync';
 import { useStartAttempt } from '@/features/attempts/hooks/useStartAttempt';
 import { useSubmitAnswer } from '@/features/attempts/hooks/useSubmitAnswer';
+import { useCompleteAttempt } from '@/features/attempts/hooks/useCompleteAttempt';
 import { useDeleteAnswer } from '@/features/attempts/hooks/useDeleteAnswer';
-import { useAbandonAttempt } from '@/features/attempts/hooks/useAbandonAttempt';
 import {
   type AnswerSelection,
   type AttemptRunnerStatus,
@@ -66,11 +60,9 @@ import {
 } from '@/features/attempts/types/attempt-runner.types';
 import {
   hydrateAttemptEntry,
-  recordAbandonSuccess,
+  recordCompletionSuccess,
   resetAttempt,
-  setCurrentQuestion,
   setDraftSelection,
-  useAttemptEntry,
 } from '@/features/attempts/stores/useAttemptsStore';
 
 import { useAuthSession } from '@/features/auth/hooks/use-auth-session';
@@ -135,27 +127,22 @@ export interface UseAttemptRunnerResult {
   navigation: AttemptRunnerNavigation | null;
   /** Latest typed error from any sub-hook. */
   error: ApiError | null;
-  /** True iff `status === 'submitting'` and the target question matches. */
-  isSubmitting: (questionId: string) => boolean;
   /** Current 0-based question index. */
   currentIndex: number;
   /** Total question count. */
   totalQuestions: number;
-  /** Read-only current question. */
-  currentQuestion: QuizQuestionPlayerDto | null;
-  /** Read-only draft for the current question. */
-  draftSelection: AnswerSelection | null;
-  /** Update the draft for the current question only. */
+  /** Questions list. */
+  questions: readonly QuizQuestionPlayerDto[];
+  /** All drafts keyed by questionId. */
+  drafts: Record<string, AnswerSelection>;
+  /** Update the draft for any question. */
   updateDraft: (selection: AnswerSelection) => void;
-  /** Submit the draft for the current question. */
-  submitCurrent: () => Promise<void>;
-  /** Withdraw the submitted answer for the current question. */
-  withdrawCurrent: () => Promise<void>;
-  /** Navigate to a specific 0-based question index. */
-  goTo: (index: number) => void;
-  /** Previous / next navigation; no-op at bounds. */
-  previous: () => void;
-  next: () => void;
+  /** Submit a single answer immediately. */
+  submitAnswer: (question: QuizQuestionPlayerDto, selection: AnswerSelection) => void;
+  /** Select an answer (auto-submit or update if already submitted). */
+  selectAnswer: (question: QuizQuestionPlayerDto, selection: AnswerSelection) => void;
+  /** Submit all drafts and complete the quiz. */
+  completeQuiz: () => Promise<void>;
   /** Start a new attempt. Idempotent on already_started. */
   start: () => Promise<void>;
   /** Abandon the current attempt via the typed-confirm dialog. */
@@ -164,14 +151,7 @@ export interface UseAttemptRunnerResult {
   consumeNavigation: () => void;
 }
 
-// ─── Hook ────────────────────────────────────────────────────────────────────
-
-/**
- * Default sessionId placeholder while auth is bootstrapping. The
- * active lookup and start hook are gated on `bootstrapState === 'authenticated'`,
- * so this value never reaches the wire.
- */
-void ('SESSION_PLACEHOLDER is reserved for future cross-tab debug hooks.');
+// ─── Hook ───────────────────────────────────────────────────────────────────
 
 export function useAttemptRunner(
   params: UseAttemptRunnerParams,
@@ -196,10 +176,6 @@ export function useAttemptRunner(
   } = useActiveAttempt({ quizId });
 
   // ─── Runner entry ID ─────────────────────────────────────────────────────
-  // Hydration only begins once we have either an active attempt or
-  // the user has just initiated a start. We model the entry as a
-  // single mutable ref so a successful start can hand off the
-  // attempt id without a router round-trip.
   const [attemptId, setAttemptId] = React.useState<string | null>(
     activeAttempt?.attemptId ?? null,
   );
@@ -224,22 +200,21 @@ export function useAttemptRunner(
     React.useState<AttemptRunnerStatus>('idle');
 
   const status: AttemptRunnerStatus = React.useMemo(() => {
-    // Overlay wins only during transient mutations.
     if (
       overlayStatus === 'starting'
       || overlayStatus === 'submitting'
       || overlayStatus === 'abandoning'
+      || overlayStatus === 'completing'
     ) {
       return overlayStatus;
     }
-    // Otherwise mirror server data; default to 'idle' before first fetch.
     return wireStatus ?? overlayStatus;
   }, [overlayStatus, wireStatus]);
 
   // ─── Cross-tab reconciliation ────────────────────────────────────────────
   useAttemptCrossTabSync({ quizVersionId });
 
-  // ─── Runner entry hydration ──────────────────────────────────────────────
+  // ─── Runner entry hydration ─────────────────────────────────────────────
   React.useEffect(() => {
     if (attemptId === null || quizId === null || sessionId === null) return;
     const detail = hydration.detail;
@@ -257,57 +232,25 @@ export function useAttemptRunner(
     setNavigation(null);
   }, []);
 
-  // ─── Question index ──────────────────────────────────────────────────────
-  const totalQuestions = questions?.length ?? 0;
-  const [currentIndex, setCurrentIndex] = React.useState<number>(0);
-  React.useEffect(() => {
-    // Clamp on questions load.
-    if (totalQuestions === 0) {
-      setCurrentIndex(0);
-      return;
-    }
-    setCurrentIndex((idx) => Math.min(Math.max(idx, 0), totalQuestions - 1));
-  }, [totalQuestions]);
-
-  // Pick the first unanswered question on hydration. Drafts and
-  // submitted-answer locks are read from the store entry below.
-  const entry = useAttemptEntry(attemptId);
-
-  React.useEffect(() => {
-    if (!questions || totalQuestions === 0) return;
-    if (!hydration.hasResolved) return;
-    const locked = entry?.submittedAnswers ?? {};
-    const target = questions.findIndex(
-      (q) => !Object.prototype.hasOwnProperty.call(locked, q.questionId),
-    );
-    if (target >= 0) setCurrentIndex(target);
-  }, [
-    questions,
-    totalQuestions,
-    hydration.hasResolved,
-    entry?.submittedAnswers,
-  ]);
-
-  const currentQuestion = questions?.[currentIndex] ?? null;
-
-  // ─── Draft selection ─────────────────────────────────────────────────────
-  const draftSelection = currentQuestion
-    && entry?.currentQuestionId === currentQuestion.questionId
-    ? entry?.draftSelection ?? null
-    : null;
+  // ─── Multiple drafts support ────────────────────────────────────────────
+  // Store drafts in state for reactive updates, synced with a ref for quick access
+  const [drafts, setDrafts] = React.useState<Record<string, AnswerSelection>>({});
+  const draftsRef = React.useRef<Record<string, AnswerSelection>>({});
 
   const updateDraft = React.useCallback(
     (selection: AnswerSelection) => {
       if (attemptId === null || quizVersionId === null || sessionId === null) {
         return;
       }
+      // Update both ref (for synchronous access) and state (for reactivity)
+      const newDrafts = {
+        ...draftsRef.current,
+        [selection.questionId]: selection,
+      };
+      draftsRef.current = newDrafts;
+      setDrafts(newDrafts);
+      // Also update the store for persistence
       setDraftSelection(attemptId, quizVersionId, sessionId, selection);
-      setCurrentQuestion(
-        attemptId,
-        quizVersionId,
-        sessionId,
-        selection.questionId,
-      );
     },
     [attemptId, quizVersionId, sessionId],
   );
@@ -315,8 +258,8 @@ export function useAttemptRunner(
   // ─── Mutation hooks ──────────────────────────────────────────────────────
   const startHook = useStartAttempt({ quizId });
   const submitHook = useSubmitAnswer({ attemptId, quizVersionId });
+  const completeHook = useCompleteAttempt({ attemptId, quizVersionId });
   const deleteHook = useDeleteAnswer({ attemptId, quizVersionId });
-  const abandonHook = useAbandonAttempt({ attemptId, quizVersionId });
 
   // Bridge `startHook` outcome → orchestrator state.
   React.useEffect(() => {
@@ -339,9 +282,6 @@ export function useAttemptRunner(
       return;
     }
     if (outcome.kind === 'already_started') {
-      // Re-resolve active lookup; if the server already has one,
-      // the active-attempt SWR cache will refresh and we'll adopt
-      // its id.
       void retryActive();
       setOverlayStatus('idle');
       startHook.reset();
@@ -367,7 +307,7 @@ export function useAttemptRunner(
     }
   }, [startHook.outcome, startHook, idOrSlug, retryActive]);
 
-  // Bridge submit / delete outcomes.
+  // Bridge submit outcomes.
   React.useEffect(() => {
     const outcome = submitHook.outcome;
     if (!outcome) return;
@@ -375,210 +315,142 @@ export function useAttemptRunner(
       setOverlayStatus('submitting');
       return;
     }
-    if (outcome.kind === 'success') {
+    if (outcome.kind === 'success' || outcome.kind === 'already_answered') {
       setOverlayStatus('in_progress');
       submitHook.reset();
       return;
     }
-    if (outcome.kind === 'already_answered') {
-      // 409 reconciliation already refreshed; mark in-progress and
-      // let the hydration effect converge.
-      setOverlayStatus('in_progress');
-      submitHook.reset();
-      return;
-    }
-    if (outcome.kind === 'question_invalid') {
-      // Skip current and advance to the next unanswered question.
-      setOverlayStatus('in_progress');
-      submitHook.reset();
-      nextQuestion();
-      return;
-    }
-    if (outcome.kind === 'forbidden' || outcome.kind === 'not_active') {
+    if (outcome.kind === 'question_invalid' || outcome.kind === 'forbidden' || outcome.kind === 'not_active') {
       setOverlayStatus('idle');
-      if (idOrSlug && outcome.kind === 'forbidden') {
-        setNavigation({
-          kind: 'push_quiz',
-          href: `/quizzes/${encodeURIComponent(idOrSlug)}`,
-        });
-      }
       submitHook.reset();
       return;
     }
-    if (outcome.kind === 'invalid') {
-      setOverlayStatus('in_progress');
-      submitHook.reset();
-      return;
-    }
-    if (outcome.kind === 'retryable') {
+    if (outcome.kind === 'invalid' || outcome.kind === 'retryable') {
       setOverlayStatus('idle');
+      submitHook.reset();
       return;
     }
     if (outcome.kind === 'cooldown' || outcome.kind === 'idle') {
       return;
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [submitHook.outcome]);
+  }, [submitHook.outcome, submitHook]);
 
+  // Bridge complete outcomes.
   React.useEffect(() => {
-    const outcome = deleteHook.outcome;
+    const outcome = completeHook.outcome;
     if (!outcome) return;
-    if (outcome.kind === 'withdrawing') {
-      setOverlayStatus('submitting');
-      return;
-    }
-    if (outcome.kind === 'success' || outcome.kind === 'already_missing') {
-      setOverlayStatus('in_progress');
-      deleteHook.reset();
-      return;
-    }
-    if (outcome.kind === 'not_active' || outcome.kind === 'forbidden') {
-      setOverlayStatus('idle');
-      deleteHook.reset();
-      return;
-    }
-    if (outcome.kind === 'not_found') {
-      setOverlayStatus('idle');
-      deleteHook.reset();
-      return;
-    }
-    if (outcome.kind === 'retryable') {
-      setOverlayStatus('idle');
-      return;
-    }
-    if (outcome.kind === 'cooldown' || outcome.kind === 'idle') {
-      return;
-    }
-  }, [deleteHook.outcome, deleteHook]);
-
-  React.useEffect(() => {
-    const outcome = abandonHook.outcome;
-    if (!outcome) return;
-    if (outcome.kind === 'abandoning') {
-      setOverlayStatus('abandoning');
+    if (outcome.kind === 'completing') {
+      setOverlayStatus('completing');
       return;
     }
     if (outcome.kind === 'success') {
-      setOverlayStatus('abandoned');
-      if (idOrSlug) {
-        setNavigation({
-          kind: 'push_quiz',
-          href: `/quizzes/${encodeURIComponent(idOrSlug)}`,
-        });
-      }
-      abandonHook.reset();
+      setOverlayStatus('completed');
+      completeHook.reset();
       return;
     }
-    if (outcome.kind === 'not_active' || outcome.kind === 'completed_remote') {
-      // 409 / already terminal — converge to abandoned state, no
-      // duplicate mutation.
-      setOverlayStatus('abandoned');
-      if (attemptId && quizVersionId && sessionId) {
-        recordAbandonSuccess(attemptId, quizVersionId, sessionId);
-      }
-      abandonHook.reset();
+    if (outcome.kind === 'not_active') {
+      setOverlayStatus('completed');
+      completeHook.reset();
       return;
     }
-    if (outcome.kind === 'forbidden') {
+    if (outcome.kind === 'redirect' || outcome.kind === 'validation' || outcome.kind === 'retryable') {
       setOverlayStatus('idle');
-      if (idOrSlug) {
-        setNavigation({
-          kind: 'push_quiz',
-          href: `/quizzes/${encodeURIComponent(idOrSlug)}`,
-        });
-      }
-      abandonHook.reset();
-      return;
-    }
-    if (outcome.kind === 'not_found') {
-      setOverlayStatus('idle');
-      abandonHook.reset();
-      return;
-    }
-    if (outcome.kind === 'retryable') {
-      setOverlayStatus('idle');
+      completeHook.reset();
       return;
     }
     if (outcome.kind === 'cooldown' || outcome.kind === 'idle') {
       return;
     }
-  }, [
-    abandonHook.outcome,
-    abandonHook,
-    attemptId,
-    quizVersionId,
-    sessionId,
-    idOrSlug,
-  ]);
+  }, [completeHook.outcome, completeHook]);
 
   // ─── Public actions ──────────────────────────────────────────────────────
   const start = React.useCallback(async () => {
     const outcome = await startHook.start();
     if (outcome.kind === 'already_started') {
-      // Adopt any existing attempt the active lookup now sees.
       await retryActive();
     }
   }, [startHook, retryActive]);
 
-  const submitCurrent = React.useCallback(async () => {
-    if (!currentQuestion) return;
-    if (!draftSelection) return;
-    const outcome = await submitHook.submit(
-      currentQuestion,
-      draftSelection,
-      null,
-    );
-    if (outcome.kind === 'already_answered') {
-      // 409 reconciliation: refresh hydration and adopt server answer.
-      await hydration.refresh();
-    }
-    if (outcome.kind === 'success' || outcome.kind === 'already_answered') {
-      // After submission, advance to the next unanswered question.
-      nextQuestion();
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentQuestion, draftSelection, submitHook, hydration]);
+  /**
+   * Select an answer for a question. If the question already has a submitted
+   * answer, it will be withdrawn first (fire-and-forget), then the new answer
+   * is submitted.
+   */
+  const selectAnswer = React.useCallback(
+    (question: QuizQuestionPlayerDto, selection: AnswerSelection): void => {
+      if (!attemptId || !quizVersionId) return;
 
-  const withdrawCurrent = React.useCallback(async () => {
-    if (!currentQuestion) return;
-    await deleteHook.withdraw(currentQuestion.questionId);
-  }, [currentQuestion, deleteHook]);
+      const questionId = question.questionId;
+      const wasSubmitted = Boolean(hydration.submittedAnswers[questionId]);
+
+      // If already submitted, withdraw the old answer (fire-and-forget)
+      if (wasSubmitted) {
+        void deleteHook.withdraw(questionId);
+      }
+
+      // Submit the new answer
+      void submitHook.submit(question, selection, null);
+    },
+    [attemptId, quizVersionId, hydration.submittedAnswers, deleteHook, submitHook],
+  );
+
+  // Keep submitAnswer as an alias for backwards compatibility
+  const submitAnswer = selectAnswer;
+
+  const completeQuiz = React.useCallback(async () => {
+    if (!questions || !sessionId || !attemptId || !quizVersionId) return;
+
+    setOverlayStatus('submitting');
+
+    // Submit all drafts
+    for (const question of questions) {
+      const draft = draftsRef.current[question.questionId];
+      if (draft) {
+        await submitHook.submit(question, draft, null);
+      }
+    }
+
+    // Complete the quiz
+    const outcome = await completeHook.complete();
+    if (outcome.kind === 'success' && outcome.result) {
+      // Record completion success in the store
+      recordCompletionSuccess(attemptId, quizVersionId, sessionId, {
+        scorePercent: outcome.result.scorePercent ?? null,
+        correctCount: outcome.result.correctCount ?? null,
+        xpEarned: outcome.result.xpEarned ?? 0,
+        finishedAt: outcome.result.finishedAt ?? new Date().toISOString(),
+      });
+      // Navigate to results page
+      if (idOrSlug) {
+        setNavigation({
+          kind: 'push_attempt',
+          href: `/quizzes/${encodeURIComponent(idOrSlug)}/results`,
+        });
+      }
+      setOverlayStatus('completed');
+    } else if (outcome.kind === 'not_active') {
+      // Already completed - navigate to results
+      if (idOrSlug) {
+        setNavigation({
+          kind: 'push_attempt',
+          href: `/quizzes/${encodeURIComponent(idOrSlug)}/results`,
+        });
+      }
+      setOverlayStatus('completed');
+    } else {
+      setOverlayStatus('idle');
+    }
+  }, [questions, sessionId, attemptId, quizVersionId, submitHook, completeHook, idOrSlug]);
 
   const abandon = React.useCallback(async () => {
-    await abandonHook.confirm();
-  }, [abandonHook]);
-
-  // ─── Navigation helpers ──────────────────────────────────────────────────
-  function nextQuestion() {
-    if (totalQuestions === 0) return;
-    setCurrentIndex((idx) => Math.min(idx + 1, totalQuestions - 1));
-  }
-
-  const goTo = React.useCallback(
-    (index: number) => {
-      if (totalQuestions === 0) return;
-      setCurrentIndex(Math.min(Math.max(index, 0), totalQuestions - 1));
-    },
-    [totalQuestions],
-  );
-
-  const previous = React.useCallback(() => {
-    setCurrentIndex((idx) => Math.max(idx - 1, 0));
-  }, []);
-
-  const next = React.useCallback(() => {
-    setCurrentIndex((idx) => Math.min(idx + 1, Math.max(totalQuestions - 1, 0)));
-  }, [totalQuestions]);
-
-  // ─── Submission per-question state ───────────────────────────────────────
-  const isSubmitting = React.useCallback(
-    (questionId: string): boolean => {
-      if (status !== 'submitting') return false;
-      if (!currentQuestion) return false;
-      return currentQuestion.questionId === questionId;
-    },
-    [status, currentQuestion],
-  );
+    // Abandon is handled by the parent component via navigation
+    if (idOrSlug) {
+      setNavigation({
+        kind: 'push_quiz',
+        href: `/quizzes/${encodeURIComponent(idOrSlug)}`,
+      });
+    }
+  }, [idOrSlug]);
 
   // Reset the entry on terminal abandon so a re-mount starts clean.
   React.useEffect(() => {
@@ -586,11 +458,6 @@ export function useAttemptRunner(
       resetAttempt(attemptId);
     }
   }, [status, attemptId]);
-
-  // ─── Stable SWR subscriptions for active lookup ────────────────────────
-  // `useActiveAttempt` already manages its own SWR subscription. The
-  // hook file imports SWR transitively; no top-level `useSWR` call is
-  // needed by the orchestrator today.
 
   return {
     status,
@@ -603,20 +470,16 @@ export function useAttemptRunner(
     error:
       startHook.error
       ?? submitHook.error
-      ?? deleteHook.error
-      ?? abandonHook.error
+      ?? completeHook.error
       ?? hydration.error,
-    isSubmitting,
-    currentIndex,
-    totalQuestions,
-    currentQuestion: currentQuestion ?? null,
-    draftSelection,
+    currentIndex: 0,
+    totalQuestions: questions?.length ?? 0,
+    questions: questions ?? [],
+    drafts,
     updateDraft,
-    submitCurrent,
-    withdrawCurrent,
-    goTo,
-    previous,
-    next,
+    submitAnswer,
+    selectAnswer,
+    completeQuiz,
     start,
     abandon,
     consumeNavigation,

@@ -22,18 +22,26 @@ import { DailyChallengeCardSkeleton } from '@/features/daily-challenge/component
 import { DailyChallengeHistorySkeleton } from '@/features/daily-challenge/components/DailyChallengeSkeleton'
 import { DailyChallengeCard } from '@/features/daily-challenge/components/DailyChallengeCard'
 import { DailyChallengePlaceholder } from '@/features/daily-challenge/components/DailyChallengePlaceholder'
+import type { DailyChallengeView } from '@/features/daily-challenge/types/dto'
 
 afterEach(() => {
   cleanup()
 })
 
-const challenge = {
+const challenge: DailyChallengeView = {
   id: 'challenge-1',
   date: '2026-08-02T00:00:00.000Z',
   quizId: 'quiz-1',
-  category: 'Science',
+  quizTitle: 'Solar System Trivia',
+  slug: 'solar-system-trivia',
+  category: 'medium',
+  difficulty: 'medium',
   totalQuestions: 5,
   rewardXp: 100,
+  expiresAt: '2026-08-03T00:00:00.000Z',
+  status: 'pending',
+  scorePercent: null,
+  rank: null,
 }
 
 describe('DailyChallengeCardSkeleton — render', () => {

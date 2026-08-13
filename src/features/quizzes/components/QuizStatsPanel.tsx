@@ -16,6 +16,8 @@ const ZERO_STATS: Omit<QuizStatsResponseDto, 'quizId'> = {
   completionRate: 0,
   popularityScore: 0,
   trendingScore: 0,
+  commentsCount: 0,
+  recentActivity: [],
 };
 
 const PANEL = 'rounded-xl border bg-card p-4 shadow-sm sm:p-6';

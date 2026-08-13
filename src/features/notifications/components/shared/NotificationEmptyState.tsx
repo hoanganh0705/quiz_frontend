@@ -1,31 +1,10 @@
 "use client";
-
-/**
- * `NotificationEmptyState.tsx` — empty-state block for notification surfaces.
- *
- * Source epic:   Epic 5.1 — SDK coverage & realtime contract foundation.
- * Source story:  5.4 — Live notification stream and notification center.
- * Source ticket: TKT-5.4.C1.
- *
- * Provides a reusable empty-state component with three variants:
- *   - `'all'`         — no notifications at all
- *   - `'unread'`      — no unread notifications (everything has been read)
- *   - `'preferences'` — preferences view with disabled-channels hint
- *
- * Each variant adjusts the icon, title, body, and action affordances.
- *
- * No service, hook, or socket client is imported by this primitive.
- */
-
 import { Bell, BellOff, Settings } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
 import { EmptyState } from "@/components/ui/EmptyState";
 
-export type NotificationEmptyStateVariant =
-  | "all"
-  | "unread"
-  | "preferences";
+export type NotificationEmptyStateVariant = "all" | "unread" | "preferences";
 
 interface NotificationEmptyStateProps {
   variant?: NotificationEmptyStateVariant;

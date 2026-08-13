@@ -47,14 +47,16 @@ export function TournamentDetailPage({
 }: TournamentDetailPageProps) {
   const { isPlaceholder } = useTournamentFeatureFlag();
 
-  if (isPlaceholder) {
-    return <TournamentPlaceholder />;
-  }
-
+  // Always call hooks first - React Rules of Hooks require this
   const tournamentResult = useTournament(tournamentId);
   const participantsResult = useTournamentParticipants(tournamentId);
   const leaderboardResult = useTournamentLeaderboard(tournamentId);
   const participationResult = useTournamentParticipation(tournamentId);
+
+  // Placeholder state after hooks
+  if (isPlaceholder) {
+    return <TournamentPlaceholder />;
+  }
 
   // Loading state
   if (tournamentResult.isLoading) {

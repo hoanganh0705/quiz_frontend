@@ -2,7 +2,12 @@
 export { default as QuizCatalogMainContent } from './QuizCatalogMainContent'
 export { default as QuizCard, QuizCardDifficulty, QuizCardDetail } from './QuizCard'
 export type { QuizCardDifficultyProps as QuizCardProps } from './QuizCard/QuizCardDifficulty'
-export { default as PlayQuizClient } from './PlayQuizClient'
+// `PlayQuizClient` was removed in Phase 5. The live attempt runner
+// lives at `@/features/attempts/components/AttemptRunnerPage` and is
+// mounted at `/quizzes/[idOrSlug]/attempt`. The deleted component
+// used to compute scores from local `q.correctAnswer` (which would
+// leak answers) and persist results to a localStorage blob — neither
+// is acceptable for an authoritative attempt flow.
 
 // Epic 3.5 — Global quizzes directory composition (TKT-3.5.D1).
 export { QuizzesDirectoryPage } from './QuizzesDirectoryPage'

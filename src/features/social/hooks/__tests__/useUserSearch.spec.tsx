@@ -9,14 +9,11 @@
  *     without calling the SDK.
  *   - Feature flag `'placeholder'` returns empty results.
  *   - Feature flag `'live'` allows the hook to proceed.
- *   - Unauthenticated user returns empty results.
- *
- * Note: Debounce and SDK call tests are excluded because `useUserSearch`
- * uses `require()` for `useDebouncedValue` inside `useMemo`, which
- * prevents proper mock hoisting in Vitest.
+ *   - Protected routes always have authenticated users (returns fallback
+ *     only when feature flag is placeholder or query is invalid).
  */
 
-import { cleanup, renderHook, waitFor } from "@testing-library/react";
+import { cleanup, renderHook, waitFor, act } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { SWRConfig } from "swr";
 
@@ -25,32 +22,11 @@ import { SEARCH_MIN_QUERY_LENGTH, SEARCH_MAX_QUERY_LENGTH } from "@/features/soc
 
 import { useUserSearch } from "@/features/social/hooks/useUserSearch";
 
-// ─── Sentry mock ─────────────────────────────────────────────────────────
-
-const addBreadcrumbMock = vi.fn();
-vi.mock("@sentry/nextjs", () => ({
-  addBreadcrumb: (...args: unknown[]) => addBreadcrumbMock(...args),
-}));
-
 // ─── Feature-flag mock ────────────────────────────────────────────────────
 
 const mockGetFeatureFlagValue = vi.fn();
 vi.mock("@/lib/feature-flags", () => ({
   getFeatureFlagValue: (...args: unknown[]) => mockGetFeatureFlagValue(...args),
-}));
-
-// ─── Auth mock ───────────────────────────────────────────────────────────
-
-const mockUseAuthBootstrap = vi.fn();
-vi.mock("@/features/auth/hooks/use-auth-session", () => ({
-  useAuthSession: () => mockUseAuthBootstrap(),
-}));
-
-// ─── Debounced value mock ─────────────────────────────────────────────────
-
-const mockUseDebouncedValue = vi.fn();
-vi.mock("@/features/social/hooks/useDebouncedValue", () => ({
-  useDebouncedValue: (...args: unknown[]) => mockUseDebouncedValue(...args),
 }));
 
 // ─── Search rate limit mock ─────────────────────────────────────────────────
@@ -116,20 +92,14 @@ function createMockPaginatedResult(overrides = {}) {
 
 beforeEach(() => {
   vi.useFakeTimers();
-  mockUseAuthBootstrap.mockReturnValue({
-    isAuthenticated: true,
-    isLoading: false,
-    error: null,
-    user: { userId: "viewer-1", username: "viewer", email: "viewer@test.com" },
-  });
   mockGetFeatureFlagValue.mockReturnValue("live");
-  mockUseDebouncedValue.mockReturnValue({ debouncedValue: "alice", cancel: vi.fn() });
   mockUseSearchRateLimit.mockReturnValue({
     isRateLimited: false,
     remainingSeconds: 0,
     rateLimitedUntil: null,
-    onCooldownComplete: vi.fn(),
+    onCooldownComplete: vi.fn(() => () => {}),
   });
+  mockUseCursorPaginated.mockReturnValue(createMockPaginatedResult());
 });
 
 afterEach(() => {
@@ -139,7 +109,7 @@ afterEach(() => {
   vi.clearAllMocks();
 });
 
-// ─── Hook integration ────────────────────────────────────────────────────
+// ─── Hook integration ───────────────────────────────────────────────────
 
 describe("useUserSearch", () => {
   describe("short-query guard", () => {
@@ -175,24 +145,6 @@ describe("useUserSearch", () => {
   describe("feature flag gating", () => {
     it("returns safe fallback when feature flag is placeholder", () => {
       mockGetFeatureFlagValue.mockReturnValueOnce("placeholder");
-
-      const { result } = renderHook(() => useUserSearch("alice"), {
-        wrapper: TestSwrProvider,
-      });
-
-      expect(result.current.items).toEqual([]);
-      expect(result.current.total).toBe(0);
-    });
-  });
-
-  describe("authentication gating", () => {
-    it("returns safe fallback when unauthenticated", () => {
-      mockUseAuthBootstrap.mockReturnValueOnce({
-        isAuthenticated: false,
-        isLoading: false,
-        error: null,
-        user: null,
-      });
 
       const { result } = renderHook(() => useUserSearch("alice"), {
         wrapper: TestSwrProvider,

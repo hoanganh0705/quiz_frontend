@@ -36,9 +36,12 @@
  *   2. Drop the access-token cookie (the source of truth for
  *      `useAuthState`).
  *   3. Drop every `auth_cache_*` localStorage key.
- *   4. Broadcast a cross-tab `LOGGED_OUT` event so sibling tabs
+ *   4. Clear the SWR in-memory cache (every key) so a logged-in
+ *      user A's data (e.g. their `["notifications", "list"]` page)
+ *      does not leak to a fresh user B session.
+ *   5. Broadcast a cross-tab `LOGGED_OUT` event so sibling tabs
  *      converge.
- *   5. Optionally redirect to `redirectTo` (validated via
+ *   6. Optionally redirect to `redirectTo` (validated via
  *      `safeRedirectTarget`).
  *
  * ## What this file does NOT own
@@ -48,9 +51,6 @@
  *     `finally` block; the helper is the canonical side-effect of
  *     "the user is no longer authenticated", not the network round
  *     trip itself.
- *   - SWR cache revalidation. The cross-tab `LOGGED_OUT` listener
- *     in `custom-instance.ts` already invalidates every `useUser*`
- *     key; this helper does not duplicate that work.
  *   - The cross-tab event listener. Existing listeners
  *     (`installAuthStateChangeListener`) keep working; this helper
  *     is the *publisher* side of the contract.
@@ -76,6 +76,8 @@
  *   }
  *   ```
  */
+
+import { mutate as globalMutate } from 'swr';
 
 import { clearAuthToken } from '@/features/auth/utils/auth-cookies';
 import { clearAllAuthCache } from '@/features/auth/utils/user-scoped-cache';
@@ -106,8 +108,40 @@ export interface ClearAuthStateOptions {
    * own `finally`). Defaults to `false`.
    */
   skipBroadcast?: boolean;
+  /**
+   * When `true`, skip the SWR cache wipe. Defaults to `false`.
+   * Skipping is only useful for SSR-only call sites where the SWR
+   * cache does not exist yet.
+   */
+  skipSwrCacheClear?: boolean;
 }
 
+/**
+ * Clear every entry in SWR's in-memory cache. SWR caches are keyed
+ * by API call identity (`["notifications", "list", ...]`,
+ * `["users", "me"]`, etc.); without this sweep, a logged-out user
+ * re-login (or two different users sharing the same browser) would
+ * see each other's previously-cached responses.
+ *
+ * `globalMutate(() => true, undefined, { revalidate: true })` is
+ * the canonical SWR idiom for "match every key"; see the SWR docs
+ * on `mutate` for the predicate signature.
+ */
+function clearSwrCache(): void {
+  // SSR: SWR has no in-memory cache to wipe.
+  if (typeof window === 'undefined') return;
+  try {
+    void globalMutate(
+      () => true,
+      undefined,
+      { revalidate: true },
+    );
+  } catch {
+    // SWR's own mutate can throw if its provider is not mounted
+    // yet (e.g. very early bootstrap). Fail-open so the rest of
+    // the cleanup still runs.
+  }
+}
 
 /**
  * Run the canonical local auth-cleanup sequence:
@@ -119,9 +153,16 @@ export interface ClearAuthStateOptions {
  *      source of truth for `useAuthState`).
  *   3. `clearAllAuthCache()` — drop every `auth_cache_*` entry in
  *      localStorage.
- *   4. `broadcastLogout()` — broadcast a cross-tab `LOGGED_OUT`
+ *   4. `clearSwrCache()` — drop every SWR entry (in-memory
+ *      `useSWR` / `useSWRInfinite` cache; the bell badge's
+ *      `["notifications", "unread-count"]` cache, the center
+ *      page's `["notifications", "list", ...]` cache, every
+ *      `useUser*` key, and every other keyed query). Without
+ *      this, the previous user's API responses would survive in
+ *      the SWR cache and serve stale data to the next user.
+ *   5. `broadcastLogout()` — broadcast a cross-tab `LOGGED_OUT`
  *      event so sibling tabs converge (unless `skipBroadcast`).
- *   5. Optional redirect — when `redirectTo` is provided AND safe,
+ *   6. Optional redirect — when `redirectTo` is provided AND safe,
  *      call `window.location.assign(redirectTo)` so the user lands
  *      on a public surface. The redirect uses `location.assign`
  *      rather than `router.replace` to remain framework-agnostic
@@ -139,7 +180,7 @@ export interface ClearAuthStateOptions {
  *   clearAuthState({ redirectTo: '/' });
  */
 export function clearAuthState(options: ClearAuthStateOptions = {}): void {
-  const { redirectTo = null, skipBroadcast = false } = options;
+  const { redirectTo = null, skipBroadcast = false, skipSwrCacheClear = false } = options;
 
   // Step 1: drop in-memory "recently verified" flags.
   try {
@@ -164,7 +205,22 @@ export function clearAuthState(options: ClearAuthStateOptions = {}): void {
     // Same — fail-open.
   }
 
-  // Step 4: broadcast a cross-tab `LOGGED_OUT` event so sibling
+  // Step 4: drop the in-memory SWR cache so the next user (or
+  // a fresh login as the same user) does not see the previous
+  // session's API responses. `revalidate: true` makes any
+  // *currently-mounted* consumer refetch on the next render;
+  // the cache itself is wiped of stale entries.
+  if (!skipSwrCacheClear) {
+    try {
+      clearSwrCache();
+    } catch {
+      // SWR's mutate can throw if its provider is not mounted yet
+      // (early bootstrap). The cookie + broadcast cleanup above
+      // already runs.
+    }
+  }
+
+  // Step 5: broadcast a cross-tab `LOGGED_OUT` event so sibling
   // tabs redirect to `/login` in lockstep. The broadcast is fire-
   // and-forget; the helper does not await it.
   if (!skipBroadcast) {
@@ -176,7 +232,7 @@ export function clearAuthState(options: ClearAuthStateOptions = {}): void {
     }
   }
 
-  // Step 5: optional redirect. The redirect is gated by
+  // Step 6: optional redirect. The redirect is gated by
   // `isSafeRedirectTarget` so an attacker-controlled
   // `?redirect=//evil.com` cannot reach `location.assign`.
   if (

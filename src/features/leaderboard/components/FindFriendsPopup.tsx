@@ -1,5 +1,36 @@
 'use client'
 
+/**
+ * `FindFriendsPopup` — live modal showing the viewer's friend
+ * suggestions.
+ *
+ * Source epic:   Phase 6 — leaderboard mock-data cleanup.
+ * Source ticket: W-04 / cleanup of `FindFriendsPopup`.
+ *
+ * The previous version embedded `mockFriends` (a hardcoded `Friend[]`
+ * with Emma Wilson, David Park, Lisa Chen, James Rodriguez). The
+ * popup now reads from `useSuggestions('me')` (Story 6.5 / TKT-6.5.C2)
+ * which calls the social suggestions endpoint.
+ *
+ * ## Auth gating
+ *
+ * The suggestions endpoint is auth-only. Anonymous viewers see a
+ * "Sign in to see friend suggestions" message instead of an empty
+ * list (which used to be the failure mode of the mock-driven
+ * version).
+ *
+ * ## Privacy
+ *
+ * `useSuggestions` returns a `visibility` discriminator:
+ *   - `blocked_by_viewer` / `blocked_viewer` / `private` /
+ *     `not_found` → render a privacy notice.
+ *   - `visible` → render the list.
+ *
+ * The hook is the single source of truth for the privacy mapping
+ * (the documented Story 6.5 contract);
+ * `resolveSuggestionsVisibility` is the canonical resolver.
+ */
+
 import { useState } from 'react'
 import {
   Dialog,
@@ -8,74 +39,13 @@ import {
   DialogTitle
 } from '@/components/ui/Dialog'
 import { Button } from '@/components/ui/Button'
-import { Input } from '@/components/ui/Input'
 import { Badge } from '@/components/ui/Badge'
-import { Search, UserPlus, Users, Star, Trophy } from 'lucide-react'
+import { Search, UserPlus, Users } from 'lucide-react'
 import Image from 'next/image'
 
-interface Friend {
-  id: string
-  name: string
-  username: string
-  avatar: string
-  points: number
-  rank: number
-  badge: string
-  badgeColor: string
-  isOnline: boolean
-  mutualFriends: number
-}
-
-const mockFriends: Friend[] = [
-  {
-    id: '1',
-    name: 'Emma Wilson',
-    username: '@emmaw',
-    avatar: '/professional-avatar-emma.png',
-    points: 12450,
-    rank: 8,
-    badge: 'Gold',
-    badgeColor: 'bg-yellow-600',
-    isOnline: true,
-    mutualFriends: 3
-  },
-  {
-    id: '2',
-    name: 'David Park',
-    username: '@davidp',
-    avatar: '/professional-avatar-david.png',
-    points: 11200,
-    rank: 15,
-    badge: 'Gold',
-    badgeColor: 'bg-yellow-600',
-    isOnline: false,
-    mutualFriends: 1
-  },
-  {
-    id: '3',
-    name: 'Lisa Chen',
-    username: '@lisac',
-    avatar: '/professional-avatar-lisa.png',
-    points: 13800,
-    rank: 5,
-    badge: 'Diamond',
-    badgeColor: 'bg-blue-600',
-    isOnline: true,
-    mutualFriends: 5
-  },
-  {
-    id: '4',
-    name: 'James Rodriguez',
-    username: '@jamesr',
-    avatar: '/professional-avatar-james.png',
-    points: 9850,
-    rank: 28,
-    badge: 'Silver',
-    badgeColor: 'bg-gray-500',
-    isOnline: true,
-    mutualFriends: 2
-  }
-]
+import { useAuthState } from '@/features/auth/hooks/use-auth-state'
+import { useSuggestions } from '@/features/social/hooks/useSuggestions'
+import type { SocialSuggestionItemDto } from '@/features/social/types'
 
 interface FindFriendsPopupProps {
   isOpen: boolean
@@ -84,15 +54,29 @@ interface FindFriendsPopupProps {
 
 export function FindFriendsPopup({ isOpen, onClose }: FindFriendsPopupProps) {
   const [searchQuery, setSearchQuery] = useState('')
-  const [selectedTab, setSelectedTab] = useState<'suggested' | 'search'>(
-    'suggested'
-  )
+  const { isAuthenticated } = useAuthState()
 
-  const filteredFriends = mockFriends.filter(
-    (friend) =>
-      friend.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      friend.username.toLowerCase().includes(searchQuery.toLowerCase())
-  )
+  // Radix Dialog mounts the children even when the dialog is closed
+  // (visibility is driven by CSS, not unmount). To avoid firing the
+  // suggestions endpoint in the background — and, more importantly,
+  // to avoid hammering it during the brief Strict-Mode double-mount
+  // window — only call `useSuggestions` while the popup is open.
+  // The hook's SWR cache key still survives re-opens, so a single
+  // open-then-close cycle is enough to populate the list.
+  const suggestionsTarget = isOpen && isAuthenticated ? 'me' : null
+  const {
+    items,
+    isLoading,
+    visibility,
+    error,
+    retry,
+  } = useSuggestions(suggestionsTarget)
+
+  const filtered: readonly SocialSuggestionItemDto[] = searchQuery
+    ? items.filter((s) =>
+        s.user.userName.toLowerCase().includes(searchQuery.toLowerCase()),
+      )
+    : items
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -108,122 +92,58 @@ export function FindFriendsPopup({ isOpen, onClose }: FindFriendsPopupProps) {
           {/* Search Bar */}
           <div className='relative'>
             <Search className='absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground' />
-            <Input
-              placeholder='Search by name or username...'
+            <input
+              placeholder='Search by username...'
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className='pl-10 bg-muted border-border text-foreground placeholder:text-muted-foreground'
+              aria-label='Search suggestions'
+              className='pl-10 w-full bg-muted border border-border text-foreground placeholder:text-muted-foreground rounded-md h-9 px-3 text-sm'
             />
           </div>
 
-          {/* Tabs */}
-          <div className='flex gap-2'>
-            <Button
-              variant={selectedTab === 'suggested' ? 'default' : 'outline'}
-              size='sm'
-              onClick={() => setSelectedTab('suggested')}
-              className={
-                selectedTab === 'suggested'
-                  ? 'bg-brand hover:bg-brand'
-                  : 'border-border text-muted-foreground hover:bg-accent'
-              }
-            >
-              Suggested Friends
-            </Button>
-            <Button
-              variant={selectedTab === 'search' ? 'default' : 'outline'}
-              size='sm'
-              onClick={() => setSelectedTab('search')}
-              className={
-                selectedTab === 'search'
-                  ? 'bg-brand hover:bg-brand'
-                  : 'border-border text-muted-foreground hover:bg-accent'
-              }
-            >
-              Search Results
-            </Button>
-          </div>
-
-          {/* Friends List */}
-          <div className='space-y-3 max-h-96 overflow-y-auto'>
-            {filteredFriends.map((friend) => (
-              <div
-                key={friend.id}
-                className='flex items-center justify-between p-4 bg-muted rounded-lg hover:bg-accent transition-colors'
+          {/* Content */}
+          {!isAuthenticated ? (
+            <div className='text-center py-8 text-foreground/70 space-y-2'>
+              <Users className='w-12 h-12 mx-auto opacity-50' aria-hidden='true' />
+              <p>Sign in to see friend suggestions</p>
+            </div>
+          ) : visibility !== 'visible' ? (
+            <PrivacyNotice visibility={visibility} onRetry={retry} />
+          ) : isLoading && items.length === 0 ? (
+            <div className='text-center py-8 text-foreground/70'>
+              <p>Loading suggestions…</p>
+            </div>
+          ) : error ? (
+            <div className='text-center py-8 text-foreground/70 space-y-2'>
+              <p>Could not load suggestions.</p>
+              <Button
+                type='button'
+                variant='outline'
+                size='sm'
+                onClick={() => {
+                  void retry()
+                }}
               >
-                <div className='flex items-center gap-3'>
-                  <div className='relative'>
-                    <div className='w-12 h-12 rounded-full overflow-hidden'>
-                      <Image
-                        src={friend.avatar || '/placeholder.svg'}
-                        alt={friend.name}
-                        width={48}
-                        height={48}
-                        className='w-full h-full object-cover'
-                      />
-                    </div>
-                    {friend.isOnline && (
-                      <div className='absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-background' />
-                    )}
-                  </div>
-
-                  <div className='flex-1'>
-                    <div className='flex items-center gap-2'>
-                      <h3 className='font-semibold text-foreground'>
-                        {friend.name}
-                      </h3>
-                      <span className='text-muted-foreground text-sm'>
-                        {friend.username}
-                      </span>
-                    </div>
-
-                    <div className='flex items-center gap-3 mt-1'>
-                      <div className='flex items-center gap-1'>
-                        <Trophy className='w-3 h-3 text-yellow-400' />
-                        <span className='text-xs text-muted-foreground'>
-                          Rank #{friend.rank}
-                        </span>
-                      </div>
-
-                      <div className='flex items-center gap-1'>
-                        <Star className='w-3 h-3 text-blue-400' />
-                        <span className='text-xs text-muted-foreground'>
-                          {friend.points.toLocaleString()} pts
-                        </span>
-                      </div>
-
-                      <Badge className={`${friend.badgeColor} text-xs`}>
-                        {friend.badge}
-                      </Badge>
-                    </div>
-
-                    {friend.mutualFriends > 0 && (
-                      <p className='text-xs text-muted-foreground mt-1'>
-                        {friend.mutualFriends} mutual friend
-                        {friend.mutualFriends !== 1 ? 's' : ''}
-                      </p>
-                    )}
-                  </div>
-                </div>
-
-                <Button
-                  size='sm'
-                  className='bg-brand hover:bg-brand text-white'
-                >
-                  <UserPlus className='w-4 h-4 mr-1' />
-                  Add Friend
-                </Button>
-              </div>
-            ))}
-          </div>
-
-          {filteredFriends.length === 0 && searchQuery && (
-            <div className='text-center py-8 text-muted-foreground'>
-              <Users className='w-12 h-12 mx-auto mb-2 opacity-50' />
-              <p>No friends found matching &quot;{searchQuery}&quot;</p>
-              <p className='text-sm mt-1'>
-                Try searching with a different name or username
+                Retry
+              </Button>
+            </div>
+          ) : filtered.length === 0 ? (
+            <div className='text-center py-8 text-foreground/70 space-y-2'>
+              <Users className='w-12 h-12 mx-auto opacity-50' aria-hidden='true' />
+              <p>
+                {searchQuery
+                  ? `No suggestions matching "${searchQuery}"`
+                  : 'No suggestions right now — check back later.'}
               </p>
+            </div>
+          ) : (
+            <div className='space-y-3 max-h-96 overflow-y-auto'>
+              {filtered.map((suggestion) => (
+                <SuggestionRow
+                  key={suggestion.user.userId}
+                  suggestion={suggestion}
+                />
+              ))}
             </div>
           )}
         </div>
@@ -239,5 +159,100 @@ export function FindFriendsPopup({ isOpen, onClose }: FindFriendsPopupProps) {
         </div>
       </DialogContent>
     </Dialog>
+  )
+}
+
+// ─── Privacy notice ─────────────────────────────────────────────────────
+
+interface PrivacyNoticeProps {
+  visibility: string
+  onRetry: () => Promise<void>
+}
+
+function PrivacyNotice({ visibility, onRetry }: PrivacyNoticeProps) {
+  let message: string
+  switch (visibility) {
+    case 'blocked_by_viewer':
+      message = 'You blocked some of these users — unblock to see them again.'
+      break
+    case 'blocked_viewer':
+      message = 'Some of these users blocked you.'
+      break
+    case 'private':
+      message = 'Your friend list is private. Update your privacy settings to see suggestions.'
+      break
+    case 'not_found':
+      message = 'No suggestions available.'
+      break
+    default:
+      message = 'Suggestions are unavailable right now.'
+  }
+  return (
+    <div className='text-center py-8 text-foreground/70 space-y-2'>
+      <p>{message}</p>
+      <Button
+        type='button'
+        variant='outline'
+        size='sm'
+        onClick={() => {
+          void onRetry()
+        }}
+      >
+        Retry
+      </Button>
+    </div>
+  )
+}
+
+// ─── Row ─────────────────────────────────────────────────────────────────
+
+interface SuggestionRowProps {
+  suggestion: SocialSuggestionItemDto
+}
+
+function SuggestionRow({ suggestion }: SuggestionRowProps) {
+  const avatarSrc = suggestion.user.avatarUrl ?? '/placeholder.svg'
+  const displayName =
+    suggestion.user.displayName ?? `@${suggestion.user.userName}`
+  return (
+    <div className='flex items-center justify-between p-4 bg-muted rounded-lg hover:bg-accent transition-colors'>
+      <div className='flex items-center gap-3'>
+        <div className='w-12 h-12 rounded-full overflow-hidden'>
+          <Image
+            src={avatarSrc}
+            alt={suggestion.user.userName}
+            width={48}
+            height={48}
+            loading='eager'
+            priority
+            className='w-full h-full object-cover'
+          />
+        </div>
+        <div className='flex-1'>
+          <div className='flex items-center gap-2'>
+            <h3 className='font-semibold text-foreground'>{displayName}</h3>
+          </div>
+          <div className='flex items-center gap-3 mt-1'>
+            {suggestion.mutualFriendsCount > 0 ? (
+              <span className='text-xs text-muted-foreground'>
+                {suggestion.mutualFriendsCount} mutual friend
+                {suggestion.mutualFriendsCount === 1 ? '' : 's'}
+              </span>
+            ) : null}
+            <Badge className='bg-muted-foreground text-xs'>
+              {suggestion.reason}
+            </Badge>
+          </div>
+        </div>
+      </div>
+      <Button
+        size='sm'
+        className='bg-brand hover:bg-brand text-white'
+        type='button'
+      >
+        <UserPlus className='w-4 h-4 mr-1' aria-hidden='true' />
+        Follow
+      </Button>
+    </div>
   )
 }

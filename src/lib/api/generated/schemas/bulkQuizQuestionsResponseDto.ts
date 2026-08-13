@@ -6,8 +6,11 @@
  * OpenAPI spec version: 1.0
  */
 import type { QuizQuestionAuthorDto } from './quizQuestionAuthorDto';
+import type { BulkQuizQuestionResultItemDto } from './bulkQuizQuestionResultItemDto';
 
 export interface BulkQuizQuestionsResponseDto {
-  /** Created question items */
+  /** Successfully created question items (subset of input) */
   questions: QuizQuestionAuthorDto[];
+  /** Per-row outcome, in the same order as the input `questions[]`. Use this to render inline per-row success / failure indicators. */
+  results: BulkQuizQuestionResultItemDto[];
 }

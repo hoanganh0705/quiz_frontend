@@ -22,9 +22,7 @@ export {
   NotificationListSkeleton,
   NotificationEmptyState,
   NotificationErrorState,
-  NotificationConnectionStatus,
   type NotificationEmptyStateVariant,
-  type NotificationConnectionStatusProps,
 } from "./shared";
 
 // ─── Story 5.4 surfaces ──────────────────────────────────────────────────

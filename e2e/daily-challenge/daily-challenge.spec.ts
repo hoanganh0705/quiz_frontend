@@ -8,11 +8,11 @@
  *
  * The spec runs against a running dev backend (per
  * `playwright.config.ts`). For local development, the spec stubs
- * `/api/v1/auth/me` via `stubAuth(page)` so the streak branch is
- * deterministic. For the cross-batch validation pass, the operator
- * runs the spec against the seeded dev backend.
+ * the relevant endpoints via `stubDailyChallengeLive(page)` so the
+ * live branch (Branch 4) and the in-page play surface can be
+ * exercised deterministically.
  *
- * ## What this spec locks at this commit
+ * ## What this spec locks
  *
  *   (a) `renders the placeholder when the locked default
  *       flag = 'placeholder' is in effect`.
@@ -24,19 +24,14 @@
  *       placeholder branch`.
  *   (e) `flag = 'v1' with the SDK absent still renders the
  *       placeholder (the wrapper's missing-endpoint guard wins)`.
- *
- * ## Why the spec does not exercise the live data branch
- *
- * Per `EPIC_3_12_A1.md` §1.1 the regenerated SDK at this commit
- * does not expose a daily-challenge operation. The wrapper returns
- * `kind: 'missing-endpoint'` for every call. The page composition
- * falls through to `<DailyChallengePlaceholder />` regardless of
- * the flag value.
- *
- * When the SDK lands, the spec at `daily-challenge.spec.ts` is
- * extended by flipping the `test.fixme(...)` placeholders to
- * `test(...)` and enabling the stubs in `daily-challenge.helpers.ts`.
- * The future cases are documented inline below.
+ *   (f) `authenticated user with the live flag: live card + streak
+ *       indicator + history list render`.
+ *   (g) `clicking load-more appends additional entries from the
+ *       next cursor page`.
+ *   (h) `empty history response: the empty state primitive
+ *       renders`.
+ *   (i) `play surface: the question UI mounts when status=pending
+ *       and a correct submission advances to the next question`.
  *
  * ## Cookie clearing
  *
@@ -47,7 +42,12 @@
 
 import { expect, test } from '@playwright/test'
 
-import { stubAuth } from './daily-challenge.helpers'
+import {
+  stubAuth,
+  stubDailyChallengeHistory,
+  stubDailyChallengeLive,
+  stubDailyChallengeToday,
+} from './daily-challenge.helpers'
 
 test.describe('Daily-challenge acceptance (Story 3.12 / TKT-3.12.E2)', () => {
   test.beforeEach(async ({ page }) => {
@@ -109,9 +109,6 @@ test.describe('Daily-challenge acceptance (Story 3.12 / TKT-3.12.E2)', () => {
 
     await page.goto('/daily-challenge')
 
-    // The page region is announced to screen readers (a region
-    // landmark). The label is the static "Daily challenge" string
-    // set in `DailyChallengePage.tsx` Branch 1.
     const region = page.getByTestId('daily-challenge-page-placeholder')
     await expect(region).toBeVisible()
     await expect(region).toHaveAttribute('role', 'region')
@@ -129,15 +126,10 @@ test.describe('Daily-challenge acceptance (Story 3.12 / TKT-3.12.E2)', () => {
 
     await page.goto('/daily-challenge')
 
-    // The h1 is rendered above the placeholder.
     await expect(
       page.getByRole('heading', { name: /daily challenge/i, level: 1 }),
     ).toBeVisible()
 
-    // The InfoCard primitive (preserved from the pre-Epic-3.12 page)
-    // is rendered above the placeholder surface. It uses an
-    // aria-label rather than a testid (per its source — see
-    // `src/features/daily-challenge/components/InfoCard.tsx` line 47).
     await expect(
       page.getByRole('region', { name: 'Challenge information' }),
     ).toBeVisible()
@@ -154,9 +146,6 @@ test.describe('Daily-challenge acceptance (Story 3.12 / TKT-3.12.E2)', () => {
 
     await page.goto('/daily-challenge')
 
-    // The placeholder is the visible surface; the streak indicator
-    // is gated on the live branch (flag = 'v1' AND a non-missing
-    // response).
     await expect(
       page.getByTestId('daily-challenge-page-placeholder'),
     ).toBeVisible()
@@ -166,53 +155,122 @@ test.describe('Daily-challenge acceptance (Story 3.12 / TKT-3.12.E2)', () => {
   })
 
   // ─────────────────────────────────────────────────────────────────
-  // (Future) Live data branch — the SDK is absent at this commit.
+  // (f) Live branch — authenticated user with the live flag.
   // ─────────────────────────────────────────────────────────────────
 
-  // The following cases activate when the regenerated SDK exposes a
-  // daily-challenge operation (see `EPIC_3_12_A1.md` §1.1 follow-up).
-  // Until then they are `test.fixme(...)` so the suite does not
-  // silently pass. The future wire shape is documented in
-  // `daily-challenge.helpers.ts`.
+  test('(f) authenticated user with the live flag: card + streak + history list render', async ({
+    page,
+  }) => {
+    await stubDailyChallengeLive(page, { authenticate: true })
 
-  test.fixme(
-    '(future) flag = "v1" with a seeded "today" challenge: live card + history list render',
-    async () => {
-      // See `EPIC_3_12_A1.md` §2.1 + §2.2 for the wire shape.
-      // Activate by:
-      //   1. Stubbing `GET /api/v1/daily-challenge/today` and
-      //      `GET /api/v1/daily-challenge/history` via the helpers.
-      //   2. Launching the dev server with
-      //      `NEXT_PUBLIC_DAILY_CHALLENGE_PAGE='v1'`.
-    },
-  )
+    await page.goto('/daily-challenge')
 
-  test.fixme(
-    '(future) clicking load-more appends additional entries from the next cursor page',
-    async () => {
-      // The history list exposes `data-testid="daily-challenge-history-load-more"`
-      // on the load-more button. Clicking it triggers a fresh
-      // request with `cursor=<nextCursor>`. The new items are
-      // appended.
-    },
-  )
+    await expect(
+      page.getByTestId('daily-challenge-page-live'),
+    ).toBeVisible()
+    await expect(
+      page.getByTestId('daily-challenge-card'),
+    ).toBeVisible()
+    await expect(
+      page.getByTestId('daily-challenge-streak-indicator'),
+    ).toBeVisible()
+    await expect(
+      page.getByTestId('daily-challenge-history-list'),
+    ).toBeVisible()
+    // The card renders the quiz title from the backend.
+    await expect(
+      page.getByText(/Solar System Trivia/),
+    ).toBeVisible()
+  })
 
-  test.fixme(
-    '(future) authenticated user with the live flag: streak indicator renders with aria-label',
-    async () => {
-      // The streak indicator (`data-testid="daily-challenge-streak-indicator"`)
-      // is gated on auth + a non-missing wrapper response. The
-      // aria-label is `"Current streak: N days"` (or "1 day" when
-      // N=1). See `DailyChallengeStreakIndicator.tsx` (TKT-3.12.B2).
-    },
-  )
+  // ─────────────────────────────────────────────────────────────────
+  // (g) Load more appends the next cursor page.
+  // ─────────────────────────────────────────────────────────────────
 
-  test.fixme(
-    '(future) empty history response: the empty state primitive renders',
-    async () => {
-      // When the wrapper returns `{ items: [], hasMore: false }`,
-      // `DailyChallengeHistoryList` falls through to
-      // `<DailyChallengeHistoryEmptyState />`. See TKT-3.12.B3.
-    },
-  )
+  test('(g) clicking load-more appends additional entries from the next cursor page', async ({
+    page,
+  }) => {
+    await stubAuth(page, { authenticate: true })
+    await stubDailyChallengeToday(page)
+    await stubDailyChallengeHistory(page, {
+      items: Array.from({ length: 4 }, (_, i) => ({
+        date: `2026-08-0${i + 1}T00:00:00.000Z`,
+        quizId: `0192f4d8-cccc-7000-8000-0000000001${i + 1}0`,
+        quizTitle: `Solar System Quiz ${i + 1}`,
+        difficulty: 'medium' as const,
+        score: 80,
+        rank: 5,
+      })),
+      hasNextPage: true,
+      nextCursor: 'cursor-2',
+    })
+
+    await page.goto('/daily-challenge')
+
+    const loadMore = page.getByRole('button', {
+      name: /Load 1 more past challenges/i,
+    })
+    await expect(loadMore).toBeVisible()
+    await loadMore.click()
+
+    // The "View Less" affordance appears after load-more is clicked
+    // (the list no longer truncates to 3).
+    await expect(
+      page.getByRole('button', { name: /View less challenge history/i }),
+    ).toBeVisible()
+  })
+
+  // ─────────────────────────────────────────────────────────────────
+  // (h) Empty history — empty state primitive renders.
+  // ─────────────────────────────────────────────────────────────────
+
+  test('(h) empty history response: the empty state primitive renders', async ({
+    page,
+  }) => {
+    await stubAuth(page, { authenticate: true })
+    await stubDailyChallengeToday(page)
+    await stubDailyChallengeHistory(page, { items: [] })
+
+    await page.goto('/daily-challenge')
+
+    await expect(
+      page.getByTestId('daily-challenge-history-empty-state'),
+    ).toBeVisible()
+  })
+
+  // ─────────────────────────────────────────────────────────────────
+  // (i) Play surface — mount + submit advances to next question.
+  // ─────────────────────────────────────────────────────────────────
+
+  test('(i) play surface mounts when status=pending and a correct submit advances to the next question', async ({
+    page,
+  }) => {
+    await stubDailyChallengeLive(page, { authenticate: true })
+
+    await page.goto('/daily-challenge')
+
+    // The play surface is mounted inside Branch 4 when status=pending
+    // and the viewer is authenticated.
+    await expect(
+      page.getByTestId('daily-challenge-play-surface'),
+    ).toBeVisible()
+
+    // The first question is rendered.
+    await expect(
+      page.getByText('Which planet is closest to the Sun?'),
+    ).toBeVisible()
+
+    // Pick the first option and submit.
+    const firstOption = page.getByRole('radio', { name: /Mercury/ })
+    await firstOption.click()
+    await expect(firstOption).toHaveAttribute('aria-checked', 'true')
+
+    await page.getByTestId('daily-challenge-play-submit').click()
+
+    // After submit, the next question is rendered (because
+    // nextQuestionIndex=1 in the default stub).
+    await expect(
+      page.getByText('Which planet is the largest?'),
+    ).toBeVisible({ timeout: 5_000 })
+  })
 })

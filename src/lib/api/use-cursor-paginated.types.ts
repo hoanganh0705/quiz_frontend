@@ -138,6 +138,17 @@ export type OffsetFetcher<T extends { id: string }, P> = (
 interface BaseParams<T extends { id: string }> {
   key: readonly unknown[];
   paginationKind: PaginationKind;
+  /**
+   * When `false` the hook still mounts (preserving hook ordering) but
+   * does NOT trigger the fetcher. The result shape is the same as for
+   * `enabled: true`; only `isLoading` is `false`, `items` is `[]`,
+   * `hasMore` is `false`, and `error` is `null`. Default: `true`.
+   *
+   * Use this instead of fabricating a sentinel cache key — the sentinel
+   * would still get fed to SWR-infinite and could collide with real
+   * keys or trigger the user fetcher with empty args.
+   */
+  enabled?: boolean;
   revalidateOnFocus?: boolean;
   fallbackData?: CursorPageFallbackData<T> | OffsetPageFallbackData<T>;
 }

@@ -1,16 +1,20 @@
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import { getCurrentUser } from "@/features/users/services/users.reads.service";
+import { isApiError } from "@/lib/api/core/ApiError";
 import type { UserMeResponseDto } from "@/lib/api/generated/schemas";
 import {
   subscribeToProfileEvents,
   type ProfileUpdatedEvent,
 } from "@/lib/api/core/profile-broadcast-channel";
+import { getAuthToken } from "@/features/auth/utils/auth-cookies";
 
 type UserState = {
   user: UserMeResponseDto | null;
   isLoading: boolean;
   error: string | null;
+  /** Epoch-millisecond timestamp at which the next refetch is allowed. */
+  retryAfterAt: number | null;
   setUser: (user: UserMeResponseDto | null) => void;
   clearUser: () => void;
   fetchCurrentUser: () => Promise<UserMeResponseDto | null>;
@@ -36,13 +40,18 @@ type UserState = {
 // Promise. After the Promise settles we clear the slot so a fresh,
 // intentional refetch (e.g. `useMyProfile().refetch()`) can fire.
 //
-// The 30-second error timestamp mirrors the layout-shell guard so
-// that an external caller (`useMyProfile.refetch`, the broadcast
-// listener, etc.) can opt into an immediate retry by clearing the
-// error via `setUser(...)` or by setting `user` directly.
+// Phase 6 (W-24): the previous implementation enforced a hand-rolled
+// 30s post-error cooldown. Phase 6 replaces the constant with a
+// reactive `retryAfterAt` timestamp read from the backend's
+// `Retry-After` header (forwarded as `extensions.retryAfter` on the
+// RFC 7807 body). The cooldown is now exactly the value the server
+// asks for — when the server says "retry in 5 seconds", the store
+// honours it; when the server says "retry in 60", the store waits
+// 60s. External callers (`useMyProfile.refetch`, the broadcast
+// listener, etc.) can opt into an immediate retry by clearing
+// `retryAfterAt` via `setUser(...)` or by calling `clearUser()`.
+const FALLBACK_RETRY_AFTER_MS = 30_000;
 let inFlight: Promise<UserMeResponseDto | null> | null = null;
-let lastErrorAt: number | null = null;
-const ERROR_COOLDOWN_MS = 30_000;
 
 export const useUserStore = create<UserState>()(
   persist(
@@ -50,14 +59,21 @@ export const useUserStore = create<UserState>()(
       user: null,
       isLoading: false,
       error: null,
-      setUser: (user) => set({ user, error: null }),
+      retryAfterAt: null,
+      setUser: (user) => set({ user, error: null, retryAfterAt: null }),
       clearUser: () => {
         // Reset loop-guard state on logout so a future login starts fresh.
         inFlight = null;
-        lastErrorAt = null;
-        set({ user: null, isLoading: false, error: null });
+        set({ user: null, isLoading: false, error: null, retryAfterAt: null });
       },
       fetchCurrentUser: async () => {
+        // Skip fetch if there's no auth token - this prevents 401 errors
+        // when the token exists but isn't being sent correctly (e.g., cookie issues)
+        const token = getAuthToken();
+        if (!token) {
+          return get().user;
+        }
+
         // Already running? Return the shared Promise — never start a
         // duplicate fetch. This is what breaks the loop when many
         // components subscribe simultaneously.
@@ -65,29 +81,39 @@ export const useUserStore = create<UserState>()(
           return inFlight;
         }
 
-        // Respect the post-error cooldown. External callers can bypass
-        // it by calling `setUser`/`clearUser` first (e.g. logout → login).
-        if (
-          lastErrorAt !== null &&
-          Date.now() - lastErrorAt < ERROR_COOLDOWN_MS
-        ) {
+        // Respect the server-supplied retry-after window. When the
+        // backend does not provide a value (e.g. a 5xx or 404), fall
+        // back to the documented default so the loop-fix still works.
+        const retryAfterAt = get().retryAfterAt;
+        if (retryAfterAt !== null && Date.now() < retryAfterAt) {
           return get().user;
         }
 
         const promise = (async (): Promise<UserMeResponseDto | null> => {
-          set({ isLoading: true, error: null });
+          set({ isLoading: true, error: null, retryAfterAt: null });
           try {
             const user = await getCurrentUser();
-            // Success — wipe the error timestamp so a later legitimate
+            // Success — wipe the cooldown so a later legitimate
             // fetch (e.g. forced `refetch()`) is allowed immediately.
-            lastErrorAt = null;
-            set({ user, isLoading: false });
+            set({ user, isLoading: false, retryAfterAt: null });
             return user;
           } catch (error) {
             const message =
               error instanceof Error ? error.message : "Failed to load user";
-            lastErrorAt = Date.now();
-            set({ isLoading: false, error: message });
+            // Reactive cooldown: when the server says "retry in N
+            // seconds", honor it exactly. The fallback covers the
+            // case where the backend did not stamp a retry-after
+            // (e.g. a 5xx) and we still want to break the loop.
+            const retryAfterMs = isApiError(error)
+              ? (error.retryAfter ?? 0) * 1000
+              : 0;
+            const cooldown =
+              retryAfterMs > 0 ? retryAfterMs : FALLBACK_RETRY_AFTER_MS;
+            set({
+              isLoading: false,
+              error: message,
+              retryAfterAt: Date.now() + cooldown,
+            });
             return null;
           }
         })();

@@ -12,13 +12,11 @@
  * Thin composition layer over `useAttemptRunner`. Renders:
  *
  *   - Stable skeleton during start / hydration.
- *   - Player-safe question list through `<AttemptQuestionCard />`.
- *   - Per-question pending feedback.
- *   - Navigation (previous / next) within valid bounds.
+ *   - All questions at once in a scrollable list.
+ *   - A "Submit Quiz" button that submits all answers at once.
+ *   - Progress indicator showing answered questions.
  *   - The typed-confirm `<AttemptAbandonDialog />` and the
  *     `<AttemptHeader />` header with status copy.
- *   - The reserved Story 4.15 completion handoff placeholder
- *     (no score / result / review).
  *
  * ## What this component does NOT own
  *
@@ -35,7 +33,6 @@ import { Skeleton } from '@/components/ui/Skeleton';
 import { useToast } from '@/lib/forms/useToast';
 import { ApiError } from '@/lib/api';
 import { getUserCopy } from '@/lib/api/error-codes';
-import { cn } from '@/shared/utils/merge-class-names';
 
 import {
   useAttemptRunner,
@@ -45,7 +42,6 @@ import {
 import {
   AttemptAbandonDialog,
   AttemptHeader,
-  AttemptProgressBar,
   AttemptQuestionCard,
 } from '@/features/attempts/components';
 
@@ -137,6 +133,9 @@ export function AttemptRunner(
   }
 
   // ─── In-progress / starting / submitting / abandoning ──────────────────
+  const answeredCount = Object.keys(runner.submittedAnswers).length;
+  const totalQuestions = runner.totalQuestions;
+
   return (
     <div
       className="mx-auto flex w-full max-w-3xl flex-col gap-4 p-4"
@@ -148,15 +147,27 @@ export function AttemptRunner(
         onAbandon={() => setAbandonOpen(true)}
       />
 
-      <AttemptProgressBar
-        totalQuestions={runner.totalQuestions}
-        currentIndex={runner.currentIndex}
-        submittedCount={Object.keys(runner.submittedAnswers).length}
-      />
+      {/* Progress indicator */}
+      <div className="space-y-2">
+        <div className="flex items-center justify-between text-sm">
+          <span className="text-muted-foreground">Progress</span>
+          <span className="font-medium">
+            {answeredCount} / {totalQuestions} answered
+          </span>
+        </div>
+        <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
+          <div
+            className="h-full bg-primary transition-all duration-300"
+            style={{ width: `${totalQuestions > 0 ? (answeredCount / totalQuestions) * 100 : 0}%` }}
+          />
+        </div>
+      </div>
 
+      {/* All questions */}
       <AttemptRunnerQuestions runner={runner} />
 
-      <RunnerNav runner={runner} />
+      {/* Submit Quiz button */}
+      <CompleteQuizButton runner={runner} />
 
       <AttemptAbandonDialog
         open={abandonOpen}
@@ -171,14 +182,16 @@ export function AttemptRunner(
   );
 }
 
-// ─── Sub-component: question list ──────────────────────────────────────────
+// ─── Sub-component: all questions list ─────────────────────────────────────
 
 function AttemptRunnerQuestions({
   runner,
 }: {
   runner: ReturnType<typeof useAttemptRunner>;
 }): React.ReactElement {
-  if (runner.totalQuestions === 0 || !runner.currentQuestion) {
+  const { questions, drafts, submittedAnswers, updateDraft, selectAnswer } = runner;
+
+  if (runner.totalQuestions === 0 || questions.length === 0) {
     return (
       <p
         className="text-sm text-muted-foreground"
@@ -189,68 +202,86 @@ function AttemptRunnerQuestions({
     );
   }
 
-  const q = runner.currentQuestion;
-  const locked = runner.submittedAnswers[q.questionId];
-  const submittedAt = (locked as unknown as { submittedAt?: string })?.submittedAt
-    ?? null;
   return (
-    <AttemptQuestionCard
-      question={q}
-      index={runner.currentIndex + 1}
-      total={runner.totalQuestions}
-      value={runner.draftSelection}
-      onChange={runner.updateDraft}
-      onSubmit={() => {
-        void runner.submitCurrent();
-      }}
-      onWithdraw={() => {
-        void runner.withdrawCurrent();
-      }}
-      isSubmitted={Boolean(locked)}
-      isPending={runner.isSubmitting(q.questionId)}
-      submittedAt={submittedAt}
-      errorMessage={null}
-    />
+    <div className="space-y-4">
+      {questions.map((question, index) => {
+        const isSubmitted = Boolean(submittedAnswers[question.questionId]);
+        const draft = drafts[question.questionId] ?? null;
+
+        return (
+          <AttemptQuestionCard
+            key={question.questionId}
+            question={question}
+            index={index + 1}
+            total={questions.length}
+            value={draft}
+            onChange={(selection) => {
+              // Update draft locally
+              updateDraft(selection);
+              // Auto-submit the answer
+              void selectAnswer(question, selection);
+            }}
+            isSubmitted={isSubmitted}
+            isPending={false}
+            errorMessage={null}
+          />
+        );
+      })}
+    </div>
   );
 }
 
-// ─── Sub-component: navigation row ──────────────────────────────────────────
+// ─── Sub-component: complete quiz button ──────────────────────────────────────
 
-function RunnerNav({
+function CompleteQuizButton({
   runner,
 }: {
   runner: ReturnType<typeof useAttemptRunner>;
 }): React.ReactElement {
-  const atStart = runner.currentIndex <= 0;
-  const atEnd = runner.currentIndex >= Math.max(runner.totalQuestions - 1, 0);
+  const { questions, submittedAnswers, completeQuiz } = runner;
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const { push } = useToast();
+
+  const answeredCount = Object.keys(submittedAnswers).length;
+  const totalQuestions = questions.length;
+  const allAnswered = answeredCount >= totalQuestions && totalQuestions > 0;
+  const remainingCount = totalQuestions - answeredCount;
+
+  const handleSubmit = async () => {
+    setIsSubmitting(true);
+    try {
+      await completeQuiz();
+    } catch (error) {
+      const code = (error as ApiError)?.code;
+      const copy = getUserCopy(code ?? 'ATTEMPT_UNKNOWN');
+      push({
+        title: copy.title,
+        body: copy.body,
+        durationMs: 5000,
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
-    <div
-      className={cn('flex items-center justify-between')}
-      data-testid="attempt-runner-nav"
-    >
+    <div className="sticky bottom-0 bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60 p-4 border-t">
       <Button
         type="button"
-        variant="outline"
-        size="sm"
-        disabled={atStart}
-        onClick={runner.previous}
-        data-testid="attempt-runner-previous"
+        variant="default"
+        size="lg"
+        className="w-full"
+        disabled={isSubmitting || !allAnswered}
+        onClick={handleSubmit}
+        data-testid="attempt-runner-submit-quiz"
       >
-        Previous
+        {isSubmitting ? 'Submitting...' : 'Submit Quiz'}
       </Button>
-      <span className="text-xs text-muted-foreground">
-        {runner.currentIndex + 1} / {runner.totalQuestions || 1}
-      </span>
-      <Button
-        type="button"
-        variant="outline"
-        size="sm"
-        disabled={atEnd}
-        onClick={runner.next}
-        data-testid="attempt-runner-next"
-      >
-        Next
-      </Button>
+      {remainingCount > 0 && (
+        <p className="text-sm text-muted-foreground text-center mt-2">
+          {remainingCount} question{remainingCount !== 1 ? 's' : ''} remaining
+        </p>
+      )}
     </div>
   );
 }

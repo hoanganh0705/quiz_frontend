@@ -9,9 +9,11 @@
  * ## Purpose
  *
  * Composes `AdminShellUnavailable` around any admin shell content, using the
- * `admin_live` feature flag as the gate.  When the flag is `'placeholder'`
- * the entire admin shell is replaced with the "coming soon" notice.  When the
- * flag is `'live'` the children are rendered unchanged.
+ * `admin_live` feature flag as the gate. When the flag is explicitly
+ * `'placeholder'` (e.g. for a preview / staging environment) the
+ * entire admin shell is replaced with the "coming soon" notice.
+ * The default is now `'live'` because every Phase 7 admin surface
+ * is wired and reachable from the admin shell.
  *
  * This is the outermost boundary of the admin route group — it runs before
  * `AdminRoleGuard` (TKT-7.2.B2) so that a disabled flag short-circuits
@@ -33,6 +35,7 @@
 import type { ReactNode } from 'react';
 
 import { AdminShellUnavailable } from './AdminShellUnavailable';
+import { useAdminFeatureFlag } from '../hooks/useAdminFeatureFlag';
 
 export interface AdminFeatureFlagBoundaryProps {
   children: ReactNode;
@@ -45,7 +48,13 @@ export interface AdminFeatureFlagBoundaryProps {
 export function AdminFeatureFlagBoundary({
   children,
 }: AdminFeatureFlagBoundaryProps) {
-  return (
-    <AdminShellUnavailable>{children}</AdminShellUnavailable>
-  );
+  const { isLive } = useAdminFeatureFlag('admin_live');
+
+  if (!isLive) {
+    return (
+      <AdminShellUnavailable>{children}</AdminShellUnavailable>
+    );
+  }
+
+  return <>{children}</>;
 }

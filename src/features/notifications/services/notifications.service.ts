@@ -56,6 +56,11 @@ import type {
  * `GET /api/v1/notifications`
  *
  * Returns a paginated list of notifications for the current user.
+ *
+ * Returns the raw SDK envelope (`{ data, meta }`) — callers read
+ * `.data` / `.meta.pagination` directly. Unwrapping here (returning
+ * `data.data`) breaks `useCursorPaginated`, which expects the wrapped
+ * shape so it can read pagination metadata for subsequent pages.
  */
 export async function listNotifications(
   params?: GetNotificationsParams,
@@ -65,14 +70,14 @@ export async function listNotifications(
     message: "notifications.listNotifications",
   });
   const data = await getNotifications().getNotifications(params);
-  if (!data.data) {
+  if (!data || (data.data === undefined && data.meta === undefined)) {
     throw new ApiError({
       status: 500,
       code: "GLOBAL_INTERNAL_ERROR",
       message: "List notifications response missing data envelope",
     } as unknown as ConstructorParameters<typeof ApiError>[0]);
   }
-  return data.data;
+  return data;
 }
 
 /**

@@ -6,8 +6,9 @@
  * Source ticket: TKT-5.4.G2.
  *
  * Tests cover:
- * - renders the bell trigger with badge and connection status
- * - renders null when feature flag is placeholder
+ * - renders the bell trigger with badge
+ * - renders the bell (but suppresses the badge + popover) when the
+ *   feature flag is `'placeholder'`
  * - aria-label is set on the trigger button
  */
 
@@ -17,8 +18,7 @@ import { render, screen } from '@testing-library/react';
 const mocks = vi.hoisted(() => ({
   useNotificationSocket: vi.fn(),
   getFeatureFlagValue: vi.fn(),
-  // Component mocks (UnreadBadge / NotificationPopover / NotificationConnectionStatus)
-  // are installed below.
+  // Component mocks (UnreadBadge / NotificationPopover) are installed below.
 }));
 
 vi.mock('@/features/notifications/hooks/useNotificationSocket', () => ({
@@ -48,15 +48,6 @@ vi.mock('@/features/notifications/components/NotificationPopover', () => ({
   NotificationPopover: () => <div data-testid="notification-popover-stub" />,
 }));
 
-vi.mock(
-  '@/features/notifications/components/shared/NotificationConnectionStatus',
-  () => ({
-    NotificationConnectionStatus: () => (
-      <span data-testid="notification-connection-status-stub" />
-    ),
-  }),
-);
-
 import { NotificationBell } from '@/features/notifications/components/NotificationBell';
 
 describe('NotificationBell', () => {
@@ -78,20 +69,27 @@ describe('NotificationBell', () => {
   });
 
   describe('feature flag gating', () => {
-    it('renders null when feature flag is placeholder', () => {
+    it('renders the bell with a suppressed badge + popover when feature flag is placeholder', () => {
       mocks.getFeatureFlagValue.mockReturnValue('placeholder');
 
       const { container } = render(<NotificationBell />);
 
-      expect(container.firstChild).toBeNull();
+      // Bell is always present in placeholder mode.
+      expect(container.querySelector('[data-testid="notification-bell"]')).toBeInTheDocument();
+
+      // Badge + popover are suppressed in placeholder mode.
+      expect(screen.queryByTestId('unread-badge-stub')).not.toBeInTheDocument();
+      expect(screen.queryByTestId('notification-popover-stub')).not.toBeInTheDocument();
     });
 
-    it('renders the bell when feature flag is live', () => {
+    it('renders the bell with the badge + popover when feature flag is live', () => {
       mocks.getFeatureFlagValue.mockReturnValue('live');
 
       const { container } = render(<NotificationBell />);
 
       expect(container.querySelector('[data-testid="notification-bell"]')).toBeInTheDocument();
+      expect(screen.getByTestId('unread-badge-stub')).toBeInTheDocument();
+      expect(screen.getByTestId('notification-popover-stub')).toBeInTheDocument();
     });
   });
 
@@ -106,14 +104,6 @@ describe('NotificationBell', () => {
       render(<NotificationBell />);
 
       expect(screen.getByTestId('unread-badge-stub')).toBeInTheDocument();
-    });
-
-    it('embeds the connection status indicator', () => {
-      render(<NotificationBell />);
-
-      expect(
-        screen.getByTestId('notification-connection-status-stub'),
-      ).toBeInTheDocument();
     });
   });
 });

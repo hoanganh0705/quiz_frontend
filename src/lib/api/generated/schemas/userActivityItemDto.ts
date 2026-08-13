@@ -6,6 +6,7 @@
  * OpenAPI spec version: 1.0
  */
 import type { UserActivityItemDtoType } from './userActivityItemDtoType';
+import type { UserActivityItemDtoActor } from './userActivityItemDtoActor';
 import type { UserActivityItemDtoPayload } from './userActivityItemDtoPayload';
 
 export interface UserActivityItemDto {
@@ -13,8 +14,13 @@ export interface UserActivityItemDto {
   id: string;
   /** User activity type */
   type: UserActivityItemDtoType;
-  /** Timestamp when the activity occurred (ISO 8601) */
-  occurredAt: string;
-  /** Type-specific public activity payload */
+  /** Timestamp when the activity occurred (ISO 8601). Renamed from `occurredAt` to `at` in Phase 3 (S-21). */
+  at: string;
+  /**
+   * Actor slim projection
+   * @nullable
+   */
+  actor: UserActivityItemDtoActor;
+  /** Type-specific public activity payload — discriminated by `type` */
   payload: UserActivityItemDtoPayload;
 }

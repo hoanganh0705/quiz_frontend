@@ -47,10 +47,10 @@ describe("feature-flags — dailyChallengePage default", () => {
     vi.unstubAllEnvs();
   });
 
-  it('(1) defaults to "placeholder" when the env-var is unset', async () => {
+  it('(1) defaults to "v1" when the env-var is unset', async () => {
     vi.stubEnv("NEXT_PUBLIC_DAILY_CHALLENGE_PAGE", undefined);
     const { getFeatureFlagValue } = await importFresh();
-    expect(getFeatureFlagValue("dailyChallengePage")).toBe("placeholder");
+    expect(getFeatureFlagValue("dailyChallengePage")).toBe("v1");
   });
 
   it('(2) returns "v1" when the env-var is set to "v1"', async () => {
@@ -59,10 +59,10 @@ describe("feature-flags — dailyChallengePage default", () => {
     expect(getFeatureFlagValue("dailyChallengePage")).toBe("v1");
   });
 
-  it("(3) returns the default when the env-var is an unsupported value", async () => {
+  it("(3) returns the default ('v1') when the env-var is an unsupported value", async () => {
     vi.stubEnv("NEXT_PUBLIC_DAILY_CHALLENGE_PAGE", "unsupported-value");
     const { getFeatureFlagValue } = await importFresh();
-    expect(getFeatureFlagValue("dailyChallengePage")).toBe("placeholder");
+    expect(getFeatureFlagValue("dailyChallengePage")).toBe("v1");
   });
 
   it("(4) isFeatureEnabled returns the correct boolean for each value", async () => {
@@ -73,7 +73,7 @@ describe("feature-flags — dailyChallengePage default", () => {
       false,
     );
 
-    vi.stubEnv("NEXT_PUBLIC_DAILY_CHALLENGE_PAGE", undefined);
+    vi.stubEnv("NEXT_PUBLIC_DAILY_CHALLENGE_PAGE", "placeholder");
     const disabled = await importFresh();
     expect(disabled.isFeatureEnabled("dailyChallengePage", "v1")).toBe(false);
     expect(disabled.isFeatureEnabled("dailyChallengePage", "placeholder")).toBe(
@@ -82,7 +82,9 @@ describe("feature-flags — dailyChallengePage default", () => {
   });
 
   it("isFeatureEnabled(flag) without a value returns true when an env-var override is active", async () => {
-    vi.stubEnv("NEXT_PUBLIC_DAILY_CHALLENGE_PAGE", "v1");
+    // Setting an *explicit* override (any supported value other than
+    // the default) flips the override-active detection to true.
+    vi.stubEnv("NEXT_PUBLIC_DAILY_CHALLENGE_PAGE", "placeholder");
     const overridden = await importFresh();
     expect(overridden.isFeatureEnabled("dailyChallengePage")).toBe(true);
 
@@ -126,11 +128,33 @@ const phase4EnvVars = {
   attempts_live: 'NEXT_PUBLIC_ATTEMPTS_LIVE',
 } as const;
 
-const phase5Flags = [
+/**
+ * Phase 5 surface gates — every Phase 5 surface flag now defaults to
+ * `'live'` because every shipped Phase 5 surface (notifications bell +
+ * popover, realtime bridge, tournaments list + detail + registration,
+ * multiplayer instance lobby + play, rankings leaderboard + history +
+ * milestones, achievements gallery + earned + history, search results)
+ * is wired end-to-end and the only thing keeping it from rendering in
+ * the default config was the `'placeholder'` flag default. With this
+ * flip, the `'placeholder'` branch in every Phase 5 page is exercised
+ * only when an explicit `NEXT_PUBLIC_*_LIVE=placeholder` env-var
+ * override is set.
+ *
+ * The same six-case pattern (default, env-var override, unsupported
+ * value, isFeatureEnabled for each value, override-active detection)
+ * still applies, with the default-case expectations inverted to match
+ * the `'live'` contract — same shape as the Phase 7 live-by-default
+ * admin flags. The shared "barrel / implementation equivalence" case
+ * is collapsed into a single round-trip per flag for brevity — the
+ * global `(5)` case at the top of the file already locks the
+ * structural invariant.
+ */
+const phase5LiveByDefaultFlags = [
   'realtime_infrastructure_live',
-  'tournaments_live',
   'notifications_live',
+  'tournaments_live',
   'multiplayer_instances_live',
+  'multiplayer_play_live',
   'rankings_live',
   'achievements_live',
   'search_live',
@@ -141,6 +165,7 @@ const phase5EnvVars = {
   tournaments_live: 'NEXT_PUBLIC_TOURNAMENTS_LIVE',
   notifications_live: 'NEXT_PUBLIC_NOTIFICATIONS_LIVE',
   multiplayer_instances_live: 'NEXT_PUBLIC_MULTIPLAYER_INSTANCES_LIVE',
+  multiplayer_play_live: 'NEXT_PUBLIC_MULTIPLAYER_PLAY_LIVE',
   rankings_live: 'NEXT_PUBLIC_RANKINGS_LIVE',
   achievements_live: 'NEXT_PUBLIC_ACHIEVEMENTS_LIVE',
   search_live: 'NEXT_PUBLIC_SEARCH_LIVE',
@@ -151,13 +176,22 @@ const phase5EnvVars = {
  * Updated by TKT-6.4.A2 to include the two Story 6.4 sub-lane gates
  * (`social_mutuals_live`, `social_activity_live`).
  *
- * Includes the `social_live` parent gate plus the four sub-lane
- * gates from Epic 6.1 (`relationship`, `feed`, `discovery`,
- * `notifications`) and the two sub-lane gates from Epic 6.4
- * (`mutuals`, `activity`). Each flag is exercised with the same
- * six-case pattern as Phase 4 / 5.
+ * Includes the `social_live` parent gate plus ten sub-lane gates
+ * covering Epic 6.1 (relationship, feed, discovery, notifications),
+ * Epic 6.4 (mutuals, activity), Epic 6.5 (user search), and Epic 6.7
+ * / 6.8 (follow / block / friend-request mutations). Every Phase 6
+ * surface is wired end-to-end, so all eleven flags default to
+ * `'live'`. The `'placeholder'` branch in every Phase 6 page is
+ * exercised only when an explicit
+ * `NEXT_PUBLIC_SOCIAL_*_LIVE=placeholder` env-var override is set.
+ *
+ * Each flag is exercised with the same six-case pattern as Phase 4,
+ * with the default-case expectations inverted to match the `'live'`
+ * contract — same shape as the Phase 5 / Phase 7 live-by-default
+ * sections. The shared "barrel / implementation equivalence" case
+ * is already asserted globally at the top of the file.
  */
-const phase6Flags = [
+const phase6LiveByDefaultFlags = [
   'social_live',
   'social_relationship_live',
   'social_feed_live',
@@ -165,6 +199,10 @@ const phase6Flags = [
   'social_realtime_notifications_live',
   'social_mutuals_live',
   'social_activity_live',
+  'social_user_search_live',
+  'social_follow_mutation_live',
+  'social_block_mutation_live',
+  'social_friend_request_mutation_live',
 ] as const;
 
 const phase6EnvVars = {
@@ -175,7 +213,65 @@ const phase6EnvVars = {
   social_realtime_notifications_live: 'NEXT_PUBLIC_SOCIAL_REALTIME_NOTIFICATIONS_LIVE',
   social_mutuals_live: 'NEXT_PUBLIC_SOCIAL_MUTUALS_LIVE',
   social_activity_live: 'NEXT_PUBLIC_SOCIAL_ACTIVITY_LIVE',
+  social_user_search_live: 'NEXT_PUBLIC_SOCIAL_USER_SEARCH_LIVE',
+  social_follow_mutation_live: 'NEXT_PUBLIC_SOCIAL_FOLLOW_MUTATION_LIVE',
+  social_block_mutation_live: 'NEXT_PUBLIC_SOCIAL_BLOCK_MUTATION_LIVE',
+  social_friend_request_mutation_live: 'NEXT_PUBLIC_SOCIAL_FRIEND_REQUEST_MUTATION_LIVE',
 } as const;
+
+for (const flag of phase6LiveByDefaultFlags) {
+  describe(`feature-flags — ${flag} (live by default)`, () => {
+    beforeEach(() => {
+      vi.unstubAllEnvs();
+    });
+
+    afterEach(() => {
+      vi.unstubAllEnvs();
+    });
+
+    it("(1) defaults to 'live' when the env-var is unset", async () => {
+      vi.stubEnv(phase6EnvVars[flag], undefined);
+      const { getFeatureFlagValue } = await importFresh();
+      expect(getFeatureFlagValue(flag)).toBe('live');
+    });
+
+    it('(2) returns "live" when the env-var is set to "live"', async () => {
+      vi.stubEnv(phase6EnvVars[flag], 'live');
+      const { getFeatureFlagValue } = await importFresh();
+      expect(getFeatureFlagValue(flag)).toBe('live');
+    });
+
+    it("(3) returns the default ('live') when the env-var is an unsupported value", async () => {
+      vi.stubEnv(phase6EnvVars[flag], 'unsupported-value');
+      const { getFeatureFlagValue } = await importFresh();
+      expect(getFeatureFlagValue(flag)).toBe('live');
+    });
+
+    it("(4) isFeatureEnabled returns the correct boolean for each value", async () => {
+      vi.stubEnv(phase6EnvVars[flag], 'live');
+      const enabled = await importFresh();
+      expect(enabled.isFeatureEnabled(flag, 'live')).toBe(true);
+      expect(enabled.isFeatureEnabled(flag, 'placeholder')).toBe(false);
+
+      vi.stubEnv(phase6EnvVars[flag], 'placeholder');
+      const disabled = await importFresh();
+      expect(disabled.isFeatureEnabled(flag, 'live')).toBe(false);
+      expect(disabled.isFeatureEnabled(flag, 'placeholder')).toBe(true);
+    });
+
+    it('isFeatureEnabled(flag) without a value returns true when an env-var override is active', async () => {
+      // Setting an *explicit* override (any supported value other than
+      // the default) flips the override-active detection to true.
+      vi.stubEnv(phase6EnvVars[flag], 'placeholder');
+      const overridden = await importFresh();
+      expect(overridden.isFeatureEnabled(flag)).toBe(true);
+
+      vi.stubEnv(phase6EnvVars[flag], undefined);
+      const atDefault = await importFresh();
+      expect(atDefault.isFeatureEnabled(flag)).toBe(false);
+    });
+  });
+}
 
 for (const flag of phase4Flags) {
   describe(`feature-flags — ${flag}`, () => {
@@ -230,14 +326,17 @@ for (const flag of phase4Flags) {
 }
 
 /**
- * Phase 5 realtime and feature gates — added by TKT-5.1.B1.
+ * Phase 5 flags that default to `'live'` — their test suite inverts the
+ * default-case expectations so the spec continues to pin the new
+ * contract.
  *
- * Same six cases per flag as the Phase 4 spec. The shared
- * "barrel / implementation equivalence" case is already asserted
- * globally at the top of the file.
+ * All eight Phase 5 surface flags default to `'live'` because every
+ * shipped Phase 5 surface is wired end-to-end. The override-active
+ * detection still returns `true` when an env-var *changes* the value
+ * (e.g. setting `NEXT_PUBLIC_NOTIFICATIONS_LIVE=placeholder` in CI).
  */
-for (const flag of phase5Flags) {
-  describe(`feature-flags — ${flag}`, () => {
+for (const flag of phase5LiveByDefaultFlags) {
+  describe(`feature-flags — ${flag} (live by default)`, () => {
     beforeEach(() => {
       vi.unstubAllEnvs();
     });
@@ -246,10 +345,10 @@ for (const flag of phase5Flags) {
       vi.unstubAllEnvs();
     });
 
-    it('(1) defaults to "placeholder" when the env-var is unset', async () => {
+    it("(1) defaults to 'live' when the env-var is unset", async () => {
       vi.stubEnv(phase5EnvVars[flag], undefined);
       const { getFeatureFlagValue } = await importFresh();
-      expect(getFeatureFlagValue(flag)).toBe('placeholder');
+      expect(getFeatureFlagValue(flag)).toBe('live');
     });
 
     it('(2) returns "live" when the env-var is set to "live"', async () => {
@@ -258,89 +357,32 @@ for (const flag of phase5Flags) {
       expect(getFeatureFlagValue(flag)).toBe('live');
     });
 
-    it("(3) returns the default when the env-var is an unsupported value", async () => {
+    it("(3) returns the default ('live') when the env-var is an unsupported value", async () => {
       vi.stubEnv(phase5EnvVars[flag], 'unsupported-value');
       const { getFeatureFlagValue } = await importFresh();
-      expect(getFeatureFlagValue(flag)).toBe('placeholder');
-    });
-
-    it("(4) isFeatureEnabled returns the correct boolean for each value", async () => {
-      vi.stubEnv(phase5EnvVars[flag], 'live');
-      const enabled = await importFresh();
-      expect(enabled.isFeatureEnabled(flag, 'live')).toBe(true);
-      expect(enabled.isFeatureEnabled(flag, 'placeholder')).toBe(false);
-
-      vi.stubEnv(phase5EnvVars[flag], undefined);
-      const disabled = await importFresh();
-      expect(disabled.isFeatureEnabled(flag, 'live')).toBe(false);
-      expect(disabled.isFeatureEnabled(flag, 'placeholder')).toBe(true);
-    });
-
-    it('isFeatureEnabled(flag) without a value returns true when an env-var override is active', async () => {
-      vi.stubEnv(phase5EnvVars[flag], 'live');
-      const overridden = await importFresh();
-      expect(overridden.isFeatureEnabled(flag)).toBe(true);
-
-      vi.stubEnv(phase5EnvVars[flag], undefined);
-      const atDefault = await importFresh();
-      expect(atDefault.isFeatureEnabled(flag)).toBe(false);
-    });
-  });
-}
-
-/**
- * Phase 6 social graph & discovery hub flags — added by TKT-6.1.B1.
- *
- * Same six cases per flag as the Phase 4 / 5 spec. The shared
- * "barrel / implementation equivalence" case is already asserted
- * globally at the top of the file.
- */
-for (const flag of phase6Flags) {
-  describe(`feature-flags — ${flag}`, () => {
-    beforeEach(() => {
-      vi.unstubAllEnvs();
-    });
-
-    afterEach(() => {
-      vi.unstubAllEnvs();
-    });
-
-    it('(1) defaults to "placeholder" when the env-var is unset', async () => {
-      vi.stubEnv(phase6EnvVars[flag], undefined);
-      const { getFeatureFlagValue } = await importFresh();
-      expect(getFeatureFlagValue(flag)).toBe('placeholder');
-    });
-
-    it('(2) returns "live" when the env-var is set to "live"', async () => {
-      vi.stubEnv(phase6EnvVars[flag], 'live');
-      const { getFeatureFlagValue } = await importFresh();
       expect(getFeatureFlagValue(flag)).toBe('live');
     });
 
-    it("(3) returns the default when the env-var is an unsupported value", async () => {
-      vi.stubEnv(phase6EnvVars[flag], 'unsupported-value');
-      const { getFeatureFlagValue } = await importFresh();
-      expect(getFeatureFlagValue(flag)).toBe('placeholder');
-    });
-
     it("(4) isFeatureEnabled returns the correct boolean for each value", async () => {
-      vi.stubEnv(phase6EnvVars[flag], 'live');
+      vi.stubEnv(phase5EnvVars[flag], 'live');
       const enabled = await importFresh();
       expect(enabled.isFeatureEnabled(flag, 'live')).toBe(true);
       expect(enabled.isFeatureEnabled(flag, 'placeholder')).toBe(false);
 
-      vi.stubEnv(phase6EnvVars[flag], undefined);
+      vi.stubEnv(phase5EnvVars[flag], 'placeholder');
       const disabled = await importFresh();
       expect(disabled.isFeatureEnabled(flag, 'live')).toBe(false);
       expect(disabled.isFeatureEnabled(flag, 'placeholder')).toBe(true);
     });
 
     it('isFeatureEnabled(flag) without a value returns true when an env-var override is active', async () => {
-      vi.stubEnv(phase6EnvVars[flag], 'live');
+      // Setting an *explicit* override (any supported value other than
+      // the default) flips the override-active detection to true.
+      vi.stubEnv(phase5EnvVars[flag], 'placeholder');
       const overridden = await importFresh();
       expect(overridden.isFeatureEnabled(flag)).toBe(true);
 
-      vi.stubEnv(phase6EnvVars[flag], undefined);
+      vi.stubEnv(phase5EnvVars[flag], undefined);
       const atDefault = await importFresh();
       expect(atDefault.isFeatureEnabled(flag)).toBe(false);
     });
@@ -374,25 +416,40 @@ describe('feature-flags — Phase 6 sub-flag prerequisites', () => {
       'social_feed_live',
       'social_discovery_live',
       'social_realtime_notifications_live',
+      'social_mutuals_live',
+      'social_activity_live',
+      'social_user_search_live',
+      'social_follow_mutation_live',
+      'social_block_mutation_live',
+      'social_friend_request_mutation_live',
     ] as const) {
       expect(featureFlagsImpl.FEATURE_FLAGS).toContain(sub);
     }
   });
 
-  it('social_live default is "placeholder" with no env-var override', async () => {
+  it("social_live default is 'live' with no env-var override", async () => {
     vi.stubEnv('NEXT_PUBLIC_SOCIAL_LIVE', undefined);
     const mod = await importFresh();
-    expect(mod.getFeatureFlagValue('social_live')).toBe('placeholder');
+    expect(mod.getFeatureFlagValue('social_live')).toBe('live');
   });
 });
 
 /**
  * Phase 7 admin flags — added by TKT-7.1.B1.
  *
- * Eight flags: the `admin_live` parent gate plus seven sub-lane
+ * Eleven flags: the `admin_live` parent gate plus ten sub-lane
  * gates (`review_moderation`, `comment_moderation`, `tag`,
- * `category`, `ranking`, `achievement`, `tournament`, `user_role`).
- * Each is exercised with the same six-case pattern as Phase 4 / 5 / 6.
+ * `category`, `ranking`, `achievement`, `tournament`, `user_role`,
+ * `audit`).  All eleven default to `'live'` because every Phase 7
+ * admin surface is wired and reachable from the admin shell —
+ * the previously-defaulted `'placeholder'` rendered an
+ * `EmptyState` that visually replaced the entire admin shell
+ * (header, sidebar, content) with a single card, making the
+ * `/admin` URL appear to "bounce back" to `/`. The six-case
+ * pattern from Phase 4 / 5 / 6 still applies, with the
+ * default-case expectations inverted to match the `'live'`
+ * contract — same shape as the Phase 5 `notifications_live` and
+ * `realtime_infrastructure_live` live-by-default flags.
  */
 const phase7Flags = [
   'admin_live',
@@ -404,6 +461,7 @@ const phase7Flags = [
   'admin_achievement_live',
   'admin_tournament_live',
   'admin_user_role_live',
+  'admin_audit_live',
 ] as const;
 
 const phase7EnvVars = {
@@ -416,10 +474,11 @@ const phase7EnvVars = {
   admin_achievement_live: 'NEXT_PUBLIC_ADMIN_ACHIEVEMENT_LIVE',
   admin_tournament_live: 'NEXT_PUBLIC_ADMIN_TOURNAMENT_LIVE',
   admin_user_role_live: 'NEXT_PUBLIC_ADMIN_USER_ROLE_LIVE',
+  admin_audit_live: 'NEXT_PUBLIC_ADMIN_AUDIT_LIVE',
 } as const;
 
 for (const flag of phase7Flags) {
-  describe(`feature-flags — ${flag}`, () => {
+  describe(`feature-flags — ${flag} (live by default)`, () => {
     beforeEach(() => {
       vi.unstubAllEnvs();
     });
@@ -428,10 +487,10 @@ for (const flag of phase7Flags) {
       vi.unstubAllEnvs();
     });
 
-    it('(1) defaults to "placeholder" when the env-var is unset', async () => {
+    it("(1) defaults to 'live' when the env-var is unset", async () => {
       vi.stubEnv(phase7EnvVars[flag], undefined);
       const { getFeatureFlagValue } = await importFresh();
-      expect(getFeatureFlagValue(flag)).toBe('placeholder');
+      expect(getFeatureFlagValue(flag)).toBe('live');
     });
 
     it('(2) returns "live" when the env-var is set to "live"', async () => {
@@ -440,10 +499,10 @@ for (const flag of phase7Flags) {
       expect(getFeatureFlagValue(flag)).toBe('live');
     });
 
-    it("(3) returns the default when the env-var is an unsupported value", async () => {
+    it("(3) returns the default ('live') when the env-var is an unsupported value", async () => {
       vi.stubEnv(phase7EnvVars[flag], 'unsupported-value');
       const { getFeatureFlagValue } = await importFresh();
-      expect(getFeatureFlagValue(flag)).toBe('placeholder');
+      expect(getFeatureFlagValue(flag)).toBe('live');
     });
 
     it("(4) isFeatureEnabled returns the correct boolean for each value", async () => {
@@ -452,14 +511,16 @@ for (const flag of phase7Flags) {
       expect(enabled.isFeatureEnabled(flag, 'live')).toBe(true);
       expect(enabled.isFeatureEnabled(flag, 'placeholder')).toBe(false);
 
-      vi.stubEnv(phase7EnvVars[flag], undefined);
+      vi.stubEnv(phase7EnvVars[flag], 'placeholder');
       const disabled = await importFresh();
       expect(disabled.isFeatureEnabled(flag, 'live')).toBe(false);
       expect(disabled.isFeatureEnabled(flag, 'placeholder')).toBe(true);
     });
 
     it('isFeatureEnabled(flag) without a value returns true when an env-var override is active', async () => {
-      vi.stubEnv(phase7EnvVars[flag], 'live');
+      // Setting an *explicit* override (any supported value other than
+      // the default) flips the override-active detection to true.
+      vi.stubEnv(phase7EnvVars[flag], 'placeholder');
       const overridden = await importFresh();
       expect(overridden.isFeatureEnabled(flag)).toBe(true);
 
@@ -489,6 +550,7 @@ describe('feature-flags — Phase 7 admin sub-flag prerequisites', () => {
       'admin_achievement_live',
       'admin_tournament_live',
       'admin_user_role_live',
+      'admin_audit_live',
     ] as const) {
       expect(featureFlagsImpl.FEATURE_FLAGS).toContain(sub);
     }

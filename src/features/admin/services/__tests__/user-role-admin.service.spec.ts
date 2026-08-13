@@ -43,7 +43,10 @@ import {
   revokeUserRole,
 } from '../user-role-admin.service';
 
-const wrapped = (data: unknown) => data;
+const wrapped = (data: unknown) => ({
+  data: data,
+  meta: { requestId: 'req-1' },
+});
 
 function makeApiError(extensions: {
   requestId?: string;

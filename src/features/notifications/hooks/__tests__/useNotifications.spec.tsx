@@ -176,6 +176,48 @@ describe('useNotifications', () => {
         notificationId: 'n1',
       });
     });
+
+    // TKT-5.4.H4 — regression guard for the
+    // "popover shows No notifications even though the backend returns 5
+    // items" bug. The service must return the *wrapped* SDK envelope
+    // (`{ data: NotificationResponseDto[], meta: { pagination: ... } }`),
+    // NOT the inner `data` array. `useCursorPaginated` reads
+    // `wire.data` / `wire.meta.pagination` directly; if the service
+    // unwraps the envelope (returns `data.data`), the fetcher ends up
+    // reading `undefined.data` and projects an empty list, which
+    // surfaces in the UI as the empty state.
+    it('treats the service return as a wrapped envelope (not an unwrapped array)', async () => {
+      // Simulate a 5-item backend response in the wrapped shape the
+      // SDK actually returns.
+      const wrapped = {
+        data: Array.from({ length: 5 }).map((_, i) => ({
+          notificationId: `n${i + 1}`,
+          type: 'comment_reply' as const,
+          channel: 'in_app' as const,
+          isRead: false,
+          title: `Title ${i + 1}`,
+          message: `Message ${i + 1}`,
+          createdAt: '2026-01-01T00:00:00Z',
+        })),
+        meta: {
+          pagination: { limit: 5, nextCursor: 'cursor-2', hasNextPage: true },
+        },
+      };
+      mockListNotifications.mockResolvedValue(wrapped);
+
+      const { result } = renderHook(() => useNotifications(), {
+        wrapper: TestSwrProvider,
+      });
+
+      await waitFor(() => {
+        expect(result.current.items.length).toBe(5);
+      });
+
+      expect(result.current.hasMore).toBe(true);
+      expect(result.current.items.map((item) => item.id)).toEqual([
+        'n1', 'n2', 'n3', 'n4', 'n5',
+      ]);
+    });
   });
 
   describe('pagination', () => {

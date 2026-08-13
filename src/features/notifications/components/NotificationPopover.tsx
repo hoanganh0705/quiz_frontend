@@ -15,7 +15,6 @@
  *   - the `NotificationEmptyState` (variant: `'unread'`) when there are
  *     no unread notifications
  *   - the `NotificationErrorState` on read failure with a retry action
- *   - a `NotificationConnectionStatus` footer
  *   - a "View all notifications" link to `/notifications`
  *
  * The popover scrolls independently from the page (Radix handles this
@@ -30,19 +29,30 @@
  *   - The popover invalidates the list and unread-count SWR keys on
  *     success so the bell badge updates without a page refresh.
  *
+ * ## Mount-cycle SWR hygiene
+ *
+ * SWR's in-memory cache is keyed by URL/arguments only — it is NOT
+ * scoped by user. To defend against a stale `["notifications", "list"]`
+ * entry surviving from a previous session, the popover forces a fresh
+ * fetch on every mount by pre-invalidating its cache key. The
+ * invalidation is scoped to the popover's key (`unread=0|limit=5`),
+ * so other notification pages (the center page, the unread tab) are
+ * not disturbed.
+ *
  * No service beyond the documented `markAllNotificationsRead` is
  * imported. The popover is otherwise a composition of `NotificationItem`
  * + `NotificationEmptyState` + `NotificationErrorState` +
- * `NotificationListSkeleton` + `NotificationConnectionStatus`.
+ * `NotificationListSkeleton`.
  */
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import {
   Check,
   ChevronRight,
   Loader2,
 } from "lucide-react";
+import { mutate as globalMutate } from "swr";
 
 import {
   DropdownMenuContent,
@@ -56,10 +66,10 @@ import { Button } from "@/components/ui/Button";
 import { useNotifications } from "@/features/notifications/hooks/useNotifications";
 import { markAllNotificationsRead } from "@/features/notifications/services/notifications.service";
 import { ApiError, isApiError } from "@/lib/api";
-import { mutate as globalMutate } from "swr";
 
 import {
   NOTIFICATION_CACHE_KEYS,
+  type NotificationListFilters,
 } from "@/features/notifications/types/notification.types";
 
 import { NotificationItem } from "./NotificationItem";
@@ -67,23 +77,39 @@ import {
   NotificationEmptyState,
   NotificationErrorState,
   NotificationListSkeleton,
-  NotificationConnectionStatus,
 } from "./shared";
-import { useNotificationSocket } from "@/features/notifications/hooks/useNotificationSocket";
 
 const DEFAULT_LIMIT = 5;
+const POPOVER_FILTERS: NotificationListFilters = {
+  unreadOnly: false,
+  limit: DEFAULT_LIMIT,
+};
 
 // ─── Component ────────────────────────────────────────────────────────────
 
 export function NotificationPopover() {
   const { items, isLoading, error, refresh, loadMore, hasMore } =
-    useNotifications({
-      unreadOnly: false,
-      limit: DEFAULT_LIMIT,
-    });
+    useNotifications(POPOVER_FILTERS);
 
-  const { connectionState, error: socketError } = useNotificationSocket();
-  const hasSocketError = Boolean(socketError);
+  // ─── Fresh-fetch on every popover mount ─────────────────────────────────
+  //
+  // The popover is mounted each time the user opens the bell. We force a
+  // fresh API round-trip every time by calling `refresh()` from the
+  // `useNotifications` hook, which delegates to the underlying
+  // `useSWRInfinite` mutate. This is the most defensive fix for the
+  // "popover shows empty even though the backend has N items" symptom —
+  // it overrides any stale cache regardless of when it was written,
+  // how it was written, or who wrote it.
+  //
+  // The flag pattern prevents the refresh from firing twice in React's
+  // Strict-Mode dev double-render (which would otherwise double the
+  // request rate without any visible benefit).
+  const refreshedOnMountRef = useRef(false);
+  useEffect(() => {
+    if (refreshedOnMountRef.current) return;
+    refreshedOnMountRef.current = true;
+    void refresh();
+  }, [refresh]);
 
   // Local mark-all-read mutation state — independent of the per-row
   // hooks so the bell / popover can show a single "Mark all" pending
@@ -222,13 +248,7 @@ export function NotificationPopover() {
       </ScrollArea>
 
       <DropdownMenuSeparator className="m-0" />
-      <div className="flex items-center justify-between px-3 sm:px-4 py-2">
-        <NotificationConnectionStatus
-          connectionState={connectionState}
-          hasError={hasSocketError}
-          showLabel
-          size="sm"
-        />
+      <div className="flex items-center justify-end px-3 sm:px-4 py-2">
         <Link
           href="/notifications"
           className="inline-flex items-center gap-1 text-xs sm:text-sm text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300"

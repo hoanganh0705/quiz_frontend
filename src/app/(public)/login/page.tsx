@@ -205,6 +205,7 @@ function LoginPageContent() {
             src="/login.jpg"
             alt="Login background"
             fill
+            sizes="(max-width: 1024px) 0vw, 50vw"
             className="object-cover"
             priority
           />

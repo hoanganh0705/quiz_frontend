@@ -7,6 +7,6 @@
  */
 
 /**
- * Type-specific activity payload
+ * Type-specific activity payload — discriminated by `type`
  */
 export type SocialFeedItemDtoPayload = { [key: string]: unknown };

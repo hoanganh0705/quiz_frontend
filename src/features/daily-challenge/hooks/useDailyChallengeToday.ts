@@ -100,10 +100,13 @@ export function useDailyChallengeToday(): UseDailyChallengeTodayResult {
         return result.data
       }
       if (result.kind === 'missing-endpoint') {
-        // The hook resolves with `null` so the composition can read
-        // `isMissingEndpoint` from the result without inspecting the
-        // wrapper's discriminator. The fetcher never throws for this
-        // case; it is a successful no-data read.
+        // Reserved for SDK-drift scenarios where orval drops the
+        // operation. The composition treats this as a placeholder
+        // signal; legitimate "no challenge today" responses come back
+        // through `kind: 'ok'` with a populated `DailyChallengeView`
+        // (the backend always seeds today's row before the
+        // scheduler tick), so this branch should never fire in
+        // production.
         return null
       }
       // `kind: 'error'` — re-throw the typed `ApiError` so
@@ -120,6 +123,13 @@ export function useDailyChallengeToday(): UseDailyChallengeTodayResult {
     fetcher,
   })
 
+  // The fetcher only resolves with `null` for the `missing-endpoint`
+  // SDK-drift branch (see comment above). For real backend responses
+  // (success or error), `data` is the narrowed view object or the
+  // primitive falls into the error / loading states — both render via
+  // the live composition branches (skeleton / live / error). An
+  // empty `data === null` + no error therefore maps cleanly to
+  // "endpoint unavailable, fall back to placeholder".
   const isMissingEndpoint = data === null && !isLoading && error === null
 
   const refresh = useCallback(async (): Promise<void> => {

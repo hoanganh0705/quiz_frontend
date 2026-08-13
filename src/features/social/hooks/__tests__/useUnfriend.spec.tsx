@@ -221,4 +221,48 @@ describe("useUnfriend — TKT-6.8.D4", () => {
       resolveFirst();
     });
   });
+
+  describe("assumeCanUnfriend", () => {
+    it("dispatches the unfriend mutation when canUnfriend is false but the caller asserts the row came from the friends list", async () => {
+      // Simulate the bug: the relationship fetch has not settled yet
+      // (or returned `none`) so the permission guard would normally
+      // turn `unfriend()` into a no-op. The friends page's
+      // FriendRow / CompareStatsPanel opts in via
+      // `assumeCanUnfriend: true` because the row came from
+      // `GET /social/friends/:userId`, which is a server-authoritative
+      // source — the relationship is `friend` by definition.
+      mockUseSocialPermissions.mockReturnValue({
+        ...permissionsAllGranted(),
+        canUnfriend: false,
+      });
+
+      const { result } = renderHook(
+        () =>
+          useUnfriend("user-target", {
+            assumeCanUnfriend: true,
+          }),
+        { wrapper: TestSwrProvider },
+      );
+      result.current.unfriend();
+
+      await new Promise((r) => setTimeout(r, 5));
+      expect(mockUnfriend).toHaveBeenCalledWith("user-target");
+      expect(mockMutate).toHaveBeenCalledTimes(2);
+    });
+
+    it("still no-ops when canUnfriend is false AND assumeCanUnfriend is not set", () => {
+      // Sanity-check: the default (strict) semantics are preserved.
+      mockUseSocialPermissions.mockReturnValue({
+        ...permissionsAllGranted(),
+        canUnfriend: false,
+      });
+
+      const { result } = renderHook(
+        () => useUnfriend("user-target"),
+        { wrapper: TestSwrProvider },
+      );
+      result.current.unfriend();
+      expect(mockUnfriend).not.toHaveBeenCalled();
+    });
+  });
 });

@@ -46,7 +46,7 @@
  */
 
 import { useCallback, useRef, useState } from "react";
-import { mutate as globalMutate } from "swr";
+import { mutate as globalMutate, useSWRConfig } from "swr";
 
 import { ApiError, isApiError } from "@/lib/api";
 
@@ -89,6 +89,15 @@ export function useDeleteNotification(
   // even when React batches state updates).
   const inFlightRef = useRef(false);
 
+  // `useSWRConfig` exposes the same cache (and the bound `mutate`)
+  // used by `useNotifications`. We use it to find the actual
+  // `$inf$<hash>` cache key SWRInfinite registered, then trigger a
+  // revalidation via the bound revalidator. Mutating per-page cache
+  // entries alone leaves the SWRInfinite hook reading stale `data`,
+  // because SWRInfinite fetches per-page data into its own
+  // array and does not re-read from the per-page cache on mutation.
+  const swrConfig = useSWRConfig();
+
   const deleteNotificationAction = useCallback(async (): Promise<void> => {
     if (isFlagPlaceholder || notificationId === null) {
       return;
@@ -103,7 +112,60 @@ export function useDeleteNotification(
     setState("pending");
     setError(null);
 
-    // Optimistic removal: drop the row from every cached page.
+    // ── Optimistic removal ────────────────────────────────────────────
+    //
+    // The notification list is backed by `useCursorPaginated`, which
+    // delegates to `useSWRInfinite`. SWRInfinite registers a real
+    // revalidator only on the combined infinite-key entry
+    // (`$inf$<hash>`); per-page entries in the cache have no
+    // revalidator, so a predicate mutation against the per-page keys
+    // does NOT produce an HTTP refetch on its own.
+    //
+    // Strategy:
+    //   1. Sweep the SWR cache for `$inf$<hash>` entries whose stored
+    //      `data` is the array shape SWRInfinite produces.
+    //      SWRInfinite stores `_k = '$inf$<hash>'` (a string, not an
+    //      array), so the predicate must check the cache-key prefix
+    //      plus the shape of `data` to confirm the entry belongs to
+    //      the notifications list.
+    //   2. Optimistically splice the row out of every per-page cache
+    //      entry — UI updates immediately on re-render.
+    //   3. After the DELETE resolves, revalidate the matched
+    //      `$inf$<hash>` keys so the SWRInfinite fetcher runs and the
+    //      server-confirmed list replaces the optimistic UI.
+    const matchedInfiniteKeys: string[] = [];
+    try {
+      const cache = swrConfig.cache as {
+        keys?: () => IterableIterator<string>;
+        get: (k: string) => { _k?: unknown; data?: unknown } | undefined;
+      };
+      const iter = cache.keys?.bind(cache);
+      if (iter) {
+        for (const cacheKey of iter()) {
+          if (!cacheKey.startsWith('$inf$')) continue;
+          const entry = cache.get(cacheKey);
+          const data = entry?.data;
+          if (!Array.isArray(data) || data.length === 0) continue;
+          // The first page in `data` is a `NotificationListPage`
+          // object (`{ items, nextCursor, hasNextPage, limit }`).
+          // If it has an `items` field, this SWRInfinite entry
+          // belongs to the notification list.
+          const firstPage = data[0] as { items?: unknown } | null;
+          if (
+            firstPage &&
+            typeof firstPage === 'object' &&
+            'items' in firstPage
+          ) {
+            matchedInfiniteKeys.push(cacheKey);
+          }
+        }
+      }
+    } catch {
+      // Fail-open: skip the cache sweep. The next mount / focus will
+      // reconcile.
+    }
+
+    // Optimistic splice across all cached pages.
     await globalMutate(
       (key) =>
         Array.isArray(key) &&
@@ -112,11 +174,14 @@ export function useDeleteNotification(
       (current: unknown) => {
         if (!current) return current;
         const page = current as NotificationListPage;
+        if (!page.items) return current;
+        const filtered = page.items.filter(
+          (n: Notification) => n.id !== notificationId,
+        );
+        if (filtered.length === page.items.length) return current;
         return {
           ...page,
-          items: page.items.filter(
-            (n: Notification) => n.id !== notificationId,
-          ),
+          items: filtered,
         };
       },
       { revalidate: false },
@@ -126,8 +191,18 @@ export function useDeleteNotification(
       // The backend returns `void`; awaiting the request is sufficient.
       await deleteNotification(notificationId);
 
-      // Final revalidation — also triggers the unread-count refetch.
+      // ── Revalidate ──────────────────────────────────────────────
+      //
+      // Re-fetch every cached page so the user sees the server's
+      // canonical list. The matched `$inf$<hash>` keys have a bound
+      // revalidator that triggers the SWRInfinite fetcher; the per-page
+      // keys do not. We mutate both — neither call is harmful when the
+      // key does not exist in the cache.
+      const revalidateListEntries = matchedInfiniteKeys.map((cacheKey) =>
+        swrConfig.mutate(cacheKey, undefined, { revalidate: true }),
+      );
       await Promise.all([
+        ...revalidateListEntries,
         globalMutate(
           (key) =>
             Array.isArray(key) &&

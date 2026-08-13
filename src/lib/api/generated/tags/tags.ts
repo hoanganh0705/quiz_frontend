@@ -17,6 +17,9 @@ import type {
   TagControllerGetTagById200,
   TagControllerGetTagBySlug200,
   TagControllerGetTagQuizzes200,
+  TagControllerGetTagQuizzesParams,
+  TagControllerGetTagsBySlugs200,
+  TagControllerGetTagsBySlugsParams,
   TagControllerGetTrendingTags200,
   TagControllerGetTrendingTagsParams,
   TagControllerListTags200,
@@ -58,13 +61,27 @@ const tagControllerGetTrendingTags = (
       );
     }
   /**
+ * @summary Resolve a list of tag slugs into tag records
+ */
+const tagControllerGetTagsBySlugs = (
+    params?: TagControllerGetTagsBySlugsParams,
+ ) => {
+      return orvalCustomInstance<TagControllerGetTagsBySlugs200>(
+      {url: `/api/v1/tags/by-slugs`, method: 'GET',
+        params
+    },
+      );
+    }
+  /**
  * @summary List quizzes in a tag
  */
 const tagControllerGetTagQuizzes = (
     slug: string,
+    params?: TagControllerGetTagQuizzesParams,
  ) => {
       return orvalCustomInstance<TagControllerGetTagQuizzes200>(
-      {url: `/api/v1/tags/${slug}/quizzes`, method: 'GET'
+      {url: `/api/v1/tags/${slug}/quizzes`, method: 'GET',
+        params
     },
       );
     }
@@ -209,9 +226,10 @@ const userTagControllerListFollowedTags = (
     },
       );
     }
-  return {tagControllerGetPopularTags,tagControllerGetTrendingTags,tagControllerGetTagQuizzes,tagControllerGetRelatedTags,tagControllerGetTagAnalytics,tagControllerGetTagById,tagControllerUpdateTag,tagControllerDeleteTag,tagControllerFollowTag,tagControllerUnfollowTag,tagControllerRestoreTag,tagControllerListTags,tagControllerCreateTag,tagControllerGetTagBySlug,userTagControllerListFollowedTags}};
+  return {tagControllerGetPopularTags,tagControllerGetTrendingTags,tagControllerGetTagsBySlugs,tagControllerGetTagQuizzes,tagControllerGetRelatedTags,tagControllerGetTagAnalytics,tagControllerGetTagById,tagControllerUpdateTag,tagControllerDeleteTag,tagControllerFollowTag,tagControllerUnfollowTag,tagControllerRestoreTag,tagControllerListTags,tagControllerCreateTag,tagControllerGetTagBySlug,userTagControllerListFollowedTags}};
 export type TagControllerGetPopularTagsResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getTags>['tagControllerGetPopularTags']>>>
 export type TagControllerGetTrendingTagsResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getTags>['tagControllerGetTrendingTags']>>>
+export type TagControllerGetTagsBySlugsResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getTags>['tagControllerGetTagsBySlugs']>>>
 export type TagControllerGetTagQuizzesResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getTags>['tagControllerGetTagQuizzes']>>>
 export type TagControllerGetRelatedTagsResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getTags>['tagControllerGetRelatedTags']>>>
 export type TagControllerGetTagAnalyticsResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getTags>['tagControllerGetTagAnalytics']>>>

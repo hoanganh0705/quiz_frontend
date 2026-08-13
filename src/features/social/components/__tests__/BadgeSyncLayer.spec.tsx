@@ -10,9 +10,12 @@
  *   - Mounts `useNotificationEventRouter` (which handles the
  *     social-key re-routing for `friend_request` / `follow` / `block`
  *     kinds).
- *   - Mounts `useUnreadNotificationCount` (Phase 5).
- *   - Returns `null` when the flag is `'placeholder'`.
- *   - Unmount cleans up listeners (delegated to the underlying hooks).
+ *   - Does NOT mount `useUnreadNotificationCount` — the bell badge is
+ *     owned by the global `NotificationBell` in `AppHeader`. A second
+ *     instance here would double-register the `notification:sent`
+ *     listener on the shared socket and double-bump the cached count.
+ *   - Returns `null` when the flag is `'placeholder'` (early gate).
+ *   - Unmount cleans up listeners (delegated to the underlying hook).
  */
 
 import { cleanup, render } from "@testing-library/react";
@@ -62,8 +65,8 @@ beforeEach(() => {
     connected: false,
   } as unknown as ReturnType<typeof socketAdapterModule.createSocket>);
 
-  // Spy on the two hooks the layer mounts so we can assert they were
-  // called and verify the placeholder-flag fallback.
+  // Spy on the two hooks the layer interacts with so we can assert
+  // they were called and verify the placeholder-flag fallback.
   vi.spyOn(notificationRouterModule, "useNotificationEventRouter").mockImplementation(
     () => {
       routerCalls += 1;
@@ -90,23 +93,24 @@ describe("BadgeSyncLayer (TKT-6.10.E8)", () => {
     expect(container.firstChild).toBeNull();
   });
 
-  it("mounts both `useNotificationEventRouter` and `useUnreadNotificationCount`", () => {
+  it("mounts `useNotificationEventRouter` but not `useUnreadNotificationCount`", () => {
+    // The unread-count hook is owned by the global `NotificationBell`
+    // in `AppHeader`; a second mount here would double-register the
+    // `notification:sent` listener and double-bump the cached count.
     render(<BadgeSyncLayer />);
     expect(routerCalls).toBe(1);
-    expect(unreadCountCalls).toBe(1);
+    expect(unreadCountCalls).toBe(0);
   });
 
-  it("still mounts both hooks when the feature flag is 'placeholder' (hooks gate themselves)", () => {
-    // The hooks themselves short-circuit when the flag is 'placeholder';
-    // the layer is a passive mount-point and always calls both hooks.
+  it("returns null and does not mount the router when the feature flag is 'placeholder'", () => {
     vi.spyOn(featureFlagsModule, "getFeatureFlagValue").mockReturnValue(
       "placeholder",
     );
 
     const { container } = render(<BadgeSyncLayer />);
     expect(container.firstChild).toBeNull();
-    expect(routerCalls).toBe(1);
-    expect(unreadCountCalls).toBe(1);
+    expect(routerCalls).toBe(0);
+    expect(unreadCountCalls).toBe(0);
   });
 
   it("survives multiple mounts (idempotent re-renders)", () => {
@@ -117,6 +121,6 @@ describe("BadgeSyncLayer (TKT-6.10.E8)", () => {
     // React 18 strict-mode dev may double-invoke, but we always get at
     // least the documented call count.
     expect(routerCalls).toBeGreaterThanOrEqual(1);
-    expect(unreadCountCalls).toBeGreaterThanOrEqual(1);
+    expect(unreadCountCalls).toBe(0);
   });
 });

@@ -102,7 +102,7 @@ export function InstanceGamePage({
   // ─── Socket + bridge (mounts on render, tears down on unmount) ─────────
 
   useInstanceGameSocket(instanceId);
-  useRealtimeGameplay(instanceId);
+  const { bundle, leaderboard, isReconciling } = useRealtimeGameplay(instanceId);
   useReconnectReconciliation(instanceId);
   const { closure, isClosed } = useInstanceLifecycle(instanceId);
 
@@ -138,12 +138,6 @@ export function InstanceGamePage({
   //
   // Show skeleton while the per-instance store has no data yet.
   // The store is empty until the first realtime envelope arrives.
-
-  const {
-    bundle,
-    leaderboard,
-    isReconciling,
-  } = useRealtimeGameplay(instanceId);
 
   const isInitializing =
     bundle === null && leaderboard.length === 0 && !isReconciling;

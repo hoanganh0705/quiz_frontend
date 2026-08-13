@@ -29,6 +29,7 @@ import type {
   RankingControllerGetMyRankingMilestones200,
   RankingControllerGetNearbyRanks200,
   RankingControllerGetNearbyRanksParams,
+  RankingControllerGetRecentWinners200,
   RankingControllerGetTopMovers200,
   RankingControllerGetTopMoversParams,
   RankingControllerGetUserRank200,
@@ -79,6 +80,18 @@ const rankingControllerGetTopMovers = (
       return orvalCustomInstance<RankingControllerGetTopMovers200>(
       {url: `/api/v1/leaderboard/top-movers`, method: 'GET',
         params
+    },
+      );
+    }
+  /**
+ * Returns the 10 most-recent tournament winners (the source rows are the `tournament_won` entries in `user_activity_events`).
+ * @summary Get recent tournament winners
+ */
+const rankingControllerGetRecentWinners = (
+    
+ ) => {
+      return orvalCustomInstance<RankingControllerGetRecentWinners200>(
+      {url: `/api/v1/leaderboard/recent-winners`, method: 'GET'
     },
       );
     }
@@ -273,10 +286,11 @@ const rankingAdminControllerTriggerConsistencyCheck = (
     },
       );
     }
-  return {rankingControllerGetGlobalLeaderboard,rankingControllerGetLeaderboardDistribution,rankingControllerGetTopMovers,rankingControllerGetMyRank,rankingControllerGetMyRankForPeriod,rankingControllerGetMyPercentile,rankingControllerGetMyRankingMilestones,rankingControllerGetNearbyRanks,rankingControllerGetMyRankMovement,rankingControllerGetMyPeakRanks,rankingControllerGetMyRankingHistory,rankingControllerGetUserRank,rankingControllerGetUserRankingHistory,rankingControllerGetUserRankForPeriod,rankingAdminControllerGetStatus,rankingAdminControllerTriggerRecalculation,rankingAdminControllerTriggerPeriodReset,rankingAdminControllerTriggerConsistencyCheck}};
+  return {rankingControllerGetGlobalLeaderboard,rankingControllerGetLeaderboardDistribution,rankingControllerGetTopMovers,rankingControllerGetRecentWinners,rankingControllerGetMyRank,rankingControllerGetMyRankForPeriod,rankingControllerGetMyPercentile,rankingControllerGetMyRankingMilestones,rankingControllerGetNearbyRanks,rankingControllerGetMyRankMovement,rankingControllerGetMyPeakRanks,rankingControllerGetMyRankingHistory,rankingControllerGetUserRank,rankingControllerGetUserRankingHistory,rankingControllerGetUserRankForPeriod,rankingAdminControllerGetStatus,rankingAdminControllerTriggerRecalculation,rankingAdminControllerTriggerPeriodReset,rankingAdminControllerTriggerConsistencyCheck}};
 export type RankingControllerGetGlobalLeaderboardResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getLeaderboards>['rankingControllerGetGlobalLeaderboard']>>>
 export type RankingControllerGetLeaderboardDistributionResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getLeaderboards>['rankingControllerGetLeaderboardDistribution']>>>
 export type RankingControllerGetTopMoversResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getLeaderboards>['rankingControllerGetTopMovers']>>>
+export type RankingControllerGetRecentWinnersResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getLeaderboards>['rankingControllerGetRecentWinners']>>>
 export type RankingControllerGetMyRankResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getLeaderboards>['rankingControllerGetMyRank']>>>
 export type RankingControllerGetMyRankForPeriodResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getLeaderboards>['rankingControllerGetMyRankForPeriod']>>>
 export type RankingControllerGetMyPercentileResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getLeaderboards>['rankingControllerGetMyPercentile']>>>

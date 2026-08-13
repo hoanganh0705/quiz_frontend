@@ -2,6 +2,7 @@
 
 import 'swiper/css'
 import 'swiper/css/free-mode'
+import './SuccessStoriesCarousel.css'
 import Image from 'next/image'
 import { Star } from 'lucide-react'
 import { Swiper, SwiperSlide } from 'swiper/react'
@@ -159,34 +160,6 @@ export default function SuccessStoriesCarousel() {
           <div className='swiper-pagination-custom mt-8 flex justify-center space-x-2'></div>
         </div>
       </div>
-
-      <style jsx global>{`
-        .testimonial-swiper {
-          overflow: visible;
-        }
-
-        .swiper-pagination-bullet-custom {
-          width: 8px;
-          height: 8px;
-          border-radius: 50%;
-          background-color: rgb(107, 114, 128);
-          opacity: 1;
-          cursor: pointer;
-          transition: background-color 0.3s ease;
-        }
-
-        .swiper-pagination-bullet-active-custom {
-          background-color: #6c88ea;
-        }
-
-        .swiper-pagination-bullet-custom:hover {
-          background-color: rgb(156, 163, 175);
-        }
-
-        .swiper-pagination-bullet-active-custom:hover {
-          background-color: rgb(243, 244, 246);
-        }
-      `}</style>
     </section>
   )
 }

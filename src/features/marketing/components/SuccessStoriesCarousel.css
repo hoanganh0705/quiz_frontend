@@ -1,0 +1,40 @@
+/**
+ * Swiper pagination styles for the SuccessStoriesCarousel.
+ *
+ * The carousel uses custom bullet class names via the Swiper config
+ * (`bulletClass: 'swiper-pagination-bullet-custom'`), so we still need
+ * to define those rules somewhere. They used to live inside a
+ * `<style jsx global>` block in the component, but that produced a
+ * hydration mismatch in Next.js App Router because styled-jsx injects
+ * a hash-suffixed class on the SSR HTML (`jsx-…`) but the same hash
+ * is not produced during client rehydration of a Client Component that
+ * is initially serialized via RSC.
+ *
+ * Plain global CSS has no such issue.
+ */
+
+.testimonial-swiper {
+  overflow: visible;
+}
+
+.swiper-pagination-bullet-custom {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: rgb(107, 114, 128);
+  opacity: 1;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.swiper-pagination-bullet-active-custom {
+  background-color: #6c88ea;
+}
+
+.swiper-pagination-bullet-custom:hover {
+  background-color: rgb(156, 163, 175);
+}
+
+.swiper-pagination-bullet-active-custom:hover {
+  background-color: rgb(243, 244, 246);
+}

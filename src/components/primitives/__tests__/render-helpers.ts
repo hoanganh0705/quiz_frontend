@@ -57,18 +57,31 @@ export function mockQuizListItemDto(
   const base: QuizListItemDto = {
     quizId: uuidV7(1),
     creatorId: null,
+    creator: {
+      userId: '0192f4d8-0000-7000-8000-000000000002',
+      username: 'testuser',
+      displayName: 'Test User',
+      avatarUrl: null,
+    },
     title: 'Sample quiz',
     description: null,
     slug: 'sample-quiz',
     requirements: null,
     imageUrl: null,
     categoryId: null,
+    categoryName: null,
+    categorySlug: null,
     isFeatured: false,
     isHidden: false,
     isVerified: true,
     publishedVersionId: null,
     createdAt: '2026-07-01T00:00:00.000Z',
-    updatedAt: '2026-07-01T00:00:00.000Z'
+    updatedAt: '2026-07-01T00:00:00.000Z',
+    questionCount: 10,
+    averageRating: 4.0,
+    reviewCount: 5,
+    attemptCount: 50,
+    tags: [],
   }
   const merged = { ...base, ...overrides } as QuizListItemDto
   assertUuidV7(merged.quizId, 'quizId')

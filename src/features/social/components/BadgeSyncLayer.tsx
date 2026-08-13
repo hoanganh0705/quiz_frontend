@@ -9,9 +9,9 @@
  * ## Purpose
  *
  * `BadgeSyncLayer` is a renderless React component that mounts the
- * social notification router so the badge count and the related
- * friend-request / follow / block lists stay in lockstep with the
- * server-emitted `notification:sent` stream.
+ * social notification router so the related friend-request / follow /
+ * block lists stay in lockstep with the server-emitted `notification:sent`
+ * stream.
  *
  * The component:
  *   1. Renders nothing visually (it is a side-effect-only shell).
@@ -19,12 +19,17 @@
  *      re-routes `notification:sent` events whose `data.kind` is one
  *      of `friend_request` / `follow` / `block` to the matching
  *      social SWR cache key.
- *   3. Mounts `useUnreadNotificationCount` (Phase 5 / TKT-5.4.B2)
- *      which optimistically increments the unread-count badge for
- *      every accepted `notification:sent` (Phase 5 owns this).
- *   4. Returns `null` when the `social_realtime_notifications_live` feature
- *      flag is `'placeholder'`, so disabled environments render no
- *      extra nodes in the tree.
+ *   3. Returns `null` when the `social_realtime_notifications_live`
+ *      feature flag is `'placeholder'`, so disabled environments render
+ *      no extra nodes in the tree.
+ *
+ * ## Unread-count ownership
+ *
+ * The bell badge's `useUnreadNotificationCount` is mounted by the
+ * global `NotificationBell` in `AppHeader`. This layer does NOT mount
+ * a second instance — doing so would double-register the
+ * `notification:sent` listener on the shared socket and double-bump
+ * the cached count on every realtime event.
  *
  * ## Re-routing responsibility
  *
@@ -43,21 +48,21 @@
  * ## SSR
  *
  * The component is a `"use client"` shell. When rendered during SSR
- * both hooks short-circuit (Phase 5 `useSocket` SSR-guard and
+ * the hook short-circuits (the underlying `useSocket` SSR-guard and
  * `useNotificationEventRouter` flag-gate).
  */
 
 "use client";
 
 import { useNotificationEventRouter } from "@/features/social/hooks/useNotificationEventRouter";
-import { useUnreadNotificationCount } from "@/features/notifications/hooks/useUnreadNotificationCount";
+import { getFeatureFlagValue } from "@/lib/feature-flags";
 
 /**
  * Mount-point for the social-aware badge listeners.
  *
- * Returns `null` regardless of whether the underlying hooks mounted
- * anything (they are side-effect-only). The component itself is a
- * pure JSX node with no props.
+ * Returns `null` regardless of whether the underlying hook mounted
+ * anything (it is side-effect-only). The component itself is a pure
+ * JSX node with no props.
  *
  * @example
  * ```tsx
@@ -72,14 +77,18 @@ import { useUnreadNotificationCount } from "@/features/notifications/hooks/useUn
  * ```
  */
 export function BadgeSyncLayer(): null {
-  // Mount the social-key re-router. When the flag is `'placeholder'`
-  // the hook short-circuits and never opens a socket.
-  useNotificationEventRouter();
+  // Gate the social-key re-router on the social-specific flag so that
+  // a `'placeholder'` environment renders no extra nodes in the tree
+  // (the hook itself short-circuits, but the early return keeps the
+  // intent explicit and avoids accidental work in the future).
+  const flagValue = getFeatureFlagValue("social_realtime_notifications_live");
+  if (flagValue === "placeholder") {
+    return null;
+  }
 
-  // Mount the unread-count badge listener. Phase 5 owns this hook;
-  // it handles the optimistic increment + revalidation and respects
-  // its own `notifications_live` flag gate.
-  useUnreadNotificationCount();
+  // Mount the social-key re-router. The hook short-circuits when the
+  // flag is `'placeholder'` and never opens a socket.
+  useNotificationEventRouter();
 
   return null;
 }

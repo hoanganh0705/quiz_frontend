@@ -9,6 +9,8 @@
  *     `skipBroadcast: true`.
  *   - The optional `redirectTo` is only honoured when it passes
  *     `isSafeRedirectTarget`.
+ *   - The SWR in-memory cache is wiped via `globalMutate(() => true, …)`.
+ *   - `skipSwrCacheClear: true` skips the SWR wipe.
  *   - The helper never throws even if a primitive throws.
  */
 
@@ -18,6 +20,7 @@ const mockClearVerificationFlags = vi.fn();
 const mockClearAuthToken = vi.fn();
 const mockClearAllAuthCache = vi.fn();
 const mockBroadcastLogout = vi.fn();
+const mockGlobalMutate = vi.fn();
 const mockAssign = vi.fn();
 
 vi.mock("@/features/auth/utils/verification-flag", () => ({
@@ -36,12 +39,23 @@ vi.mock("@/features/auth/utils/safe-redirect", () => ({
 vi.mock("@/lib/api/core/broadcast-channel", () => ({
   broadcastAuthEvent: () => mockBroadcastLogout(),
 }));
+vi.mock("swr", () => ({
+  // `mutate` is the global SWR cache mutator. The wildcard
+  // predicate form (`() => true`) is the canonical idiom for
+  // "match every cached key" and is what `clearAuthState` uses
+  // to wipe every entry in the in-memory cache. The mock records
+  // each call so the suite can assert the wildcard shape.
+  mutate: (...args: unknown[]) => {
+    mockGlobalMutate(...(args as Parameters<typeof mockGlobalMutate>));
+  },
+}));
 
 beforeEach(() => {
   mockClearVerificationFlags.mockReset();
   mockClearAuthToken.mockReset();
   mockClearAllAuthCache.mockReset();
   mockBroadcastLogout.mockReset();
+  mockGlobalMutate.mockReset();
   mockAssign.mockReset();
   // Stub `window.location.assign` so the test can probe redirects
   // without actually navigating. We can't `Object.defineProperty`
@@ -90,6 +104,33 @@ describe("clearAuthState", () => {
     expect(mockAssign).not.toHaveBeenCalled();
   });
 
+  it("wipes the SWR in-memory cache via the wildcard predicate", async () => {
+    const { clearAuthState } = await import(
+      "@/features/auth/utils/clear-auth-state"
+    );
+    clearAuthState();
+    // `clearAuthState` calls `globalMutate(() => true, undefined, { revalidate: true })`.
+    expect(mockGlobalMutate).toHaveBeenCalledTimes(1);
+    const [predicate, data, opts] = mockGlobalMutate.mock.calls[0] ?? [];
+    // Predicate is a function (SWR expects a `(key) => boolean` shape).
+    expect(typeof predicate).toBe("function");
+    // The predicate returns `true` for *every* key (the canonical
+    // "wipe everything" idiom).
+    expect((predicate as () => boolean)()).toBe(true);
+    // Second arg is `undefined` (we're wiping entries, not setting them).
+    expect(data).toBeUndefined();
+    // Third arg enables revalidation for currently-mounted consumers.
+    expect(opts).toEqual({ revalidate: true });
+  });
+
+  it("skips the SWR wipe when skipSwrCacheClear is true", async () => {
+    const { clearAuthState } = await import(
+      "@/features/auth/utils/clear-auth-state"
+    );
+    clearAuthState({ skipSwrCacheClear: true });
+    expect(mockGlobalMutate).not.toHaveBeenCalled();
+  });
+
   it("does not throw when a primitive throws", async () => {
     mockClearAuthToken.mockImplementationOnce(() => {
       throw new Error("cookie write failed");
@@ -100,6 +141,19 @@ describe("clearAuthState", () => {
     expect(() => clearAuthState()).not.toThrow();
     // The later steps still ran.
     expect(mockClearAllAuthCache).toHaveBeenCalledTimes(1);
+    expect(mockBroadcastLogout).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not throw when the SWR mutate mock throws", async () => {
+    mockGlobalMutate.mockImplementationOnce(() => {
+      throw new Error("SWR not mounted");
+    });
+    const { clearAuthState } = await import(
+      "@/features/auth/utils/clear-auth-state"
+    );
+    expect(() => clearAuthState()).not.toThrow();
+    // The cookie + broadcast + redirect steps still ran.
+    expect(mockClearAuthToken).toHaveBeenCalledTimes(1);
     expect(mockBroadcastLogout).toHaveBeenCalledTimes(1);
   });
 });

@@ -252,4 +252,60 @@ describe("useRespondFriendRequest — TKT-6.8.D2", () => {
       await waitFor(() => expect(result.current.isPending).toBe(false));
     });
   });
+
+  describe("assumeCanRespond", () => {
+    it("dispatches the respond mutation when canRespond is false but the caller asserts the row came from the incoming list", async () => {
+      // Simulate the bug: the relationship fetch has not settled yet
+      // (or returned `none`) so the permission guard would normally
+      // turn `respond()` into a no-op. The friends page's
+      // IncomingRequestActions opts in via `assumeCanRespond: true`
+      // because the row came from
+      // `GET /social/friend-requests/incoming`, which is a
+      // server-authoritative source — the relationship is
+      // `incoming_request` by definition.
+      mockUseSocialPermissions.mockReturnValue({
+        ...permissionsAllGranted(),
+        canRespond: false,
+      });
+
+      const { result } = renderHook(
+        () =>
+          useRespondFriendRequest("user-target", {
+            assumeCanRespond: true,
+          }),
+        { wrapper: TestSwrProvider },
+      );
+      await act(async () => {
+        result.current.respond({
+          friendshipId: "fi-abc",
+          action: "accept",
+        });
+      });
+
+      await waitFor(() =>
+        expect(mockRespondFriendRequest).toHaveBeenCalledWith(
+          "fi-abc",
+          "accept",
+        ),
+      );
+    });
+
+    it("still no-ops when canRespond is false AND assumeCanRespond is not set", () => {
+      // Sanity-check: the default (strict) semantics are preserved.
+      mockUseSocialPermissions.mockReturnValue({
+        ...permissionsAllGranted(),
+        canRespond: false,
+      });
+
+      const { result } = renderHook(
+        () => useRespondFriendRequest("user-target"),
+        { wrapper: TestSwrProvider },
+      );
+      result.current.respond({
+        friendshipId: "fi-abc",
+        action: "accept",
+      });
+      expect(mockRespondFriendRequest).not.toHaveBeenCalled();
+    });
+  });
 });

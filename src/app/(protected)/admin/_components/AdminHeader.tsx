@@ -1,9 +1,8 @@
 'use client'
 
 import type React from 'react'
-import { Search, Bell, LogOut } from 'lucide-react'
+import { Bell, LogOut } from 'lucide-react'
 
-import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
 import { ModeToggle } from '@/shared/layout/components/ModeToggle'
 import { SidebarTrigger, useSidebar } from '@/components/ui/Sidebar'

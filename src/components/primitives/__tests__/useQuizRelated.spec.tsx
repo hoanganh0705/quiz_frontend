@@ -76,18 +76,31 @@ function makeQuizItem(index: number): QuizListItemDto {
   return {
     quizId: `0192f4d8-0000-7000-8000-${String(index).padStart(12, '0')}`,
     creatorId: null,
+    creator: {
+      userId: '0192f4d8-0000-7000-8000-000000000002',
+      username: 'testuser',
+      displayName: 'Test User',
+      avatarUrl: null,
+    },
     title: `Related Quiz ${index}`,
     description: null,
     slug: `related-quiz-${index}`,
     requirements: null,
     imageUrl: null,
     categoryId: null,
+    categoryName: null,
+    categorySlug: null,
     isFeatured: false,
     isHidden: false,
     isVerified: false,
     publishedVersionId: null,
     createdAt: '2026-07-01T00:00:00.000Z',
     updatedAt: '2026-07-01T00:00:00.000Z',
+    questionCount: 10,
+    averageRating: 4.0,
+    reviewCount: 5,
+    attemptCount: 50,
+    tags: [],
   }
 }
 

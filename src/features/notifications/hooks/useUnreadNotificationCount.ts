@@ -41,7 +41,7 @@
  * opening a socket connection.
  */
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import useSWR from "swr";
 
 import { ApiError, isApiError } from "@/lib/api";
@@ -60,6 +60,19 @@ import {
   type UnreadCount,
 } from "@/features/notifications/types/notification.types";
 import { getFeatureFlagValue } from "@/lib/feature-flags";
+
+// ─── Constants ─────────────────────────────────────────────────────────────
+
+/**
+ * Dedupe window for `notification:sent` events. The bell bumps the
+ * cached count by 1 per unique notification ID; an event with the same
+ * ID delivered within this window is a no-op (covers Socket.IO replay
+ * on reconnect, multiple subscribers, and cross-tab re-emission).
+ *
+ * The 10-minute window matches `useAchievementNotificationRevalidation`
+ * so the two listeners share the same notion of "already processed".
+ */
+const DEDUPE_WINDOW_MS = 10 * 60 * 1000;
 
 // ─── Public types ──────────────────────────────────────────────────────────
 
@@ -134,11 +147,58 @@ export function useUnreadNotificationCount(): UseUnreadNotificationCountResult {
 
   const isLiveSocket = realtimeEnabled && connectionState === "connected";
 
-  // `notification:sent` — increment the cached count by 1.
+  // Dedupe set: notification IDs the current tab has already
+  // processed within the last `DEDUPE_WINDOW_MS` ms. Without this,
+  // every replay of `notification:sent` (Socket.IO reconnect, double
+  // subscriber from `BadgeSyncLayer`, etc.) would over-increment the
+  // cached count — but the JSDoc above promised "no double-increment
+  // for the same ID" since the hook was first written.
+  const seenIdsRef = useRef<Map<string, number>>(new Map());
+
+  // Periodic GC: forget dedupe entries older than the window.
+  useEffect(() => {
+    if (!realtimeEnabled) return;
+    const interval = window.setInterval(() => {
+      const cutoff = Date.now() - DEDUPE_WINDOW_MS;
+      const map = seenIdsRef.current;
+      for (const [id, ts] of map) {
+        if (ts < cutoff) {
+          map.delete(id);
+        }
+      }
+    }, DEDUPE_WINDOW_MS);
+    return () => {
+      window.clearInterval(interval);
+    };
+  }, [realtimeEnabled]);
+
+  // `notification:sent` — increment the cached count by 1, deduped by
+  // notification id. The wire payload is the server-emitted shape
+  // (`{ eventType, notificationId, userId, type, channel, timestamp }`);
+  // see `notification.gateway.ts` `serializeEvent`.
   useRealtimeEvent(
     socket,
     realtimeEnabled ? NOTIFICATION_SENT : null,
-    () => {
+    (rawPayload) => {
+      const payload = rawPayload as { notificationId?: unknown } | undefined;
+      const id =
+        payload && typeof payload === "object"
+          ? payload.notificationId
+          : undefined;
+      if (typeof id !== "string" || id.length === 0) {
+        // Without a stable id we cannot dedupe; fall back to a
+        // revalidation so the count cannot drift upward on replay.
+        void swr.mutate(undefined, { revalidate: true });
+        return;
+      }
+
+      // Dedupe: skip if we've processed this id within the window.
+      const seenAt = seenIdsRef.current.get(id);
+      if (typeof seenAt === "number" && seenAt > Date.now() - DEDUPE_WINDOW_MS) {
+        return;
+      }
+      seenIdsRef.current.set(id, Date.now());
+
       void swr.mutate(
         (current) => {
           const base = current ?? { count: 0 };

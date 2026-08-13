@@ -127,8 +127,18 @@ export function SocialCountsCard({
   targetUserId,
   variant = "hub",
 }: SocialCountsCardProps): ReactElement | null {
-  const { counts, isLoading, isStale } = useSocialCounts(targetUserId);
+  const { counts, isLoading, isStale, error } = useSocialCounts(targetUserId);
   const visibility = useSocialListVisibility(targetUserId);
+
+  // Phase 6 (plan exit criterion): hide the card entirely when the
+  // fetch has failed. The previous implementation rendered `0` for
+  // every counter on error, which was a silent data-fabrication
+  // regression — the user opened the page, saw "0 followers", and
+  // inferred the count was real. The page-level error boundary
+  // surfaces the failure mode; the card itself stays out of the way.
+  if (error !== null && !isLoading) {
+    return null;
+  }
 
   // Suppress the card entirely when the hook has nothing to show
   // and is not in a loading state. The page renders its own

@@ -123,13 +123,19 @@ afterEach(() => {
 })
 
 // ──────────────────────────────────────────────────────────────────────
-// (1) + (2) missing-endpoint branch
+// (1) + (2) empty-history branch (Phase 3 S-14 fix)
 // ──────────────────────────────────────────────────────────────────────
 
-describe('useDailyChallengeHistory — missing-endpoint branch', () => {
-  it('(1) returns isMissingEndpoint: true and items: [] when the wrapper reports kind: "missing-endpoint"', async () => {
+describe('useDailyChallengeHistory — empty-history branch', () => {
+  it('(1) returns isMissingEndpoint: false and items: [] when the wrapper reports an empty ok page (no history yet)', async () => {
     getDailyChallengeHistoryPageMock.mockResolvedValue({
-      kind: 'missing-endpoint',
+      kind: 'ok',
+      data: {
+        items: [],
+        nextCursor: null,
+        hasNextPage: false,
+        limit: 5,
+      },
     })
 
     const { result } = renderHook(() => useDailyChallengeHistory(), {
@@ -141,13 +147,22 @@ describe('useDailyChallengeHistory — missing-endpoint branch', () => {
     })
 
     expect(result.current.items).toEqual([])
-    expect(result.current.isMissingEndpoint).toBe(true)
+    // Phase 3 (S-14): an empty history is a legitimate outcome, not a
+    // missing-endpoint signal. The composition renders the empty-state
+    // branch, never the placeholder.
+    expect(result.current.isMissingEndpoint).toBe(false)
     expect(result.current.error).toBeNull()
   })
 
-  it('(2) returns hasMore: false on the missing-endpoint branch (the fetcher adapter\'s empty-page shape)', async () => {
+  it('(2) returns hasMore: false on an empty ok page (no further pages to load)', async () => {
     getDailyChallengeHistoryPageMock.mockResolvedValue({
-      kind: 'missing-endpoint',
+      kind: 'ok',
+      data: {
+        items: [],
+        nextCursor: null,
+        hasNextPage: false,
+        limit: 5,
+      },
     })
 
     const { result } = renderHook(() => useDailyChallengeHistory(), {

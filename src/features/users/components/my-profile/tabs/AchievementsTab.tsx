@@ -5,6 +5,11 @@
  * Source ticket: T-4.5-D2.
  *
  * Rewrites AchievementsTab to display BadgeGallery and RankingPanel side by side.
+ *
+ * Phase 7.12 hook: surfaces the `<FlairManagementCard />` panel so the
+ * viewer can equip / replace their profile flair. The per-badge flair
+ * controls live inside the picker dialog (Epic 7.12 spend side) so
+ * `BadgeGallery`'s render path stays untouched.
  */
 
 import { memo } from 'react';
@@ -16,6 +21,7 @@ import { CardTitle } from '@/components/ui/Card';
 
 import { BadgeGallery } from '../BadgeGallery';
 import { RankingPanel } from '../RankingPanel';
+import { FlairManagementCard } from './FlairManagementCard';
 
 /**
  * Achievements tab with badges gallery and ranking panel.
@@ -30,6 +36,9 @@ export const AchievementsTab = memo(function AchievementsTab({
 }) {
   return (
     <div className='mt-6 space-y-6'>
+      {/* Active Flair (Epic 7.12) */}
+      <FlairManagementCard />
+
       {/* Ranking Section */}
       <RankingPanel refreshInterval={refreshInterval} />
 

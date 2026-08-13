@@ -5,9 +5,10 @@
  * REST API for the quiz application
  * OpenAPI spec version: 1.0
  */
+import type { CurrentUserRankDto } from './currentUserRankDto';
 
 /**
- * The current user's rank among friends (null if not ranked)
+ * The current user's rank projection (rank + xp + totalParticipants). Null when the viewer is unranked in the period.
  * @nullable
  */
-export type FriendLeaderboardDtoCurrentUserRank = { [key: string]: unknown } | null;
+export type FriendLeaderboardDtoCurrentUserRank = CurrentUserRankDto | null;

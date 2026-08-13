@@ -20,40 +20,57 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, render, screen } from '@testing-library/react'
 
 import { DailyChallengeHistoryList } from '@/features/daily-challenge/components/DailyChallengeHistoryList'
+import type { DailyChallengeHistoryItemWithId } from '@/features/daily-challenge/hooks/useDailyChallengeHistory'
 
 afterEach(() => {
   cleanup()
 })
 
-const items = [
+const items: DailyChallengeHistoryItemWithId[] = [
   {
-    id: 'a',
+    id: '2026-08-01T00:00:00.000Z-quiz-1',
     date: '2026-08-01T00:00:00.000Z',
-    category: 'Science',
+    quizId: 'quiz-1',
+    quizTitle: 'Solar System Trivia',
+    slug: 'solar-system-trivia',
+    category: 'easy',
+    difficulty: 'easy',
     score: 80,
     rank: 1,
     isTopTen: true,
   },
   {
-    id: 'b',
+    id: '2026-07-31T00:00:00.000Z-quiz-2',
     date: '2026-07-31T00:00:00.000Z',
-    category: 'History',
+    quizId: 'quiz-2',
+    quizTitle: 'World History',
+    slug: 'world-history',
+    category: 'medium',
+    difficulty: 'medium',
     score: 60,
     rank: 12,
     isTopTen: false,
   },
   {
-    id: 'c',
+    id: '2026-07-30T00:00:00.000Z-quiz-3',
     date: '2026-07-30T00:00:00.000Z',
-    category: 'Geography',
+    quizId: 'quiz-3',
+    quizTitle: 'Capitals of the World',
+    slug: 'capitals-of-the-world',
+    category: 'medium',
+    difficulty: 'medium',
     score: 70,
     rank: 5,
     isTopTen: true,
   },
   {
-    id: 'd',
+    id: '2026-07-29T00:00:00.000Z-quiz-4',
     date: '2026-07-29T00:00:00.000Z',
-    category: 'Art',
+    quizId: 'quiz-4',
+    quizTitle: 'Modern Art Movements',
+    slug: 'modern-art-movements',
+    category: 'hard',
+    difficulty: 'hard',
     score: 90,
     rank: 2,
     isTopTen: true,
@@ -61,7 +78,7 @@ const items = [
 ]
 
 describe('DailyChallengeHistoryList — render', () => {
-  it('(1) renders the date, category, score, and rank for each row', () => {
+  it('(1) renders the date, quizTitle, score, and rank for each row', () => {
     render(
       <DailyChallengeHistoryList
         items={items}
@@ -72,10 +89,13 @@ describe('DailyChallengeHistoryList — render', () => {
     expect(
       screen.getByText('2026-08-01T00:00:00.000Z'),
     ).toBeInTheDocument()
-    expect(screen.getByText('Science')).toBeInTheDocument()
+    expect(screen.getByText('Solar System Trivia')).toBeInTheDocument()
     expect(screen.getByText('80%')).toBeInTheDocument()
     expect(screen.getByText('Rank #1')).toBeInTheDocument()
     expect(screen.getAllByText('Top 10').length).toBeGreaterThanOrEqual(1)
+    expect(
+      screen.getAllByTestId('daily-challenge-history-item-category').length,
+    ).toBeGreaterThanOrEqual(1)
   })
 
   it('(2) delegates to the empty state when items is empty', () => {

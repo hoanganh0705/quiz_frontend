@@ -14,7 +14,6 @@ import { DialogHeader } from '@/components/ui/Dialog'
 import { DialogTitle } from '@/components/ui/Dialog'
 import {
   Edit,
-  MapPin,
   Calendar,
   Share2,
   Camera,
@@ -22,11 +21,12 @@ import {
   Check,
   Copy,
   X,
-  Loader2
+  Loader2,
 } from 'lucide-react'
 import Link from 'next/link'
 import Image from 'next/image'
-import type { Player } from '@/features/users/types'
+import type { UserMeResponseDto } from '@/features/users/types'
+import type { UserSummaryResponseDto } from '@/lib/api/generated/schemas'
 import { useClipboard } from '@/shared/hooks'
 
 // Hoist constants outside component (data-hoisting)
@@ -35,19 +35,31 @@ const ALLOWED_IMAGE_TYPES = [
   'image/jpeg',
   'image/png',
   'image/webp',
-  'image/gif'
+  'image/gif',
 ]
 
+/**
+ * Phase 6: the header now reads from the live `UserSummaryResponseDto`
+ * (Phase 4 bundle) instead of the legacy `Player` projection. The
+ * historical `bgImageUrl` / `country` / `joinedAt` / `bio` / `quizzes`
+ * / `quizzesCreated` fields were never populated by any backend
+ * endpoint; surfacing them was a silent-fallback anti-pattern. The
+ * bundle-fed shape below is the single source of truth.
+ */
 interface ProfileHeaderProps {
-  user: Player
+  user: UserMeResponseDto
+  summary?: UserSummaryResponseDto | null
+  joinedAt?: string | null
   onAvatarChange?: (file: File) => Promise<void>
   onCoverChange?: (file: File) => Promise<void>
 }
 
 export const ProfileHeader = memo(function ProfileHeader({
   user,
+  summary,
+  joinedAt,
   onAvatarChange,
-  onCoverChange
+  onCoverChange,
 }: ProfileHeaderProps) {
   // Refs for file inputs
   const avatarInputRef = useRef<HTMLInputElement>(null)
@@ -73,8 +85,11 @@ export const ProfileHeader = memo(function ProfileHeader({
   // Get profile URL
   const profileUrl =
     typeof window !== 'undefined'
-      ? `${window.location.origin}/profile/${user.id}`
-      : `/profile/${user.id}`
+      ? `${window.location.origin}/profile/${user.username}`
+      : `/profile/${user.username}`
+
+  const displayName =
+    user.displayName ?? user.username ?? user.email ?? 'User'
 
   // Validate file
   const validateFile = useCallback((file: File): string | null => {
@@ -173,8 +188,8 @@ export const ProfileHeader = memo(function ProfileHeader({
     if (navigator.share) {
       try {
         await navigator.share({
-          title: `${user.name}'s Profile`,
-          text: `Check out ${user.name}'s profile on Quiz App!`,
+          title: `${displayName}'s Profile`,
+          text: `Check out ${displayName}'s profile on Quiz App!`,
           url: profileUrl
         })
         return
@@ -186,7 +201,7 @@ export const ProfileHeader = memo(function ProfileHeader({
 
     // Fall back to share dialog
     setIsShareDialogOpen(true)
-  }, [user.name, profileUrl])
+  }, [displayName, profileUrl])
 
   // Copy profile link
   const handleCopyLink = useCallback(() => {
@@ -238,9 +253,9 @@ export const ProfileHeader = memo(function ProfileHeader({
           aria-label='Cover image'
           className='relative h-32 bg-linear-to-r from-default/30 via-default/20 to-default/10'
         >
-          {(coverPreview || user.bgImageUrl) && (
+          {(coverPreview || summary?.bgImageUrl) && (
             <Image
-              src={coverPreview || user.bgImageUrl || ''}
+              src={coverPreview || summary?.bgImageUrl || ''}
               alt='Profile cover'
               fill
               className='object-cover'
@@ -282,11 +297,11 @@ export const ProfileHeader = memo(function ProfileHeader({
                   {(avatarPreview || user.avatarUrl) && (
                     <AvatarImage
                       src={(avatarPreview || user.avatarUrl) ?? undefined}
-                      alt={`${user.name}'s avatar`}
+                      alt={`${displayName}'s avatar`}
                     />
                   )}
                   <AvatarFallback className='text-2xl'>
-                    {user.name
+                    {displayName
                       .split(' ')
                       .map((n) => n[0])
                       .join('')}
@@ -319,66 +334,67 @@ export const ProfileHeader = memo(function ProfileHeader({
               <div className='flex-1 pt-2'>
                 <div className='flex flex-wrap items-center gap-3 mb-2'>
                   <h1 className='text-2xl font-bold text-foreground'>
-                    {user.name}
+                    {displayName}
                   </h1>
                 </div>
 
                 <div className='flex flex-wrap items-center gap-4 text-muted-foreground text-sm mb-3'>
-                  <span>@{user.name.toLowerCase().replace(' ', '')}</span>
-                  {user.country && (
+                  <span>@{user.username}</span>
+                  {joinedAt && (
                     <span className='flex items-center gap-1'>
-                      <MapPin className='w-3 h-3' aria-hidden='true' />
-                      {user.country}
+                      <Calendar className='w-3 h-3' aria-hidden='true' />
+                      Joined{' '}
+                      {new Date(joinedAt).toLocaleDateString('en-US', {
+                        month: 'long',
+                        day: 'numeric',
+                        year: 'numeric',
+                      })}
                     </span>
                   )}
-                  <span className='flex items-center gap-1'>
-                    <Calendar className='w-3 h-3' aria-hidden='true' />
-                    Joined {user.joinedAt ? new Date(user.joinedAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : 'March 15, 2022'}
-                  </span>
                 </div>
 
-                {user.bio && (
+                {summary && (
                   <p className='text-muted-foreground mb-4 text-sm max-w-xl'>
-                    {user.bio}
+                    {summary.levelTitleLocalised}
                   </p>
                 )}
 
                 {/* Quick Stats */}
                 <div className='flex flex-wrap gap-6 text-sm'>
-                  {user.quizzes !== undefined && (
+                  {summary?.quizzesTaken !== undefined && (
                     <div>
                       <span className='text-foreground font-bold'>
-                        {user.quizzes}
+                        {summary.quizzesTaken}
                       </span>
                       <span className='text-muted-foreground ml-1'>
                         Quizzes Taken
                       </span>
                     </div>
                   )}
-                  {user.quizzesCreated !== undefined && (
+                  {summary?.quizzesCreated !== undefined && (
                     <div>
                       <span className='text-foreground font-bold'>
-                        {user.quizzesCreated}
+                        {summary.quizzesCreated}
                       </span>
                       <span className='text-muted-foreground ml-1'>
                         Quizzes Created
                       </span>
                     </div>
                   )}
-                  {user.followers && (
+                  {summary?.followers !== undefined && (
                     <div>
                       <span className='text-foreground font-bold'>
-                        {user.followers}
+                        {summary.followers}
                       </span>
                       <span className='text-muted-foreground ml-1'>
                         Followers
                       </span>
                     </div>
                   )}
-                  {user.following && (
+                  {summary?.following !== undefined && (
                     <div>
                       <span className='text-foreground font-bold'>
-                        {user.following}
+                        {summary.following}
                       </span>
                       <span className='text-muted-foreground ml-1'>
                         Following
@@ -426,7 +442,7 @@ export const ProfileHeader = memo(function ProfileHeader({
           <DialogHeader>
             <DialogTitle>Share Profile</DialogTitle>
             <DialogDescription>
-              Share {user.name}&apos;s profile with others
+              Share {displayName}&apos;s profile with others
             </DialogDescription>
           </DialogHeader>
           <div className='flex items-center space-x-2'>

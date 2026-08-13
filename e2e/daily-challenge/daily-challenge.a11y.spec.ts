@@ -36,7 +36,10 @@ import { readFileSync } from 'node:fs'
 import path from 'node:path'
 import { expect, test, type Page } from '@playwright/test'
 
-import { stubAuth } from './daily-challenge.helpers'
+import {
+  stubAuth,
+  stubDailyChallengeLive,
+} from './daily-challenge.helpers'
 
 const AXE_PATH = path.join(
   // The spec is run from the project root via pnpm.
@@ -207,5 +210,42 @@ test.describe('Daily-challenge a11y (Story 3.12 / TKT-3.12.E4)', () => {
         document.documentElement.clientWidth
     })
     expect(overflow).toBe(false)
+  })
+
+  // ─────────────────────────────────────────────────────────────────
+  // (d) Play surface — region + role + option aria-pressed semantics.
+  // ─────────────────────────────────────────────────────────────────
+
+  test('(d) the play surface region is announced and option buttons announce selected state', async ({
+    page,
+  }) => {
+    await stubDailyChallengeLive(page, { authenticate: true })
+
+    await page.goto('/daily-challenge')
+
+    // The play surface region is announced to screen readers.
+    const surface = page.getByTestId('daily-challenge-play-surface')
+    await expect(surface).toHaveAttribute('role', 'region')
+    await expect(surface).toHaveAttribute(
+      'aria-label',
+      'Daily challenge question',
+    )
+
+    // First option button announces its selection state.
+    const firstOption = page.getByTestId('daily-challenge-play-option').first()
+    await expect(firstOption).toHaveAttribute('aria-checked', 'false')
+    await firstOption.click()
+    await expect(firstOption).toHaveAttribute('aria-checked', 'true')
+
+    // axe-core reports no serious or critical violations on the
+    // live surface.
+    const violations = await runAxe(page)
+    const blockers = violations.filter(
+      (v) => v.impact === 'critical' || v.impact === 'serious',
+    )
+    expect(
+      blockers,
+      `axe blockers:\n${JSON.stringify(blockers, null, 2)}`,
+    ).toHaveLength(0)
   })
 })

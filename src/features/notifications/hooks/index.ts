@@ -38,5 +38,8 @@ export type { UseMarkNotificationUnreadResult } from "./useMarkNotificationUnrea
 export { useDeleteNotification } from "./useDeleteNotification";
 export type { UseDeleteNotificationResult } from "./useDeleteNotification";
 
+export { useMarkAllNotificationsRead } from "./useMarkAllNotificationsRead";
+export type { UseMarkAllNotificationsReadResult } from "./useMarkAllNotificationsRead";
+
 export { useNotificationPreferences } from "./useNotificationPreferences";
 export type { UseNotificationPreferencesResult } from "./useNotificationPreferences";

@@ -1,27 +1,30 @@
-import { listCategories } from '@/features/categories/services'
-import { HomePage } from '@/features/quizzes'
-import type { Category } from '@/features/categories/types'
+import { getHome } from "@/lib/api";
+import { HomePage } from "@/features/quizzes";
+import type { HomeControllerGetBundle200 } from "@/lib/api/generated/schemas";
+import type { Category } from "@/features/categories/types";
 
 export default async function QuizHubDashboard() {
-  let categories: Category[] = []
+  let bundle: HomeControllerGetBundle200["data"] | null = null;
 
   try {
-    // Categories are the only data the route fetches server-side.
-    // The three rails in <HomePage /> fetch featured / trending /
-    // popular quizzes via SWR hooks on the client. The legacy
-    // `listQuizzes({ limit: 8 })` "Latest Quizzes" fetch has been
-    // removed (TKT-3.7.D2).
-    const categoriesData = await listCategories({ limit: 20 })
-    // The backend returns `{ data: CategoryResponseDto[], meta: ... }`.
-    // If `data` is missing (e.g. an empty envelope), fall back to `[]`
-    // instead of propagating `undefined` to the client component.
-    categories = Array.isArray(categoriesData?.data)
-      ? categoriesData.data
-      : []
+    const envelope = await getHome().homeControllerGetBundle();
+    bundle =
+      (envelope?.data as HomeControllerGetBundle200["data"] | undefined) ??
+      null;
   } catch {
-    // Fall back to empty array — don't break the page (the previous
-    // route used the same defensive try/catch pattern).
+    bundle = null;
   }
 
-  return <HomePage categories={categories} />
+  const categories: Category[] = (bundle?.categories ?? []) as Category[];
+
+  return (
+    <HomePage
+      categories={categories}
+      featured={bundle?.featured ?? []}
+      trending={bundle?.trending ?? []}
+      popular={bundle?.popular ?? []}
+      recentWinners={bundle?.recentWinners ?? null}
+      topPlayers={bundle?.topPlayers ?? []}
+    />
+  );
 }

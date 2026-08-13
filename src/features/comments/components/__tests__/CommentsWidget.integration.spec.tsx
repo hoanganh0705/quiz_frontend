@@ -111,6 +111,12 @@ vi.mock('@/features/comments/stores/useCommentThreadLookup', () => ({
   useCommentThreadLookup: (quizId: unknown) => useCommentThreadLookupMock(quizId),
 }));
 
+const useCommentRealtimeMock = vi.fn();
+
+vi.mock('@/features/comments/hooks/useCommentRealtime', () => ({
+  useCommentRealtime: (...args: unknown[]) => useCommentRealtimeMock(...args),
+}));
+
 // ---------------------------------------------------------------------------
 // Fixtures
 // ---------------------------------------------------------------------------
@@ -323,6 +329,10 @@ function setWriteHooks() {
   useVoteCommentMock.mockReturnValue(defaultWriteHooks.vote);
   useReportCommentMock.mockReturnValue(defaultWriteHooks.report);
   useCommentThreadLookupMock.mockReturnValue(emptyLookup);
+  useCommentRealtimeMock.mockReturnValue({
+    isConnected: false,
+    connectionState: 'disconnected',
+  });
 }
 
 // ---------------------------------------------------------------------------

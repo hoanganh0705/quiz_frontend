@@ -52,6 +52,7 @@ import {
 import { useAuthSession } from "@/features/auth/hooks/use-auth-session";
 import { getFeatureFlagValue } from "@/lib/feature-flags";
 
+import type { MyBadgeItemDto } from "@/lib/api/generated/schemas";
 import type { NormalizedBadge } from "@/lib/realtime/dto-adapters";
 
 // ─── Public types ─────────────────────────────────────────────────────────
@@ -100,7 +101,10 @@ export function useMyBadges(): UseMyBadgesResult {
       if (isFlagPlaceholder || !isAuthenticated) {
         return [] as EarnedBadge[];
       }
-      const wire = (await getMyBadges()) as NormalizedBadge[];
+      // Phase 6: cast to the structural overload — `toEarnedBadge` accepts
+      // either the SDK DTO or the legacy normalized shape.
+      const wire =
+        (await getMyBadges()) as unknown as Array<MyBadgeItemDto | NormalizedBadge>;
       return wire
         .map((entry) => toEarnedBadge(entry))
         .filter((entry): entry is EarnedBadge => entry !== null);

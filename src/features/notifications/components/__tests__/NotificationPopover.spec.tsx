@@ -11,7 +11,6 @@
  * - error state renders on error with retry
  * - mark-all-read action visible only when unread notifications exist
  * - "View all" link points to /notifications
- * - connection status is rendered
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -104,9 +103,6 @@ vi.mock('@/features/notifications/components/shared', () => ({
     </div>
   ),
   NotificationListSkeleton: () => <div data-testid="list-skeleton">Loading...</div>,
-  NotificationConnectionStatus: () => (
-    <div data-testid="connection-status">Connection status</div>
-  ),
 }));
 
 import { notificationMocks, makeNotification } from './test-helpers';
@@ -115,14 +111,6 @@ import { NotificationPopover } from '@/features/notifications/components/Notific
 describe('NotificationPopover', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    notificationMocks.useNotificationSocket.mockReturnValue({
-      isLive: true,
-      connectionState: 'connected',
-      socket: { id: 'mock' },
-      error: null,
-      reconnect: vi.fn(),
-      disconnect: vi.fn(),
-    });
     notificationMocks.useNotifications.mockReturnValue({
       items: [],
       isLoading: false,
@@ -269,14 +257,6 @@ describe('NotificationPopover', () => {
       const link = screen.getByRole('link', { name: /view all/i });
       expect(link).toBeInTheDocument();
       expect(link.getAttribute('href')).toBe('/notifications');
-    });
-  });
-
-  describe('connection status', () => {
-    it('renders the connection status indicator', () => {
-      render(<NotificationPopover />);
-
-      expect(screen.getByTestId('connection-status')).toBeInTheDocument();
     });
   });
 });

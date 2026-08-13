@@ -236,4 +236,48 @@ describe("useCancelFriendRequest — TKT-6.8.D3", () => {
       resolveFirst();
     });
   });
+
+  describe("assumeCanCancel", () => {
+    it("dispatches the cancel mutation when canCancelRequest is false but the caller asserts the row came from the sent list", async () => {
+      // Simulate the bug: the relationship fetch has not settled yet
+      // (or returned `none`) so the permission guard would normally
+      // turn `cancel()` into a no-op. The friends page's
+      // OutgoingRequestActions opts in via `assumeCanCancel: true`
+      // because the row came from `GET /social/friend-requests/sent`,
+      // which is a server-authoritative source — the relationship is
+      // `outgoing_request` by definition.
+      mockUseSocialPermissions.mockReturnValue({
+        ...permissionsAllGranted(),
+        canCancelRequest: false,
+      });
+
+      const { result } = renderHook(
+        () =>
+          useCancelFriendRequest("user-target", {
+            assumeCanCancel: true,
+          }),
+        { wrapper: TestSwrProvider },
+      );
+      result.current.cancel("fi-abc");
+
+      await new Promise((r) => setTimeout(r, 5));
+      expect(mockCancelFriendRequest).toHaveBeenCalledWith("fi-abc");
+      expect(mockMutate).toHaveBeenCalledTimes(3);
+    });
+
+    it("still no-ops when canCancelRequest is false AND assumeCanCancel is not set", () => {
+      // Sanity-check: the default (strict) semantics are preserved.
+      mockUseSocialPermissions.mockReturnValue({
+        ...permissionsAllGranted(),
+        canCancelRequest: false,
+      });
+
+      const { result } = renderHook(
+        () => useCancelFriendRequest("user-target"),
+        { wrapper: TestSwrProvider },
+      );
+      result.current.cancel("fi-abc");
+      expect(mockCancelFriendRequest).not.toHaveBeenCalled();
+    });
+  });
 });

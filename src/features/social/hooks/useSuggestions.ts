@@ -95,14 +95,23 @@ export interface UseSuggestionsResult {
  *   - `SOCIAL_FRIEND_LIST_FORBIDDEN` → `private`
  *   - `SOCIAL_USER_NOT_FOUND`      → `not_found`
  *   - Anything else (success + unknown codes) → `visible`
+ *
+ * Server-side failures (`status >= 500` with no privacy code) are
+ * surfaced as `not_found` so the consumer can render the graceful
+ * empty-state instead of a stack-trace toast. The backend
+ * `/social/suggestions` endpoint can return 500 today because of a
+ * known SQL CTE bug; the hook must remain usable while the bug is
+ * unfixed.
  */
 export function resolveSuggestionsVisibility(
   code: string | undefined,
+  status?: number,
 ): SocialListVisibility {
   if (code === "SOCIAL_USER_BLOCKED") return "blocked_by_viewer";
   if (code === "SOCIAL_BLOCKED_USER") return "blocked_viewer";
   if (code === "SOCIAL_FRIEND_LIST_FORBIDDEN") return "private";
   if (code === "SOCIAL_USER_NOT_FOUND") return "not_found";
+  if (typeof status === "number" && status >= 500) return "not_found";
   return "visible";
 }
 
@@ -199,7 +208,8 @@ export function useSuggestions(
   if (targetUserId === null) return FALLBACK_RESULT;
 
   const code = result.error?.code;
-  const visibility = resolveSuggestionsVisibility(code);
+  const status = result.error?.status;
+  const visibility = resolveSuggestionsVisibility(code, status);
 
   // Privacy branches: the hook returns the safe fallback shape
   // (`{ items: [], total: 0, visibility }`); the consumer renders

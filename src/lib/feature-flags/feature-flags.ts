@@ -95,6 +95,8 @@ export type FeatureFlag =
   | 'admin_tournament_live'
   | 'admin_user_role_live'
   | 'admin_audit_live'
+  | 'coin_economy_live'
+  | 'coin_spend_live'
 
 export type FeatureFlagValueMap = {
   /**
@@ -178,23 +180,25 @@ export type FeatureFlagValueMap = {
    */
   attempts_live: 'live' | 'placeholder'
   /**
-   * Phase 5 shared realtime infrastructure gate.
-   *
-   * Source epic:   Epic 5.1.
-   * Source ticket: TKT-5.1.B1.
-   *
-   * Controls the foundational realtime primitives consumed by
-   * `notifications_live` and `multiplayer_instances_live`:
-   *
-   *   - `useSocket(namespace, handshakeAuth)`
-   *   - `useRealtimeEvent(socket, eventName, handler)`
-   *   - `useRealtimeQuery(swrKey, fetcher, invalidateOn)`
-   *   - `ConnectionRegistry` (singleton per namespace)
-   *   - `SocketConnectionState` machine
-   *   - `decodeWsError()` and `KNOWN_WS_ERROR_CODES`
-   *
-   * Independent of all per-feature flags.
-   * Default: `'placeholder'` (Phase 5 realtime surfaces off in production).
+* Phase 5 shared realtime infrastructure gate.
+ *
+ * Source epic:   Epic 5.1.
+ * Source ticket: TKT-5.1.B1.
+ *
+ * Controls the foundational realtime primitives consumed by
+ * `notifications_live` and `multiplayer_instances_live`:
+ *
+ *   - `useSocket(namespace, handshakeAuth)`
+ *   - `useRealtimeEvent(socket, eventName, handler)`
+ *   - `useRealtimeQuery(swrKey, fetcher, invalidateOn)`
+ *   - `ConnectionRegistry` (singleton per namespace)
+ *   - `SocketConnectionState` machine
+ *   - `decodeWsError()` and `KNOWN_WS_ERROR_CODES`
+ *
+ * Independent of all per-feature flags.
+ * Default: `'live'` — Phase 5 realtime surfaces on by default; the
+ * notification bell + popover rely on the socket for live invalidation
+ * and optimistic unread-count updates.
    *
    *   - `'live'`       — realtime hooks are functional; namespace
    *                      connections can be established.
@@ -221,20 +225,20 @@ export type FeatureFlagValueMap = {
    */
   tournaments_live: 'live' | 'placeholder'
   /**
-   * Phase 5 notifications surface gate.
-   *
-   * Source epic:   Epic 5.1.
-   * Source ticket: TKT-5.1.B1.
-   *
-   * Gates:
-   *   - Notification bell with unread count
-   *   - Notification center page (`/notifications`)
-   *   - Mark-read, mark-unread, delete, and preferences mutations
-   *   - Live notification delivery over the `/notifications` Socket.IO
-   *     namespace (requires `realtime_infrastructure_live: 'live'`)
-   *
-   *   - `'live'`       — notification surfaces are functional.
-   *   - `'placeholder'`— static "Coming soon" rendering.
+* Phase 5 notifications surface gate.
+ *
+ * Source epic:   Epic 5.1.
+ * Source ticket: TKT-5.1.B1.
+ *
+ * Gates:
+ *   - Notification bell with unread count
+ *   - Notification center page (`/notifications`)
+ *   - Mark-read, mark-unread, delete, and preferences mutations
+ *   - Live notification delivery over the `/notifications` Socket.IO
+ *     namespace (requires `realtime_infrastructure_live: 'live'`)
+ *
+ *   - `'live'`       — notification surfaces are functional (default).
+ *   - `'placeholder'`— static "Coming soon" rendering; the bell hides.
    */
   notifications_live: 'live' | 'placeholder'
   /**
@@ -770,6 +774,54 @@ export type FeatureFlagValueMap = {
    *   - `'placeholder'`— the static "Coming soon" rendering.
    */
   admin_audit_live: 'live' | 'placeholder'
+  /**
+   * Phase 7 coin economy parent gate (Story 7.12).
+   *
+   * Source epic:   Epic 7.12 — Coin economy: earn + spend side.
+   * Source ticket: TKT-7.12.A1.
+   *
+   * Gates:
+   *   - `<CoinBalancePill />` in the global header
+   *   - `<RewardToast />` for positive deltas pushed over `/coins`
+   *   - `GET /coins/wallet` (the cached balance)
+   *   - `GET /coins/transactions` (the ledger)
+   *   - `POST /coins/tip` and the tip affordances wired into the quiz
+   *     detail and quiz author surfaces
+   *   - The realtime `/coins` Socket.IO namespace
+   *
+   * The earn-side and spend-side sub-flags ride on this flag. When
+   * `'placeholder'`, every coin surface falls through to a degraded
+   * rendering (a static "Coins coming soon" pill, no realtime).
+   *
+   * Requires `realtime_infrastructure_live: 'live'` so the `/coins`
+   * namespace can be opened.
+   *
+   *   - `'live'`       — the parent is on; sub-flags may still be
+   *                     individually off if their lane has not yet
+   *                     passed its exit criteria.
+   *   - `'placeholder'`— every coin surface is off; the static
+   *                     "Coming soon" rendering is used. Default.
+   */
+  coin_economy_live: 'live' | 'placeholder'
+  /**
+   * Phase 7 coin spend-side lane gate (Story 7.12 — Phase 6 spend).
+   *
+   * Source epic:   Epic 7.12.
+   * Source ticket: TKT-7.12.A1.
+   *
+   * Gates the spend-side surfaces:
+   *   - `POST /coins/flair` + the flair control in the badge gallery
+   *   - `POST /coins/suppress-recommended` + the suppress control in
+   *     the quiz detail surface
+   *   - `POST /admin/coins/adjust` (admin only; rides on
+   *     `admin_live` AND `coin_economy_live`)
+   *
+   * Requires `coin_economy_live: 'live'` (the parent gate).
+   *
+   *   - `'live'`       — spend-side surfaces are wired.
+   *   - `'placeholder'`— the static "Coming soon" rendering.
+   */
+  coin_spend_live: 'live' | 'placeholder'
 }
 
 export const FEATURE_FLAGS: readonly FeatureFlag[] = [
@@ -806,42 +858,46 @@ export const FEATURE_FLAGS: readonly FeatureFlag[] = [
   'admin_tournament_live',
   'admin_user_role_live',
   'admin_audit_live',
+  'coin_economy_live',
+  'coin_spend_live',
 ]
 
 const FLAG_DEFAULTS: FeatureFlagValueMap = {
-  dailyChallengePage: 'placeholder',
+  dailyChallengePage: 'v1',
   authoring_live: 'placeholder',
   personal_area_live: 'placeholder',
   attempts_live: 'placeholder',
-  realtime_infrastructure_live: 'placeholder',
-  tournaments_live: 'placeholder',
-  notifications_live: 'placeholder',
-  multiplayer_instances_live: 'placeholder',
-  multiplayer_play_live: 'placeholder',
-  rankings_live: 'placeholder',
-  achievements_live: 'placeholder',
-  search_live: 'placeholder',
-  social_live: 'placeholder',
-  social_relationship_live: 'placeholder',
-  social_feed_live: 'placeholder',
-  social_discovery_live: 'placeholder',
-  social_realtime_notifications_live: 'placeholder',
-  social_mutuals_live: 'placeholder',
-  social_activity_live: 'placeholder',
-  social_user_search_live: 'placeholder',
-  social_follow_mutation_live: 'placeholder',
-  social_block_mutation_live: 'placeholder',
-  social_friend_request_mutation_live: 'placeholder',
-  admin_live: 'placeholder',
-  admin_review_moderation_live: 'placeholder',
-  admin_comment_moderation_live: 'placeholder',
-  admin_tag_live: 'placeholder',
-  admin_category_live: 'placeholder',
-  admin_ranking_live: 'placeholder',
-  admin_achievement_live: 'placeholder',
-  admin_tournament_live: 'placeholder',
-  admin_user_role_live: 'placeholder',
-  admin_audit_live: 'placeholder',
+  realtime_infrastructure_live: 'live',
+  tournaments_live: 'live',
+  notifications_live: 'live',
+  multiplayer_instances_live: 'live',
+  multiplayer_play_live: 'live',
+  rankings_live: 'live',
+  achievements_live: 'live',
+  search_live: 'live',
+  social_live: 'live',
+  social_relationship_live: 'live',
+  social_feed_live: 'live',
+  social_discovery_live: 'live',
+  social_realtime_notifications_live: 'live',
+  social_mutuals_live: 'live',
+  social_activity_live: 'live',
+  social_user_search_live: 'live',
+  social_follow_mutation_live: 'live',
+  social_block_mutation_live: 'live',
+  social_friend_request_mutation_live: 'live',
+  admin_live: 'live',
+  admin_review_moderation_live: 'live',
+  admin_comment_moderation_live: 'live',
+  admin_tag_live: 'live',
+  admin_category_live: 'live',
+  admin_ranking_live: 'live',
+  admin_achievement_live: 'live',
+  admin_tournament_live: 'live',
+  admin_user_role_live: 'live',
+  admin_audit_live: 'live',
+  coin_economy_live: 'live',
+  coin_spend_live: 'live',
 }
 
 const FLAG_ENV_OVERRIDES: Record<FeatureFlag, string | undefined> = {
@@ -878,6 +934,8 @@ const FLAG_ENV_OVERRIDES: Record<FeatureFlag, string | undefined> = {
   admin_tournament_live: process.env.NEXT_PUBLIC_ADMIN_TOURNAMENT_LIVE,
   admin_user_role_live: process.env.NEXT_PUBLIC_ADMIN_USER_ROLE_LIVE,
   admin_audit_live: process.env.NEXT_PUBLIC_ADMIN_AUDIT_LIVE,
+  coin_economy_live: process.env.NEXT_PUBLIC_COIN_ECONOMY_LIVE,
+  coin_spend_live: process.env.NEXT_PUBLIC_COIN_SPEND_LIVE,
 }
 
 function isFlagValue<K extends FeatureFlag>(
@@ -919,7 +977,9 @@ function isFlagValue<K extends FeatureFlag>(
     flag === 'admin_achievement_live' ||
     flag === 'admin_tournament_live' ||
     flag === 'admin_user_role_live' ||
-    flag === 'admin_audit_live'
+    flag === 'admin_audit_live' ||
+    flag === 'coin_economy_live' ||
+    flag === 'coin_spend_live'
   ) {
     return candidate === 'live' || candidate === 'placeholder'
   }

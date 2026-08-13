@@ -5,7 +5,9 @@
  * REST API for the quiz application
  * OpenAPI spec version: 1.0
  */
+import type { QuizListItemDtoCreator } from './quizListItemDtoCreator';
 import type { QuizListItemDtoPublishedVersion } from './quizListItemDtoPublishedVersion';
+import type { QuizTagDto } from './quizTagDto';
 
 export interface QuizListItemDto {
   /** Unique quiz identifier */
@@ -15,6 +17,11 @@ export interface QuizListItemDto {
    * @nullable
    */
   creatorId?: string | null;
+  /**
+   * Embedded author summary
+   * @nullable
+   */
+  creator: QuizListItemDtoCreator;
   /** Quiz title */
   title: string;
   /**
@@ -39,6 +46,16 @@ export interface QuizListItemDto {
    * @nullable
    */
   categoryId?: string | null;
+  /**
+   * Resolved category display name
+   * @nullable
+   */
+  categoryName?: string | null;
+  /**
+   * Resolved category URL-friendly slug
+   * @nullable
+   */
+  categorySlug?: string | null;
   /** Whether the quiz is featured */
   isFeatured: boolean;
   /** Whether the quiz is hidden from public listings */
@@ -59,4 +76,14 @@ export interface QuizListItemDto {
    * @nullable
    */
   publishedVersion?: QuizListItemDtoPublishedVersion;
+  /** Total question count for the published version. `0` when the quiz has no published version. Sourced from `quiz_questions` aggregated by `quiz_version_id`. */
+  questionCount: number;
+  /** Average review rating (0–5). `0` when there are no reviews. Sourced from the denormalised `quiz_stats.avg_rating` column. */
+  averageRating: number;
+  /** Number of submitted reviews. Sourced from `quiz_stats.rating_count`. */
+  reviewCount: number;
+  /** Total attempts across every version of this quiz. Sourced from `quiz_stats.total_attempts`; counts both completed and in-flight attempts. */
+  attemptCount: number;
+  /** Tags attached to the quiz. Phase 2 (S-6) folds the tag batch into the list projection so cards can render tag chips without a second fetch. */
+  tags: QuizTagDto[];
 }

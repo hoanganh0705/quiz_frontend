@@ -28,12 +28,14 @@ export interface TournamentsPageProps {
 export function TournamentsPage({ className }: TournamentsPageProps) {
   const { isPlaceholder } = useTournamentFeatureFlag();
 
+  // Always call hooks first - React Rules of Hooks require this
+  const { filters, setFilter, resetFilters } = useTournamentFilters();
+  const tournamentsResult = useTournaments(filters);
+
+  // Placeholder state after hooks
   if (isPlaceholder) {
     return <TournamentPlaceholder />;
   }
-
-  const { filters, setFilter, resetFilters } = useTournamentFilters();
-  const tournamentsResult = useTournaments(filters);
 
   return (
     <div className={className}>

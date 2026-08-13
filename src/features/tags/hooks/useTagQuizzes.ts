@@ -48,33 +48,22 @@ import { useMemo } from 'react'
 import { ApiError, projectWithId, useCursorPaginated } from '@/lib/api'
 import type { CursorPage } from '@/lib/api/use-cursor-paginated.types'
 import type { QuizListItemDto } from '@/lib/api/generated/schemas'
+import type { TagControllerGetTagQuizzes200 } from '@/lib/api/generated/schemas'
 
 import { getTagQuizzes } from '@/features/tags/services/tags.service'
 
 /**
  * Wire-shape envelope returned by `getTagQuizzes` (TKT-3.4.A2).
  *
- * Mirrors the post-`unwrap` shape `{ data, meta }`. This is the
- * single source of truth for the envelopes the wrapper returns —
- * the wrapper's type generic consumes it without re-declaring the
- * `meta.pagination` shape (the lint rule disallows repeating the
- * `nextCursor` field outside the fetcher adapter).
- *
- * Exported so the wrapper (`@/features/tags/services/tags.service.ts`)
- * can import the type without re-declaring the cursor-pagination
- * envelope inline.
+ * Phase 6: the SDK now exposes a typed `params` argument on
+ * `tagControllerGetTagQuizzes`, so we re-export the SDK's
+ * `TagControllerGetTagQuizzes200` (which is the intersection
+ * `WrappedPaginatedDto & QuizListResponseDto` per the OpenAPI
+ * union) and the hook reads `data[]` and `meta.pagination` off
+ * it. The cursor-paginated primitive stays agnostic of how the
+ * envelope was assembled — the SDK owns that contract.
  */
-export interface TagQuizzesResponse {
-  data?: Array<QuizListItemDto & { [k: string]: unknown }>
-  meta?: {
-    pagination?: {
-      kind: 'cursor'
-      limit: number
-      nextCursor: string | null
-      hasNextPage: boolean
-    }
-  }
-}
+export type TagQuizzesResponse = TagControllerGetTagQuizzes200;
 
 export interface UseTagQuizzesParams {
   /** Page size passed to the SDK (1–100). */
@@ -113,7 +102,7 @@ export function useTagQuizzes(
           // never `id`.
           const pagination = result.meta?.pagination
           const itemsWithId = projectWithId(items as unknown as readonly Record<string, unknown>[], 'quizId')
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+           
           return {
             items: itemsWithId as any,
             nextCursor: pagination?.nextCursor ?? null,

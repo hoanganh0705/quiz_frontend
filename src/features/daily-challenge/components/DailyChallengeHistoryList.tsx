@@ -121,20 +121,27 @@ export function DailyChallengeHistoryList({
           {displayed.map((challenge) => (
             <Card
               key={challenge.id}
+              data-testid='daily-challenge-history-item'
               className='bg-background border-b border-border last:border-b-0'
             >
               <CardContent className='p-4'>
                 <div className='flex items-center justify-between gap-2'>
                   <div className='flex-1'>
-                    <div className='text-base font-medium mb-3'>
+                    <div className='text-base font-medium mb-1'>
+                      <span data-testid='daily-challenge-history-item-title'>
+                        {challenge.quizTitle}
+                      </span>
+                    </div>
+                    <div className='text-xs text-foreground/70 mb-3'>
                       <time dateTime={challenge.date}>{challenge.date}</time>
                     </div>
                     <div className='flex items-center gap-3'>
                       <Badge
                         variant='outline'
+                        data-testid='daily-challenge-history-item-category'
                         className='bg-background text-foreground border-border py-0.5 px-2 rounded-3xl'
                       >
-                        {challenge.category}
+                        {challenge.difficulty}
                       </Badge>
                       {challenge.isTopTen && (
                         <Badge

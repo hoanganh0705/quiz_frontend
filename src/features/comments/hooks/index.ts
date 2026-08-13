@@ -32,3 +32,11 @@ export type {
   UseReportCommentOptions,
   UseReportCommentResult,
 } from './useReportComment';
+
+export { useCommentRealtime } from './useCommentRealtime';
+export type {
+  UseCommentRealtimeOptions,
+  UseCommentRealtimeReturn,
+} from './useCommentRealtime';
+
+export { useCommentCacheMutations } from './useCommentCacheMutations';

@@ -96,13 +96,14 @@ export function resolveAdminPermissions(
  */
 export function useAdminRole(): AdminRoleDocument {
   const auth = useAuth();
+
   const role: string | null = auth?.currentUser?.role ?? null;
   const permissions = useMemo(
     () => resolveAdminPermissions(role),
     [role],
   );
   return {
-    isLoading: auth?.isLoading ?? true,
+    isLoading: auth.isLoading,
     error: auth?.error ?? null,
     role,
     permissions,

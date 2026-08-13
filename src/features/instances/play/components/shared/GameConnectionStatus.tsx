@@ -18,8 +18,7 @@
  *   - `'auth_failed'`    — red dot + "Session expired — please sign in"
  *   - `'connected'|'idle'` — renders nothing (no banner needed)
  *
- * Mirrors `InstanceConnectionStatus` (Epic 5.7 TKT-5.7.C1) and
- * `NotificationConnectionStatus` (Epic 5.4 TKT-5.4.C2).
+ * Mirrors `InstanceConnectionStatus` (Epic 5.7 TKT-5.7.C1).
  *
  * The component is purely presentational; it never re-opens or disconnects
  * the socket.
