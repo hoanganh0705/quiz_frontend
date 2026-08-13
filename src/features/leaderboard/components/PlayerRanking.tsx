@@ -46,13 +46,14 @@ import type { Player } from "@/features/users/types";
 const SKELETON_COUNT = 5;
 
 /**
- * Project a `LeaderboardEntryDto` (the wire shape) into the legacy
- * `Player` shape that `<PlayerCard />` consumes.
+ * Project a `LeaderboardEntryDto` (the wire shape) into the slice of
+ * the `Player` projection that `<PlayerCard />` consumes.
  *
- * Most fields are nullable on the wire — the placeholder `—` /
- * `N/A` copy shows up where the backend omits the field. The
- * projection is intentionally defensive; a future schema addition
- * never breaks the carousel.
+ * Phase 6 (W-17): the projection was previously defensive — it
+ * surfaced `country`, `flag`, `streak`, `level`, `quizzes`,
+ * `qpsCreated`, `wins`, `bgImageUrl`, `bio` as `undefined` so the
+ * card could render `N/A` placeholders. The trimmed projection
+ * only carries the fields the wire actually fills.
  */
 function projectEntryToPlayer(entry: {
   userId: string;
@@ -66,21 +67,7 @@ function projectEntryToPlayer(entry: {
     rank: entry.rank,
     name: entry.displayName,
     avatarUrl: entry.avatarUrl ?? undefined,
-    country: undefined,
-    flag: undefined,
-    streak: undefined,
     score: entry.xp,
-    level: undefined,
-    levelString: undefined,
-    quizzes: undefined,
-    quizzesCreated: undefined,
-    wins: undefined,
-    badge: undefined,
-    earned: undefined,
-    followers: undefined,
-    following: undefined,
-    bgImageUrl: undefined,
-    bio: undefined,
   };
 }
 

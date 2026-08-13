@@ -9,81 +9,36 @@ import {
   SelectTrigger,
   SelectValue
 } from '@/components/ui/Select'
-import { Download, FileJson, FileSpreadsheet, CheckCircle } from 'lucide-react'
-import type { QuizHistoryEntry, ExportFormat } from '@/features/quizzes/types'
+import { Download, FileJson, FileSpreadsheet, CheckCircle, AlertCircle } from 'lucide-react'
+import { exportQuizHistory } from '@/features/quizzes/hooks/exportQuizHistory'
+import type { ExportFormat } from '@/features/quizzes/types'
 
 interface HistoryExportProps {
-  entries: QuizHistoryEntry[]
-}
-
-function entriesToCSV(entries: QuizHistoryEntry[]): string {
-  const header = [
-    'Quiz Title',
-    'Category',
-    'Difficulty',
-    'Score (%)',
-    'Correct Answers',
-    'Total Questions',
-    'Time (seconds)',
-    'Status',
-    'XP Earned',
-    'Date',
-    'Tags'
-  ].join(',')
-
-  const rows = entries.map((e) =>
-    [
-      `"${e.quizTitle}"`,
-      `"${e.category}"`,
-      e.difficulty,
-      e.score,
-      e.correctAnswers,
-      e.totalQuestions,
-      e.timeTaken,
-      e.status,
-      e.xpEarned,
-      new Date(e.completedAt).toLocaleDateString(),
-      `"${e.tags.join(', ')}"`
-    ].join(',')
-  )
-
-  return [header, ...rows].join('\n')
-}
-
-function downloadFile(content: string, filename: string, mime: string) {
-  const blob = new Blob([content], { type: mime })
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = filename
-  document.body.appendChild(a)
-  a.click()
-  document.body.removeChild(a)
-  URL.revokeObjectURL(url)
+  /** Currently loaded entries (for the `Export (N)` counter only). */
+  entriesCount: number
 }
 
 export const HistoryExport = memo(function HistoryExport({
-  entries
-}: HistoryExportProps) {
+  entriesCount
+}: HistoryExportProps): React.ReactElement {
   const [format, setFormat] = useState<ExportFormat>('csv')
   const [exported, setExported] = useState(false)
+  const [isExporting, setIsExporting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
-  const handleExport = useCallback(() => {
-    if (entries.length === 0) return
-
-    const timestamp = new Date().toISOString().split('T')[0]
-
-    if (format === 'csv') {
-      const csv = entriesToCSV(entries)
-      downloadFile(csv, `quiz-history-${timestamp}.csv`, 'text/csv')
-    } else {
-      const json = JSON.stringify(entries, null, 2)
-      downloadFile(json, `quiz-history-${timestamp}.json`, 'application/json')
+  const handleExport = useCallback(async () => {
+    setIsExporting(true)
+    setError(null)
+    try {
+      await exportQuizHistory({ format })
+      setExported(true)
+      setTimeout(() => setExported(false), 2500)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Export failed')
+    } finally {
+      setIsExporting(false)
     }
-
-    setExported(true)
-    setTimeout(() => setExported(false), 2500)
-  }, [entries, format])
+  }, [format])
 
   return (
     <div className='flex items-center gap-2'>
@@ -113,7 +68,7 @@ export const HistoryExport = memo(function HistoryExport({
       <Button
         size='sm'
         onClick={handleExport}
-        disabled={entries.length === 0}
+        disabled={isExporting || entriesCount === 0}
         className='gap-1.5'
       >
         {exported ? (
@@ -121,13 +76,23 @@ export const HistoryExport = memo(function HistoryExport({
             <CheckCircle className='h-3.5 w-3.5' />
             Exported!
           </>
+        ) : error ? (
+          <>
+            <AlertCircle className='h-3.5 w-3.5' />
+            Try again
+          </>
         ) : (
           <>
             <Download className='h-3.5 w-3.5' />
-            Export ({entries.length})
+            Export ({entriesCount})
           </>
         )}
       </Button>
+      {error && (
+        <span className='text-xs text-destructive' role='alert'>
+          {error}
+        </span>
+      )}
     </div>
   )
 })

@@ -75,7 +75,7 @@ export function useCategoryQuizzes(
           // happens — and downstream consumers read `quizId`,
           // never `id`.
           const pagination = result.meta?.pagination
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+           
           const ret: CursorPage<QuizListItemDto & { id: string }> = {
             items: items as any,
             nextCursor: pagination?.nextCursor ?? null,

@@ -18,7 +18,7 @@ import {
 import { Pencil } from "lucide-react";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
-import { useMyProfilePage } from "@/features/users/hooks/use-my-profile-page";
+import { useMyProfileBundlePage } from "@/features/users/hooks/use-my-profile-page-bundle";
 
 /**
  * MyProfilePage — T-4.5-E2: Implements 60-second polling on active profile tab.
@@ -37,10 +37,13 @@ export default function MyProfilePage() {
     setActiveTab,
     currentUser,
     isLoading,
+    me: meData,
+    summary,
+    joinedAt,
     currentLevelXP,
     nextLevelXP,
     levelProgress,
-  } = useMyProfilePage();
+  } = useMyProfileBundlePage();
 
   // While the user is signed in but the profile fetch is still in
   // flight, render the skeleton that `loading.tsx` would have shown
@@ -97,7 +100,25 @@ export default function MyProfilePage() {
         </Button>
 
         {/* Profile Header */}
-        <ProfileHeader user={currentUser} />
+        <ProfileHeader
+          user={meData ?? {
+            userId: currentUser.id,
+            username: currentUser.name,
+            email: '',
+            xpTotal: 0,
+            currentStreak: 0,
+            longestStreak: 0,
+            settings: {
+              emailNotifications: true,
+              pushNotifications: true,
+              leaderboardVisible: true,
+            },
+            createdAt: joinedAt ?? new Date().toISOString(),
+            updatedAt: joinedAt ?? new Date().toISOString(),
+          }}
+          summary={summary}
+          joinedAt={joinedAt}
+        />
 
         {/* Main Content */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">

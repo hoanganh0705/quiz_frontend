@@ -48,28 +48,33 @@ export type EditSettingsRequest = UpdateMeSettingsDto
 
 // ─── Frontend-only types (gamification - not in backend yet) ──────────────────
 
+/**
+ * `Player` — reduced projection consumed by the leaderboard card.
+ *
+ * Phase 6 (W-17): the historic `Player` type carried `bgImageUrl`,
+ * `flag`, `country`, `joinedAt`, `bio`, `quizzes`, `quizzesCreated`,
+ * `wins` — fields that were never populated by any backend endpoint.
+ *
+ * The narrower projection here is the only one the carousel
+ * (`PlayerCard`) actually consumes. The legacy `ProfileHeader`
+ * component still renders the deprecated fields; it sources them
+ * from the live profile bundle (`useUserProfileBundle`) rather than
+ * the `Player` projection. See `ProfileHeader` for the bundle-fed
+ * shape.
+ */
 export interface Player {
   id: string
   rank: number
   name: string
-  username?: string
   avatarUrl?: string | null
-  country?: string
-  flag?: string
   streak?: number
   score?: number
   level?: number
   levelString?: string
-  quizzes?: number
-  quizzesCreated?: number
-  wins?: number
   badge?: string
   earned?: number
   followers?: string | number
   following?: string | number
-  bgImageUrl?: string
-  bio?: string | null
-  joinedAt?: string
 }
 
 // User settings types

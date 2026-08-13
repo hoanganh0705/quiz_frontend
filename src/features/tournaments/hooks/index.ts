@@ -1,8 +1,5 @@
 // Tournaments hooks
 
-// Phase 3 / legacy
-export { useTournamentPage } from './use-tournament-page'
-
 // Story 5.2 — Tournament discovery and read-only detail surfaces
 export { useTournaments } from './useTournaments'
 export type { UseTournamentsResult, TournamentListPage } from './useTournaments'

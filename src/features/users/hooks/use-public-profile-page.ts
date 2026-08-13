@@ -74,6 +74,7 @@ import { useFollowers } from '@/features/social/hooks/useFollowers'
 import { useFollowing } from '@/features/social/hooks/useFollowing'
 import { useUserActivity } from '@/features/social/hooks/useUserActivity'
 import { getActivityIcon } from '@/features/users/lib/activity-type-icon'
+import { useUserProfileBundle } from '@/features/users/hooks/use-user-profile-bundle'
 import type { Player } from '@/features/users/types'
 import type { SocialActivityItemDto } from '@/features/social/types'
 import type { QuizListItemDto } from '@/lib/api/generated/schemas'
@@ -97,6 +98,8 @@ export interface UsePublicProfilePageResult {
   activeTab: string
   handleTabChange: (value: string) => void
   currentPlayer: Player
+  // Phase 4 (S-26): bundle from `/users/:userId/profile`.
+  bundle: import('./use-user-profile-bundle').UseUserProfileBundleResult
 
   // Stats
   averageScore: number
@@ -185,21 +188,14 @@ const EMPTY_PLAYER: Player = {
   rank: 0,
   avatarUrl: undefined,
   name: 'Guest',
-  country: '',
-  flag: undefined,
   streak: 0,
   score: 0,
   level: 0,
   levelString: 'Guest',
-  quizzes: 0,
-  quizzesCreated: 0,
-  wins: 0,
   badge: 'Gold',
   earned: 0,
   followers: '0',
   following: '0',
-  bgImageUrl: undefined,
-  bio: '',
 }
 
 /**
@@ -256,9 +252,6 @@ export function usePublicProfilePage(params: { name: string }): UsePublicProfile
           viewer.username ??
           viewer.email ??
           'Guest',
-        country:
-          ((viewer as unknown) as Record<string, unknown>).country ?? '',
-        flag: undefined,
         streak: ((viewer as unknown) as Record<string, unknown>).streak,
         score: undefined,
         level: ((viewer as unknown) as Record<string, unknown>).level,
@@ -266,16 +259,8 @@ export function usePublicProfilePage(params: { name: string }): UsePublicProfile
           typeof ((viewer as unknown) as Record<string, unknown>).level === 'number'
             ? `Level ${((viewer as unknown) as Record<string, unknown>).level as number}`
             : undefined,
-        quizzes: ((viewer as unknown) as Record<string, unknown>).quizzes,
-        quizzesCreated:
-          ((viewer as unknown) as Record<string, unknown>).quizzesCreated,
-        wins: undefined,
-        badge: undefined,
-        earned: undefined,
         followers: ((viewer as unknown) as Record<string, unknown>).followers,
         following: ((viewer as unknown) as Record<string, unknown>).following,
-        bgImageUrl: undefined,
-        bio: viewer.bio,
       } as Player)
     : EMPTY_PLAYER
 
@@ -373,8 +358,10 @@ export function usePublicProfilePage(params: { name: string }): UsePublicProfile
     [currentPlayer, followersSummary, followingSummary],
   )
 
-  // The `CategoryRow` falls back to a documented "—" until the
-  // backend adds a per-user category breakdown.
+  // The `CategoryRow` falls back to a documented `—` until the
+  // backend adds a per-user category breakdown. The constant is
+  // declared once here so consumers render the same placeholder
+  // without each call site reaching for `?? '—'`.
   const bestCategory: string = '—'
   const mostPlayedCategory: string = '—'
 
@@ -382,10 +369,18 @@ export function usePublicProfilePage(params: { name: string }): UsePublicProfile
     setActiveTab(value)
   }
 
+  // Phase 4 (S-26): the `/users/:userId/profile` bundle.
+  // The bundle collapses the per-page fan-out (summary, analytics,
+  // activity, xp history) into a single round-trip. The legacy
+  // fields remain above for backward-compat; the bundle is the
+  // primary source for the header + sidebar.
+  const profileBundle = useUserProfileBundle(resolvedUserId);
+
   return {
     activeTab,
     handleTabChange,
     currentPlayer: currentPlayerHydrated,
+    bundle: profileBundle,
     averageScore,
     winRate,
     bestCategory,

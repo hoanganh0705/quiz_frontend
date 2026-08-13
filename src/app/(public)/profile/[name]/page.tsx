@@ -54,16 +54,31 @@ import ActivityItem from '@/features/users/components/profile/ActivityItem'
 import CategoryRow from '@/features/users/components/profile/CategoryRow'
 
 import type { Player } from '@/features/users/types'
+import type { UserSummaryResponseDto } from '@/lib/api/generated/schemas'
 import { usePublicProfilePage } from '@/features/users/hooks/use-public-profile-page'
+
+/**
+ * Phase 6 (W-17): the historic `Player` projection no longer carries
+ * `country`, `bio`, `quizzes`, or `quizzesCreated` — those fields
+ * were never populated by any backend endpoint. The local
+ * `ProfileHeader` here is the public-profile counterpart of
+ * `my-profile/ProfileHeader.tsx`; it consumes the bundle's
+ * `UserSummaryResponseDto` (`profileBundle.summary`) plus the
+ * `Player` projection for the avatar/name/rank and the bundle's
+ * counts for the Quick-Stats row.
+ */
+interface PublicProfileHeaderProps {
+  player: Player
+  joinedAt: string | null
+  summary: UserSummaryResponseDto | null
+}
 
 // Re-render optimization: Extract to memoized components (rerender-memo)
 const ProfileHeader = memo(function ProfileHeader({
   player,
   joinedAt,
-}: {
-  player: Player
-  joinedAt: string | null
-}) {
+  summary,
+}: PublicProfileHeaderProps) {
   return (
     <header
       className='border-b border-border bg-main rounded-2xl mt-10'
@@ -105,16 +120,20 @@ const ProfileHeader = memo(function ProfileHeader({
               </div>
 
               <div className='flex flex-wrap items-center gap-4 text-muted-foreground text-sm mb-3'>
-                <span>@{player.name.toLowerCase().replace(' ', '')}</span>
-                <span className='flex items-center gap-1'>
-                  <MapPin className='w-3 h-3' aria-hidden='true' />
-                  {player.country}
-                </span>
+                <span>@{player.name.replace(' ', '').toLowerCase()}</span>
+                {summary?.country && (
+                  <span className='flex items-center gap-1'>
+                    <MapPin className='w-3 h-3' aria-hidden='true' />
+                    {summary.country}
+                  </span>
+                )}
                 <span className='flex items-center gap-1'>
                   <Calendar className='w-3 h-3' aria-hidden='true' />
                   Joined{' '}
-                  {joinedAt
-                    ? new Date(joinedAt).toLocaleDateString('en-US', {
+                  {(joinedAt ?? summary?.createdAt ?? null)
+                    ? new Date(
+                        joinedAt ?? summary?.createdAt ?? new Date().toISOString()
+                      ).toLocaleDateString('en-US', {
                         month: 'long',
                         day: 'numeric',
                         year: 'numeric',
@@ -123,41 +142,51 @@ const ProfileHeader = memo(function ProfileHeader({
                 </span>
               </div>
 
-              <p className='text-muted-foreground mb-4 text-sm'>{player.bio}</p>
+              {summary?.bio && (
+                <p className='text-muted-foreground mb-4 text-sm'>{summary.bio}</p>
+              )}
 
               <div
                 className='flex flex-wrap gap-6 text-sm'
                 role='list'
                 aria-label='User statistics'
               >
-                <div role='listitem'>
-                  <span className='text-foreground font-bold text-sm'>
-                    {player.quizzes}
-                  </span>
-                  <span className='text-muted-foreground ml-2'>
-                    Quizzes Taken
-                  </span>
-                </div>
-                <div role='listitem'>
-                  <span className='text-foreground font-bold text-sm'>
-                    {player.quizzesCreated}
-                  </span>
-                  <span className='text-muted-foreground ml-2'>
-                    Quizzes Created
-                  </span>
-                </div>
-                <div role='listitem'>
-                  <span className='text-foreground font-bold text-sm'>
-                    {player.followers}
-                  </span>
-                  <span className='text-muted-foreground ml-2'>Followers</span>
-                </div>
-                <div role='listitem'>
-                  <span className='text-foreground font-bold text-sm'>
-                    {player.following}
-                  </span>
-                  <span className='text-muted-foreground ml-2'>Following</span>
-                </div>
+                {summary?.quizzesTaken !== undefined && (
+                  <div role='listitem'>
+                    <span className='text-foreground font-bold text-sm'>
+                      {summary.quizzesTaken}
+                    </span>
+                    <span className='text-muted-foreground ml-2'>
+                      Quizzes Taken
+                    </span>
+                  </div>
+                )}
+                {summary?.quizzesCreated !== undefined && (
+                  <div role='listitem'>
+                    <span className='text-foreground font-bold text-sm'>
+                      {summary.quizzesCreated}
+                    </span>
+                    <span className='text-muted-foreground ml-2'>
+                      Quizzes Created
+                    </span>
+                  </div>
+                )}
+                {summary?.followers !== undefined && (
+                  <div role='listitem'>
+                    <span className='text-foreground font-bold text-sm'>
+                      {summary.followers}
+                    </span>
+                    <span className='text-muted-foreground ml-2'>Followers</span>
+                  </div>
+                )}
+                {summary?.following !== undefined && (
+                  <div role='listitem'>
+                    <span className='text-foreground font-bold text-sm'>
+                      {summary.following}
+                    </span>
+                    <span className='text-muted-foreground ml-2'>Following</span>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -191,6 +220,7 @@ const StatsPanel = memo(function StatsPanel({
   mostPlayedCategory,
   completionRate,
   highestStreak,
+  quizzesTaken,
 }: {
   averageScore: number
   winRate: number
@@ -199,6 +229,7 @@ const StatsPanel = memo(function StatsPanel({
   mostPlayedCategory: string
   completionRate: number | null
   highestStreak: number | null
+  quizzesTaken: number
 }) {
   return (
     <Card className='bg-main sticky top-8'>
@@ -246,7 +277,7 @@ const StatsPanel = memo(function StatsPanel({
             <div>
               <p className='text-muted-foreground text-sm'>Total Quizzes</p>
               <p className='text-base font-bold text-foreground'>
-                {player.quizzes}
+                {quizzesTaken}
               </p>
             </div>
             <div className='text-right'>
@@ -294,6 +325,7 @@ const ProfilePage = () => {
     analytics,
     isAnalyticsLoading,
     resolvedUserId,
+    bundle: profileBundle,
   } = usePublicProfilePage({ name: routeName })
 
   // F-18 — Completion Rate and Highest Streak. The backend exposes
@@ -313,8 +345,9 @@ const ProfilePage = () => {
 
   // The user store does not expose `longestStreak` on the public
   // profile's `Player` shape. The `Player` historic field defaulted
-  // to 0. Phase 1 preserves the fallback `—` rather than hardcoding
-  // a false value.
+  // to 0. Phase 6 keeps the value absent (null) so the page renders
+  // the documented `—` placeholder; the analytics page is the
+  // authoritative surface for streak data.
   const highestStreak: number | null = null
 
   const joinedAt = useMemo(() => {
@@ -336,7 +369,11 @@ const ProfilePage = () => {
         </Button>
 
         {/* Header Section - Extracted to memoized component */}
-        <ProfileHeader player={currentPlayer} joinedAt={joinedAt} />
+        <ProfileHeader
+          player={currentPlayer}
+          joinedAt={joinedAt}
+          summary={profileBundle.summary}
+        />
 
         {/* Main Content */}
         <div className='max-w-7xl mx-auto mt-10'>
@@ -583,6 +620,7 @@ const ProfilePage = () => {
                 mostPlayedCategory={mostPlayedCategory}
                 completionRate={completionRate}
                 highestStreak={highestStreak}
+                quizzesTaken={quizzesTaken}
               />
             </aside>
           </div>

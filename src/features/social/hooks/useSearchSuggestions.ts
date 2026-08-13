@@ -106,17 +106,10 @@ export function useSearchSuggestions(
   // Normalise the raw query: trim whitespace and lowercase.
   const normalisedQuery = useMemo(() => query.trim().toLowerCase(), [query]);
 
-  // Short-circuit when the normalised query is too short.
-  if (normalisedQuery.length < SEARCH_MIN_QUERY_LENGTH) {
-    return EMPTY_RESULT;
-  }
+  // Short-circuit flag: compute BEFORE hooks to maintain consistent hook order
+  const isQueryTooShort = normalisedQuery.length < SEARCH_MIN_QUERY_LENGTH;
 
-  // Use the debounced query for the API call.
-  const apiQuery = debouncedQuery.trim().toLowerCase();
-
-  // Track the stale flag: set to true when the debounced query
-  // changes while a request is in-flight, reset when a fresh
-  // response arrives.
+  // Always call state hooks - React Rules of Hooks require this
   const [wasStale, setWasStale] = useState(false);
   const [groups, setGroups] = useState<
     UseSearchSuggestionsResult["groups"]
@@ -127,6 +120,9 @@ export function useSearchSuggestions(
   // Track whether the current request is stale so the effect body
   // can distinguish a superseded request from a normal completion.
   const isStaleRef = useRef(false);
+
+  // Use the debounced query for the API call.
+  const apiQuery = debouncedQuery.trim().toLowerCase();
 
   useEffect(() => {
     // Skip when the normalised query is too short.
@@ -179,6 +175,11 @@ export function useSearchSuggestions(
       cancelled = true;
     };
   }, [apiQuery, isStaleRef]);
+
+  // Short-circuit after all hooks have been called
+  if (isQueryTooShort) {
+    return EMPTY_RESULT;
+  }
 
   return {
     groups,

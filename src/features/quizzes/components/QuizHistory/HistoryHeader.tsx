@@ -3,16 +3,15 @@
 import { memo } from 'react'
 import { History, BarChart3 } from 'lucide-react'
 import { HistoryExport } from './HistoryExport'
-import type { QuizHistoryEntry } from '@/features/quizzes/types'
 
 interface HistoryHeaderProps {
   totalEntries: number
-  filteredEntries: QuizHistoryEntry[]
+  loadedEntries: number
 }
 
 export const HistoryHeader = memo(function HistoryHeader({
   totalEntries,
-  filteredEntries
+  loadedEntries
 }: HistoryHeaderProps) {
   return (
     <div className='flex flex-col sm:flex-row sm:items-center justify-between gap-4'>
@@ -28,11 +27,11 @@ export const HistoryHeader = memo(function HistoryHeader({
           Track your activity, analyze performance, and export your data
         </p>
         <p className='text-xs text-muted-foreground mt-0.5'>
-          {totalEntries} total quizzes recorded
+          {totalEntries} total quizzes recorded · {loadedEntries} loaded
         </p>
       </div>
 
-      <HistoryExport entries={filteredEntries} />
+      <HistoryExport entriesCount={loadedEntries} />
     </div>
   )
 })

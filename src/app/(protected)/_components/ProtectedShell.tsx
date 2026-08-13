@@ -1,43 +1,10 @@
 'use client';
 
-/**
- * `ProtectedShell` — client-side defense-in-depth auth wrapper.
- *
- * Source epic: Folder-convention refactor (move admin/social/instances/
- *   notifications/tournaments into app/(protected)/).
- *
- * ## Purpose
- *
- * The Next.js middleware (`src/proxy.ts`) is the authoritative gate that
- * redirects unauthenticated requests to `/login`. That middleware is
- * presence-only — it checks that the access-token cookie exists, but it
- * does NOT validate the JWT, and it runs on the server side.
- *
- * `ProtectedShell` is a client-side belt-and-braces check that catches
- * the rare race where:
- *
- *   1. The user was authenticated when the middleware redirected them.
- *   2. The cookie was cleared client-side (e.g. another tab logged out)
- *      before the protected page finished hydrating.
- *   3. The page is now rendered for an unauthenticated client.
- *
- * If `useAuthState()` reports `isAuthenticated === false` after hydration,
- * we redirect to `/login` immediately and render a brief loading state.
- *
- * ## Functional value (not just `<>{children}</>`)
- *
- * - Consistent `data-protected-route="true"` attribute for E2E tests.
- * - Accessible `role="region"` + `aria-label="Authenticated content"` so
- *   assistive tech can scope announcements to authed areas.
- * - Graceful "Checking authentication…" state for the (rare) edge case.
- *
- * @see src/proxy.ts — the server-side gate.
- * @see src/features/auth/hooks/use-auth-state.ts — the cookie subscription.
- */
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import type { ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuthState } from '@/features/auth/hooks/use-auth-state';
+import { useAuth } from '@/features/auth/hooks/use-auth';
+import { getAuthToken } from '@/features/auth/utils/auth-cookies';
 
 export interface ProtectedShellProps {
   children: ReactNode;
@@ -45,15 +12,32 @@ export interface ProtectedShellProps {
 
 export function ProtectedShell({ children }: ProtectedShellProps) {
   const router = useRouter();
-  const { isAuthenticated } = useAuthState();
+  const { currentUser, isLoading } = useAuth();
+  const hasMounted = useRef(false);
 
   useEffect(() => {
-    if (!isAuthenticated) {
-      router.replace('/login');
-    }
-  }, [isAuthenticated, router]);
+    hasMounted.current = true;
+  }, []);
 
-  if (!isAuthenticated) {
+  // Redirect to login only when:
+  // 1. Auth check is complete (not loading)
+  // 2. No user data AND no valid token
+  // This prevents redirect loops when user data is loading or when we have a token but /auth/me hasn't resolved
+  useEffect(() => {
+    if (!hasMounted.current) return;
+
+    const hasToken = !!getAuthToken();
+
+    if (!isLoading && !currentUser && !hasToken) {
+      // No token and no user data = not authenticated, redirect to login
+      const currentPath = window.location.pathname;
+      router.replace(`/login?redirect=${encodeURIComponent(currentPath)}`);
+    }
+  }, [isLoading, currentUser, router]);
+
+  // Show loading state while auth is being checked
+  // We don't redirect here - we wait for the auth check to complete
+  if (isLoading || !currentUser) {
     return (
       <div
         role='status'
@@ -65,7 +49,7 @@ export function ProtectedShell({ children }: ProtectedShellProps) {
           opacity: 0.7,
         }}
       >
-        Checking authentication…
+        Checking authentication...
       </div>
     );
   }

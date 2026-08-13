@@ -61,6 +61,8 @@ export {
   // Event catalogue
   INSTANCES_NAMESPACE,
   NOTIFICATIONS_NAMESPACE,
+  COMMENTS_NAMESPACE,
+  COINS_NAMESPACE,
   INSTANCE_JOINED,
   INSTANCE_LEFT,
   INSTANCE_STARTED,
@@ -73,16 +75,37 @@ export {
   NOTIFICATION_SENT,
   NOTIFICATION_DELETED,
   NOTIFICATION_READ,
+  COMMENT_CREATED,
+  COMMENT_EDITED,
+  COMMENT_DELETED,
+  COMMENT_HIDDEN,
+  COMMENT_RESTORED,
+  VOTE_CAST,
+  VOTE_REMOVED,
+  COIN_BALANCE_CHANGED,
+  COIN_TRANSACTION_RECORDED,
   INSTANCE_EVENT_NAMES,
   NOTIFICATION_EVENT_NAMES,
+  COMMENT_EVENT_NAMES,
+  COIN_EVENT_NAMES,
   // Types
   type InstanceEventName,
   type NotificationEventName,
+  type CommentEventName,
+  type CoinEventName,
   type InstanceEventPayload,
   type NotificationEventPayload,
+  type CommentEventPayload,
+  type CoinEventPayload,
   type InstanceSocketEvent,
   type NotificationSocketEvent,
+  type CommentSocketEvent,
+  type CoinSocketEvent,
   type WsErrorPayload,
+  // Coin payload interfaces (re-exported so feature code can import
+  // from a single path without reaching into `events.ts` directly)
+  type CoinBalanceChangedPayload,
+  type CoinTransactionRecordedPayload,
 } from "./events";
 
 export {

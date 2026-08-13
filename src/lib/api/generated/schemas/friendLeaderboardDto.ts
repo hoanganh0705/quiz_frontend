@@ -8,6 +8,7 @@
 import type { FriendLeaderboardDtoPeriod } from './friendLeaderboardDtoPeriod';
 import type { FriendRankingEntryDto } from './friendRankingEntryDto';
 import type { FriendLeaderboardDtoCurrentUserRank } from './friendLeaderboardDtoCurrentUserRank';
+import type { FriendLeaderboardDtoStaleAt } from './friendLeaderboardDtoStaleAt';
 
 export interface FriendLeaderboardDto {
   /** Leaderboard period */
@@ -15,10 +16,17 @@ export interface FriendLeaderboardDto {
   /** Leaderboard entries sorted by rank */
   entries: FriendRankingEntryDto[];
   /**
-   * The current user's rank among friends (null if not ranked)
+   * The current user's rank projection (rank + xp + totalParticipants). Null when the viewer is unranked in the period.
    * @nullable
    */
   currentUserRank?: FriendLeaderboardDtoCurrentUserRank;
   /** Total number of participating friends */
   totalParticipants: number;
+  /**
+   * Phase 3 (S-17): timestamp at which the cached projection is stale (ISO 8601). Null when fresh.
+   * @nullable
+   */
+  staleAt?: FriendLeaderboardDtoStaleAt;
+  /** Phase 3 (S-17): whether the leaderboard projection is stale. */
+  isStale: boolean;
 }

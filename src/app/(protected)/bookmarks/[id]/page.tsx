@@ -140,9 +140,9 @@ export default function CollectionDetailPage({ params }: CollectionDetailPagePro
   const [showRemoveConfirm, setShowRemoveConfirm] = useState(false);
 
   // 404 if collection not found (after loading)
-  if (!isCollectionLoading && !collection && !collectionError) {
-    return <CollectionNotFound />;
-  }
+  // NOTE: This check must come AFTER all hooks. React hooks rules require
+  // hooks to be called in the same order on every render.
+  const isNotFound = !isCollectionLoading && !collection && !collectionError;
 
   // Handle add quizzes success
   const handleAddSuccess = useCallback(
@@ -202,6 +202,11 @@ export default function CollectionDetailPage({ params }: CollectionDetailPagePro
   }, [quizzes]);
 
   const isLoading = isCollectionLoading || isQuizzesLoading;
+
+  // Early return AFTER all hooks have been called
+  if (isNotFound) {
+    return <CollectionNotFound />;
+  }
 
   return (
     <div className='min-h-screen text-foreground'>

@@ -61,7 +61,7 @@ import { getCurrentTabId } from "@/lib/api/core/broadcast-channel";
 export const CROSS_TAB_INVALIDATION_CHANNEL = "realtime/invalidation" as const;
 
 /**
- * The six Phase 5 invalidation source types. Used as the discriminator
+ * The seven Phase 5 invalidation source types. Used as the discriminator
  * in `Phase5InvalidationPayload.type`.
  */
 export type Phase5InvalidationSource =
@@ -70,7 +70,8 @@ export type Phase5InvalidationSource =
   | "tournament"
   | "achievement"
   | "relationship"
-  | "friend-request";
+  | "friend-request"
+  | "coin";
 
 // ─── Event envelopes ─────────────────────────────────────────────────────────
 
@@ -136,6 +137,15 @@ export interface FriendRequestInvalidationEvent
 }
 
 /**
+ * Fired when the viewer's coin balance or transaction history
+ * changes. The consumer (TKT-7.12.B2 listener hook) refetches the
+ * wallet and the ledger via REST.
+ */
+export interface CoinInvalidationEvent extends Phase5InvalidationBase {
+  type: "coin";
+}
+
+/**
  * The union of all Phase 5 invalidation event shapes.
  *
  * Discriminator: `type` field.
@@ -146,7 +156,8 @@ export type Phase5InvalidationPayload =
   | TournamentInvalidationEvent
   | AchievementInvalidationEvent
   | RelationshipInvalidationEvent
-  | FriendRequestInvalidationEvent;
+  | FriendRequestInvalidationEvent
+  | CoinInvalidationEvent;
 
 /** Discriminated envelope — keys are the `type` literals. */
 export type Phase5InvalidationEnvelope = {

@@ -210,6 +210,8 @@ export { getAuth } from './generated/auth/auth';
 export { getBookmarks } from './generated/bookmarks/bookmarks';
 export { getCategories } from './generated/categories/categories';
 export { getComments } from './generated/comments/comments';
+export { getDailyChallenge } from './generated/daily-challenge/daily-challenge';
+export { getHome } from './generated/home/home';
 export { getInstances } from './generated/instances/instances';
 export { getLeaderboards } from './generated/leaderboards/leaderboards';
 export { getAchievements } from './generated/achievements/achievements';

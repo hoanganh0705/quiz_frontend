@@ -53,14 +53,14 @@
 /**
  * The closed union of analytics widget ids the frontend recognises.
  *
- * Mirrors the keys of `SocialMyAnalyticsDto.widgets` and
- * `SocialUserStatsDto.widgets` (introduced by Batch D). Adding a new
- * widget id requires a same-PR update to this union, the zero
- * catalogue, and the reason map; the type system enforces the third.
+ * Phase 6: removed `quizzes_published` and `attempts_completed` from
+ * the union. The deep-analytics DTO has no per-period source for
+ * these metrics; the only way to render them was to use a
+ * hard-coded `0` (the silent-fallback anti-pattern the audit W-29
+ * targeted). The widgets remain in the master plan Phase 6 backlog
+ * for a follow-up that introduces a dedicated endpoints.
  */
 export type AnalyticsWidgetId =
-  | "quizzes_published"
-  | "attempts_completed"
   | "achievements_earned"
   | "ranking_xp_week"
   | "ranking_xp_month"
@@ -109,8 +109,6 @@ export const ANALYTICS_ZERO_WIDGETS: readonly AnalyticsWidgetId[] = [
  * Epic 6.3 verification note).
  */
 export const ANALYTICS_ZERO_WIDGET_REASON: Record<AnalyticsWidgetId, string> = {
-  quizzes_published: "",
-  attempts_completed: "",
   achievements_earned:
     "Returned by backend with zero in initial rollout — the achievement module is not yet connected to the social domain.",
   ranking_xp_week:

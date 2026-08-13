@@ -34,7 +34,7 @@
  */
 
 import { useCallback, useRef, useState } from "react";
-import { mutate as globalMutate } from "swr";
+import { mutate as globalMutate, useSWRConfig } from "swr";
 
 import { ApiError, isApiError } from "@/lib/api";
 
@@ -44,6 +44,10 @@ import {
   type NotificationMutationState,
 } from "@/features/notifications/types/notification.types";
 import { getFeatureFlagValue } from "@/lib/feature-flags";
+import {
+  buildNotificationListRevalidations,
+  findNotificationInfiniteKeys,
+} from "@/features/notifications/utils/swr-infinite-cache";
 
 // ─── Public types ──────────────────────────────────────────────────────────
 
@@ -75,6 +79,15 @@ export function useMarkNotificationRead(
   // even when React batches state updates).
   const inFlightRef = useRef(false);
 
+  // `useSWRConfig` exposes the same cache (and the bound `mutate`)
+  // used by `useNotifications`. We use it to find the actual
+  // `$inf$<hash>` cache keys SWRInfinite registered, then trigger
+  // revalidation via the bound revalidator. Mutating per-page cache
+  // entries alone leaves SWRInfinite reading stale `data`, because
+  // SWRInfinite holds its own page array and does not re-read from
+  // the per-page cache on mutation.
+  const swrConfig = useSWRConfig();
+
   const markRead = useCallback(async (): Promise<void> => {
     if (isFlagPlaceholder || notificationId === null) {
       return;
@@ -94,8 +107,16 @@ export function useMarkNotificationRead(
       // request without producing a usable payload.
       await markNotificationRead(notificationId);
 
+      // Sweep for SWRInfinite aggregate keys whose stored data is a
+      // notification list, then revalidate each one so SWRInfinite
+      // re-runs its fetcher and rebuilds its page array from the
+      // server's canonical list. See `swr-infinite-cache.ts` for the
+      // rationale.
+      const infiniteKeys = findNotificationInfiniteKeys(swrConfig.cache);
+
       // Revalidate the list (any filter scope) and the unread count.
       await Promise.all([
+        ...buildNotificationListRevalidations(swrConfig, infiniteKeys),
         globalMutate(
           (key) =>
             Array.isArray(key) &&
@@ -141,7 +162,7 @@ export function useMarkNotificationRead(
     } finally {
       inFlightRef.current = false;
     }
-  }, [isFlagPlaceholder, notificationId, state]);
+  }, [isFlagPlaceholder, notificationId, state, swrConfig]);
 
   const reset = useCallback(() => {
     setState("idle");

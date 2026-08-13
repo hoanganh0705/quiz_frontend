@@ -9,8 +9,6 @@
  *
  * The center page composes:
  *
- *   - The `NotificationConnectionStatus` indicator at the top of the
- *     page (connected / reconnecting / offline / error).
  *   - A "Mark all as read" header action.
  *   - A filter bar with three tabs (`All`, `Unread`, `Read`).
  *   - The notification list (`NotificationItem` rows).
@@ -37,34 +35,31 @@
  * ## No service beyond documented hooks
  *
  * The page imports only the documented hooks from
- * `@/features/notifications/hooks` and the service's
- * `markAllNotificationsRead` mutation. No socket, no axios.
+ * `@/features/notifications/hooks`. The "Mark all as read" CTA is
+ * powered by `useMarkAllNotificationsRead`, which handles SWRInfinite
+ * aggregate-key revalidation (see the hook's docstring for the
+ * `$inf$<hash>` rationale). No socket, no axios.
  */
 
-import { useCallback, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { Check, Loader2, Settings } from "lucide-react";
 
 import { Button } from "@/components/ui/Button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/Tabs";
 import { cn } from "@/shared/utils/merge-class-names";
-import { mutate as globalMutate } from "swr";
 
 import {
   useNotifications,
-  useNotificationSocket,
   useNotificationFeatureFlag,
+  useMarkAllNotificationsRead,
 } from "@/features/notifications/hooks";
-import { markAllNotificationsRead } from "@/features/notifications/services/notifications.service";
-import { ApiError, isApiError } from "@/lib/api";
-import { NOTIFICATION_CACHE_KEYS } from "@/features/notifications/types/notification.types";
 
 import {
   NotificationItem,
   NotificationListSkeleton,
   NotificationEmptyState,
   NotificationErrorState,
-  NotificationConnectionStatus,
   NotificationPlaceholder,
 } from "@/features/notifications/components";
 
@@ -92,10 +87,6 @@ function NotificationCenterPageLive({
   className,
 }: NotificationCenterPageProps) {
   const [tab, setTab] = useState<FilterTab>("all");
-  const [markAllState, setMarkAllState] = useState<{
-    pending: boolean;
-    error: ApiError | null;
-  }>({ pending: false, error: null });
 
   const unreadOnly = tab === "unread" ? true : tab === "read" ? false : undefined;
   const filters = useMemo(
@@ -105,6 +96,25 @@ function NotificationCenterPageLive({
 
   const { items, isLoading, error, refresh, hasMore, loadMore } =
     useNotifications(filters);
+
+  // ─── Fresh-fetch on every page mount ───────────────────────────────────
+  //
+  // The center page's notification list is gated by SWR's in-memory cache
+  // keyed by URL/arguments — it is NOT scoped by user. To defend against
+  // a stale `["notifications", "list", ...]` entry surviving from a
+  // previous session, the page forces a fresh API round-trip on every
+  // mount by calling `refresh()`. This is the most defensive fix for
+  // the "center page shows 'No notifications' even though the backend
+  // has N items" symptom.
+  //
+  // The flag pattern prevents the refresh from firing twice in React's
+  // Strict-Mode dev double-render.
+  const refreshedOnMountRef = useRef(false);
+  useEffect(() => {
+    if (refreshedOnMountRef.current) return;
+    refreshedOnMountRef.current = true;
+    void refresh();
+  }, [refresh]);
 
   // For the "Read" tab we filter client-side because the backend does
   // not yet expose a `readOnly` filter.
@@ -118,41 +128,14 @@ function NotificationCenterPageLive({
     [items],
   );
 
-  const { connectionState, error: socketError } = useNotificationSocket();
-  const hasSocketError = Boolean(socketError);
+  // Mark-all-as-read lives in a dedicated hook so the SWRInfinite
+  // revalidation story is shared with `useDeleteNotification` and the
+  // single-row read hooks (see `useMarkAllNotificationsRead` for the
+  // rationale on `$inf$<hash>` keys vs per-page keys).
+  const { markAllRead, state: markAllState, error: markAllError } =
+    useMarkAllNotificationsRead();
 
-  const handleMarkAll = useCallback(async () => {
-    if (markAllState.pending) return;
-    setMarkAllState({ pending: true, error: null });
-    try {
-      await markAllNotificationsRead();
-      await Promise.all([
-        globalMutate(
-          (key) =>
-            Array.isArray(key) &&
-            key[0] === "notifications" &&
-            key[1] === "list",
-          undefined,
-          { revalidate: true },
-        ),
-        globalMutate(NOTIFICATION_CACHE_KEYS.unreadCount(), undefined, {
-          revalidate: true,
-        }),
-      ]);
-      setMarkAllState({ pending: false, error: null });
-    } catch (cause: unknown) {
-      if (isApiError(cause)) {
-        setMarkAllState({ pending: false, error: cause });
-      } else {
-        const mapped = new ApiError(
-          cause as unknown as ConstructorParameters<typeof ApiError>[0],
-        );
-        setMarkAllState({ pending: false, error: mapped });
-      }
-    }
-  }, [markAllState.pending]);
-
-  const markAllCopy = markAllState.error
+  const markAllCopy = markAllError
     ? "Retry mark all as read"
     : "Mark all as read";
 
@@ -176,12 +159,6 @@ function NotificationCenterPageLive({
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <NotificationConnectionStatus
-              connectionState={connectionState}
-              hasError={hasSocketError}
-              showLabel
-              size="sm"
-            />
             <Button asChild variant="outline" size="sm">
               <Link href="/notifications/preferences">
                 <Settings className="h-3.5 w-3.5 mr-1.5" />
@@ -192,11 +169,11 @@ function NotificationCenterPageLive({
               <Button
                 variant="default"
                 size="sm"
-                onClick={() => void handleMarkAll()}
-                disabled={markAllState.pending || isLoading}
+                onClick={() => void markAllRead()}
+                disabled={markAllState === "pending" || isLoading}
                 aria-label="Mark all notifications as read"
               >
-                {markAllState.pending ? (
+                {markAllState === "pending" ? (
                   <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" />
                 ) : (
                   <Check className="h-3.5 w-3.5 mr-1.5" />
@@ -219,13 +196,13 @@ function NotificationCenterPageLive({
           </TabsList>
         </Tabs>
 
-        {markAllState.error && (
+        {markAllError && (
           <div
             className="mt-3 rounded-lg border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950/30 px-3 py-2 text-xs text-red-700 dark:text-red-300"
             role="alert"
             data-testid="notification-mark-all-error"
           >
-            {markAllState.error.message}
+            {markAllError.message}
           </div>
         )}
       </header>

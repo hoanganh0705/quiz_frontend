@@ -9,11 +9,11 @@
  * ## Purpose
  *
  * Renders the documented "Admin surfaces coming soon" surface when
- * `admin_live` is `'placeholder'` (the production default).  The
- * component is a passthrough when the flag is `'live'` so the parent
- * boundary never needs a conditional — it always renders the same
- * node, and this component decides whether to show the unavailable
- * notice or forward the children.
+ * `admin_live` is explicitly set to `'placeholder'` (e.g. for a
+ * preview / staging environment). The default is now `'live'`
+ * because every Phase 7 admin surface is wired and reachable from
+ * the admin shell. The component is a passthrough when the flag
+ * is `'live'` so the parent boundary never needs a conditional.
  *
  * ## State matrix
  *

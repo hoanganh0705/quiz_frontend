@@ -22,3 +22,10 @@ export {
   useDailyChallengeStreakView,
   type UseDailyChallengeStreakViewResult,
 } from './useDailyChallengeStreakView'
+
+export {
+  useDailyChallengePlay,
+  type UseDailyChallengePlayParams,
+  type UseDailyChallengePlayResult,
+  type DailyChallengePlayStatus,
+} from './useDailyChallengePlay'

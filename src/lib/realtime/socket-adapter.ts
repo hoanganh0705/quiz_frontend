@@ -20,12 +20,17 @@
 
 import { io, type Socket } from "socket.io-client";
 
+// WebSocket server URL - defaults to API URL, can be overridden with NEXT_PUBLIC_WS_URL
+// The backend Socket.IO runs on the same port as the REST API
+const WS_URL =
+  process.env.NEXT_PUBLIC_WS_URL ??
+  (typeof window !== "undefined" ? `${window.location.protocol}//${window.location.host}` : "");
+
 export type { Socket };
 
 // Fallback stub when socket.io-client is unavailable (during early development
 // before the package is a runtime dependency).
 function createNoopSocket(): Socket {
-   
   return {
     on: () => createNoopSocket(),
     off: () => {},
@@ -41,7 +46,9 @@ function createNoopSocket(): Socket {
  *
  * When `socket.io-client` is not installed (early Phase 5), returns a no-op stub.
  *
- * @param url     - The Socket.IO namespace path (e.g. `/instances`).
+ * @param url     - The full URL to the Socket.IO server (e.g. `http://localhost:8080`)
+ *                  or the namespace path (e.g. `/instances`) which will be resolved
+ *                  relative to the WebSocket URL.
  * @param options - Socket.IO connection options.
  */
 export function createSocket(
@@ -49,7 +56,12 @@ export function createSocket(
   options?: { auth?: Record<string, unknown>; transports?: string[] },
 ): Socket {
   try {
-    return io(url, options as Parameters<typeof io>[1]);
+    // If url starts with "/" or is just a namespace, prepend the WS URL
+    const fullUrl = url.startsWith("/")
+      ? `${WS_URL}${url}`
+      : url;
+
+    return io(fullUrl, options as Parameters<typeof io>[1]);
   } catch {
     return createNoopSocket();
   }

@@ -2,48 +2,30 @@
 
 /**
  * `CommentThread` — a single comment thread: top-level comment + reply
- * list + reply form.
+ * tree with visual connector lines for proper nesting hierarchy.
  *
  * Source epic:   Epic 4.12 — Comments on a quiz.
  * Source ticket: T-4.12.17.
  *
- * ## Composition
+ * ## Tree Structure
  *
- *   - `<CommentItem depth={0}>` for the top-level comment.
- *   - One `<CommentItem depth={1}>` per first-page reply (the server
- *     embeds the first page of replies on the `CommentThreadItem`).
- *   - When `repliesCount > firstPage.length`, a "Show N more replies"
- *     button loads additional pages via `useQuizComments` with the
- *     reply-mode filter (`parentId`).
- *   - `<CommentReplyForm>` for posting new replies (collapsed by
- *     default; lives inside the top-level `<CommentItem>` already,
- *     so the thread does not need a second one — see note below).
+ * The thread uses a visual tree pattern similar to social media platforms:
  *
- * ## Reply form placement
+ *   - A vertical connector line runs from the parent comment to its replies
+ *   - Each reply is indented with a horizontal connector line
+ *   - Replies can be collapsed/expanded individually
+ *   - The tree structure makes parent-child relationships clear
  *
- * Per Epic 4.12 spec, the reply composer lives INSIDE the top-level
- * `<CommentItem />` (the same row as the comment body). This thread
- * wrapper does NOT mount a second `<CommentReplyForm />` — that would
- * create two composers per thread. The ticket's "Reply form CTA visible
- * even when thread has no replies" is satisfied by the inline form in
- * `<CommentItem />` rendering unconditionally for the top-level row
- * when the viewer is authenticated.
+ * ## Visual Hierarchy
  *
- * ## "Show more" pagination
- *
- * The thread mounts its own `useQuizComments` call with `filters.parentId
- * === comment.id`. Pages are appended below the first-page replies as
- * the user clicks "Show N more".
- *
- * ## Visual treatment
- *
- * A 2-pixel left border (accent color) on the inner column visually
- * distinguishes a thread from the surrounding list. Replies are
- * indented by `CommentItem` itself when `depth === 1`.
+ *   - Thread container: light background with subtle border
+ *   - Top-level comment: full width, no indentation
+ *   - Replies: indented with vertical/horizontal connector lines
+ *   - Nested replies (if any): further indentation with lighter connector lines
  */
 
 import { useMemo, useState } from 'react';
-import { ChevronDown, ChevronUp, Loader2 } from 'lucide-react';
+import { ChevronDown, ChevronUp, Loader2, MessageSquare } from 'lucide-react';
 
 import { Button } from '@/components/ui/Button';
 import { cn } from '@/shared/utils/merge-class-names';
@@ -87,11 +69,9 @@ export function CommentThread({
     Math.max(0, thread.repliesCount - firstPageReplies.length);
   const hasExtraReplies = remaining > 0;
 
-  const [expanded, setExpanded] = useState(false);
+  const [expanded, setExpanded] = useState(true); // Threads expanded by default
 
   // Only mount the replies-mode hook when the user expands the thread
-  // — this avoids a network call for every short thread on initial
-  // load (the first page is already inlined on `thread.replies`).
   const repliesQuery = useQuizComments(
     expanded && hasExtraReplies
       ? { quizId, filters: { parentId: thread.id, limit: REPLY_DEFAULT_LIMIT } }
@@ -100,9 +80,6 @@ export function CommentThread({
 
   const extraReplies: readonly CommentItemType[] = useMemo(() => {
     if (!expanded) return [];
-    // `useQuizComments` returns `CommentThreadItem[]`; reply-mode
-    // payloads have `repliesCount` only (no embedded `replies`),
-    // so we map them into the `CommentItem` shape consumers expect.
     return repliesQuery.items.map((item): CommentItemType => {
       const { replies: _replies, ...rest } = item as CommentThreadItem;
       void _replies;
@@ -110,114 +87,145 @@ export function CommentThread({
     });
   }, [expanded, repliesQuery.items]);
 
+  const totalReplies = thread.repliesCount;
+
   return (
     <section
       className={cn(
-        'flex flex-col gap-3 rounded-xl border-l-2 border-l-primary/40 bg-card/30 pl-4 pr-1 sm:pl-5',
+        'flex flex-col rounded-xl border border-border bg-card overflow-hidden',
         className,
       )}
       data-testid={`comment-thread-${thread.id}`}
       data-thread-id={thread.id}
     >
-      {/* ─── Top-level comment + its inline reply form ─────────────── */}
-      <CommentItem
-        comment={thread}
-        depth={0}
-        quizId={quizId}
-        currentUserId={currentUserId ?? null}
-        isAuthenticated={isAuthenticated}
-      />
-
-      {/* ─── Replies (first page, embedded) ────────────────────────── */}
-      {firstPageReplies.length > 0 && (
-        <div
-          className='flex flex-col gap-3'
-          data-testid={`comment-thread-replies-${thread.id}`}
+      {/* ─── Thread header with toggle ──────────────────────────────── */}
+      <div className='flex items-center justify-between px-4 py-3 border-b border-border bg-muted/30'>
+        <div className='flex items-center gap-2 text-sm font-medium text-foreground'>
+          <MessageSquare size={16} aria-hidden className='text-muted-foreground' />
+          <span>{totalReplies} {totalReplies === 1 ? 'reply' : 'replies'}</span>
+        </div>
+        <Button
+          type='button'
+          variant='ghost'
+          size='sm'
+          onClick={() => setExpanded(!expanded)}
+          className='text-xs text-muted-foreground hover:text-foreground'
+          data-testid={`comment-thread-toggle-${thread.id}`}
         >
-          {firstPageReplies.map((reply) => (
+          {expanded ? (
+            <>
+              <ChevronUp size={14} aria-hidden className='mr-1' />
+              Hide replies
+            </>
+          ) : (
+            <>
+              <ChevronDown size={14} aria-hidden className='mr-1' />
+              Show replies
+            </>
+          )}
+        </Button>
+      </div>
+
+      {/* ─── Collapsed state ─────────────────────────────────────────── */}
+      {!expanded && (
+        <div className='px-4 py-3 text-xs text-muted-foreground'>
+          Replies hidden
+        </div>
+      )}
+
+      {/* ─── Expanded content ────────────────────────────────────────── */}
+      {expanded && (
+        <div className='flex flex-col'>
+          {/* ─── Top-level comment ─────────────────────────────────────── */}
+          <div className='p-4'>
             <CommentItem
-              key={reply.id}
-              comment={reply}
-              depth={1}
+              comment={thread}
+              depth={0}
               quizId={quizId}
               currentUserId={currentUserId ?? null}
               isAuthenticated={isAuthenticated}
             />
-          ))}
-        </div>
-      )}
+          </div>
 
-      {/* ─── "Show N more replies" affordance ──────────────────────── */}
-      {hasExtraReplies && (
-        <div className='flex'>
-          {expanded ? (
-            <Button
-              type='button'
-              variant='ghost'
-              size='sm'
-              onClick={() => setExpanded(false)}
-              disabled={repliesQuery.isLoadingMore}
-              data-testid={`comment-thread-collapse-${thread.id}`}
-              className='text-xs text-muted-foreground'
+          {/* ─── Reply tree ──────────────────────────────────────────── */}
+          {firstPageReplies.length > 0 && (
+            <div
+              className='relative'
+              data-testid={`comment-thread-replies-${thread.id}`}
             >
-              <ChevronUp size={14} aria-hidden />
-              Show fewer replies
-            </Button>
-          ) : (
-            <Button
-              type='button'
-              variant='ghost'
-              size='sm'
-              onClick={() => setExpanded(true)}
-              data-testid={`comment-thread-expand-${thread.id}`}
-              className='text-xs text-muted-foreground'
-            >
-              <ChevronDown size={14} aria-hidden />
-              Show {remaining} more {remaining === 1 ? 'reply' : 'replies'}
-            </Button>
-          )}
-        </div>
-      )}
+              {/* Vertical connector line */}
+              <div className='absolute left-8 top-0 bottom-0 w-px bg-border' />
 
-      {/* ─── Additional pages of replies (only mounted when expanded) */}
-      {expanded && hasExtraReplies && (
-        <div
-          className='flex flex-col gap-3'
-          data-testid={`comment-thread-extra-replies-${thread.id}`}
-        >
-          {repliesQuery.isLoading && repliesQuery.items.length === 0 ? (
-            <>
-              <CommentItemSkeleton depth={1} />
-              <CommentItemSkeleton depth={1} />
-            </>
-          ) : (
-            extraReplies.map((reply) => (
-              <CommentItem
-                key={reply.id}
-                comment={reply}
-                depth={1}
-                quizId={quizId}
-                currentUserId={currentUserId ?? null}
-                isAuthenticated={isAuthenticated}
-              />
-            ))
+              <div className='flex flex-col divide-y divide-border/50'>
+                {firstPageReplies.map((reply) => (
+                  <div key={reply.id} className='relative'>
+                    {/* Horizontal connector */}
+                    <div className='absolute left-8 top-8 w-4 h-px bg-border' />
+
+                    <div className='pl-8 sm:pl-12 pr-4 py-3'>
+                      <CommentItem
+                        comment={reply}
+                        depth={1}
+                        quizId={quizId}
+                        currentUserId={currentUserId ?? null}
+                        isAuthenticated={isAuthenticated}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
           )}
 
-          {repliesQuery.hasMore && (
-            <div>
-              <Button
-                type='button'
-                variant='outline'
-                size='sm'
-                onClick={() => repliesQuery.loadMore()}
-                disabled={repliesQuery.isLoadingMore}
-                data-testid={`comment-thread-load-more-${thread.id}`}
-              >
-                {repliesQuery.isLoadingMore && (
-                  <Loader2 className='mr-2 animate-spin motion-reduce:animate-none' size={14} aria-hidden />
-                )}
-                Load more replies
-              </Button>
+          {/* ─── Extra replies section ─────────────────────────────────── */}
+          {hasExtraReplies && (
+            <div className='border-t border-border'>
+              {expanded && hasExtraReplies && (
+                <div className='divide-y divide-border/50'>
+                  {repliesQuery.isLoading && repliesQuery.items.length === 0 ? (
+                    <div className='px-4 py-2'>
+                      <CommentItemSkeleton depth={1} />
+                      <CommentItemSkeleton depth={1} />
+                    </div>
+                  ) : (
+                    extraReplies.map((reply) => (
+                      <div key={reply.id} className='relative'>
+                        {/* Horizontal connector */}
+                        <div className='absolute left-8 top-8 w-4 h-px bg-border' />
+                        <div className='pl-8 sm:pl-12 pr-4 py-3'>
+                          <CommentItem
+                            comment={reply}
+                            depth={1}
+                            quizId={quizId}
+                            currentUserId={currentUserId ?? null}
+                            isAuthenticated={isAuthenticated}
+                          />
+                        </div>
+                      </div>
+                    ))
+                  )}
+
+                  {/* Load more button */}
+                  {repliesQuery.hasMore && (
+                    <div className='px-4 py-3'>
+                      <Button
+                        type='button'
+                        variant='ghost'
+                        size='sm'
+                        onClick={() => repliesQuery.loadMore()}
+                        disabled={repliesQuery.isLoadingMore}
+                        data-testid={`comment-thread-load-more-${thread.id}`}
+                        className='text-xs text-muted-foreground hover:text-foreground'
+                      >
+                        {repliesQuery.isLoadingMore && (
+                          <Loader2 className='mr-2 animate-spin motion-reduce:animate-none' size={14} aria-hidden />
+                        )}
+                        Load more replies
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           )}
         </div>

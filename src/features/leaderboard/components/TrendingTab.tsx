@@ -1,52 +1,58 @@
 'use client'
 
-import Image from 'next/image'
-import { Badge } from '@/components/ui/Badge'
-import { TrendingUp, TrendingDown, Minus, Users, Zap } from 'lucide-react'
-import type { LeaderboardUser } from '../types'
+/**
+ * `TrendingTab` — top-movers list from the live wire shape.
+ *
+ * Source epic:   Phase 6 — leaderboard mock-data cleanup.
+ * Source ticket: W-04 / cleanup of `LeaderboardHighlights` → Trending tab.
+ *
+ * Renders `TopMoverDto[]` from `rankingControllerGetTopMovers()`. The
+ * wire shape carries:
+ *   - `userId`
+ *   - `username` (the public, `@`-prefixed handle)
+ *   - `currentRank`
+ *   - `previousRank`
+ *   - `change` (positive — the previous - current)
+ *
+ * Note that the API does NOT carry `avatarUrl`, `xp`, `badges`,
+ * `streak`, `winRate`, `quizzesCompleted`, `isOnline`, or
+ * `lastActive`. The previous mock tabs rendered all of those;
+ * they're intentionally absent here. Display names for the movers
+ * fall back to the `username` (since the wire only exposes the
+ * public handle) — if a real display name is needed we'd have to
+ * hit `/users/:id`, out of scope for this surface.
+ *
+ * @see `useTopMovers` for the read contract.
+ */
+
+import { TrendingUp, TrendingDown, Minus } from 'lucide-react'
+
+import type { TopMoverDto } from '@/lib/api/generated/schemas'
 
 interface TrendingTabProps {
-  users: LeaderboardUser[]
+  users: readonly TopMoverDto[]
   isLoading: boolean
 }
 
 export default function TrendingTab({ users, isLoading }: TrendingTabProps) {
-  const getChangeIcon = (change: number) => {
-    if (change > 0) return <TrendingUp className='w-3 h-3 text-green-400' />
-    if (change < 0) return <TrendingDown className='w-3 h-3 text-red-400' />
-    return <Minus className='w-3 h-3 text-slate-400' />
-  }
-
-  const getChangeText = (change: number) => {
-    if (change > 0) return `+${change}`
-    if (change < 0) return `${change}`
-    return '0'
-  }
-
-  const getChangeColor = (change: number) => {
-    if (change > 0) return 'text-green-400'
-    if (change < 0) return 'text-red-400'
-    return 'text-slate-400'
-  }
-
-  const getBadgeIcon = (badge: string) => {
-    switch (badge) {
-      case 'Diamond':
-        return '💎'
-      case 'Platinum':
-        return '🥇'
-      case 'Gold':
-        return '🥈'
-      case 'Silver':
-        return '🥉'
-      case 'Bronze':
-        return '🏅'
-      default:
-        return '⭐'
-    }
-  }
-
   if (isLoading) return null
+
+  if (users.length === 0) {
+    return (
+      <div className='space-y-4'>
+        <div className='flex items-center gap-2 mb-4'>
+          <TrendingUp className='w-5 h-5 text-green-400' />
+          <h3 className='text-foreground font-semibold'>Trending This Week</h3>
+        </div>
+        <p className='text-sm text-foreground/70 text-center py-8'>
+          No movers yet — check back after the next ranking snapshot.
+        </p>
+      </div>
+    )
+  }
+
+  const topChange = users.reduce((max, u) => Math.max(max, u.change), 0)
+  const moversCount = users.length
 
   return (
     <div className='space-y-4'>
@@ -57,40 +63,40 @@ export default function TrendingTab({ users, isLoading }: TrendingTabProps) {
       <div className='space-y-3'>
         {users.map((user) => (
           <div
-            key={user.id}
+            key={user.userId}
             className='flex items-center gap-3 p-3 bg-muted rounded-lg hover:bg-brand transition-colors'
           >
-            <div className='w-12 h-12 rounded-full overflow-hidden'>
-              <Image
-                src={user.avatar || '/placeholder.svg'}
-                alt={user.name}
-                width={48}
-                height={48}
-                className='w-full h-full object-cover'
-              />
-            </div>
             <div className='flex-1'>
               <div className='flex items-center gap-2'>
-                <h4 className='text-foreground font-semibold'>{user.name}</h4>
-                <Badge className={`${user.badgeColor} text-xs`}>
-                  {getBadgeIcon(user.badge)} {user.badge}
-                </Badge>
+                <h4 className='text-foreground font-semibold'>
+                  {user.username}
+                </h4>
               </div>
-              <p className='text-foreground/80 text-sm'>{user.username}</p>
-              <div className='flex items-center gap-2 mt-1 text-xs text-foreground/80'>
-                <span>{user.quizzesCompleted} quizzes</span>
-                <span>•</span>
-                <span>{user.winRate}% win rate</span>
-              </div>
+              <p className='text-foreground/80 text-sm'>
+                Rank #{user.currentRank} (was #{user.previousRank})
+              </p>
             </div>
             <div className='text-right'>
-              <p className='text-foreground font-semibold'>
-                {user.points.toLocaleString()} pts
-              </p>
               <div className='flex items-center gap-1 text-xs'>
-                {getChangeIcon(user.change)}
-                <span className={getChangeColor(user.change)}>
-                  {getChangeText(user.change)} this week
+                {user.change > 0 ? (
+                  <TrendingUp className='w-3 h-3 text-green-400' />
+                ) : user.change < 0 ? (
+                  <TrendingDown className='w-3 h-3 text-red-400' />
+                ) : (
+                  <Minus className='w-3 h-3 text-slate-400' />
+                )}
+                <span
+                  className={
+                    user.change > 0
+                      ? 'text-green-400'
+                      : user.change < 0
+                        ? 'text-red-400'
+                        : 'text-slate-400'
+                  }
+                >
+                  {user.change > 0
+                    ? `+${user.change}`
+                    : user.change.toString()}
                 </span>
               </div>
             </div>
@@ -102,22 +108,18 @@ export default function TrendingTab({ users, isLoading }: TrendingTabProps) {
           <div className='flex items-center justify-center mb-2'>
             <TrendingUp className='w-4 h-4 text-green-400' />
           </div>
-          <p className='text-lg font-bold text-foreground'>+12</p>
+          <p className='text-lg font-bold text-foreground'>+{topChange}</p>
           <p className='text-xs text-foreground/80'>Biggest Gain</p>
         </div>
         <div className='bg-muted p-3 rounded-lg text-center'>
-          <div className='flex items-center justify-center mb-2'>
-            <Users className='w-4 h-4 text-blue-400' />
-          </div>
-          <p className='text-lg font-bold text-foreground'>156</p>
-          <p className='text-xs text-foreground/80'>New Users</p>
+          <p className='text-lg font-bold text-foreground'>{moversCount}</p>
+          <p className='text-xs text-foreground/80'>Movers This Week</p>
         </div>
         <div className='bg-muted p-3 rounded-lg text-center'>
-          <div className='flex items-center justify-center mb-2'>
-            <Zap className='w-4 h-4 text-orange-400' />
-          </div>
-          <p className='text-lg font-bold text-foreground'>89</p>
-          <p className='text-xs text-foreground/80'>Active Streaks</p>
+          <p className='text-lg font-bold text-foreground'>
+            {Math.round(users.reduce((sum, u) => sum + u.change, 0))}
+          </p>
+          <p className='text-xs text-foreground/80'>Net Movement</p>
         </div>
       </div>
     </div>

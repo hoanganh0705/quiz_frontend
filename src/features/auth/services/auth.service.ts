@@ -94,6 +94,7 @@ import {
   AuthControllerVerifyPasswordResult,
 } from "@/lib/api/generated/auth/auth";
 import { ApiError } from "@/lib/api/core/ApiError";
+import { mutate as globalMutate } from "swr";
 
 /**
  * Broadcast a login event for cross-tab synchronization.
@@ -265,6 +266,31 @@ export async function login(
 
   if (userId) {
     broadcastLogin(userId, accessToken);
+  }
+
+  // Source epic: Epic 2.5 — user-scoped cache hygiene (TKT-2.5.7).
+  //
+  // A fresh login — even the same user re-authenticating — must not
+  // serve the previous session's SWR responses. Wipe every key in
+  // the in-memory cache so any mounted consumer (the bell badge,
+  // the notification center page, every `useUser*` hook) refetches
+  // against the new auth context on its next render.
+  //
+  // The cross-tab `LOGGED_IN` listener in `custom-instance.ts`
+  // performs the same wipe for sibling tabs; this call covers the
+  // originating tab (which does not re-enter its own broadcast).
+  if (typeof window !== 'undefined') {
+    try {
+      void globalMutate(
+        () => true,
+        undefined,
+        { revalidate: true },
+      );
+    } catch {
+      // Fail-open — the cookie set + broadcast above already
+      // succeeds, and the next consumer render will refetch against
+      // the new token anyway (the old `auth_token` cookie is gone).
+    }
   }
 
   // Keep TOKEN_REFRESHED as a fallback message for older listeners that

@@ -29,6 +29,19 @@
  *      state on success (B1 AC #6).
  *   7. The primitive contains no quiz-specific 404 mapping (B1 AC #7).
  *
+ * ## Cross-instance dedup (2026-08 hardening)
+ *
+ * Multiple components mounting `useSingleWithRetry` with the same
+ * key would otherwise fire one fetch per instance — combined with
+ * React Strict Mode (double-invoke) and concurrent re-renders, that
+ * pattern produced 6+ duplicate `/leaderboard/me` requests inside a
+ * 30 ms window on the leaderboard surface. The primitive now keeps a
+ * module-level `inFlightByKey` map keyed by the JSON-serialized
+ * cache key, so concurrent subscribers receive the SAME `Promise<T>`
+ * and a single network request is dispatched. The map is cleared
+ * once the promise settles; a subsequent explicit `retry()` call
+ * then fires a fresh request as documented in B1 AC #6.
+ *
  * ## Error coercion
  *
  *   - `ApiError` is passed through.
@@ -63,6 +76,14 @@ import { ApiError, isApiError } from '@/lib/api';
 const BACKOFF_DELAYS_MS = [250, 500, 1000] as const;
 
 const DEFAULT_REVALIDATE_ON_FOCUS = false;
+
+/**
+ * Module-level dedup map: when several components mount the hook
+ * with the same cache key in the same tick, they share a single
+ * `Promise<T>`. Cleared on settle. Keyed by the same JSON shape used
+ * for the React effect dependency so it is stable across renders.
+ */
+const inFlightByKey = new Map<string, Promise<unknown>>();
 
 export interface SingleFetcher<T> {
   (args: { signal: AbortSignal }): Promise<T>;
@@ -226,8 +247,45 @@ export function useSingleWithRetry<T>(
       setIsLoading(true);
       setIsRetrying(true);
 
+      // Cross-instance dedup: if another component instance already
+      // started a fetch for this key, join that promise instead of
+      // firing a duplicate network request. We still bump our local
+      // epoch + state so the UI behaves correctly, and we skip the
+      // local `runWithRetry` (which would race with the shared one).
+      const keyJson = JSON.stringify(key);
+      const sharedPromise = inFlightByKey.get(keyJson);
+      if (sharedPromise !== undefined) {
+        try {
+          const result = (await sharedPromise) as T;
+          if (!mountedRef.current) return;
+          if (epochRef.current !== epoch) return;
+          setData(result);
+          setError(null);
+        } catch (err) {
+          if (!mountedRef.current) return;
+          if (epochRef.current !== epoch) return;
+          if (err instanceof DOMException && err.name === 'AbortError') return;
+          setError(coerceToApiError(err));
+        } finally {
+          if (mountedRef.current && epochRef.current === epoch) {
+            setIsLoading(false);
+            setIsRetrying(false);
+          }
+        }
+        return;
+      }
+
+      const localPromise = (async (): Promise<T> => {
+        try {
+          return await runWithRetry(controller.signal);
+        } finally {
+          inFlightByKey.delete(keyJson);
+        }
+      })();
+      inFlightByKey.set(keyJson, localPromise);
+
       try {
-        const result = await runWithRetry(controller.signal);
+        const result = await localPromise;
         if (!mountedRef.current) return;
         if (epochRef.current !== epoch) return;
         setData(result);

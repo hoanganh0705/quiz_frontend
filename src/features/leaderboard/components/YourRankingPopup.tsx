@@ -1,5 +1,33 @@
 'use client'
 
+/**
+ * `YourRankingPopup` — live modal showing the viewer's ranking
+ * profile.
+ *
+ * Source epic:   Phase 6 — leaderboard mock-data cleanup.
+ * Source ticket: W-04 / cleanup of `YourRankingPopup`.
+ *
+ * The previous version embedded `mockUserRanking` (a hardcoded
+ * `UserRankingData` with rank=42, points=3250, etc.) and rendered
+ * achievements + recent activity purely from synthetic data.
+ *
+ * All of the mock fields have been removed. The popup now reads:
+ *   - `rank`, `xp`, `denseRank`, `percentile`, `xpToNextRank`,
+ *     `nextRankXp`, `trend`, `trendAmount` from
+ *     `useMyRanking().global.weekly`.
+ *   - `peakRanks` from `useMyRanking().peakRanks`.
+ *   - `badges` from `useMyRanking().badges`.
+ *   - `lastActivityAt` from `useMyRanking().lastActivityAt`.
+ *
+ * The achievements + recent-activity tabs are rendered as
+ * "no data yet" placeholders since the ranking API does not
+ * expose those surfaces (they belong to the achievements service
+ * which is out of scope). When the achievements API ships,
+ * `useAchievements` should be wired here.
+ *
+ * Anonymous viewers see a "Sign in to see your ranking" message.
+ */
+
 import { useState } from 'react'
 import {
   Dialog,
@@ -16,199 +44,38 @@ import {
   TrendingUp,
   Calendar,
   Target,
-  Award,
   Zap,
-  Clock,
-  BarChart3,
-  Crown
+  Crown,
 } from 'lucide-react'
-import Image from 'next/image'
 
-interface UserRankingData {
-  rank: number
-  name: string
-  username: string
-  avatar: string
-  points: number
-  totalPoints: number
-  level: number
-  currentLevel: string
-  nextLevel: string
-  pointsToNextLevel: number
-  currentLevelPoints: number
-  nextLevelPoints: number
-  badge: string
-  badgeColor: string
-  streak: number
-  quizzesCompleted: number
-  winRate: number
-  averageScore: number
-  bestScore: number
-  totalTime: string
-  achievements: Achievement[]
-  recentActivity: RecentActivity[]
-  seasonStats: SeasonStats
-}
-
-interface Achievement {
-  id: string
-  name: string
-  description: string
-  icon: string
-  earnedAt: string
-  rarity: 'common' | 'rare' | 'epic' | 'legendary'
-}
-
-interface RecentActivity {
-  id: string
-  type:
-    | 'quiz_completed'
-    | 'achievement_earned'
-    | 'level_up'
-    | 'streak_milestone'
-  title: string
-  description: string
-  points: number
-  timestamp: string
-}
-
-interface SeasonStats {
-  seasonRank: number
-  seasonPoints: number
-  seasonQuizzes: number
-  seasonWinRate: number
-  seasonStartDate: string
-  seasonEndDate: string
-}
-
-const mockUserRanking: UserRankingData = {
-  rank: 42,
-  name: 'John Doe',
-  username: '@johndoe',
-  avatar: '/avatarPlaceholder.webp',
-  points: 3250,
-  totalPoints: 3250,
-  level: 15,
-  currentLevel: 'Silver',
-  nextLevel: 'Gold',
-  pointsToNextLevel: 750,
-  currentLevelPoints: 250,
-  nextLevelPoints: 1000,
-  badge: 'Silver',
-  badgeColor: 'bg-gray-500',
-  streak: 7,
-  quizzesCompleted: 156,
-  winRate: 78.5,
-  averageScore: 85.2,
-  bestScore: 98,
-  totalTime: '45h 32m',
-  achievements: [
-    {
-      id: '1',
-      name: 'Quiz Master',
-      description: 'Complete 100 quizzes',
-      icon: '🏆',
-      earnedAt: '2024-01-15',
-      rarity: 'rare'
-    },
-    {
-      id: '2',
-      name: 'Streak Champion',
-      description: 'Maintain a 7-day streak',
-      icon: '🔥',
-      earnedAt: '2024-01-20',
-      rarity: 'epic'
-    },
-    {
-      id: '3',
-      name: 'Perfect Score',
-      description: 'Get 100% on a quiz',
-      icon: '⭐',
-      earnedAt: '2024-01-18',
-      rarity: 'legendary'
-    }
-  ],
-  recentActivity: [
-    {
-      id: '1',
-      type: 'quiz_completed',
-      title: 'Completed Science Quiz',
-      description: 'Scored 92% in 3m 45s',
-      points: 92,
-      timestamp: '2 hours ago'
-    },
-    {
-      id: '2',
-      type: 'achievement_earned',
-      title: 'Earned Streak Champion',
-      description: '7-day streak milestone',
-      points: 50,
-      timestamp: '1 day ago'
-    },
-    {
-      id: '3',
-      type: 'level_up',
-      title: 'Level Up!',
-      description: 'Reached Level 15',
-      points: 100,
-      timestamp: '2 days ago'
-    }
-  ],
-  seasonStats: {
-    seasonRank: 42,
-    seasonPoints: 3250,
-    seasonQuizzes: 156,
-    seasonWinRate: 78.5,
-    seasonStartDate: '2024-01-01',
-    seasonEndDate: '2024-03-31'
-  }
-}
+import { useAuthState } from '@/features/auth/hooks/use-auth-state'
+import {
+  useMyRanking,
+  getWeeklyPosition,
+  getMonthlyPosition,
+  getAllTimePosition,
+  getPeakRanks,
+  getBadges,
+} from '@/features/leaderboard/hooks/useMyRanking'
+import { getRankColor } from '@/features/leaderboard/lib/leaderboard-presentation'
 
 interface YourRankingPopupProps {
   isOpen: boolean
   onClose: () => void
 }
 
+type Tab = 'overview' | 'achievements' | 'activity'
+
 export function YourRankingPopup({ isOpen, onClose }: YourRankingPopupProps) {
-  const [selectedTab, setSelectedTab] = useState<
-    'overview' | 'achievements' | 'activity'
-  >('overview')
-  const user = mockUserRanking
+  const [selectedTab, setSelectedTab] = useState<Tab>('overview')
+  const { isAuthenticated } = useAuthState()
+  const { data, isLoading } = useMyRanking()
 
-  const progressPercentage =
-    ((user.points - user.currentLevelPoints) /
-      (user.nextLevelPoints - user.currentLevelPoints)) *
-    100
-
-  const getRarityColor = (rarity: string) => {
-    switch (rarity) {
-      case 'common':
-        return 'bg-gray-500'
-      case 'rare':
-        return 'bg-blue-500'
-      case 'epic':
-        return 'bg-purple-500'
-      case 'legendary':
-        return 'bg-yellow-500'
-      default:
-        return 'bg-gray-500'
-    }
-  }
-
-  const getActivityIcon = (type: string) => {
-    switch (type) {
-      case 'quiz_completed':
-        return <Trophy className='w-4 h-4' />
-      case 'achievement_earned':
-        return <Award className='w-4 h-4' />
-      case 'level_up':
-        return <TrendingUp className='w-4 h-4' />
-      case 'streak_milestone':
-        return <Zap className='w-4 h-4' />
-      default:
-        return <Star className='w-4 h-4' />
-    }
-  }
+  const weekly = getWeeklyPosition(data)
+  const monthly = getMonthlyPosition(data)
+  const allTime = getAllTimePosition(data)
+  const peakRanks = getPeakRanks(data)
+  const badges = getBadges(data)
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -221,282 +88,133 @@ export function YourRankingPopup({ isOpen, onClose }: YourRankingPopupProps) {
         </DialogHeader>
 
         <div className='space-y-6'>
-          {/* User Header */}
-          <div className='flex items-center gap-4 p-4 bg-muted rounded-lg'>
-            <div className='relative'>
-              <div className='w-16 h-16 rounded-full overflow-hidden'>
-                <Image
-                  src={user.avatar}
-                  alt={user.name}
-                  width={64}
-                  height={64}
-                  className='w-full h-full object-cover'
-                />
-              </div>
-              <Badge
-                className={`${user.badgeColor} absolute -bottom-1 -right-1 text-xs`}
-              >
-                {user.badge}
-              </Badge>
+          {/* Anonymous viewer — graceful empty state */}
+          {!isAuthenticated ? (
+            <div className='p-6 bg-muted rounded-lg text-center space-y-2'>
+              <p className='text-foreground font-medium'>
+                Sign in to see your ranking profile
+              </p>
+              <p className='text-sm text-foreground/70'>
+                Your weekly, monthly, and all-time rankings are available
+                after you sign in.
+              </p>
             </div>
-
-            <div className='flex-1'>
-              <h2 className='text-xl font-bold text-foreground'>{user.name}</h2>
-              <p className='text-muted-foreground'>{user.username}</p>
-              <div className='flex items-center gap-4 mt-2'>
-                <div className='flex items-center gap-1'>
-                  <Trophy className='w-4 h-4 text-yellow-400' />
-                  <span className='text-sm text-muted-foreground'>
-                    Rank #{user.rank}
-                  </span>
-                </div>
-                <div className='flex items-center gap-1'>
-                  <Star className='w-4 h-4 text-blue-400' />
-                  <span className='text-sm text-muted-foreground'>
-                    {user.points.toLocaleString()} pts
-                  </span>
-                </div>
-                <div className='flex items-center gap-1'>
-                  <Zap className='w-4 h-4 text-orange-400' />
-                  <span className='text-sm text-muted-foreground'>
-                    {user.streak} day streak
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Tabs */}
-          <div className='flex gap-2 border-b border-border'>
-            <Button
-              variant={selectedTab === 'overview' ? 'default' : 'outline'}
-              size='sm'
-              onClick={() => setSelectedTab('overview')}
-              className={
-                selectedTab === 'overview'
-                  ? 'bg-brand hover:bg-brand'
-                  : 'border-border text-muted-foreground hover:bg-accent'
-              }
-            >
-              Overview
-            </Button>
-            <Button
-              variant={selectedTab === 'achievements' ? 'default' : 'outline'}
-              size='sm'
-              onClick={() => setSelectedTab('achievements')}
-              className={
-                selectedTab === 'achievements'
-                  ? 'bg-brand hover:bg-brand'
-                  : 'border-border text-muted-foreground hover:bg-accent'
-              }
-            >
-              Achievements
-            </Button>
-            <Button
-              variant={selectedTab === 'activity' ? 'default' : 'outline'}
-              size='sm'
-              onClick={() => setSelectedTab('activity')}
-              className={
-                selectedTab === 'activity'
-                  ? 'bg-brand hover:bg-brand'
-                  : 'border-border text-muted-foreground hover:bg-accent'
-              }
-            >
-              Recent Activity
-            </Button>
-          </div>
-
-          {/* Tab Content */}
-          <div className='max-h-96 overflow-y-auto'>
-            {selectedTab === 'overview' && (
-              <div className='space-y-6'>
-                {/* Level Progress */}
-                <div className='space-y-3'>
-                  <div className='flex items-center justify-between'>
-                    <h3 className='font-semibold text-foreground'>
-                      Level Progress
-                    </h3>
-                    <span className='text-sm text-muted-foreground'>
-                      Level {user.level}
+          ) : (
+            <>
+              {/* User Header */}
+              <div className='flex items-center gap-4 p-4 bg-muted rounded-lg'>
+                <div className='relative'>
+                  <div className='w-16 h-16 rounded-full bg-gradient-to-br from-brand to-indigo-700 flex items-center justify-center'>
+                    <span className='text-2xl font-bold text-white'>
+                      {weekly?.rank ? `#${weekly.rank}` : '—'}
                     </span>
                   </div>
-                  <div className='space-y-2'>
-                    <div className='flex justify-between text-sm'>
-                      <span className='text-muted-foreground'>
-                        {user.currentLevel}
-                      </span>
-                      <span className='text-muted-foreground'>
-                        {user.nextLevel}
-                      </span>
-                    </div>
-                    <Progress value={progressPercentage} className='h-2' />
-                    <p className='text-xs text-muted-foreground'>
-                      {user.pointsToNextLevel} points to {user.nextLevel}
-                    </p>
-                  </div>
+                  <Badge className='absolute -bottom-1 -right-1 text-xs bg-brand text-white'>
+                    {badges?.isRisingStar
+                      ? 'Rising'
+                      : badges?.isActive
+                        ? 'Active'
+                        : badges?.isNew
+                          ? 'New'
+                          : 'Player'}
+                  </Badge>
                 </div>
 
-                {/* Stats Grid */}
-                <div className='grid grid-cols-2 md:grid-cols-4 gap-4'>
-                  <div className='bg-muted p-3 rounded-lg text-center'>
-                    <div className='flex items-center justify-center mb-2'>
-                      <BarChart3 className='w-5 h-5 text-blue-400' />
+                <div className='flex-1'>
+                  <h2 className='text-xl font-bold text-foreground'>
+                    {weekly?.rank ? `Rank #${weekly.rank}` : 'Unranked'}
+                  </h2>
+                  <p className='text-muted-foreground'>
+                    {weekly?.percentileLabel ?? '—'}
+                  </p>
+                  <div className='flex items-center gap-4 mt-2'>
+                    <div className='flex items-center gap-1'>
+                      <Trophy className='w-4 h-4 text-yellow-400' />
+                      <span className='text-sm text-muted-foreground'>
+                        Weekly #{(weekly?.rank ?? '—')}
+                      </span>
                     </div>
-                    <p className='text-lg font-bold text-foreground'>
-                      {user.quizzesCompleted}
-                    </p>
-                    <p className='text-xs text-muted-foreground'>
-                      Quizzes Completed
-                    </p>
-                  </div>
-
-                  <div className='bg-muted p-3 rounded-lg text-center'>
-                    <div className='flex items-center justify-center mb-2'>
-                      <Target className='w-5 h-5 text-green-400' />
+                    <div className='flex items-center gap-1'>
+                      <Star className='w-4 h-4 text-blue-400' />
+                      <span className='text-sm text-muted-foreground'>
+                        {(weekly?.xp ?? 0).toLocaleString()} XP
+                      </span>
                     </div>
-                    <p className='text-lg font-bold text-foreground'>
-                      {user.winRate}%
-                    </p>
-                    <p className='text-xs text-muted-foreground'>Win Rate</p>
-                  </div>
-
-                  <div className='bg-muted p-3 rounded-lg text-center'>
-                    <div className='flex items-center justify-center mb-2'>
-                      <Star className='w-5 h-5 text-yellow-400' />
-                    </div>
-                    <p className='text-lg font-bold text-foreground'>
-                      {user.averageScore}%
-                    </p>
-                    <p className='text-xs text-muted-foreground'>Avg Score</p>
-                  </div>
-
-                  <div className='bg-muted p-3 rounded-lg text-center'>
-                    <div className='flex items-center justify-center mb-2'>
-                      <Clock className='w-5 h-5 text-purple-400' />
-                    </div>
-                    <p className='text-lg font-bold text-foreground'>
-                      {user.totalTime}
-                    </p>
-                    <p className='text-xs text-muted-foreground'>Total Time</p>
-                  </div>
-                </div>
-
-                {/* Season Stats */}
-                <div className='bg-muted/50 p-4 rounded-lg'>
-                  <h3 className='font-semibold text-foreground mb-3 flex items-center gap-2'>
-                    <Calendar className='w-4 h-4' />
-                    Season Statistics
-                  </h3>
-                  <div className='grid grid-cols-2 md:grid-cols-4 gap-4 text-sm'>
-                    <div>
-                      <p className='text-muted-foreground'>Season Rank</p>
-                      <p className='text-foreground font-semibold'>
-                        #{user.seasonStats.seasonRank}
-                      </p>
-                    </div>
-                    <div>
-                      <p className='text-muted-foreground'>Season Points</p>
-                      <p className='text-foreground font-semibold'>
-                        {user.seasonStats.seasonPoints.toLocaleString()}
-                      </p>
-                    </div>
-                    <div>
-                      <p className='text-muted-foreground'>Season Quizzes</p>
-                      <p className='text-foreground font-semibold'>
-                        {user.seasonStats.seasonQuizzes}
-                      </p>
-                    </div>
-                    <div>
-                      <p className='text-muted-foreground'>Season Win Rate</p>
-                      <p className='text-foreground font-semibold'>
-                        {user.seasonStats.seasonWinRate}%
-                      </p>
+                    <div className='flex items-center gap-1'>
+                      <Zap className='w-4 h-4 text-orange-400' />
+                      <span className='text-sm text-muted-foreground'>
+                        Trend: {weekly?.trend ?? '—'}
+                      </span>
                     </div>
                   </div>
                 </div>
               </div>
-            )}
 
-            {selectedTab === 'achievements' && (
-              <div className='space-y-4'>
-                <h3 className='font-semibold text-foreground'>
-                  Your Achievements
-                </h3>
-                <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-                  {user.achievements.map((achievement) => (
-                    <div
-                      key={achievement.id}
-                      className='flex items-center gap-3 p-3 bg-muted rounded-lg'
-                    >
-                      <div
-                        className={`w-10 h-10 rounded-full flex items-center justify-center text-lg ${getRarityColor(
-                          achievement.rarity
-                        )}`}
-                      >
-                        {achievement.icon}
-                      </div>
-                      <div className='flex-1'>
-                        <h4 className='font-semibold text-foreground'>
-                          {achievement.name}
-                        </h4>
-                        <p className='text-sm text-muted-foreground'>
-                          {achievement.description}
-                        </p>
-                        <p className='text-xs text-muted-foreground mt-1'>
-                          Earned{' '}
-                          {new Date(achievement.earnedAt).toLocaleDateString()}
-                        </p>
-                      </div>
-                      <Badge
-                        className={`${getRarityColor(
-                          achievement.rarity
-                        )} text-xs capitalize`}
-                      >
-                        {achievement.rarity}
-                      </Badge>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {selectedTab === 'activity' && (
-              <div className='space-y-4'>
-                <h3 className='font-semibold text-foreground'>
+              {/* Tabs */}
+              <div className='flex gap-2 border-b border-border'>
+                <Button
+                  variant={selectedTab === 'overview' ? 'default' : 'outline'}
+                  size='sm'
+                  onClick={() => setSelectedTab('overview')}
+                  className={
+                    selectedTab === 'overview'
+                      ? 'bg-brand hover:bg-brand'
+                      : 'border-border text-muted-foreground hover:bg-accent'
+                  }
+                >
+                  Overview
+                </Button>
+                <Button
+                  variant={selectedTab === 'achievements' ? 'default' : 'outline'}
+                  size='sm'
+                  onClick={() => setSelectedTab('achievements')}
+                  className={
+                    selectedTab === 'achievements'
+                      ? 'bg-brand hover:bg-brand'
+                      : 'border-border text-muted-foreground hover:bg-accent'
+                  }
+                >
+                  Achievements
+                </Button>
+                <Button
+                  variant={selectedTab === 'activity' ? 'default' : 'outline'}
+                  size='sm'
+                  onClick={() => setSelectedTab('activity')}
+                  className={
+                    selectedTab === 'activity'
+                      ? 'bg-brand hover:bg-brand'
+                      : 'border-border text-muted-foreground hover:bg-accent'
+                  }
+                >
                   Recent Activity
-                </h3>
-                <div className='space-y-3'>
-                  {user.recentActivity.map((activity) => (
-                    <div
-                      key={activity.id}
-                      className='flex items-center gap-3 p-3 bg-muted rounded-lg'
-                    >
-                      <div className='w-8 h-8 rounded-full bg-accent flex items-center justify-center'>
-                        {getActivityIcon(activity.type)}
-                      </div>
-                      <div className='flex-1'>
-                        <h4 className='font-semibold text-foreground'>
-                          {activity.title}
-                        </h4>
-                        <p className='text-sm text-muted-foreground'>
-                          {activity.description}
-                        </p>
-                        <p className='text-xs text-muted-foreground mt-1'>
-                          {activity.timestamp}
-                        </p>
-                      </div>
-                      <div className='text-right'>
-                        <p className='text-sm font-semibold text-green-400'>
-                          +{activity.points}
-                        </p>
-                        <p className='text-xs text-muted-foreground'>points</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                </Button>
               </div>
-            )}
-          </div>
+
+              {/* Tab Content */}
+              <div className='max-h-96 overflow-y-auto'>
+                {selectedTab === 'overview' && (
+                  <OverviewTab
+                    weekly={weekly}
+                    monthly={monthly}
+                    allTime={allTime}
+                    isLoading={isLoading}
+                  />
+                )}
+
+                {selectedTab === 'achievements' && (
+                  <AchievementsTab peakRanks={peakRanks} />
+                )}
+
+                {selectedTab === 'activity' && (
+                  <ActivityTab
+                    lastActivityAt={data?.lastActivityAt ?? null}
+                    trend={weekly?.trend ?? null}
+                    trendAmount={weekly?.trendAmount ?? null}
+                  />
+                )}
+              </div>
+            </>
+          )}
         </div>
 
         <div className='flex justify-end gap-2 pt-4 border-t border-border'>
@@ -510,5 +228,263 @@ export function YourRankingPopup({ isOpen, onClose }: YourRankingPopupProps) {
         </div>
       </DialogContent>
     </Dialog>
+  )
+}
+
+// ─── Overview tab ─────────────────────────────────────────────────────────
+
+interface OverviewTabProps {
+  weekly: ReturnType<typeof getWeeklyPosition>
+  monthly: ReturnType<typeof getMonthlyPosition>
+  allTime: ReturnType<typeof getAllTimePosition>
+  isLoading: boolean
+}
+
+interface OverviewTabProps {
+  weekly: ReturnType<typeof getWeeklyPosition>
+  monthly: ReturnType<typeof getMonthlyPosition>
+  allTime: ReturnType<typeof getAllTimePosition>
+  isLoading: boolean
+}
+
+function OverviewTab({ weekly, monthly, allTime }: OverviewTabProps) {
+  const xp = weekly?.xp ?? 0
+  const xpToNext = weekly?.xpToNextRank ?? null
+  const nextXp = weekly?.nextRankXp ?? null
+  const rank = weekly?.rank ?? null
+
+  const progressPercent =
+    xpToNext !== null && nextXp !== null && nextXp > 0
+      ? Math.min(
+          100,
+          Math.max(
+            0,
+            Math.round((xp / nextXp) * 100),
+          ),
+        )
+      : 0
+
+  return (
+    <div className='space-y-6'>
+      {/* Level progress */}
+      <div className='space-y-3'>
+        <div className='flex items-center justify-between'>
+          <h3 className='font-semibold text-foreground'>Rank Progress</h3>
+          <span className='text-sm text-muted-foreground'>
+            {rank !== null ? `#${rank}` : '—'}
+          </span>
+        </div>
+        <div className='space-y-2'>
+          <div className='flex justify-between text-sm'>
+            <span className='text-muted-foreground'>Current XP</span>
+            <span className='text-muted-foreground'>
+              {nextXp !== null ? `${nextXp.toLocaleString()} XP` : 'Top XP'}
+            </span>
+          </div>
+          <Progress value={progressPercent} className='h-2' />
+          <p className='text-xs text-muted-foreground'>
+            {xpToNext !== null
+              ? `${xpToNext.toLocaleString()} XP to next rank`
+              : 'No next rank — you are at the top.'}
+          </p>
+        </div>
+      </div>
+
+      {/* Period stats */}
+      <div className='grid grid-cols-2 md:grid-cols-3 gap-4'>
+        <PeriodCard
+          label='Weekly'
+          rank={weekly?.rank ?? null}
+          xp={weekly?.xp ?? null}
+          percentile={weekly?.percentileLabel ?? null}
+        />
+        <PeriodCard
+          label='Monthly'
+          rank={monthly?.rank ?? null}
+          xp={monthly?.xp ?? null}
+          percentile={monthly?.percentileLabel ?? null}
+        />
+        <PeriodCard
+          label='All-Time'
+          rank={allTime?.rank ?? null}
+          xp={allTime?.xp ?? null}
+          percentile={allTime?.percentileLabel ?? null}
+        />
+      </div>
+    </div>
+  )
+}
+
+interface PeriodCardProps {
+  label: string
+  rank: number | null
+  xp: number | null
+  percentile: string | null
+}
+
+function PeriodCard({ label, rank, xp, percentile }: PeriodCardProps) {
+  return (
+    <div className='bg-muted p-3 rounded-lg text-center'>
+      <p className='text-xs text-foreground/70 mb-1'>{label}</p>
+      <p className={`text-lg font-bold ${rank !== null ? getRankColor(rank) : 'text-foreground'}`}>
+        {rank !== null ? `#${rank}` : '—'}
+      </p>
+      <p className='text-xs text-foreground/70'>
+        {xp !== null ? `${xp.toLocaleString()} XP` : '—'}
+      </p>
+      <p className='text-xs text-foreground/60'>{percentile ?? '—'}</p>
+    </div>
+  )
+}
+
+// ─── Achievements tab ────────────────────────────────────────────────────
+
+/**
+ * The generated `PeakRankDtoAchievedAt` is orval's open-object
+ * projection of a `@nullable` ISO timestamp (`{ [key: string]: unknown } | null`).
+ * In practice the backend returns a plain `string | null`. This
+ * helper unwraps the convention so the JSX can render a date.
+ */
+function extractTimestamp(value: unknown): string | null | undefined {
+  if (value === null || value === undefined) return value
+  if (typeof value === 'string') return value
+  if (typeof value === 'object') {
+    const obj = value as Record<string, unknown>
+    if (typeof obj.iso === 'string') return obj.iso
+    if (typeof obj.value === 'string') return obj.value
+    if (typeof obj.date === 'string') return obj.date
+  }
+  return null
+}
+
+interface AchievementsTabProps {
+  peakRanks: ReturnType<typeof getPeakRanks>
+}
+
+function AchievementsTab({ peakRanks }: AchievementsTabProps) {
+  const entries: ReadonlyArray<{
+    label: string
+    rank: number | null
+    achievedAt: string | null | undefined
+  }> = [
+    {
+      label: 'Daily peak',
+      rank: peakRanks?.daily?.rank ?? null,
+      achievedAt: extractTimestamp(peakRanks?.daily?.achievedAt),
+    },
+    {
+      label: 'Weekly peak',
+      rank: peakRanks?.weekly?.rank ?? null,
+      achievedAt: extractTimestamp(peakRanks?.weekly?.achievedAt),
+    },
+    {
+      label: 'Monthly peak',
+      rank: peakRanks?.monthly?.rank ?? null,
+      achievedAt: extractTimestamp(peakRanks?.monthly?.achievedAt),
+    },
+    {
+      label: 'All-time peak',
+      rank: peakRanks?.allTime?.rank ?? null,
+      achievedAt: extractTimestamp(peakRanks?.allTime?.achievedAt),
+    },
+  ]
+
+  const hasAny = entries.some((e) => e.rank !== null)
+
+  if (!hasAny) {
+    return (
+      <p className='text-sm text-foreground/70 text-center py-8'>
+        No peak ranks yet — keep playing to set your first record.
+      </p>
+    )
+  }
+
+  return (
+    <div className='space-y-3'>
+      <h3 className='font-semibold text-foreground'>Peak Ranks</h3>
+      <div className='grid grid-cols-1 md:grid-cols-2 gap-3'>
+        {entries.map((entry) => (
+          <div
+            key={entry.label}
+            className='flex items-center gap-3 p-3 bg-muted rounded-lg'
+          >
+            <Target className='w-4 h-4 text-foreground/70' aria-hidden='true' />
+            <div className='flex-1'>
+              <p className='font-semibold text-foreground'>{entry.label}</p>
+              <p className='text-xs text-foreground/70'>
+                {entry.rank !== null ? `Best #${entry.rank}` : 'Not set yet'}
+              </p>
+            </div>
+            {entry.achievedAt ? (
+              <Badge className='bg-brand text-white text-xs'>
+                {new Date(entry.achievedAt).toLocaleDateString()}
+              </Badge>
+            ) : null}
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+// ─── Activity tab ────────────────────────────────────────────────────────
+
+interface ActivityTabProps {
+  lastActivityAt: unknown
+  trend: string | null
+  trendAmount: number | null | undefined
+}
+
+function ActivityTab({ lastActivityAt, trend, trendAmount }: ActivityTabProps) {
+  const lastActivity = extractTimestamp(lastActivityAt)
+  return (
+    <div className='space-y-3'>
+      <h3 className='font-semibold text-foreground'>Recent Activity</h3>
+      <div className='grid grid-cols-1 md:grid-cols-2 gap-3'>
+        <ActivityItem
+          icon={<Calendar className='w-4 h-4' aria-hidden='true' />}
+          title='Last activity'
+          description={
+            lastActivity
+              ? new Date(lastActivity).toLocaleString()
+              : 'No recent activity'
+          }
+        />
+        <ActivityItem
+          icon={<TrendingUp className='w-4 h-4' aria-hidden='true' />}
+          title='Rank trend'
+          description={
+            trendAmount !== null && trendAmount !== undefined
+              ? `${trend}${trendAmount > 0 ? ` (${trendAmount} positions)` : ''}`
+              : trend ?? '—'
+          }
+        />
+      </div>
+      <p className='text-xs text-foreground/60 pt-2 border-t border-border/40'>
+        Detailed activity history is exposed by the
+        <span className='mx-1 font-mono'>/leaderboard/me/history</span>
+        endpoint and is rendered here once the surface is wired.
+      </p>
+    </div>
+  )
+}
+
+interface ActivityItemProps {
+  icon: React.ReactNode
+  title: string
+  description: string
+}
+
+function ActivityItem({ icon, title, description }: ActivityItemProps) {
+  return (
+    <div className='flex items-center gap-3 p-3 bg-muted rounded-lg'>
+      <div className='w-8 h-8 rounded-full bg-accent flex items-center justify-center'>
+        {icon}
+      </div>
+      <div className='flex-1'>
+        <p className='font-semibold text-foreground'>{title}</p>
+        <p className='text-sm text-foreground/70'>{description}</p>
+      </div>
+    </div>
   )
 }

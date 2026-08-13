@@ -59,6 +59,8 @@ function makeStats(quizId: string): QuizStatsResponseDto {
     completionRate: 80,
     popularityScore: 91.0,
     trendingScore: 12.4,
+    commentsCount: 5,
+    recentActivity: [],
   };
 }
 

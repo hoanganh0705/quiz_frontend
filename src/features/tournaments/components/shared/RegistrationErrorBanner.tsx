@@ -58,7 +58,12 @@ export function RegistrationErrorBanner({
   onDismiss,
   className,
 }: RegistrationErrorBannerProps) {
-  // `null` error renders nothing
+  // Always call hooks first - React Rules of Hooks require this
+  const handleDismiss = useCallback(() => {
+    onDismiss?.();
+  }, [onDismiss]);
+
+  // `null` error renders nothing - after hooks
   if (error === null || error === undefined) {
     return null;
   }
@@ -69,10 +74,6 @@ export function RegistrationErrorBanner({
 
   const title = copy.title;
   const body = copy.body;
-
-  const handleDismiss = useCallback(() => {
-    onDismiss?.();
-  }, [onDismiss]);
 
   return (
     <div

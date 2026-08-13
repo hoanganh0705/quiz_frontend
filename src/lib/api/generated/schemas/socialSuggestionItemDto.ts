@@ -6,6 +6,8 @@
  * OpenAPI spec version: 1.0
  */
 import type { SocialSuggestionItemDtoAvatarUrl } from './socialSuggestionItemDtoAvatarUrl';
+import type { SocialSuggestionItemDtoReason } from './socialSuggestionItemDtoReason';
+import type { SocialSuggestionItemDtoReasonLabel } from './socialSuggestionItemDtoReasonLabel';
 
 export interface SocialSuggestionItemDto {
   /** Suggested user identifier */
@@ -21,6 +23,11 @@ export interface SocialSuggestionItemDto {
   mutualFriends: number;
   /** Number of mutual followers */
   mutualFollowers: number;
-  /** Human-readable primary suggestion reason */
-  reason: string;
+  /** Phase 3 (S-18): discriminator for the suggestion reason. */
+  reason: SocialSuggestionItemDtoReason;
+  /**
+   * Human-readable label, e.g. "12 mutual friends".
+   * @nullable
+   */
+  reasonLabel?: SocialSuggestionItemDtoReasonLabel;
 }

@@ -114,6 +114,25 @@ export interface UseCancelFriendRequestOptions {
    * `useSocialPermissions`.
    */
   currentUserId?: string | null;
+  /**
+   * When `true`, the hook skips the `useSocialPermissions` permission
+   * guard and dispatches the cancel mutation as long as the target id
+   * is non-null and the feature flag is live. The caller asserts that
+   * the row came from a server-authoritative outgoing-requests source
+   * (i.e. `GET /social/friend-requests/sent`), so the relationship is
+   * by definition `outgoing_request` and the redundant
+   * `useRelationship` round-trip would race against the optimistic UI.
+   *
+   * Set this to `true` from the `/friends` page's "Sent" panel so the
+   * cancel button is immediately interactive (the user has clearly
+   * already seen this row in their sent list). Leave it `false` (the
+   * default) for callers that mount the button outside of the sent
+   * list context.
+   *
+   * Defaults to `false` so the strict-permission semantics are
+   * preserved across every other call-site.
+   */
+  assumeCanCancel?: boolean;
 }
 
 /**
@@ -155,6 +174,7 @@ export function useCancelFriendRequest(
   const [alreadyCancelled, setAlreadyCancelled] = useState(false);
 
   // ── Stable result ───────────────────────────────────────────────────
+  const assumeCanCancel = options.assumeCanCancel === true;
   const result = useMemo<UseCancelFriendRequestResult>(() => {
     // ── Placeholder flag: safe no-op ────────────────────────────────
     if (isFlagPlaceholder) {
@@ -181,7 +201,10 @@ export function useCancelFriendRequest(
     }
 
     // ── Permissions guard ─────────────────────────────────────────────
-    if (!permissions.canCancelRequest) {
+    // Skipped when the caller asserts the row came from the sent
+    // requests list (server-authoritative). The strict check still
+    // applies in every other context.
+    if (!assumeCanCancel && !permissions.canCancelRequest) {
       return Object.freeze({
         cancel: () => {
           // no-op — permission denied
@@ -275,6 +298,7 @@ export function useCancelFriendRequest(
   }, [
     isFlagPlaceholder,
     targetUserId,
+    assumeCanCancel,
     permissions.canCancelRequest,
     mutate,
     error,

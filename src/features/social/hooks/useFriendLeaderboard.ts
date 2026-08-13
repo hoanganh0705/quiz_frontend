@@ -81,6 +81,7 @@ import type { ApiError } from "@/lib/api";
 
 export interface UseFriendLeaderboardResult {
   entries: readonly FriendLeaderboardEntryDto[];
+  currentUserRank: { rank: number; xp: number } | null;
   isLoading: boolean;
   isStale: boolean;
   error: ApiError | null;
@@ -92,6 +93,7 @@ export interface UseFriendLeaderboardResult {
 
 const SAFE_FALLBACK: UseFriendLeaderboardResult = Object.freeze({
   entries: [],
+  currentUserRank: null,
   isLoading: false,
   isStale: false,
   error: null,
@@ -209,6 +211,7 @@ export function useFriendLeaderboard(
   if (firstPage.isLoading && firstPage.data === null) {
     return {
       entries: [],
+      currentUserRank: null,
       isLoading: true,
       isStale: false,
       error: null,
@@ -229,6 +232,12 @@ export function useFriendLeaderboard(
 
   return {
     entries,
+    // Phase 3 (S-20): expose the viewer's own rank so the
+    // leaderboard surface can render a "you" highlight. The
+    // adapter already narrows the wire `{ rank, xp,
+    // totalParticipants }` object to `{ rank, xp }`; the
+    // page renders `xp` next to the rank badge.
+    currentUserRank: firstPage.data?.currentUserRank ?? null,
     isLoading: paginated.isLoading,
     isStale: firstPage.isStale || paginated.isLoading,
     error: firstPage.error,

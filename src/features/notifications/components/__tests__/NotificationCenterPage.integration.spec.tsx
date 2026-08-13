@@ -10,7 +10,6 @@
  * - tabs render and select different filter scopes
  * - mark-all-read action visible when unread notifications exist
  * - preferences link points to /notifications/preferences
- * - connection status renders
  * - empty state renders when there are no notifications
  * - error state renders with retry
  */
@@ -103,7 +102,6 @@ vi.mock('@/features/notifications/components/shared', () => ({
       <button onClick={onRetry}>Retry</button>
     </div>
   ),
-  NotificationConnectionStatus: () => <div data-testid="connection-status" />,
 }));
 
 vi.mock('@/features/notifications/components/NotificationPlaceholder', () => ({
@@ -161,14 +159,6 @@ import { NotificationCenterPage } from '@/features/notifications/components/Noti
 describe('NotificationCenterPage (integration)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    notificationMocks.useNotificationSocket.mockReturnValue({
-      isLive: true,
-      connectionState: 'connected',
-      socket: { id: 'mock' },
-      error: null,
-      reconnect: vi.fn(),
-      disconnect: vi.fn(),
-    });
     notificationMocks.useNotificationFeatureFlag.mockReturnValue({
       isPlaceholder: false,
       flagValue: 'live',
@@ -222,12 +212,6 @@ describe('NotificationCenterPage (integration)', () => {
       const link = screen.getByRole('link', { name: /preferences/i });
       expect(link).toBeInTheDocument();
       expect(link.getAttribute('href')).toBe('/notifications/preferences');
-    });
-
-    it('renders the connection status indicator', () => {
-      render(<NotificationCenterPage />);
-
-      expect(screen.getByTestId('connection-status')).toBeInTheDocument();
     });
   });
 

@@ -10,16 +10,26 @@ import type {
   ListMyCommentsParams,
   ListUserComments200,
   ListUserCommentsParams,
+  QuizHistoryControllerExportMyQuizHistoryParams,
+  QuizHistoryControllerListMyQuizHistoryParams,
+  QuizHistoryResponseDto,
   UpdateMeDto,
   UpdateMeSettingsDto,
+  UserAttemptStatsResponseDto,
   UserCategoryControllerListFollowedCategories200,
   UserCategoryControllerListFollowedCategoriesParams,
   UserControllerGetMyAnalytics200,
+  UserControllerGetMyProfileBundle200,
   UserControllerGetMyRanking200,
+  UserControllerGetMySummary200,
   UserControllerGetMyTournamentAnalytics200,
   UserControllerGetPublicTournamentProfile200,
+  UserControllerGetRecentlyPlayedQuizzes200,
+  UserControllerGetRecentlyPlayedQuizzesParams,
   UserControllerGetRecommendedQuizzes200,
   UserControllerGetRecommendedQuizzesParams,
+  UserControllerGetUserByUsername200,
+  UserControllerGetUserProfileBundle200,
   UserControllerGetUserQuizAnalytics200,
   UserControllerGetUserTournamentHistory200,
   UserControllerGetUserTournamentHistoryParams,
@@ -66,6 +76,19 @@ const userControllerGetRecommendedQuizzes = (
       );
     }
   /**
+ * Returns a cursor-paginated list of quizzes the authenticated user has completed, newest first. Replaces the client-side `recently_played_quizzes_v1` localStorage cache.
+ * @summary Get my recently played quizzes
+ */
+const userControllerGetRecentlyPlayedQuizzes = (
+    params?: UserControllerGetRecentlyPlayedQuizzesParams,
+ ) => {
+      return orvalCustomInstance<UserControllerGetRecentlyPlayedQuizzes200>(
+      {url: `/api/v1/users/me/recently-played-quizzes`, method: 'GET',
+        params
+    },
+      );
+    }
+  /**
  * Returns the authenticated user's full profile. For the slim identity payload (userId, username, email, role, isVerified) used to bootstrap the auth state on the client, use `GET /api/v1/auth/me` instead. The two endpoints are complementary, not interchangeable.
  * @summary Get my profile
  */
@@ -88,6 +111,42 @@ const userControllerUpdateMe = (
       {url: `/api/v1/users/me`, method: 'PATCH',
       headers: {'Content-Type': 'application/json', },
       data: updateMeDto
+    },
+      );
+    }
+  /**
+ * Returns the smallest projection needed to bootstrap a public profile page: userId, username, displayName, avatarUrl, isVerified. The route is anonymous on purpose — it powers the `/profile/[name]` deep-link where the client does not yet have a userId.
+ * @summary Resolve a username to a public user identity
+ */
+const userControllerGetUserByUsername = (
+    username: string,
+ ) => {
+      return orvalCustomInstance<UserControllerGetUserByUsername200>(
+      {url: `/api/v1/users/by-username/${username}`, method: 'GET'
+    },
+      );
+    }
+  /**
+ * Returns a single composite payload for the authenticated user: identity (`users` + `user_profiles`), level projection (computed from `user_ranking.all_time_xp`), streak cache (`users.current_streak` / `longest_streak`), quiz creator / taken counts, and follower / following / friends counts. Use this instead of `/users/me` whenever the UI needs anything beyond the slim identity. Honours the `Accept-Language` header (`en`, `vi`); unknown languages fall back to `en`.
+ * @summary Get my composite profile summary
+ */
+const userControllerGetMySummary = (
+    
+ ) => {
+      return orvalCustomInstance<UserControllerGetMySummary200>(
+      {url: `/api/v1/users/me/summary`, method: 'GET'
+    },
+      );
+    }
+  /**
+ * Returns the bundled payload for the authenticated user: summary, analytics, xp history, and recent activity. The endpoint is the one-shot payload the my-profile page consumes.
+ * @summary Get my profile bundle
+ */
+const userControllerGetMyProfileBundle = (
+    
+ ) => {
+      return orvalCustomInstance<UserControllerGetMyProfileBundle200>(
+      {url: `/api/v1/users/me/profile`, method: 'GET'
     },
       );
     }
@@ -220,6 +279,18 @@ const userControllerListUserQuizzes = (
       );
     }
   /**
+ * Returns the bundled payload for a public profile: summary, analytics, xp history, and recent activity. Honours the user’s privacy flags — private profiles return 403.
+ * @summary Get a user profile bundle
+ */
+const userControllerGetUserProfileBundle = (
+    userId: string,
+ ) => {
+      return orvalCustomInstance<UserControllerGetUserProfileBundle200>(
+      {url: `/api/v1/users/${userId}/profile`, method: 'GET'
+    },
+      );
+    }
+  /**
  * Returns a cursor-paginated list of badges earned by the specified user. Honours the user's privacy settings — private profiles return 403.
  * @summary List badges earned by a user
  */
@@ -256,6 +327,44 @@ const userControllerGetPublicTournamentProfile = (
  ) => {
       return orvalCustomInstance<UserControllerGetPublicTournamentProfile200>(
       {url: `/api/v1/users/${userId}/tournaments`, method: 'GET'
+    },
+      );
+    }
+  /**
+ * Returns a cursor-paginated list of the authenticated user's quiz attempts, mapped to a presentation-friendly entry shape.
+ * @summary List my quiz history
+ */
+const quizHistoryControllerListMyQuizHistory = (
+    params?: QuizHistoryControllerListMyQuizHistoryParams,
+ ) => {
+      return orvalCustomInstance<QuizHistoryResponseDto>(
+      {url: `/api/v1/users/me/quiz-history`, method: 'GET',
+        params
+    },
+      );
+    }
+  /**
+ * Returns aggregated stats for the authenticated user: total attempts, completed / abandoned counts, average score, total time spent, favorite category and tag, and the last attempt timestamp.
+ * @summary Get my quiz-history stats
+ */
+const quizHistoryControllerGetMyQuizHistoryStats = (
+    
+ ) => {
+      return orvalCustomInstance<UserAttemptStatsResponseDto>(
+      {url: `/api/v1/users/me/quiz-history/stats`, method: 'GET'
+    },
+      );
+    }
+  /**
+ * Streams a downloadable CSV (default) or JSON file of the authenticated user's quiz attempts. Honors the same `status`, `fromDate`, and `toDate` filters as `GET /quiz-history`. The Content-Disposition header carries a date-stamped filename.
+ * @summary Export my quiz history
+ */
+const quizHistoryControllerExportMyQuizHistory = (
+    params?: QuizHistoryControllerExportMyQuizHistoryParams,
+ ) => {
+      return orvalCustomInstance<void>(
+      {url: `/api/v1/users/me/quiz-history/export`, method: 'GET',
+        params
     },
       );
     }
@@ -346,10 +455,14 @@ const userCategoryControllerListFollowedCategories = (
     },
       );
     }
-  return {userControllerGetRecommendedQuizzes,userControllerMe,userControllerUpdateMe,userControllerListMyBadges,userControllerListMyActivity,userControllerListMyTournaments,userControllerListMyTournamentHistory,userControllerGetMyTournamentAnalytics,userControllerGetMyRanking,userControllerGetMyAnalytics,userControllerUpdateMeSettings,userControllerGetUserQuizAnalytics,userControllerListUserQuizzes,userControllerListBadgesByUserId,userControllerGetUserTournamentHistory,userControllerGetPublicTournamentProfile,userReviewControllerListMyReportedReviews,userReviewControllerListMyReviews,userReviewControllerGetMyReviewForQuiz,userReviewControllerListReviewsByUser,listMyComments,listUserComments,userCategoryControllerListFollowedCategories}};
+  return {userControllerGetRecommendedQuizzes,userControllerGetRecentlyPlayedQuizzes,userControllerMe,userControllerUpdateMe,userControllerGetUserByUsername,userControllerGetMySummary,userControllerGetMyProfileBundle,userControllerListMyBadges,userControllerListMyActivity,userControllerListMyTournaments,userControllerListMyTournamentHistory,userControllerGetMyTournamentAnalytics,userControllerGetMyRanking,userControllerGetMyAnalytics,userControllerUpdateMeSettings,userControllerGetUserQuizAnalytics,userControllerListUserQuizzes,userControllerGetUserProfileBundle,userControllerListBadgesByUserId,userControllerGetUserTournamentHistory,userControllerGetPublicTournamentProfile,quizHistoryControllerListMyQuizHistory,quizHistoryControllerGetMyQuizHistoryStats,quizHistoryControllerExportMyQuizHistory,userReviewControllerListMyReportedReviews,userReviewControllerListMyReviews,userReviewControllerGetMyReviewForQuiz,userReviewControllerListReviewsByUser,listMyComments,listUserComments,userCategoryControllerListFollowedCategories}};
 export type UserControllerGetRecommendedQuizzesResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getUsers>['userControllerGetRecommendedQuizzes']>>>
+export type UserControllerGetRecentlyPlayedQuizzesResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getUsers>['userControllerGetRecentlyPlayedQuizzes']>>>
 export type UserControllerMeResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getUsers>['userControllerMe']>>>
 export type UserControllerUpdateMeResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getUsers>['userControllerUpdateMe']>>>
+export type UserControllerGetUserByUsernameResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getUsers>['userControllerGetUserByUsername']>>>
+export type UserControllerGetMySummaryResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getUsers>['userControllerGetMySummary']>>>
+export type UserControllerGetMyProfileBundleResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getUsers>['userControllerGetMyProfileBundle']>>>
 export type UserControllerListMyBadgesResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getUsers>['userControllerListMyBadges']>>>
 export type UserControllerListMyActivityResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getUsers>['userControllerListMyActivity']>>>
 export type UserControllerListMyTournamentsResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getUsers>['userControllerListMyTournaments']>>>
@@ -360,9 +473,13 @@ export type UserControllerGetMyAnalyticsResult = NonNullable<Awaited<ReturnType<
 export type UserControllerUpdateMeSettingsResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getUsers>['userControllerUpdateMeSettings']>>>
 export type UserControllerGetUserQuizAnalyticsResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getUsers>['userControllerGetUserQuizAnalytics']>>>
 export type UserControllerListUserQuizzesResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getUsers>['userControllerListUserQuizzes']>>>
+export type UserControllerGetUserProfileBundleResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getUsers>['userControllerGetUserProfileBundle']>>>
 export type UserControllerListBadgesByUserIdResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getUsers>['userControllerListBadgesByUserId']>>>
 export type UserControllerGetUserTournamentHistoryResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getUsers>['userControllerGetUserTournamentHistory']>>>
 export type UserControllerGetPublicTournamentProfileResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getUsers>['userControllerGetPublicTournamentProfile']>>>
+export type QuizHistoryControllerListMyQuizHistoryResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getUsers>['quizHistoryControllerListMyQuizHistory']>>>
+export type QuizHistoryControllerGetMyQuizHistoryStatsResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getUsers>['quizHistoryControllerGetMyQuizHistoryStats']>>>
+export type QuizHistoryControllerExportMyQuizHistoryResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getUsers>['quizHistoryControllerExportMyQuizHistory']>>>
 export type UserReviewControllerListMyReportedReviewsResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getUsers>['userReviewControllerListMyReportedReviews']>>>
 export type UserReviewControllerListMyReviewsResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getUsers>['userReviewControllerListMyReviews']>>>
 export type UserReviewControllerGetMyReviewForQuizResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getUsers>['userReviewControllerGetMyReviewForQuiz']>>>

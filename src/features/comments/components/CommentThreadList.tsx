@@ -82,7 +82,7 @@ export function CommentThreadList({
       ) : items.length === 0 ? (
         <EmptyState />
       ) : (
-        <div className='flex flex-col gap-5'>
+        <div className='flex flex-col gap-4'>
           {(items as readonly CommentThreadItem[]).map((thread) => (
             <CommentThread
               key={thread.id}
@@ -95,7 +95,7 @@ export function CommentThreadList({
 
           {/* ─── "Load more" ────────────────────────────────────────── */}
           {hasMore && (
-            <div className='flex justify-center pt-1'>
+            <div className='flex justify-center pt-2'>
               <Button
                 type='button'
                 variant='outline'
@@ -103,6 +103,7 @@ export function CommentThreadList({
                 onClick={() => loadMore()}
                 disabled={isLoadingMore}
                 data-testid='comment-thread-list-load-more'
+                className='text-sm'
               >
                 {isLoadingMore && (
                   <Loader2 className='mr-2 animate-spin motion-reduce:animate-none' size={14} aria-hidden />

@@ -17,7 +17,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/Tabs'
 import type { QuizResponseDto, QuizVersionResponseDto } from '@/lib/api/generated/schemas'
 import { difficultyColors } from '@/features/quizzes/constants/difficulty-color'
 import QuizOverviewPanel from '@/features/quizzes/components/QuizDetail/QuizOverviewPanel'
-import Leaderboard from '@/features/quizzes/components/QuizDetail/Leaderboard'
 import Reviews from '@/features/quizzes/components/QuizDetail/Reviews'
 import { Card, CardContent } from '@/components/ui/Card'
 import { ShareModal } from '@/shared/ui'
@@ -122,18 +121,12 @@ export default function QuizDetail({ quiz, version }: QuizDetailProps) {
       <div className="gap-8 px-4 grid grid-cols-1 md:grid-cols-3">
         <div className="flex-1 col-span-2">
           <Tabs defaultValue="overview" className="w-full">
-            <TabsList className="grid w-full grid-cols-3 dark:bg-[#1e293b80]">
+            <TabsList className="grid w-full grid-cols-2 dark:bg-[#1e293b80]">
               <TabsTrigger
                 value="overview"
                 className="data-[state=active]:bg-muted data-[state=active]:text-foreground text-foreground/70"
               >
                 Overview
-              </TabsTrigger>
-              <TabsTrigger
-                value="leaderboard"
-                className="data-[state=active]:bg-muted data-[state=active]:text-foreground text-foreground/70"
-              >
-                Leaderboard
               </TabsTrigger>
               <TabsTrigger
                 value="reviews"
@@ -152,10 +145,6 @@ export default function QuizDetail({ quiz, version }: QuizDetailProps) {
                 previewQuestions={questions.slice(0, 3)}
                 questionCount={questionCount}
               />
-            </TabsContent>
-
-            <TabsContent value="leaderboard" className="mt-6 bg-background">
-              <Leaderboard />
             </TabsContent>
 
             <TabsContent value="reviews" className="mt-6">

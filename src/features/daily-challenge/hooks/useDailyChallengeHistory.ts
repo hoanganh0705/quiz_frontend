@@ -129,18 +129,17 @@ export function useDailyChallengeHistory(): UseDailyChallengeHistoryResult {
         })
 
         if (result.kind === 'missing-endpoint') {
-          return {
-            items: [],
-            nextCursor: null,
-            hasNextPage: false,
-            limit: 0,
-          }
+          throw new Error('daily-challenge history endpoint unavailable')
         }
         if (result.kind === 'error') {
           throw result.error
         }
 
-        // `kind: 'ok'` — the page is the narrowed view.
+        // `kind: 'ok'` — the page is the narrowed view. An empty
+        // `items` array is a legitimate "no history yet" state, not
+        // a missing-endpoint signal; the fetcher must not conflate the
+        // two (the composition renders an empty-state for the former
+        // and the placeholder for the latter).
         const page = result.data
         return {
           items: page.items.map((item) => Object.assign({}, item)),
@@ -166,8 +165,13 @@ export function useDailyChallengeHistory(): UseDailyChallengeHistoryResult {
     await result.refresh()
   }, [result])
 
-  const isMissingEndpoint =
-    !result.isLoading && result.error === null && result.items.length === 0
+  // Phase 3 (S-14): the regenerated SDK always exposes the endpoint,
+  // so `isMissingEndpoint` is reserved for a future SDK-drift scenario
+  // (e.g. orval regen removes the operation). For now, an empty
+  // `items` array is a legitimate "no history yet" outcome and is
+  // surfaced via the standard empty-state branch in the composition —
+  // NOT the placeholder branch.
+  const isMissingEndpoint = false
 
   return {
     items: result.items,

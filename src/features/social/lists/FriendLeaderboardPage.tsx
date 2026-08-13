@@ -1,58 +1,5 @@
 "use client";
 
-/**
- * `FriendLeaderboardPage` — Friend Leaderboard surface.
- *
- * Source epic:   Epic 6.3 — Social Counts, User Stats, My Analytics,
- *                and Friend Leaderboard.
- * Source story:  `projectDocs/Epics/PHASE_6_IMPLEMENTATION_PLAN.md` →
- *                Story 6.3 (lines 181–221).
- * Source ticket: TKT-6.3.G2.
- *
- * ## What this component owns
- *
- * The full read-only Friend Leaderboard surface rendered at
- * `/social/friends/leaderboard`. The page:
- *
- *   - Fetches via `useFriendLeaderboard(period)` (TKT-6.3.D3).
- *   - Renders `FriendLeaderboardSkeleton` while loading and
- *     there are no cached rows.
- *   - Renders `AnalyticsEmptyState` (kind='leaderboard') when
- *     `entries.length === 0` and there is no error. The empty
- *     state is NOT an error — having no friends on the
- *     leaderboard is a valid state.
- *   - Renders `AnalyticsErrorState` when the hook reports a
- *     non-empty `error`. NOTE: `SOCIAL_FRIEND_LIST_FORBIDDEN`
- *     is mapped to "no friends" rather than an error (the
- *     privacy boundary prevents leaking whether the list is
- *     forbidden or simply empty); the empty branch handles
- *     both.
- *   - Renders one `FriendLeaderboardRow` per entry when the
- *     list is populated.
- *   - Renders a pagination footer that calls
- *     `useFriendLeaderboard.loadMore` to advance the offset.
- *   - Renders `ConsistencyNotice` above the list when
- *     `staleness !== 'fresh'`.
- *
- * ## Privacy
- *
- * The page never persists `followId` / `friendshipId`. Each
- * navigation row targets `/users/:userId` (without internal
- * ids); the analytics payload is `{ userId, period }` only.
- *
- * ## Auth
- *
- * The route is gated by `AnalyticsRouteGate` with `requireAuth`;
- * `proxy.ts` redirects unauthenticated requests upstream.
- *
- * ## Period state
- *
- * The page reads `period` from `usePeriodFilter` (TKT-6.3.B4)
- * and passes it to the hook and the row primitive. The
- * `useSocialLifecycleReset` primitive fires `periodReset` on
- * logout while the viewer is on the leaderboard route.
- */
-
 import { type ReactElement, useEffect, useRef } from "react";
 
 import { useFriendLeaderboard } from "@/features/social/hooks/useFriendLeaderboard";
@@ -65,30 +12,25 @@ import { ConsistencyNotice } from "@/features/social/components/ConsistencyNotic
 import { FriendLeaderboardRow } from "@/features/social/components/FriendLeaderboardRow";
 import { FriendLeaderboardSkeleton } from "@/features/social/components/FriendLeaderboardSkeleton";
 
-import {
-  addSocialLeaderboardBreadcrumb,
-} from "@/lib/social/social-block-sentry";
-import {
-  mapAnalyticsPeriodToLeaderboardPeriod,
-} from "@/features/social/types/analytics";
+import { addSocialLeaderboardBreadcrumb } from "@/lib/social/social-block-sentry";
+import { mapAnalyticsPeriodToLeaderboardPeriod } from "@/features/social/types/analytics";
 
-/**
- * Render the Friend Leaderboard page.
- */
 export function FriendLeaderboardPage(): ReactElement {
   const periodFilter = usePeriodFilter();
-  // Fire `periodReset` on logout so a subsequent user does not
-  // inherit the prior user's period selection.
   useSocialLifecycleReset({ periodReset: periodFilter.reset });
 
-  const { entries, isLoading, isStale, error, retry, hasMore, loadMore, staleness } =
-    useFriendLeaderboard(periodFilter.period);
+  const {
+    entries,
+    currentUserRank,
+    isLoading,
+    isStale,
+    error,
+    retry,
+    hasMore,
+    loadMore,
+    staleness,
+  } = useFriendLeaderboard(periodFilter.period);
 
-  // TKT-6.3.H2 — emit a single `social:6.3` breadcrumb per
-  // first-page fetch transition. The leaderboard's `loadMore`
-  // path does not emit a breadcrumb; the breadcrumb describes
-  // the first page the user actually saw, not each subsequent
-  // pagination page.
   const prevFetchRef = useRef<{
     state: "loading" | "ready" | "error";
     period: typeof periodFilter.period;
@@ -98,8 +40,8 @@ export function FriendLeaderboardPage(): ReactElement {
       error !== null && entries.length === 0
         ? "error"
         : entries.length > 0
-        ? "ready"
-        : "loading";
+          ? "ready"
+          : "loading";
     if (
       prevFetchRef.current?.state === next &&
       prevFetchRef.current.period === periodFilter.period
@@ -117,7 +59,6 @@ export function FriendLeaderboardPage(): ReactElement {
     });
   }, [entries, error, periodFilter.period]);
 
-  // Loading branch — no cached rows.
   if (isLoading && entries.length === 0) {
     return (
       <section
@@ -131,14 +72,6 @@ export function FriendLeaderboardPage(): ReactElement {
     );
   }
 
-  // Error branch — no cached rows.
-  // `SOCIAL_FRIEND_LIST_FORBIDDEN` is intentionally NOT routed
-  // here: it is the privacy boundary's way of saying "no friends
-  // on the leaderboard for this viewer", which is functionally
-  // equivalent to "no friends yet". Surfacing an error state
-  // would leak the privacy boundary into the DOM. Routing it
-  // to the empty branch keeps the privacy implication implicit
-  // in the empty copy.
   if (
     error !== null &&
     entries.length === 0 &&
@@ -162,10 +95,6 @@ export function FriendLeaderboardPage(): ReactElement {
     );
   }
 
-  // Empty branch — no friends on the leaderboard is a valid
-  // state (NOT an error). `SOCIAL_FRIEND_LIST_FORBIDDEN` from
-  // the backend is also routed here so the privacy boundary is
-  // not leaked into the DOM.
   if (entries.length === 0) {
     return (
       <section
@@ -191,15 +120,21 @@ export function FriendLeaderboardPage(): ReactElement {
       {staleness !== "fresh" ? (
         <ConsistencyNotice staleness={staleness} />
       ) : null}
-      <ul
-        data-testid="friend-leaderboard-list"
-        className="flex flex-col gap-1"
-      >
+      {currentUserRank != null ? (
+        <div
+          data-testid="friend-leaderboard-viewer-rank"
+          className="rounded-md border border-primary/40 bg-primary/5 px-3 py-2 text-sm"
+          aria-label="Your rank on this leaderboard"
+        >
+          <span className="font-semibold">Your rank:</span>{" "}
+          <span className="tabular-nums">#{currentUserRank.rank}</span>{" "}
+          <span className="text-foreground/70">
+            ({currentUserRank.xp.toLocaleString()} XP)
+          </span>
+        </div>
+      ) : null}
+      <ul data-testid="friend-leaderboard-list" className="flex flex-col gap-1">
         {entries.map((entry) => {
-          // `useCursorPaginated` synthesises an `id` per entry
-          // when pagination has run, but the canonical
-          // row key is `(userId, rank)` so the list is stable
-          // across re-renders that reorder entries.
           const key = `${entry.userId}-${entry.rank}`;
           return (
             <li key={key}>

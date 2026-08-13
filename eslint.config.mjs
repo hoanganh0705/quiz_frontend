@@ -207,6 +207,20 @@ const eslintConfig = [
             // `DailyChallengeResult<DailyChallengeHistoryPage>` shape to
             // the `useCursorPaginated` `CursorPage` shape.
             'src/features/daily-challenge/hooks/useDailyChallengeHistory.ts',
+            // TKT-3.12.A3 — the daily-challenge service (Phase 3 S-14
+            // rename of `wrappers/daily-challenge.wrapper.ts`) is the
+            // fetcher adapter for the `/daily-challenge/history` and
+            // `/daily-challenge/today` endpoints. It is the single
+            // place in the daily-challenge feature permitted to read
+            // `nextCursor` and adapt the SDK envelope to the
+            // `useCursorPaginated` `CursorPage` shape.
+            'src/features/daily-challenge/services/daily-challenge.service.ts',
+            // TKT-3.12.B1 — `daily-challenge.service.spec.ts` mocks
+            // the service's `DailyChallengeHistoryPage` shape
+            // (which includes `nextCursor`) and asserts the unwrap
+            // contract. The fixture is co-located with the service
+            // under test.
+            'src/features/daily-challenge/services/__tests__/daily-challenge.service.spec.ts',
             // TKT-3.12.A3 — the daily-challenge wrapper's `CursorPage`
             // view (`DailyChallengeHistoryPage.nextCursor`) is the
             // single place permitted to read `nextCursor` in the wrapper

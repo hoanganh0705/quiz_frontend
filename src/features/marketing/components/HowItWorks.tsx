@@ -30,6 +30,7 @@ export default function HowItWorks() {
                   src={item.imageSrc || '/placeholder.svg'}
                   alt={item.altText}
                   fill
+                  sizes='(max-width: 1024px) 100vw, 33vw'
                   className='object-cover'
                 />
               </div>

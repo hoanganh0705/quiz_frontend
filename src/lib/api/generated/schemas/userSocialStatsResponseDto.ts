@@ -5,6 +5,7 @@
  * REST API for the quiz application
  * OpenAPI spec version: 1.0
  */
+import type { UserSocialStatsResponseDtoStaleAt } from './userSocialStatsResponseDtoStaleAt';
 
 export interface UserSocialStatsResponseDto {
   /** Number of accepted friendships */
@@ -13,4 +14,11 @@ export interface UserSocialStatsResponseDto {
   followers: number;
   /** Number of accounts the user is following */
   following: number;
+  /**
+   * Phase 3 (S-17): timestamp at which the cached snapshot is considered stale (ISO 8601). Null when fresh.
+   * @nullable
+   */
+  staleAt?: UserSocialStatsResponseDtoStaleAt;
+  /** Phase 3 (S-17): whether the snapshot is stale (`staleAt` is in the past). */
+  isStale: boolean;
 }

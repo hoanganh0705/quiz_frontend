@@ -19,6 +19,7 @@ import axios, {
   AxiosRequestConfig,
   InternalAxiosRequestConfig,
 } from 'axios';
+import { mutate as globalMutate } from 'swr';
 
 import { ApiError } from './ApiError';
 import { getAuth } from '@/lib/api';
@@ -586,6 +587,19 @@ if (typeof window !== 'undefined') {
         // action in this tab.
         clearVerificationFlags();
 
+        // Epic 2.x — clear every entry in the SWR in-memory cache so
+        // the previous user's API responses (the bell badge's
+        // `["notifications", "unread-count"]`, the center page's
+        // `["notifications", "list", ...]`, every `useUser*` hook,
+        // etc.) do not survive in this tab's cache and leak to the
+        // next user / next session. SWR's `mutate(() => true, …,
+        // { revalidate: true })` is the canonical wildcard idiom.
+        void globalMutate(
+          () => true,
+          undefined,
+          { revalidate: true },
+        );
+
         clearAuthToken();
         if (typeof window !== 'undefined') {
           window.location.href = '/login';
@@ -610,6 +624,20 @@ if (typeof window !== 'undefined') {
         // local-tab flag was not tied to the broadcast-tab's
         // verify-password call, so it must not carry across.
         clearVerificationFlags();
+
+        // Source epic: Epic 2.5.
+        // Source ticket: TKT-2.5.7.
+        //
+        // A fresh login (whether same user re-logging in, or a new
+        // user taking over this tab via cross-tab sync) must NOT
+        // serve the previous session's SWR responses. Wipe every
+        // key so the next render of any mounted consumer refetches
+        // against the new auth context.
+        void globalMutate(
+          () => true,
+          undefined,
+          { revalidate: true },
+        );
 
         setAuthToken(event.accessToken);
         break;

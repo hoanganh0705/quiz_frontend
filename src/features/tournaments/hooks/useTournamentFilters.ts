@@ -158,18 +158,32 @@ export function useTournamentFilters(): UseTournamentFiltersResult {
     };
   });
 
+  // Mount-seed + external-URL-sync: when the URL changes (mount,
+  // back/forward navigation), seed or refresh the in-memory
+  // filter state. The ref guards against the strict-mode double
+  // render firing two `setFilters` calls on mount.
   useEffect(() => {
-    if (seededRef.current) return;
-    seededRef.current = true;
+    if (!seededRef.current) {
+      seededRef.current = true;
+    }
 
     const status = parseStatusFilter(searchParams.get(PARAM_STATUS));
     const search = parseSearchFilter(searchParams.get(PARAM_SEARCH));
     const cursor = parseCursorFilter(searchParams.get(PARAM_CURSOR));
-    setFilters({
-      status,
-      search,
-      cursor,
-      limit: DEFAULT_TOURNAMENT_LIST_FILTERS.limit,
+    setFilters((prev) => {
+      if (
+        prev.status === status &&
+        prev.search === search &&
+        prev.cursor === cursor
+      ) {
+        return prev;
+      }
+      return {
+        status,
+        search,
+        cursor,
+        limit: DEFAULT_TOURNAMENT_LIST_FILTERS.limit,
+      };
     });
   }, [searchParams]);
 
@@ -199,39 +213,43 @@ export function useTournamentFilters(): UseTournamentFiltersResult {
         if (key === "status" || key === "search") {
           next.cursor = undefined;
         }
-        writeFiltersToUrl(next);
         return next;
       });
     },
-    [writeFiltersToUrl],
+    [],
   );
 
   const resetFilters = useCallback((): void => {
-    const next: TournamentListFilters = {
+    setFilters({
       ...DEFAULT_TOURNAMENT_LIST_FILTERS,
-    };
-    setFilters(next);
-    writeFiltersToUrl(next);
-  }, [writeFiltersToUrl]);
+    });
+  }, []);
 
-  const setCursor = useCallback(
-    (cursor: string | undefined): void => {
-      setFilters((prev) => {
-        const next: TournamentListFilters = { ...prev, cursor };
-        writeFiltersToUrl(next);
-        return next;
-      });
-    },
-    [writeFiltersToUrl],
-  );
+  const setCursor = useCallback((cursor: string | undefined): void => {
+    setFilters((prev) => ({ ...prev, cursor }));
+  }, []);
 
   const clearCursor = useCallback((): void => {
-    setFilters((prev) => {
-      const next: TournamentListFilters = { ...prev, cursor: undefined };
-      writeFiltersToUrl(next);
-      return next;
-    });
-  }, [writeFiltersToUrl]);
+    setFilters((prev) => ({ ...prev, cursor: undefined }));
+  }, []);
+
+  // URL sync. Run as an effect (after render) so `router.replace`
+  // schedules a navigation in the post-commit phase rather than
+  // inside a state updater. Calling `router.replace` from inside a
+  // `setFilters` updater would race with the render that produced
+  // the updater and Next.js surfaces this as
+  //   "Cannot update a component (`LinkComponent`) while
+  //    rendering a different component (`TournamentsPage`)"
+  // because `LinkComponent` reads the URL during the same render
+  // pass.
+  useEffect(() => {
+    if (seededRef.current === false) return;
+    writeFiltersToUrl(filters);
+    // We intentionally depend on `filters` only — `writeFiltersToUrl`
+    // closes over the latest `router` / `pathname` and is stable
+    // across renders for a given route.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filters]);
 
   return {
     filters,

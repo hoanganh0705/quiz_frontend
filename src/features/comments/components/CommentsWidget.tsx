@@ -13,6 +13,7 @@
  *   - An inline error boundary that renders a friendly retry panel
  *     when a descendant throws during render
  *   - A skeleton fallback while the auth state is loading
+ *   - Realtime subscription via `useCommentRealtime` for live comment updates
  *
  * ## Error boundary
  *
@@ -27,10 +28,17 @@
  * at the moment (searched Phase 4 spec). The widget therefore renders
  * the heading without a numeric badge; once stats is wired up the
  * badge can be added without API changes.
+ *
+ * ## Realtime updates
+ *
+ * The widget subscribes to the `/comments` namespace and joins the quiz-scoped
+ * room. When comment events arrive, the SWR cache is invalidated so the thread
+ * list re-fetches and displays new comments immediately. The current user's own
+ * actions are excluded from invalidation (they already update optimistically).
  */
 
 import { Component, type ErrorInfo, type ReactNode } from 'react';
-import { AlertTriangle, MessageSquare, RefreshCw } from 'lucide-react';
+import { AlertTriangle, MessageSquare, RefreshCw, Radio } from 'lucide-react';
 
 import { Button } from '@/components/ui/Button';
 import { Skeleton } from '@/components/ui/Skeleton';
@@ -41,6 +49,7 @@ import { getUserCopy } from '@/lib/api/error-codes';
 
 import { CommentThreadList } from './CommentThreadList';
 import { useAuth } from '@/features/auth/hooks/use-auth';
+import { useCommentRealtime } from '@/features/comments/hooks/useCommentRealtime';
 
 // ─── Public types ─────────────────────────────────────────────────────────
 
@@ -71,6 +80,9 @@ export function CommentsWidget({ quizId, className }: CommentsWidgetProps) {
 function WidgetBody({ quizId }: { quizId: string }) {
   const { currentUser, isLoading: isAuthLoading } = useAuth();
 
+  // Subscribe to realtime comment updates for this quiz
+  const { isConnected } = useCommentRealtime(quizId, currentUser?.userId ?? null);
+
   if (isAuthLoading) {
     return (
       <div data-testid='comments-widget-auth-skeleton' className='flex flex-col gap-4'>
@@ -86,6 +98,15 @@ function WidgetBody({ quizId }: { quizId: string }) {
       <div className='mb-6 flex items-center gap-3'>
         <MessageSquare size={22} aria-hidden className='text-primary' />
         <h2 className='text-xl font-semibold'>Comments</h2>
+        {isConnected && (
+          <span
+            className='flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-700'
+            title='Live updates enabled'
+          >
+            <Radio size={10} className='animate-pulse' aria-hidden />
+            Live
+          </span>
+        )}
       </div>
       <CommentThreadList
         quizId={quizId}

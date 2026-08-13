@@ -112,11 +112,10 @@ export function useAdminIdentity(): UseAdminIdentityResult {
     error: ApiError | null;
   }>({ role: null, isLoading: false, error: null });
 
-  // Fast path: the slim payload already exposes the role. No fetch.
+  // Fast path: the slim payload already exposes the role. No fetch needed.
+  // Store this result but still complete all hook calls.
   const slimRole = currentUser?.role;
-  if (slimRole === 'admin') {
-    return { role: 'admin', isLoading: false, error: null };
-  }
+  const isAdminFastPath = slimRole === 'admin';
 
   // Fallback path: only when the feature flag is live and the slim
   // payload is silent about the role. We do not block; the hook
@@ -156,6 +155,11 @@ export function useAdminIdentity(): UseAdminIdentityResult {
       cancelled = true;
     };
   }, [flag.isLive, slimRole, currentUser]);
+
+  // Return fast path result or current state
+  if (isAdminFastPath) {
+    return { role: 'admin', isLoading: false, error: null };
+  }
 
   return state;
 }

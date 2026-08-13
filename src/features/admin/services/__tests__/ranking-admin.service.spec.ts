@@ -55,7 +55,10 @@ function makeApiError(extensions: {
   } as unknown as Parameters<typeof ApiError.fromAxios>[0]);
 }
 
-const wrapped = (data: unknown) => data;
+const wrapped = (data: unknown) => ({
+  data: data,
+  meta: { requestId: 'req-1' },
+});
 
 beforeEach(() => {
   mockOrvalCustomInstance.mockReset();

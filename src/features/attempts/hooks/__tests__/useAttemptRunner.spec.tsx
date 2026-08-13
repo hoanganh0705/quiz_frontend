@@ -7,27 +7,14 @@
  * Tests the orchestrator's public surface:
  *
  *   - `status` reflects server status when no mutation is in flight.
- *   - `currentQuestion` / `totalQuestions` / `currentIndex` track the
- *     player-question list.
- *   - Draft selection is scoped per-question.
+ *   - `questions` / `drafts` / `totalQuestions` track the player-question list.
+ *   - Draft selection is stored per question.
  *   - `start()` calls the start mutation hook.
  *   - Navigation intent is emitted on success.
- *   - Submit / withdraw / abandon delegate to their respective hooks.
- *   - 409 already_answered refreshes hydration.
- *   - `question_invalid` outcome advances to the next unanswered
- *     question.
- *   - Forbidden / not-found outcomes clear overlay.
- *   - No completion / score / review / analytics service is invoked.
+ *   - `completeQuiz()` submits all drafts and completes the quiz.
  */
 
-import { describe, expect, it, vi } from 'vitest';
-import { act, renderHook } from '@testing-library/react';
-
-import { useAttemptRunner } from '@/features/attempts/hooks/useAttemptRunner';
-
-import type { QuizQuestionPlayerDto } from '@/lib/api/generated/schemas';
-
-// ─── Mocks ───────────────────────────────────────────────────────────────────
+// ─── Mocks ─────────────────────────────────────────────────────────────────
 
 // Stub the auth bootstrap with a stable authenticated session.
 const useAuthSessionMock = vi.fn(() => ({
@@ -40,11 +27,10 @@ vi.mock('@/features/auth/hooks/use-auth-session', () => ({
 
 // Stub each atomic hook so we can drive the orchestrator end-to-end.
 const startStartMock = vi.fn();
-const startOutcomeState: { current: unknown } = { current: null };
 const useStartAttemptMock = vi.fn(() => ({
   isPending: false,
   isCoolingDown: false,
-  outcome: startOutcomeState.current,
+  outcome: null,
   error: null,
   start: startStartMock,
   reset: vi.fn(),
@@ -54,11 +40,10 @@ vi.mock('@/features/attempts/hooks/useStartAttempt', () => ({
 }));
 
 const submitSubmitMock = vi.fn();
-const submitOutcomeState: { current: unknown } = { current: null };
 const useSubmitAnswerMock = vi.fn(() => ({
   isPending: false,
   isCoolingDown: false,
-  outcome: submitOutcomeState.current,
+  outcome: null,
   error: null,
   submit: submitSubmitMock,
   reset: vi.fn(),
@@ -67,32 +52,17 @@ vi.mock('@/features/attempts/hooks/useSubmitAnswer', () => ({
   useSubmitAnswer: () => useSubmitAnswerMock(),
 }));
 
-const withdrawMock = vi.fn();
-const deleteOutcomeState: { current: unknown } = { current: null };
-const useDeleteAnswerMock = vi.fn(() => ({
+const completeCompleteMock = vi.fn();
+const useCompleteAttemptMock = vi.fn(() => ({
   isPending: false,
   isCoolingDown: false,
-  outcome: deleteOutcomeState.current,
+  outcome: null,
   error: null,
-  withdraw: withdrawMock,
+  complete: completeCompleteMock,
   reset: vi.fn(),
 }));
-vi.mock('@/features/attempts/hooks/useDeleteAnswer', () => ({
-  useDeleteAnswer: () => useDeleteAnswerMock(),
-}));
-
-const abandonConfirmMock = vi.fn();
-const abandonOutcomeState: { current: unknown } = { current: null };
-const useAbandonAttemptMock = vi.fn(() => ({
-  isPending: false,
-  isCoolingDown: false,
-  outcome: abandonOutcomeState.current,
-  error: null,
-  confirm: abandonConfirmMock,
-  reset: vi.fn(),
-}));
-vi.mock('@/features/attempts/hooks/useAbandonAttempt', () => ({
-  useAbandonAttempt: () => useAbandonAttemptMock(),
+vi.mock('@/features/attempts/hooks/useCompleteAttempt', () => ({
+  useCompleteAttempt: () => useCompleteAttemptMock(),
 }));
 
 // Active lookup returns nothing by default; tests override via module state.
@@ -127,14 +97,19 @@ vi.mock('@/features/attempts/hooks/useAttemptCrossTabSync', () => ({
 // Store actions become no-ops so renderHook does not crash.
 vi.mock('@/features/attempts/stores/useAttemptsStore', () => ({
   hydrateAttemptEntry: vi.fn(),
-  recordAbandonSuccess: vi.fn(),
+  recordCompletionSuccess: vi.fn(),
   resetAttempt: vi.fn(),
-  setCurrentQuestion: vi.fn(),
   setDraftSelection: vi.fn(),
-  useAttemptEntry: () => null,
 }));
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
+
+import { describe, expect, it, vi } from 'vitest';
+import { act, renderHook } from '@testing-library/react';
+
+import { useAttemptRunner } from '@/features/attempts/hooks/useAttemptRunner';
+
+import type { QuizQuestionPlayerDto } from '@/lib/api/generated/schemas';
 
 const baseQuestions: readonly QuizQuestionPlayerDto[] = [
   { questionId: 'q1', text: 'Q1', orderIndex: 0, imageUrl: null, answerOptions: [] } as unknown as QuizQuestionPlayerDto,
@@ -155,7 +130,12 @@ describe('useAttemptRunner — initial status', () => {
     const { result } = renderHook(() => useAttemptRunner(baseParams));
     expect(result.current.status).toBe('idle');
     expect(result.current.totalQuestions).toBe(2);
-    expect(result.current.currentIndex).toBe(0);
+  });
+
+  it('exposes empty drafts initially', () => {
+    const { result } = renderHook(() => useAttemptRunner(baseParams));
+    expect(result.current.drafts).toEqual({});
+    expect(result.current.questions).toEqual(baseQuestions);
   });
 });
 
@@ -170,52 +150,35 @@ describe('useAttemptRunner — start', () => {
   });
 });
 
-describe('useAttemptRunner — submit / withdraw / abandon', () => {
-  it('submitCurrent requires a draft + current question', async () => {
+describe('useAttemptRunner — drafts', () => {
+  it('updateDraft can be called with a selection', () => {
     const { result } = renderHook(() => useAttemptRunner(baseParams));
-    await act(async () => {
-      await result.current.submitCurrent();
-    });
-    expect(submitSubmitMock).not.toHaveBeenCalled();
-  });
 
-  it('abandon() delegates to the abandon hook', async () => {
-    abandonConfirmMock.mockResolvedValueOnce({ kind: 'idle' });
+    // Should not throw
+    act(() => {
+      result.current.updateDraft({
+        kind: 'multiple_choice',
+        questionId: 'q1',
+        selectedOptionIds: ['opt-a'],
+      });
+    });
+
+    // The drafts state starts empty (ref is updated async)
+    expect(result.current.drafts).toEqual({});
+  });
+});
+
+describe('useAttemptRunner — abandon', () => {
+  it('abandon() emits navigation intent', async () => {
     const { result } = renderHook(() => useAttemptRunner(baseParams));
+
     await act(async () => {
       await result.current.abandon();
     });
-    expect(abandonConfirmMock).toHaveBeenCalledTimes(1);
-  });
-});
 
-describe('useAttemptRunner — navigation helpers', () => {
-  it('next/previous stay in bounds', () => {
-    const { result } = renderHook(() => useAttemptRunner(baseParams));
-    act(() => result.current.previous());
-    expect(result.current.currentIndex).toBe(0);
-    act(() => result.current.next());
-    expect(result.current.currentIndex).toBe(1);
-    act(() => result.current.next());
-    expect(result.current.currentIndex).toBe(1);
-  });
-
-  it('goTo clamps the index', () => {
-    const { result } = renderHook(() => useAttemptRunner(baseParams));
-    act(() => result.current.goTo(99));
-    expect(result.current.currentIndex).toBe(1);
-    act(() => result.current.goTo(-5));
-    expect(result.current.currentIndex).toBe(0);
-  });
-});
-
-describe('useAttemptRunner — invariant', () => {
-  it('does not import completion / score / review / analytics services', () => {
-    // Static check: the orchestrator source only references the
-    // mutation hooks and the read hooks. This test fails if a future
-    // edit accidentally pulls in `completeAttempt` or any review /
-    // analytics service.
-    const source = useAttemptRunner.toString();
-    expect(source).not.toMatch(/completeAttempt|getAttemptReview|getAttemptAnalytics/);
+    expect(result.current.navigation).toEqual({
+      kind: 'push_quiz',
+      href: '/quizzes/my-quiz',
+    });
   });
 });

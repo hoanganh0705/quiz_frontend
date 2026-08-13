@@ -5,6 +5,7 @@
  * REST API for the quiz application
  * OpenAPI spec version: 1.0
  */
+import type { QuizStatsHistoryPointDto } from './quizStatsHistoryPointDto';
 
 export interface QuizStatsResponseDto {
   /** Quiz identifier */
@@ -25,4 +26,8 @@ export interface QuizStatsResponseDto {
   popularityScore: number;
   /** Computed short-term trending score */
   trendingScore: number;
+  /** Total comments on the quiz (root + replies, excluding soft-deleted rows) */
+  commentsCount: number;
+  /** Last-30-day activity timeline (one entry per day, gaps filled with zeros) */
+  recentActivity: QuizStatsHistoryPointDto[];
 }

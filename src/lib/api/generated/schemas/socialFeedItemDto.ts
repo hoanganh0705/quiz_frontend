@@ -7,6 +7,7 @@
  */
 import type { SocialFeedItemDtoType } from './socialFeedItemDtoType';
 import type { SocialFeedUserDto } from './socialFeedUserDto';
+import type { SocialFeedItemDtoActor } from './socialFeedItemDtoActor';
 import type { SocialFeedItemDtoPayload } from './socialFeedItemDtoPayload';
 
 export interface SocialFeedItemDto {
@@ -14,10 +15,15 @@ export interface SocialFeedItemDto {
   id: string;
   /** Feed activity type */
   type: SocialFeedItemDtoType;
-  /** Timestamp when the activity occurred (ISO 8601) */
-  occurredAt: string;
+  /** Timestamp when the activity occurred (ISO 8601). Renamed from `occurredAt` to `at` in Phase 3 (S-21). */
+  at: string;
   /** Actor who produced the activity */
   user: SocialFeedUserDto;
-  /** Type-specific activity payload */
+  /**
+   * Actor slim projection
+   * @nullable
+   */
+  actor: SocialFeedItemDtoActor;
+  /** Type-specific activity payload — discriminated by `type` */
   payload: SocialFeedItemDtoPayload;
 }

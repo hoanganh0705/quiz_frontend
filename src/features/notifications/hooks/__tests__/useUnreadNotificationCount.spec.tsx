@@ -30,16 +30,44 @@ vi.mock('@/features/notifications/services/notifications.service', () => ({
 }));
 
 // Mock the realtime layer so socket connections do not run during tests.
+// We capture the handlers `useRealtimeEvent` is invoked with so that
+// socket-driven dedupe regression tests can replay them.
 const mockUseSocket = vi.fn();
+type CapturedHandler = (payload: unknown) => void;
 const mockUseRealtimeEvent = vi.fn();
+const capturedHandlers: { event: string | null; handler: CapturedHandler }[] = [];
+
 vi.mock('@/lib/realtime', async () => {
   const actual = await vi.importActual<typeof import('@/lib/realtime')>('@/lib/realtime');
   return {
     ...actual,
     useSocket: (...args: unknown[]) => mockUseSocket(...args),
-    useRealtimeEvent: (...args: unknown[]) => mockUseRealtimeEvent(...args),
+    useRealtimeEvent: (
+      socket: unknown,
+      event: string | null,
+      handler: CapturedHandler,
+      options?: { enabled?: boolean },
+    ) => {
+      // Only capture handlers the hook would actually fire (the real
+      // hook passes `enabled: false` when the socket is not connected).
+      if (event !== null && options?.enabled !== false) {
+        capturedHandlers.push({ event, handler });
+      }
+      return mockUseRealtimeEvent(socket, event, handler, options);
+    },
   };
 });
+
+function emitEvent(event: string, payload: unknown): void {
+  const target = capturedHandlers.filter((h) => h.event === event);
+  for (const h of target) {
+    h.handler(payload);
+  }
+}
+
+function clearCapturedHandlers(): void {
+  capturedHandlers.length = 0;
+}
 
 function setupSocketMocks() {
   mockUseSocket.mockReturnValue({
@@ -50,6 +78,7 @@ function setupSocketMocks() {
     disconnect: vi.fn(),
   });
   mockUseRealtimeEvent.mockImplementation(() => undefined);
+  clearCapturedHandlers();
 }
 
 function TestSwrProvider({ children }: { children: React.ReactNode }) {
@@ -220,6 +249,121 @@ describe('useUnreadNotificationCount', () => {
 
       await waitFor(() => {
         expect(result.current.isLoading).toBe(true);
+      });
+    });
+  });
+
+  describe('realtime dedupe (regression: bell stuck at 10)', () => {
+    // The bell badge stayed at a stale value because the
+    // `notification:sent` handler used to do an unconditional `+1`,
+    // which double-bumped on replay / multiple subscribers. The fix
+    // dedupes by `notificationId` over a DEDUPE_WINDOW_MS window.
+
+    function setupConnected(): ReturnType<typeof renderHook<undefined, unknown>> {
+      mockGetUnreadCount.mockResolvedValue({ count: 3 });
+      mockUseSocket.mockReturnValue({
+        socket: { id: 'mock' },
+        connectionState: 'connected',
+        error: null,
+        reconnect: vi.fn(),
+        disconnect: vi.fn(),
+      });
+      return renderHook(() => useUnreadNotificationCount(), {
+        wrapper: TestSwrProvider,
+      });
+    }
+
+    it('bumps the count by 1 for a new notification id', async () => {
+      const { result } = setupConnected();
+
+      await waitFor(() => {
+        expect(result.current.unreadCount).toBe(3);
+      });
+
+      emitEvent('notification:sent', {
+        eventType: 'notification.sent',
+        notificationId: '019ff116-456c-7f1d-b98d-d0675f43fc0e',
+        userId: 'u1',
+        type: 'comment_reply',
+        channel: 'in_app',
+        timestamp: new Date().toISOString(),
+      });
+
+      await waitFor(() => {
+        expect(result.current.unreadCount).toBe(4);
+      });
+    });
+
+    it('does not double-bump for two events with the same notificationId', async () => {
+      const { result } = setupConnected();
+
+      await waitFor(() => {
+        expect(result.current.unreadCount).toBe(3);
+      });
+
+      const payload = {
+        eventType: 'notification.sent',
+        notificationId: '019ff116-13dc-7fa1-850f-905f62d62870',
+        userId: 'u1',
+        type: 'comment_reply',
+        channel: 'in_app',
+        timestamp: new Date().toISOString(),
+      };
+
+      emitEvent('notification:sent', payload);
+      emitEvent('notification:sent', payload);
+      emitEvent('notification:sent', payload);
+
+      await waitFor(() => {
+        expect(result.current.unreadCount).toBe(4);
+      });
+    });
+
+    it('does not bump when the payload has no notificationId', async () => {
+      const { result } = setupConnected();
+
+      await waitFor(() => {
+        expect(result.current.unreadCount).toBe(3);
+      });
+
+      // The bell must not over-increment on a malformed payload.
+      // Without an id we cannot dedupe, so the hook falls back to a
+      // revalidation — but the count stays at 3 because that's what
+      // the server returned.
+      emitEvent('notification:sent', { eventType: 'notification.sent' });
+
+      await new Promise((resolve) => setTimeout(resolve, 50));
+      expect(result.current.unreadCount).toBe(3);
+    });
+
+    it('counts different notification ids independently', async () => {
+      const { result } = setupConnected();
+
+      await waitFor(() => {
+        expect(result.current.unreadCount).toBe(3);
+      });
+
+      emitEvent('notification:sent', {
+        eventType: 'notification.sent',
+        notificationId: 'id-a',
+        type: 'comment_reply',
+        timestamp: new Date().toISOString(),
+      });
+      emitEvent('notification:sent', {
+        eventType: 'notification.sent',
+        notificationId: 'id-b',
+        type: 'comment_reply',
+        timestamp: new Date().toISOString(),
+      });
+      emitEvent('notification:sent', {
+        eventType: 'notification.sent',
+        notificationId: 'id-c',
+        type: 'comment_reply',
+        timestamp: new Date().toISOString(),
+      });
+
+      await waitFor(() => {
+        expect(result.current.unreadCount).toBe(6);
       });
     });
   });

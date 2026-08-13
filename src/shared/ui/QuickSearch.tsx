@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useMemo, memo, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { Dialog, DialogContent, DialogTitle } from '@/components/ui/Dialog'
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/Dialog'
 import { Input } from '@/components/ui/Input'
 import { Search, ArrowRight, FileText, Layers, Keyboard } from 'lucide-react'
 import { sidebarItems } from '@/shared/layout'
@@ -177,11 +177,20 @@ export function QuickSearch() {
         )
         .filter((item): item is SearchResult => Boolean(item))
 
-      const dedupedRecentItems = recentItems.filter(
-        (item, index, arr) => arr.findIndex((x) => x.id === item.id) === index
-      )
-
-      return [...dedupedRecentItems, ...defaultItems].slice(0, 10)
+      // Dedupe across the recent + default union. Recents are matched by
+      // title against `allItems`, so any recent whose title matches a page
+      // (e.g. "Home", "Quiz History") will collide with the same entry in
+      // `defaultItems` unless we coalesce here. Without this dedupe React
+      // logs "Encountered two children with the same key, `page-/<href>`"
+      // on the first render after a sidebar item is added to recents.
+      const seenIds = new Set<string>()
+      return [...recentItems, ...defaultItems]
+        .filter((item) => {
+          if (seenIds.has(item.id)) return false
+          seenIds.add(item.id)
+          return true
+        })
+        .slice(0, 10)
     }
 
     const lowerQuery = query.toLowerCase()
@@ -287,6 +296,10 @@ export function QuickSearch() {
         onKeyDown={handleKeyDown}
       >
         <DialogTitle className='sr-only'>Quick Search</DialogTitle>
+        <DialogDescription className='sr-only'>
+          Search across pages, quizzes, and categories. Use the arrow keys to
+          navigate results and Enter to open the highlighted item.
+        </DialogDescription>
 
         <div className='flex items-center gap-2 border-b border-border px-3'>
           <Search

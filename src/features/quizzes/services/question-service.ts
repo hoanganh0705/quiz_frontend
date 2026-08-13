@@ -147,44 +147,31 @@ export async function bulkCreateVersionQuestions(
     throw new Error('Unexpected response shape from POST /quizzes/:id/versions/:versionId/questions/bulk');
   }
 
-  // Build per-item results from the response
-  // The SDK returns created questions; we derive per-item status
-  const questions = data.questions ?? [];
-  const results: BulkQuestionsResultDto['results'] = [];
+  const createdQuestions = data.questions ?? [];
 
-  // Track which indices succeeded
-  const createdIds = new Set(questions.map((q) => q.questionId));
-
-  // For successful creation, all rows in payload should have been created
-  // (backend handles partial failures by returning only successful items)
-  for (let i = 0; i < payload.questions.length; i++) {
-    const createdQuestion = questions.find((q) => {
-      // Match by position (approximate matching)
-      return q.position === payload.questions[i]!.position;
-    });
-
-    if (createdQuestion) {
-      results.push({
+  // Phase 5 (S-28): the backend now returns `results[]` carrying
+  // per-row success/failure. Forward it as-is. For older SDK
+  // versions where the field is absent, fall back to building a
+  // best-effort success-only results array from `questions`.
+  const results: BulkQuestionsResultDto['results'] = data.results
+    ? data.results.map((r) => ({
+        index: r.index,
+        status: r.status,
+        code: r.code ?? '',
+        message: r.message ?? '',
+        questionId:
+          typeof r.questionId === 'string' ? r.questionId : undefined,
+      }))
+    : createdQuestions.map((q, i) => ({
         index: i,
         status: 201,
         code: '',
         message: '',
-        questionId: createdQuestion.questionId,
-      });
-    } else if (!createdIds.has('')) {
-      // If this position wasn't in the results, it failed
-      // This is a simplified mapping; actual error details come from the hook
-      results.push({
-        index: i,
-        status: 0,
-        code: 'QUIZ_VALIDATION_FAILED',
-        message: 'Failed to create question',
-      });
-    }
-  }
+        questionId: q.questionId,
+      }));
 
   return {
-    questions: questions as unknown as QuizAuthorQuestionDto[],
+    questions: createdQuestions as unknown as QuizAuthorQuestionDto[],
     results,
   };
 }

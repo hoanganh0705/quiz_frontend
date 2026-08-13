@@ -126,6 +126,7 @@ type Rfc7807Body = {
     requestId?: string;
     correlationId?: string;
     timestamp?: string;
+    retryAfter?: number;
     validationErrors?: Array<{ field: string; message: string }>;
   };
 };
@@ -289,6 +290,28 @@ export class ApiError extends Error {
       this.data?.extensions?.requestId ??
       ""
     );
+  }
+
+  /**
+   * Server-supplied retry-after window in seconds (RFC 9110 §10.2.3).
+   *
+   * Phase 6: the backend's global exception filter now stamps
+   * `Retry-After` headers on 429 responses AND propagates the same
+   * value as `extensions.retryAfter` on the RFC 7807 body. This
+   * getter centralises the read so consumers (e.g. `useUserStore`)
+   * can apply a reactive cooldown without parsing the header
+   * themselves.
+   *
+   * Returns `null` when the backend does not provide the value.
+   * Callers should fall back to a sensible default (e.g. 60s) when
+   * `null` is returned.
+   */
+  get retryAfter(): number | null {
+    const raw = this.data?.extensions?.retryAfter;
+    if (typeof raw === "number" && Number.isFinite(raw) && raw > 0) {
+      return raw;
+    }
+    return null;
   }
 
   /**

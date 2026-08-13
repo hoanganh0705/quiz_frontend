@@ -141,7 +141,7 @@ export function useCursorPaginated<
   T extends { id: string },
   P
 >(params: UseCursorPaginatedParams<T, P>): UseCursorPaginatedResult<T> {
-  const { key, paginationKind } = params;
+  const { key, paginationKind, enabled = true } = params;
 
   const [retryBannerVisible, setRetryBannerVisible] = useState(false);
 
@@ -166,12 +166,19 @@ export function useCursorPaginated<
   // as its single `args` argument. We encode the per-page arg
   // (cursor or page number) into the cache-key tuple so the fetcher
   // can read it back.
+  //
+  // When `enabled` is `false`, we short-circuit every page to `null`
+  // so SWR-infinite never invokes the fetcher. The caller still gets
+  // a stable hook result (no re-mounts) — it just reads as
+  // "no data yet" until it flips `enabled` back to `true`.
 
   const getKey = useCallback(
     (
       pageIndex: number,
       previousPageData: AnyPage<T> | null
     ): readonly unknown[] | null => {
+      if (!enabled) return null;
+
       if (previousPageData) {
         if (paginationKind === "offset") {
           const op = asOffsetPage(previousPageData);
@@ -199,7 +206,7 @@ export function useCursorPaginated<
         perPageArg
       ];
     },
-    [paginationKind, key]
+    [enabled, paginationKind, key]
   );
 
   // ── fetcher — receives the getKey-return tuple as a single arg ──────────

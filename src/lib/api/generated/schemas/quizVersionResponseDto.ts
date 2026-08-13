@@ -26,6 +26,8 @@ export interface QuizVersionResponseDto {
   passingScorePercent: number;
   /** XP reward for passing */
   rewardXp: number;
+  /** Total question count for this version */
+  questionCount: number;
   /**
    * Creator user identifier
    * @nullable

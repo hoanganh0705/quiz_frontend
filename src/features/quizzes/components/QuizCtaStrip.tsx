@@ -53,6 +53,8 @@ import {
 } from '@/components/ui/Tooltip';
 import { cn } from '@/shared/utils/merge-class-names';
 import { useAuthSession } from '@/features/auth/hooks/use-auth-session';
+import { TipAuthorButton } from '@/features/coins/components/TipAuthorButton';
+import { SuppressRecommendedControl } from '@/features/coins/components/SuppressRecommendedControl';
 
 const START_TOOLTIP = 'Starting attempts opens in a later release';
 const BUTTON_SIZE = 'h-10 w-full min-w-40 sm:w-44';
@@ -73,10 +75,28 @@ export interface QuizCtaStripProps {
    * production the `QuizDetailPage` always passes the route id.
    */
   idOrSlug?: string;
+  /**
+   * Quiz author's user id — required to wire the
+   * `<TipAuthorButton />`. When omitted, the tip button is hidden.
+   */
+  authorUserId?: string | null;
+  /**
+   * Author's display name — surfaced in the tip confirm dialog.
+   */
+  authorDisplayName?: string | null;
+  /**
+   * Quiz title — surfaced in the suppress confirm dialog.
+   */
+  quizTitle?: string | null;
+  /**
+   * Whether the viewer already has an active suppression on this
+   * quiz. When `true`, the suppress control is hidden.
+   */
+  alreadySuppressed?: boolean;
   className?: string;
 }
 
-export function QuizCtaStrip({ quizId, quizVersionId, idOrSlug, className }: QuizCtaStripProps) {
+export function QuizCtaStrip({ quizId, quizVersionId, idOrSlug, authorUserId, authorDisplayName, quizTitle, alreadySuppressed, className }: QuizCtaStripProps) {
   const isPhase4Live = isFeatureEnabled('attempts_live', 'live');
   const { bootstrapState, currentUser } = useAuthSession();
   const isAuthenticated =
@@ -147,7 +167,7 @@ export function QuizCtaStrip({ quizId, quizVersionId, idOrSlug, className }: Qui
   return (
     <section
       className={cn(
-        'flex flex-col gap-3 rounded-xl border bg-card p-4 shadow-sm sm:flex-row sm:items-center sm:justify-end',
+        'flex flex-col gap-3 rounded-xl border bg-card p-4 shadow-sm sm:flex-row sm:flex-wrap sm:items-center sm:justify-end',
         className,
       )}
       aria-label='Quiz actions'
@@ -158,6 +178,21 @@ export function QuizCtaStrip({ quizId, quizVersionId, idOrSlug, className }: Qui
         variant='detail'
         className='contents'
       />
+      {isAuthenticated && authorUserId && authorUserId !== currentUser?.userId ? (
+        <TipAuthorButton
+          recipientUserId={authorUserId}
+          currentUserId={currentUser?.userId ?? null}
+          recipientDisplayName={authorDisplayName ?? null}
+          quizId={quizId}
+        />
+      ) : null}
+      {isAuthenticated ? (
+        <SuppressRecommendedControl
+          quizId={quizId}
+          quizTitle={quizTitle ?? 'this quiz'}
+          alreadySuppressed={alreadySuppressed === true}
+        />
+      ) : null}
       {attemptSlot}
     </section>
   );

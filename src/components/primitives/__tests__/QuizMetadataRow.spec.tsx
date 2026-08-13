@@ -83,6 +83,8 @@ function makeStats(overrides: Partial<QuizStatsResponseDto> = {}): QuizStatsResp
     completionRate: 80,
     popularityScore: 91.0,
     trendingScore: 12.4,
+    commentsCount: 5,
+    recentActivity: [],
     ...overrides,
   };
 }

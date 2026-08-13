@@ -82,6 +82,7 @@ import {
   DailyChallengeHistoryList,
   DailyChallengeHistorySkeleton,
   DailyChallengePlaceholder,
+  DailyChallengePlaySurface,
   DailyChallengeStreakIndicator,
 } from "@/features/daily-challenge/components";
 
@@ -137,6 +138,7 @@ export function DailyChallengePage({
     isLoading: isTodayLoading,
     error: todayError,
     isMissingEndpoint: todayIsMissingEndpoint,
+    refresh: refreshToday,
   } = useDailyChallengeToday();
 
   const {
@@ -146,17 +148,22 @@ export function DailyChallengePage({
     hasMore,
     loadMore,
     error: historyError,
-    isMissingEndpoint: historyIsMissingEndpoint,
   } = useDailyChallengeHistory();
 
   const { streak, isAuthenticated } = useDailyChallengeStreakView();
 
   // ── Branch 1: placeholder ───────────────────────────────────────────────
+  //
+  // Phase 3 (S-14): the placeholder renders ONLY when the feature
+  // flag is explicitly set to `'placeholder'` or when the today
+  // hook reports a missing-endpoint (a future SDK-drift signal —
+  // the today fetcher resolves with `null` for `kind: 'missing-endpoint'`).
+  // An empty history list is a legitimate "no past challenges yet"
+  // outcome and falls through to the empty-state branch, never the
+  // placeholder.
 
   const shouldRenderPlaceholder =
-    flagValue === "placeholder" ||
-    todayIsMissingEndpoint ||
-    historyIsMissingEndpoint;
+    flagValue === "placeholder" || todayIsMissingEndpoint;
 
   if (shouldRenderPlaceholder) {
     return (
@@ -303,11 +310,22 @@ export function DailyChallengePage({
       data-testid="daily-challenge-page-live"
       className={["space-y-6", className].filter(Boolean).join(" ")}
     >
-      <DailyChallengeCard challenge={challenge} />
+      <DailyChallengeCard
+        challenge={challenge}
+        isAuthenticated={isAuthenticated}
+      />
       {isAuthenticated && streak !== null ? (
         <div className="flex justify-end">
           <DailyChallengeStreakIndicator streak={streak} />
         </div>
+      ) : null}
+      {challenge.status === "pending" && isAuthenticated ? (
+        <DailyChallengePlaySurface
+          quizId={challenge.quizId}
+          totalQuestions={challenge.totalQuestions}
+          rewardXp={challenge.rewardXp}
+          onTodayRefresh={refreshToday}
+        />
       ) : null}
       {historyErrorRegion}
       <DailyChallengeHistoryList

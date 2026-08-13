@@ -5,9 +5,32 @@
  * REST API for the quiz application
  * OpenAPI spec version: 1.0
  */
+import type { QuizControllerListMyQuizzesSort } from './quizControllerListMyQuizzesSort';
 import type { QuizControllerListMyQuizzesDifficulty } from './quizControllerListMyQuizzesDifficulty';
 
 export type QuizControllerListMyQuizzesParams = {
+/**
+ * Full-text search term (matches title, description, slug)
+ * @nullable
+ */
+q?: string | null;
+/**
+ * Sort order for the listing
+ * @nullable
+ */
+sort?: QuizControllerListMyQuizzesSort;
+/**
+ * Admin-only filter — show hidden quizzes (or only hidden when `true`)
+ * @nullable
+ */
+isHidden?: boolean | null;
+/**
+ * Minimum average rating (1–5 inclusive)
+ * @minimum 1
+ * @maximum 5
+ * @nullable
+ */
+minRating?: number | null;
 /**
  * Cursor for cursor-based pagination
  * @nullable

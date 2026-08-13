@@ -70,7 +70,6 @@ export interface QuizMetadata {
   timeLeft?: number
   reward: number
   spotsLeft: number
-  bgGradient: string
   almostFull?: boolean
 }
 

@@ -46,6 +46,9 @@ export const INSTANCES_NAMESPACE = "/instances" as const;
 /** Socket.IO namespace for user notifications. */
 export const NOTIFICATIONS_NAMESPACE = "/notifications" as const;
 
+/** Socket.IO namespace for quiz comments. */
+export const COMMENTS_NAMESPACE = "/comments" as const;
+
 // ─── Instance event names ───────────────────────────────────────────────────────
 
 /**
@@ -345,3 +348,254 @@ export const NOTIFICATION_EVENT_NAMES = [
   NOTIFICATION_DELETED,
   NOTIFICATION_READ,
 ] as const;
+
+// ─── Comment event names ──────────────────────────────────────────────────────
+
+export const COMMENT_CREATED = "comment:created" as const;
+export const COMMENT_EDITED = "comment:edited" as const;
+export const COMMENT_DELETED = "comment:deleted" as const;
+export const COMMENT_HIDDEN = "comment:hidden" as const;
+export const COMMENT_RESTORED = "comment:restored" as const;
+export const VOTE_CAST = "vote:cast" as const;
+export const VOTE_REMOVED = "vote:removed" as const;
+
+/** Every comment event name literal. */
+export type CommentEventName =
+  | typeof COMMENT_CREATED
+  | typeof COMMENT_EDITED
+  | typeof COMMENT_DELETED
+  | typeof COMMENT_HIDDEN
+  | typeof COMMENT_RESTORED
+  | typeof VOTE_CAST
+  | typeof VOTE_REMOVED;
+
+export const COMMENT_EVENT_NAMES = [
+  COMMENT_CREATED,
+  COMMENT_EDITED,
+  COMMENT_DELETED,
+  COMMENT_HIDDEN,
+  COMMENT_RESTORED,
+  VOTE_CAST,
+  VOTE_REMOVED,
+] as const;
+
+// ─── Comment payload interfaces ────────────────────────────────────────────────
+
+/**
+ * Full comment snapshot for realtime application.
+ * Included in events so clients can update their local state directly without refetch.
+ */
+export interface CommentSnapshot {
+  id: string;
+  quizId: string;
+  parentCommentId: string | null;
+  authorId: string;
+  authorUsername: string;
+  authorDisplayName: string | null;
+  authorAvatarUrl: string | null;
+  body: string;
+  isHidden: boolean;
+  votesCount: number;
+  upvotesCount: number;
+  downvotesCount: number;
+  repliesCount: number;
+  userVote: "upvote" | "downvote" | null;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt: string | null;
+  isReply: boolean;
+}
+
+export interface CommentCreatedPayload {
+  eventType: "comment_created";
+  commentId: string;
+  quizId: string;
+  parentCommentId: string | null;
+  authorId: string;
+  authorUsername: string;
+  isReply: boolean;
+  timestamp: string;
+  /** Full comment snapshot for direct state application */
+  snapshot?: CommentSnapshot;
+}
+
+export interface CommentEditedPayload {
+  eventType: "comment_edited";
+  commentId: string;
+  quizId: string;
+  authorId: string;
+  timestamp: string;
+  /** Full comment snapshot for direct state application */
+  snapshot?: CommentSnapshot;
+}
+
+export interface CommentDeletedPayload {
+  eventType: "comment_deleted";
+  commentId: string;
+  quizId: string;
+  authorId: string;
+  timestamp: string;
+  /** Parent comment ID for thread updates */
+  parentCommentId?: string | null;
+}
+
+export interface CommentHiddenPayload {
+  eventType: "comment_hidden";
+  commentId: string;
+  quizId: string;
+  moderatorId: string;
+  timestamp: string;
+  /** Full comment snapshot for direct state application */
+  snapshot?: CommentSnapshot;
+}
+
+export interface CommentRestoredPayload {
+  eventType: "comment_restored";
+  commentId: string;
+  quizId: string;
+  moderatorId: string;
+  timestamp: string;
+  /** Full comment snapshot for direct state application */
+  snapshot?: CommentSnapshot;
+}
+
+export interface VoteCastPayload {
+  eventType: "vote_cast";
+  commentId: string;
+  quizId: string;
+  voterId: string;
+  value: "upvote" | "downvote";
+  timestamp: string;
+  /** Updated vote counts for direct state application */
+  votesCount: number;
+  upvotesCount: number;
+  downvotesCount: number;
+}
+
+export interface VoteRemovedPayload {
+  eventType: "vote_removed";
+  commentId: string;
+  quizId: string;
+  voterId: string;
+  timestamp: string;
+  /** Updated vote counts for direct state application */
+  votesCount: number;
+  upvotesCount: number;
+  downvotesCount: number;
+}
+
+/** Every non-error comment payload type. */
+export type CommentEventPayload =
+  | CommentCreatedPayload
+  | CommentEditedPayload
+  | CommentDeletedPayload
+  | CommentHiddenPayload
+  | CommentRestoredPayload
+  | VoteCastPayload
+  | VoteRemovedPayload;
+
+// ─── Comment socket event envelope ───────────────────────────────────────────
+
+export interface CommentSocketEvent {
+  event: CommentEventName;
+  data: CommentEventPayload | WsErrorPayload;
+}
+
+// ─── Coin event names (Phase 5 realtime — Story 5.9 coin economy) ────────────
+//
+// The coin economy is gated by `coin_economy_live` and uses the
+// `/coins` Socket.IO namespace (`CoinGateway`, see backend
+// `src/modules/coins/transport/gateway/coin.gateway.ts`).
+//
+// Two wire events are emitted to the user-scoped room (`user:{userId}`):
+//
+//   - `coin:balance_changed` — every wallet delta (both `coin.added`
+//     and `coin.spent` from the outbox). The payload carries the new
+//     balance + delta so the `<CoinBalancePill />` can update without
+//     a refetch.
+//
+//   - `coin:transaction_recorded` — every new ledger row
+//     (`coin_transactions`). The payload is a slim projection of
+//     `CoinTransactionRecordedEvent`; the frontend uses it to prepend
+//     to the transaction list and to fire a `<RewardToast />` on
+//     positive deltas.
+
+export const COINS_NAMESPACE = "/coins" as const;
+
+export const COIN_BALANCE_CHANGED = "coin:balance_changed" as const;
+export const COIN_TRANSACTION_RECORDED = "coin:transaction_recorded" as const;
+
+/** Every coin event name literal. */
+export type CoinEventName =
+  | typeof COIN_BALANCE_CHANGED
+  | typeof COIN_TRANSACTION_RECORDED;
+
+export const COIN_EVENT_NAMES = [
+  COIN_BALANCE_CHANGED,
+  COIN_TRANSACTION_RECORDED,
+] as const;
+
+// ─── Coin payload interfaces ─────────────────────────────────────────────────
+
+/**
+ * Mirrors the backend `CoinBalanceChangedEvent` payload emitted by
+ * `CoinGateway.serializeEvent`.
+ */
+export interface CoinBalanceChangedPayload {
+  /** New balance after the delta was applied (server-authoritative). */
+  newBalance: number;
+  /** Signed delta — positive on rewards, negative on spends. */
+  delta: number;
+  /** Coarse reason code (`QUIZ_COMPLETION_REWARD`, `TIP_SENT`, …). */
+  reason: string;
+  /** Reference type discriminator for the ledger row, when applicable. */
+  referenceType: string | null;
+  /** Reference id (attempt id, user badge id, quiz id, …). */
+  referenceId: string | null;
+  /** ISO 8601 timestamp the outbox row was processed. */
+  timestamp: string;
+  /** User id of the wallet owner. */
+  userId: string;
+  /** Discriminator — always `'coin.balance_changed'`. */
+  eventType: "coin.balance_changed";
+}
+
+/**
+ * Mirrors the backend `CoinTransactionRecordedEvent` payload emitted by
+ * `CoinGateway.serializeEvent`.
+ */
+export interface CoinTransactionRecordedPayload {
+  /** Transaction id (`coin_transactions.transaction_id`). */
+  transactionId: string;
+  /** Wallet owner user id. */
+  userId: string;
+  /** Coarse reason code. */
+  reason: string;
+  /** Signed amount — positive on rewards, negative on spends. */
+  amount: number;
+  /** Wallet balance AFTER the ledger row was applied. */
+  balanceAfter: number;
+  /** Reference type discriminator for the ledger row, when applicable. */
+  referenceType: string | null;
+  /** Reference id. */
+  referenceId: string | null;
+  /** Optional structured metadata (sender for tips, badge for flairs, …). */
+  metadata?: Record<string, unknown> | null;
+  /** ISO 8601 timestamp the row was created. */
+  createdAt: string;
+  /** Discriminator — always `'coin.transaction_recorded'`. */
+  eventType: "coin.transaction_recorded";
+}
+
+/** Every non-error coin payload type. */
+export type CoinEventPayload =
+  | CoinBalanceChangedPayload
+  | CoinTransactionRecordedPayload;
+
+/**
+ * Any socket message on the `/coins` namespace.
+ */
+export interface CoinSocketEvent {
+  event: CoinEventName;
+  data: CoinEventPayload | WsErrorPayload;
+}

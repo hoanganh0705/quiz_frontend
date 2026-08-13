@@ -1,52 +1,83 @@
 'use client'
 
+/**
+ * `LeaderboardHeader` — page chrome for `/leaderboard`.
+ *
+ * Source epic:   Phase 6 — leaderboard mock-data cleanup.
+ * Source ticket: W-04 / cleanup of `LeaderboardHeader`.
+ *
+ * The previous version defaulted to:
+ *   - `userRank = 42`
+ *   - `userPoints = 3250`
+ *   - `totalParticipants = 1248`
+ *   - `seasonEndDate = '2024-03-31'`
+ *
+ * All of those defaults are gone. The component is now a pure
+ * presentational component that:
+ *   - Reads `totalParticipants` and `seasonEndDate` from
+ *     `useLeaderboardSummary('weekly')`.
+ *   - Reads `userRank` and `userPoints` from `useMyRanking()`.
+ *   - Renders a graceful "Sign in to see your ranking" cluster for
+ *     anonymous viewers.
+ *
+ * ## Auth-aware
+ *
+ * The header stats are split into two clusters:
+ *   1. Public stats (Total Participants, Season Ends) — visible to
+ *      all viewers.
+ *   2. Personal stats (Your Rank, Your Points) — visible only to
+ *      authenticated viewers. The cluster is hidden entirely for
+ *      anonymous viewers (replaced with a single "Sign in to see
+ *      your ranking" CTA).
+ *
+ * ## Reason for the split
+ *
+ * The breakpoint grid (`grid-cols-1 md:grid-cols-2 lg:grid-cols-4`)
+ * drives the layout. Showing four slots to anonymous viewers would
+ * either render blanks or `—` placeholders — both are worse UX than
+ * collapsing the personal cluster.
+ */
+
 import { useState, memo, useCallback } from 'react'
 import { Button } from '@/components/ui/Button'
 import { FindFriendsPopup } from './FindFriendsPopup'
 import { YourRankingPopup } from './YourRankingPopup'
 import { Trophy, Star, Users, Crown, Calendar } from 'lucide-react'
-import {
-  getRankColor,
-  formatSeasonEndDate
-} from '@/features/leaderboard/lib/leaderboard-presentation'
 
-interface LeaderboardHeaderProps {
-  onFindFriends?: () => void
-  onYourRanking?: () => void
-  userRank?: number
-  userPoints?: number
-  totalParticipants?: number
-  seasonEndDate?: string
-}
+import { useAuthState } from '@/features/auth/hooks/use-auth-state'
+import { useMyRanking, getWeeklyPosition } from '@/features/leaderboard/hooks/useMyRanking'
+import { useLeaderboardSummary } from '@/features/leaderboard/hooks/useLeaderboardSummary'
+import { getRankColor, formatPeriodReset } from '@/features/leaderboard/lib/leaderboard-presentation'
 
-export const LeaderboardHeader = memo(function LeaderboardHeader({
-  onFindFriends,
-  onYourRanking,
-  userRank = 42,
-  userPoints = 3250,
-  totalParticipants = 1248,
-  seasonEndDate = '2024-03-31'
-}: LeaderboardHeaderProps) {
+export const LeaderboardHeader = memo(function LeaderboardHeader() {
   const [showFindFriends, setShowFindFriends] = useState(false)
   const [showYourRanking, setShowYourRanking] = useState(false)
 
-  const handleShowFindFriends = useCallback(() => {
-    onFindFriends?.()
-    setShowFindFriends(true)
-  }, [onFindFriends])
+  const { isAuthenticated } = useAuthState()
+  const { data: myRanking } = useMyRanking()
+  const { totalParticipants, period } = useLeaderboardSummary('weekly')
 
+  const weekly = getWeeklyPosition(myRanking)
+  const userRank = weekly?.rank ?? null
+  const userPoints = weekly?.xp ?? null
+
+  const handleShowFindFriends = useCallback(() => {
+    setShowFindFriends(true)
+  }, [])
   const handleCloseFindFriends = useCallback(() => {
     setShowFindFriends(false)
   }, [])
-
   const handleShowYourRanking = useCallback(() => {
-    onYourRanking?.()
     setShowYourRanking(true)
-  }, [onYourRanking])
-
+  }, [])
   const handleCloseYourRanking = useCallback(() => {
     setShowYourRanking(false)
   }, [])
+
+  const seasonResetLabel =
+    period?.resetInSeconds !== undefined && period?.resetInSeconds !== null
+      ? formatPeriodReset(period.resetInSeconds)
+      : '—'
 
   return (
     <>
@@ -82,14 +113,16 @@ export const LeaderboardHeader = memo(function LeaderboardHeader({
               <Users className='w-3 h-3 sm:w-4 sm:h-4' aria-hidden='true' />
               Find Friends
             </Button>
-            <Button
-              className='bg-brand hover:bg-brand text-white text-xs sm:text-sm px-3 sm:px-4 py-1 sm:py-2 flex items-center gap-2'
-              onClick={handleShowYourRanking}
-              aria-label='View your ranking details'
-            >
-              <Trophy className='w-3 h-3 sm:w-4 sm:h-4' aria-hidden='true' />
-              Your Ranking
-            </Button>
+            {isAuthenticated ? (
+              <Button
+                className='bg-brand hover:bg-brand text-white text-xs sm:text-sm px-3 sm:px-4 py-1 sm:py-2 flex items-center gap-2'
+                onClick={handleShowYourRanking}
+                aria-label='View your ranking details'
+              >
+                <Trophy className='w-3 h-3 sm:w-4 sm:h-4' aria-hidden='true' />
+                Your Ranking
+              </Button>
+            ) : null}
           </div>
         </header>
 
@@ -104,7 +137,9 @@ export const LeaderboardHeader = memo(function LeaderboardHeader({
               <div>
                 <p className='text-foreground/80 text-sm'>Total Participants</p>
                 <p className='text-foreground font-bold text-lg'>
-                  {totalParticipants.toLocaleString()}
+                  {totalParticipants !== null
+                    ? totalParticipants.toLocaleString()
+                    : '—'}
                 </p>
               </div>
               <div
@@ -122,7 +157,7 @@ export const LeaderboardHeader = memo(function LeaderboardHeader({
               <div>
                 <p className='text-foreground/80 text-sm'>Season Ends</p>
                 <p className='text-foreground font-bold text-lg'>
-                  {formatSeasonEndDate(seasonEndDate)}
+                  {seasonResetLabel}
                 </p>
               </div>
               <div
@@ -134,41 +169,47 @@ export const LeaderboardHeader = memo(function LeaderboardHeader({
             </div>
           </div>
 
-          {/* Your Rank */}
-          <div className='bg-background p-4 rounded-lg border border-border'>
-            <div className='flex items-center justify-between'>
-              <div>
-                <p className='text-foreground/80 text-sm'>Your Rank</p>
-                <p className={`font-bold text-lg ${getRankColor(userRank)}`}>
-                  #{userRank}
-                </p>
-              </div>
-              <div
-                className='w-10 h-10 bg-yellow-500/20 rounded-full flex items-center justify-center'
-                aria-hidden='true'
-              >
-                <Trophy className='w-5 h-5 text-yellow-400' />
+          {/* Your Rank (auth-only) */}
+          {isAuthenticated ? (
+            <div className='bg-background p-4 rounded-lg border border-border'>
+              <div className='flex items-center justify-between'>
+                <div>
+                  <p className='text-foreground/80 text-sm'>Your Rank</p>
+                  <p
+                    className={`font-bold text-lg ${userRank !== null ? getRankColor(userRank) : 'text-foreground'}`}
+                  >
+                    {userRank !== null ? `#${userRank}` : '—'}
+                  </p>
+                </div>
+                <div
+                  className='w-10 h-10 bg-yellow-500/20 rounded-full flex items-center justify-center'
+                  aria-hidden='true'
+                >
+                  <Trophy className='w-5 h-5 text-yellow-400' />
+                </div>
               </div>
             </div>
-          </div>
+          ) : null}
 
-          {/* Your Points */}
-          <div className='bg-background p-4 rounded-lg border border-border'>
-            <div className='flex items-center justify-between'>
-              <div>
-                <p className='text-foreground/80 text-sm'>Your Points</p>
-                <p className='text-foreground font-bold text-lg'>
-                  {userPoints.toLocaleString()}
-                </p>
-              </div>
-              <div
-                className='w-10 h-10 bg-green-500/20 rounded-full flex items-center justify-center'
-                aria-hidden='true'
-              >
-                <Star className='w-5 h-5 text-green-400' />
+          {/* Your Points (auth-only) */}
+          {isAuthenticated ? (
+            <div className='bg-background p-4 rounded-lg border border-border'>
+              <div className='flex items-center justify-between'>
+                <div>
+                  <p className='text-foreground/80 text-sm'>Your Points</p>
+                  <p className='text-foreground font-bold text-lg'>
+                    {userPoints !== null ? userPoints.toLocaleString() : '—'}
+                  </p>
+                </div>
+                <div
+                  className='w-10 h-10 bg-green-500/20 rounded-full flex items-center justify-center'
+                  aria-hidden='true'
+                >
+                  <Star className='w-5 h-5 text-green-400' />
+                </div>
               </div>
             </div>
-          </div>
+          ) : null}
         </section>
       </div>
 

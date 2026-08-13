@@ -7,6 +7,6 @@
  */
 
 export interface MessageResponseDto {
-  /** Human-readable confirmation message */
+  /** Operation result message */
   message: string;
 }

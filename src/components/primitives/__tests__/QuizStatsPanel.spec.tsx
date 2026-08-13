@@ -18,6 +18,8 @@ function makeStats(
     completionRate: 81.75,
     popularityScore: 91.4,
     trendingScore: 12.6,
+    commentsCount: 42,
+    recentActivity: [],
     ...overrides,
   };
 }

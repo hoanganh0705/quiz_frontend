@@ -25,8 +25,12 @@ import type {
   QuizControllerGetMyQuizAnalytics200,
   QuizControllerGetPopularQuizzes200,
   QuizControllerGetPopularQuizzesParams,
+  QuizControllerGetQuizAggregate200,
   QuizControllerGetQuizById200,
+  QuizControllerGetQuizPreview200,
   QuizControllerGetQuizStats200,
+  QuizControllerGetQuizStatsHistory200,
+  QuizControllerGetQuizStatsHistoryParams,
   QuizControllerGetQuizVersionDetail200,
   QuizControllerGetRelatedQuizzes200,
   QuizControllerGetRelatedQuizzesParams,
@@ -215,6 +219,44 @@ const quizControllerGetQuizStats = (
  ) => {
       return orvalCustomInstance<QuizControllerGetQuizStats200>(
       {url: `/api/v1/quizzes/${id}/stats`, method: 'GET'
+    },
+      );
+    }
+  /**
+ * Returns a densified attempt timeline for the quiz. Supports `?range=7d|30d` and `?bucket=day|hour`. Gaps in the timeline are filled with zeros so the client can render a continuous chart without further math.
+ * @summary Get quiz stats history (sparkline)
+ */
+const quizControllerGetQuizStatsHistory = (
+    id: string,
+    params?: QuizControllerGetQuizStatsHistoryParams,
+ ) => {
+      return orvalCustomInstance<QuizControllerGetQuizStatsHistory200>(
+      {url: `/api/v1/quizzes/${id}/stats/history`, method: 'GET',
+        params
+    },
+      );
+    }
+  /**
+ * Returns the first `previewSize` questions of the published version with the `isCorrect` flag stripped from each answer option. Use this for social / share previews — players should not see correct answers before they start an attempt.
+ * @summary Get a public preview of a quiz
+ */
+const quizControllerGetQuizPreview = (
+    id: string,
+ ) => {
+      return orvalCustomInstance<QuizControllerGetQuizPreview200>(
+      {url: `/api/v1/quizzes/${id}/preview`, method: 'GET'
+    },
+      );
+    }
+  /**
+ * Returns the bundled payload for the quiz detail page: quiz, stats, stats history, and a player-style preview of the first N questions. The endpoint is public (no auth required).
+ * @summary Get the quiz aggregate bundle
+ */
+const quizControllerGetQuizAggregate = (
+    id: string,
+ ) => {
+      return orvalCustomInstance<QuizControllerGetQuizAggregate200>(
+      {url: `/api/v1/quizzes/${id}/aggregate`, method: 'GET'
     },
       );
     }
@@ -431,7 +473,7 @@ const createComment = (
     },
       );
     }
-  return {quizControllerCreateQuiz,quizControllerListQuizzes,quizControllerListMyQuizzes,quizControllerListMyDraftQuizzes,quizControllerListMyPublishedQuizzes,quizControllerGetTrendingQuizzes,quizControllerGetPopularQuizzes,quizControllerGetMyQuizAnalytics,quizControllerGetFeaturedQuizzes,quizControllerGetQuizById,quizControllerUpdateQuiz,quizControllerDeleteQuiz,quizControllerGetQuizStats,quizControllerGetRelatedQuizzes,quizControllerCreateQuizVersion,quizControllerListQuizVersions,quizControllerGetQuizVersionDetail,quizControllerUpdateQuizVersion,quizControllerPublishQuizVersion,quizControllerCreateQuizQuestion,quizControllerCreateQuizQuestions,quizReviewControllerCreateReview,quizReviewControllerListReviews,quizReviewControllerUpdateReview,quizReviewControllerDeleteReview,quizReviewControllerGetQuizReviewStats,quizReviewControllerGetCreatorQuizReviewAnalytics,listQuizComments,createComment}};
+  return {quizControllerCreateQuiz,quizControllerListQuizzes,quizControllerListMyQuizzes,quizControllerListMyDraftQuizzes,quizControllerListMyPublishedQuizzes,quizControllerGetTrendingQuizzes,quizControllerGetPopularQuizzes,quizControllerGetMyQuizAnalytics,quizControllerGetFeaturedQuizzes,quizControllerGetQuizById,quizControllerUpdateQuiz,quizControllerDeleteQuiz,quizControllerGetQuizStats,quizControllerGetQuizStatsHistory,quizControllerGetQuizPreview,quizControllerGetQuizAggregate,quizControllerGetRelatedQuizzes,quizControllerCreateQuizVersion,quizControllerListQuizVersions,quizControllerGetQuizVersionDetail,quizControllerUpdateQuizVersion,quizControllerPublishQuizVersion,quizControllerCreateQuizQuestion,quizControllerCreateQuizQuestions,quizReviewControllerCreateReview,quizReviewControllerListReviews,quizReviewControllerUpdateReview,quizReviewControllerDeleteReview,quizReviewControllerGetQuizReviewStats,quizReviewControllerGetCreatorQuizReviewAnalytics,listQuizComments,createComment}};
 export type QuizControllerCreateQuizResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getQuizzes>['quizControllerCreateQuiz']>>>
 export type QuizControllerListQuizzesResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getQuizzes>['quizControllerListQuizzes']>>>
 export type QuizControllerListMyQuizzesResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getQuizzes>['quizControllerListMyQuizzes']>>>
@@ -445,6 +487,9 @@ export type QuizControllerGetQuizByIdResult = NonNullable<Awaited<ReturnType<Ret
 export type QuizControllerUpdateQuizResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getQuizzes>['quizControllerUpdateQuiz']>>>
 export type QuizControllerDeleteQuizResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getQuizzes>['quizControllerDeleteQuiz']>>>
 export type QuizControllerGetQuizStatsResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getQuizzes>['quizControllerGetQuizStats']>>>
+export type QuizControllerGetQuizStatsHistoryResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getQuizzes>['quizControllerGetQuizStatsHistory']>>>
+export type QuizControllerGetQuizPreviewResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getQuizzes>['quizControllerGetQuizPreview']>>>
+export type QuizControllerGetQuizAggregateResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getQuizzes>['quizControllerGetQuizAggregate']>>>
 export type QuizControllerGetRelatedQuizzesResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getQuizzes>['quizControllerGetRelatedQuizzes']>>>
 export type QuizControllerCreateQuizVersionResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getQuizzes>['quizControllerCreateQuizVersion']>>>
 export type QuizControllerListQuizVersionsResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getQuizzes>['quizControllerListQuizVersions']>>>

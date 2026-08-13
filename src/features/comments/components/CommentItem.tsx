@@ -7,18 +7,15 @@
  * Source epic:   Epic 4.12 — Comments on a quiz.
  * Source ticket: T-4.12.16.
  *
- * ## Composition
+ * ## Tree Structure Support
  *
- * Assembles the atomic components implemented in Batches 3–4:
+ * The component supports depth-based visual hierarchy:
+ *   - `depth=0`: Top-level comment with full styling
+ *   - `depth=1`: Reply with subtle background differentiation
  *
- *   - `<CommentVoteButtons />` (T-4.12.11) — public-vote toggle
- *   - `<CommentReportDialog />` (T-4.12.12) — modal report flow
- *   - `<CommentEditInline />` (T-4.12.13) — edit + delete affordances
- *   - `<CommentReplyForm />` (T-4.12.14) — inline reply composer
- *   - `<CommentDeletedPlaceholder />` (T-4.12.15) — soft-deleted tombstone
- *
- * The component decides which subset of those atoms to render based
- * on `isAuthenticated`, `isOwner`, and `depth` (top-level vs reply).
+ * The tree connector lines are rendered by the parent `CommentThread`
+ * component. This component provides the content and handles
+ * authentication-based controls.
  *
  * ## Visibility rules
  *
@@ -28,19 +25,10 @@
  *   - Reply: shown only at `depth === 0` (top-level), when
  *     `isAuthenticated`, AND when the thread has not reached the
  *     `REPLY_CAP` (per Epic 4.12 spec).
- *   - "Reply" link on `depth === 1` replies is hidden — replies to
- *     replies are not allowed.
  *   - Soft-deleted comment (`deletedAt !== null`) → renders
  *     `<CommentDeletedPlaceholder />` instead of the body.
  *   - Moderator-hidden comment (`isHidden === true`) → renders a
- *     muted "[Comment hidden by moderator]" placeholder (the
- *     thread structure is preserved so replies still appear under it).
- *
- * ## Indentation
- *
- * Depth-1 replies render inside a `pl-6 border-l-2` wrapper so the
- * nesting is visually obvious without altering the comment body
- * layout.
+ *     muted "[Comment hidden by moderator]" placeholder.
  */
 
 import { useState } from 'react';
@@ -68,7 +56,7 @@ import type {
 export interface CommentItemProps {
   /** The comment to render (top-level `CommentThreadItem` or a reply `CommentItem`). */
   comment: CommentThreadItem | CommentItemType;
-  /** 0 = top-level, 1 = reply. Replies are indented. */
+  /** 0 = top-level, 1 = reply. Replies are visually differentiated. */
   depth?: 0 | 1;
   /** Authenticated viewer id (the `currentUser.id`). */
   currentUserId?: string | null;
@@ -90,7 +78,7 @@ const MAX_BODY_LENGTH_REPLY = 1000;
 
 // ─── Component ────────────────────────────────────────────────────────────
 
-export function CommentItem({
+export function CommentItem ({
   comment,
   depth = 0,
   currentUserId,
@@ -101,10 +89,6 @@ export function CommentItem({
   className,
 }: CommentItemProps) {
   const [reportOpen, setReportOpen] = useState(false);
-  // Set when the viewer's report attempt completes successfully
-  // (either a fresh report, or a duplicate-report reconciliation).
-  // Replaces the report trigger with a muted "Reported" badge so the
-  // user can see their action was recorded without re-clicking.
   const [reported, setReported] = useState(false);
 
   const isOwner = currentUserId === comment.authorId;
@@ -112,13 +96,8 @@ export function CommentItem({
   const isDeleted = comment.deletedAt !== null;
   const isHidden = comment.isHidden;
 
-  // Pull reply-count from the embedded payload for replies; the
-  // store-driven value is only authoritative for top-level comments.
   const userVote: CommentUserVote = (comment as CommentThreadItem).userVote ?? null;
 
-  // Author display fields are typed as generic object maps by the
-  // SDK (orval quirk for nullable scalars). Coerce to string for
-  // rendering; the runtime value is always `string | null`.
   const authorDisplayName = stringOrFallback(
     comment.author.displayName,
     comment.author.username,
@@ -128,9 +107,9 @@ export function CommentItem({
   return (
     <article
       className={cn(
-        'flex flex-col gap-3 rounded-lg border bg-card p-4 shadow-xs',
-        isReply && 'pl-6 sm:pl-8 border-l-2 border-l-muted',
-        isDeleted && 'opacity-90',
+        'flex flex-col gap-3',
+        isReply && 'opacity-90',
+        isDeleted && 'opacity-75',
         className,
       )}
       data-testid={`comment-item-${comment.id}`}
@@ -140,68 +119,72 @@ export function CommentItem({
       data-hidden={isHidden ? 'true' : 'false'}
     >
       {/* ─── Header: avatar + author + timestamp ───────────────────── */}
-      <header className='flex items-center gap-3'>
-        <Avatar className='h-9 w-9 shrink-0' aria-hidden>
+      <header className='flex items-start gap-3'>
+        <Avatar className='h-8 w-8 shrink-0' aria-hidden>
           {authorAvatarUrl ? (
             <AvatarImage
               src={authorAvatarUrl}
               alt={authorDisplayName}
             />
           ) : null}
-          <AvatarFallback>
+          <AvatarFallback className='text-xs'>
             {initials(authorDisplayName)}
           </AvatarFallback>
         </Avatar>
         <div className='min-w-0 flex-1'>
-          <p className='truncate text-sm font-medium text-foreground'>
-            {authorDisplayName}
+          <div className='flex items-center gap-2 flex-wrap'>
+            <p className='text-sm font-medium text-foreground'>
+              {authorDisplayName}
+            </p>
             {isOwner && (
               <span
-                className='ml-2 text-xs font-normal text-muted-foreground'
+                className='text-xs font-normal px-1.5 py-0.5 bg-primary/10 text-primary rounded'
                 data-testid={`comment-item-self-tag-${comment.id}`}
               >
-                (you)
+                you
               </span>
             )}
-          </p>
-          <p
-            className='text-xs text-muted-foreground'
-            title={comment.createdAt}
-          >
-            <time dateTime={comment.createdAt}>
+            <span className='text-xs text-muted-foreground'>·</span>
+            <time
+              className='text-xs text-muted-foreground'
+              dateTime={comment.createdAt}
+              title={comment.createdAt}
+            >
               {formatRelativeTime(comment.createdAt)}
             </time>
-          </p>
+          </div>
         </div>
       </header>
 
       {/* ─── Body / deleted / hidden placeholders ─────────────────── */}
-      {isDeleted ? (
-        <CommentDeletedPlaceholder />
-      ) : isHidden ? (
-        <p
-          className='text-sm italic text-muted-foreground'
-          data-testid={`comment-item-hidden-${comment.id}`}
-          role='status'
-        >
-          <span aria-hidden>{HIDDEN_BY_MODERATOR_LABEL}</span>
-          <span className='sr-only'>
-            This comment was hidden by a moderator.
-          </span>
-        </p>
-      ) : (
-        <p
-          className='whitespace-pre-wrap break-words text-sm text-foreground'
-          data-testid={`comment-item-body-${comment.id}`}
-          data-test-body-length={comment.body.length}
-        >
-          {comment.body}
-        </p>
-      )}
+      <div className='pl-11'>
+        {isDeleted ? (
+          <CommentDeletedPlaceholder />
+        ) : isHidden ? (
+          <p
+            className='text-sm italic text-muted-foreground'
+            data-testid={`comment-item-hidden-${comment.id}`}
+            role='status'
+          >
+            <span aria-hidden>{HIDDEN_BY_MODERATOR_LABEL}</span>
+            <span className='sr-only'>
+              This comment was hidden by a moderator.
+            </span>
+          </p>
+        ) : (
+          <p
+            className='text-sm text-foreground leading-relaxed'
+            data-testid={`comment-item-body-${comment.id}`}
+            data-test-body-length={comment.body.length}
+          >
+            {comment.body}
+          </p>
+        )}
+      </div>
 
       {/* ─── Footer: controls (hidden when the comment is gone) ───── */}
       {!isDeleted && !isHidden && (
-        <footer className='flex flex-wrap items-center gap-2'>
+        <footer className='pl-11 flex flex-wrap items-center gap-3 text-xs'>
           <CommentVoteButtons
             commentId={comment.id}
             userVote={userVote}
@@ -215,26 +198,22 @@ export function CommentItem({
           {isAuthenticated && !isOwner && (
             reported ? (
               <span
-                className='ml-auto inline-flex items-center gap-1 text-xs text-muted-foreground'
+                className='inline-flex items-center gap-1 text-muted-foreground'
                 data-testid={`comment-item-reported-${comment.id}`}
                 aria-label='You reported this comment'
               >
-                <Flag size={14} aria-hidden />
+                <Flag size={12} aria-hidden />
                 Reported
               </span>
             ) : (
-              <Button
+              <button
                 type='button'
-                variant='ghost'
-                size='sm'
-                aria-label='Report comment'
+                className='text-muted-foreground hover:text-destructive transition-colors'
                 onClick={() => setReportOpen(true)}
                 data-testid={`comment-item-report-${comment.id}`}
-                className='ml-auto text-xs text-muted-foreground hover:text-destructive'
               >
-                <Flag size={14} aria-hidden />
                 Report
-              </Button>
+              </button>
             )
           )}
 
@@ -246,7 +225,6 @@ export function CommentItem({
               isOwner={isOwner}
               maxLength={isReply ? MAX_BODY_LENGTH_REPLY : MAX_BODY_LENGTH_TOP}
               onDeleted={() => onDeleted?.(comment.id)}
-              className='ml-auto'
             />
           )}
         </footer>
@@ -254,7 +232,7 @@ export function CommentItem({
 
       {/* ─── Reply composer (top-level only, authenticated only) ────── */}
       {!isDeleted && !isHidden && depth === 0 && isAuthenticated && (
-        <div className='mt-1' data-testid={`comment-item-reply-form-${comment.id}`}>
+        <div className='pl-11' data-testid={`comment-item-reply-form-${comment.id}`}>
           <CommentReplyForm
             quizId={quizId}
             parentCommentId={comment.id}
@@ -269,10 +247,6 @@ export function CommentItem({
         isOpen={reportOpen}
         onClose={() => setReportOpen(false)}
         onReported={() => {
-          // Mark the comment as reported so the trigger is replaced
-          // with a muted "Reported" badge (T-4.12.22 — reported-state
-          // visual feedback). The dialog itself already closes via
-          // the internal `useReportComment` success effect.
           setReported(true);
         }}
       />

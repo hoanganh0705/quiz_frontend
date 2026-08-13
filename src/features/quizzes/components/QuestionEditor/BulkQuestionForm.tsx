@@ -13,24 +13,35 @@
  *
  * ## Bulk limit
  *
- * Maximum 50 questions per submission. If user pastes more, show a warning
- * banner suggesting they split into batches.
+ * Maximum 50 questions per submission (matches the backend cap). If the
+ * user pastes more, show a warning banner suggesting they split into
+ * batches.
  *
  * @see `BulkQuestionPasteArea` — paste area component
  * @see `BulkResultList` — results display (from Story 4.7)
  */
 
-'use client';
+"use client";
 
-import { memo, useCallback, useState } from 'react';
-import { Loader2, AlertTriangle, CheckCircle2, XCircle } from 'lucide-react';
+import { memo, useCallback, useMemo, useState } from "react";
+import { Loader2, AlertTriangle, CheckCircle2, XCircle } from "lucide-react";
 
-import { Button } from '@/components/ui/Button';
-import { Label } from '@/components/ui/Label';
-import { cn } from '@/shared/utils/merge-class-names';
+import { Button } from "@/components/ui/Button";
+import { Label } from "@/components/ui/Label";
+import { cn } from "@/shared/utils/merge-class-names";
 
-import type { BulkCreateResult } from '@/features/quizzes/hooks/useBulkCreateVersionQuestions';
-import type { BulkQuestionResultItem } from '@/features/quizzes/types/author-dtos';
+import {
+  useBulkCreateVersionQuestions,
+  type BulkCreateResult,
+} from "@/features/quizzes/hooks/useBulkCreateVersionQuestions";
+import {
+  parseBulkText,
+  type ParsedBulkRow,
+} from "@/features/quizzes/validation/question-schemas";
+import type {
+  BulkQuestionResultItem,
+  CreateAnswerOptionDto,
+} from "@/features/quizzes/types/author-dtos";
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
@@ -43,7 +54,7 @@ export interface BulkQuestionFormProps {
   quizId: string;
   /** Quiz version UUID. */
   versionId: string;
-  /** Current question count. */
+  /** Current question count (for position suggestion). */
   questionCount: number;
   /** Whether the form is disabled. */
   isDraft: boolean;
@@ -66,7 +77,10 @@ function BulkQuestionPasteArea({
   onChange,
   disabled,
 }: PasteAreaProps): React.ReactElement {
-  const lineCount = value.trim().split('\n').filter((line) => line.trim()).length;
+  const lineCount = value
+    .trim()
+    .split("\n")
+    .filter((line) => line.trim()).length;
   const exceedsLimit = lineCount > MAX_BULK_ROWS;
 
   return (
@@ -77,8 +91,8 @@ function BulkQuestionPasteArea({
         </Label>
         <span
           className={cn(
-            'text-xs',
-            exceedsLimit ? 'text-destructive' : 'text-muted-foreground',
+            "text-xs",
+            exceedsLimit ? "text-destructive" : "text-muted-foreground",
           )}
         >
           {lineCount} / {MAX_BULK_ROWS} rows
@@ -89,21 +103,21 @@ function BulkQuestionPasteArea({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         disabled={disabled}
-        placeholder={`Paste your questions here...&#10;&#10;Format: questionText, type, option1, option2, correctIndex&#10;&#10;Example:&#10;"What is 2+2?","single_choice","3","4","1"&#10;"Capital of France?","single_choice","Paris","London","0"`}
+        placeholder={`Paste your questions here...\n\nFormat: questionText, type, option1, option2, correctIndex\n\nExample:\n"What is 2+2?","single_choice","3","4","1"\n"Capital of France?","single_choice","Paris","London","0"`}
         className={cn(
-          'min-h-48 w-full rounded-md border bg-background px-3 py-2 font-mono text-sm',
-          'placeholder:text-muted-foreground',
-          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
-          disabled && 'cursor-not-allowed opacity-50',
+          "min-h-48 w-full rounded-md border bg-background px-3 py-2 font-mono text-sm",
+          "placeholder:text-muted-foreground",
+          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
+          disabled && "cursor-not-allowed opacity-50",
         )}
         rows={12}
       />
       {exceedsLimit && (
         <div className="flex items-start gap-2 rounded-md border border-yellow-500/50 bg-yellow-500/10 p-3">
-          <AlertTriangle className="h-4 w-4 flex-shrink-0 text-yellow-600" />
+          <AlertTriangle className="h-4 w-4 shrink-0 text-yellow-600" />
           <p className="text-sm text-yellow-800">
-            You pasted {lineCount} rows, but only {MAX_BULK_ROWS} can be submitted at once.
-            Please send the rest as a second batch.
+            You pasted {lineCount} rows, but only {MAX_BULK_ROWS} can be
+            submitted at once. Please send the rest as a second batch.
           </p>
         </div>
       )}
@@ -128,50 +142,49 @@ function BulkResultList({ results }: BulkResultListProps): React.ReactElement {
         {successCount > 0 && (
           <div className="flex items-center gap-2 text-green-600">
             <CheckCircle2 className="h-5 w-5" />
-            <span className="text-sm font-medium">
-              {successCount} created
-            </span>
+            <span className="text-sm font-medium">{successCount} created</span>
           </div>
         )}
         {failCount > 0 && (
           <div className="flex items-center gap-2 text-red-600">
             <XCircle className="h-5 w-5" />
-            <span className="text-sm font-medium">
-              {failCount} failed
-            </span>
+            <span className="text-sm font-medium">{failCount} failed</span>
           </div>
         )}
       </div>
 
       {/* Per-item results */}
       <div className="space-y-2">
-        {results.map((result, idx) => (
+        {results.map((result) => (
           <div
-            key={idx}
+            key={result.index}
             className={cn(
-              'flex items-center gap-3 rounded-lg border p-3',
+              "flex items-center gap-3 rounded-lg border p-3",
               result.status === 201
-                ? 'border-green-500/30 bg-green-500/5'
-                : 'border-red-500/30 bg-red-500/5',
+                ? "border-green-500/30 bg-green-500/5"
+                : "border-red-500/30 bg-red-500/5",
             )}
-            data-testid={`bulk-result-${idx}`}
+            data-testid={`bulk-result-${result.index}`}
           >
             {/* Status icon */}
             {result.status === 201 ? (
-              <CheckCircle2 className="h-5 w-5 flex-shrink-0 text-green-600" />
+              <CheckCircle2 className="h-5 w-5 shrink-0 text-green-600" />
             ) : (
-              <XCircle className="h-5 w-5 flex-shrink-0 text-red-600" />
+              <XCircle className="h-5 w-5 shrink-0 text-red-600" />
             )}
 
             {/* Index */}
-            <span className="text-sm text-muted-foreground">Row {result.index + 1}</span>
+            <span className="text-sm text-muted-foreground">
+              Row {result.index + 1}
+            </span>
 
             {/* Message */}
             <div className="flex-1">
               {result.status === 201 ? (
                 <p className="text-sm text-green-700">
                   Created successfully
-                  {result.questionId && ` (${result.questionId.slice(0, 8)}...)`}
+                  {result.questionId &&
+                    ` (${result.questionId.slice(0, 8)}...)`}
                 </p>
               ) : (
                 <p className="text-sm text-red-700">
@@ -184,6 +197,58 @@ function BulkResultList({ results }: BulkResultListProps): React.ReactElement {
       </div>
     </div>
   );
+}
+
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+
+/**
+ * Convert parsed CSV/TSV rows into the API payload shape.
+ * Filters out rows that failed to parse — callers should display those
+ * inline via `parseErrors`.
+ */
+function buildBulkPayload(
+  rows: ParsedBulkRow[],
+  startPosition: number,
+): {
+  payload: {
+    questions: Array<{
+      position: number;
+      questionText: string;
+      imageUrl?: string;
+      answerOptions: CreateAnswerOptionDto[];
+    }>;
+  };
+  parseErrors: Array<{ index: number; message: string }>;
+} {
+  const payload: Array<{
+    position: number;
+    questionText: string;
+    imageUrl?: string;
+    answerOptions: CreateAnswerOptionDto[];
+  }> = [];
+  const parseErrors: Array<{ index: number; message: string }> = [];
+
+  rows.forEach((row, i) => {
+    if (!row.values) {
+      parseErrors.push({
+        index: row.index,
+        message: row.error ?? "Invalid row",
+      });
+      return;
+    }
+    const v = row.values;
+    payload.push({
+      position: startPosition + i,
+      questionText: v.questionText,
+      answerOptions: v.options.map((optValue, optIdx) => ({
+        position: optIdx + 1,
+        value: optValue,
+        isCorrect: v.correctIndices.includes(optIdx),
+      })),
+    });
+  });
+
+  return { payload: { questions: payload }, parseErrors };
 }
 
 // ─── Component ─────────────────────────────────────────────────────────────
@@ -201,82 +266,106 @@ export const BulkQuestionForm = memo(function BulkQuestionForm({
 }: BulkQuestionFormProps): React.ReactElement {
   // ── State ────────────────────────────────────────────────────────────
 
-  const [pasteValue, setPasteValue] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [results, setResults] = useState<BulkQuestionResultItem[] | null>(null);
-  const [progress, setProgress] = useState<{ current: number; total: number } | null>(null);
+  const [pasteValue, setPasteValue] = useState("");
+  const [parseErrors, setParseErrors] = useState<
+    Array<{ index: number; message: string }>
+  >([]);
+
+  // ── Backend mutation ──────────────────────────────────────────────────
+  const {
+    bulkCreate,
+    isLoading,
+    progress,
+    result: bulkResult,
+    cooldownSeconds,
+    clearResult,
+  } = useBulkCreateVersionQuestions({
+    onComplete: (result: BulkCreateResult) => {
+      if (result.ok && result.questions.length > 0) {
+        onSuccess();
+      } else if (!result.ok) {
+        onError({
+          code: "BULK_PARTIAL_FAILURE",
+          message: `${result.questions.length} of ${result.results.length} questions were created`,
+        });
+      }
+    },
+    onError: (err) => {
+      onError({ code: err.code, message: err.message });
+    },
+  });
+
+  // ── Derived ─────────────────────────────────────────────────────────
+  const parsedRows = useMemo(
+    () => parseBulkText(pasteValue, ","),
+    [pasteValue],
+  );
+  const lineCount = parsedRows.length;
+  const validRowCount = parsedRows.filter((r) => r.values !== null).length;
+  const exceedsLimit = lineCount > MAX_BULK_ROWS;
+  const canSubmit =
+    validRowCount > 0 &&
+    validRowCount <= MAX_BULK_ROWS &&
+    isDraft &&
+    !isLoading;
 
   // ── Submit handler ──────────────────────────────────────────────────
-
   const handleSubmit = useCallback(async () => {
     if (!pasteValue.trim()) return;
-
-    const lines = pasteValue.trim().split('\n').filter((line) => line.trim());
-    const total = lines.length;
-
-    if (total === 0) return;
-    if (total > MAX_BULK_ROWS) {
+    if (exceedsLimit) {
       onError({
-        code: 'VALIDATION_ERROR',
+        code: "VALIDATION_ERROR",
         message: `Maximum ${MAX_BULK_ROWS} questions per bulk submission`,
       });
       return;
     }
 
-    setIsSubmitting(true);
-    setProgress({ current: 0, total });
-    setResults(null);
-
-    try {
-      // Simulate bulk creation for now
-      // In real implementation, this would call the bulk create API
-      for (let i = 0; i < total; i++) {
-        setProgress({ current: i + 1, total });
-        await new Promise((resolve) => setTimeout(resolve, 50));
-      }
-
-      // Simulated results
-      const simulatedResults: BulkQuestionResultItem[] = lines.map((_, idx) => ({
-        index: idx,
-        status: 201,
-        code: '',
-        message: '',
-        questionId: `sim-${Date.now()}-${idx}`,
-      }));
-
-      setResults(simulatedResults);
-      onSuccess();
-    } catch (err) {
-      setResults(
-        lines.map((_, idx) => ({
-          index: idx,
-          status: 500,
-          code: 'GLOBAL_UNKNOWN',
-          message: err instanceof Error ? err.message : 'Failed to create question',
-        })),
-      );
+    const { payload, parseErrors: errors } = buildBulkPayload(
+      parsedRows,
+      questionCount + 1,
+    );
+    setParseErrors(errors);
+    if (payload.questions.length === 0) {
       onError({
-        code: 'GLOBAL_UNKNOWN',
-        message: err instanceof Error ? err.message : 'Bulk creation failed',
+        code: "VALIDATION_ERROR",
+        message: "No valid rows to submit. Please fix the parse errors.",
       });
-    } finally {
-      setIsSubmitting(false);
-      setProgress(null);
+      return;
     }
-  }, [pasteValue, onSuccess, onError]);
+
+    await bulkCreate(quizId, versionId, payload);
+  }, [
+    pasteValue,
+    exceedsLimit,
+    parsedRows,
+    questionCount,
+    bulkCreate,
+    quizId,
+    versionId,
+    onError,
+  ]);
 
   // ── Clear handler ───────────────────────────────────────────────────
 
   const handleClear = useCallback(() => {
-    setPasteValue('');
-    setResults(null);
-  }, []);
+    setPasteValue("");
+    setParseErrors([]);
+    clearResult();
+  }, [clearResult]);
 
   // ── Render ─────────────────────────────────────────────────────────
 
-  const isDisabled = !isDraft || isSubmitting;
-  const lineCount = pasteValue.trim().split('\n').filter((line) => line.trim()).length;
-  const canSubmit = lineCount > 0 && lineCount <= MAX_BULK_ROWS && isDraft;
+  const isDisabled = !isDraft || isLoading;
+  const results: BulkQuestionResultItem[] | null =
+    bulkResult?.results ??
+    (parseErrors.length > 0
+      ? parseErrors.map((e) => ({
+          index: e.index,
+          status: 422,
+          code: "PARSE_ERROR",
+          message: e.message,
+        }))
+      : null);
 
   return (
     <div
@@ -297,18 +386,27 @@ export const BulkQuestionForm = memo(function BulkQuestionForm({
         <div className="rounded-md bg-muted/50 p-4">
           <h4 className="text-sm font-medium">Format guide</h4>
           <p className="mt-1 text-xs text-muted-foreground">
-            Each row should contain: question text, type, options, and the correct option index.
+            Each row should contain: question text, type, options, and the
+            correct option index.
           </p>
           <pre className="mt-2 overflow-x-auto text-xs text-muted-foreground">
             {`"Question text","type","Option 1","Option 2","0"`}
           </pre>
           <p className="mt-2 text-xs text-muted-foreground">
-            Valid types: single_choice, multiple_choice, true_false, short_answer
+            Valid types: single_choice, multiple_choice, true_false,
+            short_answer
           </p>
         </div>
 
         {/* Results */}
         {results && <BulkResultList results={results} />}
+
+        {/* Cooldown notice */}
+        {cooldownSeconds !== null && (
+          <p className="text-sm text-muted-foreground">
+            Rate limit: please wait {cooldownSeconds}s before trying again.
+          </p>
+        )}
 
         {/* Actions */}
         <div className="flex items-center justify-between">
@@ -326,7 +424,7 @@ export const BulkQuestionForm = memo(function BulkQuestionForm({
               <div className="flex items-center gap-2">
                 <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
                 <span className="text-sm text-muted-foreground">
-                  Adding {progress.current} of {progress.total}...
+                  {progress.label}
                 </span>
               </div>
             )}
@@ -336,13 +434,18 @@ export const BulkQuestionForm = memo(function BulkQuestionForm({
               onClick={handleSubmit}
               disabled={isDisabled || !canSubmit}
             >
-              {isSubmitting ? (
+              {isLoading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Adding...
                 </>
               ) : (
-                <>Add {lineCount > 0 ? `${lineCount} questions` : 'questions'}</>
+                <>
+                  Add{" "}
+                  {validRowCount > 0
+                    ? `${validRowCount} questions`
+                    : "questions"}
+                </>
               )}
             </Button>
           </div>

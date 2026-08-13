@@ -30,6 +30,7 @@
 
 import * as React from 'react';
 import { useRouter } from 'next/navigation';
+import { mutate as globalMutate } from 'swr';
 import { Play, Loader2 } from 'lucide-react';
 
 import { Button } from '@/components/ui/Button';
@@ -123,7 +124,13 @@ export function AttemptStartCta(
 
     if (outcome.kind === 'success') {
       if (idOrSlug) {
-        router.push(`/quizzes/${encodeURIComponent(idOrSlug)}/attempt`);
+        // Await the cache revalidation before navigating so the
+        // /attempt page finds the active attempt immediately and
+        // doesn't redirect back to the quiz page.
+        const key = `/users/me/attempts?quizId=${encodeURIComponent(quizId ?? '')}&status=started&limit=1`;
+        void globalMutate(key).then(() => {
+          router.push(`/quizzes/${encodeURIComponent(idOrSlug)}/attempt`);
+        });
       }
       startHook.reset();
       return;

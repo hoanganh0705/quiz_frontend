@@ -7,6 +7,6 @@
  */
 
 /**
- * Type-specific public activity payload
+ * Type-specific public activity payload — discriminated by `type`
  */
 export type UserActivityItemDtoPayload = { [key: string]: unknown };

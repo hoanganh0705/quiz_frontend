@@ -17,10 +17,12 @@
  *
  * ## DTO adapters
  *
- * `listBadges` and `getMyBadges` use `normalizeBadgeArray` (from
- * `@/lib/realtime/dto-adapters`) because the backend may return bare
- * arrays for these endpoints. See the `TODO(backend):` comment in
- * `dto-adapters.ts` re: the unnormalised `listBadges` response.
+ * `listBadges` and `getMyBadges` previously used `normalizeBadgeArray`
+ * (from `@/lib/realtime/dto-adapters`) because the backend might
+ * return a bare array. The regenerated SDK now emits a paginated
+ * envelope for both endpoints, so the bare-array fallback is
+ * unreachable. The adapter and its `NormalizedBadge` alias are
+ * removed in Phase 6.
  */
 
 import * as Sentry from "@sentry/nextjs";
@@ -28,11 +30,6 @@ import * as Sentry from "@sentry/nextjs";
 import { getAchievements } from "@/lib/api";
 
 import { ApiError } from "@/lib/api/core/ApiError";
-
-import {
-  normalizeBadgeArray,
-  type NormalizedBadge,
-} from "@/lib/realtime/dto-adapters";
 
 import type {
   ListBadgeCatalogParams,
@@ -59,24 +56,17 @@ import type {
  * `GET /api/v1/achievements/badges`
  *
  * Returns the full catalog of all available badges.
- * Uses `normalizeBadgeArray` — the backend may return a bare array
- * per master plan §1.3 line 61.
+ * Phase 6: removed the `normalizeBadgeArray` adapter. The SDK
+ * envelopes the response in a paginated wrapper.
  */
 export async function listBadges(
   params?: ListBadgeCatalogParams,
-): Promise<NormalizedBadge[]> {
+): Promise<ListBadgeCatalogResult["data"]> {
   Sentry.addBreadcrumb({
     category: "phase5:service",
     message: "achievements.listBadges",
   });
   const data = await getAchievements().listBadgeCatalog(params);
-
-  // TODO(backend): The backend may return a bare array instead of { data: [...] }
-  // for this endpoint. `normalizeBadgeArray` handles both shapes. Once the
-  // backend is confirmed to return the envelope, the adapter can be removed.
-  if (Array.isArray(data)) {
-    return normalizeBadgeArray(data);
-  }
   if (!data.data) {
     throw new ApiError({
       status: 500,
@@ -84,7 +74,7 @@ export async function listBadges(
       message: "Badge catalog response missing data envelope",
     } as unknown as ConstructorParameters<typeof ApiError>[0]);
   }
-  return normalizeBadgeArray(data.data);
+  return data.data;
 }
 
 /**
@@ -107,22 +97,16 @@ export async function getBadgeByCode(
  * `GET /api/v1/achievements/me/badges`
  *
  * Returns badges earned by the authenticated user.
- * Uses `normalizeBadgeArray` — the backend may return a bare array
- * per master plan §1.3 line 61.
+ * Phase 6: removed the `normalizeBadgeArray` adapter.
  */
 export async function getMyBadges(
   params?: ListMyBadgesParams,
-): Promise<NormalizedBadge[]> {
+): Promise<ListMyBadgesResult["data"]> {
   Sentry.addBreadcrumb({
     category: "phase5:service",
     message: "achievements.getMyBadges",
   });
   const data = await getAchievements().listMyBadges(params);
-
-  // TODO(backend): Same as `listBadges` — bare array may be returned.
-  if (Array.isArray(data)) {
-    return normalizeBadgeArray(data);
-  }
   if (!data.data) {
     throw new ApiError({
       status: 500,
@@ -130,7 +114,7 @@ export async function getMyBadges(
       message: "My badges response missing data envelope",
     } as unknown as ConstructorParameters<typeof ApiError>[0]);
   }
-  return normalizeBadgeArray(data.data);
+  return data.data;
 }
 
 /**
