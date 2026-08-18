@@ -1,24 +1,4 @@
 'use client'
-
-/**
- * <TagPill /> — compact tag representation used inline in cards, lists,
- * and detail pages.
- *
- * Source story: PHASE_3_EPICS.md → Story 3.1.
- * Source ticket: TKT-3.1.D1.
- *
- * Two variants:
- *   - default:    non-interactive visual only.
- *   - clickable:  wrapped in <Link> to /tags/[slug] (or /tags/[id] if
- *                 the slug is empty). Focusable + keyboard-activatable.
- *
- * Drift note (TKT-3.1.A1): the SDK exposes `TagResponseDto` (not
- * `TagDto`). The id field is `tagId` (not `id`). The slug-vs-id
- * navigation rule (Story 3.1) reads `tag.slug` first and falls back to
- * `tag.tagId`. There is no `usageCount` on the SDK type, so the pill
- * renders only the tag name + a deterministic color swatch.
- */
-
 import Link from 'next/link'
 
 import { cn } from '@/shared/utils/merge-class-names'
@@ -36,16 +16,23 @@ export interface TagPillProps {
   className?: string
 }
 
-function colorFromTag(tag: TagResponseDto): string {
-  // Deterministic per-id swatch so server and client agree (no hydration
-  // mismatch). Picks from a 12-hue palette; saturation/lightness fixed.
-  const seed = tag.tagId.replace(/-/g, '').slice(-6)
+// Five swatches drawn from --tag-swatch-1..5 in globals.css. The sixth hash
+// bucket falls back to --tag-swatch-1 so the palette stays brand-stable.
+const SWATCH_TOKEN_CLASSES = [
+  'bg-tag-swatch-1',
+  'bg-tag-swatch-2',
+  'bg-tag-swatch-3',
+  'bg-tag-swatch-4',
+  'bg-tag-swatch-5'
+] as const
+
+function swatchClassFromTag(tag: TagResponseDto): string {
   let hash = 0
-  for (let i = 0; i < seed.length; i += 1) {
-    hash = (hash * 31 + seed.charCodeAt(i)) >>> 0
+  for (let i = 0; i < tag.tagId.length; i += 1) {
+    hash = (hash * 31 + tag.tagId.charCodeAt(i)) >>> 0
   }
-  const hue = hash % 360
-  return `hsl(${hue} 60% 45%)`
+  const idx = hash % SWATCH_TOKEN_CLASSES.length
+  return SWATCH_TOKEN_CLASSES[idx]!
 }
 
 export function TagPill({
@@ -53,14 +40,13 @@ export function TagPill({
   variant = 'default',
   className
 }: TagPillProps) {
-  const swatchColor = colorFromTag(tag)
+  const swatchClass = swatchClassFromTag(tag)
 
   const inner = (
     <>
       <span
         aria-hidden='true'
-        className={SWATCH_BASE}
-        style={{ backgroundColor: swatchColor }}
+        className={cn(SWATCH_BASE, swatchClass)}
       />
       <span>{tag.name}</span>
     </>

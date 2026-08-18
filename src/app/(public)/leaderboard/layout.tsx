@@ -2,15 +2,15 @@ import type { ReactNode } from 'react'
 import { buildMetadata } from '@/shared/lib/seo'
 
 export const metadata = buildMetadata({
-  title: 'Leaderboard | QuizHub',
-  description: 'See top players and track global quiz rankings.',
-  path: '/leaderboard'
+title: 'Leaderboard | QuizHub',
+description: 'See top players and track global quiz rankings.',
+path: '/leaderboard'
 })
 
 export default function LeaderboardLayout({
-  children
+children
 }: {
-  children: ReactNode
+children: ReactNode
 }) {
-  return children
+return children
 }

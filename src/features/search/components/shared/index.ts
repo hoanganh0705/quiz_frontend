@@ -1,27 +1,27 @@
-// Search shared primitives barrel
+
 
 export {
-  SearchResultSkeleton,
-  SearchResultGroupSkeleton,
-  SEARCH_RESULT_KINDS,
+SearchResultSkeleton,
+SearchResultGroupSkeleton,
+SEARCH_RESULT_KINDS,
 } from "./SearchResultSkeleton";
 
 export {
-  SearchEmptyState,
+SearchEmptyState,
 } from "./SearchEmptyState";
 
 export type {
-  SearchEmptyStateVariant,
+SearchEmptyStateVariant,
 } from "./SearchEmptyState";
 
 export {
-  SearchErrorState,
+SearchErrorState,
 } from "./SearchErrorState";
 
 export type {
-  SearchErrorCode,
+SearchErrorCode,
 } from "./SearchErrorState";
 
 export {
-  SearchRateLimitState,
+SearchRateLimitState,
 } from "./SearchRateLimitState";

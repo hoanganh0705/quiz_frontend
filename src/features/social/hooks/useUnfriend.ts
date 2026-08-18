@@ -1,61 +1,5 @@
 "use client";
 
-/**
- * `useUnfriend` — mutation hook for the unfriend action.
- *
- * Source epic:   Epic 6.8 — Friend Request Lifecycle.
- * Source story:  Story 6.8.
- * Source ticket: TKT-6.8.D4.
- *
- * ## What this hook owns
- *
- * - The `unfriend(userId)` mutation that calls
- *   `friend-request-mutation.service.ts → unfriend`.
- * - `useSocialPermissions(userId).canUnfriend` guard before
- *   dispatching.
- * - Double-click guard via a per-instance `isPendingRef` ref.
- * - `SOCIAL_FRIENDSHIP_NOT_FOUND` (404) is treated as a successful
- *   terminal state — the user is already not-friends, which is the
- *   desired outcome. No error banner is surfaced.
- * - Other error codes surface as `error: UnfriendErrorCode`.
- * - SWR cache revalidation on success
- *   (`SOCIAL_CACHE_KEYS.makeRelationshipKey(userId)`,
- *   `SOCIAL_CACHE_KEYS.makeSocialCountsKey(userId)`).
- * - Abort-on-unmount when a request is in-flight.
- * - Safe no-op fallback when `social_friend_request_mutation_live`
- *   is `'placeholder'`.
- *
- * ## Return contract
- *
- * Returns `{ unfriend, isPending, error, alreadyNotFriends }`. The
- * contract is stable: the object reference never changes; only the
- * field values update.
- *
- * ## Non-idempotent DELETE
- *
- * The backend's `DELETE /social/friends/:userId` returns
- * `404 + code: 'SOCIAL_FRIENDSHIP_NOT_FOUND'` when the viewer is not
- * currently friends with the target. The hook maps this to
- * `alreadyNotFriends: true` and `error: null` — the desired outcome
- * is already achieved, so no error banner is shown. This is the
- * "successful terminal state" pattern for non-idempotent DELETE
- * operations.
- *
- * The `unfriend` hook does NOT auto-cancel a pending friend request
- * — the two are independent operations (per the cancel-dialog copy,
- * TKT-6.8.F2). If the viewer has a pending outgoing request, the
- * request must be cancelled separately via `useCancelFriendRequest`.
- *
- * ## Socket invalidation (Epic 6.10)
- *
- * After a successful unfriend (including the
- * `SOCIAL_FRIENDSHIP_NOT_FOUND` terminal state), callers revalidate
- * the relationship and counts keys. When Epic 6.10 lands, the Phase
- * 5 `/notifications` socket will emit `friend.removed` events that
- * trigger the same invalidation. The hook is compatible with that
- * future integration.
- */
-
 import { useMemo, useRef, useState } from "react";
 
 import { ApiError } from "@/lib/api";
@@ -66,227 +10,147 @@ import { unfriend } from "@/features/social/services";
 import { SOCIAL_CACHE_KEYS, type SocialErrorCode } from "@/features/social/types";
 import { useSocialPermissions } from "@/features/social/hooks/useSocialPermissions";
 
-// ─── Public types ─────────────────────────────────────────────────────────
-
-/**
- * Error codes surfaced by `useUnfriend`. Exhaustive — every error the
- * service can throw that is NOT a known SOCIAL_* code falls back to
- * `GLOBAL_INTERNAL_ERROR`.
- */
 export type UnfriendErrorCode =
-  | SocialErrorCode
+| SocialErrorCode
   | "GLOBAL_INTERNAL_ERROR";
 
-/**
- * Result of `useUnfriend`.
- *
- * Field semantics:
- *   - `unfriend`           — call to trigger the unfriend mutation.
- *   - `isPending`          — `true` while an unfriend request is
- *                           in-flight.
- *   - `error`              — the typed error code, or `null`.
- *   - `alreadyNotFriends`  — `true` when the server returned
- *                           `SOCIAL_FRIENDSHIP_NOT_FOUND` (the viewer
- *                           was already not friends with the target).
- *                           When `true`, `error` is `null` and no
- *                           error banner is shown.
- */
 export interface UseUnfriendResult {
-  unfriend: () => void;
-  isPending: boolean;
-  error: UnfriendErrorCode | null;
-  alreadyNotFriends: boolean;
+unfriend: () => void;
+isPending: boolean;
+error: UnfriendErrorCode | null;
+alreadyNotFriends: boolean;
 }
-
-// ─── Hook ─────────────────────────────────────────────────────────────────
 
 export interface UseUnfriendOptions {
-  /**
-   * Optional override for the current user id. Tests inject this to
-   * keep the test pure; production callers omit it so the hook reads
-   * from `useAuthBootstrap` via `useRelationship` /
-   * `useSocialPermissions`.
-   */
-  currentUserId?: string | null;
-  /**
-   * When `true`, the hook skips the `useSocialPermissions` permission
-   * guard and dispatches the unfriend mutation as long as the target id
-   * is non-null and the feature flag is live. The caller asserts that
-   * the row came from a server-authoritative friends-list source
-   * (i.e. `GET /social/friends/:userId`), so the relationship is by
-   * definition `friend` and the redundant `useRelationship` round-trip
-   * would race against the optimistic UI.
-   *
-   * Set this to `true` from the `/friends` page's "Friends List"
-   * panel and the Compare Stats panel so the unfriend button is
-   * immediately interactive (the user has clearly already seen the
-   * row in their friends list). Leave it `false` (the default) for
-   * callers that mount the button outside of the friends-list
-   * context.
-   *
-   * Defaults to `false` so the strict-permission semantics are
-   * preserved across every other call-site.
-   */
-  assumeCanUnfriend?: boolean;
+
+currentUserId?: string | null;
+
+assumeCanUnfriend?: boolean;
 }
 
-/**
- * Mutation hook for the unfriend action.
- *
- * @param targetUserId The user to unfriend. `null` is safe — the hook
- *   returns a no-op result when the target is null.
- * @param options Optional overrides.
- */
 export function useUnfriend(
-  targetUserId: string | null,
-  options: UseUnfriendOptions = {},
+targetUserId: string | null,
+options: UseUnfriendOptions = {},
 ): UseUnfriendResult {
-  // ── Flag guard ────────────────────────────────────────────────────────
-  const flagValue = getFeatureFlagValue(
-    "social_friend_request_mutation_live",
-  );
-  const isFlagPlaceholder = flagValue === "placeholder";
 
-  // ── Permissions ───────────────────────────────────────────────────────
-  const permissions = useSocialPermissions(targetUserId, {
-    currentUserId: options.currentUserId ?? null,
+const flagValue = getFeatureFlagValue(
+"social_friend_request_mutation_live",
+  );
+const isFlagPlaceholder = flagValue === "placeholder";
+
+const permissions = useSocialPermissions(targetUserId, {
+currentUserId: options.currentUserId ?? null,
   });
 
-  // ── SWR mutate ──────────────────────────────────────────────────────
-  const { mutate } = useSWRConfig();
+const { mutate } = useSWRConfig();
 
-  // ── Double-click guard (per-instance ref) ───────────────────────────
-  const isPendingRef = useRef(false);
+const isPendingRef = useRef(false);
 
-  // ── Error and terminal-state tracking ─────────────────────────────────
-  // `error` is null on success OR when `SOCIAL_FRIENDSHIP_NOT_FOUND`.
-  // `alreadyNotFriends` is true only when the server returned 404 with
-  // `SOCIAL_FRIENDSHIP_NOT_FOUND`.
-  const [error, setError] = useState<UnfriendErrorCode | null>(null);
-  const [alreadyNotFriends, setAlreadyNotFriends] = useState(false);
+const [error, setError] = useState<UnfriendErrorCode | null>(null);
+const [alreadyNotFriends, setAlreadyNotFriends] = useState(false);
 
-  // ── Stable result ───────────────────────────────────────────────────
-  const result = useMemo<UseUnfriendResult>(() => {
-    // ── Placeholder flag: safe no-op ────────────────────────────────
-    if (isFlagPlaceholder) {
-      return Object.freeze({
-        unfriend: () => {
+const result = useMemo<UseUnfriendResult>(() => {
+
+if (isFlagPlaceholder) {
+return Object.freeze({
+unfriend: () => {
           // no-op — feature is gated off
         },
-        isPending: false,
-        error: null,
-        alreadyNotFriends: false,
+isPending: false,
+error: null,
+alreadyNotFriends: false,
       });
     }
 
-    // ── No target: safe no-op ────────────────────────────────────────
-    if (targetUserId === null) {
-      return Object.freeze({
-        unfriend: () => {
+if (targetUserId === null) {
+return Object.freeze({
+unfriend: () => {
           // no-op
         },
-        isPending: false,
-        error: null,
-        alreadyNotFriends: false,
+isPending: false,
+error: null,
+alreadyNotFriends: false,
       });
     }
 
-    // ── Permissions guard ─────────────────────────────────────────────
-    // Skipped when the caller asserts the row came from the friends
-    // list (server-authoritative). The strict check still applies in
-    // every other context.
-    if (!options.assumeCanUnfriend && !permissions.canUnfriend) {
-      return Object.freeze({
-        unfriend: () => {
+if (!options.assumeCanUnfriend && !permissions.canUnfriend) {
+return Object.freeze({
+unfriend: () => {
           // no-op — permission denied
         },
-        isPending: false,
-        error: null,
-        alreadyNotFriends: false,
+isPending: false,
+error: null,
+alreadyNotFriends: false,
       });
     }
 
-    // ── Core mutation ────────────────────────────────────────────────
-    const unfriendAction = (): void => {
-      if (isPendingRef.current) return;
+const unfriendAction = (): void => {
+if (isPendingRef.current) return;
 
-      isPendingRef.current = true;
-      // Reset prior state.
-      setError(null);
-      setAlreadyNotFriends(false);
+isPendingRef.current = true;
 
-      unfriend(targetUserId)
+setError(null);
+setAlreadyNotFriends(false);
+
+unfriend(targetUserId)
         .then(() => {
-          // Server success (204 No Content): revalidate.
-          void mutate(
-            SOCIAL_CACHE_KEYS.makeRelationshipKey(targetUserId),
-            undefined,
-            { revalidate: true },
+
+void mutate(
+SOCIAL_CACHE_KEYS.makeRelationshipKey(targetUserId),
+undefined,
+{ revalidate: true },
           );
-          void mutate(
-            SOCIAL_CACHE_KEYS.makeSocialCountsKey(targetUserId),
-            undefined,
-            { revalidate: true },
+void mutate(
+SOCIAL_CACHE_KEYS.makeSocialCountsKey(targetUserId),
+undefined,
+{ revalidate: true },
           );
         })
         .catch((err: unknown) => {
-          const apiErr =
-            err instanceof ApiError ? err : new ApiError(err as never);
+const apiErr =
+err instanceof ApiError ? err : new ApiError(err as never);
 
-          // Non-idempotent DELETE: 404 with SOCIAL_FRIENDSHIP_NOT_FOUND
-          // means the viewer was already not friends with the target.
-          // Treat as a successful terminal state — revalidate the cache
-          // and surface the terminal flag so the caller can dismiss the
-          // confirmation dialog.
-          if (apiErr.code === "SOCIAL_FRIENDSHIP_NOT_FOUND") {
-            setAlreadyNotFriends(true);
-            void mutate(
-              SOCIAL_CACHE_KEYS.makeRelationshipKey(targetUserId),
-              undefined,
-              { revalidate: true },
+if (apiErr.code === "SOCIAL_FRIENDSHIP_NOT_FOUND") {
+setAlreadyNotFriends(true);
+void mutate(
+SOCIAL_CACHE_KEYS.makeRelationshipKey(targetUserId),
+undefined,
+{ revalidate: true },
             );
-            void mutate(
-              SOCIAL_CACHE_KEYS.makeSocialCountsKey(targetUserId),
-              undefined,
-              { revalidate: true },
+void mutate(
+SOCIAL_CACHE_KEYS.makeSocialCountsKey(targetUserId),
+undefined,
+{ revalidate: true },
             );
-            return;
+return;
           }
 
-          // All other errors: surface the error code.
-          const code: UnfriendErrorCode =
-            (apiErr.code as UnfriendErrorCode) ?? "GLOBAL_INTERNAL_ERROR";
-          setError(code);
+const code: UnfriendErrorCode =
+(apiErr.code as UnfriendErrorCode) ?? "GLOBAL_INTERNAL_ERROR";
+setError(code);
         })
         .finally(() => {
-          isPendingRef.current = false;
+isPendingRef.current = false;
         });
     };
 
-    return Object.freeze({
-      unfriend: unfriendAction,
-      get isPending() {
-        return isPendingRef.current;
+return Object.freeze({
+unfriend: unfriendAction,
+get isPending() {
+return isPendingRef.current;
       },
-      error,
-      alreadyNotFriends,
+error,
+alreadyNotFriends,
     });
   }, [
-    isFlagPlaceholder,
-    targetUserId,
-    permissions.canUnfriend,
-    options.assumeCanUnfriend,
-    mutate,
-    error,
-    alreadyNotFriends,
+isFlagPlaceholder,
+targetUserId,
+permissions.canUnfriend,
+options.assumeCanUnfriend,
+mutate,
+error,
+alreadyNotFriends,
   ]);
 
-  // ── Abort on unmount ─────────────────────────────────────────────────
-  // Mirrors `useUnfollow` (TKT-6.6.D2). The `unfriend` service does
-  // not currently support AbortSignal; the `isPendingRef` guard
-  // prevents a subsequent `unfriend()` call from dispatching a second
-  // request, and the `finally` block resets the pending flag on
-  // unmount.
-
-  return result;
+return result;
 }

@@ -1,27 +1,14 @@
 'use client';
 
-/**
- * `features/admin/category-admin/components/CategoryEditDialog.tsx`
- *
- * Source epic:   Epic 7.4 — Category admin CRUD + restore.
- * Source ticket: TKT-7.4.E2.
- *
- * Dialog for editing an existing category. Wraps `useUpdateCategory` and
- * `CategoryFormFields` (edit mode). On `CATEGORY_NOT_FOUND` renders a
- * non-blocking notice with the request-id banner; on
- * `CATEGORY_SLUG_CONFLICT` surfaces `CategorySlugConflictNotice` and the
- * rename path.
- */
-
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
+Dialog,
+DialogContent,
+DialogHeader,
+DialogTitle,
+DialogDescription,
+DialogFooter,
 } from '@/components/ui/Dialog';
 import { Button } from '@/components/ui/Button';
 import { ApiError } from '@/lib/api';
@@ -35,200 +22,199 @@ import { CategorySlugConflictNotice } from './CategorySlugConflictNotice';
 import { useUpdateCategory } from '../hooks/useUpdateCategory';
 
 export interface CategoryEditDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  /** The category to edit. `null` means the dialog is closed / no category selected. */
-  category: CategoryDto | null;
-  /** Called with the updated category on success. */
-  onUpdated: (category: CategoryDto) => void;
+open: boolean;
+onOpenChange: (open: boolean) => void;
+
+category: CategoryDto | null;
+
+onUpdated: (category: CategoryDto) => void;
 }
 
 const PERMISSION = 'category_update';
 
 export function CategoryEditDialog({
-  open,
-  onOpenChange,
-  category,
-  onUpdated,
+open,
+onOpenChange,
+category,
+onUpdated,
 }: CategoryEditDialogProps) {
-  const { hasPermission } = usePermission(PERMISSION);
-  const { update, isPending, error, reset } = useUpdateCategory();
+const { hasPermission } = usePermission(PERMISSION);
+const { update, isPending, error, reset } = useUpdateCategory();
 
-  const [name, setName] = useState(category?.name ?? '');
-  const [slug, setSlug] = useState(category?.slug ?? '');
-  const [description, setDescription] = useState(
-    category?.description ?? '',
+const [name, setName] = useState(category?.name ?? '');
+const [slug, setSlug] = useState(category?.slug ?? '');
+const [description, setDescription] = useState(
+category?.description ?? '',
   );
-  const [imageUrl, setImageUrl] = useState(category?.imageUrl ?? '');
-  const [renamedSlug, setRenamedSlug] = useState('');
-  const prevCategoryIdRef = useRef<string | null>(category?.categoryId ?? null);
+const [imageUrl, setImageUrl] = useState(category?.imageUrl ?? '');
+const [renamedSlug, setRenamedSlug] = useState('');
+const prevCategoryIdRef = useRef<string | null>(category?.categoryId ?? null);
 
-  // Sync form state when the selected category changes while the dialog stays open.
-  useEffect(() => {
-    if (
-      category !== null &&
-      category.categoryId !== prevCategoryIdRef.current
+useEffect(() => {
+if (
+category !== null &&
+category.categoryId !== prevCategoryIdRef.current
     ) {
-      prevCategoryIdRef.current = category.categoryId;
-      setName(category.name);
-      setSlug(category.slug);
-      setDescription(category.description ?? '');
-      setImageUrl(category.imageUrl ?? '');
-      setRenamedSlug('');
-      reset();
+prevCategoryIdRef.current = category.categoryId;
+setName(category.name);
+setSlug(category.slug);
+setDescription(category.description ?? '');
+setImageUrl(category.imageUrl ?? '');
+setRenamedSlug('');
+reset();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [category?.categoryId]);
 
-  const isSlugConflict =
-    error != null && (error as ApiError).code === 'CATEGORY_SLUG_CONFLICT';
-  const isNotFound =
-    error != null && (error as ApiError).code === 'CATEGORY_NOT_FOUND';
+const isSlugConflict =
+error != null && (error as ApiError).code === 'CATEGORY_SLUG_CONFLICT';
+const isNotFound =
+error != null && (error as ApiError).code === 'CATEGORY_NOT_FOUND';
 
-  const canSubmit =
-    !isPending &&
-    name.trim().length > 0 &&
-    !isSlugConflict &&
-    !isNotFound;
+const canSubmit =
+!isPending &&
+name.trim().length > 0 &&
+!isSlugConflict &&
+!isNotFound;
 
-  const handleSubmit = useCallback(
-    async (e: React.FormEvent) => {
-      e.preventDefault();
-      if (!canSubmit || category === null) return;
-      try {
-        const updated = await update(category.categoryId, { name, slug });
-        onUpdated(updated);
-        handleClose();
+const handleSubmit = useCallback(
+async (e: React.FormEvent) => {
+e.preventDefault();
+if (!canSubmit || category === null) return;
+try {
+const updated = await update(category.categoryId, { name, slug });
+onUpdated(updated);
+handleClose();
       } catch {
         // Dialog stays open; error rendered below.
       }
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [canSubmit, update, category, name, slug, onUpdated],
+
+[canSubmit, update, category, name, slug, onUpdated],
   );
 
-  const handleConflictRename = useCallback(
-    async (e: React.FormEvent) => {
-      e.preventDefault();
-      if (!renamedSlug.trim() || isPending || category === null) return;
-      try {
-        const updated = await update(category.categoryId, {
-          name,
-          slug: renamedSlug,
+const handleConflictRename = useCallback(
+async (e: React.FormEvent) => {
+e.preventDefault();
+if (!renamedSlug.trim() || isPending || category === null) return;
+try {
+const updated = await update(category.categoryId, {
+name,
+slug: renamedSlug,
         });
-        onUpdated(updated);
-        handleClose();
+onUpdated(updated);
+handleClose();
       } catch {
         // Dialog stays open.
       }
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [renamedSlug, isPending, update, category, name, onUpdated],
+
+[renamedSlug, isPending, update, category, name, onUpdated],
   );
 
-  const handleClose = useCallback(() => {
-    reset();
-    setName('');
-    setSlug('');
-    setDescription('');
-    setImageUrl('');
-    setRenamedSlug('');
-    prevCategoryIdRef.current = null;
-    onOpenChange(false);
+const handleClose = useCallback(() => {
+reset();
+setName('');
+setSlug('');
+setDescription('');
+setImageUrl('');
+setRenamedSlug('');
+prevCategoryIdRef.current = null;
+onOpenChange(false);
   }, [reset, onOpenChange]);
 
-  if (!hasPermission) {
-    return (
-      <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className='sm:max-w-md'>
-          <PermissionDeniedNotice variant='control' />
-        </DialogContent>
-      </Dialog>
+if (!hasPermission) {
+return (
+<Dialog open={open} onOpenChange={onOpenChange}>
+<DialogContent className='sm:max-w-md'>
+<PermissionDeniedNotice variant='control' />
+</DialogContent>
+</Dialog>
     );
   }
 
-  if (category === null) {
-    return null;
+if (category === null) {
+return null;
   }
 
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className='sm:max-w-md'>
-        <DialogHeader>
-          <DialogTitle>Edit Category</DialogTitle>
-          <DialogDescription>
-            Update the name or details of this category.
+return (
+<Dialog open={open} onOpenChange={onOpenChange}>
+<DialogContent className='sm:max-w-md'>
+<DialogHeader>
+<DialogTitle>Edit Category</DialogTitle>
+<DialogDescription>
+Update the name or details of this category.
           </DialogDescription>
-        </DialogHeader>
+</DialogHeader>
 
-        <form onSubmit={handleSubmit} className='space-y-4'>
-          {isNotFound && (
-            <div className='space-y-2'>
-              <p className='text-sm text-destructive' role='alert'>
-                This category no longer exists. It may have been deleted.
+<form onSubmit={handleSubmit} className='space-y-4'>
+{isNotFound && (
+<div className='space-y-2'>
+<p className='text-sm text-destructive' role='alert'>
+This category no longer exists. It may have been deleted.
               </p>
-              {error != null && (error as ApiError).requestId ? (
-                <RequestIdBanner error={error as ApiError} />
+{error != null && (error as ApiError).requestId ? (
+<RequestIdBanner error={error as ApiError} />
               ) : null}
-            </div>
+</div>
           )}
 
-          <CategoryFormFields
-            mode='edit'
-            initialName={name}
-            initialSlug={slug}
-            initialDescription={description}
-            initialImageUrl={imageUrl}
-            excludeCategoryId={category.categoryId}
-            onChange={(next) => {
-              setName(next.name);
-              setSlug(next.slug);
-              setDescription(next.description);
-              setImageUrl(next.imageUrl);
+<CategoryFormFields
+mode='edit'
+initialName={name}
+initialSlug={slug}
+initialDescription={description}
+initialImageUrl={imageUrl}
+excludeCategoryId={category.categoryId}
+onChange={(next) => {
+setName(next.name);
+setSlug(next.slug);
+setDescription(next.description);
+setImageUrl(next.imageUrl);
             }}
-            disabled={isPending || isNotFound}
+disabled={isPending || isNotFound}
           />
 
-          {error && !isSlugConflict && !isNotFound && (
-            <p className='text-sm text-destructive' role='alert'>
-              {error.detail ?? 'An error occurred. Please try again.'}
-            </p>
+{error && !isSlugConflict && !isNotFound && (
+<p className='text-sm text-destructive' role='alert'>
+{error.detail ?? 'An error occurred. Please try again.'}
+</p>
           )}
 
-          {isSlugConflict && (
-            <CategorySlugConflictNotice
-              error={error as ApiError}
-              mode='edit'
-              renamedSlug={renamedSlug}
-              onRenamedSlugChange={setRenamedSlug}
+{isSlugConflict && (
+<CategorySlugConflictNotice
+error={error as ApiError}
+mode='edit'
+renamedSlug={renamedSlug}
+onRenamedSlugChange={setRenamedSlug}
             />
           )}
 
-          <DialogFooter className='gap-2 sm:gap-0'>
-            <Button
-              type='button'
-              variant='outline'
-              onClick={handleClose}
-              disabled={isPending}
+<DialogFooter className='gap-2 sm:gap-0'>
+<Button
+type='button'
+variant='outline'
+onClick={handleClose}
+disabled={isPending}
             >
-              Cancel
+Cancel
             </Button>
-            {isSlugConflict ? (
-              <Button
-                type='button'
-                disabled={!renamedSlug.trim() || isPending}
-                onClick={handleConflictRename}
+{isSlugConflict ? (
+<Button
+type='button'
+disabled={!renamedSlug.trim() || isPending}
+onClick={handleConflictRename}
               >
-                {isPending ? 'Working…' : 'Save with new slug'}
-              </Button>
+{isPending ? 'Working…' : 'Save with new slug'}
+</Button>
             ) : (
-              <Button type='submit' disabled={!canSubmit}>
-                {isPending ? 'Saving…' : 'Save changes'}
-              </Button>
+<Button type='submit' disabled={!canSubmit}>
+{isPending ? 'Saving…' : 'Save changes'}
+</Button>
             )}
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
+</DialogFooter>
+</form>
+</DialogContent>
+</Dialog>
   );
 }

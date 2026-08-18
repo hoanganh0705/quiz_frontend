@@ -1,35 +1,13 @@
 'use client';
 
-/**
- * `AccountSettings` — profile edit section of the settings page.
- *
- * Source epic:   Epic 4.3 — Edit profile + user settings.
- * Source ticket: TKT-4.3.C1.
- *
- * ## What this component owns
- *
- * Reads `profile` from `useMyProfile()` (passed as prop from the parent
- * settings page), renders a `useForm` with `defaultValues` from the
- * profile, and calls `useUpdateMyProfile.mutate()` on submit.
- *
- * ## Username
- *
- * The username field is read-only (immutable after registration). The
- * `useCheckUsername` hook is mounted for live-feedback future-proofing
- * but `enabled` is `false` so no API calls fire.
- *
- * ## Password change
- *
- * The password dialog is unchanged from the previous version — it uses
- * a separate auth API and is not part of Epic 4.3.
- */
-
 import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import {
   FormProvider,
   useForm,
-  Controller,
+  type UseFormReturn,
 } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import {
   Card,
   CardContent,
@@ -52,6 +30,7 @@ import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
 import { useToast } from '@/lib/forms/useToast';
 import { FormErrorBanner } from '@/components/primitives/form/FormErrorBanner';
+import { ImageUploadField } from '@/components/primitives/form/ImageUploadField';
 import {
   useUpdateMyProfile,
   type UseUpdateMyProfileReturn,
@@ -59,6 +38,8 @@ import {
 import {
   useCheckUsername,
 } from '@/features/auth/hooks/use-check-username';
+import { updateMyProfileSchema } from '@/lib/forms';
+import { deriveUrlClient } from '@/lib/storage/public-id-pattern';
 import type { UserMeResponseDto } from '@/features/users/types/user-backend';
 import {
   User,
@@ -73,28 +54,26 @@ import {
   AlertCircle,
 } from 'lucide-react';
 
-// ─── Props ─────────────────────────────────────────────────────────────────
-
 export interface AccountSettingsProps {
-  /** The authenticated user's full profile from `useMyProfile()`. */
   profile: UserMeResponseDto | null;
 }
 
-// ─── Avatar upload section ───────────────────────────────────────────────────
-
-interface AvatarSectionProps {
-  avatarUrl: string | null;
-  displayName: string;
-  disabled: boolean;
-  onAvatarChange: (dataUrl: string | null) => void;
-}
+type AccountSettingsFormValues = z.infer<typeof updateMyProfileSchema> & {
+  username: string;
+  email: string;
+};
 
 const AvatarSection = memo(function AvatarSection({
-  avatarUrl,
+  profile,
   displayName,
-  disabled,
-  onAvatarChange,
-}: AvatarSectionProps) {
+  isSaving,
+  form,
+}: {
+  profile: UserMeResponseDto;
+  displayName: string;
+  isSaving: boolean;
+  form: UseFormReturn<AccountSettingsFormValues>;
+}) {
   const initials = useMemo(() => {
     if (!displayName) return '?';
     return displayName
@@ -105,20 +84,10 @@ const AvatarSection = memo(function AvatarSection({
       .slice(0, 2);
   }, [displayName]);
 
-  const handleFileSelect = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      const file = e.target.files?.[0];
-      if (!file) return;
-      if (file.size > 5 * 1024 * 1024) {
-        alert('Image must be smaller than 5 MB.');
-        return;
-      }
-      const reader = new FileReader();
-      reader.onload = () => onAvatarChange(reader.result as string);
-      reader.readAsDataURL(file);
-    },
-    [onAvatarChange],
-  );
+  const currentPublicId = form.watch('avatarPublicId');
+  const previewUrl = currentPublicId
+    ? deriveUrlClient(currentPublicId, 'avatar')
+    : profile.avatarUrl ?? null;
 
   return (
     <Card className="border-border/40 py-4">
@@ -132,10 +101,10 @@ const AvatarSection = memo(function AvatarSection({
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="flex items-center gap-6">
+        <div className="flex flex-col items-start gap-6 sm:flex-row">
           <Avatar className="w-24 h-24 border-4 border-primary/20">
             <AvatarImage
-              src={avatarUrl ?? undefined}
+              src={previewUrl ?? undefined}
               alt={`${displayName ?? 'User'}'s profile picture`}
               loading="lazy"
             />
@@ -143,45 +112,13 @@ const AvatarSection = memo(function AvatarSection({
               {initials}
             </AvatarFallback>
           </Avatar>
-          <div className="space-y-2">
-            <div>
-              <input
-                id="avatar-upload"
-                type="file"
-                accept="image/*"
-                className="sr-only"
-                onChange={handleFileSelect}
-                disabled={disabled}
-                aria-hidden="true"
-                tabIndex={-1}
-              />
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={disabled}
-                onClick={() =>
-                  document.getElementById('avatar-upload')?.click()
-                }
-                aria-label="Upload new profile photo"
-              >
-                <Camera className="w-4 h-4 mr-2" aria-hidden="true" />
-                Upload New Photo
-              </Button>
-            </div>
-            <p className="text-xs text-muted-foreground">
-              JPG, PNG or GIF. Max size 5 MB.
-            </p>
-            {avatarUrl && (
-              <Button
-                variant="ghost"
-                size="sm"
-                disabled={disabled}
-                onClick={() => onAvatarChange(null)}
-                aria-label="Remove profile photo"
-              >
-                Remove photo
-              </Button>
-            )}
+          <div className="flex-1">
+            <ImageUploadField<z.ZodType<AccountSettingsFormValues>>
+              name="avatarPublicId"
+              label="Replace photo"
+              description="JPG, PNG, or WEBP. Max 5 MB."
+              purpose="avatar"
+            />
           </div>
         </div>
       </CardContent>
@@ -189,19 +126,13 @@ const AvatarSection = memo(function AvatarSection({
   );
 });
 
-// ─── Username field (read-only) ─────────────────────────────────────────────
-
-interface UsernameFieldProps {
-  username: string;
-  disabled: boolean;
-}
-
 const UsernameField = memo(function UsernameField({
   username,
   disabled,
-}: UsernameFieldProps) {
-  // Mounted with `enabled: false` — username is read-only but the hook
-  // provides the availability feedback infrastructure.
+}: {
+  username: string;
+  disabled: boolean;
+}) {
   const { status } = useCheckUsername({
     username,
     enabled: false,
@@ -247,15 +178,11 @@ const UsernameField = memo(function UsernameField({
   );
 });
 
-// ─── Password dialog (unchanged from previous version) ────────────────────────
-
-interface PasswordDialogProps {
-  profile: UserMeResponseDto;
-}
-
 const PasswordDialog = memo(function PasswordDialog({
   profile: _profile,
-}: PasswordDialogProps) {
+}: {
+  profile: UserMeResponseDto;
+}) {
   const [open, setOpen] = useState(false);
   const [showPassword, setShowPassword] = useState({
     current: false,
@@ -430,7 +357,7 @@ const PasswordDialog = memo(function PasswordDialog({
                     alert('Password must be at least 8 characters!');
                     return;
                   }
-                  // TODO: wire to the password-change API (separate from Epic 4.3).
+
                   setOpen(false);
                   setPasswordData({
                     currentPassword: '',
@@ -449,63 +376,35 @@ const PasswordDialog = memo(function PasswordDialog({
   );
 });
 
-// ─── Root component ─────────────────────────────────────────────────────────
-
-/**
- * `<AccountSettings profile={profile} />` — account settings section.
- *
- * The parent (settings page) owns the `useMyProfile()` call and passes
- * `profile` as a prop. This component owns the form + mutation.
- */
 export const AccountSettings = memo(function AccountSettings({
   profile,
 }: AccountSettingsProps) {
   const updateProfile = useUpdateMyProfile({});
   const toast = useToast();
 
-  const [avatarDataUrl, setAvatarDataUrl] = useState<string | null>(null);
-
-  const defaultValues = useMemo<{
-    displayName: string;
-    bio: string;
-    pronouns: string;
-    location: string;
-    websiteUrl: string;
-    avatarUrl: string | null;
-    username: string;
-    email: string;
-  } | null>(() => {
+  const defaultValues = useMemo<AccountSettingsFormValues | null>(() => {
     if (!profile) return null;
     return {
       displayName: (profile.displayName ?? '') as string,
       bio: (profile.bio ?? '') as string,
-      pronouns: (profile as unknown as Record<string, unknown>).pronouns as string ?? '',
-      location: (profile as unknown as Record<string, unknown>).location as string ?? '',
-      websiteUrl: (profile as unknown as Record<string, unknown>).websiteUrl as string ?? '',
-      avatarUrl: profile.avatarUrl ?? null,
+      pronouns: ((profile as unknown as Record<string, unknown>).pronouns as string | undefined) ?? '',
+      location: ((profile as unknown as Record<string, unknown>).location as string | undefined) ?? '',
+      websiteUrl: ((profile as unknown as Record<string, unknown>).websiteUrl as string | undefined) ?? '',
+      avatarPublicId: null,
       username: profile.username,
       email: profile.email,
     };
   }, [profile]);
 
-  const form = useForm({
+  const form = useForm<AccountSettingsFormValues>({
     defaultValues: defaultValues ?? undefined,
+    resolver: zodResolver(updateMyProfileSchema) as never,
   });
 
-  // Sync avatar changes from the section into the form.
   useEffect(() => {
-    if (avatarDataUrl !== null) {
-      form.setValue('avatarUrl', avatarDataUrl, { shouldDirty: true });
-    }
-  }, [avatarDataUrl, form]);
-
-  // Reset avatar state when profile changes.
-  useEffect(() => {
-    setAvatarDataUrl(null);
     form.reset(defaultValues ?? undefined);
   }, [profile, defaultValues, form]);
 
-  // Show toast on success; reset form and clear error banner.
   useEffect(() => {
     if (updateProfile.isSuccess) {
       toast.push({
@@ -519,11 +418,11 @@ export const AccountSettings = memo(function AccountSettings({
   }, [updateProfile.isSuccess, toast, form, updateProfile]);
 
   const handleFormSubmit = useCallback(
-    async (values: Record<string, unknown>) => {
+    async (values: AccountSettingsFormValues) => {
       await updateProfile.mutate({
-        displayName: values.displayName as string || null,
-        bio: values.bio as string || null,
-        avatarUrl: values.avatarUrl as string | null,
+        displayName: values.displayName || null,
+        bio: values.bio || null,
+        avatarPublicId: values.avatarPublicId ?? null,
       });
     },
     [updateProfile],
@@ -548,7 +447,10 @@ export const AccountSettings = memo(function AccountSettings({
         <FormErrorBanner
           lastError={
             updateProfile.lastError
-              ? { ...updateProfile.lastError, code: updateProfile.lastApiError?.code ?? 'GLOBAL_UNKNOWN' }
+              ? {
+                  ...updateProfile.lastError,
+                  code: updateProfile.lastApiError?.code ?? 'GLOBAL_UNKNOWN',
+                }
               : null
           }
           onDismiss={updateProfile.resetError}
@@ -556,10 +458,10 @@ export const AccountSettings = memo(function AccountSettings({
 
         {/* Avatar */}
         <AvatarSection
-          avatarUrl={avatarDataUrl ?? profile.avatarUrl ?? null}
+          profile={profile}
           displayName={profile.displayName ?? profile.username}
-          disabled={isSaving}
-          onAvatarChange={setAvatarDataUrl}
+          isSaving={isSaving}
+          form={form}
         />
 
         {/* Account info */}

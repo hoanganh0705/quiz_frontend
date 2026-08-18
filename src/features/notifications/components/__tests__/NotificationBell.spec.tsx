@@ -1,109 +1,93 @@
-/**
- * `NotificationBell.spec.tsx` — RTL integration tests for the notification bell.
- *
- * Source epic:   Epic 5.1.
- * Source story:  5.4.
- * Source ticket: TKT-5.4.G2.
- *
- * Tests cover:
- * - renders the bell trigger with badge
- * - renders the bell (but suppresses the badge + popover) when the
- *   feature flag is `'placeholder'`
- * - aria-label is set on the trigger button
- */
+
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 
 const mocks = vi.hoisted(() => ({
-  useNotificationSocket: vi.fn(),
-  getFeatureFlagValue: vi.fn(),
+useNotificationSocket: vi.fn(),
+getFeatureFlagValue: vi.fn(),
   // Component mocks (UnreadBadge / NotificationPopover) are installed below.
 }));
 
 vi.mock('@/features/notifications/hooks/useNotificationSocket', () => ({
-  useNotificationSocket: (...args: unknown[]) => mocks.useNotificationSocket(...args),
+useNotificationSocket: (...args: unknown[]) => mocks.useNotificationSocket(...args),
 }));
 
 vi.mock('@/lib/feature-flags', () => ({
-  getFeatureFlagValue: (...args: unknown[]) => mocks.getFeatureFlagValue(...args),
+getFeatureFlagValue: (...args: unknown[]) => mocks.getFeatureFlagValue(...args),
 }));
 
-// Mock the DropdownMenu primitives to avoid Radix runtime dependencies
-// in the test environment.
 vi.mock('@/components/ui/DropdownMenu', () => ({
-  DropdownMenu: ({ children }: { children: React.ReactNode }) => (
-    <div data-testid="dropdown-root">{children}</div>
+DropdownMenu: ({ children }: { children: React.ReactNode }) => (
+<div data-testid="dropdown-root">{children}</div>
   ),
-  DropdownMenuTrigger: ({ children }: { children: React.ReactNode }) => (
-    <div data-testid="dropdown-trigger">{children}</div>
+DropdownMenuTrigger: ({ children }: { children: React.ReactNode }) => (
+<div data-testid="dropdown-trigger">{children}</div>
   ),
 }));
 
 vi.mock('@/features/notifications/components/UnreadBadge', () => ({
-  UnreadBadge: () => <span data-testid="unread-badge-stub" />,
+UnreadBadge: () => <span data-testid="unread-badge-stub" />,
 }));
 
 vi.mock('@/features/notifications/components/NotificationPopover', () => ({
-  NotificationPopover: () => <div data-testid="notification-popover-stub" />,
+NotificationPopover: () => <div data-testid="notification-popover-stub" />,
 }));
 
 import { NotificationBell } from '@/features/notifications/components/NotificationBell';
 
 describe('NotificationBell', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-    mocks.getFeatureFlagValue.mockReturnValue('live');
-    mocks.useNotificationSocket.mockReturnValue({
-      isLive: false,
-      connectionState: 'idle',
-      socket: null,
-      error: null,
-      reconnect: vi.fn(),
-      disconnect: vi.fn(),
+beforeEach(() => {
+vi.clearAllMocks();
+mocks.getFeatureFlagValue.mockReturnValue('live');
+mocks.useNotificationSocket.mockReturnValue({
+isLive: false,
+connectionState: 'idle',
+socket: null,
+error: null,
+reconnect: vi.fn(),
+disconnect: vi.fn(),
     });
   });
 
-  afterEach(() => {
-    vi.restoreAllMocks();
+afterEach(() => {
+vi.restoreAllMocks();
   });
 
-  describe('feature flag gating', () => {
-    it('renders the bell with a suppressed badge + popover when feature flag is placeholder', () => {
-      mocks.getFeatureFlagValue.mockReturnValue('placeholder');
+describe('feature flag gating', () => {
+it('renders the bell with a suppressed badge + popover when feature flag is placeholder', () => {
+mocks.getFeatureFlagValue.mockReturnValue('placeholder');
 
-      const { container } = render(<NotificationBell />);
+const { container } = render(<NotificationBell />);
 
-      // Bell is always present in placeholder mode.
-      expect(container.querySelector('[data-testid="notification-bell"]')).toBeInTheDocument();
+expect(container.querySelector('[data-testid="notification-bell"]')).toBeInTheDocument();
 
-      // Badge + popover are suppressed in placeholder mode.
-      expect(screen.queryByTestId('unread-badge-stub')).not.toBeInTheDocument();
-      expect(screen.queryByTestId('notification-popover-stub')).not.toBeInTheDocument();
+expect(screen.queryByTestId('unread-badge-stub')).not.toBeInTheDocument();
+expect(screen.queryByTestId('notification-popover-stub')).not.toBeInTheDocument();
     });
 
-    it('renders the bell with the badge + popover when feature flag is live', () => {
-      mocks.getFeatureFlagValue.mockReturnValue('live');
+it('renders the bell with the badge + popover when feature flag is live', () => {
+mocks.getFeatureFlagValue.mockReturnValue('live');
 
-      const { container } = render(<NotificationBell />);
+const { container } = render(<NotificationBell />);
 
-      expect(container.querySelector('[data-testid="notification-bell"]')).toBeInTheDocument();
-      expect(screen.getByTestId('unread-badge-stub')).toBeInTheDocument();
-      expect(screen.getByTestId('notification-popover-stub')).toBeInTheDocument();
+expect(container.querySelector('[data-testid="notification-bell"]')).toBeInTheDocument();
+expect(screen.getByTestId('unread-badge-stub')).toBeInTheDocument();
+expect(screen.getByTestId('notification-popover-stub')).toBeInTheDocument();
     });
   });
 
-  describe('rendered surface', () => {
-    it('renders the bell with an aria-label', () => {
-      render(<NotificationBell />);
+describe('rendered surface', () => {
+it('renders the bell with an aria-label', () => {
+render(<NotificationBell />);
 
-      expect(screen.getByRole('button', { name: /notifications/i })).toBeInTheDocument();
+expect(screen.getByRole('button', { name: /notifications/i })).toBeInTheDocument();
     });
 
-    it('embeds the unread badge stub', () => {
-      render(<NotificationBell />);
+it('embeds the unread badge stub', () => {
+render(<NotificationBell />);
 
-      expect(screen.getByTestId('unread-badge-stub')).toBeInTheDocument();
+expect(screen.getByTestId('unread-badge-stub')).toBeInTheDocument();
     });
   });
 });

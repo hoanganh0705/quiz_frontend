@@ -1,6 +1,4 @@
-/**
- * `index.ts` — Audit log admin components barrel.
- */
+
 
 export { AuditLogPage } from './AuditLogPage';
 

@@ -1,45 +1,10 @@
 'use client';
 
-/**
- * `<RichTextArea />` — the canonical markdown-aware textarea atom.
- *
- * Source epic:   Epic 4.2 — `useQuizForm` primitive + shared form atoms.
- * Source story:  PHASE_4_EPICS.md → Story 4.2 (lines 202–293).
- * Source ticket: TKT-4.2.B2.
- *
- * ## What this atom owns
- *
- *   - **`<Textarea>` (shadcn) composition** with `useController`
- *     registration via `FormProvider`. Structural sibling of
- *     `<TextField />` (B1).
- *   - **Character counter** — when `maxLength` is provided, renders a
- *     "{current}/{max}" line below the textarea, with the counter
- *     styled red when `current >= max`.
- *   - **Preview toggle** — when `previewLabel` is provided, a "Toggle
- *     preview" button is rendered; toggling shows a preview pane that
- *     renders the current value. (The preview is a passthrough today;
- *     a project-level markdown renderer can be wired in later via a
- *     sibling helper without changing this atom's surface.)
- *
- * ## What this atom does NOT own
- *
- *   - **Markdown rendering library** — the preview pane renders the
- *     raw value. Phase 5+ can introduce a renderer by adding a
- *     helper module; the atom is intentionally renderer-agnostic.
- *   - **Validation logic** — zod drives validation; the atom only
- *     surfaces `formState.errors[name].message`.
- *
- * ## Type-system contract
- *
- * Same as `<TextField />`: the generic `T` is a `z.ZodType` so
- * `name` is constrained to a valid `Path<z.infer<T>>`.
- */
-
 import * as React from 'react';
 import {
-  useController,
-  type FieldValues,
-  type Path,
+useController,
+type FieldValues,
+type Path,
 } from 'react-hook-form';
 import type { z } from 'zod';
 import { Eye, EyeOff } from 'lucide-react';
@@ -49,124 +14,117 @@ import { Label } from '@/components/ui/Label';
 import { cn } from '@/shared/utils/merge-class-names';
 
 export interface RichTextAreaProps<T extends z.ZodType<FieldValues, any, any>> {
-  name: Path<z.infer<T>>;
-  label: string;
-  description?: string;
-  placeholder?: string;
-  /** Soft / hard limit on the textarea content. Renders a counter when set. */
-  maxLength?: number;
-  /**
-   * When provided, renders a "Toggle preview" button. The preview pane
-   * shows the current value (passthrough rendering).
-   */
-  previewLabel?: string;
-  /** Force-disable regardless of the form's submitting state. */
-  disabled?: boolean;
-  /** Optional className appended to the wrapping `<div>`. */
-  className?: string;
-  /** Optional `data-testid` forwarded to the `<textarea>`. */
-  testId?: string;
+name: Path<z.infer<T>>;
+label: string;
+description?: string;
+placeholder?: string;
+
+maxLength?: number;
+
+previewLabel?: string;
+
+disabled?: boolean;
+
+className?: string;
+
+testId?: string;
 }
 
-/**
- * `<RichTextArea />` — markdown-aware textarea with optional preview
- * + character counter.
- */
 export function RichTextArea<T extends z.ZodType<FieldValues, any, any>>(
-  props: RichTextAreaProps<T>
+props: RichTextAreaProps<T>
 ): React.ReactElement {
-  const {
-    name,
-    label,
-    description,
-    placeholder,
-    maxLength,
-    previewLabel,
-    disabled,
-    className,
-    testId,
+const {
+name,
+label,
+description,
+placeholder,
+maxLength,
+previewLabel,
+disabled,
+className,
+testId,
   } = props;
 
-  const { field, fieldState, formState } = useController({ name });
-  const [showPreview, setShowPreview] = React.useState(false);
+const { field, fieldState, formState } = useController({ name });
+const [showPreview, setShowPreview] = React.useState(false);
 
-  const inputDisabled =
-    disabled === true ? true : disabled === false ? false : formState.isSubmitting;
+const inputDisabled =
+disabled === true ? true : disabled === false ? false : formState.isSubmitting;
 
-  const errorMessage = fieldState.error?.message;
-  const currentLength = String(field.value ?? '').length;
-  const inputId = React.useId();
+const errorMessage = fieldState.error?.message;
+const currentLength = String(field.value ?? '').length;
+const inputId = React.useId();
 
-  return (
-    <div className={cn('space-y-2', className)} data-testid={`rich-text-area-${name}`}>
-      <div className='flex items-center justify-between'>
-        <Label htmlFor={inputId}>{label}</Label>
-        {previewLabel ? (
-          <button
-            type='button'
-            onClick={() => setShowPreview((v) => !v)}
-            className='text-xs text-muted-foreground hover:text-foreground inline-flex items-center gap-1'
-            aria-pressed={showPreview}
-            data-testid={`rich-text-area-preview-toggle-${name}`}
+return (
+<div className={cn('space-y-2', className)} data-testid={`rich-text-area-${name}`}>
+<div className='flex items-center justify-between'>
+<Label htmlFor={inputId}>{label}</Label>
+{previewLabel ? (
+<button
+type='button'
+onClick={() => setShowPreview((v) => !v)}
+className='text-xs text-muted-foreground hover:text-foreground inline-flex items-center gap-1'
+aria-pressed={showPreview}
+data-testid={`rich-text-area-preview-toggle-${name}`}
           >
-            {showPreview ? (
-              <>
-                <EyeOff className='h-3 w-3' aria-hidden='true' /> Hide preview
+{showPreview ? (
+<>
+<EyeOff className='h-3 w-3' aria-hidden='true' /> Hide preview
               </>
             ) : (
-              <>
-                <Eye className='h-3 w-3' aria-hidden='true' /> {previewLabel}
-              </>
+<>
+<Eye className='h-3 w-3' aria-hidden='true' /> {previewLabel}
+</>
             )}
-          </button>
+</button>
         ) : null}
-      </div>
-      {description ? (
-        <p className='text-xs text-muted-foreground'>{description}</p>
+</div>
+{description ? (
+<p className='text-xs text-muted-foreground'>{description}</p>
       ) : null}
-      {showPreview ? (
-        <div
-          className='min-h-16 rounded-md border bg-muted/40 px-3 py-2 text-sm whitespace-pre-wrap'
-          data-testid={`rich-text-area-preview-${name}`}
+{showPreview ? (
+<div
+className='min-h-16 rounded-md border bg-muted/40 px-3 py-2 text-sm whitespace-pre-wrap'
+data-testid={`rich-text-area-preview-${name}`}
         >
-          {String(field.value ?? '')}
-        </div>
+{String(field.value ?? '')}
+</div>
       ) : (
-        <Textarea
-          id={inputId}
-          placeholder={placeholder}
-          disabled={inputDisabled}
-          maxLength={maxLength}
-          value={String(field.value ?? '')}
-          onChange={(event) => field.onChange(event)}
-          onBlur={field.onBlur}
-          ref={field.ref}
-          aria-invalid={!!errorMessage}
-          data-testid={testId}
+<Textarea
+id={inputId}
+placeholder={placeholder}
+disabled={inputDisabled}
+maxLength={maxLength}
+value={String(field.value ?? '')}
+onChange={(event) => field.onChange(event)}
+onBlur={field.onBlur}
+ref={field.ref}
+aria-invalid={!!errorMessage}
+data-testid={testId}
         />
       )}
-      <div className='flex items-center justify-between'>
-        {errorMessage ? (
-          <p className='text-xs text-destructive' role='alert'>
-            {errorMessage}
-          </p>
+<div className='flex items-center justify-between'>
+{errorMessage ? (
+<p className='text-xs text-destructive' role='alert'>
+{errorMessage}
+</p>
         ) : (
-          <span />
+<span />
         )}
-        {maxLength ? (
-          <span
-            className={cn(
-              'text-xs',
-              currentLength >= maxLength
-                ? 'text-destructive'
-                : 'text-muted-foreground'
+{maxLength ? (
+<span
+className={cn(
+'text-xs',
+currentLength >= maxLength
+? 'text-destructive'
+: 'text-muted-foreground'
             )}
-            data-testid={`rich-text-area-counter-${name}`}
+data-testid={`rich-text-area-counter-${name}`}
           >
-            {currentLength}/{maxLength}
-          </span>
+{currentLength}/{maxLength}
+</span>
         ) : null}
-      </div>
-    </div>
+</div>
+</div>
   );
 }

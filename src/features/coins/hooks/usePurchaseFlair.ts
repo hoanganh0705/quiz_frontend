@@ -1,17 +1,5 @@
 "use client";
 
-/**
- * `usePurchaseFlair` — mutation hook for the flair-equip spend action.
- *
- * Source epic:   Epic 7.12 — Coin economy: earn + spend side.
- * Source ticket: TKT-7.12.C2.
- *
- * Mirrors the discipline of `useTipAuthor`. The flair slot is owned by
- * the backend (`user_flair_slots` table); this hook only debits the
- * wallet. The `<FlairPurchaseControl />` revalidates the badge
- * gallery + the flair slot on success.
- */
-
 import { useCallback, useMemo } from "react";
 import { useSWRConfig } from "swr";
 
@@ -20,88 +8,88 @@ import { getFeatureFlagValue } from "@/lib/feature-flags";
 
 import { purchaseFlair } from "@/features/coins/services/coins.service";
 import type {
-  CoinErrorCode,
-  PurchaseFlairRequest,
+CoinErrorCode,
+PurchaseFlairRequest,
 } from "@/features/coins/types/coin.types";
 import { COIN_CACHE_KEYS } from "@/features/coins/types/coin.types";
 
 export type UsePurchaseFlairResult = {
-  purchaseFlair: (
-    input: PurchaseFlairRequest,
-    idempotencyKey?: string,
+purchaseFlair: (
+input: PurchaseFlairRequest,
+idempotencyKey?: string,
   ) => void;
-  isPending: boolean;
-  error: CoinErrorCode | null;
+isPending: boolean;
+error: CoinErrorCode | null;
 };
 
 function classifyCoinError(cause: unknown): CoinErrorCode {
-  if (cause instanceof ApiError) {
-    return (cause.code as CoinErrorCode) ?? "GLOBAL_INTERNAL_ERROR";
+if (cause instanceof ApiError) {
+return (cause.code as CoinErrorCode) ?? "GLOBAL_INTERNAL_ERROR";
   }
-  return "GLOBAL_INTERNAL_ERROR";
+return "GLOBAL_INTERNAL_ERROR";
 }
 
 const COOLDOWN_MS = 750;
 
 export function usePurchaseFlair(): UsePurchaseFlairResult {
-  const flagValue = getFeatureFlagValue("coin_spend_live");
-  const isPlaceholder = flagValue === "placeholder";
+const flagValue = getFeatureFlagValue("coin_spend_live");
+const isPlaceholder = flagValue === "placeholder";
 
-  const { mutate } = useSWRConfig();
-  const {
-    mutate: dispatch,
-    isInFlight,
-    lastResult,
+const { mutate } = useSWRConfig();
+const {
+mutate: dispatch,
+isInFlight,
+lastResult,
   } = useOptimisticMutation();
 
-  const revalidate = useCallback(async (): Promise<void> => {
-    await mutate(
-      (key) =>
-        Array.isArray(key) &&
-        key[0] === "coins" &&
-        (key[1] === "wallet" || key[1] === "transactions"),
-      undefined,
-      { revalidate: true },
+const revalidate = useCallback(async (): Promise<void> => {
+await mutate(
+(key) =>
+Array.isArray(key) &&
+key[0] === "coins" &&
+(key[1] === "wallet" || key[1] === "transactions"),
+undefined,
+{ revalidate: true },
     );
   }, [mutate]);
 
-  const error: CoinErrorCode | null =
-    lastResult && lastResult.status === "reverted"
-      ? classifyCoinError(lastResult.apiError)
-      : null;
+const error: CoinErrorCode | null =
+lastResult && lastResult.status === "reverted"
+? classifyCoinError(lastResult.apiError)
+: null;
 
-  const result = useMemo<UsePurchaseFlairResult>(() => {
-    if (isPlaceholder) {
-      return Object.freeze({
-        purchaseFlair: () => {
+const result = useMemo<UsePurchaseFlairResult>(() => {
+if (isPlaceholder) {
+return Object.freeze({
+purchaseFlair: () => {
           /* no-op */
         },
-        isPending: false,
-        error: null,
+isPending: false,
+error: null,
       });
     }
 
-    const fn = (
-      input: PurchaseFlairRequest,
-      idempotencyKey?: string,
+const fn = (
+input: PurchaseFlairRequest,
+idempotencyKey?: string,
     ): void => {
-      void dispatch({
-        key: COIN_CACHE_KEYS.wallet(),
-        optimisticData: (current) => current,
-        run: async () => {
-          await purchaseFlair(input, idempotencyKey);
-          await revalidate();
+void dispatch({
+key: COIN_CACHE_KEYS.wallet(),
+optimisticData: (current) => current,
+run: async () => {
+await purchaseFlair(input, idempotencyKey);
+await revalidate();
         },
-        cooldownMs: COOLDOWN_MS,
+cooldownMs: COOLDOWN_MS,
       });
     };
 
-    return Object.freeze({
-      purchaseFlair: fn,
-      isPending: isInFlight,
-      error,
+return Object.freeze({
+purchaseFlair: fn,
+isPending: isInFlight,
+error,
     });
   }, [isPlaceholder, dispatch, isInFlight, error, revalidate]);
 
-  return result;
+return result;
 }

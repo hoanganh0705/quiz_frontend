@@ -1,4 +1,4 @@
-// UI Components - Barrel export
+
 export * from './Accordion'
 export * from './AlertDialog'
 export * from './Avatar'

@@ -1,28 +1,14 @@
 "use client";
 
-import Link from "next/link";
-
 import {
   BookmarkButtonSlot,
   type BookmarkButtonSlotProps,
 } from "@/components/primitives/BookmarkButton";
-import { cn } from "@/shared/utils/merge-class-names";
+import { EntityCard } from "@/components/primitives/EntityCard";
 import type { QuizListItemDto } from "@/lib/api/generated/schemas";
 
-const CARD_OUTER =
-  "group relative flex h-full flex-col overflow-hidden rounded-xl border bg-card text-card-foreground shadow-sm transition focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 hover:shadow-md";
-const COVER_BASE = "relative aspect-[16/9] w-full overflow-hidden bg-muted";
-const COVER_IMG = "h-full w-full object-cover";
-const COVER_FALLBACK =
-  "flex h-full w-full items-center justify-center text-lg font-semibold uppercase text-muted-foreground";
-const BODY = "flex flex-1 flex-col gap-2 p-4";
-const TITLE = "line-clamp-2 text-base font-semibold leading-snug";
-const DESCRIPTION = "line-clamp-2 text-sm text-muted-foreground";
-const META_ROW =
-  "mt-auto flex items-center gap-2 text-xs text-muted-foreground";
-const BADGE = "rounded-full border bg-background px-2 py-0.5 text-xs";
-const BOOKMARK_SLOT =
-  "absolute right-2 top-2 z-10 rounded-md bg-card/80 p-1 backdrop-blur-sm";
+const BADGE =
+  "rounded-full border bg-background px-2 py-0.5 text-xs";
 
 function initialsFromQuiz(quiz: QuizListItemDto): string {
   const seed = quiz.quizId.replace(/-/g, "").slice(-6);
@@ -46,10 +32,7 @@ function formatDuration(durationMs: number | undefined): string | null {
   return `${minutes}m ${seconds}s`;
 }
 
-export interface QuizCardProps extends Omit<
-  React.AnchorHTMLAttributes<HTMLAnchorElement>,
-  "href"
-> {
+export interface QuizCardProps {
   quiz: QuizListItemDto;
   className?: string;
   bookmarkSlot?:
@@ -61,7 +44,6 @@ export function QuizCard({
   quiz,
   className,
   bookmarkSlot,
-  ...rest
 }: QuizCardProps) {
   const href = `/quizzes/${quiz.slug || quiz.quizId}`;
   const difficulty = quiz.publishedVersion?.difficulty;
@@ -73,62 +55,44 @@ export function QuizCard({
       : bookmarkSlot;
 
   return (
-    <Link
+    <EntityCard
       href={href}
-      className={cn(CARD_OUTER, className)}
-      aria-label={quiz.title}
-      data-testid="quiz-card"
-      data-quiz-id={quiz.quizId}
-      data-quiz-slug={quiz.slug}
-      {...rest}
-    >
-      <div className={COVER_BASE}>
-        {quiz.imageUrl ? (
-          // Plain <img> (not next/image) so the primitive works inside
-          // demo routes and unit tests without remote-pattern config.
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={quiz.imageUrl}
-            alt=""
-            loading="lazy"
-            className={COVER_IMG}
-          />
-        ) : (
-          <span aria-hidden="true" className={COVER_FALLBACK}>
-            {initialsFromQuiz(quiz)}
-          </span>
-        )}
-      </div>
-      <div className={BODY}>
-        <h3 className={TITLE}>{quiz.title}</h3>
-        {quiz.description ? (
-          <p className={DESCRIPTION}>{quiz.description}</p>
-        ) : null}
-        <div className={META_ROW}>
+      title={quiz.title}
+      description={quiz.description}
+      imageUrl={quiz.imageUrl}
+      initials={initialsFromQuiz(quiz)}
+      aspectRatio="16/9"
+      coverSize="md"
+      className={className}
+      linkProps={{
+        "data-testid": "quiz-card",
+        "data-quiz-id": quiz.quizId,
+        "data-quiz-slug": quiz.slug,
+      }}
+      badges={
+        <>
           {quiz.isVerified ? (
-            <span className={BADGE} aria-label="Verified">
-              Verified
-            </span>
+            <span className={BADGE}>Verified</span>
           ) : null}
           {quiz.isFeatured ? (
-            <span className={BADGE} aria-label="Featured">
-              Featured
-            </span>
+            <span className={BADGE}>Featured</span>
           ) : null}
           {difficulty ? <span className={BADGE}>{difficulty}</span> : null}
-          {duration ? (
-            <span className="ml-auto tabular-nums">{duration}</span>
-          ) : null}
-        </div>
-      </div>
-      {renderBookmarkSlot ? (
-        <div className={BOOKMARK_SLOT}>
-          {renderBookmarkSlot({
-            quizId: quiz.quizId,
-            variant: "card",
-          })}
-        </div>
-      ) : null}
-    </Link>
+        </>
+      }
+      meta={
+        duration ? (
+          <span className="tabular-nums">{duration}</span>
+        ) : null
+      }
+      bookmarkSlot={
+        renderBookmarkSlot
+          ? renderBookmarkSlot({
+              quizId: quiz.quizId,
+              variant: "card",
+            })
+          : null
+      }
+    />
   );
 }

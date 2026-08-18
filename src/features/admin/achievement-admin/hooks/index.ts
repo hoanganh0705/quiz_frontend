@@ -1,11 +1,4 @@
-/**
- * `features/admin/achievement-admin/hooks/index.ts`
- *
- * Barrel export for all achievement-admin hooks.
- *
- * Source epic:   Epic 7.8.
- * Source ticket: TKT-7.8.C1–C6.
- */
+
 
 export { useUserBadges } from './useUserBadges';
 export type { UseUserBadgesResult } from './useUserBadges';
@@ -18,8 +11,8 @@ export type { UseBadgeCatalogOptions, UseBadgeCatalogResult } from './useBadgeCa
 
 export { useReevaluateUserAchievements } from './useReevaluateUserAchievements';
 export type {
-  UseReevaluateUserAchievementsAudit,
-  UseReevaluateUserAchievementsResult,
+UseReevaluateUserAchievementsAudit,
+UseReevaluateUserAchievementsResult,
 } from './useReevaluateUserAchievements';
 
 export { useRevokeUserBadge } from './useRevokeUserBadge';

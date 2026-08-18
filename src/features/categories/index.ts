@@ -1,4 +1,4 @@
-// Categories feature - public API surface
+
 export * from "./services";
 export * from "./components";
 export * from "./hooks";

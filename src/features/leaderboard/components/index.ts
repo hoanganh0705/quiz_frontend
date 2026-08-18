@@ -1,4 +1,4 @@
-// Leaderboard components - public API surface
+
 export { CompetitionStats } from './CompetitionStats'
 export { FindFriendsPopup } from './FindFriendsPopup'
 export { default as GlobalLeaderboard } from './GlobalLeaderboard'
@@ -12,10 +12,8 @@ export { LeaderboardHighlights } from './LeaderboardHighlights'
 export { YourRankingPopup } from './YourRankingPopup'
 export { PlayerCard } from './PlayerCard'
 
-// Tabs
 export { default as GlobalTab } from './GlobalTab'
 export { default as CategoryTab } from './CategoryTab'
 export { default as TrendingTab } from './TrendingTab'
 
-// Migrated from homepage
 export { default as PlayerRanking } from './PlayerRanking'

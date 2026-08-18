@@ -1,25 +1,9 @@
-/**
- * `SearchInput.spec.tsx` — locks the search input component.
- *
- * Source epic:   Epic 5.1 — SDK coverage & realtime contract foundation.
- * Source story:  5.6 — Search and Approved Read-Only Social Discovery Integration.
- * Source ticket: TKT-5.6.G2.
- *
- * ## What this test locks
- *
- * - Renders a labeled search input with combobox ARIA semantics.
- * - Debounces the onSubmit callback by SEARCH_INPUT_DEBOUNCE_MS (250 ms).
- * - Shows history suggestions when focused.
- * - Keyboard navigation: ArrowDown/ArrowUp/Enter/Escape.
- * - URL update via onSubmit (caller integration).
- */
+
 
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, fireEvent, act } from "@testing-library/react";
 
 import { SearchInput } from "@/features/search/components/SearchInput";
-
-// ─── Mocks ─────────────────────────────────────────────────────────
 
 const mockGetFeatureFlagValue = vi.fn();
 const mockPushHistory = vi.fn();
@@ -27,214 +11,207 @@ const mockClearHistory = vi.fn();
 const mockOnSubmit = vi.fn();
 
 vi.mock("@/lib/feature-flags", () => ({
-  getFeatureFlagValue: (...args: unknown[]) => mockGetFeatureFlagValue(...args),
+getFeatureFlagValue: (...args: unknown[]) => mockGetFeatureFlagValue(...args),
 }));
 
 vi.mock("@/features/search/hooks/useDebouncedValue", async () => {
-  // Use the real hook (with fake timers) so debounce behavior is exercised.
-  const actual = await vi.importActual<typeof import("@/features/search/hooks/useDebouncedValue")>(
-    "@/features/search/hooks/useDebouncedValue",
+
+const actual = await vi.importActual<typeof import("@/features/search/hooks/useDebouncedValue")>(
+"@/features/search/hooks/useDebouncedValue",
   );
-  return actual;
+return actual;
 });
 
 vi.mock("@/features/search/hooks/useSearchHistory", () => ({
-  useSearchHistory: vi.fn(() => ({
-    entries: [
-      { query: "recent search", timestamp: Date.now() - 1000 },
-      { query: "another search", timestamp: Date.now() - 2000 },
+useSearchHistory: vi.fn(() => ({
+entries: [
+{ query: "recent search", timestamp: Date.now() - 1000 },
+{ query: "another search", timestamp: Date.now() - 2000 },
     ],
-    push: mockPushHistory,
-    clear: mockClearHistory,
-    remove: vi.fn(),
+push: mockPushHistory,
+clear: mockClearHistory,
+remove: vi.fn(),
   })),
-  SEARCH_HISTORY_MAX_ENTRIES: 10,
+SEARCH_HISTORY_MAX_ENTRIES: 10,
 }));
 
 vi.mock("@/features/search/hooks/useSearch", () => ({
-  SEARCH_MIN_QUERY_LENGTH: 2,
+SEARCH_MIN_QUERY_LENGTH: 2,
 }));
 
-// ─── Tests ─────────────────────────────────────────────────────────
-
 describe("SearchInput", () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-    vi.useFakeTimers();
-    mockGetFeatureFlagValue.mockReturnValue("live");
+beforeEach(() => {
+vi.clearAllMocks();
+vi.useFakeTimers();
+mockGetFeatureFlagValue.mockReturnValue("live");
   });
 
-  afterEach(() => {
-    vi.useRealTimers();
+afterEach(() => {
+vi.useRealTimers();
   });
 
-  describe("rendering", () => {
-    it("renders a search input with accessible label", () => {
-      render(<SearchInput onSubmit={vi.fn()} />);
+describe("rendering", () => {
+it("renders a search input with accessible label", () => {
+render(<SearchInput onSubmit={vi.fn()} />);
 
-      const input = screen.getByRole("combobox", { name: /search/i });
-      expect(input).toBeInTheDocument();
+const input = screen.getByRole("combobox", { name: /search/i });
+expect(input).toBeInTheDocument();
     });
 
-    it("uses the default placeholder text", () => {
-      render(<SearchInput onSubmit={vi.fn()} />);
+it("uses the default placeholder text", () => {
+render(<SearchInput onSubmit={vi.fn()} />);
 
-      const input = screen.getByRole("combobox");
-      expect(input).toHaveAttribute("placeholder", "Search quizzes, users, tournaments…");
+const input = screen.getByRole("combobox");
+expect(input).toHaveAttribute("placeholder", "Search quizzes, users, tournaments…");
     });
 
-    it("uses a custom placeholder when provided", () => {
-      render(<SearchInput onSubmit={vi.fn()} placeholder="Find something" />);
+it("uses a custom placeholder when provided", () => {
+render(<SearchInput onSubmit={vi.fn()} placeholder="Find something" />);
 
-      const input = screen.getByRole("combobox");
-      expect(input).toHaveAttribute("placeholder", "Find something");
+const input = screen.getByRole("combobox");
+expect(input).toHaveAttribute("placeholder", "Find something");
     });
   });
 
-  describe("controlled value", () => {
-    it("displays the controlled value", () => {
-      render(<SearchInput value="controlled value" onSubmit={vi.fn()} />);
+describe("controlled value", () => {
+it("displays the controlled value", () => {
+render(<SearchInput value="controlled value" onSubmit={vi.fn()} />);
 
-      const input = screen.getByRole("combobox") as HTMLInputElement;
-      expect(input.value).toBe("controlled value");
+const input = screen.getByRole("combobox") as HTMLInputElement;
+expect(input.value).toBe("controlled value");
     });
 
-    it("updates when controlled value changes", () => {
-      const { rerender } = render(
-        <SearchInput value="first" onSubmit={vi.fn()} />,
+it("updates when controlled value changes", () => {
+const { rerender } = render(
+<SearchInput value="first" onSubmit={vi.fn()} />,
       );
 
-      rerender(<SearchInput value="second" onSubmit={vi.fn()} />);
+rerender(<SearchInput value="second" onSubmit={vi.fn()} />);
 
-      const input = screen.getByRole("combobox") as HTMLInputElement;
-      expect(input.value).toBe("second");
+const input = screen.getByRole("combobox") as HTMLInputElement;
+expect(input.value).toBe("second");
     });
   });
 
-  describe("keyboard navigation (TKT-5.6.G2 AC #4)", () => {
-    it("ArrowDown moves highlight down in suggestions", () => {
-      render(<SearchInput onSubmit={mockOnSubmit} />);
+describe("keyboard navigation (TKT-5.6.G2 AC #4)", () => {
+it("ArrowDown moves highlight down in suggestions", () => {
+render(<SearchInput onSubmit={mockOnSubmit} />);
 
-      const input = screen.getByRole("combobox");
-      fireEvent.click(input);
+const input = screen.getByRole("combobox");
+fireEvent.click(input);
 
-      // Open the suggestion list (focus event triggers it)
-      fireEvent.focus(input);
+fireEvent.focus(input);
 
-      // Suggestions are rendered when input is focused
-      const suggestions = screen.queryByRole("listbox");
-      if (suggestions) {
-        fireEvent.keyDown(input, { key: "ArrowDown" });
+const suggestions = screen.queryByRole("listbox");
+if (suggestions) {
+fireEvent.keyDown(input, { key: "ArrowDown" });
 
-        // First suggestion should be highlighted
-        const firstOption = screen.queryByRole("option", { name: /recent search/i });
-        expect(firstOption).toHaveAttribute("aria-selected", "true");
+const firstOption = screen.queryByRole("option", { name: /recent search/i });
+expect(firstOption).toHaveAttribute("aria-selected", "true");
       }
     });
 
-    it("Enter submits the highlighted suggestion", () => {
-      render(<SearchInput onSubmit={mockOnSubmit} />);
+it("Enter submits the highlighted suggestion", () => {
+render(<SearchInput onSubmit={mockOnSubmit} />);
 
-      const input = screen.getByRole("combobox");
-      fireEvent.click(input);
-      fireEvent.focus(input);
+const input = screen.getByRole("combobox");
+fireEvent.click(input);
+fireEvent.focus(input);
 
-      fireEvent.keyDown(input, { key: "ArrowDown" });
-      fireEvent.keyDown(input, { key: "Enter" });
+fireEvent.keyDown(input, { key: "ArrowDown" });
+fireEvent.keyDown(input, { key: "Enter" });
 
-      expect(mockOnSubmit).toHaveBeenCalledWith("recent search");
+expect(mockOnSubmit).toHaveBeenCalledWith("recent search");
     });
 
-    it("Escape closes the suggestion list", () => {
-      render(<SearchInput onSubmit={mockOnSubmit} />);
+it("Escape closes the suggestion list", () => {
+render(<SearchInput onSubmit={mockOnSubmit} />);
 
-      const input = screen.getByRole("combobox");
-      fireEvent.click(input);
-      fireEvent.focus(input);
+const input = screen.getByRole("combobox");
+fireEvent.click(input);
+fireEvent.focus(input);
 
-      const suggestions = screen.queryByRole("listbox");
-      if (suggestions) {
-        fireEvent.keyDown(input, { key: "Escape" });
-        expect(screen.queryByRole("listbox")).not.toBeInTheDocument();
+const suggestions = screen.queryByRole("listbox");
+if (suggestions) {
+fireEvent.keyDown(input, { key: "Escape" });
+expect(screen.queryByRole("listbox")).not.toBeInTheDocument();
       }
     });
 
-    it("Enter submits the typed value when no suggestion is highlighted", () => {
-      render(<SearchInput onSubmit={mockOnSubmit} />);
+it("Enter submits the typed value when no suggestion is highlighted", () => {
+render(<SearchInput onSubmit={mockOnSubmit} />);
 
-      const input = screen.getByRole("combobox");
-      fireEvent.click(input);
-      fireEvent.focus(input);
-      fireEvent.change(input, { target: { value: "typed query" } });
+const input = screen.getByRole("combobox");
+fireEvent.click(input);
+fireEvent.focus(input);
+fireEvent.change(input, { target: { value: "typed query" } });
 
-      fireEvent.keyDown(input, { key: "Enter" });
+fireEvent.keyDown(input, { key: "Enter" });
 
-      // Debounced submit
-      act(() => {
-        vi.advanceTimersByTime(300);
+act(() => {
+vi.advanceTimersByTime(300);
       });
 
-      expect(mockOnSubmit).toHaveBeenCalledWith("typed query");
+expect(mockOnSubmit).toHaveBeenCalledWith("typed query");
     });
   });
 
-  describe("debounced submit (TKT-5.6.G2 AC #4)", () => {
-    it("does not submit before the debounce delay", () => {
-      render(<SearchInput onSubmit={mockOnSubmit} />);
+describe("debounced submit (TKT-5.6.G2 AC #4)", () => {
+it("does not submit before the debounce delay", () => {
+render(<SearchInput onSubmit={mockOnSubmit} />);
 
-      const input = screen.getByRole("combobox");
-      fireEvent.change(input, { target: { value: "quick" } });
+const input = screen.getByRole("combobox");
+fireEvent.change(input, { target: { value: "quick" } });
 
-      act(() => {
-        vi.advanceTimersByTime(200);
+act(() => {
+vi.advanceTimersByTime(200);
       });
 
-      expect(mockOnSubmit).not.toHaveBeenCalled();
+expect(mockOnSubmit).not.toHaveBeenCalled();
     });
 
-    it("fires onSubmit after the debounce delay", () => {
-      render(<SearchInput onSubmit={mockOnSubmit} />);
+it("fires onSubmit after the debounce delay", () => {
+render(<SearchInput onSubmit={mockOnSubmit} />);
 
-      const input = screen.getByRole("combobox");
-      fireEvent.change(input, { target: { value: "debounced" } });
+const input = screen.getByRole("combobox");
+fireEvent.change(input, { target: { value: "debounced" } });
 
-      act(() => {
-        vi.advanceTimersByTime(300);
+act(() => {
+vi.advanceTimersByTime(300);
       });
 
-      expect(mockOnSubmit).toHaveBeenCalledWith("debounced");
+expect(mockOnSubmit).toHaveBeenCalledWith("debounced");
     });
 
-    it("fires once even with rapid keystrokes", () => {
-      render(<SearchInput onSubmit={mockOnSubmit} />);
+it("fires once even with rapid keystrokes", () => {
+render(<SearchInput onSubmit={mockOnSubmit} />);
 
-      const input = screen.getByRole("combobox");
-      fireEvent.change(input, { target: { value: "r" } });
-      fireEvent.change(input, { target: { value: "ra" } });
-      fireEvent.change(input, { target: { value: "rap" } });
-      fireEvent.change(input, { target: { value: "rapid" } });
+const input = screen.getByRole("combobox");
+fireEvent.change(input, { target: { value: "r" } });
+fireEvent.change(input, { target: { value: "ra" } });
+fireEvent.change(input, { target: { value: "rap" } });
+fireEvent.change(input, { target: { value: "rapid" } });
 
-      act(() => {
-        vi.advanceTimersByTime(300);
+act(() => {
+vi.advanceTimersByTime(300);
       });
 
-      expect(mockOnSubmit).toHaveBeenCalledTimes(1);
+expect(mockOnSubmit).toHaveBeenCalledTimes(1);
     });
   });
 
-  describe("suggestions", () => {
-    it("clicking a suggestion submits it", () => {
-      render(<SearchInput onSubmit={mockOnSubmit} />);
+describe("suggestions", () => {
+it("clicking a suggestion submits it", () => {
+render(<SearchInput onSubmit={mockOnSubmit} />);
 
-      const input = screen.getByRole("combobox");
-      fireEvent.click(input);
-      fireEvent.focus(input);
+const input = screen.getByRole("combobox");
+fireEvent.click(input);
+fireEvent.focus(input);
 
-      // If suggestions are rendered, click the first one
-      const option = screen.queryByRole("option", { name: /recent search/i });
-      if (option) {
-        fireEvent.click(option);
-        expect(mockOnSubmit).toHaveBeenCalledWith("recent search");
+const option = screen.queryByRole("option", { name: /recent search/i });
+if (option) {
+fireEvent.click(option);
+expect(mockOnSubmit).toHaveBeenCalledWith("recent search");
       }
     });
   });

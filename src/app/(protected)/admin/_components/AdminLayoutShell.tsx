@@ -8,23 +8,23 @@ import { AdminFeatureFlagBoundary } from '@/features/admin/components/AdminFeatu
 import { AdminRoleGuard } from '@/features/admin/components/AdminRoleGuard'
 
 interface AdminLayoutShellProps {
-  children: React.ReactNode
+children: React.ReactNode
 }
 
 export function AdminLayoutShell({ children }: AdminLayoutShellProps) {
-  return (
-    <AdminFeatureFlagBoundary>
-      <AdminRoleGuard>
-        <SidebarProvider>
-          <AdminSidebar />
-          <SidebarInset>
-            <AdminHeader />
-            <main className='pt-14 min-h-screen'>
-              <div className='app-page-transition'>{children}</div>
-            </main>
-          </SidebarInset>
-        </SidebarProvider>
-      </AdminRoleGuard>
-    </AdminFeatureFlagBoundary>
+return (
+<AdminFeatureFlagBoundary>
+<AdminRoleGuard>
+<SidebarProvider>
+<AdminSidebar />
+<SidebarInset>
+<AdminHeader />
+<main className='pt-14 min-h-screen'>
+<div className='app-page-transition'>{children}</div>
+</main>
+</SidebarInset>
+</SidebarProvider>
+</AdminRoleGuard>
+</AdminFeatureFlagBoundary>
   )
 }

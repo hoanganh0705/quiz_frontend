@@ -1,64 +1,19 @@
 "use client";
 
-/**
- * `NotificationPopover.tsx` — compact notification popover.
- *
- * Source epic:   Epic 5.1 — SDK coverage & realtime contract foundation.
- * Source story:  5.4 — Live notification stream and notification center.
- * Source ticket: TKT-5.4.D4.
- *
- * The popover is mounted inside the `NotificationBell`'s Radix
- * `DropdownMenu`. It renders:
- *
- *   - a header with "Notifications" label and "Mark all as read" action
- *   - a scrollable list of `NotificationItem` rows (5 by default)
- *   - the `NotificationEmptyState` (variant: `'unread'`) when there are
- *     no unread notifications
- *   - the `NotificationErrorState` on read failure with a retry action
- *   - a "View all notifications" link to `/notifications`
- *
- * The popover scrolls independently from the page (Radix handles this
- * via `max-h-(--radix-dropdown-menu-content-available-height)`).
- *
- * ## Mutation wiring
- *
- *   - The popover calls the `markAllNotificationsRead` service directly
- *     (a top-level batch mutation; no per-row hook). The single-row
- *     `useMarkNotificationRead` hook is mounted inside `NotificationItem`
- *     so that each row owns its own pending state.
- *   - The popover invalidates the list and unread-count SWR keys on
- *     success so the bell badge updates without a page refresh.
- *
- * ## Mount-cycle SWR hygiene
- *
- * SWR's in-memory cache is keyed by URL/arguments only — it is NOT
- * scoped by user. To defend against a stale `["notifications", "list"]`
- * entry surviving from a previous session, the popover forces a fresh
- * fetch on every mount by pre-invalidating its cache key. The
- * invalidation is scoped to the popover's key (`unread=0|limit=5`),
- * so other notification pages (the center page, the unread tab) are
- * not disturbed.
- *
- * No service beyond the documented `markAllNotificationsRead` is
- * imported. The popover is otherwise a composition of `NotificationItem`
- * + `NotificationEmptyState` + `NotificationErrorState` +
- * `NotificationListSkeleton`.
- */
-
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import {
-  Check,
-  ChevronRight,
-  Loader2,
+Check,
+ChevronRight,
+Loader2,
 } from "lucide-react";
 import { mutate as globalMutate } from "swr";
 
 import {
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
+DropdownMenuContent,
+DropdownMenuGroup,
+DropdownMenuLabel,
+DropdownMenuSeparator,
 } from "@/components/ui/DropdownMenu";
 import { ScrollArea } from "@/components/ui/ScrollArea";
 import { Button } from "@/components/ui/Button";
@@ -68,195 +23,177 @@ import { markAllNotificationsRead } from "@/features/notifications/services/noti
 import { ApiError, isApiError } from "@/lib/api";
 
 import {
-  NOTIFICATION_CACHE_KEYS,
-  type NotificationListFilters,
+NOTIFICATION_CACHE_KEYS,
+type NotificationListFilters,
 } from "@/features/notifications/types/notification.types";
 
 import { NotificationItem } from "./NotificationItem";
 import {
-  NotificationEmptyState,
-  NotificationErrorState,
-  NotificationListSkeleton,
+NotificationEmptyState,
+NotificationErrorState,
+NotificationListSkeleton,
 } from "./shared";
 
 const DEFAULT_LIMIT = 5;
 const POPOVER_FILTERS: NotificationListFilters = {
-  unreadOnly: false,
-  limit: DEFAULT_LIMIT,
+unreadOnly: false,
+limit: DEFAULT_LIMIT,
 };
 
-// ─── Component ────────────────────────────────────────────────────────────
-
 export function NotificationPopover() {
-  const { items, isLoading, error, refresh, loadMore, hasMore } =
-    useNotifications(POPOVER_FILTERS);
+const { items, isLoading, error, refresh, loadMore, hasMore } =
+useNotifications(POPOVER_FILTERS);
 
-  // ─── Fresh-fetch on every popover mount ─────────────────────────────────
-  //
-  // The popover is mounted each time the user opens the bell. We force a
-  // fresh API round-trip every time by calling `refresh()` from the
-  // `useNotifications` hook, which delegates to the underlying
-  // `useSWRInfinite` mutate. This is the most defensive fix for the
-  // "popover shows empty even though the backend has N items" symptom —
-  // it overrides any stale cache regardless of when it was written,
-  // how it was written, or who wrote it.
-  //
-  // The flag pattern prevents the refresh from firing twice in React's
-  // Strict-Mode dev double-render (which would otherwise double the
-  // request rate without any visible benefit).
-  const refreshedOnMountRef = useRef(false);
-  useEffect(() => {
-    if (refreshedOnMountRef.current) return;
-    refreshedOnMountRef.current = true;
-    void refresh();
+const refreshedOnMountRef = useRef(false);
+useEffect(() => {
+if (refreshedOnMountRef.current) return;
+refreshedOnMountRef.current = true;
+void refresh();
   }, [refresh]);
 
-  // Local mark-all-read mutation state — independent of the per-row
-  // hooks so the bell / popover can show a single "Mark all" pending
-  // indicator at the top.
-  const [markAllState, setMarkAllState] = useState<{
-    pending: boolean;
-    error: ApiError | null;
+const [markAllState, setMarkAllState] = useState<{
+pending: boolean;
+error: ApiError | null;
   }>({ pending: false, error: null });
 
-  const handleMarkAll = useCallback(async () => {
-    if (markAllState.pending) return;
-    setMarkAllState({ pending: true, error: null });
-    try {
-      await markAllNotificationsRead();
-      // Revalidate list + unread count so the bell badge updates.
-      await Promise.all([
-        globalMutate(
-          (key) =>
-            Array.isArray(key) &&
-            key[0] === "notifications" &&
-            key[1] === "list",
-          undefined,
-          { revalidate: true },
+const handleMarkAll = useCallback(async () => {
+if (markAllState.pending) return;
+setMarkAllState({ pending: true, error: null });
+try {
+await markAllNotificationsRead();
+
+await Promise.all([
+globalMutate(
+(key) =>
+Array.isArray(key) &&
+key[0] === "notifications" &&
+key[1] === "list",
+undefined,
+{ revalidate: true },
         ),
-        globalMutate(NOTIFICATION_CACHE_KEYS.unreadCount(), undefined, {
-          revalidate: true,
+globalMutate(NOTIFICATION_CACHE_KEYS.unreadCount(), undefined, {
+revalidate: true,
         }),
       ]);
-      setMarkAllState({ pending: false, error: null });
+setMarkAllState({ pending: false, error: null });
     } catch (cause: unknown) {
-      if (isApiError(cause)) {
-        setMarkAllState({ pending: false, error: cause });
+if (isApiError(cause)) {
+setMarkAllState({ pending: false, error: cause });
       } else {
-        const mapped = new ApiError(
-          cause as unknown as ConstructorParameters<typeof ApiError>[0],
+const mapped = new ApiError(
+cause as unknown as ConstructorParameters<typeof ApiError>[0],
         );
-        setMarkAllState({ pending: false, error: mapped });
+setMarkAllState({ pending: false, error: mapped });
       }
     }
   }, [markAllState.pending]);
 
-  const headerSubtitle = useMemo(() => {
-    if (isLoading) return "Loading…";
-    if (error) return "Connection issue";
-    if (items.length === 0) return "You're all caught up";
-    return `${items.length} notification${items.length === 1 ? "" : "s"}`;
+const headerSubtitle = useMemo(() => {
+if (isLoading) return "Loading…";
+if (error) return "Connection issue";
+if (items.length === 0) return "You're all caught up";
+return `${items.length} notification${items.length === 1 ? "" : "s"}`;
   }, [isLoading, error, items.length]);
 
-  const hasUnread = useMemo(
-    () => items.some((n) => !n.isRead),
-    [items],
+const hasUnread = useMemo(
+() => items.some((n) => !n.isRead),
+[items],
   );
 
-  return (
-    <DropdownMenuContent
-      align="end"
-      className="w-[calc(100vw-2rem)] sm:w-80 md:w-96 p-0 max-w-md"
-      sideOffset={8}
-      data-testid="notification-popover"
+return (
+<DropdownMenuContent
+align="end"
+className="w-[calc(100vw-2rem)] sm:w-80 md:w-96 p-0 max-w-md"
+sideOffset={8}
+data-testid="notification-popover"
     >
-      <div className="flex items-center justify-between px-3 sm:px-4 py-2.5 sm:py-3 border-b border-border">
-        <div className="flex flex-col">
-          <DropdownMenuLabel className="p-0 text-sm sm:text-base font-semibold">
-            Notifications
+<div className="flex items-center justify-between px-3 sm:px-4 py-2.5 sm:py-3 border-b border-border">
+<div className="flex flex-col">
+<DropdownMenuLabel className="p-0 text-sm sm:text-base font-semibold">
+Notifications
           </DropdownMenuLabel>
-          <span className="text-[0.6rem] sm:text-[0.65rem] text-muted-foreground">
-            {headerSubtitle}
-          </span>
-        </div>
-        {hasUnread && (
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-7 px-2 text-[0.65rem] sm:text-xs text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300"
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              void handleMarkAll();
+<span className="text-[0.6rem] sm:text-[0.65rem] text-muted-foreground">
+{headerSubtitle}
+</span>
+</div>
+{hasUnread && (
+<Button
+variant="ghost"
+size="sm"
+className="h-7 px-2 text-[0.65rem] sm:text-xs text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300"
+onClick={(e) => {
+e.preventDefault();
+e.stopPropagation();
+void handleMarkAll();
             }}
-            disabled={markAllState.pending || isLoading}
-            aria-label="Mark all as read"
+disabled={markAllState.pending || isLoading}
+aria-label="Mark all as read"
           >
-            {markAllState.pending ? (
-              <Loader2 className="h-3 w-3 animate-spin" />
+{markAllState.pending ? (
+<Loader2 className="h-3 w-3 animate-spin" />
             ) : (
-              <Check className="h-3 w-3 sm:mr-1" />
+<Check className="h-3 w-3 sm:mr-1" />
             )}
-            <span className="hidden xs:inline sm:inline">Mark all read</span>
-            <span className="inline xs:hidden sm:hidden">Mark read</span>
-          </Button>
+<span className="hidden xs:inline sm:inline">Mark all read</span>
+<span className="inline xs:hidden sm:hidden">Mark read</span>
+</Button>
         )}
-      </div>
+</div>
 
-      <ScrollArea className="h-[60vh] sm:h-100 max-h-125">
-        <DropdownMenuGroup>
-          {isLoading ? (
-            <NotificationListSkeleton count={5} />
+<ScrollArea className="h-[60vh] sm:h-100 max-h-125">
+<DropdownMenuGroup>
+{isLoading ? (
+<NotificationListSkeleton count={5} />
           ) : error ? (
-            <NotificationErrorState
-              error={error}
-              onRetry={() => void refresh()}
-              className="h-[60vh] sm:h-100"
+<NotificationErrorState
+error={error}
+onRetry={() => void refresh()}
+className="h-[60vh] sm:h-100"
             />
           ) : items.length === 0 ? (
-            <NotificationEmptyState
-              variant="unread"
-              className="h-[60vh] sm:h-100"
+<NotificationEmptyState
+variant="unread"
+className="h-[60vh] sm:h-100"
             />
           ) : (
-            <>
-              {items.map((notification) => (
-                <NotificationItem
-                  key={notification.id}
-                  notification={notification}
+<>
+{items.map((notification) => (
+<NotificationItem
+key={notification.id}
+notification={notification}
                 />
               ))}
-              {hasMore && (
-                <div className="px-3 sm:px-4 py-2 border-b border-gray-100 dark:border-slate-800 last:border-b-0">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="w-full text-[0.65rem] sm:text-xs text-blue-500 hover:text-blue-600 dark:text-blue-400"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      loadMore();
+{hasMore && (
+<div className="px-3 sm:px-4 py-2 border-b border-gray-100 dark:border-slate-800 last:border-b-0">
+<Button
+variant="ghost"
+size="sm"
+className="w-full text-[0.65rem] sm:text-xs text-blue-500 hover:text-blue-600 dark:text-blue-400"
+onClick={(e) => {
+e.preventDefault();
+e.stopPropagation();
+loadMore();
                     }}
                   >
-                    Load more
+Load more
                   </Button>
-                </div>
+</div>
               )}
-            </>
+</>
           )}
-        </DropdownMenuGroup>
-      </ScrollArea>
+</DropdownMenuGroup>
+</ScrollArea>
 
-      <DropdownMenuSeparator className="m-0" />
-      <div className="flex items-center justify-end px-3 sm:px-4 py-2">
-        <Link
-          href="/notifications"
-          className="inline-flex items-center gap-1 text-xs sm:text-sm text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300"
+<DropdownMenuSeparator className="m-0" />
+<div className="flex items-center justify-end px-3 sm:px-4 py-2">
+<Link
+href="/notifications"
+className="inline-flex items-center gap-1 text-xs sm:text-sm text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300"
         >
-          View all
+View all
           <ChevronRight className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
-        </Link>
-      </div>
-    </DropdownMenuContent>
+</Link>
+</div>
+</DropdownMenuContent>
   );
 }

@@ -1,167 +1,144 @@
 "use client";
 
-/**
- * `TournamentDetailPage` — tournament detail page composition.
- *
- * Source epic:   Epic 5.1 — SDK coverage & realtime contract foundation.
- * Source story:  5.2 — Tournament discovery and read-only detail surfaces.
- * Source ticket: TKT-5.2.G2.
- *
- * ## Story 5.3 updates
- *
- * - Integrated `TournamentRegistrationCta` in the header area.
- * - Integrated `TournamentCapacityIndicator` near the participant count.
- * - Integrated `RegistrationState` indicator for authenticated users.
- */
-
 import * as React from "react";
 
 import {
-  useTournamentFeatureFlag,
-  useTournament,
-  useTournamentParticipants,
-  useTournamentLeaderboard,
-  useTournamentParticipation,
+useTournamentFeatureFlag,
+useTournament,
+useTournamentParticipants,
+useTournamentLeaderboard,
+useTournamentParticipation,
 } from "@/features/tournaments/hooks";
 
 import {
-  TournamentPlaceholder,
-  TournamentDetailSkeleton,
-  TournamentErrorState,
-  TournamentHeader,
-  ParticipantList,
-  TournamentLeaderboard,
-  TournamentRegistrationCta,
-  TournamentCapacityIndicator,
-  RegistrationState,
+TournamentPlaceholder,
+TournamentDetailSkeleton,
+TournamentErrorState,
+TournamentHeader,
+ParticipantList,
+TournamentLeaderboard,
+TournamentRegistrationCta,
+TournamentCapacityIndicator,
+RegistrationState,
 } from "@/features/tournaments/components";
 
 export interface TournamentDetailPageProps {
-  tournamentId: string;
-  className?: string;
+tournamentId: string;
+className?: string;
 }
 
 export function TournamentDetailPage({
-  tournamentId,
-  className,
+tournamentId,
+className,
 }: TournamentDetailPageProps) {
-  const { isPlaceholder } = useTournamentFeatureFlag();
+const { isPlaceholder } = useTournamentFeatureFlag();
 
-  // Always call hooks first - React Rules of Hooks require this
-  const tournamentResult = useTournament(tournamentId);
-  const participantsResult = useTournamentParticipants(tournamentId);
-  const leaderboardResult = useTournamentLeaderboard(tournamentId);
-  const participationResult = useTournamentParticipation(tournamentId);
+const tournamentResult = useTournament(tournamentId);
+const participantsResult = useTournamentParticipants(tournamentId);
+const leaderboardResult = useTournamentLeaderboard(tournamentId);
+const participationResult = useTournamentParticipation(tournamentId);
 
-  // Placeholder state after hooks
-  if (isPlaceholder) {
-    return <TournamentPlaceholder />;
+if (isPlaceholder) {
+return <TournamentPlaceholder />;
   }
 
-  // Loading state
-  if (tournamentResult.isLoading) {
-    return (
-      <div className={className}>
-        <TournamentDetailSkeleton />
-      </div>
+if (tournamentResult.isLoading) {
+return (
+<div className={className}>
+<TournamentDetailSkeleton />
+</div>
     );
   }
 
-  // Error state - check for known error codes
-  if (tournamentResult.error !== null) {
-    const errorCode = tournamentResult.error.code;
+if (tournamentResult.error !== null) {
+const errorCode = tournamentResult.error.code;
 
-    // Not found state
-    if (errorCode === "TOURNAMENT_NOT_FOUND") {
-      return (
-        <div className={className}>
-          <TournamentErrorState
-            error={tournamentResult.error}
-            onRetry={tournamentResult.refresh}
+if (errorCode === "TOURNAMENT_NOT_FOUND") {
+return (
+<div className={className}>
+<TournamentErrorState
+error={tournamentResult.error}
+onRetry={tournamentResult.refresh}
           />
-        </div>
+</div>
       );
     }
 
-    // Private/unauthorized state
-    if (errorCode === "TOURNAMENT_FORBIDDEN") {
-      return (
-        <div className={className}>
-          <TournamentErrorState
-            error={tournamentResult.error}
-            onRetry={tournamentResult.refresh}
+if (errorCode === "TOURNAMENT_FORBIDDEN") {
+return (
+<div className={className}>
+<TournamentErrorState
+error={tournamentResult.error}
+onRetry={tournamentResult.refresh}
           />
-        </div>
+</div>
       );
     }
 
-    // Generic error
-    return (
-      <div className={className}>
-        <TournamentErrorState
-          error={tournamentResult.error}
-          onRetry={tournamentResult.refresh}
+return (
+<div className={className}>
+<TournamentErrorState
+error={tournamentResult.error}
+onRetry={tournamentResult.refresh}
         />
-      </div>
+</div>
     );
   }
 
-  // If we have no error but also no tournament data, show not found
-  if (tournamentResult.tournament === null) {
-    return (
-      <div className={className}>
-        <TournamentErrorState
-          error={null}
+if (tournamentResult.tournament === null) {
+return (
+<div className={className}>
+<TournamentErrorState
+error={null}
         />
-      </div>
+</div>
     );
   }
 
-  // Tournament loaded successfully
-  const tournament = tournamentResult.tournament;
+const tournament = tournamentResult.tournament;
 
-  return (
-    <div className={className}>
-      <div className="space-y-8">
-        {/* Header */}
-        <div className="flex flex-col gap-4">
-          <TournamentHeader tournament={tournament} />
+return (
+<div className={className}>
+<div className="space-y-8">
+{/* Header */}
+<div className="flex flex-col gap-4">
+<TournamentHeader tournament={tournament} />
 
-          {/* Registration area: CTA + capacity indicator + status */}
-          <div className="flex flex-col sm:flex-row sm:items-center gap-4 p-4 rounded-lg border bg-card">
-            <div className="flex-1">
-              {/* Registration state indicator */}
-              <div className="flex items-center gap-3">
-                <RegistrationState status={participationResult.participation?.registrationStatus ?? null} />
-                <TournamentCapacityIndicator
-                  currentParticipants={tournament.totalParticipants}
-                  maxParticipants={tournament.maxParticipants}
+{/* Registration area: CTA + capacity indicator + status */}
+<div className="flex flex-col sm:flex-row sm:items-center gap-4 p-4 rounded-lg border bg-card">
+<div className="flex-1">
+{/* Registration state indicator */}
+<div className="flex items-center gap-3">
+<RegistrationState status={participationResult.participation?.registrationStatus ?? null} />
+<TournamentCapacityIndicator
+currentParticipants={tournament.totalParticipants}
+maxParticipants={tournament.maxParticipants}
                 />
-              </div>
-            </div>
-            {/* Registration CTA */}
-            <div className="shrink-0">
-              <TournamentRegistrationCta
-                tournamentId={tournament.id}
-                tournamentName={tournament.title}
+</div>
+</div>
+{/* Registration CTA */}
+<div className="shrink-0">
+<TournamentRegistrationCta
+tournamentId={tournament.id}
+tournamentName={tournament.title}
               />
-            </div>
-          </div>
-        </div>
+</div>
+</div>
+</div>
 
-        {/* Participants and Leaderboard panels */}
-        <div className="grid gap-8 lg:grid-cols-2">
-          {/* Participants panel */}
-          <div>
-            <ParticipantList participantsResult={participantsResult} />
-          </div>
+{/* Participants and Leaderboard panels */}
+<div className="grid gap-8 lg:grid-cols-2">
+{/* Participants panel */}
+<div>
+<ParticipantList participantsResult={participantsResult} />
+</div>
 
-          {/* Leaderboard panel */}
-          <div>
-            <TournamentLeaderboard leaderboardResult={leaderboardResult} />
-          </div>
-        </div>
-      </div>
-    </div>
+{/* Leaderboard panel */}
+<div>
+<TournamentLeaderboard leaderboardResult={leaderboardResult} />
+</div>
+</div>
+</div>
+</div>
   );
 }

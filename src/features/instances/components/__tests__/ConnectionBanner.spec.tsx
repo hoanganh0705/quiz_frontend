@@ -1,16 +1,4 @@
-/**
- * `ConnectionBanner.spec.tsx` — socket connection banner.
- *
- * Source epic:   Epic 5.1.
- * Source story:  5.7.
- * Source ticket: TKT-5.7.G3.
- *
- * Tests cover:
- * - renders nothing when connected
- * - renders nothing when idle
- * - renders the reconnecting banner when state is reconnecting
- * - renders the auth_failed banner with reauthentication prompt
- */
+
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { cleanup, render, screen } from "@testing-library/react";
@@ -19,70 +7,70 @@ import { ConnectionBanner } from "@/features/instances/components/ConnectionBann
 import { instanceMocks } from "./test-helpers";
 
 vi.mock("@/features/instances/hooks/useInstanceSocket", () => ({
-  useInstanceSocket: (...args: unknown[]) => instanceMocks.useInstanceSocket(...args),
+useInstanceSocket: (...args: unknown[]) => instanceMocks.useInstanceSocket(...args),
 }));
 
 describe("ConnectionBanner", () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-    instanceMocks.useInstanceSocket.mockReturnValue({
-      connectionState: "connected",
-      lastError: null,
-      subscribe: vi.fn(() => () => undefined),
-      emitJoin: vi.fn(),
-      emitLeave: vi.fn(),
+beforeEach(() => {
+vi.clearAllMocks();
+instanceMocks.useInstanceSocket.mockReturnValue({
+connectionState: "connected",
+lastError: null,
+subscribe: vi.fn(() => () => undefined),
+emitJoin: vi.fn(),
+emitLeave: vi.fn(),
     });
   });
 
-  afterEach(() => {
-    cleanup();
+afterEach(() => {
+cleanup();
   });
 
-  it("renders nothing when connected", () => {
-    const { container } = render(<ConnectionBanner instanceId="inst-1" />);
-    expect(container.firstChild).toBeNull();
+it("renders nothing when connected", () => {
+const { container } = render(<ConnectionBanner instanceId="inst-1" />);
+expect(container.firstChild).toBeNull();
   });
 
-  it("renders nothing when idle", () => {
-    instanceMocks.useInstanceSocket.mockReturnValue({
-      connectionState: "idle",
-      lastError: null,
-      subscribe: vi.fn(() => () => undefined),
-      emitJoin: vi.fn(),
-      emitLeave: vi.fn(),
+it("renders nothing when idle", () => {
+instanceMocks.useInstanceSocket.mockReturnValue({
+connectionState: "idle",
+lastError: null,
+subscribe: vi.fn(() => () => undefined),
+emitJoin: vi.fn(),
+emitLeave: vi.fn(),
     });
-    const { container } = render(<ConnectionBanner instanceId="inst-1" />);
-    expect(container.firstChild).toBeNull();
+const { container } = render(<ConnectionBanner instanceId="inst-1" />);
+expect(container.firstChild).toBeNull();
   });
 
-  it("renders the reconnecting banner", () => {
-    instanceMocks.useInstanceSocket.mockReturnValue({
-      connectionState: "reconnecting",
-      lastError: null,
-      subscribe: vi.fn(() => () => undefined),
-      emitJoin: vi.fn(),
-      emitLeave: vi.fn(),
+it("renders the reconnecting banner", () => {
+instanceMocks.useInstanceSocket.mockReturnValue({
+connectionState: "reconnecting",
+lastError: null,
+subscribe: vi.fn(() => () => undefined),
+emitJoin: vi.fn(),
+emitLeave: vi.fn(),
     });
-    const { getByTestId } = render(<ConnectionBanner instanceId="inst-1" />);
-    expect(getByTestId("connection-banner").getAttribute("data-state")).toBe(
-      "reconnecting",
+const { getByTestId } = render(<ConnectionBanner instanceId="inst-1" />);
+expect(getByTestId("connection-banner").getAttribute("data-state")).toBe(
+"reconnecting",
     );
   });
 
-  it("renders the auth_failed banner with reauthentication prompt", () => {
-    instanceMocks.useInstanceSocket.mockReturnValue({
-      connectionState: "auth_failed",
-      lastError: null,
-      subscribe: vi.fn(() => () => undefined),
-      emitJoin: vi.fn(),
-      emitLeave: vi.fn(),
+it("renders the auth_failed banner with reauthentication prompt", () => {
+instanceMocks.useInstanceSocket.mockReturnValue({
+connectionState: "auth_failed",
+lastError: null,
+subscribe: vi.fn(() => () => undefined),
+emitJoin: vi.fn(),
+emitLeave: vi.fn(),
     });
-    render(<ConnectionBanner instanceId="inst-1" />);
-    expect(screen.getByTestId("connection-banner-reauth")).toBeTruthy();
+render(<ConnectionBanner instanceId="inst-1" />);
+expect(screen.getByTestId("connection-banner-reauth")).toBeTruthy();
   });
 
-  it("renders nothing when instanceId is null", () => {
-    const { container } = render(<ConnectionBanner instanceId={null} />);
-    expect(container.firstChild).toBeNull();
+it("renders nothing when instanceId is null", () => {
+const { container } = render(<ConnectionBanner instanceId={null} />);
+expect(container.firstChild).toBeNull();
   });
 });

@@ -2,15 +2,15 @@ import type { ReactNode } from 'react'
 import { buildMetadata } from '@/shared/lib/seo'
 
 export const metadata = buildMetadata({
-  title: 'Tournaments | QuizHub',
-  description: 'Compete in quiz tournaments and win rewards.',
-  path: '/tournament'
+title: 'Tournaments | QuizHub',
+description: 'Compete in quiz tournaments and win rewards.',
+path: '/tournament'
 })
 
 export default function TournamentLayout({
-  children
+children
 }: {
-  children: ReactNode
+children: ReactNode
 }) {
-  return children
+return children
 }

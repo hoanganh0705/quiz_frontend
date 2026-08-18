@@ -159,7 +159,7 @@ export function QuizzesDirectoryPage({
         >
           All Quizzes
         </h1>
-        <p className="text-foreground/70 text-base">
+        <p className="text-muted-foreground text-base">
           Browse published quizzes. Use the filters to narrow down by category,
           tag, sort, or difficulty.
         </p>

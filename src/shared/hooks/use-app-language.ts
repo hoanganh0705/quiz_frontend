@@ -8,61 +8,45 @@ import type { UserSettings } from '@/features/users/types'
 type Translations = Record<string, Record<string, string>>
 
 const translations: Translations = {
-  en: {
-    exploreQuizzes: 'Explore Quizzes',
-    searchPlaceholder: 'Search quizzes, categories, creators...',
-    heroTitle: 'Your Quiz Adventure Starts Here:',
-    heroSubtitle: 'Build engaging quizzes, challenge others, and earn rewards for your knowledge.',
-    createQuiz: 'Create Quiz',
-    joinContest: 'Join Contest',
-    recentlyPlayed: 'Recently Played'
+en: {
+exploreQuizzes: 'Explore Quizzes',
+searchPlaceholder: 'Search quizzes, categories, creators...',
+heroTitle: 'Your Quiz Adventure Starts Here:',
+heroSubtitle: 'Build engaging quizzes, challenge others, and earn rewards for your knowledge.',
+createQuiz: 'Create Quiz',
+joinContest: 'Join Contest',
+recentlyPlayed: 'Recently Played'
   },
-  vi: {
-    exploreQuizzes: 'Khám Phá Quiz',
-    searchPlaceholder: 'Tìm quiz, danh mục, người tạo...',
-    heroTitle: 'Hành Trình Quiz Bắt Đầu Tại Đây:',
-    heroSubtitle: 'Tạo quiz hấp dẫn, thách đấu bạn bè và nhận thưởng bằng kiến thức của bạn.',
-    createQuiz: 'Tạo Quiz',
-    joinContest: 'Tham Gia',
-    recentlyPlayed: 'Đã Chơi Gần Đây'
+vi: {
+exploreQuizzes: 'Khám Phá Quiz',
+searchPlaceholder: 'Tìm quiz, danh mục, người tạo...',
+heroTitle: 'Hành Trình Quiz Bắt Đầu Tại Đây:',
+heroSubtitle: 'Tạo quiz hấp dẫn, thách đấu bạn bè và nhận thưởng bằng kiến thức của bạn.',
+createQuiz: 'Tạo Quiz',
+joinContest: 'Tham Gia',
+recentlyPlayed: 'Đã Chơi Gần Đây'
   }
 }
 
-/**
- * Read and update the app's UI language.
- *
- * The hook reads `settings.locale.language` from `localStorage`. When
- * `setLanguage(newLang)` is called (e.g. after the backend confirms a
- * language change), the localStorage is updated so the hook re-renders
- * with the new language immediately — no page navigation required.
- */
 export function useAppLanguage() {
-  const [settings, setSettings] = useLocalStorage<UserSettings>('user_settings', defaultSettings)
-  const lang = settings.locale.language
+const [settings, setSettings] = useLocalStorage<UserSettings>('user_settings', defaultSettings)
+const lang = settings.locale.language
 
-  const language = useMemo(() => (lang in translations ? lang : 'en'), [lang])
+const language = useMemo(() => (lang in translations ? lang : 'en'), [lang])
 
-  const t = useCallback((key: string, fallback: string) => {
-    return translations[language]?.[key] ?? fallback
+const t = useCallback((key: string, fallback: string) => {
+return translations[language]?.[key] ?? fallback
   }, [language])
 
-  /**
-   * Update the UI language in localStorage. Call this after the backend
-   * confirms a language change so `useAppLanguage()` picks it up and
-   * re-renders the UI with the new language without navigation.
-   *
-   * This function is idempotent — calling it with the same language
-   * as the current one is a no-op.
-   */
-  const setLanguage = useCallback((newLang: string) => {
-    setSettings((prev) => ({
-      ...prev,
-      locale: {
-        ...prev.locale,
-        language: newLang,
+const setLanguage = useCallback((newLang: string) => {
+setSettings((prev) => ({
+...prev,
+locale: {
+...prev.locale,
+language: newLang,
       },
     }))
   }, [setSettings])
 
-  return { language, t, setLanguage }
+return { language, t, setLanguage }
 }

@@ -1,13 +1,4 @@
-/**
- * `MyQuizzesTabs` — tab switcher for the author's dashboard.
- *
- * Source epic:   Epic 4.4 — Authored quizzes list + analytics.
- * Source ticket: TKT-4.4.D3.
- *
- * Renders 4 tabs (All / Drafts / Published / Analytics) using the existing
- * `<Tabs>` primitive. Reads `activeTab` from `MyQuizzesTabStore` and emits
- * a Sentry breadcrumb on every tab switch.
- */
+
 
 import { useCallback } from "react";
 
@@ -18,84 +9,80 @@ import { useMyQuizzesActiveTab, setMyQuizzesTab } from "@/features/quizzes/store
 import type { MyQuizzesTab } from "@/features/quizzes/types/my-quizzes";
 
 interface MyQuizzesTabsProps {
-  /** Content rendered for each tab panel. Receives the tab value. */
-  children: (tab: "all" | "drafts" | "published") => React.ReactNode;
-  /** Analytics tab content. Rendered when analytics tab is active. */
-  analyticsContent: React.ReactNode;
+
+children: (tab: "all" | "drafts" | "published") => React.ReactNode;
+
+analyticsContent: React.ReactNode;
 }
 
 const TABS: Array<{ value: MyQuizzesTab; label: string }> = [
-  { value: "all", label: "All" },
-  { value: "drafts", label: "Drafts" },
-  { value: "published", label: "Published" },
-  { value: "analytics", label: "Analytics" },
+{ value: "all", label: "All" },
+{ value: "drafts", label: "Drafts" },
+{ value: "published", label: "Published" },
+{ value: "analytics", label: "Analytics" },
 ] as const;
 
-/** Emit a Sentry breadcrumb for tab-switching. Lazy-loaded to avoid circular deps. */
 function emitTabSwitchBreadcrumb(tab: MyQuizzesTab): void {
-  try {
-    const sentry = (typeof window === "undefined"
-      ? null
-      : (window as unknown as { Sentry?: { addBreadcrumb?: (crumb: { category: string; data: Record<string, unknown> }) => void } }).Sentry);
-    sentry?.addBreadcrumb?.({
-      category: "phase4:4.4",
-      data: { tab, timestamp: Date.now() },
+try {
+const sentry = (typeof window === "undefined"
+? null
+: (window as unknown as { Sentry?: { addBreadcrumb?: (crumb: { category: string; data: Record<string, unknown> }) => void } }).Sentry);
+sentry?.addBreadcrumb?.({
+category: "phase4:4.4",
+data: { tab, timestamp: Date.now() },
     });
   } catch {
     // Sentry is optional — swallow errors so the tab switch never fails.
   }
 }
 
-/**
- * Tab switcher for the author's dashboard.
- */
 export function MyQuizzesTabs({
-  children,
-  analyticsContent,
+children,
+analyticsContent,
 }: MyQuizzesTabsProps): React.ReactElement {
-  const activeTab = useMyQuizzesActiveTab();
+const activeTab = useMyQuizzesActiveTab();
 
-  const handleTabChange = useCallback(
-    (tab: MyQuizzesTab) => {
-      setMyQuizzesTab(tab);
-      emitTabSwitchBreadcrumb(tab);
+const handleTabChange = useCallback(
+(tab: MyQuizzesTab) => {
+setMyQuizzesTab(tab);
+emitTabSwitchBreadcrumb(tab);
     },
-    [],
+[],
   );
 
-  const isAnalyticsTab = activeTab === "analytics";
+const isAnalyticsTab = activeTab === "analytics";
 
-  return (
-    <Tabs
-      value={activeTab}
-      onValueChange={(value) => handleTabChange(value as MyQuizzesTab)}
+return (
+<Tabs
+value={activeTab}
+onValueChange={(value) => handleTabChange(value as MyQuizzesTab)}
     >
-      <TabsList className="mb-6 w-full justify-start gap-1">
-        {TABS.map((tab) => (
-          <TabsTrigger key={tab.value} value={tab.value}>
-            {tab.label}
-          </TabsTrigger>
+<TabsList className="mb-6 w-full justify-start gap-1">
+{TABS.map((tab) => (
+<TabsTrigger key={tab.value} value={tab.value}>
+{tab.label}
+</TabsTrigger>
         ))}
-      </TabsList>
+</TabsList>
 
-      {/* List tabs */}
-      {["all", "drafts", "published"].map((tab) => (
-        <TabsContent
-          key={tab}
-          value={tab}
-          className={isAnalyticsTab ? "hidden" : undefined}
+{/* List tabs */}
+{["all", "drafts", "published"].map((tab) => (
+<TabsContent
+key={tab}
+value={tab}
+className={isAnalyticsTab ? "hidden" : undefined}
         >
-          {children(tab as "all" | "drafts" | "published")}
-        </TabsContent>
+{children(tab as "all" | "drafts" | "published")}
+</TabsContent>
       ))}
 
-      {/* Analytics tab */}
-      <TabsContent
-        value="analytics"
-        className={isAnalyticsTab ? undefined : "hidden"}
+{/* Analytics tab */}
+<TabsContent
+value="analytics"
+className={isAnalyticsTab ? undefined : "hidden"}
       >
-        {analyticsContent}
-      </TabsContent>
-    </Tabs>
+{analyticsContent}
+</TabsContent>
+</Tabs>
   );
 }

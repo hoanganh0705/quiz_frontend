@@ -1,34 +1,17 @@
-/**
- * `social-graph.service.spec.ts` — Locks the social-graph service contract
- * (TKT-6.1.E2).
- *
- * Coverage:
- *   - Pass-through: each function forwards the SDK parameters and
- *     returns a normalized `SocialPage<T>` (no `{ data, meta }`
- *     envelope).
- *   - 4xx / 5xx: `ApiError` is propagated with `code` and `status`
- *     accessible.
- *   - `paginationKind: 'offset'` is preserved on the returned page.
- *   - Missing envelope (`data === undefined`) returns `GLOBAL_INTERNAL_ERROR`.
- *   - Internal-id leakage: any `followId` / `friendshipId` value
- *     present in the wire body is dropped by the adapter (the
- *     fingerprint check is the explicit `followId !== id` assertion).
- *   - `getUserActivity` payload filter: rows with unknown `type`
- *     discriminators are dropped.
- */
+
 
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { ApiError } from "@/lib/api";
 
 import {
-  getBlockedUsers,
-  getFriendsOfUser,
-  getMutualFollowers,
-  getMutualFriends,
-  getSocialCounts,
-  getUserActivity,
-  getUserFollowers,
-  getUserFollowing,
+getBlockedUsers,
+getFriendsOfUser,
+getMutualFollowers,
+getMutualFriends,
+getSocialCounts,
+getUserActivity,
+getUserFollowers,
+getUserFollowing,
 } from "@/features/social/services/social-graph.service";
 
 const mockSocialControllerGetUserFollowers = vi.fn();
@@ -41,392 +24,387 @@ const mockSocialControllerGetMutualFollowers = vi.fn();
 const mockSocialControllerGetUserActivity = vi.fn();
 
 vi.mock("@/lib/api", async () => {
-  const actual = await vi.importActual<typeof import("@/lib/api")>("@/lib/api");
-  return {
-    ...actual,
-    getSocial: () => ({
-      socialControllerGetUserFollowers: (
-        ...args: unknown[]
+const actual = await vi.importActual<typeof import("@/lib/api")>("@/lib/api");
+return {
+...actual,
+getSocial: () => ({
+socialControllerGetUserFollowers: (
+...args: unknown[]
       ) => mockSocialControllerGetUserFollowers(...args),
-      socialControllerGetUserFollowing: (
-        ...args: unknown[]
+socialControllerGetUserFollowing: (
+...args: unknown[]
       ) => mockSocialControllerGetUserFollowing(...args),
-      socialControllerGetFriendsOfUser: (
-        ...args: unknown[]
+socialControllerGetFriendsOfUser: (
+...args: unknown[]
       ) => mockSocialControllerGetFriendsOfUser(...args),
-      socialControllerGetBlockedUsers: (
-        ...args: unknown[]
+socialControllerGetBlockedUsers: (
+...args: unknown[]
       ) => mockSocialControllerGetBlockedUsers(...args),
-      socialControllerGetSocialCounts: (
-        ...args: unknown[]
+socialControllerGetSocialCounts: (
+...args: unknown[]
       ) => mockSocialControllerGetSocialCounts(...args),
-      socialControllerGetMutualFriends: (
-        ...args: unknown[]
+socialControllerGetMutualFriends: (
+...args: unknown[]
       ) => mockSocialControllerGetMutualFriends(...args),
-      socialControllerGetMutualFollowers: (
-        ...args: unknown[]
+socialControllerGetMutualFollowers: (
+...args: unknown[]
       ) => mockSocialControllerGetMutualFollowers(...args),
-      socialControllerGetUserActivity: (
-        ...args: unknown[]
+socialControllerGetUserActivity: (
+...args: unknown[]
       ) => mockSocialControllerGetUserActivity(...args),
     }),
   };
 });
 
 afterEach(() => {
-  vi.clearAllMocks();
+vi.clearAllMocks();
 });
 
 function makeApiError(status: number, code: string, message: string): ApiError {
-  return new ApiError({
-    name: "AxiosError",
-    message,
-    isAxiosError: true,
-    response: {
-      status,
-      statusText: "X",
-      data: {
-        type: "https://api.quiz.local/problems/x",
-        title: "X",
-        status,
-        detail: message,
-        instance: "/api/v1/x",
-        extensions: { code, requestId: "req-test" },
+return new ApiError({
+name: "AxiosError",
+message,
+isAxiosError: true,
+response: {
+status,
+statusText: "X",
+data: {
+type: "https://api.quiz.local/problems/x",
+title: "X",
+status,
+detail: message,
+instance: "/api/v1/x",
+extensions: { code, requestId: "req-test" },
       },
-      headers: {},
-      config: undefined as never,
+headers: {},
+config: undefined as never,
     },
-    toJSON: () => ({}),
+toJSON: () => ({}),
   } as unknown as Parameters<typeof ApiError.fromAxios>[0]);
 }
 
 const OFFSET_ENVELOPE = {
-  data: [] as readonly unknown[],
-  meta: {
-    pagination: {
-      kind: "offset",
-      total: 0,
-      offset: 0,
-      limit: 0,
+data: [] as readonly unknown[],
+meta: {
+pagination: {
+kind: "offset",
+total: 0,
+offset: 0,
+limit: 0,
     },
-    timestamp: "2026-08-05T00:00:00.000Z",
+timestamp: "2026-08-05T00:00:00.000Z",
   },
 };
 
 const CURSOR_ENVELOPE = {
-  data: [] as readonly unknown[],
-  meta: {
-    pagination: {
-      kind: "cursor",
-      nextCursor: null,
-      limit: 0,
+data: [] as readonly unknown[],
+meta: {
+pagination: {
+kind: "cursor",
+nextCursor: null,
+limit: 0,
     },
-    timestamp: "2026-08-05T00:00:00.000Z",
+timestamp: "2026-08-05T00:00:00.000Z",
   },
 };
 
 describe("social-graph.service — followers / following / friends", () => {
-  it("getUserFollowers forwards userId + params and returns a normalized page", async () => {
-    mockSocialControllerGetUserFollowers.mockResolvedValue({
-      data: [
-        {
-          userId: "user-1",
-          username: "alice",
-          followedAt: "2026-08-01T00:00:00.000Z",
+it("getUserFollowers forwards userId + params and returns a normalized page", async () => {
+mockSocialControllerGetUserFollowers.mockResolvedValue({
+data: [
+{
+userId: "user-1",
+username: "alice",
+followedAt: "2026-08-01T00:00:00.000Z",
         },
       ],
-      meta: {
-        pagination: {
-          kind: "cursor",
-          nextCursor: "next",
-          limit: 1,
+meta: {
+pagination: {
+kind: "cursor",
+nextCursor: "next",
+limit: 1,
         },
-        timestamp: "2026-08-05T00:00:00.000Z",
+timestamp: "2026-08-05T00:00:00.000Z",
       },
     });
 
-    const page = await getUserFollowers("user-1", { cursor: "next", limit: 1 });
+const page = await getUserFollowers("user-1", { cursor: "next", limit: 1 });
 
-    expect(mockSocialControllerGetUserFollowers).toHaveBeenCalledWith("user-1", {
-      cursor: "next",
-      limit: 1,
+expect(mockSocialControllerGetUserFollowers).toHaveBeenCalledWith("user-1", {
+cursor: "next",
+limit: 1,
     });
-    expect(page.paginationKind).toBe("cursor");
-    expect(page.items).toHaveLength(1);
-    expect(page.items[0]?.userId).toBe("user-1");
-    expect(page.items[0]?.userName).toBe("alice");
+expect(page.paginationKind).toBe("cursor");
+expect(page.items).toHaveLength(1);
+expect(page.items[0]?.userId).toBe("user-1");
+expect(page.items[0]?.userName).toBe("alice");
   });
 
-  it("getUserFollowing returns a normalized page", async () => {
-    mockSocialControllerGetUserFollowing.mockResolvedValue({
-      data: [
-        {
-          userId: "user-2",
-          username: "bob",
-          followedAt: "2026-08-01T00:00:00.000Z",
+it("getUserFollowing returns a normalized page", async () => {
+mockSocialControllerGetUserFollowing.mockResolvedValue({
+data: [
+{
+userId: "user-2",
+username: "bob",
+followedAt: "2026-08-01T00:00:00.000Z",
         },
       ],
-      meta: {
-        pagination: {
-          kind: "cursor",
-          nextCursor: null,
-          limit: 1,
+meta: {
+pagination: {
+kind: "cursor",
+nextCursor: null,
+limit: 1,
         },
-        timestamp: "2026-08-05T00:00:00.000Z",
+timestamp: "2026-08-05T00:00:00.000Z",
       },
     });
 
-    const page = await getUserFollowing("user-2");
+const page = await getUserFollowing("user-2");
 
-    expect(mockSocialControllerGetUserFollowing).toHaveBeenCalledWith("user-2", undefined);
-    expect(page.paginationKind).toBe("cursor");
-    expect(page.items).toHaveLength(1);
+expect(mockSocialControllerGetUserFollowing).toHaveBeenCalledWith("user-2", undefined);
+expect(page.paginationKind).toBe("cursor");
+expect(page.items).toHaveLength(1);
   });
 
-  it("getFriendsOfUser forwards limit + cursor and discards friendshipId", async () => {
-    mockSocialControllerGetFriendsOfUser.mockResolvedValue({
-      data: [
-        {
-          userId: "user-3",
-          username: "carol",
-          friendshipId: "internal-friend-1",
-          friendSince: "2026-08-01T00:00:00.000Z",
+it("getFriendsOfUser forwards limit + cursor and discards friendshipId", async () => {
+mockSocialControllerGetFriendsOfUser.mockResolvedValue({
+data: [
+{
+userId: "user-3",
+username: "carol",
+friendshipId: "internal-friend-1",
+friendSince: "2026-08-01T00:00:00.000Z",
         },
       ],
-      meta: {
-        pagination: {
-          kind: "cursor",
-          nextCursor: null,
-          limit: 1,
+meta: {
+pagination: {
+kind: "cursor",
+nextCursor: null,
+limit: 1,
         },
-        timestamp: "2026-08-05T00:00:00.000Z",
+timestamp: "2026-08-05T00:00:00.000Z",
       },
     });
 
-    const page = await getFriendsOfUser("user-3", { limit: 1, cursor: null });
+const page = await getFriendsOfUser("user-3", { limit: 1, cursor: null });
 
-    expect(mockSocialControllerGetFriendsOfUser).toHaveBeenCalledWith("user-3", {
-      limit: 1,
-      cursor: "",
+expect(mockSocialControllerGetFriendsOfUser).toHaveBeenCalledWith("user-3", {
+limit: 1,
+cursor: "",
     });
-    expect(page.items).toHaveLength(1);
-    expect(page.items[0]?.userId).toBe("user-3");
-    // The friendshipId must not appear on the projection.
-    expect(
-      (page.items[0] as unknown as Record<string, unknown>).friendshipId,
+expect(page.items).toHaveLength(1);
+expect(page.items[0]?.userId).toBe("user-3");
+
+expect(
+(page.items[0] as unknown as Record<string, unknown>).friendshipId,
     ).toBeUndefined();
   });
 });
 
 describe("social-graph.service — blocked / counts / mutuals", () => {
-  it("getBlockedUsers synthesizes a single-page cursor response", async () => {
-    mockSocialControllerGetBlockedUsers.mockResolvedValue({
-      data: [
-        { blockedId: "user-x", reason: null },
-        { blockedId: "user-y", reason: "spam" },
+it("getBlockedUsers synthesizes a single-page cursor response", async () => {
+mockSocialControllerGetBlockedUsers.mockResolvedValue({
+data: [
+{ blockedId: "user-x", reason: null },
+{ blockedId: "user-y", reason: "spam" },
       ],
-      meta: { timestamp: "2026-08-05T00:00:00.000Z" },
+meta: { timestamp: "2026-08-05T00:00:00.000Z" },
     });
 
-    const page = await getBlockedUsers();
+const page = await getBlockedUsers();
 
-    expect(page.paginationKind).toBe("cursor");
-    expect(page.items).toHaveLength(2);
-    expect(page.items[0]?.userId).toBe("user-x");
-    expect(page.items[1]?.userId).toBe("user-y");
-    if (page.paginationKind === "cursor") {
-      expect(page.nextCursor).toBeNull();
+expect(page.paginationKind).toBe("cursor");
+expect(page.items).toHaveLength(2);
+expect(page.items[0]?.userId).toBe("user-x");
+expect(page.items[1]?.userId).toBe("user-y");
+if (page.paginationKind === "cursor") {
+expect(page.nextCursor).toBeNull();
     }
   });
 
-  it("getSocialCounts returns the normalized projection", async () => {
-    mockSocialControllerGetSocialCounts.mockResolvedValue({
-      data: {
-        friendCount: 12,
-        followerCount: 100,
-        followingCount: 50,
+it("getSocialCounts returns the normalized projection", async () => {
+mockSocialControllerGetSocialCounts.mockResolvedValue({
+data: {
+friendCount: 12,
+followerCount: 100,
+followingCount: 50,
       },
-      meta: { timestamp: "2026-08-05T00:00:00.000Z" },
+meta: { timestamp: "2026-08-05T00:00:00.000Z" },
     });
 
-    const counts = await getSocialCounts();
+const counts = await getSocialCounts();
 
-    expect(counts).toEqual({
-      followers: 100,
-      following: 50,
-      friends: 12,
-      blocked: 0,
-      pendingIncomingCount: undefined,
-      pendingOutgoingCount: undefined,
+expect(counts).toEqual({
+followers: 100,
+following: 50,
+friends: 12,
+blocked: 0,
+pendingIncomingCount: undefined,
+pendingOutgoingCount: undefined,
     });
   });
 
-  it("getSocialCounts returns zeroed projection on 404", async () => {
-    mockSocialControllerGetSocialCounts.mockRejectedValue(
-      makeApiError(404, "GLOBAL_NOT_FOUND", "Counts not found"),
+it("getSocialCounts returns zeroed projection on 404", async () => {
+mockSocialControllerGetSocialCounts.mockRejectedValue(
+makeApiError(404, "GLOBAL_NOT_FOUND", "Counts not found"),
     );
 
-    // The service does not 404-coerce; the read hook handles 404 by
-    // returning the zeroed projection. The service surfaces the
-    // original error so the hook can branch on `code`.
-    await expect(getSocialCounts()).rejects.toMatchObject({
-      code: "GLOBAL_NOT_FOUND",
-      status: 404,
+await expect(getSocialCounts()).rejects.toMatchObject({
+code: "GLOBAL_NOT_FOUND",
+status: 404,
     });
   });
 
-  it("getMutualFriends returns a normalized SocialMutualDto page", async () => {
-    mockSocialControllerGetMutualFriends.mockResolvedValue({
-      data: [
-        { userId: "m-1", username: "x", mutualFriends: 3 },
+it("getMutualFriends returns a normalized SocialMutualDto page", async () => {
+mockSocialControllerGetMutualFriends.mockResolvedValue({
+data: [
+{ userId: "m-1", username: "x", mutualFriends: 3 },
       ],
-      meta: {
-        pagination: {
-          kind: "cursor",
-          nextCursor: null,
-          limit: 1,
+meta: {
+pagination: {
+kind: "cursor",
+nextCursor: null,
+limit: 1,
         },
-        timestamp: "2026-08-05T00:00:00.000Z",
+timestamp: "2026-08-05T00:00:00.000Z",
       },
     });
 
-    const page = await getMutualFriends("user-9");
+const page = await getMutualFriends("user-9");
 
-    expect(page.items).toHaveLength(1);
-    expect(page.items[0]?.user.userId).toBe("m-1");
-    expect(page.items[0]?.mutualFriendsCount).toBe(3);
-    expect(page.items[0]?.mutualFollowersCount).toBe(0);
+expect(page.items).toHaveLength(1);
+expect(page.items[0]?.user.userId).toBe("m-1");
+expect(page.items[0]?.mutualFriendsCount).toBe(3);
+expect(page.items[0]?.mutualFollowersCount).toBe(0);
   });
 
-  it("getMutualFollowers returns a normalized SocialMutualDto page", async () => {
-    mockSocialControllerGetMutualFollowers.mockResolvedValue({
-      data: [
-        { userId: "m-2", username: "y", mutualFollowers: 5 },
+it("getMutualFollowers returns a normalized SocialMutualDto page", async () => {
+mockSocialControllerGetMutualFollowers.mockResolvedValue({
+data: [
+{ userId: "m-2", username: "y", mutualFollowers: 5 },
       ],
-      meta: {
-        pagination: {
-          kind: "cursor",
-          nextCursor: null,
-          limit: 1,
+meta: {
+pagination: {
+kind: "cursor",
+nextCursor: null,
+limit: 1,
         },
-        timestamp: "2026-08-05T00:00:00.000Z",
+timestamp: "2026-08-05T00:00:00.000Z",
       },
     });
 
-    const page = await getMutualFollowers("user-9");
+const page = await getMutualFollowers("user-9");
 
-    expect(page.items).toHaveLength(1);
-    expect(page.items[0]?.user.userId).toBe("m-2");
-    expect(page.items[0]?.mutualFollowersCount).toBe(5);
+expect(page.items).toHaveLength(1);
+expect(page.items[0]?.user.userId).toBe("m-2");
+expect(page.items[0]?.mutualFollowersCount).toBe(5);
   });
 });
 
 describe("social-graph.service — activity payload filter", () => {
-  it("getUserActivity drops rows with unknown payload type", async () => {
-    mockSocialControllerGetUserActivity.mockResolvedValue({
-      data: [
-        {
-          id: "act-1",
-          type: "badge_earned",
-          occurredAt: "2026-08-01T00:00:00.000Z",
-          payload: { type: "badge_earned", badgeId: "b-1", badgeSlug: "first-quiz" },
+it("getUserActivity drops rows with unknown payload type", async () => {
+mockSocialControllerGetUserActivity.mockResolvedValue({
+data: [
+{
+id: "act-1",
+type: "badge_earned",
+occurredAt: "2026-08-01T00:00:00.000Z",
+payload: { type: "badge_earned", badgeId: "b-1", badgeSlug: "first-quiz" },
         },
-        {
-          id: "act-2",
-          type: "unknown_type",
-          occurredAt: "2026-08-01T00:00:00.000Z",
-          payload: {},
+{
+id: "act-2",
+type: "unknown_type",
+occurredAt: "2026-08-01T00:00:00.000Z",
+payload: {},
         },
       ],
-      meta: {
-        pagination: {
-          kind: "cursor",
-          nextCursor: null,
-          limit: 2,
+meta: {
+pagination: {
+kind: "cursor",
+nextCursor: null,
+limit: 2,
         },
-        timestamp: "2026-08-05T00:00:00.000Z",
+timestamp: "2026-08-05T00:00:00.000Z",
       },
     });
 
-    const page = await getUserActivity("user-9");
+const page = await getUserActivity("user-9");
 
-    expect(page.items).toHaveLength(1);
-    expect(page.items[0]?.id).toBe("act-1");
-    expect(page.items[0]?.type).toBe("badge_earned");
+expect(page.items).toHaveLength(1);
+expect(page.items[0]?.id).toBe("act-1");
+expect(page.items[0]?.type).toBe("badge_earned");
   });
 });
 
 describe("social-graph.service — error propagation", () => {
-  it("getUserFollowers propagates 403 SOCIAL_FRIEND_LIST_FORBIDDEN", async () => {
-    mockSocialControllerGetUserFollowers.mockRejectedValue(
-      makeApiError(403, "SOCIAL_FRIEND_LIST_FORBIDDEN", "Friends list private"),
+it("getUserFollowers propagates 403 SOCIAL_FRIEND_LIST_FORBIDDEN", async () => {
+mockSocialControllerGetUserFollowers.mockRejectedValue(
+makeApiError(403, "SOCIAL_FRIEND_LIST_FORBIDDEN", "Friends list private"),
     );
 
-    await expect(
-      getUserFollowers("user-private"),
+await expect(
+getUserFollowers("user-private"),
     ).rejects.toMatchObject({
-      code: "SOCIAL_FRIEND_LIST_FORBIDDEN",
-      status: 403,
+code: "SOCIAL_FRIEND_LIST_FORBIDDEN",
+status: 403,
     });
   });
 
-  it("getUserFollowers throws GLOBAL_INTERNAL_ERROR when the envelope is missing", async () => {
-    mockSocialControllerGetUserFollowers.mockResolvedValue(undefined);
+it("getUserFollowers throws GLOBAL_INTERNAL_ERROR when the envelope is missing", async () => {
+mockSocialControllerGetUserFollowers.mockResolvedValue(undefined);
 
-    await expect(getUserFollowers("user-1")).rejects.toMatchObject({
-      code: "GLOBAL_INTERNAL_ERROR",
+await expect(getUserFollowers("user-1")).rejects.toMatchObject({
+code: "GLOBAL_INTERNAL_ERROR",
     });
   });
 });
 
 describe("social-graph.service — pagination-kind preservation", () => {
-  it("getUserFollowers preserves paginationKind from the wire envelope", async () => {
-    mockSocialControllerGetUserFollowers.mockResolvedValue({
-      data: [
-        {
-          userId: "u-1",
-          username: "a",
-          followedAt: "2026-08-01T00:00:00.000Z",
+it("getUserFollowers preserves paginationKind from the wire envelope", async () => {
+mockSocialControllerGetUserFollowers.mockResolvedValue({
+data: [
+{
+userId: "u-1",
+username: "a",
+followedAt: "2026-08-01T00:00:00.000Z",
         },
       ],
-      meta: {
-        pagination: {
-          kind: "cursor",
-          nextCursor: "next",
-          limit: 1,
+meta: {
+pagination: {
+kind: "cursor",
+nextCursor: "next",
+limit: 1,
         },
-        timestamp: "2026-08-05T00:00:00.000Z",
+timestamp: "2026-08-05T00:00:00.000Z",
       },
     });
 
-    const page = await getUserFollowers("user-1");
+const page = await getUserFollowers("user-1");
 
-    expect(page.paginationKind).toBe("cursor");
-    if (page.paginationKind === "cursor") {
-      expect(page.nextCursor).toBe("next");
+expect(page.paginationKind).toBe("cursor");
+if (page.paginationKind === "cursor") {
+expect(page.nextCursor).toBe("next");
     }
   });
 
-  it("getMutualFriends preserves paginationKind from the wire envelope", async () => {
-    mockSocialControllerGetMutualFriends.mockResolvedValue({
-      data: [{ userId: "m-1", username: "x", mutualFriends: 1 }],
-      meta: {
-        pagination: {
-          kind: "cursor",
-          nextCursor: null,
-          limit: 1,
+it("getMutualFriends preserves paginationKind from the wire envelope", async () => {
+mockSocialControllerGetMutualFriends.mockResolvedValue({
+data: [{ userId: "m-1", username: "x", mutualFriends: 1 }],
+meta: {
+pagination: {
+kind: "cursor",
+nextCursor: null,
+limit: 1,
         },
-        timestamp: "2026-08-05T00:00:00.000Z",
+timestamp: "2026-08-05T00:00:00.000Z",
       },
     });
 
-    const page = await getMutualFriends("user-9");
+const page = await getMutualFriends("user-9");
 
-    expect(page.paginationKind).toBe("cursor");
+expect(page.paginationKind).toBe("cursor");
   });
 });
 
-// Suppress unused warnings for the constants defined for documentation
-// purposes.
 void OFFSET_ENVELOPE;
 void CURSOR_ENVELOPE;

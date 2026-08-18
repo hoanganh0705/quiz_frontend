@@ -1,42 +1,42 @@
-// Comment hooks — Epic 4.12
+
 export { useQuizComments } from './useQuizComments';
 export type { UseQuizCommentsResult, UseQuizCommentsParams } from './useQuizComments';
 
 export { useCreateComment } from './useCreateComment';
 export type {
-  UseCreateCommentOptions,
-  UseCreateCommentResult,
-  CreatedComment,
+UseCreateCommentOptions,
+UseCreateCommentResult,
+CreatedComment,
 } from './useCreateComment';
 
 export { useEditComment } from './useEditComment';
 export type {
-  UseEditCommentOptions,
-  UseEditCommentResult,
+UseEditCommentOptions,
+UseEditCommentResult,
 } from './useEditComment';
 
 export { useDeleteComment } from './useDeleteComment';
 export type {
-  UseDeleteCommentOptions,
-  UseDeleteCommentResult,
+UseDeleteCommentOptions,
+UseDeleteCommentResult,
 } from './useDeleteComment';
 
 export { useVoteComment } from './useVoteComment';
 export type {
-  UseVoteCommentOptions,
-  UseVoteCommentResult,
+UseVoteCommentOptions,
+UseVoteCommentResult,
 } from './useVoteComment';
 
 export { useReportComment } from './useReportComment';
 export type {
-  UseReportCommentOptions,
-  UseReportCommentResult,
+UseReportCommentOptions,
+UseReportCommentResult,
 } from './useReportComment';
 
 export { useCommentRealtime } from './useCommentRealtime';
 export type {
-  UseCommentRealtimeOptions,
-  UseCommentRealtimeReturn,
+UseCommentRealtimeOptions,
+UseCommentRealtimeReturn,
 } from './useCommentRealtime';
 
 export { useCommentCacheMutations } from './useCommentCacheMutations';

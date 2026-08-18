@@ -13,153 +13,152 @@ import { DialogHeader } from '@/components/ui/Dialog'
 import { DialogTitle } from '@/components/ui/Dialog'
 import type { BookmarkCollection } from '@/features/bookmarks/types'
 
-// Hoist static data
 const PRESET_COLORS = [
-  '#ef4444', // red
-  '#f97316', // orange
-  '#eab308', // yellow
-  '#22c55e', // green
-  '#14b8a6', // teal
-  '#3b82f6', // blue
-  '#8b5cf6', // violet
-  '#ec4899', // pink
-  '#6b7280' // gray
+'#ef4444',
+'#f97316',
+'#eab308',
+'#22c55e',
+'#14b8a6',
+'#3b82f6',
+'#8b5cf6',
+'#ec4899',
+'#6b7280' // gray
 ] as const
 
 const COLOR_NAMES: Record<string, string> = {
-  '#ef4444': 'red',
-  '#f97316': 'orange',
-  '#eab308': 'yellow',
-  '#22c55e': 'green',
-  '#14b8a6': 'teal',
-  '#3b82f6': 'blue',
-  '#8b5cf6': 'violet',
-  '#ec4899': 'pink',
-  '#6b7280': 'gray'
+'#ef4444': 'red',
+'#f97316': 'orange',
+'#eab308': 'yellow',
+'#22c55e': 'green',
+'#14b8a6': 'teal',
+'#3b82f6': 'blue',
+'#8b5cf6': 'violet',
+'#ec4899': 'pink',
+'#6b7280': 'gray'
 } as const
 
 const getColorName = (color: string): string => COLOR_NAMES[color] || 'unknown'
 
 interface CollectionDialogProps {
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  onSave: (name: string, description: string, color: string) => void
-  collection?: BookmarkCollection | null
-  mode: 'create' | 'edit'
+open: boolean
+onOpenChange: (open: boolean) => void
+onSave: (name: string, description: string, color: string) => void
+collection?: BookmarkCollection | null
+mode: 'create' | 'edit'
 }
 
 export default function CollectionDialog({
-  open,
-  onOpenChange,
-  onSave,
-  collection,
-  mode
+open,
+onOpenChange,
+onSave,
+collection,
+mode
 }: CollectionDialogProps) {
-  const [name, setName] = useState('')
-  const [description, setDescription] = useState('')
-  const [color, setColor] = useState<string>(PRESET_COLORS[0])
+const [name, setName] = useState('')
+const [description, setDescription] = useState('')
+const [color, setColor] = useState<string>(PRESET_COLORS[0])
 
-  const handleOpenChange = useCallback(
-    (nextOpen: boolean) => {
-      if (nextOpen) {
-        if (collection) {
-          setName(collection.name)
-          setDescription(collection.description || '')
-          setColor(collection.color ?? PRESET_COLORS[0])
+const handleOpenChange = useCallback(
+(nextOpen: boolean) => {
+if (nextOpen) {
+if (collection) {
+setName(collection.name)
+setDescription(collection.description || '')
+setColor(collection.color ?? PRESET_COLORS[0])
         } else {
-          setName('')
-          setDescription('')
-          setColor(PRESET_COLORS[0])
+setName('')
+setDescription('')
+setColor(PRESET_COLORS[0])
         }
       }
-      onOpenChange(nextOpen)
+onOpenChange(nextOpen)
     },
-    [collection, onOpenChange]
+[collection, onOpenChange]
   )
 
-  const handleSave = () => {
-    if (!name.trim()) return
-    onSave(name.trim(), description.trim(), color)
-    handleOpenChange(false)
+const handleSave = () => {
+if (!name.trim()) return
+onSave(name.trim(), description.trim(), color)
+handleOpenChange(false)
   }
 
-  return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className='sm:max-w-106.25'>
-        <DialogHeader>
-          <DialogTitle>
-            {mode === 'create' ? 'Create Collection' : 'Edit Collection'}
-          </DialogTitle>
-          <DialogDescription>
-            {mode === 'create'
-              ? 'Create a new collection to organize your bookmarked quizzes.'
-              : 'Update your collection details.'}
-          </DialogDescription>
-        </DialogHeader>
+return (
+<Dialog open={open} onOpenChange={handleOpenChange}>
+<DialogContent className='sm:max-w-106.25'>
+<DialogHeader>
+<DialogTitle>
+{mode === 'create' ? 'Create Collection' : 'Edit Collection'}
+</DialogTitle>
+<DialogDescription>
+{mode === 'create'
+? 'Create a new collection to organize your bookmarked quizzes.'
+: 'Update your collection details.'}
+</DialogDescription>
+</DialogHeader>
 
-        <div className='grid gap-4 py-4'>
-          <div className='grid gap-2'>
-            <Label htmlFor='name'>Name</Label>
-            <Input
-              id='name'
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder='e.g., Science Quizzes'
-              autoFocus
+<div className='grid gap-4 py-4'>
+<div className='grid gap-2'>
+<Label htmlFor='name'>Name</Label>
+<Input
+id='name'
+value={name}
+onChange={(e) => setName(e.target.value)}
+placeholder='e.g., Science Quizzes'
+autoFocus
             />
-          </div>
+</div>
 
-          <div className='grid gap-2'>
-            <Label htmlFor='description'>Description (optional)</Label>
-            <Textarea
-              id='description'
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder='Add a description for this collection...'
-              rows={2}
+<div className='grid gap-2'>
+<Label htmlFor='description'>Description (optional)</Label>
+<Textarea
+id='description'
+value={description}
+onChange={(e) => setDescription(e.target.value)}
+placeholder='Add a description for this collection...'
+rows={2}
             />
-          </div>
+</div>
 
-          <div className='grid gap-2'>
-            <Label>Color</Label>
-            <div
-              className='flex gap-2 flex-wrap'
-              role='radiogroup'
-              aria-label='Choose collection color'
+<div className='grid gap-2'>
+<Label>Color</Label>
+<div
+className='flex gap-2 flex-wrap'
+role='radiogroup'
+aria-label='Choose collection color'
             >
-              {PRESET_COLORS.map((presetColor) => (
-                <button
-                  key={presetColor}
-                  type='button'
-                  onClick={() => setColor(presetColor)}
-                  className={`w-8 h-8 rounded-full transition-all ${
-                    color === presetColor
-                      ? 'ring-2 ring-offset-2 ring-offset-background ring-foreground scale-110'
-                      : 'hover:scale-105'
-                  }`}
-                  style={{ backgroundColor: presetColor }}
-                  aria-label={`Select ${getColorName(presetColor)} color`}
-                  aria-checked={color === presetColor}
-                  role='radio'
+{PRESET_COLORS.map((presetColor) => (
+<button
+key={presetColor}
+type='button'
+onClick={() => setColor(presetColor)}
+className={`w-8 h-8 rounded-full transition-all ${
+color === presetColor
+? 'ring-2 ring-offset-2 ring-offset-background ring-foreground scale-110'
+: 'hover:scale-105'
+}`}
+style={{ backgroundColor: presetColor }}
+aria-label={`Select ${getColorName(presetColor)} color`}
+aria-checked={color === presetColor}
+role='radio'
                 />
               ))}
-            </div>
-          </div>
-        </div>
+</div>
+</div>
+</div>
 
-        <DialogFooter>
-          <Button variant='outline' onClick={() => handleOpenChange(false)}>
-            Cancel
+<DialogFooter>
+<Button variant='outline' onClick={() => handleOpenChange(false)}>
+Cancel
           </Button>
-          <Button
-            onClick={handleSave}
-            disabled={!name.trim()}
-            className='bg-default hover:bg-default-hover text-white'
+<Button
+onClick={handleSave}
+disabled={!name.trim()}
+className='bg-default hover:bg-default-hover text-white'
           >
-            {mode === 'create' ? 'Create' : 'Save Changes'}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+{mode === 'create' ? 'Create' : 'Save Changes'}
+</Button>
+</DialogFooter>
+</DialogContent>
+</Dialog>
   )
 }

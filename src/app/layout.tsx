@@ -1,6 +1,6 @@
 import type React from 'react'
 import type { Metadata } from 'next'
-import { inter } from '@/shared/config/fonts'
+import { jetbrainsMono, outfit } from '@/shared/config/fonts'
 import { SwrProvider, ThemeProvider } from '@/providers'
 import { LayoutShell } from '@/shared/layout'
 import { PwaServiceWorker } from '@/shared/ui/PwaServiceWorker'
@@ -18,9 +18,13 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang='en' suppressHydrationWarning>
+    <html
+      lang='en'
+      suppressHydrationWarning
+      className={`${outfit.variable} ${jetbrainsMono.variable}`}
+    >
       <body
-        className={`${inter.className} antialiased overflow-x-hidden`}
+        className={`${outfit.className} font-sans antialiased overflow-x-hidden`}
         suppressHydrationWarning
       >
         <a href='#main-content' className='skip-link'>

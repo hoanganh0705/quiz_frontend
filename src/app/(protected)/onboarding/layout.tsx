@@ -2,16 +2,16 @@ import type { ReactNode } from 'react'
 import { buildMetadata } from '@/shared/lib/seo'
 
 export const metadata = buildMetadata({
-  title: 'Onboarding | QuizHub',
-  description:
-    'Set up your interests and profile to personalize your experience.',
-  path: '/onboarding'
+title: 'Onboarding | QuizHub',
+description:
+'Set up your interests and profile to personalize your experience.',
+path: '/onboarding'
 })
 
 export default function OnboardingLayout({
-  children
+children
 }: {
-  children: ReactNode
+children: ReactNode
 }) {
-  return children
+return children
 }

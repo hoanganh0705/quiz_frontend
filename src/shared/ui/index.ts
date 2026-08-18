@@ -1,4 +1,4 @@
-// Generic shared UI components only
+
 export { GoBackButton } from './GoBackButton'
 export { PwaServiceWorker } from './PwaServiceWorker'
 export { QuickSearch } from './QuickSearch'

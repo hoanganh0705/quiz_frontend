@@ -6,7 +6,7 @@ import { projectQuizToPlayerView } from '@/features/quizzes/lib';
 import { buildMetadata, siteConfig } from '@/shared/lib/seo';
 
 function safeJsonLd(value: unknown): string {
-  return JSON.stringify(value)
+return JSON.stringify(value)
     .replace(/</g, '\\u003c')
     .replace(/>/g, '\\u003e')
     .replace(/&/g, '\\u0026')
@@ -15,89 +15,89 @@ function safeJsonLd(value: unknown): string {
 }
 
 function absoluteImageUrl(imageUrl: string | null): string | undefined {
-  if (!imageUrl) return undefined;
-  try {
-    return new URL(imageUrl, siteConfig.url).toString();
+if (!imageUrl) return undefined;
+try {
+return new URL(imageUrl, siteConfig.url).toString();
   } catch {
-    return undefined;
+return undefined;
   }
 }
 
 function toIsoDuration(durationMs: number | undefined): string | undefined {
-  if (!durationMs || !Number.isFinite(durationMs) || durationMs <= 0) {
-    return undefined;
+if (!durationMs || !Number.isFinite(durationMs) || durationMs <= 0) {
+return undefined;
   }
-  return `PT${Math.max(1, Math.round(durationMs / 1000))}S`;
+return `PT${Math.max(1, Math.round(durationMs / 1000))}S`;
 }
 
 export async function generateMetadata({
-  params,
+params,
 }: {
-  params: Promise<{ idOrSlug: string }>;
+params: Promise<{ idOrSlug: string }>;
 }): Promise<Metadata> {
-  const { idOrSlug } = await params;
-  try {
-    const dto = await getQuizByIdOrSlug(idOrSlug);
-    if (!dto) {
-      throw new Error('quiz detail missing');
+const { idOrSlug } = await params;
+try {
+const dto = await getQuizByIdOrSlug(idOrSlug);
+if (!dto) {
+throw new Error('quiz detail missing');
     }
-    const quiz = projectQuizToPlayerView(dto);
-    return buildMetadata({
-      title: `${quiz.title} | QuizHub`,
-      description: quiz.description ?? 'View quiz details, questions, and statistics.',
-      path: `/quizzes/${quiz.slug || idOrSlug}`,
+const quiz = projectQuizToPlayerView(dto);
+return buildMetadata({
+title: `${quiz.title} | QuizHub`,
+description: quiz.description ?? 'View quiz details, questions, and statistics.',
+path: `/quizzes/${quiz.slug || idOrSlug}`,
     });
   } catch {
-    return buildMetadata({
-      title: 'Quiz Details | QuizHub',
-      description: 'View quiz details, questions, and statistics.',
-      path: `/quizzes/${idOrSlug}`,
+return buildMetadata({
+title: 'Quiz Details | QuizHub',
+description: 'View quiz details, questions, and statistics.',
+path: `/quizzes/${idOrSlug}`,
     });
   }
 }
 
 export default async function QuizDetailLayout({
-  children,
-  params,
+children,
+params,
 }: {
-  children: ReactNode;
-  params: Promise<{ idOrSlug: string }>;
+children: ReactNode;
+params: Promise<{ idOrSlug: string }>;
 }) {
-  const { idOrSlug } = await params;
+const { idOrSlug } = await params;
 
-  let jsonLd: string | null = null;
-  try {
-    const dto = await getQuizByIdOrSlug(idOrSlug);
-    if (!dto) {
-      throw new Error('quiz detail missing');
+let jsonLd: string | null = null;
+try {
+const dto = await getQuizByIdOrSlug(idOrSlug);
+if (!dto) {
+throw new Error('quiz detail missing');
     }
-    const quiz = projectQuizToPlayerView(dto);
-    const publishedVersion = quiz.publishedVersion;
-    jsonLd = safeJsonLd({
-      '@context': 'https://schema.org',
-      '@type': 'Quiz',
-      name: quiz.title,
-      description: quiz.description ?? undefined,
-      educationalLevel: publishedVersion?.difficulty,
-      timeRequired: toIsoDuration(publishedVersion?.durationMs),
-      numberOfQuestions: publishedVersion?.questions.length ?? 0,
-      isAccessibleForFree: true,
-      url: new URL(`/quizzes/${quiz.slug || idOrSlug}`, siteConfig.url).toString(),
-      image: absoluteImageUrl(quiz.imageUrl),
+const quiz = projectQuizToPlayerView(dto);
+const publishedVersion = quiz.publishedVersion;
+jsonLd = safeJsonLd({
+'@context': 'https://schema.org',
+'@type': 'Quiz',
+name: quiz.title,
+description: quiz.description ?? undefined,
+educationalLevel: publishedVersion?.difficulty,
+timeRequired: toIsoDuration(publishedVersion?.durationMs),
+numberOfQuestions: publishedVersion?.questions.length ?? 0,
+isAccessibleForFree: true,
+url: new URL(`/quizzes/${quiz.slug || idOrSlug}`, siteConfig.url).toString(),
+image: absoluteImageUrl(quiz.imageUrl),
     });
   } catch {
-    jsonLd = null;
+jsonLd = null;
   }
 
-  return (
-    <>
-      {jsonLd ? (
-        <script
-          type='application/ld+json'
-          dangerouslySetInnerHTML={{ __html: jsonLd }}
+return (
+<>
+{jsonLd ? (
+<script
+type='application/ld+json'
+dangerouslySetInnerHTML={{ __html: jsonLd }}
         />
       ) : null}
-      {children}
-    </>
+{children}
+</>
   );
 }

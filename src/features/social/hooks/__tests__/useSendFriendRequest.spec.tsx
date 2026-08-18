@@ -1,22 +1,6 @@
-/**
- * `useSendFriendRequest.spec.tsx` — locks the `useSendFriendRequest` mutation hook contract
- * (TKT-6.8.D1).
- *
- * Coverage:
- *
- *   - Placeholder flag: `send` is a no-op, `isPending` always false
- *   - `canFriendRequest === false`: `send()` is a no-op, no service call
- *   - `targetUserId === null`: `send()` is a no-op
- *   - Double-click guard: a second `send()` call is dropped while a
- *     request is in-flight
- *   - Server success: `sendFriendRequest` called, SWR keys revalidated
- *   - Server error: error code surfaced, optimistic state discarded
- *   - `friendshipId` is not persisted (the service receives only the
- *     `userId`; no `friendshipId` appears in any test invariant)
- */
+
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-// ─── React helpers ──────────────────────────────────────────────────────
 
 import { act, cleanup, renderHook, waitFor } from "@testing-library/react";
 import { SWRConfig } from "swr";
@@ -25,280 +9,243 @@ import { useSendFriendRequest } from "@/features/social/hooks/useSendFriendReque
 import { ApiError } from "@/lib/api";
 import { SOCIAL_CACHE_KEYS } from "@/features/social/types";
 
-// ─── Mocks ───────────────────────────────────────────────────────────────
-
 const mockGetFeatureFlagValue = vi.fn();
 vi.mock("@/lib/feature-flags", () => ({
-  getFeatureFlagValue: (...args: unknown[]) => mockGetFeatureFlagValue(...args),
+getFeatureFlagValue: (...args: unknown[]) => mockGetFeatureFlagValue(...args),
 }));
 
 const mockSendFriendRequest = vi.fn();
 vi.mock("@/features/social/services", () => ({
-  sendFriendRequest: (...args: unknown[]) => mockSendFriendRequest(...args),
+sendFriendRequest: (...args: unknown[]) => mockSendFriendRequest(...args),
 }));
 
 const mockUseSocialPermissions = vi.fn();
 vi.mock("@/features/social/hooks/useSocialPermissions", () => ({
-  useSocialPermissions: (...args: unknown[]) => mockUseSocialPermissions(...args),
+useSocialPermissions: (...args: unknown[]) => mockUseSocialPermissions(...args),
 }));
 
 const mockMutate = vi.fn();
 vi.mock("swr", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("swr")>();
-  return {
-    ...actual,
-    useSWRConfig: () => ({ mutate: mockMutate }),
+const actual = await importOriginal<typeof import("swr")>();
+return {
+...actual,
+useSWRConfig: () => ({ mutate: mockMutate }),
   };
 });
 
-// ─── Test provider ──────────────────────────────────────────────────────
-
 function TestSwrProvider({ children }: { children: React.ReactNode }) {
-  return (
-    <SWRConfig
-      value={{
-        provider: () => new Map(),
-        revalidateOnFocus: false,
-        revalidateIfStale: false,
-        dedupingInterval: 0,
-        errorRetryCount: 0,
+return (
+<SWRConfig
+value={{
+provider: () => new Map(),
+revalidateOnFocus: false,
+revalidateIfStale: false,
+dedupingInterval: 0,
+errorRetryCount: 0,
       }}
     >
-      {children}
-    </SWRConfig>
+{children}
+</SWRConfig>
   );
 }
 
-// ─── Helpers ───────────────────────────────────────────────────────────
-
 function makeApiError(status: number, code: string, detail: string): ApiError {
-  return new ApiError({
-    response: {
-      status,
-      statusText: code,
-      headers: {},
-      config: undefined as never,
-      data: {
-        status,
-        detail,
-        extensions: { code },
+return new ApiError({
+response: {
+status,
+statusText: code,
+headers: {},
+config: undefined as never,
+data: {
+status,
+detail,
+extensions: { code },
       },
     },
-    message: detail,
+message: detail,
   } as unknown as ConstructorParameters<typeof ApiError>[0]);
 }
 
 function permissionsAllGranted(): ReturnType<typeof mockUseSocialPermissions> {
-  return {
-    canFollow: true,
-    canUnfollow: true,
-    canFriendRequest: true,
-    canCancelRequest: true,
-    canRespond: true,
-    canUnfriend: true,
-    canBlock: true,
-    canUnblock: true,
-    isSelf: false,
-    isAuthenticated: true,
+return {
+canFollow: true,
+canUnfollow: true,
+canFriendRequest: true,
+canCancelRequest: true,
+canRespond: true,
+canUnfriend: true,
+canBlock: true,
+canUnblock: true,
+isSelf: false,
+isAuthenticated: true,
   };
 }
 
-// ─── Setup ─────────────────────────────────────────────────────────────
-
 describe("useSendFriendRequest — TKT-6.8.D1", () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-    mockGetFeatureFlagValue.mockReturnValue("live");
-    mockSendFriendRequest.mockResolvedValue(undefined);
-    mockMutate.mockResolvedValue(undefined);
-    mockUseSocialPermissions.mockReturnValue(permissionsAllGranted());
+beforeEach(() => {
+vi.clearAllMocks();
+mockGetFeatureFlagValue.mockReturnValue("live");
+mockSendFriendRequest.mockResolvedValue(undefined);
+mockMutate.mockResolvedValue(undefined);
+mockUseSocialPermissions.mockReturnValue(permissionsAllGranted());
   });
 
-  afterEach(() => {
-    cleanup();
+afterEach(() => {
+cleanup();
   });
 
-  // ── Placeholder flag ────────────────────────────────────────────────
-
-  describe("placeholder flag", () => {
-    it("send is a no-op when flag is placeholder", () => {
-      mockGetFeatureFlagValue.mockReturnValue("placeholder");
-      const { result } = renderHook(
-        () => useSendFriendRequest("user-target"),
-        { wrapper: TestSwrProvider },
+describe("placeholder flag", () => {
+it("send is a no-op when flag is placeholder", () => {
+mockGetFeatureFlagValue.mockReturnValue("placeholder");
+const { result } = renderHook(
+() => useSendFriendRequest("user-target"),
+{ wrapper: TestSwrProvider },
       );
-      result.current.send();
-      expect(mockSendFriendRequest).not.toHaveBeenCalled();
-      expect(result.current.isPending).toBe(false);
-      expect(result.current.error).toBeNull();
+result.current.send();
+expect(mockSendFriendRequest).not.toHaveBeenCalled();
+expect(result.current.isPending).toBe(false);
+expect(result.current.error).toBeNull();
     });
   });
 
-  // ── Permission guard ────────────────────────────────────────────────
-
-  describe("permissions guard", () => {
-    it("send is a no-op when canFriendRequest is false", () => {
-      mockUseSocialPermissions.mockReturnValue({
-        ...permissionsAllGranted(),
-        canFriendRequest: false,
+describe("permissions guard", () => {
+it("send is a no-op when canFriendRequest is false", () => {
+mockUseSocialPermissions.mockReturnValue({
+...permissionsAllGranted(),
+canFriendRequest: false,
       });
-      const { result } = renderHook(
-        () => useSendFriendRequest("user-target"),
-        { wrapper: TestSwrProvider },
+const { result } = renderHook(
+() => useSendFriendRequest("user-target"),
+{ wrapper: TestSwrProvider },
       );
-      result.current.send();
-      expect(mockSendFriendRequest).not.toHaveBeenCalled();
-      expect(result.current.error).toBeNull();
+result.current.send();
+expect(mockSendFriendRequest).not.toHaveBeenCalled();
+expect(result.current.error).toBeNull();
     });
   });
 
-  // ── Null target ─────────────────────────────────────────────────────
-
-  it("send is a no-op when targetUserId is null", () => {
-    const { result } = renderHook(
-      () => useSendFriendRequest(null),
-      { wrapper: TestSwrProvider },
+it("send is a no-op when targetUserId is null", () => {
+const { result } = renderHook(
+() => useSendFriendRequest(null),
+{ wrapper: TestSwrProvider },
     );
-    result.current.send();
-    expect(mockSendFriendRequest).not.toHaveBeenCalled();
+result.current.send();
+expect(mockSendFriendRequest).not.toHaveBeenCalled();
   });
 
-  // ── Happy path ──────────────────────────────────────────────────────
-
-  describe("server success", () => {
-  it("calls sendFriendRequest with the userId and revalidates the SWR keys", async () => {
-    let resolveCall!: () => void;
-    const callPromise = new Promise<void>((r) => {
-      resolveCall = r;
+describe("server success", () => {
+it("calls sendFriendRequest with the userId and revalidates the SWR keys", async () => {
+let resolveCall!: () => void;
+const callPromise = new Promise<void>((r) => {
+resolveCall = r;
     });
-    mockSendFriendRequest.mockReturnValue(callPromise);
+mockSendFriendRequest.mockReturnValue(callPromise);
 
-    const { result } = renderHook(
-      () => useSendFriendRequest("user-target"),
-      { wrapper: TestSwrProvider },
+const { result } = renderHook(
+() => useSendFriendRequest("user-target"),
+{ wrapper: TestSwrProvider },
     );
-    // The previous implementation (TKT-6.8.D1) used a synchronous
-    // `useState(false)` flip for `isPending`; the new implementation
-    // (TKT-7.5 cleanup, Phase 6) delegates to `useOptimisticMutation`
-    // which sets `isInFlight` after the snapshot phase. Wait for the
-    // state to settle before asserting.
-    await act(async () => {
-      result.current.send();
-      await Promise.resolve();
+
+await act(async () => {
+result.current.send();
+await Promise.resolve();
     });
-    expect(result.current.isPending).toBe(true);
+expect(result.current.isPending).toBe(true);
 
-    resolveCall();
+resolveCall();
 
-    // The hook microtasks must drain before assertions.
-    await callPromise;
-    await Promise.resolve();
+await callPromise;
+await Promise.resolve();
 
-    expect(mockSendFriendRequest).toHaveBeenCalledWith("user-target");
-    // Three SWR keys: relationship, outgoing-requests, counts.
-    expect(mockMutate).toHaveBeenCalledTimes(3);
-    // Each mutate call uses revalidate:true.
-    for (const call of mockMutate.mock.calls) {
-      expect(call[2]).toEqual({ revalidate: true });
+expect(mockSendFriendRequest).toHaveBeenCalledWith("user-target");
+
+expect(mockMutate).toHaveBeenCalledTimes(3);
+
+for (const call of mockMutate.mock.calls) {
+expect(call[2]).toEqual({ revalidate: true });
     }
 
-    // After the request resolves, isPending goes back to false.
-    await waitFor(() => expect(result.current.isPending).toBe(false));
+await waitFor(() => expect(result.current.isPending).toBe(false));
   });
   });
 
-  // ── Error path ──────────────────────────────────────────────────────
-
-  describe("server error", () => {
-    it("surfaces the error code", async () => {
-      mockSendFriendRequest.mockRejectedValue(
-        makeApiError(403, "SOCIAL_FRIEND_REQUEST_FORBIDDEN", "Forbidden"),
+describe("server error", () => {
+it("surfaces the error code", async () => {
+mockSendFriendRequest.mockRejectedValue(
+makeApiError(403, "SOCIAL_FRIEND_REQUEST_FORBIDDEN", "Forbidden"),
       );
 
-      const { result } = renderHook(
-        () => useSendFriendRequest("user-target"),
-        { wrapper: TestSwrProvider },
+const { result } = renderHook(
+() => useSendFriendRequest("user-target"),
+{ wrapper: TestSwrProvider },
       );
-      await act(async () => {
-        result.current.send();
+await act(async () => {
+result.current.send();
       });
 
-      await waitFor(() =>
-        expect(result.current.error).toBe("SOCIAL_FRIEND_REQUEST_FORBIDDEN"),
+await waitFor(() =>
+expect(result.current.error).toBe("SOCIAL_FRIEND_REQUEST_FORBIDDEN"),
       );
-      expect(result.current.isPending).toBe(false);
-      // The hook must NOT revalidate the SWR cache on error (the
-      // authoritative state is preserved).
-      expect(mockMutate).not.toHaveBeenCalled();
+expect(result.current.isPending).toBe(false);
+
+expect(mockMutate).not.toHaveBeenCalled();
     });
 
-    it("maps non-SOCIAL error codes to GLOBAL_INTERNAL_ERROR", async () => {
-      mockSendFriendRequest.mockRejectedValue(
-        new Error("Unknown failure"),
+it("maps non-SOCIAL error codes to GLOBAL_INTERNAL_ERROR", async () => {
+mockSendFriendRequest.mockRejectedValue(
+new Error("Unknown failure"),
       );
 
-      const { result } = renderHook(
-        () => useSendFriendRequest("user-target"),
-        { wrapper: TestSwrProvider },
+const { result } = renderHook(
+() => useSendFriendRequest("user-target"),
+{ wrapper: TestSwrProvider },
       );
-      await act(async () => {
-        result.current.send();
+await act(async () => {
+result.current.send();
       });
 
-      await waitFor(() =>
-        expect(result.current.error).toBe("GLOBAL_INTERNAL_ERROR"),
+await waitFor(() =>
+expect(result.current.error).toBe("GLOBAL_INTERNAL_ERROR"),
       );
     });
   });
 
-  // ── Double-click guard ──────────────────────────────────────────────
-
-  describe("double-click guard", () => {
-    it("drops a second send() while the first is in-flight", async () => {
-      let resolveFirst!: () => void;
-      mockSendFriendRequest.mockReturnValue(
-        new Promise<void>((r) => {
-          resolveFirst = r;
+describe("double-click guard", () => {
+it("drops a second send() while the first is in-flight", async () => {
+let resolveFirst!: () => void;
+mockSendFriendRequest.mockReturnValue(
+new Promise<void>((r) => {
+resolveFirst = r;
         }),
       );
 
-      const { result } = renderHook(
-        () => useSendFriendRequest("user-target"),
-        { wrapper: TestSwrProvider },
+const { result } = renderHook(
+() => useSendFriendRequest("user-target"),
+{ wrapper: TestSwrProvider },
       );
-      // The previous implementation flipped an `isPendingRef` synchronously
-      // in `send()`; the new primitive (TKT-7.5 cleanup, Phase 6) records
-      // the cooldown AFTER the snapshot phase. Wait for the snapshot
-      // phase to complete so the cooldown is set, then verify the
-      // second call is dropped.
-      await act(async () => {
-        result.current.send();
-        await Promise.resolve();
-      });
-      result.current.send();
-      expect(mockSendFriendRequest).toHaveBeenCalledTimes(1);
 
-      // Resolving the first request releases the guard.
-      resolveFirst();
-      await waitFor(() => expect(result.current.isPending).toBe(false));
+await act(async () => {
+result.current.send();
+await Promise.resolve();
+      });
+result.current.send();
+expect(mockSendFriendRequest).toHaveBeenCalledTimes(1);
+
+resolveFirst();
+await waitFor(() => expect(result.current.isPending).toBe(false));
     });
   });
 
-  // ── friendshipId hygiene ────────────────────────────────────────────
+describe("friendshipId hygiene", () => {
+it("does not include friendshipId in any SWR cache key", () => {
 
-  describe("friendshipId hygiene", () => {
-    it("does not include friendshipId in any SWR cache key", () => {
-      // This is a structural test — the hook only invalidates
-      // `makeRelationshipKey`, `makeOutgoingRequestsKey`, and
-      // `makeSocialCountsKey`. None of those keys accept a
-      // `friendshipId`; the hook never persists the id.
-      renderHook(() => useSendFriendRequest("user-target"), {
-        wrapper: TestSwrProvider,
+renderHook(() => useSendFriendRequest("user-target"), {
+wrapper: TestSwrProvider,
       });
-      const relKey = SOCIAL_CACHE_KEYS.makeRelationshipKey("user-target");
-      expect(
-        JSON.stringify(relKey),
-        "Relationship key must not contain a friendshipId-shaped value",
+const relKey = SOCIAL_CACHE_KEYS.makeRelationshipKey("user-target");
+expect(
+JSON.stringify(relKey),
+"Relationship key must not contain a friendshipId-shaped value",
       ).not.toContain("friendshipId");
     });
   });

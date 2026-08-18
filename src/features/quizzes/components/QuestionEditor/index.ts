@@ -1,5 +1,4 @@
-// QuestionEditor components barrel export
-// Epic 4.10 — Question editor (single + bulk)
+
 
 export { QuestionEditorPage } from './QuestionEditorPage';
 export { QuestionEditor } from './QuestionEditor';
@@ -16,40 +15,40 @@ export { QuestionEditorEmptyState } from './QuestionEditorEmptyState';
 export { CooldownTimer, CooldownDisplay } from './CooldownTimer';
 
 export type {
-  QuestionEditorProps,
+QuestionEditorProps,
 } from './QuestionEditor';
 export type {
-  QuestionListProps,
+QuestionListProps,
 } from './QuestionList';
 export type {
-  QuestionListItemProps,
+QuestionListItemProps,
 } from './QuestionListItem';
 export type {
-  SingleQuestionFormProps,
+SingleQuestionFormProps,
 } from './SingleQuestionForm';
 export type {
-  BulkQuestionFormProps,
+BulkQuestionFormProps,
 } from './BulkQuestionForm';
 export type {
-  BulkQuestionResultListProps,
+BulkQuestionResultListProps,
 } from './BulkQuestionResultList';
 export type {
-  QuestionTypeSelectProps,
+QuestionTypeSelectProps,
 } from './QuestionTypeSelect';
 export type {
-  AnswerOptionsEditorProps,
-  AnswerOption,
+AnswerOptionsEditorProps,
+AnswerOption,
 } from './AnswerOptionsEditor';
 export type {
-  QuestionCorrectMarkProps,
+QuestionCorrectMarkProps,
 } from './QuestionCorrectMark';
 export type {
-  PublishReadinessCounterProps,
+PublishReadinessCounterProps,
 } from './PublishReadinessCounter';
 export type {
-  QuestionEditorEmptyStateProps,
+QuestionEditorEmptyStateProps,
 } from './QuestionEditorEmptyState';
 export type {
-  CooldownTimerProps,
-  CooldownDisplayProps,
+CooldownTimerProps,
+CooldownDisplayProps,
 } from './CooldownTimer';

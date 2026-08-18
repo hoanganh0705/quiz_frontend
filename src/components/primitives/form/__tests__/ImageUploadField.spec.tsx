@@ -1,41 +1,75 @@
-/**
- * `<ImageUploadField />` unit tests.
- *
- * Source epic:   Epic 4.2 — `useQuizForm` primitive + shared form atoms.
- * Source ticket: TKT-4.2.B6.
- *
- * Coverage contract:
- *   (a) renders an `<input type="file">` when no value is present.
- *   (b) renders a thumbnail preview + remove button when a value is set.
- *   (c) the remove button clears the form value.
- *   (d) oversized files surface the "Reduce file size" message and do
- *       NOT update the form value.
- */
-
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { screen, fireEvent, waitFor } from '@testing-library/react';
 import { z } from 'zod';
 
 import { ImageUploadField } from '../ImageUploadField';
 import { wrapWithFormProvider } from './form-test-utils';
 
-const schema = z.object({
-  imageUrl: z.string().nullable().optional(),
+vi.mock('@/features/uploads/hooks/useUpload', () => {
+  const uploadMock = vi.fn();
+  return {
+    useUpload: () => ({
+      upload: uploadMock,
+      isUploading: false,
+      progress: null,
+      error: null,
+      retry: vi.fn(),
+      reset: vi.fn(),
+    }),
+    __uploadMock: uploadMock,
+  };
 });
 
-function makeFile(name: string, sizeBytes: number): File {
-  // Create a stub File whose `size` is reported as `sizeBytes`.
-  const blob = new Blob([new ArrayBuffer(sizeBytes)], { type: 'image/png' });
-  return new File([blob], name, { type: 'image/png' });
+// Provide a valid publicId shape so the preview is rendered when the
+// form value is set. The exact value is the "success" payload returned
+// by the mocked `useUpload` below.
+const VALID_PUBLIC_ID =
+  'quiz-app/avatars/00000000-0000-7000-8000-000000000000/00000000-0000-7000-8000-000000000000';
+
+const schema = z.object({
+  imagePublicId: z.string().nullable().optional(),
+});
+
+function makeFile(name: string, sizeBytes: number, type = 'image/png'): File {
+  const blob = new Blob([new ArrayBuffer(sizeBytes)], { type });
+  return new File([blob], name, { type });
+}
+
+interface MockedUploadModule {
+  __uploadMock: ReturnType<typeof vi.fn>;
+  useUpload: () => unknown;
+}
+
+async function getUploadMock(): Promise<ReturnType<typeof vi.fn>> {
+  const mod = (await import('@/features/uploads/hooks/useUpload')) as unknown as MockedUploadModule;
+  return mod.__uploadMock;
+}
+
+async function setUploadResponse(publicId: string): Promise<void> {
+  const mock = await getUploadMock();
+  mock.mockResolvedValueOnce({
+    publicId,
+    url: 'https://res.cloudinary.com/demo/image/upload/' + publicId,
+    bytes: 1234,
+    format: 'png',
+    width: 100,
+    height: 100,
+    purpose: 'avatar',
+  });
 }
 
 describe('<ImageUploadField />', () => {
+  beforeEach(async () => {
+    const mock = await getUploadMock();
+    mock.mockReset();
+  });
+
   it('(a) renders an <input type="file"> when no value is present', () => {
     wrapWithFormProvider(
-      <ImageUploadField<typeof schema> name='imageUrl' label='Image' />,
-      { schema, defaultValues: { imageUrl: '' } }
+      <ImageUploadField<typeof schema> name='imagePublicId' label='Image' purpose='avatar' />,
+      { schema, defaultValues: { imagePublicId: '' } },
     );
-    const input = screen.getByTestId('image-upload-field-input-imageUrl');
+    const input = screen.getByTestId('image-upload-field-input-imagePublicId');
     expect(input).toBeInTheDocument();
     expect(input.getAttribute('type')).toBe('file');
     expect(input.getAttribute('accept')).toBe('image/*');
@@ -43,73 +77,79 @@ describe('<ImageUploadField />', () => {
 
   it('(b) renders a thumbnail preview + remove button when a value is set', () => {
     wrapWithFormProvider(
-      <ImageUploadField<typeof schema> name='imageUrl' label='Image' />,
-      { schema, defaultValues: { imageUrl: 'data:image/png;base64,abc' } }
+      <ImageUploadField<typeof schema> name='imagePublicId' label='Image' purpose='avatar' />,
+      { schema, defaultValues: { imagePublicId: VALID_PUBLIC_ID } },
     );
-    const preview = screen.getByTestId('image-upload-field-preview-imageUrl');
+    const preview = screen.getByTestId('image-upload-field-preview-imagePublicId');
     expect(preview).toBeInTheDocument();
-    expect(screen.getByTestId('image-upload-field-remove-imageUrl')).toBeInTheDocument();
+    expect(screen.getByTestId('image-upload-field-remove-imagePublicId')).toBeInTheDocument();
   });
 
   it('(c) the remove button clears the form value', () => {
     const { methods } = wrapWithFormProvider(
-      <ImageUploadField<typeof schema> name='imageUrl' label='Image' />,
-      { schema, defaultValues: { imageUrl: 'data:image/png;base64,abc' } }
+      <ImageUploadField<typeof schema> name='imagePublicId' label='Image' purpose='avatar' />,
+      { schema, defaultValues: { imagePublicId: VALID_PUBLIC_ID } },
     );
 
-    fireEvent.click(screen.getByTestId('image-upload-field-remove-imageUrl'));
-    expect(methods.getValues('imageUrl')).toBe('');
+    fireEvent.click(screen.getByTestId('image-upload-field-remove-imagePublicId'));
+    expect(methods.getValues('imagePublicId')).toBe('');
   });
 
-  it('(d) oversized files surface "Reduce file size" and do NOT update the value', async () => {
-    // FileReader is provided by jsdom. Stub `readAsDataURL` so the
-    // oversize branch can complete synchronously without network IO.
-    const origReadAsDataURL = FileReader.prototype.readAsDataURL;
-    FileReader.prototype.readAsDataURL = vi.fn(function readAsDataURLStub(
-      this: FileReader
-    ): void {
-      // The atom calls `reader.onload` after `readAsDataURL`. We
-      // dispatch an empty string so the form value is unchanged on
-      // an oversize file (the atom short-circuits before invoking
-      // FileReader, so this stub is mostly a defensive backstop).
-      setTimeout(() => {
-        const event = new ProgressEvent('load') as ProgressEvent<FileReader>;
-        Object.defineProperty(this, 'result', {
-          value: 'data:image/png;base64,',
-          configurable: true,
-        });
-        if (typeof this.onload === 'function') {
-          this.onload.call(this, event);
-        }
-      }, 0);
+  it('(d) oversized files short-circuit the upload and surface "Reduce file size"', async () => {
+    const { methods } = wrapWithFormProvider(
+      <ImageUploadField<typeof schema>
+        name='imagePublicId'
+        label='Image'
+        purpose='avatar'
+        maxBytes={1024}
+      />,
+      { schema, defaultValues: { imagePublicId: '' } },
+    );
+
+    const input = screen.getByTestId(
+      'image-upload-field-input-imagePublicId',
+    ) as HTMLInputElement;
+    fireEvent.change(input, {
+      target: { files: [makeFile('big.png', 5 * 1024 * 1024)] },
     });
 
-    try {
-      const { methods } = wrapWithFormProvider(
-        <ImageUploadField<typeof schema>
-          name='imageUrl'
-          label='Image'
-          maxBytes={1024}
-        />,
-        { schema, defaultValues: { imageUrl: '' } }
-      );
+    await waitFor(() => {
+      expect(
+        screen.getByTestId('image-upload-field-oversize-imagePublicId'),
+      ).toBeInTheDocument();
+    });
 
-      const input = screen.getByTestId(
-        'image-upload-field-input-imageUrl'
-      ) as HTMLInputElement;
-      fireEvent.change(input, {
-        target: { files: [makeFile('big.png', 5 * 1024 * 1024)] },
-      });
+    expect(methods.getValues('imagePublicId')).toBe('');
+    const uploadMock = await getUploadMock();
+    expect(uploadMock).not.toHaveBeenCalled();
+  });
 
-      await waitFor(() => {
-        expect(
-          screen.getByTestId('image-upload-field-oversize-imageUrl')
-        ).toBeInTheDocument();
-      });
-      // The form value is NOT updated.
-      expect(methods.getValues('imageUrl')).toBe('');
-    } finally {
-      FileReader.prototype.readAsDataURL = origReadAsDataURL;
-    }
+  it('(e) on a valid file select, calls useUpload.upload and writes the publicId', async () => {
+    await setUploadResponse(VALID_PUBLIC_ID);
+
+    const { methods } = wrapWithFormProvider(
+      <ImageUploadField<typeof schema> name='imagePublicId' label='Image' purpose='avatar' />,
+      { schema, defaultValues: { imagePublicId: '' } },
+    );
+
+    const input = screen.getByTestId(
+      'image-upload-field-input-imagePublicId',
+    ) as HTMLInputElement;
+    fireEvent.change(input, {
+      target: { files: [makeFile('avatar.png', 1024)] },
+    });
+
+    await waitFor(() => {
+      expect(methods.getValues('imagePublicId')).toBe(VALID_PUBLIC_ID);
+    });
+
+    const uploadMock = await getUploadMock();
+    expect(uploadMock).toHaveBeenCalledTimes(1);
+    expect(uploadMock).toHaveBeenCalledWith(
+      expect.objectContaining({ purpose: 'avatar' }),
+    );
+    const callArg = uploadMock.mock.calls[0]?.[0] as { file: File; purpose: string };
+    expect(callArg.file).toBeInstanceOf(File);
+    expect(callArg.file.name).toBe('avatar.png');
   });
 });

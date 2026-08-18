@@ -1,4 +1,4 @@
-// Comment components — Epic 4.12
+
 
 export { CommentVoteButtons } from './CommentVoteButtons';
 export type { CommentVoteButtonsProps } from './CommentVoteButtons';

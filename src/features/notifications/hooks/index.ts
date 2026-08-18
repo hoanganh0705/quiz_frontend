@@ -1,19 +1,4 @@
-/**
- * Notifications hooks — Story 5.4 barrel.
- *
- * Source epic:   Epic 5.1 — SDK coverage & realtime contract foundation.
- * Source story:  5.4 — Live notification stream and notification center.
- * Source ticket: TKT-5.4.B (covered by B1–B7).
- *
- * Re-exports the public surface of the notifications hooks so consumers
- * can import from a stable path:
- *
- *   import { useNotifications } from '@/features/notifications/hooks'
- *
- * Mirrors the `@/features/tournaments/hooks` barrel convention.
- */
 
-// ─── Reads ────────────────────────────────────────────────────────────────
 
 export { useNotifications } from "./useNotifications";
 export type { UseNotificationsResult } from "./useNotifications";
@@ -26,8 +11,6 @@ export type { UseNotificationSocketResult } from "./useNotificationSocket";
 
 export { useNotificationFeatureFlag } from "./useNotificationFeatureFlag";
 export type { UseNotificationFeatureFlagResult } from "./useNotificationFeatureFlag";
-
-// ─── Mutations ───────────────────────────────────────────────────────────
 
 export { useMarkNotificationRead } from "./useMarkNotificationRead";
 export type { UseMarkNotificationReadResult } from "./useMarkNotificationRead";

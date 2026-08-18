@@ -1,7 +1,7 @@
 'use client'
 
 import { memo, useCallback } from 'react'
-// Fix barrel imports (bundle-barrel-imports)
+
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Label } from '@/components/ui/Label'
@@ -11,228 +11,227 @@ import { cn } from '@/shared/utils/merge-class-names'
 import { ArrowLeft, ArrowRight, User } from 'lucide-react'
 
 interface ProfileSetupStepProps {
-  profile: OnboardingProfile
-  onUpdateProfile: (profile: OnboardingProfile) => void
-  onNext: () => void
-  onBack: () => void
-  onSkip: () => void
+profile: OnboardingProfile
+onUpdateProfile: (profile: OnboardingProfile) => void
+onNext: () => void
+onBack: () => void
+onSkip: () => void
 }
 
-// Hoist constants outside component (data-hoisting)
 const experienceLevels = [
-  {
-    value: 'beginner',
-    label: 'Beginner',
-    emoji: '🌱',
-    description: 'Just starting my quiz journey'
+{
+value: 'beginner',
+label: 'Beginner',
+emoji: '🌱',
+description: 'Just starting my quiz journey'
   },
-  {
-    value: 'intermediate',
-    label: 'Intermediate',
-    emoji: '🌿',
-    description: 'I enjoy quizzes regularly'
+{
+value: 'intermediate',
+label: 'Intermediate',
+emoji: '🌿',
+description: 'I enjoy quizzes regularly'
   },
-  {
-    value: 'advanced',
-    label: 'Advanced',
-    emoji: '🌳',
-    description: 'Quiz master in the making'
+{
+value: 'advanced',
+label: 'Advanced',
+emoji: '🌳',
+description: 'Quiz master in the making'
   }
 ] as const
 
 const avatarOptions = [
-  '👤',
-  '👩',
-  '👨',
-  '🧑',
-  '👧',
-  '👦',
-  '🦊',
-  '🐱',
-  '🐶',
-  '🐼',
-  '🦁',
-  '🐨',
-  '🤖',
-  '👽',
-  '🎭',
-  '🦄',
-  '🐲',
-  '🦋'
+'👤',
+'👩',
+'👨',
+'🧑',
+'👧',
+'👦',
+'🦊',
+'🐱',
+'🐶',
+'🐼',
+'🦁',
+'🐨',
+'🤖',
+'👽',
+'🎭',
+'🦄',
+'🐲',
+'🦋'
 ]
 
 export const ProfileSetupStep = memo(function ProfileSetupStep({
-  profile,
-  onUpdateProfile,
-  onNext,
-  onBack
+profile,
+onUpdateProfile,
+onNext,
+onBack
 }: ProfileSetupStepProps) {
-  // Use useCallback for event handlers (rerender-functional-setstate)
-  const updateField = useCallback(
-    <K extends keyof OnboardingProfile>(
-      field: K,
-      value: OnboardingProfile[K]
+
+const updateField = useCallback(
+<K extends keyof OnboardingProfile>(
+field: K,
+value: OnboardingProfile[K]
     ) => {
-      onUpdateProfile({ ...profile, [field]: value })
+onUpdateProfile({ ...profile, [field]: value })
     },
-    [profile, onUpdateProfile]
+[profile, onUpdateProfile]
   )
 
-  const canProceed = profile.displayName.trim().length >= 2
+const canProceed = profile.displayName.trim().length >= 2
 
-  return (
-    <div className='space-y-8'>
-      {/* Header */}
-      <div className='text-center space-y-2'>
-        <h2 className='text-2xl md:text-3xl font-bold text-foreground'>
-          Set up your profile 👋
+return (
+<div className='space-y-8'>
+{/* Header */}
+<div className='text-center space-y-2'>
+<h2 className='text-2xl md:text-3xl font-bold text-foreground'>
+Set up your profile 👋
         </h2>
-        <p className='text-muted-foreground'>
-          Tell us a bit about yourself to personalize your experience
+<p className='text-muted-foreground'>
+Tell us a bit about yourself to personalize your experience
         </p>
-      </div>
+</div>
 
-      <div className='space-y-6'>
-        {/* Avatar Selection */}
-        <div className='space-y-3'>
-          <Label className='text-sm font-medium'>Choose an avatar</Label>
-          <div
-            className='flex flex-wrap gap-2 justify-center p-4 rounded-xl border border-border bg-card'
-            role='group'
-            aria-label='Avatar selection'
+<div className='space-y-6'>
+{/* Avatar Selection */}
+<div className='space-y-3'>
+<Label className='text-sm font-medium'>Choose an avatar</Label>
+<div
+className='flex flex-wrap gap-2 justify-center p-4 rounded-xl border border-border bg-card'
+role='group'
+aria-label='Avatar selection'
           >
-            {avatarOptions.map((avatar) => (
-              <button
-                key={avatar}
-                onClick={() => updateField('avatar', avatar)}
-                className={cn(
-                  'w-12 h-12 rounded-full flex items-center justify-center text-2xl transition-all',
-                  'hover:scale-110 hover:bg-brand/10',
-                  profile.avatar === avatar
-                    ? 'bg-brand/20 ring-2 ring-brand ring-offset-2 ring-offset-background'
-                    : 'bg-muted'
+{avatarOptions.map((avatar) => (
+<button
+key={avatar}
+onClick={() => updateField('avatar', avatar)}
+className={cn(
+'w-12 h-12 rounded-full flex items-center justify-center text-2xl transition-all',
+'hover:scale-110 hover:bg-brand/10',
+profile.avatar === avatar
+? 'bg-brand/20 ring-2 ring-brand ring-offset-2 ring-offset-background'
+: 'bg-muted'
                 )}
-                aria-label={`Select avatar ${avatar}`}
-                aria-pressed={profile.avatar === avatar}
+aria-label={`Select avatar ${avatar}`}
+aria-pressed={profile.avatar === avatar}
               >
-                {avatar}
-              </button>
+{avatar}
+</button>
             ))}
-          </div>
-          {!profile.avatar && (
-            <p className='text-xs text-muted-foreground text-center'>
-              Select an avatar or we&apos;ll use a default one
+</div>
+{!profile.avatar && (
+<p className='text-xs text-muted-foreground text-center'>
+Select an avatar or we&apos;ll use a default one
             </p>
           )}
-        </div>
+</div>
 
-        {/* Display Name */}
-        <div className='space-y-2'>
-          <Label htmlFor='displayName' className='text-sm font-medium'>
-            Display Name <span className='text-destructive'>*</span>
-          </Label>
-          <div className='relative'>
-            <User
-              className='absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground'
-              aria-hidden='true'
+{/* Display Name */}
+<div className='space-y-2'>
+<Label htmlFor='displayName' className='text-sm font-medium'>
+Display Name <span className='text-destructive'>*</span>
+</Label>
+<div className='relative'>
+<User
+className='absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground'
+aria-hidden='true'
             />
-            <Input
-              id='displayName'
-              placeholder='Enter your display name'
-              value={profile.displayName}
-              onChange={(e) => updateField('displayName', e.target.value)}
-              className='pl-10'
-              maxLength={30}
-              aria-required='true'
-              aria-invalid={profile.displayName.trim().length < 2}
+<Input
+id='displayName'
+placeholder='Enter your display name'
+value={profile.displayName}
+onChange={(e) => updateField('displayName', e.target.value)}
+className='pl-10'
+maxLength={30}
+aria-required='true'
+aria-invalid={profile.displayName.trim().length < 2}
             />
-          </div>
-          <p className='text-xs text-muted-foreground'>
-            This is how other players will see you ({profile.displayName.length}
-            /30)
+</div>
+<p className='text-xs text-muted-foreground'>
+This is how other players will see you ({profile.displayName.length}
+/30)
           </p>
-        </div>
+</div>
 
-        {/* Bio */}
-        <div className='space-y-2'>
-          <Label htmlFor='bio' className='text-sm font-medium'>
-            Bio (optional)
+{/* Bio */}
+<div className='space-y-2'>
+<Label htmlFor='bio' className='text-sm font-medium'>
+Bio (optional)
           </Label>
-          <Textarea
-            id='bio'
-            placeholder='Tell us something about yourself...'
-            value={profile.bio}
-            onChange={(e) => updateField('bio', e.target.value)}
-            rows={3}
-            maxLength={200}
-            className='resize-none'
+<Textarea
+id='bio'
+placeholder='Tell us something about yourself...'
+value={profile.bio}
+onChange={(e) => updateField('bio', e.target.value)}
+rows={3}
+maxLength={200}
+className='resize-none'
           />
-          <p className='text-xs text-muted-foreground text-right'>
-            {profile.bio.length}/200
+<p className='text-xs text-muted-foreground text-right'>
+{profile.bio.length}/200
           </p>
-        </div>
+</div>
 
-        {/* Experience Level */}
-        <div className='space-y-3'>
-          <Label className='text-sm font-medium'>Quiz experience level</Label>
-          <div
-            className='grid grid-cols-1 sm:grid-cols-3 gap-3'
-            role='group'
-            aria-label='Experience level selection'
+{/* Experience Level */}
+<div className='space-y-3'>
+<Label className='text-sm font-medium'>Quiz experience level</Label>
+<div
+className='grid grid-cols-1 sm:grid-cols-3 gap-3'
+role='group'
+aria-label='Experience level selection'
           >
-            {experienceLevels.map((level) => (
-              <button
-                key={level.value}
-                onClick={() => updateField('experienceLevel', level.value)}
-                className={cn(
-                  'p-4 rounded-xl border-2 transition-all text-left',
-                  'hover:border-brand/50',
-                  profile.experienceLevel === level.value
-                    ? 'border-brand bg-brand/10'
-                    : 'border-border bg-card'
+{experienceLevels.map((level) => (
+<button
+key={level.value}
+onClick={() => updateField('experienceLevel', level.value)}
+className={cn(
+'p-4 rounded-xl border-2 transition-all text-left',
+'hover:border-brand/50',
+profile.experienceLevel === level.value
+? 'border-brand bg-brand/10'
+: 'border-border bg-card'
                 )}
-                aria-label={`${level.label}: ${level.description}`}
-                aria-pressed={profile.experienceLevel === level.value}
+aria-label={`${level.label}: ${level.description}`}
+aria-pressed={profile.experienceLevel === level.value}
               >
-                <div className='text-2xl mb-2' aria-hidden='true'>
-                  {level.emoji}
-                </div>
-                <div className='font-medium text-foreground text-sm'>
-                  {level.label}
-                </div>
-                <div className='text-xs text-muted-foreground'>
-                  {level.description}
-                </div>
-              </button>
+<div className='text-2xl mb-2' aria-hidden='true'>
+{level.emoji}
+</div>
+<div className='font-medium text-foreground text-sm'>
+{level.label}
+</div>
+<div className='text-xs text-muted-foreground'>
+{level.description}
+</div>
+</button>
             ))}
-          </div>
-        </div>
-      </div>
+</div>
+</div>
+</div>
 
-      {/* Navigation */}
-      <nav
-        className='flex justify-between items-center pt-4'
-        aria-label='Step navigation'
+{/* Navigation */}
+<nav
+className='flex justify-between items-center pt-4'
+aria-label='Step navigation'
       >
-        <Button
-          variant='outline'
-          onClick={onBack}
-          className='flex items-center gap-2'
-          aria-label='Go back to previous step'
+<Button
+variant='outline'
+onClick={onBack}
+className='flex items-center gap-2'
+aria-label='Go back to previous step'
         >
-          <ArrowLeft className='w-4 h-4' aria-hidden='true' />
-          Back
+<ArrowLeft className='w-4 h-4' aria-hidden='true' />
+Back
         </Button>
-        <Button
-          onClick={onNext}
-          disabled={!canProceed}
-          className='bg-brand hover:bg-brand-hover text-white flex items-center gap-2'
-          aria-label='Continue to next step'
+<Button
+onClick={onNext}
+disabled={!canProceed}
+className='bg-brand hover:bg-brand-hover text-white flex items-center gap-2'
+aria-label='Continue to next step'
         >
-          Continue
+Continue
           <ArrowRight className='w-4 h-4' aria-hidden='true' />
-        </Button>
-      </nav>
-    </div>
+</Button>
+</nav>
+</div>
   )
 })

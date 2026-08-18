@@ -1,150 +1,118 @@
-/**
- * `LeaderboardLoading` — route-level skeleton that matches the live
- * page's outer dimensions for CLS-zero on first paint.
- *
- * Source epic:   Epic 3.11 — `/leaderboard` read-only render.
- * Source ticket: TKT-3.11.D1.
- *
- * The skeleton mirrors the live `app/(public)/leaderboard/page.tsx`
- * composition:
- *
- *   - The page wrapper (`<div className='min-h-screen p-4 md:p-8 lg:p-12'>`)
- *     is the parent in `page.tsx` and the outer chrome here.
- *   - The header skeleton matches `LeaderboardHeader` (title row +
- *     toolbar + 4 stat cards in a 4-col grid).
- *   - The 2-column sidecar skeleton matches `CompetitionStats` +
- *     `LeaderboardHighlights` (3-col grid at lg, 1-col below).
- *   - The podium skeleton matches the live top-3 row outer
- *     dimensions (3 columns; 1st place is taller, 2nd and 3rd flank).
- *   - The 10-row table skeleton matches the live `LeaderboardSkeleton`
- *     outer dimensions (card border + rounded-lg + overflow-hidden +
- *     space-y-1 p-2 inner).
- *
- * The route-skeleton-to-live swap is CLS-zero because every outer
- * dimension (chrome, padding, grid layout, card borders, table card)
- * matches the live surface at every breakpoint.
- *
- * Note: this skeleton is rendered by Next.js while the `page.tsx`
- * server component streams. The `LeaderboardHeader` / `CompetitionStats`
- * / `LeaderboardHighlights` are also Next.js server components; their
- * `loading.tsx` siblings live with them (per Next.js convention), so
- * this skeleton is the only placeholder for the live
- * `LeaderboardPage` (which is a client component).
- */
+
 
 import { Skeleton } from '@/components/ui/Skeleton'
 import { LeaderboardRowSkeleton } from '@/components/ui/loading-states/Skeletons'
 
 export default function LeaderboardLoading() {
-  return (
-    <div className='min-h-screen p-4 md:p-8 lg:p-12'>
-      {/* Header skeleton — matches LeaderboardHeader outer dimensions
+return (
+<div className='min-h-screen p-4 md:p-8 lg:p-12'>
+{/* Header skeleton — matches LeaderboardHeader outer dimensions
           (title row + 4-col stat grid). */}
-      <div className='mb-6 sm:mb-8 space-y-6'>
-        <header
-          className='space-y-4 flex flex-col xl:flex-row justify-between items-start xl:items-center'
-          role='banner'
+<div className='mb-6 sm:mb-8 space-y-6'>
+<header
+className='space-y-4 flex flex-col xl:flex-row justify-between items-start xl:items-center'
+role='banner'
         >
-          <div className='text-center xl:text-left'>
-            <Skeleton className='h-8 w-48 mb-2' />
-            <Skeleton className='h-4 w-72' />
-          </div>
-          <div className='flex flex-wrap gap-2 justify-center items-center'>
-            <Skeleton className='h-8 w-28 rounded-md' />
-            <Skeleton className='h-8 w-32 rounded-md' />
-          </div>
-        </header>
+<div className='text-center xl:text-left'>
+<Skeleton className='h-8 w-48 mb-2' />
+<Skeleton className='h-4 w-72' />
+</div>
+<div className='flex flex-wrap gap-2 justify-center items-center'>
+<Skeleton className='h-8 w-28 rounded-md' />
+<Skeleton className='h-8 w-32 rounded-md' />
+</div>
+</header>
 
-        {/* Stats Overview — 4-col grid matching the live
+{/* Stats Overview — 4-col grid matching the live
             LeaderboardHeader stats. */}
-        <section
-          className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4'
-          aria-label='Leaderboard statistics overview'
+<section
+className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4'
+aria-label='Leaderboard statistics overview'
         >
-          {Array.from({ length: 4 }).map((_, i) => (
-            <div
-              key={i}
-              className='bg-background p-4 rounded-lg border border-border'
+{Array.from({ length: 4 }).map((_, i) => (
+<div
+key={i}
+className='bg-background p-4 rounded-lg border border-border'
             >
-              <div className='flex items-center justify-between'>
-                <div>
-                  <Skeleton className='h-4 w-24 mb-2' />
-                  <Skeleton className='h-5 w-16' />
-                </div>
-                <Skeleton className='h-10 w-10 rounded-full' />
-              </div>
-            </div>
+<div className='flex items-center justify-between'>
+<div>
+<Skeleton className='h-4 w-24 mb-2' />
+<Skeleton className='h-5 w-16' />
+</div>
+<Skeleton className='h-10 w-10 rounded-full' />
+</div>
+</div>
           ))}
-        </section>
-      </div>
+</section>
+</div>
 
-      {/* 2-column sidecar skeleton — matches CompetitionStats +
+{/* 2-column sidecar skeleton — matches CompetitionStats +
           LeaderboardHighlights (3-col at lg, 1-col below). */}
-      <section
-        className='grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6'
-        aria-label='Leaderboard statistics'
+<section
+className='grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6'
+aria-label='Leaderboard statistics'
       >
-        <Skeleton className='h-32 w-full rounded-lg' />
-        <Skeleton className='h-32 w-full rounded-lg' />
-      </section>
+<Skeleton className='h-32 w-full rounded-lg' />
+<Skeleton className='h-32 w-full rounded-lg' />
+</section>
 
-      {/* Live LeaderboardPage section — matches the section's
+{/* Live LeaderboardPage section — matches the section's
           outer chrome (space-y-6) and the period selector + table
           structure. The period selector and podium are rendered as
           part of this section's outer dimensions. */}
-      <section
-        className='mt-6 space-y-6'
-        aria-label='Global leaderboard'
-        aria-busy='true'
+<section
+className='mt-6 space-y-6'
+aria-label='Global leaderboard'
+aria-busy='true'
       >
-        {/* Period selector skeleton (matches the flex row with the
+{/* Period selector skeleton (matches the flex row with the
             title and the three-button group). */}
-        <div className='flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between'>
-          <Skeleton className='h-6 w-44' />
-          <Skeleton className='h-9 w-72 rounded-lg' />
-        </div>
+<div className='flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between'>
+<Skeleton className='h-6 w-44' />
+<Skeleton className='h-9 w-72 rounded-lg' />
+</div>
 
-        {/* Podium skeleton — matches the live top-3 row (2nd, 1st,
+{/* Podium skeleton — matches the live top-3 row (2nd, 1st,
             3rd column order; 1st is taller). */}
-        <div className='flex items-end justify-center gap-3 sm:gap-6'>
-          {/* 2nd place */}
-          <div className='flex flex-col items-center gap-2 rounded-t-xl border border-border p-3 bg-slate-800/40 h-44 w-32'>
-            <Skeleton className='h-12 w-12 rounded-full' />
-            <Skeleton className='h-4 w-16' />
-            <Skeleton className='h-3 w-12' />
-            <Skeleton className='h-8 w-16 rounded-md' />
-          </div>
-          {/* 1st place — taller and offset upward */}
-          <div className='flex flex-col items-center gap-2 rounded-t-xl border border-yellow-500/30 p-3 bg-yellow-500/10 h-48 w-32 -mt-6'>
-            <Skeleton className='h-16 w-16 rounded-full' />
-            <Skeleton className='h-4 w-20' />
-            <Skeleton className='h-3 w-12' />
-            <Skeleton className='h-8 w-16 rounded-md' />
-          </div>
-          {/* 3rd place */}
-          <div className='flex flex-col items-center gap-2 rounded-t-xl border border-border p-3 bg-slate-800/40 h-40 w-32'>
-            <Skeleton className='h-12 w-12 rounded-full' />
-            <Skeleton className='h-4 w-16' />
-            <Skeleton className='h-3 w-12' />
-            <Skeleton className='h-8 w-16 rounded-md' />
-          </div>
-        </div>
+<div className='flex items-end justify-center gap-3 sm:gap-6'>
+{/* 2nd place */}
+<div className='flex flex-col items-center gap-2 rounded-t-xl border border-border p-3 bg-slate-800/40 h-44 w-32'>
+<Skeleton className='h-12 w-12 rounded-full' />
+<Skeleton className='h-4 w-16' />
+<Skeleton className='h-3 w-12' />
+<Skeleton className='h-8 w-16 rounded-md' />
+</div>
+{/* 1st place — taller and offset upward */}
+<div className='flex flex-col items-center gap-2 rounded-t-xl border border-yellow-500/30 p-3 bg-yellow-500/10 h-48 w-32 -mt-6'>
+<Skeleton className='h-16 w-16 rounded-full' />
+<Skeleton className='h-4 w-20' />
+<Skeleton className='h-3 w-12' />
+<Skeleton className='h-8 w-16 rounded-md' />
+</div>
+{/* 3rd place */}
+<div className='flex flex-col items-center gap-2 rounded-t-xl border border-border p-3 bg-slate-800/40 h-40 w-32'>
+<Skeleton className='h-12 w-12 rounded-full' />
+<Skeleton className='h-4 w-16' />
+<Skeleton className='h-3 w-12' />
+<Skeleton className='h-8 w-16 rounded-md' />
+</div>
+</div>
 
-        {/* Table skeleton — matches the live LeaderboardSkeleton
+{/* Table skeleton — matches the live LeaderboardSkeleton
             (10 rows, card border, space-y-1 p-2 inner layout). */}
-        <div
-          role='status'
-          aria-live='polite'
-          aria-label='Loading leaderboard'
-          className='bg-card border border-border rounded-lg overflow-hidden'
+<div
+role='status'
+aria-live='polite'
+aria-label='Loading leaderboard'
+className='bg-card border border-border rounded-lg overflow-hidden'
         >
-          <div className='space-y-1 p-2'>
-            {Array.from({ length: 10 }).map((_, i) => (
-              <LeaderboardRowSkeleton key={i} />
+<div className='space-y-1 p-2'>
+{Array.from({ length: 10 }).map((_, i) => (
+<LeaderboardRowSkeleton key={i} />
             ))}
-          </div>
-        </div>
-      </section>
-    </div>
+</div>
+</div>
+</section>
+</div>
   )
 }

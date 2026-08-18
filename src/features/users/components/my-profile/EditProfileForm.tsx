@@ -1,138 +1,86 @@
-'use client';
+"use client";
 
-/**
- * `EditProfileForm` — canonical profile-edit form for Epic 4.3.
- *
- * Source epic:   Epic 4.3 — Edit profile + user settings.
- * Source ticket: TKT-4.3.D1.
- *
- * ## What this component owns
- *
- * Receives `profile` as a prop (not fetched here — the parent owns the
- * `useMyProfile()` call). Renders a `useQuizForm` with `updateMyProfileSchema`,
- * checks username availability with `useCheckUsername`, shows a `DraftBanner`
- * for 5-second localStorage auto-save, mounts `useUnsavedChangesGuard` for
- * navigate-away protection, and calls `useUpdateMyProfile.mutate()` on submit.
- *
- * ## Draft auto-save (Epic 4.2 TKT-4.2.C2)
- *
- * Mounts `useDraftAutoSave` with a 5-second interval. If the browser is
- * closed and reopened, the `<DraftBanner />` prompts the user to restore
- * their draft. On successful submit, the draft is dismissed.
- *
- * ## Unsaved-changes guard (Epic 4.2 TKT-4.2.C3)
- *
- * Mounts `useUnsavedChangesGuard` with a 5-second dirty threshold.
- * Navigating away while dirty (and past the threshold) shows a
- * `beforeunload` browser prompt. The consumer is responsible for rendering
- * the `<ConfirmDialog />` for in-app navigation interception.
- */
+import { memo, useCallback, useEffect, useMemo } from "react";
+import { FormProvider } from "react-hook-form";
+import { Loader2 } from "lucide-react";
 
-import { memo, useCallback, useEffect, useMemo } from 'react';
-import { FormProvider } from 'react-hook-form';
-import { Loader2 } from 'lucide-react';
-
-import { Button } from '@/components/ui/Button';
-import { TextField } from '@/components/primitives/form/TextField';
-import { ImageUploadField } from '@/components/primitives/form/ImageUploadField';
-import { FormErrorBanner } from '@/components/primitives/form/FormErrorBanner';
-import { DraftBanner } from '@/components/primitives/form/DraftBanner';
-import { useQuizForm } from '@/lib/forms/useQuizForm';
-import { updateMyProfileSchema } from '@/lib/forms';
-import { useDraftAutoSave } from '@/lib/forms/useDraftAutoSave';
-import { useUnsavedChangesGuard } from '@/lib/forms/useUnsavedChangesGuard';
-import { useUpdateMyProfile } from '@/features/users/hooks/useUpdateMyProfile';
-import {
-  useCheckUsername,
-} from '@/features/auth/hooks/use-check-username';
-import type { UserMeResponseDto } from '@/features/users/types/user-backend';
-import type { z } from 'zod';
-
-// ─── Props ─────────────────────────────────────────────────────────────────
+import { Button } from "@/components/ui/Button";
+import { TextField } from "@/components/primitives/form/TextField";
+import { ImageUploadField } from "@/components/primitives/form/ImageUploadField";
+import { FormErrorBanner } from "@/components/primitives/form/FormErrorBanner";
+import { DraftBanner } from "@/components/primitives/form/DraftBanner";
+import { useQuizForm } from "@/lib/forms/useQuizForm";
+import { updateMyProfileSchema } from "@/lib/forms";
+import { useDraftAutoSave } from "@/lib/forms/useDraftAutoSave";
+import { useUnsavedChangesGuard } from "@/lib/forms/useUnsavedChangesGuard";
+import { useUpdateMyProfile } from "@/features/users/hooks/useUpdateMyProfile";
+import { useCheckUsername } from "@/features/auth/hooks/use-check-username";
+import type { UserMeResponseDto } from "@/features/users/types/user-backend";
+import type { z } from "zod";
 
 export interface EditProfileFormProps {
-  /**
-   * The authenticated user's full profile. The parent owns the
-   * `useMyProfile()` call and passes `profile` here.
-   */
   profile: UserMeResponseDto;
 }
 
-// ─── Form values type ───────────────────────────────────────────────────────
-
 type EditProfileValues = z.infer<typeof updateMyProfileSchema>;
 
-// ─── Root component ─────────────────────────────────────────────────────────
-
-/**
- * `<EditProfileForm profile={profile} />` — the canonical profile-edit form.
- *
- * Renders a full profile edit form with draft auto-save, unsaved-changes
- * guard, username availability feedback, and optimistic mutation.
- */
 export const EditProfileForm = memo(function EditProfileForm({
   profile,
 }: EditProfileFormProps) {
   const updateProfile = useUpdateMyProfile({});
 
-  // ── Default values from profile ──────────────────────────────────────────
-
   const defaultValues = useMemo<EditProfileValues>(() => {
     return {
-      displayName: profile.displayName ?? '',
+      displayName: profile.displayName ?? "",
       bio: profile.bio ?? null,
-      pronouns: ((profile as unknown as Record<string, unknown>).pronouns as string | null | undefined) ?? null,
-      location: ((profile as unknown as Record<string, unknown>).location as string | null | undefined) ?? null,
-      websiteUrl: ((profile as unknown as Record<string, unknown>).websiteUrl as string | null | undefined) ?? null,
-      avatarUrl: profile.avatarUrl ?? null,
+      pronouns:
+        ((profile as unknown as Record<string, unknown>).pronouns as
+          | string
+          | null
+          | undefined) ?? null,
+      location:
+        ((profile as unknown as Record<string, unknown>).location as
+          | string
+          | null
+          | undefined) ?? null,
+      websiteUrl:
+        ((profile as unknown as Record<string, unknown>).websiteUrl as
+          | string
+          | null
+          | undefined) ?? null,
+      avatarPublicId: null,
     };
   }, [profile]);
-
-  // ── Quiz form ────────────────────────────────────────────────────────────
-  // We don't inject `submit` into `useQuizForm` because we need to call
-  // `useUpdateMyProfile.mutate` with the validated values. Instead, we
-  // call `form.trigger()` for validation and `form.getValues()` to read
-  // the current values before invoking the mutation.
 
   const formState = useQuizForm({
     schema: updateMyProfileSchema,
     defaultValues,
-    formId: 'edit-profile',
+    formId: "edit-profile",
     // No `submit` injected — we call `handleSubmit` below.
   });
 
   const { form, reset, lastError } = formState;
   const { isSubmitting, errors, dirtyFields } = form.formState;
 
-  // ── Draft auto-save (Epic 4.2 TKT-4.2.C2) ───────────────────────────────
-
   const draft = useDraftAutoSave({
     form,
-    formId: 'edit-profile',
+    formId: "edit-profile",
     userId: profile.userId,
     intervalMs: 5_000,
   });
 
   const { savedAt } = draft;
 
-  // ── Unsaved-changes guard (Epic 4.2 TKT-4.2.C3) ───────────────────────
-
   const { pendingPopstate } = useUnsavedChangesGuard({
     isDirty: formState.isDirty,
     thresholdMs: 5_000,
   });
 
-  // ── Username availability ─────────────────────────────────────────────────
-  // `useCheckUsername` is mounted for future-proofing (username is read-only).
-
   const usernameCheck = useCheckUsername({
     username: profile.username,
-    enabled: false, // username is read-only after registration
+    enabled: false,
     debounceMs: 400,
   });
-
-  // ── Submit ───────────────────────────────────────────────────────────────
-  // Validate with `form.trigger()` then call the mutation.
 
   const handleSubmit = useCallback(async () => {
     const valid = await form.trigger();
@@ -141,11 +89,10 @@ export const EditProfileForm = memo(function EditProfileForm({
     await updateProfile.mutate({
       displayName: values.displayName || null,
       bio: values.bio || null,
-      avatarUrl: values.avatarUrl ?? null,
+      avatarPublicId: values.avatarPublicId ?? null,
     });
   }, [form, updateProfile]);
 
-  // On success: clear dirty state, dismiss draft, reset form.
   useEffect(() => {
     if (updateProfile.isSuccess) {
       reset();
@@ -154,31 +101,27 @@ export const EditProfileForm = memo(function EditProfileForm({
     }
   }, [updateProfile.isSuccess, reset, draft, updateProfile]);
 
-  // ── Derived state ────────────────────────────────────────────────────────
-
-  const isUnavailable = usernameCheck.status === 'unavailable';
+  const isUnavailable = usernameCheck.status === "unavailable";
   const isSaving = isSubmitting || updateProfile.isPending;
   const hasErrors = Object.keys(errors).length > 0;
   const canSubmit =
     formState.isDirty && !isSaving && !isUnavailable && !hasErrors;
 
-  // Transform `useUpdateMyProfile.lastError` to the `FormErrorBanner` shape.
   const bannerError = updateProfile.lastError
     ? {
         ...updateProfile.lastError,
-        code: updateProfile.lastApiError?.code ?? 'GLOBAL_UNKNOWN',
+        code: updateProfile.lastApiError?.code ?? "GLOBAL_UNKNOWN",
       }
     : null;
 
-  // ── Render ───────────────────────────────────────────────────────────────
-
   return (
-    <FormProvider
-      {...(form as unknown as Parameters<typeof FormProvider>[0])}
-    >
+    <FormProvider {...(form as unknown as Parameters<typeof FormProvider>[0])}>
       <div className="space-y-8">
         {/* Submission error banner */}
-        <FormErrorBanner lastError={bannerError} onDismiss={updateProfile.resetError} />
+        <FormErrorBanner
+          lastError={bannerError}
+          onDismiss={updateProfile.resetError}
+        />
 
         {/* Draft restore banner */}
         <DraftBanner
@@ -232,16 +175,17 @@ export const EditProfileForm = memo(function EditProfileForm({
 
         {/* Avatar upload */}
         <ImageUploadField
-          name="avatarUrl"
+          name={"avatarPublicId" as never}
           label="Profile Picture"
           description="Upload a photo to represent your profile."
+          purpose="avatar"
         />
 
         {/* Username display (read-only info) */}
         <div className="rounded-lg border border-border/40 bg-muted/30 p-4">
           <p className="text-sm font-medium text-foreground">Username</p>
           <p className="text-sm text-muted-foreground mt-1">
-            Your username is{' '}
+            Your username is{" "}
             <span className="font-medium">{profile.username}</span> and cannot
             be changed after registration.
           </p>
@@ -262,12 +206,9 @@ export const EditProfileForm = memo(function EditProfileForm({
             aria-label="Save profile changes"
           >
             {isSaving && (
-              <Loader2
-                className="w-4 h-4 animate-spin"
-                aria-hidden="true"
-              />
+              <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
             )}
-            {isSaving ? 'Saving…' : 'Save Changes'}
+            {isSaving ? "Saving…" : "Save Changes"}
           </Button>
           {formState.isDirty && !isSaving && (
             <p className="text-sm text-muted-foreground">

@@ -1,12 +1,8 @@
 type CookieOptions = {
-  days?: number
-  path?: string
+days?: number
+path?: string
 }
 
-/**
- * The function signature of `clearAuthToken`. Exported so it can be
- * used as a dependency-injection type in submit functions and hooks.
- */
 export type ClearAuthTokenFn = (path?: string) => void;
 
 const DEFAULT_COOKIE_DAYS = 7
@@ -15,181 +11,129 @@ const AUTH_STATE_EVENT = 'auth-state-change'
 const AUTH_TOKEN_NAME = 'auth_token'
 const REFRESH_TOKEN_NAME = 'refresh_token'
 
-// Storage sync keys for cross-tab fallback (Epic 2.7 T14)
 const STORAGE_SYNC_TOKEN_REFRESHED = 'auth_sync_TOKEN_REFRESHED'
 const STORAGE_SYNC_LOGGED_OUT = 'auth_sync_LOGGED_OUT'
 const STORAGE_SYNC_LOGGED_IN = 'auth_sync_LOGGED_IN'
 
 function notifyAuthStateChange() {
-  if (typeof window === 'undefined') return
-  window.dispatchEvent(new Event(AUTH_STATE_EVENT))
+if (typeof window === 'undefined') return
+window.dispatchEvent(new Event(AUTH_STATE_EVENT))
 }
 
-/**
- * Write a storage-sync payload to localStorage for cross-tab fallback.
- * Used when BroadcastChannel is unavailable.
- */
 function writeSyncPayload(key: string, payload: Record<string, unknown>) {
-  if (typeof localStorage === 'undefined') return
-  try {
-    localStorage.setItem(key, JSON.stringify(payload))
+if (typeof localStorage === 'undefined') return
+try {
+localStorage.setItem(key, JSON.stringify(payload))
   } catch {
     // Storage full or unavailable — fail silently
   }
 }
 
-// ── Server-side utilities (for use in middleware / Server Components) ───────────
-
-/**
- * Read auth_token from a Next.js NextRequest.
- * Safe to use in middleware — does not access document.cookie.
- */
 export function getAuthTokenFromRequest(request: Request): string | null {
-  const cookieHeader = request.headers.get('cookie') ?? ''
-  const match = cookieHeader.match(new RegExp(`(?:^|;\\s*)${AUTH_TOKEN_NAME}=([^;]*)`))
-  return match ? decodeURIComponent(match[1]) : null
+const cookieHeader = request.headers.get('cookie') ?? ''
+const match = cookieHeader.match(new RegExp(`(?:^|;\\s*)${AUTH_TOKEN_NAME}=([^;]*)`))
+return match ? decodeURIComponent(match[1]) : null
 }
 
-// ── Client-side utilities (accesses document.cookie) ─────────────────────────
-
-/**
- * Read auth_token from document.cookie.
- * Only call this in the browser — never in middleware or server code.
- */
 export function getAuthToken(): string | null {
-  if (typeof document === 'undefined') return null
-  const match = document.cookie.match(new RegExp(`(?:^|;\\s*)${AUTH_TOKEN_NAME}=([^;]*)`))
-  return match ? decodeURIComponent(match[1]) : null
+if (typeof document === 'undefined') return null
+const match = document.cookie.match(new RegExp(`(?:^|;\\s*)${AUTH_TOKEN_NAME}=([^;]*)`))
+return match ? decodeURIComponent(match[1]) : null
 }
 
-/**
- * Set auth_token on the client side.
- *
- * Note: This is intentionally NOT HttpOnly here so that the client can read
- * the token (e.g. for SSR auth checks via useSyncExternalStore).
- * In a fully hardened setup, HttpOnly tokens should be set only by the
- * server via middleware Response cookies, and the client should never need to
- * read the raw token. Consider migrating to that model once the backend
- * supports setting HttpOnly cookies via its login endpoint.
- *
- * SameSite=Lax prevents CSRF while allowing normal navigation.
- * Secure ensures the cookie is only sent over HTTPS.
- */
 export function setAuthToken(token: string, options: CookieOptions = {}) {
-  if (typeof document === 'undefined') return
+if (typeof document === 'undefined') return
 
-  const days = options.days ?? DEFAULT_COOKIE_DAYS
-  const path = options.path ?? DEFAULT_PATH
-  const expires = new Date(Date.now() + days * 864e5).toUTCString()
+const days = options.days ?? DEFAULT_COOKIE_DAYS
+const path = options.path ?? DEFAULT_PATH
+const expires = new Date(Date.now() + days * 864e5).toUTCString()
 
-  // Only set 'Secure' flag when running on HTTPS (production)
-  // Local development typically uses HTTP, so 'Secure' would prevent cookie from being set
-  const isSecure = window.location.protocol === 'https:'
+const isSecure = window.location.protocol === 'https:'
 
-  const cookieParts = [
-    `${AUTH_TOKEN_NAME}=${encodeURIComponent(token)}`,
-    `expires=${expires}`,
-    `path=${path}`,
-    'SameSite=Lax',
+const cookieParts = [
+`${AUTH_TOKEN_NAME}=${encodeURIComponent(token)}`,
+`expires=${expires}`,
+`path=${path}`,
+'SameSite=Lax',
   ]
 
-  if (isSecure) {
-    cookieParts.push('Secure')
+if (isSecure) {
+cookieParts.push('Secure')
   }
 
-  document.cookie = cookieParts.join('; ')
+document.cookie = cookieParts.join('; ')
 
-  // Cross-tab sync fallback (Epic 2.7 T14):
-  // Write to localStorage so other tabs can pick up the new token
-  // when BroadcastChannel is unavailable.
-  writeSyncPayload(STORAGE_SYNC_TOKEN_REFRESHED, {
-    type: 'TOKEN_REFRESHED',
-    accessToken: token,
-    timestamp: Date.now(),
-    tabId: 'cookie-sync',
+writeSyncPayload(STORAGE_SYNC_TOKEN_REFRESHED, {
+type: 'TOKEN_REFRESHED',
+accessToken: token,
+timestamp: Date.now(),
+tabId: 'cookie-sync',
   })
 
-  notifyAuthStateChange()
+notifyAuthStateChange()
 }
 
-/**
- * Also set a refresh_token cookie alongside the access token.
- * Called after a successful login / token refresh.
- */
 export function setRefreshToken(token: string, options: CookieOptions = {}) {
-  if (typeof document === 'undefined') return
+if (typeof document === 'undefined') return
 
-  const days = options.days ?? 30
-  const path = options.path ?? DEFAULT_PATH
-  const expires = new Date(Date.now() + days * 864e5).toUTCString()
+const days = options.days ?? 30
+const path = options.path ?? DEFAULT_PATH
+const expires = new Date(Date.now() + days * 864e5).toUTCString()
 
-  // Only set 'Secure' flag when running on HTTPS (production)
-  // Local development typically uses HTTP, so 'Secure' would prevent cookie from being set
-  const isSecure = window.location.protocol === 'https:'
+const isSecure = window.location.protocol === 'https:'
 
-  const cookieParts = [
-    `${REFRESH_TOKEN_NAME}=${encodeURIComponent(token)}`,
-    `expires=${expires}`,
-    `path=${path}`,
-    'SameSite=Lax',
-    'HttpOnly', // refresh token is never needed in JS
+const cookieParts = [
+`${REFRESH_TOKEN_NAME}=${encodeURIComponent(token)}`,
+`expires=${expires}`,
+`path=${path}`,
+'SameSite=Lax',
+'HttpOnly', // refresh token is never needed in JS
   ]
 
-  if (isSecure) {
-    cookieParts.push('Secure')
+if (isSecure) {
+cookieParts.push('Secure')
   }
 
-  document.cookie = cookieParts.join('; ')
-  notifyAuthStateChange()
+document.cookie = cookieParts.join('; ')
+notifyAuthStateChange()
 }
 
 export function clearAuthToken(path: string = DEFAULT_PATH) {
-  if (typeof document === 'undefined') return
+if (typeof document === 'undefined') return
 
-  // Clear access token
-  document.cookie = `${AUTH_TOKEN_NAME}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=${path}`
-  // Clear refresh token
-  document.cookie = `${REFRESH_TOKEN_NAME}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=${path}`
+document.cookie = `${AUTH_TOKEN_NAME}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=${path}`
 
-  // Cross-tab sync fallback (Epic 2.7 T14):
-  // Write to localStorage so other tabs can clear their tokens
-  // when BroadcastChannel is unavailable.
-  writeSyncPayload(STORAGE_SYNC_LOGGED_OUT, {
-    type: 'LOGGED_OUT',
-    timestamp: Date.now(),
-    tabId: 'cookie-sync',
+document.cookie = `${REFRESH_TOKEN_NAME}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=${path}`
+
+writeSyncPayload(STORAGE_SYNC_LOGGED_OUT, {
+type: 'LOGGED_OUT',
+timestamp: Date.now(),
+tabId: 'cookie-sync',
   })
 
-  notifyAuthStateChange()
+notifyAuthStateChange()
 }
 
 export function subscribeToAuthChanges(listener: () => void) {
-  if (typeof window === 'undefined') {
-    return () => {}
+if (typeof window === 'undefined') {
+return () => {}
   }
 
-  window.addEventListener(AUTH_STATE_EVENT, listener)
-  window.addEventListener('storage', listener)
+window.addEventListener(AUTH_STATE_EVENT, listener)
+window.addEventListener('storage', listener)
 
-  return () => {
-    window.removeEventListener(AUTH_STATE_EVENT, listener)
-    window.removeEventListener('storage', listener)
+return () => {
+window.removeEventListener(AUTH_STATE_EVENT, listener)
+window.removeEventListener('storage', listener)
   }
 }
 
-/**
- * Write a login event to storage sync (Epic 2.7 T14).
- * Called after successful login to sync across tabs via fallback.
- *
- * @param userId - The authenticated user's ID
- * @param accessToken - The access token for the new session
- */
 export function writeLoginSync(userId: string, accessToken: string): void {
-  writeSyncPayload(STORAGE_SYNC_LOGGED_IN, {
-    type: 'LOGGED_IN',
-    userId,
-    accessToken,
-    timestamp: Date.now(),
-    tabId: 'cookie-sync',
+writeSyncPayload(STORAGE_SYNC_LOGGED_IN, {
+type: 'LOGGED_IN',
+userId,
+accessToken,
+timestamp: Date.now(),
+tabId: 'cookie-sync',
   })
 }

@@ -1,9 +1,4 @@
-/**
- * `RecalculateRankingPanel` unit tests.
- *
- * Source epic:   Epic 7.9 — Ranking Admin: Recalculate, Consistency Check, Period Reset.
- * Source ticket: TKT-7.9.E1.
- */
+
 
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -13,252 +8,243 @@ import { ApiError } from '@/lib/api';
 import { useRecalculateRanking } from '../../hooks/useRecalculateRanking';
 import { RecalculateRankingPanel } from '../RecalculateRankingPanel';
 
-// ─── Mocks ───────────────────────────────────────────────────────────────────
-
 vi.mock('../../hooks/useRecalculateRanking', () => ({
-  useRecalculateRanking: vi.fn(),
+useRecalculateRanking: vi.fn(),
 }));
 
 vi.mock('@/features/admin/components/RequestIdBanner', () => ({
-  RequestIdBanner: ({ error }: { error: { requestId?: string } }) => (
-    <div data-testid="request-id-banner">{error?.requestId}</div>
+RequestIdBanner: ({ error }: { error: { requestId?: string } }) => (
+<div data-testid="request-id-banner">{error?.requestId}</div>
   ),
 }));
 
 vi.mock('@/features/admin/components/TypedConfirmDialog', () => ({
-  TypedConfirmDialog: ({
-    open,
-    onConfirm,
-    onCancel,
-    expectedConfirmString,
-    children,
+TypedConfirmDialog: ({
+open,
+onConfirm,
+onCancel,
+expectedConfirmString,
+children,
   }: {
-    open: boolean;
-    onConfirm: () => void | Promise<void>;
-    onCancel: () => void;
-    expectedConfirmString?: string;
-    children?: React.ReactNode;
+open: boolean;
+onConfirm: () => void | Promise<void>;
+onCancel: () => void;
+expectedConfirmString?: string;
+children?: React.ReactNode;
   }) => {
-    if (!open) return null;
-    return (
-      <div data-testid="typed-confirm-dialog">
-        <span data-testid="typed-confirm-required">
-          {expectedConfirmString ?? ''}
-        </span>
-        {children}
-        <button
-          type="button"
-          data-testid="typed-confirm-dialog-confirm"
-          onClick={() => {
-            void onConfirm();
+if (!open) return null;
+return (
+<div data-testid="typed-confirm-dialog">
+<span data-testid="typed-confirm-required">
+{expectedConfirmString ?? ''}
+</span>
+{children}
+<button
+type="button"
+data-testid="typed-confirm-dialog-confirm"
+onClick={() => {
+void onConfirm();
           }}
         >
-          Confirm
+Confirm
         </button>
-        <button
-          type="button"
-          data-testid="typed-confirm-dialog-cancel"
-          onClick={onCancel}
+<button
+type="button"
+data-testid="typed-confirm-dialog-cancel"
+onClick={onCancel}
         >
-          Cancel
+Cancel
         </button>
-      </div>
+</div>
     );
   },
 }));
 
-// ─── Fixtures ───────────────────────────────────────────────────────────────
-
 function makeIdleResult() {
-  return {
-    trigger: vi.fn().mockResolvedValue({}),
-    jobStatus: null,
-    affectedUserCount: null,
-    error: null,
-    isRunning: false,
-    cooldownRemaining: null,
-    audit: { before: null, after: null },
-    reset: vi.fn(),
+return {
+trigger: vi.fn().mockResolvedValue({}),
+jobStatus: null,
+affectedUserCount: null,
+error: null,
+isRunning: false,
+cooldownRemaining: null,
+audit: { before: null, after: null },
+reset: vi.fn(),
   };
 }
 
 function makeApiError(code: string, requestId?: string): ApiError {
-  // Cast to `any` to bypass strict AxiosError generic constraints in the test mock.
-  // The ApiError class only needs a structurally AxiosError-like object.
-  const error = {
-    isAxiosError: true,
-    response: {
-      status: code === 'PERMISSION_DENIED' ? 403 : 409,
-      statusText: '',
-      headers: {},
-      config: { headers: {} },
-      data: {
-        status: code === 'PERMISSION_DENIED' ? 403 : 409,
-        detail: code,
-        title: code,
-        extensions: { code, requestId },
+
+const error = {
+isAxiosError: true,
+response: {
+status: code === 'PERMISSION_DENIED' ? 403 : 409,
+statusText: '',
+headers: {},
+config: { headers: {} },
+data: {
+status: code === 'PERMISSION_DENIED' ? 403 : 409,
+detail: code,
+title: code,
+extensions: { code, requestId },
       },
     },
-    name: 'AxiosError',
-    message: code,
+name: 'AxiosError',
+message: code,
   };
-  return new ApiError(error as unknown as ConstructorParameters<typeof ApiError>[0]);
+return new ApiError(error as unknown as ConstructorParameters<typeof ApiError>[0]);
 }
 
-// ─── Setup / Teardown ────────────────────────────────────────────────────────
-
 beforeEach(() => {
-  vi.mocked(useRecalculateRanking).mockReset();
-  vi.mocked(useRecalculateRanking).mockReturnValue(makeIdleResult());
+vi.mocked(useRecalculateRanking).mockReset();
+vi.mocked(useRecalculateRanking).mockReturnValue(makeIdleResult());
 });
 
 afterEach(() => {
-  vi.restoreAllMocks();
+vi.restoreAllMocks();
 });
 
-// ─── Tests ──────────────────────────────────────────────────────────────────
-
 describe('TKT-7.9.E1 — RecalculateRankingPanel', () => {
-  it('renders the panel title and scope filter', () => {
-    render(<RecalculateRankingPanel />);
+it('renders the panel title and scope filter', () => {
+render(<RecalculateRankingPanel />);
 
-    expect(screen.getByTestId('recalculate-ranking-panel')).toBeInTheDocument();
-    expect(screen.getByText('Recalculate rankings')).toBeInTheDocument();
-    expect(
-      screen.getByTestId('recalculate-scope-filter-input'),
+expect(screen.getByTestId('recalculate-ranking-panel')).toBeInTheDocument();
+expect(screen.getByText('Recalculate rankings')).toBeInTheDocument();
+expect(
+screen.getByTestId('recalculate-scope-filter-input'),
     ).toBeInTheDocument();
   });
 
-  it('renders the trigger button', () => {
-    render(<RecalculateRankingPanel />);
+it('renders the trigger button', () => {
+render(<RecalculateRankingPanel />);
 
-    expect(
-      screen.getByTestId('recalculate-ranking-trigger-button'),
+expect(
+screen.getByTestId('recalculate-ranking-trigger-button'),
     ).toBeInTheDocument();
-    expect(
-      screen.getByTestId('recalculate-ranking-trigger-button'),
+expect(
+screen.getByTestId('recalculate-ranking-trigger-button'),
     ).toHaveTextContent('Recalculate');
   });
 
-  it('button is disabled when isRunning', () => {
-    vi.mocked(useRecalculateRanking).mockReturnValue({
-      ...makeIdleResult(),
-      isRunning: true,
+it('button is disabled when isRunning', () => {
+vi.mocked(useRecalculateRanking).mockReturnValue({
+...makeIdleResult(),
+isRunning: true,
     });
 
-    render(<RecalculateRankingPanel />);
+render(<RecalculateRankingPanel />);
 
-    expect(
-      screen.getByTestId('recalculate-ranking-trigger-button'),
+expect(
+screen.getByTestId('recalculate-ranking-trigger-button'),
     ).toBeDisabled();
   });
 
-  it('button is disabled when cooldown is active', () => {
-    vi.mocked(useRecalculateRanking).mockReturnValue({
-      ...makeIdleResult(),
-      cooldownRemaining: 60,
+it('button is disabled when cooldown is active', () => {
+vi.mocked(useRecalculateRanking).mockReturnValue({
+...makeIdleResult(),
+cooldownRemaining: 60,
     });
 
-    render(<RecalculateRankingPanel />);
+render(<RecalculateRankingPanel />);
 
-    expect(
-      screen.getByTestId('recalculate-ranking-trigger-button'),
+expect(
+screen.getByTestId('recalculate-ranking-trigger-button'),
     ).toBeDisabled();
   });
 
-  it('clicking the trigger button opens the typed-confirm dialog', () => {
-    render(<RecalculateRankingPanel />);
+it('clicking the trigger button opens the typed-confirm dialog', () => {
+render(<RecalculateRankingPanel />);
 
-    fireEvent.click(
-      screen.getByTestId('recalculate-ranking-trigger-button'),
+fireEvent.click(
+screen.getByTestId('recalculate-ranking-trigger-button'),
     );
 
-    expect(screen.getByTestId('typed-confirm-dialog')).toBeInTheDocument();
+expect(screen.getByTestId('typed-confirm-dialog')).toBeInTheDocument();
   });
 
-  it('typed-confirm dialog renders the irreversibility notice', () => {
-    render(<RecalculateRankingPanel />);
+it('typed-confirm dialog renders the irreversibility notice', () => {
+render(<RecalculateRankingPanel />);
 
-    fireEvent.click(
-      screen.getByTestId('recalculate-ranking-trigger-button'),
+fireEvent.click(
+screen.getByTestId('recalculate-ranking-trigger-button'),
     );
 
-    expect(
-      screen.getByTestId('recalculate-ranking-irreversibility-notice'),
+expect(
+screen.getByTestId('recalculate-ranking-irreversibility-notice'),
     ).toBeInTheDocument();
   });
 
-  it('confirming the typed-confirm dialog calls trigger with scope filter', async () => {
-    const trigger = vi.fn().mockResolvedValue({});
-    vi.mocked(useRecalculateRanking).mockReturnValue({
-      ...makeIdleResult(),
-      trigger: trigger as never,
+it('confirming the typed-confirm dialog calls trigger with scope filter', async () => {
+const trigger = vi.fn().mockResolvedValue({});
+vi.mocked(useRecalculateRanking).mockReturnValue({
+...makeIdleResult(),
+trigger: trigger as never,
     });
 
-    render(<RecalculateRankingPanel />);
+render(<RecalculateRankingPanel />);
 
-    fireEvent.change(
-      screen.getByTestId('recalculate-scope-filter-input'),
-      { target: { value: 'current_period' } },
+fireEvent.change(
+screen.getByTestId('recalculate-scope-filter-input'),
+{ target: { value: 'current_period' } },
     );
 
-    fireEvent.click(
-      screen.getByTestId('recalculate-ranking-trigger-button'),
+fireEvent.click(
+screen.getByTestId('recalculate-ranking-trigger-button'),
     );
 
-    await act(async () => {
-      fireEvent.click(screen.getByTestId('typed-confirm-dialog-confirm'));
+await act(async () => {
+fireEvent.click(screen.getByTestId('typed-confirm-dialog-confirm'));
     });
 
-    await waitFor(() => {
-      expect(trigger).toHaveBeenCalled();
+await waitFor(() => {
+expect(trigger).toHaveBeenCalled();
     });
   });
 
-  it('renders cooldown notice when cooldown is active', () => {
-    vi.mocked(useRecalculateRanking).mockReturnValue({
-      ...makeIdleResult(),
-      cooldownRemaining: 60,
+it('renders cooldown notice when cooldown is active', () => {
+vi.mocked(useRecalculateRanking).mockReturnValue({
+...makeIdleResult(),
+cooldownRemaining: 60,
     });
 
-    render(<RecalculateRankingPanel />);
+render(<RecalculateRankingPanel />);
 
-    expect(screen.getByTestId('ranking-cooldown-notice')).toBeInTheDocument();
+expect(screen.getByTestId('ranking-cooldown-notice')).toBeInTheDocument();
   });
 
-  it('renders job status panel in idle state', () => {
-    render(<RecalculateRankingPanel />);
+it('renders job status panel in idle state', () => {
+render(<RecalculateRankingPanel />);
 
-    expect(screen.getByTestId('ranking-job-status-idle')).toBeInTheDocument();
+expect(screen.getByTestId('ranking-job-status-idle')).toBeInTheDocument();
   });
 
-  it('renders job status panel in running state', () => {
-    vi.mocked(useRecalculateRanking).mockReturnValue({
-      ...makeIdleResult(),
-      jobStatus: 'running',
+it('renders job status panel in running state', () => {
+vi.mocked(useRecalculateRanking).mockReturnValue({
+...makeIdleResult(),
+jobStatus: 'running',
     });
 
-    render(<RecalculateRankingPanel />);
+render(<RecalculateRankingPanel />);
 
-    expect(screen.getByTestId('ranking-job-status-running')).toBeInTheDocument();
+expect(screen.getByTestId('ranking-job-status-running')).toBeInTheDocument();
   });
 
-  it('renders RequestIdBanner when error is present', () => {
-    vi.mocked(useRecalculateRanking).mockReturnValue({
-      ...makeIdleResult(),
-      error: makeApiError('OPERATION_RUNNING', 'req-123'),
+it('renders RequestIdBanner when error is present', () => {
+vi.mocked(useRecalculateRanking).mockReturnValue({
+...makeIdleResult(),
+error: makeApiError('OPERATION_RUNNING', 'req-123'),
     });
 
-    render(<RecalculateRankingPanel />);
+render(<RecalculateRankingPanel />);
 
-    expect(screen.getByTestId('request-id-banner')).toBeInTheDocument();
+expect(screen.getByTestId('request-id-banner')).toBeInTheDocument();
   });
 
-  it('preserves the scope filter value during mutation', () => {
-    render(<RecalculateRankingPanel initialScopeFilter="last_period" />);
+it('preserves the scope filter value during mutation', () => {
+render(<RecalculateRankingPanel initialScopeFilter="last_period" />);
 
-    expect(
-      screen.getByTestId('recalculate-scope-filter-input'),
+expect(
+screen.getByTestId('recalculate-scope-filter-input'),
     ).toHaveValue('last_period');
   });
 });

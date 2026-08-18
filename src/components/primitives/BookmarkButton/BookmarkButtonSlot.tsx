@@ -20,61 +20,65 @@ import { cn } from "@/shared/utils/merge-class-names";
 export type BookmarkButtonSlotVariant = "card" | "detail";
 
 export interface BookmarkButtonSlotProps {
-  quizId: string;
-  variant?: BookmarkButtonSlotVariant;
-  className?: string;
+quizId: string;
+variant?: BookmarkButtonSlotVariant;
+className?: string;
 }
 
 export function BookmarkButtonSlot({
-  quizId,
-  variant = "card",
-  className,
+quizId,
+variant = "card",
+className,
 }: BookmarkButtonSlotProps) {
-  const { isAuthenticated } = useAuthState();
+const { isAuthenticated } = useAuthState();
 
-  const { isBookmarked, isLoading: membershipLoading } =
-    useIsBookmarked(quizId);
+const { isBookmarked, isLoading: membershipLoading } =
+useIsBookmarked(quizId);
 
-  const {
-    isPending: isBookmarkedPending,
-    lastError: bookmarkError,
-    lastOutcome: bookmarkOutcome,
-    bookmark,
+const {
+isPending: isBookmarkedPending,
+lastError: bookmarkError,
+lastOutcome: bookmarkOutcome,
+bookmark,
   } = useBookmarkQuiz(quizId);
-  const {
-    isPending: isUnbookmarkedPending,
-    lastError: unbookmarkError,
-    lastOutcome: unbookmarkOutcome,
-    unbookmark,
+const {
+isPending: isUnbookmarkedPending,
+lastError: unbookmarkError,
+lastOutcome: unbookmarkOutcome,
+unbookmark,
   } = useUnbookmarkQuiz(quizId);
 
-  const isPending = isBookmarkedPending || isUnbookmarkedPending;
+const isPending = isBookmarkedPending || isUnbookmarkedPending;
 
-  const lastError = bookmarkError ?? unbookmarkError;
+const lastError = bookmarkError ?? unbookmarkError;
 
-  const handleToggle = useCallback(() => {
-    if (isBookmarked) {
-      void unbookmark();
+const handleToggle = useCallback(() => {
+if (isBookmarked) {
+void unbookmark();
     } else {
-      void bookmark();
+void bookmark();
     }
   }, [isBookmarked, bookmark, unbookmark]);
 
-  const lastOutcome = bookmarkOutcome ?? unbookmarkOutcome;
-  const isNoCollection =
-    (lastOutcome as { kind?: string } | null)?.kind === "no_collection";
-  const [setupOpen, setSetupOpen] = useState(false);
+const lastOutcome = bookmarkOutcome ?? unbookmarkOutcome;
+const isNoCollection =
+(lastOutcome as { kind?: string } | null)?.kind === "no_collection";
+const [setupOpen, setSetupOpen] = useState(false);
 
-  /* eslint-disable react-hooks/set-state-in-effect */
-  useEffect(() => {
-    setSetupOpen((current) => current || isNoCollection);
+useEffect(() => {
+setSetupOpen((current) => current || isNoCollection);
   }, [isNoCollection]);
-  /* eslint-enable react-hooks/set-state-in-effect */
-  const handleDismiss = useCallback(() => {
+
+const handleDismiss = useCallback(() => {
     setSetupOpen(false);
   }, []);
 
   const slotRef = useRef<HTMLDivElement | null>(null);
+  // Mark the rendered trigger once on mount so BookmarksSetupPrompt can
+  // return focus to it when the dialog closes (WCAG 2.4.3). The original
+  // implementation re-ran this effect on every render, which is wasteful
+  // and trips React Strict Mode warnings — the attribute only needs to
+  // exist once, after the inner button has mounted.
   useEffect(() => {
     const el = slotRef.current?.querySelector<HTMLElement>(
       'button[data-testid^="bookmark-button"]',
@@ -82,31 +86,31 @@ export function BookmarkButtonSlot({
     if (el) {
       el.setAttribute("data-bookmark-trigger", "true");
     }
-  });
+  }, []);
 
   const errorState = getBookmarkMutationErrorState(lastError, lastOutcome);
 
-  const buttonVariant: BookmarkButtonVariant =
-    variant === "detail" ? "iconWithLabel" : "icon";
+const buttonVariant: BookmarkButtonVariant =
+variant === "detail" ? "iconWithLabel" : "icon";
 
-  const handleSlotClick = useCallback(
-    (event: MouseEvent<HTMLDivElement>) => {
-      if (variant !== "card") return;
-      const target = event.target as HTMLElement | null;
-      if (target && target.closest('[data-testid^="bookmark-button"]')) {
-        event.stopPropagation();
-        event.preventDefault();
+const handleSlotClick = useCallback(
+(event: MouseEvent<HTMLDivElement>) => {
+if (variant !== "card") return;
+const target = event.target as HTMLElement | null;
+if (target && target.closest('[data-testid^="bookmark-button"]')) {
+event.stopPropagation();
+event.preventDefault();
       }
     },
-    [variant],
+[variant],
   );
 
-  const { isLoading: collectionsLoading } = useBookmarkCollections();
-  const {
-    defaultCollectionId: derivedDefaultCollectionId,
-    isLoading: defaultCollectionLoading,
+const { isLoading: collectionsLoading } = useBookmarkCollections();
+const {
+defaultCollectionId: derivedDefaultCollectionId,
+isLoading: defaultCollectionLoading,
   } = useDefaultCollectionId();
-  if (collectionsLoading && isAuthenticated) {
+if (collectionsLoading && isAuthenticated) {
     return (
       <div
         ref={slotRef}
@@ -147,16 +151,16 @@ export function BookmarkButtonSlot({
       }
       onClick={handleSlotClick}
     >
-      <BookmarkButton
-        isBookmarked={isBookmarked}
-        isLoading={membershipLoading}
-        isAuthenticated={isAuthenticated}
-        isPending={isPending}
-        errorState={errorState.kind === "ok" ? null : errorState}
-        onToggle={handleToggle}
-        variant={buttonVariant}
+<BookmarkButton
+isBookmarked={isBookmarked}
+isLoading={membershipLoading}
+isAuthenticated={isAuthenticated}
+isPending={isPending}
+errorState={errorState.kind === "ok" ? null : errorState}
+onToggle={handleToggle}
+variant={buttonVariant}
       />
-      <BookmarksSetupPrompt open={setupOpen} onDismiss={handleDismiss} />
-    </div>
+<BookmarksSetupPrompt open={setupOpen} onDismiss={handleDismiss} />
+</div>
   );
 }

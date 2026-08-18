@@ -6,116 +6,106 @@ import { ErrorState } from './ErrorState'
 import { cn } from '@/shared/utils/merge-class-names'
 
 interface AsyncContentProps {
-  isLoading: boolean
-  isError: boolean
-  error?: Error | null
-  onRetry?: () => void
-  children: ReactNode
-  loadingComponent?: ReactNode
-  errorComponent?: ReactNode
-  loadingText?: string
-  emptyState?: ReactNode
-  isEmpty?: boolean
-  className?: string
-  minHeight?: string
+isLoading: boolean
+isError: boolean
+error?: Error | null
+onRetry?: () => void
+children: ReactNode
+loadingComponent?: ReactNode
+errorComponent?: ReactNode
+loadingText?: string
+emptyState?: ReactNode
+isEmpty?: boolean
+className?: string
+minHeight?: string
 }
 
-/**
- * A wrapper component for handling async content states
- * Automatically shows loading, error, or empty states based on props
- */
 export function AsyncContent({
-  isLoading,
-  isError,
-  error,
-  onRetry,
-  children,
-  loadingComponent,
-  errorComponent,
-  loadingText = 'Loading...',
-  emptyState,
-  isEmpty = false,
-  className,
-  minHeight = '200px'
+isLoading,
+isError,
+error,
+onRetry,
+children,
+loadingComponent,
+errorComponent,
+loadingText = 'Loading...',
+emptyState,
+isEmpty = false,
+className,
+minHeight = '200px'
 }: AsyncContentProps) {
-  if (isLoading) {
-    return (
-      <div
-        className={cn('flex items-center justify-center', className)}
-        style={{ minHeight }}
+if (isLoading) {
+return (
+<div
+className={cn('flex items-center justify-center', className)}
+style={{ minHeight }}
       >
-        {loadingComponent || <LoadingSpinner size='lg' text={loadingText} />}
-      </div>
+{loadingComponent || <LoadingSpinner size='lg' text={loadingText} />}
+</div>
     )
   }
 
-  if (isError) {
-    return (
-      <div className={cn(className)} style={{ minHeight }}>
-        {errorComponent || (
-          <ErrorState
-            title='Failed to load content'
-            message={
-              error?.message || 'Something went wrong. Please try again.'
+if (isError) {
+return (
+<div className={cn(className)} style={{ minHeight }}>
+{errorComponent || (
+<ErrorState
+title='Failed to load content'
+message={
+error?.message || 'Something went wrong. Please try again.'
             }
-            onRetry={onRetry}
-            fullHeight
+onRetry={onRetry}
+fullHeight
           />
         )}
-      </div>
+</div>
     )
   }
 
-  if (isEmpty && emptyState) {
-    return (
-      <div
-        className={cn('flex items-center justify-center', className)}
-        style={{ minHeight }}
+if (isEmpty && emptyState) {
+return (
+<div
+className={cn('flex items-center justify-center', className)}
+style={{ minHeight }}
       >
-        {emptyState}
-      </div>
+{emptyState}
+</div>
     )
   }
 
-  return <>{children}</>
+return <>{children}</>
 }
 
-/**
- * A skeleton wrapper that shows skeleton content while loading
- */
 interface SkeletonContentProps {
-  isLoading: boolean
-  skeleton: ReactNode
-  children: ReactNode
-  className?: string
+isLoading: boolean
+skeleton: ReactNode
+children: ReactNode
+className?: string
 }
 
 export function SkeletonContent({
-  isLoading,
-  skeleton,
-  children,
-  className
+isLoading,
+skeleton,
+children,
+className
 }: SkeletonContentProps) {
-  if (isLoading) {
-    return <div className={className}>{skeleton}</div>
+if (isLoading) {
+return <div className={className}>{skeleton}</div>
   }
 
-  return <>{children}</>
+return <>{children}</>
 }
 
-/**
- * Suspense-like loading boundary
- */
 interface LoadingBoundaryProps {
-  isLoading: boolean
-  fallback: ReactNode
-  children: ReactNode
+isLoading: boolean
+fallback: ReactNode
+children: ReactNode
 }
 
 export function LoadingBoundary({
-  isLoading,
-  fallback,
-  children
+isLoading,
+fallback,
+children
 }: LoadingBoundaryProps) {
-  return isLoading ? <>{fallback}</> : <>{children}</>
+return isLoading ? <>{fallback}</> : <>{children}</>
 }

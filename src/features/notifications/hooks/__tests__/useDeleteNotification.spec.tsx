@@ -1,17 +1,4 @@
-/**
- * `useDeleteNotification.spec.tsx` — locks the delete-notification mutation hook.
- *
- * Source epic:   Epic 5.1 — SDK coverage & realtime contract foundation.
- * Source story:  5.4 — Live notification stream and notification center.
- * Source ticket: TKT-5.4.G1.
- *
- * Tests cover:
- * - success path: state transitions, optimistic list removal, SWR revalidation
- * - error path: typed ApiError surfaces, including NOTIFICATION_DELETION_FORBIDDEN
- * - feature flag placeholder: no service call fires
- * - double-click guard
- * - reset
- */
+
 
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
 import { act, cleanup, renderHook } from '@testing-library/react';
@@ -22,275 +9,275 @@ import { ApiError, isApiError } from '@/lib/api';
 
 const mockGetFeatureFlagValue = vi.fn();
 vi.mock('@/lib/feature-flags', () => ({
-  getFeatureFlagValue: (...args: unknown[]) => mockGetFeatureFlagValue(...args),
+getFeatureFlagValue: (...args: unknown[]) => mockGetFeatureFlagValue(...args),
 }));
 
 const mockDeleteNotification = vi.fn();
 vi.mock('@/features/notifications/services/notifications.service', () => ({
-  deleteNotification: (...args: unknown[]) => mockDeleteNotification(...args),
+deleteNotification: (...args: unknown[]) => mockDeleteNotification(...args),
 }));
 
 const mutateMock = vi.fn();
 vi.mock('swr', async () => {
-  const actual = await vi.importActual<typeof import('swr')>('swr');
-  return {
-    ...actual,
-    mutate: (...args: unknown[]) => mutateMock(...args),
+const actual = await vi.importActual<typeof import('swr')>('swr');
+return {
+...actual,
+mutate: (...args: unknown[]) => mutateMock(...args),
   };
 });
 
 function makeApiError(status: number, code: string) {
-  return new ApiError({
-    isAxiosError: true,
-    name: 'AxiosError',
-    message: `Mock ${status}: ${code}`,
-    code,
-    config: undefined,
-    request: undefined,
-    response: {
-      status,
-      data: {
-        type: 'about:blank',
-        title: `Error ${status}`,
-        status,
-        code,
-        extensions: {
-          code,
+return new ApiError({
+isAxiosError: true,
+name: 'AxiosError',
+message: `Mock ${status}: ${code}`,
+code,
+config: undefined,
+request: undefined,
+response: {
+status,
+data: {
+type: 'about:blank',
+title: `Error ${status}`,
+status,
+code,
+extensions: {
+code,
         },
       },
     },
-    toJSON: () => ({}),
+toJSON: () => ({}),
   } as unknown as Parameters<typeof ApiError.fromAxios>[0]);
 }
 
 function TestSwrProvider({ children }: { children: React.ReactNode }) {
-  return (
-    <SWRConfig
-      value={{
-        provider: () => new Map(),
-        revalidateOnFocus: false,
-        revalidateIfStale: false,
-        dedupingInterval: 0,
-        errorRetryCount: 0,
+return (
+<SWRConfig
+value={{
+provider: () => new Map(),
+revalidateOnFocus: false,
+revalidateIfStale: false,
+dedupingInterval: 0,
+errorRetryCount: 0,
       }}
     >
-      {children}
-    </SWRConfig>
+{children}
+</SWRConfig>
   );
 }
 
 describe('useDeleteNotification', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-    mutateMock.mockResolvedValue(undefined);
-    mockGetFeatureFlagValue.mockReturnValue('live');
+beforeEach(() => {
+vi.clearAllMocks();
+mutateMock.mockResolvedValue(undefined);
+mockGetFeatureFlagValue.mockReturnValue('live');
   });
 
-  afterEach(() => {
-    cleanup();
+afterEach(() => {
+cleanup();
   });
 
-  describe('initialization', () => {
-    it('starts in idle state', () => {
-      const { result } = renderHook(() => useDeleteNotification('n1'), {
-        wrapper: TestSwrProvider,
+describe('initialization', () => {
+it('starts in idle state', () => {
+const { result } = renderHook(() => useDeleteNotification('n1'), {
+wrapper: TestSwrProvider,
       });
-      expect(result.current.state).toBe('idle');
-      expect(result.current.error).toBeNull();
+expect(result.current.state).toBe('idle');
+expect(result.current.error).toBeNull();
     });
 
-    it('delete is a no-op when flag is placeholder', async () => {
-      mockGetFeatureFlagValue.mockReturnValue('placeholder');
+it('delete is a no-op when flag is placeholder', async () => {
+mockGetFeatureFlagValue.mockReturnValue('placeholder');
 
-      const { result } = renderHook(() => useDeleteNotification('n1'), {
-        wrapper: TestSwrProvider,
+const { result } = renderHook(() => useDeleteNotification('n1'), {
+wrapper: TestSwrProvider,
       });
 
-      await act(async () => {
-        await result.current.deleteNotification();
+await act(async () => {
+await result.current.deleteNotification();
       });
 
-      expect(mockDeleteNotification).not.toHaveBeenCalled();
+expect(mockDeleteNotification).not.toHaveBeenCalled();
     });
 
-    it('delete is a no-op when notificationId is null', async () => {
-      const { result } = renderHook(() => useDeleteNotification(null), {
-        wrapper: TestSwrProvider,
+it('delete is a no-op when notificationId is null', async () => {
+const { result } = renderHook(() => useDeleteNotification(null), {
+wrapper: TestSwrProvider,
       });
 
-      await act(async () => {
-        await result.current.deleteNotification();
+await act(async () => {
+await result.current.deleteNotification();
       });
 
-      expect(mockDeleteNotification).not.toHaveBeenCalled();
+expect(mockDeleteNotification).not.toHaveBeenCalled();
     });
   });
 
-  describe('success path', () => {
-    it('transitions to success state and invalidates SWR keys', async () => {
-      mockDeleteNotification.mockResolvedValue(undefined);
+describe('success path', () => {
+it('transitions to success state and invalidates SWR keys', async () => {
+mockDeleteNotification.mockResolvedValue(undefined);
 
-      const { result } = renderHook(() => useDeleteNotification('n1'), {
-        wrapper: TestSwrProvider,
+const { result } = renderHook(() => useDeleteNotification('n1'), {
+wrapper: TestSwrProvider,
       });
 
-      await act(async () => {
-        await result.current.deleteNotification();
+await act(async () => {
+await result.current.deleteNotification();
       });
 
-      expect(result.current.state).toBe('success');
-      expect(mutateMock).toHaveBeenCalled();
+expect(result.current.state).toBe('success');
+expect(mutateMock).toHaveBeenCalled();
     });
 
-    it('applies an optimistic removal before the service call resolves', async () => {
-      let resolveDelete: (value: unknown) => void;
-      mockDeleteNotification.mockImplementationOnce(
-        () =>
-          new Promise<unknown>((resolve) => {
-            resolveDelete = resolve;
+it('applies an optimistic removal before the service call resolves', async () => {
+let resolveDelete: (value: unknown) => void;
+mockDeleteNotification.mockImplementationOnce(
+() =>
+new Promise<unknown>((resolve) => {
+resolveDelete = resolve;
           }),
       );
 
-      const { result } = renderHook(() => useDeleteNotification('n1'), {
-        wrapper: TestSwrProvider,
+const { result } = renderHook(() => useDeleteNotification('n1'), {
+wrapper: TestSwrProvider,
       });
 
-      const p = result.current.deleteNotification();
-      await new Promise((resolve) => setTimeout(resolve, 5));
-      resolveDelete!(undefined);
-      await p;
+const p = result.current.deleteNotification();
+await new Promise((resolve) => setTimeout(resolve, 5));
+resolveDelete!(undefined);
+await p;
 
-      expect(mutateMock.mock.calls.length).toBeGreaterThanOrEqual(1);
+expect(mutateMock.mock.calls.length).toBeGreaterThanOrEqual(1);
     });
 
-    it('forwards the notification id to the service', async () => {
-      mockDeleteNotification.mockResolvedValue(undefined);
+it('forwards the notification id to the service', async () => {
+mockDeleteNotification.mockResolvedValue(undefined);
 
-      const { result } = renderHook(() => useDeleteNotification('n-7'), {
-        wrapper: TestSwrProvider,
+const { result } = renderHook(() => useDeleteNotification('n-7'), {
+wrapper: TestSwrProvider,
       });
 
-      await act(async () => {
-        await result.current.deleteNotification();
+await act(async () => {
+await result.current.deleteNotification();
       });
 
-      expect(mockDeleteNotification).toHaveBeenCalledWith('n-7');
-    });
-  });
-
-  describe('error handling', () => {
-    it('transitions to error with NOTIFICATION_NOT_FOUND', async () => {
-      mockDeleteNotification.mockRejectedValue(
-        makeApiError(404, 'NOTIFICATION_NOT_FOUND'),
-      );
-
-      const { result } = renderHook(() => useDeleteNotification('n1'), {
-        wrapper: TestSwrProvider,
-      });
-
-      await act(async () => {
-        await result.current.deleteNotification();
-      });
-
-      expect(result.current.state).toBe('error');
-      expect(isApiError(result.current.error!)).toBe(true);
-      expect(result.current.error?.code).toBe('NOTIFICATION_NOT_FOUND');
-    });
-
-    it('transitions to error with NOTIFICATION_DELETION_FORBIDDEN', async () => {
-      mockDeleteNotification.mockRejectedValue(
-        makeApiError(403, 'NOTIFICATION_DELETION_FORBIDDEN'),
-      );
-
-      const { result } = renderHook(() => useDeleteNotification('n1'), {
-        wrapper: TestSwrProvider,
-      });
-
-      await act(async () => {
-        await result.current.deleteNotification();
-      });
-
-      expect(result.current.error?.code).toBe('NOTIFICATION_DELETION_FORBIDDEN');
-    });
-
-    it('transitions to error with NOTIFICATION_FORBIDDEN', async () => {
-      mockDeleteNotification.mockRejectedValue(
-        makeApiError(403, 'NOTIFICATION_FORBIDDEN'),
-      );
-
-      const { result } = renderHook(() => useDeleteNotification('n1'), {
-        wrapper: TestSwrProvider,
-      });
-
-      await act(async () => {
-        await result.current.deleteNotification();
-      });
-
-      expect(result.current.error?.code).toBe('NOTIFICATION_FORBIDDEN');
-    });
-
-    it('wraps plain Error into ApiError', async () => {
-      mockDeleteNotification.mockRejectedValue(new Error('network'));
-
-      const { result } = renderHook(() => useDeleteNotification('n1'), {
-        wrapper: TestSwrProvider,
-      });
-
-      await act(async () => {
-        await result.current.deleteNotification();
-      });
-
-      expect(isApiError(result.current.error!)).toBe(true);
+expect(mockDeleteNotification).toHaveBeenCalledWith('n-7');
     });
   });
 
-  describe('double-click guard', () => {
-    it('only fires one service call when invoked twice while pending', async () => {
-      let resolveDelete: (value: unknown) => void;
-      mockDeleteNotification.mockImplementationOnce(
-        () =>
-          new Promise<unknown>((resolve) => {
-            resolveDelete = resolve;
+describe('error handling', () => {
+it('transitions to error with NOTIFICATION_NOT_FOUND', async () => {
+mockDeleteNotification.mockRejectedValue(
+makeApiError(404, 'NOTIFICATION_NOT_FOUND'),
+      );
+
+const { result } = renderHook(() => useDeleteNotification('n1'), {
+wrapper: TestSwrProvider,
+      });
+
+await act(async () => {
+await result.current.deleteNotification();
+      });
+
+expect(result.current.state).toBe('error');
+expect(isApiError(result.current.error!)).toBe(true);
+expect(result.current.error?.code).toBe('NOTIFICATION_NOT_FOUND');
+    });
+
+it('transitions to error with NOTIFICATION_DELETION_FORBIDDEN', async () => {
+mockDeleteNotification.mockRejectedValue(
+makeApiError(403, 'NOTIFICATION_DELETION_FORBIDDEN'),
+      );
+
+const { result } = renderHook(() => useDeleteNotification('n1'), {
+wrapper: TestSwrProvider,
+      });
+
+await act(async () => {
+await result.current.deleteNotification();
+      });
+
+expect(result.current.error?.code).toBe('NOTIFICATION_DELETION_FORBIDDEN');
+    });
+
+it('transitions to error with NOTIFICATION_FORBIDDEN', async () => {
+mockDeleteNotification.mockRejectedValue(
+makeApiError(403, 'NOTIFICATION_FORBIDDEN'),
+      );
+
+const { result } = renderHook(() => useDeleteNotification('n1'), {
+wrapper: TestSwrProvider,
+      });
+
+await act(async () => {
+await result.current.deleteNotification();
+      });
+
+expect(result.current.error?.code).toBe('NOTIFICATION_FORBIDDEN');
+    });
+
+it('wraps plain Error into ApiError', async () => {
+mockDeleteNotification.mockRejectedValue(new Error('network'));
+
+const { result } = renderHook(() => useDeleteNotification('n1'), {
+wrapper: TestSwrProvider,
+      });
+
+await act(async () => {
+await result.current.deleteNotification();
+      });
+
+expect(isApiError(result.current.error!)).toBe(true);
+    });
+  });
+
+describe('double-click guard', () => {
+it('only fires one service call when invoked twice while pending', async () => {
+let resolveDelete: (value: unknown) => void;
+mockDeleteNotification.mockImplementationOnce(
+() =>
+new Promise<unknown>((resolve) => {
+resolveDelete = resolve;
           }),
       );
 
-      const { result } = renderHook(() => useDeleteNotification('n1'), {
-        wrapper: TestSwrProvider,
+const { result } = renderHook(() => useDeleteNotification('n1'), {
+wrapper: TestSwrProvider,
       });
 
-      const firstPromise = result.current.deleteNotification();
+const firstPromise = result.current.deleteNotification();
 
-      await act(async () => {
-        await result.current.deleteNotification();
+await act(async () => {
+await result.current.deleteNotification();
       });
 
-      resolveDelete!(undefined);
-      await firstPromise;
+resolveDelete!(undefined);
+await firstPromise;
 
-      expect(mockDeleteNotification).toHaveBeenCalledTimes(1);
+expect(mockDeleteNotification).toHaveBeenCalledTimes(1);
     });
   });
 
-  describe('reset', () => {
-    it('clears error and returns to idle', async () => {
-      mockDeleteNotification.mockRejectedValue(
-        makeApiError(404, 'NOTIFICATION_NOT_FOUND'),
+describe('reset', () => {
+it('clears error and returns to idle', async () => {
+mockDeleteNotification.mockRejectedValue(
+makeApiError(404, 'NOTIFICATION_NOT_FOUND'),
       );
 
-      const { result } = renderHook(() => useDeleteNotification('n1'), {
-        wrapper: TestSwrProvider,
+const { result } = renderHook(() => useDeleteNotification('n1'), {
+wrapper: TestSwrProvider,
       });
 
-      await act(async () => {
-        await result.current.deleteNotification();
+await act(async () => {
+await result.current.deleteNotification();
       });
 
-      act(() => {
-        result.current.reset();
+act(() => {
+result.current.reset();
       });
 
-      expect(result.current.state).toBe('idle');
-      expect(result.current.error).toBeNull();
+expect(result.current.state).toBe('idle');
+expect(result.current.error).toBeNull();
     });
   });
 });
