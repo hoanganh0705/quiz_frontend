@@ -1,10 +1,10 @@
 import { QuizDetailPage } from '@/features/quizzes';
 
 export default async function QuizDetailRoute({
-  params,
+params,
 }: {
-  params: Promise<{ idOrSlug: string }>;
+params: Promise<{ idOrSlug: string }>;
 }) {
-  const { idOrSlug } = await params;
-  return <QuizDetailPage idOrSlug={idOrSlug} />;
+const { idOrSlug } = await params;
+return <QuizDetailPage idOrSlug={idOrSlug} />;
 }

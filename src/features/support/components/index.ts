@@ -1,4 +1,4 @@
-// Support components - public API surface
+
 export { ContactForm } from './ContactForm'
 export { FAQSection } from './FAQSection'
 export { HelpCategories } from './HelpCategories'

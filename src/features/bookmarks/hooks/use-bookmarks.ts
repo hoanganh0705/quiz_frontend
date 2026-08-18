@@ -3,301 +3,277 @@
 import { useCallback, useMemo, useEffect, useState } from 'react'
 import { useLocalStorage } from '@/shared/hooks/use-local-storage'
 import {
-  listCollections,
-  createCollection as apiCreateCollection,
-  updateCollection as apiUpdateCollection,
-  deleteCollection as apiDeleteCollection,
-  addBookmark as apiAddBookmark,
-  removeBookmark as apiRemoveBookmark,
+listCollections,
+createCollection as apiCreateCollection,
+updateCollection as apiUpdateCollection,
+deleteCollection as apiDeleteCollection,
+addBookmark as apiAddBookmark,
+removeBookmark as apiRemoveBookmark,
 } from '@/features/bookmarks/api'
 import type {
-  BookmarkCollectionResponseDto,
-  BookmarkedQuizResponseDto,
+BookmarkCollectionResponseDto,
+BookmarkedQuizResponseDto,
 } from '@/lib/api/generated/schemas'
 
 interface BookmarksState {
-  collections: BookmarkCollectionResponseDto[]
-  bookmarks: BookmarkedQuizResponseDto[]
+collections: BookmarkCollectionResponseDto[]
+bookmarks: BookmarkedQuizResponseDto[]
 }
 
 const INITIAL_STATE: BookmarksState = {
-  collections: [],
-  bookmarks: []
+collections: [],
+bookmarks: []
 }
 
 export function useBookmarks() {
-  const [state, setState] = useLocalStorage<BookmarksState>(
-    'quiz_bookmarks',
-    INITIAL_STATE
+const [state, setState] = useLocalStorage<BookmarksState>(
+'quiz_bookmarks',
+INITIAL_STATE
   )
-  const [loading, setLoading] = useState(false)
+const [loading, setLoading] = useState(false)
 
-  // Sync with server on mount
-  useEffect(() => {
-    const syncWithServer = async () => {
-      try {
-        setLoading(true)
-        const collectionsData = await listCollections()
-        setState({
-          collections: collectionsData.data?.items ?? [],
-          bookmarks: [] // Bookmarks are fetched per collection
+useEffect(() => {
+const syncWithServer = async () => {
+try {
+setLoading(true)
+const collectionsData = await listCollections()
+setState({
+collections: collectionsData.data?.items ?? [],
+bookmarks: [] // Bookmarks are fetched per collection
         })
       } catch {
         // Use local state if server is unavailable
       } finally {
-        setLoading(false)
+setLoading(false)
       }
     }
 
-    syncWithServer()
+syncWithServer()
   }, [setState])
 
-  // Check if a quiz is bookmarked
-  const isBookmarked = useCallback(
-    (quizId: string) => {
-      return state.bookmarks.some((b) => b.quizId === quizId)
+const isBookmarked = useCallback(
+(quizId: string) => {
+return state.bookmarks.some((b) => b.quizId === quizId)
     },
-    [state.bookmarks]
+[state.bookmarks]
   )
 
-  // Get bookmark info for a quiz
-  const getBookmark = useCallback(
-    (quizId: string) => {
-      return state.bookmarks.find((b) => b.quizId === quizId)
+const getBookmark = useCallback(
+(quizId: string) => {
+return state.bookmarks.find((b) => b.quizId === quizId)
     },
-    [state.bookmarks]
+[state.bookmarks]
   )
 
-  // Add a bookmark (optimistic update + server sync)
-  const addBookmark = useCallback(
-    async (quizId: string, collectionId: string | null = null) => {
-      const tempId = `temp-${Date.now()}`
-      const tempBookmark: BookmarkedQuizResponseDto = {
-        bookmarkId: tempId,
-        quizId,
-        collectionId,
-        bookmarkedAt: new Date().toISOString(),
+const addBookmark = useCallback(
+async (quizId: string, collectionId: string | null = null) => {
+const tempId = `temp-${Date.now()}`
+const tempBookmark: BookmarkedQuizResponseDto = {
+bookmarkId: tempId,
+quizId,
+collectionId,
+bookmarkedAt: new Date().toISOString(),
       } as unknown as BookmarkedQuizResponseDto
 
-      // Optimistic update
-      setState((prev) => ({
-        ...prev,
-        bookmarks: [...prev.bookmarks, tempBookmark]
+setState((prev) => ({
+...prev,
+bookmarks: [...prev.bookmarks, tempBookmark]
       }))
 
-        // Sync with server
-      try {
-        const serverBookmark = (collectionId
-          ? await apiAddBookmark(collectionId, { quizId })
-          : await apiAddBookmark('default', { quizId })) as unknown as BookmarkedQuizResponseDto;
+try {
+const serverBookmark = (collectionId
+? await apiAddBookmark(collectionId, { quizId })
+: await apiAddBookmark('default', { quizId })) as unknown as BookmarkedQuizResponseDto;
 
-        // Update with real bookmark
-        setState((prev) => ({
-          ...prev,
-          bookmarks: prev.bookmarks.map((b) =>
-            b.bookmarkId === tempId ? serverBookmark : b
+setState((prev) => ({
+...prev,
+bookmarks: prev.bookmarks.map((b) =>
+b.bookmarkId === tempId ? serverBookmark : b
           )
         }))
       } catch {
-        // Revert on failure
-        setState((prev) => ({
-          ...prev,
-          bookmarks: prev.bookmarks.filter((b) => b.bookmarkId !== tempId)
+
+setState((prev) => ({
+...prev,
+bookmarks: prev.bookmarks.filter((b) => b.bookmarkId !== tempId)
         }))
       }
     },
-    [setState]
+[setState]
   )
 
-  // Remove a bookmark (optimistic update + server sync)
-  const removeBookmark = useCallback(
-    async (quizId: string) => {
-      const bookmark = state.bookmarks.find((b) => b.quizId === quizId)
-      const collectionId = (bookmark as unknown as { collectionId?: string }).collectionId ?? 'default'
+const removeBookmark = useCallback(
+async (quizId: string) => {
+const bookmark = state.bookmarks.find((b) => b.quizId === quizId)
+const collectionId = (bookmark as unknown as { collectionId?: string }).collectionId ?? 'default'
 
-      // Optimistic update
-      setState((prev) => ({
-        ...prev,
-        bookmarks: prev.bookmarks.filter((b) => b.quizId !== quizId)
+setState((prev) => ({
+...prev,
+bookmarks: prev.bookmarks.filter((b) => b.quizId !== quizId)
       }))
 
-      // Sync with server
-      try {
-        await apiRemoveBookmark(collectionId, quizId)
+try {
+await apiRemoveBookmark(collectionId, quizId)
       } catch {
-        // Revert on failure - add bookmark back
-        setState((prev) => ({
-          ...prev,
-          bookmarks: [...prev.bookmarks, bookmark!]
+
+setState((prev) => ({
+...prev,
+bookmarks: [...prev.bookmarks, bookmark!]
         }))
       }
     },
-    [state.bookmarks, setState]
+[state.bookmarks, setState]
   )
 
-  // Toggle bookmark
-  const toggleBookmark = useCallback(
-    async (quizId: string, collectionId: string | null = null) => {
-      if (isBookmarked(quizId)) {
-        await removeBookmark(quizId)
+const toggleBookmark = useCallback(
+async (quizId: string, collectionId: string | null = null) => {
+if (isBookmarked(quizId)) {
+await removeBookmark(quizId)
       } else {
-        await addBookmark(quizId, collectionId)
+await addBookmark(quizId, collectionId)
       }
     },
-    [isBookmarked, addBookmark, removeBookmark]
+[isBookmarked, addBookmark, removeBookmark]
   )
 
-  // Add a new collection (optimistic update + server sync)
-  const addCollection = useCallback(
-    async (
-      name: string,
-      description?: string,
-      color: string = '#6b7280'
+const addCollection = useCallback(
+async (
+name: string,
+description?: string,
+color: string = '#6b7280'
     ) => {
-      const tempId = `temp-${Date.now()}`
-      const tempCollection: BookmarkCollectionResponseDto = {
-        collectionId: tempId,
-        name,
-        description,
-        createdAt: new Date().toISOString(),
-        quizCount: 0,
+const tempId = `temp-${Date.now()}`
+const tempCollection: BookmarkCollectionResponseDto = {
+collectionId: tempId,
+name,
+description,
+createdAt: new Date().toISOString(),
+quizCount: 0,
       } as unknown as BookmarkCollectionResponseDto
 
-      // Optimistic update
-      setState((prev) => ({
-        ...prev,
-        collections: [...prev.collections, tempCollection]
+setState((prev) => ({
+...prev,
+collections: [...prev.collections, tempCollection]
       }))
 
-      // Sync with server
-      try {
-        const serverCollection = (await apiCreateCollection({
-          name,
-          description,
+try {
+const serverCollection = (await apiCreateCollection({
+name,
+description,
         })) as unknown as BookmarkCollectionResponseDto
 
-        // Update temp ID with real server ID
-        setState((prev) => ({
-          ...prev,
-          collections: prev.collections.map((c) =>
-            c.collectionId === tempId ? serverCollection : c
+setState((prev) => ({
+...prev,
+collections: prev.collections.map((c) =>
+c.collectionId === tempId ? serverCollection : c
           )
         }))
 
-        return serverCollection.collectionId
+return serverCollection.collectionId
       } catch {
-        // Revert on failure
-        setState((prev) => ({
-          ...prev,
-          collections: prev.collections.filter((c) => c.collectionId !== tempId)
+
+setState((prev) => ({
+...prev,
+collections: prev.collections.filter((c) => c.collectionId !== tempId)
         }))
-        return null
+return null
       }
     },
-    [setState]
+[setState]
   )
 
-  // Update a collection (optimistic update + server sync)
-  const updateCollection = useCallback(
-    async (
-      collectionId: string,
-      updates: { name?: string; description?: string; color?: string }
+const updateCollection = useCallback(
+async (
+collectionId: string,
+updates: { name?: string; description?: string; color?: string }
     ) => {
-      const previousCollections = state.collections
+const previousCollections = state.collections
 
-      // Optimistic update
-      setState((prev) => ({
-        ...prev,
-        collections: prev.collections.map((c) =>
-          c.collectionId === collectionId ? { ...c, ...updates } : c
+setState((prev) => ({
+...prev,
+collections: prev.collections.map((c) =>
+c.collectionId === collectionId ? { ...c, ...updates } : c
         )
       }))
 
-      // Sync with server
-      try {
-        await apiUpdateCollection(collectionId, updates)
+try {
+await apiUpdateCollection(collectionId, updates)
       } catch {
-        // Revert on failure
-        setState({ ...state, collections: previousCollections })
+
+setState({ ...state, collections: previousCollections })
       }
     },
-    [state, setState]
+[state, setState]
   )
 
-  // Delete a collection (optimistic update + server sync)
-  const deleteCollection = useCallback(
-    async (collectionId: string) => {
-      const previousState = state
+const deleteCollection = useCallback(
+async (collectionId: string) => {
+const previousState = state
 
-      // Optimistic update
-      setState((prev) => ({
-        collections: prev.collections.filter((c) => c.collectionId !== collectionId),
-        bookmarks: prev.bookmarks.map((b) =>
-          (b as unknown as { collectionId?: string }).collectionId === collectionId
-            ? { ...b }
-            : b
+setState((prev) => ({
+collections: prev.collections.filter((c) => c.collectionId !== collectionId),
+bookmarks: prev.bookmarks.map((b) =>
+(b as unknown as { collectionId?: string }).collectionId === collectionId
+? { ...b }
+: b
         )
       }))
 
-      // Sync with server
-      try {
-        await apiDeleteCollection(collectionId)
+try {
+await apiDeleteCollection(collectionId)
       } catch {
-        // Revert on failure
-        setState(previousState)
+
+setState(previousState)
       }
     },
-    [state, setState]
+[state, setState]
   )
 
-  // Get bookmarks by collection
-  const getBookmarksByCollection = useCallback(
-    (collectionId: string | null) => {
-      return state.bookmarks.filter((b) => (b as unknown as { collectionId?: string }).collectionId === collectionId)
+const getBookmarksByCollection = useCallback(
+(collectionId: string | null) => {
+return state.bookmarks.filter((b) => (b as unknown as { collectionId?: string }).collectionId === collectionId)
     },
-    [state.bookmarks]
+[state.bookmarks]
   )
 
-  // Get collection by ID
-  const getCollection = useCallback(
-    (collectionId: string) => {
-      return state.collections.find((c) => c.collectionId === collectionId)
+const getCollection = useCallback(
+(collectionId: string) => {
+return state.collections.find((c) => c.collectionId === collectionId)
     },
-    [state.collections]
+[state.collections]
   )
 
-  // Get bookmarks count by collection
-  const getCollectionCounts = useMemo(() => {
-    const counts: Record<string, number> = { uncategorized: 0 }
+const getCollectionCounts = useMemo(() => {
+const counts: Record<string, number> = { uncategorized: 0 }
 
-    state.collections.forEach((c) => {
-      counts[c.collectionId] = 0
+state.collections.forEach((c) => {
+counts[c.collectionId] = 0
     })
 
-    state.bookmarks.forEach((b) => {
-      const key = (b as unknown as { collectionId?: string }).collectionId ?? 'uncategorized'
-      if (counts[key] !== undefined) {
-        counts[key]++
+state.bookmarks.forEach((b) => {
+const key = (b as unknown as { collectionId?: string }).collectionId ?? 'uncategorized'
+if (counts[key] !== undefined) {
+counts[key]++
       }
     })
 
-    return counts
+return counts
   }, [state.bookmarks, state.collections])
 
-  return {
-    collections: state.collections,
-    bookmarks: state.bookmarks,
-    isBookmarked,
-    getBookmark,
-    addBookmark,
-    removeBookmark,
-    toggleBookmark,
-    addCollection,
-    updateCollection,
-    deleteCollection,
-    getBookmarksByCollection,
-    getCollection,
-    getCollectionCounts,
-    loading,
+return {
+collections: state.collections,
+bookmarks: state.bookmarks,
+isBookmarked,
+getBookmark,
+addBookmark,
+removeBookmark,
+toggleBookmark,
+addCollection,
+updateCollection,
+deleteCollection,
+getBookmarksByCollection,
+getCollection,
+getCollectionCounts,
+loading,
   }
 }

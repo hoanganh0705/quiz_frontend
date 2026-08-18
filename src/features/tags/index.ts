@@ -1,4 +1,4 @@
-// Tags feature barrel
+
 export * from "./services";
 export * from "./types";
 export * from "./utils";

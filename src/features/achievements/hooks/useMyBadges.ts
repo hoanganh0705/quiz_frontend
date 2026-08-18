@@ -1,53 +1,15 @@
 "use client";
 
-/**
- * `useMyBadges` — authenticated user's earned badges hook.
- *
- * Source epic:   Epic 5.1 — SDK coverage & realtime contract foundation.
- * Source story:  5.5 — Ranking, leaderboards, milestones, and achievement surfaces.
- * Source ticket: TKT-5.5.B6.
- *
- * ## What this hook owns
- *
- * - Fetch the authenticated user's earned badges through the service
- *   layer (`getMyBadges`).
- * - Consume the `normalizeBadgeArray` adapter from Epic 5.1 so the
- *   hook returns a stable `EarnedBadge[]` regardless of whether the
- *   wire response was a bare array or an envelope.
- * - Project each entry to the `EarnedBadge` feature type.
- * - Map service errors to the typed `AchievementErrorCode` union.
- * - Feature-flag gating via `achievements_live`.
- *
- * ## Auth requirement
- *
- * Earned badges are a private read — the hook short-circuits to safe
- * fallback when the user is unauthenticated. The fallback is
- * indistinguishable from "no badges earned" by design; the auth gate
- * runs before the SWR key activates.
- *
- * ## Progress discipline
- *
- * The hook does NOT optimistically join progress data. Progress is
- * informational only; the UI never promises completion when
- * `progress.percent < 100`. A dedicated `useBadgeProgress` hook
- * (out of scope for this story) joins progress when needed.
- *
- * ## Feature flag
- *
- * When `achievements_live === 'placeholder'`, the hook returns
- * safe fallback. No service call fires.
- */
-
 import { useCallback, useMemo } from "react";
 
 import { ApiError, useSingleWithRetry } from "@/lib/api";
 
 import { getMyBadges } from "@/features/achievements/services/achievements.service";
 import {
-  ACHIEVEMENT_CACHE_KEYS,
-  toEarnedBadge,
-  type AchievementErrorCode,
-  type EarnedBadge,
+ACHIEVEMENT_CACHE_KEYS,
+toEarnedBadge,
+type AchievementErrorCode,
+type EarnedBadge,
 } from "@/features/achievements/types";
 import { useAuthSession } from "@/features/auth/hooks/use-auth-session";
 import { getFeatureFlagValue } from "@/lib/feature-flags";
@@ -55,89 +17,70 @@ import { getFeatureFlagValue } from "@/lib/feature-flags";
 import type { MyBadgeItemDto } from "@/lib/api/generated/schemas";
 import type { NormalizedBadge } from "@/lib/realtime/dto-adapters";
 
-// ─── Public types ─────────────────────────────────────────────────────────
-
 export interface UseMyBadgesResult {
-  badges: readonly EarnedBadge[];
-  isLoading: boolean;
-  error: ApiError | null;
-  retry: () => Promise<void>;
-  /** True while revalidation is in flight and cached badges are present. */
-  isStale: boolean;
+badges: readonly EarnedBadge[];
+isLoading: boolean;
+error: ApiError | null;
+retry: () => Promise<void>;
+
+isStale: boolean;
 }
 
-// ─── Hook ─────────────────────────────────────────────────────────────────
-
-/**
- * Read the authenticated user's earned badges.
- *
- * Returns safe fallback (`badges: []`, `isLoading: false`,
- * `error: null`) when:
- *
- * - `achievements_live` is `'placeholder'`.
- * - The user is unauthenticated.
- *
- * The wire envelope may be a bare array; the service layer applies
- * `normalizeBadgeArray` so the hook surface is always `EarnedBadge[]`.
- */
 export function useMyBadges(): UseMyBadgesResult {
-  const flagValue = getFeatureFlagValue("achievements_live");
-  const isFlagPlaceholder = flagValue === "placeholder";
+const flagValue = getFeatureFlagValue("achievements_live");
+const isFlagPlaceholder = flagValue === "placeholder";
 
-  const { bootstrapState } = useAuthSession();
-  const isAuthenticated = bootstrapState === "authenticated";
+const { bootstrapState } = useAuthSession();
+const isAuthenticated = bootstrapState === "authenticated";
 
-  // Disabled sentinel key when flag is off or user is unauthenticated.
-  const key = useMemo(
-    () =>
-      isFlagPlaceholder || !isAuthenticated
-        ? null
-        : ACHIEVEMENT_CACHE_KEYS.myBadges(),
-    [isFlagPlaceholder, isAuthenticated],
+const key = useMemo(
+() =>
+isFlagPlaceholder || !isAuthenticated
+? null
+: ACHIEVEMENT_CACHE_KEYS.myBadges(),
+[isFlagPlaceholder, isAuthenticated],
   );
 
-  const fetcher = useCallback(
-    async () => {
-      if (isFlagPlaceholder || !isAuthenticated) {
-        return [] as EarnedBadge[];
+const fetcher = useCallback(
+async () => {
+if (isFlagPlaceholder || !isAuthenticated) {
+return [] as EarnedBadge[];
       }
-      // Phase 6: cast to the structural overload — `toEarnedBadge` accepts
-      // either the SDK DTO or the legacy normalized shape.
-      const wire =
-        (await getMyBadges()) as unknown as Array<MyBadgeItemDto | NormalizedBadge>;
-      return wire
+
+const wire =
+(await getMyBadges()) as unknown as Array<MyBadgeItemDto | NormalizedBadge>;
+return wire
         .map((entry) => toEarnedBadge(entry))
         .filter((entry): entry is EarnedBadge => entry !== null);
     },
-    [isFlagPlaceholder, isAuthenticated],
+[isFlagPlaceholder, isAuthenticated],
   );
 
-  const result = useSingleWithRetry<EarnedBadge[]>({
-    key,
-    fetcher,
+const result = useSingleWithRetry<EarnedBadge[]>({
+key,
+fetcher,
   });
 
-  const isStale = result.data !== undefined && result.isRetrying;
+const isStale = result.data !== undefined && result.isRetrying;
 
-  // Safe fallback for feature flag off / unauthenticated.
-  if (isFlagPlaceholder || !isAuthenticated) {
-    return {
-      badges: [],
-      isLoading: false,
-      error: null,
-      retry: async () => {
+if (isFlagPlaceholder || !isAuthenticated) {
+return {
+badges: [],
+isLoading: false,
+error: null,
+retry: async () => {
         /* no-op */
       },
-      isStale: false,
+isStale: false,
     };
   }
 
-  return {
-    badges: result.data ?? [],
-    isLoading: result.isLoading,
-    error: result.error as ApiError | null,
-    retry: result.retry,
-    isStale,
+return {
+badges: result.data ?? [],
+isLoading: result.isLoading,
+error: result.error as ApiError | null,
+retry: result.retry,
+isStale,
   };
 }
 

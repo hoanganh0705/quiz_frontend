@@ -12,137 +12,132 @@ import { getCollectionColor } from '@/features/bookmarks/types'
 import { MoreHorizontal, Pencil, Trash2, FolderOpen } from 'lucide-react'
 
 interface CollectionCardProps {
-  collection: BookmarkCollection
-  /** Whether this card is selected (for multi-select mode). */
-  isSelected?: boolean
-  /** Callback when the card is clicked (navigates to detail page). */
-  onSelect?: () => void
-  /** Callback when "Rename" is clicked. */
-  onRename?: () => void
-  /** Callback when "Change color" is clicked. */
-  onChangeColor?: () => void
-  /** Callback when "Delete" is clicked. */
-  onDelete?: () => void
+collection: BookmarkCollection
+
+isSelected?: boolean
+
+onSelect?: () => void
+
+onRename?: () => void
+
+onChangeColor?: () => void
+
+onDelete?: () => void
 }
 
-/**
- * Collection card for the bookmarks dashboard.
- * Displays collection name, description, color indicator, and quiz count.
- * Includes kebab menu with Rename, Change color, and Delete actions.
- */
 const CollectionCard = memo(function CollectionCard({
-  collection,
-  isSelected = false,
-  onSelect,
-  onRename,
-  onChangeColor,
-  onDelete
+collection,
+isSelected = false,
+onSelect,
+onRename,
+onChangeColor,
+onDelete
 }: CollectionCardProps) {
-  const router = useRouter()
-  const displayColor = getCollectionColor(collection)
-  const hasActions = onRename || onChangeColor || onDelete
+const router = useRouter()
+const displayColor = getCollectionColor(collection)
+const hasActions = onRename || onChangeColor || onDelete
 
-  const handleSelect = () => {
-    if (onSelect) {
-      onSelect()
+const handleSelect = () => {
+if (onSelect) {
+onSelect()
     } else {
-      // Default: navigate to collection detail page (story 4.7)
-      router.push(`/bookmarks/${collection.collectionId}`)
+
+router.push(`/bookmarks/${collection.collectionId}`)
     }
   }
 
-  return (
-    <div
-      onClick={handleSelect}
-      className={`group relative p-4 rounded-lg border cursor-pointer transition-all ${
-        isSelected
-          ? 'border-default bg-default/5 shadow-sm'
-          : 'border-border hover:border-ring hover:shadow-sm'
-      }`}
+return (
+<div
+onClick={handleSelect}
+className={`group relative p-4 rounded-lg border cursor-pointer transition-all ${
+isSelected
+? 'border-default bg-default/5 shadow-sm'
+: 'border-border hover:border-ring hover:shadow-sm'
+}`}
     >
-      {/* Color indicator */}
-      <div
-        className='absolute top-0 left-0 w-1 h-full rounded-l-lg'
-        style={{ backgroundColor: displayColor }}
+{/* Color indicator */}
+<div
+className='absolute top-0 left-0 w-1 h-full rounded-l-lg'
+style={{ backgroundColor: displayColor }}
       />
 
-      <div className='flex items-start justify-between pl-2'>
-        <div className='flex-1 min-w-0'>
-          <div className='flex items-center gap-2 mb-1'>
-            <FolderOpen
-              className='h-4 w-4 shrink-0'
-              style={{ color: displayColor }}
-              aria-hidden='true'
+<div className='flex items-start justify-between pl-2'>
+<div className='flex-1 min-w-0'>
+<div className='flex items-center gap-2 mb-1'>
+<FolderOpen
+className='h-4 w-4 shrink-0'
+style={{ color: displayColor }}
+aria-hidden='true'
             />
-            <h4 className='font-medium text-sm truncate'>{collection.name}</h4>
-          </div>
+<h4 className='font-medium text-sm truncate'>{collection.name}</h4>
+</div>
 
-          {collection.description && (
-            <p className='text-xs text-muted-foreground line-clamp-1 mb-2'>
-              {collection.description}
-            </p>
+{collection.description && (
+<p className='text-xs text-muted-foreground line-clamp-1 mb-2'>
+{collection.description}
+</p>
           )}
 
-          <span className='text-xs text-muted-foreground'>
-            {collection.quizCount === 0
-              ? 'No quizzes saved yet'
-              : `${collection.quizCount} ${collection.quizCount === 1 ? 'quiz' : 'quizzes'}`
+<span className='text-xs text-muted-foreground'>
+{collection.quizCount === 0
+? 'No quizzes saved yet'
+: `${collection.quizCount} ${collection.quizCount === 1 ? 'quiz' : 'quizzes'}`
             }
-          </span>
-        </div>
+</span>
+</div>
 
-        {hasActions && (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-              <Button
-                variant='ghost'
-                size='icon'
-                className='h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity'
-                aria-label='Collection options'
+{hasActions && (
+<DropdownMenu>
+<DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+<Button
+variant='ghost'
+size='icon'
+className='h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity'
+aria-label='Collection options'
               >
-                <MoreHorizontal className='h-4 w-4' aria-hidden='true' />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align='end'>
-              {onRename && (
-                <DropdownMenuItem
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    onRename()
+<MoreHorizontal className='h-4 w-4' aria-hidden='true' />
+</Button>
+</DropdownMenuTrigger>
+<DropdownMenuContent align='end'>
+{onRename && (
+<DropdownMenuItem
+onClick={(e) => {
+e.stopPropagation()
+onRename()
                   }}
                 >
-                  <Pencil className='mr-2 h-4 w-4' />
-                  Rename
+<Pencil className='mr-2 h-4 w-4' />
+Rename
                 </DropdownMenuItem>
               )}
-              {onChangeColor && (
-                <DropdownMenuItem
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    onChangeColor()
+{onChangeColor && (
+<DropdownMenuItem
+onClick={(e) => {
+e.stopPropagation()
+onChangeColor()
                   }}
                 >
-                  <FolderOpen className='mr-2 h-4 w-4' />
-                  Change color
+<FolderOpen className='mr-2 h-4 w-4' />
+Change color
                 </DropdownMenuItem>
               )}
-              {onDelete && (
-                <DropdownMenuItem
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    onDelete()
+{onDelete && (
+<DropdownMenuItem
+onClick={(e) => {
+e.stopPropagation()
+onDelete()
                   }}
-                  className='text-red-600 dark:text-red-400'
+className='text-red-600 dark:text-red-400'
                 >
-                  <Trash2 className='mr-2 h-4 w-4' />
-                  Delete
+<Trash2 className='mr-2 h-4 w-4' />
+Delete
                 </DropdownMenuItem>
               )}
-            </DropdownMenuContent>
-          </DropdownMenu>
+</DropdownMenuContent>
+</DropdownMenu>
         )}
-      </div>
-    </div>
+</div>
+</div>
   )
 })
 

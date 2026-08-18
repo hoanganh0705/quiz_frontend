@@ -1,32 +1,19 @@
-/**
- * CategoryHeader — unit spec.
- *
- * Source epic: Epic 3.3 — Category browse + detail (read-only).
- * Source ticket: TKT-3.3.C3.
- *
- * Three cases per ticket (TKT-3.3.C3 testing checklist):
- *   1. header-without-parent, header-without-quizCount
- *   2. header-with-parent
- *   3. header-with-quizCount (extra — verifies the integer formatter)
- *
- * The component is server-renderable; the tests render it under
- * the jsdom env (so jsxdom's normal DOM is available).
- */
+
 
 import { describe, expect, it, vi } from 'vitest'
 
 vi.mock('next/link', () => ({
-  default: ({
-    href,
-    children,
-    ...rest
+default: ({
+href,
+children,
+...rest
   }: React.AnchorHTMLAttributes<HTMLAnchorElement> & {
-    href: string
-    children: React.ReactNode
+href: string
+children: React.ReactNode
   }) => (
-    <a href={href} {...rest}>
-      {children}
-    </a>
+<a href={href} {...rest}>
+{children}
+</a>
   ),
 }))
 
@@ -35,55 +22,55 @@ import { render, screen } from '@testing-library/react'
 import { CategoryHeader } from '@/features/categories/components/CategoryHeader'
 
 describe('CategoryHeader', () => {
-  it('renders the title, with quizCount, without parent breadcrumb', () => {
-    render(
-      <CategoryHeader
-        title='Mathematics'
-        description='All math quizzes.'
-        quizCount={1234}
+it('renders the title, with quizCount, without parent breadcrumb', () => {
+render(
+<CategoryHeader
+title='Mathematics'
+description='All math quizzes.'
+quizCount={1234}
       />,
     )
-    const header = screen.getByTestId('category-header')
-    expect(header).toBeInTheDocument()
-    expect(
-      screen.getByRole('heading', { name: /mathematics/i }),
+const header = screen.getByTestId('category-header')
+expect(header).toBeInTheDocument()
+expect(
+screen.getByRole('heading', { name: /mathematics/i }),
     ).toBeInTheDocument()
-    expect(screen.getByText(/all math quizzes/i)).toBeInTheDocument()
-    expect(screen.getByTestId('category-header-quiz-count')).toHaveTextContent(
-      '1,234 quizzes',
+expect(screen.getByText(/all math quizzes/i)).toBeInTheDocument()
+expect(screen.getByTestId('category-header-quiz-count')).toHaveTextContent(
+'1,234 quizzes',
     )
-    // No parent breadcrumb → no `<nav aria-label="Breadcrumb">` element.
-    expect(
-      screen.queryByRole('navigation', { name: /breadcrumb/i }),
+
+expect(
+screen.queryByRole('navigation', { name: /breadcrumb/i }),
     ).not.toBeInTheDocument()
   })
 
-  it('renders the parent breadcrumb when parent is provided', () => {
-    render(
-      <CategoryHeader
-        title='Algebra'
-        description={null}
-        parent={{ name: 'Mathematics', slug: 'mathematics' }}
+it('renders the parent breadcrumb when parent is provided', () => {
+render(
+<CategoryHeader
+title='Algebra'
+description={null}
+parent={{ name: 'Mathematics', slug: 'mathematics' }}
       />,
     )
-    const nav = screen.getByRole('navigation', { name: /breadcrumb/i })
-    expect(nav).toBeInTheDocument()
-    // The parent link targets `/categories/<parent.slug>`.
-    const parentLink = nav.querySelector('a[href="/categories/mathematics"]')
-    expect(parentLink).toHaveTextContent('Mathematics')
+const nav = screen.getByRole('navigation', { name: /breadcrumb/i })
+expect(nav).toBeInTheDocument()
+
+const parentLink = nav.querySelector('a[href="/categories/mathematics"]')
+expect(parentLink).toHaveTextContent('Mathematics')
   })
 
-  it('omits the quiz-count row when quizCount is not provided', () => {
-    render(<CategoryHeader title='History' description={null} />)
-    expect(
-      screen.queryByTestId('category-header-quiz-count'),
+it('omits the quiz-count row when quizCount is not provided', () => {
+render(<CategoryHeader title='History' description={null} />)
+expect(
+screen.queryByTestId('category-header-quiz-count'),
     ).not.toBeInTheDocument()
   })
 
-  it('omits the description paragraph when description is null', () => {
-    render(<CategoryHeader title='History' description={null} />)
-    // No `<p>` element should be present inside the header.
-    const header = screen.getByTestId('category-header')
-    expect(header.querySelector('p')).toBeNull()
+it('omits the description paragraph when description is null', () => {
+render(<CategoryHeader title='History' description={null} />)
+
+const header = screen.getByTestId('category-header')
+expect(header.querySelector('p')).toBeNull()
   })
 })

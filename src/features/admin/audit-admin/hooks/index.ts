@@ -1,6 +1,4 @@
-/**
- * `index.ts` — Audit log admin hooks barrel.
- */
+
 
 export { useAdminAuditLog } from './useAdminAuditLog';
 export type { UseAdminAuditLogResult } from './useAdminAuditLog';
@@ -11,16 +9,12 @@ export type { UseAdminAuditLogEntryResult } from './useAdminAuditLogEntry';
 export { useAuditLogFilters } from './useAuditLogFilters';
 export type { UseAuditLogFiltersResult } from './useAuditLogFilters';
 
-// TKT-7.5 cleanup, Phase 5 / P1-2: the audit-log offset hook is
-// `useOffsetPaginatedAuditLogs` to avoid colliding with the Phase-6
-// `@/lib/api/use-offset-paginated` fetch facade. The legacy
-// `useOffsetPaginated` shim was retired in Phase 5.
 export {
-  useOffsetPaginatedAuditLogs,
-  AUDIT_LOG_DEFAULT_PAGE_SIZE,
-  AUDIT_LOG_MAX_PAGE_SIZE,
+useOffsetPaginatedAuditLogs,
+AUDIT_LOG_DEFAULT_PAGE_SIZE,
+AUDIT_LOG_MAX_PAGE_SIZE,
 } from './useOffsetPaginatedAuditLogs';
 export type {
-  UseOffsetPaginatedAuditLogsParams,
-  UseOffsetPaginatedAuditLogsResult,
+UseOffsetPaginatedAuditLogsParams,
+UseOffsetPaginatedAuditLogsResult,
 } from './useOffsetPaginatedAuditLogs';

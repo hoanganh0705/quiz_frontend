@@ -1,27 +1,4 @@
-/**
- * `useActiveAttempt.spec.tsx` — locks the quiz-scoped active attempt
- * lookup hook.
- *
- * Source story:  4.14 — Attempt start + answer + withdraw/abandon.
- * Source ticket: T-4.14.5.
- *
- * Coverage contract:
- *
- *   - Service receives the canonical `quizId`, `status: 'started'`,
- *     `limit: 1` filter via the service-level `getActiveAttempt`
- *     wrapper.
- *   - One matching summary resolves `attempt` to that summary.
- *   - Empty result resolves `attempt` to `null` without an error.
- *   - 404 from the service is treated as no active attempt (not an
- *     error).
- *   - Unauthenticated / bootstrap-loading states fire no request.
- *   - `quizId: null` disables the fetch.
- *   - 5xx surfaces as `ApiError` and exposes `retry`.
- *   - Different `quizId` values target different cache keys.
- *   - Tournament / abandoned / completed attempts do not project as
- *     the active attempt (the service is server-side filtered by
- *     `status: 'started'`).
- */
+
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { renderHook, waitFor } from '@testing-library/react';
@@ -35,35 +12,22 @@ const getActiveAttemptMock = vi.hoisted(() => vi.fn());
 const useAuthSessionMock = vi.hoisted(() => vi.fn());
 
 vi.mock('@/features/attempts/services/attempts.service', () => ({
-  getActiveAttempt: getActiveAttemptMock,
+getActiveAttempt: getActiveAttemptMock,
 }));
 
 vi.mock('@/features/auth/hooks/use-auth-session', () => ({
-  useAuthSession: useAuthSessionMock,
+useAuthSession: useAuthSessionMock,
 }));
 
-/**
- * Wraps a `renderHook` call in a fresh `SWRConfig` with an isolated
- * cache provider. `useActiveAttempt` is backed by SWR (so that
- * `globalMutate(activeKey)` from `useStartAttempt` actually
- * invalidates the cache — see T-4.14.5 / the fix for the
- * read-after-write race). Without the isolated cache, SWR's
- * process-wide cache leaks results across tests in this file.
- */
 function renderIsolatedHook<HookResult, Props>(
-  callback: (props: Props) => HookResult,
-  initialProps?: Props,
+callback: (props: Props) => HookResult,
+initialProps?: Props,
 ) {
-  return renderHook(callback, {
-    initialProps,
-    wrapper: ({ children }) => (
-      // Each `provider` invocation returns a brand-new `Map` so
-      // SWR's cache cannot leak state between tests in this file.
-      // `useActiveAttempt` is backed by SWR (so `globalMutate` from
-      // `useStartAttempt` actually invalidates the cache — see the
-      // fix for the read-after-write race). Without the isolated
-      // cache, SWR's process-wide cache leaks results across tests.
-      <SWRConfig value={{ provider: () => new Map() }}>{children}</SWRConfig>
+return renderHook(callback, {
+initialProps,
+wrapper: ({ children }) => (
+
+<SWRConfig value={{ provider: () => new Map() }}>{children}</SWRConfig>
     ),
   });
 }
@@ -72,317 +36,294 @@ const SESSION_ID = 'user-1';
 const QUIZ_ID = 'quiz-1';
 
 function setBootstrapAuthenticated() {
-  useAuthSessionMock.mockReturnValue({
-    bootstrapState: 'authenticated',
-    isAuthenticated: true,
-    currentUser: { userId: SESSION_ID, id: SESSION_ID },
+useAuthSessionMock.mockReturnValue({
+bootstrapState: 'authenticated',
+isAuthenticated: true,
+currentUser: { userId: SESSION_ID, id: SESSION_ID },
   });
 }
 
 function setBootstrapUnauthenticated() {
-  useAuthSessionMock.mockReturnValue({
-    bootstrapState: 'unauthenticated',
-    isAuthenticated: false,
-    currentUser: null,
+useAuthSessionMock.mockReturnValue({
+bootstrapState: 'unauthenticated',
+isAuthenticated: false,
+currentUser: null,
   });
 }
 
 function setBootstrapLoading() {
-  useAuthSessionMock.mockReturnValue({
-    bootstrapState: 'bootstrapping',
-    isAuthenticated: false,
-    currentUser: null,
+useAuthSessionMock.mockReturnValue({
+bootstrapState: 'bootstrapping',
+isAuthenticated: false,
+currentUser: null,
   });
 }
 
 function makeApiError(
-  status: number,
-  code = `CODE_${status}`,
-  message = `Mock ${status}`,
+status: number,
+code = `CODE_${status}`,
+message = `Mock ${status}`,
 ): ApiError {
-  return new ApiError({
-    isAxiosError: true,
-    name: 'AxiosError',
-    message,
-    code,
-    config: undefined,
-    request: undefined,
-    response: {
-      status,
-      statusText: message,
-      data: {
-        type: 'https://api.quiz.local/problems/x',
-        title: message,
-        status,
-        detail: message,
-        extensions: { code, requestId: 'req-test' },
+return new ApiError({
+isAxiosError: true,
+name: 'AxiosError',
+message,
+code,
+config: undefined,
+request: undefined,
+response: {
+status,
+statusText: message,
+data: {
+type: 'https://api.quiz.local/problems/x',
+title: message,
+status,
+detail: message,
+extensions: { code, requestId: 'req-test' },
       },
-      headers: {},
-      config: undefined as never,
+headers: {},
+config: undefined as never,
     },
-    toJSON: () => ({}),
+toJSON: () => ({}),
   } as unknown as Parameters<typeof ApiError.fromAxios>[0]);
 }
 
 function makeSummary(overrides: Partial<{
-  attemptId: string;
-  quizId: string;
-  status: 'started' | 'completed' | 'abandoned';
+attemptId: string;
+quizId: string;
+status: 'started' | 'completed' | 'abandoned';
 }> = {}) {
-  return {
-    attemptId: overrides.attemptId ?? 'a1',
-    quizId: overrides.quizId ?? QUIZ_ID,
-    quizTitle: 'Sample',
-    quizSlug: 'sample',
-    versionNumber: 1,
-    difficulty: 'medium',
-    contextType: 'self',
-    status: overrides.status ?? 'started',
-    scorePercent: null,
-    correctCount: null,
-    startedAt: '2026-08-01T00:00:00.000Z',
-    finishedAt: null,
-    xpEarned: 0,
+return {
+attemptId: overrides.attemptId ?? 'a1',
+quizId: overrides.quizId ?? QUIZ_ID,
+quizTitle: 'Sample',
+quizSlug: 'sample',
+versionNumber: 1,
+difficulty: 'medium',
+contextType: 'self',
+status: overrides.status ?? 'started',
+scorePercent: null,
+correctCount: null,
+startedAt: '2026-08-01T00:00:00.000Z',
+finishedAt: null,
+xpEarned: 0,
   };
 }
 
 beforeEach(() => {
-  vi.clearAllMocks();
-  setBootstrapAuthenticated();
+vi.clearAllMocks();
+setBootstrapAuthenticated();
 });
 
 afterEach(() => {
-  getActiveAttemptMock.mockReset();
+getActiveAttemptMock.mockReset();
 });
 
 describe('useActiveAttempt — happy path', () => {
-  it('forwards the quizId to the service and resolves the active attempt', async () => {
-    getActiveAttemptMock.mockResolvedValue(makeSummary());
+it('forwards the quizId to the service and resolves the active attempt', async () => {
+getActiveAttemptMock.mockResolvedValue(makeSummary());
 
-    const { result } = renderIsolatedHook(() =>
-      useActiveAttempt({ quizId: QUIZ_ID }),
+const { result } = renderIsolatedHook(() =>
+useActiveAttempt({ quizId: QUIZ_ID }),
     );
 
-    await waitFor(() => {
-      expect(result.current.isLoading).toBe(false);
+await waitFor(() => {
+expect(result.current.isLoading).toBe(false);
     });
 
-    expect(getActiveAttemptMock).toHaveBeenCalledWith(QUIZ_ID);
-    expect(result.current.attempt).toMatchObject({
-      attemptId: 'a1',
-      status: 'started',
+expect(getActiveAttemptMock).toHaveBeenCalledWith(QUIZ_ID);
+expect(result.current.attempt).toMatchObject({
+attemptId: 'a1',
+status: 'started',
     });
-    expect(result.current.error).toBeNull();
+expect(result.current.error).toBeNull();
   });
 
-  it('does not project a completed attempt as the active attempt', async () => {
-    // The service is server-side filtered by `status: 'started'` so
-    // a completed fixture must never reach the hook. A defensive
-    // guard test asserts the hook trusts the wire shape (the
-    // service is responsible for the filter), so a completed
-    // summary DOES surface — but only because the backend would
-    // never send it. The hook does not double-filter on the
-    // client; the contract relies on the service contract.
-    getActiveAttemptMock.mockResolvedValue(
-      makeSummary({ status: 'completed' }),
+it('does not project a completed attempt as the active attempt', async () => {
+
+getActiveAttemptMock.mockResolvedValue(
+makeSummary({ status: 'completed' }),
     );
 
-    const { result } = renderIsolatedHook(() =>
-      useActiveAttempt({ quizId: QUIZ_ID }),
+const { result } = renderIsolatedHook(() =>
+useActiveAttempt({ quizId: QUIZ_ID }),
     );
 
-    await waitFor(() => {
-      expect(result.current.isLoading).toBe(false);
+await waitFor(() => {
+expect(result.current.isLoading).toBe(false);
     });
 
-    // If the backend ever violates the filter, the hook surfaces
-    // the row verbatim and the runner's T-4.14.7 status-mapping
-    // helper (`statusFromAttempt`) converts `completed` to
-    // `'completed'` rather than `'in_progress'`. This guards
-    // against accidental client-side filtering that would mask
-    // the contract drift.
-    expect(result.current.attempt?.status).toBe('completed');
+expect(result.current.attempt?.status).toBe('completed');
   });
 });
 
 describe('useActiveAttempt — no active attempt', () => {
-  it('resolves to null when the service returns null', async () => {
-    getActiveAttemptMock.mockResolvedValue(null);
+it('resolves to null when the service returns null', async () => {
+getActiveAttemptMock.mockResolvedValue(null);
 
-    const { result } = renderIsolatedHook(() =>
-      useActiveAttempt({ quizId: QUIZ_ID }),
+const { result } = renderIsolatedHook(() =>
+useActiveAttempt({ quizId: QUIZ_ID }),
     );
 
-    await waitFor(() => {
-      expect(result.current.isLoading).toBe(false);
+await waitFor(() => {
+expect(result.current.isLoading).toBe(false);
     });
 
-    expect(result.current.attempt).toBeNull();
-    expect(result.current.error).toBeNull();
+expect(result.current.attempt).toBeNull();
+expect(result.current.error).toBeNull();
   });
 
-  it('resolves to null when the service resolves to null after 404', async () => {
-    // The service wrapper (T-4.14.1) normalises 404 → null, so the
-    // hook never sees a 404-shaped error here.
-    getActiveAttemptMock.mockResolvedValue(null);
+it('resolves to null when the service resolves to null after 404', async () => {
 
-    const { result } = renderIsolatedHook(() =>
-      useActiveAttempt({ quizId: QUIZ_ID }),
+getActiveAttemptMock.mockResolvedValue(null);
+
+const { result } = renderIsolatedHook(() =>
+useActiveAttempt({ quizId: QUIZ_ID }),
     );
 
-    await waitFor(() => {
-      expect(result.current.isLoading).toBe(false);
+await waitFor(() => {
+expect(result.current.isLoading).toBe(false);
     });
 
-    expect(result.current.attempt).toBeNull();
-    expect(result.current.error).toBeNull();
+expect(result.current.attempt).toBeNull();
+expect(result.current.error).toBeNull();
   });
 });
 
 describe('useActiveAttempt — auth gating', () => {
-  it('does not fetch when the viewer is unauthenticated', async () => {
-    setBootstrapUnauthenticated();
+it('does not fetch when the viewer is unauthenticated', async () => {
+setBootstrapUnauthenticated();
 
-    const { result } = renderIsolatedHook(() =>
-      useActiveAttempt({ quizId: QUIZ_ID }),
+const { result } = renderIsolatedHook(() =>
+useActiveAttempt({ quizId: QUIZ_ID }),
     );
 
-    await waitFor(() => {
-      expect(result.current.isLoading).toBe(false);
+await waitFor(() => {
+expect(result.current.isLoading).toBe(false);
     });
 
-    expect(getActiveAttemptMock).not.toHaveBeenCalled();
-    expect(result.current.attempt).toBeNull();
-    expect(result.current.error).toBeNull();
+expect(getActiveAttemptMock).not.toHaveBeenCalled();
+expect(result.current.attempt).toBeNull();
+expect(result.current.error).toBeNull();
   });
 
-  it('does not fetch while the auth bootstrap is loading', async () => {
-    setBootstrapLoading();
+it('does not fetch while the auth bootstrap is loading', async () => {
+setBootstrapLoading();
 
-    const { result } = renderIsolatedHook(() =>
-      useActiveAttempt({ quizId: QUIZ_ID }),
+const { result } = renderIsolatedHook(() =>
+useActiveAttempt({ quizId: QUIZ_ID }),
     );
 
-    await waitFor(() => {
-      expect(result.current.isLoading).toBe(false);
+await waitFor(() => {
+expect(result.current.isLoading).toBe(false);
     });
 
-    expect(getActiveAttemptMock).not.toHaveBeenCalled();
-    expect(result.current.attempt).toBeNull();
+expect(getActiveAttemptMock).not.toHaveBeenCalled();
+expect(result.current.attempt).toBeNull();
   });
 
-  it('does not fetch when quizId is null', async () => {
-    const { result } = renderIsolatedHook(() =>
-      useActiveAttempt({ quizId: null }),
+it('does not fetch when quizId is null', async () => {
+const { result } = renderIsolatedHook(() =>
+useActiveAttempt({ quizId: null }),
     );
 
-    await waitFor(() => {
-      expect(result.current.isLoading).toBe(false);
+await waitFor(() => {
+expect(result.current.isLoading).toBe(false);
     });
 
-    expect(getActiveAttemptMock).not.toHaveBeenCalled();
-    expect(result.current.attempt).toBeNull();
+expect(getActiveAttemptMock).not.toHaveBeenCalled();
+expect(result.current.attempt).toBeNull();
   });
 });
 
 describe('useActiveAttempt — error handling', () => {
-  it('5xx surfaces as ApiError and exposes retry', async () => {
-    getActiveAttemptMock.mockRejectedValueOnce(
-      makeApiError(500, 'GLOBAL_INTERNAL_ERROR'),
+it('5xx surfaces as ApiError and exposes retry', async () => {
+getActiveAttemptMock.mockRejectedValueOnce(
+makeApiError(500, 'GLOBAL_INTERNAL_ERROR'),
     );
 
-    const { result } = renderIsolatedHook(() =>
-      useActiveAttempt({ quizId: QUIZ_ID }),
+const { result } = renderIsolatedHook(() =>
+useActiveAttempt({ quizId: QUIZ_ID }),
     );
 
-    await waitFor(() => {
-      expect(result.current.error).toBeInstanceOf(ApiError);
+await waitFor(() => {
+expect(result.current.error).toBeInstanceOf(ApiError);
     });
 
-    expect((result.current.error as ApiError).status).toBe(500);
-    expect(result.current.attempt).toBeNull();
+expect((result.current.error as ApiError).status).toBe(500);
+expect(result.current.attempt).toBeNull();
 
-    getActiveAttemptMock.mockResolvedValueOnce(makeSummary());
-    await result.current.retry();
-    await waitFor(() => {
-      expect(result.current.attempt).not.toBeNull();
+getActiveAttemptMock.mockResolvedValueOnce(makeSummary());
+await result.current.retry();
+await waitFor(() => {
+expect(result.current.attempt).not.toBeNull();
     });
-    expect(result.current.error).toBeNull();
+expect(result.current.error).toBeNull();
   });
 
-  it('403 surfaces as ApiError and does not become a null attempt', async () => {
-    getActiveAttemptMock.mockRejectedValueOnce(
-      makeApiError(403, 'ATTEMPT_FORBIDDEN'),
+it('403 surfaces as ApiError and does not become a null attempt', async () => {
+getActiveAttemptMock.mockRejectedValueOnce(
+makeApiError(403, 'ATTEMPT_FORBIDDEN'),
     );
 
-    const { result } = renderIsolatedHook(() =>
-      useActiveAttempt({ quizId: QUIZ_ID }),
+const { result } = renderIsolatedHook(() =>
+useActiveAttempt({ quizId: QUIZ_ID }),
     );
 
-    await waitFor(() => {
-      expect(result.current.error).toBeInstanceOf(ApiError);
+await waitFor(() => {
+expect(result.current.error).toBeInstanceOf(ApiError);
     });
 
-    expect((result.current.error as ApiError).status).toBe(403);
-    expect(result.current.attempt).toBeNull();
+expect((result.current.error as ApiError).status).toBe(403);
+expect(result.current.attempt).toBeNull();
   });
 
-  it('429 surfaces as ApiError after the bounded backoff schedule', async () => {
-    // The single-resource primitive (Epic 3.6) retries 429 with the
-    // bounded 250 / 500 / 1000 ms backoff policy before surfacing
-    // the error. We only assert the eventual error path here; the
-    // exhaustive backoff schedule is locked in
-    // `use-single-with-retry.spec.ts`.
-    getActiveAttemptMock.mockRejectedValue(
-      makeApiError(429, 'GLOBAL_RATE_LIMITED'),
+it('429 surfaces as ApiError after the bounded backoff schedule', async () => {
+
+getActiveAttemptMock.mockRejectedValue(
+makeApiError(429, 'GLOBAL_RATE_LIMITED'),
     );
 
-    const { result } = renderIsolatedHook(() =>
-      useActiveAttempt({ quizId: QUIZ_ID }),
+const { result } = renderIsolatedHook(() =>
+useActiveAttempt({ quizId: QUIZ_ID }),
     );
 
-    await waitFor(
-      () => {
-        expect(result.current.error).toBeInstanceOf(ApiError);
+await waitFor(
+() => {
+expect(result.current.error).toBeInstanceOf(ApiError);
       },
-      { timeout: 4000, interval: 50 },
+{ timeout: 4000, interval: 50 },
     );
 
-    expect((result.current.error as ApiError).status).toBe(429);
-    expect(result.current.attempt).toBeNull();
+expect((result.current.error as ApiError).status).toBe(429);
+expect(result.current.attempt).toBeNull();
   });
 });
 
 describe('useActiveAttempt — cache key isolation', () => {
-  it('switching quizId targets a different cache key (different fetch)', async () => {
-    getActiveAttemptMock.mockImplementation(async (quizId: string) =>
-      makeSummary({ attemptId: `a-${quizId}` }),
+it('switching quizId targets a different cache key (different fetch)', async () => {
+getActiveAttemptMock.mockImplementation(async (quizId: string) =>
+makeSummary({ attemptId: `a-${quizId}` }),
     );
 
-    // The fetcher inside `useActiveAttempt` reads `quizId` from its
-    // closure, not from the SWR args tuple. To make the first call
-    // deterministic in test isolation, drive the props through
-    // React state rather than destructuring — `renderHook` calls
-    // the callback with the props exactly once per render, and the
-    // closure captures the committed value.
-    let currentQuizId: string = QUIZ_ID;
-    const { result, rerender } = renderIsolatedHook(
-      () => useActiveAttempt({ quizId: currentQuizId }),
+let currentQuizId: string = QUIZ_ID;
+const { result, rerender } = renderIsolatedHook(
+() => useActiveAttempt({ quizId: currentQuizId }),
     );
 
-    await waitFor(() => {
-      expect(result.current.isLoading).toBe(false);
+await waitFor(() => {
+expect(result.current.isLoading).toBe(false);
     });
 
-    currentQuizId = 'quiz-2';
-    rerender();
+currentQuizId = 'quiz-2';
+rerender();
 
-    await waitFor(() => {
-      expect(result.current.attempt?.attemptId).toBe('a-quiz-2');
+await waitFor(() => {
+expect(result.current.attempt?.attemptId).toBe('a-quiz-2');
     });
 
-    expect(getActiveAttemptMock).toHaveBeenCalledTimes(2);
-    expect(getActiveAttemptMock).toHaveBeenNthCalledWith(1, 'quiz-1');
-    expect(getActiveAttemptMock).toHaveBeenNthCalledWith(2, 'quiz-2');
+expect(getActiveAttemptMock).toHaveBeenCalledTimes(2);
+expect(getActiveAttemptMock).toHaveBeenNthCalledWith(1, 'quiz-1');
+expect(getActiveAttemptMock).toHaveBeenNthCalledWith(2, 'quiz-2');
   });
 });

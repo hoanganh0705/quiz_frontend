@@ -4,7 +4,7 @@ import { memo } from 'react'
 import { Label } from '@/components/ui/Label'
 import { Input } from '@/components/ui/Input'
 import { Textarea } from '@/components/ui/Textarea'
-// Fix barrel imports (bundle-barrel-imports)
+
 import { Select } from '@/components/ui/Select'
 import { SelectContent } from '@/components/ui/Select'
 import { SelectItem } from '@/components/ui/Select'
@@ -13,126 +13,126 @@ import { SelectValue } from '@/components/ui/Select'
 import { Button } from '@/components/ui/Button'
 
 interface QuizDetailsValues {
-  title: string
-  description: string
-  difficulty: 'easy' | 'medium' | 'hard'
-  tags: string[]
+title: string
+description: string
+difficulty: 'easy' | 'medium' | 'hard'
+tags: string[]
 }
 
 interface QuizDetailsTabProps {
-  values: QuizDetailsValues
-  onChange: (next: Partial<QuizDetailsValues>) => void
+values: QuizDetailsValues
+onChange: (next: Partial<QuizDetailsValues>) => void
 }
 
 const QuizDetailsTab = memo(function QuizDetailsTab({
-  values,
-  onChange
+values,
+onChange
 }: QuizDetailsTabProps) {
-  const tagInput = values.tags.join(', ')
+const tagInput = values.tags.join(', ')
 
-  return (
-    <section
-      className='p-6 space-y-8 border border-border rounded-xl'
-      aria-labelledby='quiz-info-title'
+return (
+<section
+className='p-6 space-y-8 border border-border rounded-xl'
+aria-labelledby='quiz-info-title'
     >
-      <h2 id='quiz-info-title' className='text-2xl font-bold text-foreground'>
-        Quiz Information
+<h2 id='quiz-info-title' className='text-2xl font-bold text-foreground'>
+Quiz Information
       </h2>
 
-      <div className='space-y-4'>
-        <div>
-          <Label
-            htmlFor='quiz-title'
-            className='text-foreground text-sm mb-2 font-semibold'
+<div className='space-y-4'>
+<div>
+<Label
+htmlFor='quiz-title'
+className='text-foreground text-sm mb-2 font-semibold'
           >
-            Quiz Title
+Quiz Title
           </Label>
-          <Input
-            id='quiz-title'
-            placeholder='Untitled Quiz'
-            value={values.title}
-            onChange={(event) => onChange({ title: event.target.value })}
-            className='bg-transparent text-foreground placeholder:text-muted-foreground focus:ring-offset-0 focus:ring-0 border border-border'
-            autoComplete='off'
-            required
+<Input
+id='quiz-title'
+placeholder='Untitled Quiz'
+value={values.title}
+onChange={(event) => onChange({ title: event.target.value })}
+className='bg-transparent text-foreground placeholder:text-muted-foreground focus:ring-offset-0 focus:ring-0 border border-border'
+autoComplete='off'
+required
           />
-        </div>
+</div>
 
-        <div>
-          <Label
-            htmlFor='description'
-            className='text-foreground text-sm mb-2 font-semibold'
+<div>
+<Label
+htmlFor='description'
+className='text-foreground text-sm mb-2 font-semibold'
           >
-            Description
+Description
           </Label>
-          <Textarea
-            id='description'
-            placeholder='Quiz description'
-            value={values.description}
-            onChange={(event) => onChange({ description: event.target.value })}
-            className='bg-transparent text-foreground placeholder:text-muted-foreground min-h-25 resize-y focus:ring-offset-0 focus:ring-0 border border-border'
-            autoComplete='off'
+<Textarea
+id='description'
+placeholder='Quiz description'
+value={values.description}
+onChange={(event) => onChange({ description: event.target.value })}
+className='bg-transparent text-foreground placeholder:text-muted-foreground min-h-25 resize-y focus:ring-offset-0 focus:ring-0 border border-border'
+autoComplete='off'
           />
-        </div>
+</div>
 
-        <div>
-          <Label
-            htmlFor='difficulty-level'
-            className='text-foreground text-sm mb-2 block'
+<div>
+<Label
+htmlFor='difficulty-level'
+className='text-foreground text-sm mb-2 block'
           >
-            Difficulty Level
+Difficulty Level
           </Label>
-          <Select
-            value={values.difficulty}
-            onValueChange={(value) =>
-              onChange({ difficulty: value as 'easy' | 'medium' | 'hard' })
+<Select
+value={values.difficulty}
+onValueChange={(value) =>
+onChange({ difficulty: value as 'easy' | 'medium' | 'hard' })
             }
           >
-            <SelectTrigger
-              id='difficulty-level'
-              className='w-full bg-background text-foreground placeholder:text-muted-foreground focus:ring-offset-0 focus:ring-0 border border-border'
+<SelectTrigger
+id='difficulty-level'
+className='w-full bg-background text-foreground placeholder:text-muted-foreground focus:ring-offset-0 focus:ring-0 border border-border'
             >
-              <SelectValue placeholder='Select difficulty' />
-            </SelectTrigger>
-            <SelectContent className='bg-background text-foreground'>
-              <SelectItem value='easy'>Easy</SelectItem>
-              <SelectItem value='medium'>Medium</SelectItem>
-              <SelectItem value='hard'>Hard</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+<SelectValue placeholder='Select difficulty' />
+</SelectTrigger>
+<SelectContent className='bg-background text-foreground'>
+<SelectItem value='easy'>Easy</SelectItem>
+<SelectItem value='medium'>Medium</SelectItem>
+<SelectItem value='hard'>Hard</SelectItem>
+</SelectContent>
+</Select>
+</div>
 
-        <div>
-          <Label htmlFor='tags' className='text-foreground text-sm mb-2 block'>
-            Tags
+<div>
+<Label htmlFor='tags' className='text-foreground text-sm mb-2 block'>
+Tags
           </Label>
-          <div className='flex items-center gap-2'>
-            <Input
-              id='tags'
-              placeholder='Add a tag'
-              value={tagInput}
-              onChange={(event) =>
-                onChange({
-                  tags: event.target.value
+<div className='flex items-center gap-2'>
+<Input
+id='tags'
+placeholder='Add a tag'
+value={tagInput}
+onChange={(event) =>
+onChange({
+tags: event.target.value
                     .split(',')
                     .map((tag) => tag.trim())
                     .filter(Boolean)
                 })
               }
-              className='flex-1 bg-transparent text-foreground placeholder:text-muted-foreground focus:ring-offset-0 focus:ring-0 border border-border'
-              autoComplete='off'
+className='flex-1 bg-transparent text-foreground placeholder:text-muted-foreground focus:ring-offset-0 focus:ring-0 border border-border'
+autoComplete='off'
             />
-            <Button
-              type='button'
-              className='bg-transparent hover:bg-main-hover text-foreground px-6 py-2 rounded-md'
-              aria-label='Add tag'
+<Button
+type='button'
+className='bg-transparent hover:bg-main-hover text-foreground px-6 py-2 rounded-md'
+aria-label='Add tag'
             >
-              Add
+Add
             </Button>
-          </div>
-        </div>
-      </div>
-    </section>
+</div>
+</div>
+</div>
+</section>
   )
 })
 

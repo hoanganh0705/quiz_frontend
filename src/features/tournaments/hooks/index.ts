@@ -1,6 +1,5 @@
-// Tournaments hooks
 
-// Story 5.2 — Tournament discovery and read-only detail surfaces
+
 export { useTournaments } from './useTournaments'
 export type { UseTournamentsResult, TournamentListPage } from './useTournaments'
 
@@ -19,7 +18,6 @@ export type { UseTournamentFiltersResult } from './useTournamentFilters'
 export { useTournamentFeatureFlag } from './useTournamentFeatureFlag'
 export type { UseTournamentFeatureFlagResult } from './useTournamentFeatureFlag'
 
-// Story 5.3 — Tournament registration and participant-state mutations
 export { useTournamentParticipation } from './useTournamentParticipation'
 export type { UseTournamentParticipationResult } from './useTournamentParticipation'
 

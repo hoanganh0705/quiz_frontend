@@ -141,7 +141,7 @@ const SettingsPage = memo(function SettingsPage() {
       {/* Header */}
       <header className="text-center px-4 mb-8">
         <h1 className="text-3xl font-bold mb-4">Settings</h1>
-        <p className="text-foreground/70 text-base max-w-2xl mx-auto">
+        <p className="text-muted-foreground text-base max-w-2xl mx-auto">
           Manage your account settings and preferences
         </p>
       </header>

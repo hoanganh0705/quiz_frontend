@@ -1,14 +1,4 @@
-/**
- * `instances/components` — public component surface for the instance
- * lobby feature.
- *
- * Source epic:   Epic 5.1 — SDK coverage & realtime contract foundation.
- * Source story:  5.7 — Instance lobby, authenticated room, and host
- *                lifecycle controls.
- *
- * Components are added incrementally by tickets TKT-5.7.D1 through
- * TKT-5.7.D5. The shared primitives are exported under `./shared`.
- */
+
 
 export * from "./shared";
 

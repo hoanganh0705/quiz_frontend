@@ -1,32 +1,14 @@
 'use client';
 
-/**
- * `features/admin/ranking-admin/components/PeriodResetPanel.tsx`
- *
- * Source epic:   Epic 7.9 — Ranking Admin: Recalculate, Consistency Check, Period Reset.
- * Source ticket: TKT-7.9.E2.
- *
- * ## What this component owns
- *
- * The "Reset Ranking Period" panel: a period selector, the
- * `<RankingCrossUserImpactWarning>` rendered before the typed-confirm,
- * a `<TypedConfirmDialog>` with the reset-specific confirm string, a
- * `<RankingCooldownNotice>`, a `<RankingJobStatusPanel>`, and the
- * `<RequestIdBanner>` on failure.
- *
- * The panel preserves its previous state during mutation — a request
- * error does not clear the period selector value.
- */
-
 import { useCallback, useState } from 'react';
 
 import { Button } from '@/components/ui/Button';
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
+Card,
+CardContent,
+CardDescription,
+CardHeader,
+CardTitle,
 } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
@@ -35,10 +17,10 @@ import { TypedConfirmDialog } from '@/features/admin/components/TypedConfirmDial
 
 import { useResetRankingPeriod } from '../hooks/useResetRankingPeriod';
 import {
-  RANKING_RESET_CONFIRM_KEY,
-  RANKING_RESET_CONFIRM_STRING,
-  RANKING_RESET_IRREVERSIBILITY_NOTICE,
-  RANKING_RESET_LABEL,
+RANKING_RESET_CONFIRM_KEY,
+RANKING_RESET_CONFIRM_STRING,
+RANKING_RESET_IRREVERSIBILITY_NOTICE,
+RANKING_RESET_LABEL,
 } from '../ranking-confirm-strings';
 
 import { RankingCooldownNotice } from './RankingCooldownNotice';
@@ -46,123 +28,120 @@ import { RankingCrossUserImpactWarning } from './RankingCrossUserImpactWarning';
 import { RankingJobStatusPanel } from './RankingJobStatusPanel';
 
 export interface PeriodResetPanelProps {
-  /** Optional initial period identifier. */
-  initialPeriodIdentifier?: string;
+
+initialPeriodIdentifier?: string;
 }
 
-/**
- * Panel for resetting a ranking period with typed-confirm.
- */
 export function PeriodResetPanel({
-  initialPeriodIdentifier = '',
+initialPeriodIdentifier = '',
 }: PeriodResetPanelProps): React.ReactElement {
-  const [periodIdentifier, setPeriodIdentifier] = useState(
-    initialPeriodIdentifier,
+const [periodIdentifier, setPeriodIdentifier] = useState(
+initialPeriodIdentifier,
   );
-  const [confirmOpen, setConfirmOpen] = useState(false);
+const [confirmOpen, setConfirmOpen] = useState(false);
 
-  const {
-    trigger,
-    jobStatus,
-    error,
-    isRunning,
-    cooldownRemaining,
-    showCrossUserWarning,
+const {
+trigger,
+jobStatus,
+error,
+isRunning,
+cooldownRemaining,
+showCrossUserWarning,
   } = useResetRankingPeriod({
-    periodIdentifier: periodIdentifier || undefined,
+periodIdentifier: periodIdentifier || undefined,
   });
 
-  const handleConfirm = useCallback(async () => {
-    try {
-      await trigger({
-        periodIdentifier: periodIdentifier || undefined,
-        confirmString: RANKING_RESET_CONFIRM_STRING,
+const handleConfirm = useCallback(async () => {
+try {
+await trigger({
+periodIdentifier: periodIdentifier || undefined,
+confirmString: RANKING_RESET_CONFIRM_STRING,
       });
     } catch {
       // Error is captured via the hook's `error` state.
     } finally {
-      setConfirmOpen(false);
+setConfirmOpen(false);
     }
   }, [trigger, periodIdentifier]);
 
-  const isButtonDisabled = isRunning || cooldownRemaining !== null;
+const isButtonDisabled = isRunning || cooldownRemaining !== null;
 
-  return (
-    <Card data-testid="period-reset-panel">
-      <CardHeader>
-        <CardTitle>{RANKING_RESET_LABEL}</CardTitle>
-        <CardDescription>
-          Clear all rankings for a period. This is irreversible and affects
+return (
+<Card data-testid="period-reset-panel">
+<CardHeader>
+<CardTitle>{RANKING_RESET_LABEL}</CardTitle>
+<CardDescription>
+Clear all rankings for a period. This is irreversible and affects
           every user.
         </CardDescription>
-      </CardHeader>
+</CardHeader>
 
-      <CardContent className="flex flex-col gap-4">
-        {/* Period selector */}
-        <div className="flex flex-col gap-2">
-          <Label htmlFor="period-reset-period-input">Period identifier</Label>
-          <Input
-            id="period-reset-period-input"
-            data-testid="period-reset-period-input"
-            value={periodIdentifier}
-            onChange={(event) => setPeriodIdentifier(event.target.value)}
-            placeholder="Period identifier (e.g. current, last, all)"
-            disabled={isRunning}
+<CardContent className="flex flex-col gap-4">
+{/* Period selector */}
+<div className="flex flex-col gap-2">
+<Label htmlFor="period-reset-period-input">Period identifier</Label>
+<Input
+id="period-reset-period-input"
+data-testid="period-reset-period-input"
+value={periodIdentifier}
+onChange={(event) => setPeriodIdentifier(event.target.value)}
+placeholder="Period identifier (e.g. current, last, all)"
+disabled={isRunning}
           />
-          <p className="text-xs text-muted-foreground">
-            Valid values: <code>current</code>, <code>last</code>,{' '}
-            <code>all</code>. Invalid values are rejected with{' '}
-            <code>INVALID_PERIOD</code>.
+<p className="text-xs text-muted-foreground">
+Valid values: <code>current</code>, <code>last</code>,{' '}
+<code>all</code>. Invalid values are rejected with{' '}
+<code>INVALID_PERIOD</code>.
           </p>
-        </div>
+</div>
 
-        {/* Cross-user impact warning */}
-        {showCrossUserWarning ? (
-          <RankingCrossUserImpactWarning />
+{/* Cross-user impact warning */}
+{showCrossUserWarning ? (
+<RankingCrossUserImpactWarning />
         ) : null}
 
-        {/* Cooldown notice */}
-        <RankingCooldownNotice cooldownRemaining={cooldownRemaining} />
+{/* Cooldown notice */}
+<RankingCooldownNotice cooldownRemaining={cooldownRemaining} />
 
-        {/* Trigger button */}
-        <Button
-          variant="destructive"
-          data-testid="period-reset-trigger-button"
-          onClick={() => setConfirmOpen(true)}
-          disabled={isButtonDisabled}
+{/* Trigger button */}
+<Button
+variant="destructive"
+data-testid="period-reset-trigger-button"
+onClick={() => setConfirmOpen(true)}
+disabled={isButtonDisabled}
         >
-          {isRunning ? 'Working…' : 'Reset Period'}
-        </Button>
+{isRunning ? 'Working…' : 'Reset Period'}
+</Button>
 
-        {/* Job status */}
-        <RankingJobStatusPanel
-          jobStatus={jobStatus}
-          affectedUserCount={null}
-          error={error}
-          requestId={error?.requestId}
+{/* Job status */}
+<RankingJobStatusPanel
+jobStatus={jobStatus}
+affectedUserCount={null}
+error={error}
+requestId={error?.requestId}
         />
 
-        {/* Request ID banner on error */}
-        {error ? <RequestIdBanner error={error} /> : null}
-      </CardContent>
+{/* Request ID banner on error */}
+{error ? <RequestIdBanner error={error} /> : null}
+</CardContent>
 
-      {/* Typed-confirm dialog */}
-      <TypedConfirmDialog
-        open={confirmOpen}
-        operation={RANKING_RESET_CONFIRM_KEY}
-        expectedConfirmString={RANKING_RESET_CONFIRM_STRING}
-        onConfirm={handleConfirm}
-        onCancel={() => setConfirmOpen(false)}
-        pending={isRunning}
-        previousError={error}
+{/* Typed-confirm dialog */}
+<TypedConfirmDialog
+open={confirmOpen}
+operation={RANKING_RESET_CONFIRM_KEY}
+expectedConfirmString={RANKING_RESET_CONFIRM_STRING}
+onConfirm={handleConfirm}
+onCancel={() => setConfirmOpen(false)}
+pending={isRunning}
+previousError={error}
       >
-        <p
-          data-testid="period-reset-irreversibility-notice"
-          className="rounded-md border border-red-300 bg-red-50 p-3 text-sm text-red-800 dark:border-red-800 dark:bg-red-950 dark:text-red-200"
+<p
+data-testid="period-reset-irreversibility-notice"
+className="rounded-md border border-red-300 bg-red-50 p-3 text-sm text-red-800 dark:border-red-800 dark:bg-red-950 dark:text-red-200"
         >
-          {RANKING_RESET_IRREVERSIBILITY_NOTICE}
-        </p>
-      </TypedConfirmDialog>
-    </Card>
+{RANKING_RESET_IRREVERSIBILITY_NOTICE}
+</p>
+</TypedConfirmDialog>
+</Card>
   );
 }

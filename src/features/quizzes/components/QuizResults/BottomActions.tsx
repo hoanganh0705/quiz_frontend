@@ -4,23 +4,23 @@ import { RotateCcw, Zap } from 'lucide-react'
 import { BottomActionsProps } from '@/features/quizzes/types'
 
 export default function BottomActions({
-  quizId,
-  onPlayAgain
+quizId,
+onPlayAgain
 }: BottomActionsProps) {
-  return (
-    <div className='flex flex-col sm:flex-row gap-4 justify-center'>
-      <Button size='lg' asChild onClick={onPlayAgain} className='text-white'>
-        <Link href={`/quizzes/${quizId}/start`}>
-          <RotateCcw className='w-5 h-5 mr-2' aria-hidden='true' />
-          Play Again
+return (
+<div className='flex flex-col sm:flex-row gap-4 justify-center'>
+<Button size='lg' asChild onClick={onPlayAgain} className='text-white'>
+<Link href={`/quizzes/${quizId}/start`}>
+<RotateCcw className='w-5 h-5 mr-2' aria-hidden='true' />
+Play Again
         </Link>
-      </Button>
-      <Button size='lg' variant='outline' asChild>
-        <Link href='/quizzes'>
-          <Zap className='w-5 h-5 mr-2' aria-hidden='true' />
-          Explore More Quizzes
+</Button>
+<Button size='lg' variant='outline' asChild>
+<Link href='/quizzes'>
+<Zap className='w-5 h-5 mr-2' aria-hidden='true' />
+Explore More Quizzes
         </Link>
-      </Button>
-    </div>
+</Button>
+</div>
   )
 }

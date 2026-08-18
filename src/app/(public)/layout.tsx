@@ -4,11 +4,11 @@ import { BookmarksLookupHydrator } from "@/features/bookmarks/components/Bookmar
 import { FollowedLookupHydrator } from "@/features/tags/components/FollowedLookupHydrator";
 
 export default function PublicLayout({ children }: { children: ReactNode }) {
-  return (
-    <>
-      <FollowedLookupHydrator />
-      <BookmarksLookupHydrator />
-      {children}
-    </>
+return (
+<>
+<FollowedLookupHydrator />
+<BookmarksLookupHydrator />
+{children}
+</>
   );
 }

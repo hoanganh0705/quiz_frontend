@@ -2,15 +2,15 @@ import type { ReactNode } from 'react'
 import { buildMetadata } from '@/shared/lib/seo'
 
 export const metadata = buildMetadata({
-  title: 'Daily Challenge | QuizHub',
-  description: 'Take the daily quiz challenge and compare your performance.',
-  path: '/daily-challenge'
+title: 'Daily Challenge | QuizHub',
+description: 'Take the daily quiz challenge and compare your performance.',
+path: '/daily-challenge'
 })
 
 export default function DailyChallengeLayout({
-  children
+children
 }: {
-  children: ReactNode
+children: ReactNode
 }) {
-  return children
+return children
 }

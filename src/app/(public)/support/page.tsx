@@ -1,9 +1,9 @@
 import { SupportCenter } from '@/features/support'
 
 export default function Support() {
-  return (
-    <div className='min-h-screen bg-transparent'>
-      <SupportCenter />
-    </div>
+return (
+<div className='min-h-screen bg-transparent'>
+<SupportCenter />
+</div>
   )
 }

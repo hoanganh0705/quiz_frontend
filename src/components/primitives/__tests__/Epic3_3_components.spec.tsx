@@ -1,62 +1,37 @@
-/**
- * Epic 3.3 Batch C+D composite components — unit spec.
- *
- * Source epic: Epic 3.3 — Category browse + detail (read-only).
- * Source tickets: TKT-3.3.C2, TKT-3.3.D1, TKT-3.3.D2, TKT-3.3.D3.
- *
- * Covers the search-condition tests across the four composite
- * components:
- *
- *   - TKT-3.3.C2 (`TrendingCategoriesStrip`): one case confirms
- *     5 skeletons on loading and 10 cards on success.
- *   - TKT-3.3.D1 (`CategoryQuizGrid`): three cases — loading → 12
- *     skeletons; success → grid + load-more; empty → CategoryEmptyState.
- *   - TKT-3.3.D2 (`CategoriesDirectoryPage`): four cases — loading
- *     → 9 skeletons; success → grid + load-more; empty →
- *     CategoryEmptyState; strip above grid.
- *   - TKT-3.3.D3 (`CategoryDetailPage`): four cases — loading →
- *     header-skeleton + grid-skeleton; success → header + grid;
- *     404 → NotFound; 5xx → error-message + retry.
- *
- * The file uses the same `vi.mock` + per-test `TestSwrProvider`
- * pattern as the B-batch hook tests to dodge cross-test SWR-cache
- * leaks.
- */
+
 
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import {
-  cleanup,
-  fireEvent,
-  render,
-  screen,
-  waitFor,
-  within,
+cleanup,
+fireEvent,
+render,
+screen,
+waitFor,
+within,
 } from '@testing-library/react'
 import { SWRConfig } from 'swr'
 
 import { ApiError } from '@/lib/api'
 import type {
-  CategoryResponseDto,
-  QuizListItemDto,
-  RankedCategoryResponseDto,
+CategoryResponseDto,
+QuizListItemDto,
+RankedCategoryResponseDto,
 } from '@/lib/api/generated/schemas'
 
 vi.mock('next/link', () => ({
-  default: ({
-    href,
-    children,
-    ...rest
+default: ({
+href,
+children,
+...rest
   }: React.AnchorHTMLAttributes<HTMLAnchorElement> & {
-    href: string
-    children: React.ReactNode
+href: string
+children: React.ReactNode
   }) => (
-    <a href={href} {...rest}>
-      {children}
-    </a>
+<a href={href} {...rest}>
+{children}
+</a>
   ),
 }))
-
-// ─── Module-level mocks for the SDK wrappers (TKT-3.3.A2) ───────────────────
 
 const useCategoriesTrendingMock = vi.fn()
 const useCategoriesRankedMock = vi.fn()
@@ -64,689 +39,640 @@ const useCategoryMock = vi.fn()
 const useCategoryQuizzesMock = vi.fn()
 
 vi.mock('@/features/categories/hooks', () => ({
-  useCategoriesRanked: () => useCategoriesRankedMock(),
-  useCategoriesTrending: () => useCategoriesTrendingMock(),
-  useCategory: (idOrSlug: string) => useCategoryMock(idOrSlug),
-  useCategoryQuizzes: (idOrSlug: string, params: unknown) =>
-    useCategoryQuizzesMock(idOrSlug, params),
+useCategoriesRanked: () => useCategoriesRankedMock(),
+useCategoriesTrending: () => useCategoriesTrendingMock(),
+useCategory: (idOrSlug: string) => useCategoryMock(idOrSlug),
+useCategoryQuizzes: (idOrSlug: string, params: unknown) =>
+useCategoryQuizzesMock(idOrSlug, params),
 }))
 
-// Mock the marketing `HowItWorks` import so the directory page can render
-// without pulling in the marketing feature's heavy deps.
 vi.mock('@/features/marketing', () => ({
-  HowItWorks: () => <div data-testid='mock-how-it-works' />,
+HowItWorks: () => <div data-testid='mock-how-it-works' />,
 }))
-
-// ─── Fixtures ───────────────────────────────────────────────────────────────
 
 const UUID = (i: number) =>
-  `0192f4d8-0000-7000-8000-${String(i).padStart(12, '0')}`
+`0192f4d8-0000-7000-8000-${String(i).padStart(12, '0')}`
 
 function makeCategoryResponse(
-  overrides: Partial<CategoryResponseDto> = {},
+overrides: Partial<CategoryResponseDto> = {},
 ): CategoryResponseDto {
-  return {
-    categoryId: UUID(1),
-    name: 'Mathematics',
-    description: 'All math quizzes.',
-    slug: 'mathematics',
-    imageUrl: null,
-    createdAt: '2026-07-01T00:00:00.000Z',
-    updatedAt: '2026-07-01T00:00:00.000Z',
-    ...overrides,
+return {
+categoryId: UUID(1),
+name: 'Mathematics',
+description: 'All math quizzes.',
+slug: 'mathematics',
+imageUrl: null,
+createdAt: '2026-07-01T00:00:00.000Z',
+updatedAt: '2026-07-01T00:00:00.000Z',
+...overrides,
   }
 }
 
 function makeRankedCategory(
-  overrides: Partial<RankedCategoryResponseDto> = {},
+overrides: Partial<RankedCategoryResponseDto> = {},
 ): RankedCategoryResponseDto {
-  return {
-    rank: 1,
-    categoryId: UUID(1),
-    name: 'Mathematics',
-    slug: 'mathematics',
-    imageUrl: null,
-    description: null,
-    totalScore: '100',
-    totalAttempts: '50',
-    ...overrides,
+return {
+rank: 1,
+categoryId: UUID(1),
+name: 'Mathematics',
+slug: 'mathematics',
+imageUrl: null,
+description: null,
+totalScore: '100',
+totalAttempts: '50',
+...overrides,
   }
 }
 
 function makeQuiz(overrides: Partial<QuizListItemDto> = {}): QuizListItemDto {
-  return {
-    quizId: UUID(1),
-    creatorId: null,
-    creator: {
-      userId: UUID(2),
-      username: 'testuser',
-      displayName: 'Test User',
-      avatarUrl: null,
+return {
+quizId: UUID(1),
+creatorId: null,
+creator: {
+userId: UUID(2),
+username: 'testuser',
+displayName: 'Test User',
+avatarUrl: null,
     },
-    title: 'Sample quiz',
-    description: null,
-    slug: 'sample-quiz',
-    requirements: null,
-    imageUrl: null,
-    categoryId: UUID(1),
-    categoryName: null,
-    categorySlug: null,
-    isFeatured: false,
-    isHidden: false,
-    isVerified: true,
-    publishedVersionId: null,
-    createdAt: '2026-07-01T00:00:00.000Z',
-    updatedAt: '2026-07-01T00:00:00.000Z',
-    questionCount: 10,
-    averageRating: 4.0,
-    reviewCount: 5,
-    attemptCount: 50,
-    tags: [],
-    ...overrides,
+title: 'Sample quiz',
+description: null,
+slug: 'sample-quiz',
+requirements: null,
+imageUrl: null,
+categoryId: UUID(1),
+categoryName: null,
+categorySlug: null,
+isFeatured: false,
+isHidden: false,
+isVerified: true,
+publishedVersionId: null,
+createdAt: '2026-07-01T00:00:00.000Z',
+updatedAt: '2026-07-01T00:00:00.000Z',
+questionCount: 10,
+averageRating: 4.0,
+reviewCount: 5,
+attemptCount: 50,
+tags: [],
+...overrides,
   }
 }
 
 function makeApiError(status: number, code = 'INTERNAL'): ApiError {
-  return new ApiError({
-    config: undefined,
-    request: undefined,
-    response: { status, data: { code, detail: 'fixture' } },
-    isAxiosError: true,
-    name: 'AxiosError',
-    message: `Mock ${status}`,
-    code,
-    toJSON: () => ({}),
+return new ApiError({
+config: undefined,
+request: undefined,
+response: { status, data: { code, detail: 'fixture' } },
+isAxiosError: true,
+name: 'AxiosError',
+message: `Mock ${status}`,
+code,
+toJSON: () => ({}),
   } as unknown as Parameters<typeof ApiError.fromAxios>[0])
 }
 
 function TestSwrProvider({ children }: { children: React.ReactNode }) {
-  return (
-    <SWRConfig
-      value={{
-        provider: () => new Map(),
-        revalidateOnFocus: false,
-        revalidateIfStale: false,
-        dedupingInterval: 0,
-        errorRetryCount: 0,
+return (
+<SWRConfig
+value={{
+provider: () => new Map(),
+revalidateOnFocus: false,
+revalidateIfStale: false,
+dedupingInterval: 0,
+errorRetryCount: 0,
       }}
     >
-      {children}
-    </SWRConfig>
+{children}
+</SWRConfig>
   )
 }
 
 afterEach(() => {
-  cleanup()
-  useCategoriesTrendingMock.mockReset()
-  useCategoriesRankedMock.mockReset()
-  useCategoryMock.mockReset()
-  useCategoryQuizzesMock.mockReset()
+cleanup()
+useCategoriesTrendingMock.mockReset()
+useCategoriesRankedMock.mockReset()
+useCategoryMock.mockReset()
+useCategoryQuizzesMock.mockReset()
 })
-
-// ─── Component imports (after mocks) ───────────────────────────────────────
 
 import { TrendingCategoriesStrip } from '@/features/categories/components/TrendingCategoriesStrip'
 import { CategoryQuizGrid } from '@/features/categories/components/CategoryQuizGrid'
 import { CategoriesDirectoryPage } from '@/features/categories/components/CategoriesDirectoryPage'
 import { CategoryDetailPage } from '@/features/categories/components/CategoryDetailPage'
 
-// ────────────────────────────────────────────────────────────────────────────
-// TKT-3.3.C2 — TrendingCategoriesStrip
-// ────────────────────────────────────────────────────────────────────────────
-
 describe('TrendingCategoriesStrip', () => {
-  it('renders 5 skeletons on loading and 10 cards on success', async () => {
-    // Loading state
-    useCategoriesTrendingMock.mockReturnValueOnce({
-      categories: [],
-      isLoading: true,
-      error: null,
+it('renders 5 skeletons on loading and 10 cards on success', async () => {
+
+useCategoriesTrendingMock.mockReturnValueOnce({
+categories: [],
+isLoading: true,
+error: null,
     })
 
-    const { rerender } = render(
-      <TestSwrProvider>
-        <TrendingCategoriesStrip />
-      </TestSwrProvider>,
+const { rerender } = render(
+<TestSwrProvider>
+<TrendingCategoriesStrip />
+</TestSwrProvider>,
     )
 
-    const loadingSkeletons = screen.getAllByTestId('trending-strip-skeleton')
-    expect(loadingSkeletons.length).toBe(5)
+const loadingSkeletons = screen.getAllByTestId('trending-strip-skeleton')
+expect(loadingSkeletons.length).toBe(5)
 
-    // Resolved state — 10 trending categories
-    useCategoriesTrendingMock.mockReturnValueOnce({
-      categories: Array.from({ length: 10 }, (_, i) =>
-        makeRankedCategory({
-          rank: i + 1,
-          categoryId: UUID(i + 1),
-          name: `Trending ${i + 1}`,
-          slug: `trending-${i + 1}`,
+useCategoriesTrendingMock.mockReturnValueOnce({
+categories: Array.from({ length: 10 }, (_, i) =>
+makeRankedCategory({
+rank: i + 1,
+categoryId: UUID(i + 1),
+name: `Trending ${i + 1}`,
+slug: `trending-${i + 1}`,
         }),
       ),
-      isLoading: false,
-      error: null,
+isLoading: false,
+error: null,
     })
 
-    rerender(
-      <TestSwrProvider>
-        <TrendingCategoriesStrip />
-      </TestSwrProvider>,
+rerender(
+<TestSwrProvider>
+<TrendingCategoriesStrip />
+</TestSwrProvider>,
     )
 
-    await waitFor(() => {
-      expect(
-        screen.getByTestId('trending-strip'),
+await waitFor(() => {
+expect(
+screen.getByTestId('trending-strip'),
       ).toBeInTheDocument()
     })
-    const cards = screen.getAllByTestId('category-card')
-    expect(cards.length).toBe(10)
+const cards = screen.getAllByTestId('category-card')
+expect(cards.length).toBe(10)
   })
 })
-
-// ────────────────────────────────────────────────────────────────────────────
-// TKT-3.3.D1 — CategoryQuizGrid
-// ────────────────────────────────────────────────────────────────────────────
 
 describe('CategoryQuizGrid', () => {
-  it('renders 12 skeletons on loading', () => {
-    useCategoryQuizzesMock.mockReturnValue({
-      items: [],
-      isLoading: true,
-      isLoadingMore: false,
-      hasMore: false,
-      loadMore: vi.fn(),
-      error: null,
-      refresh: vi.fn(),
-      retryBannerVisible: false,
+it('renders 12 skeletons on loading', () => {
+useCategoryQuizzesMock.mockReturnValue({
+items: [],
+isLoading: true,
+isLoadingMore: false,
+hasMore: false,
+loadMore: vi.fn(),
+error: null,
+refresh: vi.fn(),
+retryBannerVisible: false,
     })
 
-    render(
-      <TestSwrProvider>
-        <CategoryQuizGrid idOrSlug='mathematics' />
-      </TestSwrProvider>,
+render(
+<TestSwrProvider>
+<CategoryQuizGrid idOrSlug='mathematics' />
+</TestSwrProvider>,
     )
 
-    const skeletons = screen.getAllByTestId('quiz-card-skeleton')
-    expect(skeletons.length).toBe(12)
+const skeletons = screen.getAllByTestId('quiz-card-skeleton')
+expect(skeletons.length).toBe(12)
   })
 
-  it('renders grid + load-more button on success-with-hasMore', () => {
-    const loadMore = vi.fn()
-    useCategoryQuizzesMock.mockReturnValue({
-      items: [
-        makeQuiz({ quizId: UUID(1), title: 'Algebra 101' }),
-        makeQuiz({ quizId: UUID(2), title: 'Calculus 101' }),
+it('renders grid + load-more button on success-with-hasMore', () => {
+const loadMore = vi.fn()
+useCategoryQuizzesMock.mockReturnValue({
+items: [
+makeQuiz({ quizId: UUID(1), title: 'Algebra 101' }),
+makeQuiz({ quizId: UUID(2), title: 'Calculus 101' }),
       ],
-      isLoading: false,
-      isLoadingMore: false,
-      hasMore: true,
-      loadMore,
-      error: null,
-      refresh: vi.fn(),
-      retryBannerVisible: false,
+isLoading: false,
+isLoadingMore: false,
+hasMore: true,
+loadMore,
+error: null,
+refresh: vi.fn(),
+retryBannerVisible: false,
     })
 
-    render(
-      <TestSwrProvider>
-        <CategoryQuizGrid idOrSlug='mathematics' />
-      </TestSwrProvider>,
+render(
+<TestSwrProvider>
+<CategoryQuizGrid idOrSlug='mathematics' />
+</TestSwrProvider>,
     )
 
-    const cards = screen.getAllByTestId('quiz-card')
-    expect(cards.length).toBe(2)
-    const loadMoreBtn = screen.getByTestId('category-quiz-grid-load-more')
-    expect(loadMoreBtn).toBeInTheDocument()
-    loadMoreBtn.click()
-    expect(loadMore).toHaveBeenCalled()
+const cards = screen.getAllByTestId('quiz-card')
+expect(cards.length).toBe(2)
+const loadMoreBtn = screen.getByTestId('category-quiz-grid-load-more')
+expect(loadMoreBtn).toBeInTheDocument()
+loadMoreBtn.click()
+expect(loadMore).toHaveBeenCalled()
   })
 
-  it('renders CategoryEmptyState when items is empty and not loading', () => {
-    useCategoryQuizzesMock.mockReturnValue({
-      items: [],
-      isLoading: false,
-      isLoadingMore: false,
-      hasMore: false,
-      loadMore: vi.fn(),
-      error: null,
-      refresh: vi.fn(),
-      retryBannerVisible: false,
+it('renders CategoryEmptyState when items is empty and not loading', () => {
+useCategoryQuizzesMock.mockReturnValue({
+items: [],
+isLoading: false,
+isLoadingMore: false,
+hasMore: false,
+loadMore: vi.fn(),
+error: null,
+refresh: vi.fn(),
+retryBannerVisible: false,
     })
 
-    render(
-      <TestSwrProvider>
-        <CategoryQuizGrid idOrSlug='mathematics' />
-      </TestSwrProvider>,
+render(
+<TestSwrProvider>
+<CategoryQuizGrid idOrSlug='mathematics' />
+</TestSwrProvider>,
     )
 
-    expect(
-      screen.getByTestId('category-quiz-grid-empty'),
+expect(
+screen.getByTestId('category-quiz-grid-empty'),
     ).toBeInTheDocument()
-    expect(
-      screen.getByTestId('category-empty-state-quizzes-in-category'),
+expect(
+screen.getByTestId('category-empty-state-quizzes-in-category'),
     ).toBeInTheDocument()
   })
 })
-
-// ────────────────────────────────────────────────────────────────────────────
-// TKT-3.3.D2 — CategoriesDirectoryPage
-// ────────────────────────────────────────────────────────────────────────────
 
 describe('CategoriesDirectoryPage', () => {
-  it('renders 9 skeletons on loading', () => {
-    useCategoriesRankedMock.mockReturnValue({
-      categories: [],
-      isLoading: true,
-      error: null,
+it('renders 9 skeletons on loading', () => {
+useCategoriesRankedMock.mockReturnValue({
+categories: [],
+isLoading: true,
+error: null,
     })
-    useCategoriesTrendingMock.mockReturnValue({
-      categories: [],
-      isLoading: false,
-      error: null,
+useCategoriesTrendingMock.mockReturnValue({
+categories: [],
+isLoading: false,
+error: null,
     })
 
-    render(
-      <TestSwrProvider>
-        <CategoriesDirectoryPage />
-      </TestSwrProvider>,
+render(
+<TestSwrProvider>
+<CategoriesDirectoryPage />
+</TestSwrProvider>,
     )
 
-    const skeletons = screen.getAllByTestId('category-card-skeleton')
-    expect(skeletons.length).toBe(9)
+const skeletons = screen.getAllByTestId('category-card-skeleton')
+expect(skeletons.length).toBe(9)
   })
 
-  it('renders the grid + retry button on error', () => {
-    useCategoriesRankedMock.mockReturnValue({
-      categories: [],
-      isLoading: false,
-      error: makeApiError(500),
+it('renders the grid + retry button on error', () => {
+useCategoriesRankedMock.mockReturnValue({
+categories: [],
+isLoading: false,
+error: makeApiError(500),
     })
-    useCategoriesTrendingMock.mockReturnValue({
-      categories: [],
-      isLoading: false,
-      error: null,
+useCategoriesTrendingMock.mockReturnValue({
+categories: [],
+isLoading: false,
+error: null,
     })
 
-    render(
-      <TestSwrProvider>
-        <CategoriesDirectoryPage />
-      </TestSwrProvider>,
+render(
+<TestSwrProvider>
+<CategoriesDirectoryPage />
+</TestSwrProvider>,
     )
 
-    expect(
-      screen.getByTestId('categories-directory-error'),
+expect(
+screen.getByTestId('categories-directory-error'),
     ).toBeInTheDocument()
-    expect(screen.getByTestId('categories-directory-retry')).toBeInTheDocument()
+expect(screen.getByTestId('categories-directory-retry')).toBeInTheDocument()
   })
 
-  it('renders CategoryEmptyState when ranked is empty', () => {
-    useCategoriesRankedMock.mockReturnValue({
-      categories: [],
-      isLoading: false,
-      error: null,
+it('renders CategoryEmptyState when ranked is empty', () => {
+useCategoriesRankedMock.mockReturnValue({
+categories: [],
+isLoading: false,
+error: null,
     })
-    useCategoriesTrendingMock.mockReturnValue({
-      categories: [],
-      isLoading: false,
-      error: null,
+useCategoriesTrendingMock.mockReturnValue({
+categories: [],
+isLoading: false,
+error: null,
     })
 
-    render(
-      <TestSwrProvider>
-        <CategoriesDirectoryPage />
-      </TestSwrProvider>,
+render(
+<TestSwrProvider>
+<CategoriesDirectoryPage />
+</TestSwrProvider>,
     )
 
-    expect(
-      screen.getByTestId('category-empty-state-directory'),
+expect(
+screen.getByTestId('category-empty-state-directory'),
     ).toBeInTheDocument()
   })
 
-  it('renders the trending strip above the grid', () => {
-    useCategoriesRankedMock.mockReturnValue({
-      categories: [
-        makeRankedCategory({ rank: 1, categoryId: UUID(1) }),
-        makeRankedCategory({
-          rank: 2,
-          categoryId: UUID(2),
-          name: 'Science',
-          slug: 'science',
+it('renders the trending strip above the grid', () => {
+useCategoriesRankedMock.mockReturnValue({
+categories: [
+makeRankedCategory({ rank: 1, categoryId: UUID(1) }),
+makeRankedCategory({
+rank: 2,
+categoryId: UUID(2),
+name: 'Science',
+slug: 'science',
         }),
       ],
-      isLoading: false,
-      error: null,
+isLoading: false,
+error: null,
     })
-    useCategoriesTrendingMock.mockReturnValue({
-      categories: [
-        makeRankedCategory({
-          rank: 1,
-          categoryId: UUID(10),
-          name: 'Trending Here',
-          slug: 'trending-here',
+useCategoriesTrendingMock.mockReturnValue({
+categories: [
+makeRankedCategory({
+rank: 1,
+categoryId: UUID(10),
+name: 'Trending Here',
+slug: 'trending-here',
         }),
       ],
-      isLoading: false,
-      error: null,
+isLoading: false,
+error: null,
     })
 
-    render(
-      <TestSwrProvider>
-        <CategoriesDirectoryPage />
-      </TestSwrProvider>,
+render(
+<TestSwrProvider>
+<CategoriesDirectoryPage />
+</TestSwrProvider>,
     )
 
-    const page = screen.getByTestId('categories-directory-page')
-    const strip = screen.getByTestId('trending-strip')
-    const grid = screen.getByTestId('categories-directory-grid')
+const page = screen.getByTestId('categories-directory-page')
+const strip = screen.getByTestId('trending-strip')
+const grid = screen.getByTestId('categories-directory-grid')
 
-    // DOM order: strip appears before the grid inside the page.
-    const position = page.compareDocumentPosition(strip) & Node.DOCUMENT_POSITION_FOLLOWING
-    expect(position).toBeTruthy()
-    expect(position).toBeGreaterThan(0)
-    // Sanity: the grid is also present.
-    expect(grid).toBeInTheDocument()
-    // The grid contains 2 cards.
-    const gridCards = within(grid).getAllByTestId('category-card')
-    expect(gridCards.length).toBe(2)
+const position = page.compareDocumentPosition(strip) & Node.DOCUMENT_POSITION_FOLLOWING
+expect(position).toBeTruthy()
+expect(position).toBeGreaterThan(0)
+
+expect(grid).toBeInTheDocument()
+
+const gridCards = within(grid).getAllByTestId('category-card')
+expect(gridCards.length).toBe(2)
   })
 })
 
-/**
- * TKT-3.3.E1 — search input on the directory page.
- *
- * The search is client-side; the test exercises the filter
- * directly via `fireEvent.change` (the 250 ms debounce is
- * short-circuited by the `react-dom` test renderer — the
- * renderer's act-phase advances timers, so the debounce fires
- * within the `waitFor` block).
- */
 describe('CategoriesDirectoryPage — search input (E1)', () => {
-  it('filters the grid by name when the user types a query', async () => {
-    useCategoriesRankedMock.mockReturnValue({
-      categories: [
-        makeRankedCategory({
-          rank: 1,
-          categoryId: UUID(1),
-          name: 'Science',
-          slug: 'science',
+it('filters the grid by name when the user types a query', async () => {
+useCategoriesRankedMock.mockReturnValue({
+categories: [
+makeRankedCategory({
+rank: 1,
+categoryId: UUID(1),
+name: 'Science',
+slug: 'science',
         }),
-        makeRankedCategory({
-          rank: 2,
-          categoryId: UUID(2),
-          name: 'Mathematics',
-          slug: 'mathematics',
+makeRankedCategory({
+rank: 2,
+categoryId: UUID(2),
+name: 'Mathematics',
+slug: 'mathematics',
         }),
-        makeRankedCategory({
-          rank: 3,
-          categoryId: UUID(3),
-          name: 'History',
-          slug: 'history',
+makeRankedCategory({
+rank: 3,
+categoryId: UUID(3),
+name: 'History',
+slug: 'history',
         }),
       ],
-      isLoading: false,
-      error: null,
+isLoading: false,
+error: null,
     })
-    useCategoriesTrendingMock.mockReturnValue({
-      categories: [],
-      isLoading: false,
-      error: null,
+useCategoriesTrendingMock.mockReturnValue({
+categories: [],
+isLoading: false,
+error: null,
     })
 
-    render(
-      <TestSwrProvider>
-        <CategoriesDirectoryPage />
-      </TestSwrProvider>,
+render(
+<TestSwrProvider>
+<CategoriesDirectoryPage />
+</TestSwrProvider>,
     )
 
-    const input = screen.getByTestId('categories-directory-search-input')
-    expect(input).toBeInTheDocument()
-    expect(input).toHaveAttribute('aria-label', 'Search quiz categories')
-    expect(input).toHaveAttribute('placeholder', 'Search categories…')
-    expect(input).toHaveAttribute('autocomplete', 'off')
-    expect(input).toHaveAttribute('spellcheck', 'false')
+const input = screen.getByTestId('categories-directory-search-input')
+expect(input).toBeInTheDocument()
+expect(input).toHaveAttribute('aria-label', 'Search quiz categories')
+expect(input).toHaveAttribute('placeholder', 'Search categories…')
+expect(input).toHaveAttribute('autocomplete', 'off')
+expect(input).toHaveAttribute('spellcheck', 'false')
 
-    // Initially all 3 cards are visible.
-    expect(
-      screen.getAllByTestId('category-card').length,
+expect(
+screen.getAllByTestId('category-card').length,
     ).toBe(3)
 
-    // Type "math" — should filter to the one matching card.
-    fireEvent.change(input, { target: { value: 'math' } })
+fireEvent.change(input, { target: { value: 'math' } })
 
-    await waitFor(() => {
-      const cards = screen.getAllByTestId('category-card')
-      expect(cards.length).toBe(1)
+await waitFor(() => {
+const cards = screen.getAllByTestId('category-card')
+expect(cards.length).toBe(1)
     })
   })
 
-  it('renders the search-specific empty state when the query has zero matches', async () => {
-    useCategoriesRankedMock.mockReturnValue({
-      categories: [
-        makeRankedCategory({
-          rank: 1,
-          categoryId: UUID(1),
-          name: 'Science',
-          slug: 'science',
+it('renders the search-specific empty state when the query has zero matches', async () => {
+useCategoriesRankedMock.mockReturnValue({
+categories: [
+makeRankedCategory({
+rank: 1,
+categoryId: UUID(1),
+name: 'Science',
+slug: 'science',
         }),
       ],
-      isLoading: false,
-      error: null,
+isLoading: false,
+error: null,
     })
-    useCategoriesTrendingMock.mockReturnValue({
-      categories: [],
-      isLoading: false,
-      error: null,
+useCategoriesTrendingMock.mockReturnValue({
+categories: [],
+isLoading: false,
+error: null,
     })
 
-    render(
-      <TestSwrProvider>
-        <CategoriesDirectoryPage />
-      </TestSwrProvider>,
+render(
+<TestSwrProvider>
+<CategoriesDirectoryPage />
+</TestSwrProvider>,
     )
 
-    const input = screen.getByTestId('categories-directory-search-input')
-    fireEvent.change(input, { target: { value: 'xyz-no-match' } })
+const input = screen.getByTestId('categories-directory-search-input')
+fireEvent.change(input, { target: { value: 'xyz-no-match' } })
 
-    await waitFor(() => {
-      expect(
-        screen.getByTestId('categories-directory-search-empty'),
+await waitFor(() => {
+expect(
+screen.getByTestId('categories-directory-search-empty'),
       ).toBeInTheDocument()
-      expect(screen.getByText(/no categories found matching your search/i)).toBeInTheDocument()
+expect(screen.getByText(/no categories found matching your search/i)).toBeInTheDocument()
     })
 
-    // The generic CategoryEmptyState must NOT be shown when the user
-    // has typed a non-empty query.
-    expect(
-      screen.queryByTestId('category-empty-state-directory'),
+expect(
+screen.queryByTestId('category-empty-state-directory'),
     ).not.toBeInTheDocument()
   })
 })
 
-// ────────────────────────────────────────────────────────────────────────────
-// TKT-3.3.D3 — CategoryDetailPage
-// ────────────────────────────────────────────────────────────────────────────
-
 describe('CategoryDetailPage', () => {
-  it('renders header skeleton + grid skeleton on loading', () => {
-    useCategoryMock.mockReturnValue({
-      category: null,
-      isLoading: true,
-      error: null,
-      notFound: false,
+it('renders header skeleton + grid skeleton on loading', () => {
+useCategoryMock.mockReturnValue({
+category: null,
+isLoading: true,
+error: null,
+notFound: false,
     })
-    useCategoryQuizzesMock.mockReturnValue({
-      items: [],
-      isLoading: true,
-      isLoadingMore: false,
-      hasMore: false,
-      loadMore: vi.fn(),
-      error: null,
-      refresh: vi.fn(),
-      retryBannerVisible: false,
+useCategoryQuizzesMock.mockReturnValue({
+items: [],
+isLoading: true,
+isLoadingMore: false,
+hasMore: false,
+loadMore: vi.fn(),
+error: null,
+refresh: vi.fn(),
+retryBannerVisible: false,
     })
 
-    render(
-      <TestSwrProvider>
-        <CategoryDetailPage idOrSlug='mathematics' />
-      </TestSwrProvider>,
+render(
+<TestSwrProvider>
+<CategoryDetailPage idOrSlug='mathematics' />
+</TestSwrProvider>,
     )
 
-    expect(
-      screen.getByTestId('category-detail-page-loading'),
+expect(
+screen.getByTestId('category-detail-page-loading'),
     ).toBeInTheDocument()
-    expect(screen.getByTestId('category-header')).toBeInTheDocument()
-    const skeletons = screen.getAllByTestId('quiz-card-skeleton')
-    expect(skeletons.length).toBe(12)
+expect(screen.getByTestId('category-header')).toBeInTheDocument()
+const skeletons = screen.getAllByTestId('quiz-card-skeleton')
+expect(skeletons.length).toBe(12)
   })
 
-  it('renders header + grid on success', () => {
-    useCategoryMock.mockReturnValue({
-      category: makeCategoryResponse({ name: 'Mathematics' }),
-      isLoading: false,
-      error: null,
-      notFound: false,
+it('renders header + grid on success', () => {
+useCategoryMock.mockReturnValue({
+category: makeCategoryResponse({ name: 'Mathematics' }),
+isLoading: false,
+error: null,
+notFound: false,
     })
-    useCategoryQuizzesMock.mockReturnValue({
-      items: [
-        makeQuiz({ quizId: UUID(1), title: 'Algebra 101' }),
+useCategoryQuizzesMock.mockReturnValue({
+items: [
+makeQuiz({ quizId: UUID(1), title: 'Algebra 101' }),
       ],
-      isLoading: false,
-      isLoadingMore: false,
-      hasMore: false,
-      loadMore: vi.fn(),
-      error: null,
-      refresh: vi.fn(),
-      retryBannerVisible: false,
+isLoading: false,
+isLoadingMore: false,
+hasMore: false,
+loadMore: vi.fn(),
+error: null,
+refresh: vi.fn(),
+retryBannerVisible: false,
     })
 
-    render(
-      <TestSwrProvider>
-        <CategoryDetailPage idOrSlug='mathematics' />
-      </TestSwrProvider>,
+render(
+<TestSwrProvider>
+<CategoryDetailPage idOrSlug='mathematics' />
+</TestSwrProvider>,
     )
 
-    expect(
-      screen.getByTestId('category-detail-page'),
+expect(
+screen.getByTestId('category-detail-page'),
     ).toBeInTheDocument()
-    expect(
-      screen.getByRole('heading', { name: /mathematics/i }),
+expect(
+screen.getByRole('heading', { name: /mathematics/i }),
     ).toBeInTheDocument()
-    expect(screen.getByTestId('category-quiz-grid')).toBeInTheDocument()
+expect(screen.getByTestId('category-quiz-grid')).toBeInTheDocument()
   })
 
-  it('renders the 404 block when notFound is true', () => {
-    useCategoryMock.mockReturnValue({
-      category: null,
-      isLoading: false,
-      error: makeApiError(404, 'CATEGORY_NOT_FOUND'),
-      notFound: true,
+it('renders the 404 block when notFound is true', () => {
+useCategoryMock.mockReturnValue({
+category: null,
+isLoading: false,
+error: makeApiError(404, 'CATEGORY_NOT_FOUND'),
+notFound: true,
     })
-    useCategoryQuizzesMock.mockReturnValue({
-      items: [],
-      isLoading: false,
-      isLoadingMore: false,
-      hasMore: false,
-      loadMore: vi.fn(),
-      error: null,
-      refresh: vi.fn(),
-      retryBannerVisible: false,
+useCategoryQuizzesMock.mockReturnValue({
+items: [],
+isLoading: false,
+isLoadingMore: false,
+hasMore: false,
+loadMore: vi.fn(),
+error: null,
+refresh: vi.fn(),
+retryBannerVisible: false,
     })
 
-    render(
-      <TestSwrProvider>
-        <CategoryDetailPage idOrSlug='mathematics' />
-      </TestSwrProvider>,
+render(
+<TestSwrProvider>
+<CategoryDetailPage idOrSlug='mathematics' />
+</TestSwrProvider>,
     )
 
-    expect(
-      screen.getByTestId('category-detail-page-not-found'),
+expect(
+screen.getByTestId('category-detail-page-not-found'),
     ).toBeInTheDocument()
-    expect(screen.getByText(/category not found/i)).toBeInTheDocument()
+expect(screen.getByText(/category not found/i)).toBeInTheDocument()
   })
 
-  it('renders the error block + retry button on 5xx', () => {
-    useCategoryMock.mockReturnValue({
-      category: null,
-      isLoading: false,
-      error: makeApiError(500),
-      notFound: false,
+it('renders the error block + retry button on 5xx', () => {
+useCategoryMock.mockReturnValue({
+category: null,
+isLoading: false,
+error: makeApiError(500),
+notFound: false,
     })
-    useCategoryQuizzesMock.mockReturnValue({
-      items: [],
-      isLoading: false,
-      isLoadingMore: false,
-      hasMore: false,
-      loadMore: vi.fn(),
-      error: null,
-      refresh: vi.fn(),
-      retryBannerVisible: false,
+useCategoryQuizzesMock.mockReturnValue({
+items: [],
+isLoading: false,
+isLoadingMore: false,
+hasMore: false,
+loadMore: vi.fn(),
+error: null,
+refresh: vi.fn(),
+retryBannerVisible: false,
     })
 
-    render(
-      <TestSwrProvider>
-        <CategoryDetailPage idOrSlug='mathematics' />
-      </TestSwrProvider>,
+render(
+<TestSwrProvider>
+<CategoryDetailPage idOrSlug='mathematics' />
+</TestSwrProvider>,
     )
 
-    expect(
-      screen.getByTestId('category-detail-page-server-error'),
+expect(
+screen.getByTestId('category-detail-page-server-error'),
     ).toBeInTheDocument()
-    expect(screen.getByTestId('category-detail-page-retry')).toBeInTheDocument()
+expect(screen.getByTestId('category-detail-page-retry')).toBeInTheDocument()
   })
 })
 
-/**
- * TKT-3.3.F1 — breadcrumb on the resolved detail page.
- *
- * The breadcrumb uses `category.slug` from the response (the
- * canonical slug), not the route's `idOrSlug` param. When the user
- * navigates to `/categories/<id>` (a UUIDv7 id), the breadcrumb
- * still links to `/categories/<category.slug>`.
- */
 describe('CategoryDetailPage — breadcrumb (F1)', () => {
-  it('renders the breadcrumb with the canonical slug link', () => {
-    useCategoryMock.mockReturnValue({
-      category: makeCategoryResponse({
-        name: 'Mathematics',
-        slug: 'mathematics',
+it('renders the breadcrumb with the canonical slug link', () => {
+useCategoryMock.mockReturnValue({
+category: makeCategoryResponse({
+name: 'Mathematics',
+slug: 'mathematics',
       }),
-      isLoading: false,
-      error: null,
-      notFound: false,
+isLoading: false,
+error: null,
+notFound: false,
     })
-    useCategoryQuizzesMock.mockReturnValue({
-      items: [],
-      isLoading: false,
-      isLoadingMore: false,
-      hasMore: false,
-      loadMore: vi.fn(),
-      error: null,
-      refresh: vi.fn(),
-      retryBannerVisible: false,
+useCategoryQuizzesMock.mockReturnValue({
+items: [],
+isLoading: false,
+isLoadingMore: false,
+hasMore: false,
+loadMore: vi.fn(),
+error: null,
+refresh: vi.fn(),
+retryBannerVisible: false,
     })
 
-    render(
-      <TestSwrProvider>
-        <CategoryDetailPage idOrSlug='0192f4d8-0000-7000-8000-000000000abc' />
-      </TestSwrProvider>,
+render(
+<TestSwrProvider>
+<CategoryDetailPage idOrSlug='0192f4d8-0000-7000-8000-000000000abc' />
+</TestSwrProvider>,
     )
 
-    const breadcrumb = screen.getByTestId('category-detail-page-breadcrumb')
-    expect(breadcrumb).toBeInTheDocument()
+const breadcrumb = screen.getByTestId('category-detail-page-breadcrumb')
+expect(breadcrumb).toBeInTheDocument()
 
-    // The link to the current category uses the canonical slug
-    // (not the route's `idOrSlug` parameter).
-    const slugLink = within(breadcrumb).getByRole('link', {
-      name: /mathematics/i,
+const slugLink = within(breadcrumb).getByRole('link', {
+name: /mathematics/i,
     })
-    expect(slugLink).toHaveAttribute('href', '/categories/mathematics')
+expect(slugLink).toHaveAttribute('href', '/categories/mathematics')
 
-    // The "Categories" link points to the directory page.
-    const categoriesLink = within(breadcrumb).getByRole('link', {
-      name: /categories/i,
+const categoriesLink = within(breadcrumb).getByRole('link', {
+name: /categories/i,
     })
-    expect(categoriesLink).toHaveAttribute('href', '/categories')
+expect(categoriesLink).toHaveAttribute('href', '/categories')
 
-    // The "Home" link points to the root.
-    const homeLink = within(breadcrumb).getByRole('link', { name: /home/i })
-    expect(homeLink).toHaveAttribute('href', '/')
+const homeLink = within(breadcrumb).getByRole('link', { name: /home/i })
+expect(homeLink).toHaveAttribute('href', '/')
   })
 })

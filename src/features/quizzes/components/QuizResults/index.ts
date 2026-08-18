@@ -1,4 +1,4 @@
-// Quiz results components
+
 export { default as ScoreHero } from './ScoreHero'
 export { default as StatsOverview } from './StatsOverview'
 export { default as AnswerReviewTab } from './AnswerReviewTab'

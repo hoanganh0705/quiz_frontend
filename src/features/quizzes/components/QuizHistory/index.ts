@@ -1,4 +1,4 @@
-// Quiz history components
+
 export { HistoryFiltersBar } from './HistoryFilters'
 export { HistoryTimeline } from './HistoryTimeline'
 export { HistoryStatsDashboard } from './HistoryStatsDashboard'

@@ -1,4 +1,4 @@
-// Reviews components — Epic 4.13
+
 export { StarRatingInput } from './StarRatingInput';
 export type { StarRatingInputProps } from './StarRatingInput';
 
@@ -7,7 +7,7 @@ export type { ReviewGateStateProps } from './ReviewGateState';
 
 export { ReviewHelpfulButton } from './ReviewHelpfulButton';
 export type {
-  ReviewHelpfulButtonProps,
+ReviewHelpfulButtonProps,
 } from './ReviewHelpfulButton';
 
 export { ReviewForm } from './ReviewForm';
@@ -17,8 +17,8 @@ export { ReviewEditInline } from './ReviewEditInline';
 export type { ReviewEditInlineProps } from './ReviewEditInline';
 
 export {
-  ReviewItem,
-  ReviewItemSkeleton,
+ReviewItem,
+ReviewItemSkeleton,
 } from './ReviewItem';
 
 export { ReviewsList } from './ReviewsList';

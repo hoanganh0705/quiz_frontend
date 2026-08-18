@@ -2,15 +2,15 @@ import type { ReactNode } from 'react'
 import { buildMetadata } from '@/shared/lib/seo'
 
 export const metadata = buildMetadata({
-  title: 'Quiz Categories | QuizHub',
-  description: 'Explore quizzes by category and find topics you love.',
-  path: '/categories'
+title: 'Quiz Categories | QuizHub',
+description: 'Explore quizzes by category and find topics you love.',
+path: '/categories'
 })
 
 export default function CategoriesLayout({
-  children
+children
 }: {
-  children: ReactNode
+children: ReactNode
 }) {
-  return children
+return children
 }

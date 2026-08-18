@@ -1,4 +1,4 @@
-// Tournaments shared components
+
 
 export { TournamentCardSkeleton, TournamentDetailSkeleton } from "./TournamentSkeleton";
 export { TournamentEmptyState } from "./TournamentEmptyState";

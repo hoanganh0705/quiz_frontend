@@ -3,23 +3,23 @@ import type { ReactNode } from 'react'
 import { buildMetadata } from '@/shared/lib/seo'
 
 export async function generateMetadata({
-  params
+params
 }: {
-  params: Promise<{ idOrSlug: string }>
+params: Promise<{ idOrSlug: string }>
 }): Promise<Metadata> {
-  const { idOrSlug } = await params
+const { idOrSlug } = await params
 
-  return buildMetadata({
-    title: `Quiz Results | QuizHub`,
-    description: `View your quiz score and detailed performance.`,
-    path: `/quizzes/${idOrSlug}/results`
+return buildMetadata({
+title: `Quiz Results | QuizHub`,
+description: `View your quiz score and detailed performance.`,
+path: `/quizzes/${idOrSlug}/results`
   })
 }
 
 export default function QuizResultsLayout({
-  children
+children
 }: {
-  children: ReactNode
+children: ReactNode
 }) {
-  return children
+return children
 }

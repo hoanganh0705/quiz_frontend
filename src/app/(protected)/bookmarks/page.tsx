@@ -22,7 +22,7 @@ export default function BookmarksPage() {
       {/* Page Header */}
       <div className='mb-8'>
         <h1 className='text-3xl font-bold text-foreground mb-2'>Saved Quizzes</h1>
-        <p className='text-foreground/70 text-base'>
+        <p className='text-muted-foreground text-base'>
           Manage your bookmarked quizzes and collections
         </p>
       </div>

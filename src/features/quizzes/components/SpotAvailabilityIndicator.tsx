@@ -3,100 +3,99 @@
 import { useMemo } from 'react'
 
 interface SpotAvailabilityIndicatorProps {
-  currentSpots: number
-  totalSpots: number
-  mode?: 'default' | 'percentage'
+currentSpots: number
+totalSpots: number
+mode?: 'default' | 'percentage'
 }
 
 export default function SpotAvailabilityIndicator({
-  currentSpots,
-  totalSpots,
-  mode = 'default'
+currentSpots,
+totalSpots,
+mode = 'default'
 }: SpotAvailabilityIndicatorProps) {
-  // Clamp currentSpots so it never exceeds totalSpots
-  const displaySpots = Math.max(0, Math.min(currentSpots, totalSpots))
-  const displayTotal = Math.max(1, totalSpots)
 
-  const availablePercentage = (displayTotal - displaySpots) / displayTotal
-  const availableSpots = displayTotal - displaySpots
-  const percentageLabel = Math.round(availablePercentage * 100)
+const displaySpots = Math.max(0, Math.min(currentSpots, totalSpots))
+const displayTotal = Math.max(1, totalSpots)
 
-  // Color for both modes (based on availablePercentage)
-  const segmentColor = useMemo(() => {
-    if (availablePercentage < 0.1) return 'rgb(239, 68, 68)' // Red when < 10% available
-    return 'rgb(255, 255, 255)' // White otherwise
+const availablePercentage = (displayTotal - displaySpots) / displayTotal
+const availableSpots = displayTotal - displaySpots
+const percentageLabel = Math.round(availablePercentage * 100)
+
+const segmentColor = useMemo(() => {
+if (availablePercentage < 0.1) return 'rgb(239, 68, 68)'
+return 'rgb(255, 255, 255)' // White otherwise
   }, [availablePercentage])
 
-  const unoccupiedSegmentColor = 'rgb(55, 65, 81)'
-  const radius = 10
-  const circumference = 2 * Math.PI * radius
+const unoccupiedSegmentColor = 'rgb(55, 65, 81)'
+const radius = 10
+const circumference = 2 * Math.PI * radius
 
-  return (
-    <div className='flex items-center justify-center bg-transparent text-foreground rounded-lg'>
-      {mode === 'default' && (
-        <div
-          className='w-6 h-6 flex items-center justify-center'
-          role='img'
-          aria-label={`${availableSpots} of ${displayTotal} spots available`}
+return (
+<div className='flex items-center justify-center bg-transparent text-foreground rounded-lg'>
+{mode === 'default' && (
+<div
+className='w-6 h-6 flex items-center justify-center'
+role='img'
+aria-label={`${availableSpots} of ${displayTotal} spots available`}
         >
-          <svg className='w-full h-full' viewBox='0 0 24 24'>
-            <circle
-              cx='12'
-              cy='12'
-              r={radius}
-              strokeWidth='4'
-              fill='none'
-              stroke={unoccupiedSegmentColor}
+<svg className='w-full h-full' viewBox='0 0 24 24'>
+<circle
+cx='12'
+cy='12'
+r={radius}
+strokeWidth='4'
+fill='none'
+stroke={unoccupiedSegmentColor}
             />
-            <circle
-              cx='12'
-              cy='12'
-              r={radius}
-              strokeWidth='4'
-              fill='none'
-              stroke={segmentColor}
-              strokeDasharray={circumference}
-              strokeDashoffset={circumference * (1 - availablePercentage)}
-              strokeLinecap='round'
-              transform='rotate(-90 12 12)'
+<circle
+cx='12'
+cy='12'
+r={radius}
+strokeWidth='4'
+fill='none'
+stroke={segmentColor}
+strokeDasharray={circumference}
+strokeDashoffset={circumference * (1 - availablePercentage)}
+strokeLinecap='round'
+transform='rotate(-90 12 12)'
             />
-          </svg>
-        </div>
+</svg>
+</div>
       )}
 
-      {mode === 'percentage' && (
-        <div
-          className='relative w-10 h-10 flex items-center justify-center bg-transparent text-foreground'
-          role='img'
-          aria-label={`${percentageLabel}% spots available`}
+{mode === 'percentage' && (
+<div
+className='relative w-10 h-10 flex items-center justify-center bg-transparent text-foreground'
+role='img'
+aria-label={`${percentageLabel}% spots available`}
         >
-          <svg className='absolute w-full h-full' viewBox='0 0 24 24'>
-            <circle
-              cx='12'
-              cy='12'
-              r={radius}
-              strokeWidth='1.5'
-              fill='none'
-              stroke={unoccupiedSegmentColor}
+<svg className='absolute w-full h-full' viewBox='0 0 24 24'>
+<circle
+cx='12'
+cy='12'
+r={radius}
+strokeWidth='1.5'
+fill='none'
+stroke={unoccupiedSegmentColor}
             />
-            <circle
-              cx='12'
-              cy='12'
-              r={radius}
-              strokeWidth='1.5'
-              fill='none'
-              stroke={segmentColor}
-              strokeDasharray={circumference}
-              strokeDashoffset={circumference * (1 - availablePercentage)}
-              strokeLinecap='round'
-              transform='rotate(-90 12 12)'
+<circle
+cx='12'
+cy='12'
+r={radius}
+strokeWidth='1.5'
+fill='none'
+stroke={segmentColor}
+strokeDasharray={circumference}
+strokeDashoffset={circumference * (1 - availablePercentage)}
+strokeLinecap='round'
+transform='rotate(-90 12 12)'
             />
-          </svg>
-          <span className='text-[10px] text-foreground z-10 font-medium'>
-            {Math.round(availablePercentage * 100)}%
+</svg>
+<span className='text-[10px] text-foreground z-10 font-medium'>
+{Math.round(availablePercentage * 100)}%
           </span>
-        </div>
+</div>
       )}
-    </div>
+</div>
   )
 }

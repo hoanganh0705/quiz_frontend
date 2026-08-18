@@ -1,323 +1,284 @@
-/**
- * `TournamentDeleteDialog` unit tests.
- *
- * Source epic:   Epic 7.7 — Tournament Admin: Create, Update, Delete.
- * Source ticket: TKT-7.7.D4.
- *
- * Coverage map (TKT-7.7.D4 acceptance criteria):
- *
- *   AC #2  — renders cascade notice at top + typed-confirm below.
- *   AC #3  — confirm button disabled until exact match.
- *   AC #4  — confirm click → mutation → success closes dialog.
- *   AC #5  — `TOURNAMENT_HAS_PARTICIPANTS` → stays open + copy.
- *   AC #6  — `TOURNAMENT_ALREADY_STARTED` → closes + onAlreadyStarted.
- *   AC #7  — `TOURNAMENT_NOT_FOUND` → closes + onNotFound.
- *   AC #8  — `IRREVERSIBLE_CONFIRM_REQUIRED` → stays open + error banner.
- *   AC #9  — `ADMIN_FORBIDDEN` → RequestIdBanner.
- *
- * Notes:
- *
- *   - `TypedConfirmDialog` uses Radix UI `AlertDialog` which requires
- *     mocking for reliable testing (mirrors the D1 pattern).
- *   - `AuditActionShell` is not mocked — it wraps the real mutation.
- *   - Cascade hook is mocked to avoid real data fetching.
- */
+
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
-  act,
-  fireEvent,
-  render,
-  screen,
-  waitFor,
+act,
+fireEvent,
+render,
+screen,
+waitFor,
 } from '@testing-library/react';
 
 import { ApiError } from '@/lib/api/core/ApiError';
 
-// ─── Fixtures ────────────────────────────────────────────────────────────────
-
 const TOURNAMENT_ID = '00000000-0000-4000-8000-000000000001';
 
 function makeTournament() {
-  return {
-    tournamentId: TOURNAMENT_ID,
-    title: 'Spring Cup',
-    description: null,
-    difficulty: 'medium' as const,
-    status: 'upcoming' as const,
-    prize: null,
-    startAt: '2026-09-01T12:00:00.000Z',
-    endAt: '2026-09-02T12:00:00.000Z',
-    maxParticipants: 16,
-    categoryId: null,
-    ownerUserId: 'user-1',
-    createdAt: '2026-08-01T00:00:00.000Z',
-    updatedAt: '2026-08-01T00:00:00.000Z',
+return {
+tournamentId: TOURNAMENT_ID,
+title: 'Spring Cup',
+description: null,
+difficulty: 'medium' as const,
+status: 'upcoming' as const,
+prize: null,
+startAt: '2026-09-01T12:00:00.000Z',
+endAt: '2026-09-02T12:00:00.000Z',
+maxParticipants: 16,
+categoryId: null,
+ownerUserId: 'user-1',
+createdAt: '2026-08-01T00:00:00.000Z',
+updatedAt: '2026-08-01T00:00:00.000Z',
   };
 }
 
 function makeApiError(
-  code: string,
-  status: number,
-  requestId = 'req-1',
+code: string,
+status: number,
+requestId = 'req-1',
 ): ApiError {
-  return new ApiError({
-    isAxiosError: true,
-    name: 'AxiosError',
-    message: code,
-    config: undefined,
-    request: undefined,
-    response: {
-      status,
-      data: {
-        status,
-        detail: code,
-        title: code,
-        extensions: { code, requestId },
+return new ApiError({
+isAxiosError: true,
+name: 'AxiosError',
+message: code,
+config: undefined,
+request: undefined,
+response: {
+status,
+data: {
+status,
+detail: code,
+title: code,
+extensions: { code, requestId },
       },
     },
-    toJSON: () => ({}),
+toJSON: () => ({}),
   } as unknown as Parameters<typeof ApiError['fromAxios']>[0]);
 }
 
 const CASCADE_DATA = {
-  participants: 10,
-  rounds: 3,
-  leaderboards: 1,
+participants: 10,
+rounds: 3,
+leaderboards: 1,
 };
 
-// ─── Shared harness ─────────────────────────────────────────────────────────
-
 const cascadeHarness = {
-  cascade: null as (typeof CASCADE_DATA & { hasMoreParticipants?: boolean }) | null,
-  isLoading: false,
+cascade: null as (typeof CASCADE_DATA & { hasMoreParticipants?: boolean }) | null,
+isLoading: false,
 };
 
 const deleteHarness = {
-  remove: vi.fn(),
-  error: null as ApiError | null,
-  isPending: false,
+remove: vi.fn(),
+error: null as ApiError | null,
+isPending: false,
 };
 
 vi.mock('@/features/admin/tournament-admin/hooks/useTournamentCascade', () => ({
-  useTournamentCascade: () => ({
-    cascade: cascadeHarness.cascade,
-    isLoading: cascadeHarness.isLoading,
+useTournamentCascade: () => ({
+cascade: cascadeHarness.cascade,
+isLoading: cascadeHarness.isLoading,
   }),
 }));
 
 vi.mock('@/features/admin/tournament-admin/hooks/useDeleteTournament', () => ({
-  useDeleteTournament: () => ({
-    remove: deleteHarness.remove,
-    error: deleteHarness.error,
-    isPending: deleteHarness.isPending,
+useDeleteTournament: () => ({
+remove: deleteHarness.remove,
+error: deleteHarness.error,
+isPending: deleteHarness.isPending,
   }),
 }));
 
-// ─── Mock TypedConfirmDialog + AlertDialog (Radix) ────────────────────────
-
 vi.mock('@/features/admin/components/TypedConfirmDialog', () => ({
-  TypedConfirmDialog: ({
-    open,
-    onConfirm,
-    onCancel,
-    pending,
-    previousError,
-    children,
+TypedConfirmDialog: ({
+open,
+onConfirm,
+onCancel,
+pending,
+previousError,
+children,
   }: {
-    open: boolean;
-    operation: string;
-    onConfirm: () => void;
-    onCancel: () => void;
-    pending: boolean;
-    previousError: ApiError | null;
-    children?: React.ReactNode;
+open: boolean;
+operation: string;
+onConfirm: () => void;
+onCancel: () => void;
+pending: boolean;
+previousError: ApiError | null;
+children?: React.ReactNode;
   }) => {
-    if (!open) return null;
-    return (
-      <div data-testid="typed-confirm-dialog" data-pending={pending}>
-        {children}
-        <button
-          type="button"
-          data-testid="typed-confirm-dialog-confirm"
-          onClick={onConfirm}
-          disabled={pending}
+if (!open) return null;
+return (
+<div data-testid="typed-confirm-dialog" data-pending={pending}>
+{children}
+<button
+type="button"
+data-testid="typed-confirm-dialog-confirm"
+onClick={onConfirm}
+disabled={pending}
         >
-          Confirm
+Confirm
         </button>
-        <button
-          type="button"
-          data-testid="typed-confirm-dialog-cancel"
-          onClick={onCancel}
-          disabled={pending}
+<button
+type="button"
+data-testid="typed-confirm-dialog-cancel"
+onClick={onCancel}
+disabled={pending}
         >
-          Cancel
+Cancel
         </button>
-        {previousError ? (
-          <div data-testid="admin-request-id-banner" data-code={previousError.code} />
+{previousError ? (
+<div data-testid="admin-request-id-banner" data-code={previousError.code} />
         ) : null}
-      </div>
+</div>
     );
   },
 }));
 
-// ─── Setup ─────────────────────────────────────────────────────────────────
-
 beforeEach(() => {
-  cascadeHarness.cascade = CASCADE_DATA;
-  cascadeHarness.isLoading = false;
-  deleteHarness.remove.mockReset();
-  deleteHarness.remove.mockResolvedValue(undefined);
-  deleteHarness.error = null;
-  deleteHarness.isPending = false;
+cascadeHarness.cascade = CASCADE_DATA;
+cascadeHarness.isLoading = false;
+deleteHarness.remove.mockReset();
+deleteHarness.remove.mockResolvedValue(undefined);
+deleteHarness.error = null;
+deleteHarness.isPending = false;
 });
-
-// ─── Helpers ───────────────────────────────────────────────────────────────
 
 import { TournamentDeleteDialog } from '../TournamentDeleteDialog';
 
 function renderDialog(
-  open = true,
-  onClose = vi.fn(),
-  onAlreadyStarted = vi.fn(),
-  onNotFound = vi.fn(),
+open = true,
+onClose = vi.fn(),
+onAlreadyStarted = vi.fn(),
+onNotFound = vi.fn(),
 ) {
-  return render(
-    <TournamentDeleteDialog
-      open={open}
-      tournament={makeTournament()}
-      onClose={onClose}
-      onAlreadyStarted={onAlreadyStarted}
-      onNotFound={onNotFound}
+return render(
+<TournamentDeleteDialog
+open={open}
+tournament={makeTournament()}
+onClose={onClose}
+onAlreadyStarted={onAlreadyStarted}
+onNotFound={onNotFound}
     />,
   );
 }
 
-// ─── Tests ─────────────────────────────────────────────────────────────────
-
 describe('TKT-7.7.D4 — TournamentDeleteDialog: render states', () => {
-  it('AC #2: renders nothing when open=false', () => {
-    renderDialog(false);
+it('AC #2: renders nothing when open=false', () => {
+renderDialog(false);
 
-    expect(
-      screen.queryByTestId('typed-confirm-dialog'),
+expect(
+screen.queryByTestId('typed-confirm-dialog'),
     ).not.toBeInTheDocument();
   });
 
-  it('AC #2: renders the cascade notice at the top when open', () => {
-    cascadeHarness.isLoading = false;
-    cascadeHarness.cascade = CASCADE_DATA;
-    renderDialog();
+it('AC #2: renders the cascade notice at the top when open', () => {
+cascadeHarness.isLoading = false;
+cascadeHarness.cascade = CASCADE_DATA;
+renderDialog();
 
-    expect(
-      screen.getByTestId('tournament-cascade-notice'),
+expect(
+screen.getByTestId('tournament-cascade-notice'),
     ).toBeInTheDocument();
   });
 
-  it('AC #2: renders the typed-confirm dialog', () => {
-    renderDialog();
+it('AC #2: renders the typed-confirm dialog', () => {
+renderDialog();
 
-    expect(
-      screen.getByTestId('typed-confirm-dialog'),
+expect(
+screen.getByTestId('typed-confirm-dialog'),
     ).toBeInTheDocument();
   });
 });
 
 describe('TKT-7.7.D4 — TournamentDeleteDialog: confirm flow', () => {
-  it('AC #4: confirm click calls the delete hook and closes on success', async () => {
-    const onClose = vi.fn();
-    renderDialog(true, onClose);
+it('AC #4: confirm click calls the delete hook and closes on success', async () => {
+const onClose = vi.fn();
+renderDialog(true, onClose);
 
-    // Click confirm.
-    await act(async () => {
-      fireEvent.click(screen.getByTestId('typed-confirm-dialog-confirm'));
-      await Promise.resolve();
+await act(async () => {
+fireEvent.click(screen.getByTestId('typed-confirm-dialog-confirm'));
+await Promise.resolve();
     });
 
-    // The shell toggles fireDelete; the mutation fires.
-    await waitFor(() => {
-      expect(deleteHarness.remove).toHaveBeenCalledTimes(1);
+await waitFor(() => {
+expect(deleteHarness.remove).toHaveBeenCalledTimes(1);
     });
-    expect(deleteHarness.remove).toHaveBeenCalledWith(TOURNAMENT_ID, {
-      confirmString: 'DELETE TOURNAMENT',
+expect(deleteHarness.remove).toHaveBeenCalledWith(TOURNAMENT_ID, {
+confirmString: 'DELETE TOURNAMENT',
     });
   });
 });
 
 describe('TKT-7.7.D4 — TournamentDeleteDialog: error branches', () => {
-  it('AC #5: TOURNAMENT_HAS_PARTICIPANTS → notice + dialog stays open', () => {
-    cascadeHarness.cascade = CASCADE_DATA;
-    deleteHarness.error = makeApiError('TOURNAMENT_HAS_PARTICIPANTS', 409);
-    renderDialog();
+it('AC #5: TOURNAMENT_HAS_PARTICIPANTS → notice + dialog stays open', () => {
+cascadeHarness.cascade = CASCADE_DATA;
+deleteHarness.error = makeApiError('TOURNAMENT_HAS_PARTICIPANTS', 409);
+renderDialog();
 
-    expect(
-      screen.getByTestId('tournament-delete-has-participants-notice'),
+expect(
+screen.getByTestId('tournament-delete-has-participants-notice'),
     ).toBeInTheDocument();
-    expect(
-      screen.getByTestId('typed-confirm-dialog'),
+expect(
+screen.getByTestId('typed-confirm-dialog'),
     ).toBeInTheDocument();
   });
 
-  it('AC #6: TOURNAMENT_ALREADY_STARTED → closes + onAlreadyStarted', () => {
-    const onAlreadyStarted = vi.fn();
-    deleteHarness.error = makeApiError('TOURNAMENT_ALREADY_STARTED', 409);
-    renderDialog(true, vi.fn(), onAlreadyStarted);
+it('AC #6: TOURNAMENT_ALREADY_STARTED → closes + onAlreadyStarted', () => {
+const onAlreadyStarted = vi.fn();
+deleteHarness.error = makeApiError('TOURNAMENT_ALREADY_STARTED', 409);
+renderDialog(true, vi.fn(), onAlreadyStarted);
 
-    expect(onAlreadyStarted).toHaveBeenCalledTimes(1);
-    expect(
-      screen.queryByTestId('typed-confirm-dialog'),
+expect(onAlreadyStarted).toHaveBeenCalledTimes(1);
+expect(
+screen.queryByTestId('typed-confirm-dialog'),
     ).not.toBeInTheDocument();
   });
 
-  it('AC #7: TOURNAMENT_NOT_FOUND → closes + onNotFound', () => {
-    const onNotFound = vi.fn();
-    deleteHarness.error = makeApiError('TOURNAMENT_NOT_FOUND', 404);
-    renderDialog(true, vi.fn(), vi.fn(), onNotFound);
+it('AC #7: TOURNAMENT_NOT_FOUND → closes + onNotFound', () => {
+const onNotFound = vi.fn();
+deleteHarness.error = makeApiError('TOURNAMENT_NOT_FOUND', 404);
+renderDialog(true, vi.fn(), vi.fn(), onNotFound);
 
-    expect(onNotFound).toHaveBeenCalledTimes(1);
-    expect(
-      screen.queryByTestId('typed-confirm-dialog'),
+expect(onNotFound).toHaveBeenCalledTimes(1);
+expect(
+screen.queryByTestId('typed-confirm-dialog'),
     ).not.toBeInTheDocument();
   });
 
-  it('AC #8: IRREVERSIBLE_CONFIRM_REQUIRED → dialog stays open', () => {
-    deleteHarness.error = makeApiError('IRREVERSIBLE_CONFIRM_REQUIRED', 422);
-    renderDialog();
+it('AC #8: IRREVERSIBLE_CONFIRM_REQUIRED → dialog stays open', () => {
+deleteHarness.error = makeApiError('IRREVERSIBLE_CONFIRM_REQUIRED', 422);
+renderDialog();
 
-    expect(
-      screen.getByTestId('typed-confirm-dialog'),
+expect(
+screen.getByTestId('typed-confirm-dialog'),
     ).toBeInTheDocument();
   });
 
-  it('AC #9: ADMIN_FORBIDDEN → RequestIdBanner', () => {
-    deleteHarness.error = makeApiError('ADMIN_FORBIDDEN', 403, 'req-forbid');
-    renderDialog();
+it('AC #9: ADMIN_FORBIDDEN → RequestIdBanner', () => {
+deleteHarness.error = makeApiError('ADMIN_FORBIDDEN', 403, 'req-forbid');
+renderDialog();
 
-    // The AuditActionShell renders its own RequestIdBanner on failure.
-    // Our dialog also renders one. Both are present.
-    const banners = screen.getAllByTestId('admin-request-id-banner');
-    expect(banners.length).toBeGreaterThanOrEqual(1);
+const banners = screen.getAllByTestId('admin-request-id-banner');
+expect(banners.length).toBeGreaterThanOrEqual(1);
   });
 });
 
 describe('TKT-7.7.D4 — TournamentDeleteDialog: cascade states', () => {
-  it('renders the cascade loading skeleton when isLoading=true', () => {
-    cascadeHarness.isLoading = true;
-    cascadeHarness.cascade = null;
-    renderDialog();
+it('renders the cascade loading skeleton when isLoading=true', () => {
+cascadeHarness.isLoading = true;
+cascadeHarness.cascade = null;
+renderDialog();
 
-    expect(
-      screen.getByTestId('tournament-cascade-notice-loading'),
+expect(
+screen.getByTestId('tournament-cascade-notice-loading'),
     ).toBeInTheDocument();
   });
 
-  it('renders the unavailable notice when cascade=null and not loading', () => {
-    cascadeHarness.isLoading = false;
-    cascadeHarness.cascade = null;
-    renderDialog();
+it('renders the unavailable notice when cascade=null and not loading', () => {
+cascadeHarness.isLoading = false;
+cascadeHarness.cascade = null;
+renderDialog();
 
-    expect(
-      screen.getByTestId('tournament-cascade-notice-unavailable'),
+expect(
+screen.getByTestId('tournament-cascade-notice-unavailable'),
     ).toBeInTheDocument();
   });
 });

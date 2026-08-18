@@ -3,117 +3,117 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/Tabs'
 import {
-  ChartConfig,
-  ChartContainer,
-  ChartLegend,
-  ChartLegendContent,
-  ChartTooltip,
-  ChartTooltipContent
+ChartConfig,
+ChartContainer,
+ChartLegend,
+ChartLegendContent,
+ChartTooltip,
+ChartTooltipContent
 } from '@/components/ui/Chart'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts'
 import { performanceData } from '@/features/daily-challenge/constants/performance-data'
 import ChallengePieChart from './ChallengePieChart'
 
 const chartConfig = {
-  yourScore: {
-    label: 'Your Score'
+yourScore: {
+label: 'Your Score'
   },
-  avgScore: {
-    label: 'Average Score'
+avgScore: {
+label: 'Average Score'
   }
 } satisfies ChartConfig
 
 const ChallengeChart = () => {
-  return (
-    <section className=' bg-background text-foreground rounded-lg'>
-      {/* Performance Chart */}
-      <Card className='bg-background border border-border lg:col-span-2 lg:row-span-2 py-6'>
-        <CardHeader>
-          <CardTitle>Your Challenge Stats</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Tabs defaultValue='performance' className='w-full'>
-            <TabsList className='grid w-full grid-cols-2 bg-main'>
-              <TabsTrigger
-                value='performance'
-                className='data-[state=active]:bg-brand data-[state=active]:text-white'
+return (
+<section className=' bg-background text-foreground rounded-lg'>
+{/* Performance Chart */}
+<Card className='bg-background border border-border lg:col-span-2 lg:row-span-2 py-6'>
+<CardHeader>
+<CardTitle>Your Challenge Stats</CardTitle>
+</CardHeader>
+<CardContent>
+<Tabs defaultValue='performance' className='w-full'>
+<TabsList className='grid w-full grid-cols-2 bg-main'>
+<TabsTrigger
+value='performance'
+className='data-[state=active]:bg-brand data-[state=active]:text-white'
               >
-                Performance
+Performance
               </TabsTrigger>
-              <TabsTrigger
-                value='categories'
-                className='data-[state=active]:bg-brand data-[state=active]:text-white'
+<TabsTrigger
+value='categories'
+className='data-[state=active]:bg-brand data-[state=active]:text-white'
               >
-                Categories
+Categories
               </TabsTrigger>
-            </TabsList>
+</TabsList>
 
-            <TabsContent value='performance' className='space-y-6 mt-6'>
-              <ChartContainer
-                config={chartConfig}
-                className='min-h-20 [&_.recharts-rectangle.recharts-tooltip-cursor]:fill-main-hover'
+<TabsContent value='performance' className='space-y-6 mt-6'>
+<ChartContainer
+config={chartConfig}
+className='min-h-20 [&_.recharts-rectangle.recharts-tooltip-cursor]:fill-main-hover'
               >
-                <BarChart
-                  accessibilityLayer
-                  data={performanceData}
-                  margin={{
-                    top: 20,
-                    right: 30,
-                    left: 20,
-                    bottom: 5
+<BarChart
+accessibilityLayer
+data={performanceData}
+margin={{
+top: 20,
+right: 30,
+left: 20,
+bottom: 5
                   }}
-                  barCategoryGap='20%'
+barCategoryGap='20%'
                 >
-                  <CartesianGrid
-                    strokeDasharray='3 3'
-                    stroke='#374151'
-                    horizontal={true}
-                    vertical={true}
+<CartesianGrid
+strokeDasharray='3 3'
+stroke='#374151'
+horizontal={true}
+vertical={true}
                   />
-                  <XAxis
-                    dataKey='day'
-                    axisLine={false}
-                    tickLine={false}
-                    tick={{ fill: '#9CA3AF', fontSize: 14 }}
+<XAxis
+dataKey='day'
+axisLine={false}
+tickLine={false}
+tick={{ fill: '#9CA3AF', fontSize: 14 }}
                   />
-                  <YAxis
-                    axisLine={false}
-                    tickLine={false}
-                    tick={{ fill: '#9CA3AF', fontSize: 14 }}
+<YAxis
+axisLine={false}
+tickLine={false}
+tick={{ fill: '#9CA3AF', fontSize: 14 }}
                   />
 
-                  <ChartLegend
-                    content={<ChartLegendContent className='text-sm' />}
+<ChartLegend
+content={<ChartLegendContent className='text-sm' />}
                   />
-                  <ChartTooltip
-                    cursor={{ fill: 'var(--main)' }}
-                    content={<ChartTooltipContent />}
+<ChartTooltip
+cursor={{ fill: 'var(--main)' }}
+content={<ChartTooltipContent />}
                   />
-                  <Bar
-                    dataKey='yourScore'
-                    fill='rgb(168 85 247)'
-                    radius={[4, 4, 0, 0]}
+<Bar
+dataKey='yourScore'
+fill='rgb(168 85 247)'
+radius={[4, 4, 0, 0]}
                   />
-                  <Bar
-                    dataKey='avgScore'
-                    fill='rgb(34 197 94)'
-                    radius={[4, 4, 0, 0]}
+<Bar
+dataKey='avgScore'
+fill='rgb(34 197 94)'
+radius={[4, 4, 0, 0]}
                   />
-                </BarChart>
-              </ChartContainer>
+</BarChart>
+</ChartContainer>
 
-              <p className='text-center text-muted-foreground text-sm'>
-                Your daily challenge performance compared to the average
+<p className='text-center text-muted-foreground text-sm'>
+Your daily challenge performance compared to the average
               </p>
-            </TabsContent>
+</TabsContent>
 
-            <TabsContent value='categories'>
-              <ChallengePieChart />
-            </TabsContent>
-          </Tabs>
-        </CardContent>
-      </Card>
-    </section>
+<TabsContent value='categories'>
+<ChallengePieChart />
+</TabsContent>
+</Tabs>
+</CardContent>
+</Card>
+</section>
   )
 }
 

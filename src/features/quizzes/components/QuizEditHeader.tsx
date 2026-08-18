@@ -1,16 +1,4 @@
-/**
- * `QuizEditHeader` — header bar for the quiz edit page.
- *
- * Source epic:   Epic 4.9 — Quiz version lifecycle + edit version metadata.
- * Source ticket: TKT-4.9.7.
- *
- * ## What this component renders
- *
- * - Quiz title (display only — editing is done in the form below)
- * - "Back to My Quizzes" link
- * - "New version" CTA button
- * - Loading state for the "New version" action
- */
+
 
 'use client';
 
@@ -21,87 +9,75 @@ import { Button } from '@/components/ui/Button';
 import { ArrowLeft, Plus, Loader2 } from 'lucide-react';
 
 export interface QuizEditHeaderProps {
-  /** Quiz title to display. */
-  title: string;
-  /** Called when the user clicks "New version". */
-  onNewVersion: () => void;
-  /** `true` while a new version is being created. */
-  isCreatingVersion?: boolean;
-  /** Whether the user has edit permissions. */
-  canEdit?: boolean;
-  /** Optional extra className. */
-  className?: string;
+
+title: string;
+
+onNewVersion: () => void;
+
+isCreatingVersion?: boolean;
+
+canEdit?: boolean;
+
+className?: string;
 }
 
-/**
- * `<QuizEditHeader />` — renders the title bar and primary actions.
- *
- * @example
- * ```tsx
- * <QuizEditHeader
- *   title="My Awesome Quiz"
- *   onNewVersion={() => createVersion()}
- *   isCreatingVersion={isCreating}
- * />
- * ```
- */
 export const QuizEditHeader = memo(function QuizEditHeader({
-  title,
-  onNewVersion,
-  isCreatingVersion = false,
-  canEdit = true,
-  className,
+title,
+onNewVersion,
+isCreatingVersion = false,
+canEdit = true,
+className,
 }: QuizEditHeaderProps): React.ReactElement {
-  return (
-    <header
-      className={className}
-      data-testid="quiz-edit-header"
+return (
+<header
+className={className}
+data-testid="quiz-edit-header"
     >
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        {/* Left: back link + title */}
-        <div className="flex flex-col gap-2">
-          <Link
-            href="/my-quizzes"
-            className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
-            data-testid="back-link"
+<div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+{/* Left: back link + title */}
+<div className="flex flex-col gap-2">
+<Link
+href="/my-quizzes"
+className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
+data-testid="back-link"
           >
-            <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-            Back to My Quizzes
+<ArrowLeft className="h-4 w-4" aria-hidden="true" />
+Back to My Quizzes
           </Link>
 
-          <h1
-            className="text-2xl font-semibold tracking-tight"
-            data-testid="quiz-title"
+<h1
+className="text-2xl font-semibold tracking-tight"
+data-testid="quiz-title"
           >
-            {title}
-          </h1>
-        </div>
+{title}
+</h1>
+</div>
 
-        {/* Right: actions */}
-        {canEdit && (
-          <div className="flex items-center gap-3">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={onNewVersion}
-              disabled={isCreatingVersion}
-              data-testid="new-version-btn"
+{/* Right: actions */}
+{canEdit && (
+<div className="flex items-center gap-3">
+<Button
+variant="outline"
+size="sm"
+onClick={onNewVersion}
+disabled={isCreatingVersion}
+data-testid="new-version-btn"
             >
-              {isCreatingVersion ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
-                  Creating…
+{isCreatingVersion ? (
+<>
+<Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+Creating…
                 </>
               ) : (
-                <>
-                  <Plus className="h-4 w-4" aria-hidden="true" />
-                  New version
+<>
+<Plus className="h-4 w-4" aria-hidden="true" />
+New version
                 </>
               )}
-            </Button>
-          </div>
+</Button>
+</div>
         )}
-      </div>
-    </header>
+</div>
+</header>
   );
 });

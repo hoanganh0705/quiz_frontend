@@ -1,0 +1,14 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "bounce-easing",
+        "value": "animate-bounce",
+        "createdAt": "2026-08-17T12:30:10.623Z",
+        "reason": "Defensive selector in prefers-reduced-motion block; no other rule applies it. Agent self-exempt."
+      }
+    ]
+  }
+}

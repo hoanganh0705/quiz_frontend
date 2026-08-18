@@ -1,53 +1,53 @@
-// Gameplay hooks — Story 5.8 batch B
+
 
 export {
-  useInstancesPlayFeatureFlag,
-  type UseInstancesPlayFeatureFlagResult,
+useInstancesPlayFeatureFlag,
+type UseInstancesPlayFeatureFlagResult,
 } from './useInstancesPlayFeatureFlag';
 
 export {
-  useSocketEventSequence,
-  applyWithSequence,
-  type UseSocketEventSequenceResult,
+useSocketEventSequence,
+applyWithSequence,
+type UseSocketEventSequenceResult,
 } from './useSocketEventSequence';
 
 export {
-  useInstanceGameSocket,
-  GAMEPLAY_PAYLOAD_VERSION,
-  type UseInstanceGameSocketResult,
+useInstanceGameSocket,
+GAMEPLAY_PAYLOAD_VERSION,
+type UseInstanceGameSocketResult,
 } from './useInstanceGameSocket';
 
 export {
-  useQuestionRevealed,
-  type UseQuestionRevealedResult,
+useQuestionRevealed,
+type UseQuestionRevealedResult,
 } from './useQuestionRevealed';
 
 export {
-  useSubmitInstanceAnswer,
-  type UseSubmitInstanceAnswerResult,
+useSubmitInstanceAnswer,
+type UseSubmitInstanceAnswerResult,
 } from './useSubmitInstanceAnswer';
 
 export {
-  useQuestionTimer,
-  type UseQuestionTimerResult,
+useQuestionTimer,
+type UseQuestionTimerResult,
 } from './useQuestionTimer';
 
 export {
-  useLiveLeaderboard,
-  type UseLiveLeaderboardResult,
+useLiveLeaderboard,
+type UseLiveLeaderboardResult,
 } from './useLiveLeaderboard';
 
 export {
-  useInstanceLifecycle,
-  type UseInstanceLifecycleResult,
+useInstanceLifecycle,
+type UseInstanceLifecycleResult,
 } from './useInstanceLifecycle';
 
 export {
-  useReconnectReconciliation,
-  type UseReconnectReconciliationResult,
+useReconnectReconciliation,
+type UseReconnectReconciliationResult,
 } from './useReconnectReconciliation';
 
 export {
-  useRealtimeGameplay,
-  type UseRealtimeGameplayResult,
+useRealtimeGameplay,
+type UseRealtimeGameplayResult,
 } from './useRealtimeGameplay';

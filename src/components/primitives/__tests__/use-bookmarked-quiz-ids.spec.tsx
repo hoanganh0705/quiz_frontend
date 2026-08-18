@@ -1,31 +1,4 @@
-/**
- * `use-bookmarked-quiz-ids.spec.tsx` — locks the membership-cache
- * contract.
- *
- * Source epic:   Story 3.10 — Bookmarks add / remove + membership lookup.
- * Source ticket: TKT-3.10.B3.
- *
- * Cases per the ticket AC #1–7:
- *
- *   (a) Unauthenticated state returns an empty Set without firing
- *       any fetch.
- *   (b) Authenticated with zero collections resolves to an empty
- *       Set without firing any `listBookmarksInCollection` call.
- *   (c) Authenticated with one collection fetches that collection's
- *       members and exposes them as a Set.
- *   (d) Authenticated with multiple collections unions the members
- *       and deduplicates.
- *   (e) One collection fetch failure surfaces `error: ApiError` and
- *       leaves the Set empty for that render (no partial leak).
- *   (f) `buildBookmarkedQuizIdSet` (pure function) replaces the Set
- *       rather than mutating the input.
- *   (g) The SWR key follows the documented shape.
- *
- * Test-environment notes: vitest's `jsdom` project picks up files
- * under src/components/primitives/__tests__/. We replicate the
- * setup locally with a `<SWRConfig>` wrapper that provides a fresh
- * in-memory cache per test.
- */
+
 
 import type React from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
@@ -33,312 +6,273 @@ import { cleanup, render, waitFor } from '@testing-library/react';
 import { SWRConfig } from 'swr';
 
 import {
-  buildBookmarkedQuizIdSet,
-  bookmarkedQuizIdsKey,
-  useBookmarkedQuizIds,
+buildBookmarkedQuizIdSet,
+bookmarkedQuizIdsKey,
+useBookmarkedQuizIds,
 } from '@/features/bookmarks/hooks/use-bookmarked-quiz-ids';
 import type { BookmarkedQuizResponseDto } from '@/lib/api/generated/schemas';
-
-// ---------------------------------------------------------------------------
-// Mocks
-// ---------------------------------------------------------------------------
 
 const listCollectionsMock = vi.fn();
 const listBookmarksInCollectionMock = vi.fn();
 
 vi.mock('@/features/bookmarks/api', () => ({
-  listCollections: (...args: unknown[]) => listCollectionsMock(...args),
-  listBookmarksInCollection: (...args: unknown[]) =>
-    listBookmarksInCollectionMock(...args),
+listCollections: (...args: unknown[]) => listCollectionsMock(...args),
+listBookmarksInCollection: (...args: unknown[]) =>
+listBookmarksInCollectionMock(...args),
 }));
 
 const useAuthStateMock = vi.fn();
 vi.mock('@/features/auth/hooks/use-auth-state', () => ({
-  useAuthState: () => useAuthStateMock(),
+useAuthState: () => useAuthStateMock(),
 }));
 
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
 function uuidV7(index: number): string {
-  const tail = String(index).padStart(12, '0');
-  return `0192f4d8-0000-7000-8000-${tail}`;
+const tail = String(index).padStart(12, '0');
+return `0192f4d8-0000-7000-8000-${tail}`;
 }
 
 function bookmark(quizId: string, bookmarkId: string): BookmarkedQuizResponseDto {
-  return {
-    bookmarkId,
-    quizId,
-    quizTitle: `Quiz ${quizId}`,
-    quizSlug: `quiz-${quizId}`,
-    quizImageUrl: null,
-    quizIsFeatured: false,
-    notes: null,
-    bookmarkedAt: '2026-07-01T00:00:00.000Z',
+return {
+bookmarkId,
+quizId,
+quizTitle: `Quiz ${quizId}`,
+quizSlug: `quiz-${quizId}`,
+quizImageUrl: null,
+quizIsFeatured: false,
+notes: null,
+bookmarkedAt: '2026-07-01T00:00:00.000Z',
   };
 }
 
 function collection(collectionId: string, name: string, createdAt: string) {
-  return {
-    collectionId,
-    userId: uuidV7(99),
-    name,
-    description: null,
-    quizCount: 0,
-    createdAt,
-    updatedAt: createdAt,
+return {
+collectionId,
+userId: uuidV7(99),
+name,
+description: null,
+quizCount: 0,
+createdAt,
+updatedAt: createdAt,
   };
 }
 
 function TestSwrProvider({ children }: { children: React.ReactNode }) {
-  return (
-    <SWRConfig
-      value={{
-        provider: () => new Map(),
-        revalidateOnFocus: false,
-        revalidateIfStale: false,
-        dedupingInterval: 0,
-        errorRetryCount: 0,
+return (
+<SWRConfig
+value={{
+provider: () => new Map(),
+revalidateOnFocus: false,
+revalidateIfStale: false,
+dedupingInterval: 0,
+errorRetryCount: 0,
       }}
     >
-      {children}
-    </SWRConfig>
+{children}
+</SWRConfig>
   );
 }
 
 function Probe() {
-  const lookup = useBookmarkedQuizIds();
-  return (
-    <div
-      data-testid='probe'
-      data-quiz-ids={JSON.stringify(Array.from(lookup.quizIds).sort())}
-      data-loading={String(lookup.isLoading)}
-      data-has-error={String(lookup.error !== null)}
+const lookup = useBookmarkedQuizIds();
+return (
+<div
+data-testid='probe'
+data-quiz-ids={JSON.stringify(Array.from(lookup.quizIds).sort())}
+data-loading={String(lookup.isLoading)}
+data-has-error={String(lookup.error !== null)}
     />
   );
 }
 
 afterEach(() => {
-  cleanup();
-  vi.clearAllMocks();
+cleanup();
+vi.clearAllMocks();
 });
-
-// ---------------------------------------------------------------------------
-// (a) Unauthenticated
-// ---------------------------------------------------------------------------
 
 describe('useBookmarkedQuizIds — unauthenticated', () => {
-  it('(a) returns an empty Set without firing any fetch when isAuthenticated === false', async () => {
-    useAuthStateMock.mockReturnValue({ isAuthenticated: false });
-    listCollectionsMock.mockResolvedValue({ data: { items: [] } });
+it('(a) returns an empty Set without firing any fetch when isAuthenticated === false', async () => {
+useAuthStateMock.mockReturnValue({ isAuthenticated: false });
+listCollectionsMock.mockResolvedValue({ data: { items: [] } });
 
-    const { getByTestId } = render(<Probe />, { wrapper: TestSwrProvider });
+const { getByTestId } = render(<Probe />, { wrapper: TestSwrProvider });
 
-    await waitFor(() => {
-      const probeEl = getByTestId('probe');
-      expect(probeEl.getAttribute('data-quiz-ids')).toBe('[]');
-      expect(probeEl.getAttribute('data-loading')).toBe('false');
-      expect(probeEl.getAttribute('data-has-error')).toBe('false');
+await waitFor(() => {
+const probeEl = getByTestId('probe');
+expect(probeEl.getAttribute('data-quiz-ids')).toBe('[]');
+expect(probeEl.getAttribute('data-loading')).toBe('false');
+expect(probeEl.getAttribute('data-has-error')).toBe('false');
     });
 
-    expect(listCollectionsMock).not.toHaveBeenCalled();
-    expect(listBookmarksInCollectionMock).not.toHaveBeenCalled();
+expect(listCollectionsMock).not.toHaveBeenCalled();
+expect(listBookmarksInCollectionMock).not.toHaveBeenCalled();
   });
 });
-
-// ---------------------------------------------------------------------------
-// (b) Authenticated, zero collections
-// ---------------------------------------------------------------------------
 
 describe('useBookmarkedQuizIds — zero collections', () => {
-  it('(b) resolves to an empty Set without calling listBookmarksInCollection', async () => {
-    useAuthStateMock.mockReturnValue({ isAuthenticated: true });
-    listCollectionsMock.mockResolvedValue({ data: { items: [] } });
+it('(b) resolves to an empty Set without calling listBookmarksInCollection', async () => {
+useAuthStateMock.mockReturnValue({ isAuthenticated: true });
+listCollectionsMock.mockResolvedValue({ data: { items: [] } });
 
-    const { getByTestId } = render(<Probe />, { wrapper: TestSwrProvider });
+const { getByTestId } = render(<Probe />, { wrapper: TestSwrProvider });
 
-    await waitFor(() => {
-      const probeEl = getByTestId('probe');
-      expect(probeEl.getAttribute('data-quiz-ids')).toBe('[]');
-      expect(probeEl.getAttribute('data-loading')).toBe('false');
-      expect(probeEl.getAttribute('data-has-error')).toBe('false');
+await waitFor(() => {
+const probeEl = getByTestId('probe');
+expect(probeEl.getAttribute('data-quiz-ids')).toBe('[]');
+expect(probeEl.getAttribute('data-loading')).toBe('false');
+expect(probeEl.getAttribute('data-has-error')).toBe('false');
     });
 
-    expect(listCollectionsMock).toHaveBeenCalledTimes(1);
-    expect(listBookmarksInCollectionMock).not.toHaveBeenCalled();
+expect(listCollectionsMock).toHaveBeenCalledTimes(1);
+expect(listBookmarksInCollectionMock).not.toHaveBeenCalled();
   });
 });
 
-// ---------------------------------------------------------------------------
-// (c) Authenticated, one collection
-// ---------------------------------------------------------------------------
-
 describe('useBookmarkedQuizIds — one collection', () => {
-  it('(c) fetches that collection members and exposes them as a Set', async () => {
-    useAuthStateMock.mockReturnValue({ isAuthenticated: true });
-    const firstCollection = collection(
-      uuidV7(1),
-      'Favourites',
-      '2026-07-01T00:00:00.000Z',
+it('(c) fetches that collection members and exposes them as a Set', async () => {
+useAuthStateMock.mockReturnValue({ isAuthenticated: true });
+const firstCollection = collection(
+uuidV7(1),
+'Favourites',
+'2026-07-01T00:00:00.000Z',
     );
-    listCollectionsMock.mockResolvedValue({ data: { items: [firstCollection] } });
-    listBookmarksInCollectionMock.mockResolvedValue({
-      data: {
-        items: [bookmark(uuidV7(10), uuidV7(100)), bookmark(uuidV7(11), uuidV7(101))],
+listCollectionsMock.mockResolvedValue({ data: { items: [firstCollection] } });
+listBookmarksInCollectionMock.mockResolvedValue({
+data: {
+items: [bookmark(uuidV7(10), uuidV7(100)), bookmark(uuidV7(11), uuidV7(101))],
       },
     });
 
-    const { getByTestId } = render(<Probe />, { wrapper: TestSwrProvider });
+const { getByTestId } = render(<Probe />, { wrapper: TestSwrProvider });
 
-    await waitFor(() => {
-      const probeEl = getByTestId('probe');
-      expect(probeEl.getAttribute('data-quiz-ids')).toBe(
-        JSON.stringify([uuidV7(10), uuidV7(11)].sort()),
+await waitFor(() => {
+const probeEl = getByTestId('probe');
+expect(probeEl.getAttribute('data-quiz-ids')).toBe(
+JSON.stringify([uuidV7(10), uuidV7(11)].sort()),
       );
-      expect(probeEl.getAttribute('data-loading')).toBe('false');
-      expect(probeEl.getAttribute('data-has-error')).toBe('false');
+expect(probeEl.getAttribute('data-loading')).toBe('false');
+expect(probeEl.getAttribute('data-has-error')).toBe('false');
     });
 
-    expect(listBookmarksInCollectionMock).toHaveBeenCalledTimes(1);
-    expect(listBookmarksInCollectionMock).toHaveBeenCalledWith(uuidV7(1));
+expect(listBookmarksInCollectionMock).toHaveBeenCalledTimes(1);
+expect(listBookmarksInCollectionMock).toHaveBeenCalledWith(uuidV7(1));
   });
 });
-
-// ---------------------------------------------------------------------------
-// (d) Authenticated, multiple collections, deduplication
-// ---------------------------------------------------------------------------
 
 describe('useBookmarkedQuizIds — multiple collections', () => {
-  it('(d) unions members from multiple collections and deduplicates', async () => {
-    useAuthStateMock.mockReturnValue({ isAuthenticated: true });
-    const col1 = collection(uuidV7(1), 'Favourites', '2026-07-01T00:00:00.000Z');
-    const col2 = collection(uuidV7(2), 'History', '2026-07-15T00:00:00.000Z');
-    listCollectionsMock.mockResolvedValue({ data: { items: [col1, col2] } });
+it('(d) unions members from multiple collections and deduplicates', async () => {
+useAuthStateMock.mockReturnValue({ isAuthenticated: true });
+const col1 = collection(uuidV7(1), 'Favourites', '2026-07-01T00:00:00.000Z');
+const col2 = collection(uuidV7(2), 'History', '2026-07-15T00:00:00.000Z');
+listCollectionsMock.mockResolvedValue({ data: { items: [col1, col2] } });
 
-    listBookmarksInCollectionMock.mockImplementation(async (collectionId: string) => {
-      if (collectionId === uuidV7(1)) {
-        return {
-          data: {
-            items: [
-              bookmark(uuidV7(10), uuidV7(100)),
-              bookmark(uuidV7(11), uuidV7(101)),
+listBookmarksInCollectionMock.mockImplementation(async (collectionId: string) => {
+if (collectionId === uuidV7(1)) {
+return {
+data: {
+items: [
+bookmark(uuidV7(10), uuidV7(100)),
+bookmark(uuidV7(11), uuidV7(101)),
             ],
           },
         };
       }
-      if (collectionId === uuidV7(2)) {
-        return {
-          data: {
-            items: [
-              // Duplicate of `uuidV7(10)` — must collapse to one entry.
-              bookmark(uuidV7(10), uuidV7(102)),
-              bookmark(uuidV7(12), uuidV7(103)),
+if (collectionId === uuidV7(2)) {
+return {
+data: {
+items: [
+
+bookmark(uuidV7(10), uuidV7(102)),
+bookmark(uuidV7(12), uuidV7(103)),
             ],
           },
         };
       }
-      return { data: { items: [] } };
+return { data: { items: [] } };
     });
 
-    const { getByTestId } = render(<Probe />, { wrapper: TestSwrProvider });
+const { getByTestId } = render(<Probe />, { wrapper: TestSwrProvider });
 
-    await waitFor(() => {
-      const probeEl = getByTestId('probe');
-      expect(probeEl.getAttribute('data-quiz-ids')).toBe(
-        JSON.stringify([uuidV7(10), uuidV7(11), uuidV7(12)].sort()),
+await waitFor(() => {
+const probeEl = getByTestId('probe');
+expect(probeEl.getAttribute('data-quiz-ids')).toBe(
+JSON.stringify([uuidV7(10), uuidV7(11), uuidV7(12)].sort()),
       );
-      expect(probeEl.getAttribute('data-loading')).toBe('false');
-      expect(probeEl.getAttribute('data-has-error')).toBe('false');
+expect(probeEl.getAttribute('data-loading')).toBe('false');
+expect(probeEl.getAttribute('data-has-error')).toBe('false');
     });
 
-    expect(listBookmarksInCollectionMock).toHaveBeenCalledTimes(2);
+expect(listBookmarksInCollectionMock).toHaveBeenCalledTimes(2);
   });
 });
-
-// ---------------------------------------------------------------------------
-// (e) One collection fetch failure
-// ---------------------------------------------------------------------------
 
 describe('useBookmarkedQuizIds — partial failure', () => {
-  it('(e) surfaces error and leaves the Set empty when one collection fetch fails', async () => {
-    useAuthStateMock.mockReturnValue({ isAuthenticated: true });
-    const col1 = collection(uuidV7(1), 'Favourites', '2026-07-01T00:00:00.000Z');
-    const col2 = collection(uuidV7(2), 'History', '2026-07-15T00:00:00.000Z');
-    listCollectionsMock.mockResolvedValue({ data: { items: [col1, col2] } });
+it('(e) surfaces error and leaves the Set empty when one collection fetch fails', async () => {
+useAuthStateMock.mockReturnValue({ isAuthenticated: true });
+const col1 = collection(uuidV7(1), 'Favourites', '2026-07-01T00:00:00.000Z');
+const col2 = collection(uuidV7(2), 'History', '2026-07-15T00:00:00.000Z');
+listCollectionsMock.mockResolvedValue({ data: { items: [col1, col2] } });
 
-    listBookmarksInCollectionMock.mockImplementation(async (collectionId: string) => {
-      if (collectionId === uuidV7(1)) {
-        return {
-          data: { items: [bookmark(uuidV7(10), uuidV7(100))] },
+listBookmarksInCollectionMock.mockImplementation(async (collectionId: string) => {
+if (collectionId === uuidV7(1)) {
+return {
+data: { items: [bookmark(uuidV7(10), uuidV7(100))] },
         };
       }
-      // Second collection fails — Promise.all rejects, SWR surfaces
-      // the error, and the consumer's `quizIds` Set is empty for
-      // that render.
-      throw new Error('Network error');
+
+throw new Error('Network error');
     });
 
-    const { getByTestId } = render(<Probe />, { wrapper: TestSwrProvider });
+const { getByTestId } = render(<Probe />, { wrapper: TestSwrProvider });
 
-    await waitFor(() => {
-      const probeEl = getByTestId('probe');
-      expect(probeEl.getAttribute('data-quiz-ids')).toBe('[]');
-      expect(probeEl.getAttribute('data-has-error')).toBe('true');
+await waitFor(() => {
+const probeEl = getByTestId('probe');
+expect(probeEl.getAttribute('data-quiz-ids')).toBe('[]');
+expect(probeEl.getAttribute('data-has-error')).toBe('true');
     });
   });
 });
-
-// ---------------------------------------------------------------------------
-// (f) buildBookmarkedQuizIdSet — replacement, not mutation
-// ---------------------------------------------------------------------------
 
 describe('buildBookmarkedQuizIdSet', () => {
-  it('(f1) replaces the Set on every call', () => {
-    const listA: ReadonlyArray<BookmarkedQuizResponseDto> = [
-      bookmark(uuidV7(10), uuidV7(100)),
+it('(f1) replaces the Set on every call', () => {
+const listA: ReadonlyArray<BookmarkedQuizResponseDto> = [
+bookmark(uuidV7(10), uuidV7(100)),
     ];
-    const listB: ReadonlyArray<BookmarkedQuizResponseDto> = [
-      bookmark(uuidV7(11), uuidV7(101)),
+const listB: ReadonlyArray<BookmarkedQuizResponseDto> = [
+bookmark(uuidV7(11), uuidV7(101)),
     ];
 
-    const first = buildBookmarkedQuizIdSet([listA]);
-    const second = buildBookmarkedQuizIdSet([listB]);
+const first = buildBookmarkedQuizIdSet([listA]);
+const second = buildBookmarkedQuizIdSet([listB]);
 
-    expect(first.has(uuidV7(10))).toBe(true);
-    expect(first.has(uuidV7(11))).toBe(false);
-    expect(second.has(uuidV7(10))).toBe(false);
-    expect(second.has(uuidV7(11))).toBe(true);
+expect(first.has(uuidV7(10))).toBe(true);
+expect(first.has(uuidV7(11))).toBe(false);
+expect(second.has(uuidV7(10))).toBe(false);
+expect(second.has(uuidV7(11))).toBe(true);
 
-    // Different references confirm REPLACEMENT, not mutation.
-    expect(first).not.toBe(second);
+expect(first).not.toBe(second);
   });
 
-  it('(f2) does NOT mutate the input BookmarkedQuizResponseDto lists', () => {
-    const original = [bookmark(uuidV7(10), uuidV7(100))];
-    const snapshot = JSON.parse(JSON.stringify(original)) as BookmarkedQuizResponseDto[];
+it('(f2) does NOT mutate the input BookmarkedQuizResponseDto lists', () => {
+const original = [bookmark(uuidV7(10), uuidV7(100))];
+const snapshot = JSON.parse(JSON.stringify(original)) as BookmarkedQuizResponseDto[];
 
-    buildBookmarkedQuizIdSet([original]);
+buildBookmarkedQuizIdSet([original]);
 
-    expect(original).toEqual(snapshot);
+expect(original).toEqual(snapshot);
   });
 
-  it('(f3) skips records with an empty or missing quizId', () => {
-    const list: ReadonlyArray<BookmarkedQuizResponseDto> = [
-      bookmark(uuidV7(10), uuidV7(100)),
-      { ...bookmark('', uuidV7(101)), quizId: '' },
+it('(f3) skips records with an empty or missing quizId', () => {
+const list: ReadonlyArray<BookmarkedQuizResponseDto> = [
+bookmark(uuidV7(10), uuidV7(100)),
+{ ...bookmark('', uuidV7(101)), quizId: '' },
     ];
-    const result = buildBookmarkedQuizIdSet([list]);
-    expect(Array.from(result)).toEqual([uuidV7(10)]);
+const result = buildBookmarkedQuizIdSet([list]);
+expect(Array.from(result)).toEqual([uuidV7(10)]);
   });
 });
 
-// ---------------------------------------------------------------------------
-// (g) SWR key
-// ---------------------------------------------------------------------------
-
 describe('useBookmarkedQuizIds — SWR key', () => {
-  it('(g) the SWR key follows the documented shape', () => {
-    expect(bookmarkedQuizIdsKey()).toEqual(['bookmarked-quiz-ids']);
+it('(g) the SWR key follows the documented shape', () => {
+expect(bookmarkedQuizIdsKey()).toEqual(['bookmarked-quiz-ids']);
   });
 });

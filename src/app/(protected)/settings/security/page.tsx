@@ -316,7 +316,7 @@ export default function SecuritySettingsPage() {
           <h1 className='text-3xl font-bold mb-2'>
             {resolveCopy(COPY_KEYS.dashboard.title)}
           </h1>
-          <p className='text-foreground/70 text-base max-w-2xl'>
+          <p className='text-muted-foreground text-base max-w-2xl'>
             {resolveCopy(COPY_KEYS.dashboard.subtitle)}
           </p>
         </header>

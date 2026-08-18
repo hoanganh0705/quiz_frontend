@@ -1,4 +1,4 @@
-// Shared gameplay primitives — Story 5.8 batch D
+
 
 export { GameSkeleton } from './GameSkeleton';
 export { GameEmptyState } from './GameEmptyState';

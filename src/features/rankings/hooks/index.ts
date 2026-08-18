@@ -1,10 +1,10 @@
-// Story 5.5 — Ranking, leaderboards, milestones, and achievement surfaces.
+
 
 export { useEventuallyConsistentQuery } from './useEventuallyConsistentQuery';
 export type {
-  EventuallyConsistentFetcher,
-  UseEventuallyConsistentQueryParams,
-  UseEventuallyConsistentQueryResult,
+EventuallyConsistentFetcher,
+UseEventuallyConsistentQueryParams,
+UseEventuallyConsistentQueryResult,
 } from './useEventuallyConsistentQuery';
 
 export { useMyRanking } from './useMyRanking';

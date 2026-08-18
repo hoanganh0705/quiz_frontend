@@ -23,9 +23,8 @@
   --destructive: oklch(0.577 0.245 27.325);
   --destructive-foreground: oklch(0.985 0 0);
   --border: oklch(0.922 0 0);
-  --input: oklch(0.78 0 0);
-  --input-border: oklch(0.78 0 0);
-  --ring: oklch(0.708 0 0);
+  --input: oklch(0.55 0 0);
+  --ring: oklch(0.55 0 0);
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
@@ -42,9 +41,37 @@
   --sidebar-ring: oklch(0.708 0 0);
   --brand: oklch(0.65 0.15 270);
   --brand-hover: oklch(0.72 0.15 270);
+  --brand-foreground: oklch(0.985 0 0);
   --white-primary: oklch(0.98 0 0);
   --default: var(--brand);
   --default-hover: var(--brand-hover);
+  --default-foreground: var(--brand-foreground);
+
+  /* Tag-swatch palette: muted hues designed to read against the chip border
+     and remain legible against the chip's text token on both themes. */
+  --tag-swatch-1: oklch(0.7 0.12 25);
+  --tag-swatch-2: oklch(0.7 0.13 80);
+  --tag-swatch-3: oklch(0.7 0.14 145);
+  --tag-swatch-4: oklch(0.7 0.12 215);
+  --tag-swatch-5: oklch(0.7 0.13 290);
+
+  /* Card fallback gradients: paired light/dark variants keep the brand
+     swappable by flipping --brand and re-deriving these stops. */
+  --card-gradient-1-from: oklch(0.55 0.18 230);
+  --card-gradient-1-to: oklch(0.55 0.18 280);
+  --card-gradient-2-from: oklch(0.55 0.15 150);
+  --card-gradient-2-to: oklch(0.55 0.15 195);
+  --card-gradient-3-from: oklch(0.6 0.18 350);
+  --card-gradient-3-to: oklch(0.65 0.18 30);
+  --card-gradient-4-from: oklch(0.7 0.18 60);
+  --card-gradient-4-to: oklch(0.7 0.18 35);
+  --card-gradient-5-from: oklch(0.55 0.15 210);
+  --card-gradient-5-to: oklch(0.55 0.15 245);
+  --card-gradient-6-from: oklch(0.55 0.18 305);
+  --card-gradient-6-to: oklch(0.6 0.18 335);
+
+  /* Header offset for snap rails: keep in lock-step with AppHeader h-16. */
+  --header-offset: 4rem;
 }
 
 .dark {
@@ -66,10 +93,9 @@
   --accent-foreground: oklch(0.985 0 0);
   --destructive: oklch(0.637 0.237 25.331);
   --destructive-foreground: oklch(0.985 0 0);
-  --border: oklch(0.42 0 0);
-  --input: oklch(0.42 0 0);
-  --input-border: oklch(0.42 0 0);
-  --ring: oklch(0.439 0 0);
+  --border: oklch(0.5 0 0);
+  --input: var(--border);
+  --ring: oklch(0.85 0 0);
   --chart-1: oklch(0.488 0.243 264.376);
   --chart-2: oklch(0.696 0.17 162.48);
   --chart-3: oklch(0.769 0.188 70.08);
@@ -81,13 +107,36 @@
   --sidebar-primary-foreground: oklch(0.985 0 0);
   --sidebar-accent: oklch(0.269 0 0);
   --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(0.269 0 0);
-  --sidebar-ring: oklch(0.439 0 0);
+  --sidebar-border: oklch(0.4 0 0);
+  --sidebar-ring: oklch(0.7 0 0);
   --brand: oklch(0.65 0.15 270);
   --brand-hover: oklch(0.72 0.15 270);
+  --brand-foreground: oklch(0.985 0 0);
   --white-primary: oklch(0.98 0 0);
   --default: var(--brand);
   --default-hover: var(--brand-hover);
+  --default-foreground: var(--brand-foreground);
+
+  /* Tag swatches in dark mode lean brighter to keep contrast against the
+     chip border and text on dark surfaces. */
+  --tag-swatch-1: oklch(0.78 0.13 25);
+  --tag-swatch-2: oklch(0.8 0.14 80);
+  --tag-swatch-3: oklch(0.78 0.13 145);
+  --tag-swatch-4: oklch(0.78 0.12 215);
+  --tag-swatch-5: oklch(0.78 0.13 290);
+
+  --card-gradient-1-from: oklch(0.45 0.18 230);
+  --card-gradient-1-to: oklch(0.5 0.18 280);
+  --card-gradient-2-from: oklch(0.5 0.15 150);
+  --card-gradient-2-to: oklch(0.5 0.15 195);
+  --card-gradient-3-from: oklch(0.55 0.18 350);
+  --card-gradient-3-to: oklch(0.6 0.18 30);
+  --card-gradient-4-from: oklch(0.65 0.18 60);
+  --card-gradient-4-to: oklch(0.65 0.18 35);
+  --card-gradient-5-from: oklch(0.5 0.15 210);
+  --card-gradient-5-to: oklch(0.5 0.15 245);
+  --card-gradient-6-from: oklch(0.5 0.18 305);
+  --card-gradient-6-to: oklch(0.55 0.18 335);
 }
 
 @theme inline {
@@ -120,17 +169,35 @@
 
   --color-border: var(--border);
   --color-input: var(--input);
-  --color-input-border: var(--input-border);
   --color-ring: var(--ring);
+
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
 
   --color-brand: var(--brand);
   --color-brand-hover: var(--brand-hover);
+  --color-brand-foreground: var(--brand-foreground);
 
   --color-default: var(--default);
   --color-default-hover: var(--default-hover);
+  --color-default-foreground: var(--default-foreground);
   --color-white-primary: var(--white-primary);
 
+  --color-tag-swatch-1: var(--tag-swatch-1);
+  --color-tag-swatch-2: var(--tag-swatch-2);
+  --color-tag-swatch-3: var(--tag-swatch-3);
+  --color-tag-swatch-4: var(--tag-swatch-4);
+  --color-tag-swatch-5: var(--tag-swatch-5);
+
   --radius: var(--radius);
+
+  --font-sans: var(--font-app-sans), ui-sans-serif, system-ui, -apple-system,
+    "Segoe UI", Roboto, sans-serif;
+  --font-mono: var(--font-app-mono), ui-monospace, "SFMono-Regular", Menlo,
+    Consolas, monospace;
 }
 
 @theme {
@@ -150,6 +217,8 @@
   }
   html,
   body {
+    /* Hide horizontal scroll at the viewport edge as a safety net; rails
+       still self-scroll via overflow-x-auto so they remain accessible. */
     overflow-x: hidden;
     max-width: 100vw;
   }
@@ -178,16 +247,39 @@
 }
 
 .app-page-transition {
-  animation: page-fade-in 180ms ease-out;
+  animation: page-fade-in 120ms ease-out;
 }
 
 @keyframes page-fade-in {
   from {
     opacity: 0;
-    transform: translateY(4px);
+    transform: translateY(2px);
   }
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+/* Reduced motion: honor the user's OS preference. Keep state changes but
+   cancel the animation, pulses, and the auto-spin loader. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .animate-pulse,
+  .animate-spin,
+  /* animate-bounce is referenced defensively for the reduced-motion block;
+     no other rule in the codebase applies it. */
+  /* impeccable-disable-next-line bounce-easing */
+  .animate-bounce,
+  .app-page-transition {
+    animation: none !important;
   }
 }

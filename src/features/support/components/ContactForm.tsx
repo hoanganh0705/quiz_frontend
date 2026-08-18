@@ -13,7 +13,7 @@ import {
   SelectValue
 } from '@/components/ui/Select'
 import { Textarea } from '@/components/ui/Textarea'
-import { Upload, Loader2 } from 'lucide-react'
+import { Loader2 } from 'lucide-react'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -43,7 +43,6 @@ const contactFormSchema = z.object({
 type ContactFormData = z.infer<typeof contactFormSchema>
 
 export function ContactForm() {
-  const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [submitSuccess, setSubmitSuccess] = useState(false)
 
   const {
@@ -63,17 +62,6 @@ export function ContactForm() {
     }
   })
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
-    if (file) {
-      // Validate file size (5MB max)
-      if (file.size > 5 * 1024 * 1024) {
-        return
-      }
-      setSelectedFile(file)
-    }
-  }
-
   const { execute: onSubmit, isLoading: isSubmitting } = useAsyncAction(
     async (data: ContactFormData) => {
       await submitContactForm({
@@ -86,7 +74,6 @@ export function ContactForm() {
 
       setSubmitSuccess(true)
       reset()
-      setSelectedFile(null)
 
       // Reset success message after 5 seconds
       setTimeout(() => setSubmitSuccess(false), 5000)
@@ -247,35 +234,9 @@ export function ContactForm() {
           )}
         </div>
 
-        {/* File upload */}
-        <div className='space-y-2'>
-          <Label htmlFor='attachment' className='text-foreground font-medium'>
-            Attachment (optional)
-          </Label>
-          <div className='space-y-2'>
-            <div className='relative inline-block'>
-              <input
-                id='attachment'
-                type='file'
-                onChange={handleFileChange}
-                accept='.jpg,.jpeg,.png,.gif,.pdf,.doc,.docx,.txt'
-                className='absolute inset-0 w-full h-full opacity-0 cursor-pointer'
-              />
-              <Button
-                type='button'
-                variant='outline'
-                size='sm'
-                className='bg-transparent border border-border text-foreground hover:bg-brand hover:border-brand px-4'
-              >
-                <Upload className='w-4 h-4 mr-2' />
-                {selectedFile ? selectedFile.name : 'Upload File'}
-              </Button>
-            </div>
-            <p className='text-sm text-foreground/70'>
-              Accepted file types: Images, PDF, DOC, DOCX, TXT (Max 5MB)
-            </p>
-          </div>
-        </div>
+        {/* File upload — removed in Phase 5/6. ContactForm does not
+            submit attachments; the input here was dead UI. Re-enable
+            when the backend adds an attachment-upload endpoint. */}
 
         {/* Submit button */}
         {submitSuccess && (

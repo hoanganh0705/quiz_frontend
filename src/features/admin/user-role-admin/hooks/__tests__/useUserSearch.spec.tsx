@@ -1,69 +1,61 @@
-/**
- * `features/admin/user-role-admin/hooks/__tests__/useUserSearch.spec.ts`
- *
- * Source epic:   Epic 7.10 — User Role Grant.
- * Source ticket: TKT-7.10.C1.
- */
+
 
 import { renderHook, waitFor } from '@testing-library/react';
 import React from 'react';
 
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
 
-// Mock the feature flag
 vi.mock('@/lib/feature-flags', () => ({
-  getFeatureFlagValue: vi.fn().mockReturnValue('live'),
+getFeatureFlagValue: vi.fn().mockReturnValue('live'),
 }));
 
-// Mock the SWR
 vi.mock('swr', () => ({
-  default: vi.fn(),
+default: vi.fn(),
 }));
 
-// Import after mocks
 import { useUserSearch, USER_SEARCH_DEBOUNCE_MS, USER_SEARCH_MIN_QUERY_LENGTH } from '../useUserSearch';
 
 describe('useUserSearch', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-    vi.useFakeTimers();
+beforeEach(() => {
+vi.clearAllMocks();
+vi.useFakeTimers();
   });
 
-  afterEach(() => {
-    vi.useRealTimers();
+afterEach(() => {
+vi.useRealTimers();
   });
 
-  it('returns fallback when flag is placeholder', async () => {
-    const { getFeatureFlagValue } = await import('@/lib/feature-flags');
-    vi.mocked(getFeatureFlagValue).mockReturnValue('placeholder');
+it('returns fallback when flag is placeholder', async () => {
+const { getFeatureFlagValue } = await import('@/lib/feature-flags');
+vi.mocked(getFeatureFlagValue).mockReturnValue('placeholder');
 
-    const { result } = renderHook(() => useUserSearch('test'));
+const { result } = renderHook(() => useUserSearch('test'));
 
-    expect(result.current.users).toEqual([]);
-    expect(result.current.total).toBe(0);
-    expect(result.current.isLoading).toBe(false);
-    expect(result.current.error).toBeNull();
+expect(result.current.users).toEqual([]);
+expect(result.current.total).toBe(0);
+expect(result.current.isLoading).toBe(false);
+expect(result.current.error).toBeNull();
   });
 
-  it('returns fallback when query is too short', () => {
-    const { result } = renderHook(() => useUserSearch('a'));
+it('returns fallback when query is too short', () => {
+const { result } = renderHook(() => useUserSearch('a'));
 
-    expect(result.current.users).toEqual([]);
-    expect(result.current.isLoading).toBe(false);
+expect(result.current.users).toEqual([]);
+expect(result.current.isLoading).toBe(false);
   });
 
-  it('returns fallback when query is empty', () => {
-    const { result } = renderHook(() => useUserSearch(''));
+it('returns fallback when query is empty', () => {
+const { result } = renderHook(() => useUserSearch(''));
 
-    expect(result.current.users).toEqual([]);
-    expect(result.current.isLoading).toBe(false);
+expect(result.current.users).toEqual([]);
+expect(result.current.isLoading).toBe(false);
   });
 
-  it('has correct debounce delay constant', () => {
-    expect(USER_SEARCH_DEBOUNCE_MS).toBe(300);
+it('has correct debounce delay constant', () => {
+expect(USER_SEARCH_DEBOUNCE_MS).toBe(300);
   });
 
-  it('has correct minimum query length constant', () => {
-    expect(USER_SEARCH_MIN_QUERY_LENGTH).toBe(2);
+it('has correct minimum query length constant', () => {
+expect(USER_SEARCH_MIN_QUERY_LENGTH).toBe(2);
   });
 });

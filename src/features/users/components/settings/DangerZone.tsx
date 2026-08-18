@@ -3,249 +3,221 @@
 import { useState, memo } from 'react'
 import { Button } from '@/components/ui/Button'
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle
+Card,
+CardContent,
+CardDescription,
+CardHeader,
+CardTitle
 } from '@/components/ui/Card'
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger
+Dialog,
+DialogContent,
+DialogDescription,
+DialogFooter,
+DialogHeader,
+DialogTitle,
+DialogTrigger
 } from '@/components/ui/Dialog'
 import { AlertTriangle, Trash2, Download, LogOut, XCircle } from 'lucide-react'
 
 interface DangerZoneProps {
-  /**
-   * Called when the user clicks the destructive "Delete Account"
-   * trigger. The parent (settings page) is responsible for opening
-   * the destructive modal — the trigger itself does NOT submit a
-   * request. Mirrors the `onSignOutAll` discipline: the trigger
-   * only opens a confirmation surface.
-   *
-   * Source epic: Epic 2.10 — Permanent account deletion.
-   * Source ticket: 2.10.T18.
-   */
-  onDeleteAccount: () => void
-  onExportData: () => void
-  onSignOutAll: () => void
-  /**
-   * Pending state for the "Sign Out All Sessions" destructive
-   * action. While `true`, the destructive button shows a spinner
-   * and is disabled, so a double-click cannot fire a second
-   * `onSignOutAll`.
-   *
-   * Source epic: Epic 2.8 — Security dashboard and active-session management.
-   * Source ticket: 2.8.T21 — wire `useLogoutAll`.
-   */
-  isSignOutAllPending?: boolean
-  /**
-   * Whether the destructive deletion flow is currently in a
-   * pending, cleanup, or completed state. While `true`, the
-   * Delete Account trigger is disabled so the user cannot open
-   * a second modal during a terminal flow.
-   *
-   * Source epic: Epic 2.10.
-   * Source ticket: 2.10.T18.
-   */
-  isDeleteAccountPending?: boolean
+
+onDeleteAccount: () => void
+onExportData: () => void
+onSignOutAll: () => void
+
+isSignOutAllPending?: boolean
+
+isDeleteAccountPending?: boolean
 }
 
 export const DangerZone = memo(function DangerZone({
-  onDeleteAccount,
-  onExportData,
-  onSignOutAll,
-  isSignOutAllPending = false,
-  isDeleteAccountPending = false,
+onDeleteAccount,
+onExportData,
+onSignOutAll,
+isSignOutAllPending = false,
+isDeleteAccountPending = false,
 }: DangerZoneProps) {
-  // T21: controlled open state for the "Sign Out All Sessions" modal,
-  // so the pending spinner can be toggled without losing the modal.
-  const [signOutAllDialogOpen, setSignOutAllDialogOpen] = useState(false)
 
-  return (
-    <div className='space-y-6'>
-      <div className='flex items-center gap-2 p-4 rounded-lg bg-destructive/10 border border-destructive/20'>
-        <AlertTriangle
-          className='w-5 h-5 text-destructive'
-          aria-hidden='true'
+const [signOutAllDialogOpen, setSignOutAllDialogOpen] = useState(false)
+
+return (
+<div className='space-y-6'>
+<div className='flex items-center gap-2 p-4 rounded-lg bg-destructive/10 border border-destructive/20'>
+<AlertTriangle
+className='w-5 h-5 text-destructive'
+aria-hidden='true'
         />
-        <div>
-          <h3 className='text-lg font-semibold text-destructive'>
-            Danger Zone
+<div>
+<h3 className='text-lg font-semibold text-destructive'>
+Danger Zone
           </h3>
-          <p className='text-sm text-destructive/80'>
-            Actions here are irreversible. Please proceed with caution.
+<p className='text-sm text-destructive/80'>
+Actions here are irreversible. Please proceed with caution.
           </p>
-        </div>
-      </div>
+</div>
+</div>
 
-      {/* Export Data */}
-      <Card className='border-border/40 py-4'>
-        <CardHeader>
-          <CardTitle className='flex items-center gap-2'>
-            <Download className='w-5 h-5 text-primary' aria-hidden='true' />
-            Export Your Data
+{/* Export Data */}
+<Card className='border-border/40 py-4'>
+<CardHeader>
+<CardTitle className='flex items-center gap-2'>
+<Download className='w-5 h-5 text-primary' aria-hidden='true' />
+Export Your Data
           </CardTitle>
-          <CardDescription>
-            Download all your data including quiz history, achievements, and
+<CardDescription>
+Download all your data including quiz history, achievements, and
             account information
           </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Button
-            variant='outline'
-            onClick={onExportData}
-            aria-label='Export your data'
+</CardHeader>
+<CardContent>
+<Button
+variant='outline'
+onClick={onExportData}
+aria-label='Export your data'
           >
-            <Download className='w-4 h-4 mr-2' aria-hidden='true' />
-            Export Data
+<Download className='w-4 h-4 mr-2' aria-hidden='true' />
+Export Data
           </Button>
-        </CardContent>
-      </Card>
+</CardContent>
+</Card>
 
-      {/* Sign Out All Sessions */}
-      <Card className='border-border/40 py-4'>
-        <CardHeader>
-          <CardTitle className='flex items-center gap-2'>
-            <LogOut className='w-5 h-5 text-amber-500' aria-hidden='true' />
-            Sign Out All Sessions
+{/* Sign Out All Sessions */}
+<Card className='border-border/40 py-4'>
+<CardHeader>
+<CardTitle className='flex items-center gap-2'>
+<LogOut className='w-5 h-5 text-amber-500' aria-hidden='true' />
+Sign Out All Sessions
           </CardTitle>
-          <CardDescription>
-            Sign out from all devices where you are currently logged in
+<CardDescription>
+Sign out from all devices where you are currently logged in
           </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Dialog
-            open={signOutAllDialogOpen}
-            onOpenChange={(open) => {
-              // T21: don't let the user dismiss the modal while the
-              // request is in flight — that would leak the pending
-              // state without surfacing the redirect.
-              if (isSignOutAllPending && !open) return;
-              setSignOutAllDialogOpen(open);
+</CardHeader>
+<CardContent>
+<Dialog
+open={signOutAllDialogOpen}
+onOpenChange={(open) => {
+
+if (isSignOutAllPending && !open) return;
+setSignOutAllDialogOpen(open);
             }}
           >
-            <DialogTrigger asChild>
-              <Button
-                variant='outline'
-                className='text-amber-500 hover:text-amber-500'
-                aria-label='Sign out from all sessions'
-                disabled={isSignOutAllPending}
+<DialogTrigger asChild>
+<Button
+variant='outline'
+className='text-amber-500 hover:text-amber-500'
+aria-label='Sign out from all sessions'
+disabled={isSignOutAllPending}
               >
-                <LogOut className='w-4 h-4 mr-2' aria-hidden='true' />
-                Sign Out All Sessions
+<LogOut className='w-4 h-4 mr-2' aria-hidden='true' />
+Sign Out All Sessions
               </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Sign Out All Sessions</DialogTitle>
-                <DialogDescription>
-                  This will sign you out from all devices. You will need to log
+</DialogTrigger>
+<DialogContent>
+<DialogHeader>
+<DialogTitle>Sign Out All Sessions</DialogTitle>
+<DialogDescription>
+This will sign you out from all devices. You will need to log
                   in again on each device.
                 </DialogDescription>
-              </DialogHeader>
-              <DialogFooter>
-                <Button
-                  variant='outline'
-                  onClick={() => setSignOutAllDialogOpen(false)}
-                  disabled={isSignOutAllPending}
+</DialogHeader>
+<DialogFooter>
+<Button
+variant='outline'
+onClick={() => setSignOutAllDialogOpen(false)}
+disabled={isSignOutAllPending}
                 >
-                  Cancel
+Cancel
                 </Button>
-                <Button
-                  variant='destructive'
-                  onClick={() => {
-                    onSignOutAll();
+<Button
+variant='destructive'
+onClick={() => {
+onSignOutAll();
                     // Leave the modal open while pending; the route
                     // change on success navigates away. If the
                     // request errors, the page stays put and the
                     // caller can dismiss manually.
                   }}
-                  disabled={isSignOutAllPending}
-                  aria-busy={isSignOutAllPending}
+disabled={isSignOutAllPending}
+aria-busy={isSignOutAllPending}
                 >
-                  {isSignOutAllPending ? 'Signing out…' : 'Sign Out All'}
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-        </CardContent>
-      </Card>
+{isSignOutAllPending ? 'Signing out…' : 'Sign Out All'}
+</Button>
+</DialogFooter>
+</DialogContent>
+</Dialog>
+</CardContent>
+</Card>
 
-      {/* Deactivate Account */}
-      <Card className='border-border/40 py-4'>
-        <CardHeader>
-          <CardTitle className='flex items-center gap-2'>
-            <XCircle className='w-5 h-5 text-amber-500' aria-hidden='true' />
-            Deactivate Account
+{/* Deactivate Account */}
+<Card className='border-border/40 py-4'>
+<CardHeader>
+<CardTitle className='flex items-center gap-2'>
+<XCircle className='w-5 h-5 text-amber-500' aria-hidden='true' />
+Deactivate Account
           </CardTitle>
-          <CardDescription>
-            Temporarily deactivate your account. Your data will be preserved and
+<CardDescription>
+Temporarily deactivate your account. Your data will be preserved and
             you can reactivate anytime.
           </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button
-                variant='outline'
-                className='text-amber-500 hover:text-amber-500'
-                aria-label='Deactivate your account'
+</CardHeader>
+<CardContent>
+<Dialog>
+<DialogTrigger asChild>
+<Button
+variant='outline'
+className='text-amber-500 hover:text-amber-500'
+aria-label='Deactivate your account'
               >
-                <XCircle className='w-4 h-4 mr-2' aria-hidden='true' />
-                Deactivate Account
+<XCircle className='w-4 h-4 mr-2' aria-hidden='true' />
+Deactivate Account
               </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Deactivate Your Account</DialogTitle>
-                <DialogDescription>
-                  Your profile will be hidden and you will not appear in
+</DialogTrigger>
+<DialogContent>
+<DialogHeader>
+<DialogTitle>Deactivate Your Account</DialogTitle>
+<DialogDescription>
+Your profile will be hidden and you will not appear in
                   searches or leaderboards. You can reactivate your account at
                   any time by logging in again.
                 </DialogDescription>
-              </DialogHeader>
-              <DialogFooter>
-                <Button variant='outline'>Cancel</Button>
-                <Button variant='destructive'>Deactivate</Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-        </CardContent>
-      </Card>
+</DialogHeader>
+<DialogFooter>
+<Button variant='outline'>Cancel</Button>
+<Button variant='destructive'>Deactivate</Button>
+</DialogFooter>
+</DialogContent>
+</Dialog>
+</CardContent>
+</Card>
 
-      {/* Delete Account — T18: thin trigger. The real modal lives in
+{/* Delete Account — T18: thin trigger. The real modal lives in
           `DeleteAccountModal` (Epic 2.10) and is wired by the parent
           (settings/page.tsx). The trigger does NOT submit; it only
           opens the parent-owned modal. */}
-      <Card className='border-destructive/50 py-5'>
-        <CardHeader>
-          <CardTitle className='flex items-center gap-2 text-destructive'>
-            <Trash2 className='w-5 h-5' aria-hidden='true' />
-            Delete Account
+<Card className='border-destructive/50 py-5'>
+<CardHeader>
+<CardTitle className='flex items-center gap-2 text-destructive'>
+<Trash2 className='w-5 h-5' aria-hidden='true' />
+Delete Account
           </CardTitle>
-          <CardDescription>
-            Permanently delete your account and all associated data. This action
+<CardDescription>
+Permanently delete your account and all associated data. This action
             cannot be undone.
           </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Button
-            variant='destructive'
-            onClick={onDeleteAccount}
-            disabled={isDeleteAccountPending}
-            aria-label='Delete your account permanently'
+</CardHeader>
+<CardContent>
+<Button
+variant='destructive'
+onClick={onDeleteAccount}
+disabled={isDeleteAccountPending}
+aria-label='Delete your account permanently'
           >
-            <Trash2 className='w-4 h-4 mr-2' aria-hidden='true' />
-            Delete Account
+<Trash2 className='w-4 h-4 mr-2' aria-hidden='true' />
+Delete Account
           </Button>
-        </CardContent>
-      </Card>
-    </div>
+</CardContent>
+</Card>
+</div>
   )
 })

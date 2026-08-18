@@ -11,91 +11,89 @@ import { Input } from '@/components/ui/Input'
 import type { BookmarkFilter, BookmarkSortOption } from '@/features/bookmarks/types'
 import { Search, SlidersHorizontal } from 'lucide-react'
 
-// Hoist static data outside component
 const FILTERS: { value: BookmarkFilter; label: string }[] = [
-  { value: 'all', label: 'All Bookmarks' },
-  { value: 'recent', label: 'Recently Added' },
-  { value: 'easy', label: 'Easy' },
-  { value: 'medium', label: 'Medium' },
-  { value: 'hard', label: 'Hard' }
+{ value: 'all', label: 'All Bookmarks' },
+{ value: 'recent', label: 'Recently Added' },
+{ value: 'easy', label: 'Easy' },
+{ value: 'medium', label: 'Medium' },
+{ value: 'hard', label: 'Hard' }
 ] as const
 
 const SORT_OPTIONS: { value: BookmarkSortOption; label: string }[] = [
-  { value: 'newest', label: 'Newest First' },
-  { value: 'oldest', label: 'Oldest First' },
-  { value: 'name-asc', label: 'Name (A-Z)' },
-  { value: 'name-desc', label: 'Name (Z-A)' },
-  { value: 'difficulty', label: 'Difficulty' }
+{ value: 'newest', label: 'Newest First' },
+{ value: 'oldest', label: 'Oldest First' },
+{ value: 'name-asc', label: 'Name (A-Z)' },
+{ value: 'name-desc', label: 'Name (Z-A)' },
+{ value: 'difficulty', label: 'Difficulty' }
 ] as const
 
 interface BookmarkFiltersProps {
-  searchQuery: string
-  onSearchChange: (value: string) => void
-  filter: BookmarkFilter
-  onFilterChange: (value: BookmarkFilter) => void
-  sortBy: BookmarkSortOption
-  onSortChange: (value: BookmarkSortOption) => void
+searchQuery: string
+onSearchChange: (value: string) => void
+filter: BookmarkFilter
+onFilterChange: (value: BookmarkFilter) => void
+sortBy: BookmarkSortOption
+onSortChange: (value: BookmarkSortOption) => void
 }
 
-// Use memo to prevent unnecessary re-renders
 const BookmarkFilters = memo(function BookmarkFilters({
-  searchQuery,
-  onSearchChange,
-  filter,
-  onFilterChange,
-  sortBy,
-  onSortChange
+searchQuery,
+onSearchChange,
+filter,
+onFilterChange,
+sortBy,
+onSortChange
 }: BookmarkFiltersProps) {
-  return (
-    <div className='flex flex-col sm:flex-row gap-3 mb-6'>
-      {/* Search */}
-      <div className='relative flex-1'>
-        <Search className='absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground' />
-        <Input
-          placeholder='Search bookmarks...'
-          value={searchQuery}
-          onChange={(e) => onSearchChange(e.target.value)}
-          className='pl-9'
+return (
+<div className='flex flex-col sm:flex-row gap-3 mb-6'>
+{/* Search */}
+<div className='relative flex-1'>
+<Search className='absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground' />
+<Input
+placeholder='Search bookmarks...'
+value={searchQuery}
+onChange={(e) => onSearchChange(e.target.value)}
+className='pl-9'
         />
-      </div>
+</div>
 
-      {/* Quick Filters */}
-      <div className='flex gap-2 flex-wrap'>
-        {FILTERS.map((f) => (
-          <Button
-            key={f.value}
-            variant={filter === f.value ? 'default' : 'outline'}
-            size='sm'
-            onClick={() => onFilterChange(f.value)}
-            className={
-              filter === f.value
-                ? 'bg-default hover:bg-default-hover text-white'
-                : ''
+{/* Quick Filters */}
+<div className='flex gap-2 flex-wrap'>
+{FILTERS.map((f) => (
+<Button
+key={f.value}
+variant={filter === f.value ? 'default' : 'outline'}
+size='sm'
+onClick={() => onFilterChange(f.value)}
+className={
+filter === f.value
+? 'bg-default hover:bg-default-hover text-white'
+: ''
             }
           >
-            {f.label}
-          </Button>
+{f.label}
+</Button>
         ))}
-      </div>
+</div>
 
-      {/* Sort */}
-      <Select
-        value={sortBy}
-        onValueChange={(v) => onSortChange(v as BookmarkSortOption)}
+{/* Sort */}
+<Select
+value={sortBy}
+onValueChange={(v) => onSortChange(v as BookmarkSortOption)}
       >
-        <SelectTrigger className='w-40'>
-          <SlidersHorizontal className='mr-2 h-4 w-4' />
-          <SelectValue placeholder='Sort by' />
-        </SelectTrigger>
-        <SelectContent>
-          {SORT_OPTIONS.map((opt) => (
-            <SelectItem key={opt.value} value={opt.value}>
-              {opt.label}
-            </SelectItem>
+<SelectTrigger className='w-40'>
+<SlidersHorizontal className='mr-2 h-4 w-4' />
+<SelectValue placeholder='Sort by' />
+</SelectTrigger>
+<SelectContent>
+{SORT_OPTIONS.map((opt) => (
+<SelectItem key={opt.value} value={opt.value}>
+{opt.label}
+</SelectItem>
           ))}
-        </SelectContent>
-      </Select>
-    </div>
+</SelectContent>
+</Select>
+</div>
   )
 })
 

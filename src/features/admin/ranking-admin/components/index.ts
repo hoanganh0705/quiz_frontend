@@ -1,8 +1,4 @@
-/**
- * `features/admin/ranking-admin/components/index.ts` — ranking admin components barrel.
- *
- * Re-exports the canonical list of ranking admin components added by Epic 7.9.
- */
+
 
 export { RankingJobStatusPanel } from './RankingJobStatusPanel';
 export type { RankingJobStatusPanelProps } from './RankingJobStatusPanel';

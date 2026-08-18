@@ -1,20 +1,5 @@
 "use client";
 
-/**
- * `SearchRateLimitState.tsx` — rate-limit state with retry-after countdown.
- *
- * Source epic:   Epic 5.1 — SDK coverage & realtime contract foundation.
- * Source story:  5.6 — Search and Approved Read-Only Social Discovery Integration.
- * Source ticket: TKT-5.6.C1.
- *
- * Renders an explicit retry-after countdown when the backend emits
- * `SEARCH_RATE_LIMITED`. The countdown is driven by `error.extensions?.retryAfterMs`
- * if present; otherwise falls back to a generic retry prompt with a manual
- * retry button.
- *
- * No service, hook, or socket client is imported by this primitive.
- */
-
 import * as React from "react";
 
 import { Clock, AlertTriangle } from "lucide-react";
@@ -22,113 +7,108 @@ import { Clock, AlertTriangle } from "lucide-react";
 import { cn } from "@/shared/utils/merge-class-names";
 
 interface SearchRateLimitStateProps {
-  /**
-   * The retry-after delay in milliseconds, as surfaced in
-   * `error.extensions?.retryAfterMs`. If `undefined`, the component renders
-   * a generic "wait before retrying" prompt instead of a countdown.
-   */
-  retryAfterMs?: number;
-  /** Optional retry callback. */
-  onRetry?: () => void;
-  className?: string;
+
+retryAfterMs?: number;
+
+onRetry?: () => void;
+className?: string;
 }
 
 const MIN_DISPLAY_SECONDS = 1;
 
 function formatSeconds(seconds: number): string {
-  if (seconds <= 0) return "0s";
-  if (seconds < 60) return `${seconds}s`;
-  const mins = Math.floor(seconds / 60);
-  const secs = seconds % 60;
-  return secs > 0 ? `${mins}m ${secs}s` : `${mins}m`;
+if (seconds <= 0) return "0s";
+if (seconds < 60) return `${seconds}s`;
+const mins = Math.floor(seconds / 60);
+const secs = seconds % 60;
+return secs > 0 ? `${mins}m ${secs}s` : `${mins}m`;
 }
 
 export function SearchRateLimitState({
-  retryAfterMs,
-  onRetry,
-  className,
+retryAfterMs,
+onRetry,
+className,
 }: SearchRateLimitStateProps) {
-  const [remainingSeconds, setRemainingSeconds] = React.useState<number>(() => {
-    if (retryAfterMs == null) return -1;
-    return Math.max(MIN_DISPLAY_SECONDS, Math.ceil(retryAfterMs / 1000));
+const [remainingSeconds, setRemainingSeconds] = React.useState<number>(() => {
+if (retryAfterMs == null) return -1;
+return Math.max(MIN_DISPLAY_SECONDS, Math.ceil(retryAfterMs / 1000));
   });
 
-  // Countdown timer
-  React.useEffect(() => {
-    if (retryAfterMs == null) return;
+React.useEffect(() => {
+if (retryAfterMs == null) return;
 
-    const totalSeconds = Math.max(MIN_DISPLAY_SECONDS, Math.ceil(retryAfterMs / 1000));
-    setRemainingSeconds(totalSeconds);
+const totalSeconds = Math.max(MIN_DISPLAY_SECONDS, Math.ceil(retryAfterMs / 1000));
+setRemainingSeconds(totalSeconds);
 
-    if (totalSeconds <= 0) return;
+if (totalSeconds <= 0) return;
 
-    const intervalId = setInterval(() => {
-      setRemainingSeconds((prev) => {
-        if (prev <= 1) {
-          clearInterval(intervalId);
-          return 0;
+const intervalId = setInterval(() => {
+setRemainingSeconds((prev) => {
+if (prev <= 1) {
+clearInterval(intervalId);
+return 0;
         }
-        return prev - 1;
+return prev - 1;
       });
     }, 1000);
 
-    return () => clearInterval(intervalId);
+return () => clearInterval(intervalId);
   }, [retryAfterMs]);
 
-  const isCounting = retryAfterMs != null && remainingSeconds > 0;
-  const canRetry = !isCounting;
+const isCounting = retryAfterMs != null && remainingSeconds > 0;
+const canRetry = !isCounting;
 
-  return (
-    <div
-      className={cn(
-        "flex flex-col items-center justify-center text-center p-6 rounded-lg border border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/30",
-        className,
+return (
+<div
+className={cn(
+"flex flex-col items-center justify-center text-center p-6 rounded-lg border border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/30",
+className,
       )}
-      data-testid="search-rate-limit-state"
-      role="alert"
-      aria-live="polite"
+data-testid="search-rate-limit-state"
+role="alert"
+aria-live="polite"
     >
-      {/* Header */}
-      <div className="flex items-center gap-2 mb-2">
-        <AlertTriangle className="h-5 w-5 text-amber-500 dark:text-amber-400" />
-        <span className="font-semibold text-amber-800 dark:text-amber-300 text-sm">
-          Too many requests
+{/* Header */}
+<div className="flex items-center gap-2 mb-2">
+<AlertTriangle className="h-5 w-5 text-amber-500 dark:text-amber-400" />
+<span className="font-semibold text-amber-800 dark:text-amber-300 text-sm">
+Too many requests
         </span>
-      </div>
+</div>
 
-      {/* Countdown or generic message */}
-      {isCounting ? (
-        <div className="flex flex-col items-center gap-1.5 mb-4">
-          <Clock className="h-6 w-6 text-amber-400" />
-          <span className="text-2xl font-mono font-bold text-amber-700 dark:text-amber-300 tabular-nums">
-            {formatSeconds(remainingSeconds)}
+{/* Countdown or generic message */}
+{isCounting ? (
+<div className="flex flex-col items-center gap-1.5 mb-4">
+<Clock className="h-6 w-6 text-amber-400" />
+<span className="text-2xl font-mono font-bold text-amber-700 dark:text-amber-300 tabular-nums">
+{formatSeconds(remainingSeconds)}
+</span>
+<span className="text-xs text-amber-600 dark:text-amber-500">
+before you can search again
           </span>
-          <span className="text-xs text-amber-600 dark:text-amber-500">
-            before you can search again
-          </span>
-        </div>
+</div>
       ) : (
-        <p className="text-sm text-amber-700 dark:text-amber-400 mb-4">
-          Please wait a moment before trying again.
+<p className="text-sm text-amber-700 dark:text-amber-400 mb-4">
+Please wait a moment before trying again.
         </p>
       )}
 
-      {/* Retry button */}
-      {onRetry && (
-        <button
-          type="button"
-          onClick={onRetry}
-          disabled={isCounting}
-          className={cn(
-            "px-4 py-1.5 text-sm font-medium rounded-md border transition-colors",
-            isCounting
-              ? "border-amber-300 text-amber-400 cursor-not-allowed opacity-50"
-              : "border-amber-400 text-amber-700 hover:bg-amber-100 dark:border-amber-600 dark:text-amber-300 dark:hover:bg-amber-900/30",
+{/* Retry button */}
+{onRetry && (
+<button
+type="button"
+onClick={onRetry}
+disabled={isCounting}
+className={cn(
+"px-4 py-1.5 text-sm font-medium rounded-md border transition-colors",
+isCounting
+? "border-amber-300 text-amber-400 cursor-not-allowed opacity-50"
+: "border-amber-400 text-amber-700 hover:bg-amber-100 dark:border-amber-600 dark:text-amber-300 dark:hover:bg-amber-900/30",
           )}
         >
-          {isCounting ? `Retry in ${formatSeconds(remainingSeconds)}` : "Retry now"}
-        </button>
+{isCounting ? `Retry in ${formatSeconds(remainingSeconds)}` : "Retry now"}
+</button>
       )}
-    </div>
+</div>
   );
 }
