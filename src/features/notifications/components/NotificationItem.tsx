@@ -342,7 +342,7 @@ title="Delete"
 <Loader2 className="h-3 w-3 sm:h-4 sm:w-4 animate-spin" />
             ) : (
 <Trash2
-className="h-3 w-3 sm:h-4 sm:w-4 text-red-500"
+className="h-3 w-3 sm:h-4 sm:w-4 text-destructive"
 aria-hidden="true"
               />
             )}

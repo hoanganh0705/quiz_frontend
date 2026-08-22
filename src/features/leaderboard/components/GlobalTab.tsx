@@ -53,7 +53,7 @@ className='w-full h-full object-cover'
 {second.xp.toLocaleString()} XP
               </p>
 {second.isTied ? (
-<span className='text-xs text-foreground/60 mb-2'>Tied</span>
+<span className='text-xs text-foreground-secondary mb-2'>Tied</span>
               ) : null}
 <div className='bg-muted rounded-lg p-4 w-32 h-24'></div>
 </div>
@@ -86,7 +86,7 @@ className='w-full h-full object-cover'
 {first.xp.toLocaleString()} XP
               </p>
 {first.isTied ? (
-<span className='text-xs text-foreground/60 mb-2'>Tied</span>
+<span className='text-xs text-foreground-secondary mb-2'>Tied</span>
               ) : null}
 <div className='bg-muted rounded-lg p-4 w-36 h-32'></div>
 </div>
@@ -116,7 +116,7 @@ className='w-full h-full object-cover'
 {third.xp.toLocaleString()} XP
               </p>
 {third.isTied ? (
-<span className='text-xs text-foreground/60 mb-2'>Tied</span>
+<span className='text-xs text-foreground-secondary mb-2'>Tied</span>
               ) : null}
 <div className='bg-muted rounded-lg p-4 w-32 h-20'></div>
 </div>

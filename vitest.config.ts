@@ -390,6 +390,11 @@ export default defineConfig({
             "src/features/quizzes/components/__tests__/my-quizzes.a11y.spec.tsx",
             // T-4.11.9 — PublishCta + PublishConfirmDialog integration tests. Needs jsdom.
             "src/features/quizzes/components/__tests__/PublishCta.spec.tsx",
+            // TKT-3.5.D1 — QuizzesDirectoryPage component spec. Mocks all
+            // data hooks (categories, tags, popular, trending, quizzes list)
+            // and renders the directory grid + filter bar + strip rails.
+            // Needs jsdom for the SWR filter store + the filter bar Sheet.
+            "src/features/quizzes/components/__tests__/QuizzesDirectoryPage.spec.tsx",
             // (T-4.11.14 EditPublishedQuizCTA tests run in node env to avoid jsdom issues.)
             // T-4.12.5 — useQuizComments read hook. Uses SWR via useCursorPaginated
             // and renderHook from @testing-library/react; needs jsdom.

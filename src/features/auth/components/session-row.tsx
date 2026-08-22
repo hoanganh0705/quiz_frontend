@@ -152,7 +152,7 @@ function SessionRowInner({
             </Badge>
           )}
         </div>
-        <div className="flex items-center gap-3 text-sm text-foreground/70 flex-wrap">
+        <div className="flex items-center gap-3 text-sm text-foreground-secondary flex-wrap">
           <span data-testid="session-row-ip">
             <span className="sr-only">IP address: </span>
             {ipDisplay}
@@ -169,7 +169,7 @@ function SessionRowInner({
       <div className="shrink-0">
         {session.isCurrentSession ? (
           <span
-            className="text-sm text-foreground/70 italic"
+            className="text-sm text-foreground-secondary italic"
             data-testid="session-row-current-marker"
           >
             {/* Inert marker so the layout reserves the same

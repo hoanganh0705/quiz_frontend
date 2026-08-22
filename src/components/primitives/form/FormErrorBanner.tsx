@@ -81,7 +81,7 @@ variant='ghost'
 size='icon'
 aria-label='Dismiss error'
 onClick={onDismiss}
-className='h-6 w-6 text-destructive hover:bg-destructive/20'
+className='h-8 w-8 text-destructive hover:bg-destructive/20 shrink-0'
 data-testid={`${testId}-dismiss`}
       >
 <X className='h-4 w-4' aria-hidden='true' />

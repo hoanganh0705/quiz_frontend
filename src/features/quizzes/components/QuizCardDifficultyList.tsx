@@ -10,7 +10,7 @@ import { QuizCardDifficulty } from "@/features/quizzes/components/QuizCard";
 import { useState, useMemo, useRef } from "react";
 import { SwiperSlide, Swiper } from "swiper/react";
 import type { Swiper as SwiperType } from "swiper";
-import { Autoplay, Navigation } from "swiper/modules";
+import { Autoplay } from "swiper/modules";
 import { useQuizzesList } from "@/features/quizzes/hooks";
 import type { QuizDifficulty } from "@/features/quizzes/types";
 import { LoadingSpinner } from "@/components/ui/loading-states/LoadingSpinner";
@@ -65,8 +65,8 @@ Check back soon for new content.
 
 return (
 <div className="mt-20">
-<div className="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-<div>
+<div className="mb-8 flex flex-col gap-4">
+<div className="flex flex-col gap-1">
 <h1 className="text-xl font-bold text-foreground md:text-2xl">
 Quizzes by Difficulty
           </h1>
@@ -74,8 +74,8 @@ Quizzes by Difficulty
 Choose challenges according to your skill level
           </p>
 </div>
-<div className="flex items-center gap-2">
-<div className="flex rounded-lg bg-muted p-1">
+<div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+<div className="flex rounded-lg bg-muted p-1 self-start sm:self-auto">
 {DIFFICULTIES.map((level) => (
 <Button
 key={level}
@@ -83,14 +83,14 @@ onClick={() => setSelectedDifficulty(level)}
 className={`rounded-sm px-4 py-1 text-sm transition ${
 selectedDifficulty === level
 ? `${difficultyColors[level].bg} pointer-events-none text-white dark:text-foreground`
-: `bg-transparent text-foreground dark:text-foreground/70 ${difficultyColors[level].hover}`
+: `bg-transparent text-foreground dark:text-foreground-secondary ${difficultyColors[level].hover}`
 }`}
               >
 {level}
 </Button>
             ))}
 </div>
-<div className="flex items-center gap-1">
+<div className="flex items-center gap-1 self-end sm:self-auto">
 <Button
 size="icon"
 onClick={handlePrevClick}
@@ -111,12 +111,12 @@ aria-label="Next quiz"
 </div>
 </div>
 
-<div className="xl:w-full container">
+<div>
 <Swiper
 spaceBetween={30}
 slidesPerView={4}
 pagination={{ clickable: true }}
-modules={[Navigation, Autoplay]}
+modules={[Autoplay]}
 autoplay={{
 delay: 3000,
 disableOnInteraction: true,

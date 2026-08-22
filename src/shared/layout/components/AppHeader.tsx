@@ -209,10 +209,10 @@ Admin
 </Badge>
 )}
 {isModerator && (
-<Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4 font-medium bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400">
-Mod
-</Badge>
-)}
+          <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4 font-medium bg-warning text-warning-foreground">
+            Mod
+          </Badge>
+        )}
 </div>
 {userEmail ? (
 <p className="truncate text-xs text-muted-foreground">

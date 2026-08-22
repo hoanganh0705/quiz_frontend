@@ -75,13 +75,13 @@ export function ErrorState({
     >
       {showIcon && (
         <div className='mb-4 p-3 rounded-full bg-red-100 dark:bg-red-900/20'>
-          <Icon className='w-8 h-8 text-red-500 dark:text-red-400' />
+          <Icon className='w-8 h-8 text-destructive dark:text-red-400' />
         </div>
       )}
       <h3 className='text-lg font-semibold text-foreground mb-2'>
         {title || defaultContent.title}
       </h3>
-      <p className='text-sm text-foreground/70 max-w-md mb-6'>
+      <p className='text-sm text-foreground-secondary max-w-md mb-6'>
         {message || defaultContent.message}
       </p>
       {onRetry && (
@@ -114,7 +114,7 @@ export function InlineError({ message, onRetry, className }: InlineErrorProps) {
       )}
     >
       <div className='flex items-center gap-2'>
-        <AlertCircle className='w-4 h-4 text-red-500 dark:text-red-400 shrink-0' />
+        <AlertCircle className='w-4 h-4 text-destructive dark:text-red-400 shrink-0' />
         <p className='text-sm text-red-700 dark:text-red-300'>{message}</p>
       </div>
       {onRetry && (
@@ -122,7 +122,7 @@ export function InlineError({ message, onRetry, className }: InlineErrorProps) {
           onClick={onRetry}
           size='sm'
           variant='ghost'
-          className='text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/40'
+          className='text-destructive dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/40'
         >
           <RefreshCw className='w-3 h-3' />
         </Button>
@@ -145,12 +145,12 @@ export function ErrorBoundaryFallback({
     <div className='min-h-screen bg-background flex items-center justify-center p-4'>
       <div className='max-w-md w-full text-center'>
         <div className='mb-6 p-4 rounded-full bg-red-100 dark:bg-red-900/20 inline-flex'>
-          <AlertCircle className='w-12 h-12 text-red-500 dark:text-red-400' />
+          <AlertCircle className='w-12 h-12 text-destructive dark:text-red-400' />
         </div>
         <h1 className='text-2xl font-bold text-foreground mb-2'>
           Oops! Something went wrong
         </h1>
-        <p className='text-foreground/70 mb-4'>
+        <p className='text-foreground-secondary mb-4'>
           We&apos;re sorry, but something unexpected happened. Please try again.
         </p>
         {process.env.NODE_ENV === 'development' && (
@@ -193,7 +193,7 @@ export function ErrorToast({
         className
       )}
     >
-      <AlertCircle className='w-5 h-5 text-red-500 dark:text-red-400 shrink-0' />
+      <AlertCircle className='w-5 h-5 text-destructive dark:text-red-400 shrink-0' />
       <p className='flex-1 text-sm text-red-700 dark:text-red-300'>{message}</p>
       <div className='flex gap-2'>
         {onRetry && (
@@ -201,7 +201,7 @@ export function ErrorToast({
             onClick={onRetry}
             size='sm'
             variant='ghost'
-            className='text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/40 h-8 px-2'
+            className='text-destructive dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/40 h-8 px-2'
           >
             Retry
           </Button>
@@ -211,7 +211,7 @@ export function ErrorToast({
             onClick={onDismiss}
             size='sm'
             variant='ghost'
-            className='text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/40 h-8 px-2'
+            className='text-destructive dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/40 h-8 px-2'
           >
             Dismiss
           </Button>

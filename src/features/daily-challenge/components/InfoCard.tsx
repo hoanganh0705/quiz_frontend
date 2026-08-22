@@ -1,20 +1,48 @@
-"use client";
+'use client';
 
-import { useState, useEffect, memo } from "react";
-import { Clock, Calendar, Trophy, Flame } from "lucide-react";
-import { Card } from "@/components/ui/Card";
-import { CardContent } from "@/components/ui/Card";
+/**
+ * `InfoCard` — the four up-top status cards for the live daily-challenge.
+ *
+ * Rendered only inside the live branch of `DailyChallengePage` (so it does
+ * not run in placeholder, skeleton, error, or empty branches). Its data is
+ * passed in as props from the page so the today/streak hooks are not
+ * subscribed twice on the page route.
+ *
+ * The countdown ticks once per second under default motion preferences and
+ * once per minute when `prefers-reduced-motion: reduce` is set, and the
+ * `aria-live` announcement is suppressed under reduced motion.
+ */
 
-import { useDailyChallengeToday } from "@/features/daily-challenge/hooks/useDailyChallengeToday";
-import { useDailyChallengeStreakView } from "@/features/daily-challenge/hooks/useDailyChallengeStreakView";
+import * as React from 'react';
+import { Clock, Calendar, Trophy, Flame } from 'lucide-react';
 
-const InfoCard = memo(function InfoCard() {
-const [timeRemaining, setTimeRemaining] = useState<string>("");
+import { Card, CardContent } from '@/components/ui/Card';
 
-useEffect(() => {
-const updateTimer = () => {
-const now: Date = new Date();
-const endOfDay: Date = new Date(
+import { usePrefersReducedMotion } from '@/shared/hooks/use-prefers-reduced-motion';
+import { cn } from '@/shared/utils/merge-class-names';
+
+export interface InfoCardProps {
+/** When `null`, the page is loading the day's challenge and the reward copy is suppressed. */
+rewardXp: number | null;
+/** When `null`, the page is loading the day's challenge and the theme copy is suppressed. */
+category: string | null;
+/** Streak count. `null` means the viewer is not authenticated. */
+streak: number | null;
+isAuthenticated: boolean;
+className?: string;
+}
+
+const TICK_INTERVAL_MS = 1_000;
+const TICK_INTERVAL_REDUCED_MS = 60_000;
+
+interface RemainingTime {
+hours: number;
+minutes: number;
+seconds: number;
+}
+
+function computeRemaining(now: Date): RemainingTime {
+const endOfDay = new Date(
 now.getFullYear(),
 now.getMonth(),
 now.getDate(),
@@ -22,102 +50,141 @@ now.getDate(),
 59,
 59,
 999,
-      );
-const diff: number = endOfDay.getTime() - now.getTime();
+);
+const diff = Math.max(endOfDay.getTime() - now.getTime(), 0);
+return {
+hours: Math.floor(diff / (1000 * 60 * 60)),
+minutes: Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60)),
+seconds: Math.floor((diff % (1000 * 60)) / 1000),
+};
+}
 
-const hours: number = Math.floor(diff / (1000 * 60 * 60));
-const minutes: number = Math.floor(
-(diff % (1000 * 60 * 60)) / (1000 * 60),
-      );
-const seconds: number = Math.floor((diff % (1000 * 60)) / 1000);
+function pad(value: number): string {
+return value.toString().padStart(2, '0');
+}
 
-setTimeRemaining(
-`${hours.toString().padStart(2, "0")}:${minutes
-          .toString()
-          .padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`,
-      );
-    };
+function formatTime(remaining: RemainingTime): string {
+return `${pad(remaining.hours)}:${pad(remaining.minutes)}:${pad(remaining.seconds)}`;
+}
 
-updateTimer();
-const interval: NodeJS.Timeout = setInterval(updateTimer, 1000);
+const InfoCard = React.memo(function InfoCard({
+rewardXp,
+category,
+streak,
+isAuthenticated,
+className,
+}: InfoCardProps) {
+const prefersReducedMotion = usePrefersReducedMotion();
+const [timeRemaining, setTimeRemaining] = React.useState<string>(() => {
+return formatTime(computeRemaining(new Date()));
+});
 
-return () => clearInterval(interval);
-  }, []);
+React.useEffect(() => {
+const update = () => {
+setTimeRemaining(formatTime(computeRemaining(new Date())));
+};
+update();
+const intervalMs = prefersReducedMotion
+? TICK_INTERVAL_REDUCED_MS
+: TICK_INTERVAL_MS;
+const interval = window.setInterval(update, intervalMs);
+return () => window.clearInterval(interval);
+}, [prefersReducedMotion]);
 
-const { challenge, isLoading: isChallengeLoading } =
-useDailyChallengeToday();
-const { streak, isAuthenticated } = useDailyChallengeStreakView();
+const prizeLabel = rewardXp === null ? '—' : `+${rewardXp} XP`;
+const themeLabel = category ?? '—';
+const streakLabel =
+!isAuthenticated || streak === null
+? 'Login to track'
+: `${streak} ${streak === 1 ? 'Day' : 'Days'}`;
 
-const prizeLabel = isChallengeLoading || challenge === null
-? "—"
-: `+${challenge.rewardXp} XP`;
-
-const streakLabel = !isAuthenticated || streak === null
-? "Login to track"
-: `${streak} ${streak === 1 ? "Day" : "Days"}`;
+const timeAriaLive = prefersReducedMotion ? 'off' : 'polite';
 
 return (
 <section
-className="grid grid-cols-1 lg:grid-cols-4 gap-4 mt-6 pb-10"
-aria-label="Challenge information"
-    >
-<Card className="bg-purple-100 border-purple-200 py-6">
-<CardContent className="p-4 flex items-center space-x-3">
-<div className="p-2 bg-purple-200 rounded-full" aria-hidden="true">
-<Clock className="h-5 w-5 text-purple-700" />
+className={cn(
+'grid grid-cols-1 lg:grid-cols-4 gap-4 mt-6 pb-10',
+className,
+)}
+aria-label='Challenge information'
+>
+<Card className='bg-card border-border py-6'>
+<CardContent className='p-4 flex items-center space-x-3'>
+<div
+className='p-2 bg-muted rounded-full text-muted-foreground'
+aria-hidden='true'
+>
+<Clock className='h-5 w-5' />
 </div>
 <div>
-<p className="text-sm text-purple-600 font-medium">
+<p className='text-sm text-muted-foreground font-medium'>
 Time Remaining
-            </p>
-<p className="text-xl font-bold text-purple-900" aria-live="polite">
+</p>
+<p
+className='text-xl font-bold text-foreground'
+aria-live={timeAriaLive}
+>
 {timeRemaining}
 </p>
 </div>
 </CardContent>
 </Card>
 
-<Card className="bg-blue-100 border-blue-200 py-6">
-<CardContent className="p-4 flex items-center space-x-3">
-<div className="p-2 bg-blue-200 rounded-full" aria-hidden="true">
-<Calendar className="h-5 w-5 text-blue-700" />
+<Card className='bg-card border-border py-6'>
+<CardContent className='p-4 flex items-center space-x-3'>
+<div
+className='p-2 bg-muted rounded-full text-muted-foreground'
+aria-hidden='true'
+>
+<Calendar className='h-5 w-5' />
 </div>
 <div>
-<p className="text-sm text-blue-600 font-medium">
+<p className='text-sm text-muted-foreground font-medium'>
 Today&apos;s Theme
-            </p>
-<p className="text-lg font-bold text-blue-900">
-{challenge?.category ?? "—"}
 </p>
+<p className='text-lg font-bold text-foreground'>{themeLabel}</p>
 </div>
 </CardContent>
 </Card>
 
-<Card className="bg-yellow-100 border-yellow-200 py-6">
-<CardContent className="p-4 flex items-center space-x-3">
-<div className="p-2 bg-yellow-200 rounded-full" aria-hidden="true">
-<Trophy className="h-5 w-5 text-yellow-700" />
+<Card className='bg-card border-border py-6'>
+<CardContent className='p-4 flex items-center space-x-3'>
+<div
+className='p-2 bg-muted rounded-full text-muted-foreground'
+aria-hidden='true'
+>
+<Trophy className='h-5 w-5' />
 </div>
 <div>
-<p className="text-sm text-yellow-600 font-medium">Top Prize</p>
-<p className="text-xl font-bold text-yellow-900">{prizeLabel}</p>
+<p className='text-sm text-muted-foreground font-medium'>
+Top Prize
+</p>
+<p className='text-xl font-bold text-foreground'>{prizeLabel}</p>
 </div>
 </CardContent>
 </Card>
 
-<Card className="bg-red-50 border-red-200 py-6">
-<CardContent className="p-4 flex items-center space-x-3">
-<div className="p-2 bg-red-100 rounded-full" aria-hidden="true">
-<Flame className="h-5 w-5 text-red-600" />
+<Card className='bg-card border-border py-6'>
+<CardContent className='p-4 flex items-center space-x-3'>
+<div
+className='p-2 bg-muted rounded-full text-muted-foreground'
+aria-hidden='true'
+>
+<Flame
+className='h-5 w-5 text-orange-400 dark:text-orange-300'
+aria-hidden='true'
+/>
 </div>
 <div>
-<p className="text-sm text-red-600 font-medium">Your Streak</p>
-<p className="text-xl font-bold text-red-900">{streakLabel}</p>
+<p className='text-sm text-muted-foreground font-medium'>
+Your Streak
+</p>
+<p className='text-xl font-bold text-foreground'>{streakLabel}</p>
 </div>
 </CardContent>
 </Card>
 </section>
-  );
+);
 });
 
 export default InfoCard;

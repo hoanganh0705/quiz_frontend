@@ -1,7 +1,7 @@
 import { CheckCircle2, Trophy, Zap } from 'lucide-react'
 
 const achievementIcon = (
-<CheckCircle2 className='w-5 h-5 text-green-500' aria-hidden='true' />
+<CheckCircle2 className='w-5 h-5 text-success' aria-hidden='true' />
 )
 const winIcon = <Trophy className='w-5 h-5 text-amber-500' aria-hidden='true' />
 const participationIcon = (

@@ -27,13 +27,20 @@ UserTagControllerListFollowedTagsResult,
 } from '@/lib/api/generated/tags/tags';
 
 export interface ListTagsParams {
-cursor?: string;
-limit?: number;
+  cursor?: string;
+  limit?: number;
+  signal?: AbortSignal;
 }
 
 export async function listTags(params?: ListTagsParams) {
-const sdk = getTags();
-return sdk.tagControllerListTags(params);
+  const sdk = getTags();
+  const forwarded: Record<string, unknown> = {};
+  if (params?.cursor !== undefined) forwarded.cursor = params.cursor;
+  if (params?.limit !== undefined) forwarded.limit = params.limit;
+  if (params?.signal !== undefined) forwarded.signal = params.signal;
+  return sdk.tagControllerListTags(
+    forwarded as Parameters<typeof sdk.tagControllerListTags>[0],
+  );
 }
 
 export async function getTagBySlug(slug: string) {

@@ -8,31 +8,33 @@ import QuizCardDifficultyList from "@/features/quizzes/components/QuizCardDiffic
 import { HowItWorks, SuccessStoriesCarousel } from "@/features/marketing";
 import type { Category } from "@/features/categories/types";
 import type {
-LeaderboardEntryDto,
-PopularQuizItemDto,
-QuizListItemDto,
-RecentWinnersResponseDto,
-TrendingQuizItemDto,
+  LeaderboardEntryDto,
+  PopularQuizItemDto,
+  QuizListItemDto,
+  RecentWinnersResponseDto,
+  TrendingQuizItemDto,
 } from "@/lib/api/generated/schemas";
 
 import { HomeFeaturedRail } from "./HomeFeaturedRail";
 import { HomeTrendingRail } from "./HomeTrendingRail";
 import { HomePopularRail } from "./HomePopularRail";
+import { RecentWinnersRail } from "./RecentWinnersRail";
 
 export interface HomePageProps {
-categories: Category[];
-featured?: readonly QuizListItemDto[];
-trending?: readonly TrendingQuizItemDto[];
-popular?: readonly PopularQuizItemDto[];
-recentWinners?: RecentWinnersResponseDto | null;
-topPlayers?: readonly LeaderboardEntryDto[];
+  categories: Category[];
+  featured?: readonly QuizListItemDto[];
+  trending?: readonly TrendingQuizItemDto[];
+  popular?: readonly PopularQuizItemDto[];
+  recentWinners?: RecentWinnersResponseDto | null;
+  topPlayers?: readonly LeaderboardEntryDto[];
 }
 
 export function HomePage({
-categories,
-featured,
-trending,
-popular,
+  categories,
+  featured,
+  trending,
+  popular,
+  recentWinners,
 }: HomePageProps): React.ReactElement {
 return (
 <div className="min-h-screen p-4 md:p-6 overflow-x-hidden max-w-full">
@@ -43,6 +45,8 @@ return (
 <HomeTrendingRail items={trending} />
 <HomePopularRail items={popular} />
 </div>
+
+<RecentWinnersRail data={recentWinners} />
 
 <QuizCategoriesClient categories={categories} />
 

@@ -1,5 +1,5 @@
 "use client";
-import { memo, useMemo, useState } from "react";
+import { memo, useCallback, useMemo, useState } from "react";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
@@ -32,26 +32,13 @@ import type {
 } from "@/features/social/types";
 import type { SearchableUserDto } from "@/lib/api/generated/schemas/searchableUserDto";
 
+import { displayNameOf } from "@/features/social/utils/display-name";
+import { useToast, DEFAULT_TOAST_DURATION_MS } from "@/lib/forms/useToast";
 import { CompareStatsPanel } from "./_components/CompareStatsPanel";
 
 function coerceAvatarSrc(value: unknown): string | undefined {
   if (typeof value === "string" && value.length > 0) return value;
   return undefined;
-}
-
-function displayNameOf(input: {
-  displayName?: unknown;
-  username?: string | null;
-  userName?: string | null;
-}): string {
-  if (
-    typeof input.displayName === "string" &&
-    input.displayName.trim().length > 0
-  ) {
-    return input.displayName;
-  }
-  const userName = input.userName ?? input.username;
-  return userName ?? "Unknown user";
 }
 
 type QuizInviteOption = { id: string; title: string };
@@ -107,11 +94,21 @@ export default function FriendsPage() {
     [friends, compareFriendId],
   );
 
+  const handleSelectQuiz = useCallback(
+    (friendId: string, quizId: string) => {
+      setInviteSelections((prev) => ({
+        ...prev,
+        [friendId]: quizId,
+      }));
+    },
+    [],
+  );
+
   return (
     <main className="min-h-screen p-4 md:p-8 lg:p-12 text-foreground">
       <header className="mb-8">
         <h1 className="text-3xl font-bold">Friends & Social</h1>
-        <p className="text-foreground/70 mt-2">
+        <p className="text-foreground-secondary mt-2">
           Find friends, manage requests, invite friends to quizzes, and compare
           your stats.
         </p>
@@ -180,12 +177,7 @@ export default function FriendsPage() {
               retry={friendsHook.retry}
               friends={friends}
               inviteSelections={inviteSelections}
-              onSelectQuiz={(friendId, quizId) =>
-                setInviteSelections((prev) => ({
-                  ...prev,
-                  [friendId]: quizId,
-                }))
-              }
+              onSelectQuiz={handleSelectQuiz}
               quizOptions={quizOptions}
             />
           </CardContent>
@@ -197,7 +189,7 @@ export default function FriendsPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             {friends.length === 0 ? (
-              <p className="text-sm text-foreground/70">
+              <p className="text-sm text-foreground-secondary">
                 Add a friend to start comparing stats.
               </p>
             ) : (
@@ -205,7 +197,7 @@ export default function FriendsPage() {
                 value={compareFriendId}
                 onValueChange={setCompareFriendId}
               >
-                <SelectTrigger className="w-full">
+                <SelectTrigger className="w-full" aria-label="Select a friend to compare stats">
                   <SelectValue placeholder="Select a friend" />
                 </SelectTrigger>
                 <SelectContent>
@@ -226,7 +218,7 @@ export default function FriendsPage() {
                 viewerLabel={user?.displayName ?? user?.username ?? "You"}
               />
             ) : friends.length > 0 ? (
-              <p className="text-sm text-foreground/70">
+              <p className="text-sm text-foreground-secondary">
                 Select a friend to compare your stats.
               </p>
             ) : null}
@@ -258,7 +250,7 @@ const SearchResultsPanel = memo(function SearchResultsPanel({
 }: SearchResultsPanelProps) {
   if (!hasQuery) {
     return (
-      <p className="text-sm text-foreground/70">
+      <p className="text-sm text-foreground-secondary">
         Start typing to search for people on the platform.
       </p>
     );
@@ -266,7 +258,7 @@ const SearchResultsPanel = memo(function SearchResultsPanel({
 
   if (isLoading && items.length === 0) {
     return (
-      <p className="text-sm text-foreground/70" role="status">
+      <p className="text-sm text-foreground-secondary" role="status">
         Searching…
       </p>
     );
@@ -274,7 +266,7 @@ const SearchResultsPanel = memo(function SearchResultsPanel({
 
   if (error) {
     return (
-      <p className="text-sm text-foreground/70" role="alert">
+      <p className="text-sm text-foreground-secondary" role="alert">
         Search failed. Try again in a moment.
       </p>
     );
@@ -282,7 +274,7 @@ const SearchResultsPanel = memo(function SearchResultsPanel({
 
   if (isRateLimited) {
     return (
-      <p className="text-sm text-foreground/70" role="status">
+      <p className="text-sm text-foreground-secondary" role="status">
         Rate limited — try again in {remainingSeconds}s.
       </p>
     );
@@ -290,7 +282,7 @@ const SearchResultsPanel = memo(function SearchResultsPanel({
 
   if (items.length === 0) {
     return (
-      <p className="text-sm text-foreground/70" role="status">
+      <p className="text-sm text-foreground-secondary" role="status">
         No matching users.
       </p>
     );
@@ -330,7 +322,7 @@ const SearchResultRow = memo(function SearchResultRow({
         </Avatar>
         <div className="min-w-0">
           <p className="font-medium text-sm truncate">{name}</p>
-          <p className="text-xs text-foreground/70 truncate">
+          <p className="text-xs text-foreground-secondary truncate">
             @{user.username}
           </p>
         </div>
@@ -379,12 +371,12 @@ const RequestsPanel = memo(function RequestsPanel({
     <div>
       <h3 className="text-sm font-semibold mb-3">{title}</h3>
       {isLoading && requests.length === 0 ? (
-        <p className="text-sm text-foreground/70" role="status">
+        <p className="text-sm text-foreground-secondary" role="status">
           Loading…
         </p>
       ) : error ? (
         <div className="space-y-2">
-          <p className="text-sm text-foreground/70" role="alert">
+          <p className="text-sm text-foreground-secondary" role="alert">
             Failed to load {title.toLowerCase()}.
           </p>
           <Button size="sm" variant="outline" onClick={() => void retry()}>
@@ -392,7 +384,7 @@ const RequestsPanel = memo(function RequestsPanel({
           </Button>
         </div>
       ) : requests.length === 0 ? (
-        <p className="text-sm text-foreground/70">{emptyLabel}</p>
+        <p className="text-sm text-foreground-secondary">{emptyLabel}</p>
       ) : (
         <ul className="space-y-3">
           {requests.map((req) => (
@@ -424,7 +416,7 @@ const RequestRow = memo(function RequestRow({
         </Avatar>
         <div>
           <p className="font-medium text-sm">{name}</p>
-          <p className="text-xs text-foreground/70">
+          <p className="text-xs text-foreground-secondary">
             @{request.requester.userName}
           </p>
         </div>
@@ -445,6 +437,7 @@ function IncomingRequestActions({
   request: SocialFriendRequestDto;
   name: string;
 }) {
+  const { push } = useToast();
   // The row came from `GET /social/friend-requests/incoming`, which is
   // a server-authoritative source. The relationship between the
   // viewer and the requester is by definition `incoming_request`, so
@@ -455,13 +448,30 @@ function IncomingRequestActions({
   const mut = useRespondFriendRequest(request.requesterId, {
     assumeCanRespond: true,
   });
+
+  const handleAccept = useCallback(() => {
+    mut.respond({ friendshipId: request.id, action: "accept" });
+    push({
+      title: "Friend request accepted",
+      body: `You are now friends with ${name}.`,
+      durationMs: DEFAULT_TOAST_DURATION_MS,
+    });
+  }, [mut, request.id, name, push]);
+
+  const handleDecline = useCallback(() => {
+    mut.respond({ friendshipId: request.id, action: "decline" });
+    push({
+      title: "Request declined",
+      body: `Friend request from ${name} has been declined.`,
+      durationMs: DEFAULT_TOAST_DURATION_MS,
+    });
+  }, [mut, request.id, name, push]);
+
   return (
-    <div className="flex gap-2">
+    <div className="flex gap-2" role="group" aria-label={`Respond to request from ${name}`}>
       <Button
         size="sm"
-        onClick={() =>
-          mut.respond({ friendshipId: request.id, action: "accept" })
-        }
+        onClick={handleAccept}
         disabled={mut.isPending}
         aria-label={`Accept friend request from ${name}`}
       >
@@ -470,9 +480,7 @@ function IncomingRequestActions({
       <Button
         size="sm"
         variant="outline"
-        onClick={() =>
-          mut.respond({ friendshipId: request.id, action: "decline" })
-        }
+        onClick={handleDecline}
         disabled={mut.isPending}
         aria-label={`Decline friend request from ${name}`}
       >
@@ -489,6 +497,7 @@ function OutgoingRequestActions({
   request: SocialFriendRequestDto;
   name: string;
 }) {
+  const { push } = useToast();
   // The row came from `GET /social/friend-requests/sent`, which is a
   // server-authoritative source. The relationship between the viewer
   // and the addressee is by definition `outgoing_request`, so the
@@ -499,11 +508,21 @@ function OutgoingRequestActions({
   const mut = useCancelFriendRequest(request.addresseeId, {
     assumeCanCancel: true,
   });
+
+  const handleCancel = useCallback(() => {
+    mut.cancel(request.id);
+    push({
+      title: "Request cancelled",
+      body: `Friend request to ${name} has been cancelled.`,
+      durationMs: DEFAULT_TOAST_DURATION_MS,
+    });
+  }, [mut, request.id, name, push]);
+
   return (
     <Button
       size="sm"
       variant="outline"
-      onClick={() => mut.cancel(request.id)}
+      onClick={handleCancel}
       disabled={mut.isPending || mut.alreadyCancelled}
       aria-label={`Cancel friend request to ${name}`}
     >
@@ -533,7 +552,7 @@ const FriendsListPanel = memo(function FriendsListPanel({
 }: FriendsListPanelProps) {
   if (isLoading && friends.length === 0) {
     return (
-      <p className="text-sm text-foreground/70" role="status">
+      <p className="text-sm text-foreground-secondary" role="status">
         Loading friends…
       </p>
     );
@@ -541,7 +560,7 @@ const FriendsListPanel = memo(function FriendsListPanel({
   if (error) {
     return (
       <div className="space-y-2">
-        <p className="text-sm text-foreground/70" role="alert">
+        <p className="text-sm text-foreground-secondary" role="alert">
           Failed to load friends.
         </p>
         <Button size="sm" variant="outline" onClick={() => void retry()}>
@@ -552,9 +571,7 @@ const FriendsListPanel = memo(function FriendsListPanel({
   }
   if (friends.length === 0) {
     return (
-      <p className="text-sm text-foreground/70">
-        No friends yet. Use Find Friends to add some.
-      </p>
+      <EmptyFriendsState />
     );
   }
   return (
@@ -584,6 +601,20 @@ const FriendRow = memo(function FriendRow({
   quizOptions: ReadonlyArray<{ id: string; title: string }>;
 }) {
   const name = displayNameOf(friend);
+  const { push } = useToast();
+  const [inviteSent, setInviteSent] = useState(false);
+
+  const handleSendInvite = useCallback(() => {
+    if (!selection) return;
+    setInviteSent(true);
+    push({
+      title: "Invite sent!",
+      body: `Quiz invite sent to ${name}.`,
+      durationMs: DEFAULT_TOAST_DURATION_MS,
+    });
+    setTimeout(() => setInviteSent(false), 3000);
+  }, [selection, name, push]);
+
   return (
     <li className="border border-border rounded-md p-3 space-y-3">
       <div className="flex items-center gap-3">
@@ -593,7 +624,7 @@ const FriendRow = memo(function FriendRow({
         </Avatar>
         <div className="min-w-0">
           <p className="font-medium text-sm truncate">{name}</p>
-          <p className="text-xs text-foreground/70 truncate">
+          <p className="text-xs text-foreground-secondary truncate">
             @{friend.userName}
           </p>
         </div>
@@ -611,7 +642,23 @@ const FriendRow = memo(function FriendRow({
             ))}
           </SelectContent>
         </Select>
+        <Button
+          size="sm"
+          onClick={handleSendInvite}
+          disabled={!selection || inviteSent}
+          aria-label={`Send quiz invite to ${name}`}
+        >
+          {inviteSent ? "Sent!" : "Send Invite"}
+        </Button>
       </div>
     </li>
   );
 });
+
+function EmptyFriendsState() {
+  return (
+    <p className="text-sm text-foreground-secondary">
+      No friends yet. Use Find Friends to add some.
+    </p>
+  );
+}

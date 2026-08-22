@@ -44,7 +44,7 @@ export default function TrendingTab({ users, isLoading }: TrendingTabProps) {
           <TrendingUp className='w-5 h-5 text-green-400' />
           <h3 className='text-foreground font-semibold'>Trending This Week</h3>
         </div>
-        <p className='text-sm text-foreground/70 text-center py-8'>
+        <p className='text-sm text-foreground-secondary text-center py-8'>
           No movers yet — check back after the next ranking snapshot.
         </p>
       </div>
@@ -64,7 +64,7 @@ export default function TrendingTab({ users, isLoading }: TrendingTabProps) {
         {users.map((user) => (
           <div
             key={user.userId}
-            className='flex items-center gap-3 p-3 bg-muted rounded-lg hover:bg-brand transition-colors'
+            className='flex items-center gap-3 p-3 bg-muted rounded-lg hover:bg-primary/20 transition-colors'
           >
             <div className='flex-1'>
               <div className='flex items-center gap-2'>

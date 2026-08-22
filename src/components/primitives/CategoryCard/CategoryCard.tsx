@@ -17,9 +17,14 @@ function initialsFromCategory(category: CategoryResponseDto): string {
 export interface CategoryCardProps {
   category: CategoryResponseDto;
   className?: string;
+  titleHeadingLevel?: 2 | 3 | 4;
 }
 
-export function CategoryCard({ category, className }: CategoryCardProps) {
+export function CategoryCard({
+  category,
+  className,
+  titleHeadingLevel,
+}: CategoryCardProps) {
   const href = `/categories/${category.slug || category.categoryId}`
 
   return (
@@ -32,6 +37,7 @@ export function CategoryCard({ category, className }: CategoryCardProps) {
       aspectRatio='4/3'
       coverSize='lg'
       className={className}
+      titleHeadingLevel={titleHeadingLevel}
       linkProps={{
         'data-testid': 'category-card',
         'data-category-id': category.categoryId,

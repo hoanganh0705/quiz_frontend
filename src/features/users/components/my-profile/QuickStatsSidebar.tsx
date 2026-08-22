@@ -106,7 +106,7 @@ Quizzes
 {/* Average Score */}
 <div className='flex justify-between items-center'>
 <span className='text-sm text-muted-foreground flex items-center gap-2'>
-<Target className='w-4 h-4 text-green-500' aria-hidden='true' />
+<Target className='w-4 h-4 text-success' aria-hidden='true' />
 Avg Score
             </span>
 <span className='text-sm font-bold text-foreground'>

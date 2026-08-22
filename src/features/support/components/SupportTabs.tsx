@@ -24,7 +24,7 @@ onClick={() => handleTabChange('faq')}
 className={`cursor-pointer flex items-center gap-2 py-4 px-2 border-b-2 transition-colors ${
 activeTab === 'faq'
 ? 'border-default text-foreground'
-: 'border-transparent text-foreground/70 hover:text-foreground'
+: 'border-transparent text-foreground-secondary hover:text-foreground'
 }`}
           >
 <HelpCircle className='w-5 h-5' />
@@ -35,7 +35,7 @@ onClick={() => handleTabChange('contact')}
 className={`cursor-pointer flex items-center gap-2 py-4 px-2 border-b-2 transition-colors ${
 activeTab === 'contact'
 ? 'border-default text-foreground'
-: 'border-transparent text-foreground/70 hover:text-foreground'
+: 'border-transparent text-foreground-secondary hover:text-foreground'
 }`}
           >
 <MessageSquare className='w-5 h-5' />
@@ -46,7 +46,7 @@ onClick={() => handleTabChange('knowledge')}
 className={`cursor-pointer flex items-center gap-2 py-4 px-2 border-b-2 transition-colors ${
 activeTab === 'knowledge'
 ? 'border-default text-foreground'
-: 'border-transparent text-foreground/70 hover:text-foreground'
+: 'border-transparent text-foreground-secondary hover:text-foreground'
 }`}
           >
 <BookOpen className='w-5 h-5' />

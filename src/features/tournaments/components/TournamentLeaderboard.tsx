@@ -6,15 +6,17 @@ import { Avatar, AvatarFallback } from "@/components/ui/Avatar";
 import { Button } from "@/components/ui/Button";
 import { Loader2, Trophy } from "lucide-react";
 import { cn } from "@/shared/utils/merge-class-names";
+import { usePrefersReducedMotion } from "@/shared/hooks";
 
 import {
-LeaderboardSkeleton,
-TournamentEmptyState,
-TournamentErrorState,
-TournamentStaleState,
+  LeaderboardSkeleton,
+  TournamentEmptyState,
+  TournamentErrorState,
+  TournamentStaleState,
 } from "./shared";
 
 import type { UseTournamentLeaderboardResult } from "@/features/tournaments/hooks/useTournamentLeaderboard";
+import { LEADERBOARD_RANK_TOKENS } from "@/features/tournaments/lib/tournament-tokens";
 
 export interface TournamentLeaderboardProps {
 leaderboardResult: UseTournamentLeaderboardResult;
@@ -34,25 +36,25 @@ return username
 }
 
 function getRankStyle(rank: number): string {
-if (rank === 1) return "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-200";
-if (rank === 2) return "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200";
-if (rank === 3) return "bg-orange-100 text-orange-800 dark:bg-orange-900/40 dark:text-orange-200";
-return "bg-muted text-muted-foreground";
+  const config = LEADERBOARD_RANK_TOKENS[rank as 1 | 2 | 3];
+  if (config) return config;
+  return "bg-muted text-muted-foreground";
 }
 
 export function TournamentLeaderboard({
-leaderboardResult,
-className,
+  leaderboardResult,
+  className,
 }: TournamentLeaderboardProps) {
-const {
-items,
-isLoading,
-isLoadingMore,
-hasMore,
-loadMore,
-error,
-refresh,
-isStale,
+  const prefersReducedMotion = usePrefersReducedMotion();
+  const {
+    items,
+    isLoading,
+    isLoadingMore,
+    hasMore,
+    loadMore,
+    error,
+    refresh,
+    isStale,
   } = leaderboardResult;
 
 if (isLoading) {
@@ -136,16 +138,17 @@ entry.rank
 
 {hasMore && (
 <div className="flex justify-center py-2">
-{isLoadingMore ? (
-<div className="flex items-center gap-2 text-muted-foreground">
-<Loader2 className="h-4 w-4 animate-spin" />
-<span className="text-sm">Loading more...</span>
-</div>
-          ) : (
-<Button onClick={loadMore} variant="outline" size="sm">
-Load More
-            </Button>
-          )}
+              {isLoadingMore ? (
+                <div className="flex items-center gap-2 text-muted-foreground" aria-live="polite" aria-busy="true">
+                  <Loader2 className={cn("h-4 w-4", !prefersReducedMotion && "animate-spin")} aria-hidden="true" />
+                  <span className="text-sm">Loading more...</span>
+                  <span className="sr-only">Loading more leaderboard entries...</span>
+                </div>
+              ) : (
+                <Button onClick={loadMore} variant="outline" size="sm">
+                  Load More
+                </Button>
+              )}
 </div>
       )}
 </div>

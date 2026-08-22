@@ -67,20 +67,20 @@ className='flex flex-wrap gap-2 justify-center items-center'
 role='toolbar'
 aria-label='Leaderboard actions'
           >
-<Button
-className='bg-brand hover:bg-brand text-white text-xs sm:text-sm px-3 sm:px-4 py-1 sm:py-2 flex items-center gap-2'
-onClick={handleShowFindFriends}
-aria-label='Find friends on leaderboard'
-            >
+          <Button
+            className='bg-primary hover:bg-primary text-primary-foreground text-xs sm:text-sm px-3 sm:px-4 py-1 sm:py-2 flex items-center gap-2'
+            onClick={handleShowFindFriends}
+            aria-label='Find friends on leaderboard'
+          >
 <Users className='w-3 h-3 sm:w-4 sm:h-4' aria-hidden='true' />
 Find Friends
             </Button>
 {isAuthenticated ? (
-<Button
-className='bg-brand hover:bg-brand text-white text-xs sm:text-sm px-3 sm:px-4 py-1 sm:py-2 flex items-center gap-2'
-onClick={handleShowYourRanking}
-aria-label='View your ranking details'
-              >
+          <Button
+            className='bg-primary hover:bg-primary text-primary-foreground text-xs sm:text-sm px-3 sm:px-4 py-1 sm:py-2 flex items-center gap-2'
+            onClick={handleShowYourRanking}
+            aria-label='View your ranking details'
+          >
 <Trophy className='w-3 h-3 sm:w-4 sm:h-4' aria-hidden='true' />
 Your Ranking
               </Button>

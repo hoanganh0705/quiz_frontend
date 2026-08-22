@@ -356,7 +356,7 @@ className="flex items-start gap-2 rounded-lg border border-red-200 dark:border-r
 role="alert"
 data-testid="notification-preferences-update-error"
         >
-<AlertCircle className="h-4 w-4 text-red-500 mt-0.5 shrink-0" />
+<AlertCircle className="h-4 w-4 text-destructive mt-0.5 shrink-0" />
 <div>
 <p className="text-sm font-medium text-red-700 dark:text-red-300">
 {errorCopy.title}

@@ -121,28 +121,34 @@ return sdk.quizControllerCreateQuizQuestions(quizId, versionId, payload);
 }
 
 export interface ListQuizzesParams {
-cursor?: string;
-limit?: number;
-categoryId?: string;
-difficulty?: 'easy' | 'medium' | 'hard';
-
-tagIds?: string[];
-creatorId?: string;
-featured?: boolean;
+  cursor?: string;
+  limit?: number;
+  categoryId?: string;
+  difficulty?: "easy" | "medium" | "hard";
+  tagIds?: string[];
+  creatorId?: string;
+  featured?: boolean;
+  /**
+   * Aborts the underlying request when fired. The generated SDK signature
+   * does not declare it, but Axios forwards `signal` natively; this cast
+   * threads it through without touching generated code.
+   */
+  signal?: AbortSignal;
 }
 
 export async function listQuizzes(params?: ListQuizzesParams) {
-const sdk = getQuizzes();
-const forwarded: Record<string, unknown> = {};
-if (params?.cursor !== undefined) forwarded.cursor = params.cursor;
-if (params?.limit !== undefined) forwarded.limit = params.limit;
-if (params?.categoryId !== undefined) forwarded.categoryId = params.categoryId;
-if (params?.difficulty !== undefined) forwarded.difficulty = params.difficulty;
-if (params?.tagIds !== undefined) forwarded.tagIds = params.tagIds;
-if (params?.creatorId !== undefined) forwarded.creatorId = params.creatorId;
-if (params?.featured !== undefined) forwarded.featured = params.featured;
-return sdk.quizControllerListQuizzes(
-forwarded as Parameters<typeof sdk.quizControllerListQuizzes>[0],
+  const sdk = getQuizzes();
+  const forwarded: Record<string, unknown> = {};
+  if (params?.cursor !== undefined) forwarded.cursor = params.cursor;
+  if (params?.limit !== undefined) forwarded.limit = params.limit;
+  if (params?.categoryId !== undefined) forwarded.categoryId = params.categoryId;
+  if (params?.difficulty !== undefined) forwarded.difficulty = params.difficulty;
+  if (params?.tagIds !== undefined) forwarded.tagIds = params.tagIds;
+  if (params?.creatorId !== undefined) forwarded.creatorId = params.creatorId;
+  if (params?.featured !== undefined) forwarded.featured = params.featured;
+  if (params?.signal !== undefined) forwarded.signal = params.signal;
+  return sdk.quizControllerListQuizzes(
+    forwarded as Parameters<typeof sdk.quizControllerListQuizzes>[0],
   );
 }
 

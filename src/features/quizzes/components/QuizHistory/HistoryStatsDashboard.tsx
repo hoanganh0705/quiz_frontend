@@ -134,7 +134,7 @@ color="bg-emerald-500"
 <Card className="bg-background border border-border">
 <CardHeader className="pb-2">
 <CardTitle className="text-base flex items-center gap-2">
-<CheckCircle className="h-4 w-4 text-green-500" />
+<CheckCircle className="h-4 w-4 text-success" />
 Accuracy Overview
             </CardTitle>
 </CardHeader>

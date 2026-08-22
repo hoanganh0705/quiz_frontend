@@ -44,7 +44,7 @@ return <Star className='h-4 w-4 text-purple-500' />
 case 'challenge':
 return <Clock className='h-4 w-4 text-orange-500' />
 case 'system':
-return <Bell className='h-4 w-4 text-green-500' />
+return <Bell className='h-4 w-4 text-success' />
 default:
 return <Bell className='h-4 w-4 text-gray-500' />
   }

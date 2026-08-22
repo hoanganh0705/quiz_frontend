@@ -186,7 +186,7 @@ return (
 <div className='flex items-center justify-between gap-3 mb-8'>
 <Button
 size='sm'
-className='text-foreground/70 bg-transparent p-0 hover:bg-transparent hover:text-foreground shadow-none'
+className='text-foreground-secondary bg-transparent p-0 hover:bg-transparent hover:text-foreground shadow-none'
 asChild
           >
 <Link href='/quizzes' aria-label='Back to quizzes list'>
@@ -244,21 +244,21 @@ avgTimePerQuestion={avgTimePerQuestion}
 <TabsList className='grid w-full grid-cols-3 mb-6'>
 <TabsTrigger
 value='review'
-className=' text-sm font-semibold data-[state=active]:bg-brand dark:data-[state=active]:text-brand data-[state=active]:bg-background text-foreground/70 data-[state=active]:text-foreground transition-transform'
+className=' text-sm font-semibold data-[state=active]:bg-brand dark:data-[state=active]:text-brand data-[state=active]:bg-background text-foreground-secondary data-[state=active]:text-foreground transition-transform'
             >
 <BarChart3 className='w-4 h-4 mr-2' aria-hidden='true' />
 Answer Review
             </TabsTrigger>
 <TabsTrigger
 value='leaderboard'
-className=' text-sm font-semibold data-[state=active]:bg-brand dark:data-[state=active]:text-brand data-[state=active]:bg-background text-foreground/70 data-[state=active]:text-foreground transition-transform'
+className=' text-sm font-semibold data-[state=active]:bg-brand dark:data-[state=active]:text-brand data-[state=active]:bg-background text-foreground-secondary data-[state=active]:text-foreground transition-transform'
             >
 <Trophy className='w-4 h-4 mr-2' aria-hidden='true' />
 Leaderboard
             </TabsTrigger>
 <TabsTrigger
 value='share'
-className=' text-sm font-semibold data-[state=active]:bg-brand dark:data-[state=active]:text-brand data-[state=active]:bg-background text-foreground/70 data-[state=active]:text-foreground transition-transform'
+className=' text-sm font-semibold data-[state=active]:bg-brand dark:data-[state=active]:text-brand data-[state=active]:bg-background text-foreground-secondary data-[state=active]:text-foreground transition-transform'
             >
 <Share2 className='w-4 h-4 mr-2' aria-hidden='true' />
 Share Results

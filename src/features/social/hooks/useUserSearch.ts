@@ -6,6 +6,7 @@ import { ApiError, useCursorPaginated } from "@/lib/api";
 import type { OffsetFetcherArgs } from "@/lib/api/use-cursor-paginated.types";
 
 import { getFeatureFlagValue } from "@/lib/feature-flags";
+import { getAuthToken } from "@/features/auth/utils/auth-cookies";
 
 import { searchUsers } from "@/features/social/services/search.service";
 import {
@@ -72,7 +73,7 @@ export function useUserSearch(query: string): UseUserSearchResult {
 
 const flagValue = getFeatureFlagValue("social_user_search_live");
 const isFlagPlaceholder = flagValue === "placeholder";
-const isAuthenticated = true;
+const isAuthenticated = !!getAuthToken();
 
 const normalisedQuery = useMemo(() => {
 return query.trim().toLowerCase().normalize("NFC");

@@ -111,14 +111,14 @@ data-testid="submission-error"
 role="alert"
         >
 <AlertCircle
-className="h-4 w-4 shrink-0 mt-0.5 text-red-500"
+className="h-4 w-4 shrink-0 mt-0.5 text-destructive"
 aria-hidden="true"
           />
 <div className="flex-1 min-w-0">
 <p className="text-sm font-medium text-red-700 dark:text-red-300">
 {getSubmissionErrorCopy(lastError.code).title}
 </p>
-<p className="text-xs text-red-600 dark:text-red-400 mt-0.5">
+<p className="text-xs text-destructive dark:text-red-400 mt-0.5">
 {getSubmissionErrorCopy(lastError.code).body}
 </p>
 </div>
@@ -133,12 +133,12 @@ data-testid="submission-result"
         >
 {lastResult.isCorrect ? (
 <CheckCircle2
-className="h-4 w-4 shrink-0 text-green-500"
+className="h-4 w-4 shrink-0 text-success"
 aria-hidden="true"
             />
           ) : (
 <XCircle
-className="h-4 w-4 shrink-0 text-red-500"
+className="h-4 w-4 shrink-0 text-destructive"
 aria-hidden="true"
             />
           )}

@@ -65,7 +65,7 @@ className='flex items-center justify-between gap-3 p-4 rounded-lg border border-
 data-testid='change-password-success-banner'
     >
 <div className='flex items-center gap-2'>
-<CheckCircle2 className='w-5 h-5 text-green-600 dark:text-green-400 shrink-0' />
+<CheckCircle2 className='w-5 h-5 text-success dark:text-green-400 shrink-0' />
 <p className='text-sm text-green-700 dark:text-green-300'>
 {resolvePasswordCopy(PASSWORD_COPY_KEYS.password.changePassword.success)}
 </p>

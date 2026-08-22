@@ -136,7 +136,7 @@ label='Quizzes Completed'
         />
 <StatsCard
 icon={TrendingUp}
-iconColor='text-green-500'
+iconColor='text-success'
 iconBgColor='bg-green-500/10'
 value={`${analytics.averageScore.toFixed(1)}%`}
 label='Average Score'
@@ -216,7 +216,7 @@ aria-label={`Average score: ${analytics.averageScore.toFixed(1)}%`}
 {/* Score ranges */}
 <div className='grid grid-cols-3 gap-4 pt-4 border-t'>
 <div className='text-center'>
-<p className='text-2xl font-bold text-green-500'>
+<p className='text-2xl font-bold text-success'>
 {analytics.averageScore >= 80 ? analytics.quizzesCompleted : Math.round(analytics.quizzesCompleted * 0.3)}
 </p>
 <p className='text-xs text-muted-foreground'>80%+ Scores</p>
@@ -230,7 +230,7 @@ aria-label={`Average score: ${analytics.averageScore.toFixed(1)}%`}
 <p className='text-xs text-muted-foreground'>60-79% Scores</p>
 </div>
 <div className='text-center'>
-<p className='text-2xl font-bold text-red-500'>
+<p className='text-2xl font-bold text-destructive'>
 {analytics.averageScore < 60 ? analytics.quizzesCompleted : Math.round(analytics.quizzesCompleted * 0.3)}
 </p>
 <p className='text-xs text-muted-foreground'>Below 60%</p>

@@ -103,18 +103,18 @@ export function FindFriendsPopup({ isOpen, onClose }: FindFriendsPopupProps) {
 
           {/* Content */}
           {!isAuthenticated ? (
-            <div className='text-center py-8 text-foreground/70 space-y-2'>
+            <div className='text-center py-8 text-foreground-secondary space-y-2'>
               <Users className='w-12 h-12 mx-auto opacity-50' aria-hidden='true' />
               <p>Sign in to see friend suggestions</p>
             </div>
           ) : visibility !== 'visible' ? (
             <PrivacyNotice visibility={visibility} onRetry={retry} />
           ) : isLoading && items.length === 0 ? (
-            <div className='text-center py-8 text-foreground/70'>
+            <div className='text-center py-8 text-foreground-secondary'>
               <p>Loading suggestions…</p>
             </div>
           ) : error ? (
-            <div className='text-center py-8 text-foreground/70 space-y-2'>
+            <div className='text-center py-8 text-foreground-secondary space-y-2'>
               <p>Could not load suggestions.</p>
               <Button
                 type='button'
@@ -128,7 +128,7 @@ export function FindFriendsPopup({ isOpen, onClose }: FindFriendsPopupProps) {
               </Button>
             </div>
           ) : filtered.length === 0 ? (
-            <div className='text-center py-8 text-foreground/70 space-y-2'>
+            <div className='text-center py-8 text-foreground-secondary space-y-2'>
               <Users className='w-12 h-12 mx-auto opacity-50' aria-hidden='true' />
               <p>
                 {searchQuery
@@ -188,7 +188,7 @@ function PrivacyNotice({ visibility, onRetry }: PrivacyNoticeProps) {
       message = 'Suggestions are unavailable right now.'
   }
   return (
-    <div className='text-center py-8 text-foreground/70 space-y-2'>
+    <div className='text-center py-8 text-foreground-secondary space-y-2'>
       <p>{message}</p>
       <Button
         type='button'
@@ -247,7 +247,7 @@ function SuggestionRow({ suggestion }: SuggestionRowProps) {
       </div>
       <Button
         size='sm'
-        className='bg-brand hover:bg-brand text-white'
+        className='bg-primary hover:bg-primary text-primary-foreground'
         type='button'
       >
         <UserPlus className='w-4 h-4 mr-1' aria-hidden='true' />

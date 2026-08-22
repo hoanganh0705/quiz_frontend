@@ -68,7 +68,7 @@ export const CompetitionStats = memo(function CompetitionStats() {
           </CardDescription>
         </CardHeader>
         <CardContent className='space-y-4'>
-          <div className='flex items-center gap-2 text-sm text-foreground/70'>
+          <div className='flex items-center gap-2 text-sm text-foreground-secondary'>
             <Users className='w-4 h-4' aria-hidden='true' />
             <span>
               {totalParticipants !== null
@@ -184,6 +184,7 @@ export const CompetitionStats = memo(function CompetitionStats() {
               <div
                 className='bg-foreground h-1 sm:h-1.5 rounded-full'
                 style={{ width: `${progressPercent}%` }}
+                aria-hidden="true"
               />
             </div>
 
@@ -207,7 +208,7 @@ export const CompetitionStats = memo(function CompetitionStats() {
 
             {/* Trend */}
             {weekly?.trend && weekly.trend !== 'same' ? (
-              <div className='flex items-center gap-2 text-xs text-foreground/70 w-full pt-1 border-t border-border/40'>
+              <div className='flex items-center gap-2 text-xs text-foreground-secondary w-full pt-1 border-t border-border/40'>
                 <Link2 className='w-3 h-3' aria-hidden='true' />
                 <span>
                   Trend: {weekly.trend}

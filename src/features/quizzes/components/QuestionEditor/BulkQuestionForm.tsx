@@ -111,13 +111,13 @@ return (
 {/* Summary */}
 <div className="flex items-center gap-4">
 {successCount > 0 && (
-<div className="flex items-center gap-2 text-green-600">
+<div className="flex items-center gap-2 text-success">
 <CheckCircle2 className="h-5 w-5" />
 <span className="text-sm font-medium">{successCount} created</span>
 </div>
         )}
 {failCount > 0 && (
-<div className="flex items-center gap-2 text-red-600">
+<div className="flex items-center gap-2 text-destructive">
 <XCircle className="h-5 w-5" />
 <span className="text-sm font-medium">{failCount} failed</span>
 </div>
@@ -139,9 +139,9 @@ data-testid={`bulk-result-${result.index}`}
           >
 {/* Status icon */}
 {result.status === 201 ? (
-<CheckCircle2 className="h-5 w-5 shrink-0 text-green-600" />
+<CheckCircle2 className="h-5 w-5 shrink-0 text-success" />
             ) : (
-<XCircle className="h-5 w-5 shrink-0 text-red-600" />
+<XCircle className="h-5 w-5 shrink-0 text-destructive" />
             )}
 
 {/* Index */}

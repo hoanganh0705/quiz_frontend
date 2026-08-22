@@ -69,6 +69,12 @@ const [lastRevealCorrect, setLastRevealCorrect] = useState<boolean | null>(null)
 
 const nextIndexRef = useRef<number | null>(null)
 
+// `useQuizByIdOrSlug` is called with `quizId` so the question list is
+// fetched eagerly. This is intentional: the play surface renders the
+// first question immediately on mount. A future optimization is to have
+// the daily-challenge today endpoint include the day's question list
+// (the backend already knows which questions belong to the day), so the
+// quiz endpoint fetch is dropped entirely.
 const { quiz, isLoading: isQuizLoading } = useQuizByIdOrSlug(quizId)
 
 const questions: PlayerQuestion[] = useMemo(() => {

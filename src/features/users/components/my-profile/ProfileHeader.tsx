@@ -250,7 +250,7 @@ aria-label={copied ? 'Link copied' : 'Copy profile link'}
             >
 <span className='sr-only'>Copy</span>
 {copied ? (
-<Check className='h-4 w-4 text-green-500' aria-hidden='true' />
+<Check className='h-4 w-4 text-success' aria-hidden='true' />
               ) : (
 <Copy className='h-4 w-4' aria-hidden='true' />
               )}

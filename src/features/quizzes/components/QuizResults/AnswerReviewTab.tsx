@@ -91,13 +91,13 @@ function QuestionReviewItem({
           </div>
           <div className='text-left'>
             <div className='font-medium'>Question {index + 1}</div>
-            <div className='text-sm text-foreground/70 line-clamp-1'>
+            <div className='text-sm text-foreground-secondary line-clamp-1'>
               {review.question}
             </div>
           </div>
         </div>
         <div className='flex items-center gap-4'>
-          <div className='text-sm text-foreground/70'>
+          <div className='text-sm text-foreground-secondary'>
             <Clock className='w-4 h-4 inline mr-1' aria-hidden='true' />
             <span style={{ fontVariantNumeric: 'tabular-nums' }}>
               {review.timeTaken}s
@@ -187,10 +187,10 @@ function AnswerOption({
       </span>
       <span className='flex-1'>{answer.value}</span>
       {isCorrectAnswer && (
-        <CheckCircle2 className='w-5 h-5 text-green-500' aria-hidden='true' />
+        <CheckCircle2 className='w-5 h-5 text-success' aria-hidden='true' />
       )}
       {isUserAnswer && !isCorrect && (
-        <XCircle className='w-5 h-5 text-red-500' aria-hidden='true' />
+        <XCircle className='w-5 h-5 text-destructive' aria-hidden='true' />
       )}
     </div>
   )

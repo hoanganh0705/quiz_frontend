@@ -77,12 +77,12 @@ return (
 {/* Summary header */}
 <div className='flex items-center justify-between'>
 <div className='flex items-center gap-4 text-sm'>
-<span className='flex items-center gap-1.5 text-green-600 dark:text-green-400'>
+<span className='flex items-center gap-1.5 text-success dark:text-green-400'>
 <CheckCircle className='h-4 w-4' aria-hidden='true' />
 {summary.succeeded} succeeded
           </span>
 {summary.failed > 0 && (
-<span className='flex items-center gap-1.5 text-red-600 dark:text-red-400'>
+<span className='flex items-center gap-1.5 text-destructive dark:text-red-400'>
 <XCircle className='h-4 w-4' aria-hidden='true' />
 {summary.failed} failed
             </span>
@@ -134,12 +134,12 @@ isSuccess
 {/* Status icon */}
 {isSuccess ? (
 <CheckCircle
-className='h-4 w-4 text-green-600 dark:text-green-400 shrink-0 mt-0.5'
+className='h-4 w-4 text-success dark:text-green-400 shrink-0 mt-0.5'
 aria-hidden='true'
                     />
                   ) : (
 <XCircle
-className='h-4 w-4 text-red-600 dark:text-red-400 shrink-0 mt-0.5'
+className='h-4 w-4 text-destructive dark:text-red-400 shrink-0 mt-0.5'
 aria-hidden='true'
                     />
                   )}
@@ -155,7 +155,7 @@ isSuccess ? 'text-green-700 dark:text-green-300' : 'text-red-700 dark:text-red-3
 </p>
 <p className='text-xs text-muted-foreground'>{result.message}</p>
 {!isSuccess && result.code && (
-<p className='text-xs text-red-500'>Code: {result.code}</p>
+<p className='text-xs text-destructive'>Code: {result.code}</p>
                     )}
 </div>
 

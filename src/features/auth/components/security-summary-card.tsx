@@ -244,7 +244,7 @@ function SuccessFields({ data }: { data: AccountSecurityDto }) {
         testId="security-summary-email-verified"
         className={
           data.emailVerified
-            ? "text-green-600 dark:text-green-400"
+            ? "text-success dark:text-green-400"
             : "text-amber-600 dark:text-amber-400"
         }
       >
@@ -288,7 +288,7 @@ function Field({
 }) {
   return (
     <div>
-      <dt className="text-sm text-foreground/70 mb-1">{label}</dt>
+      <dt className="text-sm text-foreground-secondary mb-1">{label}</dt>
       <dd
         className={`text-base font-medium ${className ?? ""}`}
         data-testid={testId}

@@ -25,17 +25,17 @@ const isSelfEntry = isAuthenticated && entry.isCurrentUser === true
 
 const avatarFallbackLetter = entry.displayName?.[0]?.toUpperCase() ?? '?'
 
-return (
-<div
-aria-current={isSelfEntry ? 'true' : undefined}
-data-leaderboard-row={entry.userId}
-className={cn(
-'flex items-center justify-between gap-4 rounded-lg p-3',
-'transition-colors',
-isSelfEntry
-? 'bg-primary/10 ring-1 ring-primary/40'
-: 'bg-slate-800/30',
-className,
+  return (
+    <li
+      aria-current={isSelfEntry ? 'true' : undefined}
+      data-leaderboard-row={entry.userId}
+      className={cn(
+        'flex items-center justify-between gap-4 rounded-lg p-3',
+        'transition-colors',
+        isSelfEntry
+          ? 'bg-primary/10 ring-1 ring-primary/40'
+          : 'bg-slate-800/30',
+        className,
       )}
     >
 {/* Left cluster: rank, dense rank, avatar, display name */}
@@ -60,7 +60,7 @@ d#{entry.denseRank}
 
 <Avatar className='h-10 w-10 shrink-0'>
 {entry.avatarUrl ? (
-<AvatarImage src={entry.avatarUrl} alt={entry.displayName} />
+        <AvatarImage src={entry.avatarUrl} alt="" />
           ) : null}
 <AvatarFallback>{avatarFallbackLetter}</AvatarFallback>
 </Avatar>
@@ -93,7 +93,17 @@ aria-label={`${entry.xp} XP`}
         >
 {entry.xp.toLocaleString()} XP
         </span>
-</div>
-</div>
+      </div>
+
+      {/* Right cluster: XP with thousands separators */}
+      <div className="flex shrink-0 items-center gap-1">
+        <span
+          className="rounded-full bg-slate-700/60 px-2 py-0.5 text-xs font-semibold text-white tabular-nums"
+          aria-label={`${entry.xp} XP`}
+        >
+          {entry.xp.toLocaleString()} XP
+        </span>
+      </div>
+    </li>
   )
 }

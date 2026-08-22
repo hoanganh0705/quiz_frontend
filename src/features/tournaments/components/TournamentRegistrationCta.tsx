@@ -7,6 +7,7 @@ import { useAuthSession } from "@/features/auth/hooks/use-auth-session";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/shared/utils/merge-class-names";
 import { getFeatureFlagValue } from "@/lib/feature-flags";
+import { usePrefersReducedMotion } from "@/shared/hooks";
 
 import {
 useTournamentRegistration,
@@ -62,12 +63,13 @@ return { variant: "register", disabled: isPending, pending: isPending };
 }
 
 export function TournamentRegistrationCta({
-tournamentId,
-tournamentName,
-className,
+  tournamentId,
+  tournamentName,
+  className,
 }: TournamentRegistrationCtaProps) {
+  const prefersReducedMotion = usePrefersReducedMotion();
 
-const flagValue = getFeatureFlagValue("tournaments_live");
+  const flagValue = getFeatureFlagValue("tournaments_live");
 const isFlagPlaceholder = flagValue === "placeholder";
 
 const { bootstrapState } = useAuthSession();
@@ -165,43 +167,45 @@ Sign in to register
       )}
 
 {ctaState.variant === "register" && (
-<Button
-variant="default"
-size="lg"
-onClick={handleRegister}
-disabled={ctaState.disabled}
-className="w-full"
-data-testid="tournament-cta-register"
+        <Button
+          variant="default"
+          size="lg"
+          onClick={handleRegister}
+          disabled={ctaState.disabled}
+          className="w-full"
+          data-testid="tournament-cta-register"
         >
-{ctaState.pending ? (
-<>
-<LoaderCircle className="h-4 w-4 animate-spin" aria-hidden="true" />
-Registering...
+          {ctaState.pending ? (
+            <>
+              <LoaderCircle className={cn("h-4 w-4", !prefersReducedMotion && "animate-spin")} aria-hidden="true" />
+              <span>Registering...</span>
+              <span className="sr-only">Registering for {tournamentName ?? "tournament"}...</span>
             </>
           ) : (
-"Register"
+            "Register"
           )}
-</Button>
+        </Button>
       )}
 
-{ctaState.variant === "withdraw" && (
-<Button
-variant="outline"
-size="lg"
-onClick={handleWithdrawClick}
-disabled={ctaState.disabled}
-className="w-full border-destructive text-destructive hover:bg-destructive/10"
-data-testid="tournament-cta-withdraw"
+      {ctaState.variant === "withdraw" && (
+        <Button
+          variant="outline"
+          size="lg"
+          onClick={handleWithdrawClick}
+          disabled={ctaState.disabled}
+          className="w-full border-destructive text-destructive hover:bg-destructive/10"
+          data-testid="tournament-cta-withdraw"
         >
-{ctaState.pending ? (
-<>
-<LoaderCircle className="h-4 w-4 animate-spin" aria-hidden="true" />
-Withdrawing...
+          {ctaState.pending ? (
+            <>
+              <LoaderCircle className={cn("h-4 w-4", !prefersReducedMotion && "animate-spin")} aria-hidden="true" />
+              <span>Withdrawing...</span>
+              <span className="sr-only">Withdrawing from {tournamentName ?? "tournament"}...</span>
             </>
           ) : (
-"Withdraw"
+            "Withdraw"
           )}
-</Button>
+        </Button>
       )}
 
 {/* Withdraw confirmation dialog */}

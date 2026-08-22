@@ -65,7 +65,7 @@ function Placeholder({ title, description, className }: PlaceholderProps) {
             <CardTitle id={headingId} className="text-xl font-bold">
               {title}
             </CardTitle>
-            <p className="mt-1 text-foreground/70 text-sm">{description}</p>
+            <p className="mt-1 text-foreground-secondary text-sm">{description}</p>
           </div>
           <div
             className="flex items-center space-x-2 text-muted-foreground text-sm"
@@ -77,7 +77,7 @@ function Placeholder({ title, description, className }: PlaceholderProps) {
         </div>
       </CardHeader>
       <CardContent>
-        <p className="text-sm text-foreground/70">
+        <p className="text-sm text-foreground-secondary">
           We&apos;re laying the realtime foundation in Phase 5; this
           surface lights up once the relevant feature flag flips to
           live.

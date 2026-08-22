@@ -56,7 +56,7 @@ label: string;
 } {
 switch (status) {
 case 'completed':
-return { icon: CheckCircle, color: 'text-green-500', label: 'Completed' };
+return { icon: CheckCircle, color: 'text-success', label: 'Completed' };
 case 'abandoned':
 return { icon: Clock, color: 'text-amber-500', label: 'Abandoned' };
 default:
@@ -142,7 +142,7 @@ return (
 <CardContent className='p-4'>
 <div className='flex items-center gap-3'>
 <div className='p-2 rounded-lg bg-green-500/10'>
-<CheckCircle className='w-5 h-5 text-green-500' aria-hidden='true' />
+<CheckCircle className='w-5 h-5 text-success' aria-hidden='true' />
 </div>
 <div>
 <p className='text-xl font-bold'>
@@ -216,10 +216,10 @@ className='flex items-center justify-between p-3 border rounded-lg hover:bg-mute
 {attempt.status === 'completed' && attempt.scorePercent !== null ? (
 <p className={`text-lg font-bold ${
 (attempt.scorePercent ?? 0) >= 80
-? 'text-green-500'
+? 'text-success'
 : (attempt.scorePercent ?? 0) >= 60
 ? 'text-amber-500'
-: 'text-red-500'
+: 'text-destructive'
 }`}>
 {attempt.scorePercent?.toFixed(0)}%
                     </p>

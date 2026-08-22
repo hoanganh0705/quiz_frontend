@@ -73,9 +73,9 @@ data-testid={`bulk-question-result-${result.index}`}
     >
 {/* Status icon */}
 {isSuccess ? (
-<CheckCircle2 className="h-5 w-5 flex-shrink-0 text-green-600" />
+<CheckCircle2 className="h-5 w-5 flex-shrink-0 text-success" />
       ) : (
-<XCircle className="h-5 w-5 flex-shrink-0 text-red-600" />
+<XCircle className="h-5 w-5 flex-shrink-0 text-destructive" />
       )}
 
 {/* Content */}
@@ -96,7 +96,7 @@ isSuccess ? 'text-green-700' : 'text-red-700',
 : result.message || `Failed (${result.code})`}
 </p>
 {!isSuccess && result.code && (
-<p className="text-xs text-red-500">Code: {result.code}</p>
+<p className="text-xs text-destructive">Code: {result.code}</p>
         )}
 </div>
 
@@ -162,12 +162,12 @@ return (
 {/* Summary header */}
 <div className="flex items-center justify-between">
 <div className="flex items-center gap-4 text-sm">
-<span className="flex items-center gap-1.5 text-green-600">
+<span className="flex items-center gap-1.5 text-success">
 <CheckCircle2 className="h-4 w-4" aria-hidden="true" />
 {summary.succeeded} created
           </span>
 {summary.failed > 0 && (
-<span className="flex items-center gap-1.5 text-red-600">
+<span className="flex items-center gap-1.5 text-destructive">
 <XCircle className="h-4 w-4" aria-hidden="true" />
 {summary.failed} failed
             </span>

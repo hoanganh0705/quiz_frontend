@@ -22,7 +22,10 @@ className={cn(
 className,
       )}
     >
-<Flame className='h-4 w-4 text-orange-400' aria-hidden='true' />
+<Flame
+  className='h-4 w-4 text-warning'
+  aria-hidden='true'
+/>
 <span aria-hidden='true'>
 {streak} {streak === 1 ? 'day' : 'days'} streak
       </span>

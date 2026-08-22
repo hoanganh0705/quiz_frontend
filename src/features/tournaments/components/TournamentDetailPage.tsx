@@ -85,60 +85,73 @@ onRetry={tournamentResult.refresh}
     );
   }
 
-if (tournamentResult.tournament === null) {
-return (
-<div className={className}>
-<TournamentErrorState
-error={null}
+  if (tournamentResult.tournament === null) {
+    return (
+      <div className={className}>
+        <TournamentErrorState
+          error={null}
         />
-</div>
+      </div>
     );
   }
 
-const tournament = tournamentResult.tournament;
+  const tournament = tournamentResult.tournament;
 
-return (
-<div className={className}>
-<div className="space-y-8">
-{/* Header */}
-<div className="flex flex-col gap-4">
-<TournamentHeader tournament={tournament} />
+  return (
+    <div className={className}>
+      <div className="space-y-8">
+        {/* Header */}
+        <div className="flex flex-col gap-4">
+          <TournamentHeader tournament={tournament} />
 
-{/* Registration area: CTA + capacity indicator + status */}
-<div className="flex flex-col sm:flex-row sm:items-center gap-4 p-4 rounded-lg border bg-card">
-<div className="flex-1">
-{/* Registration state indicator */}
-<div className="flex items-center gap-3">
-<RegistrationState status={participationResult.participation?.registrationStatus ?? null} />
-<TournamentCapacityIndicator
-currentParticipants={tournament.totalParticipants}
-maxParticipants={tournament.maxParticipants}
+          {/* Registration area: CTA + capacity indicator + status */}
+          {/* Guard on participationResult.isLoading to prevent layout shift from registration state resolving */}
+          {participationResult.isLoading ? (
+            <div className="flex flex-col sm:flex-row sm:items-center gap-4 p-4 rounded-lg border bg-card">
+              <div className="flex-1 flex items-center gap-3">
+                <div className="h-6 w-24 rounded-full bg-muted animate-pulse" />
+                <div className="h-4 w-32 rounded bg-muted animate-pulse" />
+              </div>
+              <div className="shrink-0">
+                <div className="h-10 w-32 rounded-md bg-muted animate-pulse" />
+              </div>
+            </div>
+          ) : (
+            <div className="flex flex-col sm:flex-row sm:items-center gap-4 p-4 rounded-lg border bg-card">
+              <div className="flex-1">
+                {/* Registration state indicator */}
+                <div className="flex items-center gap-3">
+                  <RegistrationState status={participationResult.participation?.registrationStatus ?? null} />
+                  <TournamentCapacityIndicator
+                    currentParticipants={tournament.totalParticipants}
+                    maxParticipants={tournament.maxParticipants}
+                  />
+                </div>
+              </div>
+              {/* Registration CTA */}
+              <div className="shrink-0">
+                <TournamentRegistrationCta
+                  tournamentId={tournament.id}
+                  tournamentName={tournament.title}
                 />
-</div>
-</div>
-{/* Registration CTA */}
-<div className="shrink-0">
-<TournamentRegistrationCta
-tournamentId={tournament.id}
-tournamentName={tournament.title}
-              />
-</div>
-</div>
-</div>
+              </div>
+            </div>
+          )}
+        </div>
 
-{/* Participants and Leaderboard panels */}
-<div className="grid gap-8 lg:grid-cols-2">
-{/* Participants panel */}
-<div>
-<ParticipantList participantsResult={participantsResult} />
-</div>
+        {/* Participants and Leaderboard panels */}
+        <div className="grid gap-8 lg:grid-cols-2">
+          {/* Participants panel */}
+          <div>
+            <ParticipantList participantsResult={participantsResult} />
+          </div>
 
-{/* Leaderboard panel */}
-<div>
-<TournamentLeaderboard leaderboardResult={leaderboardResult} />
-</div>
-</div>
-</div>
-</div>
+          {/* Leaderboard panel */}
+          <div>
+            <TournamentLeaderboard leaderboardResult={leaderboardResult} />
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }

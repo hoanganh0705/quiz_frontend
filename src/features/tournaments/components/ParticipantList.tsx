@@ -6,11 +6,12 @@ import { Avatar, AvatarFallback } from "@/components/ui/Avatar";
 import { Button } from "@/components/ui/Button";
 import { Loader2 } from "lucide-react";
 import { cn } from "@/shared/utils/merge-class-names";
+import { usePrefersReducedMotion } from "@/shared/hooks";
 
 import {
-ParticipantListSkeleton,
-TournamentEmptyState,
-TournamentErrorState,
+  ParticipantListSkeleton,
+  TournamentEmptyState,
+  TournamentErrorState,
 } from "./shared";
 
 import type { UseTournamentParticipantsResult } from "@/features/tournaments/hooks/useTournamentParticipants";
@@ -42,17 +43,18 @@ return username
 }
 
 export function ParticipantList({
-participantsResult,
-className,
+  participantsResult,
+  className,
 }: ParticipantListProps) {
-const {
-items,
-isLoading,
-isLoadingMore,
-hasMore,
-loadMore,
-error,
-refresh,
+  const prefersReducedMotion = usePrefersReducedMotion();
+  const {
+    items,
+    isLoading,
+    isLoadingMore,
+    hasMore,
+    loadMore,
+    error,
+    refresh,
   } = participantsResult;
 
 if (isLoading) {
@@ -106,19 +108,23 @@ Joined {formatDate(participant.registeredAt)}
         ))}
 </div>
 
-{hasMore && (
-<div className="flex justify-center py-2">
-{isLoadingMore ? (
-<div className="flex items-center gap-2 text-muted-foreground">
-<Loader2 className="h-4 w-4 animate-spin" />
-<span className="text-sm">Loading more...</span>
-</div>
+      {hasMore && (
+        <div className="flex justify-center py-2" aria-live="polite" aria-busy={isLoadingMore}>
+          {isLoadingMore ? (
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <Loader2
+                className={cn("h-4 w-4", !prefersReducedMotion && "animate-spin")}
+                aria-hidden="true"
+              />
+              <span className="text-sm">Loading more...</span>
+              <span className="sr-only">Loading more participants...</span>
+            </div>
           ) : (
-<Button onClick={loadMore} variant="outline" size="sm">
-Load More
+            <Button onClick={loadMore} variant="outline" size="sm">
+              Load More
             </Button>
           )}
-</div>
+        </div>
       )}
 </div>
   );

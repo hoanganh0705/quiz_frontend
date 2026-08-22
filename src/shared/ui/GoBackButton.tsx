@@ -10,7 +10,7 @@ return (
 <div className='mt-8'>
 <button
 onClick={() => router.back()}
-className='inline-flex items-center text-sm text-foreground/70 hover:text-foreground transition-colors'
+className='inline-flex items-center text-sm text-foreground-secondary hover:text-foreground transition-colors'
       >
 <ArrowLeft className='w-4 h-4 mr-1' />
 Go back to previous page

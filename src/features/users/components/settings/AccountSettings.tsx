@@ -159,7 +159,7 @@ const UsernameField = memo(function UsernameField({
         )}
         {status === 'available' && (
           <Check
-            className="h-4 w-4 text-green-500"
+            className="h-4 w-4 text-success"
             aria-hidden="true"
           />
         )}

@@ -2,6 +2,7 @@
 
 import { LucideIcon } from 'lucide-react'
 import type { ComponentType } from 'react'
+import Link from 'next/link'
 import { Button } from '@/components/ui/Button'
 import { cn } from '@/shared/utils/merge-class-names'
 
@@ -98,7 +99,7 @@ index === 0
 : ''
                   }
                 >
-<a href={action.href}>{buttonContent}</a>
+<Link href={action.href}>{buttonContent}</Link>
 </Button>
               )
             }

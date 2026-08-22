@@ -3,6 +3,7 @@
 import { memo } from "react";
 
 import { Button } from "@/components/ui/Button";
+import { Skeleton } from "@/components/ui/Skeleton";
 
 import { useUnfriend } from "@/features/social/hooks";
 
@@ -10,26 +11,7 @@ import { useUserProfileBundle } from "@/features/users/hooks/use-user-profile-bu
 
 import type { SocialUserSummaryDto } from "@/features/social/types";
 
-/**
- * Local fallback for `displayNameOf` — the friends page owns the
- * canonical implementation. We intentionally keep this copy local
- * to the component module so the test (and the panel) don't depend
- * on the page's internal helper.
- */
-function displayNameOf(input: {
-  displayName?: unknown;
-  username?: string | null;
-  userName?: string | null;
-}): string {
-  if (
-    typeof input.displayName === "string" &&
-    input.displayName.trim().length > 0
-  ) {
-    return input.displayName;
-  }
-  const userName = input.userName ?? input.username;
-  return userName ?? "Unknown user";
-}
+import { displayNameOf } from "@/features/social/utils/display-name";
 
 export interface CompareStatsPanelProps {
   friend: SocialUserSummaryDto;
@@ -120,40 +102,47 @@ export const CompareStatsPanel = memo(function CompareStatsPanel({
 
   return (
     <div className="space-y-3 text-sm">
-      <CompareRow
-        label="Quizzes Played"
-        youValue={youQuizzesPlayed}
-        themLabel={name}
-        themValue={themQuizzesPlayed}
-      />
-      <CompareRow
-        label="Average Score"
-        youValue={youAverageScore}
-        themLabel={name}
-        themValue={themAverageScore}
-      />
-      <CompareRow
-        label="Total Attempts"
-        youValue={
-          myAnalyticsLoading
-            ? null
-            : myAnalytics
-              ? myAnalytics.quizzesCompleted.toLocaleString()
-              : null
-        }
-        themLabel={name}
-        themValue={themTotalAttempts}
-      />
-      {friendAnalyticsLoading && (
-        <p className="text-xs text-foreground/70">Loading friend stats…</p>
+      {friendAnalyticsLoading ? (
+        <>
+          <CompareRowSkeleton />
+          <CompareRowSkeleton />
+          <CompareRowSkeleton />
+        </>
+      ) : (
+        <>
+          <CompareRow
+            label="Quizzes Played"
+            youValue={youQuizzesPlayed}
+            themLabel={name}
+            themValue={themQuizzesPlayed}
+          />
+          <CompareRow
+            label="Average Score"
+            youValue={youAverageScore}
+            themLabel={name}
+            themValue={themAverageScore}
+          />
+          <CompareRow
+            label="Total Attempts"
+            youValue={
+              myAnalyticsLoading
+                ? null
+                : myAnalytics
+                  ? myAnalytics.quizzesCompleted.toLocaleString()
+                  : null
+            }
+            themLabel={name}
+            themValue={themTotalAttempts}
+          />
+        </>
       )}
       {friendStatsErrorMessage && (
-        <p className="text-xs text-foreground/70" role="status">
+        <p className="text-xs text-foreground-secondary" role="status">
           Friend stats unavailable.
         </p>
       )}
       {unfriendMut.isPending && (
-        <p className="text-xs text-foreground/70">Unfriending…</p>
+        <p className="text-xs text-foreground-secondary">Unfriending…</p>
       )}
       <Button
         size="sm"
@@ -164,7 +153,7 @@ export const CompareStatsPanel = memo(function CompareStatsPanel({
       >
         Unfriend
       </Button>
-      <p className="text-xs text-foreground/70">
+      <p className="text-xs text-foreground-secondary">
         {viewerLabel} vs {name}
       </p>
     </div>
@@ -199,3 +188,13 @@ const CompareRow = memo(function CompareRow({
     </div>
   );
 });
+
+function CompareRowSkeleton() {
+  return (
+    <div className="border border-border rounded-md p-3">
+      <Skeleton className="h-4 w-28 mb-2" />
+      <Skeleton className="h-3 w-20 mb-1" />
+      <Skeleton className="h-3 w-20" />
+    </div>
+  );
+}

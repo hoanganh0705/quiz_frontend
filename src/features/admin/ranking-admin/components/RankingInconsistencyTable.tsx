@@ -22,7 +22,7 @@ role="status"
 className="flex items-center gap-2 rounded-md border border-green-200 bg-green-50 p-4 dark:border-green-800 dark:bg-green-950"
     >
 <CheckCircle2
-className="h-5 w-5 shrink-0 text-green-600 dark:text-green-400"
+className="h-5 w-5 shrink-0 text-success dark:text-green-400"
 aria-hidden="true"
       />
 <p className="text-sm text-green-700 dark:text-green-300">

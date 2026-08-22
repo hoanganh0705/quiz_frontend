@@ -5,7 +5,6 @@ import { Label } from '@/components/ui/Label'
 import { Input } from '@/components/ui/Input'
 import { Textarea } from '@/components/ui/Textarea'
 import { Button } from '@/components/ui/Button'
-// Fix barrel imports (bundle-barrel-imports)
 import { RadioGroup } from '@/components/ui/RadioGroup'
 import { RadioGroupItem } from '@/components/ui/RadioGroup'
 import { Card } from '@/components/ui/Card'
@@ -50,7 +49,6 @@ function buildInitialQuestions(count: number): Question[] {
   }))
 }
 
-// Wrap component in memo to prevent unnecessary re-renders
 const QuestionsTab = memo(function QuestionsTab({
   initialCount = 1,
   onQuestionsCountChange
@@ -124,7 +122,6 @@ const QuestionsTab = memo(function QuestionsTab({
     return isValid
   }, [questions, validateQuestion])
 
-  // Add useCallback for event handlers (rerender-functional-setstate)
   const addQuestion = useCallback(() => {
     setQuestions((prev) => [
       ...prev,
@@ -262,7 +259,7 @@ const QuestionsTab = memo(function QuestionsTab({
       <div className='flex items-center justify-between mb-3'>
         <div className='flex items-center gap-3'>
           <h2 className='text-xl font-bold text-foreground'>Questions</h2>
-          <Badge variant='secondary' className='text-foreground/70'>
+          <Badge variant='secondary' className='text-foreground-secondary'>
             {questions.length}{' '}
             {questions.length === 1 ? 'question' : 'questions'}
           </Badge>
@@ -297,8 +294,8 @@ const QuestionsTab = memo(function QuestionsTab({
           const questionErrors = errors[question.id]
 
           return (
-            <AccordionItem key={question.id} value={question.id} className=' '>
-              <AccordionTrigger className=''>
+            <AccordionItem key={question.id} value={question.id}>
+              <AccordionTrigger>
                 <div className='flex items-center justify-between w-full mr-4'>
                   <div className='flex items-center gap-3'>
                     {/* Status indicator */}
@@ -322,7 +319,7 @@ const QuestionsTab = memo(function QuestionsTab({
                     )}
                     {status === 'error' && (
                       <AlertCircle
-                        className='w-4 h-4 text-red-500'
+                        className='w-4 h-4 text-destructive'
                         aria-hidden='true'
                       />
                     )}
@@ -359,7 +356,7 @@ const QuestionsTab = memo(function QuestionsTab({
                         e.stopPropagation()
                         deleteQuestion(question.id)
                       }}
-                      className='text-red-600 bg-transparent hover:text-red-400 shadow-none hover:bg-transparent'
+                      className='text-destructive bg-transparent hover:text-red-400 shadow-none hover:bg-transparent'
                       disabled={questions.length === 1}
                       aria-label={`Delete ${question.title}`}
                     >
@@ -376,7 +373,7 @@ const QuestionsTab = memo(function QuestionsTab({
                     className='mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md'
                     role='alert'
                   >
-                    <p className='text-red-600 dark:text-red-400 text-sm flex items-center gap-2'>
+                    <p className='text-destructive dark:text-red-400 text-sm flex items-center gap-2'>
                       <AlertCircle className='w-4 h-4' aria-hidden='true' />
                       {questionErrors.general}
                     </p>
@@ -411,7 +408,7 @@ const QuestionsTab = memo(function QuestionsTab({
                               {index === question.correctAnswer && (
                                 <Badge
                                   variant='secondary'
-                                  className='ml-2 text-green-600 dark:text-green-400 bg-transparent border-0 p-0'
+                                  className='ml-2 text-success dark:text-green-400 bg-transparent border-0 p-0'
                                 >
                                   ✓ Correct
                                 </Badge>
@@ -438,7 +435,7 @@ const QuestionsTab = memo(function QuestionsTab({
                         htmlFor={`question-text-${question.id}`}
                         className='text-foreground text-sm mb-2 font-semibold'
                       >
-                        Question Text <span className='text-red-500'>*</span>
+                        Question Text <span className='text-destructive'>*</span>
                       </Label>
                       <Textarea
                         id={`question-text-${question.id}`}
@@ -456,7 +453,7 @@ const QuestionsTab = memo(function QuestionsTab({
                       />
                       {questionErrors?.text &&
                         touched[`${question.id}-text`] && (
-                          <p className='text-red-500 text-sm mt-1'>
+                          <p className='text-destructive text-sm mt-1'>
                             {questionErrors.text}
                           </p>
                         )}
@@ -466,7 +463,7 @@ const QuestionsTab = memo(function QuestionsTab({
                     <div>
                       <Label className='text-foreground text-sm mb-3 font-semibold block'>
                         Options (Select the correct answer){' '}
-                        <span className='text-red-500'>*</span>
+                        <span className='text-destructive'>*</span>
                       </Label>
                       <RadioGroup
                         value={question.correctAnswer.toString()}
@@ -515,7 +512,7 @@ const QuestionsTab = memo(function QuestionsTab({
                                 touched[
                                   `${question.id}-option-${optionIndex}`
                                 ] && (
-                                  <p className='text-red-500 text-sm mt-1'>
+                                  <p className='text-destructive text-sm mt-1'>
                                     {questionErrors.options[optionIndex]}
                                   </p>
                                 )}

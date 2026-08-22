@@ -72,16 +72,15 @@ const handleTabChange = useCallback((value: string) => {
 setActiveTab(value as ActiveTab)
   }, [])
 
-const handleTimePeriodChange = useCallback(
-(value: LeaderboardPeriod) => {
-setTimePeriod(value)
+  const handleTimePeriodChange = useCallback(
+    (value: LeaderboardPeriod) => {
+      setTimePeriod(value)
     },
-[],
+    [],
   )
 
-const handleCategoryChange = useCallback((value: string) => {
-
-setSelectedCategory(value)
+  const handleCategoryChange = useCallback((value: string) => {
+    setSelectedCategory(value)
   }, [])
 
 return (
@@ -137,21 +136,21 @@ className='flex flex-wrap gap-2'
 role='toolbar'
 aria-label='Time period filters'
         >
-{TIME_PERIODS.map(({ value, label, disabled }) => (
-<Button
-key={value}
-variant={timePeriod === value ? 'default' : 'outline'}
-size='sm'
-disabled={disabled}
-onClick={() => handleTimePeriodChange(value)}
-className={`text-xs sm:text-sm ${
-timePeriod === value
-? 'bg-brand hover:bg-brand'
-: 'border-border text-foreground/80 hover:bg-accent'
-}`}
+          {TIME_PERIODS.map(({ value, label, disabled }) => (
+            <Button
+              key={value}
+              variant={timePeriod === value ? 'default' : 'outline'}
+              size="sm"
+              disabled={disabled}
+              onClick={() => handleTimePeriodChange(value)}
+              className={
+                timePeriod === value
+                  ? 'text-xs sm:text-sm bg-brand/20 hover:bg-brand/30 text-brand border border-brand/30'
+                  : 'text-xs sm:text-sm border-border text-foreground/80 hover:bg-accent'
+              }
             >
-{label}
-</Button>
+              {label}
+            </Button>
           ))}
 </div>
 
@@ -174,7 +173,7 @@ className='w-full bg-main border border-border text-foreground text-xs sm:text-s
 <option value='science'>Science</option>
 <option value='history'>History</option>
 </select>
-<p className='text-xs text-foreground/60'>
+<p className='text-xs text-foreground-secondary'>
 The leaderboard API does not slice per category yet. The
               top-3 below are the global podium — a per-category
               filter is on the roadmap.

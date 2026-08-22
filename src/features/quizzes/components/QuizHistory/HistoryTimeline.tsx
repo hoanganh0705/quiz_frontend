@@ -59,13 +59,13 @@ return groups
 const statusConfig = {
 passed: {
 icon: CheckCircle,
-color: 'text-green-500',
+color: 'text-success',
 bgColor: 'bg-green-500/10',
 label: 'Passed'
   },
 failed: {
 icon: XCircle,
-color: 'text-red-500',
+color: 'text-destructive',
 bgColor: 'bg-red-500/10',
 label: 'Failed'
   },
@@ -78,10 +78,10 @@ label: 'Abandoned'
 }
 
 const difficultyColor: Record<string, string> = {
-Easy: 'bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/20',
+Easy: 'bg-green-500/10 text-success dark:text-green-400 border-green-500/20',
 Medium:
 'bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 border-yellow-500/20',
-Hard: 'bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/20'
+Hard: 'bg-red-500/10 text-destructive dark:text-red-400 border-red-500/20'
 }
 
 function formatTime(seconds: number) {
@@ -151,7 +151,7 @@ className={`${st.bgColor} ${st.color} border-transparent`}
 score
                   </span>
 <span className='flex items-center gap-1'>
-<CheckCircle className='h-3 w-3 text-green-500' />
+<CheckCircle className='h-3 w-3 text-success' />
 {entry.correctAnswers}/{entry.totalQuestions} correct
                   </span>
 </>

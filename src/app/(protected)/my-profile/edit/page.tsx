@@ -24,7 +24,7 @@ const EditProfilePage = memo(function EditProfilePage() {
     <main className="min-h-screen bg-transparent text-foreground mt-20">
       <header className="text-center px-4 mb-8">
         <h1 className="text-3xl font-bold mb-4">Edit Profile</h1>
-        <p className="text-foreground/70 text-base max-w-2xl mx-auto">
+        <p className="text-foreground-secondary text-base max-w-2xl mx-auto">
           Update your profile information and public presence.
         </p>
       </header>

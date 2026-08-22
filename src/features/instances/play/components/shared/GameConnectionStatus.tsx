@@ -88,7 +88,7 @@ description:
 "Your session has expired. Please sign in again to rejoin the game.",
 containerClass:
 "bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 text-red-800 dark:text-red-200",
-iconClass: "text-red-500",
+iconClass: "text-destructive",
 Icon: AlertTriangle,
 iconSpin: false,
 role: "alert",

@@ -69,7 +69,7 @@ export default function ScoreHero({
               >
                 {result.score}%
               </span>
-              <div className='text-base font-semibold text-foreground/70'>
+              <div className='text-base font-semibold text-foreground-secondary'>
                 Grade: {getScoreGrade(result.score)}
               </div>
             </div>
@@ -80,7 +80,7 @@ export default function ScoreHero({
             <h1 className='text-2xl md:text-3xl font-bold mb-2'>
               {quiz.title}
             </h1>
-            <p className='text-base text-foreground/70 mb-4'>
+            <p className='text-base text-foreground-secondary mb-4'>
               {getScoreMessage(result.score)}
             </p>
 
