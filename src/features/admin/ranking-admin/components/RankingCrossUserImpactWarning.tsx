@@ -22,7 +22,7 @@ className="flex flex-col gap-3 rounded-md border border-red-300 bg-red-50 p-4 da
 {/* Header badge */}
 <div className="flex items-center gap-2">
 <AlertTriangle
-className="h-4 w-4 text-red-600"
+className="h-4 w-4 text-destructive"
 aria-hidden="true"
         />
 <Badge variant="destructive" className="bg-red-600">

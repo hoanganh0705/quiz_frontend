@@ -215,7 +215,7 @@ function SessionListInner({
       <CardContent>
         {onlyCurrent ? (
           <p
-            className='text-sm text-foreground/70 py-6'
+            className='text-sm text-foreground-secondary py-6'
             data-testid='session-list-empty-state'
           >
             {resolveCopy(COPY_KEYS.sessionList.emptyState)}

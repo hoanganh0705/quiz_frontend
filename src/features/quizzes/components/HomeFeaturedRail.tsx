@@ -1,117 +1,49 @@
 "use client";
 
-import { useCallback } from "react";
-import useSWR from "swr";
-import { WifiOff } from "lucide-react";
-
-import { ApiError, getHome } from "@/lib/api";
-import type {
-HomeControllerGetBundle200,
-QuizListItemDto,
-} from "@/lib/api/generated/schemas";
-import { Button } from "@/components/ui/Button";
-import { EmptyState } from "@/components/ui/EmptyState";
-
-import { FEATURED_RAIL_LIMIT } from "@/features/quizzes/types/home-rails";
+import { FEATURED_RAIL_LIMIT, type QuizListItemDto } from "@/features/quizzes/types/home-rails";
 import { QuizRail } from "./QuizRail";
 import { QuizRailEmpty } from "./QuizRailEmpty";
-import { QuizRailSkeleton } from "./QuizRailSkeleton";
-import { mutate } from "swr";
+import { HomeFeaturedRefreshButton } from "./HomeFeaturedRefreshButton";
 
 export interface HomeFeaturedRailProps {
-items?: readonly QuizListItemDto[];
-title?: string;
-className?: string;
-}
-
-function FeaturedErrorPanel({
-error,
-onRetry,
-}: {
-error: ApiError;
-onRetry: () => void;
-}): React.ReactElement {
-return (
-<div
-role="alert"
-className="flex flex-col items-center gap-3 py-6"
-data-testid="home-featured-rail-error"
-    >
-<EmptyState
-icon={WifiOff}
-title="Couldn’t load featured quizzes"
-description={error.message || "Please try again."}
-actions={[
-{
-label: "Retry",
-onClick: onRetry,
-variant: "default",
-          },
-        ]}
-      />
-<Button
-variant="ghost"
-size="sm"
-onClick={onRetry}
-aria-hidden="true"
-className="hidden"
-data-testid="home-featured-rail-retry"
-      >
-Retry
-      </Button>
-</div>
-  );
+  items?: readonly QuizListItemDto[];
+  title?: string;
+  className?: string;
 }
 
 export function HomeFeaturedRail({
-items,
-title = "Featured",
-className,
+  items,
+  title = "Featured",
+  className,
 }: HomeFeaturedRailProps): React.ReactElement {
-const { data, error, isLoading } = useSWR(
-["home", "bundle"],
-async () => {
-const envelope = await getHome().homeControllerGetBundle();
-const payload =
-(envelope?.data as HomeControllerGetBundle200["data"] | undefined) ??
-null;
-return payload;
-    },
-{
-revalidateOnFocus: false,
-dedupingInterval: 5_000,
-    },
-  );
+  // Featured items are provided by the server-rendered bundle. The rail
+  // never re-fetches on mount; the refresh button (in the rail's header)
+  // re-fetches explicitly and seeds the SWR cache so any rail that reads
+  // `["home", "bundle"]` resyncs.
+  const visibleQuizzes = (items ?? []).slice(0, FEATURED_RAIL_LIMIT);
 
-const featuredFromBundle = data?.featured ?? [];
-const sourceQuizzes = items ?? featuredFromBundle;
-
-const visibleQuizzes = sourceQuizzes.slice(0, FEATURED_RAIL_LIMIT);
-
-const handleRetry = useCallback(() => {
-void mutate(["home", "bundle"]);
-  }, []);
-
-return (
-<QuizRail
-layout="grid"
-title={title}
-subtitle="Specially selected quizzes you don’t want to miss"
-gridItems={visibleQuizzes}
-className={className}
+  return (
+    <QuizRail
+      layout="grid"
+      title={title}
+      subtitle="Specially selected quizzes you don’t want to miss"
+      filter={<HomeFeaturedRefreshButton />}
+      gridItems={visibleQuizzes}
+      className={className}
     >
-{isLoading && items === undefined ? (
-<QuizRailSkeleton layout="grid" count={FEATURED_RAIL_LIMIT} />
-      ) : error ? (
-<FeaturedErrorPanel onRetry={handleRetry} error={error} />
-      ) : visibleQuizzes.length === 0 ? (
-<QuizRailEmpty
-title="Featured set is being curated"
-description="Check back soon."
+      {visibleQuizzes.length === 0 ? (
+        <QuizRailEmpty
+          title="Featured set is being curated"
+          description="Check back soon, or refresh to see the latest selections."
         />
-      ) : (
-<div hidden />
-      )}
-</QuizRail>
+      ) : null}
+    </QuizRail>
   );
 }
+
+// Re-export so other rails can drive the same cache key.
+export {
+  refreshHomeBundle,
+  type FeaturedRefreshHandle,
+  type HomeBundleData,
+} from "./refresh-home-bundle";

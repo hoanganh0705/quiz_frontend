@@ -49,17 +49,16 @@ className='object-cover'
 <div className='flex items-center justify-center flex-col space-y-4 mt-10'>
 <span className='text-foreground'>
 Ready to start your quiz journey? Browse categories, find your
-            interests, and begin challenging yourself today!
+          interests, and begin challenging yourself today!
           </span>
 
 <div className='flex justify-center items-center gap-2 bg-main px-4 py-2 rounded-xl'>
 <span className='relative flex  w-3'>
-<span className='animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75'></span>
 <span className='relative inline-flex rounded-full h-3 w-3 bg-emerald-500'></span>
 </span>
 <span className='text-foreground text-sm'>
-3000+ users online now
-            </span>
+A growing community of quiz creators and players
+          </span>
 </div>
 </div>
 </div>

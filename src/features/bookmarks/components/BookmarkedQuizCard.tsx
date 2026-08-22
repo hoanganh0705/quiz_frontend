@@ -121,7 +121,7 @@ Move to {collection.name}
 <DropdownMenuSeparator />
 <DropdownMenuItem
 onClick={() => onRemove(quizId)}
-className='text-red-600 dark:text-red-400'
+className='text-destructive dark:text-red-400'
                 >
 <Trash2 className='mr-2 h-4 w-4' />
 Remove Bookmark

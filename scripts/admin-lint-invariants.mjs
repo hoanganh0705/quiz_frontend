@@ -252,6 +252,10 @@ const ACHIEVEMENT_ADMIN_SERVICE_PATH = path.resolve(
 // future tickets replace this with a generated SDK call.
 const ADMIN_NO_FETCH_EXCEPTIONS = [
   `${path.sep}hooks${path.sep}useAdminIdentity.ts`,
+  // user-role-admin/user-search hits the social users/search endpoint
+  // which has no generated SDK yet (TKT-X.X). Add a TODO to replace
+  // with SDK call when the endpoint is exposed in the generated client.
+  `${path.sep}user-role-admin${path.sep}hooks${path.sep}useUserSearch.ts`,
 ];
 
 // TKT-7.2.A2 — admin-import-boundary.

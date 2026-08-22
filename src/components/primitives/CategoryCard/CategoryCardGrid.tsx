@@ -32,19 +32,17 @@ return (
   }
 
 if (skeletonCount > 0) {
-return (
-<div
-className={cn(GRID, className)}
-data-testid='category-card-grid-skeletons'
+    return (
+      <div
+        className={cn(GRID, className)}
+        data-testid='category-card-grid-skeletons'
       >
-{Array.from({ length: skeletonCount }, (_, i) => (
-<CategoryCardSkeleton key={i} />
+        {Array.from({ length: skeletonCount }, (_, i) => (
+          <CategoryCardSkeleton key={i} />
         ))}
-</div>
+      </div>
     )
   }
 
-return (
-<div className={cn(GRID, className)} data-testid='category-card-grid' />
-  )
+  return null
 }

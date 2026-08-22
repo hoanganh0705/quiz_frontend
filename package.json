@@ -39,7 +39,9 @@
     "admin:lint-invariants": "node scripts/admin-lint-invariants.mjs",
     "admin:lint-invariants:ci": "node scripts/admin-lint-invariants.mjs --ci",
     "authoring:lint-form-invariants": "node scripts/authoring-lint-form-invariants.mjs",
-    "authoring:lint-form-invariants:ci": "node scripts/authoring-lint-form-invariants.mjs"
+    "authoring:lint-form-invariants:ci": "node scripts/authoring-lint-form-invariants.mjs",
+    "theme:lint-invariants": "node scripts/theme-lint-invariants.mjs",
+    "theme:lint-invariants:ci": "node scripts/theme-lint-invariants.mjs --ci"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",

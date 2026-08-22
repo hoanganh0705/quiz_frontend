@@ -45,7 +45,7 @@ export function ProgressIndicator({
     <div className={cn('w-full', className)}>
       {showLabel && (
         <div className='flex justify-between items-center mb-2'>
-          <span className='text-sm text-foreground/70'>
+          <span className='text-sm text-foreground-secondary'>
             {label || 'Progress'}
           </span>
           <span className='text-sm font-medium text-foreground'>

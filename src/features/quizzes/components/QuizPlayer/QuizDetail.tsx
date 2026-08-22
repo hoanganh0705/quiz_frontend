@@ -124,13 +124,13 @@ aria-hidden="true"
 <TabsList className="grid w-full grid-cols-2 dark:bg-[#1e293b80]">
 <TabsTrigger
 value="overview"
-className="data-[state=active]:bg-muted data-[state=active]:text-foreground text-foreground/70"
+className="data-[state=active]:bg-muted data-[state=active]:text-foreground text-foreground-secondary"
               >
 Overview
               </TabsTrigger>
 <TabsTrigger
 value="reviews"
-className="data-[state=active]:bg-muted data-[state=active]:text-foreground text-foreground/70"
+className="data-[state=active]:bg-muted data-[state=active]:text-foreground text-foreground-secondary"
               >
 Reviews
               </TabsTrigger>

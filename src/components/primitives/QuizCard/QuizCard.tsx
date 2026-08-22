@@ -5,22 +5,11 @@ import {
   type BookmarkButtonSlotProps,
 } from "@/components/primitives/BookmarkButton";
 import { EntityCard } from "@/components/primitives/EntityCard";
+import { initialsFromQuizId } from "@/features/quizzes/utils/quiz-card-decoration";
 import type { QuizListItemDto } from "@/lib/api/generated/schemas";
 
 const BADGE =
   "rounded-full border bg-background px-2 py-0.5 text-xs";
-
-function initialsFromQuiz(quiz: QuizListItemDto): string {
-  const seed = quiz.quizId.replace(/-/g, "").slice(-6);
-  let hash = 0;
-  for (let i = 0; i < seed.length; i += 1) {
-    hash = (hash * 31 + seed.charCodeAt(i)) >>> 0;
-  }
-  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-  const a = chars[hash % chars.length];
-  const b = chars[(hash >>> 8) % chars.length];
-  return `${a}${b}`;
-}
 
 function formatDuration(durationMs: number | undefined): string | null {
   if (typeof durationMs !== "number" || durationMs <= 0) return null;
@@ -60,7 +49,7 @@ export function QuizCard({
       title={quiz.title}
       description={quiz.description}
       imageUrl={quiz.imageUrl}
-      initials={initialsFromQuiz(quiz)}
+      initials={initialsFromQuizId(quiz.quizId)}
       aspectRatio="16/9"
       coverSize="md"
       className={className}

@@ -110,10 +110,14 @@ export function DailyChallengePlaySurface({
   }, [status, advance])
 
   const question = questions[currentIndex]
-  const progressValue =
-    questions.length > 0
-      ? Math.round((currentIndex / questions.length) * 100)
-      : 0
+  const hasQuestions = questions.length > 0
+  const totalForDisplay = hasQuestions ? questions.length : totalQuestions
+  const stepForDisplay = hasQuestions
+    ? Math.min(currentIndex + 1, totalForDisplay)
+    : totalForDisplay
+  const progressValue = hasQuestions
+    ? Math.round((currentIndex / questions.length) * 100)
+    : 0
 
   return (
     <Card
@@ -130,11 +134,10 @@ export function DailyChallengePlaySurface({
             className='text-lg font-semibold'
           >
             <span data-testid='daily-challenge-play-step'>
-              Question {Math.min(currentIndex + 1, questions.length || totalQuestions)} of{' '}
-              {questions.length || totalQuestions}
+              Question {stepForDisplay} of {totalForDisplay}
             </span>
           </CardTitle>
-          <span className='text-xs text-foreground/70'>
+          <span className='text-xs text-foreground-secondary'>
             Reward:{' '}
             <span className='font-medium text-foreground'>+{rewardXp} XP</span>
           </span>
@@ -149,7 +152,7 @@ export function DailyChallengePlaySurface({
       <CardContent className='space-y-4'>
         {isQuizLoading && status === 'idle' ? (
           <p
-            className='text-sm text-foreground/70'
+            className='text-sm text-foreground-secondary'
             data-testid='daily-challenge-play-loading'
           >
             Loading the day&apos;s questions…
@@ -178,7 +181,7 @@ export function DailyChallengePlaySurface({
           />
         ) : (
           <p
-            className='text-sm text-foreground/70'
+            className='text-sm text-foreground-secondary'
             data-testid='daily-challenge-play-empty'
           >
             No questions are available for the day&apos;s quiz yet.
@@ -249,7 +252,7 @@ function QuestionPanel({
       </div>
       <div className='flex items-center justify-between gap-3'>
         <p
-          className='text-xs text-foreground/70'
+          className='text-xs text-foreground-secondary'
           aria-live='polite'
           data-testid='daily-challenge-play-reveal'
         >
@@ -300,7 +303,7 @@ function CompletionPanel({
       <p className='text-2xl font-bold'>
         You scored {Math.round(finalScore)}%
       </p>
-      <p className='text-sm text-foreground/70'>
+      <p className='text-sm text-foreground-secondary'>
         Reward earned:{' '}
         <span className='font-medium text-foreground'>+{rewardXp} XP</span>
       </p>
@@ -332,7 +335,7 @@ function ErrorPanel({
         <AlertCircle className='h-4 w-4' aria-hidden='true' />
         Could not submit your answer
       </p>
-      <p className='text-foreground/70'>
+      <p className='text-foreground-secondary'>
         {lastError?.message ??
           'The daily-challenge state drifted. Refresh to retry.'}
       </p>

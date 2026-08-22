@@ -20,6 +20,13 @@ import { QuizSlugField } from "@/features/quizzes/components/QuizSlugField";
 import { quizCreateFormSchema, type QuizCreateFormValues } from "@/lib/forms";
 import { useCreateQuiz } from "@/features/quizzes/hooks/useCreateQuiz";
 import { useTagSlugsToIds } from "@/features/quizzes/hooks/useTagSlugsToIds";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/Select";
 
 export const CREATE_QUIZ_FORM_DEFAULT_VALUES: QuizCreateFormValues = {
   title: "",
@@ -130,7 +137,7 @@ const titleValue = form.getValues("title") ?? "";
 
 return (
 <FormProvider {...(form as unknown as Parameters<typeof FormProvider>[0])}>
-<div className="space-y-8 space-x-8 p-10">
+<div className="p-4 md:p-6 lg:p-10 max-w-4xl mx-auto space-y-8 space-x-8">
 {/* Form-level error */}
 {bannerError ? (
 <FormErrorBanner
@@ -178,27 +185,31 @@ maxLength={2000}
 <div className="space-y-2">
 <Label htmlFor="categoryId">Category</Label>
 {isLoadingOptions ? (
-<div className="h-10 w-full animate-pulse rounded-md border border-input bg-muted" />
+<div
+className="h-9 w-full rounded-md border border-input bg-muted animate-pulse"
+aria-hidden="true"
+/>
             ) : (
-<select
-id="categoryId"
-data-testid="category-select"
-className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-2 text-sm disabled:opacity-50"
-onChange={(e) => {
+<Select
+value={form.getValues("categoryId") ?? ""}
+onValueChange={(value) => {
 form.setValue(
 "categoryId",
-e.target.value ? (e.target.value as never) : null,
+value ? (value as never) : null,
                   );
                 }}
-value={form.getValues("categoryId") ?? ""}
               >
-<option value="">No category</option>
+<SelectTrigger id="categoryId" className="w-full">
+<SelectValue placeholder="No category" />
+</SelectTrigger>
+<SelectContent>
 {categoryOptions.map((opt) => (
-<option key={opt.value} value={opt.value}>
+<SelectItem key={opt.value} value={opt.value}>
 {opt.label}
-</option>
+</SelectItem>
                 ))}
-</select>
+</SelectContent>
+</Select>
             )}
 </div>
 
@@ -271,6 +282,8 @@ className="text-muted-foreground/50"
 <div className="border-t border-border" />
 
 {/* Initial version settings */}
+<fieldset className="space-y-4">
+<legend className="sr-only">Quiz Settings</legend>
 <div className="space-y-4">
 <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
 Quiz Settings
@@ -286,7 +299,7 @@ description="How challenging is this quiz?"
 
 {/* Duration */}
 <div className="space-y-2">
-<Label htmlFor="durationMs">Time Limit (ms)</Label>
+<Label htmlFor="durationMs">Time Limit</Label>
 <input
 id="durationMs"
 type="number"
@@ -300,7 +313,12 @@ parseInt(e.target.value, 10) || 0,
                 }}
 disabled={isSubmitting}
 min={1}
+step={1000}
+aria-describedby="durationMs-hint"
               />
+<p id="durationMs-hint" className="text-xs text-muted-foreground">
+Enter the time limit in milliseconds (e.g., 60000 = 1 minute, 300000 = 5 minutes).
+</p>
 </div>
 </div>
 
@@ -324,7 +342,12 @@ parseInt(e.target.value, 10) || 0,
 disabled={isSubmitting}
 min={0}
 max={100}
+step={1}
+aria-describedby="passingScore-hint"
               />
+<p id="passingScore-hint" className="text-xs text-muted-foreground">
+Minimum percentage required to pass the quiz.
+</p>
 </div>
 
 {/* XP reward */}
@@ -343,10 +366,16 @@ parseInt(e.target.value, 10) || 0,
                 }}
 disabled={isSubmitting}
 min={0}
+step={1}
+aria-describedby="rewardXp-hint"
               />
+<p id="rewardXp-hint" className="text-xs text-muted-foreground">
+Enter the amount of XP earned for completing this quiz.
+</p>
 </div>
 </div>
 </div>
+</fieldset>
 
 {/* Acknowledgements */}
 <div className="flex items-start gap-3">

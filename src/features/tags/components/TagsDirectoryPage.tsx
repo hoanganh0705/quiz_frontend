@@ -85,7 +85,7 @@ export function TagsDirectoryPage(): React.ReactElement {
         >
           Tags
         </h1>
-        <p className='text-foreground/70 text-base mb-6'>
+        <p className='text-foreground-secondary text-base mb-6'>
           Browse tags to discover quizzes by topic.
         </p>
         <div className='max-w-md'>

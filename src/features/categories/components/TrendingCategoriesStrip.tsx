@@ -45,23 +45,23 @@ data-testid='trending-strip-skeleton'
   }
 
 if (error) {
-return (
-<section className='mb-8' aria-label='Trending categories'>
-<div className={STRIP_HEADER}>
-<span>Trending now</span>
-<Button
-variant='outline'
-size='sm'
-onClick={() => void mutate(SWR_KEY)}
-data-testid='trending-strip-retry'
+    return (
+      <section className='mb-8' aria-label='Trending categories'>
+        <div className={STRIP_HEADER}>
+          <span>Trending now</span>
+          <Button
+            variant='outline'
+            size='sm'
+            onClick={() => void mutate(SWR_KEY)}
+            data-testid='trending-strip-retry'
           >
-Retry
+            Retry
           </Button>
-</div>
-<p className='text-sm text-muted-foreground' role='status'>
-Couldn&apos;t load trending categories.
+        </div>
+        <p className='text-sm text-muted-foreground' role='alert'>
+          Couldn&apos;t load trending categories.
         </p>
-</section>
+      </section>
     )
   }
 
@@ -85,7 +85,8 @@ key={ranked.categoryId}
 className='w-64 shrink-0 snap-start'
           >
 <CategoryCard
-category={rankedCategoryToCategoryResponse(ranked)}
+              category={rankedCategoryToCategoryResponse(ranked)}
+              titleHeadingLevel={2 as const}
             />
 </div>
         ))}

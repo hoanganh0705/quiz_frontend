@@ -1,9 +1,9 @@
 import { HomeHeroSection } from "./HomeHeroSection";
 
 import {
-FEATURED_RAIL_LIMIT,
-TRENDING_RAIL_LIMIT,
-POPULAR_RAIL_LIMIT,
+  FEATURED_RAIL_LIMIT,
+  TRENDING_RAIL_LIMIT,
+  POPULAR_RAIL_LIMIT,
 } from "@/features/quizzes/types/home-rails";
 import { QuizRailSkeleton } from "@/features/quizzes/components/QuizRailSkeleton";
 
@@ -22,6 +22,36 @@ aria-label="Loading home page"
 <QuizRailSkeleton layout="scroller" count={TRENDING_RAIL_LIMIT} />
 <QuizRailSkeleton layout="scroller" count={POPULAR_RAIL_LIMIT} />
 </div>
+
+<div
+className="mb-10 h-32 rounded-xl border border-border bg-main"
+aria-hidden="true"
+/>
+
+<div
+className="mb-10 h-64 rounded-xl border border-border bg-main"
+aria-hidden="true"
+/>
+
+<div
+className="mb-10 h-48 rounded-xl border border-border bg-main"
+aria-hidden="true"
+/>
+
+<div
+className="mb-10 h-72 rounded-xl border border-border bg-main"
+aria-hidden="true"
+/>
+
+<div
+className="mb-10 h-48 rounded-xl border border-border bg-main"
+aria-hidden="true"
+/>
+
+<div
+className="mb-10 h-64 rounded-xl border border-border bg-main"
+aria-hidden="true"
+/>
 </div>
   );
 }

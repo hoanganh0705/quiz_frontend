@@ -91,7 +91,7 @@ export function TagDetailPage({
           <h2 className='text-2xl font-bold text-foreground mb-2'>
             Tag Not Found
           </h2>
-          <p className='text-foreground/70 mb-8'>
+          <p className='text-foreground-secondary mb-8'>
             The tag you&apos;re looking for doesn&apos;t exist or has been
             removed.
           </p>
@@ -132,7 +132,7 @@ export function TagDetailPage({
           <h2 className='text-2xl font-bold text-foreground mb-2'>
             Something went wrong
           </h2>
-          <p className='text-foreground/70 mb-6'>
+          <p className='text-foreground-secondary mb-6'>
             We couldn&apos;t load this tag. Please try again.
           </p>
           <Button

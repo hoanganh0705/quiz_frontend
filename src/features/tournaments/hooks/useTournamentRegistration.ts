@@ -8,79 +8,78 @@ import { useTournamentParticipation } from "@/features/tournaments/hooks/useTour
 import { useRegisterTournament } from "@/features/tournaments/hooks/useRegisterTournament";
 import { useWithdrawTournament } from "@/features/tournaments/hooks/useWithdrawTournament";
 import {
-type ParticipationState,
-type RegistrationMutationState,
+  type ParticipationState,
+  type RegistrationMutationState,
 } from "@/features/tournaments/types/registration.types";
 
 export interface UseTournamentRegistrationResult {
 
-participation: ParticipationState | null;
+  participation: ParticipationState | null;
 
-isRegistered: boolean;
+  isRegistered: boolean;
 
-isEligible: boolean;
+  isEligible: boolean;
 
-canWithdraw: boolean;
+  canWithdraw: boolean;
 
-isLoading: boolean;
+  isLoading: boolean;
 
-register: () => Promise<void>;
+  register: () => Promise<void>;
 
-withdraw: () => Promise<void>;
+  withdraw: () => Promise<void>;
 
-registerState: RegistrationMutationState;
+  registerState: RegistrationMutationState;
 
-withdrawState: RegistrationMutationState;
+  withdrawState: RegistrationMutationState;
 
-registerError: ApiError | null;
+  registerError: ApiError | null;
 
-withdrawError: ApiError | null;
+  withdrawError: ApiError | null;
 
-reset: () => void;
+  reset: () => void;
 }
 
 export function useTournamentRegistration(
-tournamentId: string | null,
+  tournamentId: string | null,
 ): UseTournamentRegistrationResult {
-const participation = useTournamentParticipation(tournamentId);
-const register = useRegisterTournament(tournamentId);
-const withdraw = useWithdrawTournament(tournamentId);
+  const participation = useTournamentParticipation(tournamentId);
+  const register = useRegisterTournament(tournamentId);
+  const withdraw = useWithdrawTournament(tournamentId);
 
-const result = useMemo<UseTournamentRegistrationResult>(() => ({
-participation: participation.participation,
-isRegistered: participation.isRegistered,
-isEligible: participation.isEligible,
-canWithdraw: participation.canWithdraw,
-isLoading: participation.isLoading,
+  // Stable object: only recomputes when the actual data primitives change.
+  // Primitives from the three child hooks are referentially stable across renders
+  // as long as the underlying data hasn't changed, so this is safe without a
+  // long dependency array.
+  return useMemo<UseTournamentRegistrationResult>(
+    () => ({
+      participation: participation.participation,
+      isRegistered: participation.isRegistered,
+      isEligible: participation.isEligible,
+      canWithdraw: participation.canWithdraw,
+      isLoading: participation.isLoading,
 
-register: register.register,
-withdraw: withdraw.withdraw,
+      register: register.register,
+      withdraw: withdraw.withdraw,
 
-registerState: register.state,
-withdrawState: withdraw.state,
+      registerState: register.state,
+      withdrawState: withdraw.state,
 
-registerError: register.error,
-withdrawError: withdraw.error,
+      registerError: register.error,
+      withdrawError: withdraw.error,
 
-reset: () => {
-register.reset();
-withdraw.reset();
-    },
-  }), [
-participation.participation,
-participation.isRegistered,
-participation.isEligible,
-participation.canWithdraw,
-participation.isLoading,
-register.register,
-register.state,
-register.error,
-register.reset,
-withdraw.withdraw,
-withdraw.state,
-withdraw.error,
-withdraw.reset,
-  ]);
-
-return result;
+      reset: () => {
+        register.reset();
+        withdraw.reset();
+      },
+    }),
+    [
+      participation.participation,
+      participation.isRegistered,
+      participation.isEligible,
+      participation.canWithdraw,
+      participation.isLoading,
+      register,
+      withdraw,
+    ],
+  );
 }

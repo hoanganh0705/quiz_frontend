@@ -27,14 +27,14 @@ export default function LeaderboardTab({ quiz, result }: LeaderboardTabProps) {
               </div>
               <div>
                 <div className='font-medium'>Your Position</div>
-                <div className='text-sm text-foreground/70'>
+                <div className='text-sm text-foreground-secondary'>
                   Completed just now
                 </div>
               </div>
             </div>
             <div className='text-right'>
               <div className='font-bold text-brand'>{result.score}%</div>
-              <div className='text-sm text-foreground/70'>
+              <div className='text-sm text-foreground-secondary'>
                 {formatTime(result.timeTaken)}
               </div>
             </div>
@@ -67,13 +67,13 @@ function LeaderboardItem({ player, rank }: LeaderboardItemProps) {
       </Avatar>
       <div className='flex-1'>
         <div className='font-medium'>{player.username}</div>
-        <div className='text-sm text-foreground/70'>
+        <div className='text-sm text-foreground-secondary'>
           Completed {player.completedAt}
         </div>
       </div>
       <div className='text-right'>
         <div className='font-bold '>{player.score}</div>
-        <div className='text-sm text-foreground/70'>{player.time}</div>
+        <div className='text-sm text-foreground-secondary'>{player.time}</div>
       </div>
     </div>
   )

@@ -94,7 +94,7 @@ export function YourRankingPopup({ isOpen, onClose }: YourRankingPopupProps) {
               <p className='text-foreground font-medium'>
                 Sign in to see your ranking profile
               </p>
-              <p className='text-sm text-foreground/70'>
+              <p className='text-sm text-foreground-secondary'>
                 Your weekly, monthly, and all-time rankings are available
                 after you sign in.
               </p>
@@ -104,12 +104,12 @@ export function YourRankingPopup({ isOpen, onClose }: YourRankingPopupProps) {
               {/* User Header */}
               <div className='flex items-center gap-4 p-4 bg-muted rounded-lg'>
                 <div className='relative'>
-                  <div className='w-16 h-16 rounded-full bg-gradient-to-br from-brand to-indigo-700 flex items-center justify-center'>
+                  <div className='w-16 h-16 rounded-full bg-gradient-to-br from-primary to-indigo-700 flex items-center justify-center'>
                     <span className='text-2xl font-bold text-white'>
                       {weekly?.rank ? `#${weekly.rank}` : '—'}
                     </span>
                   </div>
-                  <Badge className='absolute -bottom-1 -right-1 text-xs bg-brand text-white'>
+                  <Badge className="absolute -bottom-1 -right-1 text-xs bg-primary text-primary-foreground">
                     {badges?.isRisingStar
                       ? 'Rising'
                       : badges?.isActive
@@ -158,7 +158,7 @@ export function YourRankingPopup({ isOpen, onClose }: YourRankingPopupProps) {
                   onClick={() => setSelectedTab('overview')}
                   className={
                     selectedTab === 'overview'
-                      ? 'bg-brand hover:bg-brand'
+                      ? 'bg-primary text-primary-foreground hover:bg-primary/90'
                       : 'border-border text-muted-foreground hover:bg-accent'
                   }
                 >
@@ -170,7 +170,7 @@ export function YourRankingPopup({ isOpen, onClose }: YourRankingPopupProps) {
                   onClick={() => setSelectedTab('achievements')}
                   className={
                     selectedTab === 'achievements'
-                      ? 'bg-brand hover:bg-brand'
+                      ? 'bg-primary text-primary-foreground hover:bg-primary/90'
                       : 'border-border text-muted-foreground hover:bg-accent'
                   }
                 >
@@ -182,7 +182,7 @@ export function YourRankingPopup({ isOpen, onClose }: YourRankingPopupProps) {
                   onClick={() => setSelectedTab('activity')}
                   className={
                     selectedTab === 'activity'
-                      ? 'bg-brand hover:bg-brand'
+                      ? 'bg-primary text-primary-foreground hover:bg-primary/90'
                       : 'border-border text-muted-foreground hover:bg-accent'
                   }
                 >
@@ -232,13 +232,6 @@ export function YourRankingPopup({ isOpen, onClose }: YourRankingPopupProps) {
 }
 
 // ─── Overview tab ─────────────────────────────────────────────────────────
-
-interface OverviewTabProps {
-  weekly: ReturnType<typeof getWeeklyPosition>
-  monthly: ReturnType<typeof getMonthlyPosition>
-  allTime: ReturnType<typeof getAllTimePosition>
-  isLoading: boolean
-}
 
 interface OverviewTabProps {
   weekly: ReturnType<typeof getWeeklyPosition>
@@ -325,14 +318,14 @@ interface PeriodCardProps {
 function PeriodCard({ label, rank, xp, percentile }: PeriodCardProps) {
   return (
     <div className='bg-muted p-3 rounded-lg text-center'>
-      <p className='text-xs text-foreground/70 mb-1'>{label}</p>
+      <p className='text-xs text-foreground-secondary mb-1'>{label}</p>
       <p className={`text-lg font-bold ${rank !== null ? getRankColor(rank) : 'text-foreground'}`}>
         {rank !== null ? `#${rank}` : '—'}
       </p>
-      <p className='text-xs text-foreground/70'>
+      <p className='text-xs text-foreground-secondary'>
         {xp !== null ? `${xp.toLocaleString()} XP` : '—'}
       </p>
-      <p className='text-xs text-foreground/60'>{percentile ?? '—'}</p>
+      <p className='text-xs text-foreground-secondary'>{percentile ?? '—'}</p>
     </div>
   )
 }
@@ -393,7 +386,7 @@ function AchievementsTab({ peakRanks }: AchievementsTabProps) {
 
   if (!hasAny) {
     return (
-      <p className='text-sm text-foreground/70 text-center py-8'>
+      <p className='text-sm text-foreground-secondary text-center py-8'>
         No peak ranks yet — keep playing to set your first record.
       </p>
     )
@@ -408,15 +401,15 @@ function AchievementsTab({ peakRanks }: AchievementsTabProps) {
             key={entry.label}
             className='flex items-center gap-3 p-3 bg-muted rounded-lg'
           >
-            <Target className='w-4 h-4 text-foreground/70' aria-hidden='true' />
+            <Target className='w-4 h-4 text-foreground-secondary' aria-hidden='true' />
             <div className='flex-1'>
               <p className='font-semibold text-foreground'>{entry.label}</p>
-              <p className='text-xs text-foreground/70'>
+              <p className='text-xs text-foreground-secondary'>
                 {entry.rank !== null ? `Best #${entry.rank}` : 'Not set yet'}
               </p>
             </div>
             {entry.achievedAt ? (
-              <Badge className='bg-brand text-white text-xs'>
+              <Badge className="bg-primary text-primary-foreground text-xs">
                 {new Date(entry.achievedAt).toLocaleDateString()}
               </Badge>
             ) : null}
@@ -460,7 +453,7 @@ function ActivityTab({ lastActivityAt, trend, trendAmount }: ActivityTabProps) {
           }
         />
       </div>
-      <p className='text-xs text-foreground/60 pt-2 border-t border-border/40'>
+      <p className='text-xs text-foreground-secondary pt-2 border-t border-border/40'>
         Detailed activity history is exposed by the
         <span className='mx-1 font-mono'>/leaderboard/me/history</span>
         endpoint and is rendered here once the surface is wired.
@@ -483,7 +476,7 @@ function ActivityItem({ icon, title, description }: ActivityItemProps) {
       </div>
       <div className='flex-1'>
         <p className='font-semibold text-foreground'>{title}</p>
-        <p className='text-sm text-foreground/70'>{description}</p>
+        <p className='text-sm text-foreground-secondary'>{description}</p>
       </div>
     </div>
   )

@@ -59,7 +59,7 @@ switch (type) {
 case 'badge_earned':
 return 'text-purple-500 bg-purple-500/10';
 case 'badge_revoked':
-return 'text-red-500 bg-red-500/10';
+return 'text-destructive bg-red-500/10';
 case 'rank_milestone':
 return 'text-amber-500 bg-amber-500/10';
 case 'peak_rank_achieved':
@@ -67,7 +67,7 @@ return 'text-yellow-500 bg-yellow-500/10';
 case 'tournament_joined':
 return 'text-blue-500 bg-blue-500/10';
 case 'tournament_completed':
-return 'text-green-500 bg-green-500/10';
+return 'text-success bg-green-500/10';
 case 'tournament_won':
 return 'text-amber-500 bg-amber-500/10';
 case 'comment_created':
@@ -81,7 +81,7 @@ return 'text-cyan-500 bg-cyan-500/10';
 case 'instance_joined':
 return 'text-teal-500 bg-teal-500/10';
 case 'instance_completed':
-return 'text-green-500 bg-green-500/10';
+return 'text-success bg-green-500/10';
 default:
 return 'text-muted-foreground bg-muted';
   }

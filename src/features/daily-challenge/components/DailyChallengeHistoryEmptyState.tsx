@@ -43,7 +43,7 @@ export function DailyChallengeHistoryEmptyState({
         className,
       )}
     >
-      <CardContent className='flex items-center justify-center min-h-24 p-4 gap-3 text-foreground/70'>
+      <CardContent className='flex items-center justify-center min-h-24 p-4 gap-3 text-foreground-secondary'>
         <Calendar className='h-5 w-5' aria-hidden='true' />
         <p
           id='daily-challenge-history-empty-title'

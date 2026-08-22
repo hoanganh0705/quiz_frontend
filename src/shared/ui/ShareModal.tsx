@@ -121,7 +121,7 @@ aria-label={copied ? 'Link copied' : 'Copy link'}
               >
 {copied ? (
 <>
-<Check className='w-4 h-4 mr-1 text-green-500' />
+<Check className='w-4 h-4 mr-1 text-success' />
 Copied!
                   </>
                 ) : (

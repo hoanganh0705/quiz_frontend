@@ -266,7 +266,7 @@ function SidebarTrigger({
       data-slot='sidebar-trigger'
       size='icon'
       className={cn(
-        'size-9 sm:size-9 hover:bg-default-hover bg-default',
+        'size-11 sm:size-11 hover:bg-default-hover bg-default',
         className
       )}
       onClick={(event) => {

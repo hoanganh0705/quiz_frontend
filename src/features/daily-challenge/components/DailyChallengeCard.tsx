@@ -66,11 +66,11 @@ const DIFFICULTY_LABEL: Record<DailyChallengeView['difficulty'], string> = {
 
 const DIFFICULTY_VARIANT: Record<
   DailyChallengeView['difficulty'],
-  'default' | 'secondary' | 'destructive'
+  'difficulty-easy' | 'difficulty-medium' | 'difficulty-hard'
 > = {
-  easy: 'secondary',
-  medium: 'default',
-  hard: 'destructive',
+  easy: 'difficulty-easy',
+  medium: 'difficulty-medium',
+  hard: 'difficulty-hard',
 }
 
 function StatusCta({
@@ -99,7 +99,7 @@ function StatusCta({
   if (challenge.status === 'expired') {
     return (
       <p
-        className='text-sm text-foreground/70'
+        className='text-sm text-foreground-secondary'
         data-testid='daily-challenge-card-expired'
       >
         Today&apos;s window has closed. The next challenge goes live at
@@ -158,7 +158,7 @@ export function DailyChallengeCard({
             >
               {challenge.quizTitle || `${challenge.category} Challenge`}
             </CardTitle>
-            <p className='mt-1 text-foreground/70 text-sm'>
+            <p className='mt-1 text-foreground-secondary text-sm'>
               Take on today&apos;s curated set of questions. Earn XP when
               you finish.
             </p>
@@ -181,7 +181,7 @@ export function DailyChallengeCard({
             </div>
           </div>
         </div>
-        <div className='flex items-center gap-4 pt-2 text-xs text-foreground/70'>
+        <div className='flex items-center gap-4 pt-2 text-xs text-foreground-secondary'>
           <span className='inline-flex items-center gap-1'>
             <Calendar className='h-3.5 w-3.5' aria-hidden='true' />
             <time dateTime={challenge.date}>{challenge.date}</time>

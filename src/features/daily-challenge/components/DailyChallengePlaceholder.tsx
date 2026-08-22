@@ -68,7 +68,7 @@ export function DailyChallengePlaceholder({
             >
               Daily Challenge
             </CardTitle>
-            <p className='mt-1 text-foreground/70 text-sm'>
+            <p className='mt-1 text-foreground-secondary text-sm'>
               A new curated set of questions, every day. Keep your streak,
               earn XP, and climb the global leaderboard.
             </p>
@@ -83,7 +83,7 @@ export function DailyChallengePlaceholder({
         </div>
       </CardHeader>
       <CardContent>
-        <p className='text-sm text-foreground/70'>
+        <p className='text-sm text-foreground-secondary'>
           We&apos;re preparing the daily-challenge experience. Check back
           soon — your streak starts the moment the first challenge
           goes live.

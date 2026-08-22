@@ -55,7 +55,7 @@ isCritical && 'border-red-500 dark:border-red-500'
 className={cn(
 'w-4 h-4 text-foreground',
 isWarning && 'text-yellow-500',
-isCritical && 'text-red-500'
+isCritical && 'text-destructive'
           )}
 aria-hidden='true'
         />
@@ -63,7 +63,7 @@ aria-hidden='true'
 className={cn(
 'font-mono text-sm font-semibold',
 isWarning && 'text-yellow-500',
-isCritical && 'text-red-500 animate-pulse'
+isCritical && 'text-destructive animate-pulse'
           )}
 style={{ fontVariantNumeric: 'tabular-nums' }}
         >
@@ -107,7 +107,7 @@ strokeDashoffset={strokeDashoffset}
 className={cn(
 'transition-all duration-1000 ease-linear',
 isCritical
-? 'text-red-500'
+? 'text-destructive'
 : isWarning
 ? 'text-yellow-500'
 : 'text-primary'
@@ -119,7 +119,7 @@ stroke='currentColor'
 className={cn(
 'absolute font-mono text-xs font-bold',
 isCritical
-? 'text-red-500'
+? 'text-destructive'
 : isWarning
 ? 'text-yellow-500'
 : 'text-foreground'

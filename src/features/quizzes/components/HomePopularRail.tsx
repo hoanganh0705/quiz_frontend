@@ -5,171 +5,138 @@ import { mutate } from "swr";
 import { WifiOff } from "lucide-react";
 
 import { ApiError } from "@/lib/api";
-import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { QuizCard } from "@/components/primitives/QuizCard/QuizCard";
 
 import { useQuizzesPopular } from "@/features/quizzes/hooks/useQuizzesPopular";
+import { POPULAR_RAIL_LIMIT, type PopularQuizItemDto } from "@/features/quizzes/types/home-rails";
 import {
-POPULAR_RAIL_LIMIT,
-type PopularQuizItemDto,
-type QuizListItemDto,
-} from "@/features/quizzes/types/home-rails";
-import {
-setPopularCategory,
-usePopularCategoryId,
+  setPopularCategory,
+  usePopularCategoryId,
 } from "@/features/quizzes/store/use-home-category-store";
 
 import { HomeCategoryFilter } from "./HomeCategoryFilter";
 import { QuizRail } from "./QuizRail";
 import { QuizRailEmpty } from "./QuizRailEmpty";
 import { QuizRailSkeleton } from "./QuizRailSkeleton";
+import { RailQuizCard, type RailQuiz } from "./RailQuizCard";
 
-export function popularQuizItemToQuizListItem(
-item: PopularQuizItemDto,
-): QuizListItemDto {
-return {
-quizId: item.quizId,
-creatorId: (item.creatorId ?? null) as string | null,
-creator: {
-userId: (item.creatorId ?? "") as string,
-username: "",
-displayName: null,
-avatarUrl: null,
-    },
-title: item.title,
-description: "",
-slug: item.slug,
-requirements: null,
-imageUrl: item.imageUrl ?? null,
-categoryId: "",
-isFeatured: false,
-isHidden: false,
-isVerified: false,
-publishedVersionId: undefined,
-createdAt: "",
-updatedAt: "",
-publishedVersion: undefined,
-questionCount: 0,
-averageRating: 0,
-reviewCount: 0,
-attemptCount: 0,
-tags: [],
+function popularToRailQuiz(item: PopularQuizItemDto): RailQuiz {
+  return {
+    quizId: item.quizId,
+    title: item.title,
+    slug: item.slug,
+    imageUrl: item.imageUrl ?? null,
   };
 }
 
 export interface HomePopularRailProps {
-items?: readonly PopularQuizItemDto[];
-title?: string;
-className?: string;
+  items?: readonly PopularQuizItemDto[];
+  title?: string;
+  className?: string;
 }
 
 export function HomePopularRail({
-title = "Popular",
-className,
+  items,
+  title = "Popular",
+  className,
 }: HomePopularRailProps): React.ReactElement {
-const categoryId = usePopularCategoryId();
+  const categoryId = usePopularCategoryId();
 
-const { quizzes, isLoading, error } = useQuizzesPopular({
-limit: POPULAR_RAIL_LIMIT,
-categoryId,
+  const { quizzes, isLoading, error } = useQuizzesPopular({
+    limit: POPULAR_RAIL_LIMIT,
+    categoryId,
   });
 
-const handleCategoryChange = useCallback((next: string | undefined) => {
-setPopularCategory(next);
+  const sourceItems = items ?? [];
+  const visibleItems = sourceItems.length > 0 ? sourceItems : quizzes;
+
+  const handleCategoryChange = useCallback((next: string | undefined) => {
+    setPopularCategory(next);
   }, []);
 
-const handleReset = useCallback(() => {
-setPopularCategory(undefined);
+  const handleReset = useCallback(() => {
+    setPopularCategory(undefined);
   }, []);
 
-const handleRetry = useCallback(() => {
-void mutate([
-"quizzes",
-"popular",
-{ limit: POPULAR_RAIL_LIMIT, categoryId },
+  const handleRetry = useCallback(() => {
+    void mutate([
+      "quizzes",
+      "popular",
+      { limit: POPULAR_RAIL_LIMIT, categoryId },
     ]);
   }, [categoryId]);
 
-const filterSlot = (
-<HomeCategoryFilter value={categoryId} onChange={handleCategoryChange} />
+  const filterSlot = (
+    <HomeCategoryFilter value={categoryId} onChange={handleCategoryChange} />
   );
 
-const showSkeleton = isLoading && quizzes.length === 0;
+  const showSkeleton = isLoading && visibleItems.length === 0;
 
-return (
-<QuizRail
-layout="scroller"
-title={title}
-subtitle="Player favourites this season"
-filter={filterSlot}
-className={className}
+  return (
+    <QuizRail
+      layout="scroller"
+      title={title}
+      subtitle="Player favourites this season"
+      filter={filterSlot}
+      className={className}
     >
-{showSkeleton ? (
-<QuizRailSkeleton layout="scroller" count={POPULAR_RAIL_LIMIT} />
-      ) : error && quizzes.length === 0 ? (
-<PopularErrorPanel onRetry={handleRetry} error={error} />
-      ) : quizzes.length === 0 ? (
-<QuizRailEmpty
-title="No popular quizzes"
-description={
-categoryId
-? "No popular quizzes in this category yet."
-: "No popular quizzes yet."
+      {showSkeleton ? (
+        <QuizRailSkeleton layout="scroller" count={POPULAR_RAIL_LIMIT} />
+      ) : error && visibleItems.length === 0 ? (
+        <PopularErrorPanel onRetry={handleRetry} error={error} />
+      ) : visibleItems.length === 0 ? (
+        <QuizRailEmpty
+          title="No popular quizzes"
+          description={
+            categoryId
+              ? "No popular quizzes in this category yet."
+              : "No popular quizzes yet."
           }
-{...(categoryId
-? {
-actionLabel: "Show all categories",
-onAction: handleReset,
+          {...(categoryId
+            ? {
+                actionLabel: "Show all categories",
+                onAction: handleReset,
               }
-: {})}
+            : {})}
         />
       ) : (
-quizzes.map((item) => (
-<QuizCard
-key={item.quizId}
-quiz={popularQuizItemToQuizListItem(item)}
+        visibleItems.map((item) => (
+          <RailQuizCard
+            key={item.quizId}
+            quiz={popularToRailQuiz(item)}
+            badge="Popular"
           />
         ))
       )}
-</QuizRail>
+    </QuizRail>
   );
 }
 
 function PopularErrorPanel({
-error,
-onRetry,
+  error,
+  onRetry,
 }: {
-error: ApiError;
-onRetry: () => void;
+  error: ApiError;
+  onRetry: () => void;
 }): React.ReactElement {
-return (
-<div
-role="alert"
-className="flex w-full flex-col items-center gap-3 py-6"
-data-testid="home-popular-rail-error"
+  return (
+    <div
+      role="alert"
+      className="flex w-full flex-col items-center gap-3 py-6"
+      data-testid="home-popular-rail-error"
     >
-<EmptyState
-icon={WifiOff}
-title="Couldn’t load popular quizzes"
-description={error.message || "Please try again."}
-actions={[
-{
-label: "Retry",
-onClick: onRetry,
-variant: "default",
+      <EmptyState
+        icon={WifiOff}
+        title="Couldn’t load popular quizzes"
+        description={error.message || "Please try again."}
+        actions={[
+          {
+            label: "Retry",
+            onClick: onRetry,
+            variant: "default",
           },
         ]}
       />
-<Button
-variant="ghost"
-size="sm"
-aria-hidden="true"
-className="hidden"
-data-testid="home-popular-rail-retry"
-      >
-Retry
-      </Button>
-</div>
+    </div>
   );
 }

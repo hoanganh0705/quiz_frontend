@@ -98,7 +98,7 @@ function ShareButtons({ copied, onCopyLink, onShare }: ShareButtonsProps) {
         aria-label={copied ? 'Link copied' : 'Copy quiz link'}
       >
         {copied ? (
-          <Check className='w-5 h-5 text-green-500' aria-hidden='true' />
+          <Check className='w-5 h-5 text-success' aria-hidden='true' />
         ) : (
           <Copy className='w-5 h-5' aria-hidden='true' />
         )}
@@ -116,7 +116,7 @@ function ChallengeFriends({
   return (
     <div className='mt-6 p-4 bg-foreground/5 rounded-lg'>
       <h4 className='font-semibold mb-2'>Challenge Your Friends!</h4>
-      <p className='text-sm text-foreground/70 mb-4'>
+      <p className='text-sm text-foreground-secondary mb-4'>
         Share the quiz link and see who can beat your score.
       </p>
       <div className='flex gap-2'>

@@ -9,16 +9,19 @@
  * Wires:
  *
  *   - `useQuizFiltersUrlSync()` — seeds the store from the URL on
- *     mount; debounces 300 ms before any subsequent URL write.
+ *     mount; debounces 300 ms before any subsequent URL write. After
+ *     the mount-seed it reacts to subsequent `searchParams` changes
+ *     (back/forward navigation, shared links).
  *   - The in-memory `useQuizFiltersStore` — single source of truth for
  *     the in-memory filter state.
  *   - `<FilterBar />` slot primitive — renders the four filter
  *     affordances (category / sort / difficulty / tag multi-select).
  *     The primitive accepts `state` from the store + `onChange` that
  *     dispatches a `setFilter` per changed field.
- *   - `<PopularQuizzesStrip />` + `<TrendingQuizzesStrip />` — the
- *     supplementary strips above the grid (mirrors
- *     `<CategoriesDirectoryPage />`'s `TrendingCategoriesStrip`).
+ *   - `<QuizListingStrip />` (twice) — the supplementary strips above
+ *     the grid: one for the popular rail, one for the trending rail.
+ *     The variant only changes the rail label; everything else is
+ *     shared so loading / error / empty states stay consistent.
  *   - The `useQuizzesList(state, { limit: 20 })` cursor-paginated
  *     directory below the filter bar (limit matches Story 3.5 AC #5
  *     Lighthouse target — "20 items").
@@ -35,6 +38,9 @@
  *   - The strip empty / loading / error states are independent of
  *     the grid's state (an error in the popular strip does NOT block
  *     the directory below it).
+ *   - Each card is a real `<Link>` rendered by the shared
+ *     `<EntityCard />` primitive so middle-click / right-click /
+ *     keyboard navigation all behave like a normal link.
  *
  * ## `initialState` prop (TKT-3.5.D2 forwarder)
  *
@@ -42,11 +48,11 @@
  * via `setFilter`. The URL sync hook (C2) reads the URL on mount and
  * ALSO seeds the store — the URL wins. `initialState` is preserved
  * for callers that want to compose `QuizzesDirectoryPage` from a
- * route that passes a category slug or a search query through props
- * (the legacy `QuizCatalogMainContent` does this — D2).
+ * route that passes a category slug through props (the legacy
+ * `QuizCatalogMainContent` does this — D2).
  */
 
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 
 import { useQuizFiltersUrlSync } from "@/features/quizzes/hooks/useQuizFiltersUrlSync";
 import { useQuizzesList } from "@/features/quizzes/hooks/useQuizzesList";
@@ -65,12 +71,14 @@ import { useTagsPopular } from "@/features/tags/hooks";
 import { Button } from "@/components/ui/Button";
 import { FilterBar } from "@/components/primitives/FilterBar";
 import { QuizCardSkeleton } from "@/components/primitives";
+import { EntityCard } from "@/components/primitives/EntityCard/EntityCard";
 
 import { QuizGridEmpty } from "@/features/quizzes/components/QuizGridEmpty";
 import { QuizGridLoadMore } from "@/features/quizzes/components/QuizGridLoadMore";
 
 const PAGE_LIMIT = 20;
 const SKELETON_COUNT = 20;
+const STRIP_LIMIT = 10;
 
 export interface QuizzesDirectoryPageProps {
   /**
@@ -97,15 +105,8 @@ function useQuizFiltersState(): QuizFilterUrlState {
 export function QuizzesDirectoryPage({
   initialState,
 }: QuizzesDirectoryPageProps = {}): React.ReactElement {
-  // Wire the URL sync hook (Phase 1: mount-seed; Phase 2:
-  // debounced 300 ms write). The hook has no return value; calling it
-  // is the side effect.
   useQuizFiltersUrlSync();
-
-  // Apply `initialState` on first render so the FilterBar sees
-  // the props-derived defaults immediately. The URL sync hook's
-  // mount-seed effect runs immediately after, and the URL wins.
-  const initializedRef = useRefInit(initialState);
+  useInitialState(initialState);
 
   const state = useQuizFiltersState();
 
@@ -132,8 +133,16 @@ export function QuizzesDirectoryPage({
 
   // ─── Data: popular / trending strips ─────────────────────────────────
 
-  const { quizzes: popularQuizzes } = useQuizzesPopular({ limit: 10 });
-  const { quizzes: trendingQuizzes } = useQuizzesTrending({ limit: 10 });
+  const {
+    quizzes: popularQuizzes,
+    isLoading: popularLoading,
+    error: popularError,
+  } = useQuizzesPopular({ limit: STRIP_LIMIT });
+  const {
+    quizzes: trendingQuizzes,
+    isLoading: trendingLoading,
+    error: trendingError,
+  } = useQuizzesTrending({ limit: STRIP_LIMIT });
 
   // ─── Data: cursor-paginated directory ────────────────────────────────
 
@@ -142,9 +151,6 @@ export function QuizzesDirectoryPage({
       filters: state,
       limit: PAGE_LIMIT,
     });
-
-  // Avoid unused-variable lint on `initializedRef`.
-  void initializedRef;
 
   return (
     <main
@@ -175,19 +181,26 @@ export function QuizzesDirectoryPage({
           categories={categories}
           tags={tags}
           onChange={(next) => {
-            // Apply the next state by dispatching `setFilter` per
-            // changed field. The simplest implementation: replace the
-            // entire state via `setState` (the actions are stable).
             useQuizFiltersStore.setState(next, true);
           }}
         />
       </section>
 
-      {/* Popular strip */}
-      <PopularQuizzesStrip quizzes={popularQuizzes} />
+      <QuizListingStrip
+        variant="popular"
+        title="Popular now"
+        quizzes={popularQuizzes}
+        isLoading={popularLoading}
+        error={popularError}
+      />
 
-      {/* Trending strip */}
-      <TrendingQuizzesStrip quizzes={trendingQuizzes} />
+      <QuizListingStrip
+        variant="trending"
+        title="Trending now"
+        quizzes={trendingQuizzes}
+        isLoading={trendingLoading}
+        error={trendingError}
+      />
 
       {/* Directory grid */}
       <section aria-label="Quiz directory">
@@ -262,14 +275,11 @@ function hasActiveFilters(state: QuizFilterUrlState): boolean {
 }
 
 /**
- * Returns a ref whose only purpose is to fire the initial-state
- * effect once. The ref itself is not read.
+ * Seeds the store with `initialState` on mount (a single-shot effect,
+ * not gated by a ref — see TKT-3.5.D2).
  */
-function useRefInit(initialState?: Partial<QuizFilterUrlState>) {
-  const initializedRef = useRef(false);
+function useInitialState(initialState?: Partial<QuizFilterUrlState>): void {
   useEffect(() => {
-    if (initializedRef.current) return;
-    initializedRef.current = true;
     if (!initialState) return;
     for (const [key, value] of Object.entries(initialState)) {
       if (value !== undefined) {
@@ -277,158 +287,149 @@ function useRefInit(initialState?: Partial<QuizFilterUrlState>) {
       }
     }
   }, [initialState]);
-  return initializedRef;
 }
 
 // ─── Sub-components ──────────────────────────────────────────────────────
 
-import { useMemo, useRef } from "react";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
+import { ApiError } from "@/lib/api";
+import {
+  initialsFromQuizId,
+} from "@/features/quizzes/utils/quiz-card-decoration";
 import type {
   PopularQuizItemDto,
-  QuizListItemDto,
   TrendingQuizItemDto,
 } from "@/lib/api/generated/schemas";
 
-function PopularQuizzesStrip({
-  quizzes,
-}: {
-  quizzes: readonly PopularQuizItemDto[];
-}): React.ReactElement | null {
-  if (quizzes.length === 0) return null;
-  return (
-    <section
-      className="mb-8"
-      aria-label="Popular quizzes"
-      data-testid="popular-quizzes-strip"
-    >
-      <div className="mb-4 flex items-center justify-between gap-2 text-sm text-muted-foreground">
-        <span>Popular now</span>
-      </div>
-      <div className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory">
-        {quizzes.map((quiz) => (
-          <Link
-            key={quiz.quizId}
-            href={`/quizzes/${quiz.slug || quiz.quizId}`}
-            className="w-64 shrink-0 snap-start rounded-xl border bg-card p-4 transition hover:shadow-md"
-            data-testid="popular-quiz-card"
-            data-quiz-id={quiz.quizId}
-          >
-            <p className="font-semibold text-sm line-clamp-2">{quiz.title}</p>
-            <p className="text-xs text-muted-foreground mt-2">
-              {quiz.totalAttempts} attempts
-            </p>
-          </Link>
-        ))}
-      </div>
-    </section>
-  );
-}
-
-function TrendingQuizzesStrip({
-  quizzes,
-}: {
-  quizzes: readonly TrendingQuizItemDto[];
-}): React.ReactElement | null {
-  if (quizzes.length === 0) return null;
-  return (
-    <section
-      className="mb-8"
-      aria-label="Trending quizzes"
-      data-testid="trending-quizzes-strip"
-    >
-      <div className="mb-4 flex items-center justify-between gap-2 text-sm text-muted-foreground">
-        <span>Trending now</span>
-      </div>
-      <div className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory">
-        {quizzes.map((quiz) => (
-          <Link
-            key={quiz.quizId}
-            href={`/quizzes/${quiz.slug || quiz.quizId}`}
-            className="w-64 shrink-0 snap-start rounded-xl border bg-card p-4 transition hover:shadow-md"
-            data-testid="trending-quiz-card"
-            data-quiz-id={quiz.quizId}
-          >
-            <p className="font-semibold text-sm line-clamp-2">{quiz.title}</p>
-            <p className="text-xs text-muted-foreground mt-2">
-              {quiz.totalAttempts} attempts
-            </p>
-          </Link>
-        ))}
-      </div>
-    </section>
-  );
+interface DirectoryQuizCardItem {
+  quizId: string;
+  slug: string;
+  title: string;
+  description?: string | null;
+  imageUrl?: string | null;
+  publishedVersion?: { difficulty?: string | null } | null;
 }
 
 function DirectoryQuizCard({
   item,
 }: {
-  item: QuizListItemDto & { id?: string };
-}) {
-  const router = useRouter();
+  item: DirectoryQuizCardItem;
+}): React.ReactElement {
   const href = `/quizzes/${item.slug || item.quizId}`;
   const difficulty = item.publishedVersion?.difficulty;
   const fallbackGradient = gradientFromQuizId(item.quizId);
+
   return (
-    <button
-      type="button"
-      onClick={() => router.push(href)}
-      className="group flex h-full flex-col overflow-hidden rounded-xl border bg-card text-card-foreground shadow-sm transition focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 hover:shadow-md text-left w-full"
+    <div
+      className="relative h-full"
       data-testid="quizzes-directory-card"
       data-quiz-id={item.quizId}
-      aria-label={item.title}
     >
-      <div className="relative aspect-video w-full overflow-hidden bg-muted">
-        {item.imageUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={item.imageUrl}
-            alt=""
-            loading="lazy"
-            className="h-full w-full object-cover"
-          />
-        ) : (
-          <span
-            aria-hidden="true"
-            data-testid="quizzes-directory-card-fallback"
-            data-quiz-id={item.quizId}
-            style={{ background: fallbackGradient }}
-            className="flex h-full w-full items-center justify-center text-lg font-semibold uppercase text-white"
-          >
-            {initialsFromQuizId(item.quizId)}
-          </span>
-        )}
-      </div>
-      <div className="flex flex-1 flex-col gap-2 p-4">
-        <h3 className="line-clamp-2 text-base font-semibold leading-snug">
-          {item.title}
-        </h3>
-        {item.description ? (
-          <p className="line-clamp-2 text-sm text-muted-foreground">
-            {item.description}
-          </p>
-        ) : null}
-        <div className="mt-auto flex items-center gap-2 text-xs text-muted-foreground">
-          {difficulty ? (
+      <EntityCard
+        href={href}
+        title={item.title}
+        description={item.description ?? null}
+        imageUrl={item.imageUrl ?? null}
+        imageAlt=""
+        initials={initialsFromQuizId(item.quizId)}
+        aspectRatio="16/9"
+        coverSize="md"
+        badges={
+          difficulty ? (
             <span className="rounded-full border bg-background px-2 py-0.5">
               {difficulty}
             </span>
-          ) : null}
-        </div>
-      </div>
-    </button>
+          ) : null
+        }
+      />
+      {item.imageUrl ? null : (
+        <span
+          aria-hidden="true"
+          data-testid="quizzes-directory-card-fallback"
+          data-quiz-id={item.quizId}
+          style={{ background: fallbackGradient }}
+          className="pointer-events-none absolute inset-x-0 top-0 z-0 flex aspect-video w-full items-center justify-center text-lg font-semibold uppercase text-white"
+        >
+          {initialsFromQuizId(item.quizId)}
+        </span>
+      )}
+    </div>
   );
 }
 
-function initialsFromQuizId(quizId: string): string {
-  const seed = quizId.replace(/-/g, "").slice(-6);
-  let hash = 0;
-  for (let i = 0; i < seed.length; i += 1) {
-    hash = (hash * 31 + seed.charCodeAt(i)) >>> 0;
-  }
-  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-  const a = chars[hash % chars.length];
-  const b = chars[(hash >>> 8) % chars.length];
-  return `${a}${b}`;
+type StripVariant = "popular" | "trending";
+
+type StripQuiz = PopularQuizItemDto | TrendingQuizItemDto;
+
+interface QuizListingStripProps {
+  variant: StripVariant;
+  title: string;
+  quizzes: readonly StripQuiz[];
+  isLoading: boolean;
+  error: ApiError | null;
+}
+
+function QuizListingStrip({
+  variant,
+  title,
+  quizzes,
+  isLoading,
+  error,
+}: QuizListingStripProps): React.ReactElement | null {
+  const testid = `${variant}-quizzes-strip`;
+  const cardTestid = `${variant}-quiz-card`;
+  const showSkeleton = isLoading && quizzes.length === 0;
+  const showError = !isLoading && error !== null && quizzes.length === 0;
+
+  return (
+    <section
+      className="mb-8"
+      aria-label={`${variant} quizzes`}
+      data-testid={testid}
+    >
+      <div className="mb-4 flex items-center justify-between gap-2 text-sm text-muted-foreground">
+        <span>{title}</span>
+      </div>
+      {showSkeleton ? (
+        <div className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory">
+          {Array.from({ length: STRIP_LIMIT }).map((_, i) => (
+            <div
+              key={i}
+              className="w-64 shrink-0 snap-start rounded-xl border bg-card p-4"
+            >
+              <div className="mb-2 h-4 w-3/4 rounded bg-muted" />
+              <div className="h-3 w-1/2 rounded bg-muted" />
+            </div>
+          ))}
+        </div>
+      ) : showError ? (
+        <div
+          role="alert"
+          className="flex flex-col items-center gap-2 rounded-md border border-destructive/40 bg-destructive/5 p-4 text-sm"
+          data-testid={`${testid}-error`}
+        >
+          <span>Couldn’t load {title.toLowerCase()}.</span>
+          <span className="text-xs text-muted-foreground">
+            The grid below is still usable.
+          </span>
+        </div>
+      ) : quizzes.length === 0 ? null : (
+        <div className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory">
+          {quizzes.map((quiz) => (
+            <a
+              key={quiz.quizId}
+              href={`/quizzes/${quiz.slug || quiz.quizId}`}
+              className="w-64 shrink-0 snap-start rounded-xl border bg-card p-4 transition hover:shadow-md"
+              data-testid={cardTestid}
+              data-quiz-id={quiz.quizId}
+            >
+              <p className="font-semibold text-sm line-clamp-2">{quiz.title}</p>
+              <p className="text-xs text-muted-foreground mt-2">
+                {quiz.totalAttempts} attempts
+              </p>
+            </a>
+          ))}
+        </div>
+      )}
+    </section>
+  );
 }

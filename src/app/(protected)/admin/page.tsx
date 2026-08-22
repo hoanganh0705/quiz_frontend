@@ -120,7 +120,7 @@ View Site
 {stats.map((stat) => {
 const TrendIcon = stat.trend === "up" ? TrendingUp : TrendingDown;
 const trendColor =
-stat.trend === "up" ? "text-green-600" : "text-red-500";
+stat.trend === "up" ? "text-success" : "text-destructive";
 return (
 <Card key={stat.title} className="border-border">
 <CardHeader className="pb-2">

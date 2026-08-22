@@ -26,7 +26,7 @@ const textSizeMap = {
 }
 
 const variantMap = {
-  default: 'text-foreground/70',
+  default: 'text-foreground-secondary',
   primary: 'text-default',
   secondary: 'text-muted-foreground'
 }
@@ -49,7 +49,7 @@ export function LoadingSpinner({
         className={cn(sizeMap[size], variantMap[variant], 'animate-spin')}
       />
       {text && (
-        <p className={cn(textSizeMap[size], 'text-foreground/70')}>{text}</p>
+        <p className={cn(textSizeMap[size], 'text-foreground-secondary')}>{text}</p>
       )}
     </div>
   )
@@ -80,7 +80,7 @@ export function RefreshSpinner({
     <RefreshCw
       className={cn(
         sizeMap[size],
-        'text-foreground/70 transition-transform',
+        'text-foreground-secondary transition-transform',
         isRefreshing && 'animate-spin',
         className
       )}

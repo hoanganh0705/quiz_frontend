@@ -127,7 +127,7 @@ onClick={(e) => {
 e.stopPropagation()
 onDelete()
                   }}
-className='text-red-600 dark:text-red-400'
+className='text-destructive dark:text-red-400'
                 >
 <Trash2 className='mr-2 h-4 w-4' />
 Delete

@@ -58,7 +58,7 @@ className="flex flex-col items-start gap-2 rounded-md border border-green-200 bg
     >
 <div className="flex items-center gap-2">
 <CheckCircle2
-className="h-5 w-5 text-green-600 dark:text-green-400"
+className="h-5 w-5 text-success dark:text-green-400"
 aria-hidden="true"
         />
 <Badge variant="default" className="bg-green-600 text-white">
@@ -82,7 +82,7 @@ className="flex flex-col items-start gap-2 rounded-md border border-red-200 bg-r
     >
 <div className="flex items-center gap-2">
 <XCircle
-className="h-5 w-5 text-red-600 dark:text-red-400"
+className="h-5 w-5 text-destructive dark:text-red-400"
 aria-hidden="true"
         />
 <Badge variant="destructive">Failed</Badge>

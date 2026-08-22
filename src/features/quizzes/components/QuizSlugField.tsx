@@ -68,7 +68,7 @@ Checking…
 if (available === true) {
 return (
 <span
-className="inline-flex items-center gap-1 text-xs text-green-600 dark:text-green-400"
+className="inline-flex items-center gap-1 text-xs text-success dark:text-green-400"
 role="status"
 aria-live="polite"
       >

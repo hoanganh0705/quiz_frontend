@@ -25,12 +25,12 @@ aria-label='Success stories carousel'
 <div className='flex flex-col items-center justify-center space-y-4 text-center'>
 <div className='space-y-2'>
 <h2 className='text-3xl font-bold text-foreground mb-4'>
-Success Stories
+Sample creator &amp; player stories
             </h2>
 <p className='text-foreground/80 text-lg max-w-2xl mx-auto'>
-Hear from our community of quiz creators and players who are
-              earning rewards and building their audience
-            </p>
+Illustrative examples of how creators and players use the platform.
+            Names and quotes are fictional placeholders.
+          </p>
 </div>
 </div>
 
@@ -92,26 +92,6 @@ i < testimonial.rating
 {testimonial.name}
 </h3>
 <p className='text-gray-400'>{testimonial.role}</p>
-<div className='mt-6 flex justify-center md:justify-start space-x-8'>
-<div className='text-center'>
-<div className='text-2xl font-bold text-foreground'>
-{testimonial.earnings}
-</div>
-<div className='text-gray-400 text-sm'>Earnings</div>
-</div>
-<div className='text-center'>
-<div className='text-2xl font-bold text-brand'>
-{testimonial.quizzes}
-</div>
-<div className='text-gray-400 text-sm'>Quizzes</div>
-</div>
-<div className='text-center'>
-<div className='text-2xl font-bold text-brand'>
-{testimonial.followers}
-</div>
-<div className='text-gray-400 text-sm'>Followers</div>
-</div>
-</div>
 </div>
 </div>
 </div>

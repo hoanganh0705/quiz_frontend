@@ -71,7 +71,7 @@ aria-live="polite"
     >
 {/* Icon */}
 {isReady ? (
-<CheckCircle2 className="h-8 w-8 flex-shrink-0 text-green-500" />
+<CheckCircle2 className="h-8 w-8 flex-shrink-0 text-success" />
       ) : (
 <AlertCircle className="h-8 w-8 flex-shrink-0 text-yellow-600" />
       )}
@@ -90,7 +90,7 @@ isReady ? 'text-green-700' : 'text-yellow-800',
 <span
 className={cn(
 'text-sm',
-isReady ? 'text-green-600' : 'text-yellow-700',
+isReady ? 'text-success' : 'text-yellow-700',
             )}
           >
 {isReady ? 'Ready to publish' : `${required - current} more needed`}

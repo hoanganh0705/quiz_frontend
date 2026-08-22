@@ -128,7 +128,7 @@ export function FriendLeaderboardPage(): ReactElement {
         >
           <span className="font-semibold">Your rank:</span>{" "}
           <span className="tabular-nums">#{currentUserRank.rank}</span>{" "}
-          <span className="text-foreground/70">
+          <span className="text-foreground-secondary">
             ({currentUserRank.xp.toLocaleString()} XP)
           </span>
         </div>

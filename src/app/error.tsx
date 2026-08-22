@@ -22,13 +22,13 @@ export default function Error({
     <div className='min-h-screen bg-background flex items-center justify-center p-4'>
       <div className='max-w-md w-full text-center'>
         <div className='inline-flex items-center justify-center w-16 h-16 rounded-full bg-red-100 dark:bg-red-900/30 mb-6'>
-          <AlertTriangle className='w-8 h-8 text-red-600 dark:text-red-400' />
+          <AlertTriangle className='w-8 h-8 text-destructive dark:text-red-400' />
         </div>
 
         <h1 className='text-2xl font-bold text-foreground mb-2'>
           Something went wrong!
         </h1>
-        <p className='text-foreground/70 mb-8'>
+        <p className='text-foreground-secondary mb-8'>
           We apologize for the inconvenience. An unexpected error has occurred.
         </p>
 

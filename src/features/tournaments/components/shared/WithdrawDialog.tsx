@@ -58,7 +58,7 @@ data-testid="withdraw-dialog"
 </div>
 <AlertDialogTitle>Withdraw from Tournament?</AlertDialogTitle>
 </div>
-<AlertDialogDescription className="pt-2">
+<AlertDialogDescription className="pt-2" id="withdraw-dialog-description">
 {tournamentName ? (
 <>
 Are you sure you want to withdraw from{" "}
@@ -85,19 +85,20 @@ and cannot be undone.
 </AlertDialogHeader>
 
 <AlertDialogFooter>
-<AlertDialogCancel disabled={loading} data-testid="withdraw-dialog-cancel">
-Cancel
+          <AlertDialogCancel disabled={loading} data-testid="withdraw-dialog-cancel">
+            Cancel
           </AlertDialogCancel>
-<AlertDialogAction asChild>
-<Button
-type="button"
-variant="destructive"
-disabled={loading}
-onClick={(e) => {
-e.preventDefault();
-onConfirm();
+          <AlertDialogAction asChild>
+            <Button
+              type="button"
+              variant="destructive"
+              disabled={loading}
+              onClick={(e) => {
+                e.preventDefault();
+                onConfirm();
               }}
-data-testid="withdraw-dialog-confirm"
+              aria-describedby="withdraw-dialog-description"
+              data-testid="withdraw-dialog-confirm"
             >
 {loading ? (
 <>

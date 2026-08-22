@@ -51,7 +51,7 @@ border: 'border-blue-500/30',
 case 'uncommon':
 return {
 bg: 'bg-green-500/20',
-text: 'text-green-500',
+text: 'text-success',
 border: 'border-green-500/30',
       };
 case 'common':

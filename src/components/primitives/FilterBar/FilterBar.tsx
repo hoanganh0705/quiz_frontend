@@ -303,44 +303,65 @@ data-testid='filter-bar-tags-show-more'
 }
 
 function FilterBarMobileSheet({
-state,
-categories,
-tags,
-onChange
+  state,
+  categories,
+  tags,
+  onChange,
 }: FilterBarContentProps): React.ReactElement {
-return (
-<Sheet>
-<SheetTrigger asChild>
-<Button
-variant='outline'
-data-testid='filter-bar-mobile-trigger'
-className='w-full'
+  const hasFilters = Boolean(
+    state.categoryId ||
+    (state.tagSlugs && state.tagSlugs.length > 0) ||
+    state.sort ||
+    (state.difficulty && state.difficulty !== 'all'),
+  )
+  return (
+    <Sheet>
+      <SheetTrigger asChild>
+        <Button
+          variant='outline'
+          data-testid='filter-bar-mobile-trigger'
+          className='w-full'
         >
-<Filter className='mr-2 h-4 w-4' aria-hidden='true' />
-Filters
+          <Filter className='mr-2 h-4 w-4' aria-hidden='true' />
+          Filters
+          {hasFilters ? (
+            <span
+              aria-hidden='true'
+              className='ml-2 inline-flex h-2 w-2 rounded-full bg-primary'
+            />
+          ) : null}
         </Button>
-</SheetTrigger>
-<SheetContent side='right' className='w-full sm:max-w-md'>
-<SheetHeader>
-<SheetTitle>Filters</SheetTitle>
-</SheetHeader>
-<div className='flex-1 overflow-y-auto p-4'>
-<FilterBarContent
-state={state}
-categories={categories}
-tags={tags}
-onChange={onChange}
+      </SheetTrigger>
+      <SheetContent side='right' className='w-full sm:max-w-md'>
+        <SheetHeader>
+          <SheetTitle>Filters</SheetTitle>
+        </SheetHeader>
+        <div className='flex-1 overflow-y-auto p-4'>
+          <FilterBarContent
+            state={state}
+            categories={categories}
+            tags={tags}
+            onChange={onChange}
           />
-</div>
-      <div className='flex gap-2 border-t p-4'>
-        <SheetClose asChild>
-          <Button className='flex-1' data-testid='filter-bar-mobile-apply'>
-            Done
+        </div>
+        <div className='flex gap-2 border-t p-4'>
+          <Button
+            variant='ghost'
+            disabled={!hasFilters}
+            onClick={() => onChange({})}
+            data-testid='filter-bar-mobile-clear'
+            className='shrink-0'
+          >
+            Clear filters
           </Button>
-        </SheetClose>
-      </div>
-</SheetContent>
-</Sheet>
+          <SheetClose asChild>
+            <Button className='flex-1' data-testid='filter-bar-mobile-apply'>
+              Done
+            </Button>
+          </SheetClose>
+        </div>
+      </SheetContent>
+    </Sheet>
   )
 }
 

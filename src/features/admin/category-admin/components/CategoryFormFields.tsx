@@ -55,7 +55,7 @@ function AvailabilityIcon({ status }: { status: SlugAvailabilityStatus }) {
 if (status === 'available') {
 return (
 <CheckCircle
-className='h-4 w-4 text-green-500 shrink-0'
+className='h-4 w-4 text-success shrink-0'
 aria-label='Slug is available'
       />
     );
@@ -85,7 +85,7 @@ conflictingCategoryName?: string;
 }) {
 if (status === 'available') {
 return (
-<span className='text-xs text-green-600 dark:text-green-400'>
+<span className='text-xs text-success dark:text-green-400'>
 Slug is available
       </span>
     );
@@ -102,7 +102,7 @@ Slug is taken{name}
   }
 if (status === 'invalid') {
 return (
-<span className='text-xs text-red-500'>
+<span className='text-xs text-destructive'>
 Slug must be lowercase letters, numbers, and hyphens only
       </span>
     );

@@ -62,7 +62,7 @@ export function ContactForm() {
     }
   })
 
-  const { execute: onSubmit, isLoading: isSubmitting } = useAsyncAction(
+  const { execute: onSubmit, isLoading: isSubmitting, error: submitError } = useAsyncAction(
     async (data: ContactFormData) => {
       await submitContactForm({
         name: data.name,
@@ -75,7 +75,6 @@ export function ContactForm() {
       setSubmitSuccess(true)
       reset()
 
-      // Reset success message after 5 seconds
       setTimeout(() => setSubmitSuccess(false), 5000)
     }
   )
@@ -86,44 +85,48 @@ export function ContactForm() {
         <h2 className='text-2xl font-bold text-foreground'>Contact Support</h2>
       </div>
 
-      <form className='space-y-6' onSubmit={handleSubmit(onSubmit)}>
+      <form className='space-y-6' onSubmit={handleSubmit(onSubmit)} noValidate>
         {/* Name and Email row */}
         <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
           <div className='space-y-2'>
             <Label htmlFor='name' className='text-foreground font-medium'>
-              Name <span className='text-red-500'>*</span>
+              Name <span className='text-destructive'>*</span>
             </Label>
             <Input
               id='name'
               placeholder='Your name'
               {...register('name')}
-              className={`bg-transparent border text-foreground placeholder:text-muted-foreground focus:border-blue-500 ${
+              className={`bg-transparent border text-foreground placeholder:text-muted-foreground focus:border-brand ${
                 errors.name
-                  ? 'border-red-500 focus:border-red-500'
+                  ? 'border-destructive focus:border-destructive'
                   : 'border-border'
               }`}
             />
             {errors.name && (
-              <p className='text-red-500 text-sm'>{errors.name.message}</p>
+              <p className='text-destructive text-sm' role='alert'>
+                {errors.name.message}
+              </p>
             )}
           </div>
           <div className='space-y-2'>
             <Label htmlFor='email' className='text-foreground font-medium'>
-              Email <span className='text-red-500'>*</span>
+              Email <span className='text-destructive'>*</span>
             </Label>
             <Input
               id='email'
               type='email'
               placeholder='your.email@example.com'
               {...register('email')}
-              className={`bg-transparent border text-foreground placeholder:text-muted-foreground focus:border-blue-500 ${
+              className={`bg-transparent border text-foreground placeholder:text-muted-foreground focus:border-brand ${
                 errors.email
-                  ? 'border-red-500 focus:border-red-500'
+                  ? 'border-destructive focus:border-destructive'
                   : 'border-border'
               }`}
             />
             {errors.email && (
-              <p className='text-red-500 text-sm'>{errors.email.message}</p>
+              <p className='text-destructive text-sm' role='alert'>
+                {errors.email.message}
+              </p>
             )}
           </div>
         </div>
@@ -132,31 +135,34 @@ export function ContactForm() {
         <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
           <div className='space-y-2'>
             <Label htmlFor='subject' className='text-foreground font-medium'>
-              Subject <span className='text-red-500'>*</span>
+              Subject <span className='text-destructive'>*</span>
             </Label>
             <Input
               id='subject'
               placeholder='Brief description of your issue'
               {...register('subject')}
-              className={`bg-transparent border text-foreground placeholder:text-muted-foreground focus:border-blue-500 ${
+              className={`bg-transparent border text-foreground placeholder:text-muted-foreground focus:border-brand ${
                 errors.subject
-                  ? 'border-red-500 focus:border-red-500'
+                  ? 'border-destructive focus:border-destructive'
                   : 'border-border'
               }`}
             />
             {errors.subject && (
-              <p className='text-red-500 text-sm'>{errors.subject.message}</p>
+              <p className='text-destructive text-sm' role='alert'>
+                {errors.subject.message}
+              </p>
             )}
           </div>
           <div className='space-y-2'>
             <Label htmlFor='category' className='text-foreground font-medium'>
-              Category <span className='text-red-500'>*</span>
+              Category <span className='text-destructive'>*</span>
             </Label>
-            <Select onValueChange={(value) => setValue('category', value)}>
+            <Select onValueChange={(value) => setValue('category', value, { shouldValidate: true })}>
               <SelectTrigger
+                id='category'
                 className={`bg-transparent text-foreground focus:border-brand ${
                   errors.category
-                    ? 'border-red-500 focus:border-red-500'
+                    ? 'border-destructive focus:border-destructive'
                     : 'border-border'
                 }`}
               >
@@ -208,7 +214,9 @@ export function ContactForm() {
               </SelectContent>
             </Select>
             {errors.category && (
-              <p className='text-red-500 text-sm'>{errors.category.message}</p>
+              <p id='category-error' className='text-destructive text-sm' role='alert'>
+                {errors.category.message}
+              </p>
             )}
           </div>
         </div>
@@ -216,7 +224,7 @@ export function ContactForm() {
         {/* Message field */}
         <div className='space-y-2'>
           <Label htmlFor='message' className='text-foreground font-medium'>
-            Message <span className='text-red-500'>*</span>
+            Message <span className='text-destructive'>*</span>
           </Label>
           <Textarea
             id='message'
@@ -225,12 +233,14 @@ export function ContactForm() {
             {...register('message')}
             className={`bg-transparent border text-foreground placeholder:text-muted-foreground focus:border-brand resize-none ${
               errors.message
-                ? 'border-red-500 focus:border-red-500'
+                ? 'border-destructive focus:border-destructive'
                 : 'border-border'
             }`}
           />
           {errors.message && (
-            <p className='text-red-500 text-sm'>{errors.message.message}</p>
+            <p className='text-destructive text-sm' role='alert'>
+              {errors.message.message}
+            </p>
           )}
         </div>
 
@@ -240,20 +250,37 @@ export function ContactForm() {
 
         {/* Submit button */}
         {submitSuccess && (
-          <div className='p-4 bg-green-500/10 border border-green-500/20 rounded-lg'>
-            <p className='text-green-600 dark:text-green-400 text-sm font-medium'>
+          <div
+            className='p-4 bg-success/10 border border-success/20 rounded-lg'
+            role='status'
+            aria-live='polite'
+          >
+            <p className='text-success text-sm font-medium'>
               Your message has been submitted successfully. We&apos;ll get back to you soon.
             </p>
           </div>
         )}
+
+        {submitError && (
+          <div
+            className='p-4 bg-destructive/10 border border-destructive/20 rounded-lg'
+            role='alert'
+            aria-live='assertive'
+          >
+            <p className='text-destructive text-sm font-medium'>
+              Failed to submit your message. Please try again or email us directly at support@quizhub.com.
+            </p>
+          </div>
+        )}
+
         <Button
           type='submit'
           disabled={isSubmitting}
-          className='bg-brand hover:bg-brand text-foreground px-8 py-2 disabled:opacity-50'
+          className='bg-brand hover:bg-brand-hover text-brand-foreground px-8 py-2 disabled:opacity-50'
         >
           {isSubmitting ? (
             <>
-              <Loader2 className='w-4 h-4 mr-2 animate-spin' />
+              <Loader2 className='w-4 h-4 mr-2 animate-spin' aria-hidden='true' />
               Submitting...
             </>
           ) : (

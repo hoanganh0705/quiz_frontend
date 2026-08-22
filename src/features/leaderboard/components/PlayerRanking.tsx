@@ -36,9 +36,11 @@
  * `/leaderboard`.
  */
 import { ChevronLeft, ChevronRight, Swords } from "lucide-react";
+import { useRef } from "react";
 import { Button } from "@/components/ui/Button";
 import { Swiper, SwiperSlide } from "swiper/react";
-import { Autoplay, Navigation } from "swiper/modules";
+import { Autoplay } from "swiper/modules";
+import type { Swiper as SwiperType } from "swiper";
 import { PlayerCard } from "@/features/leaderboard/components/PlayerCard";
 import { useLeaderboard } from "@/features/leaderboard/hooks/useLeaderboard";
 import type { Player } from "@/features/users/types";
@@ -72,6 +74,7 @@ function projectEntryToPlayer(entry: {
 }
 
 const PlayerRanking = () => {
+  const swiperRef = useRef<SwiperType | null>(null);
   const { entries, isLoading, error } = useLeaderboard("all_time");
 
   // Map entries once. The hook already aliases `id` from `userId`.
@@ -101,15 +104,17 @@ const PlayerRanking = () => {
         <div className="flex gap-2">
           <Button
             size="icon"
-            className="bg-brand text-white hover:bg-brand-hover player-swiper-button-prev"
+            className="bg-primary text-primary-foreground hover:bg-primary/90"
             aria-label="Previous player"
+            onClick={() => swiperRef.current?.slidePrev()}
           >
             <ChevronLeft className="h-5 w-5" />
           </Button>
           <Button
             size="icon"
-            className="bg-brand text-white hover:bg-brand-hover player-swiper-button-next"
+            className="bg-primary text-primary-foreground hover:bg-primary/90"
             aria-label="Next player"
+            onClick={() => swiperRef.current?.slideNext()}
           >
             <ChevronRight className="h-5 w-5" />
           </Button>
@@ -131,19 +136,18 @@ const PlayerRanking = () => {
             className="rounded-lg border border-border bg-background p-6 text-center"
             role="status"
           >
-            <p className="text-sm text-foreground/70">No players ranked yet.</p>
+            <p className="text-sm text-foreground-secondary">No players ranked yet.</p>
           </div>
         ) : (
           <Swiper
+            onBeforeInit={(swiper) => {
+              swiperRef.current = swiper;
+            }}
             pagination={{ clickable: true }}
-            modules={[Navigation, Autoplay]}
+            modules={[Autoplay]}
             autoplay={{
               delay: 3000,
               disableOnInteraction: true,
-            }}
-            navigation={{
-              prevEl: ".player-swiper-button-prev",
-              nextEl: ".player-swiper-button-next",
             }}
             breakpoints={{
               0: { slidesPerView: 1, spaceBetween: 10 },
@@ -172,7 +176,7 @@ const PlayerRanking = () => {
       </div>
 
       <div className="mt-8 flex justify-center">
-        <Button className="rounded-md text-white bg-brand hover:bg-brand-hover">
+        <Button className="rounded-md bg-primary hover:bg-primary/90 text-primary-foreground">
           View Full Leaderboard
         </Button>
       </div>
