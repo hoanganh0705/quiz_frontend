@@ -2,6 +2,7 @@
 
 import type {
 DailyChallengeAnswerDto,
+DailyChallengeControllerGetCategoryBreakdown200,
 DailyChallengeControllerGetHistory200,
 DailyChallengeControllerGetHistoryParams,
 DailyChallengeControllerGetLeaderboard200,
@@ -27,8 +28,21 @@ const dailyChallengeControllerGetHistory = (
 params?: DailyChallengeControllerGetHistoryParams,
  ) => {
 return orvalCustomInstance<DailyChallengeControllerGetHistory200>(
-{url: `/api/v1/daily-challenge/history`, method: 'GET',
+    {url: `/api/v1/daily-challenge/history`, method: 'GET',
 params
+    },
+      );
+    }
+
+/**
+ * Phase 4 (F-2): per-category rollup of the viewer's completed
+ * daily-challenge attempts. The endpoint is `@Public()` so it can
+ * be fetched without a session; anonymous viewers receive an empty
+ * `items` array.
+ */
+const dailyChallengeControllerGetCategoryBreakdown = () => {
+return orvalCustomInstance<DailyChallengeControllerGetCategoryBreakdown200>(
+{url: `/api/v1/daily-challenge/history/categories`, method: 'GET'
     },
       );
     }
@@ -37,7 +51,7 @@ const dailyChallengeControllerGetLeaderboard = (
 params?: DailyChallengeControllerGetLeaderboardParams,
  ) => {
 return orvalCustomInstance<DailyChallengeControllerGetLeaderboard200>(
-{url: `/api/v1/daily-challenge/leaderboard`, method: 'GET',
+    {url: `/api/v1/daily-challenge/leaderboard`, method: 'GET',
 params
     },
       );
@@ -47,14 +61,15 @@ const dailyChallengeControllerSubmitAnswer = (
 dailyChallengeAnswerDto: DailyChallengeAnswerDto,
  ) => {
 return orvalCustomInstance<DailyChallengeControllerSubmitAnswer200>(
-{url: `/api/v1/daily-challenge/answer`, method: 'POST',
+    {url: `/api/v1/daily-challenge/answer`, method: 'POST',
 headers: {'Content-Type': 'application/json', },
 data: dailyChallengeAnswerDto
     },
       );
     }
-return {dailyChallengeControllerGetToday,dailyChallengeControllerGetHistory,dailyChallengeControllerGetLeaderboard,dailyChallengeControllerSubmitAnswer}};
+return {dailyChallengeControllerGetToday,dailyChallengeControllerGetHistory,dailyChallengeControllerGetCategoryBreakdown,dailyChallengeControllerGetLeaderboard,dailyChallengeControllerSubmitAnswer}};
 export type DailyChallengeControllerGetTodayResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getDailyChallenge>['dailyChallengeControllerGetToday']>>>
 export type DailyChallengeControllerGetHistoryResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getDailyChallenge>['dailyChallengeControllerGetHistory']>>>
+export type DailyChallengeControllerGetCategoryBreakdownResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getDailyChallenge>['dailyChallengeControllerGetCategoryBreakdown']>>>
 export type DailyChallengeControllerGetLeaderboardResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getDailyChallenge>['dailyChallengeControllerGetLeaderboard']>>>
 export type DailyChallengeControllerSubmitAnswerResult = NonNullable<Awaited<ReturnType<ReturnType<typeof getDailyChallenge>['dailyChallengeControllerSubmitAnswer']>>>

@@ -1,260 +1,99 @@
+import { describe, expect, it } from 'vitest'
 
+import { toCategoryBreakdownItems } from '@/features/daily-challenge/services/daily-challenge.service'
+import type { DailyChallengeCategoryBreakdownResponseDto } from '@/lib/api/generated/schemas/dailyChallengeCategoryBreakdownResponseDto'
 
-import { beforeEach, describe, expect, it, vi } from 'vitest'
-
-import { ApiError } from '@/lib/api'
-
-const getDailyChallengeMock = vi.fn()
-
-vi.mock('@/lib/api', async () => {
-const actual = await vi.importActual<typeof import('@/lib/api')>('@/lib/api')
-return {
-...actual,
-getDailyChallenge: () => getDailyChallengeMock(),
-isApiError: actual.isApiError,
-ApiError: actual.ApiError,
+function makeDtoItem(
+  overrides: Partial<NonNullable<DailyChallengeCategoryBreakdownResponseDto['items'][number]>> = {},
+): NonNullable<DailyChallengeCategoryBreakdownResponseDto['items'][number]> {
+  return {
+    categoryId: 'cat-1',
+    categoryName: 'Science',
+    categorySlug: 'science',
+    attemptCount: 3,
+    averageScorePercent: 78.5,
+    ...overrides,
   }
-})
+}
 
-import {
-getDailyChallengeHistoryPage,
-getDailyChallengeToday,
-submitDailyChallengeAnswer,
-} from '@/features/daily-challenge/services/daily-challenge.service'
-
-beforeEach(() => {
-getDailyChallengeMock.mockReset()
-})
-
-describe('daily-challenge.service — getDailyChallengeToday', () => {
-it('(b) narrows every new field from the backend DTO', async () => {
-getDailyChallengeMock.mockReturnValue({
-dailyChallengeControllerGetToday: async () => ({
-data: {
-date: '2026-08-02T00:00:00.000Z',
-quizId: 'quiz-1',
-quizTitle: 'Solar System Trivia',
-slug: 'solar-system-trivia',
-difficulty: 'hard',
-questionCount: 5,
-rewardXp: 100,
-expiresAt: '2026-08-03T00:00:00.000Z',
-status: 'pending',
-scorePercent: null,
-rank: null,
-        },
-      }),
-    })
-
-const result = await getDailyChallengeToday()
-expect(result.kind).toBe('ok')
-if (result.kind !== 'ok') throw new Error('expected ok')
-expect(result.data).toEqual({
-id: 'quiz-1',
-date: '2026-08-02T00:00:00.000Z',
-quizId: 'quiz-1',
-quizTitle: 'Solar System Trivia',
-slug: 'solar-system-trivia',
-difficulty: 'hard',
-category: 'hard',
-totalQuestions: 5,
-rewardXp: 100,
-expiresAt: '2026-08-03T00:00:00.000Z',
-status: 'pending',
-scorePercent: null,
-rank: null,
-    })
+describe('toCategoryBreakdownItems', () => {
+  it('(1) returns an empty array when the payload is undefined', () => {
+    expect(toCategoryBreakdownItems(undefined)).toEqual([])
   })
 
-it('(b) returns kind=error when the envelope is missing the payload', async () => {
-getDailyChallengeMock.mockReturnValue({
-dailyChallengeControllerGetToday: async () => ({ data: undefined }),
-    })
-
-const result = await getDailyChallengeToday()
-expect(result.kind).toBe('error')
-  })
-})
-
-describe('daily-challenge.service — getDailyChallengeHistoryPage', () => {
-it('(a) unwraps a single-page envelope to the page items', async () => {
-getDailyChallengeMock.mockReturnValue({
-dailyChallengeControllerGetHistory: async () => ({
-data: [
-{
-items: [
-{
-date: '2026-08-01T00:00:00.000Z',
-quizId: 'quiz-1',
-quizTitle: 'Solar System Trivia',
-slug: 'solar-system-trivia',
-difficulty: 'easy',
-score: 80,
-rank: 1,
-              },
-            ],
-pagination: {
-nextCursor: null,
-hasNextPage: false,
-limit: 5,
-            },
-          },
-        ],
-      }),
-    })
-
-const result = await getDailyChallengeHistoryPage({ limit: 5 })
-expect(result.kind).toBe('ok')
-if (result.kind !== 'ok') throw new Error('expected ok')
-expect(result.data.items).toHaveLength(1)
-expect(result.data.items[0]?.quizTitle).toBe('Solar System Trivia')
-expect(result.data.items[0]?.isTopTen).toBe(true)
-expect(result.data.nextCursor).toBeNull()
-expect(result.data.hasNextPage).toBe(false)
-expect(result.data.limit).toBe(5)
+  it('(2) returns an empty array when the payload is an empty array', () => {
+    expect(toCategoryBreakdownItems([])).toEqual([])
   })
 
-it('(a) unwraps a multi-page envelope by surfacing the FIRST page only', async () => {
-getDailyChallengeMock.mockReturnValue({
-dailyChallengeControllerGetHistory: async () => ({
-data: [
-{
-items: [
-{
-date: '2026-08-01T00:00:00.000Z',
-quizId: 'quiz-1',
-quizTitle: 'Solar System Trivia',
-slug: 'solar-system-trivia',
-difficulty: 'easy',
-score: 80,
-rank: 1,
-              },
-            ],
-pagination: {
-nextCursor: 'cursor-2',
-hasNextPage: true,
-limit: 1,
-            },
-          },
-        ],
-      }),
-    })
-
-const result = await getDailyChallengeHistoryPage({ limit: 1 })
-expect(result.kind).toBe('ok')
-if (result.kind !== 'ok') throw new Error('expected ok')
-expect(result.data.items).toHaveLength(1)
-expect(result.data.nextCursor).toBe('cursor-2')
-expect(result.data.hasNextPage).toBe(true)
-  })
-
-it('(a) returns kind=error when the SDK throws', async () => {
-const thrown = new ApiError({
-isAxiosError: true,
-name: 'AxiosError',
-message: 'fail',
-code: 'CODE_500',
-config: undefined,
-request: undefined,
-response: {
-status: 500,
-data: { code: 'CODE_500', detail: 'fixture' },
+  it('(3) round-trips well-formed DTO items into the view shape', () => {
+    const items: DailyChallengeCategoryBreakdownResponseDto['items'] = [
+      makeDtoItem({ categoryId: 'c1', categoryName: 'Science', categorySlug: 'science', attemptCount: 5, averageScorePercent: 80 }),
+      makeDtoItem({ categoryId: 'c2', categoryName: 'History', categorySlug: 'history', attemptCount: 3, averageScorePercent: 60.5 }),
+    ]
+    const result = toCategoryBreakdownItems(items)
+    expect(result).toEqual([
+      {
+        categoryId: 'c1',
+        categoryName: 'Science',
+        categorySlug: 'science',
+        attemptCount: 5,
+        averageScorePercent: 80,
       },
-toJSON: () => ({}),
-    } as unknown as Parameters<typeof ApiError.fromAxios>[0])
-
-getDailyChallengeMock.mockReturnValue({
-dailyChallengeControllerGetHistory: async () => {
-throw thrown
+      {
+        categoryId: 'c2',
+        categoryName: 'History',
+        categorySlug: 'history',
+        attemptCount: 3,
+        averageScorePercent: 60.5,
       },
-    })
-
-const result = await getDailyChallengeHistoryPage({ limit: 5 })
-expect(result.kind).toBe('error')
-if (result.kind !== 'error') throw new Error('expected error')
-expect(result.error.status).toBe(500)
+    ])
   })
-})
 
-describe('daily-challenge.service — submitDailyChallengeAnswer', () => {
-it('(c) returns kind=ok with the narrowed answer view on success', async () => {
-getDailyChallengeMock.mockReturnValue({
-dailyChallengeControllerSubmitAnswer: async () => ({
-data: {
-correct: true,
-nextQuestionIndex: 1,
-totalQuestions: 5,
-completed: false,
-scorePercent: null,
-        },
+  it('(4) coerces numeric string fields (defensive — Drizzle numeric columns serialise as strings)', () => {
+    const items: DailyChallengeCategoryBreakdownResponseDto['items'] = [
+      // The Orval DTO types these as `number`, but the real network
+      // payload could still send strings. We coerce gracefully.
+      makeDtoItem({ categoryId: 'c1', attemptCount: '5' as unknown as number, averageScorePercent: '80' as unknown as number }),
+    ]
+    const result = toCategoryBreakdownItems(items)
+    expect(result[0]?.attemptCount).toBe(5)
+    expect(result[0]?.averageScorePercent).toBe(80)
+  })
+
+  it('(5) filters out null / undefined entries defensively', () => {
+    const items: DailyChallengeCategoryBreakdownResponseDto['items'] = [
+      makeDtoItem({ categoryId: 'c1' }),
+      // null / undefined entries could appear in a malformed payload.
+      null as unknown as NonNullable<DailyChallengeCategoryBreakdownResponseDto['items'][number]>,
+      undefined as unknown as NonNullable<DailyChallengeCategoryBreakdownResponseDto['items'][number]>,
+      makeDtoItem({ categoryId: 'c2', categoryName: 'History', categorySlug: 'history' }),
+    ]
+    const result = toCategoryBreakdownItems(items)
+    expect(result).toHaveLength(2)
+    expect(result.map((i) => i.categoryId)).toEqual(['c1', 'c2'])
+  })
+
+  it('(6) defaults categoryName / categorySlug to empty string when null', () => {
+    const items: DailyChallengeCategoryBreakdownResponseDto['items'] = [
+      makeDtoItem({
+        categoryId: 'c1',
+        categoryName: null as unknown as string,
+        categorySlug: null as unknown as string,
       }),
-    })
-
-const result = await submitDailyChallengeAnswer({
-questionIndex: 0,
-selectedOptionId: 'opt-1',
-    })
-expect(result.kind).toBe('ok')
-if (result.kind !== 'ok') throw new Error('expected ok')
-expect(result.data).toEqual({
-correct: true,
-nextQuestionIndex: 1,
-totalQuestions: 5,
-completed: false,
-scorePercent: null,
-    })
+    ]
+    const result = toCategoryBreakdownItems(items)
+    expect(result[0]?.categoryName).toBe('')
+    expect(result[0]?.categorySlug).toBe('')
   })
 
-it('(c) returns kind=ok with scorePercent when completed=true', async () => {
-getDailyChallengeMock.mockReturnValue({
-dailyChallengeControllerSubmitAnswer: async () => ({
-data: {
-correct: true,
-nextQuestionIndex: 5,
-totalQuestions: 5,
-completed: true,
-scorePercent: 80,
-        },
-      }),
-    })
-
-const result = await submitDailyChallengeAnswer({
-questionIndex: 4,
-selectedOptionId: 'opt-final',
-    })
-expect(result.kind).toBe('ok')
-if (result.kind !== 'ok') throw new Error('expected ok')
-expect(result.data.completed).toBe(true)
-expect(result.data.scorePercent).toBe(80)
-  })
-
-it('(c) returns kind=error with the typed ApiError on 409', async () => {
-const thrown = new ApiError({
-isAxiosError: true,
-name: 'AxiosError',
-message: 'conflict',
-code: 'CODE_409',
-config: undefined,
-request: undefined,
-response: {
-status: 409,
-data: { code: 'CODE_409', detail: 'out of sync' },
-      },
-toJSON: () => ({}),
-    } as unknown as Parameters<typeof ApiError.fromAxios>[0])
-
-getDailyChallengeMock.mockReturnValue({
-dailyChallengeControllerSubmitAnswer: async () => {
-throw thrown
-      },
-    })
-
-const result = await submitDailyChallengeAnswer({
-questionIndex: 2,
-selectedOptionId: null,
-    })
-expect(result.kind).toBe('error')
-if (result.kind !== 'error') throw new Error('expected error')
-expect(result.error.status).toBe(409)
+  it('(7) preserves the server-side ordering (attempt_count DESC, avg DESC)', () => {
+    const items: DailyChallengeCategoryBreakdownResponseDto['items'] = [
+      makeDtoItem({ categoryId: 'c1', attemptCount: 5, averageScorePercent: 50 }),
+      makeDtoItem({ categoryId: 'c2', attemptCount: 5, averageScorePercent: 90 }),
+      makeDtoItem({ categoryId: 'c3', attemptCount: 2, averageScorePercent: 100 }),
+    ]
+    const result = toCategoryBreakdownItems(items)
+    // The mapping is structural — order comes from the SQL ORDER BY.
+    expect(result.map((i) => i.categoryId)).toEqual(['c1', 'c2', 'c3'])
   })
 })

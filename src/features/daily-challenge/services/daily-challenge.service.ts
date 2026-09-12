@@ -4,6 +4,8 @@ import { ApiError, getDailyChallenge, isApiError } from '@/lib/api';
 
 import type {
 DailyChallengeAnswerResponseView,
+DailyChallengeCategoryBreakdownItemView,
+DailyChallengeCategoryBreakdownResult,
 DailyChallengeHistoryItemView,
 DailyChallengeHistoryPage,
 DailyChallengeResult,
@@ -12,6 +14,7 @@ GetDailyChallengeHistoryParams,
 SubmitDailyChallengeAnswerParams,
 } from '../types/dto';
 import type { DailyChallengeHistoryResponseDto } from '@/lib/api/generated/schemas/dailyChallengeHistoryResponseDto';
+import type { DailyChallengeCategoryBreakdownResponseDto } from '@/lib/api/generated/schemas/dailyChallengeCategoryBreakdownResponseDto';
 
 const HAS_DAILY_CHALLENGE_SDK = true;
 
@@ -191,8 +194,51 @@ return toErrorResult(error);
   }
 }
 
+export async function getDailyChallengeCategoryBreakdown(): Promise<
+DailyChallengeCategoryBreakdownResult
+> {
+if (!HAS_DAILY_CHALLENGE_SDK) {
+return { kind: 'missing-endpoint' };
+  }
+try {
+const envelope = await getDailyChallenge().dailyChallengeControllerGetCategoryBreakdown();
+const items = toCategoryBreakdownItems(envelope?.data?.items);
+return {
+kind: 'ok',
+data: { items },
+    };
+  } catch (error) {
+return toErrorResult(error);
+  }
+}
+
+export function toCategoryBreakdownItems(
+  rawItems: DailyChallengeCategoryBreakdownResponseDto['items'] | undefined,
+): readonly DailyChallengeCategoryBreakdownItemView[] {
+  if (!rawItems) return []
+  return rawItems
+    .filter(
+      (item): item is NonNullable<typeof item> => item !== undefined && item !== null,
+    )
+    .map((item) => ({
+      categoryId: item.categoryId,
+      categoryName: item.categoryName ?? '',
+      categorySlug: item.categorySlug ?? '',
+      attemptCount:
+        typeof item.attemptCount === 'number'
+          ? item.attemptCount
+          : Number(item.attemptCount ?? 0),
+      averageScorePercent:
+        typeof item.averageScorePercent === 'number'
+          ? item.averageScorePercent
+          : Number(item.averageScorePercent ?? 0),
+    }))
+}
+
 export type {
 DailyChallengeAnswerResponseView,
+DailyChallengeCategoryBreakdownItemView,
+DailyChallengeCategoryBreakdownResult,
 DailyChallengeHistoryItemView,
 DailyChallengeHistoryPage,
 DailyChallengeResult,

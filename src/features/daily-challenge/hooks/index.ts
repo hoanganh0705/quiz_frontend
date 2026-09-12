@@ -6,11 +6,25 @@ type UseDailyChallengeTodayResult,
 } from './useDailyChallengeToday'
 
 export {
-useDailyChallengeHistory,
-DAILY_CHALLENGE_HISTORY_PAGE_LIMIT,
-type DailyChallengeHistoryItemWithId,
-type UseDailyChallengeHistoryResult,
+  useDailyChallengeHistory,
+  DAILY_CHALLENGE_HISTORY_PAGE_LIMIT,
+  type DailyChallengeHistoryItemWithId,
+  type UseDailyChallengeHistoryResult,
 } from './useDailyChallengeHistory'
+
+export {
+  useDailyChallengePerformance,
+  rollupHistoryByWeekday,
+  type DailyChallengePerformanceDay,
+  type DailyChallengePerformanceDayKey,
+  type UseDailyChallengePerformanceResult,
+} from './useDailyChallengePerformance'
+
+export {
+  useDailyChallengeCategoryBreakdown,
+  type DailyChallengeCategoryBreakdownItemWithMeta,
+  type UseDailyChallengeCategoryBreakdownResult,
+} from './useDailyChallengeCategoryBreakdown'
 
 export {
 useDailyChallengeStreakView,

@@ -1,3 +1,15 @@
+/**
+ * @deprecated — moved to backend `GET /api/v1/support/articles`. The
+ * static array below is no longer imported by `KnowledgeBase.tsx`
+ * (Phase 4.2 — silent fallback to fake data was retired). It is
+ * preserved here ONLY for legacy seed data and snapshot tests; do
+ * NOT import it from new code. Use `getSupportArticles()` from
+ * `@/features/support/api` instead.
+ *
+ * Deletion is tracked in a follow-up phase that confirms no other
+ * consumer (seeds, fixtures, storybook stories) still imports it.
+ */
+
 import type { Article } from '@/features/support/types'
 
 export const articles: Article[] = [

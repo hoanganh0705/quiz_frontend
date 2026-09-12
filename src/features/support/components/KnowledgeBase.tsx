@@ -1,9 +1,10 @@
 'use client'
 
 import type React from 'react'
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { Input } from '@/components/ui/Input'
 import { TextSkeleton } from '@/components/ui/loading-states/Skeletons'
+import { Button } from '@/components/ui/Button'
 import {
   Search,
   ArrowRight,
@@ -13,11 +14,9 @@ import {
   PlusCircle,
   Trophy,
   Shield,
-  Settings
+  Settings,
 } from 'lucide-react'
-import { articles as staticArticles } from '@/features/support/constants/articles'
 import type { ArticleIconName } from '@/features/support/types/articles'
-import { useAsyncAction } from '@/shared/hooks'
 import { getSupportArticles } from '@/features/support/api'
 import type { SupportArticle } from '@/features/support/api'
 
@@ -31,39 +30,68 @@ const iconMap: Record<
   'plus-circle': PlusCircle,
   trophy: Trophy,
   shield: Shield,
-  settings: Settings
+  settings: Settings,
 }
 
-export function KnowledgeBase({ category }: { category?: string }) {
+type FetchState =
+  | { kind: 'idle' }
+  | { kind: 'loading' }
+  | { kind: 'ok'; articles: SupportArticle[] }
+  | { kind: 'error'; error: Error };
+
+/**
+ * `KnowledgeBase` — searchable article grid.
+ *
+ * Data source is exclusively `getSupportArticles()`. If the backend
+ * fails (network error, 5xx, etc.) the component surfaces an error
+ * state with a retry button. There is **no** silent fallback to a
+ * static fixture — that pattern was the same anti-pattern retired
+ * in Phase 1 for the admin landing stats. If the backend isn't
+ * reachable we say so.
+ *
+ * State management is intentionally a discriminated union rather
+ * than the shared `useAsyncAction` helper so that the success / error
+ * / loading / idle branches are exhaustive at the type level.
+ */
+export function KnowledgeBase({ category }: { category?: string }): React.ReactElement {
   const [searchQuery, setSearchQuery] = useState('')
+  const [state, setState] = useState<FetchState>({ kind: 'idle' })
 
-  const { execute: loadArticles, isLoading, error } = useAsyncAction(async () => {
-    return await getSupportArticles()
-  })
-
-  const [articles, setArticles] = useState<SupportArticle[]>([])
-  const [dataLoaded, setDataLoaded] = useState(false)
-
-  if (!dataLoaded && !isLoading && !error) {
-    loadArticles().then((result) => {
-      if (result) {
-        setArticles(result)
-        setDataLoaded(true)
-      } else {
-        setArticles(staticArticles as unknown as SupportArticle[])
-        setDataLoaded(true)
-      }
-    })
+  const fetchArticles = () => {
+    setState({ kind: 'loading' })
+    void getSupportArticles()
+      .then((articles) => {
+        setState({ kind: 'ok', articles })
+      })
+      .catch((error: unknown) => {
+        setState({
+          kind: 'error',
+          error: error instanceof Error ? error : new Error(String(error)),
+        })
+      })
   }
 
-  const displayArticles = dataLoaded ? articles : staticArticles as unknown as SupportArticle[]
+  useEffect(() => {
+    fetchArticles()
+    // Intentional: fetch once on mount. `fetchArticles` is a stable
+    // closure-local function (defined inline above) so we ignore
+    // the eslint warning deliberately.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  const handleRetry = () => {
+    fetchArticles()
+  }
+
+  const displayArticles: SupportArticle[] = state.kind === 'ok' ? state.articles : []
 
   const filteredArticles = useMemo(() => {
-    const byCategory = category && category !== 'all'
-      ? displayArticles.filter(
-          (a) => a.category.toLowerCase().replace(/\s+/g, '-') === category
-        )
-      : displayArticles
+    const byCategory =
+      category && category !== 'all'
+        ? displayArticles.filter(
+            (a) => a.category.toLowerCase().replace(/\s+/g, '-') === category,
+          )
+        : displayArticles
 
     if (!searchQuery.trim()) return byCategory
 
@@ -72,9 +100,12 @@ export function KnowledgeBase({ category }: { category?: string }) {
       (a) =>
         a.title.toLowerCase().includes(query) ||
         a.excerpt?.toLowerCase().includes(query) ||
-        a.category.toLowerCase().includes(query)
+        a.category.toLowerCase().includes(query),
     )
   }, [displayArticles, category, searchQuery])
+
+  const isLoading = state.kind === 'loading' || state.kind === 'idle'
+  const error = state.kind === 'error' ? state.error : null
 
   return (
     <div className='space-y-6 bg-transparent border border-border rounded-lg p-8'>
@@ -114,14 +145,26 @@ export function KnowledgeBase({ category }: { category?: string }) {
       )}
 
       {error && (
-        <div className='text-center py-12'>
+        <div
+          className='text-center py-12 space-y-4'
+          role='alert'
+          data-testid='kb-error'
+        >
           <p className='text-destructive text-sm font-medium'>
             Failed to load articles. Please try again.
           </p>
+          <Button
+            type='button'
+            variant='outline'
+            onClick={handleRetry}
+            data-testid='kb-retry'
+          >
+            Retry
+          </Button>
         </div>
       )}
 
-      {!isLoading && !error && filteredArticles.length > 0 && (
+      {state.kind === 'ok' && filteredArticles.length > 0 && (
         <div className='grid grid-cols-1 lg:grid-cols-2 gap-6'>
           {filteredArticles.map((article) => {
             const IconComponent = iconMap[article.icon as ArticleIconName] ?? BookOpen
@@ -158,7 +201,7 @@ export function KnowledgeBase({ category }: { category?: string }) {
         </div>
       )}
 
-      {!isLoading && !error && filteredArticles.length === 0 && (
+      {state.kind === 'ok' && filteredArticles.length === 0 && (
         <div className='text-center py-12'>
           <p className='text-foreground-secondary'>
             No articles found matching your search.

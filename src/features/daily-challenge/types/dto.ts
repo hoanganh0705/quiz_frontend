@@ -47,6 +47,38 @@ completed: boolean
 scorePercent: number | null
 }
 
+/**
+ * Phase 4 (F-2): one row in the per-category distribution surfaced
+ * by `<ChallengePieChart />`.
+ *
+ * `attemptCount` is the number of completed daily-challenge attempts
+ * the viewer has in this category; `averageScorePercent` is the
+ * mean of every attempt's `scorePercent` (0–100). Both are
+ * computed on the server (`dailyChallengeAttempt` joined to
+ * `quizzes.categoryId` and grouped by `categories.category_id`).
+ */
+export interface DailyChallengeCategoryBreakdownItemView {
+categoryId: string
+categoryName: string
+categorySlug: string
+attemptCount: number
+averageScorePercent: number
+}
+
+export interface DailyChallengeCategoryBreakdownPage {
+items: readonly DailyChallengeCategoryBreakdownItemView[]
+}
+
+/**
+ * Discriminated union — mirrors `DailyChallengeResult<T>` so callers
+ * handle `missing-endpoint` and `error` shapes the same way as the
+ * other daily-challenge service methods.
+ */
+export type DailyChallengeCategoryBreakdownResult =
+  | { kind: 'ok'; data: DailyChallengeCategoryBreakdownPage }
+  | { kind: 'missing-endpoint' }
+  | { kind: 'error'; error: ApiError }
+
 export type DailyChallengeResult<T> =
 | { kind: 'ok'; data: T }
   | { kind: 'missing-endpoint' }

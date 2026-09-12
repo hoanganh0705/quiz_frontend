@@ -5,7 +5,7 @@ import QuizCategoriesClient from "@/app/(public)/QuizCategoriesClient";
 import RecentlyPlayedSection from "@/features/users/components/RecentlyPlayedSection";
 import PlayerRanking from "@/features/leaderboard/components/PlayerRanking";
 import QuizCardDifficultyList from "@/features/quizzes/components/QuizCardDifficultyList";
-import { HowItWorks, SuccessStoriesCarousel } from "@/features/marketing";
+import { HowItWorks, TopPlayersRail } from "@/features/marketing";
 import type { Category } from "@/features/categories/types";
 import type {
   LeaderboardEntryDto,
@@ -54,7 +54,7 @@ return (
 <PlayerRanking />
 <QuizCardDifficultyList />
 <HowItWorks />
-<SuccessStoriesCarousel />
+<TopPlayersRail />
 </div>
   );
 }
