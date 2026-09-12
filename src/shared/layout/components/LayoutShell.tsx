@@ -23,21 +23,22 @@ useUserStore,
 import { useResetCoinStore } from "@/features/coins/store/coin-store";
 
 const SHELL_PREFIXES = [
-"/bookmarks",
-"/categories",
-"/create-quiz",
-"/daily-challenge",
-"/friends",
-"/leaderboard",
-"/my-profile",
-"/notifications",
-"/onboarding",
-"/profile",
-"/quiz-history",
-"/quizzes",
-"/settings",
-"/support",
-"/tournament",
+  "/bookmarks",
+  "/categories",
+  "/coins",
+  "/create-quiz",
+  "/daily-challenge",
+  "/friends",
+  "/leaderboard",
+  "/my-profile",
+  "/notifications",
+  "/onboarding",
+  "/profile",
+  "/quiz-history",
+  "/quizzes",
+  "/settings",
+  "/support",
+  "/tournament",
 ] as const;
 
 const SHELL_EXACT_PATHS = ["/"] as const;
@@ -145,17 +146,18 @@ attemptRef.current.lastErrorAt = Date.now();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fetchCurrentUser, currentUser, isUserLoading, pathname]);
 
-useEffect(() => {
-const protectedPrefixes = [
-"/bookmarks",
-"/settings",
-"/my-profile",
-"/quiz-history",
-"/friends",
-"/notifications",
-"/tournament",
-"/create-quiz",
-"/onboarding",
+  useEffect(() => {
+    const protectedPrefixes = [
+      "/bookmarks",
+      "/coins",
+      "/settings",
+      "/my-profile",
+      "/quiz-history",
+      "/friends",
+      "/notifications",
+      "/tournament",
+      "/create-quiz",
+      "/onboarding",
     ];
 const isProtected = protectedPrefixes.some((p) => pathname?.startsWith(p));
 const hasToken = !!getAuthToken();

@@ -3,5 +3,6 @@ export { AdminSidebar } from "./AdminSidebar";
 export { AdminHeader } from "./AdminHeader";
 export { AdminTable } from "./AdminTable";
 export { AdminPageHeader } from "./AdminPageHeader";
+export { FeaturePlaceholderBanner } from "./FeaturePlaceholderBanner";
 export { AdminShellUnavailable } from "../../../../features/admin/components/AdminShellUnavailable";
 export { AdminFeatureFlagBoundary } from "../../../../features/admin/components/AdminFeatureFlagBoundary";

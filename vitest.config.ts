@@ -258,6 +258,25 @@ export default defineConfig({
             // T-4.12.20 — useCommentCacheMutations spec. Uses renderHook +
             // SWR globalMutate; needs jsdom.
             "src/features/comments/hooks/__tests__/useCommentCacheMutations.spec.ts",
+            // Phase 4 (F-1) — FeaturePlaceholderBanner admin primitive
+            // uses @testing-library/react; excluded from node, discovered
+            // in jsdom project below.
+            "src/app/(protected)/admin/_components/__tests__/FeaturePlaceholderBanner.spec.tsx",
+            // Phase 4 (F-6) — KnowledgeBase component spec; jsdom required
+            // for the rendered DOM + retry button.
+            "src/features/support/components/__tests__/KnowledgeBase.spec.tsx",
+            // Phase 4 (F-7) — TopPlayersRail replacement for
+            // SuccessStoriesCarousel; jsdom required for the rendered DOM.
+            "src/features/marketing/components/__tests__/TopPlayersRail.spec.tsx",
+            // Phase 4 (F-8) — HowItWorks image removal spec; jsdom required
+            // for the rendered DOM + <img> count assertions.
+            "src/features/marketing/components/__tests__/HowItWorks.spec.tsx",
+            // Phase 4 (F-9) — LeaderboardHighlights disabled dropdown spec;
+            // jsdom required for the rendered DOM + tooltip assertions.
+            "src/features/leaderboard/components/__tests__/LeaderboardHighlights.spec.tsx",
+            // Phase 5.2 — CoinsLandingPage integration spec; uses
+            // @testing-library/react + Dialog portals; needs jsdom.
+            "src/features/coins/components/__tests__/CoinsLandingPage.spec.tsx",
           ],
         },
       },
@@ -297,6 +316,9 @@ export default defineConfig({
             // is a presentational component. Both need a DOM environment.
             // Co-located with the hook / component under test.
             "src/features/daily-challenge/components/__tests__/**/*.spec.tsx",
+            // Phase 4 (F-2) — onboarding step consumes
+            // `useCategoriesRanked` (SWR + renderHook + jsdom).
+            "src/features/onboarding/components/__tests__/**/*.spec.tsx",
             // TKT-3.12.E1 — page-boundary integration test for the
             // `/daily-challenge` route. The spec imports the
             // `app/(public)/daily-challenge/page.tsx` default export
@@ -851,6 +873,25 @@ export default defineConfig({
             // route through the AuditLogRouteHandoff with mocked hooks
             // + feature-flag reader; jsdom required.
             "src/features/admin/audit-admin/__tests__/*.spec.tsx",
+            // Phase 4 (F-1) — FeaturePlaceholderBanner is a presentational
+            // admin primitive rendered with @testing-library/react; needs
+            // jsdom for the rendered DOM assertions.
+            "src/app/(protected)/admin/_components/__tests__/FeaturePlaceholderBanner.spec.tsx",
+            // Phase 4 (F-6) — KnowledgeBase component spec; jsdom required
+            // for the rendered DOM + retry button.
+            "src/features/support/components/__tests__/KnowledgeBase.spec.tsx",
+            // Phase 4 (F-7) — TopPlayersRail replacement for
+            // SuccessStoriesCarousel; jsdom required for the rendered DOM.
+            "src/features/marketing/components/__tests__/TopPlayersRail.spec.tsx",
+            // Phase 4 (F-8) — HowItWorks image removal spec; jsdom required
+            // for the rendered DOM + <img> count assertions.
+            "src/features/marketing/components/__tests__/HowItWorks.spec.tsx",
+            // Phase 4 (F-9) — LeaderboardHighlights disabled dropdown spec;
+            // jsdom required for the rendered DOM + tooltip assertions.
+            "src/features/leaderboard/components/__tests__/LeaderboardHighlights.spec.tsx",
+            // Phase 5.2 — CoinsLandingPage integration spec; uses
+            // @testing-library/react + Dialog portals; needs jsdom.
+            "src/features/coins/components/__tests__/CoinsLandingPage.spec.tsx",
           ],
           environment: "jsdom",
           setupFiles: ["./src/components/primitives/__tests__/setup.ts"],
