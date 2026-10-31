@@ -1,8 +1,6 @@
 "use client";
 
 import "swiper/css";
-import "swiper/css/free-mode";
-import "swiper/css/scrollbar";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { difficultyColors } from "@/features/quizzes/constants/difficulty-color";
@@ -64,52 +62,56 @@ Check back soon for new content.
   }
 
 return (
-<div className="mt-20">
-<div className="mb-8 flex flex-col gap-4">
-<div className="flex flex-col gap-1">
-<h1 className="text-xl font-bold text-foreground md:text-2xl">
-Quizzes by Difficulty
-          </h1>
-<p className="text-md text-muted-foreground md:text-base">
-Choose challenges according to your skill level
+    <div className="w-full">
+      <div className="mb-6 flex flex-col gap-4">
+        <div className="flex flex-col gap-1">
+          <h2 className="text-xl font-bold text-foreground sm:text-2xl tracking-tight">
+            Quizzes by Difficulty
+          </h2>
+          <p className="text-xs sm:text-sm text-muted-foreground">
+            Choose challenges tailored to your current skill and experience
           </p>
-</div>
-<div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-<div className="flex rounded-lg bg-muted p-1 self-start sm:self-auto">
-{DIFFICULTIES.map((level) => (
-<Button
-key={level}
-onClick={() => setSelectedDifficulty(level)}
-className={`rounded-sm px-4 py-1 text-sm transition ${
-selectedDifficulty === level
-? `${difficultyColors[level].bg} pointer-events-none text-white dark:text-foreground`
-: `bg-transparent text-foreground dark:text-foreground-secondary ${difficultyColors[level].hover}`
-}`}
+        </div>
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex rounded-full border border-border/80 bg-background/80 p-1 self-start sm:self-auto backdrop-blur-sm shadow-2xs">
+            {DIFFICULTIES.map((level) => (
+              <Button
+                key={level}
+                onClick={() => setSelectedDifficulty(level)}
+                className={`rounded-full px-4 py-1 text-xs sm:text-sm font-medium transition-all cursor-pointer ${
+                  selectedDifficulty === level
+                    ? `${difficultyColors[level].bg} pointer-events-none text-white dark:text-foreground shadow-xs font-semibold`
+                    : `bg-transparent text-foreground dark:text-foreground-secondary ${difficultyColors[level].hover}`
+                }`}
               >
-{level}
-</Button>
+                {level}
+              </Button>
             ))}
-</div>
-<div className="flex items-center gap-1 self-end sm:self-auto">
-<Button
-size="icon"
-onClick={handlePrevClick}
-disabled={isBeginning}
-aria-label="Previous quiz"
+          </div>
+          <div className="flex items-center gap-1.5 self-end sm:self-auto">
+            <Button
+              size="icon"
+              variant="outline"
+              className="h-9 w-9 rounded-full border-border/80 bg-background/80 hover:bg-main-hover transition-all"
+              onClick={handlePrevClick}
+              disabled={isBeginning}
+              aria-label="Previous quiz"
             >
-<ChevronLeft className="h-4 w-4" />
-</Button>
-<Button
-size="icon"
-onClick={handleNextClick}
-disabled={isEnd}
-aria-label="Next quiz"
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <Button
+              size="icon"
+              variant="outline"
+              className="h-9 w-9 rounded-full border-border/80 bg-background/80 hover:bg-main-hover transition-all"
+              onClick={handleNextClick}
+              disabled={isEnd}
+              aria-label="Next quiz"
             >
-<ChevronRight className="h-4 w-4" />
-</Button>
-</div>
-</div>
-</div>
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      </div>
 
 <div>
 <Swiper

@@ -93,35 +93,46 @@ const PlayerRanking = () => {
 
   return (
     <div
-      className="xl:py-10 bg-main p-6 text-foreground rounded-xl"
+      className="bg-gradient-to-b from-card/90 to-card/50 border border-border/70 p-4 sm:p-6 text-foreground rounded-2xl shadow-xs backdrop-blur-sm"
       aria-busy={isLoading}
     >
-      <div className="mb-10 flex items-center justify-between">
-        <h2 className="flex items-center gap-2 text-2xl font-bold">
-          <Swords className="h-6 w-6" />
-          Top Players
-        </h2>
-        <div className="flex gap-2">
+      <div className="mb-5 flex items-center justify-between">
+        <div className="flex items-center gap-2.5">
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-500/10 text-amber-500 border border-amber-500/20">
+            <Swords className="h-5 w-5" />
+          </div>
+          <div>
+            <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
+              Top Players
+            </h2>
+            <p className="text-xs sm:text-sm text-muted-foreground">
+              Global champions dominating the all-time leaderboard
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center gap-1.5">
           <Button
             size="icon"
-            className="bg-primary text-primary-foreground hover:bg-primary/90"
+            variant="outline"
+            className="h-9 w-9 rounded-full border-border/80 bg-background/80 hover:bg-main-hover transition-all"
             aria-label="Previous player"
             onClick={() => swiperRef.current?.slidePrev()}
           >
-            <ChevronLeft className="h-5 w-5" />
+            <ChevronLeft className="h-4 w-4" />
           </Button>
           <Button
             size="icon"
-            className="bg-primary text-primary-foreground hover:bg-primary/90"
+            variant="outline"
+            className="h-9 w-9 rounded-full border-border/80 bg-background/80 hover:bg-main-hover transition-all"
             aria-label="Next player"
             onClick={() => swiperRef.current?.slideNext()}
           >
-            <ChevronRight className="h-5 w-5" />
+            <ChevronRight className="h-4 w-4" />
           </Button>
         </div>
       </div>
 
-      <div className="xl:w-full container">
+      <div className="w-full">
         {error && !isLoading ? (
           <div
             className="rounded-lg border border-destructive/30 bg-destructive/5 p-6 text-center"

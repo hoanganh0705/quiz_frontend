@@ -1,11 +1,11 @@
 "use client";
 
-import { HomeHeroSection } from "@/app/(public)/HomeHeroSection";
-import QuizCategoriesClient from "@/app/(public)/QuizCategoriesClient";
+import { HomeHeroSection } from "./HomeHeroSection";
+import QuizCategories from "@/features/categories/components/QuizCategories";
 import RecentlyPlayedSection from "@/features/users/components/RecentlyPlayedSection";
 import PlayerRanking from "@/features/leaderboard/components/PlayerRanking";
 import QuizCardDifficultyList from "@/features/quizzes/components/QuizCardDifficultyList";
-import { HowItWorks, TopPlayersRail } from "@/features/marketing";
+import { HowItWorks } from "@/features/marketing";
 import type { Category } from "@/features/categories/types";
 import type {
   LeaderboardEntryDto,
@@ -36,25 +36,27 @@ export function HomePage({
   popular,
   recentWinners,
 }: HomePageProps): React.ReactElement {
-return (
-<div className="min-h-screen p-4 md:p-6 overflow-x-hidden max-w-full">
-<HomeHeroSection />
+  return (
+    <div className="min-h-screen px-4 sm:px-6 py-4 sm:py-6 overflow-x-hidden space-y-12">
+      <HomeHeroSection />
 
-<div className="flex flex-col gap-8 mb-10">
-<HomeFeaturedRail items={featured} />
-<HomeTrendingRail items={trending} />
-<HomePopularRail items={popular} />
-</div>
+      <QuizCategories categories={categories} />
 
-<RecentWinnersRail data={recentWinners} />
+      <div className="flex flex-col gap-8">
+        <HomeFeaturedRail items={featured} />
+        <HomeTrendingRail items={trending} categories={categories} />
+        <HomePopularRail items={popular} categories={categories} />
+      </div>
 
-<QuizCategoriesClient categories={categories} />
+      <RecentWinnersRail data={recentWinners} />
 
-<RecentlyPlayedSection />
-<PlayerRanking />
-<QuizCardDifficultyList />
-<HowItWorks />
-<TopPlayersRail />
-</div>
+      <RecentlyPlayedSection />
+
+      <QuizCardDifficultyList />
+
+      <PlayerRanking />
+
+      <HowItWorks />
+    </div>
   );
 }

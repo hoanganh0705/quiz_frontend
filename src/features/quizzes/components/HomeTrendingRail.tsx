@@ -33,12 +33,14 @@ export interface HomeTrendingRailProps {
   items?: readonly TrendingQuizItemDto[];
   title?: string;
   className?: string;
+  categories?: readonly { categoryId: string; name: string }[];
 }
 
 export function HomeTrendingRail({
   items,
   title = "Trending",
   className,
+  categories,
 }: HomeTrendingRailProps): React.ReactElement {
   const categoryId = useTrendingCategoryId();
 
@@ -48,9 +50,14 @@ export function HomeTrendingRail({
   });
 
   // SSR-rendered trending items act as fallback data so the rail doesn't
-  // flash empty while the hook's first request is in flight.
+  // flash empty while the hook's first request is in flight for "All categories".
   const sourceItems = items ?? [];
-  const visibleItems = sourceItems.length > 0 ? sourceItems : quizzes;
+  const visibleItems =
+    categoryId !== undefined
+      ? quizzes
+      : quizzes.length > 0
+        ? quizzes
+        : sourceItems;
 
   const handleCategoryChange = useCallback((next: string | undefined) => {
     setTrendingCategory(next);
@@ -69,10 +76,15 @@ export function HomeTrendingRail({
   }, [categoryId]);
 
   const filterSlot = (
-    <HomeCategoryFilter value={categoryId} onChange={handleCategoryChange} />
+    <HomeCategoryFilter
+      value={categoryId}
+      onChange={handleCategoryChange}
+      fallbackCategories={categories}
+    />
   );
 
-  const showSkeleton = isLoading && visibleItems.length === 0;
+  const showSkeleton =
+    isLoading && (categoryId !== undefined ? quizzes.length === 0 : visibleItems.length === 0);
 
   return (
     <QuizRail

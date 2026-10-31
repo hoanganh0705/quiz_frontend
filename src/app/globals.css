@@ -228,6 +228,10 @@
   * {
     @apply border-border outline-ring/50;
   }
+  ::selection {
+    background-color: oklch(0.65 0.15 270 / 0.35);
+    color: inherit;
+  }
   body {
     @apply bg-background text-foreground;
   }

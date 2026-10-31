@@ -1021,7 +1021,7 @@ The following items **should remain static**. They are not backend gaps.
 |------|----------|-----------|
 | `src/features/leaderboard/constants/liveWinner.ts` | `winners` | Marketing copy. The "winners" carousel is editorial content; the backend has no concept of real-money winners per `liveWinner.ts` style. Closest backend capability is `GET /tournaments/{id}/winners` (tournament placement), which is a different product surface. Recommend treating as marketing copy unless product wants a global winners feed. |
 | `src/features/marketing/constants/testimonialData.ts` | `testimonials` | Curated marketing copy. |
-| `src/app/(public)/HomeHeroSection.tsx` | Static hero copy | Marketing copy. |
+| `src/features/quizzes/components/HomeHeroSection.tsx` | Static hero copy | Marketing copy. |
 | `src/features/marketing/components/HowItWorks.tsx` | Three-step explainer | Marketing copy. |
 | `src/app/(public)/quizzes/[idOrSlug]/start/page.tsx` | Redirect-only route | By design — the canonical attempt entry is `/quizzes/[idOrSlug]/attempt`. The legacy `/start` URL is preserved as a redirect. |
 | `src/features/instances/components/InstancePlaceholder.tsx` | "Multiplayer Instances Coming Soon" | Placeholder surface gated by `multiplayer_instances_live === 'placeholder'`; intentional feature flag. |

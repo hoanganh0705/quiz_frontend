@@ -1,15 +1,14 @@
 "use client";
 
 import "swiper/css";
-import "swiper/css/free-mode";
-import "swiper/css/scrollbar";
+import "swiper/css/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Button } from "@/components/ui/Button";
-import { ChevronLeft, ChevronRight, Pause, Play } from "lucide-react";
-import { Autoplay, Navigation } from "swiper/modules";
-import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { ChevronLeft, ChevronRight, Compass } from "lucide-react";
+import { Navigation } from "swiper/modules";
+import { useRef, useState } from "react";
 import type { Swiper as SwiperType } from "swiper";
 
 interface CategoryCardProps {
@@ -20,49 +19,55 @@ interface CategoryCardProps {
   imageUrl?: string | null;
 }
 
+const CATEGORY_EMOJIS: Record<string, string> = {
+  geography: "🌍",
+  history: "📜",
+  science: "🔬",
+  technology: "💻",
+  mathematics: "📐",
+  sports: "⚽",
+};
+
 function CategoryCard({ name, slug, imageUrl }: CategoryCardProps) {
+  const emoji = CATEGORY_EMOJIS[slug.toLowerCase()] ?? "✨";
+
   return (
     <Link
       href={`/quizzes?category=${encodeURIComponent(slug)}`}
-      className="block w-full h-45 sm:h-50 overflow-hidden max-w-full min-w-0"
+      className="group block w-full h-48 sm:h-52 overflow-hidden max-w-full min-w-0 rounded-2xl border border-border/70 hover:border-brand/40 shadow-sm hover:shadow-lg transition-all duration-300"
     >
-      <div className="relative w-full h-full rounded-xl overflow-hidden shadow-lg transition-transform duration-300">
+      <div className="relative w-full h-full rounded-2xl overflow-hidden bg-muted">
         <Image
           src={imageUrl || "/placeholder.svg"}
           alt={`${name} Quiz Background`}
           fill
           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, (max-width: 1280px) 40vw, 25vw"
-          className="object-cover"
+          className="object-cover transition-transform duration-500 ease-out group-hover:scale-110"
           priority
         />
-        <div className="absolute inset-0 bg-linear-to-t from-black/70 via-transparent to-transparent pointer-events-none" />
-        <div className="absolute top-3 left-3 sm:top-4 sm:left-4 bg-gray-800/70 text-white px-2 py-1 sm:px-3 rounded-full text-xs sm:text-sm font-medium z-10">
-          {name}
+        {/* Subtle dark gradient overlay */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/25 to-black/30 pointer-events-none transition-opacity group-hover:opacity-90" />
+
+        {/* Category Pill Tag */}
+        <div className="absolute top-3.5 left-3.5 flex items-center gap-1.5 rounded-full bg-black/50 backdrop-blur-md border border-white/15 px-3 py-1 text-xs font-semibold text-white shadow-xs z-10">
+          <span className="text-sm" aria-hidden="true">
+            {emoji}
+          </span>
+          <span>{name}</span>
+        </div>
+
+        {/* Hover footer reveal */}
+        <div className="absolute inset-x-0 bottom-0 p-3.5 flex items-center justify-between text-white/90 z-10 translate-y-1 group-hover:translate-y-0 transition-transform">
+          <span className="text-xs font-medium tracking-wide">
+            Explore quizzes
+          </span>
+          <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-white/20 backdrop-blur-xs text-xs font-bold transition-transform group-hover:translate-x-1 group-hover:bg-brand">
+            →
+          </span>
         </div>
       </div>
     </Link>
   );
-}
-
-const AUTOPLAY_DELAY_MS = 3000;
-
-function subscribeReducedMotion(): () => void {
-  if (typeof window === "undefined") return () => undefined;
-  const mql = window.matchMedia("(prefers-reduced-motion: reduce)");
-  const handler = (): void => {
-    mql.dispatchEvent(new Event("change"));
-  };
-  mql.addEventListener("change", handler);
-  return () => mql.removeEventListener("change", handler);
-}
-
-function getReducedMotionSnapshot(): boolean {
-  if (typeof window === "undefined") return false;
-  return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-}
-
-function getReducedMotionServerSnapshot(): boolean {
-  return false;
 }
 
 export default function QuizCategories({
@@ -73,37 +78,34 @@ export default function QuizCategories({
   const swiperRef = useRef<SwiperType | null>(null);
   const [isBeginning, setIsBeginning] = useState(true);
   const [isEnd, setIsEnd] = useState(false);
-  const prefersReducedMotion = useSyncExternalStore(
-    subscribeReducedMotion,
-    getReducedMotionSnapshot,
-    getReducedMotionServerSnapshot,
-  );
-  const [userAutoplay, setUserAutoplay] = useState(false);
-
-  const autoplayEnabled = !prefersReducedMotion && userAutoplay;
-
-  // If the user toggles OS reduced-motion on after mount, force-pause.
-  useEffect(() => {
-    if (prefersReducedMotion && userAutoplay) {
-      setUserAutoplay(false);
-    }
-  }, [prefersReducedMotion, userAutoplay]);
 
   return (
     <section
-      className="w-full max-w-full overflow-hidden mb-10"
+      className="w-full max-w-full overflow-hidden"
       role="region"
       aria-roledescription="carousel"
       aria-label="Quiz categories carousel"
     >
-      <div className="flex items-center justify-between mb-4 sm:mb-6 px-4 sm:px-6">
-        <h2 className="text-xl sm:text-2xl font-bold text-foreground">
-          Quiz Categories
-        </h2>
-        <div className="flex gap-2">
+      <div className="flex items-center justify-between mb-5 px-1 sm:px-2">
+        <div className="flex items-center gap-2.5">
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand/10 text-brand border border-brand/20">
+            <Compass className="h-5 w-5" />
+          </div>
+          <div>
+            <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
+              Quiz Categories
+            </h2>
+            <p className="text-xs sm:text-sm text-muted-foreground">
+              Browse arenas tailored to your curiosity and passions
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-1.5">
           <Button
             size="icon"
-            className="h-10 w-10"
+            variant="outline"
+            className="h-9 w-9 rounded-full border-border/80 bg-background/80 hover:bg-main-hover transition-all"
             disabled={isBeginning}
             onClick={() => swiperRef.current?.slidePrev()}
             aria-label="Previous category"
@@ -112,34 +114,18 @@ export default function QuizCategories({
           </Button>
           <Button
             size="icon"
-            className="h-10 w-10"
+            variant="outline"
+            className="h-9 w-9 rounded-full border-border/80 bg-background/80 hover:bg-main-hover transition-all"
             disabled={isEnd}
             onClick={() => swiperRef.current?.slideNext()}
             aria-label="Next category"
           >
             <ChevronRight className="h-4 w-4" aria-hidden="true" />
           </Button>
-          <Button
-            size="icon"
-            className="h-10 w-10"
-            onClick={() => setUserAutoplay((v) => !v)}
-            aria-pressed={autoplayEnabled}
-            aria-label={
-              autoplayEnabled
-                ? "Pause carousel auto-play"
-                : "Resume carousel auto-play"
-            }
-            disabled={prefersReducedMotion}
-          >
-            {autoplayEnabled ? (
-              <Pause className="h-4 w-4" aria-hidden="true" />
-            ) : (
-              <Play className="h-4 w-4" aria-hidden="true" />
-            )}
-          </Button>
         </div>
       </div>
-      <div className="w-full overflow-x-hidden px-4 sm:px-6">
+
+      <div className="w-full overflow-x-hidden px-1 sm:px-2">
         <Swiper
           onBeforeInit={(swiper) => {
             swiperRef.current = swiper;
@@ -153,37 +139,28 @@ export default function QuizCategories({
             setIsEnd(swiper.isEnd);
           }}
           pagination={{ clickable: true }}
-          modules={[Navigation, Autoplay]}
-          autoplay={
-            autoplayEnabled
-              ? { delay: AUTOPLAY_DELAY_MS, disableOnInteraction: true }
-              : false
-          }
+          modules={[Navigation]}
           watchOverflow={true}
           centerInsufficientSlides={true}
           breakpoints={{
             0: {
-              slidesPerView: 1,
-              spaceBetween: 10,
+              slidesPerView: 1.2,
+              spaceBetween: 12,
             },
-            640: {
-              slidesPerView: 2,
-              spaceBetween: 15,
+            480: {
+              slidesPerView: 2.1,
+              spaceBetween: 14,
             },
             768: {
-              slidesPerView: 2.5,
-              spaceBetween: 20,
+              slidesPerView: 3.1,
+              spaceBetween: 16,
             },
             1024: {
-              slidesPerView: 3,
-              spaceBetween: 25,
-            },
-            1280: {
               slidesPerView: 4,
-              spaceBetween: 30,
+              spaceBetween: 20,
             },
           }}
-          className="w-full max-w-full"
+          className="w-full max-w-full pb-4!"
         >
           {(categories ?? []).map((category) => (
             <SwiperSlide

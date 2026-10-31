@@ -56,22 +56,22 @@ return (
 aria-labelledby={headingId}
 data-testid="quiz-rail"
 data-layout={layout}
-className={cn("flex flex-col gap-3", className)}
+className={cn("flex flex-col gap-4", className)}
     >
-<header className="flex flex-wrap items-end justify-between gap-3">
-<div className="flex flex-col">
+<header className="flex flex-wrap items-center justify-between gap-3 mb-1">
+<div className="flex flex-col gap-0.5">
 <h2
 id={headingId}
-className="text-xl font-semibold tracking-tight text-foreground sm:text-2xl"
+className="text-xl font-bold tracking-tight text-foreground sm:text-2xl"
           >
 {title}
 </h2>
 {subtitle ? (
-<p className="text-sm text-muted-foreground">{subtitle}</p>
+<p className="text-xs sm:text-sm text-muted-foreground">{subtitle}</p>
           ) : null}
 </div>
 {filter ? (
-<div data-testid="quiz-rail-filter-slot">{filter}</div>
+<div data-testid="quiz-rail-filter-slot" className="shrink-0">{filter}</div>
         ) : null}
 </header>
 

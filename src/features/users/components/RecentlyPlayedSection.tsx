@@ -19,11 +19,11 @@ export default function RecentlyPlayedSection() {
   if (items.length === 0) {
     return (
       <section
-        className='mb-10'
+        className='w-full'
         aria-label='Recently played quizzes'
         data-testid='recently-played-empty'
       >
-        <h2 className='text-2xl font-bold mb-4'>Recently Played</h2>
+        <h2 className='text-xl sm:text-2xl font-bold tracking-tight mb-3'>Recently Played</h2>
         <div className='rounded-lg border border-border bg-main p-6 text-center'>
           <p className='text-sm text-muted-foreground'>
             Play a quiz and it will appear here so you can jump back in.
@@ -36,11 +36,11 @@ export default function RecentlyPlayedSection() {
   if (isLoading) {
     return (
       <section
-        className='mb-10'
+        className='w-full'
         aria-label='Recently played quizzes'
         aria-busy='true'
       >
-        <h2 className='text-2xl font-bold mb-4'>Recently Played</h2>
+        <h2 className='text-xl sm:text-2xl font-bold tracking-tight mb-3'>Recently Played</h2>
         <div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-4'>
           {Array.from({ length: 4 }).map((_, index) => (
             <div
@@ -55,8 +55,8 @@ export default function RecentlyPlayedSection() {
   }
 
   return (
-    <section className='mb-10' aria-label='Recently played quizzes'>
-      <h2 className='text-2xl font-bold mb-4'>Recently Played</h2>
+    <section className='w-full' aria-label='Recently played quizzes'>
+      <h2 className='text-xl sm:text-2xl font-bold tracking-tight mb-3'>Recently Played</h2>
       <div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-4'>
         {items.map((item) => (
           <Card key={item.quizId}>
