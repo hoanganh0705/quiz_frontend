@@ -178,7 +178,7 @@ return <>{children}</>;
 return (
 <SidebarProvider>
 <AppSidebar />
-<SidebarInset className="overflow-x-hidden">
+      <SidebarInset className="overflow-x-hidden pt-16">
 <AppHeader />
 <AppBreadcrumbs />
 <main

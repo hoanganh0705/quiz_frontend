@@ -1,4 +1,4 @@
-import { HomeHeroSection } from "./HomeHeroSection";
+import { HomeHeroSection } from "@/features/quizzes";
 
 import {
   FEATURED_RAIL_LIMIT,

@@ -164,18 +164,18 @@ data-testid="header-search-trigger"
 <Button
 variant="ghost"
 size="default"
-className="flex h-10 items-center gap-2 rounded-full px-2 py-1.5 hover:bg-muted/70"
+className="group flex h-9 items-center gap-2 rounded-full border border-border bg-transparent px-2 py-1 text-foreground hover:bg-main-hover hover:border-border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
 aria-label="Open user menu"
 >
-<Avatar className="h-8 w-8 shrink-0">
+<Avatar className="h-7 w-7 shrink-0">
 {userAvatarUrl ? (
 <AvatarImage src={userAvatarUrl} alt={userDisplayName} />
 ) : null}
-<AvatarFallback className="bg-brand text-brand-foreground text-xs">
+<AvatarFallback className="bg-brand/15 text-brand font-semibold text-xs border border-brand/20 transition-colors">
 {avatarLabel}
 </AvatarFallback>
 </Avatar>
-<ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
+<ChevronDown className="h-3.5 w-3.5 text-muted-foreground group-hover:text-foreground transition-colors" />
 </Button>
 </DropdownMenuTrigger>
 

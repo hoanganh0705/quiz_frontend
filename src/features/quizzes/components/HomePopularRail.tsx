@@ -33,12 +33,14 @@ export interface HomePopularRailProps {
   items?: readonly PopularQuizItemDto[];
   title?: string;
   className?: string;
+  categories?: readonly { categoryId: string; name: string }[];
 }
 
 export function HomePopularRail({
   items,
   title = "Popular",
   className,
+  categories,
 }: HomePopularRailProps): React.ReactElement {
   const categoryId = usePopularCategoryId();
 
@@ -48,7 +50,12 @@ export function HomePopularRail({
   });
 
   const sourceItems = items ?? [];
-  const visibleItems = sourceItems.length > 0 ? sourceItems : quizzes;
+  const visibleItems =
+    categoryId !== undefined
+      ? quizzes
+      : quizzes.length > 0
+        ? quizzes
+        : sourceItems;
 
   const handleCategoryChange = useCallback((next: string | undefined) => {
     setPopularCategory(next);
@@ -67,10 +74,15 @@ export function HomePopularRail({
   }, [categoryId]);
 
   const filterSlot = (
-    <HomeCategoryFilter value={categoryId} onChange={handleCategoryChange} />
+    <HomeCategoryFilter
+      value={categoryId}
+      onChange={handleCategoryChange}
+      fallbackCategories={categories}
+    />
   );
 
-  const showSkeleton = isLoading && visibleItems.length === 0;
+  const showSkeleton =
+    isLoading && (categoryId !== undefined ? quizzes.length === 0 : visibleItems.length === 0);
 
   return (
     <QuizRail

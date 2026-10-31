@@ -61,6 +61,7 @@ export type { HomePopularRailProps } from './HomePopularRail'
 
 export { HomePage } from './HomePage'
 export type { HomePageProps } from './HomePage'
+export { HomeHeroSection } from './HomeHeroSection'
 
 export { MyQuizzesSkeleton } from './MyQuizzesSkeleton'
 export { MyQuizzesTableEmpty } from './MyQuizzesTableEmpty'

@@ -17,12 +17,14 @@ export function RecentWinnersRail({
   return (
     <section
       aria-label="Recent winners"
-      className="mb-10 rounded-xl border border-border bg-main p-6"
+      className="rounded-2xl border border-border/70 bg-gradient-to-b from-card/80 to-card/40 p-4 sm:p-6 backdrop-blur-sm shadow-xs"
     >
-      <div className="mb-4 flex items-center gap-2">
-        <Sparkles className="h-5 w-5 text-brand" aria-hidden="true" />
-        <h2 className="text-xl font-bold text-foreground sm:text-2xl">
-          Recent winners
+      <div className="mb-5 flex items-center gap-2.5">
+        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand/10 text-brand border border-brand/20">
+          <Sparkles className="h-4 w-4 text-brand" aria-hidden="true" />
+        </div>
+        <h2 className="text-xl font-bold tracking-tight text-foreground sm:text-2xl">
+          Recent Winners
         </h2>
       </div>
       <ul

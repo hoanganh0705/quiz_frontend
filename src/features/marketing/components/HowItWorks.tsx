@@ -1,61 +1,58 @@
 /**
  * `HowItWorks` — three-step "how the platform works" explainer.
- *
- * Phase 4.4 (F-8): the per-card image block (`/step1.jpg`, `/step2.jpg`,
- * `/step3.jpg`) was removed entirely — the assets never existed and
- * `next/image` was rendering broken placeholders. The card is now a
- * clean text panel with the title and description.
  */
 
 import { howItWorksData } from '@/features/marketing/constants/howItWorks'
+import { Layers, BrainCircuit, Trophy } from 'lucide-react'
+
+const STEP_ICONS = [Layers, BrainCircuit, Trophy]
 
 export default function HowItWorks() {
   return (
-    <section className='bg-background mt-20 rounded-xl'>
-      <div className='container p-4 md:p-6'>
-        <div className='flex flex-col items-center justify-center space-y-4 text-center mt-10'>
-          <div className='space-y-4'>
-            <div className='inline-block rounded-lg bg-main px-3 py-1 text-sm text-foreground'>
-              Simple Process
-            </div>
-            <h2 className='text-xl font-bold tracking-tighter sm:text-3xl text-foreground'>
-              How It Works
-            </h2>
-            <p className='text-foreground/80 md:text-base/relaxed '>
-              Getting started with our quiz platform is easy. Follow these
-              simple steps to begin your quiz journey.
-            </p>
-          </div>
-        </div>
-        <div className='mx-auto grid max-w-screen-2xl items-start gap-6 py-10 px-4 lg:grid-cols-3 lg:gap-10'>
-          {howItWorksData.map((item) => (
+    <section className='rounded-2xl border border-border/70 bg-gradient-to-b from-card/80 to-card/40 p-5 sm:p-6 md:p-8 backdrop-blur-sm'>
+      <div className='flex flex-col items-center justify-center text-center max-w-2xl mx-auto mb-6'>
+        <h2 className='text-xl sm:text-2xl font-bold tracking-tight text-foreground'>
+          How It Works
+        </h2>
+        <p className='text-xs sm:text-sm text-muted-foreground mt-1.5'>
+          Jump straight into competitive knowledge games or create your own in three simple steps.
+        </p>
+      </div>
+
+      <div className='grid gap-4 sm:gap-6 sm:grid-cols-2 lg:grid-cols-3 max-w-5xl mx-auto'>
+        {howItWorksData.map((item, index) => {
+          const Icon = STEP_ICONS[index] ?? Layers
+          return (
             <div
               key={item.id}
-              className='bg-main border border-border rounded-2xl shadow-md overflow-hidden w-full h-full max-w-sm mx-auto p-6'
+              className='relative flex flex-col items-start rounded-2xl border border-border/80 bg-background/80 p-4 sm:p-5 shadow-xs hover:shadow-md hover:border-brand/40 transition-all group'
               data-testid='how-it-works-card'
             >
-              <h3 className='text-lg font-semibold mb-1 text-foreground '>
+              <div className='flex items-center justify-between w-full mb-3'>
+                <div className='flex h-10 w-10 items-center justify-center rounded-xl bg-brand/10 text-brand border border-brand/20 group-hover:scale-105 transition-transform'>
+                  <Icon className='h-5 w-5' />
+                </div>
+                <span className='text-xl font-black text-muted-foreground/30 group-hover:text-brand/40 transition-colors'>
+                  0{index + 1}
+                </span>
+              </div>
+              <h3 className='text-sm sm:text-base font-semibold text-foreground mb-1'>
                 {item.title}
               </h3>
-              <p className='text-base text-foreground/80'>{item.description}</p>
+              <p className='text-xs text-muted-foreground leading-relaxed'>
+                {item.description}
+              </p>
             </div>
-          ))}
-        </div>
+          )
+        })}
+      </div>
 
-        <div className='flex items-center justify-center flex-col space-y-4 mt-10'>
-          <span className='text-foreground'>
-            Ready to start your quiz journey? Browse categories, find your
-            interests, and begin challenging yourself today!
+      <div className='flex items-center justify-center flex-col gap-3 mt-8 pt-6 border-t border-border/50 text-center'>
+        <div className='inline-flex items-center gap-2 rounded-full border border-border bg-main/60 px-4 py-1.5 text-xs text-foreground shadow-2xs'>
+          <span className='relative flex h-2 w-2'>
+            <span className='relative inline-flex rounded-full h-2 w-2 bg-emerald-500'></span>
           </span>
-
-          <div className='flex justify-center items-center gap-2 bg-main px-4 py-2 rounded-xl'>
-            <span className='relative flex  w-3'>
-              <span className='relative inline-flex rounded-full h-3 w-3 bg-emerald-500'></span>
-            </span>
-            <span className='text-foreground text-sm'>
-              A growing community of quiz creators and players
-            </span>
-          </div>
+          <span>A thriving global community of quiz creators and competitors</span>
         </div>
       </div>
     </section>
