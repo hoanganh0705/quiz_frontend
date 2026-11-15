@@ -91,13 +91,13 @@ expect(result.bottomEntries.map((e) => e.href)).toContain('/admin/settings');
 it('includes Roles & Permissions when user_grant_role is present', () => {
 setRole(['user_grant_role']);
 const result = useAdminNav();
-expect(result.bottomEntries.map((e) => e.href)).toContain('/admin/roles');
+expect(result.bottomEntries.map((e) => e.href)).toContain('/admin/users/roles');
   });
 
 it('hides Roles & Permissions when user_grant_role is absent', () => {
 setRole(['tag_update']);
 const result = useAdminNav();
-expect(result.bottomEntries.map((e) => e.href)).not.toContain('/admin/roles');
+expect(result.bottomEntries.map((e) => e.href)).not.toContain('/admin/users/roles');
   });
 
 it('has no entry containing "bookmark" or "restore" in href or label', () => {

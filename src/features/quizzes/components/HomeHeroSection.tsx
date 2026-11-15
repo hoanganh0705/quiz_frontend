@@ -10,7 +10,7 @@ import {
 
 export function HomeHeroSection() {
   return (
-    <div className="relative overflow-hidden rounded-2xl border border-border/70 bg-gradient-to-br from-card via-card/95 to-secondary/30 p-5 sm:p-7 lg:p-8 shadow-md backdrop-blur-xl">
+    <div className="relative overflow-hidden rounded-2xl border border-border/70 bg-linear-to-br from-card via-card/95 to-secondary/30 p-5 sm:p-7 lg:p-8 shadow-md backdrop-blur-xl">
       {/* Decorative ambient background glows */}
       <div
         className="pointer-events-none absolute -top-24 -right-24 h-96 w-96 rounded-full bg-brand/15 blur-3xl"

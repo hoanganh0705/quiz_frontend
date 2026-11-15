@@ -89,7 +89,8 @@ const pathname = usePathname();
 
 const tierFilter = parseTier(searchParams.get(QUERY_TIER)) ?? initialTier;
 
-const categoryFilter = parseCategory(searchParams.get(QUERY_CATEGORY));
+const categoryFilter =
+parseCategory(searchParams.get(QUERY_CATEGORY)) ?? initialCategory;
 
 const allItems = useBadges();
 
@@ -142,7 +143,9 @@ className={className}
     );
   }
 
-if (items.length === 0) {
+const hasActiveFilters = Boolean(tierFilter || categoryFilter);
+
+if (items.length === 0 && !hasActiveFilters) {
 return (
 <AchievementEmptyState
 variant="catalog"
@@ -188,7 +191,24 @@ Clear
         ) : null}
 </header>
 
-{tiers.map((tier) => (
+{items.length === 0 ? (
+<div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-8 text-center">
+<p className="text-sm font-medium">No badges found for the selected filter.</p>
+<p className="mt-1 text-xs text-muted-foreground">
+Try choosing a different tier or clearing your active filters.
+</p>
+<Button
+type="button"
+variant="outline"
+size="sm"
+onClick={handleClear}
+className="mt-4"
+          >
+Clear filters
+</Button>
+</div>
+      ) : (
+tiers.map((tier) => (
 <div key={tier} className="space-y-2">
 <h2
 className={`flex items-center gap-2 text-sm font-semibold ${TIER_COLOR[tier]}`}
@@ -222,7 +242,8 @@ className={`flex h-10 w-10 items-center justify-center rounded-full bg-muted ${T
             ))}
 </ul>
 </div>
-      ))}
+      ))
+      )}
 </section>
   );
 }
