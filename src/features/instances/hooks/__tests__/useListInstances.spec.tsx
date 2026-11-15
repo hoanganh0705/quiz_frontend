@@ -1,0 +1,106 @@
+import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
+import { cleanup, renderHook, waitFor } from "@testing-library/react";
+import * as React from "react";
+import { SWRConfig } from "swr";
+
+import { useListInstances, extractInstanceItems } from "@/features/instances/hooks/useListInstances";
+
+const mockGetFeatureFlagValue = vi.fn();
+vi.mock("@/lib/feature-flags", () => ({
+  getFeatureFlagValue: (...args: unknown[]) => mockGetFeatureFlagValue(...args),
+}));
+
+const mockListInstances = vi.fn();
+vi.mock("@/features/instances/services/instances.service", () => ({
+  listInstances: (...args: unknown[]) => mockListInstances(...args),
+}));
+
+function TestSwrProvider({ children }: { children: React.ReactNode }) {
+  return (
+    <SWRConfig
+      value={{
+        provider: () => new Map(),
+        revalidateOnFocus: false,
+        revalidateIfStale: false,
+        dedupingInterval: 0,
+        errorRetryCount: 0,
+      }}
+    >
+      {children}
+    </SWRConfig>
+  );
+}
+
+describe("extractInstanceItems", () => {
+  it("handles null or undefined input", () => {
+    expect(extractInstanceItems(null)).toEqual([]);
+    expect(extractInstanceItems(undefined)).toEqual([]);
+  });
+
+  it("handles flat array of instance items", () => {
+    const items = [{ instanceId: "i-1", quizTitle: "Quiz 1" }];
+    expect(extractInstanceItems(items)).toEqual(items);
+  });
+
+  it("handles nested pagination wrapper object", () => {
+    const items = [{ instanceId: "i-1", quizTitle: "Quiz 1" }];
+    expect(extractInstanceItems({ items })).toEqual(items);
+  });
+
+  it("handles array containing pagination wrappers", () => {
+    const items = [{ instanceId: "i-1", quizTitle: "Quiz 1" }];
+    expect(extractInstanceItems([{ items }])).toEqual(items);
+  });
+});
+
+describe("useListInstances", () => {
+  beforeEach(() => {
+    mockGetFeatureFlagValue.mockReturnValue("live");
+    mockListInstances.mockReset();
+  });
+
+  afterEach(() => {
+    cleanup();
+    vi.clearAllMocks();
+  });
+
+  it("returns empty instances when flag is placeholder", async () => {
+    mockGetFeatureFlagValue.mockReturnValue("placeholder");
+    const { result } = renderHook(() => useListInstances(), {
+      wrapper: TestSwrProvider,
+    });
+
+    expect(result.current.instances).toEqual([]);
+    expect(mockListInstances).not.toHaveBeenCalled();
+  });
+
+  it("fetches and returns instances when flag is live", async () => {
+    const mockData = [
+      {
+        instanceId: "inst-1",
+        quizId: "q-1",
+        quizTitle: "Science Trivia",
+        quizSlug: "science-trivia",
+        hostUserId: "u-1",
+        hostUsername: "alice",
+        playerCount: 3,
+        status: "open",
+        difficulty: "medium",
+        durationMs: 300000,
+        createdAt: "2026-01-01T00:00:00Z",
+      },
+    ];
+    mockListInstances.mockResolvedValueOnce(mockData);
+
+    const { result } = renderHook(() => useListInstances(), {
+      wrapper: TestSwrProvider,
+    });
+
+    await waitFor(() => {
+      expect(result.current.instances).toHaveLength(1);
+    });
+
+    expect(result.current.instances[0]?.quizTitle).toBe("Science Trivia");
+    expect(result.current.error).toBeNull();
+  });
+});

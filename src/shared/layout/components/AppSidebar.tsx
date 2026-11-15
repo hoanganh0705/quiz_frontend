@@ -20,6 +20,7 @@ import {
   MessageSquare,
   Coins,
   ScrollText,
+  Gamepad2,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -59,6 +60,11 @@ const playItems = [
     title: "Categories",
     url: "/categories",
     icon: Grid3X3,
+  },
+  {
+    title: "Live Battles",
+    url: "/instances",
+    icon: Gamepad2,
   },
   {
     title: "Tournaments",

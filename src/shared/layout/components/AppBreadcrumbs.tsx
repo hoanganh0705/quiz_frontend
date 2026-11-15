@@ -25,6 +25,7 @@ const SEGMENT_NAME_MAP: Record<string, string> = {
   social: 'Social',
   tournaments: 'Tournaments',
   tournament: 'Tournaments',
+  instances: 'Live Battles',
   'create-quiz': 'Create Quiz',
   'my-quizzes': 'My Quizzes',
   'my-profile': 'My Profile',

@@ -19,6 +19,7 @@ description,
 className,
 }: InstancePlaceholderProps) {
 return (
+<div data-testid="instance-placeholder" className={className}>
 <EmptyState
 icon={Gamepad2}
 title={title ?? "Multiplayer Instances Coming Soon"}
@@ -27,8 +28,7 @@ description ??
 "Live multiplayer instances are currently under development. Check back soon for the lobby, host controls, and realtime gameplay!"
       }
 size="lg"
-className={className}
-data-testid="instance-placeholder"
     />
+</div>
   );
 }

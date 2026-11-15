@@ -22,6 +22,7 @@ import { cn } from '@/shared/utils/merge-class-names';
 import { useAuthSession } from '@/features/auth/hooks/use-auth-session';
 import { TipAuthorButton } from '@/features/coins/components/TipAuthorButton';
 import { SuppressRecommendedControl } from '@/features/coins/components/SuppressRecommendedControl';
+import { HostLiveRoomCta } from '@/features/instances';
 
 const START_TOOLTIP = 'Starting attempts opens in a later release';
 const BUTTON_SIZE = 'h-10 w-full min-w-40 sm:w-44';
@@ -150,6 +151,7 @@ alreadySuppressed={alreadySuppressed === true}
         />
       ) : null}
 {attemptSlot}
+<HostLiveRoomCta quizId={quizId} idOrSlug={idOrSlug} />
 </section>
   );
 }
