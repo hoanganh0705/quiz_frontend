@@ -74,7 +74,7 @@ className="flex items-center justify-between gap-3 rounded-md border border-bord
 </span>
                   ) : null}
 {badge.rarity ? (
-<span className="mt-0.5 text-[10px] uppercase tracking-wide text-muted-foreground">
+<span className="mt-0.5 text-xs uppercase tracking-wide text-muted-foreground">
 {badge.rarity}
 </span>
                   ) : null}

@@ -67,7 +67,7 @@ data-testid="role-picker-option-name"
 </span>
 {role.isHighestPrivilege && (
 <span
-className="inline-flex items-center gap-1 rounded-full border border-destructive/30 bg-destructive/10 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-destructive"
+className="inline-flex items-center gap-1 rounded-full border border-destructive/30 bg-destructive/10 px-2 py-0.5 text-xs font-semibold uppercase tracking-wide text-destructive"
 data-testid="role-picker-highest-privilege-badge"
             >
 <ShieldAlert className="h-3 w-3" aria-hidden="true" />

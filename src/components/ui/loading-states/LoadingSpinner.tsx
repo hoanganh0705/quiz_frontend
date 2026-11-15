@@ -121,10 +121,10 @@ interface DotsLoadingProps {
 
 export function DotsLoading({ className }: DotsLoadingProps) {
   return (
-    <div className={cn('flex items-center gap-1', className)}>
-      <span className='w-2 h-2 rounded-full bg-default animate-bounce [animation-delay:-0.3s]' />
-      <span className='w-2 h-2 rounded-full bg-default animate-bounce [animation-delay:-0.15s]' />
-      <span className='w-2 h-2 rounded-full bg-default animate-bounce' />
+    <div className={cn('flex items-center gap-1.5', className)}>
+      <span className='w-2 h-2 rounded-full bg-default animate-pulse motion-reduce:animate-none [animation-delay:-0.3s]' />
+      <span className='w-2 h-2 rounded-full bg-default animate-pulse motion-reduce:animate-none [animation-delay:-0.15s]' />
+      <span className='w-2 h-2 rounded-full bg-default animate-pulse motion-reduce:animate-none' />
     </div>
   )
 }

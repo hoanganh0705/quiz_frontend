@@ -2,6 +2,7 @@
 
 import { afterEach, describe, expect, it } from 'vitest';
 import { cleanup, render, screen } from '@testing-library/react';
+import '@testing-library/jest-dom/vitest';
 
 import { AttemptScoreHero } from '@/features/attempts/components/AttemptScoreHero';
 import type { AttemptScoreSummaryDto } from '@/features/attempts/types/attempt-result.types';
@@ -56,6 +57,18 @@ expect(screen.getByTestId('attempt-score-hero-percent')).toHaveTextContent(
 it('renders nothing when the summary is absent', () => {
 const { container } = render(<AttemptScoreHero summary={null} />);
 expect(container.firstChild).toBeNull();
+  });
+
+it('renders celebration banner and XP badge on passing attempt', () => {
+render(<AttemptScoreHero summary={makeSummary({ scorePercent: 80, xpEarned: 150 })} />);
+expect(screen.getByTestId('attempt-score-hero-xp')).toHaveTextContent('+150 XP');
+expect(screen.getByTestId('attempt-score-hero-celebration')).toBeInTheDocument();
+  });
+
+it('does not render celebration banner when score is below passing', () => {
+render(<AttemptScoreHero summary={makeSummary({ scorePercent: 40, xpEarned: 0 })} />);
+expect(screen.queryByTestId('attempt-score-hero-xp')).not.toBeInTheDocument();
+expect(screen.queryByTestId('attempt-score-hero-celebration')).not.toBeInTheDocument();
   });
 });
 

@@ -37,6 +37,7 @@
  */
 import { ChevronLeft, ChevronRight, Swords } from "lucide-react";
 import { useRef } from "react";
+import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay } from "swiper/modules";
@@ -187,9 +188,11 @@ const PlayerRanking = () => {
       </div>
 
       <div className="mt-8 flex justify-center">
-        <Button className="rounded-md bg-primary hover:bg-primary/90 text-primary-foreground">
-          View Full Leaderboard
-        </Button>
+        <Link href="/rankings">
+          <Button className="rounded-full px-6 bg-primary hover:bg-primary/90 text-primary-foreground shadow-xs transition-all hover:shadow-primary/20 cursor-pointer">
+            View Full Leaderboard
+          </Button>
+        </Link>
       </div>
     </div>
   );

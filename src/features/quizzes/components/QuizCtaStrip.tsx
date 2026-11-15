@@ -1,6 +1,7 @@
 'use client';
 
 import { Loader2, Play } from 'lucide-react';
+import Link from 'next/link';
 
 import {
 AttemptContinueCta,
@@ -101,9 +102,22 @@ aria-label="Retry loading active attempt"
 Retry
       </Button>
     );
+  } else if (!isAuthenticated) {
+    const returnPath = idOrSlug ? `/quizzes/${idOrSlug}` : `/quizzes/${quizId}`;
+    attemptSlot = (
+      <Button
+        asChild
+        className={cn(BUTTON_SIZE, 'bg-brand text-white hover:bg-brand-hover')}
+        data-testid="quiz-signin-to-play"
+      >
+        <Link href={`/login?returnUrl=${encodeURIComponent(returnPath)}`}>
+          <Play aria-hidden="true" className="mr-2 h-4 w-4 fill-current" />
+          Sign in to play
+        </Link>
+      </Button>
+    );
   } else {
-
-attemptSlot = <DisabledStartTooltip />;
+    attemptSlot = <DisabledStartTooltip />;
   }
 
 return (

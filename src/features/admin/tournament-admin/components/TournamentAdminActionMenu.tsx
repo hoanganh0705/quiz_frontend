@@ -201,7 +201,7 @@ data-testid={`tournament-admin-action-${item.id}-${menuTestIdSuffix}`}
 <span className="flex flex-col gap-0.5">
 <span className="text-sm">{item.label}</span>
 {item.hint ? (
-<span className="text-[11px] text-muted-foreground">
+<span className="text-xs text-muted-foreground">
 {item.hint}
 </span>
                     ) : null}

@@ -197,7 +197,7 @@ export function ImageUploadField<
             onClick={() => {
               void retry();
             }}
-            className='rounded border border-destructive/40 px-2 py-0.5 text-[10px] uppercase tracking-wide hover:bg-destructive/10'
+            className='rounded border border-destructive/40 px-2 py-0.5 text-xs font-semibold uppercase tracking-wide hover:bg-destructive/10'
           >
             Retry
           </button>

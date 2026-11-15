@@ -56,7 +56,7 @@ The quiz has been deleted, archived, or its version is
         </p>
 {reason ? (
 <span
-className='block text-[0.7rem] font-mono text-muted-foreground/80'
+className='block text-xs font-mono text-muted-foreground/80'
 data-testid={`${testId}-reason`}
 title={tooltipText}
           >

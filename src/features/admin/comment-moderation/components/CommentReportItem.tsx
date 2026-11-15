@@ -168,7 +168,7 @@ data-testid={`comment-report-row-reason-${report.reportId}`}
 <button
 type="button"
 onClick={handleReasonToggle}
-className="self-start text-[11px] font-medium text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+className="self-start text-xs font-medium text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
 data-testid={`comment-report-row-reason-toggle-${report.reportId}`}
 aria-expanded={reasonExpanded}
           >

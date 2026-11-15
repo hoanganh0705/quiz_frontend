@@ -180,7 +180,7 @@ XP
 {entry.tags.map((tag) => (
 <span
 key={tag}
-className='px-2 py-0.5 text-[10px] bg-muted rounded-full text-muted-foreground'
+className='px-2 py-0.5 text-xs bg-muted rounded-full text-muted-foreground'
                   >
 #{tag}
 </span>

@@ -1,6 +1,7 @@
 
 
 import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 
 import { describe, expect, it } from 'vitest';
 
@@ -8,8 +9,7 @@ import { buildHydrationLockMap } from '@/features/attempts/hooks/useAttemptHydra
 import { ATTEMPT_CACHE_KEYS } from '@/features/attempts/types/attempt-runner.types';
 import type { AttemptAnswerItemDto } from '@/lib/api/generated/schemas';
 
-const HOOKS_DIR =
-'/home/nguyenhoanganh/Workspace/WebProjects/quiz/quiz_frontend/src/features/attempts/hooks';
+const HOOKS_DIR = resolve(process.cwd(), 'src/features/attempts/hooks');
 
 function readHook(name: string): string {
 return readFileSync(`${HOOKS_DIR}/${name}`, 'utf8');

@@ -13,12 +13,20 @@ onConfirm: () => void | Promise<void>;
 onCancel: () => void;
 
 isPending?: boolean;
+
+typedConfirmRequired?: boolean;
 }
 
 export function AttemptAbandonDialog(
 props: AttemptAbandonDialogProps,
 ): React.ReactElement {
-const { open, onConfirm, onCancel, isPending = false } = props;
+const {
+  open,
+  onConfirm,
+  onCancel,
+  isPending = false,
+  typedConfirmRequired = true,
+} = props;
 
 return (
 <ConfirmDialog
@@ -26,7 +34,7 @@ open={open}
 kind="destructive-permanent"
 entityLabel="this attempt"
 
-typedConfirmRequired
+typedConfirmRequired={typedConfirmRequired}
 typedOverride="abandon"
 confirmLabel="Abandon attempt"
 cancelLabel="Go back"

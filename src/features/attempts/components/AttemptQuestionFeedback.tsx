@@ -23,7 +23,7 @@ if (trimmed.length === 0) return null;
 return (
 <section
 className={cn(
-"rounded-md border border-border bg-muted/20 p-3 space-y-1",
+"rounded-xl border border-border/70 bg-card/60 p-4 space-y-1.5 backdrop-blur-xs",
 className,
       )}
 aria-labelledby="attempt-question-feedback-heading"
@@ -31,12 +31,12 @@ data-testid="attempt-question-feedback"
     >
 <h3
 id="attempt-question-feedback-heading"
-className="text-xs font-semibold uppercase tracking-wide text-muted-foreground"
+className="text-xs font-semibold uppercase tracking-wider text-primary/80"
       >
 Explanation
       </h3>
 <p
-className="text-sm text-foreground wrap-break-word"
+className="text-sm text-foreground leading-relaxed wrap-break-word"
 data-testid="attempt-question-feedback-body"
       >
 {trimmed}

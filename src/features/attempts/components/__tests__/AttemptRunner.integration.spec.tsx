@@ -3,13 +3,13 @@
 import { describe, expect, it } from 'vitest';
 
 import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 
-const FEATURE_DIR =
-'/home/nguyenhoanganh/Workspace/WebProjects/quiz/quiz_frontend/src/features/attempts';
+const ROOT_DIR = process.cwd();
+const FEATURE_DIR = resolve(ROOT_DIR, 'src/features/attempts');
 const COMPONENTS_DIR = `${FEATURE_DIR}/components`;
 const HOOKS_DIR = `${FEATURE_DIR}/hooks`;
-const APP_DIR =
-'/home/nguyenhoanganh/Workspace/WebProjects/quiz/quiz_frontend/src/app';
+const APP_DIR = resolve(ROOT_DIR, 'src/app');
 
 const FORBIDDEN_AUTH_REVIEW_OR_SCORE = [
 /completeAttempt\(/,
@@ -94,7 +94,7 @@ expect(startPage).toMatch(/\/attempt/);
 describe('AttemptRunner — integration: CTA delegation', () => {
 it('the QuizCtaStrip delegates Start/Continue to the active-attempt hook', () => {
 const strip = readSource(
-'/home/nguyenhoanganh/Workspace/WebProjects/quiz/quiz_frontend/src/features/quizzes/components/QuizCtaStrip.tsx',
+resolve(ROOT_DIR, 'src/features/quizzes/components/QuizCtaStrip.tsx'),
     );
 expect(strip).toMatch(/useActiveAttempt/);
 expect(strip).toMatch(/AttemptStartCta|AttemptContinueCta/);
