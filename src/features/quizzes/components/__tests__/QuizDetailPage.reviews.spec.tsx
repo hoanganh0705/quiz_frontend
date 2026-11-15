@@ -412,7 +412,6 @@ expect(screen.getByTestId('quiz-header')).toBeInTheDocument();
 expect(screen.getByTestId('quiz-byline')).toBeInTheDocument();
 expect(screen.getByTestId('quiz-metadata-row')).toBeInTheDocument();
 expect(screen.getByTestId('quiz-description')).toBeInTheDocument();
-expect(screen.getByTestId('quiz-question-list')).toBeInTheDocument();
 expect(screen.getByTestId('quiz-stats-panel')).toBeInTheDocument();
 expect(screen.getByTestId('quiz-cta-strip')).toBeInTheDocument();
 expect(screen.getByTestId('quiz-related-quizzes')).toBeInTheDocument();

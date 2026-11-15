@@ -14,7 +14,6 @@ import { QuizDescription } from './QuizDescription';
 import { QuizDetailPageSkeleton } from './QuizDetailPageSkeleton';
 import { QuizHeader } from './QuizHeader';
 import { QuizMetadataRow } from './QuizMetadataRow';
-import { QuizQuestionList } from './QuizQuestionList';
 import { QuizRelatedQuizzes } from './QuizRelatedQuizzes';
 import { QuizStatsPanel } from './QuizStatsPanel';
 
@@ -62,7 +61,6 @@ data-testid='quiz-detail-retry'
 
 const quiz = aggregate.quiz;
 const stats = aggregate.stats;
-const questions = aggregate.previewQuestions;
 
 return (
 <div
@@ -99,10 +97,6 @@ isStatsLoading={false}
 className='mt-5'
       />
 <QuizDescription description={quiz.description ?? null} className='mt-8' />
-<QuizQuestionList
-questions={aggregate.previewQuestions as unknown as Parameters<typeof QuizQuestionList>[0]['questions']}
-className='mt-10'
-      />
 <QuizStatsPanel
 stats={stats}
 isLoading={false}

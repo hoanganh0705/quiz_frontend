@@ -44,7 +44,7 @@ className?: string;
 }
 
 export function QuizCtaStrip({ quizId, quizVersionId, idOrSlug, authorUserId, authorDisplayName, quizTitle, alreadySuppressed, className }: QuizCtaStripProps) {
-const isPhase4Live = isFeatureEnabled('attempts_live', 'live');
+const isAttemptsLive = isFeatureEnabled('attempts_live', 'live');
 const { bootstrapState, currentUser } = useAuthSession();
 const isAuthenticated =
 bootstrapState === 'authenticated' && currentUser !== null;
@@ -53,7 +53,7 @@ const { attempt: activeAttempt, isLoading, error, retry } = useActiveAttempt({
 quizId: isAuthenticated ? quizId : null,
   });
 
-if (!isPhase4Live) {
+if (!isAttemptsLive) {
 return <PlaceholderStrip quizId={quizId} className={className} />;
   }
 

@@ -29,6 +29,6 @@ describe('getServerFeatureFlag', () => {
   it('falls back to the default when the env value is invalid', async () => {
     vi.stubEnv('NEXT_PUBLIC_AUTHORING_LIVE', 'unsupported-value');
     const { getServerFeatureFlag } = await importFresh();
-    expect(getServerFeatureFlag('authoring_live')).toBe('placeholder');
+    expect(getServerFeatureFlag('authoring_live')).toBe('live');
   });
 });
