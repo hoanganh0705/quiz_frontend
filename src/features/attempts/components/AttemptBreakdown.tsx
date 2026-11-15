@@ -10,168 +10,221 @@ import { cn } from "@/shared/utils/merge-class-names";
 import type { AttemptQuestionScoreDto } from "@/features/attempts/types/attempt-result.types";
 
 export interface AttemptBreakdownProps {
+  questions: readonly AttemptQuestionScoreDto[];
 
-questions: readonly AttemptQuestionScoreDto[];
+  total: number;
 
-total: number;
-
-className?: string;
+  className?: string;
 }
 
 export type AttemptBreakdownMarker =
-| "correct"
+  | "correct"
   | "incorrect"
   | "skipped"
   | "pending";
 
 export function markerForQuestion(
-q: AttemptQuestionScoreDto,
+  q: AttemptQuestionScoreDto,
 ): AttemptBreakdownMarker {
-if (q.isCorrect === null) return "pending";
-if (q.selectedOptionId === null) return "skipped";
+  if (q.isCorrect === null) return "pending";
+  if (q.selectedOptionId === null) return "skipped";
 
-const indicator = (q.isCorrect as { value?: unknown }).value;
-if (indicator === true) return "correct";
-if (indicator === false) return "incorrect";
-return "pending";
+  const indicator = (q.isCorrect as { value?: unknown }).value;
+  if (indicator === true) return "correct";
+  if (indicator === false) return "incorrect";
+  return "pending";
 }
 
 export function AttemptBreakdown(
-props: AttemptBreakdownProps,
+  props: AttemptBreakdownProps,
 ): React.ReactElement {
-const { questions, total, className } = props;
+  const { questions, total, className } = props;
 
-if (questions.length === 0) {
-return (
-<section
-className={cn("rounded-lg border border-border bg-card", className)}
-aria-labelledby="attempt-breakdown-heading"
-data-testid="attempt-breakdown-empty"
+  if (questions.length === 0) {
+    return (
+      <section
+        className={cn(
+          "rounded-xl border border-border/70 bg-card/75 p-6 shadow-xs backdrop-blur-sm",
+          className,
+        )}
+        aria-labelledby="attempt-breakdown-heading"
+        data-testid="attempt-breakdown-empty"
       >
-<EmptyState
-icon={ListChecksIcon}
-title="No questions yet"
-description="The review projection for this attempt is empty."
-size="sm"
+        <EmptyState
+          icon={ListChecksIcon}
+          title="No questions yet"
+          description="The review projection for this attempt is empty."
+          size="sm"
         />
-</section>
+      </section>
     );
   }
 
-return (
-<section
-className={cn(
-"rounded-lg border border-border bg-card p-4 space-y-3",
-className,
+  return (
+    <section
+      className={cn(
+        "rounded-xl border border-border/70 bg-card/75 p-5 sm:p-6 shadow-xs backdrop-blur-sm space-y-4",
+        className,
       )}
-aria-labelledby="attempt-breakdown-heading"
-data-testid="attempt-breakdown"
+      aria-labelledby="attempt-breakdown-heading"
+      data-testid="attempt-breakdown"
     >
-<h2 id="attempt-breakdown-heading" className="text-base font-semibold">
-Question breakdown
-      </h2>
-<ol className="space-y-3" data-testid="attempt-breakdown-list">
-{questions.map((q) => (
-<BreakdownRow key={q.questionId} question={q} total={total} />
+      <div className="flex items-center justify-between">
+        <h2
+          id="attempt-breakdown-heading"
+          className="text-base font-semibold tracking-tight"
+        >
+          Question breakdown
+        </h2>
+        <span className="text-xs font-mono text-muted-foreground tabular-nums">
+          {questions.length} questions reviewed
+        </span>
+      </div>
+      <ol className="space-y-3" data-testid="attempt-breakdown-list">
+        {questions.map((q) => (
+          <BreakdownRow key={q.questionId} question={q} total={total} />
         ))}
-</ol>
-</section>
+      </ol>
+    </section>
   );
 }
 
-function BreakdownRow(
-props: { question: AttemptQuestionScoreDto; total: number },
-): React.ReactElement {
-const { question: q, total } = props;
-const marker = markerForQuestion(q);
+function BreakdownRow(props: {
+  question: AttemptQuestionScoreDto;
+  total: number;
+}): React.ReactElement {
+  const { question: q, total } = props;
+  const marker = markerForQuestion(q);
 
-return (
-<li
-className="rounded-md border border-border bg-muted/30 p-3 space-y-2"
-data-testid={`attempt-breakdown-row-${q.questionId}`}
-aria-labelledby={`attempt-breakdown-row-${q.questionId}-prompt`}
+  return (
+    <li
+      className="rounded-lg border border-border/60 bg-card/40 p-4 space-y-3 transition-colors hover:bg-muted/30"
+      data-testid={`attempt-breakdown-row-${q.questionId}`}
+      aria-labelledby={`attempt-breakdown-row-${q.questionId}-prompt`}
     >
-<header className="flex items-baseline justify-between gap-3">
-<span
-id={`attempt-breakdown-row-${q.questionId}-prompt`}
-className="text-sm font-medium wrap-break-word"
+      <header className="flex items-baseline justify-between gap-3">
+        <span
+          id={`attempt-breakdown-row-${q.questionId}-prompt`}
+          className="text-sm font-medium wrap-break-word leading-relaxed"
         >
-<span className="text-muted-foreground mr-2">
-{q.position}/{total}
-</span>
-{q.questionText}
-</span>
-<BreakdownMarkerBadge marker={marker} />
-</header>
+          <span className="text-xs font-mono font-semibold text-primary/80 bg-primary/10 px-1.5 py-0.5 rounded mr-2 tabular-nums">
+            {q.position}/{total}
+          </span>
+          {q.questionText}
+        </span>
+        <BreakdownMarkerBadge marker={marker} />
+      </header>
 
-<dl className="grid grid-cols-1 gap-1 text-xs text-muted-foreground sm:grid-cols-2">
-<div className="flex items-center gap-2">
-<dt className="font-medium text-foreground">Your answer</dt>
-<dd data-testid={`attempt-breakdown-row-${q.questionId}-selected`}>
-{formatSelectedOption(q.selectedOptionId)}
-</dd>
-</div>
-<div className="flex items-center gap-2">
-<dt className="font-medium text-foreground">Correct option</dt>
-<dd data-testid={`attempt-breakdown-row-${q.questionId}-correct`}>
-{formatCorrectOptions(q.answerOptions)}
-</dd>
-</div>
-</dl>
-</li>
+      <dl className="grid grid-cols-1 gap-2 text-xs text-muted-foreground sm:grid-cols-2 pt-1 border-t border-border/40">
+        <div className="flex items-center gap-2">
+          <dt className="font-medium text-foreground">Your answer:</dt>
+          <dd
+            className="font-mono text-xs"
+            data-testid={`attempt-breakdown-row-${q.questionId}-selected`}
+          >
+            {formatSelectedOption(q.selectedOptionId, q.answerOptions)}
+          </dd>
+        </div>
+        <div className="flex items-center gap-2">
+          <dt className="font-medium text-foreground">Correct option:</dt>
+          <dd
+            className="font-mono text-xs text-emerald-600 dark:text-emerald-400 font-medium"
+            data-testid={`attempt-breakdown-row-${q.questionId}-correct`}
+          >
+            {formatCorrectOptions(q.answerOptions)}
+          </dd>
+        </div>
+      </dl>
+      {q.explanation ? (
+        <div className="mt-2.5 rounded-lg bg-muted/40 p-2.5 text-xs text-muted-foreground border border-border/40">
+          <span className="font-semibold text-foreground">Explanation: </span>
+          {q.explanation}
+        </div>
+      ) : null}
+    </li>
   );
 }
 
-function BreakdownMarkerBadge(
-props: { marker: AttemptBreakdownMarker },
-): React.ReactElement {
-const { marker } = props;
-switch (marker) {
-case "correct":
-return (
-<Badge variant="default" data-testid="attempt-breakdown-marker-correct">
-Correct
+function BreakdownMarkerBadge(props: {
+  marker: AttemptBreakdownMarker;
+}): React.ReactElement {
+  const { marker } = props;
+  switch (marker) {
+    case "correct":
+      return (
+        <Badge variant="default" data-testid="attempt-breakdown-marker-correct">
+          Correct
         </Badge>
       );
-case "incorrect":
-return (
-<Badge
-variant="destructive"
-data-testid="attempt-breakdown-marker-incorrect"
+    case "incorrect":
+      return (
+        <Badge
+          variant="destructive"
+          data-testid="attempt-breakdown-marker-incorrect"
         >
-Incorrect
+          Incorrect
         </Badge>
       );
-case "skipped":
-return (
-<Badge
-variant="secondary"
-data-testid="attempt-breakdown-marker-skipped"
+    case "skipped":
+      return (
+        <Badge
+          variant="secondary"
+          data-testid="attempt-breakdown-marker-skipped"
         >
-Skipped
+          Skipped
         </Badge>
       );
-case "pending":
-default:
-return (
-<Badge variant="outline" data-testid="attempt-breakdown-marker-pending">
-Pending
+    case "pending":
+    default:
+      return (
+        <Badge variant="outline" data-testid="attempt-breakdown-marker-pending">
+          Pending
         </Badge>
       );
   }
 }
 
-function formatSelectedOption(id: string | null): string {
-if (id === null) return "—";
-return id;
+function formatSelectedOption(
+  id: string | null,
+  options?: readonly { optionId: string; value?: string }[],
+): React.ReactNode {
+  if (id === null) return "—";
+  const matched = options?.find((opt) => opt.optionId === id);
+  if (matched?.value) {
+    return (
+      <span>
+        <span className="font-sans font-medium text-foreground">
+          {matched.value}
+        </span>
+        <span className="text-xs font-mono text-muted-foreground/60 ml-1.5">
+          ({id})
+        </span>
+      </span>
+    );
+  }
+  return id;
 }
 
 function formatCorrectOptions(
-options: readonly { optionId: string; isCorrect: boolean }[],
-): string {
-const correctIds = options
-    .filter((opt) => opt.isCorrect === true)
-    .map((opt) => opt.optionId);
-if (correctIds.length === 0) return "—";
-return correctIds.join(", ");
+  options: readonly { optionId: string; value?: string; isCorrect: boolean }[],
+): React.ReactNode {
+  const correct = options.filter((opt) => opt.isCorrect === true);
+  if (correct.length === 0) return "—";
+
+  const values = correct.map((opt) => opt.value).filter(Boolean);
+  const ids = correct.map((opt) => opt.optionId).join(", ");
+
+  if (values.length > 0) {
+    return (
+      <span>
+        <span className="font-sans font-medium text-emerald-600 dark:text-emerald-400">
+          {values.join(", ")}
+        </span>
+        <span className="text-xs font-mono text-muted-foreground/60 ml-1.5">
+          ({ids})
+        </span>
+      </span>
+    );
+  }
+  return ids;
 }

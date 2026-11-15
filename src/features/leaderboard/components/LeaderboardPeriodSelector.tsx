@@ -39,7 +39,7 @@ return (
 role='group'
 aria-labelledby={groupLabelId}
 className={cn(
-'inline-flex items-center gap-1 rounded-lg bg-slate-800/40 p-1',
+'inline-flex items-center gap-1 rounded-xl bg-muted/60 p-1 border border-border/60 backdrop-blur-xs',
 className,
       )}
     >
@@ -59,11 +59,11 @@ onChange(option.value)
               }
             }}
 className={cn(
-'rounded-md px-3 py-1.5 text-sm font-medium transition-colors',
+'rounded-lg px-3 py-1.5 text-sm font-medium transition-all duration-150',
 'focus:outline-none focus-visible:ring-2 focus-visible:ring-primary',
 isSelected
-? 'bg-primary text-white shadow-sm'
-: 'text-slate-300 hover:bg-slate-700/60 hover:text-white',
+? 'bg-background text-foreground shadow-xs font-semibold'
+: 'text-muted-foreground hover:bg-background/60 hover:text-foreground',
             )}
           >
 {option.label}

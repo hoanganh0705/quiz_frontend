@@ -42,7 +42,7 @@ disabled && "opacity-60",
     >
 <div className="flex-1 min-w-0">
 <p className="text-sm font-medium text-foreground">{title}</p>
-<p className="text-[0.65rem] sm:text-xs text-muted-foreground mt-0.5">
+<p className="text-xs text-muted-foreground mt-0.5">
 {description}
 </p>
 </div>
@@ -81,7 +81,7 @@ return (
 <div className="flex items-start justify-between gap-3 px-3 sm:px-4 py-3 border-b border-border last:border-b-0">
 <div className="flex-1 min-w-0">
 <Label className="text-sm font-medium text-foreground">{title}</Label>
-<p className="text-[0.65rem] sm:text-xs text-muted-foreground mt-0.5">
+<p className="text-xs text-muted-foreground mt-0.5">
 {description}
 </p>
 </div>
@@ -126,7 +126,7 @@ return (
 <div className="flex items-start justify-between gap-3 px-3 sm:px-4 py-3 border-b border-border last:border-b-0">
 <div className="flex-1 min-w-0">
 <Label className="text-sm font-medium text-foreground">{title}</Label>
-<p className="text-[0.65rem] sm:text-xs text-muted-foreground mt-0.5">
+<p className="text-xs text-muted-foreground mt-0.5">
 {description}
 </p>
 </div>
@@ -384,7 +384,7 @@ Saved
 <section className="rounded-lg border bg-card text-card-foreground overflow-hidden">
 <header className="px-3 sm:px-4 py-2 border-b border-border bg-muted/40">
 <h3 className="text-sm font-semibold">Channels</h3>
-<p className="text-[0.65rem] text-muted-foreground">
+<p className="text-xs text-muted-foreground">
 Choose how you&apos;d like to receive notifications.
           </p>
 </header>
@@ -418,7 +418,7 @@ onCheckedChange={(value) => void handleToggle("pushEnabled", value)}
 <section className="rounded-lg border bg-card text-card-foreground overflow-hidden">
 <header className="px-3 sm:px-4 py-2 border-b border-border bg-muted/40">
 <h3 className="text-sm font-semibold">Categories</h3>
-<p className="text-[0.65rem] text-muted-foreground">
+<p className="text-xs text-muted-foreground">
 Pick which notification types you&apos;d like to receive.
           </p>
 </header>
@@ -441,7 +441,7 @@ void handleToggle(config.key, value)
 <section className="rounded-lg border bg-card text-card-foreground overflow-hidden">
 <header className="px-3 sm:px-4 py-2 border-b border-border bg-muted/40">
 <h3 className="text-sm font-semibold">Rank improvement threshold</h3>
-<p className="text-[0.65rem] text-muted-foreground">
+<p className="text-xs text-muted-foreground">
 Notify me when my rank improves by at least this many positions.
           </p>
 </header>
@@ -459,7 +459,7 @@ onValueChange={handleRankThreshold}
 <section className="rounded-lg border bg-card text-card-foreground overflow-hidden">
 <header className="px-3 sm:px-4 py-2 border-b border-border bg-muted/40">
 <h3 className="text-sm font-semibold">Quiet hours</h3>
-<p className="text-[0.65rem] text-muted-foreground">
+<p className="text-xs text-muted-foreground">
 Pause notifications during the selected hours.
           </p>
 </header>

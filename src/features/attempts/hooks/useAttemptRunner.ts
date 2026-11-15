@@ -325,25 +325,31 @@ const outcome = await completeHook.complete();
 if (outcome.kind === 'success' && outcome.result) {
 
 recordCompletionSuccess(attemptId, quizVersionId, sessionId, {
-scorePercent: outcome.result.scorePercent ?? null,
-correctCount: outcome.result.correctCount ?? null,
-xpEarned: outcome.result.xpEarned ?? 0,
-finishedAt: outcome.result.finishedAt ?? new Date().toISOString(),
-      });
+  ...(outcome.result as unknown as import('@/features/attempts/stores/useAttemptsStore').CompletedAttemptSnapshot),
+  correctCount: outcome.result.correctCount ?? null,
+  xpEarned: outcome.result.xpEarned ?? 0,
+  finishedAt: outcome.result.finishedAt ?? new Date().toISOString(),
+});
 
 if (idOrSlug) {
+const resultsHref = attemptId
+  ? `/quizzes/${encodeURIComponent(idOrSlug)}/results?attemptId=${encodeURIComponent(attemptId)}`
+  : `/quizzes/${encodeURIComponent(idOrSlug)}/results`;
 setNavigation({
 kind: 'push_attempt',
-href: `/quizzes/${encodeURIComponent(idOrSlug)}/results`,
+href: resultsHref,
         });
       }
 setOverlayStatus('completed');
     } else if (outcome.kind === 'not_active') {
 
 if (idOrSlug) {
+const resultsHref = attemptId
+  ? `/quizzes/${encodeURIComponent(idOrSlug)}/results?attemptId=${encodeURIComponent(attemptId)}`
+  : `/quizzes/${encodeURIComponent(idOrSlug)}/results`;
 setNavigation({
 kind: 'push_attempt',
-href: `/quizzes/${encodeURIComponent(idOrSlug)}/results`,
+href: resultsHref,
         });
       }
 setOverlayStatus('completed');

@@ -140,8 +140,9 @@ const addCollection = useCallback(
 async (
 name: string,
 description?: string,
-color: string = '#6b7280'
+_color: string = 'oklch(0.65 0.15 270)'
     ) => {
+void _color;
 const tempId = `temp-${Date.now()}`
 const tempCollection: BookmarkCollectionResponseDto = {
 collectionId: tempId,

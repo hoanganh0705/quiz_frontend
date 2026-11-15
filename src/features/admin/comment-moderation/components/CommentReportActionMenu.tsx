@@ -146,7 +146,7 @@ data-testid={`comment-report-action-${action}-${report.reportId}`}
 <span className="flex flex-col gap-0.5">
 <span className="text-sm">{metadata.label}</span>
 {isIrreversible ? (
-<span className="text-[11px] text-muted-foreground">
+<span className="text-xs text-muted-foreground">
 This cannot be undone.
                     </span>
                   ) : null}

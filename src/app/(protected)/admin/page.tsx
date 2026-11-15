@@ -9,6 +9,9 @@ import {
   ArrowUpRight,
   Activity,
   AlertCircle,
+  Trophy,
+  MessageSquare,
+  Star,
 } from "lucide-react";
 
 import {
@@ -53,6 +56,18 @@ export const metadata: Metadata = {
 
 const quickLinks = [
   {
+    label: "Manage Quizzes",
+    href: "/admin/quizzes",
+    description: "Review and moderate quizzes",
+    icon: Swords,
+  },
+  {
+    label: "Manage Tournaments",
+    href: "/admin/tournaments",
+    description: "Configure competitive tournaments",
+    icon: Trophy,
+  },
+  {
     label: "Manage Categories",
     href: "/admin/categories",
     description: "Add, edit, or remove categories",
@@ -65,16 +80,28 @@ const quickLinks = [
     icon: BookOpen,
   },
   {
-    label: "Manage Quizzes",
-    href: "/admin/quizzes",
-    description: "Review and moderate quizzes",
-    icon: Swords,
-  },
-  {
     label: "Manage Users",
     href: "/admin/users",
     description: "User accounts and permissions",
     icon: Users,
+  },
+  {
+    label: "Comment Reports",
+    href: "/admin/comments/reports",
+    description: "Moderation queue for comments",
+    icon: MessageSquare,
+  },
+  {
+    label: "Review Reports",
+    href: "/admin/reviews/reports",
+    description: "Flagged quiz reviews and ratings",
+    icon: Star,
+  },
+  {
+    label: "Audit Log",
+    href: "/admin/audit",
+    description: "Live administrative actions and events",
+    icon: Activity,
   },
 ];
 
@@ -106,9 +133,9 @@ export default function AdminDashboardPage() {
       <Card
         role="status"
         data-testid="admin-dashboard-placeholder-banner"
-        className="border-border bg-muted/40"
+        className="rounded-2xl border-border/70 bg-muted/30 backdrop-blur-xs shadow-xs"
       >
-        <CardContent className="flex items-start gap-3 p-4">
+        <CardContent className="flex items-start gap-3 p-4 sm:p-5">
           <AlertCircle
             className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground"
             aria-hidden="true"
@@ -136,7 +163,7 @@ export default function AdminDashboardPage() {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card
-          className="border-border sm:col-span-2 lg:col-span-4"
+          className="rounded-2xl border-border/70 bg-card/75 shadow-xs backdrop-blur-sm sm:col-span-2 lg:col-span-4"
           data-testid="admin-dashboard-quick-actions"
         >
           <CardHeader>
@@ -144,22 +171,22 @@ export default function AdminDashboardPage() {
             <CardDescription>Common management tasks</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {quickLinks.map((link) => (
                 <Link
                   key={link.href}
                   href={link.href}
-                  className="flex items-center justify-between p-3 rounded-lg border border-border hover:bg-muted/40 hover:border-brand transition-colors group"
+                  className="flex items-center justify-between p-3.5 rounded-xl border border-border/60 bg-muted/20 hover:bg-muted/40 hover:border-brand/40 transition-all duration-150 group"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-md bg-muted">
+                    <div className="p-2 rounded-lg bg-muted/60 border border-border/40">
                       <link.icon
-                        className="h-4 w-4 text-muted-foreground"
+                        className="h-4 w-4 text-muted-foreground group-hover:text-brand transition-colors"
                         aria-hidden="true"
                       />
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-foreground group-hover:text-brand">
+                      <p className="text-sm font-medium text-foreground group-hover:text-brand transition-colors">
                         {link.label}
                       </p>
                       <p className="text-xs text-muted-foreground">
@@ -168,7 +195,7 @@ export default function AdminDashboardPage() {
                     </div>
                   </div>
                   <ArrowUpRight
-                    className="h-4 w-4 text-muted-foreground group-hover:text-brand transition-colors"
+                    className="h-4 w-4 text-muted-foreground group-hover:text-brand group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all"
                     aria-hidden="true"
                   />
                 </Link>
@@ -178,7 +205,7 @@ export default function AdminDashboardPage() {
         </Card>
       </div>
 
-      <Card className="border-border">
+      <Card className="rounded-2xl border-border/70 bg-card/75 shadow-xs backdrop-blur-sm">
         <CardHeader>
           <CardTitle>Platform Activity</CardTitle>
           <CardDescription>
@@ -187,7 +214,7 @@ export default function AdminDashboardPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Button asChild variant="outline" className="gap-2">
+          <Button asChild variant="outline" className="gap-2 rounded-lg">
             <Link href="/admin/audit" aria-label="Open the audit log">
               <Activity className="h-4 w-4" aria-hidden="true" />
               Open Audit Log

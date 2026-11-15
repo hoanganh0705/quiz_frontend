@@ -1,31 +1,21 @@
-import { QuizResults } from '@/features/quizzes/components/QuizPlayer'
-import Link from 'next/link'
-import { notFound } from 'next/navigation'
+import { AttemptResultPage } from "@/features/attempts/components/AttemptResultPage";
+import { QuizResultsClientFallback } from "./_components/QuizResultsClientFallback";
 
 export default async function QuizResultsPage({
-params
+  params,
+  searchParams,
 }: {
-params: Promise<{ idOrSlug: string }>
+  params: Promise<{ idOrSlug: string }>;
+  searchParams: Promise<{ attemptId?: string | string[] }>;
 }) {
-const { idOrSlug } = await params
+  const { idOrSlug } = await params;
+  const resolvedSearchParams = await searchParams;
+  const rawAttemptId = resolvedSearchParams?.attemptId;
+  const attemptId = Array.isArray(rawAttemptId) ? rawAttemptId[0] : rawAttemptId;
 
-return (
-<div className='min-h-screen flex items-center justify-center'>
-<div className='text-center'>
-<h1 className='text-2xl font-bold'>Quiz Results</h1>
-<p className='text-muted-foreground mb-6'>
-Quiz ID: {idOrSlug}
-</p>
-<p className='text-muted-foreground mb-6'>
-This page needs to be updated to use the real API.
-        </p>
-<Link
-href='/quizzes'
-className='bg-default hover:bg-default-hover text-white px-6 py-2 rounded-lg transition'
-        >
-Back to Explore Quizzes
-        </Link>
-</div>
-</div>
-  )
+  if (attemptId) {
+    return <AttemptResultPage attemptId={attemptId} />;
+  }
+
+  return <QuizResultsClientFallback idOrSlug={idOrSlug} />;
 }

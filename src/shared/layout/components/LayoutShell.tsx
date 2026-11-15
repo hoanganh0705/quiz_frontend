@@ -23,6 +23,7 @@ useUserStore,
 import { useResetCoinStore } from "@/features/coins/store/coin-store";
 
 const SHELL_PREFIXES = [
+  "/achievements",
   "/bookmarks",
   "/categories",
   "/coins",
@@ -31,14 +32,20 @@ const SHELL_PREFIXES = [
   "/friends",
   "/leaderboard",
   "/my-profile",
+  "/my-quizzes",
   "/notifications",
   "/onboarding",
   "/profile",
   "/quiz-history",
   "/quizzes",
+  "/rankings",
+  "/search",
   "/settings",
+  "/social",
   "/support",
+  "/tags",
   "/tournament",
+  "/tournaments",
 ] as const;
 
 const SHELL_EXACT_PATHS = ["/"] as const;
@@ -100,7 +107,6 @@ void globalMutate(() => true, undefined, { revalidate: true });
     // We intentionally do NOT depend on `user` identity — Zustand may
     // push a new object on every internal mutation. We depend on the
     // id string so equal ids do not retrigger.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.userId]);
 
 const attemptRef = useRef<{ count: number; lastErrorAt: number | null }>({
@@ -152,10 +158,13 @@ attemptRef.current.lastErrorAt = Date.now();
       "/coins",
       "/settings",
       "/my-profile",
+      "/my-quizzes",
       "/quiz-history",
       "/friends",
       "/notifications",
+      "/social",
       "/tournament",
+      "/tournaments",
       "/create-quiz",
       "/onboarding",
     ];
@@ -178,12 +187,12 @@ return <>{children}</>;
 return (
 <SidebarProvider>
 <AppSidebar />
-      <SidebarInset className="overflow-x-hidden pt-16">
+      <SidebarInset className="overflow-x-hidden pt-14 md:pt-16">
 <AppHeader />
 <AppBreadcrumbs />
 <main
 id="main-content"
-className="pt-3 overflow-x-hidden max-w-full app-page-transition"
+className="pt-1 md:pt-2 overflow-x-hidden max-w-full app-page-transition"
         >
 {children}
 </main>

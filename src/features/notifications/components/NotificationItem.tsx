@@ -274,15 +274,15 @@ notification.isRead
           )}
 </div>
 {notification.message && (
-<p className="text-[0.65rem] sm:text-xs text-muted-foreground line-clamp-2 mt-0.5">
+<p className="text-xs text-muted-foreground line-clamp-2 mt-0.5">
 {notification.message}
 </p>
         )}
-<p className="text-[0.65rem] sm:text-xs text-muted-foreground/70 mt-0.5 sm:mt-1">
+<p className="text-xs text-muted-foreground/70 mt-0.5 sm:mt-1">
 {formatRelativeTime(notification.createdAt)}
 </p>
 {target && (
-<p className="text-[0.6rem] sm:text-[0.65rem] text-blue-500 dark:text-blue-400 mt-0.5">
+<p className="text-xs text-blue-500 dark:text-blue-400 mt-0.5">
 <Link
 href={target}
 onClick={(e) => {

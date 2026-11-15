@@ -7,7 +7,8 @@ import type { FieldValues } from 'react-hook-form';
 import { Button } from '@/components/ui/Button';
 import { cn } from '@/shared/utils/merge-class-names';
 
-export interface DraftBannerProps<T extends FieldValues> {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export interface DraftBannerProps<_T extends FieldValues = FieldValues> {
 
 savedAt: string | null;
 
@@ -31,8 +32,8 @@ minute: '2-digit',
   });
 }
 
-export function DraftBanner<T extends FieldValues>(
-props: DraftBannerProps<T>
+export function DraftBanner<_T extends FieldValues = FieldValues>(
+props: DraftBannerProps<_T>
 ): React.ReactElement | null {
 const {
 savedAt,
@@ -51,14 +52,14 @@ role='status'
 aria-live='polite'
 data-testid={testId}
 className={cn(
-'flex items-center gap-2 rounded-md border border-info/40 bg-info/10 p-3 text-sm text-foreground',
+'flex items-center gap-3 rounded-xl border border-primary/30 bg-primary/10 p-3.5 text-sm text-foreground backdrop-blur-xs shadow-xs',
 className
       )}
     >
-<Save className='h-4 w-4 shrink-0 text-info' aria-hidden='true' />
+<Save className='h-4 w-4 shrink-0 text-primary' aria-hidden='true' />
 <div className='flex-1'>
 <p className='font-medium' data-testid={`${testId}-message`}>
-Restore draft from {formatTime(savedAt)}?
+Restore draft from <span className="font-mono font-semibold">{formatTime(savedAt)}</span>?
         </p>
 <p className='text-xs text-muted-foreground'>
 We saved your progress to this browser. Pick up where you left off.

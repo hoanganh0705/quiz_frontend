@@ -1,11 +1,11 @@
 
 
 import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 
 import { describe, expect, it } from 'vitest';
 
-const FEATURE_DIR =
-'/home/nguyenhoanganh/Workspace/WebProjects/quiz/quiz_frontend/src/features/attempts';
+const FEATURE_DIR = resolve(process.cwd(), 'src/features/attempts');
 
 const HOOKS_DIR = `${FEATURE_DIR}/hooks`;
 const COMPONENTS_DIR = `${FEATURE_DIR}/components`;

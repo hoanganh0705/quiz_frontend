@@ -102,7 +102,7 @@ className={`flex h-10 w-10 items-center justify-center rounded-full bg-muted ${T
 <div className="flex items-center justify-between gap-2">
 <p className="truncate text-sm font-medium">{badge.name}</p>
 {isFullyEarned ? (
-<span className="rounded bg-emerald-100 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300">
+<span className="rounded bg-emerald-100 px-1.5 py-0.5 text-xs font-semibold uppercase tracking-wide text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300">
 Earned
             </span>
           ) : null}
@@ -119,7 +119,7 @@ value={badge.progress.percent}
 className="h-1.5 flex-1"
 aria-label={`${badge.progress.percent}% progress`}
             />
-<span className="text-[10px] tabular-nums text-muted-foreground">
+<span className="text-xs tabular-nums text-muted-foreground">
 {badge.progress.percent}%
             </span>
 </div>

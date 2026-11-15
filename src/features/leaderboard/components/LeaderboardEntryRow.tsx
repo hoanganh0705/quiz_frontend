@@ -30,11 +30,11 @@ const avatarFallbackLetter = entry.displayName?.[0]?.toUpperCase() ?? '?'
       aria-current={isSelfEntry ? 'true' : undefined}
       data-leaderboard-row={entry.userId}
       className={cn(
-        'flex items-center justify-between gap-4 rounded-lg p-3',
-        'transition-colors',
+        'flex items-center justify-between gap-4 rounded-xl p-3 sm:px-4',
+        'border transition-colors duration-200',
         isSelfEntry
-          ? 'bg-primary/10 ring-1 ring-primary/40'
-          : 'bg-slate-800/30',
+          ? 'bg-primary/10 border-primary/40 ring-1 ring-primary/40'
+          : 'bg-card/60 border-border/60 hover:bg-muted/30',
         className,
       )}
     >
@@ -43,7 +43,7 @@ const avatarFallbackLetter = entry.displayName?.[0]?.toUpperCase() ?? '?'
 <div className='flex w-12 shrink-0 flex-col items-center'>
 <span
 className={cn(
-'text-lg font-bold tabular-nums',
+'text-base sm:text-lg font-bold font-mono tabular-nums',
 getRankColor(entry.rank),
             )}
 aria-label={`Rank ${entry.rank}`}
@@ -51,14 +51,14 @@ aria-label={`Rank ${entry.rank}`}
 #{entry.rank}
 </span>
 <span
-className='text-xs text-slate-400 tabular-nums'
+className='text-xs font-mono text-muted-foreground tabular-nums'
 aria-label={`Dense rank ${entry.denseRank}`}
           >
 d#{entry.denseRank}
 </span>
 </div>
 
-<Avatar className='h-10 w-10 shrink-0'>
+<Avatar className='h-9 w-9 sm:h-10 sm:w-10 shrink-0 border border-border/40'>
 {entry.avatarUrl ? (
         <AvatarImage src={entry.avatarUrl} alt="" />
           ) : null}
@@ -69,7 +69,7 @@ d#{entry.denseRank}
 <p
 className={cn(
 'truncate text-sm font-medium',
-isSelfEntry ? 'text-primary-foreground' : 'text-white',
+isSelfEntry ? 'text-primary font-semibold' : 'text-foreground',
             )}
           >
 {entry.displayName}
@@ -80,7 +80,7 @@ isSelfEntry ? 'text-primary-foreground' : 'text-white',
             ) : null}
 </p>
 {entry.isTied ? (
-<p className='text-xs text-slate-400'>Tied</p>
+<p className='text-xs text-muted-foreground'>Tied</p>
           ) : null}
 </div>
 </div>
@@ -88,20 +88,10 @@ isSelfEntry ? 'text-primary-foreground' : 'text-white',
 {/* Right cluster: XP with thousands separators */}
 <div className='flex shrink-0 items-center gap-1'>
 <span
-className='rounded-full bg-slate-700/60 px-2 py-0.5 text-xs font-semibold text-white tabular-nums'
+className='rounded-full bg-primary/10 border border-primary/20 px-2.5 py-0.5 text-xs font-semibold font-mono text-primary tabular-nums'
 aria-label={`${entry.xp} XP`}
         >
 {entry.xp.toLocaleString()} XP
-        </span>
-      </div>
-
-      {/* Right cluster: XP with thousands separators */}
-      <div className="flex shrink-0 items-center gap-1">
-        <span
-          className="rounded-full bg-slate-700/60 px-2 py-0.5 text-xs font-semibold text-white tabular-nums"
-          aria-label={`${entry.xp} XP`}
-        >
-          {entry.xp.toLocaleString()} XP
         </span>
       </div>
     </li>

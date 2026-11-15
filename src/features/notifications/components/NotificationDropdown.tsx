@@ -181,7 +181,7 @@ Notifications
 {unreadCount > 0 && (
 <button
 onClick={handleMarkAllAsRead}
-className='text-[0.65rem] sm:text-xs text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 flex items-center gap-0.5 sm:gap-1'
+className='text-xs text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 flex items-center gap-0.5 sm:gap-1'
             >
 <Check className='h-2.5 w-2.5 sm:h-3 sm:w-3' />
 <span className='hidden xs:inline sm:inline'>Mark all read</span>
@@ -201,7 +201,7 @@ className='text-[0.65rem] sm:text-xs text-blue-500 hover:text-blue-600 dark:text
 <div className='flex flex-col items-center justify-center h-[60vh] sm:h-100 max-h-125 text-muted-foreground gap-2 px-4'>
 <BellOff className='h-8 w-8 sm:h-10 sm:w-10 opacity-50' />
 <p className='text-xs sm:text-sm'>Failed to load notifications</p>
-<p className='text-[0.65rem] sm:text-xs opacity-70'>Check your connection and try again</p>
+<p className='text-xs opacity-70'>Check your connection and try again</p>
 </div>
             ) : notifications.length === 0 ? (
 <div className='flex flex-col items-center justify-center h-[60vh] sm:h-100 max-h-125 text-muted-foreground'>
@@ -222,7 +222,7 @@ onClick={() => handleMarkAsRead(notification.id)}
 {notification.avatar ? (
 <Avatar className='h-9 w-9 sm:h-8 sm:w-8'>
 <AvatarImage src={notification.avatar} />
-<AvatarFallback className='text-[0.65rem] sm:text-xs'>
+<AvatarFallback className='text-xs'>
 {notification.avatarFallback}
 </AvatarFallback>
 </Avatar>
@@ -249,10 +249,10 @@ className={cn(
 <span className='h-1.5 w-1.5 sm:h-2 sm:w-2 rounded-full bg-blue-500 shrink-0' />
                       )}
 </div>
-<p className='text-[0.65rem] sm:text-xs text-muted-foreground line-clamp-2 mt-0.5'>
+<p className='text-xs text-muted-foreground line-clamp-2 mt-0.5'>
 {notification.description}
 </p>
-<p className='text-[0.65rem] sm:text-xs text-muted-foreground/70 mt-0.5 sm:mt-1'>
+<p className='text-xs text-muted-foreground/70 mt-0.5 sm:mt-1'>
 {notification.createdAt
 ? formatRelativeTime(notification.createdAt)
 : notification.time}

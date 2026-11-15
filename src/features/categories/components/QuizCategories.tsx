@@ -6,8 +6,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Button } from "@/components/ui/Button";
-import { ChevronLeft, ChevronRight, Compass } from "lucide-react";
-import { Navigation } from "swiper/modules";
+import { ChevronLeft, ChevronRight, Compass, Pause, Play } from "lucide-react";
+import { Autoplay, Navigation } from "swiper/modules";
 import { useRef, useState } from "react";
 import type { Swiper as SwiperType } from "swiper";
 
@@ -78,6 +78,7 @@ export default function QuizCategories({
   const swiperRef = useRef<SwiperType | null>(null);
   const [isBeginning, setIsBeginning] = useState(true);
   const [isEnd, setIsEnd] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(true);
 
   return (
     <section
@@ -102,6 +103,32 @@ export default function QuizCategories({
         </div>
 
         <div className="flex items-center gap-1.5">
+          <Button
+            size="icon"
+            variant="outline"
+            className="h-9 w-9 rounded-full border-border/80 bg-background/80 hover:bg-main-hover transition-all"
+            onClick={() => {
+              if (!swiperRef.current) return;
+              if (isPlaying) {
+                swiperRef.current.autoplay?.stop();
+                setIsPlaying(false);
+              } else {
+                swiperRef.current.autoplay?.start();
+                setIsPlaying(true);
+              }
+            }}
+            aria-label={
+              isPlaying
+                ? "Pause carousel auto-play"
+                : "Resume carousel auto-play"
+            }
+          >
+            {isPlaying ? (
+              <Pause className="h-4 w-4" aria-hidden="true" />
+            ) : (
+              <Play className="h-4 w-4" aria-hidden="true" />
+            )}
+          </Button>
           <Button
             size="icon"
             variant="outline"
@@ -138,8 +165,13 @@ export default function QuizCategories({
             setIsBeginning(swiper.isBeginning);
             setIsEnd(swiper.isEnd);
           }}
+          autoplay={{
+            delay: 4500,
+            disableOnInteraction: false,
+            pauseOnMouseEnter: true,
+          }}
           pagination={{ clickable: true }}
-          modules={[Navigation]}
+          modules={[Navigation, Autoplay]}
           watchOverflow={true}
           centerInsufficientSlides={true}
           breakpoints={{

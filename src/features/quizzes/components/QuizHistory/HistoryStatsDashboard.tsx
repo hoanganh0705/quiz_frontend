@@ -206,7 +206,7 @@ tick={{ fill: "#9CA3AF", fontSize: 14 }}
 <ChartTooltip content={<ChartTooltipContent />} />
 <Bar
 dataKey="quizzes"
-fill="rgb(168 85 247)"
+fill="var(--brand, oklch(0.65 0.15 270))"
 radius={[4, 4, 0, 0]}
                 />
 </BarChart>

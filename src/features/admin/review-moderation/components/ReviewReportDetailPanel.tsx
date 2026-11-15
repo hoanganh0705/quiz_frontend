@@ -188,7 +188,7 @@ data-testid={`review-report-detail-live-${report.reportId}`}
 <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
 Live review
             </p>
-<Badge variant="outline" className="text-[10px]">
+<Badge variant="outline" className="text-xs">
 Live at fetch time
             </Badge>
 </div>

@@ -134,12 +134,12 @@ className="h-3.5 w-3.5 text-amber-500"
 {entry.displayName}
 </span>
 {isYou ? (
-<span className="rounded bg-primary/10 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-primary">
+<span className="rounded bg-primary/10 px-1.5 py-0.5 text-xs font-semibold uppercase tracking-wide text-primary">
 You
           </span>
         ) : null}
 {entry.isTied ? (
-<span className="text-[10px] text-muted-foreground">tied</span>
+<span className="text-xs text-muted-foreground">tied</span>
         ) : null}
 </div>
 

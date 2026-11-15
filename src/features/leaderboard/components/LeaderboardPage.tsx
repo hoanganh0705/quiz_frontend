@@ -231,14 +231,14 @@ const isSelf = isAuthenticated && entry.isCurrentUser === true
 return (
 <div
 className={cn(
-'flex flex-col items-center gap-2 rounded-t-xl border border-border p-3',
-slot === 1 ? 'bg-yellow-500/10 ring-1 ring-yellow-500/30' : 'bg-slate-800/40',
+'flex flex-col items-center gap-2 rounded-t-2xl border border-border/70 p-3 sm:p-4 backdrop-blur-xs shadow-xs',
+slot === 1 ? 'bg-amber-500/10 border-amber-500/30 ring-1 ring-amber-500/30' : 'bg-card/70',
 isSelf ? 'ring-2 ring-primary' : '',
 offset,
       )}
 aria-current={isSelf ? 'true' : undefined}
     >
-<Avatar className={cn(slot === 1 ? 'h-16 w-16' : 'h-12 w-12')}>
+<Avatar className={cn(slot === 1 ? 'h-16 w-16 border-2 border-amber-500/40' : 'h-12 w-12 border border-border/50')}>
 {entry.avatarUrl ? (
         <AvatarImage src={entry.avatarUrl} alt="" />
         ) : null}
@@ -250,17 +250,17 @@ aria-current={isSelf ? 'true' : undefined}
 {entry.displayName}
 {isSelf ? <span className='ml-1 text-xs text-primary'>(you)</span> : null}
 </p>
-<p className='text-xs text-slate-400 tabular-nums'>
+<p className='text-xs text-muted-foreground font-mono tabular-nums'>
 {entry.xp.toLocaleString()} XP
       </p>
       <div
         className={cn(
-          'flex w-16 items-center justify-center rounded-md text-lg font-bold tabular-nums',
+          'flex w-16 items-center justify-center rounded-lg text-lg font-bold font-mono tabular-nums shadow-xs',
           slot === 1
             ? 'bg-amber-500 text-amber-950'
             : slot === 2
-              ? 'bg-slate-400 text-slate-950'
-              : 'bg-orange-600 text-white',
+              ? 'bg-slate-300 text-slate-900 dark:bg-slate-600 dark:text-white'
+              : 'bg-amber-700 text-white',
           heightClass,
         )}
         role="img"

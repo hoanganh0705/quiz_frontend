@@ -142,7 +142,7 @@ className="text-destructive focus:text-destructive"
                 >
 <span className="flex flex-col gap-0.5">
 <span className="text-sm">Revoke</span>
-<span className="text-[11px] font-normal text-muted-foreground">
+<span className="text-xs font-normal text-muted-foreground">
 This cannot be undone.
                     </span>
 </span>
