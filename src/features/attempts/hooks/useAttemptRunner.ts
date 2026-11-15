@@ -162,6 +162,30 @@ setNavigation(null);
 const [drafts, setDrafts] = React.useState<Record<string, AnswerSelection>>({});
 const draftsRef = React.useRef<Record<string, AnswerSelection>>({});
 
+React.useEffect(() => {
+if (!questions || Object.keys(hydration.submittedAnswers).length === 0) return;
+setDrafts((prev) => {
+let changed = false;
+const next = { ...prev };
+for (const q of questions) {
+const sub = hydration.submittedAnswers[q.questionId];
+if (sub && sub.selectedOptionId && !next[q.questionId]) {
+next[q.questionId] = {
+kind: 'multiple_choice',
+questionId: q.questionId,
+selectedOptionIds: [sub.selectedOptionId],
+};
+changed = true;
+        }
+      }
+if (changed) {
+draftsRef.current = next;
+return next;
+      }
+return prev;
+    });
+  }, [questions, hydration.submittedAnswers]);
+
 const updateDraft = React.useCallback(
 (selection: AnswerSelection) => {
 if (attemptId === null || quizVersionId === null || sessionId === null) {
@@ -292,17 +316,17 @@ await retryActive();
   }, [startHook, retryActive]);
 
 const selectAnswer = React.useCallback(
-(question: QuizQuestionPlayerDto, selection: AnswerSelection): void => {
+async (question: QuizQuestionPlayerDto, selection: AnswerSelection): Promise<void> => {
 if (!attemptId || !quizVersionId) return;
 
 const questionId = question.questionId;
 const wasSubmitted = Boolean(hydration.submittedAnswers[questionId]);
 
 if (wasSubmitted) {
-void deleteHook.withdraw(questionId);
+await deleteHook.withdraw(questionId);
       }
 
-void submitHook.submit(question, selection, null);
+await submitHook.submit(question, selection, null);
     },
 [attemptId, quizVersionId, hydration.submittedAnswers, deleteHook, submitHook],
   );
@@ -316,6 +340,16 @@ setOverlayStatus('submitting');
 
 for (const question of questions) {
 const draft = draftsRef.current[question.questionId];
+const existing = hydration.submittedAnswers[question.questionId];
+if (existing) {
+const isSameSelection =
+draft?.kind === 'multiple_choice' &&
+existing.selectedOptionId === draft.selectedOptionIds[0];
+if (isSameSelection) {
+continue;
+        }
+await deleteHook.withdraw(question.questionId);
+      }
 if (draft) {
 await submitHook.submit(question, draft, null);
       }
@@ -355,8 +389,11 @@ href: resultsHref,
 setOverlayStatus('completed');
     } else {
 setOverlayStatus('idle');
+if ('error' in outcome && outcome.error) {
+throw outcome.error;
+      }
     }
-  }, [questions, sessionId, attemptId, quizVersionId, submitHook, completeHook, idOrSlug]);
+  }, [questions, sessionId, attemptId, quizVersionId, hydration.submittedAnswers, deleteHook, submitHook, completeHook, idOrSlug]);
 
 const abandon = React.useCallback(async () => {
 

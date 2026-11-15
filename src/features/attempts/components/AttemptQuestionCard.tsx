@@ -86,7 +86,7 @@ export function AttemptQuestionCard(
         question={question}
         value={value}
         onChange={onChange}
-        isLocked={isSubmitted}
+        isLocked={isQuestionInvalid}
         isPending={false}
         errorMessage={errorMessage}
         testIdPrefix={`qc-${question.questionId}`}

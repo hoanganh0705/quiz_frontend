@@ -96,3 +96,112 @@ const source = AttemptRunner.toString();
 expect(source).not.toMatch(/completeAttempt|getAttemptReview|getAttemptAnalytics/);
   });
 });
+
+describe('AttemptRunner — question navigator & single question view', () => {
+  const dummyQuestions = [
+    {
+      questionId: 'q-1',
+      questionText: 'Question 1 Title',
+      orderIndex: 0,
+      imageUrl: null,
+      answerOptions: [
+        { optionId: 'opt-1a', text: 'Option 1A', value: '1a' },
+        { optionId: 'opt-1b', text: 'Option 1B', value: '1b' },
+      ],
+    },
+    {
+      questionId: 'q-2',
+      questionText: 'Question 2 Title',
+      orderIndex: 1,
+      imageUrl: null,
+      answerOptions: [
+        { optionId: 'opt-2a', text: 'Option 2A', value: '2a' },
+        { optionId: 'opt-2b', text: 'Option 2B', value: '2b' },
+      ],
+    },
+  ];
+
+  it('renders only the active question, not the full list of all questions', () => {
+    Object.assign(runnerOutcomes, {
+      status: 'in_progress',
+      activeAttempt: { attemptId: 'att-1' },
+      totalQuestions: 2,
+      questions: dummyQuestions,
+      drafts: {},
+      submittedAnswers: {},
+    });
+
+    render(<AttemptRunner {...baseProps} questions={dummyQuestions as never} />);
+
+    // Active question 1 is displayed
+    expect(screen.getByText('Question 1 Title')).toBeInTheDocument();
+    // Question 2 is NOT in the document (single question view)
+    expect(screen.queryByText('Question 2 Title')).not.toBeInTheDocument();
+
+    // Question navigator pills are present
+    expect(screen.getByLabelText('Question 1')).toBeInTheDocument();
+    expect(screen.getByLabelText('Question 2')).toBeInTheDocument();
+  });
+
+  it('navigates to the next question when Next button is clicked', async () => {
+    const { fireEvent } = await import('@testing-library/react');
+    Object.assign(runnerOutcomes, {
+      status: 'in_progress',
+      activeAttempt: { attemptId: 'att-1' },
+      totalQuestions: 2,
+      questions: dummyQuestions,
+      drafts: {},
+      submittedAnswers: {},
+    });
+
+    render(<AttemptRunner {...baseProps} questions={dummyQuestions as never} />);
+
+    expect(screen.getByText('Question 1 Title')).toBeInTheDocument();
+
+    const nextBtn = screen.getByTestId('attempt-runner-next');
+    fireEvent.click(nextBtn);
+
+    expect(screen.getByText('Question 2 Title')).toBeInTheDocument();
+    expect(screen.queryByText('Question 1 Title')).not.toBeInTheDocument();
+  });
+
+  it('navigates to question 2 when pill 2 is clicked in the navigator', async () => {
+    const { fireEvent } = await import('@testing-library/react');
+    Object.assign(runnerOutcomes, {
+      status: 'in_progress',
+      activeAttempt: { attemptId: 'att-1' },
+      totalQuestions: 2,
+      questions: dummyQuestions,
+      drafts: {},
+      submittedAnswers: {},
+    });
+
+    render(<AttemptRunner {...baseProps} questions={dummyQuestions as never} />);
+
+    const pill2 = screen.getByLabelText('Question 2');
+    fireEvent.click(pill2);
+
+    expect(screen.getByText('Question 2 Title')).toBeInTheDocument();
+    expect(screen.queryByText('Question 1 Title')).not.toBeInTheDocument();
+  });
+
+  it('enables the submit button when all questions are answered in drafts', () => {
+    Object.assign(runnerOutcomes, {
+      status: 'in_progress',
+      activeAttempt: { attemptId: 'att-1' },
+      totalQuestions: 2,
+      questions: dummyQuestions,
+      drafts: {
+        'q-1': { kind: 'multiple_choice', questionId: 'q-1', selectedOptionIds: ['opt-1a'] },
+        'q-2': { kind: 'multiple_choice', questionId: 'q-2', selectedOptionIds: ['opt-2a'] },
+      },
+      submittedAnswers: {},
+    });
+
+    render(<AttemptRunner {...baseProps} questions={dummyQuestions as never} />);
+
+    const submitBtn = screen.getByTestId('attempt-runner-submit-quiz');
+    expect(submitBtn).not.toBeDisabled();
+    expect(screen.queryByText(/remaining/)).not.toBeInTheDocument();
+  });
+});
