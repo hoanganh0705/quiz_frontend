@@ -52,3 +52,14 @@ export {
 useInstancesFeatureFlag,
 type UseInstancesFeatureFlagResult,
 } from './useInstancesFeatureFlag';
+
+export {
+useCreateInstance,
+type UseCreateInstanceResult,
+} from './useCreateInstance';
+
+export {
+useListInstances,
+extractInstanceItems,
+type UseListInstancesResult,
+} from './useListInstances';

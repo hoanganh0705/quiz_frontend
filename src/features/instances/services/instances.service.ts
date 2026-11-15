@@ -8,6 +8,7 @@ import { ApiError } from "@/lib/api/core/ApiError";
 
 import type {
 CreateInstanceDto,
+ListInstancesParams,
 StartCountdownDto,
 } from "@/lib/api/generated/schemas";
 
@@ -23,12 +24,14 @@ CancelCountdownResult,
 GetInstanceLeaderboardResult,
 } from "@/lib/api/generated/instances/instances";
 
-export async function listInstances(): Promise<ListInstancesResult["data"]> {
+export async function listInstances(
+params?: ListInstancesParams,
+): Promise<ListInstancesResult["data"]> {
 Sentry.addBreadcrumb({
-category: "phase5:service",
+category: "instances:service",
 message: "instances.listInstances",
   });
-const data = await getInstances().listInstances();
+const data = await getInstances().listInstances(params);
 if (!data.data) {
 throw new ApiError({
 status: 500,

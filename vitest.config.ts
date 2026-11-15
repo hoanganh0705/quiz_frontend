@@ -111,6 +111,8 @@ export default defineConfig({
             "src/features/shared/__tests__/phase5-5-1.integration.spec.tsx",
             // TKT-5.7.G1 — instance hook specs require jsdom (renderHook).
             "src/features/instances/hooks/__tests__/useInstance.spec.tsx",
+            "src/features/instances/hooks/__tests__/useCreateInstance.spec.tsx",
+            "src/features/instances/hooks/__tests__/useListInstances.spec.tsx",
             "src/features/instances/hooks/__tests__/useInstancePlayers.spec.tsx",
             "src/features/instances/hooks/__tests__/useInstancePermissions.spec.tsx",
             "src/features/instances/hooks/__tests__/useJoinInstance.spec.tsx",
@@ -596,6 +598,8 @@ export default defineConfig({
             "src/features/achievements/components/__tests__/AchievementsPage.spec.tsx",
             // TKT-5.7.G1 — instance hook specs require jsdom (renderHook).
             "src/features/instances/hooks/__tests__/useInstance.spec.tsx",
+            "src/features/instances/hooks/__tests__/useCreateInstance.spec.tsx",
+            "src/features/instances/hooks/__tests__/useListInstances.spec.tsx",
             "src/features/instances/hooks/__tests__/useInstancePlayers.spec.tsx",
             "src/features/instances/hooks/__tests__/useInstancePermissions.spec.tsx",
             "src/features/instances/hooks/__tests__/useJoinInstance.spec.tsx",
@@ -617,6 +621,12 @@ export default defineConfig({
             "src/features/instances/components/__tests__/shared/InstanceSkeleton.spec.tsx",
             "src/features/instances/components/__tests__/shared/InstanceClosedState.spec.tsx",
             "src/features/instances/pages/__tests__/InstanceRoomPage.integration.spec.tsx",
+            "src/features/instances/pages/__tests__/InstancesPage.integration.spec.tsx",
+            "src/features/instances/components/__tests__/HostLiveRoomCta.spec.tsx",
+            "src/features/instances/components/__tests__/InstanceCard.spec.tsx",
+            "src/features/instances/components/__tests__/InstanceList.spec.tsx",
+            "src/app/(protected)/instances/__tests__/page.integration.spec.tsx",
+            "src/app/(protected)/instances/[id]/__tests__/page.integration.spec.tsx",
             "src/app/instances/[id]/__tests__/page.integration.spec.tsx",
             // TKT-5.6.G1 — search hook specs require jsdom (renderHook).
             "src/features/search/hooks/__tests__/useDebouncedValue.spec.ts",

@@ -184,10 +184,16 @@ realtime(instanceId: string) {
 return ["instances", "realtime", instanceId] as const;
   },
 
+list(params?: unknown) {
+return ["instances", "list", params ?? {}] as const;
+  },
+
 all(instanceId: string) {
 return {
 detail: this.detail(instanceId),
 players: this.players(instanceId),
+realtime: this.realtime(instanceId),
+list: this.list(),
     } as const;
   },
 } as const;
