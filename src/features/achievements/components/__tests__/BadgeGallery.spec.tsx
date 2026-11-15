@@ -193,4 +193,35 @@ screen.getByTestId("badge-tier-chip-gold"),
 expect(screen.getByText("Weekly Winner")).toBeInTheDocument();
 expect(screen.queryByText("First Quiz")).not.toBeInTheDocument();
   });
+
+it("retains filter header and displays clear button when active filter matches zero badges", () => {
+seedSearchParams({ tier: "DIAMOND" });
+mockUseBadges.mockReturnValue({
+badges: [
+{
+id: "first-quiz",
+code: "first-quiz",
+name: "First Quiz",
+description: "Completed your first quiz.",
+tier: "BRONZE",
+totalEarned: 1234,
+        },
+      ],
+isLoading: false,
+error: null,
+retry: vi.fn(),
+isStale: false,
+    });
+
+render(<BadgeGallery />);
+
+expect(screen.getByTestId("badge-gallery")).toBeInTheDocument();
+expect(screen.getByTestId("badge-tier-chip-diamond")).toHaveAttribute(
+"aria-pressed",
+"true",
+    );
+expect(
+screen.getByText(/no badges found for the selected filter/i),
+    ).toBeInTheDocument();
+  });
 });

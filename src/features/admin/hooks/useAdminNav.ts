@@ -58,12 +58,6 @@ label: 'Users',
 icon: Users,
 requiredPermissions: ['user_grant_role', 'user_revoke_role'],
   },
-{
-href: '/admin/users/roles',
-label: 'User Roles',
-icon: Shield,
-requiredPermissions: ['user_grant_role'],
-  },
 
 {
 href: AUDIT_LOG_ROUTE_PATH,
@@ -94,7 +88,7 @@ icon: Settings,
 requiredPermissions: [],
   },
 {
-href: '/admin/roles',
+href: '/admin/users/roles',
 label: 'Roles & Permissions',
 icon: Shield,
 requiredPermissions: ['user_grant_role'],

@@ -1,9 +1,17 @@
 
 
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, fireEvent } from "@testing-library/react";
 
 import { AchievementsPage } from "@/features/achievements/components/AchievementsPage";
+
+const mockRouterReplace = vi.fn();
+const mockSearchParams = new URLSearchParams();
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ replace: mockRouterReplace }),
+  useSearchParams: () => mockSearchParams,
+  usePathname: () => "/achievements",
+}));
 
 const mockGetFeatureFlagValue = vi.fn();
 vi.mock("@/lib/feature-flags", () => ({
@@ -82,5 +90,26 @@ render(<AchievementsPage />);
 
 expect(mockUseAchievementNotificationRevalidation).toHaveBeenCalledTimes(1);
 expect(mockUseAchievementFocusRevalidation).toHaveBeenCalledTimes(1);
+  });
+
+it("renders tab triggers and allows tab switching", () => {
+mockGetFeatureFlagValue.mockReturnValue("live");
+
+render(<AchievementsPage />);
+
+const catalogTab = screen.getByRole("tab", { name: /Badge Catalog/i });
+const earnedTab = screen.getByRole("tab", { name: /My Badges/i });
+const historyTab = screen.getByRole("tab", { name: /History/i });
+
+expect(catalogTab).toBeInTheDocument();
+expect(earnedTab).toBeInTheDocument();
+expect(historyTab).toBeInTheDocument();
+
+expect(catalogTab).toHaveAttribute("data-state", "active");
+
+fireEvent.mouseDown(earnedTab, { button: 0, ctrlKey: false });
+expect(mockRouterReplace).toHaveBeenCalledWith("/achievements?tab=earned", {
+scroll: false,
+    });
   });
 });

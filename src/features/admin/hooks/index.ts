@@ -30,3 +30,5 @@ export type { UseSelfActionGate } from './useSelfActionGate';
 
 export { useTypedConfirm } from './useTypedConfirm';
 export type { UseTypedConfirm } from './useTypedConfirm';
+
+export { useAdminUserList } from './useAdminUserList';
