@@ -290,4 +290,28 @@ expect(result.current.notFound).toBe(false);
 expect(result.current.error).toBeNull();
 expect(getQuizByIdOrSlugMock).not.toHaveBeenCalled();
   });
+
+it("handles unmount and immediate remount without dropping quiz", async () => {
+  let resolveFirst!: (value: QuizResponseDto) => void;
+  getQuizByIdOrSlugMock.mockImplementationOnce(() => {
+    return new Promise<QuizResponseDto>((resolve) => {
+      resolveFirst = resolve;
+    });
+  });
+  getQuizByIdOrSlugMock.mockResolvedValue(makeResponse("quiz-strict"));
+
+  const hook1 = renderHook(() => useQuizByIdOrSlug("quiz-strict"));
+  hook1.unmount();
+
+  const hook2 = renderHook(() => useQuizByIdOrSlug("quiz-strict"));
+  resolveFirst(makeResponse("quiz-strict"));
+
+  await waitFor(() => {
+    expect(hook2.result.current.isLoading).toBe(false);
+  });
+
+  expect(hook2.result.current.quiz?.quizId).toBe("quiz-strict");
 });
+});
+
+

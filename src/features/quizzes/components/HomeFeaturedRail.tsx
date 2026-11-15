@@ -16,10 +16,6 @@ export function HomeFeaturedRail({
   title = "Featured",
   className,
 }: HomeFeaturedRailProps): React.ReactElement {
-  // Featured items are provided by the server-rendered bundle. The rail
-  // never re-fetches on mount; the refresh button (in the rail's header)
-  // re-fetches explicitly and seeds the SWR cache so any rail that reads
-  // `["home", "bundle"]` resyncs.
   const visibleQuizzes = (items ?? []).slice(0, FEATURED_RAIL_LIMIT);
 
   return (

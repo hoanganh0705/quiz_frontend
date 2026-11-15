@@ -36,6 +36,7 @@ export type FeatureFlag =
   | 'admin_audit_live'
   | 'coin_economy_live'
   | 'coin_spend_live'
+  | 'graphql_pilot_sandbox'
 
 export type FeatureFlagValueMap = {
 
@@ -108,6 +109,7 @@ admin_audit_live: 'live' | 'placeholder'
 coin_economy_live: 'live' | 'placeholder'
 
 coin_spend_live: 'live' | 'placeholder'
+graphql_pilot_sandbox: 'live' | 'placeholder'
 }
 
 export const FEATURE_FLAGS: readonly FeatureFlag[] = [
@@ -146,6 +148,7 @@ export const FEATURE_FLAGS: readonly FeatureFlag[] = [
 'admin_audit_live',
 'coin_economy_live',
 'coin_spend_live',
+'graphql_pilot_sandbox',
 ]
 
 const FLAG_DEFAULTS: FeatureFlagValueMap = {
@@ -184,6 +187,7 @@ admin_user_role_live: 'live',
 admin_audit_live: 'live',
 coin_economy_live: 'live',
 coin_spend_live: 'live',
+graphql_pilot_sandbox: 'placeholder',
 }
 
 const FLAG_ENV_OVERRIDES: Record<FeatureFlag, string | undefined> = {
@@ -222,6 +226,7 @@ admin_user_role_live: process.env.NEXT_PUBLIC_ADMIN_USER_ROLE_LIVE,
 admin_audit_live: process.env.NEXT_PUBLIC_ADMIN_AUDIT_LIVE,
 coin_economy_live: process.env.NEXT_PUBLIC_COIN_ECONOMY_LIVE,
 coin_spend_live: process.env.NEXT_PUBLIC_COIN_SPEND_LIVE,
+graphql_pilot_sandbox: process.env.NEXT_PUBLIC_GRAPHQL_PILOT_SANDBOX,
 }
 
 function isFlagValue<K extends FeatureFlag>(
@@ -265,7 +270,8 @@ flag === 'admin_tournament_live' ||
 flag === 'admin_user_role_live' ||
 flag === 'admin_audit_live' ||
 flag === 'coin_economy_live' ||
-flag === 'coin_spend_live'
+flag === 'coin_spend_live' ||
+flag === 'graphql_pilot_sandbox'
   ) {
 return candidate === 'live' || candidate === 'placeholder'
   }

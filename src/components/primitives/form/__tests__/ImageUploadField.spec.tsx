@@ -49,7 +49,7 @@ async function setUploadResponse(publicId: string): Promise<void> {
   const mock = await getUploadMock();
   mock.mockResolvedValueOnce({
     publicId,
-    url: 'https://res.cloudinary.com/demo/image/upload/' + publicId,
+    url: 'https://images.example.com/' + publicId,
     bytes: 1234,
     format: 'png',
     width: 100,

@@ -14,7 +14,7 @@
  *
  * Phase 3.1 — `POST /api/v1/uploads/:publicId/bind` is also
  * hand-maintained. After the client uploads a file directly to
- * Cloudinary via a signed envelope (see `signUpload` in the backend),
+ * storage via a signed envelope (see `signUpload` in the backend),
  * it must call this endpoint to persist the `(publicId, ownerId,
  * purpose)` ownership row. The route requires an authenticated user.
  */
@@ -58,10 +58,10 @@ export const uploadControllerUploadFile = async (
 
 /**
  * Phase 3.1 — bind a previously uploaded asset (the client uploaded
- * the file directly to Cloudinary via a signed envelope) to the
+ * the file directly to storage via a signed envelope) to the
  * authenticated user.
  *
- * The URL is encoded with `encodeURIComponent` because Cloudinary
+ * The URL is encoded with `encodeURIComponent` because storage
  * `public_id` slugs contain slashes (`quiz-app/avatars/u/uuid`) that
  * axios will otherwise split into path segments.
  */

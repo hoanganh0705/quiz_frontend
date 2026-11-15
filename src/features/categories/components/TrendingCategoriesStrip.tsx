@@ -1,6 +1,7 @@
 'use client'
 
 import { mutate } from 'swr'
+import { Flame } from 'lucide-react'
 
 import { CategoryCard } from './CategoryCard'
 import { CategoryCardSkeleton } from '@/components/primitives'
@@ -27,7 +28,10 @@ aria-label='Trending categories'
 aria-busy='true'
       >
 <div className={STRIP_HEADER}>
-<span>Trending now</span>
+<span className='flex items-center gap-1.5 font-semibold text-foreground'>
+  <Flame className='h-4 w-4 text-amber-500 fill-amber-500' aria-hidden='true' />
+  Trending now
+</span>
 </div>
 <div className={STRIP_CONTAINER}>
 {Array.from({ length: 5 }).map((_, i) => (
@@ -48,7 +52,10 @@ if (error) {
     return (
       <section className='mb-8' aria-label='Trending categories'>
         <div className={STRIP_HEADER}>
-          <span>Trending now</span>
+          <span className='flex items-center gap-1.5 font-semibold text-foreground'>
+            <Flame className='h-4 w-4 text-amber-500 fill-amber-500' aria-hidden='true' />
+            Trending now
+          </span>
           <Button
             variant='outline'
             size='sm'
@@ -76,7 +83,10 @@ aria-label='Trending categories'
 data-testid='trending-strip'
     >
 <div className={STRIP_HEADER}>
-<span>Trending now</span>
+<span className='flex items-center gap-1.5 font-semibold text-foreground'>
+  <Flame className='h-4 w-4 text-amber-500 fill-amber-500' aria-hidden='true' />
+  Trending now
+</span>
 </div>
 <div className={STRIP_CONTAINER}>
 {categories.map((ranked) => (

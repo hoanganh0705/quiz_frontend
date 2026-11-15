@@ -5,7 +5,7 @@
  * Stubs:
  *   - `/api/v1/auth/me`
  *   - `/api/v1/uploads` (multipart/form-data) — captures the upload
- *     payload and returns a Cloudinary-shaped response
+ *     payload and returns a storage-shaped response
  *   - `/api/v1/users/me` (PATCH) — captures the publicId sent back
  *
  * The helpers aim for two contexts:
@@ -31,7 +31,7 @@ function authMeBody(userId: string, username: string, email: string): { data: { 
 export interface StubUploadOptions {
   /** When true, the upload endpoint returns 500 / 502 instead of 201. */
   uploadFails?: boolean;
-  /** When true, the upload endpoint returns a non-Cloudinary-shaped response (triggers client-side shape check). */
+  /** When true, the upload endpoint returns a non-storage-shaped response (triggers client-side shape check). */
   uploadReturnsForgedPublicId?: boolean;
 }
 
@@ -101,7 +101,7 @@ export async function stubUploadSuccess(
       body: JSON.stringify({
         data: {
           publicId: USER_A_PUBLIC_ID,
-          url: `https://res.cloudinary.com/demo/image/upload/w_512,h_512,c_fill,g_auto,q_auto,f_auto/${USER_A_PUBLIC_ID}`,
+          url: `https://images.example.com/${USER_A_PUBLIC_ID}`,
           bytes: 1024,
           format: 'webp',
           width: 512,

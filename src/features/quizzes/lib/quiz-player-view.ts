@@ -42,6 +42,8 @@ slug: string;
 requirements: string | null;
 imageUrl: string | null;
 categoryId: string | null;
+categoryName?: string | null;
+categorySlug?: string | null;
 isFeatured: boolean;
 isHidden: boolean;
 isVerified: boolean;
@@ -174,6 +176,8 @@ slug: quiz.slug,
 requirements: quiz.requirements ?? null,
 imageUrl: quiz.imageUrl ?? null,
 categoryId: quiz.categoryId ?? null,
+categoryName: quiz.categoryName ?? null,
+categorySlug: quiz.categorySlug ?? null,
 isFeatured: quiz.isFeatured,
 isHidden: quiz.isHidden,
 isVerified: quiz.isVerified,

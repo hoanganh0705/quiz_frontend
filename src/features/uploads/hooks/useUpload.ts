@@ -62,7 +62,7 @@ function makeFailure(status: number, code: string, message: string, body?: strin
  * React hook for uploading files via `POST /api/v1/uploads`.
  *
  * Uses `XMLHttpRequest` (not `fetch`) so we can report per-byte
- * progress. The Cloudinary SDK's `axios` path doesn't expose upload
+ * progress. The standard fetch API doesn't expose upload
  * progress because `axios` reports via `onUploadProgress` which is
  * not part of the project's `orvalCustomInstance` mutator signature.
  */

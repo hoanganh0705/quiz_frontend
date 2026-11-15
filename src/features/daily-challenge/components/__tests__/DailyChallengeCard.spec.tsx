@@ -43,7 +43,7 @@ expect(
 screen.getByLabelText('Reward: 100 XP'),
     ).toBeInTheDocument()
 expect(screen.getByText('5 questions')).toBeInTheDocument()
-expect(screen.getByText('2026-08-02T00:00:00.000Z')).toBeInTheDocument()
+expect(screen.getByText('Aug 2, 2026')).toBeInTheDocument()
 expect(
 screen.getByTestId('daily-challenge-card-difficulty'),
     ).toHaveTextContent(/Easy/)

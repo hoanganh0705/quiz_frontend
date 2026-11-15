@@ -139,72 +139,100 @@ export function CategoriesDirectoryPage(): React.ReactElement {
 
       <TrendingCategoriesStrip />
 
-      {isLoading ? (
-        <div
-          className={GRID_LAYOUT}
-          aria-label="Loading categories"
-          aria-busy="true"
-          data-testid="categories-directory-loading"
-        >
-          {Array.from({ length: 9 }).map((_, i) => (
-            <CategoryCardSkeleton key={i} />
-          ))}
+      <section
+        className="space-y-6 pt-6 border-t border-border/60"
+        aria-label="All categories directory"
+      >
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2.5">
+              <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
+                All Categories
+              </h2>
+              {!isLoading && (
+                <span
+                  className="inline-flex items-center rounded-full bg-muted px-2.5 py-0.5 text-xs font-semibold text-foreground-secondary"
+                  data-testid="categories-directory-count-badge"
+                >
+                  {filteredCategories.length}
+                </span>
+              )}
+            </div>
+            <p className="text-sm text-foreground-secondary">
+              {searchTerm.trim()
+                ? `Showing categories matching "${searchTerm.trim()}"`
+                : "Explore our full directory of quiz topics and arenas"}
+            </p>
+          </div>
         </div>
-      ) : error ? (
-        <div
-          className="text-center py-12"
-          role="alert"
-          data-testid="categories-directory-error"
-        >
-          <p className="text-destructive text-lg mb-4">
-            Could not load categories. Please try again.
-          </p>
-          <Button
-            variant="outline"
-            onClick={() => void mutate(SWR_KEY)}
-            data-testid="categories-directory-retry"
+
+        {isLoading ? (
+          <div
+            className={GRID_LAYOUT}
+            aria-label="Loading categories"
+            aria-busy="true"
+            data-testid="categories-directory-loading"
           >
-            Retry
-          </Button>
-        </div>
-      ) : categories.length === 0 ? (
-        <CategoryEmptyState variant="directory" />
-      ) : (
-        <>
-          {filteredCategories.length === 0 ? (
-            <div
-              className="text-center py-12"
-              role="status"
-              aria-live="polite"
-              data-testid="categories-directory-search-empty"
+            {Array.from({ length: 9 }).map((_, i) => (
+              <CategoryCardSkeleton key={i} />
+            ))}
+          </div>
+        ) : error ? (
+          <div
+            className="text-center py-12"
+            role="alert"
+            data-testid="categories-directory-error"
+          >
+            <p className="text-destructive text-lg mb-4">
+              Could not load categories. Please try again.
+            </p>
+            <Button
+              variant="outline"
+              onClick={() => void mutate(SWR_KEY)}
+              data-testid="categories-directory-retry"
             >
-              <p className="text-foreground-secondary text-lg">
-                No categories found matching your search.
-              </p>
-            </div>
-          ) : (
-            <div
-              className={GRID_LAYOUT}
-              role="list"
-              aria-label="Quiz categories"
-              aria-describedby={resultCountId}
-              data-testid="categories-directory-grid"
-            >
-              {filteredCategories.map((ranked) => (
-                <CategoryCard
-                  key={ranked.categoryId}
-                  category={rankedCategoryToCategoryResponse(ranked)}
-                  titleHeadingLevel={2 as const}
-                />
-              ))}
-            </div>
-          )}
-          <span id={resultCountId} className="sr-only">
-            Showing {filteredCategories.length} of {categories.length}{" "}
-            categories
-          </span>
-        </>
-      )}
+              Retry
+            </Button>
+          </div>
+        ) : categories.length === 0 ? (
+          <CategoryEmptyState variant="directory" />
+        ) : (
+          <>
+            {filteredCategories.length === 0 ? (
+              <div
+                className="text-center py-12"
+                role="status"
+                aria-live="polite"
+                data-testid="categories-directory-search-empty"
+              >
+                <p className="text-foreground-secondary text-lg">
+                  No categories found matching your search.
+                </p>
+              </div>
+            ) : (
+              <div
+                className={GRID_LAYOUT}
+                role="list"
+                aria-label="Quiz categories"
+                aria-describedby={resultCountId}
+                data-testid="categories-directory-grid"
+              >
+                {filteredCategories.map((ranked) => (
+                  <CategoryCard
+                    key={ranked.categoryId}
+                    category={rankedCategoryToCategoryResponse(ranked)}
+                    titleHeadingLevel={2 as const}
+                  />
+                ))}
+              </div>
+            )}
+            <span id={resultCountId} className="sr-only">
+              Showing {filteredCategories.length} of {categories.length}{" "}
+              categories
+            </span>
+          </>
+        )}
+      </section>
     </div>
   );
 }

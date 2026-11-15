@@ -42,8 +42,8 @@ export async function uploadFile(payload: UploadFileRequest): Promise<UploadFile
  * is caught client-side and the user gets a structured error instead
  * of a 4xx from the server.
  *
- * Use after a direct-to-Cloudinary upload (via `POST /uploads/sign` →
- * Cloudinary `uploadUrl`) to persist the `(publicId, ownerId, purpose)`
+ * Use after a direct-to-storage upload (via `POST /uploads/sign` →
+ * storage `uploadUrl`) to persist the `(publicId, ownerId, purpose)`
  * ownership row. The server validates the asset row exists and the
  * user is authenticated; this wrapper validates the wire shape only.
  */

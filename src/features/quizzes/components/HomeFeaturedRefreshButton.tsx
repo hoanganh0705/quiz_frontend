@@ -10,12 +10,6 @@ import {
   type FeaturedRefreshHandle,
 } from "./refresh-home-bundle";
 
-/**
- * Header action for the Featured rail (or any rail that wants an explicit
- * "Refresh" button). On click it re-fetches the home bundle and seeds the
- * SWR cache key `["home", "bundle"]` so other rails using the same key
- * resync automatically.
- */
 export function HomeFeaturedRefreshButton({
   onRefreshed,
   className,

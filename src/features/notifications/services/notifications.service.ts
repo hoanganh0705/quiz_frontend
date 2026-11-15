@@ -43,7 +43,7 @@ code: "GLOBAL_INTERNAL_ERROR",
 message: "List notifications response missing data envelope",
     } as unknown as ConstructorParameters<typeof ApiError>[0]);
   }
-return data;
+return (data.data ?? data) as unknown as GetNotificationsResult["data"];
 }
 
 export async function getUnreadCount(): Promise<

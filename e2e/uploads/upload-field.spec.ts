@@ -1,6 +1,6 @@
 /**
  * `upload-field.spec.ts` — Phase 8 Playwright coverage for the §14
- * Cloudinary migration plan's frontend matrix.
+ * storage migration plan's frontend matrix.
  *
  * Coverage:
  *   - ImageUploadField posts multipart/form-data to /api/v1/uploads
@@ -15,7 +15,7 @@
  * These tests stub the network at the /api/v1/* path so they run
  * without a live backend. They are *unit-ish* e2e tests — the goal
  * is to lock the wire contract between `<ImageUploadField>` and the
- * upload endpoint, not to exercise the Cloudinary SDK itself.
+ * upload endpoint, not to exercise the underlying storage provider itself.
  */
 
 import { test, expect } from '@playwright/test';
