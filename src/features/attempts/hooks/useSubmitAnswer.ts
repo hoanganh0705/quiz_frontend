@@ -88,7 +88,7 @@ const [error, setError] = useState<ApiError | null>(null);
 const [isPending, setIsPending] = useState<boolean>(false);
 const [isCoolingDown, setIsCoolingDown] = useState<boolean>(false);
 
-const lastInvocationRef = useRef<number>(0);
+const lastInvocationByQuestionRef = useRef<Record<string, number>>({});
 const cooldownTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
 const reset = useCallback(() => {
@@ -96,7 +96,8 @@ setOutcome(null);
 setError(null);
 setIsPending(false);
 setIsCoolingDown(false);
-  }, []);
+lastInvocationByQuestionRef.current = {};
+}, []);
 
 const submit = useCallback(
 async (
@@ -113,12 +114,13 @@ return { kind: 'idle' };
       }
 
 const now = Date.now();
-if (now - lastInvocationRef.current < DEFAULT_COOLDOWN_MS) {
+const lastTime = lastInvocationByQuestionRef.current[question.questionId] ?? 0;
+if (now - lastTime < DEFAULT_COOLDOWN_MS) {
 const dropped: SubmitAnswerOutcome = { kind: 'cooldown' };
 setOutcome(dropped);
 return dropped;
       }
-lastInvocationRef.current = now;
+lastInvocationByQuestionRef.current[question.questionId] = now;
 
 const validation = validateAndBuildSubmitPayload(
 question,
