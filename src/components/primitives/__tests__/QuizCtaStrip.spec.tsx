@@ -40,6 +40,11 @@ vi.mock('@/features/auth/hooks/use-auth-state', () => ({
 useAuthState: () => useAuthStateMock(),
 }));
 
+vi.mock('@/lib/feature-flags', () => ({
+isFeatureEnabled: (_flag: string, expected: string) => expected === 'placeholder',
+getFeatureFlagValue: () => 'placeholder' as const,
+}));
+
 function uuidV7(index: number): string {
 const tail = String(index).padStart(12, '0');
 return `0192f4d8-0000-7000-8000-${tail}`;

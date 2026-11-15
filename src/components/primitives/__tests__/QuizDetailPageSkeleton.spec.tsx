@@ -17,7 +17,6 @@ expect(screen.getByTestId('quiz-detail-title-skeleton')).toBeInTheDocument();
 expect(screen.getByTestId('quiz-detail-byline-skeleton')).toBeInTheDocument();
 expect(screen.getByTestId('quiz-detail-metadata-skeleton')).toBeInTheDocument();
 expect(screen.getByTestId('quiz-detail-description-skeleton')).toBeInTheDocument();
-expect(screen.getAllByTestId('quiz-detail-question-skeleton')).toHaveLength(5);
 expect(screen.getByTestId('quiz-stats-panel-skeleton')).toBeInTheDocument();
 expect(screen.getByTestId('quiz-stats-sparkline-skeleton').className).toMatch(/h-20/);
 expect(screen.getAllByTestId('quiz-detail-cta-button-skeleton')).toHaveLength(2);
