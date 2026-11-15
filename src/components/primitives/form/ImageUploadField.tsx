@@ -21,14 +21,13 @@ import {
  * Migration note (Phase 7 — migrate-on-write).
  *
  * The form field this component is bound to **always** holds a
- * `publicId` (the new Cloudinary column) after the Cloudinary
- * migration. The legacy Base64 data URL column is still rendered by
+ * `publicId` (the storage column). The legacy Base64 data URL column is still rendered by
  * the backend through a fallback in `UserResponseMapper` /
  * `QuizResponseMapper`, but it never enters this code path: the
  * field is `null` until the user picks a new file, and the user
  * picking a new file writes a `publicId` directly.
  *
- * If the surrounding page renders a pre-Cloudinary avatar (e.g. an
+ * If the surrounding page renders a legacy avatar (e.g. an
  * existing user who has never uploaded through the new flow), the
  * page-level `<Avatar>` component is responsible for the legacy
  * `data:image/...` fallback — this component does not need to

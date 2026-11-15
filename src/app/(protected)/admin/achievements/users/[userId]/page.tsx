@@ -1,11 +1,13 @@
 'use client';
 
+import * as React from 'react';
 import { AchievementAdminUserRouteHandoff } from './_components/AchievementAdminUserRouteHandoff';
 
 export default function AdminAchievementUserPage({
-params,
+  params,
 }: {
-params: { userId: string };
+  params: Promise<{ userId: string }>;
 }) {
-return <AchievementAdminUserRouteHandoff userId={params.userId} />;
+  const { userId } = React.use(params);
+  return <AchievementAdminUserRouteHandoff userId={userId} />;
 }

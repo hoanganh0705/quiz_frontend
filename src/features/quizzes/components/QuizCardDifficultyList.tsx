@@ -78,7 +78,7 @@ return (
               <Button
                 key={level}
                 onClick={() => setSelectedDifficulty(level)}
-                className={`rounded-full px-4 py-1 text-xs sm:text-sm font-medium transition-all cursor-pointer ${
+                className={`rounded-full capitalize px-4 py-1 text-xs sm:text-sm font-medium transition-all cursor-pointer ${
                   selectedDifficulty === level
                     ? `${difficultyColors[level].bg} pointer-events-none text-white dark:text-foreground shadow-xs font-semibold`
                     : `bg-transparent text-foreground dark:text-foreground-secondary ${difficultyColors[level].hover}`

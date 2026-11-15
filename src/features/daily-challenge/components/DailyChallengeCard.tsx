@@ -133,6 +133,17 @@ function StatusCta({
   )
 }
 
+function formatChallengeDate(dateString: string): string {
+  const d = new Date(dateString);
+  if (isNaN(d.getTime())) return dateString;
+  return d.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    timeZone: 'UTC',
+  });
+}
+
 export function DailyChallengeCard({
   challenge,
   isAuthenticated = false,
@@ -184,7 +195,9 @@ export function DailyChallengeCard({
         <div className='flex items-center gap-4 pt-2 text-xs text-foreground-secondary'>
           <span className='inline-flex items-center gap-1'>
             <Calendar className='h-3.5 w-3.5' aria-hidden='true' />
-            <time dateTime={challenge.date}>{challenge.date}</time>
+            <time dateTime={challenge.date}>
+              {formatChallengeDate(challenge.date)}
+            </time>
           </span>
           <span className='inline-flex items-center gap-1'>
             <Clock className='h-3.5 w-3.5' aria-hidden='true' />

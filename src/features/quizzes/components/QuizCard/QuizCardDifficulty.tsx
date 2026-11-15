@@ -55,7 +55,7 @@ sizes='(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw'
 <QuizCardDifficultyBadge
 difficulty={difficulty}
 asDiv
-className='absolute top-3 right-3 text-white'
+className='absolute top-3 right-3 text-white capitalize'
         />
 <QuizCardCreator
 imageURL={creatorImageURL}

@@ -1,5 +1,9 @@
+declare const process: {
+  env: Record<string, string | undefined>;
+};
+
 /**
- * Cloudinary `public_id` shape validation + URL derivation.
+ * Storage `public_id` shape validation + URL derivation.
  *
  * Mirrors the server-side validation in
  * `quiz_backend/src/common/utils/storage-public-id.util.ts` so the
@@ -17,10 +21,8 @@
  *     want to lock the folder prefix into the wire contract).
  *   - `STORAGE_PUBLIC_ID_INVALID_MESSAGE` — human-readable error string.
  *   - `deriveUrlClient(publicId, purpose)` — pure function that maps a
- *     `publicId` to a Cloudinary delivery URL using the public
- *     `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME` env var.
- *   - `extractPublicIdFromCloudinaryUrl` — reversed; useful for legacy
- *     rows whose `avatarUrl` is a Cloudinary URL.
+ *     `publicId` to a public delivery URL using `NEXT_PUBLIC_STORAGE_PUBLIC_URL`
+ *     or `NEXT_PUBLIC_R2_PUBLIC_URL`.
  */
 
 const UUID_V7_PATTERN = '[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}';
@@ -34,49 +36,25 @@ export const STORAGE_PUBLIC_ID_TAIL_PATTERN = new RegExp(
 );
 
 export const STORAGE_PUBLIC_ID_INVALID_MESSAGE =
-  'publicId must match the Cloudinary-assigned shape: quiz-app/<purpose>/<uuidv7>/<uuidv7>';
+  'publicId must match the expected shape: quiz-app/<purpose>/<uuidv7>/<uuidv7>';
 
 export type UploadPurpose = 'avatar' | 'quiz';
 
 /**
  * Pure URL derivation for client-side preview rendering.
  *
- * Reads the cloud name from `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME`. When
- * the env var is missing (e.g. local dev without Cloudinary), returns
- * the raw `publicId` so the caller can still render a placeholder
- * instead of crashing.
- *
- * The transformation params here intentionally mirror the per-purpose
- * shape the backend uses in `UPLOAD_POLICY`. They are kept in sync
- * manually because the client cannot query the backend for the
- * policy at every preview render.
+ * Reads public URL from `NEXT_PUBLIC_STORAGE_PUBLIC_URL` or `NEXT_PUBLIC_R2_PUBLIC_URL`.
+ * When missing, returns the raw `publicId`.
  */
-export function deriveUrlClient(publicId: string, purpose: UploadPurpose): string {
-  const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
-  if (!cloudName) {
+export function deriveUrlClient(publicId: string, _purpose?: UploadPurpose): string {
+  if (publicId.startsWith('http://') || publicId.startsWith('https://')) {
     return publicId;
   }
-  const transformation =
-    purpose === 'avatar'
-      ? 'w_512,h_512,c_fill,g_auto,q_auto,f_auto'
-      : 'w_1600,h_900,c_fill,g_auto,q_auto,f_auto';
-  return `https://res.cloudinary.com/${cloudName}/image/upload/${transformation}/${publicId}`;
-}
-
-/**
- * Reverse of `deriveUrlClient`: extract the `public_id` from a
- * Cloudinary `secure_url`. Used when migrating legacy rows whose
- * `avatarUrl` is a Cloudinary URL rather than a base64 data URL.
- *
- * Returns `null` when the input does not look like a Cloudinary URL.
- */
-export function extractPublicIdFromCloudinaryUrl(url: string): string | null {
-  if (!url || !url.includes('res.cloudinary.com')) {
-    return null;
+  const storagePublicUrl =
+    process.env.NEXT_PUBLIC_STORAGE_PUBLIC_URL || process.env.NEXT_PUBLIC_R2_PUBLIC_URL;
+  if (storagePublicUrl) {
+    const base = storagePublicUrl.replace(/\/+$/, '');
+    return `${base}/${publicId}`;
   }
-  const match = url.match(/\/upload\/(?:[^/]+\/)*?(.+?)\.\w+(?:\?.*)?$/);
-  if (!match || !match[1]) {
-    return null;
-  }
-  return match[1];
+  return publicId;
 }

@@ -22,20 +22,44 @@ interface TournamentDetailRouteProps {
  */
 export async function generateStaticParams(): Promise<Array<{ id: string }>> {
   try {
+    const activeIds: Array<{ id: string }> = [];
+    const extractIds = (res: unknown): Array<{ id: string }> => {
+      if (!res) return [];
+      if (Array.isArray(res)) {
+        return res
+          .filter((t): t is { tournamentId: string } => typeof t === 'object' && t !== null && 'tournamentId' in t)
+          .map((t) => ({ id: t.tournamentId }));
+      }
+      if (typeof res === 'object' && res !== null) {
+        const obj = res as Record<string, unknown>;
+        if (Array.isArray(obj.data)) {
+          return obj.data
+            .filter((t): t is { tournamentId: string } => typeof t === 'object' && t !== null && 'tournamentId' in t)
+            .map((t) => ({ id: t.tournamentId }));
+        }
+        if (Array.isArray(obj.items)) {
+          return obj.items
+            .filter((t): t is { tournamentId: string } => typeof t === 'object' && t !== null && 'tournamentId' in t)
+            .map((t) => ({ id: t.tournamentId }));
+        }
+        if ('tournamentId' in obj && typeof obj.tournamentId === 'string') {
+          return [{ id: obj.tournamentId }];
+        }
+      }
+      return [];
+    };
+
     const tournaments = await getTournaments({
       status: 'ongoing',
     });
-    const activeIds = (tournaments?.data ?? []).map(
-      (t) => ({ id: (t as { tournamentId: string }).tournamentId }),
-    );
+    activeIds.push(...extractIds(tournaments));
+
     // Also include upcoming tournaments for build-time prerendering
     try {
       const upcomingTournaments = await getTournaments({
         status: 'upcoming',
       });
-      const upcomingIds = (upcomingTournaments?.data ?? []).map(
-        (t) => ({ id: (t as { tournamentId: string }).tournamentId }),
-      );
+      const upcomingIds = extractIds(upcomingTournaments);
       // Deduplicate
       const seen = new Set(activeIds.map((p) => p.id));
       for (const item of upcomingIds) {

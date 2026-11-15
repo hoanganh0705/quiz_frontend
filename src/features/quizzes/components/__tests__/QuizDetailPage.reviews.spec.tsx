@@ -43,6 +43,24 @@ vi.mock('next/navigation', () => ({ notFound: notFoundMock }));
 vi.mock('@/features/quizzes/hooks/useQuizByIdOrSlug', () => ({
 useQuizByIdOrSlug: detailHookMock,
 }));
+vi.mock('@/features/quizzes/hooks/useQuizAggregate', () => ({
+  useQuizAggregate: (idOrSlug: string) => {
+    const detail = detailHookMock(idOrSlug);
+    const stats = statsHookMock(idOrSlug);
+    return {
+      quiz: detail.quiz,
+      playerQuiz: detail.quiz,
+      stats: stats.stats,
+      statsHistory: [],
+      previewQuestions: [],
+      notFound: detail.notFound,
+      isLoading: detail.isLoading,
+      error: detail.error,
+      retry: detail.retry,
+      isRetrying: detail.isRetrying,
+    };
+  },
+}));
 vi.mock('@/features/quizzes/hooks/useQuizStatsByIdOrSlug', () => ({
 useQuizStatsByIdOrSlug: statsHookMock,
 }));

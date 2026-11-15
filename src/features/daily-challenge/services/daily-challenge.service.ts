@@ -64,7 +64,9 @@ quizId: dto.quizId,
 quizTitle: dto.quizTitle ?? '',
 slug: dto.slug ?? '',
 difficulty,
-category: difficulty,
+category:
+  (dto as { categoryName?: string | null }).categoryName ||
+  (difficulty.charAt(0).toUpperCase() + difficulty.slice(1)),
 totalQuestions: dto.questionCount,
 rewardXp: dto.rewardXp,
 expiresAt: dto.expiresAt,

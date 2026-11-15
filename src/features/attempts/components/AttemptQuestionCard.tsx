@@ -5,6 +5,7 @@ import * as React from "react";
 import { cn } from "@/shared/utils/merge-class-names";
 
 import { AttemptAnswerPicker } from "./AttemptAnswerPicker";
+import type { AnswerSelection } from "../types";
 
 import type { QuizQuestionPlayerDto } from "@/lib/api/generated/schemas";
 

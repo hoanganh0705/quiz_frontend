@@ -144,25 +144,47 @@ setIsRetrying(true);
 const keyJson = JSON.stringify(key);
 const sharedPromise = inFlightByKey.get(keyJson);
 if (sharedPromise !== undefined) {
-try {
-const result = (await sharedPromise) as T;
-if (!mountedRef.current) return;
-if (epochRef.current !== epoch) return;
-setData(result);
-setError(null);
-        } catch (err) {
-if (!mountedRef.current) return;
-if (epochRef.current !== epoch) return;
-if (err instanceof DOMException && err.name === 'AbortError') return;
-setError(coerceToApiError(err));
-        } finally {
-if (mountedRef.current && epochRef.current === epoch) {
-setIsLoading(false);
-setIsRetrying(false);
-          }
-        }
-return;
+  let sharedHandled = false;
+  try {
+    const result = (await sharedPromise) as T;
+    if (!mountedRef.current || epochRef.current !== epoch) return;
+    setData(result);
+    setError(null);
+    sharedHandled = true;
+  } catch (err) {
+    if (!mountedRef.current || epochRef.current !== epoch) return;
+    if (err instanceof DOMException && err.name === 'AbortError') {
+      if (controller.signal.aborted) {
+        return;
       }
+      // The shared promise was aborted by an earlier caller (e.g. StrictMode remount).
+      // Fall through to start a local request with our active signal.
+    } else {
+      setError(coerceToApiError(err));
+      sharedHandled = true;
+    }
+  } finally {
+    if (
+      sharedHandled ||
+      controller.signal.aborted ||
+      !mountedRef.current ||
+      epochRef.current !== epoch
+    ) {
+      if (mountedRef.current && epochRef.current === epoch) {
+        setIsLoading(false);
+        setIsRetrying(false);
+      }
+    }
+  }
+  if (
+    sharedHandled ||
+    controller.signal.aborted ||
+    !mountedRef.current ||
+    epochRef.current !== epoch
+  ) {
+    return;
+  }
+}
 
 const localPromise = (async (): Promise<T> => {
 try {
@@ -198,17 +220,19 @@ setIsRetrying(false);
 
 const keyJson = JSON.stringify(key);
 useEffect(() => {
-keyRef.current = key;
-setData(undefined);
-setError(null);
-void execute(true);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [keyJson]);
+  mountedRef.current = true;
+  keyRef.current = key;
+  setData(undefined);
+  setError(null);
+  void execute(true);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+}, [keyJson]);
 
 const retry = useCallback(async (): Promise<void> => {
-setError(null);
-await execute(true);
-  }, [execute]);
+  mountedRef.current = true;
+  setError(null);
+  await execute(true);
+}, [execute]);
 
 useEffect(() => {
 mountedRef.current = true;

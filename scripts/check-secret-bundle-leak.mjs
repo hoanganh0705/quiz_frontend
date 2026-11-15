@@ -1,20 +1,17 @@
 #!/usr/bin/env node
 /**
- * check-cloudinary-secret-bundle-leak.mjs — Phase 8 §14 security gate.
+ * check-secret-bundle-leak.mjs — Security gate.
  *
- * Verifies the Cloudinary API secret never leaks into the production
- * frontend bundle. The frontend only needs the `cloud_name` (via
- * `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME`) to render `<Image>` srcsets —
- * the API key + API secret are server-only.
+ * Verifies storage secrets never leak into the production
+ * frontend bundle. R2 credentials (R2_SECRET_ACCESS_KEY, R2_ACCESS_KEY_ID)
+ * are server-only.
  *
  * Two checks:
- *   1. Source-level: ensure no `CLOUDINARY_API_SECRET` reference exists
+ *   1. Source-level: ensure no storage secret reference exists
  *      in any file that ships to the browser (`src/`, excluding
  *      server-only filenames).
  *   2. Bundle-level: when present, scan `.next/` for the literal env
- *      var name (the value would be inlined at build time). This
- *      catches a future regression where someone adds
- *      `process.env.CLOUDINARY_API_SECRET` to a client component.
+ *      var name (the value would be inlined at build time).
  *
  * Exit codes:
  *   0 — no leak detected.
@@ -22,7 +19,7 @@
  *   2 — bundle not built (run `pnpm build` first).
  *
  * Usage:
- *   node scripts/check-cloudinary-secret-bundle-leak.mjs
+ *   node scripts/check-secret-bundle-leak.mjs
  */
 
 import { readFileSync, readdirSync, statSync, existsSync } from 'node:fs';
@@ -32,7 +29,7 @@ import { fileURLToPath } from 'node:url';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dirname, '..');
 
-const SECRET_VAR = 'CLOUDINARY_API_SECRET';
+const SECRET_VARS = ['R2_SECRET_ACCESS_KEY', 'R2_ACCESS_KEY_ID'];
 const BUNDLE_DIR = resolve(ROOT, '.next');
 
 let leakFound = false;
@@ -58,21 +55,23 @@ const SOURCE_FILES = walk(
   resolve(ROOT, 'src'),
   (file) =>
     /\.(ts|tsx|js|jsx|mjs)$/.test(file) &&
-    !file.includes('cloudinary-secret-bundle-leak'),
+    !file.includes('secret-bundle-leak'),
 );
 
 for (const file of SOURCE_FILES) {
   const src = readFileSync(file, 'utf8');
-  if (src.includes(SECRET_VAR)) {
-    console.error(`check-cloudinary-secret-bundle-leak: SOURCE LEAK at ${file.replace(ROOT + '/', '')}`);
-    leakFound = true;
+  for (const secretVar of SECRET_VARS) {
+    if (src.includes(secretVar)) {
+      console.error(`check-secret-bundle-leak: SOURCE LEAK (${secretVar}) at ${file.replace(ROOT + '/', '')}`);
+      leakFound = true;
+    }
   }
 }
 
 // ─── 2. Bundle-level scan ─────────────────────────────────────────────
 
 if (!existsSync(BUNDLE_DIR)) {
-  console.error('check-cloudinary-secret-bundle-leak: .next/ not found — run `pnpm build` first');
+  console.error('check-secret-bundle-leak: .next/ not found — run `pnpm build` first');
   process.exit(2);
 }
 
@@ -80,16 +79,18 @@ const BUNDLE_FILES = walk(BUNDLE_DIR, (file) => /\.(js|cjs|mjs)$/.test(file));
 
 for (const file of BUNDLE_FILES) {
   const src = readFileSync(file, 'utf8');
-  if (src.includes(SECRET_VAR)) {
-    console.error(`check-cloudinary-secret-bundle-leak: BUNDLE LEAK at ${file.replace(ROOT + '/', '')}`);
-    leakFound = true;
+  for (const secretVar of SECRET_VARS) {
+    if (src.includes(secretVar)) {
+      console.error(`check-secret-bundle-leak: BUNDLE LEAK (${secretVar}) at ${file.replace(ROOT + '/', '')}`);
+      leakFound = true;
+    }
   }
 }
 
 if (leakFound) {
-  console.error('check-cloudinary-secret-bundle-leak: FAIL — secret reference detected');
+  console.error('check-secret-bundle-leak: FAIL — secret reference detected');
   process.exit(1);
 }
 
-console.log('check-cloudinary-secret-bundle-leak: OK — no secret reference in source or bundle');
+console.log('check-secret-bundle-leak: OK — no secret reference in source or bundle');
 process.exit(0);

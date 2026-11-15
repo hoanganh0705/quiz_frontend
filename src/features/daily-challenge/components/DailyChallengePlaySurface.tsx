@@ -112,9 +112,7 @@ export function DailyChallengePlaySurface({
   const question = questions[currentIndex]
   const hasQuestions = questions.length > 0
   const totalForDisplay = hasQuestions ? questions.length : totalQuestions
-  const stepForDisplay = hasQuestions
-    ? Math.min(currentIndex + 1, totalForDisplay)
-    : totalForDisplay
+  const stepForDisplay = Math.min(currentIndex + 1, totalForDisplay || 1)
   const progressValue = hasQuestions
     ? Math.round((currentIndex / questions.length) * 100)
     : 0
@@ -125,31 +123,31 @@ export function DailyChallengePlaySurface({
       aria-label='Daily challenge question'
       data-testid='daily-challenge-play-surface'
       data-status={status}
-      className={cn('border bg-background text-foreground', className)}
+      className={cn('border bg-card text-foreground py-6 sm:py-8 shadow-sm', className)}
     >
-      <CardHeader>
+      <CardHeader className='px-6 sm:px-8 pb-4'>
         <div className='flex items-center justify-between gap-2'>
           <CardTitle
             id='daily-challenge-play-title'
-            className='text-lg font-semibold'
+            className='text-xl font-bold tracking-tight'
           >
             <span data-testid='daily-challenge-play-step'>
               Question {stepForDisplay} of {totalForDisplay}
             </span>
           </CardTitle>
-          <span className='text-xs text-foreground-secondary'>
+          <span className='text-sm text-foreground-secondary'>
             Reward:{' '}
-            <span className='font-medium text-foreground'>+{rewardXp} XP</span>
+            <span className='font-semibold text-foreground'>+{rewardXp} XP</span>
           </span>
         </div>
         <Progress
           value={progressValue}
           aria-label='Daily challenge progress'
           data-testid='daily-challenge-play-progress'
-          className='mt-2'
+          className='mt-3 h-2'
         />
       </CardHeader>
-      <CardContent className='space-y-4'>
+      <CardContent className='px-6 sm:px-8 space-y-6 pt-2 pb-4'>
         {isQuizLoading && status === 'idle' ? (
           <p
             className='text-sm text-foreground-secondary'
@@ -210,17 +208,17 @@ function QuestionPanel({
   onSubmit: () => void
 }) {
   return (
-    <div className='space-y-4' data-testid='daily-challenge-play-question'>
+    <div className='space-y-6 py-2' data-testid='daily-challenge-play-question'>
       <p
         id={`daily-challenge-question-${question.questionId}`}
-        className='text-base font-medium leading-snug'
+        className='text-base sm:text-lg font-semibold leading-relaxed text-foreground'
       >
         {question.questionText}
       </p>
       <div
         role='radiogroup'
         aria-labelledby={`daily-challenge-question-${question.questionId}`}
-        className='grid gap-2'
+        className='grid gap-3 pt-1'
       >
         {question.answerOptions.map((option) => {
           const isSelected = selectedOptionId === option.optionId
@@ -236,21 +234,21 @@ function QuestionPanel({
               data-selected={isSelected}
               onClick={() => onSelect(option.optionId)}
               className={cn(
-                'flex items-center justify-between rounded-md border bg-background px-3 py-2 text-left text-sm transition-colors',
-                'hover:border-primary/40 focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] focus-visible:outline-none',
-                isSelected && 'border-primary bg-primary/5',
+                'flex items-center justify-between rounded-lg border bg-background px-4 py-3.5 text-left text-sm font-medium transition-all duration-200',
+                'hover:border-primary/50 hover:bg-muted/30 focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] focus-visible:outline-none',
+                isSelected && 'border-primary bg-primary/10 shadow-sm ring-1 ring-primary/30',
                 isSubmitting && 'cursor-not-allowed opacity-60',
               )}
             >
-              <span>{option.value}</span>
+              <span className='text-foreground'>{option.value}</span>
               {isSelected ? (
-                <ChevronRight className='h-4 w-4 text-primary' aria-hidden='true' />
+                <ChevronRight className='h-4 w-4 text-primary shrink-0' aria-hidden='true' />
               ) : null}
             </button>
           )
         })}
       </div>
-      <div className='flex items-center justify-between gap-3'>
+      <div className='flex items-center justify-between gap-3 pt-2'>
         <p
           className='text-xs text-foreground-secondary'
           aria-live='polite'
