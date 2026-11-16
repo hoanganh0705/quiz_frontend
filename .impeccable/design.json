@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-11-15T01:18:00.000Z",
+  "generatedAt": "2026-11-15T09:38:30.000Z",
   "title": "Design System: QuizHub",
   "extensions": {
     "colorMeta": {
@@ -17,6 +17,19 @@
           "oklch(0.80 0.12 270)",
           "oklch(0.90 0.07 270)",
           "oklch(0.96 0.03 270)"
+        ]
+      },
+      "arcade-violet-hover": {
+        "role": "primary",
+        "displayName": "Arcade Violet Hover",
+        "canonical": "oklch(0.72 0.15 270)",
+        "tonalRamp": [
+          "oklch(0.25 0.08 270)",
+          "oklch(0.40 0.12 270)",
+          "oklch(0.55 0.14 270)",
+          "oklch(0.72 0.15 270)",
+          "oklch(0.82 0.12 270)",
+          "oklch(0.92 0.07 270)"
         ]
       },
       "cosmic-slate": {
@@ -47,6 +60,49 @@
           "oklch(0.85 0.015 260)",
           "oklch(0.92 0.01 260)",
           "oklch(0.97 0.005 260)"
+        ]
+      },
+      "canvas-white": {
+        "role": "neutral",
+        "displayName": "Canvas White",
+        "canonical": "oklch(1 0 0)",
+        "tonalRamp": [
+          "oklch(0.85 0 0)",
+          "oklch(0.92 0 0)",
+          "oklch(0.96 0 0)",
+          "oklch(1 0 0)"
+        ]
+      },
+      "charcoal-fg": {
+        "role": "neutral",
+        "displayName": "Charcoal Foreground",
+        "canonical": "oklch(0.2656 0 0)",
+        "tonalRamp": [
+          "oklch(0.15 0 0)",
+          "oklch(0.2656 0 0)",
+          "oklch(0.45 0 0)",
+          "oklch(0.65 0 0)"
+        ]
+      },
+      "text-white": {
+        "role": "neutral",
+        "displayName": "Text White",
+        "canonical": "oklch(0.985 0 0)",
+        "tonalRamp": [
+          "oklch(0.75 0 0)",
+          "oklch(0.88 0 0)",
+          "oklch(0.985 0 0)"
+        ]
+      },
+      "muted-gray": {
+        "role": "neutral",
+        "displayName": "Muted Gray",
+        "canonical": "oklch(0.45 0 0)",
+        "tonalRamp": [
+          "oklch(0.30 0 0)",
+          "oklch(0.45 0 0)",
+          "oklch(0.65 0 0)",
+          "oklch(0.80 0 0)"
         ]
       },
       "arcade-emerald": {
@@ -92,6 +148,26 @@
           "oklch(0.88 0.07 25)",
           "oklch(0.93 0.04 25)",
           "oklch(0.97 0.02 25)"
+        ]
+      },
+      "border-hairline": {
+        "role": "neutral",
+        "displayName": "Border Hairline",
+        "canonical": "oklch(0.922 0 0)",
+        "tonalRamp": [
+          "oklch(0.85 0 0)",
+          "oklch(0.922 0 0)",
+          "oklch(0.97 0 0)"
+        ]
+      },
+      "border-dark": {
+        "role": "neutral",
+        "displayName": "Border Dark",
+        "canonical": "oklch(0.5 0 0)",
+        "tonalRamp": [
+          "oklch(0.35 0 0)",
+          "oklch(0.5 0 0)",
+          "oklch(0.65 0 0)"
         ]
       }
     },
