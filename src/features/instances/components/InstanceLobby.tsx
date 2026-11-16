@@ -11,6 +11,7 @@ import type { InstanceStatus } from "@/features/instances/types/instance.types";
 import { ConnectionBanner } from "./ConnectionBanner";
 import { HostControls } from "./HostControls";
 import { InstanceStatusBanner } from "./InstanceStatusBanner";
+import { InstanceShareCard } from "./InstanceShareCard";
 import { JoinLeaveCta } from "./JoinLeaveCta";
 import { PlayerRoster } from "./PlayerRoster";
 
@@ -51,6 +52,13 @@ currentUserId={currentUserId}
       />
 
 <ConnectionBanner instanceId={instanceId} />
+
+{instanceId && !isClosed && (
+  <InstanceShareCard
+    instanceId={instanceId}
+    quizTitle={instance?.quizTitle ?? null}
+  />
+)}
 
 <PlayerRoster
 instanceId={instanceId}

@@ -34,3 +34,9 @@ export type { InstanceListSkeletonProps } from "./InstanceListSkeleton";
 
 export { InstanceList } from "./InstanceList";
 export type { InstanceListProps } from "./InstanceList";
+
+export { InstanceShareCard } from "./InstanceShareCard";
+export type { InstanceShareCardProps } from "./InstanceShareCard";
+
+export { InstanceQrCodeDialog } from "./InstanceQrCodeDialog";
+export type { InstanceQrCodeDialogProps } from "./InstanceQrCodeDialog";
