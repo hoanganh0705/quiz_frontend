@@ -6,6 +6,11 @@ import { cleanup, render } from "@testing-library/react";
 import { InstanceRoomPage } from "@/features/instances/pages/InstanceRoomPage";
 import { instanceMocks, makeInstanceDetail } from "../../components/__tests__/test-helpers";
 
+const mockPush = vi.fn();
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ push: mockPush }),
+}));
+
 const mockUseAuthBootstrap = vi.fn();
 vi.mock("@/features/auth/hooks/use-auth-session", () => ({
 useAuthSession: () => mockUseAuthBootstrap(),

@@ -156,11 +156,17 @@ const wire = await listWithParams(instanceId, {
 ...(typeof filters.limit === "number" ? { limit: filters.limit } : {}),
         });
 
-const items: InstancePlayer[] = (wire.data ?? []).map((raw) =>
+const rawItems: InstancePlayerResponseDto[] = Array.isArray(wire)
+  ? wire
+  : Array.isArray((wire as ListInstancePlayersWireResponse)?.data)
+    ? (wire as ListInstancePlayersWireResponse).data!
+    : [];
+
+const items: InstancePlayer[] = rawItems.map((raw) =>
 projectPlayer(raw, hostUserId, currentUserId),
         );
 
-const pagination = wire.meta?.pagination;
+const pagination = !Array.isArray(wire) ? wire.meta?.pagination : undefined;
 const limit = pagination?.limit ?? items.length;
 return {
 items,

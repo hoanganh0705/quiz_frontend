@@ -2,6 +2,9 @@
 
 export * from "./shared";
 
+export { InstanceCountdownBanner } from "./InstanceCountdownBanner";
+export type { InstanceCountdownBannerProps } from "./InstanceCountdownBanner";
+
 export { PlayerRoster } from "./PlayerRoster";
 export type { PlayerRosterProps } from "./PlayerRoster";
 

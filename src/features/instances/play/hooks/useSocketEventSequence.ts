@@ -13,8 +13,6 @@ GameplayEventName,
 
 type SequenceMap = Partial<Record<GameplayEventName, number>>;
 
-const MAX_SAFE_SEQ = Number.MAX_SAFE_INTEGER;
-
 function compareSeq(a: number | undefined, b: number | undefined): number {
 if (a === undefined && b === undefined) return 0;
 if (a === undefined) return -1;
@@ -77,7 +75,7 @@ if (compareSeq(sequence, last) > 0) {
 map[event] = sequence;
 
 Sentry.addBreadcrumb({
-category: "phase5:5.8",
+category: "gameplay:sequence",
 message: `sequence:accepted`,
 data: {
 event,
@@ -105,7 +103,7 @@ if (instanceId === null) return;
 registry.current.delete(instanceId);
 
 Sentry.addBreadcrumb({
-category: "phase5:5.8",
+category: "gameplay:sequence",
 message: `sequence:reset`,
 data: { instanceId },
 level: "info",

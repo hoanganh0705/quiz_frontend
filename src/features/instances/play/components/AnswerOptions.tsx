@@ -1,160 +1,201 @@
 "use client";
 
-import { Loader2 } from "lucide-react";
+import { Loader2, ArrowRight } from "lucide-react";
 import { useCallback } from "react";
 
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/shared/utils/merge-class-names";
 
 import {
-useQuestionRevealed,
-useSubmitInstanceAnswer,
-type UseQuestionRevealedResult,
+  useQuestionRevealed,
+  useSubmitInstanceAnswer,
+  useQuestionTimer,
+  type UseQuestionRevealedResult,
 } from "@/features/instances/play/hooks";
+import {
+  useInstanceGameplayStore,
+  selectCanAdvanceQuestion,
+} from "../stores/instanceGameplay.store";
 
 interface AnswerOptionsProps {
-instanceId: string;
-className?: string;
+  instanceId: string;
+  className?: string;
 }
 
 export function AnswerOptions({ instanceId, className }: AnswerOptionsProps) {
-const { bundle }: UseQuestionRevealedResult = useQuestionRevealed(instanceId);
-const questionId = bundle?.question.id ?? null;
+  const { bundle }: UseQuestionRevealedResult = useQuestionRevealed(instanceId);
+  const questionId = bundle?.question.id ?? null;
 
-const {
-submit,
-state: submissionState,
-canSubmit,
+  const {
+    submit,
+    state: submissionState,
+    selectedOptionId,
+    canSubmit,
   } = useSubmitInstanceAnswer(instanceId, questionId);
 
-const isPending = submissionState === "pending";
-const isAccepted = submissionState === "accepted";
-
-const handleOptionClick = useCallback(
-(optionId: string) => {
-if (!canSubmit || isPending || isAccepted) return;
-submit(optionId);
-    },
-[canSubmit, isPending, isAccepted, submit],
+  const { isWindowOpen } = useQuestionTimer(instanceId);
+  const advanceQuestion = useInstanceGameplayStore((s) => s.advanceQuestion);
+  const hasNext = useInstanceGameplayStore((s) =>
+    selectCanAdvanceQuestion(s, instanceId),
   );
 
-if (!bundle || bundle.options.length === 0) {
-return null;
+  const isPending = submissionState === "pending";
+  const isAccepted = submissionState === "accepted";
+
+  const handleOptionClick = useCallback(
+    (optionId: string) => {
+      if (!canSubmit || isPending || isAccepted) return;
+      submit(optionId);
+    },
+    [canSubmit, isPending, isAccepted, submit],
+  );
+
+  if (!bundle || bundle.options.length === 0) {
+    return null;
   }
 
-return (
-<div
-className={cn("space-y-3", className)}
-data-testid="answer-options"
-role="radiogroup"
-aria-label="Answer options"
+  return (
+    <div
+      className={cn("space-y-3", className)}
+      data-testid="answer-options"
+      role="radiogroup"
+      aria-label="Answer options"
     >
-{bundle.options.map((option) => {
-const isDisabled = !canSubmit || isPending;
-const isSelected =
-isAccepted &&
-bundle?.question.id === questionId;
+      {bundle.options.map((option) => {
+        const isDisabled = !canSubmit || isPending;
+        const isSelected =
+          (isAccepted && selectedOptionId === option.id) ||
+          (isAccepted && selectedOptionId === null);
 
-return (
-<OptionRow
-key={option.id}
-option={option}
-isDisabled={isDisabled}
-isPending={isPending}
-isSelected={isSelected}
-onSelect={handleOptionClick}
-optionIndex={option.index}
+        return (
+          <OptionRow
+            key={option.id}
+            option={option}
+            isDisabled={isDisabled}
+            isPending={isPending}
+            isSelected={isSelected}
+            onSelect={handleOptionClick}
+            optionIndex={option.index}
           />
         );
       })}
-</div>
+
+      {isAccepted && (
+        <div className="pt-4 flex justify-end">
+          <Button
+            type="button"
+            onClick={() => advanceQuestion(instanceId)}
+            className="gap-2"
+            data-testid="advance-question-btn"
+          >
+            {hasNext ? "Next Question" : "Finish Quiz"}
+            <ArrowRight className="h-4 w-4" />
+          </Button>
+        </div>
+      )}
+
+      {!isWindowOpen && !isAccepted && !isPending && (
+        <div className="pt-4 flex items-center justify-between">
+          <span className="text-sm text-destructive font-medium">Time&apos;s up!</span>
+          <Button
+            type="button"
+            onClick={() => advanceQuestion(instanceId)}
+            variant="outline"
+            className="gap-2"
+            data-testid="advance-question-btn"
+          >
+            {hasNext ? "Next Question" : "Finish Quiz"}
+            <ArrowRight className="h-4 w-4" />
+          </Button>
+        </div>
+      )}
+    </div>
   );
 }
 
 interface OptionRowProps {
-option: {
-id: string;
-index: number;
-text: string;
-mediaUrl?: string;
+  option: {
+    id: string;
+    index: number;
+    text: string;
+    mediaUrl?: string;
   };
-isDisabled: boolean;
-isPending: boolean;
-isSelected: boolean;
-onSelect: (optionId: string) => void;
-optionIndex: number;
+  isDisabled: boolean;
+  isPending: boolean;
+  isSelected: boolean;
+  onSelect: (optionId: string) => void;
+  optionIndex: number;
 }
 
 function OptionRow({
-option,
-isDisabled,
-isPending,
-isSelected,
-onSelect,
-optionIndex,
+  option,
+  isDisabled,
+  isPending,
+  isSelected,
+  onSelect,
+  optionIndex,
 }: OptionRowProps) {
-return (
-<div
-className={cn(
-"flex items-start gap-3 p-4 rounded-lg border transition-colors",
-isSelected
-? "border-primary bg-primary/5"
-: "border-border hover:border-primary/50 hover:bg-muted/30",
-isDisabled && "opacity-60 cursor-not-allowed",
+  return (
+    <div
+      className={cn(
+        "flex items-start gap-3 p-4 rounded-lg border transition-colors",
+        isSelected
+          ? "border-primary bg-primary/5"
+          : "border-border hover:border-primary/50 hover:bg-muted/30",
+        isDisabled && "opacity-60 cursor-not-allowed",
       )}
-data-testid="option-row"
-data-option-id={option.id}
-data-option-index={optionIndex}
+      data-testid="option-row"
+      data-option-id={option.id}
+      data-option-index={optionIndex}
     >
-{/* Radio-style indicator */}
-<div
-className={cn(
-"flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 mt-0.5 transition-colors",
-isSelected
-? "border-primary bg-primary"
-: "border-muted-foreground/30",
-isDisabled && "border-muted-foreground/20",
+      {/* Radio-style indicator */}
+      <div
+        className={cn(
+          "flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 mt-0.5 transition-colors",
+          isSelected
+            ? "border-primary bg-primary"
+            : "border-muted-foreground/30",
+          isDisabled && "border-muted-foreground/20",
         )}
-aria-hidden="true"
+        aria-hidden="true"
       >
-{isPending && (
-<Loader2 className="h-3 w-3 text-white animate-spin" />
+        {isPending && (
+          <Loader2 className="h-3 w-3 text-white animate-spin" />
         )}
-</div>
+      </div>
 
-{/* Option content */}
-<div className="flex-1 min-w-0">
-<p className="text-sm font-medium text-foreground leading-relaxed">
-{option.text}
-</p>
-{option.mediaUrl && (
-
-<img
-src={option.mediaUrl}
-alt=""
-className="mt-2 w-full max-h-32 object-contain rounded"
-data-testid="option-media"
+      {/* Option content */}
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-medium text-foreground leading-relaxed">
+          {option.text}
+        </p>
+        {option.mediaUrl && (
+          <img
+            src={option.mediaUrl}
+            alt=""
+            className="mt-2 w-full max-h-32 object-contain rounded"
+            data-testid="option-media"
           />
         )}
-</div>
+      </div>
 
-{/* CTA */}
-<Button
-type="button"
-variant={isSelected ? "secondary" : "outline"}
-size="sm"
-disabled={isDisabled}
-onClick={() => onSelect(option.id)}
-className="shrink-0"
-aria-label={
-isSelected
-? `Option ${optionIndex + 1} selected`
-: `Select option ${optionIndex + 1}`
+      {/* CTA */}
+      <Button
+        type="button"
+        variant={isSelected ? "secondary" : "outline"}
+        size="sm"
+        disabled={isDisabled}
+        onClick={() => onSelect(option.id)}
+        className="shrink-0"
+        aria-label={
+          isSelected
+            ? `Option ${optionIndex + 1} selected`
+            : `Select option ${optionIndex + 1}`
         }
-data-testid="option-select-button"
+        data-testid="option-select-button"
       >
-{isSelected ? "Selected" : isPending ? "Submitting…" : "Select"}
-</Button>
-</div>
+        {isSelected ? "Selected" : isPending ? "Submitting…" : "Select"}
+      </Button>
+    </div>
   );
 }

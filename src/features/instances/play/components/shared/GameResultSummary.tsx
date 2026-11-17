@@ -2,7 +2,6 @@
 
 import { Trophy, Medal, TrendingUp } from "lucide-react";
 
-import { EmptyState } from "@/components/ui/EmptyState";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { cn } from "@/shared/utils/merge-class-names";
 

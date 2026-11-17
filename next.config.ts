@@ -52,7 +52,18 @@ const nextConfig: NextConfig = {
     ],
   },
 
-  /* config options here */
+  serverExternalPackages: [
+    "require-in-the-middle",
+    "@opentelemetry/instrumentation",
+  ],
+  turbopack: {},
+  webpack: (config) => {
+    config.ignoreWarnings = [
+      ...(config.ignoreWarnings || []),
+      { module: /require-in-the-middle/ },
+    ];
+    return config;
+  },
 };
 
 export default nextConfig;

@@ -10,6 +10,7 @@ import { useInstancePlayers } from "@/features/instances/hooks/useInstancePlayer
 import { useInstance } from "@/features/instances/hooks/useInstance";
 import {
 selectInstanceRealtimePlayers,
+selectInstanceRealtimeStatus,
 useInstanceRealtimeStore,
 } from "@/features/instances/stores/useInstanceRealtimeStore";
 import {
@@ -72,7 +73,10 @@ useInstanceRealtimeBridge(instanceId);
 const { instance, isLoading: isInstanceLoading, error: instanceError, refresh: refreshInstance, isStale: instanceStale } =
 useInstance(instanceId, currentUserId);
 const hostUserId = instance?.hostUserId ?? null;
-const status: InstanceStatus | null = instance?.status ?? null;
+const realtimeStatus = useInstanceRealtimeStore((state) =>
+instanceId === null ? null : selectInstanceRealtimeStatus(state, instanceId),
+);
+const status: InstanceStatus | null = realtimeStatus ?? (instance?.status ?? null);
 
 const {
 items: restPlayers,
@@ -87,9 +91,22 @@ instanceId === null
 : selectInstanceRealtimePlayers(state, instanceId),
   );
 
+const basePlayers = useMemo(() => {
+  if (restPlayers.length > 0) return restPlayers;
+  if (instance?.players && Array.isArray(instance.players) && instance.players.length > 0) {
+    return instance.players.map((p) => ({
+      ...p,
+      id: p.userId,
+      isCurrentUser: currentUserId !== null && p.userId === currentUserId,
+      isHost: hostUserId !== null && p.userId === hostUserId,
+    }));
+  }
+  return restPlayers;
+}, [restPlayers, instance?.players, hostUserId, currentUserId]);
+
 const merged = useMemo(
-() => mergeRosters(restPlayers, realtimePlayers),
-[restPlayers, realtimePlayers],
+() => mergeRosters(basePlayers, realtimePlayers),
+[basePlayers, realtimePlayers],
   );
 
 if (shouldShowClosed(status)) {

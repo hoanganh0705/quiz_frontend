@@ -124,6 +124,28 @@ expect(result.current.items.length).toBeGreaterThan(0);
 
 expect(mockListInstancePlayers).toHaveBeenCalled();
     });
+
+    it("handles unwrapped raw player array from service layer", async () => {
+      mockListInstancePlayers.mockResolvedValue([
+        {
+          userId: "u1",
+          username: "user1",
+          displayName: "User 1",
+          role: "player",
+          joinedAt: "2026-01-01T00:00:00Z",
+          isConnected: true,
+        },
+      ]);
+
+      const { result } = renderHook(() => useInstancePlayers("inst-1"), {
+        wrapper: TestSwrProvider,
+      });
+
+      await waitFor(() => {
+        expect(result.current.items.length).toBe(1);
+      });
+      expect(result.current.items[0].id).toBe("u1");
+    });
   });
 
 describe("id alias synthesis", () => {

@@ -117,8 +117,6 @@ isCurrentPlayer: boolean;
 }
 
 function LeaderboardRow({ entry, isCurrentPlayer }: LeaderboardRowProps) {
-const isTop3 = entry.rank <= 3;
-
 return (
 <li
 className={cn(
@@ -133,7 +131,7 @@ data-player-id={entry.playerId}
 data-current-player={isCurrentPlayer}
     >
 {/* Rank badge */}
-<RankBadge rank={entry.rank} isTop3={isTop3} />
+<RankBadge rank={entry.rank} />
 
 {/* Avatar */}
 {entry.avatarUrl ? (
@@ -191,7 +189,7 @@ data-testid="row-score"
   );
 }
 
-function RankBadge({ rank, isTop3 }: { rank: number; isTop3: boolean }) {
+function RankBadge({ rank }: { rank: number }) {
 if (rank === 1) {
 return (
 <div

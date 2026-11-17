@@ -1,18 +1,14 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import useSWR from "swr";
 
 import { getFeatureFlagValue } from "@/lib/feature-flags";
 import { getInstance } from "@/features/instances/services";
 import { getInstanceLeaderboard } from "@/features/instances/services";
 
 import { useInstanceGameSocket } from "./useInstanceGameSocket";
-import { useSocketEventSequence } from "./useSocketEventSequence";
 import {
 useInstanceGameplayStore,
-selectGameplayClosure,
-selectGameplayEntry,
 } from "../stores/instanceGameplay.store";
 
 export interface UseReconnectReconciliationResult {
@@ -31,12 +27,7 @@ const flagValue = getFeatureFlagValue("multiplayer_play_live");
 const isPlaceholder = flagValue === "placeholder";
 
 const { connectionState } = useInstanceGameSocket(instanceId);
-const { reset: resetSequence } = useSocketEventSequence(instanceId);
 const { setReconciling } = useInstanceGameplayStore.getState();
-
-const entry = useInstanceGameplayStore((s) =>
-instanceId ? selectGameplayEntry(s, instanceId) : null,
-  );
 
 const [isReconciling, setIsReconciling] = useState(false);
 const [lastReconciledAt, setLastReconciledAt] = useState<string | null>(null);

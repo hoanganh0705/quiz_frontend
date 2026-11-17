@@ -1,15 +1,13 @@
 "use client";
 
-import { useAuth } from "@/features/auth/hooks/use-auth";
+import { useAuthSession } from "@/features/auth/hooks/use-auth-session";
 import { getFeatureFlagValue } from "@/lib/feature-flags";
 
 import {
-useInstanceLifecycle,
-useReconnectReconciliation,
+  useInstanceLifecycle,
 } from "@/features/instances/play/hooks";
 
 import { GameConnectionStatus } from "./shared/GameConnectionStatus";
-import { GameSkeleton } from "./shared/GameSkeleton";
 import { GameEmptyState } from "./shared/GameEmptyState";
 
 import { QuestionCard } from "./QuestionCard";
@@ -43,14 +41,13 @@ Gameplay features are currently under development.
 }
 
 export function InstanceGameView({ instanceId, className }: InstanceGameViewProps) {
-const { currentUser } = useAuth();
+const { currentUser } = useAuthSession();
 const currentPlayerId = currentUser?.userId ?? null;
 
 const flagValue = getFeatureFlagValue("multiplayer_play_live");
 const isPlaceholder = flagValue === "placeholder";
 
 const { closure } = useInstanceLifecycle(instanceId);
-const { isReconciling } = useReconnectReconciliation(instanceId);
 
 const isClosed =
 closure !== null &&

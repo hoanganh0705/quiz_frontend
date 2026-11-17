@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 
 import { RouteGateSkeleton } from "@/components/ui/loading-states";
-import { InstancesPage } from "@/features/instances";
+import { InstancesPage } from "@/features/instances/pages/InstancesPage";
 import { buildMetadata } from "@/shared/lib/seo";
 
 export const metadata = buildMetadata({

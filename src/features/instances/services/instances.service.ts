@@ -7,6 +7,7 @@ import { ApiError } from "@/lib/api/core/ApiError";
 import type {
   CreateInstanceDto,
   ListInstancesParams,
+  ListInstancePlayersParams,
   StartCountdownDto,
 } from "@/lib/api/generated/schemas";
 
@@ -78,12 +79,13 @@ export async function getInstanceLeaderboard(
 
 export async function listInstancePlayers(
   id: string,
+  params?: ListInstancePlayersParams,
 ): Promise<ListInstancePlayersResult["data"]> {
   Sentry.addBreadcrumb({
     category: "phase5:service",
     message: `instances.listInstancePlayers(${id})`,
   });
-  const data = await getInstances().listInstancePlayers(id);
+  const data = await getInstances().listInstancePlayers(id, params);
   if (!data.data) {
     throw new ApiError({
       status: 500,

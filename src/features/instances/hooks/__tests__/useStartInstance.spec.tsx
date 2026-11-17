@@ -13,8 +13,10 @@ getFeatureFlagValue: (...args: unknown[]) => mockGetFeatureFlagValue(...args),
 }));
 
 const mockStartInstance = vi.fn();
+const mockStartCountdown = vi.fn();
 vi.mock("@/features/instances/services/instances.service", () => ({
 startInstance: (...args: unknown[]) => mockStartInstance(...args),
+startCountdown: (...args: unknown[]) => mockStartCountdown(...args),
 }));
 
 const mutateMock = vi.fn();
@@ -370,6 +372,55 @@ result.current.reset();
 
 expect(result.current.state).toBe("idle");
 expect(result.current.error).toBeNull();
+    });
+  });
+
+  describe("open status & countdown flow", () => {
+    it("calls startCountdown when options.status is open", async () => {
+      mockStartCountdown.mockResolvedValue({
+        instanceId: "inst-1",
+        status: "countdown",
+        countdownStartedAt: "2026-01-01T00:00:00Z",
+        countdownEndsAt: "2026-01-01T00:00:05Z",
+      });
+
+      const { result } = renderHook(
+        () => useStartInstance("inst-1", hostPermissions, { status: "open" }),
+        { wrapper: TestSwrProvider },
+      );
+
+      await act(async () => {
+        await result.current.start();
+      });
+
+      expect(mockStartCountdown).toHaveBeenCalledWith("inst-1", {});
+      expect(mockStartInstance).not.toHaveBeenCalled();
+      expect(result.current.state).toBe("success");
+    });
+
+    it("falls back to startCountdown when startInstance throws INSTANCE_NOT_IN_COUNTDOWN", async () => {
+      mockStartInstance.mockRejectedValue(
+        makeApiError(409, "INSTANCE_NOT_IN_COUNTDOWN"),
+      );
+      mockStartCountdown.mockResolvedValue({
+        instanceId: "inst-1",
+        status: "countdown",
+        countdownStartedAt: "2026-01-01T00:00:00Z",
+        countdownEndsAt: "2026-01-01T00:00:05Z",
+      });
+
+      const { result } = renderHook(
+        () => useStartInstance("inst-1", hostPermissions),
+        { wrapper: TestSwrProvider },
+      );
+
+      await act(async () => {
+        await result.current.start();
+      });
+
+      expect(mockStartInstance).toHaveBeenCalledWith("inst-1");
+      expect(mockStartCountdown).toHaveBeenCalledWith("inst-1", {});
+      expect(result.current.state).toBe("success");
     });
   });
 });

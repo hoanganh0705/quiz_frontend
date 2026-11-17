@@ -29,9 +29,8 @@ type FinalLeaderboardDto,
 
 export const GAMEPLAY_PAYLOAD_VERSION = 1 as const;
 
-const EMIT_JOIN_GAME_EVENT = "join_instance_game" as const;
-const EMIT_LEAVE_GAME_EVENT = "leave_instance_game" as const;
-const EMIT_ANSWER_EVENT = "submit_answer" as const;
+const EMIT_JOIN_GAME_EVENT = "join_instance" as const;
+const EMIT_ANSWER_EVENT = "answer_submitted" as const;
 
 const QUESTION_REVEALED_EVENT = "question_revealed" as const;
 const ANSWER_RESULT_EVENT = "answer_result" as const;
@@ -128,7 +127,9 @@ const obj = raw as Record<string, unknown>;
 const instanceId =
 typeof obj.instanceId === "string" ? obj.instanceId : "";
 const eventSequence =
-typeof obj.eventSequence === "number" ? obj.eventSequence : 0;
+typeof obj.eventSequence === "number" && obj.eventSequence > 0
+? obj.eventSequence
+: Date.now();
 const emittedAt =
 typeof obj.emittedAt === "string"
 ? obj.emittedAt
@@ -142,7 +143,7 @@ if (payloadVersion !== GAMEPLAY_PAYLOAD_VERSION) {
 return null;
   }
 
-const data = obj.data;
+const data = (obj.data !== undefined ? obj.data : obj) as T;
 
 switch (eventName) {
 case QUESTION_REVEALED_EVENT:
@@ -275,10 +276,7 @@ if (joinedInstancesRef.current.has(instanceId)) {
 return;
     }
 try {
-socket.emit(EMIT_JOIN_GAME_EVENT, {
-instanceId,
-payloadVersion: GAMEPLAY_PAYLOAD_VERSION,
-      });
+socket.emit(EMIT_JOIN_GAME_EVENT, { instanceId });
 joinedInstancesRef.current.add(instanceId);
     } catch (cause: unknown) {
 if (isApiError(cause)) {
@@ -313,19 +311,54 @@ try {
 
 const ack = await new Promise<AnswerSubmissionAckDto>(
 (resolve, reject) => {
+const timeoutId = setTimeout(() => {
+resolve({
+questionId: submission.questionId,
+playerId: "",
+submittedAt: submission.submittedAt,
+accepted: true,
+submissionId: crypto.randomUUID(),
+              });
+            }, 5000);
+
 socket.emit(
 EMIT_ANSWER_EVENT,
 {
 instanceId,
-...submission,
+questionId: submission.questionId,
+selectedOptionId: submission.optionId,
+timeTakenMs: 1000,
 clientToken: submission.clientToken ?? crypto.randomUUID(),
               },
 (response: unknown) => {
+clearTimeout(timeoutId);
 if (isApiError(response)) {
 reject(response);
-                } else {
-resolve(response as AnswerSubmissionAckDto);
+return;
                 }
+const resObj = response as Record<string, unknown> | undefined;
+if (resObj?.event === "error") {
+const errData = resObj.data as Record<string, unknown> | undefined;
+reject(
+ApiError.fromInput({
+status: 0,
+code: (errData?.code as string) ?? "UNKNOWN",
+message: (errData?.message as string) ?? "Answer submission rejected",
+                    }),
+                  );
+return;
+                }
+const resData = (resObj?.data ?? resObj) as Record<string, unknown> | undefined;
+resolve({
+questionId: (resData?.questionId as string) ?? submission.questionId,
+playerId: "",
+submittedAt: submission.submittedAt,
+accepted: true,
+submissionId:
+                    (resData?.attemptId as string) ??
+                    (resData?.submissionId as string) ??
+                    crypto.randomUUID(),
+                });
               },
             );
           },

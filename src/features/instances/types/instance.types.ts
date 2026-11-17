@@ -100,6 +100,7 @@ at: string;
 eventSequence: number;
 
 status?: InstanceStatus;
+countdownStartedAt?: string | null;
 }
 
 export interface PlayerJoinEvent {

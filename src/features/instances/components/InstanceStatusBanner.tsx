@@ -10,7 +10,6 @@ import {
 useInstanceRealtimeBridge,
 } from "@/features/instances/hooks/useInstanceRealtimeBridge";
 import {
-selectInstanceRealtimeLastSequence,
 selectInstanceRealtimeStatus,
 useInstanceRealtimeStore,
 } from "@/features/instances/stores/useInstanceRealtimeStore";
@@ -74,24 +73,19 @@ instanceId === null
 ? null
 : selectInstanceRealtimeStatus(state, instanceId),
   );
-const realtimeSequence = useInstanceRealtimeStore((state) =>
-instanceId === null
-? 0
-: selectInstanceRealtimeLastSequence(state, instanceId),
-  );
 
 const resolved = useMemo<{
 status: InstanceStatus | null;
 isCancelledHint: boolean;
   }>(() => {
-if (realtimeStatus !== null && realtimeSequence > 0) {
+if (realtimeStatus !== null) {
 return {
 status: realtimeStatus,
 isCancelledHint: realtimeStatus === "closed",
       };
     }
 return { status: restStatus, isCancelledHint: false };
-  }, [restStatus, realtimeStatus, realtimeSequence]);
+  }, [restStatus, realtimeStatus]);
 
 if (instanceId === null) return null;
 

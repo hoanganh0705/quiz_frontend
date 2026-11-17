@@ -86,6 +86,13 @@ timestamp !== null
 ? `${config.description} Closed at ${timestamp}.`
 : config.description
       }
+actions={[
+  {
+    label: "Browse Active Lobbies",
+    href: "/instances",
+    variant: "default",
+  },
+]}
 size="md"
 className={className}
 data-testid="instance-closed-state"

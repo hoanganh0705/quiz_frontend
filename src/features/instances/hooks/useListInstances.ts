@@ -65,7 +65,8 @@ export function useListInstances(
 
   const { data, error: rawError, isLoading, mutate } = useSWR(key, fetcher, {
     revalidateOnFocus: true,
-    dedupingInterval: 5000,
+    revalidateOnMount: true,
+    dedupingInterval: 1000,
   });
 
   const error = useMemo(() => {
