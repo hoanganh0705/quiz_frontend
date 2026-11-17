@@ -22,12 +22,7 @@ export function HostLiveRoomCta({
   idOrSlug,
   className,
 }: HostLiveRoomCtaProps) {
-  let router: ReturnType<typeof useRouter> | null = null;
-  try {
-    router = useRouter();
-  } catch {
-    router = null;
-  }
+  const router = useRouter();
 
   const { isPlaceholder } = useInstancesFeatureFlag();
   const { bootstrapState, currentUser } = useAuthSession();

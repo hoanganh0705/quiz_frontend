@@ -19,8 +19,6 @@ export function InstanceCard({ instance, className }: InstanceCardProps) {
   const {
     instanceId,
     quizTitle,
-    quizSlug,
-    quizId,
     hostDisplayName,
     hostUsername,
     playerCount,
@@ -65,6 +63,16 @@ export function InstanceCard({ instance, className }: InstanceCardProps) {
             In Progress
           </Badge>
         );
+      case "closed":
+        return (
+          <Badge
+            variant="outline"
+            className="border-slate-500/30 bg-slate-500/10 text-slate-600 dark:text-slate-400 font-medium text-xs px-2.5 py-0.5"
+          >
+            Closed
+          </Badge>
+        );
+      case "finished":
       default:
         return (
           <Badge
@@ -81,6 +89,7 @@ export function InstanceCard({ instance, className }: InstanceCardProps) {
     <Card
       className={cn(
         "group relative flex flex-col justify-between overflow-hidden transition-all duration-200 hover:shadow-md hover:border-brand/40 bg-card",
+        isClosed && "opacity-80 bg-muted/20 border-muted/60",
         className,
       )}
       data-testid={`instance-card-${instanceId}`}
@@ -116,8 +125,15 @@ export function InstanceCard({ instance, className }: InstanceCardProps) {
             <span className="inline-flex items-center gap-1.5">
               <Users className="h-3.5 w-3.5 text-muted-foreground" />
               <span>
-                {playerCount}
-                {maxPlayers ? ` / ${maxPlayers}` : ""} players
+                {playerCount === 0 ? (
+                  "No players"
+                ) : (
+                  <>
+                    {playerCount}
+                    {maxPlayers ? ` / ${maxPlayers}` : ""}{" "}
+                    {playerCount === 1 ? "player" : "players"}
+                  </>
+                )}
               </span>
             </span>
           </div>

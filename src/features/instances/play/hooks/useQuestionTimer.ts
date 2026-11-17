@@ -1,108 +1,96 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useSyncExternalStore, useMemo } from "react";
 
 import { getFeatureFlagValue } from "@/lib/feature-flags";
 
-import { type QuestionTimingDto } from "../types/gameplay.types";
 import { useQuestionRevealed } from "./useQuestionRevealed";
 import { useInstanceLifecycle } from "./useInstanceLifecycle";
 
 export interface UseQuestionTimerResult {
-
-remainingMs: number;
-
-totalMs: number;
-
-isWindowOpen: boolean;
-
-serverDriftMs: number;
+  remainingMs: number;
+  totalMs: number;
+  isWindowOpen: boolean;
+  serverDriftMs: number;
 }
 
 const TICK_INTERVAL_MS = 50;
 
-export function useQuestionTimer(
-instanceId: string | null,
-): UseQuestionTimerResult {
-const flagValue = getFeatureFlagValue("multiplayer_play_live");
-const isPlaceholder = flagValue === "placeholder";
+let currentClock = typeof window !== "undefined" ? Date.now() : 0;
+const clockListeners = new Set<() => void>();
+let clockInterval: ReturnType<typeof setInterval> | null = null;
 
-const { timing } = useQuestionRevealed(instanceId);
-const { isClosed } = useInstanceLifecycle(instanceId);
-
-const serverDriftMsRef = useRef(0);
-const lastServerNowMsRef = useRef(0);
-
-useEffect(() => {
-if (!timing) return;
-
-const serverNowMs = new Date(timing.serverNow).getTime();
-const clientNowMs = Date.now();
-
-if (serverNowMs > lastServerNowMsRef.current) {
-serverDriftMsRef.current = serverNowMs - clientNowMs;
-lastServerNowMsRef.current = serverNowMs;
+function subscribeClock(listener: () => void): () => void {
+  clockListeners.add(listener);
+  if (clockListeners.size === 1) {
+    currentClock = Date.now();
+    clockInterval = setInterval(() => {
+      currentClock = Date.now();
+      clockListeners.forEach((l) => l());
+    }, TICK_INTERVAL_MS);
+  }
+  return () => {
+    clockListeners.delete(listener);
+    if (clockListeners.size === 0 && clockInterval !== null) {
+      clearInterval(clockInterval);
+      clockInterval = null;
     }
-  }, [timing]);
-
-const effectiveNowMsRef = useRef(Date.now());
-
-useEffect(() => {
-if (isPlaceholder || isClosed) return;
-
-const tick = () => {
-effectiveNowMsRef.current = Date.now();
-    };
-
-const interval = setInterval(tick, TICK_INTERVAL_MS);
-return () => clearInterval(interval);
-  }, [isPlaceholder, isClosed]);
-
-const derived = (): {
-remainingMs: number;
-totalMs: number;
-isWindowOpen: boolean;
-serverDriftMs: number;
-  } => {
-if (isPlaceholder || !timing) {
-return { remainingMs: 0, totalMs: 0, isWindowOpen: false, serverDriftMs: 0 };
-    }
-if (isClosed) {
-return { remainingMs: 0, totalMs: timing.durationMs, isWindowOpen: false, serverDriftMs: serverDriftMsRef.current };
-    }
-
-const startMs = new Date(timing.startsAt).getTime();
-const endMs = startMs + timing.durationMs;
-
-const nowMs = effectiveNowMsRef.current + serverDriftMsRef.current;
-
-const remainingMs = Math.max(0, endMs - nowMs);
-const isWindowOpen = nowMs >= startMs && nowMs < endMs;
-
-return {
-remainingMs,
-totalMs: timing.durationMs,
-isWindowOpen,
-serverDriftMs: serverDriftMsRef.current,
-    };
   };
+}
 
-const [, forceUpdate] = useState({});
-const timingRef = useRef(timing);
-timingRef.current = timing;
+function getClockSnapshot(): number {
+  return currentClock;
+}
 
-useEffect(() => {
-if (isPlaceholder || isClosed) return;
+function getClockServerSnapshot(): number {
+  return 0;
+}
 
-const interval = setInterval(() => {
+export function useQuestionTimer(
+  instanceId: string | null,
+): UseQuestionTimerResult {
+  const flagValue = getFeatureFlagValue("multiplayer_play_live");
+  const isPlaceholder = flagValue === "placeholder";
 
-forceUpdate({});
-    }, 100);
+  const { timing } = useQuestionRevealed(instanceId);
+  const { isClosed } = useInstanceLifecycle(instanceId);
 
-return () => clearInterval(interval);
-  }, [isPlaceholder, isClosed]);
+  const clockNow = useSyncExternalStore(
+    subscribeClock,
+    getClockSnapshot,
+    getClockServerSnapshot,
+  );
 
-const result = derived();
+  const serverDriftMs = useMemo(() => {
+    if (!timing || clockNow === 0) return 0;
+    const serverNowMs = new Date(timing.serverNow).getTime();
+    return serverNowMs - clockNow;
+  }, [timing, clockNow]);
 
-return result;
+  if (isPlaceholder || !timing) {
+    return { remainingMs: 0, totalMs: 0, isWindowOpen: false, serverDriftMs: 0 };
+  }
+
+  if (isClosed) {
+    return {
+      remainingMs: 0,
+      totalMs: timing.durationMs,
+      isWindowOpen: false,
+      serverDriftMs,
+    };
+  }
+
+  const startMs = new Date(timing.startsAt).getTime();
+  const endMs = startMs + timing.durationMs;
+  const effectiveNow = clockNow > 0 ? clockNow + serverDriftMs : startMs;
+
+  const remainingMs = Math.max(0, endMs - effectiveNow);
+  const isWindowOpen = effectiveNow >= startMs && effectiveNow < endMs;
+
+  return {
+    remainingMs,
+    totalMs: timing.durationMs,
+    isWindowOpen,
+    serverDriftMs,
+  };
 }

@@ -18,6 +18,8 @@ lastEventSequence: number;
 
 instanceStatus: InstanceStatus | null;
 
+countdownStartedAt: string | null;
+
 closedAt: string | null;
 }
 
@@ -55,6 +57,7 @@ return {
 playersByUserId: {},
 lastEventSequence: 0,
 instanceStatus: null,
+countdownStartedAt: null,
 closedAt: null,
   };
 }
@@ -63,7 +66,10 @@ function isStale(
 entry: InstanceRealtimeEntry,
 eventSequence: number,
 ): boolean {
-return typeof eventSequence !== "number" || eventSequence <= entry.lastEventSequence;
+if (typeof eventSequence !== "number" || eventSequence <= 0) {
+return false;
+}
+return eventSequence <= entry.lastEventSequence;
 }
 
 export const useInstanceRealtimeStore = create<InstanceRealtimeStore>(
@@ -121,15 +127,26 @@ if (isStale(entry, event.eventSequence)) return state;
 
 const isTerminal =
 event.type === "instance_closed" || event.type === "instance_cancelled";
+const isCountdownStarted = event.type === "countdown_started";
+const isCountdownEnded =
+event.type === "countdown_cancelled" ||
+event.type === "instance_started" ||
+isTerminal;
 
 return {
 entries: {
 ...state.entries,
 [event.instanceId]: {
 ...entry,
-lastEventSequence: event.eventSequence,
+lastEventSequence:
+event.eventSequence > 0 ? event.eventSequence : entry.lastEventSequence + 1,
 instanceStatus:
 event.status ?? entry.instanceStatus ?? null,
+countdownStartedAt: isCountdownStarted
+? (event.countdownStartedAt ?? event.at)
+: isCountdownEnded
+? null
+: entry.countdownStartedAt,
 closedAt: isTerminal ? event.at : entry.closedAt,
             },
           },
@@ -178,4 +195,11 @@ state: InstanceRealtimeStore,
 instanceId: string,
 ): number {
 return state.entries[instanceId]?.lastEventSequence ?? 0;
+}
+
+export function selectInstanceRealtimeCountdownStartedAt(
+state: InstanceRealtimeStore,
+instanceId: string,
+): string | null {
+return state.entries[instanceId]?.countdownStartedAt ?? null;
 }

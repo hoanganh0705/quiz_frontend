@@ -8,9 +8,6 @@ useInstanceGameplayStore,
 selectGameplayProgress,
 } from "@/features/instances/play/stores/instanceGameplay.store";
 
-import { GameSkeleton } from "./shared/GameSkeleton";
-import { GameStaleState } from "./shared/GameStaleState";
-
 interface PlayerProgressPanelProps {
 instanceId: string;
 className?: string;

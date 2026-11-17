@@ -61,4 +61,14 @@ describe("InstanceCard", () => {
     const resultsBtn = screen.getByTestId("view-instance-button-inst-1");
     expect(resultsBtn).toHaveTextContent("View Results");
   });
+
+  it("renders 'No players' when playerCount is 0", () => {
+    const emptyInstance: InstanceListItemDto = {
+      ...baseInstance,
+      playerCount: 0,
+    };
+
+    render(<InstanceCard instance={emptyInstance} />);
+    expect(screen.getByText("No players")).toBeInTheDocument();
+  });
 });

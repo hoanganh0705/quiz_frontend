@@ -781,6 +781,36 @@ title: 'Instance is closed',
 body: 'This quiz instance has been closed and is no longer accepting players.',
 toast: 'inline',
   },
+INSTANCE_ALREADY_FINISHED: {
+title: 'Instance finished',
+body: 'This quiz instance has already finished.',
+toast: 'inline',
+  },
+INSTANCE_NOT_OPEN: {
+title: 'Lobby not open',
+body: 'This quiz lobby is no longer open.',
+toast: 'inline',
+  },
+INSTANCE_NOT_HOST: {
+title: 'Host action required',
+body: 'Only the instance host can perform this action.',
+toast: 'inline',
+  },
+INSTANCE_NOT_IN_COUNTDOWN: {
+title: 'Countdown required',
+body: 'The lobby must enter countdown before the match can begin.',
+toast: 'inline',
+  },
+INSTANCE_COUNTDOWN_ALREADY_STARTED: {
+title: 'Countdown already started',
+body: 'The countdown has already begun for this match.',
+toast: 'inline',
+  },
+MIN_PLAYERS_NOT_MET: {
+title: 'Not enough players',
+body: 'Not enough players have joined to start the game.',
+toast: 'inline',
+  },
 HOST_REQUIRED: {
 title: 'Host action required',
 body: 'Only the instance host can perform this action.',

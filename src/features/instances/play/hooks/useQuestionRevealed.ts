@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useRef } from "react";
 
 import {
 type GameplayEventEnvelope,
@@ -35,7 +35,7 @@ const { subscribe } = useInstanceGameSocket(instanceId);
 const { shouldAccept, markAccepted, lastAcceptedSequence } = useSocketEventSequence(instanceId);
 const { applyQuestionRevealed } = useInstanceGameplayStore.getState();
 
-const displayedSeqRef = { current: 0 };
+const displayedSeqRef = useRef<number>(0);
 
 const handleEnvelope = useCallback(
 (envelope: GameplayEventEnvelope<unknown>) => {

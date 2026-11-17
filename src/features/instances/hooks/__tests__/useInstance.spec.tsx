@@ -138,6 +138,30 @@ expect(result.current.instance?.id).toBe("inst-1");
 expect(result.current.instance?.instanceId).toBe("inst-1");
 expect(result.current.instance?.status).toBe("open");
     });
+
+    it("handles unwrapped raw instance response from service layer", async () => {
+      mockGetInstance.mockResolvedValue({
+        instanceId: "inst-2",
+        quizId: "quiz-2",
+        status: "open",
+        hostUserId: "host-2",
+        maxPlayers: 10,
+        playerCount: 1,
+        createdAt: "2026-01-01T00:00:00Z",
+        updatedAt: "2026-01-01T00:00:00Z",
+        players: [{ userId: "u-2", username: "player2", role: "player" }],
+      });
+
+      const { result } = renderHook(() => useInstance("inst-2", "host-2"), {
+        wrapper: TestSwrProvider,
+      });
+
+      await waitFor(() => {
+        expect(result.current.instance).not.toBeNull();
+      });
+      expect(result.current.instance?.id).toBe("inst-2");
+      expect(result.current.instance?.currentUserRole).toBe("host");
+    });
   });
 
 describe("typed error mapping", () => {

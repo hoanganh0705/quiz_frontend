@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import * as React from "react";
 
-vi.mock("@/features/instances", () => ({
+vi.mock("@/features/instances/pages/InstancesPage", () => ({
   InstancesPage: () => <div data-testid="instances-page-stub" />,
 }));
 

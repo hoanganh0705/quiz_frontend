@@ -3,7 +3,6 @@
 import { useQuestionTimer } from "@/features/instances/play/hooks";
 import { useInstanceGameSocket } from "@/features/instances/play/hooks";
 
-import { GameStaleState } from "./shared/GameStaleState";
 import { GameConnectionStatus } from "./shared/GameConnectionStatus";
 
 interface QuestionTimerProps {
@@ -42,11 +41,6 @@ aria-live="off"
 <div className="mb-3">
 <GameConnectionStatus connectionState={connectionState} />
 </div>
-      )}
-
-{/* Stale banner */}
-{isConnected && remainingMs > 0 && (
-<GameStaleState className="mb-3" />
       )}
 
 {/* Timer display */}

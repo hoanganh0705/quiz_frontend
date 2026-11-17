@@ -127,7 +127,9 @@ const obj = raw as Record<string, unknown>;
 const instanceId = typeof obj.instanceId === "string" ? obj.instanceId : "";
 const at = typeof obj.at === "string" ? obj.at : new Date().toISOString();
 const eventSequence =
-typeof obj.eventSequence === "number" ? obj.eventSequence : 0;
+typeof obj.eventSequence === "number" && obj.eventSequence > 0
+? obj.eventSequence
+: Date.now();
 
 switch (eventName) {
 case INSTANCE_STARTED_EVENT:
@@ -136,6 +138,7 @@ type: "instance_started",
 instanceId,
 at,
 eventSequence,
+status: "running",
       };
 case INSTANCE_CLOSED_EVENT:
 return {
@@ -143,20 +146,27 @@ type: "instance_closed",
 instanceId,
 at,
 eventSequence,
+status: "closed",
       };
-case COUNTDOWN_STARTED_EVENT:
+case COUNTDOWN_STARTED_EVENT: {
+const countdownStartedAt =
+typeof obj.countdownStartedAt === "string" ? obj.countdownStartedAt : at;
 return {
 type: "countdown_started",
 instanceId,
 at,
 eventSequence,
+status: "countdown",
+countdownStartedAt,
       };
+    }
 case COUNTDOWN_CANCELLED_EVENT:
 return {
 type: "countdown_cancelled",
 instanceId,
 at,
 eventSequence,
+status: "open",
       };
 case INSTANCE_JOINED_EVENT:
 case PLAYER_JOINED_EVENT: {
@@ -312,13 +322,43 @@ return;
     }
 if (connectionState !== "connected") return;
 void emitJoin();
+
+const joinedInstances = joinedInstancesRef.current;
+return () => {
+  if (joinedInstances.has(instanceId)) {
+    void emitLeave();
+  }
+};
   }, [
 isFlagPlaceholder,
 instanceId,
 isAuthenticated,
 connectionState,
 emitJoin,
+emitLeave,
   ]);
+
+useEffect(() => {
+  if (isFlagPlaceholder || instanceId === null || !isAuthenticated) return;
+
+  const handleBeforeUnload = () => {
+    if (socket && joinedInstancesRef.current.has(instanceId)) {
+      try {
+        socket.emit(EMIT_LEAVE_EVENT, { instanceId });
+      } catch {
+        // ignore error on window close
+      }
+    }
+  };
+
+  window.addEventListener("beforeunload", handleBeforeUnload);
+  window.addEventListener("pagehide", handleBeforeUnload);
+
+  return () => {
+    window.removeEventListener("beforeunload", handleBeforeUnload);
+    window.removeEventListener("pagehide", handleBeforeUnload);
+  };
+}, [isFlagPlaceholder, instanceId, isAuthenticated, socket]);
 
 useEffect(() => {
 joinedInstancesRef.current.clear();

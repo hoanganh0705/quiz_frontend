@@ -20,11 +20,12 @@ type LeaderboardUpdatedEventDto,
 } from "../types/gameplay.types";
 import { useInstanceGameSocket } from "./useInstanceGameSocket";
 import { useSocketEventSequence } from "./useSocketEventSequence";
-import { useInstanceLifecycle } from "./useInstanceLifecycle";
 import {
 useInstanceGameplayStore,
 selectGameplayFinalLeaderboard,
 } from "../stores/instanceGameplay.store";
+
+const EMPTY_LEADERBOARD: LeaderboardEntryDto[] = [];
 
 export interface UseLiveLeaderboardResult {
 
@@ -71,7 +72,6 @@ const isPlaceholder = flagValue === "placeholder";
 
 const { subscribe } = useInstanceGameSocket(instanceId);
 const { shouldAccept, markAccepted } = useSocketEventSequence(instanceId);
-const { isClosed } = useInstanceLifecycle(instanceId);
 const { applyLeaderboardUpdated } = useInstanceGameplayStore.getState();
 
 const swrKey = useMemo<null | string>(
@@ -105,7 +105,9 @@ shouldRetryOnError: false,
   });
 
 const restEntriesRef = useRef<LeaderboardEntryDto[]>([]);
-restEntriesRef.current = restEntries ?? [];
+useEffect(() => {
+  restEntriesRef.current = restEntries ?? [];
+}, [restEntries]);
 
 const [liveEntries, setLiveEntries] = useState<LeaderboardEntryDto[]>([]);
 
@@ -179,7 +181,7 @@ await swrMutate();
 
 if (isPlaceholder) {
 return {
-entries: [],
+entries: EMPTY_LEADERBOARD,
 final: null,
 isLoading: false,
 isStale: false,

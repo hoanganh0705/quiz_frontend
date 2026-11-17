@@ -629,8 +629,9 @@ export default defineConfig({
             "src/features/instances/components/__tests__/InstanceQrCodeDialog.spec.tsx",
             "src/shared/utils/__tests__/qr-code.spec.tsx",
             "src/app/(protected)/instances/__tests__/page.integration.spec.tsx",
-            "src/app/(protected)/instances/[id]/__tests__/page.integration.spec.tsx",
-            "src/app/instances/[id]/__tests__/page.integration.spec.tsx",
+            "src/app/**/instances/*/__tests__/page.integration.spec.tsx",
+            "src/app/**/play/__tests__/*.spec.tsx",
+            "src/features/instances/play/**/__tests__/*.spec.tsx",
             // TKT-5.6.G1 — search hook specs require jsdom (renderHook).
             "src/features/search/hooks/__tests__/useDebouncedValue.spec.ts",
             "src/features/search/hooks/__tests__/useSearch.spec.tsx",

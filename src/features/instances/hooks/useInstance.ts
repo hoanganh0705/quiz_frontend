@@ -87,13 +87,18 @@ err as unknown as ConstructorParameters<typeof ApiError>[0],
 }
 
 function deriveRole(
-detail: InstanceDetailResponseDto,
-currentUserId: string | null,
+  detail: InstanceDetailResponseDto,
+  currentUserId: string | null,
 ): InstanceRole {
-
-void detail;
-void currentUserId;
-return null;
+  if (!currentUserId) return null;
+  if (detail.hostUserId === currentUserId) return "host";
+  if (
+    Array.isArray(detail.players) &&
+    detail.players.some((p) => p.userId === currentUserId)
+  ) {
+    return "player";
+  }
+  return null;
 }
 
 export function useInstance(
@@ -118,20 +123,29 @@ return null;
       }
 
 try {
-const wire = (await getInstance(instanceId)) as unknown as GetInstanceWireResponse;
+const wire = (await getInstance(instanceId)) as unknown as
+  | GetInstanceWireResponse
+  | InstanceDetailResponseDto;
 
-if (!wire.data) {
+const detail =
+  wire &&
+  typeof wire === "object" &&
+  "data" in wire &&
+  (wire as GetInstanceWireResponse).data
+    ? (wire as GetInstanceWireResponse).data!
+    : (wire as InstanceDetailResponseDto);
 
-return null;
-        }
+if (!detail || !detail.instanceId) {
+  return null;
+}
 
-const role = deriveRole(wire.data, currentUserId);
+const role = deriveRole(detail, currentUserId);
 
 return {
-...wire.data,
-id: wire.data.instanceId,
-currentUserRole: role,
-        } as InstanceDetail;
+  ...detail,
+  id: detail.instanceId,
+  currentUserRole: role,
+} as InstanceDetail;
       } catch (err) {
 
 throw wrapAsInstanceApiError(err);

@@ -49,6 +49,8 @@ finalLeaderboard: FinalLeaderboardDto | null;
 isReconciling: boolean;
 }
 
+const EMPTY_LEADERBOARD: LeaderboardEntryDto[] = [];
+
 export function useRealtimeGameplay(
 instanceId: string | null,
 ): UseRealtimeGameplayResult {
@@ -61,7 +63,6 @@ applyAnswerResult,
 applyLeaderboardUpdated,
 applyInstanceClosed,
 applyFinalLeaderboard,
-applyPlayerProgress,
   } = useInstanceGameplayStore.getState();
 
 const gatedRef = useRef(false);
@@ -144,7 +145,7 @@ const progress = useInstanceGameplayStore((s) =>
 instanceId ? selectGameplayProgress(s, instanceId) : null,
   );
 const leaderboard = useInstanceGameplayStore((s) =>
-instanceId ? selectGameplayLeaderboard(s, instanceId) : [],
+instanceId ? selectGameplayLeaderboard(s, instanceId) : EMPTY_LEADERBOARD,
   );
 const closure = useInstanceGameplayStore((s) =>
 instanceId ? selectGameplayClosure(s, instanceId) : null,

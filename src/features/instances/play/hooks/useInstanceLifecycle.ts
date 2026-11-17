@@ -7,7 +7,6 @@ type AnswerResultDto,
 type FinalLeaderboardDto,
 type GameplayEventEnvelope,
 type InstanceClosedEventDto,
-type PlayerProgressDto,
 } from "../types/gameplay.types";
 import { useInstanceGameSocket } from "./useInstanceGameSocket";
 import { useSocketEventSequence } from "./useSocketEventSequence";
@@ -42,7 +41,7 @@ applyInstanceClosed,
 applyFinalLeaderboard,
   } = useInstanceGameplayStore.getState();
 
-const displayedResultSeqRef = { current: 0 };
+const displayedResultSeqRef = useRef<number>(0);
 
 const handleEnvelope = useCallback(
 (envelope: GameplayEventEnvelope<unknown>) => {
@@ -67,12 +66,6 @@ const typed = envelope as GameplayEventEnvelope<FinalLeaderboardDto>;
 if (!shouldAccept(typed.event, typed.eventSequence)) return;
 markAccepted(typed.event, typed.eventSequence);
 applyFinalLeaderboard(typed);
-break;
-        }
-
-case "leaderboard_updated": {
-const typed = envelope as GameplayEventEnvelope<PlayerProgressDto[]>;
-
 break;
         }
 default:
