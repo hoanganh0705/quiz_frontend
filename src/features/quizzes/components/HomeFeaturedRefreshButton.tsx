@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import { mutate } from "swr";
+import { getQueryClient } from "@/providers/QueryProvider";
 import { RefreshCw } from "lucide-react";
 
 import { Button } from "@/components/ui/Button";
@@ -23,7 +23,7 @@ export function HomeFeaturedRefreshButton({
     setIsRefreshing(true);
     try {
       const data = await refreshHomeBundle();
-      await mutate(["home", "bundle"], data, { revalidate: false });
+      getQueryClient().setQueryData(["home", "bundle"], data);
       onRefreshed?.(data);
     } finally {
       setIsRefreshing(false);

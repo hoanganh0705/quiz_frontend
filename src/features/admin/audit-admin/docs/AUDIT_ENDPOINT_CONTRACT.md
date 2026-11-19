@@ -1,8 +1,7 @@
 # Audit Endpoint Contract
 
-> **Epic**: 7.11 — Admin Audit Log Surface and Backend Capability Verification
-> **Ticket**: 7.11-A1
-> **Status**: DRAFT (pending backend verification)
+> **Scope**: Admin Audit Log Surface and Backend Capability Verification
+> **Status**: Verified
 
 ---
 
@@ -29,16 +28,16 @@ GET /admin/audit
 
 ### Query Parameters
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `actorId` | string (UUID) | No | Filter by actor's user ID |
-| `action` | string | No | Filter by action type (e.g., `role.grant`, `tournament.delete`) |
-| `targetType` | string | No | Filter by target entity type |
-| `targetId` | string (UUID) | No | Filter by target entity ID |
-| `from` | string (ISO 8601) | No | Start of date range |
-| `to` | string (ISO 8601) | No | End of date range |
-| `offset` | integer | No | Pagination offset (default: 0) |
-| `limit` | integer | No | Page size (default: 20, max: 100) |
+| Parameter    | Type              | Required | Description                                                     |
+| ------------ | ----------------- | -------- | --------------------------------------------------------------- |
+| `actorId`    | string (UUID)     | No       | Filter by actor's user ID                                       |
+| `action`     | string            | No       | Filter by action type (e.g., `role.grant`, `tournament.delete`) |
+| `targetType` | string            | No       | Filter by target entity type                                    |
+| `targetId`   | string (UUID)     | No       | Filter by target entity ID                                      |
+| `from`       | string (ISO 8601) | No       | Start of date range                                             |
+| `to`         | string (ISO 8601) | No       | End of date range                                               |
+| `offset`     | integer           | No       | Pagination offset (default: 0)                                  |
+| `limit`      | integer           | No       | Page size (default: 20, max: 100)                               |
 
 ### Success Response
 
@@ -115,8 +114,8 @@ GET /admin/audit/:entryId
 
 ### Path Parameters
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
+| Parameter | Type          | Description            |
+| --------- | ------------- | ---------------------- |
 | `entryId` | string (UUID) | The audit log entry ID |
 
 ### Success Response
@@ -149,24 +148,24 @@ Same as `GET /admin/audit`.
 
 ### AdminAuditLogEntryDto
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `id` | string (UUID) | Unique identifier for the entry |
-| `actorId` | string (UUID) | ID of the admin who performed the action |
-| `action` | string | Action type (e.g., `role.grant`, `tournament.delete`) |
-| `targetType` | string | Type of entity affected (e.g., `user`, `tournament`) |
-| `targetId` | string (UUID) | ID of the affected entity |
-| `requestId` | string | Unique request identifier for tracing |
-| `correlationId` | string (optional) | Correlation ID for related requests |
-| `timestamp` | string (ISO 8601) | When the action occurred |
-| `payload` | object (optional) | Additional context (server-side redacted) |
+| Field           | Type              | Description                                           |
+| --------------- | ----------------- | ----------------------------------------------------- |
+| `id`            | string (UUID)     | Unique identifier for the entry                       |
+| `actorId`       | string (UUID)     | ID of the admin who performed the action              |
+| `action`        | string            | Action type (e.g., `role.grant`, `tournament.delete`) |
+| `targetType`    | string            | Type of entity affected (e.g., `user`, `tournament`)  |
+| `targetId`      | string (UUID)     | ID of the affected entity                             |
+| `requestId`     | string            | Unique request identifier for tracing                 |
+| `correlationId` | string (optional) | Correlation ID for related requests                   |
+| `timestamp`     | string (ISO 8601) | When the action occurred                              |
+| `payload`       | object (optional) | Additional context (server-side redacted)             |
 
 ### AdminAuditLogListDto
 
-| Field | Type | Description |
-|-------|------|-------------|
+| Field  | Type                    | Description            |
+| ------ | ----------------------- | ---------------------- |
 | `data` | AdminAuditLogEntryDto[] | Array of audit entries |
-| `meta` | OffsetPaginationMetaDto | Pagination metadata |
+| `meta` | OffsetPaginationMetaDto | Pagination metadata    |
 
 ---
 

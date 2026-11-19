@@ -1,11 +1,8 @@
-
-
-import type { QuizControllerGetQuizStatsHistoryRange } from './quizControllerGetQuizStatsHistoryRange';
-import type { QuizControllerGetQuizStatsHistoryBucket } from './quizControllerGetQuizStatsHistoryBucket';
+import type { QuizControllerGetQuizStatsHistoryRange } from "./quizControllerGetQuizStatsHistoryRange";
+import type { QuizControllerGetQuizStatsHistoryBucket } from "./quizControllerGetQuizStatsHistoryBucket";
 
 export type QuizControllerGetQuizStatsHistoryParams = {
+  range?: QuizControllerGetQuizStatsHistoryRange;
 
-range?: QuizControllerGetQuizStatsHistoryRange;
-
-bucket?: QuizControllerGetQuizStatsHistoryBucket;
+  bucket?: QuizControllerGetQuizStatsHistoryBucket;
 };

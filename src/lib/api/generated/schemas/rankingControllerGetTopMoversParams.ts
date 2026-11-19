@@ -1,10 +1,7 @@
-
-
-import type { RankingControllerGetTopMoversPeriod } from './rankingControllerGetTopMoversPeriod';
+import type { RankingControllerGetTopMoversPeriod } from "./rankingControllerGetTopMoversPeriod";
 
 export type RankingControllerGetTopMoversParams = {
+  period?: RankingControllerGetTopMoversPeriod;
 
-period?: RankingControllerGetTopMoversPeriod;
-
-limit?: number;
+  limit?: number;
 };

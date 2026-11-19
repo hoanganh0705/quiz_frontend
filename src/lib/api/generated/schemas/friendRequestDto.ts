@@ -1,21 +1,18 @@
-
-
-import type { FriendRequestDtoRequesterDisplayName } from './friendRequestDtoRequesterDisplayName';
-import type { FriendRequestDtoRequesterAvatarUrl } from './friendRequestDtoRequesterAvatarUrl';
+import type { FriendRequestDtoRequesterDisplayName } from "./friendRequestDtoRequesterDisplayName";
+import type { FriendRequestDtoRequesterAvatarUrl } from "./friendRequestDtoRequesterAvatarUrl";
 
 export interface FriendRequestDto {
+  friendshipId: string;
 
-friendshipId: string;
+  requesterId: string;
 
-requesterId: string;
+  addresseeId: string;
 
-addresseeId: string;
+  requesterUsername: string;
 
-requesterUsername: string;
+  requesterDisplayName?: FriendRequestDtoRequesterDisplayName;
 
-requesterDisplayName?: FriendRequestDtoRequesterDisplayName;
+  requesterAvatarUrl?: FriendRequestDtoRequesterAvatarUrl;
 
-requesterAvatarUrl?: FriendRequestDtoRequesterAvatarUrl;
-
-createdAt: string;
+  createdAt: string;
 }

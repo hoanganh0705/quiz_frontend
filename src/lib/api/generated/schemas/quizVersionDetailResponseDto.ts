@@ -1,29 +1,26 @@
-
-
-import type { QuizVersionDetailResponseDtoStatus } from './quizVersionDetailResponseDtoStatus';
-import type { QuizQuestionAuthorDto } from './quizQuestionAuthorDto';
+import type { QuizVersionDetailResponseDtoStatus } from "./quizVersionDetailResponseDtoStatus";
+import type { QuizQuestionAuthorDto } from "./quizQuestionAuthorDto";
 
 export interface QuizVersionDetailResponseDto {
+  quizVersionId: string;
 
-quizVersionId: string;
+  quizId: string;
 
-quizId: string;
+  versionNumber: number;
 
-versionNumber: number;
+  status: QuizVersionDetailResponseDtoStatus;
 
-status: QuizVersionDetailResponseDtoStatus;
+  title: string;
 
-title: string;
+  description?: string | null;
 
-description?: string | null;
+  passingScorePercent: number;
 
-passingScorePercent: number;
+  durationMs: number;
 
-durationMs: number;
+  questions: QuizQuestionAuthorDto[];
 
-questions: QuizQuestionAuthorDto[];
+  createdAt: string;
 
-createdAt: string;
-
-updatedAt: string;
+  updatedAt: string;
 }

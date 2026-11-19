@@ -1,13 +1,7 @@
-'use client';
+"use client";
 
 /**
  * `/settings/security` — Security settings page.
- *
- * Source epic: Epic 2.8 — Security dashboard and active-session management.
- * Source tickets: 2.8.T9 (route scaffold), 2.8.T12 (dashboard wiring).
- * Source epic: Epic 2.9 — Password re-verification and password change.
- * Source tickets: 2.9.T14 (verify-password CTA launcher),
- *                 2.9.T15 (change-password card mount + revalidation).
  *
  * ## Composition contract
  *
@@ -24,7 +18,7 @@
  *     verify-password modal (US-2.9.1) that proves the user
  *     before exposing the change form. Mounted conditionally.
  *
- * ## Verify-password gate (Epic 2.9 / 2.9.T14)
+ * ## Verify-password gate
  *
  * The "Change password" CTA below the security dashboard opens
  * `VerifyPasswordModal`. On `valid: true`:
@@ -41,7 +35,7 @@
  * user must re-verify the next time they want to change the
  * password.
  *
- * ## Change-password revalidation (Epic 2.9 / 2.9.T15)
+ * ## Change-password revalidation
  *
  * On a successful password change, `useChangePassword` calls
  * `revalidateAfterPasswordChange()` and forwards the result to
@@ -100,8 +94,8 @@
  * from and back to.
  */
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Lock } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { Lock } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -111,34 +105,28 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@/components/ui/AlertDialog';
-import { Button } from '@/components/ui/Button';
-import { SecuritySummaryCard } from '@/features/auth/components/security-summary-card';
-import { SessionList } from '@/features/auth/components/session-list';
-import { ChangePasswordCard } from '@/features/auth/components/change-password-card';
-import { VerifyPasswordModal } from '@/features/auth/components/verify-password-modal';
-import { useSecurityDashboard } from '@/features/auth/hooks/use-security-dashboard';
-import { useActiveSessions } from '@/features/auth/hooks/use-active-sessions';
-import { useRevokeOtherSessions } from '@/features/auth/hooks/use-revoke-other-sessions';
+} from "@/components/ui/AlertDialog";
+import { Button } from "@/components/ui/Button";
+import { SecuritySummaryCard } from "@/features/auth/components/security-summary-card";
+import { SessionList } from "@/features/auth/components/session-list";
+import { ChangePasswordCard } from "@/features/auth/components/change-password-card";
+import { VerifyPasswordModal } from "@/features/auth/components/verify-password-modal";
+import { useSecurityDashboard } from "@/features/auth/hooks/use-security-dashboard";
+import { useActiveSessions } from "@/features/auth/hooks/use-active-sessions";
+import { useRevokeOtherSessions } from "@/features/auth/hooks/use-revoke-other-sessions";
 import {
   isRecentlyVerified,
   markRecentlyVerified,
-} from '@/features/auth/utils/verification-flag';
-import { defaultChangePasswordDeps } from '@/features/auth/hooks/use-change-password';
-import {
-  COPY_KEYS,
-  resolveCopy,
-} from '@/features/auth/copy/security-copy';
+} from "@/features/auth/utils/verification-flag";
+import { defaultChangePasswordDeps } from "@/features/auth/hooks/use-change-password";
+import { COPY_KEYS, resolveCopy } from "@/features/auth/copy/security-copy";
 import {
   PASSWORD_COPY_KEYS,
   resolvePasswordCopy,
-} from '@/features/auth/services/auth.service';
-import type {
-  AccountSecurityDto,
-  SessionListResponseDto,
-} from '@/lib/api';
+} from "@/features/auth/services/auth.service";
+import type { AccountSecurityDto, SessionListResponseDto } from "@/lib/api";
 
-const CHANGE_PASSWORD_ACTION_ID = 'change-password';
+const CHANGE_PASSWORD_ACTION_ID = "change-password";
 
 /**
  * Re-sync the page's "verified" state with the in-memory
@@ -147,10 +135,7 @@ const CHANGE_PASSWORD_ACTION_ID = 'change-password';
  * 15s). The `tick` dependency lets `handleVerified` bump the
  * counter to read the new flag immediately after `markRecentlyVerified`.
  */
-function useVerifiedFlagState(
-  actionId: string,
-  tick: number,
-): boolean {
+function useVerifiedFlagState(actionId: string, tick: number): boolean {
   const [verified, setVerified] = useState<boolean>(() =>
     isRecentlyVerified(actionId),
   );
@@ -297,26 +282,26 @@ export default function SecuritySettingsPage() {
   // is in error. So `aria-busy` is "true" only when a slot is
   // actively fetching.
   const isBusy =
-    dashboard.status === 'loading' ||
-    sessions.status === 'loading' ||
-    others.status === 'pending' ||
+    dashboard.status === "loading" ||
+    sessions.status === "loading" ||
+    others.status === "pending" ||
     isModalOpen;
 
   const showChangePasswordCta = !isVerified && !isCardMounted;
 
   return (
     <main
-      className='min-h-screen text-foreground p-4 md:p-8 lg:p-12'
+      className="min-h-screen text-foreground p-4 md:p-8 lg:p-12"
       aria-label={resolveCopy(COPY_KEYS.dashboard.title)}
       aria-busy={isBusy}
-      data-testid='security-settings-page'
+      data-testid="security-settings-page"
     >
-      <div className='max-w-4xl mx-auto'>
-        <header className='mb-8'>
-          <h1 className='text-3xl font-bold mb-2'>
+      <div className="max-w-4xl mx-auto">
+        <header className="mb-8">
+          <h1 className="text-3xl font-bold mb-2">
             {resolveCopy(COPY_KEYS.dashboard.title)}
           </h1>
-          <p className='text-muted-foreground text-base max-w-2xl'>
+          <p className="text-muted-foreground text-base max-w-2xl">
             {resolveCopy(COPY_KEYS.dashboard.subtitle)}
           </p>
         </header>
@@ -326,8 +311,8 @@ export default function SecuritySettingsPage() {
             down. */}
         <section
           aria-label={resolveCopy(COPY_KEYS.dashboard.title)}
-          data-testid='security-dashboard-slot'
-          className='mb-8'
+          data-testid="security-dashboard-slot"
+          className="mb-8"
         >
           <SecuritySummaryCard
             data={dashboard.data}
@@ -345,17 +330,17 @@ export default function SecuritySettingsPage() {
             aria-label={resolvePasswordCopy(
               PASSWORD_COPY_KEYS.password.changePassword.title,
             )}
-            data-testid='change-password-cta-slot'
-            className='mb-12'
+            data-testid="change-password-cta-slot"
+            className="mb-12"
           >
             <Button
-              type='button'
-              variant='default'
+              type="button"
+              variant="default"
               onClick={handleOpenVerifyModal}
-              className='gap-2'
-              data-testid='change-password-cta'
+              className="gap-2"
+              data-testid="change-password-cta"
             >
-              <Lock className='w-4 h-4' />
+              <Lock className="w-4 h-4" />
               {resolvePasswordCopy(
                 PASSWORD_COPY_KEYS.password.changePassword.title,
               )}
@@ -372,8 +357,8 @@ export default function SecuritySettingsPage() {
             aria-label={resolvePasswordCopy(
               PASSWORD_COPY_KEYS.password.changePassword.title,
             )}
-            data-testid='change-password-slot'
-            className='mb-12'
+            data-testid="change-password-slot"
+            className="mb-12"
           >
             <ChangePasswordCard
               hookDeps={hookDeps}
@@ -388,7 +373,7 @@ export default function SecuritySettingsPage() {
             `useRevokeOtherSessions` with a confirmation modal. */}
         <section
           aria-label={resolveCopy(COPY_KEYS.sessionList.title)}
-          data-testid='security-sessions-slot'
+          data-testid="security-sessions-slot"
         >
           <SessionList
             sessions={sessions.sessions}
@@ -400,7 +385,7 @@ export default function SecuritySettingsPage() {
               revalidate: sessions.revalidate,
             }}
             onRevokeOthers={handleOpenRevokeOthers}
-            revokeOthersPending={others.status === 'pending'}
+            revokeOthersPending={others.status === "pending"}
           />
         </section>
 
@@ -408,7 +393,7 @@ export default function SecuritySettingsPage() {
             the page level so the list can stay simple. The hook
             owns the `requiresConfirmation` state (T18). */}
         <RevokeOthersConfirmDialog
-          open={others.requiresConfirmation && others.status !== 'pending'}
+          open={others.requiresConfirmation && others.status !== "pending"}
           onConfirm={handleConfirmRevokeOthers}
           onCancel={handleCancelRevokeOthers}
         />
@@ -476,7 +461,7 @@ function RevokeOthersConfirmDialog({
         if (!next) onCancel();
       }}
     >
-      <AlertDialogContent data-testid='revoke-others-confirm-dialog'>
+      <AlertDialogContent data-testid="revoke-others-confirm-dialog">
         <AlertDialogHeader>
           <AlertDialogTitle>
             {resolveCopy(COPY_KEYS.revoke.others.title)}
@@ -486,14 +471,14 @@ function RevokeOthersConfirmDialog({
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel data-testid='revoke-others-confirm-cancel'>
+          <AlertDialogCancel data-testid="revoke-others-confirm-cancel">
             {resolveCopy(COPY_KEYS.revoke.others.cancel)}
           </AlertDialogCancel>
           <AlertDialogAction
             onClick={() => {
               void onConfirm();
             }}
-            data-testid='revoke-others-confirm-action'
+            data-testid="revoke-others-confirm-action"
           >
             {resolveCopy(COPY_KEYS.revoke.others.confirm)}
           </AlertDialogAction>

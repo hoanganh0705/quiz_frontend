@@ -1,7 +1,5 @@
-
-
-import type { PaginationMetaDto } from './paginationMetaDto';
+import type { PaginationMetaDto } from "./paginationMetaDto";
 
 export type BookmarkControllerSearchBookmarks200AllOfMeta = {
-pagination?: PaginationMetaDto;
+  pagination?: PaginationMetaDto;
 };

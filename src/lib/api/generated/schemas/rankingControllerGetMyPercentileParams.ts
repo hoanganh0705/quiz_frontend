@@ -1,8 +1,5 @@
-
-
-import type { RankingControllerGetMyPercentilePeriod } from './rankingControllerGetMyPercentilePeriod';
+import type { RankingControllerGetMyPercentilePeriod } from "./rankingControllerGetMyPercentilePeriod";
 
 export type RankingControllerGetMyPercentileParams = {
-
-period?: RankingControllerGetMyPercentilePeriod;
+  period?: RankingControllerGetMyPercentilePeriod;
 };

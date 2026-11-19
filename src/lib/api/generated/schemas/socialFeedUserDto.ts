@@ -1,8 +1,5 @@
-
-
 export interface SocialFeedUserDto {
+  userId: string;
 
-userId: string;
-
-username: string;
+  username: string;
 }

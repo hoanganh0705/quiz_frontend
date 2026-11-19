@@ -1,12 +1,13 @@
-'use client';
+"use client";
 
-import useSWR from 'swr';
+import { useQuery } from "@tanstack/react-query";
+import { getQueryClient } from "@/providers/QueryProvider";
 
-import { ApiError, getAuth } from '@/lib/api';
-import type { CurrentUserResponseDto } from '@/lib/api';
-import { getAuthToken } from '@/features/auth/utils/auth-cookies';
+import { ApiError, getAuth } from "@/lib/api";
+import type { CurrentUserResponseDto } from "@/lib/api";
+import { getAuthToken } from "@/features/auth/utils/auth-cookies";
 
-export const USER_ROLE_KEY = 'auth:current-user-role' as const;
+export const USER_ROLE_KEY = "auth:current-user-role" as const;
 
 export interface UseUserRole {
   isLoading: boolean;
@@ -23,9 +24,15 @@ async function fetchCurrentUserRole(): Promise<CurrentUserResponseDto | null> {
 }
 
 export function useUserRole(): UseUserRole {
-  const { data, error, isLoading } = useSWR<CurrentUserResponseDto | null, ApiError>(
-    USER_ROLE_KEY,
-    fetchCurrentUserRole,
+  const { data, error, isLoading } = useQuery<
+    CurrentUserResponseDto | null,
+    ApiError
+  >(
+    {
+      queryKey: [USER_ROLE_KEY],
+      queryFn: fetchCurrentUserRole,
+    },
+    getQueryClient(),
   );
 
   return {

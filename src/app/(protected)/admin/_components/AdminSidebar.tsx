@@ -2,10 +2,7 @@
 
 import type * as React from "react";
 import Link from "next/link";
-import {
-  Shield,
-  ChevronLeft,
-} from "lucide-react";
+import { Shield, ChevronLeft } from "lucide-react";
 
 import {
   Sidebar,
@@ -60,10 +57,15 @@ export function AdminSidebar({
         {/* Back to app */}
         <SidebarMenu className="px-2 py-2">
           <SidebarMenuItem>
-            <SidebarMenuButton asChild className="text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors">
+            <SidebarMenuButton
+              asChild
+              className="text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors"
+            >
               <Link href="/" className="flex items-center gap-2 min-w-0">
                 <ChevronLeft className="size-4 shrink-0" />
-                <span className="text-sm font-medium truncate">Back to App</span>
+                <span className="text-sm font-medium truncate">
+                  Back to App
+                </span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>

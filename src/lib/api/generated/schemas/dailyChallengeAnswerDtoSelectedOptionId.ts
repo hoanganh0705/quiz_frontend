@@ -1,3 +1,3 @@
-
-
-export type DailyChallengeAnswerDtoSelectedOptionId = { [key: string]: unknown } | null;
+export type DailyChallengeAnswerDtoSelectedOptionId = {
+  [key: string]: unknown;
+} | null;

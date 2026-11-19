@@ -1,7 +1,5 @@
-
-
-import type { DeleteAccountResponseDto } from './deleteAccountResponseDto';
+import type { DeleteAccountResponseDto } from "./deleteAccountResponseDto";
 
 export type AuthControllerDeleteAccount200AllOf = {
-data?: DeleteAccountResponseDto;
+  data?: DeleteAccountResponseDto;
 };

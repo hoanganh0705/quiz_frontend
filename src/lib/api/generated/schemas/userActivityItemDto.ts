@@ -1,18 +1,15 @@
-
-
-import type { UserActivityItemDtoType } from './userActivityItemDtoType';
-import type { UserActivityItemDtoActor } from './userActivityItemDtoActor';
-import type { UserActivityItemDtoPayload } from './userActivityItemDtoPayload';
+import type { UserActivityItemDtoType } from "./userActivityItemDtoType";
+import type { UserActivityItemDtoActor } from "./userActivityItemDtoActor";
+import type { UserActivityItemDtoPayload } from "./userActivityItemDtoPayload";
 
 export interface UserActivityItemDto {
+  id: string;
 
-id: string;
+  type: UserActivityItemDtoType;
 
-type: UserActivityItemDtoType;
+  at: string;
 
-at: string;
+  actor: UserActivityItemDtoActor;
 
-actor: UserActivityItemDtoActor;
-
-payload: UserActivityItemDtoPayload;
+  payload: UserActivityItemDtoPayload;
 }

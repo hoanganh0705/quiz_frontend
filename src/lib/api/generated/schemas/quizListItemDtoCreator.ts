@@ -1,5 +1,3 @@
-
-
-import type { AuthorSummaryDto } from './authorSummaryDto';
+import type { AuthorSummaryDto } from "./authorSummaryDto";
 
 export type QuizListItemDtoCreator = AuthorSummaryDto | null;

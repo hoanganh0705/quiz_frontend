@@ -1,7 +1,5 @@
-
-
-import type { QuizStatsHistoryResponseDto } from './quizStatsHistoryResponseDto';
+import type { QuizStatsHistoryResponseDto } from "./quizStatsHistoryResponseDto";
 
 export type QuizControllerGetQuizStatsHistory200AllOf = {
-data?: QuizStatsHistoryResponseDto;
+  data?: QuizStatsHistoryResponseDto;
 };

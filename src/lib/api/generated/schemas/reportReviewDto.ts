@@ -1,12 +1,9 @@
-
-
-import type { ReportReviewDtoReason } from './reportReviewDtoReason';
+import type { ReportReviewDtoReason } from "./reportReviewDtoReason";
 
 export interface ReportReviewDto {
+  reason: ReportReviewDtoReason;
 
-reason: ReportReviewDtoReason;
+  details?: string | null;
 
-details?: string | null;
-
-idempotencyKey?: string | null;
+  idempotencyKey?: string | null;
 }

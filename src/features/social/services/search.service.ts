@@ -1,10 +1,6 @@
-
-
 import { ApiError, getSocial } from "@/lib/api";
 
-import type {
-SocialControllerSearchUsersResult,
-} from "@/lib/api/generated/social/social";
+import type { SocialControllerSearchUsersResult } from "@/lib/api/generated/social/social";
 
 import { addSocialServiceBreadcrumb } from "@/lib/social/social-sentry";
 
@@ -14,89 +10,94 @@ import type { SocialListVisibility } from "@/features/social/social-list-visibil
 import type { SearchableUserDto } from "@/lib/api/generated/schemas";
 
 export interface SearchUsersServiceResult {
-readonly items: readonly SearchableUserDto[];
-readonly total: number;
+  readonly items: readonly SearchableUserDto[];
+  readonly total: number;
 
-readonly cooldownSeconds: number | null;
-readonly visibility: SocialListVisibility;
+  readonly cooldownSeconds: number | null;
+  readonly visibility: SocialListVisibility;
 }
 
 export interface SearchUsersPagination {
-readonly limit?: number;
+  readonly limit?: number;
 }
 
 function requireEnvelope<T>(wire: T | null | undefined, message: string): T {
-if (wire === null || wire === undefined) {
-throw new ApiError({
-status: 500,
-code: "GLOBAL_INTERNAL_ERROR",
-message,
+  if (wire === null || wire === undefined) {
+    throw new ApiError({
+      status: 500,
+      code: "GLOBAL_INTERNAL_ERROR",
+      message,
     } as unknown as ConstructorParameters<typeof ApiError>[0]);
   }
-return wire;
+  return wire;
 }
 
 function clampTotal(total: unknown): number {
-if (typeof total !== "number" || !Number.isFinite(total) || total < 0) {
-return 0;
+  if (typeof total !== "number" || !Number.isFinite(total) || total < 0) {
+    return 0;
   }
-return Math.floor(total);
+  return Math.floor(total);
 }
 
 export async function searchUsers(
-query: string,
-pagination?: SearchUsersPagination,
+  query: string,
+  pagination?: SearchUsersPagination,
 ): Promise<SearchUsersServiceResult> {
-const start = Date.now();
-addSocialServiceBreadcrumb({
-route: "social.searchUsers",
+  const start = Date.now();
+  addSocialServiceBreadcrumb({
+    route: "social.searchUsers",
   });
 
-let wire: SocialControllerSearchUsersResult;
-try {
-wire = await getSocial().socialControllerSearchUsers({
-q: query,
-limit: pagination?.limit,
+  let wire: SocialControllerSearchUsersResult;
+  try {
+    wire = await getSocial().socialControllerSearchUsers({
+      q: query,
+      limit: pagination?.limit,
     });
   } catch (err) {
-const apiErr = err as Partial<ApiError> | null;
-addSocialServiceBreadcrumb({
-route: "social.searchUsers",
-status: (apiErr as { status?: number } | null)?.status,
-durationMs: Date.now() - start,
-code: apiErr?.code,
+    const apiErr = err as Partial<ApiError> | null;
+    addSocialServiceBreadcrumb({
+      route: "social.searchUsers",
+      status: (apiErr as { status?: number } | null)?.status,
+      durationMs: Date.now() - start,
+      code: apiErr?.code,
     });
-throw err;
+    throw err;
   }
 
-const envelope = requireEnvelope(wire, "Search users response missing envelope");
+  const envelope = requireEnvelope(
+    wire,
+    "Search users response missing envelope",
+  );
 
-const items: SearchableUserDto[] = envelope?.data ?? [];
+  const items: SearchableUserDto[] = envelope?.data ?? [];
 
-let cooldownSeconds: number | null = null;
-const responseWithHeaders = wire as { headers?: Record<string, string | string[] | undefined> } | null;
-if (responseWithHeaders?.headers) {
-const { cooldownSeconds: decoded } = decodeSearchRateLimit(
-responseWithHeaders.headers,
+  let cooldownSeconds: number | null = null;
+  const responseWithHeaders = wire as {
+    headers?: Record<string, string | string[] | undefined>;
+  } | null;
+  if (responseWithHeaders?.headers) {
+    const { cooldownSeconds: decoded } = decodeSearchRateLimit(
+      responseWithHeaders.headers,
     );
-cooldownSeconds = decoded;
+    cooldownSeconds = decoded;
   }
 
-const rawTotal = (envelope?.meta?.pagination as { total?: unknown } | undefined)?.total;
-const total = rawTotal !== undefined
-? clampTotal(rawTotal)
-: items.length;
+  const rawTotal = (
+    envelope?.meta?.pagination as { total?: unknown } | undefined
+  )?.total;
+  const total = rawTotal !== undefined ? clampTotal(rawTotal) : items.length;
 
-addSocialServiceBreadcrumb({
-route: "social.searchUsers",
-status: 200,
-durationMs: Date.now() - start,
+  addSocialServiceBreadcrumb({
+    route: "social.searchUsers",
+    status: 200,
+    durationMs: Date.now() - start,
   });
 
-return {
-items,
-total,
-cooldownSeconds,
-visibility: "visible",
+  return {
+    items,
+    total,
+    cooldownSeconds,
+    visibility: "visible",
   };
 }

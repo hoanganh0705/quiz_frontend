@@ -1,7 +1,5 @@
-
-
-import type { TagResponseDto } from './tagResponseDto';
+import type { TagResponseDto } from "./tagResponseDto";
 
 export type TagControllerGetTagBySlug200AllOf = {
-data?: TagResponseDto;
+  data?: TagResponseDto;
 };

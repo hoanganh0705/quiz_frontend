@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 /**
  * `DailyChallengeHistoryEmptyState` — empty-state surface for the
@@ -20,14 +20,14 @@
  * for a live, empty response.
  */
 
-import { Calendar } from 'lucide-react'
+import { Calendar } from "lucide-react";
 
-import { Card, CardContent } from '@/components/ui/Card'
+import { Card, CardContent } from "@/components/ui/Card";
 
-import { cn } from '@/shared/utils/merge-class-names'
+import { cn } from "@/shared/utils/merge-class-names";
 
 export interface DailyChallengeHistoryEmptyStateProps {
-  className?: string
+  className?: string;
 }
 
 export function DailyChallengeHistoryEmptyState({
@@ -35,24 +35,21 @@ export function DailyChallengeHistoryEmptyState({
 }: DailyChallengeHistoryEmptyStateProps) {
   return (
     <Card
-      data-testid='daily-challenge-history-empty-state'
-      role='region'
-      aria-labelledby='daily-challenge-history-empty-title'
-      className={cn(
-        'border bg-background text-foreground py-6',
-        className,
-      )}
+      data-testid="daily-challenge-history-empty-state"
+      role="region"
+      aria-labelledby="daily-challenge-history-empty-title"
+      className={cn("border bg-background text-foreground py-6", className)}
     >
-      <CardContent className='flex items-center justify-center min-h-24 p-4 gap-3 text-foreground-secondary'>
-        <Calendar className='h-5 w-5' aria-hidden='true' />
+      <CardContent className="flex items-center justify-center min-h-24 p-4 gap-3 text-foreground-secondary">
+        <Calendar className="h-5 w-5" aria-hidden="true" />
         <p
-          id='daily-challenge-history-empty-title'
-          className='text-sm font-medium'
+          id="daily-challenge-history-empty-title"
+          className="text-sm font-medium"
         >
-          No past challenges yet. Take today&apos;s challenge to start
-          your streak.
+          No past challenges yet. Take today&apos;s challenge to start your
+          streak.
         </p>
       </CardContent>
     </Card>
-  )
+  );
 }

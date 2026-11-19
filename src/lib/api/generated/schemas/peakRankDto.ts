@@ -1,10 +1,7 @@
-
-
-import type { PeakRankDtoAchievedAt } from './peakRankDtoAchievedAt';
+import type { PeakRankDtoAchievedAt } from "./peakRankDtoAchievedAt";
 
 export interface PeakRankDto {
+  rank: number;
 
-rank: number;
-
-achievedAt?: PeakRankDtoAchievedAt;
+  achievedAt?: PeakRankDtoAchievedAt;
 }

@@ -1,10 +1,7 @@
-
-
 export interface AttemptPaginationResponseDto {
+  limit: number;
 
-limit: number;
+  nextCursor: string | null;
 
-nextCursor: string | null;
-
-hasNextPage: boolean;
+  hasNextPage: boolean;
 }

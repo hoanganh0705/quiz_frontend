@@ -1,5 +1,4 @@
+import type { AttemptStatsFavoriteCategoryDto } from "./attemptStatsFavoriteCategoryDto";
 
-
-import type { AttemptStatsFavoriteCategoryDto } from './attemptStatsFavoriteCategoryDto';
-
-export type UserAttemptStatsResponseDtoFavoriteCategory = AttemptStatsFavoriteCategoryDto | null;
+export type UserAttemptStatsResponseDtoFavoriteCategory =
+  AttemptStatsFavoriteCategoryDto | null;

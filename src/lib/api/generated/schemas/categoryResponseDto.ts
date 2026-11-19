@@ -1,18 +1,15 @@
-
-
 export interface CategoryResponseDto {
+  categoryId: string;
 
-categoryId: string;
+  name: string;
 
-name: string;
+  description?: string | null;
 
-description?: string | null;
+  slug: string;
 
-slug: string;
+  imageUrl?: string | null;
 
-imageUrl?: string | null;
+  createdAt: string;
 
-createdAt: string;
-
-updatedAt: string;
+  updatedAt: string;
 }

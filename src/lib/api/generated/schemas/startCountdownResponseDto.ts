@@ -1,14 +1,11 @@
-
-
-import type { StartCountdownResponseDtoStatus } from './startCountdownResponseDtoStatus';
+import type { StartCountdownResponseDtoStatus } from "./startCountdownResponseDtoStatus";
 
 export interface StartCountdownResponseDto {
+  instanceId: string;
 
-instanceId: string;
+  status: StartCountdownResponseDtoStatus;
 
-status: StartCountdownResponseDtoStatus;
+  countdownStartedAt: string;
 
-countdownStartedAt: string;
-
-countdownEndsAt: string;
+  countdownEndsAt: string;
 }

@@ -1,7 +1,5 @@
-
-
-import type { CreateReviewResponseDto } from './createReviewResponseDto';
+import type { CreateReviewResponseDto } from "./createReviewResponseDto";
 
 export type QuizReviewControllerCreateReview201AllOf = {
-data?: CreateReviewResponseDto;
+  data?: CreateReviewResponseDto;
 };

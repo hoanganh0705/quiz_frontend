@@ -1,8 +1,5 @@
-
-
 export interface HelpfulReviewDto {
+  helpful: boolean;
 
-helpful: boolean;
-
-idempotencyKey?: string | null;
+  idempotencyKey?: string | null;
 }

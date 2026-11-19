@@ -1,10 +1,7 @@
-
-
 export interface SearchUserResultDto {
+  userId: string;
 
-userId: string;
+  username: string;
 
-username: string;
-
-displayName?: string | null;
+  displayName?: string | null;
 }

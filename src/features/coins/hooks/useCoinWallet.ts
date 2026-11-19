@@ -1,79 +1,91 @@
 "use client";
 
 import { useCallback, useMemo } from "react";
-import useSWR from "swr";
+import { useQuery } from "@tanstack/react-query";
+import { getQueryClient } from "@/providers/QueryProvider";
 
 import { ApiError } from "@/lib/api";
 import { getFeatureFlagValue } from "@/lib/feature-flags";
 
 import {
-COIN_CACHE_KEYS,
-type CoinWallet,
+  COIN_CACHE_KEYS,
+  type CoinWallet,
 } from "@/features/coins/types/coin.types";
 import { getCoinWallet } from "@/features/coins/services/coins.service";
 
 export interface UseCoinWalletResult {
-wallet: CoinWallet | null;
-balance: number | null;
-isLoading: boolean;
-isStale: boolean;
-isPlaceholder: boolean;
-error: ApiError | null;
-refresh: () => Promise<void>;
+  wallet: CoinWallet | null;
+  balance: number | null;
+  isLoading: boolean;
+  isStale: boolean;
+  isPlaceholder: boolean;
+  error: ApiError | null;
+  refresh: () => Promise<void>;
 }
 
 const PLACEHOLDER_WALLET: CoinWallet = {
-userId: "",
-balance: 0,
-lifetimeEarned: 0,
-lifetimeSpent: 0,
-lastEarnedAt: null,
-lastSpentAt: null,
-updatedAt: new Date(0).toISOString(),
+  userId: "",
+  balance: 0,
+  lifetimeEarned: 0,
+  lifetimeSpent: 0,
+  lastEarnedAt: null,
+  lastSpentAt: null,
+  updatedAt: new Date(0).toISOString(),
 };
 
 export function useCoinWallet(): UseCoinWalletResult {
-const flagValue = getFeatureFlagValue("coin_economy_live");
-const isPlaceholder = flagValue === "placeholder";
+  const flagValue = getFeatureFlagValue("coin_economy_live");
+  const isPlaceholder = flagValue === "placeholder";
 
-const key = useMemo(
-() => (isPlaceholder ? (["coins", "wallet", "disabled"] as const) : COIN_CACHE_KEYS.wallet()),
-[isPlaceholder],
+  const key = useMemo(
+    () =>
+      isPlaceholder
+        ? (["coins", "wallet", "disabled"] as const)
+        : COIN_CACHE_KEYS.wallet(),
+    [isPlaceholder],
   );
 
-const swr = useSWR<CoinWallet>(key, {
-fetcher: isPlaceholder
-? undefined
-: async () => getCoinWallet(),
-revalidateOnFocus: !isPlaceholder,
-revalidateOnReconnect: !isPlaceholder,
-dedupingInterval: 5_000,
-keepPreviousData: true,
-  });
+  const {
+    data,
+    error: queryError,
+    isLoading,
+    isFetching,
+    refetch,
+  } = useQuery<CoinWallet, Error>(
+    {
+      queryKey: key,
+      queryFn: async () => getCoinWallet(),
+      enabled: !isPlaceholder,
+      refetchOnWindowFocus: !isPlaceholder,
+      refetchOnReconnect: !isPlaceholder,
+      staleTime: 5000,
+    },
+    getQueryClient(),
+  );
 
-const refresh = useCallback(async () => {
-if (isPlaceholder) return;
-await swr.mutate();
-  }, [isPlaceholder, swr]);
+  const refresh = useCallback(async () => {
+    if (isPlaceholder) return;
+    await refetch();
+  }, [isPlaceholder, refetch]);
 
-const error =
-swr.error instanceof ApiError
-? swr.error
-: swr.error
-? ApiError.fromInput({
-code: "GLOBAL_INTERNAL_ERROR",
-status: 0,
-message: (swr.error as Error)?.message ?? "Unknown coin-wallet error",
+  const error =
+    queryError instanceof ApiError
+      ? queryError
+      : queryError
+        ? ApiError.fromInput({
+            code: "GLOBAL_INTERNAL_ERROR",
+            status: 0,
+            message: queryError?.message ?? "Unknown coin-wallet error",
           })
-: null;
+        : null;
 
-return {
-wallet: isPlaceholder ? PLACEHOLDER_WALLET : swr.data ?? null,
-balance: isPlaceholder ? 0 : swr.data?.balance ?? null,
-isLoading: !isPlaceholder && swr.isLoading,
-isStale: !isPlaceholder && swr.isValidating && Boolean(swr.data),
-isPlaceholder,
-error,
-refresh,
+  return {
+    wallet: isPlaceholder ? PLACEHOLDER_WALLET : (data ?? null),
+    balance: isPlaceholder ? 0 : (data?.balance ?? null),
+    isLoading: !isPlaceholder && isLoading && data === undefined,
+    isStale: !isPlaceholder && isFetching && Boolean(data),
+    isPlaceholder,
+    error,
+    refresh,
   };
 }

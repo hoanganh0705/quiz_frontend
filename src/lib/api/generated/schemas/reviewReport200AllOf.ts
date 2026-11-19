@@ -1,7 +1,5 @@
-
-
-import type { ReportDto } from './reportDto';
+import type { ReportDto } from "./reportDto";
 
 export type ReviewReport200AllOf = {
-data?: ReportDto;
+  data?: ReportDto;
 };

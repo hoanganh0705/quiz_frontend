@@ -1,14 +1,11 @@
-
-
-import type { UpdateQuizVersionDtoDifficulty } from './updateQuizVersionDtoDifficulty';
+import type { UpdateQuizVersionDtoDifficulty } from "./updateQuizVersionDtoDifficulty";
 
 export interface UpdateQuizVersionDto {
+  difficulty?: UpdateQuizVersionDtoDifficulty;
 
-difficulty?: UpdateQuizVersionDtoDifficulty;
+  durationMs?: number;
 
-durationMs?: number;
+  passingScorePercent?: number;
 
-passingScorePercent?: number;
-
-rewardXp?: number;
+  rewardXp?: number;
 }

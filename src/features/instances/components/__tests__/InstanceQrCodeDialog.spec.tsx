@@ -73,7 +73,9 @@ describe("InstanceQrCodeDialog", () => {
     fireEvent.click(copyBtn);
 
     await waitFor(() => {
-      expect(writeTextMock).toHaveBeenCalledWith("http://localhost:3000/instances/inst-12345");
+      expect(writeTextMock).toHaveBeenCalledWith(
+        "http://localhost:3000/instances/inst-12345",
+      );
       expect(screen.getByText("Link Copied to Clipboard!")).toBeInTheDocument();
     });
   });

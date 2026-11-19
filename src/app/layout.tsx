@@ -1,25 +1,25 @@
-import type React from 'react'
-import type { Metadata } from 'next'
-import { jetbrainsMono, outfit } from '@/shared/config/fonts'
-import { SwrProvider, ThemeProvider } from '@/providers'
-import { LayoutShell } from '@/shared/layout'
-import { PwaServiceWorker } from '@/shared/ui/PwaServiceWorker'
-import './globals.css'
+import type React from "react";
+import type { Metadata } from "next";
+import { jetbrainsMono, outfit } from "@/shared/config/fonts";
+import { QueryProvider, ThemeProvider } from "@/providers";
+import { LayoutShell } from "@/shared/layout";
+import { PwaServiceWorker } from "@/shared/ui/PwaServiceWorker";
+import "./globals.css";
 
 export const metadata: Metadata = {
-  title: 'QuizHub - Play, Share, Earn!',
+  title: "QuizHub - Play, Share, Earn!",
   description:
-    'Build engaging quizzes, challenge others, and earn rewards for your knowledge.'
-}
+    "Build engaging quizzes, challenge others, and earn rewards for your knowledge.",
+};
 
 export default function RootLayout({
-  children
+  children,
 }: {
-  children: React.ReactNode
+  children: React.ReactNode;
 }) {
   return (
     <html
-      lang='en'
+      lang="en"
       suppressHydrationWarning
       className={`${outfit.variable} ${jetbrainsMono.variable}`}
     >
@@ -27,21 +27,21 @@ export default function RootLayout({
         className={`${outfit.className} font-sans antialiased overflow-x-hidden`}
         suppressHydrationWarning
       >
-        <a href='#main-content' className='skip-link'>
+        <a href="#main-content" className="skip-link">
           Skip to main content
         </a>
         <ThemeProvider
-          attribute='class'
-          defaultTheme='system'
+          attribute="class"
+          defaultTheme="system"
           enableSystem
           disableTransitionOnChange
         >
-          <SwrProvider>
+          <QueryProvider>
             <PwaServiceWorker />
             <LayoutShell>{children}</LayoutShell>
-          </SwrProvider>
+          </QueryProvider>
         </ThemeProvider>
       </body>
     </html>
-  )
+  );
 }

@@ -14,4 +14,4 @@ export {
   type QuizAttemptCompletedEvent,
   type QuizAttemptStartedEvent,
   type UserProfileUpdatedEvent,
-} from './domain-event-bus';
+} from "./domain-event-bus";

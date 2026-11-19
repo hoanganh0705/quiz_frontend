@@ -1,22 +1,19 @@
-
-
 export interface AttemptAnalyticsResponseDto {
+  attemptId: string;
 
-attemptId: string;
+  score?: number | null;
 
-score?: number | null;
+  accuracy?: number | null;
 
-accuracy?: number | null;
+  correctAnswers?: number | null;
 
-correctAnswers?: number | null;
+  incorrectAnswers?: number | null;
 
-incorrectAnswers?: number | null;
+  unansweredQuestions: number;
 
-unansweredQuestions: number;
+  timeSpentSeconds?: number | null;
 
-timeSpentSeconds?: number | null;
+  percentileRank: number;
 
-percentileRank: number;
-
-completedAt?: string | null;
+  completedAt?: string | null;
 }

@@ -1,7 +1,5 @@
-
-
-import type { MyTournamentAnalyticsResponseDto } from './myTournamentAnalyticsResponseDto';
+import type { MyTournamentAnalyticsResponseDto } from "./myTournamentAnalyticsResponseDto";
 
 export type UserControllerGetMyTournamentAnalytics200AllOf = {
-data?: MyTournamentAnalyticsResponseDto;
+  data?: MyTournamentAnalyticsResponseDto;
 };

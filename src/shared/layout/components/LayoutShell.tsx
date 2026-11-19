@@ -2,7 +2,7 @@
 
 import type React from "react";
 import { useEffect, useRef } from "react";
-import { mutate as globalMutate } from "swr";
+import { getQueryClient } from "@/providers/QueryProvider";
 import { AppSidebar } from "@/shared/layout/components/AppSidebar";
 import { AppHeader } from "@/shared/layout/components/AppHeader";
 import { SidebarInset, SidebarProvider } from "@/components/ui/Sidebar";
@@ -15,10 +15,10 @@ import { CoinBalanceSyncLayer } from "@/features/coins/components/CoinBalanceSyn
 import { RewardToast } from "@/features/coins/components/RewardToast";
 import { getAuthToken } from "@/features/auth/utils/auth-cookies";
 import {
-useUser,
-useIsUserLoading,
-useFetchCurrentUser,
-useUserStore,
+  useUser,
+  useIsUserLoading,
+  useFetchCurrentUser,
+  useUserStore,
 } from "@/features/users/store/user-store";
 import { useResetCoinStore } from "@/features/coins/store/coin-store";
 
@@ -51,93 +51,97 @@ const SHELL_PREFIXES = [
 const SHELL_EXACT_PATHS = ["/"] as const;
 
 const AUTH_PAGES = [
-"/login",
-"/signup",
-"/forgot-password",
-"/resend-verification",
-"/verify-email",
+  "/login",
+  "/signup",
+  "/forgot-password",
+  "/resend-verification",
+  "/verify-email",
 ] as const;
 
 function isShellPage(pathname: string | undefined): boolean {
-if (!pathname) return true;
-if (SHELL_EXACT_PATHS.some((p) => pathname === p)) return true;
-return SHELL_PREFIXES.some((p) => pathname.startsWith(p));
+  if (!pathname) return true;
+  if (SHELL_EXACT_PATHS.some((p) => pathname === p)) return true;
+  return SHELL_PREFIXES.some((p) => pathname.startsWith(p));
 }
 
 function isAuthPage(pathname: string | undefined): boolean {
-if (!pathname) return false;
-return AUTH_PAGES.some((p) => pathname === p || pathname.startsWith(p));
+  if (!pathname) return false;
+  return AUTH_PAGES.some((p) => pathname === p || pathname.startsWith(p));
 }
 
 export function LayoutShell({ children }: { children: React.ReactNode }) {
-const pathname = usePathname();
-const router = useRouter();
-const { currentUser, isLoading: isAuthLoading } = useAuth();
-const user = useUser();
-const isUserLoading = useIsUserLoading();
-const fetchCurrentUser = useFetchCurrentUser();
-const resetCoinStore = useResetCoinStore();
+  const pathname = usePathname();
+  const router = useRouter();
+  const { currentUser, isLoading: isAuthLoading } = useAuth();
+  const user = useUser();
+  const isUserLoading = useIsUserLoading();
+  const fetchCurrentUser = useFetchCurrentUser();
+  const resetCoinStore = useResetCoinStore();
 
-useEffect(() => {
-if (currentUser === null) {
-resetCoinStore();
+  useEffect(() => {
+    if (currentUser === null) {
+      resetCoinStore();
     }
   }, [currentUser, resetCoinStore]);
 
-useEffect(() => {
-useUserStore.persist.rehydrate();
+  useEffect(() => {
+    useUserStore.persist.rehydrate();
   }, []);
 
-const lastSeenUserIdRef = useRef<string | null>(null);
-useEffect(() => {
-if (typeof window === "undefined") return;
-const currentUserId = user?.userId ?? null;
-const lastSeen = lastSeenUserIdRef.current;
+  const lastSeenUserIdRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const currentUserId = user?.userId ?? null;
+    const lastSeen = lastSeenUserIdRef.current;
 
-if (currentUserId === null && lastSeen === null) return;
+    if (currentUserId === null && lastSeen === null) return;
 
-if (lastSeen === currentUserId) return;
+    if (lastSeen === currentUserId) return;
 
-lastSeenUserIdRef.current = currentUserId;
-try {
-void globalMutate(() => true, undefined, { revalidate: true });
+    lastSeenUserIdRef.current = currentUserId;
+    try {
+      void globalMutate(() => true, undefined, { revalidate: true });
     } catch {
       // Fail-open: SWR may not be initialized yet.
+    }
+    try {
+      void getQueryClient().invalidateQueries();
+    } catch {
+      // Fail-open
     }
     // We intentionally do NOT depend on `user` identity — Zustand may
     // push a new object on every internal mutation. We depend on the
     // id string so equal ids do not retrigger.
   }, [user?.userId]);
 
-const attemptRef = useRef<{ count: number; lastErrorAt: number | null }>({
-count: 0,
-lastErrorAt: null,
+  const attemptRef = useRef<{ count: number; lastErrorAt: number | null }>({
+    count: 0,
+    lastErrorAt: null,
   });
 
-useEffect(() => {
-if (!currentUser) {
-
-attemptRef.current = { count: 0, lastErrorAt: null };
-return;
+  useEffect(() => {
+    if (!currentUser) {
+      attemptRef.current = { count: 0, lastErrorAt: null };
+      return;
     }
-if (user) return;
-if (isUserLoading) return;
+    if (user) return;
+    if (isUserLoading) return;
 
-const now = Date.now();
-if (
-attemptRef.current.lastErrorAt !== null &&
-now - attemptRef.current.lastErrorAt < 30_000
+    const now = Date.now();
+    if (
+      attemptRef.current.lastErrorAt !== null &&
+      now - attemptRef.current.lastErrorAt < 30_000
     ) {
-return;
+      return;
     }
 
-attemptRef.current.count += 1;
-void fetchCurrentUser().then(
-() => {
-attemptRef.current.lastErrorAt = null;
+    attemptRef.current.count += 1;
+    void fetchCurrentUser().then(
+      () => {
+        attemptRef.current.lastErrorAt = null;
       },
-() => {
-attemptRef.current.lastErrorAt = Date.now();
+      () => {
+        attemptRef.current.lastErrorAt = Date.now();
       },
     );
     // Intentionally NOT depending on `user` reference (Zustand pushes
@@ -168,40 +172,40 @@ attemptRef.current.lastErrorAt = Date.now();
       "/create-quiz",
       "/onboarding",
     ];
-const isProtected = protectedPrefixes.some((p) => pathname?.startsWith(p));
-const hasToken = !!getAuthToken();
+    const isProtected = protectedPrefixes.some((p) => pathname?.startsWith(p));
+    const hasToken = !!getAuthToken();
 
-if (isProtected && !isAuthLoading && !currentUser && !hasToken) {
-router.replace(`/login?redirect=${encodeURIComponent(pathname ?? "/")}`);
+    if (isProtected && !isAuthLoading && !currentUser && !hasToken) {
+      router.replace(`/login?redirect=${encodeURIComponent(pathname ?? "/")}`);
     }
   }, [isAuthLoading, currentUser, pathname, router]);
 
-if (isAuthPage(pathname)) {
-return <>{children}</>;
+  if (isAuthPage(pathname)) {
+    return <>{children}</>;
   }
 
-if (!isShellPage(pathname)) {
-return <>{children}</>;
+  if (!isShellPage(pathname)) {
+    return <>{children}</>;
   }
 
-return (
-<SidebarProvider>
-<AppSidebar />
+  return (
+    <SidebarProvider>
+      <AppSidebar />
       <SidebarInset className="overflow-x-hidden pt-14 md:pt-16">
-<AppHeader />
-<AppBreadcrumbs />
-<main
-id="main-content"
-className="pt-1 md:pt-2 overflow-x-hidden max-w-full app-page-transition"
+        <AppHeader />
+        <AppBreadcrumbs />
+        <main
+          id="main-content"
+          className="pt-1 md:pt-2 overflow-x-hidden max-w-full app-page-transition"
         >
-{children}
-</main>
-</SidebarInset>
+          {children}
+        </main>
+      </SidebarInset>
 
-<QuickSearch />
-<ShortcutsHelpModal />
-<CoinBalanceSyncLayer />
-<RewardToast />
-</SidebarProvider>
+      <QuickSearch />
+      <ShortcutsHelpModal />
+      <CoinBalanceSyncLayer />
+      <RewardToast />
+    </SidebarProvider>
   );
 }

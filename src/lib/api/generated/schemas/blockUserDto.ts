@@ -1,6 +1,3 @@
-
-
 export interface BlockUserDto {
-
-reason?: string;
+  reason?: string;
 }

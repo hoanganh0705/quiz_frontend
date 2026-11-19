@@ -1,7 +1,5 @@
-
-
-import type { PaginationMetaDto } from './paginationMetaDto';
+import type { PaginationMetaDto } from "./paginationMetaDto";
 
 export type SocialControllerGetFriendsOfUser200AllOfMeta = {
-pagination?: PaginationMetaDto;
+  pagination?: PaginationMetaDto;
 };

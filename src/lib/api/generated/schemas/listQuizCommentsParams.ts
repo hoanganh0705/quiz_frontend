@@ -1,8 +1,5 @@
-
-
 export type ListQuizCommentsParams = {
+  cursor?: string;
 
-cursor?: string;
-
-limit?: number;
+  limit?: number;
 };

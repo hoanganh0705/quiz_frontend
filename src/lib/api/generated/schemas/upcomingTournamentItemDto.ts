@@ -1,16 +1,13 @@
-
-
 export interface UpcomingTournamentItemDto {
+  tournamentId: string;
 
-tournamentId: string;
+  name: string;
 
-name: string;
+  description?: string | null;
 
-description?: string | null;
+  startAt: string;
 
-startAt: string;
+  endAt: string;
 
-endAt: string;
-
-participantCount: number;
+  participantCount: number;
 }

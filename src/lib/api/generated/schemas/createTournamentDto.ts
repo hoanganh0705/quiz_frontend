@@ -1,24 +1,21 @@
-
-
-import type { CreateTournamentDtoDescription } from './createTournamentDtoDescription';
-import type { CreateTournamentDtoDifficulty } from './createTournamentDtoDifficulty';
-import type { CreateTournamentDtoPrize } from './createTournamentDtoPrize';
+import type { CreateTournamentDtoDescription } from "./createTournamentDtoDescription";
+import type { CreateTournamentDtoDifficulty } from "./createTournamentDtoDifficulty";
+import type { CreateTournamentDtoPrize } from "./createTournamentDtoPrize";
 
 export interface CreateTournamentDto {
+  title: string;
 
-title: string;
+  description?: CreateTournamentDtoDescription;
 
-description?: CreateTournamentDtoDescription;
+  difficulty: CreateTournamentDtoDifficulty;
 
-difficulty: CreateTournamentDtoDifficulty;
+  prize?: CreateTournamentDtoPrize;
 
-prize?: CreateTournamentDtoPrize;
+  startAt: string;
 
-startAt: string;
+  endAt: string;
 
-endAt: string;
+  maxParticipants?: number | null;
 
-maxParticipants?: number | null;
-
-categoryId?: string | null;
+  categoryId?: string | null;
 }

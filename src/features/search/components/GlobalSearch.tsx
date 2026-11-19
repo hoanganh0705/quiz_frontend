@@ -7,31 +7,30 @@ import { useSearchUrlState } from "@/features/search/hooks/useSearchUrlState";
 import { SearchGuard } from "@/features/search/lib/guard";
 
 export function GlobalSearch() {
-return (
-<SearchGuard fallback={null}>
-<GlobalSearchInner />
-</SearchGuard>
+  return (
+    <SearchGuard fallback={null}>
+      <GlobalSearchInner />
+    </SearchGuard>
   );
 }
 
 function GlobalSearchInner() {
-const { setQuery } = useSearchUrlState();
+  const { setQuery } = useSearchUrlState();
 
-const handleSubmit = React.useCallback(
-(q: string) => {
-
-setQuery(q);
+  const handleSubmit = React.useCallback(
+    (q: string) => {
+      setQuery(q);
     },
-[setQuery],
+    [setQuery],
   );
 
-return (
-<div className="hidden sm:flex items-center gap-2 flex-1 min-w-0 max-w-sm sm:max-w-md lg:max-w-xl">
-<SearchInput
-onSubmit={handleSubmit}
-placeholder="Search quizzes, users, tournaments…"
-className="w-full"
+  return (
+    <div className="hidden sm:flex items-center gap-2 flex-1 min-w-0 max-w-sm sm:max-w-md lg:max-w-xl">
+      <SearchInput
+        onSubmit={handleSubmit}
+        placeholder="Search quizzes, users, tournaments…"
+        className="w-full"
       />
-</div>
+    </div>
   );
 }

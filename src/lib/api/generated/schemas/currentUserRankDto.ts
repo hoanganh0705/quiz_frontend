@@ -1,10 +1,7 @@
-
-
 export interface CurrentUserRankDto {
+  rank: number;
 
-rank: number;
+  xp: number;
 
-xp: number;
-
-totalParticipants: number;
+  totalParticipants: number;
 }

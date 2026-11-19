@@ -1,9 +1,9 @@
-'use client'
+"use client";
 
-import { useMemo } from 'react'
+import { useMemo } from "react";
 
-import type { DailyChallengeHistoryItemWithId } from './useDailyChallengeHistory'
-import { useDailyChallengeHistory } from './useDailyChallengeHistory'
+import type { DailyChallengeHistoryItemWithId } from "./useDailyChallengeHistory";
+import { useDailyChallengeHistory } from "./useDailyChallengeHistory";
 
 /**
  * `useDailyChallengePerformance` — derives per-day-of-week aggregate
@@ -47,64 +47,58 @@ import { useDailyChallengeHistory } from './useDailyChallengeHistory'
  *     because the parent only sees memoised output.
  */
 export type DailyChallengePerformanceDayKey =
-  | 'Mon'
-  | 'Tue'
-  | 'Wed'
-  | 'Thu'
-  | 'Fri'
-  | 'Sat'
-  | 'Sun'
+  "Mon" | "Tue" | "Wed" | "Thu" | "Fri" | "Sat" | "Sun";
 
 export interface DailyChallengePerformanceDay {
-  day: DailyChallengePerformanceDayKey
-  yourScore: number
-  avgScore: number
-  hasAttempt: boolean
-  attemptCount: number
+  day: DailyChallengePerformanceDayKey;
+  yourScore: number;
+  avgScore: number;
+  hasAttempt: boolean;
+  attemptCount: number;
 }
 
 export interface UseDailyChallengePerformanceResult {
-  days: readonly DailyChallengePerformanceDay[]
-  totalAttempts: number
-  isLoading: boolean
-  error: import('@/lib/api').ApiError | null
+  days: readonly DailyChallengePerformanceDay[];
+  totalAttempts: number;
+  isLoading: boolean;
+  error: import("@/lib/api").ApiError | null;
   /**
    * Re-fetches the underlying history. Exposed so the chart's error
    * state can offer a retry affordance without the chart needing to
    * reach into the history hook directly.
    */
-  refresh: () => Promise<void>
+  refresh: () => Promise<void>;
 }
 
 const DAY_ORDER: readonly DailyChallengePerformanceDayKey[] = [
-  'Mon',
-  'Tue',
-  'Wed',
-  'Thu',
-  'Fri',
-  'Sat',
-  'Sun',
-]
+  "Mon",
+  "Tue",
+  "Wed",
+  "Thu",
+  "Fri",
+  "Sat",
+  "Sun",
+];
 
 // JS getDay(): 0 = Sun, 1 = Mon, ..., 6 = Sat. We re-map to a
 // Mon-first ordering so the chart's X-axis is left-to-right Mon→Sun.
 function jsDayToKey(jsDay: number): DailyChallengePerformanceDayKey {
   switch (jsDay) {
     case 1:
-      return 'Mon'
+      return "Mon";
     case 2:
-      return 'Tue'
+      return "Tue";
     case 3:
-      return 'Wed'
+      return "Wed";
     case 4:
-      return 'Thu'
+      return "Thu";
     case 5:
-      return 'Fri'
+      return "Fri";
     case 6:
-      return 'Sat'
+      return "Sat";
     case 0:
     default:
-      return 'Sun'
+      return "Sun";
   }
 }
 
@@ -119,37 +113,37 @@ export function rollupHistoryByWeekday(
   items: readonly DailyChallengeHistoryItemWithId[],
 ): readonly DailyChallengePerformanceDay[] {
   type Bucket = {
-    yourScore: number
-    avgScoreSum: number
-    attemptCount: number
-  }
+    yourScore: number;
+    avgScoreSum: number;
+    attemptCount: number;
+  };
 
-  const buckets = new Map<DailyChallengePerformanceDayKey, Bucket>()
+  const buckets = new Map<DailyChallengePerformanceDayKey, Bucket>();
   for (const key of DAY_ORDER) {
-    buckets.set(key, { yourScore: 0, avgScoreSum: 0, attemptCount: 0 })
+    buckets.set(key, { yourScore: 0, avgScoreSum: 0, attemptCount: 0 });
   }
 
   for (const item of items) {
     // The DTO's `date` is an ISO timestamp; `new Date(...)` parses it
     // without timezone surprises because we only read `getDay()`.
-    const parsed = new Date(item.date)
+    const parsed = new Date(item.date);
     if (Number.isNaN(parsed.getTime())) {
       // Defensive: skip unparseable dates rather than throwing in render.
-      continue
+      continue;
     }
-    const key = jsDayToKey(parsed.getDay())
-    const bucket = buckets.get(key)
-    if (!bucket) continue
-    bucket.yourScore = item.score // last write wins — the loop iterates
+    const key = jsDayToKey(parsed.getDay());
+    const bucket = buckets.get(key);
+    if (!bucket) continue;
+    bucket.yourScore = item.score; // last write wins — the loop iterates
     // items newest-first (history order), so the latest attempt on
     // that weekday wins.
-    bucket.avgScoreSum += item.score
-    bucket.attemptCount += 1
+    bucket.avgScoreSum += item.score;
+    bucket.attemptCount += 1;
   }
 
   return DAY_ORDER.map((day) => {
-    const bucket = buckets.get(day)!
-    const hasAttempt = bucket.attemptCount > 0
+    const bucket = buckets.get(day)!;
+    const hasAttempt = bucket.attemptCount > 0;
     return {
       day,
       yourScore: hasAttempt ? Math.round(bucket.yourScore) : 0,
@@ -158,19 +152,19 @@ export function rollupHistoryByWeekday(
         : 0,
       hasAttempt,
       attemptCount: bucket.attemptCount,
-    }
-  })
+    };
+  });
 }
 
 export function useDailyChallengePerformance(): UseDailyChallengePerformanceResult {
-  const { items, isLoading, error, refresh } = useDailyChallengeHistory()
+  const { items, isLoading, error, refresh } = useDailyChallengeHistory();
 
-  const days = useMemo(() => rollupHistoryByWeekday(items), [items])
+  const days = useMemo(() => rollupHistoryByWeekday(items), [items]);
 
   const totalAttempts = useMemo(
     () => days.reduce((sum, d) => sum + d.attemptCount, 0),
     [days],
-  )
+  );
 
   return {
     days,
@@ -178,5 +172,5 @@ export function useDailyChallengePerformance(): UseDailyChallengePerformanceResu
     isLoading,
     error,
     refresh,
-  }
+  };
 }

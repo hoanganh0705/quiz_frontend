@@ -1,33 +1,30 @@
-
-
-import type { TournamentResponseDtoDifficulty } from './tournamentResponseDtoDifficulty';
-import type { TournamentResponseDtoStatus } from './tournamentResponseDtoStatus';
+import type { TournamentResponseDtoDifficulty } from "./tournamentResponseDtoDifficulty";
+import type { TournamentResponseDtoStatus } from "./tournamentResponseDtoStatus";
 
 export interface TournamentResponseDto {
+  tournamentId: string;
 
-tournamentId: string;
+  title: string;
 
-title: string;
+  description?: string | null;
 
-description?: string | null;
+  difficulty: TournamentResponseDtoDifficulty;
 
-difficulty: TournamentResponseDtoDifficulty;
+  status: TournamentResponseDtoStatus;
 
-status: TournamentResponseDtoStatus;
+  prize?: string | null;
 
-prize?: string | null;
+  startAt: string;
 
-startAt: string;
+  endAt: string;
 
-endAt: string;
+  maxParticipants?: number | null;
 
-maxParticipants?: number | null;
+  categoryId?: string | null;
 
-categoryId?: string | null;
+  ownerUserId: string;
 
-ownerUserId: string;
+  createdAt: string;
 
-createdAt: string;
-
-updatedAt: string;
+  updatedAt: string;
 }

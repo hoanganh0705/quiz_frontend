@@ -5,84 +5,92 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { getFeatureFlagValue } from "@/lib/feature-flags";
 import { getInstance } from "@/features/instances/services";
 import { getInstanceLeaderboard } from "@/features/instances/services";
+import { getQueryClient } from "@/providers/QueryProvider";
 
 import { useInstanceGameSocket } from "./useInstanceGameSocket";
-import {
-useInstanceGameplayStore,
-} from "../stores/instanceGameplay.store";
+import { useInstanceGameplayStore } from "../stores/instanceGameplay.store";
 
 export interface UseReconnectReconciliationResult {
+  isReconciling: boolean;
 
-isReconciling: boolean;
+  lastReconciledAt: string | null;
 
-lastReconciledAt: string | null;
-
-reconcile: () => Promise<void>;
+  reconcile: () => Promise<void>;
 }
 
 export function useReconnectReconciliation(
-instanceId: string | null,
+  instanceId: string | null,
 ): UseReconnectReconciliationResult {
-const flagValue = getFeatureFlagValue("multiplayer_play_live");
-const isPlaceholder = flagValue === "placeholder";
+  const flagValue = getFeatureFlagValue("multiplayer_play_live");
+  const isPlaceholder = flagValue === "placeholder";
 
-const { connectionState } = useInstanceGameSocket(instanceId);
-const { setReconciling } = useInstanceGameplayStore.getState();
+  const { connectionState } = useInstanceGameSocket(instanceId);
+  const { setReconciling } = useInstanceGameplayStore.getState();
 
-const [isReconciling, setIsReconciling] = useState(false);
-const [lastReconciledAt, setLastReconciledAt] = useState<string | null>(null);
-const reconcilingRef = useRef(false);
+  const [isReconciling, setIsReconciling] = useState(false);
+  const [lastReconciledAt, setLastReconciledAt] = useState<string | null>(null);
+  const reconcilingRef = useRef(false);
 
-const reconcile = useCallback(async (): Promise<void> => {
-if (instanceId === null) return;
-if (reconcilingRef.current) return;
+  const reconcile = useCallback(async (): Promise<void> => {
+    if (instanceId === null) return;
+    if (reconcilingRef.current) return;
 
-reconcilingRef.current = true;
-setIsReconciling(true);
-setReconciling(instanceId, true);
+    reconcilingRef.current = true;
+    setIsReconciling(true);
+    setReconciling(instanceId, true);
 
-try {
+    try {
+      await getInstance(instanceId);
 
-await getInstance(instanceId);
+      await getInstanceLeaderboard(instanceId);
 
-await getInstanceLeaderboard(instanceId);
+      try {
+        const qc = getQueryClient();
+        void qc.invalidateQueries({
+          queryKey: ["instances", "leaderboard", instanceId],
+        });
+        void qc.invalidateQueries({
+          queryKey: ["instances", "detail", instanceId],
+        });
+      } catch {
+        // ignore
+      }
 
-setLastReconciledAt(new Date().toISOString());
+      setLastReconciledAt(new Date().toISOString());
     } finally {
-reconcilingRef.current = false;
-setIsReconciling(false);
-setReconciling(instanceId, false);
+      reconcilingRef.current = false;
+      setIsReconciling(false);
+      setReconciling(instanceId, false);
     }
   }, [instanceId, setReconciling]);
 
-const lastConnectionStateRef = useRef(connectionState);
+  const lastConnectionStateRef = useRef(connectionState);
 
-useEffect(() => {
-if (instanceId === null) return;
-if (isPlaceholder) return;
+  useEffect(() => {
+    if (instanceId === null) return;
+    if (isPlaceholder) return;
 
-const wasReconnecting =
-lastConnectionStateRef.current === "reconnecting";
-const isNowConnected = connectionState === "connected";
+    const wasReconnecting = lastConnectionStateRef.current === "reconnecting";
+    const isNowConnected = connectionState === "connected";
 
-lastConnectionStateRef.current = connectionState;
+    lastConnectionStateRef.current = connectionState;
 
-if (wasReconnecting && isNowConnected) {
-void reconcile();
+    if (wasReconnecting && isNowConnected) {
+      void reconcile();
     }
   }, [connectionState, instanceId, isPlaceholder, reconcile]);
 
-if (isPlaceholder) {
-return {
-isReconciling: false,
-lastReconciledAt: null,
-reconcile: async () => {},
+  if (isPlaceholder) {
+    return {
+      isReconciling: false,
+      lastReconciledAt: null,
+      reconcile: async () => {},
     };
   }
 
-return {
-isReconciling,
-lastReconciledAt,
-reconcile,
+  return {
+    isReconciling,
+    lastReconciledAt,
+    reconcile,
   };
 }

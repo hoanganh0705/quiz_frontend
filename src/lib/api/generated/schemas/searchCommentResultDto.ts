@@ -1,8 +1,5 @@
-
-
 export interface SearchCommentResultDto {
+  commentId: string;
 
-commentId: string;
-
-quizId: string;
+  quizId: string;
 }

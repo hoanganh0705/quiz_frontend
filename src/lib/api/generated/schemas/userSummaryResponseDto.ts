@@ -1,56 +1,53 @@
-
-
-import type { LevelTitle } from './levelTitle';
+import type { LevelTitle } from "./levelTitle";
 
 export interface UserSummaryResponseDto {
+  userId: string;
 
-userId: string;
+  username: string;
 
-username: string;
+  displayName?: string | null;
 
-displayName?: string | null;
+  avatarUrl?: string | null;
 
-avatarUrl?: string | null;
+  bio?: string | null;
 
-bio?: string | null;
+  country?: string | null;
 
-country?: string | null;
+  countryCode?: string | null;
 
-countryCode?: string | null;
+  bgImageUrl?: string | null;
 
-bgImageUrl?: string | null;
+  createdAt: string;
 
-createdAt: string;
+  updatedAt: string;
 
-updatedAt: string;
+  xpTotal: number;
 
-xpTotal: number;
+  level: number;
 
-level: number;
+  currentLevelXP: number;
 
-currentLevelXP: number;
+  nextLevelXP: number;
 
-nextLevelXP: number;
+  xpProgressPercent: number;
 
-xpProgressPercent: number;
+  levelTitle: LevelTitle;
 
-levelTitle: LevelTitle;
+  levelTitleLocalised: string;
 
-levelTitleLocalised: string;
+  currentStreak: number;
 
-currentStreak: number;
+  longestStreak: number;
 
-longestStreak: number;
+  quizzesCreated: number;
 
-quizzesCreated: number;
+  quizzesPublished: number;
 
-quizzesPublished: number;
+  quizzesTaken: number;
 
-quizzesTaken: number;
+  followers: number;
 
-followers: number;
+  following: number;
 
-following: number;
-
-friends: number;
+  friends: number;
 }

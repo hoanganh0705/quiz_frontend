@@ -1,6 +1,3 @@
-
-
 export interface StartCountdownDto {
-
-idempotencyKey?: string;
+  idempotencyKey?: string;
 }

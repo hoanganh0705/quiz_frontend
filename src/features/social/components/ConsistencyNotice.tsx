@@ -9,42 +9,41 @@ export type ConsistencyStaleness = "fresh" | "recent" | "stale";
 export type ConsistencyTone = "info" | "warning";
 
 interface ConsistencyNoticeProps {
+  staleness: ConsistencyStaleness;
 
-staleness: ConsistencyStaleness;
+  lastUpdatedAt?: string;
 
-lastUpdatedAt?: string;
-
-tone?: ConsistencyTone;
+  tone?: ConsistencyTone;
 }
 
 const COPY: Record<Exclude<ConsistencyStaleness, "fresh">, string> = {
-recent: "Updated just now",
-stale:
-"Counts may be up to a few minutes behind. This is normal for social analytics.",
+  recent: "Updated just now",
+  stale:
+    "Counts may be up to a few minutes behind. This is normal for social analytics.",
 };
 
 export function ConsistencyNotice({
-staleness,
-tone = "info",
+  staleness,
+  tone = "info",
 }: ConsistencyNoticeProps): ReactElement | null {
-if (staleness === "fresh") return null;
+  if (staleness === "fresh") return null;
 
-const copy = COPY[staleness];
+  const copy = COPY[staleness];
 
-return (
-<p
-role="status"
-data-testid={`consistency-notice-${staleness}`}
-data-tone={tone}
-aria-live="polite"
-className={cn(
-"text-xs",
-tone === "warning"
-? "text-amber-700 dark:text-amber-400"
-: "text-muted-foreground",
+  return (
+    <p
+      role="status"
+      data-testid={`consistency-notice-${staleness}`}
+      data-tone={tone}
+      aria-live="polite"
+      className={cn(
+        "text-xs",
+        tone === "warning"
+          ? "text-amber-700 dark:text-amber-400"
+          : "text-muted-foreground",
       )}
     >
-{copy}
-</p>
+      {copy}
+    </p>
   );
 }

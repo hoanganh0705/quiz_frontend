@@ -18,7 +18,8 @@ export interface FlairEquipFormProps {
 
 const INTEGER_FORMAT = new Intl.NumberFormat("en-US");
 
-const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const UUID_PATTERN =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 /**
  * `<FlairEquipForm />` — Phase 5.2 spend form.
@@ -72,8 +73,8 @@ export function FlairEquipForm({
     <Card data-testid="flair-equip-form-card">
       <CardContent className="p-5 space-y-4">
         <p className="text-sm text-muted-foreground">
-          Equip a badge you own as profile flair for 7 days
-          ({INTEGER_FORMAT.format(cost)} coins).
+          Equip a badge you own as profile flair for 7 days (
+          {INTEGER_FORMAT.format(cost)} coins).
         </p>
 
         <div className="space-y-1.5">

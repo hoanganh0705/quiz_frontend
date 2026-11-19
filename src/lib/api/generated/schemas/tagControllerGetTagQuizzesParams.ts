@@ -1,8 +1,5 @@
-
-
 export type TagControllerGetTagQuizzesParams = {
+  limit?: number;
 
-limit?: number;
-
-cursor?: string;
+  cursor?: string;
 };

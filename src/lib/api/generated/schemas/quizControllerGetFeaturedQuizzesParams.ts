@@ -1,6 +1,3 @@
-
-
 export type QuizControllerGetFeaturedQuizzesParams = {
-
-limit?: number;
+  limit?: number;
 };

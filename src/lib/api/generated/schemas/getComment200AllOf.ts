@@ -1,7 +1,5 @@
-
-
-import type { CommentDto } from './commentDto';
+import type { CommentDto } from "./commentDto";
 
 export type GetComment200AllOf = {
-data?: CommentDto;
+  data?: CommentDto;
 };

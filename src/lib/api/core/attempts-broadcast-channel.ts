@@ -1,95 +1,95 @@
+import { createBroadcastChannel } from "@/lib/broadcast";
 
+export const ATTEMPTS_CHANNEL_NAME = "attempts";
 
-import { createBroadcastChannel } from '@/lib/broadcast';
-
-export const ATTEMPTS_CHANNEL_NAME = 'attempts';
-
-export type AttemptEventType = 'attempts/changed';
+export type AttemptEventType = "attempts/changed";
 
 export type AttemptChangeKind =
-| 'start'
-  | 'submit'
-  | 'withdraw'
-  | 'abandon'
-  | 'complete';
+  "start" | "submit" | "withdraw" | "abandon" | "complete";
 
 export interface BaseAttemptEvent {
-type: AttemptEventType;
+  type: AttemptEventType;
 
-tabId: string;
+  tabId: string;
 
-timestamp: number;
+  timestamp: number;
 }
 
 export interface AttemptsChangedEvent extends BaseAttemptEvent {
-type: 'attempts/changed';
+  type: "attempts/changed";
 
-userId: string;
+  userId: string;
 
-attemptId: string;
+  attemptId: string;
 
-kind: AttemptChangeKind;
+  kind: AttemptChangeKind;
 }
 
 export type AttemptEvent = AttemptsChangedEvent;
 
 const ATTEMPT_VALID_KINDS = new Set<AttemptChangeKind>([
-'start',
-'submit',
-'withdraw',
-'abandon',
-'complete',
+  "start",
+  "submit",
+  "withdraw",
+  "abandon",
+  "complete",
 ]);
 
-const attemptsChannel = createBroadcastChannel<AttemptEvent>(ATTEMPTS_CHANNEL_NAME, {
-validate: (data): AttemptEvent | null => {
-if (typeof data !== 'object' || data === null) return null;
-const d = data as Partial<AttemptsChangedEvent>;
-if (d.type !== 'attempts/changed') return null;
-if (typeof d.tabId !== 'string' || d.tabId.length === 0) return null;
-if (typeof d.userId !== 'string' || d.userId.length === 0) return null;
-if (typeof d.attemptId !== 'string' || d.attemptId.length === 0) return null;
-if (typeof d.kind !== 'string' || !ATTEMPT_VALID_KINDS.has(d.kind as AttemptChangeKind)) {
-return null;
-    }
-return d as AttemptEvent;
+const attemptsChannel = createBroadcastChannel<AttemptEvent>(
+  ATTEMPTS_CHANNEL_NAME,
+  {
+    validate: (data): AttemptEvent | null => {
+      if (typeof data !== "object" || data === null) return null;
+      const d = data as Partial<AttemptsChangedEvent>;
+      if (d.type !== "attempts/changed") return null;
+      if (typeof d.tabId !== "string" || d.tabId.length === 0) return null;
+      if (typeof d.userId !== "string" || d.userId.length === 0) return null;
+      if (typeof d.attemptId !== "string" || d.attemptId.length === 0)
+        return null;
+      if (
+        typeof d.kind !== "string" ||
+        !ATTEMPT_VALID_KINDS.has(d.kind as AttemptChangeKind)
+      ) {
+        return null;
+      }
+      return d as AttemptEvent;
+    },
   },
-});
+);
 
 export function closeAttemptsChannel(): void {
-attemptsChannel.closeChannel();
+  attemptsChannel.closeChannel();
 }
 
 export function getAttemptsChannel(): BroadcastChannel | null {
-return attemptsChannel.getChannel();
+  return attemptsChannel.getChannel();
 }
 
 export function subscribeToAttemptEvents(
-handler: (event: AttemptEvent) => void,
+  handler: (event: AttemptEvent) => void,
 ): () => void {
-return attemptsChannel.subscribe(handler);
+  return attemptsChannel.subscribe(handler);
 }
 
 export function broadcastAttemptsChanged(params: {
-userId: string;
-attemptId: string;
-kind: AttemptChangeKind;
+  userId: string;
+  attemptId: string;
+  kind: AttemptChangeKind;
 }): void {
-
-attemptsChannel.ensureChannel();
-if (
-!params.userId ||
-typeof params.userId !== 'string' ||
-!params.attemptId ||
-typeof params.attemptId !== 'string' ||
-!params.kind
+  attemptsChannel.ensureChannel();
+  if (
+    !params.userId ||
+    typeof params.userId !== "string" ||
+    !params.attemptId ||
+    typeof params.attemptId !== "string" ||
+    !params.kind
   ) {
-return;
+    return;
   }
-attemptsChannel.publish({
-type: 'attempts/changed',
-userId: params.userId,
-attemptId: params.attemptId,
-kind: params.kind,
+  attemptsChannel.publish({
+    type: "attempts/changed",
+    userId: params.userId,
+    attemptId: params.attemptId,
+    kind: params.kind,
   });
 }

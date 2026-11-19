@@ -3,22 +3,21 @@
 import { LoadingSpinner } from "@/components/ui/loading-states/LoadingSpinner";
 
 export interface FollowPendingIndicatorProps {
+  text?: string;
 
-text?: string;
-
-size?: "sm" | "md";
+  size?: "sm" | "md";
 }
 
 export function FollowPendingIndicator({
-text = "Following...",
-size = "md",
+  text = "Following...",
+  size = "md",
 }: FollowPendingIndicatorProps) {
-return (
-<LoadingSpinner
-size={size}
-variant="secondary"
-text={text}
-aria-label={text}
+  return (
+    <LoadingSpinner
+      size={size}
+      variant="secondary"
+      text={text}
+      aria-label={text}
     />
   );
 }

@@ -1,6 +1,3 @@
-
-
 export interface BulkAddBookmarksDto {
-
-quizIds: string[];
+  quizIds: string[];
 }

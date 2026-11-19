@@ -1,33 +1,30 @@
-
-
-import type { InstanceListItemDtoStatus } from './instanceListItemDtoStatus';
-import type { InstanceListItemDtoDifficulty } from './instanceListItemDtoDifficulty';
+import type { InstanceListItemDtoStatus } from "./instanceListItemDtoStatus";
+import type { InstanceListItemDtoDifficulty } from "./instanceListItemDtoDifficulty";
 
 export interface InstanceListItemDto {
+  instanceId: string;
 
-instanceId: string;
+  hostUserId: string;
 
-hostUserId: string;
+  hostUsername: string;
 
-hostUsername: string;
+  hostDisplayName?: string | null;
 
-hostDisplayName?: string | null;
+  maxPlayers?: number | null;
 
-maxPlayers?: number | null;
+  status: InstanceListItemDtoStatus;
 
-status: InstanceListItemDtoStatus;
+  difficulty: InstanceListItemDtoDifficulty;
 
-difficulty: InstanceListItemDtoDifficulty;
+  durationMs: number;
 
-durationMs: number;
+  quizId: string;
 
-quizId: string;
+  quizTitle: string;
 
-quizTitle: string;
+  quizSlug: string;
 
-quizSlug: string;
+  playerCount: number;
 
-playerCount: number;
-
-createdAt: string;
+  createdAt: string;
 }

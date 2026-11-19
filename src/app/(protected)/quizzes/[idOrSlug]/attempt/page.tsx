@@ -1,12 +1,10 @@
-
-
-import { AttemptRunnerPage } from '@/features/attempts';
+import { AttemptRunnerPage } from "@/features/attempts";
 
 export default async function QuizAttemptPage({
-params,
+  params,
 }: {
-params: Promise<{ idOrSlug: string }>;
+  params: Promise<{ idOrSlug: string }>;
 }) {
-const { idOrSlug } = await params;
-return <AttemptRunnerPage idOrSlug={decodeURIComponent(idOrSlug)} />;
+  const { idOrSlug } = await params;
+  return <AttemptRunnerPage idOrSlug={decodeURIComponent(idOrSlug)} />;
 }

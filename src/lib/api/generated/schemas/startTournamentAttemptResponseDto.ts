@@ -1,12 +1,9 @@
-
-
 export interface StartTournamentAttemptResponseDto {
+  attemptId: string;
 
-attemptId: string;
+  quizVersionId: string;
 
-quizVersionId: string;
+  participantId: string;
 
-participantId: string;
-
-message: string;
+  message: string;
 }

@@ -1,564 +1,627 @@
-
-
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from "vitest";
 
 import {
-mapVerifyEmailError,
-mapResendVerificationError,
-} from '@/features/auth/errors/verify-email-error-mapper';
+  mapVerifyEmailError,
+  mapResendVerificationError,
+} from "@/features/auth/errors/verify-email-error-mapper";
+import { isEnumerationSafe } from "@/features/auth/errors/verify-email-error-mapper";
 import {
-isEnumerationSafe,
-} from '@/features/auth/errors/verify-email-error-mapper';
+  containsEnumerationOracle,
+  ENUMERATION_PHRASES,
+} from "@/features/auth/errors/auth-shapes";
 import {
-containsEnumerationOracle,
-ENUMERATION_PHRASES,
-} from '@/features/auth/errors/auth-shapes';
+  COPY_KEYS,
+  resolveCopy,
+  resolveCooldown,
+  verifyAcknowledgementSnapshot,
+  resendAcknowledgementSnapshot,
+} from "@/features/auth/copy/verify-email-copy";
 import {
-COPY_KEYS,
-resolveCopy,
-resolveCooldown,
-verifyAcknowledgementSnapshot,
-resendAcknowledgementSnapshot,
-} from '@/features/auth/copy/verify-email-copy';
+  isWellFormedVerifyToken,
+  TOKEN_MIN_LEN,
+  TOKEN_MAX_LEN,
+  submitVerifyEmail,
+} from "@/features/auth/forms/verify-email-submit";
 import {
-isWellFormedVerifyToken,
-TOKEN_MIN_LEN,
-TOKEN_MAX_LEN,
-submitVerifyEmail,
-} from '@/features/auth/forms/verify-email-submit';
-import {
-submitResendVerification,
-RESEND_COOLDOWN_MS,
-} from '@/features/auth/forms/resend-verification-submit';
+  submitResendVerification,
+  RESEND_COOLDOWN_MS,
+} from "@/features/auth/forms/resend-verification-submit";
 
 interface FakeApiError {
-code: string;
-status: number;
-isValidationError: boolean;
-isServerError: boolean;
-validationMessages: string[];
+  code: string;
+  status: number;
+  isValidationError: boolean;
+  isServerError: boolean;
+  validationMessages: string[];
 }
 
 function apiErrorLike(opts: {
-status: number;
-code?: string;
-validationMessages?: string[];
+  status: number;
+  code?: string;
+  validationMessages?: string[];
 }): FakeApiError {
-const code =
-opts.code ??
-(opts.status >= 500
-? 'GLOBAL_INTERNAL_ERROR'
-: opts.status === 429
-? 'GLOBAL_RATE_LIMITED'
-: opts.status === 400
-? 'GLOBAL_VALIDATION_FAILED'
-: 'GLOBAL_BAD_REQUEST');
-const validationMessages = opts.validationMessages ?? [];
-return {
-code,
-status: opts.status,
-isValidationError:
-code === 'GLOBAL_VALIDATION_FAILED' || validationMessages.length > 0,
-isServerError: opts.status >= 500,
-validationMessages,
+  const code =
+    opts.code ??
+    (opts.status >= 500
+      ? "GLOBAL_INTERNAL_ERROR"
+      : opts.status === 429
+        ? "GLOBAL_RATE_LIMITED"
+        : opts.status === 400
+          ? "GLOBAL_VALIDATION_FAILED"
+          : "GLOBAL_BAD_REQUEST");
+  const validationMessages = opts.validationMessages ?? [];
+  return {
+    code,
+    status: opts.status,
+    isValidationError:
+      code === "GLOBAL_VALIDATION_FAILED" || validationMessages.length > 0,
+    isServerError: opts.status >= 500,
+    validationMessages,
   };
 }
 
 function asApiError(shape: FakeApiError): unknown {
-return shape;
+  return shape;
 }
 
 const ENUMERATION_PHRASES_BROAD = [
-'already',
-'duplicate',
-'exists',
-'taken',
-'in use',
-'verified',
-'invalid token',
-'expired token',
-'success',
-'account created',
+  "already",
+  "duplicate",
+  "exists",
+  "taken",
+  "in use",
+  "verified",
+  "invalid token",
+  "expired token",
+  "success",
+  "account created",
 ];
 
 function assertAntiEnumeration(value: string, key: string) {
-const lower = value.toLowerCase();
-for (const phrase of ENUMERATION_PHRASES_BROAD) {
-if (lower.includes(phrase)) {
-throw new Error(
-`Anti-enumeration violation at ${key}: contains "${phrase}"`
+  const lower = value.toLowerCase();
+  for (const phrase of ENUMERATION_PHRASES_BROAD) {
+    if (lower.includes(phrase)) {
+      throw new Error(
+        `Anti-enumeration violation at ${key}: contains "${phrase}"`,
       );
     }
   }
 }
 
-describe('isWellFormedVerifyToken', () => {
-it('accepts a 64-char hex token', () => {
-const token = 'a'.repeat(64);
-expect(isWellFormedVerifyToken(token)).toBe(true);
+describe("isWellFormedVerifyToken", () => {
+  it("accepts a 64-char hex token", () => {
+    const token = "a".repeat(64);
+    expect(isWellFormedVerifyToken(token)).toBe(true);
   });
 
-it('accepts a token at the lower bound (32 chars)', () => {
-const token = 'x'.repeat(TOKEN_MIN_LEN);
-expect(isWellFormedVerifyToken(token)).toBe(true);
+  it("accepts a token at the lower bound (32 chars)", () => {
+    const token = "x".repeat(TOKEN_MIN_LEN);
+    expect(isWellFormedVerifyToken(token)).toBe(true);
   });
 
-it('accepts a token at the upper bound (512 chars)', () => {
-const token = 'y'.repeat(TOKEN_MAX_LEN);
-expect(isWellFormedVerifyToken(token)).toBe(true);
+  it("accepts a token at the upper bound (512 chars)", () => {
+    const token = "y".repeat(TOKEN_MAX_LEN);
+    expect(isWellFormedVerifyToken(token)).toBe(true);
   });
 
-it('rejects a token shorter than 32 chars', () => {
-const token = 'a'.repeat(TOKEN_MIN_LEN - 1);
-expect(isWellFormedVerifyToken(token)).toBe(false);
+  it("rejects a token shorter than 32 chars", () => {
+    const token = "a".repeat(TOKEN_MIN_LEN - 1);
+    expect(isWellFormedVerifyToken(token)).toBe(false);
   });
 
-it('rejects a token longer than 512 chars', () => {
-const token = 'a'.repeat(TOKEN_MAX_LEN + 1);
-expect(isWellFormedVerifyToken(token)).toBe(false);
+  it("rejects a token longer than 512 chars", () => {
+    const token = "a".repeat(TOKEN_MAX_LEN + 1);
+    expect(isWellFormedVerifyToken(token)).toBe(false);
   });
 
-it('rejects an empty string', () => {
-expect(isWellFormedVerifyToken('')).toBe(false);
+  it("rejects an empty string", () => {
+    expect(isWellFormedVerifyToken("")).toBe(false);
   });
 
-it('rejects a whitespace-only string', () => {
-expect(isWellFormedVerifyToken('   ')).toBe(false);
+  it("rejects a whitespace-only string", () => {
+    expect(isWellFormedVerifyToken("   ")).toBe(false);
   });
 
-it('rejects non-string inputs without throwing', () => {
-expect(isWellFormedVerifyToken(undefined as unknown as string)).toBe(false);
-expect(isWellFormedVerifyToken(null as unknown as string)).toBe(false);
-expect(isWellFormedVerifyToken(123 as unknown as string)).toBe(false);
+  it("rejects non-string inputs without throwing", () => {
+    expect(isWellFormedVerifyToken(undefined as unknown as string)).toBe(false);
+    expect(isWellFormedVerifyToken(null as unknown as string)).toBe(false);
+    expect(isWellFormedVerifyToken(123 as unknown as string)).toBe(false);
   });
 });
 
-describe('submitVerifyEmail', () => {
-it('returns { kind: "done" } on a successful response', async () => {
-const verifyEmail = vi.fn().mockResolvedValue({ message: 'ok' });
-const result = await submitVerifyEmail('a'.repeat(64), {
-verifyEmail: verifyEmail as unknown as (dto: { token: string }) => Promise<unknown>,
+describe("submitVerifyEmail", () => {
+  it('returns { kind: "done" } on a successful response', async () => {
+    const verifyEmail = vi.fn().mockResolvedValue({ message: "ok" });
+    const result = await submitVerifyEmail("a".repeat(64), {
+      verifyEmail: verifyEmail as unknown as (dto: {
+        token: string;
+      }) => Promise<unknown>,
     });
-expect(result).toEqual({ kind: 'done' });
-expect(verifyEmail).toHaveBeenCalledTimes(1);
+    expect(result).toEqual({ kind: "done" });
+    expect(verifyEmail).toHaveBeenCalledTimes(1);
   });
 
-it('maps a 400 to { kind: "error", errorKind: "acknowledgement" }', async () => {
-const verifyEmail = vi.fn().mockRejectedValue(asApiError(apiErrorLike({ status: 400 })));
-const result = await submitVerifyEmail('a'.repeat(64), {
-verifyEmail: verifyEmail as unknown as (dto: { token: string }) => Promise<unknown>,
+  it('maps a 400 to { kind: "error", errorKind: "acknowledgement" }', async () => {
+    const verifyEmail = vi
+      .fn()
+      .mockRejectedValue(asApiError(apiErrorLike({ status: 400 })));
+    const result = await submitVerifyEmail("a".repeat(64), {
+      verifyEmail: verifyEmail as unknown as (dto: {
+        token: string;
+      }) => Promise<unknown>,
     });
-expect(result.kind).toBe('error');
-if (result.kind === 'error') {
-expect(result.errorKind).toBe('acknowledgement');
+    expect(result.kind).toBe("error");
+    if (result.kind === "error") {
+      expect(result.errorKind).toBe("acknowledgement");
     }
   });
 
-it('maps a 429 to { kind: "error", errorKind: "rate_limited" }', async () => {
-const verifyEmail = vi.fn().mockRejectedValue(asApiError(apiErrorLike({ status: 429 })));
-const result = await submitVerifyEmail('a'.repeat(64), {
-verifyEmail: verifyEmail as unknown as (dto: { token: string }) => Promise<unknown>,
+  it('maps a 429 to { kind: "error", errorKind: "rate_limited" }', async () => {
+    const verifyEmail = vi
+      .fn()
+      .mockRejectedValue(asApiError(apiErrorLike({ status: 429 })));
+    const result = await submitVerifyEmail("a".repeat(64), {
+      verifyEmail: verifyEmail as unknown as (dto: {
+        token: string;
+      }) => Promise<unknown>,
     });
-expect(result.kind).toBe('error');
-if (result.kind === 'error') {
-expect(result.errorKind).toBe('rate_limited');
+    expect(result.kind).toBe("error");
+    if (result.kind === "error") {
+      expect(result.errorKind).toBe("rate_limited");
     }
   });
 
-it('maps a 500 to { kind: "error", errorKind: "acknowledgement" }', async () => {
-const verifyEmail = vi.fn().mockRejectedValue(asApiError(apiErrorLike({ status: 500 })));
-const result = await submitVerifyEmail('a'.repeat(64), {
-verifyEmail: verifyEmail as unknown as (dto: { token: string }) => Promise<unknown>,
+  it('maps a 500 to { kind: "error", errorKind: "acknowledgement" }', async () => {
+    const verifyEmail = vi
+      .fn()
+      .mockRejectedValue(asApiError(apiErrorLike({ status: 500 })));
+    const result = await submitVerifyEmail("a".repeat(64), {
+      verifyEmail: verifyEmail as unknown as (dto: {
+        token: string;
+      }) => Promise<unknown>,
     });
-expect(result.kind).toBe('error');
-if (result.kind === 'error') {
-expect(result.errorKind).toBe('acknowledgement');
+    expect(result.kind).toBe("error");
+    if (result.kind === "error") {
+      expect(result.errorKind).toBe("acknowledgement");
     }
   });
 
-it('never rejects — bubbles only resolved values out', async () => {
-const verifyEmail = vi.fn().mockRejectedValue(new Error('boom'));
-await expect(
-submitVerifyEmail('a'.repeat(64), {
-verifyEmail: verifyEmail as unknown as (dto: { token: string }) => Promise<unknown>,
-      })
+  it("never rejects — bubbles only resolved values out", async () => {
+    const verifyEmail = vi.fn().mockRejectedValue(new Error("boom"));
+    await expect(
+      submitVerifyEmail("a".repeat(64), {
+        verifyEmail: verifyEmail as unknown as (dto: {
+          token: string;
+        }) => Promise<unknown>,
+      }),
     ).resolves.toBeDefined();
   });
 
-it('does not leak the user-supplied token in the returned shape', async () => {
-const token = 'a'.repeat(64);
-const verifyEmail = vi.fn().mockRejectedValue(
-asApiError(apiErrorLike({ status: 400, validationMessages: [token] }))
-    );
-const result = await submitVerifyEmail(token, {
-verifyEmail: verifyEmail as unknown as (dto: { token: string }) => Promise<unknown>,
+  it("does not leak the user-supplied token in the returned shape", async () => {
+    const token = "a".repeat(64);
+    const verifyEmail = vi
+      .fn()
+      .mockRejectedValue(
+        asApiError(apiErrorLike({ status: 400, validationMessages: [token] })),
+      );
+    const result = await submitVerifyEmail(token, {
+      verifyEmail: verifyEmail as unknown as (dto: {
+        token: string;
+      }) => Promise<unknown>,
     });
-const serialized = JSON.stringify(result);
-expect(serialized).not.toContain(token);
+    const serialized = JSON.stringify(result);
+    expect(serialized).not.toContain(token);
   });
 });
 
-describe('mapVerifyEmailError', () => {
-it('returns "acknowledgement" for an unknown error', () => {
-expect(mapVerifyEmailError(new Error('boom')).kind).toBe('acknowledgement');
-expect(mapVerifyEmailError(null).kind).toBe('acknowledgement');
-expect(mapVerifyEmailError('string').kind).toBe('acknowledgement');
+describe("mapVerifyEmailError", () => {
+  it('returns "acknowledgement" for an unknown error', () => {
+    expect(mapVerifyEmailError(new Error("boom")).kind).toBe("acknowledgement");
+    expect(mapVerifyEmailError(null).kind).toBe("acknowledgement");
+    expect(mapVerifyEmailError("string").kind).toBe("acknowledgement");
   });
 
-it('returns "rate_limited" for 429', () => {
-expect(mapVerifyEmailError(asApiError(apiErrorLike({ status: 429 }))).kind).toBe(
-'rate_limited'
-    );
+  it('returns "rate_limited" for 429', () => {
+    expect(
+      mapVerifyEmailError(asApiError(apiErrorLike({ status: 429 }))).kind,
+    ).toBe("rate_limited");
   });
 
-it('returns "acknowledgement" for 200 / 400 / 403 / 404 / 5xx', () => {
-for (const status of [200, 400, 403, 404, 500, 502, 503]) {
-expect(mapVerifyEmailError(asApiError(apiErrorLike({ status }))).kind).toBe(
-'acknowledgement'
-      );
+  it('returns "acknowledgement" for 200 / 400 / 403 / 404 / 5xx', () => {
+    for (const status of [200, 400, 403, 404, 500, 502, 503]) {
+      expect(
+        mapVerifyEmailError(asApiError(apiErrorLike({ status }))).kind,
+      ).toBe("acknowledgement");
     }
   });
 
-it('never returns a string the backend shipped', () => {
-for (const status of [200, 400, 403, 404, 429, 500, 502, 503]) {
-const result = mapVerifyEmailError(
-asApiError(apiErrorLike({ status, validationMessages: ['invalid token', 'expired'] }))
+  it("never returns a string the backend shipped", () => {
+    for (const status of [200, 400, 403, 404, 429, 500, 502, 503]) {
+      const result = mapVerifyEmailError(
+        asApiError(
+          apiErrorLike({
+            status,
+            validationMessages: ["invalid token", "expired"],
+          }),
+        ),
       );
 
-const serialized = JSON.stringify(result);
-assertAntiEnumeration(serialized, `mapVerifyEmailError status=${status}`);
+      const serialized = JSON.stringify(result);
+      assertAntiEnumeration(serialized, `mapVerifyEmailError status=${status}`);
     }
   });
 
-it('exposes the anti-enumeration phrase list (single source of truth)', () => {
-expect(ENUMERATION_PHRASES).toContain('verified');
-expect(ENUMERATION_PHRASES).toContain('invalid token');
-expect(ENUMERATION_PHRASES).toContain('expired token');
+  it("exposes the anti-enumeration phrase list (single source of truth)", () => {
+    expect(ENUMERATION_PHRASES).toContain("verified");
+    expect(ENUMERATION_PHRASES).toContain("invalid token");
+    expect(ENUMERATION_PHRASES).toContain("expired token");
   });
 
-it('isEnumerationSafe inverts containsEnumerationOracle', () => {
-expect(isEnumerationSafe('safe text')).toBe(true);
-expect(isEnumerationSafe('Email already exists')).toBe(false);
-expect(isEnumerationSafe('verified')).toBe(false);
-expect(containsEnumerationOracle('invalid token')).toBe(true);
-expect(containsEnumerationOracle('plain text')).toBe(false);
+  it("isEnumerationSafe inverts containsEnumerationOracle", () => {
+    expect(isEnumerationSafe("safe text")).toBe(true);
+    expect(isEnumerationSafe("Email already exists")).toBe(false);
+    expect(isEnumerationSafe("verified")).toBe(false);
+    expect(containsEnumerationOracle("invalid token")).toBe(true);
+    expect(containsEnumerationOracle("plain text")).toBe(false);
   });
 });
 
-describe('submitResendVerification', () => {
-it('returns { kind: "cooldown", cooldownMs } on success', async () => {
-const resendVerificationEmail = vi.fn().mockResolvedValue({ message: 'ok' });
-const result = await submitResendVerification(
-{ email: 'a@b.co' },
-{
-resendVerificationEmail: resendVerificationEmail as unknown as (dto: { email: string }) => Promise<unknown>,
-cooldownMs: 1000,
-      }
+describe("submitResendVerification", () => {
+  it('returns { kind: "cooldown", cooldownMs } on success', async () => {
+    const resendVerificationEmail = vi
+      .fn()
+      .mockResolvedValue({ message: "ok" });
+    const result = await submitResendVerification(
+      { email: "a@b.co" },
+      {
+        resendVerificationEmail: resendVerificationEmail as unknown as (dto: {
+          email: string;
+        }) => Promise<unknown>,
+        cooldownMs: 1000,
+      },
     );
-expect(result).toEqual({ kind: 'cooldown', cooldownMs: 1000 });
-expect(resendVerificationEmail).toHaveBeenCalledTimes(1);
+    expect(result).toEqual({ kind: "cooldown", cooldownMs: 1000 });
+    expect(resendVerificationEmail).toHaveBeenCalledTimes(1);
   });
 
-it('returns { kind: "error", errorKind: "rate_limited" } on 429', async () => {
-const resendVerificationEmail = vi.fn().mockRejectedValue(
-asApiError(apiErrorLike({ status: 429 }))
+  it('returns { kind: "error", errorKind: "rate_limited" } on 429', async () => {
+    const resendVerificationEmail = vi
+      .fn()
+      .mockRejectedValue(asApiError(apiErrorLike({ status: 429 })));
+    const result = await submitResendVerification(
+      { email: "a@b.co" },
+      {
+        resendVerificationEmail: resendVerificationEmail as unknown as (dto: {
+          email: string;
+        }) => Promise<unknown>,
+      },
     );
-const result = await submitResendVerification(
-{ email: 'a@b.co' },
-{
-resendVerificationEmail: resendVerificationEmail as unknown as (dto: { email: string }) => Promise<unknown>,
-      }
-    );
-expect(result.kind).toBe('error');
-if (result.kind === 'error') {
-expect(result.errorKind).toBe('rate_limited');
+    expect(result.kind).toBe("error");
+    if (result.kind === "error") {
+      expect(result.errorKind).toBe("rate_limited");
     }
   });
 
-it('returns { kind: "error", errorKind: "server" } on 5xx', async () => {
-const resendVerificationEmail = vi.fn().mockRejectedValue(
-asApiError(apiErrorLike({ status: 500 }))
+  it('returns { kind: "error", errorKind: "server" } on 5xx', async () => {
+    const resendVerificationEmail = vi
+      .fn()
+      .mockRejectedValue(asApiError(apiErrorLike({ status: 500 })));
+    const result = await submitResendVerification(
+      { email: "a@b.co" },
+      {
+        resendVerificationEmail: resendVerificationEmail as unknown as (dto: {
+          email: string;
+        }) => Promise<unknown>,
+      },
     );
-const result = await submitResendVerification(
-{ email: 'a@b.co' },
-{
-resendVerificationEmail: resendVerificationEmail as unknown as (dto: { email: string }) => Promise<unknown>,
-      }
-    );
-expect(result.kind).toBe('error');
-if (result.kind === 'error') {
-expect(result.errorKind).toBe('server');
+    expect(result.kind).toBe("error");
+    if (result.kind === "error") {
+      expect(result.errorKind).toBe("server");
     }
   });
 
-it('returns { kind: "error", errorKind: "server" } for unknown errors', async () => {
-const resendVerificationEmail = vi.fn().mockRejectedValue(new Error('boom'));
-const result = await submitResendVerification(
-{ email: 'a@b.co' },
-{
-resendVerificationEmail: resendVerificationEmail as unknown as (dto: { email: string }) => Promise<unknown>,
-      }
+  it('returns { kind: "error", errorKind: "server" } for unknown errors', async () => {
+    const resendVerificationEmail = vi
+      .fn()
+      .mockRejectedValue(new Error("boom"));
+    const result = await submitResendVerification(
+      { email: "a@b.co" },
+      {
+        resendVerificationEmail: resendVerificationEmail as unknown as (dto: {
+          email: string;
+        }) => Promise<unknown>,
+      },
     );
-expect(result.kind).toBe('error');
-if (result.kind === 'error') {
-expect(result.errorKind).toBe('server');
+    expect(result.kind).toBe("error");
+    if (result.kind === "error") {
+      expect(result.errorKind).toBe("server");
     }
   });
 
-it('throws on a malformed email (zod-validated at the form layer)', () => {
-
-expect(true).toBe(true);
+  it("throws on a malformed email (zod-validated at the form layer)", () => {
+    expect(true).toBe(true);
   });
 
-it('never rejects — bubbles only resolved values out', async () => {
-const resendVerificationEmail = vi.fn().mockRejectedValue(new Error('boom'));
-await expect(
-submitResendVerification(
-{ email: 'a@b.co' },
-{
-resendVerificationEmail: resendVerificationEmail as unknown as (dto: { email: string }) => Promise<unknown>,
-        }
-      )
+  it("never rejects — bubbles only resolved values out", async () => {
+    const resendVerificationEmail = vi
+      .fn()
+      .mockRejectedValue(new Error("boom"));
+    await expect(
+      submitResendVerification(
+        { email: "a@b.co" },
+        {
+          resendVerificationEmail: resendVerificationEmail as unknown as (dto: {
+            email: string;
+          }) => Promise<unknown>,
+        },
+      ),
     ).resolves.toBeDefined();
   });
 
-it('does not leak the user-supplied email in the returned shape', async () => {
-const resendVerificationEmail = vi.fn().mockRejectedValue(
-asApiError(apiErrorLike({ status: 500, validationMessages: ['user@example.com'] }))
-    );
-const result = await submitResendVerification(
-{ email: 'user@example.com' },
-{
-resendVerificationEmail: resendVerificationEmail as unknown as (dto: { email: string }) => Promise<unknown>,
-      }
-    );
-const serialized = JSON.stringify(result);
-expect(serialized).not.toContain('user@example.com');
-  });
-});
-
-describe('mapResendVerificationError', () => {
-it('returns "rate_limited" for 429', () => {
-expect(mapResendVerificationError(asApiError(apiErrorLike({ status: 429 }))).kind).toBe(
-'rate_limited'
-    );
-  });
-
-it('returns "server" for 5xx', () => {
-for (const status of [500, 502, 503]) {
-expect(mapResendVerificationError(asApiError(apiErrorLike({ status }))).kind).toBe(
-'server'
+  it("does not leak the user-supplied email in the returned shape", async () => {
+    const resendVerificationEmail = vi
+      .fn()
+      .mockRejectedValue(
+        asApiError(
+          apiErrorLike({
+            status: 500,
+            validationMessages: ["user@example.com"],
+          }),
+        ),
       );
+    const result = await submitResendVerification(
+      { email: "user@example.com" },
+      {
+        resendVerificationEmail: resendVerificationEmail as unknown as (dto: {
+          email: string;
+        }) => Promise<unknown>,
+      },
+    );
+    const serialized = JSON.stringify(result);
+    expect(serialized).not.toContain("user@example.com");
+  });
+});
+
+describe("mapResendVerificationError", () => {
+  it('returns "rate_limited" for 429', () => {
+    expect(
+      mapResendVerificationError(asApiError(apiErrorLike({ status: 429 })))
+        .kind,
+    ).toBe("rate_limited");
+  });
+
+  it('returns "server" for 5xx', () => {
+    for (const status of [500, 502, 503]) {
+      expect(
+        mapResendVerificationError(asApiError(apiErrorLike({ status }))).kind,
+      ).toBe("server");
     }
   });
 
-it('returns "server" for an unknown error', () => {
-expect(mapResendVerificationError(new Error('boom')).kind).toBe('server');
-expect(mapResendVerificationError(null).kind).toBe('server');
+  it('returns "server" for an unknown error', () => {
+    expect(mapResendVerificationError(new Error("boom")).kind).toBe("server");
+    expect(mapResendVerificationError(null).kind).toBe("server");
   });
 
-it('returns "server" for other 4xx (no validation branch for resend)', () => {
-for (const status of [400, 401, 403, 404]) {
-expect(mapResendVerificationError(asApiError(apiErrorLike({ status }))).kind).toBe(
-'server'
-      );
+  it('returns "server" for other 4xx (no validation branch for resend)', () => {
+    for (const status of [400, 401, 403, 404]) {
+      expect(
+        mapResendVerificationError(asApiError(apiErrorLike({ status }))).kind,
+      ).toBe("server");
     }
   });
 });
 
-describe('resend-verification schema', () => {
-it('rejects a malformed email', async () => {
-const { resendVerificationSchema } = await import(
-'@/features/auth/forms/schemas/resend-verification.schema'
-    );
-const result = resendVerificationSchema.safeParse({ email: 'not-an-email' });
-expect(result.success).toBe(false);
-  });
-
-it('accepts a well-formed email', async () => {
-const { resendVerificationSchema } = await import(
-'@/features/auth/forms/schemas/resend-verification.schema'
-    );
-const result = resendVerificationSchema.safeParse({ email: 'a@b.co' });
-expect(result.success).toBe(true);
-  });
-
-it('rejects an email longer than 255 chars', async () => {
-const { resendVerificationSchema } = await import(
-'@/features/auth/forms/schemas/resend-verification.schema'
-    );
-const longLocal = 'a'.repeat(251);
-const email = `${longLocal}@b.co`;
-const result = resendVerificationSchema.safeParse({ email });
-expect(result.success).toBe(false);
-  });
-
-it('accepts an email at exactly 255 chars (boundary)', async () => {
-const { resendVerificationSchema } = await import(
-'@/features/auth/forms/schemas/resend-verification.schema'
-    );
-const longLocal = 'a'.repeat(250);
-const email = `${longLocal}@b.co`;
-const result = resendVerificationSchema.safeParse({ email });
-expect(result.success).toBe(true);
-  });
-
-it('rejects an empty email', async () => {
-const { resendVerificationSchema } = await import(
-'@/features/auth/forms/schemas/resend-verification.schema'
-    );
-const result = resendVerificationSchema.safeParse({ email: '' });
-expect(result.success).toBe(false);
-  });
-});
-
-describe('verify-email-copy', () => {
-it('resolves every advertised key to a non-empty string', () => {
-const keys: string[] = [
-COPY_KEYS.verify.loading.title,
-COPY_KEYS.verify.loading.body,
-COPY_KEYS.verify.acknowledgement.title,
-COPY_KEYS.verify.acknowledgement.body,
-COPY_KEYS.verify.acknowledgement.action,
-COPY_KEYS.verify.invalid.title,
-COPY_KEYS.verify.invalid.body,
-COPY_KEYS.verify.invalid.tryAgain,
-COPY_KEYS.verify.invalid.resendLabel,
-COPY_KEYS.verify.invalid.loginLabel,
-COPY_KEYS.resend.loading,
-COPY_KEYS.resend.idle.placeholder,
-COPY_KEYS.resend.idle.help,
-COPY_KEYS.resend.acknowledgement.title,
-COPY_KEYS.resend.acknowledgement.body,
-COPY_KEYS.resend.error.rate_limited,
-COPY_KEYS.resend.error.server,
-COPY_KEYS.resend.cooldown.message,
-    ];
-for (const key of keys) {
-const v = resolveCopy(key);
-expect(v, `key ${key}`).not.toBe('');
-    }
-  });
-
-it('renders verify.invalid.body byte-identical to verify.acknowledgement.body', () => {
-const ack = resolveCopy(COPY_KEYS.verify.acknowledgement.body);
-const inv = resolveCopy(COPY_KEYS.verify.invalid.body);
-expect(ack).toBe(inv);
-expect(ack.length).toBeGreaterThan(0);
-  });
-
-it('snapshot helper returns the acknowledgement body', () => {
-const ack = resolveCopy(COPY_KEYS.verify.acknowledgement.body);
-expect(verifyAcknowledgementSnapshot()).toBe(ack);
-expect(resendAcknowledgementSnapshot()).toBe(
-resolveCopy(COPY_KEYS.resend.acknowledgement.body)
-    );
-  });
-
-it('renders the same resend acknowledgement body for any case', () => {
-
-const body = resendAcknowledgementSnapshot();
-expect(body).toBe(resolveCopy(COPY_KEYS.resend.acknowledgement.body));
-expect(body.length).toBeGreaterThan(0);
-  });
-
-it('has no anti-enumeration phrase in any rendered string', () => {
-const allStrings: Array<[string, string]> = [
-['verify.loading.title', resolveCopy(COPY_KEYS.verify.loading.title)],
-['verify.loading.body', resolveCopy(COPY_KEYS.verify.loading.body)],
-[
-'verify.acknowledgement.title',
-resolveCopy(COPY_KEYS.verify.acknowledgement.title),
-      ],
-[
-'verify.acknowledgement.body',
-resolveCopy(COPY_KEYS.verify.acknowledgement.body),
-      ],
-[
-'verify.acknowledgement.action',
-resolveCopy(COPY_KEYS.verify.acknowledgement.action),
-      ],
-['verify.invalid.title', resolveCopy(COPY_KEYS.verify.invalid.title)],
-['verify.invalid.body', resolveCopy(COPY_KEYS.verify.invalid.body)],
-['verify.invalid.tryAgain', resolveCopy(COPY_KEYS.verify.invalid.tryAgain)],
-[
-'verify.invalid.resendLabel',
-resolveCopy(COPY_KEYS.verify.invalid.resendLabel),
-      ],
-['verify.invalid.loginLabel', resolveCopy(COPY_KEYS.verify.invalid.loginLabel)],
-['resend.loading', resolveCopy(COPY_KEYS.resend.loading)],
-['resend.idle.placeholder', resolveCopy(COPY_KEYS.resend.idle.placeholder)],
-['resend.idle.help', resolveCopy(COPY_KEYS.resend.idle.help)],
-[
-'resend.acknowledgement.title',
-resolveCopy(COPY_KEYS.resend.acknowledgement.title),
-      ],
-[
-'resend.acknowledgement.body',
-resolveCopy(COPY_KEYS.resend.acknowledgement.body),
-      ],
-[
-'resend.error.rate_limited',
-resolveCopy(COPY_KEYS.resend.error.rate_limited),
-      ],
-['resend.error.server', resolveCopy(COPY_KEYS.resend.error.server)],
-['resend.cooldown.message', resolveCopy(COPY_KEYS.resend.cooldown.message)],
-    ];
-for (const [key, value] of allStrings) {
-assertAntiEnumeration(value, key);
-    }
-  });
-
-it('resolveCooldown substitutes {seconds} with the integer', () => {
-const out = resolveCooldown(42);
-expect(out).toContain('42');
-expect(out).not.toContain('{seconds}');
-  });
-
-it('resolveCooldown floors negative seconds to 0', () => {
-const out = resolveCooldown(-3);
-expect(out).toContain('0');
-expect(out).not.toContain('{seconds}');
-  });
-});
-
-describe('resend cooldown', () => {
-it('defaults to 60 seconds', () => {
-expect(RESEND_COOLDOWN_MS).toBe(60_000);
-  });
-});
-
-describe('hook-level single-flight contract (synthesised)', () => {
-it('submitVerifyEmail returns a fresh Promise per call but the hook dedups', async () => {
-
-const verifyEmail = vi.fn().mockResolvedValue({ message: 'ok' });
-const p1 = submitVerifyEmail('a'.repeat(64), {
-verifyEmail: verifyEmail as unknown as (dto: { token: string }) => Promise<unknown>,
+describe("resend-verification schema", () => {
+  it("rejects a malformed email", async () => {
+    const { resendVerificationSchema } =
+      await import("@/features/auth/forms/schemas/resend-verification.schema");
+    const result = resendVerificationSchema.safeParse({
+      email: "not-an-email",
     });
-const p2 = submitVerifyEmail('a'.repeat(64), {
-verifyEmail: verifyEmail as unknown as (dto: { token: string }) => Promise<unknown>,
+    expect(result.success).toBe(false);
+  });
+
+  it("accepts a well-formed email", async () => {
+    const { resendVerificationSchema } =
+      await import("@/features/auth/forms/schemas/resend-verification.schema");
+    const result = resendVerificationSchema.safeParse({ email: "a@b.co" });
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects an email longer than 255 chars", async () => {
+    const { resendVerificationSchema } =
+      await import("@/features/auth/forms/schemas/resend-verification.schema");
+    const longLocal = "a".repeat(251);
+    const email = `${longLocal}@b.co`;
+    const result = resendVerificationSchema.safeParse({ email });
+    expect(result.success).toBe(false);
+  });
+
+  it("accepts an email at exactly 255 chars (boundary)", async () => {
+    const { resendVerificationSchema } =
+      await import("@/features/auth/forms/schemas/resend-verification.schema");
+    const longLocal = "a".repeat(250);
+    const email = `${longLocal}@b.co`;
+    const result = resendVerificationSchema.safeParse({ email });
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects an empty email", async () => {
+    const { resendVerificationSchema } =
+      await import("@/features/auth/forms/schemas/resend-verification.schema");
+    const result = resendVerificationSchema.safeParse({ email: "" });
+    expect(result.success).toBe(false);
+  });
+});
+
+describe("verify-email-copy", () => {
+  it("resolves every advertised key to a non-empty string", () => {
+    const keys: string[] = [
+      COPY_KEYS.verify.loading.title,
+      COPY_KEYS.verify.loading.body,
+      COPY_KEYS.verify.acknowledgement.title,
+      COPY_KEYS.verify.acknowledgement.body,
+      COPY_KEYS.verify.acknowledgement.action,
+      COPY_KEYS.verify.invalid.title,
+      COPY_KEYS.verify.invalid.body,
+      COPY_KEYS.verify.invalid.tryAgain,
+      COPY_KEYS.verify.invalid.resendLabel,
+      COPY_KEYS.verify.invalid.loginLabel,
+      COPY_KEYS.resend.loading,
+      COPY_KEYS.resend.idle.placeholder,
+      COPY_KEYS.resend.idle.help,
+      COPY_KEYS.resend.acknowledgement.title,
+      COPY_KEYS.resend.acknowledgement.body,
+      COPY_KEYS.resend.error.rate_limited,
+      COPY_KEYS.resend.error.server,
+      COPY_KEYS.resend.cooldown.message,
+    ];
+    for (const key of keys) {
+      const v = resolveCopy(key);
+      expect(v, `key ${key}`).not.toBe("");
+    }
+  });
+
+  it("renders verify.invalid.body byte-identical to verify.acknowledgement.body", () => {
+    const ack = resolveCopy(COPY_KEYS.verify.acknowledgement.body);
+    const inv = resolveCopy(COPY_KEYS.verify.invalid.body);
+    expect(ack).toBe(inv);
+    expect(ack.length).toBeGreaterThan(0);
+  });
+
+  it("snapshot helper returns the acknowledgement body", () => {
+    const ack = resolveCopy(COPY_KEYS.verify.acknowledgement.body);
+    expect(verifyAcknowledgementSnapshot()).toBe(ack);
+    expect(resendAcknowledgementSnapshot()).toBe(
+      resolveCopy(COPY_KEYS.resend.acknowledgement.body),
+    );
+  });
+
+  it("renders the same resend acknowledgement body for any case", () => {
+    const body = resendAcknowledgementSnapshot();
+    expect(body).toBe(resolveCopy(COPY_KEYS.resend.acknowledgement.body));
+    expect(body.length).toBeGreaterThan(0);
+  });
+
+  it("has no anti-enumeration phrase in any rendered string", () => {
+    const allStrings: Array<[string, string]> = [
+      ["verify.loading.title", resolveCopy(COPY_KEYS.verify.loading.title)],
+      ["verify.loading.body", resolveCopy(COPY_KEYS.verify.loading.body)],
+      [
+        "verify.acknowledgement.title",
+        resolveCopy(COPY_KEYS.verify.acknowledgement.title),
+      ],
+      [
+        "verify.acknowledgement.body",
+        resolveCopy(COPY_KEYS.verify.acknowledgement.body),
+      ],
+      [
+        "verify.acknowledgement.action",
+        resolveCopy(COPY_KEYS.verify.acknowledgement.action),
+      ],
+      ["verify.invalid.title", resolveCopy(COPY_KEYS.verify.invalid.title)],
+      ["verify.invalid.body", resolveCopy(COPY_KEYS.verify.invalid.body)],
+      [
+        "verify.invalid.tryAgain",
+        resolveCopy(COPY_KEYS.verify.invalid.tryAgain),
+      ],
+      [
+        "verify.invalid.resendLabel",
+        resolveCopy(COPY_KEYS.verify.invalid.resendLabel),
+      ],
+      [
+        "verify.invalid.loginLabel",
+        resolveCopy(COPY_KEYS.verify.invalid.loginLabel),
+      ],
+      ["resend.loading", resolveCopy(COPY_KEYS.resend.loading)],
+      [
+        "resend.idle.placeholder",
+        resolveCopy(COPY_KEYS.resend.idle.placeholder),
+      ],
+      ["resend.idle.help", resolveCopy(COPY_KEYS.resend.idle.help)],
+      [
+        "resend.acknowledgement.title",
+        resolveCopy(COPY_KEYS.resend.acknowledgement.title),
+      ],
+      [
+        "resend.acknowledgement.body",
+        resolveCopy(COPY_KEYS.resend.acknowledgement.body),
+      ],
+      [
+        "resend.error.rate_limited",
+        resolveCopy(COPY_KEYS.resend.error.rate_limited),
+      ],
+      ["resend.error.server", resolveCopy(COPY_KEYS.resend.error.server)],
+      [
+        "resend.cooldown.message",
+        resolveCopy(COPY_KEYS.resend.cooldown.message),
+      ],
+    ];
+    for (const [key, value] of allStrings) {
+      assertAntiEnumeration(value, key);
+    }
+  });
+
+  it("resolveCooldown substitutes {seconds} with the integer", () => {
+    const out = resolveCooldown(42);
+    expect(out).toContain("42");
+    expect(out).not.toContain("{seconds}");
+  });
+
+  it("resolveCooldown floors negative seconds to 0", () => {
+    const out = resolveCooldown(-3);
+    expect(out).toContain("0");
+    expect(out).not.toContain("{seconds}");
+  });
+});
+
+describe("resend cooldown", () => {
+  it("defaults to 60 seconds", () => {
+    expect(RESEND_COOLDOWN_MS).toBe(60_000);
+  });
+});
+
+describe("hook-level single-flight contract (synthesised)", () => {
+  it("submitVerifyEmail returns a fresh Promise per call but the hook dedups", async () => {
+    const verifyEmail = vi.fn().mockResolvedValue({ message: "ok" });
+    const p1 = submitVerifyEmail("a".repeat(64), {
+      verifyEmail: verifyEmail as unknown as (dto: {
+        token: string;
+      }) => Promise<unknown>,
     });
-await Promise.all([p1, p2]);
-expect(verifyEmail).toHaveBeenCalledTimes(2);
+    const p2 = submitVerifyEmail("a".repeat(64), {
+      verifyEmail: verifyEmail as unknown as (dto: {
+        token: string;
+      }) => Promise<unknown>,
+    });
+    await Promise.all([p1, p2]);
+    expect(verifyEmail).toHaveBeenCalledTimes(2);
     // The hook's dedup is the seam (see use-verify-email.ts).
   });
 
-it('submitResendVerification returns a fresh Promise per call but the hook dedups', async () => {
-const resendVerificationEmail = vi.fn().mockResolvedValue({ message: 'ok' });
-const p1 = submitResendVerification(
-{ email: 'a@b.co' },
-{
-resendVerificationEmail: resendVerificationEmail as unknown as (dto: { email: string }) => Promise<unknown>,
-      }
+  it("submitResendVerification returns a fresh Promise per call but the hook dedups", async () => {
+    const resendVerificationEmail = vi
+      .fn()
+      .mockResolvedValue({ message: "ok" });
+    const p1 = submitResendVerification(
+      { email: "a@b.co" },
+      {
+        resendVerificationEmail: resendVerificationEmail as unknown as (dto: {
+          email: string;
+        }) => Promise<unknown>,
+      },
     );
-const p2 = submitResendVerification(
-{ email: 'a@b.co' },
-{
-resendVerificationEmail: resendVerificationEmail as unknown as (dto: { email: string }) => Promise<unknown>,
-      }
+    const p2 = submitResendVerification(
+      { email: "a@b.co" },
+      {
+        resendVerificationEmail: resendVerificationEmail as unknown as (dto: {
+          email: string;
+        }) => Promise<unknown>,
+      },
     );
-await Promise.all([p1, p2]);
-expect(resendVerificationEmail).toHaveBeenCalledTimes(2);
+    await Promise.all([p1, p2]);
+    expect(resendVerificationEmail).toHaveBeenCalledTimes(2);
     // The hook dedups via `useRef` (see use-resend-verification.ts).
   });
 });

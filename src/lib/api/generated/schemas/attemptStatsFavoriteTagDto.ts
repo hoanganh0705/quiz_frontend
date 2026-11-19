@@ -1,8 +1,5 @@
-
-
 export interface AttemptStatsFavoriteTagDto {
+  tagId: string;
 
-tagId: string;
-
-name: string;
+  name: string;
 }

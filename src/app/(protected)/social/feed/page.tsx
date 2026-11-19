@@ -4,9 +4,9 @@ import { SocialFeedRouteGate } from "@/features/social/components/SocialFeedRout
 import { RouteGateSkeleton } from "@/components/ui/loading-states";
 
 export default function SocialFeedRoute(): React.ReactElement {
-return (
-<Suspense fallback={<RouteGateSkeleton />}>
-<SocialFeedRouteGate />
-</Suspense>
+  return (
+    <Suspense fallback={<RouteGateSkeleton />}>
+      <SocialFeedRouteGate />
+    </Suspense>
   );
 }

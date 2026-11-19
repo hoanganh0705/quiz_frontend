@@ -1,8 +1,5 @@
-
-
-import type { CreateQuizQuestionDto } from './createQuizQuestionDto';
+import type { CreateQuizQuestionDto } from "./createQuizQuestionDto";
 
 export interface CreateQuizQuestionsDto {
-
-questions: CreateQuizQuestionDto;
+  questions: CreateQuizQuestionDto;
 }

@@ -1,84 +1,84 @@
-'use client'
+"use client";
 
-import { useCallback, useMemo } from 'react'
-import { useClipboard } from './use-clipboard'
+import { useCallback, useMemo } from "react";
+import { useClipboard } from "./use-clipboard";
 
 interface ShareData {
-title: string
-description?: string
-url: string
+  title: string;
+  description?: string;
+  url: string;
 }
 
 export function useShare(data: ShareData) {
-const { copied, copy } = useClipboard()
+  const { copied, copy } = useClipboard();
 
-const shareUrl = useMemo(() => {
-if (typeof window === 'undefined') return data.url
+  const shareUrl = useMemo(() => {
+    if (typeof window === "undefined") return data.url;
 
-if (data.url.startsWith('/')) {
-return `${window.location.origin}${data.url}`
+    if (data.url.startsWith("/")) {
+      return `${window.location.origin}${data.url}`;
     }
-return data.url
-  }, [data.url])
+    return data.url;
+  }, [data.url]);
 
-const copyLink = useCallback(() => {
-copy(shareUrl)
-  }, [copy, shareUrl])
+  const copyLink = useCallback(() => {
+    copy(shareUrl);
+  }, [copy, shareUrl]);
 
-const socialUrls = useMemo(() => {
-const encodedUrl = encodeURIComponent(shareUrl)
-const encodedTitle = encodeURIComponent(data.title)
-const encodedDesc = encodeURIComponent(data.description ?? '')
+  const socialUrls = useMemo(() => {
+    const encodedUrl = encodeURIComponent(shareUrl);
+    const encodedTitle = encodeURIComponent(data.title);
+    const encodedDesc = encodeURIComponent(data.description ?? "");
 
-return {
-twitter: `https://twitter.com/intent/tweet?text=${encodedTitle}&url=${encodedUrl}`,
-facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`,
-linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`,
-whatsapp: `https://wa.me/?text=${encodedTitle}%20${encodedUrl}`,
-telegram: `https://t.me/share/url?url=${encodedUrl}&text=${encodedTitle}`,
-email: `mailto:?subject=${encodedTitle}&body=${encodedDesc}%0A%0A${encodedUrl}`
-    }
-  }, [shareUrl, data.title, data.description])
+    return {
+      twitter: `https://twitter.com/intent/tweet?text=${encodedTitle}&url=${encodedUrl}`,
+      facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`,
+      linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`,
+      whatsapp: `https://wa.me/?text=${encodedTitle}%20${encodedUrl}`,
+      telegram: `https://t.me/share/url?url=${encodedUrl}&text=${encodedTitle}`,
+      email: `mailto:?subject=${encodedTitle}&body=${encodedDesc}%0A%0A${encodedUrl}`,
+    };
+  }, [shareUrl, data.title, data.description]);
 
-const openSocial = useCallback(
-(platform: keyof typeof socialUrls) => {
-const url = socialUrls[platform]
-if (platform === 'email') {
-window.location.href = url
+  const openSocial = useCallback(
+    (platform: keyof typeof socialUrls) => {
+      const url = socialUrls[platform];
+      if (platform === "email") {
+        window.location.href = url;
       } else {
-window.open(url, '_blank', 'noopener,noreferrer,width=600,height=400')
+        window.open(url, "_blank", "noopener,noreferrer,width=600,height=400");
       }
     },
-[socialUrls]
-  )
+    [socialUrls],
+  );
 
-const canNativeShare = useMemo(() => {
-if (typeof navigator === 'undefined') return false
-return typeof navigator.share === 'function'
-  }, [])
+  const canNativeShare = useMemo(() => {
+    if (typeof navigator === "undefined") return false;
+    return typeof navigator.share === "function";
+  }, []);
 
-const shareNative = useCallback(async () => {
-if (!canNativeShare) return false
+  const shareNative = useCallback(async () => {
+    if (!canNativeShare) return false;
 
-try {
-await navigator.share({
-title: data.title,
-text: data.description,
-url: shareUrl
-      })
-return true
+    try {
+      await navigator.share({
+        title: data.title,
+        text: data.description,
+        url: shareUrl,
+      });
+      return true;
     } catch {
-return false
+      return false;
     }
-  }, [canNativeShare, data.description, data.title, shareUrl])
+  }, [canNativeShare, data.description, data.title, shareUrl]);
 
-return {
-shareUrl,
-copied,
-copyLink,
-socialUrls,
-openSocial,
-canNativeShare,
-shareNative
-  }
+  return {
+    shareUrl,
+    copied,
+    copyLink,
+    socialUrls,
+    openSocial,
+    canNativeShare,
+    shareNative,
+  };
 }

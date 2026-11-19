@@ -1,12 +1,9 @@
-
-
 export interface NearbyRankEntryDto {
+  rank: number;
 
-rank: number;
+  userId: string;
 
-userId: string;
+  username: string;
 
-username: string;
-
-xp: number;
+  xp: number;
 }

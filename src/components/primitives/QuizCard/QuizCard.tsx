@@ -8,8 +8,7 @@ import { EntityCard } from "@/components/primitives/EntityCard";
 import { initialsFromQuizId } from "@/features/quizzes/utils/quiz-card-decoration";
 import type { QuizListItemDto } from "@/lib/api/generated/schemas";
 
-const BADGE =
-  "rounded-full border bg-background px-2 py-0.5 text-xs";
+const BADGE = "rounded-full border bg-background px-2 py-0.5 text-xs";
 
 function formatDuration(durationMs: number | undefined): string | null {
   if (typeof durationMs !== "number" || durationMs <= 0) return null;
@@ -25,15 +24,10 @@ export interface QuizCardProps {
   quiz: QuizListItemDto;
   className?: string;
   bookmarkSlot?:
-    | ((props: BookmarkButtonSlotProps) => React.JSX.Element | null)
-    | null;
+    ((props: BookmarkButtonSlotProps) => React.JSX.Element | null) | null;
 }
 
-export function QuizCard({
-  quiz,
-  className,
-  bookmarkSlot,
-}: QuizCardProps) {
+export function QuizCard({ quiz, className, bookmarkSlot }: QuizCardProps) {
   const href = `/quizzes/${quiz.slug || quiz.quizId}`;
   const difficulty = quiz.publishedVersion?.difficulty;
   const duration = formatDuration(quiz.publishedVersion?.durationMs);
@@ -60,20 +54,12 @@ export function QuizCard({
       }}
       badges={
         <>
-          {quiz.isVerified ? (
-            <span className={BADGE}>Verified</span>
-          ) : null}
-          {quiz.isFeatured ? (
-            <span className={BADGE}>Featured</span>
-          ) : null}
+          {quiz.isVerified ? <span className={BADGE}>Verified</span> : null}
+          {quiz.isFeatured ? <span className={BADGE}>Featured</span> : null}
           {difficulty ? <span className={BADGE}>{difficulty}</span> : null}
         </>
       }
-      meta={
-        duration ? (
-          <span className="tabular-nums">{duration}</span>
-        ) : null
-      }
+      meta={duration ? <span className="tabular-nums">{duration}</span> : null}
       bookmarkSlot={
         renderBookmarkSlot
           ? renderBookmarkSlot({

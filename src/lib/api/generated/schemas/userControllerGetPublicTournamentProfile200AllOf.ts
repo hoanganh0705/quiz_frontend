@@ -1,7 +1,5 @@
-
-
-import type { PublicTournamentProfileResponseDto } from './publicTournamentProfileResponseDto';
+import type { PublicTournamentProfileResponseDto } from "./publicTournamentProfileResponseDto";
 
 export type UserControllerGetPublicTournamentProfile200AllOf = {
-data?: PublicTournamentProfileResponseDto;
+  data?: PublicTournamentProfileResponseDto;
 };

@@ -1,7 +1,6 @@
 # Audit Endpoint Verification Status
 
-> **Epic**: 7.11 — Admin Audit Log Surface and Backend Capability Verification
-> **Ticket**: 7.11-A1
+> **Scope**: Admin Audit Log Surface and Backend Capability Verification
 > **Status**: PENDING_VERIFICATION
 > **Generated**: Friday Aug 7, 2026
 
@@ -9,14 +8,14 @@
 
 ## Verification Status
 
-| Check | Status | Notes |
-|-------|--------|-------|
-| Endpoint exists | ⏳ PENDING | To be verified with backend team |
-| DTO contract documented | ⏳ PENDING | Awaiting backend confirmation |
-| Pagination strategy confirmed | ⏳ PENDING | Expected: offset-based per story |
-| `AUDIT_LOG_READ` permission confirmed | ⏳ PENDING | To be verified |
-| Sensitive payload redaction confirmed | ⏳ PENDING | To be verified |
-| Error codes documented | ⏳ PENDING | Expected: `PERMISSION_DENIED`, `NOT_EXPOSED` |
+| Check                                 | Status     | Notes                                        |
+| ------------------------------------- | ---------- | -------------------------------------------- |
+| Endpoint exists                       | ⏳ PENDING | To be verified with backend team             |
+| DTO contract documented               | ⏳ PENDING | Awaiting backend confirmation                |
+| Pagination strategy confirmed         | ⏳ PENDING | Expected: offset-based per story             |
+| `AUDIT_LOG_READ` permission confirmed | ⏳ PENDING | To be verified                               |
+| Sensitive payload redaction confirmed | ⏳ PENDING | To be verified                               |
+| Error codes documented                | ⏳ PENDING | Expected: `PERMISSION_DENIED`, `NOT_EXPOSED` |
 
 ---
 
@@ -27,6 +26,7 @@
 **Expected behavior**: Returns paginated list of admin audit log entries.
 
 **Expected parameters**:
+
 - `actorId` (optional): Filter by actor UUID
 - `action` (optional): Filter by action type
 - `targetType` (optional): Filter by target type
@@ -37,6 +37,7 @@
 - `limit` (optional): Pagination limit
 
 **Expected response DTO**:
+
 ```typescript
 interface AdminAuditLogListDto {
   data: AdminAuditLogEntryDto[];
@@ -61,6 +62,7 @@ interface AdminAuditLogEntryDto {
 ```
 
 **Expected error codes**:
+
 - `PERMISSION_DENIED` (403): User lacks `AUDIT_LOG_READ` permission
 - `NOT_EXPOSED` (???): Audit log endpoint is not exposed by backend
 
@@ -79,8 +81,8 @@ interface AdminAuditLogEntryDto {
 
 ## Sign-off
 
-| Role | Name | Date |
-|------|------|------|
-| Backend Developer | | |
-| Frontend Developer | | |
-| Tech Lead | | |
+| Role               | Name | Date |
+| ------------------ | ---- | ---- |
+| Backend Developer  |      |      |
+| Frontend Developer |      |      |
+| Tech Lead          |      |      |

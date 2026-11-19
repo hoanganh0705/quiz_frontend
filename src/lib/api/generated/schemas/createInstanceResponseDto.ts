@@ -1,8 +1,5 @@
-
-
 export interface CreateInstanceResponseDto {
+  instanceId: string;
 
-instanceId: string;
-
-message: string;
+  message: string;
 }

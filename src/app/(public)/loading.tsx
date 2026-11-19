@@ -8,50 +8,50 @@ import {
 import { QuizRailSkeleton } from "@/features/quizzes/components/QuizRailSkeleton";
 
 export default function Loading() {
-return (
-<div
-className="min-h-screen p-4 md:p-6 overflow-x-hidden max-w-full"
-data-testid="home-loading"
-aria-busy="true"
-aria-label="Loading home page"
+  return (
+    <div
+      className="min-h-screen p-4 md:p-6 overflow-x-hidden max-w-full"
+      data-testid="home-loading"
+      aria-busy="true"
+      aria-label="Loading home page"
     >
-<HomeHeroSection />
+      <HomeHeroSection />
 
-<div className="flex flex-col gap-8 mb-10">
-<QuizRailSkeleton layout="grid" count={FEATURED_RAIL_LIMIT} />
-<QuizRailSkeleton layout="scroller" count={TRENDING_RAIL_LIMIT} />
-<QuizRailSkeleton layout="scroller" count={POPULAR_RAIL_LIMIT} />
-</div>
+      <div className="flex flex-col gap-8 mb-10">
+        <QuizRailSkeleton layout="grid" count={FEATURED_RAIL_LIMIT} />
+        <QuizRailSkeleton layout="scroller" count={TRENDING_RAIL_LIMIT} />
+        <QuizRailSkeleton layout="scroller" count={POPULAR_RAIL_LIMIT} />
+      </div>
 
-<div
-className="mb-10 h-32 rounded-xl border border-border bg-main"
-aria-hidden="true"
-/>
+      <div
+        className="mb-10 h-32 rounded-xl border border-border bg-main"
+        aria-hidden="true"
+      />
 
-<div
-className="mb-10 h-64 rounded-xl border border-border bg-main"
-aria-hidden="true"
-/>
+      <div
+        className="mb-10 h-64 rounded-xl border border-border bg-main"
+        aria-hidden="true"
+      />
 
-<div
-className="mb-10 h-48 rounded-xl border border-border bg-main"
-aria-hidden="true"
-/>
+      <div
+        className="mb-10 h-48 rounded-xl border border-border bg-main"
+        aria-hidden="true"
+      />
 
-<div
-className="mb-10 h-72 rounded-xl border border-border bg-main"
-aria-hidden="true"
-/>
+      <div
+        className="mb-10 h-72 rounded-xl border border-border bg-main"
+        aria-hidden="true"
+      />
 
-<div
-className="mb-10 h-48 rounded-xl border border-border bg-main"
-aria-hidden="true"
-/>
+      <div
+        className="mb-10 h-48 rounded-xl border border-border bg-main"
+        aria-hidden="true"
+      />
 
-<div
-className="mb-10 h-64 rounded-xl border border-border bg-main"
-aria-hidden="true"
-/>
-</div>
+      <div
+        className="mb-10 h-64 rounded-xl border border-border bg-main"
+        aria-hidden="true"
+      />
+    </div>
   );
 }

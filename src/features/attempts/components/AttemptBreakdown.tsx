@@ -18,10 +18,7 @@ export interface AttemptBreakdownProps {
 }
 
 export type AttemptBreakdownMarker =
-  | "correct"
-  | "incorrect"
-  | "skipped"
-  | "pending";
+  "correct" | "incorrect" | "skipped" | "pending";
 
 export function markerForQuestion(
   q: AttemptQuestionScoreDto,

@@ -1,87 +1,67 @@
+import { getQueryClient } from "@/providers/QueryProvider";
 
-
-import { mutate as globalMutate } from 'swr';
-
-import { clearAuthToken } from '@/features/auth/utils/auth-cookies';
-import { clearAllAuthCache } from '@/features/auth/utils/user-scoped-cache';
-import { clearVerificationFlags } from '@/features/auth/utils/verification-flag';
-import { isSafeRedirectTarget } from '@/features/auth/utils/safe-redirect';
-import { broadcastAuthEvent } from '@/lib/api/core/broadcast-channel';
+import { clearAuthToken } from "@/features/auth/utils/auth-cookies";
+import { clearAllAuthCache } from "@/features/auth/utils/user-scoped-cache";
+import { clearVerificationFlags } from "@/features/auth/utils/verification-flag";
+import { isSafeRedirectTarget } from "@/features/auth/utils/safe-redirect";
+import { broadcastAuthEvent } from "@/lib/api/core/broadcast-channel";
 
 export interface ClearAuthStateOptions {
-
-redirectTo?: string | null;
-
-skipBroadcast?: boolean;
-
-skipSwrCacheClear?: boolean;
-}
-
-function clearSwrCache(): void {
-
-if (typeof window === 'undefined') return;
-try {
-void globalMutate(
-() => true,
-undefined,
-{ revalidate: true },
-    );
-  } catch {
-    // SWR's own mutate can throw if its provider is not mounted
-    // yet (e.g. very early bootstrap). Fail-open so the rest of
-    // the cleanup still runs.
-  }
+  redirectTo?: string | null;
+  skipBroadcast?: boolean;
+  skipCacheClear?: boolean;
 }
 
 export function clearAuthState(options: ClearAuthStateOptions = {}): void {
-const { redirectTo = null, skipBroadcast = false, skipSwrCacheClear = false } = options;
+  const {
+    redirectTo = null,
+    skipBroadcast = false,
+    skipCacheClear = false,
+  } = options;
 
-try {
-clearVerificationFlags();
+  try {
+    clearVerificationFlags();
   } catch {
     // Storage / globals may be unavailable in some test setups;
     // the rest of the cleanup still runs.
   }
 
-try {
-clearAuthToken();
+  try {
+    clearAuthToken();
   } catch {
-    // Same — fail-open so a cookie write error does not block the
-    // broadcast / redirect.
+    // Fail-open so a cookie write error does not block the broadcast / redirect.
   }
 
-try {
-clearAllAuthCache();
+  try {
+    clearAllAuthCache();
   } catch {
-    // Same — fail-open.
+    // Fail-open
   }
 
-if (!skipSwrCacheClear) {
-try {
-clearSwrCache();
+  if (!skipCacheClear) {
+    try {
+      getQueryClient().clear();
     } catch {
-      // SWR's mutate can throw if its provider is not mounted yet
-      // (early bootstrap). The cookie + broadcast cleanup above
-      // already runs.
+      // Fail-open
     }
   }
 
-if (!skipBroadcast) {
-try {
-broadcastAuthEvent({ type: 'LOGGED_OUT' });
+  if (!skipBroadcast) {
+    try {
+      broadcastAuthEvent({ type: "LOGGED_OUT" });
     } catch {
       // The broadcast channel may be unavailable in SSR / private
       // browsing; the local cleanup above is sufficient.
     }
   }
 
-if (
-typeof redirectTo === 'string' &&
-isSafeRedirectTarget(redirectTo) &&
-typeof globalThis !== 'undefined' &&
-globalThis.location !== undefined &&
-typeof globalThis.location.assign === 'function'
+  if (
+    typeof redirectTo === "string" &&
+    isSafeRedirectTarget(redirectTo) &&
+    typeof globalThis !== "undefined" &&
+    globalThis.location !== undefined &&
+    typeof globalThis.location.assign === "function"
   ) {
-globalThis.location.assign(redirectTo);
+    globalThis.location.assign(redirectTo);
   }
 }

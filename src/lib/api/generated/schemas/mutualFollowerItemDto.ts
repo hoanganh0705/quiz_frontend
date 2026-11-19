@@ -1,15 +1,12 @@
-
-
-import type { MutualFollowerItemDtoDisplayName } from './mutualFollowerItemDtoDisplayName';
-import type { MutualFollowerItemDtoAvatarUrl } from './mutualFollowerItemDtoAvatarUrl';
+import type { MutualFollowerItemDtoDisplayName } from "./mutualFollowerItemDtoDisplayName";
+import type { MutualFollowerItemDtoAvatarUrl } from "./mutualFollowerItemDtoAvatarUrl";
 
 export interface MutualFollowerItemDto {
+  userId: string;
 
-userId: string;
+  username: string;
 
-username: string;
+  displayName?: MutualFollowerItemDtoDisplayName;
 
-displayName?: MutualFollowerItemDtoDisplayName;
-
-avatarUrl?: MutualFollowerItemDtoAvatarUrl;
+  avatarUrl?: MutualFollowerItemDtoAvatarUrl;
 }

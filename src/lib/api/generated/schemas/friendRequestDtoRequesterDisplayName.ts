@@ -1,3 +1,3 @@
-
-
-export type FriendRequestDtoRequesterDisplayName = { [key: string]: unknown } | null;
+export type FriendRequestDtoRequesterDisplayName = {
+  [key: string]: unknown;
+} | null;

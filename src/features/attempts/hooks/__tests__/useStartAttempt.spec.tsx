@@ -1,388 +1,393 @@
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { act, renderHook } from "@testing-library/react";
 
-
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { act, renderHook } from '@testing-library/react';
-
-import { ApiError } from '@/lib/api';
-import { ATTEMPT_CACHE_KEYS } from '@/features/attempts/types/attempt-runner.types';
+import { ApiError } from "@/lib/api";
+import { ATTEMPT_CACHE_KEYS } from "@/features/attempts/types/attempt-runner.types";
 import {
-useAttemptsStore,
-hydrateAttemptEntry,
-} from '@/features/attempts/stores/useAttemptsStore';
+  useAttemptsStore,
+  hydrateAttemptEntry,
+} from "@/features/attempts/stores/useAttemptsStore";
 
 const startAttemptMock = vi.hoisted(() => vi.fn());
 const useAuthSessionMock = vi.hoisted(() => vi.fn());
-const mutateMock = vi.hoisted(() => vi.fn());
+const invalidateQueriesMock = vi.hoisted(() =>
+  vi.fn().mockResolvedValue(undefined),
+);
 const broadcastAttemptsChangedMock = vi.hoisted(() => vi.fn());
 
-vi.mock('@/features/attempts/services/attempts.service', () => ({
-startAttempt: startAttemptMock,
+vi.mock("@/providers/QueryProvider", () => ({
+  getQueryClient: () => ({
+    invalidateQueries: invalidateQueriesMock,
+    clear: vi.fn(),
+  }),
 }));
 
-vi.mock('@/features/auth/hooks/use-auth-session', () => ({
-useAuthSession: useAuthSessionMock,
+vi.mock("@/features/attempts/services/attempts.service", () => ({
+  startAttempt: startAttemptMock,
 }));
 
-vi.mock('swr', async () => {
-const actual = await vi.importActual<typeof import('swr')>('swr');
-return { ...actual, mutate: mutateMock };
+vi.mock("@/features/auth/hooks/use-auth-session", () => ({
+  useAuthSession: useAuthSessionMock,
+}));
+
+vi.mock("@/lib/api/core/attempts-broadcast-channel", async () => {
+  const actual = await vi.importActual<
+    typeof import("@/lib/api/core/attempts-broadcast-channel")
+  >("@/lib/api/core/attempts-broadcast-channel");
+  return { ...actual, broadcastAttemptsChanged: broadcastAttemptsChangedMock };
 });
 
-vi.mock('@/lib/api/core/attempts-broadcast-channel', async () => {
-const actual =
-await vi.importActual<typeof import('@/lib/api/core/attempts-broadcast-channel')>(
-'@/lib/api/core/attempts-broadcast-channel',
-    );
-return { ...actual, broadcastAttemptsChanged: broadcastAttemptsChangedMock };
-});
+import { useStartAttempt } from "@/features/attempts/hooks/useStartAttempt";
 
-import { useStartAttempt } from '@/features/attempts/hooks/useStartAttempt';
-
-const SESSION_ID = 'user-1';
-const QUIZ_ID = 'quiz-1';
-const ATTEMPT_ID = 'attempt-1';
+const SESSION_ID = "user-1";
+const QUIZ_ID = "quiz-1";
+const ATTEMPT_ID = "attempt-1";
 
 function setBootstrapAuthenticated() {
-useAuthSessionMock.mockReturnValue({
-bootstrapState: 'authenticated',
-isAuthenticated: true,
-currentUser: { userId: SESSION_ID, id: SESSION_ID },
+  useAuthSessionMock.mockReturnValue({
+    bootstrapState: "authenticated",
+    isAuthenticated: true,
+    currentUser: { userId: SESSION_ID, id: SESSION_ID },
   });
 }
 
 function setBootstrapUnauthenticated() {
-useAuthSessionMock.mockReturnValue({
-bootstrapState: 'unauthenticated',
-isAuthenticated: false,
-currentUser: null,
+  useAuthSessionMock.mockReturnValue({
+    bootstrapState: "unauthenticated",
+    isAuthenticated: false,
+    currentUser: null,
   });
 }
 
 function setBootstrapLoading() {
-useAuthSessionMock.mockReturnValue({
-bootstrapState: 'bootstrapping',
-isAuthenticated: false,
-currentUser: null,
+  useAuthSessionMock.mockReturnValue({
+    bootstrapState: "bootstrapping",
+    isAuthenticated: false,
+    currentUser: null,
   });
 }
 
 function makeApiError(
-status: number,
-code: string,
-message = `Mock ${status}`,
+  status: number,
+  code: string,
+  message = `Mock ${status}`,
 ): ApiError {
-return new ApiError({
-isAxiosError: true,
-name: 'AxiosError',
-message,
-code,
-config: undefined,
-request: undefined,
-response: {
-status,
-statusText: message,
-data: {
-type: 'https://api.quiz.local/problems/x',
-title: message,
-status,
-detail: message,
-extensions: { code, requestId: 'req-test' },
+  return new ApiError({
+    isAxiosError: true,
+    name: "AxiosError",
+    message,
+    code,
+    config: undefined,
+    request: undefined,
+    response: {
+      status,
+      statusText: message,
+      data: {
+        type: "https://api.quiz.local/problems/x",
+        title: message,
+        status,
+        detail: message,
+        extensions: { code, requestId: "req-test" },
       },
-headers: {},
-config: undefined as never,
+      headers: {},
+      config: undefined as never,
     },
-toJSON: () => ({}),
+    toJSON: () => ({}),
   } as unknown as Parameters<typeof ApiError.fromAxios>[0]);
 }
 
 beforeEach(() => {
-vi.clearAllMocks();
-mutateMock.mockResolvedValue(undefined);
-broadcastAttemptsChangedMock.mockReturnValue(undefined);
-startAttemptMock.mockResolvedValue({ data: { attemptId: ATTEMPT_ID } });
-useAttemptsStore.setState(
-{ attemptsById: {}, attemptsByQuizVersionId: {} },
-true,
+  vi.clearAllMocks();
+  invalidateQueriesMock.mockResolvedValue(undefined);
+  broadcastAttemptsChangedMock.mockReturnValue(undefined);
+  startAttemptMock.mockResolvedValue({ data: { attemptId: ATTEMPT_ID } });
+  useAttemptsStore.setState(
+    { attemptsById: {}, attemptsByQuizVersionId: {} },
+    true,
   );
 });
 
 afterEach(() => {
-vi.useRealTimers();
+  vi.useRealTimers();
 });
 
-describe('useStartAttempt — auth gate', () => {
-it('returns idle when bootstrap is loading', async () => {
-setBootstrapLoading();
-const { result } = renderHook(() => useStartAttempt({ quizId: QUIZ_ID }));
+describe("useStartAttempt — auth gate", () => {
+  it("returns idle when bootstrap is loading", async () => {
+    setBootstrapLoading();
+    const { result } = renderHook(() => useStartAttempt({ quizId: QUIZ_ID }));
 
-let outcome!: Awaited<ReturnType<typeof result.current.start>>;
-await act(async () => {
-outcome = await result.current.start();
+    let outcome!: Awaited<ReturnType<typeof result.current.start>>;
+    await act(async () => {
+      outcome = await result.current.start();
     });
 
-expect(outcome.kind).toBe('idle');
-expect(startAttemptMock).not.toHaveBeenCalled();
+    expect(outcome.kind).toBe("idle");
+    expect(startAttemptMock).not.toHaveBeenCalled();
   });
 
-it('returns idle when the viewer is unauthenticated', async () => {
-setBootstrapUnauthenticated();
-const { result } = renderHook(() => useStartAttempt({ quizId: QUIZ_ID }));
+  it("returns idle when the viewer is unauthenticated", async () => {
+    setBootstrapUnauthenticated();
+    const { result } = renderHook(() => useStartAttempt({ quizId: QUIZ_ID }));
 
-let outcome!: Awaited<ReturnType<typeof result.current.start>>;
-await act(async () => {
-outcome = await result.current.start();
+    let outcome!: Awaited<ReturnType<typeof result.current.start>>;
+    await act(async () => {
+      outcome = await result.current.start();
     });
 
-expect(outcome.kind).toBe('idle');
-expect(startAttemptMock).not.toHaveBeenCalled();
+    expect(outcome.kind).toBe("idle");
+    expect(startAttemptMock).not.toHaveBeenCalled();
   });
 
-it('returns idle when quizId is null', async () => {
-setBootstrapAuthenticated();
-const { result } = renderHook(() => useStartAttempt({ quizId: null }));
+  it("returns idle when quizId is null", async () => {
+    setBootstrapAuthenticated();
+    const { result } = renderHook(() => useStartAttempt({ quizId: null }));
 
-let outcome!: Awaited<ReturnType<typeof result.current.start>>;
-await act(async () => {
-outcome = await result.current.start();
+    let outcome!: Awaited<ReturnType<typeof result.current.start>>;
+    await act(async () => {
+      outcome = await result.current.start();
     });
 
-expect(outcome.kind).toBe('idle');
-expect(startAttemptMock).not.toHaveBeenCalled();
+    expect(outcome.kind).toBe("idle");
+    expect(startAttemptMock).not.toHaveBeenCalled();
   });
 });
 
-describe('useStartAttempt — happy path', () => {
-it('forwards quizId and the verified payload to the service', async () => {
-setBootstrapAuthenticated();
-const payload = { contextType: 'solo' as const };
-const { result } = renderHook(() =>
-useStartAttempt({ quizId: QUIZ_ID, payload }),
+describe("useStartAttempt — happy path", () => {
+  it("forwards quizId and the verified payload to the service", async () => {
+    setBootstrapAuthenticated();
+    const payload = { contextType: "solo" as const };
+    const { result } = renderHook(() =>
+      useStartAttempt({ quizId: QUIZ_ID, payload }),
     );
 
-await act(async () => {
-await result.current.start();
+    await act(async () => {
+      await result.current.start();
     });
 
-expect(startAttemptMock).toHaveBeenCalledTimes(1);
-expect(startAttemptMock).toHaveBeenCalledWith(QUIZ_ID, payload);
+    expect(startAttemptMock).toHaveBeenCalledTimes(1);
+    expect(startAttemptMock).toHaveBeenCalledWith(QUIZ_ID, payload);
   });
 
-it('hydrates the runner store with the server-confirmed attempt id', async () => {
-setBootstrapAuthenticated();
-const { result } = renderHook(() => useStartAttempt({ quizId: QUIZ_ID }));
+  it("hydrates the runner store with the server-confirmed attempt id", async () => {
+    setBootstrapAuthenticated();
+    const { result } = renderHook(() => useStartAttempt({ quizId: QUIZ_ID }));
 
-await act(async () => {
-await result.current.start();
+    await act(async () => {
+      await result.current.start();
     });
 
-const entry = useAttemptsStore.getState().attemptsById[ATTEMPT_ID];
-expect(entry).toBeDefined();
-expect(entry?.status).toBe('in_progress');
-expect(entry?.sessionId).toBe(SESSION_ID);
+    const entry = useAttemptsStore.getState().attemptsById[ATTEMPT_ID];
+    expect(entry).toBeDefined();
+    expect(entry?.status).toBe("in_progress");
+    expect(entry?.sessionId).toBe(SESSION_ID);
   });
 
-it('revalidates the active-attempt cache on success', async () => {
-setBootstrapAuthenticated();
-const { result } = renderHook(() => useStartAttempt({ quizId: QUIZ_ID }));
+  it("revalidates the active-attempt cache on success", async () => {
+    setBootstrapAuthenticated();
+    const { result } = renderHook(() => useStartAttempt({ quizId: QUIZ_ID }));
 
-await act(async () => {
-await result.current.start();
+    await act(async () => {
+      await result.current.start();
     });
 
-expect(mutateMock).toHaveBeenCalledWith(
-ATTEMPT_CACHE_KEYS.active(QUIZ_ID, SESSION_ID),
+    expect(invalidateQueriesMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        queryKey: ATTEMPT_CACHE_KEYS.active(QUIZ_ID, SESSION_ID),
+      }),
     );
   });
 
-it('emits one cross-tab broadcast with kind=start', async () => {
-setBootstrapAuthenticated();
-const { result } = renderHook(() => useStartAttempt({ quizId: QUIZ_ID }));
+  it("emits one cross-tab broadcast with kind=start", async () => {
+    setBootstrapAuthenticated();
+    const { result } = renderHook(() => useStartAttempt({ quizId: QUIZ_ID }));
 
-await act(async () => {
-await result.current.start();
+    await act(async () => {
+      await result.current.start();
     });
 
-expect(broadcastAttemptsChangedMock).toHaveBeenCalledTimes(1);
-expect(broadcastAttemptsChangedMock).toHaveBeenCalledWith({
-userId: SESSION_ID,
-attemptId: ATTEMPT_ID,
-kind: 'start',
+    expect(broadcastAttemptsChangedMock).toHaveBeenCalledTimes(1);
+    expect(broadcastAttemptsChangedMock).toHaveBeenCalledWith({
+      userId: SESSION_ID,
+      attemptId: ATTEMPT_ID,
+      kind: "start",
     });
   });
 
-it('exposes success outcome with the server-confirmed attempt id', async () => {
-setBootstrapAuthenticated();
-const { result } = renderHook(() => useStartAttempt({ quizId: QUIZ_ID }));
+  it("exposes success outcome with the server-confirmed attempt id", async () => {
+    setBootstrapAuthenticated();
+    const { result } = renderHook(() => useStartAttempt({ quizId: QUIZ_ID }));
 
-let outcome!: Awaited<ReturnType<typeof result.current.start>>;
-await act(async () => {
-outcome = await result.current.start();
+    let outcome!: Awaited<ReturnType<typeof result.current.start>>;
+    await act(async () => {
+      outcome = await result.current.start();
     });
 
-expect(outcome.kind).toBe('success');
-if (outcome.kind === 'success') {
-expect(outcome.attemptId).toBe(ATTEMPT_ID);
+    expect(outcome.kind).toBe("success");
+    if (outcome.kind === "success") {
+      expect(outcome.attemptId).toBe(ATTEMPT_ID);
     }
-expect(result.current.isPending).toBe(false);
+    expect(result.current.isPending).toBe(false);
   });
 });
 
-describe('useStartAttempt — already_started (409)', () => {
-it('produces an already_started outcome and revalidates the active lookup', async () => {
-setBootstrapAuthenticated();
-startAttemptMock.mockRejectedValueOnce(
-makeApiError(409, 'ATTEMPT_ALREADY_STARTED'),
+describe("useStartAttempt — already_started (409)", () => {
+  it("produces an already_started outcome and revalidates the active lookup", async () => {
+    setBootstrapAuthenticated();
+    startAttemptMock.mockRejectedValueOnce(
+      makeApiError(409, "ATTEMPT_ALREADY_STARTED"),
     );
 
-const { result } = renderHook(() => useStartAttempt({ quizId: QUIZ_ID }));
+    const { result } = renderHook(() => useStartAttempt({ quizId: QUIZ_ID }));
 
-let outcome!: Awaited<ReturnType<typeof result.current.start>>;
-await act(async () => {
-outcome = await result.current.start();
+    let outcome!: Awaited<ReturnType<typeof result.current.start>>;
+    await act(async () => {
+      outcome = await result.current.start();
     });
 
-expect(outcome.kind).toBe('already_started');
-expect(result.current.error).toBeNull();
-expect(mutateMock).toHaveBeenCalledWith(
-ATTEMPT_CACHE_KEYS.active(QUIZ_ID, SESSION_ID),
+    expect(outcome.kind).toBe("already_started");
+    expect(result.current.error).toBeNull();
+    expect(invalidateQueriesMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        queryKey: ATTEMPT_CACHE_KEYS.active(QUIZ_ID, SESSION_ID),
+      }),
     );
   });
 });
 
-describe('useStartAttempt — quiz_unpublished (422)', () => {
-it('produces a quiz_unpublished outcome', async () => {
-setBootstrapAuthenticated();
-startAttemptMock.mockRejectedValueOnce(
-makeApiError(422, 'ATTEMPT_QUIZ_NOT_PUBLISHED'),
+describe("useStartAttempt — quiz_unpublished (422)", () => {
+  it("produces a quiz_unpublished outcome", async () => {
+    setBootstrapAuthenticated();
+    startAttemptMock.mockRejectedValueOnce(
+      makeApiError(422, "ATTEMPT_QUIZ_NOT_PUBLISHED"),
     );
 
-const { result } = renderHook(() => useStartAttempt({ quizId: QUIZ_ID }));
+    const { result } = renderHook(() => useStartAttempt({ quizId: QUIZ_ID }));
 
-let outcome!: Awaited<ReturnType<typeof result.current.start>>;
-await act(async () => {
-outcome = await result.current.start();
+    let outcome!: Awaited<ReturnType<typeof result.current.start>>;
+    await act(async () => {
+      outcome = await result.current.start();
     });
 
-expect(outcome.kind).toBe('quiz_unpublished');
-expect(result.current.error).toBeNull();
+    expect(outcome.kind).toBe("quiz_unpublished");
+    expect(result.current.error).toBeNull();
   });
 });
 
-describe('useStartAttempt — retryable failures', () => {
-it('surfaces 5xx as retryable with the typed error', async () => {
-setBootstrapAuthenticated();
-const apiErr = makeApiError(500, 'INTERNAL');
-startAttemptMock.mockRejectedValueOnce(apiErr);
+describe("useStartAttempt — retryable failures", () => {
+  it("surfaces 5xx as retryable with the typed error", async () => {
+    setBootstrapAuthenticated();
+    const apiErr = makeApiError(500, "INTERNAL");
+    startAttemptMock.mockRejectedValueOnce(apiErr);
 
-const { result } = renderHook(() => useStartAttempt({ quizId: QUIZ_ID }));
+    const { result } = renderHook(() => useStartAttempt({ quizId: QUIZ_ID }));
 
-let outcome!: Awaited<ReturnType<typeof result.current.start>>;
-await act(async () => {
-outcome = await result.current.start();
+    let outcome!: Awaited<ReturnType<typeof result.current.start>>;
+    await act(async () => {
+      outcome = await result.current.start();
     });
 
-expect(outcome.kind).toBe('retryable');
-if (outcome.kind === 'retryable') {
-expect(outcome.error.status).toBe(500);
+    expect(outcome.kind).toBe("retryable");
+    if (outcome.kind === "retryable") {
+      expect(outcome.error.status).toBe(500);
     }
-expect(result.current.error).toBe(apiErr);
+    expect(result.current.error).toBe(apiErr);
   });
 
-it('surfaces 429 as retryable with the typed error', async () => {
-setBootstrapAuthenticated();
-const apiErr = makeApiError(429, 'RATE_LIMITED');
-startAttemptMock.mockRejectedValueOnce(apiErr);
+  it("surfaces 429 as retryable with the typed error", async () => {
+    setBootstrapAuthenticated();
+    const apiErr = makeApiError(429, "RATE_LIMITED");
+    startAttemptMock.mockRejectedValueOnce(apiErr);
 
-const { result } = renderHook(() => useStartAttempt({ quizId: QUIZ_ID }));
+    const { result } = renderHook(() => useStartAttempt({ quizId: QUIZ_ID }));
 
-let outcome!: Awaited<ReturnType<typeof result.current.start>>;
-await act(async () => {
-outcome = await result.current.start();
+    let outcome!: Awaited<ReturnType<typeof result.current.start>>;
+    await act(async () => {
+      outcome = await result.current.start();
     });
 
-expect(outcome.kind).toBe('retryable');
-if (outcome.kind === 'retryable') {
-expect(outcome.error.status).toBe(429);
+    expect(outcome.kind).toBe("retryable");
+    if (outcome.kind === "retryable") {
+      expect(outcome.error.status).toBe(429);
     }
   });
 });
 
-describe('useStartAttempt — cooldown', () => {
-it('drops a rapid second click inside the cooldown window', async () => {
-setBootstrapAuthenticated();
-const { result } = renderHook(() => useStartAttempt({ quizId: QUIZ_ID }));
+describe("useStartAttempt — cooldown", () => {
+  it("drops a rapid second click inside the cooldown window", async () => {
+    setBootstrapAuthenticated();
+    const { result } = renderHook(() => useStartAttempt({ quizId: QUIZ_ID }));
 
-let first!: Awaited<ReturnType<typeof result.current.start>>;
-await act(async () => {
-first = await result.current.start();
+    let first!: Awaited<ReturnType<typeof result.current.start>>;
+    await act(async () => {
+      first = await result.current.start();
     });
 
-let second!: Awaited<ReturnType<typeof result.current.start>>;
-await act(async () => {
-second = await result.current.start();
+    let second!: Awaited<ReturnType<typeof result.current.start>>;
+    await act(async () => {
+      second = await result.current.start();
     });
 
-expect(first.kind).toBe('success');
-expect(second.kind).toBe('cooldown');
-expect(startAttemptMock).toHaveBeenCalledTimes(1);
+    expect(first.kind).toBe("success");
+    expect(second.kind).toBe("cooldown");
+    expect(startAttemptMock).toHaveBeenCalledTimes(1);
   });
 });
 
-describe('useStartAttempt — no client-generated identity', () => {
-it('does not write a placeholder attemptId before server success', async () => {
-setBootstrapAuthenticated();
-startAttemptMock.mockResolvedValueOnce(
-new Promise(() => {
+describe("useStartAttempt — no client-generated identity", () => {
+  it("does not write a placeholder attemptId before server success", async () => {
+    setBootstrapAuthenticated();
+    startAttemptMock.mockResolvedValueOnce(
+      new Promise(() => {
         /* never resolves */
       }) as unknown as Awaited<ReturnType<typeof startAttemptMock>>,
     );
 
-const { result } = renderHook(() => useStartAttempt({ quizId: QUIZ_ID }));
+    const { result } = renderHook(() => useStartAttempt({ quizId: QUIZ_ID }));
 
-act(() => {
-void result.current.start();
+    act(() => {
+      void result.current.start();
     });
 
-expect(useAttemptsStore.getState().attemptsById).toEqual({});
+    expect(useAttemptsStore.getState().attemptsById).toEqual({});
   });
 });
 
-describe('useStartAttempt — reset', () => {
-it('clears outcome and error after reset', async () => {
-setBootstrapAuthenticated();
-const apiErr = makeApiError(500, 'INTERNAL');
-startAttemptMock.mockRejectedValueOnce(apiErr);
+describe("useStartAttempt — reset", () => {
+  it("clears outcome and error after reset", async () => {
+    setBootstrapAuthenticated();
+    const apiErr = makeApiError(500, "INTERNAL");
+    startAttemptMock.mockRejectedValueOnce(apiErr);
 
-const { result } = renderHook(() => useStartAttempt({ quizId: QUIZ_ID }));
+    const { result } = renderHook(() => useStartAttempt({ quizId: QUIZ_ID }));
 
-await act(async () => {
-await result.current.start();
+    await act(async () => {
+      await result.current.start();
     });
-expect(result.current.error).toBe(apiErr);
+    expect(result.current.error).toBe(apiErr);
 
-act(() => {
-result.current.reset();
+    act(() => {
+      result.current.reset();
     });
 
-expect(result.current.error).toBeNull();
-expect(result.current.outcome).toBeNull();
+    expect(result.current.error).toBeNull();
+    expect(result.current.outcome).toBeNull();
   });
 });
 
-describe('useStartAttempt — hydration guard', () => {
-it('does not clobber an existing hydrated entry from another session', async () => {
-setBootstrapAuthenticated();
-hydrateAttemptEntry(ATTEMPT_ID, QUIZ_ID, 'user-other', {
-status: 'in_progress',
+describe("useStartAttempt — hydration guard", () => {
+  it("does not clobber an existing hydrated entry from another session", async () => {
+    setBootstrapAuthenticated();
+    hydrateAttemptEntry(ATTEMPT_ID, QUIZ_ID, "user-other", {
+      status: "in_progress",
     });
 
-const { result } = renderHook(() => useStartAttempt({ quizId: QUIZ_ID }));
+    const { result } = renderHook(() => useStartAttempt({ quizId: QUIZ_ID }));
 
-await act(async () => {
-await result.current.start();
+    await act(async () => {
+      await result.current.start();
     });
 
-const entry = useAttemptsStore.getState().attemptsById[ATTEMPT_ID];
-expect(entry?.sessionId).toBe('user-other');
+    const entry = useAttemptsStore.getState().attemptsById[ATTEMPT_ID];
+    expect(entry?.sessionId).toBe("user-other");
   });
 });

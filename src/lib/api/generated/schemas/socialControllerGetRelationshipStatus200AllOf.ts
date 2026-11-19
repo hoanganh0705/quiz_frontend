@@ -1,7 +1,5 @@
-
-
-import type { RelationshipStatusDto } from './relationshipStatusDto';
+import type { RelationshipStatusDto } from "./relationshipStatusDto";
 
 export type SocialControllerGetRelationshipStatus200AllOf = {
-data?: RelationshipStatusDto;
+  data?: RelationshipStatusDto;
 };

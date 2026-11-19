@@ -1,5 +1,4 @@
+import type { AttemptStatsFavoriteTagDto } from "./attemptStatsFavoriteTagDto";
 
-
-import type { AttemptStatsFavoriteTagDto } from './attemptStatsFavoriteTagDto';
-
-export type UserAttemptStatsResponseDtoFavoriteTag = AttemptStatsFavoriteTagDto | null;
+export type UserAttemptStatsResponseDtoFavoriteTag =
+  AttemptStatsFavoriteTagDto | null;

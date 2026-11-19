@@ -1,7 +1,5 @@
-
-
-import type { StartInstanceResponseDto } from './startInstanceResponseDto';
+import type { StartInstanceResponseDto } from "./startInstanceResponseDto";
 
 export type StartInstance202AllOf = {
-data?: StartInstanceResponseDto;
+  data?: StartInstanceResponseDto;
 };

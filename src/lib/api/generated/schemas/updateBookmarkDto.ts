@@ -1,6 +1,3 @@
-
-
 export interface UpdateBookmarkDto {
-
-notes?: string | null;
+  notes?: string | null;
 }

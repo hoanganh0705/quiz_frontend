@@ -1,6 +1,3 @@
-
-
 export interface DeleteAccountDto {
-
-password: string;
+  password: string;
 }

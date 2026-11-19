@@ -1,6 +1,3 @@
-
-
 export type TournamentControllerGetTournamentWinnersParams = {
-
-limit?: number;
+  limit?: number;
 };

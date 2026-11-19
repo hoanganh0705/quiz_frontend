@@ -1,8 +1,5 @@
-
-
 export interface CreateTagDto {
+  name: string;
 
-name: string;
-
-slug?: string | null;
+  slug?: string | null;
 }

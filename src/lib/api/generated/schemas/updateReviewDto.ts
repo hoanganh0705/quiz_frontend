@@ -1,8 +1,5 @@
-
-
 export interface UpdateReviewDto {
+  rating: number;
 
-rating: number;
-
-comment?: string | null;
+  comment?: string | null;
 }

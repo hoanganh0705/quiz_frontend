@@ -1,7 +1,5 @@
-
-
-import type { CreatorQuizAnalyticsDto } from './creatorQuizAnalyticsDto';
+import type { CreatorQuizAnalyticsDto } from "./creatorQuizAnalyticsDto";
 
 export type UserControllerGetUserQuizAnalytics200AllOf = {
-data?: CreatorQuizAnalyticsDto;
+  data?: CreatorQuizAnalyticsDto;
 };

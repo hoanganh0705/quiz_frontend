@@ -1,14 +1,11 @@
-
-
 export interface AccountSecurityDto {
+  emailVerified: boolean;
 
-emailVerified: boolean;
+  activeSessionCount: number;
 
-activeSessionCount: number;
+  lastSuccessfulLoginAt: string | null;
 
-lastSuccessfulLoginAt: string | null;
+  lastPasswordChangeAt: string | null;
 
-lastPasswordChangeAt: string | null;
-
-passwordAgeDays: number | null;
+  passwordAgeDays: number | null;
 }

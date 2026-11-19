@@ -42,17 +42,23 @@ export function InstanceLobby({
   const { instance } = useInstance(instanceId, currentUserId);
 
   const realtimeStatus = useInstanceRealtimeStore((state) =>
-    instanceId === null ? null : selectInstanceRealtimeStatus(state, instanceId),
+    instanceId === null
+      ? null
+      : selectInstanceRealtimeStatus(state, instanceId),
   );
   const realtimeCountdownStartedAt = useInstanceRealtimeStore((state) =>
-    instanceId === null ? null : selectInstanceRealtimeCountdownStartedAt(state, instanceId),
+    instanceId === null
+      ? null
+      : selectInstanceRealtimeCountdownStartedAt(state, instanceId),
   );
   const status: InstanceStatus | null =
-    realtimeStatus ?? (instance?.status ?? null);
+    realtimeStatus ?? instance?.status ?? null;
 
   const countdownStartedAt =
     realtimeCountdownStartedAt ??
-    ((instance as unknown as { countdownStartedAt?: string | null })?.countdownStartedAt ?? null);
+    (instance as unknown as { countdownStartedAt?: string | null })
+      ?.countdownStartedAt ??
+    null;
 
   const isClosed = useMemo(
     () => status === "closed" || status === "finished",
@@ -111,10 +117,7 @@ export function InstanceLobby({
         />
       )}
 
-      <PlayerRoster
-        instanceId={instanceId}
-        currentUserId={currentUserId}
-      />
+      <PlayerRoster instanceId={instanceId} currentUserId={currentUserId} />
 
       {!isClosed && (
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start">

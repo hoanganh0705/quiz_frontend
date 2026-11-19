@@ -1,20 +1,17 @@
-
-
 export interface RankedTagResponseDto {
+  rank: number;
 
-rank: number;
+  tagId: string;
 
-tagId: string;
+  name: string;
 
-name: string;
+  slug: string;
 
-slug: string;
+  totalScore: string;
 
-totalScore: string;
+  totalAttempts: string;
 
-totalAttempts: string;
+  createdAt: string;
 
-createdAt: string;
-
-updatedAt: string;
+  updatedAt: string;
 }

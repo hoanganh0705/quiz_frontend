@@ -1,6 +1,3 @@
-
-
 export type UserControllerGetRecommendedQuizzesParams = {
-
-limit?: number;
+  limit?: number;
 };

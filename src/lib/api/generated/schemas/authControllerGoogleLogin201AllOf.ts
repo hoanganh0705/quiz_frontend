@@ -1,7 +1,5 @@
-
-
-import type { LoginResponseDto } from './loginResponseDto';
+import type { LoginResponseDto } from "./loginResponseDto";
 
 export type AuthControllerGoogleLogin201AllOf = {
-data?: LoginResponseDto;
+  data?: LoginResponseDto;
 };

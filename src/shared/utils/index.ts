@@ -1,1 +1,1 @@
-export * from './merge-class-names'
+export * from "./merge-class-names";

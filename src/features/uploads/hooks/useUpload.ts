@@ -1,8 +1,11 @@
-'use client';
+"use client";
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from "react";
 
-import type { UploadFileRequest, UploadFileResponse } from '@/lib/api/generated/uploads';
+import type {
+  UploadFileRequest,
+  UploadFileResponse,
+} from "@/lib/api/generated/uploads";
 
 export interface UseUploadOptions {
   /**
@@ -40,18 +43,23 @@ export interface UseUploadReturn {
 }
 
 const NON_RETRYABLE_CODES = new Set<string>([
-  'UPLOAD_ABORTED',
-  'UPLOAD_HTTP_400',
-  'UPLOAD_HTTP_401',
-  'UPLOAD_HTTP_403',
-  'UPLOAD_HTTP_413',
-  'UPLOAD_HTTP_429',
-  'UPLOAD_RESPONSE_MALFORMED',
+  "UPLOAD_ABORTED",
+  "UPLOAD_HTTP_400",
+  "UPLOAD_HTTP_401",
+  "UPLOAD_HTTP_403",
+  "UPLOAD_HTTP_413",
+  "UPLOAD_HTTP_429",
+  "UPLOAD_RESPONSE_MALFORMED",
 ]);
 
-function makeFailure(status: number, code: string, message: string, body?: string): UploadFailure {
+function makeFailure(
+  status: number,
+  code: string,
+  message: string,
+  body?: string,
+): UploadFailure {
   const err = new Error(message) as UploadFailure;
-  err.name = 'UploadFailure';
+  err.name = "UploadFailure";
   err.status = status;
   err.code = code;
   if (body !== undefined) err.body = body;
@@ -91,13 +99,13 @@ export function useUpload(options: UseUploadOptions = {}): UseUploadReturn {
     (payload: UploadFileRequest): Promise<UploadFileResponse> => {
       return new Promise<UploadFileResponse>((resolve, reject) => {
         const formData = new FormData();
-        formData.append('file', payload.file);
-        formData.append('purpose', payload.purpose);
+        formData.append("file", payload.file);
+        formData.append("purpose", payload.purpose);
 
         const xhr = new XMLHttpRequest();
         xhrRef.current = xhr;
 
-        xhr.open('POST', '/api/v1/uploads', true);
+        xhr.open("POST", "/api/v1/uploads", true);
 
         xhr.upload.onprogress = (event: ProgressEvent) => {
           if (!mountedRef.current) return;
@@ -115,7 +123,11 @@ export function useUpload(options: UseUploadOptions = {}): UseUploadReturn {
               resolve(body);
             } catch {
               reject(
-                makeFailure(xhr.status, 'UPLOAD_RESPONSE_MALFORMED', 'Malformed upload response'),
+                makeFailure(
+                  xhr.status,
+                  "UPLOAD_RESPONSE_MALFORMED",
+                  "Malformed upload response",
+                ),
               );
             }
             return;
@@ -132,12 +144,18 @@ export function useUpload(options: UseUploadOptions = {}): UseUploadReturn {
 
         xhr.onerror = () => {
           if (!mountedRef.current) return;
-          reject(makeFailure(0, 'UPLOAD_NETWORK_ERROR', 'Network error during upload'));
+          reject(
+            makeFailure(
+              0,
+              "UPLOAD_NETWORK_ERROR",
+              "Network error during upload",
+            ),
+          );
         };
 
         xhr.onabort = () => {
           if (!mountedRef.current) return;
-          reject(makeFailure(0, 'UPLOAD_ABORTED', 'Upload aborted'));
+          reject(makeFailure(0, "UPLOAD_ABORTED", "Upload aborted"));
         };
 
         xhr.send(formData);
@@ -168,8 +186,8 @@ export function useUpload(options: UseUploadOptions = {}): UseUploadReturn {
             ? (err as UploadFailure)
             : makeFailure(
                 0,
-                'UPLOAD_UNKNOWN',
-                err instanceof Error ? err.message : 'Unknown upload error',
+                "UPLOAD_UNKNOWN",
+                err instanceof Error ? err.message : "Unknown upload error",
               );
           lastErr = failure;
           if (NON_RETRYABLE_CODES.has(failure.code)) {

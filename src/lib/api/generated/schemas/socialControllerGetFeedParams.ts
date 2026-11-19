@@ -1,8 +1,5 @@
-
-
 export type SocialControllerGetFeedParams = {
+  cursor?: string;
 
-cursor?: string;
-
-limit?: number;
+  limit?: number;
 };

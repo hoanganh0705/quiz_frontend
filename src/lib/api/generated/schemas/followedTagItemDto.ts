@@ -1,12 +1,9 @@
-
-
 export interface FollowedTagItemDto {
+  tagId: string;
 
-tagId: string;
+  name: string;
 
-name: string;
+  slug: string;
 
-slug: string;
-
-followedAt: string;
+  followedAt: string;
 }

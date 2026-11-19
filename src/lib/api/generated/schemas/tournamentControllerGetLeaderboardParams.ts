@@ -1,8 +1,5 @@
-
-
 export type TournamentControllerGetLeaderboardParams = {
+  limit?: number;
 
-limit?: number;
-
-offset?: number;
+  offset?: number;
 };

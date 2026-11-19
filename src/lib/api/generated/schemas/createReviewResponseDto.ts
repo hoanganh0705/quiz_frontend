@@ -1,14 +1,11 @@
-
-
 export interface CreateReviewResponseDto {
+  reviewId: string;
 
-reviewId: string;
+  quizId: string;
 
-quizId: string;
+  rating: number;
 
-rating: number;
+  comment?: string | null;
 
-comment?: string | null;
-
-createdAt: string;
+  createdAt: string;
 }

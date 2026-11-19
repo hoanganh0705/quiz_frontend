@@ -1,7 +1,5 @@
-
-
-import type { LogoutResponseDto } from './logoutResponseDto';
+import type { LogoutResponseDto } from "./logoutResponseDto";
 
 export type AuthControllerLogout201AllOf = {
-data?: LogoutResponseDto;
+  data?: LogoutResponseDto;
 };

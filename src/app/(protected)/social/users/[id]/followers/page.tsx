@@ -4,15 +4,15 @@ import { SocialListRouteGate } from "@/features/social/components/SocialListRout
 import { isUuid } from "@/features/social/utils/is-uuid";
 
 interface FollowersRouteProps {
-params: Promise<{ id: string }>;
+  params: Promise<{ id: string }>;
 }
 
 export default async function FollowersRoute({
-params,
+  params,
 }: FollowersRouteProps): Promise<React.ReactElement> {
-const { id } = await params;
-if (!isUuid(id)) {
-notFound();
+  const { id } = await params;
+  if (!isUuid(id)) {
+    notFound();
   }
-return <SocialListRouteGate kind="followers" targetUserId={id} />;
+  return <SocialListRouteGate kind="followers" targetUserId={id} />;
 }

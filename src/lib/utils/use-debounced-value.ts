@@ -1,75 +1,65 @@
-
-
-import {
-useCallback,
-useEffect,
-useRef,
-useState,
-} from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import {
-clampDebounceWindow,
-DEBOUNCE_WINDOW_MS,
+  clampDebounceWindow,
+  DEBOUNCE_WINDOW_MS,
 } from "@/features/social/discovery-invariants";
 
 export interface UseDebouncedValueResult<T> {
+  readonly debouncedValue: T;
 
-readonly debouncedValue: T;
-
-readonly cancel: () => void;
+  readonly cancel: () => void;
 }
 
 export function useDebouncedValue<T>(
-value: T,
-windowMs?: number,
+  value: T,
+  windowMs?: number,
 ): UseDebouncedValueResult<T> {
-const window = clampDebounceWindow(windowMs ?? DEBOUNCE_WINDOW_MS);
+  const window = clampDebounceWindow(windowMs ?? DEBOUNCE_WINDOW_MS);
 
-const [debouncedValue, setDebouncedValue] = useState<T>(() => value);
+  const [debouncedValue, setDebouncedValue] = useState<T>(() => value);
 
-const latestValueRef = useRef<T>(value);
+  const latestValueRef = useRef<T>(value);
 
-const timeoutHandleRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const timeoutHandleRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-latestValueRef.current = value;
+  latestValueRef.current = value;
 
-useEffect(() => {
-
-if (timeoutHandleRef.current !== null) {
-clearTimeout(timeoutHandleRef.current);
-timeoutHandleRef.current = null;
+  useEffect(() => {
+    if (timeoutHandleRef.current !== null) {
+      clearTimeout(timeoutHandleRef.current);
+      timeoutHandleRef.current = null;
     }
 
-if (Object.is(value, debouncedValue)) {
-return;
+    if (Object.is(value, debouncedValue)) {
+      return;
     }
 
-timeoutHandleRef.current = setTimeout(() => {
-
-setDebouncedValue(latestValueRef.current);
-timeoutHandleRef.current = null;
+    timeoutHandleRef.current = setTimeout(() => {
+      setDebouncedValue(latestValueRef.current);
+      timeoutHandleRef.current = null;
     }, window);
 
-return () => {
-if (timeoutHandleRef.current !== null) {
-clearTimeout(timeoutHandleRef.current);
-timeoutHandleRef.current = null;
+    return () => {
+      if (timeoutHandleRef.current !== null) {
+        clearTimeout(timeoutHandleRef.current);
+        timeoutHandleRef.current = null;
       }
     };
   }, [value, window, debouncedValue]);
 
-const cancel = useCallback(() => {
-if (timeoutHandleRef.current !== null) {
-clearTimeout(timeoutHandleRef.current);
-timeoutHandleRef.current = null;
+  const cancel = useCallback(() => {
+    if (timeoutHandleRef.current !== null) {
+      clearTimeout(timeoutHandleRef.current);
+      timeoutHandleRef.current = null;
     }
 
-setDebouncedValue(latestValueRef.current);
+    setDebouncedValue(latestValueRef.current);
   }, []);
 
-return { debouncedValue, cancel };
+  return { debouncedValue, cancel };
 }
 
 export function useDebouncedValueOnly<T>(value: T, windowMs?: number): T {
-return useDebouncedValue(value, windowMs).debouncedValue;
+  return useDebouncedValue(value, windowMs).debouncedValue;
 }

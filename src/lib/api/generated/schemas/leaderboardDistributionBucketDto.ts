@@ -1,8 +1,5 @@
-
-
 export interface LeaderboardDistributionBucketDto {
+  label: string;
 
-label: string;
-
-count: number;
+  count: number;
 }

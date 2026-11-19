@@ -9,21 +9,16 @@
  * Server components continue to read flags via `getServerFeatureFlag()`
  * because RSC cannot use React context.
  */
-'use client';
+"use client";
 
-import {
-  createContext,
-  useContext,
-  useMemo,
-  type ReactNode,
-} from 'react';
+import { createContext, useContext, useMemo, type ReactNode } from "react";
 
 import {
   FEATURE_FLAGS,
   getFeatureFlagValue,
   type FeatureFlag,
   type FeatureFlagValueMap,
-} from './feature-flags';
+} from "./feature-flags";
 
 const FeatureFlagContext = createContext<FeatureFlagValueMap | null>(null);
 
@@ -57,7 +52,7 @@ export function useFeatureFlag<K extends FeatureFlag>(
   const ctx = useContext(FeatureFlagContext);
   if (ctx === null) {
     throw new Error(
-      'useFeatureFlag must be called inside <FeatureFlagProvider>.',
+      "useFeatureFlag must be called inside <FeatureFlagProvider>.",
     );
   }
   return ctx[flag];

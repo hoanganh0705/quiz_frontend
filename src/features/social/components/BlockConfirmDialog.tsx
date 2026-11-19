@@ -1,71 +1,69 @@
 "use client";
 
 import {
-AlertDialog,
-AlertDialogAction,
-AlertDialogCancel,
-AlertDialogContent,
-AlertDialogDescription,
-AlertDialogFooter,
-AlertDialogHeader,
-AlertDialogTitle,
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
 } from "@/components/ui/AlertDialog";
 
 import { CONFIRM_DIALOGS } from "@/features/social/components/confirm-dialog-vocabulary";
 import { FollowPendingIndicator } from "@/features/social/components/FollowPendingIndicator";
 
 export interface BlockConfirmDialogProps {
+  open: boolean;
 
-open: boolean;
+  onOpenChange: (open: boolean) => void;
 
-onOpenChange: (open: boolean) => void;
+  onConfirm: () => void;
 
-onConfirm: () => void;
-
-isPending: boolean;
+  isPending: boolean;
 }
 
 export function BlockConfirmDialog({
-open,
-onOpenChange,
-onConfirm,
-isPending,
+  open,
+  onOpenChange,
+  onConfirm,
+  isPending,
 }: BlockConfirmDialogProps) {
-const copy = CONFIRM_DIALOGS.block;
+  const copy = CONFIRM_DIALOGS.block;
 
-const handleOpenChange = (nextOpen: boolean) => {
-
-if (isPending) return;
-onOpenChange(nextOpen);
+  const handleOpenChange = (nextOpen: boolean) => {
+    if (isPending) return;
+    onOpenChange(nextOpen);
   };
 
-const handleConfirm = () => {
-if (isPending) return;
-onConfirm();
+  const handleConfirm = () => {
+    if (isPending) return;
+    onConfirm();
   };
 
-return (
-<AlertDialog open={open} onOpenChange={handleOpenChange}>
-<AlertDialogContent data-testid={copy.dataTestid}>
-<AlertDialogHeader>
-<AlertDialogTitle>{copy.title}</AlertDialogTitle>
-<AlertDialogDescription>{copy.body}</AlertDialogDescription>
-</AlertDialogHeader>
+  return (
+    <AlertDialog open={open} onOpenChange={handleOpenChange}>
+      <AlertDialogContent data-testid={copy.dataTestid}>
+        <AlertDialogHeader>
+          <AlertDialogTitle>{copy.title}</AlertDialogTitle>
+          <AlertDialogDescription>{copy.body}</AlertDialogDescription>
+        </AlertDialogHeader>
 
-<AlertDialogFooter>
-<AlertDialogCancel disabled={isPending}>
-{copy.cancelLabel}
-</AlertDialogCancel>
+        <AlertDialogFooter>
+          <AlertDialogCancel disabled={isPending}>
+            {copy.cancelLabel}
+          </AlertDialogCancel>
 
-{isPending ? (
-<FollowPendingIndicator text="Blocking..." size="sm" />
+          {isPending ? (
+            <FollowPendingIndicator text="Blocking..." size="sm" />
           ) : (
-<AlertDialogAction onClick={handleConfirm}>
-{copy.confirmLabel}
-</AlertDialogAction>
+            <AlertDialogAction onClick={handleConfirm}>
+              {copy.confirmLabel}
+            </AlertDialogAction>
           )}
-</AlertDialogFooter>
-</AlertDialogContent>
-</AlertDialog>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   );
 }

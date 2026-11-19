@@ -1,28 +1,25 @@
-
-
-import type { ReportDtoStatus } from './reportDtoStatus';
+import type { ReportDtoStatus } from "./reportDtoStatus";
 
 export interface ReportDto {
+  reportId: string;
 
-reportId: string;
+  reporterId: string;
 
-reporterId: string;
+  commentId: string;
 
-commentId: string;
+  reason: string;
 
-reason: string;
+  details: string | null;
 
-details: string | null;
+  status: ReportDtoStatus;
 
-status: ReportDtoStatus;
+  reviewedByUserId: string | null;
 
-reviewedByUserId: string | null;
+  reviewedAt: string | null;
 
-reviewedAt: string | null;
+  actionTaken: boolean;
 
-actionTaken: boolean;
+  createdAt: string;
 
-createdAt: string;
-
-updatedAt: string;
+  updatedAt: string;
 }

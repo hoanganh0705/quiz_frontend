@@ -68,7 +68,12 @@ export function useQuestionTimer(
   }, [timing, clockNow]);
 
   if (isPlaceholder || !timing) {
-    return { remainingMs: 0, totalMs: 0, isWindowOpen: false, serverDriftMs: 0 };
+    return {
+      remainingMs: 0,
+      totalMs: 0,
+      isWindowOpen: false,
+      serverDriftMs: 0,
+    };
   }
 
   if (isClosed) {

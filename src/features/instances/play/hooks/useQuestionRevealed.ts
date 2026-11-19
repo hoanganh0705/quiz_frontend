@@ -3,76 +3,74 @@
 import { useCallback, useEffect, useRef } from "react";
 
 import {
-type GameplayEventEnvelope,
-type PlayerQuestionBundleDto,
-type QuestionTimingDto,
+  type GameplayEventEnvelope,
+  type PlayerQuestionBundleDto,
+  type QuestionTimingDto,
 } from "../types/gameplay.types";
-import {
-useInstanceGameSocket,
-} from "./useInstanceGameSocket";
+import { useInstanceGameSocket } from "./useInstanceGameSocket";
 import { useSocketEventSequence } from "./useSocketEventSequence";
 import {
-useInstanceGameplayStore,
-selectGameplayBundle,
-selectGameplayTiming,
+  useInstanceGameplayStore,
+  selectGameplayBundle,
+  selectGameplayTiming,
 } from "../stores/instanceGameplay.store";
 
 export interface UseQuestionRevealedResult {
+  bundle: PlayerQuestionBundleDto | null;
 
-bundle: PlayerQuestionBundleDto | null;
+  timing: QuestionTimingDto | null;
 
-timing: QuestionTimingDto | null;
+  hasRevealed: boolean;
 
-hasRevealed: boolean;
-
-isStale: boolean;
+  isStale: boolean;
 }
 
 export function useQuestionRevealed(
-instanceId: string | null,
+  instanceId: string | null,
 ): UseQuestionRevealedResult {
-const { subscribe } = useInstanceGameSocket(instanceId);
-const { shouldAccept, markAccepted, lastAcceptedSequence } = useSocketEventSequence(instanceId);
-const { applyQuestionRevealed } = useInstanceGameplayStore.getState();
+  const { subscribe } = useInstanceGameSocket(instanceId);
+  const { shouldAccept, markAccepted, lastAcceptedSequence } =
+    useSocketEventSequence(instanceId);
+  const { applyQuestionRevealed } = useInstanceGameplayStore.getState();
 
-const displayedSeqRef = useRef<number>(0);
+  const displayedSeqRef = useRef<number>(0);
 
-const handleEnvelope = useCallback(
-(envelope: GameplayEventEnvelope<unknown>) => {
-if (envelope.event !== "question_revealed") return;
-const typed = envelope as GameplayEventEnvelope<PlayerQuestionBundleDto>;
+  const handleEnvelope = useCallback(
+    (envelope: GameplayEventEnvelope<unknown>) => {
+      if (envelope.event !== "question_revealed") return;
+      const typed = envelope as GameplayEventEnvelope<PlayerQuestionBundleDto>;
 
-if (!shouldAccept(typed.event, typed.eventSequence)) return;
+      if (!shouldAccept(typed.event, typed.eventSequence)) return;
 
-markAccepted(typed.event, typed.eventSequence);
-displayedSeqRef.current = typed.eventSequence;
-applyQuestionRevealed(typed);
+      markAccepted(typed.event, typed.eventSequence);
+      displayedSeqRef.current = typed.eventSequence;
+      applyQuestionRevealed(typed);
     },
-[shouldAccept, markAccepted, applyQuestionRevealed],
+    [shouldAccept, markAccepted, applyQuestionRevealed],
   );
 
-useEffect(() => {
-if (instanceId === null) return;
-return subscribe(handleEnvelope);
+  useEffect(() => {
+    if (instanceId === null) return;
+    return subscribe(handleEnvelope);
   }, [instanceId, subscribe, handleEnvelope]);
 
-const bundle = useInstanceGameplayStore((s) =>
-instanceId ? selectGameplayBundle(s, instanceId) : null,
+  const bundle = useInstanceGameplayStore((s) =>
+    instanceId ? selectGameplayBundle(s, instanceId) : null,
   );
-const timing = useInstanceGameplayStore((s) =>
-instanceId ? selectGameplayTiming(s, instanceId) : null,
+  const timing = useInstanceGameplayStore((s) =>
+    instanceId ? selectGameplayTiming(s, instanceId) : null,
   );
 
-const hasRevealed = bundle !== null;
+  const hasRevealed = bundle !== null;
 
-const isStale =
-displayedSeqRef.current > 0 &&
-lastAcceptedSequence("question_revealed") > displayedSeqRef.current;
+  const isStale =
+    displayedSeqRef.current > 0 &&
+    lastAcceptedSequence("question_revealed") > displayedSeqRef.current;
 
-return {
-bundle,
-timing,
-hasRevealed,
-isStale,
+  return {
+    bundle,
+    timing,
+    hasRevealed,
+    isStale,
   };
 }

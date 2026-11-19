@@ -1,16 +1,13 @@
-
-
-import type { QuizStatsHistoryResponseDtoRange } from './quizStatsHistoryResponseDtoRange';
-import type { QuizStatsHistoryResponseDtoBucket } from './quizStatsHistoryResponseDtoBucket';
-import type { QuizStatsHistoryPointDto } from './quizStatsHistoryPointDto';
+import type { QuizStatsHistoryResponseDtoRange } from "./quizStatsHistoryResponseDtoRange";
+import type { QuizStatsHistoryResponseDtoBucket } from "./quizStatsHistoryResponseDtoBucket";
+import type { QuizStatsHistoryPointDto } from "./quizStatsHistoryPointDto";
 
 export interface QuizStatsHistoryResponseDto {
+  quizId: string;
 
-quizId: string;
+  range: QuizStatsHistoryResponseDtoRange;
 
-range: QuizStatsHistoryResponseDtoRange;
+  bucket: QuizStatsHistoryResponseDtoBucket;
 
-bucket: QuizStatsHistoryResponseDtoBucket;
-
-points: QuizStatsHistoryPointDto[];
+  points: QuizStatsHistoryPointDto[];
 }

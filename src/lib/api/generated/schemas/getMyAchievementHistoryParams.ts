@@ -1,8 +1,5 @@
-
-
 export type GetMyAchievementHistoryParams = {
+  limit?: number;
 
-limit?: number;
-
-offset?: number;
+  offset?: number;
 };

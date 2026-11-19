@@ -8,43 +8,42 @@ import type { ApiError } from "@/lib/api/core/ApiError";
 import type { SearchErrorCode } from "@/features/search/types";
 
 interface SearchErrorStateProps {
+  error: ApiError | null;
 
-error: ApiError | null;
-
-onRetry?: () => void;
-className?: string;
+  onRetry?: () => void;
+  className?: string;
 }
 
 export function SearchErrorState({
-error,
-onRetry,
-className,
+  error,
+  onRetry,
+  className,
 }: SearchErrorStateProps) {
-const copy = error ? getUserCopy(error.code) : null;
+  const copy = error ? getUserCopy(error.code) : null;
 
-const title = copy?.title ?? "Something went wrong";
-const message =
-copy?.body ?? "An unexpected error occurred. Please try again.";
+  const title = copy?.title ?? "Something went wrong";
+  const message =
+    copy?.body ?? "An unexpected error occurred. Please try again.";
 
-const variant: "network" | "server" | "notFound" | "default" =
-error?.status === 0
-? "network"
-: error?.status === 404
-? "notFound"
-: error && error.status >= 500
-? "server"
-: "default";
+  const variant: "network" | "server" | "notFound" | "default" =
+    error?.status === 0
+      ? "network"
+      : error?.status === 404
+        ? "notFound"
+        : error && error.status >= 500
+          ? "server"
+          : "default";
 
-return (
-<div className={className} data-testid="search-error-state">
-<ErrorState
-title={title}
-message={message}
-onRetry={onRetry}
-variant={variant}
-showIcon={true}
+  return (
+    <div className={className} data-testid="search-error-state">
+      <ErrorState
+        title={title}
+        message={message}
+        onRetry={onRetry}
+        variant={variant}
+        showIcon={true}
       />
-</div>
+    </div>
   );
 }
 

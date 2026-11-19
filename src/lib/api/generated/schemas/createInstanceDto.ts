@@ -1,8 +1,5 @@
-
-
 export interface CreateInstanceDto {
+  quizId: string;
 
-quizId: string;
-
-maxPlayers?: number | null;
+  maxPlayers?: number | null;
 }

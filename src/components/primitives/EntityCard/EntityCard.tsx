@@ -9,8 +9,7 @@ import { cn } from "@/shared/utils/merge-class-names";
 const CARD_OUTER =
   "group relative flex h-full flex-col overflow-hidden rounded-xl border bg-card text-card-foreground shadow-sm transition focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 hover:shadow-md";
 
-const COVER_BASE_BASE =
-  "relative w-full overflow-hidden bg-muted";
+const COVER_BASE_BASE = "relative w-full overflow-hidden bg-muted";
 
 const COVER_IMG = "h-full w-full object-cover";
 
@@ -111,14 +110,10 @@ export function EntityCard({
     aspectRatio,
   };
 
-  const TitleTag = (`h${titleHeadingLevel}` as 'h2' | 'h3' | 'h4');
+  const TitleTag = `h${titleHeadingLevel}` as "h2" | "h3" | "h4";
 
   return (
-    <Link
-      href={href}
-      className={cn(CARD_OUTER, className)}
-      {...linkProps}
-    >
+    <Link href={href} className={cn(CARD_OUTER, className)} {...linkProps}>
       <div className={cn(COVER_BASE_BASE)} style={coverStyle}>
         {imageUrl ? (
           <Image
@@ -143,9 +138,7 @@ export function EntityCard({
       </div>
       <div className={BODY}>
         <TitleTag className={TITLE}>{title}</TitleTag>
-        {description ? (
-          <p className={DESCRIPTION}>{description}</p>
-        ) : null}
+        {description ? <p className={DESCRIPTION}>{description}</p> : null}
         {(badges || meta) && (
           <div className={META_ROW}>
             {badges}

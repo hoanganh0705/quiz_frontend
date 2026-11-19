@@ -1,12 +1,9 @@
-
-
-import type { ConsistencyReportIssueDto } from './consistencyReportIssueDto';
+import type { ConsistencyReportIssueDto } from "./consistencyReportIssueDto";
 
 export interface ConsistencyReportResponseDto {
+  totalIssues: number;
 
-totalIssues: number;
+  fixed: number;
 
-fixed: number;
-
-issues: ConsistencyReportIssueDto[];
+  issues: ConsistencyReportIssueDto[];
 }

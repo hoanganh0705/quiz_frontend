@@ -1,6 +1,3 @@
-
-
 export type AuthControllerCheckUsernameParams = {
-
-username: string;
+  username: string;
 };

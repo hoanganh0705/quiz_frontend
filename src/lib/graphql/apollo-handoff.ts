@@ -1,9 +1,9 @@
-import type { ApolloCache } from '@apollo/client';
+import type { ApolloCache } from "@apollo/client";
 
 import {
   dispatchDomainEvent,
   type DomainEvent,
-} from '@/lib/state/domain-event-bus';
+} from "@/lib/state/domain-event-bus";
 
 export type ApolloUpdateHandoff<E extends DomainEvent> = (event: E) => void;
 

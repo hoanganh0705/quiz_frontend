@@ -1,15 +1,12 @@
-
-
-import type { CategoryControllerListCategoriesSort } from './categoryControllerListCategoriesSort';
-import type { CategoryControllerListCategoriesOrder } from './categoryControllerListCategoriesOrder';
+import type { CategoryControllerListCategoriesSort } from "./categoryControllerListCategoriesSort";
+import type { CategoryControllerListCategoriesOrder } from "./categoryControllerListCategoriesOrder";
 
 export type CategoryControllerListCategoriesParams = {
+  cursor?: string | null;
 
-cursor?: string | null;
+  limit?: number | null;
 
-limit?: number | null;
+  sort?: CategoryControllerListCategoriesSort;
 
-sort?: CategoryControllerListCategoriesSort;
-
-order?: CategoryControllerListCategoriesOrder;
+  order?: CategoryControllerListCategoriesOrder;
 };

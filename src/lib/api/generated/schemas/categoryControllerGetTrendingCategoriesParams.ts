@@ -1,6 +1,3 @@
-
-
 export type CategoryControllerGetTrendingCategoriesParams = {
-
-limit?: number;
+  limit?: number;
 };

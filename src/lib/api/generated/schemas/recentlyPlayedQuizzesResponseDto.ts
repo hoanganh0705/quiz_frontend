@@ -1,11 +1,8 @@
-
-
-import type { RecentlyPlayedQuizItemDto } from './recentlyPlayedQuizItemDto';
-import type { CursorPagination } from './cursorPagination';
+import type { RecentlyPlayedQuizItemDto } from "./recentlyPlayedQuizItemDto";
+import type { CursorPagination } from "./cursorPagination";
 
 export interface RecentlyPlayedQuizzesResponseDto {
+  items: RecentlyPlayedQuizItemDto[];
 
-items: RecentlyPlayedQuizItemDto[];
-
-pagination: CursorPagination;
+  pagination: CursorPagination;
 }

@@ -1,10 +1,7 @@
-
-
-import type { PaginatedResponseMetaDtoPagination } from './paginatedResponseMetaDtoPagination';
+import type { PaginatedResponseMetaDtoPagination } from "./paginatedResponseMetaDtoPagination";
 
 export interface PaginatedResponseMetaDto {
+  timestamp: string;
 
-timestamp: string;
-
-pagination?: PaginatedResponseMetaDtoPagination;
+  pagination?: PaginatedResponseMetaDtoPagination;
 }

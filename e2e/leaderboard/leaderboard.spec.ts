@@ -2,8 +2,6 @@
  * `leaderboard.spec.ts` — Playwright e2e coverage for the live
  * `/leaderboard` route.
  *
- * Source epic:   Story 3.11 — `/leaderboard` read-only render.
- * Source ticket: TKT-3.11.F2 — E2E Playwright tests for the
  *                 leaderboard surface.
  *
  * The spec runs against a running dev backend (per
@@ -52,18 +50,15 @@
  * state. The stub honors `offset` + `limit` (the endpoint is
  * offset-paginated per drift A1 #1) and returns the canonical
  * `LeaderboardResponseDto` envelope the wire shape spec dictates
- * (TKT-3.11.A1 §6). Tests are independent of each other (each
+ *. Tests are independent of each other (each
  * `beforeEach` clears cookies + localStorage).
  */
 
-import { expect, test } from '@playwright/test';
+import { expect, test } from "@playwright/test";
 
-import {
-  SELF_USER_ID,
-  stubLeaderboard,
-} from './leaderboard.helpers';
+import { SELF_USER_ID, stubLeaderboard } from "./leaderboard.helpers";
 
-test.describe('Leaderboard acceptance (Story 3.11 / TKT-3.11.F2)', () => {
+test.describe("Leaderboard acceptance", () => {
   test.beforeEach(async ({ page }) => {
     await page.context().clearCookies();
     await page.evaluate(() => localStorage.clear());
@@ -73,70 +68,68 @@ test.describe('Leaderboard acceptance (Story 3.11 / TKT-3.11.F2)', () => {
   // (a) Default period on first paint — live data renders.
   // ───────────────────────────────────────────────────────────────────
 
-  test('(a) renders the live data on first paint with the default period (weekly)', async ({
+  test("(a) renders the live data on first paint with the default period (weekly)", async ({
     page,
   }) => {
     await stubLeaderboard(page);
 
     const requested: { period: string | null }[] = [];
-    page.on('request', (request) => {
+    page.on("request", (request) => {
       const url = new URL(request.url());
-      if (url.pathname === '/api/v1/leaderboard') {
-        requested.push({ period: url.searchParams.get('period') });
+      if (url.pathname === "/api/v1/leaderboard") {
+        requested.push({ period: url.searchParams.get("period") });
       }
     });
 
-    await page.goto('/leaderboard');
+    await page.goto("/leaderboard");
 
     // The live composition is rendered. The top-3 podium is
     // visible.
-    await expect(page.getByTestId('leaderboard-page')).toBeVisible();
-    await expect(page.getByTestId('leaderboard-podium')).toBeVisible();
+    await expect(page.getByTestId("leaderboard-page")).toBeVisible();
+    await expect(page.getByTestId("leaderboard-podium")).toBeVisible();
 
     // The Weekly button is `aria-pressed="true"` (the default).
+    await expect(page.getByRole("button", { name: "Weekly" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    await expect(page.getByRole("button", { name: "Monthly" })).toHaveAttribute(
+      "aria-pressed",
+      "false",
+    );
     await expect(
-      page.getByRole('button', { name: 'Weekly' }),
-    ).toHaveAttribute('aria-pressed', 'true');
-    await expect(
-      page.getByRole('button', { name: 'Monthly' }),
-    ).toHaveAttribute('aria-pressed', 'false');
-    await expect(
-      page.getByRole('button', { name: 'All-time' }),
-    ).toHaveAttribute('aria-pressed', 'false');
+      page.getByRole("button", { name: "All-time" }),
+    ).toHaveAttribute("aria-pressed", "false");
 
     // The first request to `/api/v1/leaderboard` carried `period=weekly`.
-    expect(requested[0]?.period).toBe('weekly');
+    expect(requested[0]?.period).toBe("weekly");
   });
 
   // ───────────────────────────────────────────────────────────────────
   // (b) Load more appends entries.
   // ───────────────────────────────────────────────────────────────────
 
-  test('(b) clicking Load more appends additional entries', async ({ page }) => {
+  test("(b) clicking Load more appends additional entries", async ({
+    page,
+  }) => {
     await stubLeaderboard(page);
 
     const requests: { offset: number; limit: number }[] = [];
-    page.on('request', (request) => {
+    page.on("request", (request) => {
       const url = new URL(request.url());
-      if (url.pathname === '/api/v1/leaderboard') {
+      if (url.pathname === "/api/v1/leaderboard") {
         requests.push({
-          offset: Number.parseInt(
-            url.searchParams.get('offset') ?? '0',
-            10,
-          ),
-          limit: Number.parseInt(
-            url.searchParams.get('limit') ?? '20',
-            10,
-          ),
+          offset: Number.parseInt(url.searchParams.get("offset") ?? "0", 10),
+          limit: Number.parseInt(url.searchParams.get("limit") ?? "20", 10),
         });
       }
     });
 
-    await page.goto('/leaderboard');
+    await page.goto("/leaderboard");
 
     // Wait for the first page to resolve.
-    await expect(page.getByTestId('leaderboard-page')).toBeVisible();
-    await expect(page.getByTestId('leaderboard-load-more')).toBeVisible();
+    await expect(page.getByTestId("leaderboard-page")).toBeVisible();
+    await expect(page.getByTestId("leaderboard-load-more")).toBeVisible();
 
     expect(requests.length).toBeGreaterThanOrEqual(1);
     const firstOffset = requests[0]?.offset;
@@ -146,7 +139,7 @@ test.describe('Leaderboard acceptance (Story 3.11 / TKT-3.11.F2)', () => {
 
     // Click `Load more`. A second request with offset = firstLimit
     // is fired (offset-paginated per drift A1 #1).
-    await page.getByTestId('leaderboard-load-more').click();
+    await page.getByTestId("leaderboard-load-more").click();
 
     // Wait for the second request to fire.
     await expect.poll(() => requests.length).toBeGreaterThanOrEqual(2);
@@ -159,47 +152,49 @@ test.describe('Leaderboard acceptance (Story 3.11 / TKT-3.11.F2)', () => {
   // (c) Switching the period refreshes the entries.
   // ───────────────────────────────────────────────────────────────────
 
-  test('(c) switching the period fires a fresh request with the new period', async ({
+  test("(c) switching the period fires a fresh request with the new period", async ({
     page,
   }) => {
     await stubLeaderboard(page);
 
     const seen: string[] = [];
-    page.on('request', (request) => {
+    page.on("request", (request) => {
       const url = new URL(request.url());
-      if (url.pathname === '/api/v1/leaderboard') {
-        seen.push(url.searchParams.get('period') ?? 'weekly');
+      if (url.pathname === "/api/v1/leaderboard") {
+        seen.push(url.searchParams.get("period") ?? "weekly");
       }
     });
 
-    await page.goto('/leaderboard');
-    await expect(page.getByTestId('leaderboard-page')).toBeVisible();
+    await page.goto("/leaderboard");
+    await expect(page.getByTestId("leaderboard-page")).toBeVisible();
 
-    expect(seen[0]).toBe('weekly');
+    expect(seen[0]).toBe("weekly");
 
     // Switch to `Monthly`.
-    await page.getByRole('button', { name: 'Monthly' }).click();
+    await page.getByRole("button", { name: "Monthly" }).click();
 
-    await expect.poll(() => seen).toContain('monthly');
+    await expect.poll(() => seen).toContain("monthly");
 
     // The Monthly button is now the `aria-pressed="true"` option.
-    await expect(
-      page.getByRole('button', { name: 'Monthly' }),
-    ).toHaveAttribute('aria-pressed', 'true');
-    await expect(
-      page.getByRole('button', { name: 'Weekly' }),
-    ).toHaveAttribute('aria-pressed', 'false');
+    await expect(page.getByRole("button", { name: "Monthly" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    await expect(page.getByRole("button", { name: "Weekly" })).toHaveAttribute(
+      "aria-pressed",
+      "false",
+    );
 
     // Switch to `All-time` — the snake_case wire value must reach the
     // wrapper.
-    await page.getByRole('button', { name: 'All-time' }).click();
+    await page.getByRole("button", { name: "All-time" }).click();
 
-    await expect.poll(() => seen).toContain('all_time');
+    await expect.poll(() => seen).toContain("all_time");
 
     // The All-time button is `aria-pressed="true"`.
     await expect(
-      page.getByRole('button', { name: 'All-time' }),
-    ).toHaveAttribute('aria-pressed', 'true');
+      page.getByRole("button", { name: "All-time" }),
+    ).toHaveAttribute("aria-pressed", "true");
   });
 
   // ───────────────────────────────────────────────────────────────────
@@ -211,15 +206,15 @@ test.describe('Leaderboard acceptance (Story 3.11 / TKT-3.11.F2)', () => {
   }) => {
     await stubLeaderboard(page, { authenticate: true });
 
-    await page.goto('/leaderboard');
-    await expect(page.getByTestId('leaderboard-page')).toBeVisible();
+    await page.goto("/leaderboard");
+    await expect(page.getByTestId("leaderboard-page")).toBeVisible();
 
     // The stub seeds the self entry at rank 2 (the stub treats
     // rank 2 as the self user when `authenticate: true`). The
     // rank-2 entry is rendered in the podium.
     const selfRow = page.locator(`[data-leaderboard-row="${SELF_USER_ID}"]`);
     await expect(selfRow).toBeVisible();
-    await expect(selfRow).toHaveAttribute('aria-current', 'true');
+    await expect(selfRow).toHaveAttribute("aria-current", "true");
   });
 
   // ───────────────────────────────────────────────────────────────────
@@ -231,8 +226,8 @@ test.describe('Leaderboard acceptance (Story 3.11 / TKT-3.11.F2)', () => {
   }) => {
     await stubLeaderboard(page, { authenticate: false });
 
-    await page.goto('/leaderboard');
-    await expect(page.getByTestId('leaderboard-page')).toBeVisible();
+    await page.goto("/leaderboard");
+    await expect(page.getByTestId("leaderboard-page")).toBeVisible();
 
     // The DB shows the live data; the self-entry highlight is
     // ABSENT because `useAuthState().isAuthenticated` is `false`.

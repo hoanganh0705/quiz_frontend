@@ -1,24 +1,21 @@
-
-
-import type { InstancePlayerResponseDtoStatus } from './instancePlayerResponseDtoStatus';
+import type { InstancePlayerResponseDtoStatus } from "./instancePlayerResponseDtoStatus";
 
 export interface InstancePlayerResponseDto {
+  instancePlayerId: string;
 
-instancePlayerId: string;
+  instanceId: string;
 
-instanceId: string;
+  userId: string;
 
-userId: string;
+  username: string;
 
-username: string;
+  displayName?: string | null;
 
-displayName?: string | null;
+  avatarUrl?: string | null;
 
-avatarUrl?: string | null;
+  status: InstancePlayerResponseDtoStatus;
 
-status: InstancePlayerResponseDtoStatus;
+  attemptId?: string | null;
 
-attemptId?: string | null;
-
-joinedAt: string;
+  joinedAt: string;
 }

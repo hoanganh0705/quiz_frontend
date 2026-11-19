@@ -1,3 +1,3 @@
-
-
-export type MySocialAnalyticsResponseDtoStaleAt = { [key: string]: unknown } | null;
+export type MySocialAnalyticsResponseDtoStaleAt = {
+  [key: string]: unknown;
+} | null;

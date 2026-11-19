@@ -1,5 +1,4 @@
+import type { BookmarkStatsFavoriteCategoryDto } from "./bookmarkStatsFavoriteCategoryDto";
 
-
-import type { BookmarkStatsFavoriteCategoryDto } from './bookmarkStatsFavoriteCategoryDto';
-
-export type BookmarkStatsResponseDtoFavoriteCategory = BookmarkStatsFavoriteCategoryDto | null;
+export type BookmarkStatsResponseDtoFavoriteCategory =
+  BookmarkStatsFavoriteCategoryDto | null;

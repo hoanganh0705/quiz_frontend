@@ -67,7 +67,11 @@ export interface PublicProfileQuizListItem {
 const EMPTY_QUIZ_LIST: readonly PublicProfileQuizListItem[] = Object.freeze([]);
 
 const EMPTY_FOLLOWERS = Object.freeze({
-  users: [] as readonly { readonly userId: string; readonly userName: string; readonly displayName: string | null }[],
+  users: [] as readonly {
+    readonly userId: string;
+    readonly userName: string;
+    readonly displayName: string | null;
+  }[],
   isLoading: false,
   isStale: false,
   hasMore: false,
@@ -268,25 +272,24 @@ export function usePublicProfilePage(params: {
     },
   });
 
-  const profile = (query.data as { userProfile?: unknown } | undefined)?.userProfile ?? null;
-  const profileObj = profile as
-    | {
-        summary?: {
-          userId: string;
-          username: string;
-          displayName?: string | null;
-          avatarUrl?: string | null;
-          level: number;
-          currentStreak: number;
-          followers: number;
-          following: number;
-          quizzesTaken: number;
-          quizzesCreated: number;
-        } | null;
-        analytics?: { summary?: { averageScore?: number } } | null;
-        recentActivity?: readonly ActivityEventShape[] | null;
-      }
-    | null;
+  const profile =
+    (query.data as { userProfile?: unknown } | undefined)?.userProfile ?? null;
+  const profileObj = profile as {
+    summary?: {
+      userId: string;
+      username: string;
+      displayName?: string | null;
+      avatarUrl?: string | null;
+      level: number;
+      currentStreak: number;
+      followers: number;
+      following: number;
+      quizzesTaken: number;
+      quizzesCreated: number;
+    } | null;
+    analytics?: { summary?: { averageScore?: number } } | null;
+    recentActivity?: readonly ActivityEventShape[] | null;
+  } | null;
 
   const summary = profileObj?.summary ?? null;
   const isLoading = query.loading;
@@ -296,7 +299,8 @@ export function usePublicProfilePage(params: {
     return coerceToApiError(query.error);
   })();
 
-  const isNotFoundProfile = !isLoading && queryError !== null && isNotFound(queryError);
+  const isNotFoundProfile =
+    !isLoading && queryError !== null && isNotFound(queryError);
 
   const currentPlayer = useMemo<Player>(
     () =>
@@ -313,11 +317,7 @@ export function usePublicProfilePage(params: {
         summary,
         resolvedUserId,
       ),
-    [
-      viewer.user,
-      summary,
-      resolvedUserId,
-    ],
+    [viewer.user, summary, resolvedUserId],
   );
 
   const recentActivities = useMemo<ActivityItemData[]>(() => {
@@ -325,7 +325,9 @@ export function usePublicProfilePage(params: {
     return profileObj.recentActivity.slice(0, 3).map(toActivityItem);
   }, [profileObj?.recentActivity]);
 
-  const averageScore = toAnalyticsScore(profileObj?.analytics?.summary?.averageScore);
+  const averageScore = toAnalyticsScore(
+    profileObj?.analytics?.summary?.averageScore,
+  );
   const winRate = 0;
   const bestCategory = "—";
   const mostPlayedCategory = "—";

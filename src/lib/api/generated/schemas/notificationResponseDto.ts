@@ -1,30 +1,27 @@
-
-
-import type { NotificationResponseDtoType } from './notificationResponseDtoType';
-import type { NotificationResponseDtoMetadata } from './notificationResponseDtoMetadata';
-import type { NotificationResponseDtoChannel } from './notificationResponseDtoChannel';
+import type { NotificationResponseDtoType } from "./notificationResponseDtoType";
+import type { NotificationResponseDtoMetadata } from "./notificationResponseDtoMetadata";
+import type { NotificationResponseDtoChannel } from "./notificationResponseDtoChannel";
 
 export interface NotificationResponseDto {
+  notificationId: string;
 
-notificationId: string;
+  userId: string;
 
-userId: string;
+  type: NotificationResponseDtoType;
 
-type: NotificationResponseDtoType;
+  title: string;
 
-title: string;
+  message: string;
 
-message: string;
+  metadata: NotificationResponseDtoMetadata;
 
-metadata: NotificationResponseDtoMetadata;
+  channel: NotificationResponseDtoChannel;
 
-channel: NotificationResponseDtoChannel;
+  isRead: boolean;
 
-isRead: boolean;
+  readAt?: string | null;
 
-readAt?: string | null;
+  createdAt: string;
 
-createdAt: string;
-
-expiresAt?: string | null;
+  expiresAt?: string | null;
 }

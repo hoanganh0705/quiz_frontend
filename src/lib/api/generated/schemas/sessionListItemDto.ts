@@ -1,18 +1,15 @@
-
-
 export interface SessionListItemDto {
+  sessionId: string;
 
-sessionId: string;
+  deviceBrowser: string | null;
 
-deviceBrowser: string | null;
+  deviceOs: string | null;
 
-deviceOs: string | null;
+  deviceType: string;
 
-deviceType: string;
+  ipAddress: string | null;
 
-ipAddress: string | null;
+  lastActiveAt: string;
 
-lastActiveAt: string;
-
-isCurrentSession: boolean;
+  isCurrentSession: boolean;
 }

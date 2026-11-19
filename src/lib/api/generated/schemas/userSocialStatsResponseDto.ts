@@ -1,16 +1,13 @@
-
-
-import type { UserSocialStatsResponseDtoStaleAt } from './userSocialStatsResponseDtoStaleAt';
+import type { UserSocialStatsResponseDtoStaleAt } from "./userSocialStatsResponseDtoStaleAt";
 
 export interface UserSocialStatsResponseDto {
+  friends: number;
 
-friends: number;
+  followers: number;
 
-followers: number;
+  following: number;
 
-following: number;
+  staleAt?: UserSocialStatsResponseDtoStaleAt;
 
-staleAt?: UserSocialStatsResponseDtoStaleAt;
-
-isStale: boolean;
+  isStale: boolean;
 }

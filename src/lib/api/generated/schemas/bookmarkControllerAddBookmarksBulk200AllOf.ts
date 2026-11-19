@@ -1,7 +1,5 @@
-
-
-import type { BulkAddBookmarksResponseDto } from './bulkAddBookmarksResponseDto';
+import type { BulkAddBookmarksResponseDto } from "./bulkAddBookmarksResponseDto";
 
 export type BookmarkControllerAddBookmarksBulk200AllOf = {
-data?: BulkAddBookmarksResponseDto;
+  data?: BulkAddBookmarksResponseDto;
 };

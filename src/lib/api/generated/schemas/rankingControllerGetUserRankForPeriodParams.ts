@@ -1,12 +1,9 @@
-
-
-import type { RankingControllerGetUserRankForPeriodPeriod } from './rankingControllerGetUserRankForPeriodPeriod';
+import type { RankingControllerGetUserRankForPeriodPeriod } from "./rankingControllerGetUserRankForPeriodPeriod";
 
 export type RankingControllerGetUserRankForPeriodParams = {
+  period?: RankingControllerGetUserRankForPeriodPeriod;
 
-period?: RankingControllerGetUserRankForPeriodPeriod;
+  limit?: number;
 
-limit?: number;
-
-offset?: number;
+  offset?: number;
 };

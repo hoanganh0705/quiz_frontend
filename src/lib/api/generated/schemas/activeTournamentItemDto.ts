@@ -1,14 +1,11 @@
-
-
 export interface ActiveTournamentItemDto {
+  tournamentId: string;
 
-tournamentId: string;
+  name: string;
 
-name: string;
+  startAt: string;
 
-startAt: string;
+  endAt: string;
 
-endAt: string;
-
-participantCount: number;
+  participantCount: number;
 }

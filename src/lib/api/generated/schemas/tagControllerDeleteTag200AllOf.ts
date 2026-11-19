@@ -1,7 +1,5 @@
-
-
-import type { DeleteTagResponseDto } from './deleteTagResponseDto';
+import type { DeleteTagResponseDto } from "./deleteTagResponseDto";
 
 export type TagControllerDeleteTag200AllOf = {
-data?: DeleteTagResponseDto;
+  data?: DeleteTagResponseDto;
 };

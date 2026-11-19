@@ -1,44 +1,41 @@
-
-
-import type { AuthorDto } from './authorDto';
-import type { CommentDto } from './commentDto';
-import type { CommentWithRepliesDtoUserVote } from './commentWithRepliesDtoUserVote';
+import type { AuthorDto } from "./authorDto";
+import type { CommentDto } from "./commentDto";
+import type { CommentWithRepliesDtoUserVote } from "./commentWithRepliesDtoUserVote";
 
 export interface CommentWithRepliesDto {
+  id: string;
 
-id: string;
+  quizId: string;
 
-quizId: string;
+  authorId: string;
 
-authorId: string;
+  author: AuthorDto;
 
-author: AuthorDto;
+  parentCommentId?: string | null;
 
-parentCommentId?: string | null;
+  body: string;
 
-body: string;
+  isHidden: boolean;
 
-isHidden: boolean;
+  hiddenById: string | null;
 
-hiddenById: string | null;
+  hiddenAt: string | null;
 
-hiddenAt: string | null;
+  votesCount: number;
 
-votesCount: number;
+  upvotesCount: number;
 
-upvotesCount: number;
+  downvotesCount: number;
 
-downvotesCount: number;
+  repliesCount: number;
 
-repliesCount: number;
+  createdAt: string;
 
-createdAt: string;
+  updatedAt: string;
 
-updatedAt: string;
+  deletedAt: string | null;
 
-deletedAt: string | null;
+  replies: CommentDto[];
 
-replies: CommentDto[];
-
-userVote?: CommentWithRepliesDtoUserVote;
+  userVote?: CommentWithRepliesDtoUserVote;
 }

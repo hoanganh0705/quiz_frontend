@@ -1,23 +1,20 @@
-
-
-import type { UserAttemptStatsResponseDtoFavoriteCategory } from './userAttemptStatsResponseDtoFavoriteCategory';
-import type { UserAttemptStatsResponseDtoFavoriteTag } from './userAttemptStatsResponseDtoFavoriteTag';
+import type { UserAttemptStatsResponseDtoFavoriteCategory } from "./userAttemptStatsResponseDtoFavoriteCategory";
+import type { UserAttemptStatsResponseDtoFavoriteTag } from "./userAttemptStatsResponseDtoFavoriteTag";
 
 export interface UserAttemptStatsResponseDto {
+  totalAttempts: number;
 
-totalAttempts: number;
+  completedAttempts: number;
 
-completedAttempts: number;
+  abandonedAttempts: number;
 
-abandonedAttempts: number;
+  averageScore: number;
 
-averageScore: number;
+  totalTimeSpentSeconds: number;
 
-totalTimeSpentSeconds: number;
+  favoriteCategory?: UserAttemptStatsResponseDtoFavoriteCategory;
 
-favoriteCategory?: UserAttemptStatsResponseDtoFavoriteCategory;
+  favoriteTag?: UserAttemptStatsResponseDtoFavoriteTag;
 
-favoriteTag?: UserAttemptStatsResponseDtoFavoriteTag;
-
-lastAttemptAt?: string | null;
+  lastAttemptAt?: string | null;
 }

@@ -1,7 +1,5 @@
-
-
-import type { RegisterTournamentResponseDto } from './registerTournamentResponseDto';
+import type { RegisterTournamentResponseDto } from "./registerTournamentResponseDto";
 
 export type TournamentControllerRegisterForTournament201AllOf = {
-data?: RegisterTournamentResponseDto;
+  data?: RegisterTournamentResponseDto;
 };

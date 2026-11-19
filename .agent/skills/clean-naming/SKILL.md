@@ -15,7 +15,7 @@ Use this skill when authoring, reviewing, or refactoring code in both frontend a
    - Required: `isAttemptsLive`, `realtimeInvalidation`, `logMalformedSocialPayloadBreadcrumb`, `adminCategoryChannel`, `attemptOutcome`.
 
 2. **Domain-Driven Ubiquitous Language**:
-   - Variables must state *what* entity, action, or capability they represent.
+   - Variables must state _what_ entity, action, or capability they represent.
    - Boolean variables must be prefixed with semantic auxiliary verbs (`is`, `has`, `can`, `should`, `are`) paired with the domain capability:
      - `isAttemptsLive` (not `isPhase4Live`)
      - `isAuthoringEnabled` (not `isPhase4Authoring`)
@@ -26,10 +26,10 @@ Use this skill when authoring, reviewing, or refactoring code in both frontend a
    - Consumer variables evaluating `isFeatureEnabled('flag_name', 'live')` must directly reference the feature's domain name:
      ```ts
      // ✅ Correct
-     const isAttemptsLive = isFeatureEnabled('attempts_live', 'live');
+     const isAttemptsLive = isFeatureEnabled("attempts_live", "live");
 
      // ❌ Forbidden
-     const isPhase4Live = isFeatureEnabled('attempts_live', 'live');
+     const isPhase4Live = isFeatureEnabled("attempts_live", "live");
      ```
 
 4. **Event & Channel Names**:

@@ -1,24 +1,21 @@
-
-
-import type { TrendingQuizItemDtoCreatorId } from './trendingQuizItemDtoCreatorId';
+import type { TrendingQuizItemDtoCreatorId } from "./trendingQuizItemDtoCreatorId";
 
 export interface TrendingQuizItemDto {
+  rank: number;
 
-rank: number;
+  quizId: string;
 
-quizId: string;
+  creatorId?: TrendingQuizItemDtoCreatorId;
 
-creatorId?: TrendingQuizItemDtoCreatorId;
+  title: string;
 
-title: string;
+  slug: string;
 
-slug: string;
+  imageUrl?: string | null;
 
-imageUrl?: string | null;
+  trendingScore: number;
 
-trendingScore: number;
+  totalAttempts: number;
 
-totalAttempts: number;
-
-recentAttempts: number;
+  recentAttempts: number;
 }

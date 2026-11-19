@@ -1,8 +1,5 @@
-
-
 export interface WithdrawAnswerResponseDto {
+  questionId: string;
 
-questionId: string;
-
-withdrawnAt: string;
+  withdrawnAt: string;
 }

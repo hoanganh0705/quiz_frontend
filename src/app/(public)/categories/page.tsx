@@ -1,7 +1,5 @@
-
-
-import { CategoriesDirectoryPage } from '@/features/categories'
+import { CategoriesDirectoryPage } from "@/features/categories";
 
 export default function CategoriesPage() {
-return <CategoriesDirectoryPage />
+  return <CategoriesDirectoryPage />;
 }

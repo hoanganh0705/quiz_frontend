@@ -1,34 +1,31 @@
-
-
-import type { AdminAchievementHistoryItemDtoMetadata } from './adminAchievementHistoryItemDtoMetadata';
+import type { AdminAchievementHistoryItemDtoMetadata } from "./adminAchievementHistoryItemDtoMetadata";
 
 export interface AdminAchievementHistoryItemDto {
+  userBadgeId: string;
 
-userBadgeId: string;
+  userId: string;
 
-userId: string;
+  badgeId: string;
 
-badgeId: string;
+  badgeSlug: string;
 
-badgeSlug: string;
+  badgeName: string;
 
-badgeName: string;
+  badgeType: string;
 
-badgeType: string;
+  badgeCategory: string;
 
-badgeCategory: string;
+  earnedAt: string;
 
-earnedAt: string;
+  badgeVersion: string;
 
-badgeVersion: string;
+  expiresAt: string | null;
 
-expiresAt: string | null;
+  revokedAt: string | null;
 
-revokedAt: string | null;
+  revocationReason: string | null;
 
-revocationReason: string | null;
+  metadata: AdminAchievementHistoryItemDtoMetadata;
 
-metadata: AdminAchievementHistoryItemDtoMetadata;
-
-isActive: boolean;
+  isActive: boolean;
 }

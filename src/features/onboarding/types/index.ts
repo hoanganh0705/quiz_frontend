@@ -1,16 +1,14 @@
-
-
-export type ExperienceLevel = 'beginner' | 'intermediate' | 'advanced'
+export type ExperienceLevel = "beginner" | "intermediate" | "advanced";
 
 export interface OnboardingProfile {
-displayName: string
-bio: string
-experienceLevel: ExperienceLevel
-avatar: string
+  displayName: string;
+  bio: string;
+  experienceLevel: ExperienceLevel;
+  avatar: string;
 }
 
 export interface OnboardingData {
-interests: string[]
-profile: OnboardingProfile
-completedAt: string | null
+  interests: string[];
+  profile: OnboardingProfile;
+  completedAt: string | null;
 }

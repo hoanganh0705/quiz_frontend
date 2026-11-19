@@ -1,14 +1,11 @@
-
-
 export interface OffsetPaginationMetaDto {
+  kind: string;
 
-kind: string;
+  page: number;
 
-page: number;
+  limit: number;
 
-limit: number;
+  total: number;
 
-total: number;
-
-hasMore: boolean;
+  hasMore: boolean;
 }

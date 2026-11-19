@@ -1,30 +1,27 @@
-
-
 export interface NotificationPreferencesResponseDto {
+  inAppEnabled: boolean;
 
-inAppEnabled: boolean;
+  emailEnabled: boolean;
 
-emailEnabled: boolean;
+  pushEnabled: boolean;
 
-pushEnabled: boolean;
+  achievementEnabled: boolean;
 
-achievementEnabled: boolean;
+  tournamentEnabled: boolean;
 
-tournamentEnabled: boolean;
+  rankEnabled: boolean;
 
-rankEnabled: boolean;
+  friendEnabled: boolean;
 
-friendEnabled: boolean;
+  commentEnabled: boolean;
 
-commentEnabled: boolean;
+  summaryEnabled: boolean;
 
-summaryEnabled: boolean;
+  marketingEnabled: boolean;
 
-marketingEnabled: boolean;
+  rankImprovementThreshold: number;
 
-rankImprovementThreshold: number;
+  quietHoursStart?: string | null;
 
-quietHoursStart?: string | null;
-
-quietHoursEnd?: string | null;
+  quietHoursEnd?: string | null;
 }

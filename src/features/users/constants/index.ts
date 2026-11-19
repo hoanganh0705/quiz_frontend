@@ -1,8 +1,1 @@
-
-
-export {
-defaultSettings,
-languages,
-timezones,
-dateFormats,
-} from './settings'
+export { defaultSettings, languages, timezones, dateFormats } from "./settings";

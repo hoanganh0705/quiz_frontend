@@ -1,44 +1,41 @@
-
-
-import type { InstanceDetailResponseDtoStatus } from './instanceDetailResponseDtoStatus';
-import type { InstanceDetailResponseDtoDifficulty } from './instanceDetailResponseDtoDifficulty';
-import type { InstancePlayerResponseDto } from './instancePlayerResponseDto';
+import type { InstanceDetailResponseDtoStatus } from "./instanceDetailResponseDtoStatus";
+import type { InstanceDetailResponseDtoDifficulty } from "./instanceDetailResponseDtoDifficulty";
+import type { InstancePlayerResponseDto } from "./instancePlayerResponseDto";
 
 export interface InstanceDetailResponseDto {
+  instanceId: string;
 
-instanceId: string;
+  hostUserId: string;
 
-hostUserId: string;
+  hostUsername: string;
 
-hostUsername: string;
+  hostDisplayName?: string | null;
 
-hostDisplayName?: string | null;
+  maxPlayers?: number | null;
 
-maxPlayers?: number | null;
+  status: InstanceDetailResponseDtoStatus;
 
-status: InstanceDetailResponseDtoStatus;
+  difficulty: InstanceDetailResponseDtoDifficulty;
 
-difficulty: InstanceDetailResponseDtoDifficulty;
+  durationMs: number;
 
-durationMs: number;
+  passingScorePercent: number;
 
-passingScorePercent: number;
+  rewardXp: number;
 
-rewardXp: number;
+  quizId: string;
 
-quizId: string;
+  quizTitle: string;
 
-quizTitle: string;
+  quizSlug: string;
 
-quizSlug: string;
+  createdAt: string;
 
-createdAt: string;
+  startedAt?: string | null;
 
-startedAt?: string | null;
+  closedAt?: string | null;
 
-closedAt?: string | null;
+  updatedAt: string;
 
-updatedAt: string;
-
-players: InstancePlayerResponseDto[];
+  players: InstancePlayerResponseDto[];
 }

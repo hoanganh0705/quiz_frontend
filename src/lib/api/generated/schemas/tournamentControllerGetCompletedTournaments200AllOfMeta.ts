@@ -1,7 +1,5 @@
-
-
-import type { OffsetPaginationMetaDto } from './offsetPaginationMetaDto';
+import type { OffsetPaginationMetaDto } from "./offsetPaginationMetaDto";
 
 export type TournamentControllerGetCompletedTournaments200AllOfMeta = {
-pagination?: OffsetPaginationMetaDto;
+  pagination?: OffsetPaginationMetaDto;
 };

@@ -1,6 +1,3 @@
-
-
 export interface CancelCountdownResponseDto {
-
-message: string;
+  message: string;
 }

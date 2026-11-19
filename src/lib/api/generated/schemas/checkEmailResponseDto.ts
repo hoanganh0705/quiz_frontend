@@ -1,6 +1,3 @@
-
-
 export interface CheckEmailResponseDto {
-
-available: boolean;
+  available: boolean;
 }

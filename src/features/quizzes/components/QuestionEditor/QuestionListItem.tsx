@@ -1,179 +1,188 @@
+"use client";
 
-
-'use client';
-
-import { memo } from 'react';
+import { memo } from "react";
 import {
-Circle,
-CheckSquare,
-ToggleLeft,
-AlignLeft,
-Trash2,
-GripVertical,
-} from 'lucide-react';
+  Circle,
+  CheckSquare,
+  ToggleLeft,
+  AlignLeft,
+  Trash2,
+  GripVertical,
+} from "lucide-react";
 
-import { Skeleton } from '@/components/ui/Skeleton';
-import { Button } from '@/components/ui/Button';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/Tooltip';
+import { Skeleton } from "@/components/ui/Skeleton";
+import { Button } from "@/components/ui/Button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/Tooltip";
 
-import type { QuizAuthorQuestionDto, QuestionType } from '@/features/quizzes/types/author-dtos';
+import type {
+  QuizAuthorQuestionDto,
+  QuestionType,
+} from "@/features/quizzes/types/author-dtos";
 
 const QUESTION_TYPE_CONFIG: Record<
-QuestionType,
-{ label: string; icon: React.ComponentType<{ className?: string }> }
+  QuestionType,
+  { label: string; icon: React.ComponentType<{ className?: string }> }
 > = {
-single_choice: { label: 'Single choice', icon: Circle },
-multiple_choice: { label: 'Multiple choice', icon: CheckSquare },
-true_false: { label: 'True/False', icon: ToggleLeft },
-short_answer: { label: 'Short answer', icon: AlignLeft },
+  single_choice: { label: "Single choice", icon: Circle },
+  multiple_choice: { label: "Multiple choice", icon: CheckSquare },
+  true_false: { label: "True/False", icon: ToggleLeft },
+  short_answer: { label: "Short answer", icon: AlignLeft },
 };
 
-function getQuestionTypeConfig(
-type: string,
-): { label: string; icon: React.ComponentType<{ className?: string }> } {
-return QUESTION_TYPE_CONFIG[type as QuestionType] ?? QUESTION_TYPE_CONFIG.single_choice;
+function getQuestionTypeConfig(type: string): {
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+} {
+  return (
+    QUESTION_TYPE_CONFIG[type as QuestionType] ??
+    QUESTION_TYPE_CONFIG.single_choice
+  );
 }
 
 function truncateText(text: string, maxLength: number): string {
-if (text.length <= maxLength) return text;
-return `${text.slice(0, maxLength)}…`;
+  if (text.length <= maxLength) return text;
+  return `${text.slice(0, maxLength)}…`;
 }
 
 function countCorrectAnswers(question: QuizAuthorQuestionDto): number {
-return question.answerOptions.filter((opt) => opt.isCorrect).length;
+  return question.answerOptions.filter((opt) => opt.isCorrect).length;
 }
 
 export interface QuestionListItemProps {
+  question: QuizAuthorQuestionDto;
 
-question: QuizAuthorQuestionDto;
+  onEdit?: (questionId: string) => void;
 
-onEdit?: (questionId: string) => void;
-
-onDelete?: (questionId: string) => void;
+  onDelete?: (questionId: string) => void;
 }
 
 export const QuestionListItem = memo(function QuestionListItem({
-question,
-onEdit,
-onDelete,
+  question,
+  onEdit,
+  onDelete,
 }: QuestionListItemProps): React.ReactElement {
-const typeConfig = getQuestionTypeConfig(
-(question as unknown as { questionType?: string }).questionType ?? 'single_choice',
+  const typeConfig = getQuestionTypeConfig(
+    (question as unknown as { questionType?: string }).questionType ??
+      "single_choice",
   );
-const TypeIcon = typeConfig.icon;
-const correctCount = countCorrectAnswers(question);
-const truncatedText = truncateText(question.questionText, 100);
+  const TypeIcon = typeConfig.icon;
+  const correctCount = countCorrectAnswers(question);
+  const truncatedText = truncateText(question.questionText, 100);
 
-return (
-<div
-className="flex items-start gap-3 rounded-lg border bg-card p-4 transition-colors hover:bg-muted/50"
-data-testid={`question-item-${question.questionId}`}
+  return (
+    <div
+      className="flex items-start gap-3 rounded-lg border bg-card p-4 transition-colors hover:bg-muted/50"
+      data-testid={`question-item-${question.questionId}`}
     >
-{/* Drag handle (future use) */}
-<div className="flex h-8 cursor-not-allowed items-center justify-center rounded text-muted-foreground/50">
-<GripVertical className="h-5 w-5" />
-</div>
+      {/* Drag handle (future use) */}
+      <div className="flex h-8 cursor-not-allowed items-center justify-center rounded text-muted-foreground/50">
+        <GripVertical className="h-5 w-5" />
+      </div>
 
-{/* Question type badge */}
-<div className="flex h-8 items-center gap-2 rounded-full bg-secondary px-3">
-<TypeIcon className="h-4 w-4 text-muted-foreground" />
-<span className="text-xs font-medium">{typeConfig.label}</span>
-</div>
+      {/* Question type badge */}
+      <div className="flex h-8 items-center gap-2 rounded-full bg-secondary px-3">
+        <TypeIcon className="h-4 w-4 text-muted-foreground" />
+        <span className="text-xs font-medium">{typeConfig.label}</span>
+      </div>
 
-{/* Question text */}
-<div className="min-w-0 flex-1">
-<p className="text-sm" title={question.questionText}>
-{truncatedText}
-</p>
+      {/* Question text */}
+      <div className="min-w-0 flex-1">
+        <p className="text-sm" title={question.questionText}>
+          {truncatedText}
+        </p>
 
-{/* Correct answer count */}
-<p className="mt-1 text-xs text-muted-foreground">
-{correctCount === 1
-? '1 correct answer'
-: `${correctCount} correct answers`}
-</p>
-</div>
+        {/* Correct answer count */}
+        <p className="mt-1 text-xs text-muted-foreground">
+          {correctCount === 1
+            ? "1 correct answer"
+            : `${correctCount} correct answers`}
+        </p>
+      </div>
 
-{/* Image thumbnail */}
-{question.imageUrl && (
-<div className="h-12 w-12 flex-shrink-0 overflow-hidden rounded">
-{/* eslint-disable-next-line @next/next/no-img-element */}
-<img
-src={question.imageUrl}
-alt=""
-className="h-full w-full object-cover"
+      {/* Image thumbnail */}
+      {question.imageUrl && (
+        <div className="h-12 w-12 flex-shrink-0 overflow-hidden rounded">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={question.imageUrl}
+            alt=""
+            className="h-full w-full object-cover"
           />
-</div>
+        </div>
       )}
 
-{/* Position badge */}
-<div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-secondary text-xs font-medium">
-{question.position}
-</div>
+      {/* Position badge */}
+      <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-secondary text-xs font-medium">
+        {question.position}
+      </div>
 
-{/* Actions */}
-<div className="flex items-center gap-2">
-{/* Edit button (future) */}
-<Tooltip>
-<TooltipTrigger asChild>
-<Button
-variant="ghost"
-size="sm"
-className="h-8 w-8 p-0"
-disabled
-aria-label="Edit question (coming soon)"
+      {/* Actions */}
+      <div className="flex items-center gap-2">
+        {/* Edit button (future) */}
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 w-8 p-0"
+              disabled
+              aria-label="Edit question (coming soon)"
             >
-<span className="sr-only">Edit</span>
-<svg
-className="h-4 w-4"
-viewBox="0 0 24 24"
-fill="none"
-stroke="currentColor"
-strokeWidth="2"
-strokeLinecap="round"
-strokeLinejoin="round"
+              <span className="sr-only">Edit</span>
+              <svg
+                className="h-4 w-4"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
               >
-<path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
-</svg>
-</Button>
-</TooltipTrigger>
-<TooltipContent>Edit (coming soon)</TooltipContent>
-</Tooltip>
+                <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
+              </svg>
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>Edit (coming soon)</TooltipContent>
+        </Tooltip>
 
-{/* Delete button */}
-<Tooltip>
-<TooltipTrigger asChild>
-<Button
-variant="ghost"
-size="sm"
-className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive"
-disabled
-aria-label="Delete question"
+        {/* Delete button */}
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive"
+              disabled
+              aria-label="Delete question"
             >
-<Trash2 className="h-4 w-4" />
-</Button>
-</TooltipTrigger>
-<TooltipContent>Delete (not yet available)</TooltipContent>
-</Tooltip>
-</div>
-</div>
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>Delete (not yet available)</TooltipContent>
+        </Tooltip>
+      </div>
+    </div>
   );
 });
 
 export function QuestionListItemSkeleton(): React.ReactElement {
-return (
-<div
-className="flex items-start gap-3 rounded-lg border bg-card p-4"
-data-testid="question-item-skeleton"
+  return (
+    <div
+      className="flex items-start gap-3 rounded-lg border bg-card p-4"
+      data-testid="question-item-skeleton"
     >
-<Skeleton className="h-8 w-8 rounded" />
-<Skeleton className="h-8 w-32 rounded-full" />
-<div className="flex-1 space-y-2">
-<Skeleton className="h-4 w-3/4" />
-<Skeleton className="h-3 w-1/4" />
-</div>
-<Skeleton className="h-8 w-8 rounded-full" />
-<Skeleton className="h-8 w-8 rounded" />
-</div>
+      <Skeleton className="h-8 w-8 rounded" />
+      <Skeleton className="h-8 w-32 rounded-full" />
+      <div className="flex-1 space-y-2">
+        <Skeleton className="h-4 w-3/4" />
+        <Skeleton className="h-3 w-1/4" />
+      </div>
+      <Skeleton className="h-8 w-8 rounded-full" />
+      <Skeleton className="h-8 w-8 rounded" />
+    </div>
   );
 }

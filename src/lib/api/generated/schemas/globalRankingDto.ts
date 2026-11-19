@@ -1,14 +1,11 @@
-
-
-import type { GlobalRankingDtoWeekly } from './globalRankingDtoWeekly';
-import type { GlobalRankingDtoMonthly } from './globalRankingDtoMonthly';
-import type { GlobalRankingDtoAllTime } from './globalRankingDtoAllTime';
+import type { GlobalRankingDtoWeekly } from "./globalRankingDtoWeekly";
+import type { GlobalRankingDtoMonthly } from "./globalRankingDtoMonthly";
+import type { GlobalRankingDtoAllTime } from "./globalRankingDtoAllTime";
 
 export interface GlobalRankingDto {
+  weekly?: GlobalRankingDtoWeekly;
 
-weekly?: GlobalRankingDtoWeekly;
+  monthly?: GlobalRankingDtoMonthly;
 
-monthly?: GlobalRankingDtoMonthly;
-
-allTime?: GlobalRankingDtoAllTime;
+  allTime?: GlobalRankingDtoAllTime;
 }

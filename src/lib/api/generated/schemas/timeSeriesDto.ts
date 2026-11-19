@@ -1,12 +1,9 @@
-
-
-import type { TimeSeriesPointDto } from './timeSeriesPointDto';
+import type { TimeSeriesPointDto } from "./timeSeriesPointDto";
 
 export interface TimeSeriesDto {
+  bucket: string;
 
-bucket: string;
+  unit: string;
 
-unit: string;
-
-points: TimeSeriesPointDto[];
+  points: TimeSeriesPointDto[];
 }

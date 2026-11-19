@@ -1,15 +1,12 @@
-
-
-import type { QuizHistoryControllerExportMyQuizHistoryFormat } from './quizHistoryControllerExportMyQuizHistoryFormat';
-import type { QuizHistoryControllerExportMyQuizHistoryStatus } from './quizHistoryControllerExportMyQuizHistoryStatus';
+import type { QuizHistoryControllerExportMyQuizHistoryFormat } from "./quizHistoryControllerExportMyQuizHistoryFormat";
+import type { QuizHistoryControllerExportMyQuizHistoryStatus } from "./quizHistoryControllerExportMyQuizHistoryStatus";
 
 export type QuizHistoryControllerExportMyQuizHistoryParams = {
+  format?: QuizHistoryControllerExportMyQuizHistoryFormat;
 
-format?: QuizHistoryControllerExportMyQuizHistoryFormat;
+  status?: QuizHistoryControllerExportMyQuizHistoryStatus;
 
-status?: QuizHistoryControllerExportMyQuizHistoryStatus;
+  fromDate?: string | null;
 
-fromDate?: string | null;
-
-toDate?: string | null;
+  toDate?: string | null;
 };

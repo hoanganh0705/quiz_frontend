@@ -1,387 +1,390 @@
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { fireEvent, render, screen } from "@testing-library/react";
 
-
-import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { fireEvent, render, screen } from '@testing-library/react';
-
-import { CommentReportItem } from '@/features/admin/comment-moderation/components/CommentReportItem';
+import { CommentReportItem } from "@/features/admin/comment-moderation/components/CommentReportItem";
+import type { CommentReportConsumerAction } from "@/features/admin/comment-moderation/action-enum";
 import type {
-CommentReportConsumerAction,
-} from '@/features/admin/comment-moderation/action-enum';
-import type {
-CommentReportDto,
-CommentReportState,
-} from '@/features/admin/comment-moderation/admin-comment-report-types';
+  CommentReportDto,
+  CommentReportState,
+} from "@/features/admin/comment-moderation/admin-comment-report-types";
 
 const usePermissionMock = vi.hoisted(() =>
-vi.fn(() => ({
-isLoading: false,
-error: null,
-hasPermission: true,
+  vi.fn(() => ({
+    isLoading: false,
+    error: null,
+    hasPermission: true,
   })),
 );
 
 const useAuthSessionMock = vi.hoisted(() =>
-vi.fn(() => ({
-bootstrapState: 'authenticated',
-isAuthenticated: true,
-currentUser: { userId: 'admin-1' },
+  vi.fn(() => ({
+    bootstrapState: "authenticated",
+    isAuthenticated: true,
+    currentUser: { userId: "admin-1" },
   })),
 );
 
-vi.mock('@/features/admin/hooks/usePermission', () => ({
-usePermission: usePermissionMock,
+vi.mock("@/features/admin/hooks/usePermission", () => ({
+  usePermission: usePermissionMock,
 }));
 
-vi.mock('@/features/auth/hooks/use-auth-session', () => ({
-useAuthSession: useAuthSessionMock,
+vi.mock("@/features/auth/hooks/use-auth-session", () => ({
+  useAuthSession: useAuthSessionMock,
 }));
 
-vi.mock('@/components/ui/DropdownMenu', () => ({
-DropdownMenu: ({ children }: { children: React.ReactNode }) => <>{children}</>,
-DropdownMenuTrigger: ({
-children,
-asChild: _asChild,
-...rest
+vi.mock("@/components/ui/DropdownMenu", () => ({
+  DropdownMenu: ({ children }: { children: React.ReactNode }) => (
+    <>{children}</>
+  ),
+  DropdownMenuTrigger: ({
+    children,
+    asChild: _asChild,
+    ...rest
   }: React.HTMLAttributes<HTMLElement> & {
-children: React.ReactNode;
-asChild?: boolean;
-  }) => <button type="button" {...rest}>{children}</button>,
-DropdownMenuContent: ({
-children,
-...rest
-  }: React.HTMLAttributes<HTMLElement> & { children: React.ReactNode }) => (
-<div role="menu" {...rest}>{children}</div>
-  ),
-DropdownMenuItem: ({
-children,
-onClick,
-onSelect: _onSelect,
-...rest
-  }: React.HTMLAttributes<HTMLDivElement> & {
-children: React.ReactNode;
-onClick?: React.MouseEventHandler<HTMLDivElement>;
-onSelect?: (event: Event) => void;
+    children: React.ReactNode;
+    asChild?: boolean;
   }) => (
-<div role="menuitem" tabIndex={0} onClick={onClick} {...rest}>{children}</div>
+    <button type="button" {...rest}>
+      {children}
+    </button>
   ),
-DropdownMenuSeparator: () => <hr role="separator" />,
+  DropdownMenuContent: ({
+    children,
+    ...rest
+  }: React.HTMLAttributes<HTMLElement> & { children: React.ReactNode }) => (
+    <div role="menu" {...rest}>
+      {children}
+    </div>
+  ),
+  DropdownMenuItem: ({
+    children,
+    onClick,
+    onSelect: _onSelect,
+    ...rest
+  }: React.HTMLAttributes<HTMLDivElement> & {
+    children: React.ReactNode;
+    onClick?: React.MouseEventHandler<HTMLDivElement>;
+    onSelect?: (event: Event) => void;
+  }) => (
+    <div role="menuitem" tabIndex={0} onClick={onClick} {...rest}>
+      {children}
+    </div>
+  ),
+  DropdownMenuSeparator: () => <hr role="separator" />,
 }));
 
 function makeReport(
-overrides: Partial<CommentReportDto> & { status: CommentReportState },
+  overrides: Partial<CommentReportDto> & { status: CommentReportState },
 ): CommentReportDto {
-return {
-reportId: overrides.reportId ?? 'r-1',
-reporterId: overrides.reporterId ?? 'reporter-1',
-commentId: overrides.commentId ?? '00000000-0000-4000-8000-000000000001',
-reason: overrides.reason ?? 'spam',
-details: overrides.details ?? null,
-status: overrides.status,
-reviewedByUserId: overrides.reviewedByUserId ?? null,
-reviewedAt: overrides.reviewedAt ?? null,
-actionTaken: overrides.actionTaken ?? false,
-createdAt: overrides.createdAt ?? '2024-01-01T10:00:00.000Z',
-updatedAt: overrides.updatedAt ?? '2024-01-01T11:00:00.000Z',
+  return {
+    reportId: overrides.reportId ?? "r-1",
+    reporterId: overrides.reporterId ?? "reporter-1",
+    commentId: overrides.commentId ?? "00000000-0000-4000-8000-000000000001",
+    reason: overrides.reason ?? "spam",
+    details: overrides.details ?? null,
+    status: overrides.status,
+    reviewedByUserId: overrides.reviewedByUserId ?? null,
+    reviewedAt: overrides.reviewedAt ?? null,
+    actionTaken: overrides.actionTaken ?? false,
+    createdAt: overrides.createdAt ?? "2024-01-01T10:00:00.000Z",
+    updatedAt: overrides.updatedAt ?? "2024-01-01T11:00:00.000Z",
   };
 }
 
 beforeEach(() => {
-vi.clearAllMocks();
-usePermissionMock.mockReturnValue({
-isLoading: false,
-error: null,
-hasPermission: true,
+  vi.clearAllMocks();
+  usePermissionMock.mockReturnValue({
+    isLoading: false,
+    error: null,
+    hasPermission: true,
   });
-useAuthSessionMock.mockReturnValue({
-bootstrapState: 'authenticated',
-isAuthenticated: true,
-currentUser: { userId: 'admin-1' },
+  useAuthSessionMock.mockReturnValue({
+    bootstrapState: "authenticated",
+    isAuthenticated: true,
+    currentUser: { userId: "admin-1" },
   });
 });
 
-describe('TKT-7.6.E1 — CommentReportItem: pending row', () => {
-it('renders the documented layout (reporter, reason, status pill, action menu)', () => {
-const report = makeReport({ status: 'open' });
-render(
-<div>
-<CommentReportItem
-report={report}
-commentAuthorId={null}
-onSelect={vi.fn()}
-onAction={vi.fn()}
+describe("TKT-7.6.E1 — CommentReportItem: pending row", () => {
+  it("renders the documented layout (reporter, reason, status pill, action menu)", () => {
+    const report = makeReport({ status: "open" });
+    render(
+      <div>
+        <CommentReportItem
+          report={report}
+          commentAuthorId={null}
+          onSelect={vi.fn()}
+          onAction={vi.fn()}
         />
-</div>,
+      </div>,
     );
 
-const row = screen.getByTestId('comment-report-row-r-1');
-expect(row).toBeInTheDocument();
-expect(
-screen.getByTestId('comment-report-row-reporter-r-1'),
+    const row = screen.getByTestId("comment-report-row-r-1");
+    expect(row).toBeInTheDocument();
+    expect(
+      screen.getByTestId("comment-report-row-reporter-r-1"),
     ).toHaveTextContent(/reporter-1/);
-expect(
-screen.getByTestId('comment-report-row-comment-r-1'),
+    expect(
+      screen.getByTestId("comment-report-row-comment-r-1"),
     ).toHaveTextContent(/00000000-0000-4000-8000-000000000001/);
-expect(
-screen.getByTestId('comment-report-row-reason-r-1'),
+    expect(
+      screen.getByTestId("comment-report-row-reason-r-1"),
     ).toHaveTextContent(/spam/i);
-expect(
-screen.getByTestId('comment-report-row-pill-r-1'),
-    ).toHaveTextContent(/Pending/i);
+    expect(screen.getByTestId("comment-report-row-pill-r-1")).toHaveTextContent(
+      /Pending/i,
+    );
 
-expect(
-screen.getByTestId('comment-report-action-trigger-r-1'),
+    expect(
+      screen.getByTestId("comment-report-action-trigger-r-1"),
     ).toBeInTheDocument();
   });
 
-it('surfaces createdAt as the row timestamp for the pending state', () => {
-const report = makeReport({
-status: 'open',
-createdAt: '2024-01-01T10:00:00.000Z',
-updatedAt: '2024-02-02T11:00:00.000Z',
+  it("surfaces createdAt as the row timestamp for the pending state", () => {
+    const report = makeReport({
+      status: "open",
+      createdAt: "2024-01-01T10:00:00.000Z",
+      updatedAt: "2024-02-02T11:00:00.000Z",
     });
-render(
-<ul>
-<CommentReportItem
-report={report}
-commentAuthorId={null}
-onSelect={vi.fn()}
-onAction={vi.fn()}
+    render(
+      <ul>
+        <CommentReportItem
+          report={report}
+          commentAuthorId={null}
+          onSelect={vi.fn()}
+          onAction={vi.fn()}
         />
-</ul>,
+      </ul>,
     );
 
-const timestamp = screen.getByTestId('comment-report-row-timestamp-r-1');
+    const timestamp = screen.getByTestId("comment-report-row-timestamp-r-1");
 
-expect(timestamp.textContent).toMatch(/2024/);
-expect(timestamp.textContent).not.toMatch(/Feb/i);
+    expect(timestamp.textContent).toMatch(/2024/);
+    expect(timestamp.textContent).not.toMatch(/Feb/i);
   });
 });
 
-describe('TKT-7.6.E1 — CommentReportItem: resolved row', () => {
-it('renders the "Dismissed" pill and surfaces updatedAt when status is "dismissed"', () => {
-const report = makeReport({
-status: 'dismissed',
-createdAt: '2024-01-01T10:00:00.000Z',
-updatedAt: '2024-02-02T11:00:00.000Z',
+describe("TKT-7.6.E1 — CommentReportItem: resolved row", () => {
+  it('renders the "Dismissed" pill and surfaces updatedAt when status is "dismissed"', () => {
+    const report = makeReport({
+      status: "dismissed",
+      createdAt: "2024-01-01T10:00:00.000Z",
+      updatedAt: "2024-02-02T11:00:00.000Z",
     });
-render(
-<ul>
-<CommentReportItem
-report={report}
-commentAuthorId={null}
-onSelect={vi.fn()}
-onAction={vi.fn()}
+    render(
+      <ul>
+        <CommentReportItem
+          report={report}
+          commentAuthorId={null}
+          onSelect={vi.fn()}
+          onAction={vi.fn()}
         />
-</ul>,
+      </ul>,
     );
 
-expect(
-screen.getByTestId('comment-report-row-pill-r-1'),
-    ).toHaveTextContent(/Dismissed/i);
-const timestamp = screen.getByTestId('comment-report-row-timestamp-r-1');
-expect(timestamp.textContent).toMatch(/Feb/i);
+    expect(screen.getByTestId("comment-report-row-pill-r-1")).toHaveTextContent(
+      /Dismissed/i,
+    );
+    const timestamp = screen.getByTestId("comment-report-row-timestamp-r-1");
+    expect(timestamp.textContent).toMatch(/Feb/i);
   });
 
-it('renders the "Actioned" pill when status is "actioned"', () => {
-const report = makeReport({ status: 'actioned' });
-render(
-<ul>
-<CommentReportItem
-report={report}
-commentAuthorId={null}
-onSelect={vi.fn()}
-onAction={vi.fn()}
+  it('renders the "Actioned" pill when status is "actioned"', () => {
+    const report = makeReport({ status: "actioned" });
+    render(
+      <ul>
+        <CommentReportItem
+          report={report}
+          commentAuthorId={null}
+          onSelect={vi.fn()}
+          onAction={vi.fn()}
         />
-</ul>,
+      </ul>,
     );
 
-expect(
-screen.getByTestId('comment-report-row-pill-r-1'),
-    ).toHaveTextContent(/Actioned/i);
+    expect(screen.getByTestId("comment-report-row-pill-r-1")).toHaveTextContent(
+      /Actioned/i,
+    );
   });
 
-it('renders the "Reviewed" pill when status is "reviewed"', () => {
-const report = makeReport({ status: 'reviewed' });
-render(
-<ul>
-<CommentReportItem
-report={report}
-commentAuthorId={null}
-onSelect={vi.fn()}
-onAction={vi.fn()}
+  it('renders the "Reviewed" pill when status is "reviewed"', () => {
+    const report = makeReport({ status: "reviewed" });
+    render(
+      <ul>
+        <CommentReportItem
+          report={report}
+          commentAuthorId={null}
+          onSelect={vi.fn()}
+          onAction={vi.fn()}
         />
-</ul>,
+      </ul>,
     );
 
-expect(
-screen.getByTestId('comment-report-row-pill-r-1'),
-    ).toHaveTextContent(/Reviewed/i);
+    expect(screen.getByTestId("comment-report-row-pill-r-1")).toHaveTextContent(
+      /Reviewed/i,
+    );
   });
 });
 
-describe('TKT-7.6.E1 — CommentReportItem: click vs action-menu isolation', () => {
-it('row click invokes onSelect(report) exactly once', () => {
-const report = makeReport({ status: 'open' });
-const onSelect = vi.fn();
-render(
-<ul>
-<CommentReportItem
-report={report}
-commentAuthorId={null}
-onSelect={onSelect}
-onAction={vi.fn()}
+describe("TKT-7.6.E1 — CommentReportItem: click vs action-menu isolation", () => {
+  it("row click invokes onSelect(report) exactly once", () => {
+    const report = makeReport({ status: "open" });
+    const onSelect = vi.fn();
+    render(
+      <ul>
+        <CommentReportItem
+          report={report}
+          commentAuthorId={null}
+          onSelect={onSelect}
+          onAction={vi.fn()}
         />
-</ul>,
+      </ul>,
     );
 
-fireEvent.click(screen.getByTestId('comment-report-row-r-1'));
-expect(onSelect).toHaveBeenCalledTimes(1);
-expect(onSelect).toHaveBeenCalledWith(report);
+    fireEvent.click(screen.getByTestId("comment-report-row-r-1"));
+    expect(onSelect).toHaveBeenCalledTimes(1);
+    expect(onSelect).toHaveBeenCalledWith(report);
   });
 
-it('action menu trigger click does NOT invoke onSelect', () => {
-const report = makeReport({ status: 'open' });
-const onSelect = vi.fn();
-render(
-<ul>
-<CommentReportItem
-report={report}
-commentAuthorId={null}
-onSelect={onSelect}
-onAction={vi.fn()}
+  it("action menu trigger click does NOT invoke onSelect", () => {
+    const report = makeReport({ status: "open" });
+    const onSelect = vi.fn();
+    render(
+      <ul>
+        <CommentReportItem
+          report={report}
+          commentAuthorId={null}
+          onSelect={onSelect}
+          onAction={vi.fn()}
         />
-</ul>,
+      </ul>,
     );
 
-fireEvent.click(
-screen.getByTestId('comment-report-action-trigger-r-1'),
-    );
-expect(onSelect).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByTestId("comment-report-action-trigger-r-1"));
+    expect(onSelect).not.toHaveBeenCalled();
   });
 
-it('keyboard activation (Enter) invokes onSelect(report)', () => {
-const report = makeReport({ status: 'open' });
-const onSelect = vi.fn();
-render(
-<ul>
-<CommentReportItem
-report={report}
-commentAuthorId={null}
-onSelect={onSelect}
-onAction={vi.fn()}
+  it("keyboard activation (Enter) invokes onSelect(report)", () => {
+    const report = makeReport({ status: "open" });
+    const onSelect = vi.fn();
+    render(
+      <ul>
+        <CommentReportItem
+          report={report}
+          commentAuthorId={null}
+          onSelect={onSelect}
+          onAction={vi.fn()}
         />
-</ul>,
+      </ul>,
     );
 
-fireEvent.keyDown(screen.getByTestId('comment-report-row-r-1'), {
-key: 'Enter',
+    fireEvent.keyDown(screen.getByTestId("comment-report-row-r-1"), {
+      key: "Enter",
     });
-expect(onSelect).toHaveBeenCalledTimes(1);
-expect(onSelect).toHaveBeenCalledWith(report);
+    expect(onSelect).toHaveBeenCalledTimes(1);
+    expect(onSelect).toHaveBeenCalledWith(report);
   });
 
-it('show-more toggle click does NOT invoke onSelect', () => {
-const report = makeReport({
-status: 'open',
-reason: 'misinformation-with-very-very-very-long-text-exceeding-the-line-budget',
+  it("show-more toggle click does NOT invoke onSelect", () => {
+    const report = makeReport({
+      status: "open",
+      reason:
+        "misinformation-with-very-very-very-long-text-exceeding-the-line-budget",
     });
-const onSelect = vi.fn();
-render(
-<ul>
-<CommentReportItem
-report={report}
-commentAuthorId={null}
-onSelect={onSelect}
-onAction={vi.fn()}
+    const onSelect = vi.fn();
+    render(
+      <ul>
+        <CommentReportItem
+          report={report}
+          commentAuthorId={null}
+          onSelect={onSelect}
+          onAction={vi.fn()}
         />
-</ul>,
+      </ul>,
     );
 
-fireEvent.click(
-screen.getByTestId('comment-report-row-reason-toggle-r-1'),
-    );
-expect(onSelect).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByTestId("comment-report-row-reason-toggle-r-1"));
+    expect(onSelect).not.toHaveBeenCalled();
   });
 });
 
-describe('TKT-7.6.E1 — CommentReportItem: action menu wiring', () => {
-it('action selection invokes onAction(action, report) with the typed consumer action', () => {
-const report = makeReport({ status: 'open' });
-const onAction = vi.fn();
-render(
-<ul>
-<CommentReportItem
-report={report}
-commentAuthorId={null}
-onSelect={vi.fn()}
-onAction={onAction}
+describe("TKT-7.6.E1 — CommentReportItem: action menu wiring", () => {
+  it("action selection invokes onAction(action, report) with the typed consumer action", () => {
+    const report = makeReport({ status: "open" });
+    const onAction = vi.fn();
+    render(
+      <ul>
+        <CommentReportItem
+          report={report}
+          commentAuthorId={null}
+          onSelect={vi.fn()}
+          onAction={onAction}
         />
-</ul>,
+      </ul>,
     );
 
-const item = screen.getByTestId('comment-report-action-dismiss-r-1');
-fireEvent.click(item);
+    const item = screen.getByTestId("comment-report-action-dismiss-r-1");
+    fireEvent.click(item);
 
-expect(onAction).toHaveBeenCalledTimes(1);
-const [actionArg, reportArg] = onAction.mock.calls[0] as [
-CommentReportConsumerAction,
-CommentReportDto,
+    expect(onAction).toHaveBeenCalledTimes(1);
+    const [actionArg, reportArg] = onAction.mock.calls[0] as [
+      CommentReportConsumerAction,
+      CommentReportDto,
     ];
-expect(actionArg).toBe('dismiss');
-expect(reportArg).toBe(report);
+    expect(actionArg).toBe("dismiss");
+    expect(reportArg).toBe(report);
   });
 });
 
-describe('TKT-7.6.E1 — CommentReportItem: selected state', () => {
-it('applies aria-selected and the selection ring when selected=true', () => {
-const report = makeReport({ status: 'open' });
-render(
-<ul>
-<CommentReportItem
-report={report}
-commentAuthorId={null}
-onSelect={vi.fn()}
-onAction={vi.fn()}
-selected
+describe("TKT-7.6.E1 — CommentReportItem: selected state", () => {
+  it("applies aria-selected and the selection ring when selected=true", () => {
+    const report = makeReport({ status: "open" });
+    render(
+      <ul>
+        <CommentReportItem
+          report={report}
+          commentAuthorId={null}
+          onSelect={vi.fn()}
+          onAction={vi.fn()}
+          selected
         />
-</ul>,
+      </ul>,
     );
 
-const row = screen.getByTestId('comment-report-row-r-1');
-expect(row).toHaveAttribute('aria-selected', 'true');
-expect(row.className).toMatch(/ring-primary|border-primary/);
+    const row = screen.getByTestId("comment-report-row-r-1");
+    expect(row).toHaveAttribute("aria-selected", "true");
+    expect(row.className).toMatch(/ring-primary|border-primary/);
   });
 
-it('omits aria-selected when selected=false (default)', () => {
-const report = makeReport({ status: 'open' });
-render(
-<ul>
-<CommentReportItem
-report={report}
-commentAuthorId={null}
-onSelect={vi.fn()}
-onAction={vi.fn()}
+  it("omits aria-selected when selected=false (default)", () => {
+    const report = makeReport({ status: "open" });
+    render(
+      <ul>
+        <CommentReportItem
+          report={report}
+          commentAuthorId={null}
+          onSelect={vi.fn()}
+          onAction={vi.fn()}
         />
-</ul>,
+      </ul>,
     );
 
-expect(screen.getByTestId('comment-report-row-r-1')).toHaveAttribute(
-'aria-selected',
-'false',
+    expect(screen.getByTestId("comment-report-row-r-1")).toHaveAttribute(
+      "aria-selected",
+      "false",
     );
   });
 });
 
-describe('TKT-7.6.E1 — CommentReportItem: no service imports', () => {
-it('the component source contains no axios or fetch() calls', async () => {
-const { readFileSync } = await import('node:fs');
-const { resolve } = await import('node:path');
-const source = readFileSync(
-resolve(__dirname, '..', 'CommentReportItem.tsx'),
-'utf-8',
+describe("TKT-7.6.E1 — CommentReportItem: no service imports", () => {
+  it("the component source contains no axios or fetch() calls", async () => {
+    const { readFileSync } = await import("node:fs");
+    const { resolve } = await import("node:path");
+    const source = readFileSync(
+      resolve(__dirname, "..", "CommentReportItem.tsx"),
+      "utf-8",
     );
-expect(source).not.toMatch(/from\s+['"]axios['"]/);
+    expect(source).not.toMatch(/from\s+['"]axios['"]/);
 
-expect(source).not.toMatch(/(?:^|[^.\w])fetch\s*\(/);
+    expect(source).not.toMatch(/(?:^|[^.\w])fetch\s*\(/);
   });
 });

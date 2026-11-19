@@ -1,3 +1,3 @@
-
-
-export type SocialSuggestionItemDtoAvatarUrl = { [key: string]: unknown } | null;
+export type SocialSuggestionItemDtoAvatarUrl = {
+  [key: string]: unknown;
+} | null;

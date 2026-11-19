@@ -1,26 +1,23 @@
-
-
-import type { TournamentLeaderboardEntryDtoStatus } from './tournamentLeaderboardEntryDtoStatus';
+import type { TournamentLeaderboardEntryDtoStatus } from "./tournamentLeaderboardEntryDtoStatus";
 
 export interface TournamentLeaderboardEntryDto {
+  rank: number;
 
-rank: number;
+  participantId: string;
 
-participantId: string;
+  userId: string;
 
-userId: string;
+  username: string;
 
-username: string;
+  displayName?: string | null;
 
-displayName?: string | null;
+  avatarUrl?: string | null;
 
-avatarUrl?: string | null;
+  totalScore: number;
 
-totalScore: number;
+  totalTimeMs: number;
 
-totalTimeMs: number;
+  rankFinal?: number | null;
 
-rankFinal?: number | null;
-
-status: TournamentLeaderboardEntryDtoStatus;
+  status: TournamentLeaderboardEntryDtoStatus;
 }

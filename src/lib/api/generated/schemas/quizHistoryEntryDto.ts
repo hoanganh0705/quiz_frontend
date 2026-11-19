@@ -1,31 +1,28 @@
-
-
-import type { QuizHistoryEntryDtoStatus } from './quizHistoryEntryDtoStatus';
-import type { QuizHistoryEntryDtoDifficulty } from './quizHistoryEntryDtoDifficulty';
+import type { QuizHistoryEntryDtoStatus } from "./quizHistoryEntryDtoStatus";
+import type { QuizHistoryEntryDtoDifficulty } from "./quizHistoryEntryDtoDifficulty";
 
 export interface QuizHistoryEntryDto {
+  id: string;
 
-id: string;
+  quizId: string;
 
-quizId: string;
+  quizTitle: string;
 
-quizTitle: string;
+  quizSlug: string;
 
-quizSlug: string;
+  status: QuizHistoryEntryDtoStatus;
 
-status: QuizHistoryEntryDtoStatus;
+  score: number | null;
 
-score: number | null;
+  correctAnswers: number | null;
 
-correctAnswers: number | null;
+  totalQuestions: number;
 
-totalQuestions: number;
+  timeTaken: number | null;
 
-timeTaken: number | null;
+  xpEarned: number;
 
-xpEarned: number;
+  completedAt: string;
 
-completedAt: string;
-
-difficulty: QuizHistoryEntryDtoDifficulty;
+  difficulty: QuizHistoryEntryDtoDifficulty;
 }

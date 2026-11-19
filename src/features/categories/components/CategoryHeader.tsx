@@ -23,37 +23,37 @@
  * it consumes the SWR hooks.
  */
 
-import { formatQuizCount } from '@/features/categories/utils/format-quiz-count'
+import { formatQuizCount } from "@/features/categories/utils/format-quiz-count";
 
 export interface CategoryHeaderProps {
   /** The category's display name. */
-  title: string
+  title: string;
   /** The category's description (optional). */
-  description?: string | null
+  description?: string | null;
   /**
    * The number of quizzes in the category. When supplied, rendered
    * alongside the title using `formatQuizCount(n)`. Optional —
    * omitted from the markup when not provided.
    */
-  quizCount?: number
+  quizCount?: number;
   /** Locale for `formatQuizCount`. Defaults to `en-US`. */
-  locale?: string
+  locale?: string;
 }
 
 export function CategoryHeader({
   title,
   description,
   quizCount,
-  locale = 'en-US',
+  locale = "en-US",
 }: CategoryHeaderProps): React.ReactElement {
   return (
-    <header className='mb-8' data-testid='category-header'>
-      <div className='flex items-baseline gap-3'>
-        <h1 className='text-3xl font-bold text-foreground'>{title}</h1>
-        {typeof quizCount === 'number' ? (
+    <header className="mb-8" data-testid="category-header">
+      <div className="flex items-baseline gap-3">
+        <h1 className="text-3xl font-bold text-foreground">{title}</h1>
+        {typeof quizCount === "number" ? (
           <span
-            className='text-sm text-muted-foreground tabular-nums'
-            data-testid='category-header-quiz-count'
+            className="text-sm text-muted-foreground tabular-nums"
+            data-testid="category-header-quiz-count"
           >
             {formatQuizCount(quizCount, locale)} quizzes
           </span>
@@ -61,8 +61,10 @@ export function CategoryHeader({
       </div>
 
       {description ? (
-        <p className='mt-3 text-base text-foreground-secondary'>{description}</p>
+        <p className="mt-3 text-base text-foreground-secondary">
+          {description}
+        </p>
       ) : null}
     </header>
-  )
+  );
 }

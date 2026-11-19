@@ -1,6 +1,3 @@
-
-
 export interface EditCommentDto {
-
-body: string;
+  body: string;
 }

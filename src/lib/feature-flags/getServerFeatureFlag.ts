@@ -18,7 +18,7 @@ import {
   getFeatureFlagValue,
   type FeatureFlag,
   type FeatureFlagValueMap,
-} from './feature-flags';
+} from "./feature-flags";
 
 export function getServerFeatureFlag<K extends FeatureFlag>(
   flag: K,

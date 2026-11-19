@@ -1,11 +1,8 @@
-
-
-import type { DailyChallengeLeaderboardResponseDtoPeriod } from './dailyChallengeLeaderboardResponseDtoPeriod';
-import type { DailyChallengeLeaderboardEntryDto } from './dailyChallengeLeaderboardEntryDto';
+import type { DailyChallengeLeaderboardResponseDtoPeriod } from "./dailyChallengeLeaderboardResponseDtoPeriod";
+import type { DailyChallengeLeaderboardEntryDto } from "./dailyChallengeLeaderboardEntryDto";
 
 export interface DailyChallengeLeaderboardResponseDto {
+  period: DailyChallengeLeaderboardResponseDtoPeriod;
 
-period: DailyChallengeLeaderboardResponseDtoPeriod;
-
-entries: DailyChallengeLeaderboardEntryDto[];
+  entries: DailyChallengeLeaderboardEntryDto[];
 }

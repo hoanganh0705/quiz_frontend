@@ -1,24 +1,21 @@
-
-
-import type { UserRankPositionDtoTrend } from './userRankPositionDtoTrend';
+import type { UserRankPositionDtoTrend } from "./userRankPositionDtoTrend";
 
 export interface UserRankPositionDto {
+  rank: number;
 
-rank: number;
+  denseRank: number;
 
-denseRank: number;
+  percentile: number;
 
-percentile: number;
+  percentileLabel: string;
 
-percentileLabel: string;
+  xp: number;
 
-xp: number;
+  xpToNextRank?: number | null;
 
-xpToNextRank?: number | null;
+  nextRankXp?: number | null;
 
-nextRankXp?: number | null;
+  trend: UserRankPositionDtoTrend;
 
-trend: UserRankPositionDtoTrend;
-
-trendAmount?: number | null;
+  trendAmount?: number | null;
 }

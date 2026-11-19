@@ -1,24 +1,21 @@
-
-
-import type { CategoryAnalyticsTopQuizDtoImageUrl } from './categoryAnalyticsTopQuizDtoImageUrl';
+import type { CategoryAnalyticsTopQuizDtoImageUrl } from "./categoryAnalyticsTopQuizDtoImageUrl";
 
 export interface CategoryAnalyticsTopQuizDto {
+  rank: number;
 
-rank: number;
+  quizId: string;
 
-quizId: string;
+  title: string;
 
-title: string;
+  slug: string;
 
-slug: string;
+  imageUrl: CategoryAnalyticsTopQuizDtoImageUrl;
 
-imageUrl: CategoryAnalyticsTopQuizDtoImageUrl;
+  popularityScore: number;
 
-popularityScore: number;
+  totalAttempts: number;
 
-totalAttempts: number;
+  averageRating: number;
 
-averageRating: number;
-
-bookmarkCount: number;
+  bookmarkCount: number;
 }

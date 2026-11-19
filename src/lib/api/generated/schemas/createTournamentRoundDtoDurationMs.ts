@@ -1,3 +1,3 @@
-
-
-export type CreateTournamentRoundDtoDurationMs = { [key: string]: unknown } | null;
+export type CreateTournamentRoundDtoDurationMs = {
+  [key: string]: unknown;
+} | null;

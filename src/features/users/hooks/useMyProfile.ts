@@ -1,67 +1,61 @@
+"use client";
 
-
-'use client';
-
-import { useCallback, useEffect, useMemo } from 'react';
+import { useCallback, useEffect, useMemo } from "react";
 
 import {
-subscribeToProfileEvents,
-type ProfileUpdatedEvent,
-} from '@/lib/api/core/profile-broadcast-channel';
-import {
-useUserStore,
-} from '@/features/users/store/user-store';
-import type { UserMeResponseDto } from '@/features/users/types/user-backend';
+  subscribeToProfileEvents,
+  type ProfileUpdatedEvent,
+} from "@/lib/api/core/profile-broadcast-channel";
+import { useUserStore } from "@/features/users/store/user-store";
+import type { UserMeResponseDto } from "@/features/users/types/user-backend";
 
 export interface UseMyProfileReturn {
+  profile: UserMeResponseDto | null;
 
-profile: UserMeResponseDto | null;
+  isLoading: boolean;
 
-isLoading: boolean;
+  isHydrated: boolean;
 
-isHydrated: boolean;
+  error: string | null;
 
-error: string | null;
-
-refetch: () => Promise<UserMeResponseDto | null>;
+  refetch: () => Promise<UserMeResponseDto | null>;
 }
 
 export function useMyProfile(): UseMyProfileReturn {
-const profile = useUserStore((s) => s.user);
-const isLoading = useUserStore((s) => s.isLoading);
-const error = useUserStore((s) => s.error);
-const fetchCurrentUser = useUserStore((s) => s.fetchCurrentUser);
+  const profile = useUserStore((s) => s.user);
+  const isLoading = useUserStore((s) => s.isLoading);
+  const error = useUserStore((s) => s.error);
+  const fetchCurrentUser = useUserStore((s) => s.fetchCurrentUser);
 
-const isHydrated = profile !== null;
+  const isHydrated = profile !== null;
 
-const refetch = useCallback(async (): Promise<UserMeResponseDto | null> => {
-const result = await fetchCurrentUser();
-return result ?? null;
+  const refetch = useCallback(async (): Promise<UserMeResponseDto | null> => {
+    const result = await fetchCurrentUser();
+    return result ?? null;
   }, [fetchCurrentUser]);
 
-useEffect(() => {
-const handler = (event: ProfileUpdatedEvent) => {
+  useEffect(() => {
+    const handler = (event: ProfileUpdatedEvent) => {
+      if (!profile || event.userId !== profile.userId) return;
 
-if (!profile || event.userId !== profile.userId) return;
-
-void refetch();
+      void refetch();
     };
 
-const unsubscribe = subscribeToProfileEvents(handler);
+    const unsubscribe = subscribeToProfileEvents(handler);
 
-return () => {
-unsubscribe();
+    return () => {
+      unsubscribe();
     };
   }, [profile, refetch]);
 
-return useMemo<UseMyProfileReturn>(
-() => ({
-profile,
-isLoading,
-isHydrated,
-error,
-refetch,
+  return useMemo<UseMyProfileReturn>(
+    () => ({
+      profile,
+      isLoading,
+      isHydrated,
+      error,
+      refetch,
     }),
-[profile, isLoading, isHydrated, error, refetch],
+    [profile, isLoading, isHydrated, error, refetch],
   );
 }

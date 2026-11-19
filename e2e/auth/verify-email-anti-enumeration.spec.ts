@@ -2,8 +2,6 @@
  * F2 (verify-email) — Playwright anti-enumeration: the page renders
  * the same body for valid, expired, and unknown tokens.
  *
- * Source epic: Epic 2.2 — Email verification and resend.
- * Source ticket: TKT-2.2.F2.
  *
  * ## What this spec proves
  *
@@ -23,7 +21,7 @@
  *     real tokens — the backend treats them as unknown for the
  *     "valid" and "expired" cases. The point is byte equality of
  *     the front-end, not the backend's diff. The frontend's mapper
- *     (TKT-2.2.B2) collapses every backend response into the same
+ * collapses every backend response into the same
  *     `acknowledgement` kind, so the rendered body is provably the
  *     same regardless of the actual response.
  *
@@ -31,18 +29,18 @@
  * registry is the bug — never the backend.
  */
 
-import { test, expect } from '@playwright/test';
+import { test, expect } from "@playwright/test";
 
-const TOKEN_A = 'a'.repeat(64);
-const TOKEN_B = 'b'.repeat(64);
-const TOKEN_C = 'c'.repeat(64);
+const TOKEN_A = "a".repeat(64);
+const TOKEN_B = "b".repeat(64);
+const TOKEN_C = "c".repeat(64);
 
 const captureBody = async (
-  page: import('@playwright/test').Page,
-  token: string
+  page: import("@playwright/test").Page,
+  token: string,
 ): Promise<string> => {
   await page.goto(`/verify-email?token=${token}`);
-  const body = page.getByTestId('verify-acknowledgement-body');
+  const body = page.getByTestId("verify-acknowledgement-body");
   await expect(body).toBeVisible();
   // Use `textContent()` so the comparison is the exact rendered
   // string (no whitespace normalisation, no HTML interpretation).
@@ -53,7 +51,7 @@ const captureBody = async (
   return text;
 };
 
-test('verify-email renders the same body for three different tokens', async ({
+test("verify-email renders the same body for three different tokens", async ({
   page,
 }) => {
   const bodyA = await captureBody(page, TOKEN_A);
@@ -65,11 +63,11 @@ test('verify-email renders the same body for three different tokens', async ({
   expect(bodyB).toBe(bodyC);
 });
 
-test('verify-email body never contains the user-supplied token', async ({
+test("verify-email body never contains the user-supplied token", async ({
   page,
 }) => {
   const token = TOKEN_A;
   const body = await captureBody(page, token);
   expect(body).not.toContain(token);
-  expect(body).not.toContain('a'.repeat(32));
+  expect(body).not.toContain("a".repeat(32));
 });

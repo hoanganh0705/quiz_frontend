@@ -1,29 +1,28 @@
-
-
-import { cn } from '@/shared/utils/merge-class-names';
+import { cn } from "@/shared/utils/merge-class-names";
 
 export interface CommentDeletedPlaceholderProps {
+  text?: string;
 
-text?: string;
-
-className?: string;
+  className?: string;
 }
 
 export function CommentDeletedPlaceholder({
-text = '[Comment deleted]',
-className,
+  text = "[Comment deleted]",
+  className,
 }: CommentDeletedPlaceholderProps) {
-return (
-<div
-role='status'
-data-testid='comment-deleted-placeholder'
-className={cn(
-'flex h-9 items-center text-sm italic text-muted-foreground',
-className,
+  return (
+    <div
+      role="status"
+      data-testid="comment-deleted-placeholder"
+      className={cn(
+        "flex h-9 items-center text-sm italic text-muted-foreground",
+        className,
       )}
     >
-<span aria-hidden>{text}</span>
-<span className='sr-only'>This comment has been deleted by its author.</span>
-</div>
+      <span aria-hidden>{text}</span>
+      <span className="sr-only">
+        This comment has been deleted by its author.
+      </span>
+    </div>
   );
 }

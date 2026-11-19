@@ -1,7 +1,5 @@
-
-
-import type { ReviewDetailResponseDto } from './reviewDetailResponseDto';
+import type { ReviewDetailResponseDto } from "./reviewDetailResponseDto";
 
 export type ReviewControllerGetReviewById200AllOf = {
-data?: ReviewDetailResponseDto;
+  data?: ReviewDetailResponseDto;
 };

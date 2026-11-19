@@ -1,12 +1,9 @@
-
-
-import type { SearchCategoryResultDtoSlug } from './searchCategoryResultDtoSlug';
+import type { SearchCategoryResultDtoSlug } from "./searchCategoryResultDtoSlug";
 
 export interface SearchCategoryResultDto {
+  categoryId: string;
 
-categoryId: string;
+  name: string;
 
-name: string;
-
-slug?: SearchCategoryResultDtoSlug;
+  slug?: SearchCategoryResultDtoSlug;
 }

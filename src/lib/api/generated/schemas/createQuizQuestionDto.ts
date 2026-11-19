@@ -1,14 +1,11 @@
-
-
-import type { CreateQuizAnswerOptionDto } from './createQuizAnswerOptionDto';
+import type { CreateQuizAnswerOptionDto } from "./createQuizAnswerOptionDto";
 
 export interface CreateQuizQuestionDto {
+  position: number;
 
-position: number;
+  questionText: string;
 
-questionText: string;
+  imageUrl?: string | null;
 
-imageUrl?: string | null;
-
-answerOptions: CreateQuizAnswerOptionDto;
+  answerOptions: CreateQuizAnswerOptionDto;
 }

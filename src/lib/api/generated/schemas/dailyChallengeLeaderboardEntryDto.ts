@@ -1,19 +1,16 @@
-
-
-import type { DailyChallengeLeaderboardEntryDtoDisplayName } from './dailyChallengeLeaderboardEntryDtoDisplayName';
-import type { DailyChallengeLeaderboardEntryDtoAvatarUrl } from './dailyChallengeLeaderboardEntryDtoAvatarUrl';
+import type { DailyChallengeLeaderboardEntryDtoDisplayName } from "./dailyChallengeLeaderboardEntryDtoDisplayName";
+import type { DailyChallengeLeaderboardEntryDtoAvatarUrl } from "./dailyChallengeLeaderboardEntryDtoAvatarUrl";
 
 export interface DailyChallengeLeaderboardEntryDto {
+  rank: number;
 
-rank: number;
+  userId: string;
 
-userId: string;
+  username: string;
 
-username: string;
+  displayName: DailyChallengeLeaderboardEntryDtoDisplayName;
 
-displayName: DailyChallengeLeaderboardEntryDtoDisplayName;
+  avatarUrl: DailyChallengeLeaderboardEntryDtoAvatarUrl;
 
-avatarUrl: DailyChallengeLeaderboardEntryDtoAvatarUrl;
-
-scorePercent: number;
+  scorePercent: number;
 }

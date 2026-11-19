@@ -1,12 +1,9 @@
-
-
-import type { CancelTournamentResponseDtoStatus } from './cancelTournamentResponseDtoStatus';
+import type { CancelTournamentResponseDtoStatus } from "./cancelTournamentResponseDtoStatus";
 
 export interface CancelTournamentResponseDto {
+  tournamentId: string;
 
-tournamentId: string;
+  status: CancelTournamentResponseDtoStatus;
 
-status: CancelTournamentResponseDtoStatus;
-
-cancelledAt: string;
+  cancelledAt: string;
 }

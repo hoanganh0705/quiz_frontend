@@ -1,14 +1,11 @@
-
-
 export interface QuizAnswerOptionAuthorDto {
+  optionId: string;
 
-optionId: string;
+  position: number;
 
-position: number;
+  value: string;
 
-value: string;
+  isCorrect: boolean;
 
-isCorrect: boolean;
-
-createdAt: string;
+  createdAt: string;
 }

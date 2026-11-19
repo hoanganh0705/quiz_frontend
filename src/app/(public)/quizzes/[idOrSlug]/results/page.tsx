@@ -11,7 +11,9 @@ export default async function QuizResultsPage({
   const { idOrSlug } = await params;
   const resolvedSearchParams = await searchParams;
   const rawAttemptId = resolvedSearchParams?.attemptId;
-  const attemptId = Array.isArray(rawAttemptId) ? rawAttemptId[0] : rawAttemptId;
+  const attemptId = Array.isArray(rawAttemptId)
+    ? rawAttemptId[0]
+    : rawAttemptId;
 
   if (attemptId) {
     return <AttemptResultPage attemptId={attemptId} />;

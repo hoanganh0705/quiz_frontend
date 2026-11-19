@@ -1,8 +1,5 @@
-
-
-import type { BookmarkCollectionResponseDto } from './bookmarkCollectionResponseDto';
+import type { BookmarkCollectionResponseDto } from "./bookmarkCollectionResponseDto";
 
 export interface BookmarkCollectionListResponseDto {
-
-items: BookmarkCollectionResponseDto[];
+  items: BookmarkCollectionResponseDto[];
 }

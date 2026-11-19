@@ -1,18 +1,15 @@
-
-
 export interface BookmarkCollectionResponseDto {
+  collectionId: string;
 
-collectionId: string;
+  userId: string;
 
-userId: string;
+  name: string;
 
-name: string;
+  description?: string | null;
 
-description?: string | null;
+  quizCount: number;
 
-quizCount: number;
+  createdAt: string;
 
-createdAt: string;
-
-updatedAt: string;
+  updatedAt: string;
 }

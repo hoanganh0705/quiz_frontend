@@ -1,16 +1,13 @@
-
-
 export interface FollowedCategoryItemDto {
+  categoryId: string;
 
-categoryId: string;
+  name: string;
 
-name: string;
+  slug: string;
 
-slug: string;
+  imageUrl?: string | null;
 
-imageUrl?: string | null;
+  description?: string | null;
 
-description?: string | null;
-
-followedAt: string;
+  followedAt: string;
 }

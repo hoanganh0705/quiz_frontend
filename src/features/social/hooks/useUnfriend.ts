@@ -1,156 +1,155 @@
 "use client";
 
 import { useMemo, useRef, useState } from "react";
+import { useSWRConfig } from "swr";
 
 import { ApiError } from "@/lib/api";
 import { getFeatureFlagValue } from "@/lib/feature-flags";
-import { useSWRConfig } from "swr";
+import { getQueryClient } from "@/providers/QueryProvider";
 
 import { unfriend } from "@/features/social/services";
-import { SOCIAL_CACHE_KEYS, type SocialErrorCode } from "@/features/social/types";
+import {
+  SOCIAL_CACHE_KEYS,
+  type SocialErrorCode,
+} from "@/features/social/types";
 import { useSocialPermissions } from "@/features/social/hooks/useSocialPermissions";
 
-export type UnfriendErrorCode =
-| SocialErrorCode
-  | "GLOBAL_INTERNAL_ERROR";
+export type UnfriendErrorCode = SocialErrorCode | "GLOBAL_INTERNAL_ERROR";
 
 export interface UseUnfriendResult {
-unfriend: () => void;
-isPending: boolean;
-error: UnfriendErrorCode | null;
-alreadyNotFriends: boolean;
+  unfriend: () => void;
+  isPending: boolean;
+  error: UnfriendErrorCode | null;
+  alreadyNotFriends: boolean;
 }
 
 export interface UseUnfriendOptions {
+  currentUserId?: string | null;
 
-currentUserId?: string | null;
-
-assumeCanUnfriend?: boolean;
+  assumeCanUnfriend?: boolean;
 }
 
 export function useUnfriend(
-targetUserId: string | null,
-options: UseUnfriendOptions = {},
+  targetUserId: string | null,
+  options: UseUnfriendOptions = {},
 ): UseUnfriendResult {
+  const flagValue = getFeatureFlagValue("social_friend_request_mutation_live");
+  const isFlagPlaceholder = flagValue === "placeholder";
 
-const flagValue = getFeatureFlagValue(
-"social_friend_request_mutation_live",
-  );
-const isFlagPlaceholder = flagValue === "placeholder";
-
-const permissions = useSocialPermissions(targetUserId, {
-currentUserId: options.currentUserId ?? null,
+  const permissions = useSocialPermissions(targetUserId, {
+    currentUserId: options.currentUserId ?? null,
   });
 
-const { mutate } = useSWRConfig();
+  const { mutate: swrMutate } = useSWRConfig();
 
-const isPendingRef = useRef(false);
+  const isPendingRef = useRef(false);
 
-const [error, setError] = useState<UnfriendErrorCode | null>(null);
-const [alreadyNotFriends, setAlreadyNotFriends] = useState(false);
+  const [error, setError] = useState<UnfriendErrorCode | null>(null);
+  const [alreadyNotFriends, setAlreadyNotFriends] = useState(false);
 
-const result = useMemo<UseUnfriendResult>(() => {
-
-if (isFlagPlaceholder) {
-return Object.freeze({
-unfriend: () => {
+  const result = useMemo<UseUnfriendResult>(() => {
+    if (isFlagPlaceholder) {
+      return Object.freeze({
+        unfriend: () => {
           // no-op — feature is gated off
         },
-isPending: false,
-error: null,
-alreadyNotFriends: false,
+        isPending: false,
+        error: null,
+        alreadyNotFriends: false,
       });
     }
 
-if (targetUserId === null) {
-return Object.freeze({
-unfriend: () => {
+    if (targetUserId === null) {
+      return Object.freeze({
+        unfriend: () => {
           // no-op
         },
-isPending: false,
-error: null,
-alreadyNotFriends: false,
+        isPending: false,
+        error: null,
+        alreadyNotFriends: false,
       });
     }
 
-if (!options.assumeCanUnfriend && !permissions.canUnfriend) {
-return Object.freeze({
-unfriend: () => {
+    if (!options.assumeCanUnfriend && !permissions.canUnfriend) {
+      return Object.freeze({
+        unfriend: () => {
           // no-op — permission denied
         },
-isPending: false,
-error: null,
-alreadyNotFriends: false,
+        isPending: false,
+        error: null,
+        alreadyNotFriends: false,
       });
     }
 
-const unfriendAction = (): void => {
-if (isPendingRef.current) return;
+    const unfriendAction = (): void => {
+      if (isPendingRef.current) return;
 
-isPendingRef.current = true;
+      isPendingRef.current = true;
 
-setError(null);
-setAlreadyNotFriends(false);
+      setError(null);
+      setAlreadyNotFriends(false);
 
-unfriend(targetUserId)
+      unfriend(targetUserId)
         .then(() => {
-
-void mutate(
-SOCIAL_CACHE_KEYS.makeRelationshipKey(targetUserId),
-undefined,
-{ revalidate: true },
-          );
-void mutate(
-SOCIAL_CACHE_KEYS.makeSocialCountsKey(targetUserId),
-undefined,
-{ revalidate: true },
-          );
+          const qc = getQueryClient();
+          void qc.invalidateQueries({
+            queryKey: SOCIAL_CACHE_KEYS.makeRelationshipKey(targetUserId),
+          });
+          void qc.invalidateQueries({
+            queryKey: SOCIAL_CACHE_KEYS.makeSocialCountsKey(targetUserId),
+          });
+          void swrMutate?.(SOCIAL_CACHE_KEYS.makeRelationshipKey(targetUserId));
+          void swrMutate?.(SOCIAL_CACHE_KEYS.makeSocialCountsKey(targetUserId));
         })
         .catch((err: unknown) => {
-const apiErr =
-err instanceof ApiError ? err : new ApiError(err as never);
+          const apiErr =
+            err instanceof ApiError ? err : new ApiError(err as never);
 
-if (apiErr.code === "SOCIAL_FRIENDSHIP_NOT_FOUND") {
-setAlreadyNotFriends(true);
-void mutate(
-SOCIAL_CACHE_KEYS.makeRelationshipKey(targetUserId),
-undefined,
-{ revalidate: true },
+          if (apiErr.code === "SOCIAL_FRIENDSHIP_NOT_FOUND") {
+            setAlreadyNotFriends(true);
+
+            const qc = getQueryClient();
+            void qc.invalidateQueries({
+              queryKey: SOCIAL_CACHE_KEYS.makeRelationshipKey(targetUserId),
+            });
+            void qc.invalidateQueries({
+              queryKey: SOCIAL_CACHE_KEYS.makeSocialCountsKey(targetUserId),
+            });
+            void swrMutate?.(
+              SOCIAL_CACHE_KEYS.makeRelationshipKey(targetUserId),
             );
-void mutate(
-SOCIAL_CACHE_KEYS.makeSocialCountsKey(targetUserId),
-undefined,
-{ revalidate: true },
+            void swrMutate?.(
+              SOCIAL_CACHE_KEYS.makeSocialCountsKey(targetUserId),
             );
-return;
+            return;
           }
 
-const code: UnfriendErrorCode =
-(apiErr.code as UnfriendErrorCode) ?? "GLOBAL_INTERNAL_ERROR";
-setError(code);
+          const code: UnfriendErrorCode =
+            (apiErr.code as UnfriendErrorCode) ?? "GLOBAL_INTERNAL_ERROR";
+          setError(code);
         })
         .finally(() => {
-isPendingRef.current = false;
+          isPendingRef.current = false;
         });
     };
 
-return Object.freeze({
-unfriend: unfriendAction,
-get isPending() {
-return isPendingRef.current;
+    return Object.freeze({
+      unfriend: unfriendAction,
+      get isPending() {
+        return isPendingRef.current;
       },
-error,
-alreadyNotFriends,
+      error,
+      alreadyNotFriends,
     });
   }, [
-isFlagPlaceholder,
-targetUserId,
-permissions.canUnfriend,
-options.assumeCanUnfriend,
-mutate,
-error,
-alreadyNotFriends,
+    isFlagPlaceholder,
+    targetUserId,
+    permissions.canUnfriend,
+    options.assumeCanUnfriend,
+    swrMutate,
+    error,
+    alreadyNotFriends,
   ]);
 
-return result;
+  return result;
 }

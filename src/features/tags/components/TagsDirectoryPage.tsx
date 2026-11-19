@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 /**
  * `<TagsDirectoryPage>` — the `/tags` route's main composition.
@@ -42,57 +42,54 @@
  * hook and holds the local filter state.
  */
 
-import { useCallback, useState } from 'react'
-import { mutate } from 'swr'
+import { useCallback, useState } from "react";
+import { getQueryClient } from "@/providers/QueryProvider";
 
-import { TagPill } from '@/components/primitives/TagPill/TagPill'
-import { TagPillSkeleton } from '@/components/primitives'
-import { Button } from '@/components/ui/Button'
-import { useTagsDirectory } from '@/features/tags/hooks/useTagsDirectory'
+import { TagPill } from "@/components/primitives/TagPill/TagPill";
+import { TagPillSkeleton } from "@/components/primitives";
+import { Button } from "@/components/ui/Button";
+import { useTagsDirectory } from "@/features/tags/hooks/useTagsDirectory";
 
-import { PopularTagsStrip } from './PopularTagsStrip'
-import { TrendingTagsStrip } from './TrendingTagsStrip'
-import { TagFilterInput } from './TagFilterInput'
-import { TagEmptyState } from './TagEmptyState'
+import { PopularTagsStrip } from "./PopularTagsStrip";
+import { TrendingTagsStrip } from "./TrendingTagsStrip";
+import { TagFilterInput } from "./TagFilterInput";
+import { TagEmptyState } from "./TagEmptyState";
 
-const PAGE_LIMIT = 30
+const PAGE_LIMIT = 30;
 const DIRECTORY_SWR_KEY_FACTORY = (filter: string) =>
-  ['tags', 'directory', filter, { limit: PAGE_LIMIT }] as const
+  ["tags", "directory", filter, { limit: PAGE_LIMIT }] as const;
 
-const GRID_LAYOUT = 'flex flex-wrap gap-3'
+const GRID_LAYOUT = "flex flex-wrap gap-3";
 
 export function TagsDirectoryPage(): React.ReactElement {
   // Filter state held by the page. The debounced value is consumed
   // by `useTagsDirectory` (the hook owns the debounce).
-  const [filter, setFilter] = useState('')
+  const [filter, setFilter] = useState("");
 
   const { items, isLoading, isLoadingMore, hasMore, loadMore, error } =
-    useTagsDirectory({ filter, limit: PAGE_LIMIT })
+    useTagsDirectory({ filter, limit: PAGE_LIMIT });
 
   const handleClearFilter = useCallback(() => {
-    setFilter('')
-  }, [])
+    setFilter("");
+  }, []);
 
   return (
     <div
-      className='min-h-screen text-foreground p-4 md:p-8 lg:p-12'
-      data-testid='tags-directory-page'
+      className="min-h-screen text-foreground p-4 md:p-8 lg:p-12"
+      data-testid="tags-directory-page"
     >
-      <header className='mb-6'>
+      <header className="mb-6">
         <h1
-          className='text-3xl font-bold mb-3 text-foreground'
-          data-testid='tags-directory-page-title'
+          className="text-3xl font-bold mb-3 text-foreground"
+          data-testid="tags-directory-page-title"
         >
           Tags
         </h1>
-        <p className='text-foreground-secondary text-base mb-6'>
+        <p className="text-foreground-secondary text-base mb-6">
           Browse tags to discover quizzes by topic.
         </p>
-        <div className='max-w-md'>
-          <TagFilterInput
-            value={filter}
-            onChange={setFilter}
-          />
+        <div className="max-w-md">
+          <TagFilterInput value={filter} onChange={setFilter} />
         </div>
       </header>
 
@@ -102,9 +99,9 @@ export function TagsDirectoryPage(): React.ReactElement {
       {isLoading ? (
         <div
           className={GRID_LAYOUT}
-          aria-label='Loading tags'
-          aria-busy='true'
-          data-testid='tags-directory-page-loading'
+          aria-label="Loading tags"
+          aria-busy="true"
+          data-testid="tags-directory-page-loading"
         >
           {Array.from({ length: PAGE_LIMIT }).map((_, i) => (
             <TagPillSkeleton key={i} />
@@ -112,56 +109,60 @@ export function TagsDirectoryPage(): React.ReactElement {
         </div>
       ) : error ? (
         <div
-          className='text-center py-12'
-          role='alert'
-          data-testid='tags-directory-page-error'
+          className="text-center py-12"
+          role="alert"
+          data-testid="tags-directory-page-error"
         >
-          <p className='text-destructive text-lg mb-4'>
+          <p className="text-destructive text-lg mb-4">
             Could not load tags. Please try again.
           </p>
           <Button
-            variant='outline'
-            onClick={() => void mutate(DIRECTORY_SWR_KEY_FACTORY(filter))}
-            data-testid='tags-directory-page-retry'
+            variant="outline"
+            onClick={() =>
+              void getQueryClient().invalidateQueries({
+                queryKey: DIRECTORY_SWR_KEY_FACTORY(filter),
+              })
+            }
+            data-testid="tags-directory-page-retry"
           >
             Retry
           </Button>
         </div>
-      ) : items.length === 0 && filter.trim() === '' ? (
-        <TagEmptyState variant='directory' />
+      ) : items.length === 0 && filter.trim() === "" ? (
+        <TagEmptyState variant="directory" />
       ) : items.length === 0 ? (
         <TagEmptyState
-          variant='filter-no-match'
+          variant="filter-no-match"
           query={filter}
           onClearFilter={handleClearFilter}
         />
       ) : (
         <div
-          data-testid='tags-directory-page-grid'
+          data-testid="tags-directory-page-grid"
           className={GRID_LAYOUT}
-          role='list'
-          aria-label='Tags'
+          role="list"
+          aria-label="Tags"
         >
           {items.map((tag) => (
-            <div key={tag.tagId} role='listitem'>
-              <TagPill tag={tag} variant='clickable' />
+            <div key={tag.tagId} role="listitem">
+              <TagPill tag={tag} variant="clickable" />
             </div>
           ))}
         </div>
       )}
 
       {hasMore && !isLoading && !error && items.length > 0 ? (
-        <div className='mt-8 flex justify-center'>
+        <div className="mt-8 flex justify-center">
           <Button
-            variant='outline'
+            variant="outline"
             onClick={loadMore}
             disabled={isLoadingMore}
-            data-testid='tags-directory-page-load-more'
+            data-testid="tags-directory-page-load-more"
           >
-            {isLoadingMore ? 'Loading…' : 'Load more'}
+            {isLoadingMore ? "Loading…" : "Load more"}
           </Button>
         </div>
       ) : null}
     </div>
-  )
+  );
 }

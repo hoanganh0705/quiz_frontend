@@ -1,12 +1,9 @@
-
-
-import type { LeaderboardDistributionBucketDto } from './leaderboardDistributionBucketDto';
+import type { LeaderboardDistributionBucketDto } from "./leaderboardDistributionBucketDto";
 
 export interface LeaderboardDistributionResponseDto {
+  totalUsers: number;
 
-totalUsers: number;
+  remainingUsers: number;
 
-remainingUsers: number;
-
-buckets: LeaderboardDistributionBucketDto[];
+  buckets: LeaderboardDistributionBucketDto[];
 }

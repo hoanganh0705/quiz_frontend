@@ -1,16 +1,13 @@
-
-
-import type { QuizHistoryControllerListMyQuizHistoryStatus } from './quizHistoryControllerListMyQuizHistoryStatus';
+import type { QuizHistoryControllerListMyQuizHistoryStatus } from "./quizHistoryControllerListMyQuizHistoryStatus";
 
 export type QuizHistoryControllerListMyQuizHistoryParams = {
+  cursor?: string | null;
 
-cursor?: string | null;
+  limit?: number | null;
 
-limit?: number | null;
+  status?: QuizHistoryControllerListMyQuizHistoryStatus;
 
-status?: QuizHistoryControllerListMyQuizHistoryStatus;
+  fromDate?: string | null;
 
-fromDate?: string | null;
-
-toDate?: string | null;
+  toDate?: string | null;
 };

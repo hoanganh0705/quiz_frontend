@@ -1,10 +1,7 @@
-
-
 export interface SubmitAnswerDto {
+  questionId: string;
 
-questionId: string;
+  selectedOptionId?: string | null;
 
-selectedOptionId?: string | null;
-
-timeTakenMs?: number | null;
+  timeTakenMs?: number | null;
 }

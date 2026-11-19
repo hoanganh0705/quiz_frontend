@@ -1,24 +1,22 @@
-'use client';
+"use client";
 
-import type { ReactNode } from 'react';
+import type { ReactNode } from "react";
 
-import { AdminShellUnavailable } from './AdminShellUnavailable';
-import { useAdminFeatureFlag } from '../hooks/useAdminFeatureFlag';
+import { AdminShellUnavailable } from "./AdminShellUnavailable";
+import { useAdminFeatureFlag } from "../hooks/useAdminFeatureFlag";
 
 export interface AdminFeatureFlagBoundaryProps {
-children: ReactNode;
+  children: ReactNode;
 }
 
 export function AdminFeatureFlagBoundary({
-children,
+  children,
 }: AdminFeatureFlagBoundaryProps) {
-const { isLive } = useAdminFeatureFlag('admin_live');
+  const { isLive } = useAdminFeatureFlag("admin_live");
 
-if (!isLive) {
-return (
-<AdminShellUnavailable>{children}</AdminShellUnavailable>
-    );
+  if (!isLive) {
+    return <AdminShellUnavailable>{children}</AdminShellUnavailable>;
   }
 
-return <>{children}</>;
+  return <>{children}</>;
 }

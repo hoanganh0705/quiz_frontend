@@ -1,6 +1,4 @@
-
-
 export type SocialControllerGetFriendsOfUserParams = {
-limit: number;
-cursor: string;
+  limit: number;
+  cursor: string;
 };

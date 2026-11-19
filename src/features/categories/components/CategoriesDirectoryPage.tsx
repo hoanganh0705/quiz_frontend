@@ -57,7 +57,7 @@ import { TrendingCategoriesStrip } from "./TrendingCategoriesStrip";
 import { useCategoriesRanked } from "@/features/categories/hooks";
 import { rankedCategoryToCategoryResponse } from "@/features/categories/utils/ranked-category-to-category-response";
 import { useDebouncedValue } from "@/lib/utils/use-debounced-value";
-import { mutate } from "swr";
+import { getQueryClient } from "@/providers/QueryProvider";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 
@@ -188,7 +188,9 @@ export function CategoriesDirectoryPage(): React.ReactElement {
             </p>
             <Button
               variant="outline"
-              onClick={() => void mutate(SWR_KEY)}
+              onClick={() =>
+                void getQueryClient().invalidateQueries({ queryKey: SWR_KEY })
+              }
               data-testid="categories-directory-retry"
             >
               Retry

@@ -1,8 +1,6 @@
-
-
 export interface WsErrorPayload {
-code: string;
-message: string;
+  code: string;
+  message: string;
 }
 
 export const INSTANCES_NAMESPACE = "/instances" as const;
@@ -30,7 +28,7 @@ export const ANSWER_RESULT = "answer:result" as const;
 export const LEADERBOARD_UPDATED = "leaderboard:updated" as const;
 
 export type InstanceEventName =
-| typeof INSTANCE_JOINED
+  | typeof INSTANCE_JOINED
   | typeof INSTANCE_LEFT
   | typeof INSTANCE_STARTED
   | typeof INSTANCE_CLOSED
@@ -47,32 +45,32 @@ export const NOTIFICATION_DELETED = "notification:deleted" as const;
 export const NOTIFICATION_READ = "notification:read" as const;
 
 export type NotificationEventName =
-| typeof NOTIFICATION_SENT
+  | typeof NOTIFICATION_SENT
   | typeof NOTIFICATION_DELETED
   | typeof NOTIFICATION_READ;
 
 export interface InstanceJoinedPayload {
-instanceId: string;
-userId: string;
-username: string;
-joinedAt: string; // ISO 8601
+  instanceId: string;
+  userId: string;
+  username: string;
+  joinedAt: string; // ISO 8601
 }
 
 export interface InstanceLeftPayload {
-instanceId: string;
-userId: string;
-reason?: "left" | "kicked" | "disconnected";
+  instanceId: string;
+  userId: string;
+  reason?: "left" | "kicked" | "disconnected";
 }
 
 export interface InstanceStartedPayload {
-instanceId: string;
-startedAt: string; // ISO 8601
+  instanceId: string;
+  startedAt: string; // ISO 8601
 }
 
 export interface InstanceClosedPayload {
-instanceId: string;
-reason: "finished" | "cancelled" | "timeout";
-closedAt: string; // ISO 8601
+  instanceId: string;
+  reason: "finished" | "cancelled" | "timeout";
+  closedAt: string; // ISO 8601
 }
 
 export type PlayerJoinedPayload = InstanceJoinedPayload;
@@ -80,40 +78,40 @@ export type PlayerJoinedPayload = InstanceJoinedPayload;
 export type PlayerLeftPayload = InstanceLeftPayload;
 
 export interface QuestionRevealedPayload {
-instanceId: string;
-questionId: string;
-roundId: string;
-questionNumber: number;
-questionText: string;
-options?: string[];
-timeLimitSeconds: number;
-revealedAt: string; // ISO 8601
+  instanceId: string;
+  questionId: string;
+  roundId: string;
+  questionNumber: number;
+  questionText: string;
+  options?: string[];
+  timeLimitSeconds: number;
+  revealedAt: string; // ISO 8601
 }
 
 export interface AnswerResultPayload {
-instanceId: string;
-questionId: string;
-correct: boolean;
-correctAnswer?: string;
-pointsEarned: number;
-totalScore: number;
-answeredAt: string; // ISO 8601
+  instanceId: string;
+  questionId: string;
+  correct: boolean;
+  correctAnswer?: string;
+  pointsEarned: number;
+  totalScore: number;
+  answeredAt: string; // ISO 8601
 }
 
 export interface LeaderboardUpdatedPayload {
-instanceId: string;
+  instanceId: string;
 
-entries: Array<{
-rank: number;
-userId: string;
-username: string;
-score: number;
+  entries: Array<{
+    rank: number;
+    userId: string;
+    username: string;
+    score: number;
   }>;
-updatedAt: string; // ISO 8601
+  updatedAt: string; // ISO 8601
 }
 
 export type InstanceEventPayload =
-| InstanceJoinedPayload
+  | InstanceJoinedPayload
   | InstanceLeftPayload
   | InstanceStartedPayload
   | InstanceClosedPayload
@@ -124,55 +122,55 @@ export type InstanceEventPayload =
   | LeaderboardUpdatedPayload;
 
 export interface NotificationSentPayload {
-notificationId: string;
-type: string;
-title: string;
-body?: string;
-read: boolean;
-createdAt: string;
-data?: Record<string, unknown>; // Additional context (instanceId, tournamentId, etc.)
+  notificationId: string;
+  type: string;
+  title: string;
+  body?: string;
+  read: boolean;
+  createdAt: string;
+  data?: Record<string, unknown>; // Additional context (instanceId, tournamentId, etc.)
 }
 
 export interface NotificationDeletedPayload {
-notificationId: string;
+  notificationId: string;
 }
 
 export interface NotificationReadPayload {
-notificationId: string;
-readAt: string; // ISO 8601
+  notificationId: string;
+  readAt: string; // ISO 8601
 }
 
 export type NotificationEventPayload =
-| NotificationSentPayload
+  | NotificationSentPayload
   | NotificationDeletedPayload
   | NotificationReadPayload;
 
 export interface InstanceSocketEvent {
-event: InstanceEventName;
-data: InstanceEventPayload | WsErrorPayload;
+  event: InstanceEventName;
+  data: InstanceEventPayload | WsErrorPayload;
 }
 
 export interface NotificationSocketEvent {
-event: NotificationEventName;
-data: NotificationEventPayload | WsErrorPayload;
+  event: NotificationEventName;
+  data: NotificationEventPayload | WsErrorPayload;
 }
 
 export const INSTANCE_EVENT_NAMES = [
-INSTANCE_JOINED,
-INSTANCE_LEFT,
-INSTANCE_STARTED,
-INSTANCE_CLOSED,
-PLAYER_JOINED,
-PLAYER_LEFT,
-QUESTION_REVEALED,
-ANSWER_RESULT,
-LEADERBOARD_UPDATED,
+  INSTANCE_JOINED,
+  INSTANCE_LEFT,
+  INSTANCE_STARTED,
+  INSTANCE_CLOSED,
+  PLAYER_JOINED,
+  PLAYER_LEFT,
+  QUESTION_REVEALED,
+  ANSWER_RESULT,
+  LEADERBOARD_UPDATED,
 ] as const;
 
 export const NOTIFICATION_EVENT_NAMES = [
-NOTIFICATION_SENT,
-NOTIFICATION_DELETED,
-NOTIFICATION_READ,
+  NOTIFICATION_SENT,
+  NOTIFICATION_DELETED,
+  NOTIFICATION_READ,
 ] as const;
 
 export const COMMENT_CREATED = "comment:created" as const;
@@ -184,7 +182,7 @@ export const VOTE_CAST = "vote:cast" as const;
 export const VOTE_REMOVED = "vote:removed" as const;
 
 export type CommentEventName =
-| typeof COMMENT_CREATED
+  | typeof COMMENT_CREATED
   | typeof COMMENT_EDITED
   | typeof COMMENT_DELETED
   | typeof COMMENT_HIDDEN
@@ -193,116 +191,116 @@ export type CommentEventName =
   | typeof VOTE_REMOVED;
 
 export const COMMENT_EVENT_NAMES = [
-COMMENT_CREATED,
-COMMENT_EDITED,
-COMMENT_DELETED,
-COMMENT_HIDDEN,
-COMMENT_RESTORED,
-VOTE_CAST,
-VOTE_REMOVED,
+  COMMENT_CREATED,
+  COMMENT_EDITED,
+  COMMENT_DELETED,
+  COMMENT_HIDDEN,
+  COMMENT_RESTORED,
+  VOTE_CAST,
+  VOTE_REMOVED,
 ] as const;
 
 export interface CommentSnapshot {
-id: string;
-quizId: string;
-parentCommentId: string | null;
-authorId: string;
-authorUsername: string;
-authorDisplayName: string | null;
-authorAvatarUrl: string | null;
-body: string;
-isHidden: boolean;
-votesCount: number;
-upvotesCount: number;
-downvotesCount: number;
-repliesCount: number;
-userVote: "upvote" | "downvote" | null;
-createdAt: string;
-updatedAt: string;
-deletedAt: string | null;
-isReply: boolean;
+  id: string;
+  quizId: string;
+  parentCommentId: string | null;
+  authorId: string;
+  authorUsername: string;
+  authorDisplayName: string | null;
+  authorAvatarUrl: string | null;
+  body: string;
+  isHidden: boolean;
+  votesCount: number;
+  upvotesCount: number;
+  downvotesCount: number;
+  repliesCount: number;
+  userVote: "upvote" | "downvote" | null;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt: string | null;
+  isReply: boolean;
 }
 
 export interface CommentCreatedPayload {
-eventType: "comment_created";
-commentId: string;
-quizId: string;
-parentCommentId: string | null;
-authorId: string;
-authorUsername: string;
-isReply: boolean;
-timestamp: string;
+  eventType: "comment_created";
+  commentId: string;
+  quizId: string;
+  parentCommentId: string | null;
+  authorId: string;
+  authorUsername: string;
+  isReply: boolean;
+  timestamp: string;
 
-snapshot?: CommentSnapshot;
+  snapshot?: CommentSnapshot;
 }
 
 export interface CommentEditedPayload {
-eventType: "comment_edited";
-commentId: string;
-quizId: string;
-authorId: string;
-timestamp: string;
+  eventType: "comment_edited";
+  commentId: string;
+  quizId: string;
+  authorId: string;
+  timestamp: string;
 
-snapshot?: CommentSnapshot;
+  snapshot?: CommentSnapshot;
 }
 
 export interface CommentDeletedPayload {
-eventType: "comment_deleted";
-commentId: string;
-quizId: string;
-authorId: string;
-timestamp: string;
+  eventType: "comment_deleted";
+  commentId: string;
+  quizId: string;
+  authorId: string;
+  timestamp: string;
 
-parentCommentId?: string | null;
+  parentCommentId?: string | null;
 }
 
 export interface CommentHiddenPayload {
-eventType: "comment_hidden";
-commentId: string;
-quizId: string;
-moderatorId: string;
-timestamp: string;
+  eventType: "comment_hidden";
+  commentId: string;
+  quizId: string;
+  moderatorId: string;
+  timestamp: string;
 
-snapshot?: CommentSnapshot;
+  snapshot?: CommentSnapshot;
 }
 
 export interface CommentRestoredPayload {
-eventType: "comment_restored";
-commentId: string;
-quizId: string;
-moderatorId: string;
-timestamp: string;
+  eventType: "comment_restored";
+  commentId: string;
+  quizId: string;
+  moderatorId: string;
+  timestamp: string;
 
-snapshot?: CommentSnapshot;
+  snapshot?: CommentSnapshot;
 }
 
 export interface VoteCastPayload {
-eventType: "vote_cast";
-commentId: string;
-quizId: string;
-voterId: string;
-value: "upvote" | "downvote";
-timestamp: string;
+  eventType: "vote_cast";
+  commentId: string;
+  quizId: string;
+  voterId: string;
+  value: "upvote" | "downvote";
+  timestamp: string;
 
-votesCount: number;
-upvotesCount: number;
-downvotesCount: number;
+  votesCount: number;
+  upvotesCount: number;
+  downvotesCount: number;
 }
 
 export interface VoteRemovedPayload {
-eventType: "vote_removed";
-commentId: string;
-quizId: string;
-voterId: string;
-timestamp: string;
+  eventType: "vote_removed";
+  commentId: string;
+  quizId: string;
+  voterId: string;
+  timestamp: string;
 
-votesCount: number;
-upvotesCount: number;
-downvotesCount: number;
+  votesCount: number;
+  upvotesCount: number;
+  downvotesCount: number;
 }
 
 export type CommentEventPayload =
-| CommentCreatedPayload
+  | CommentCreatedPayload
   | CommentEditedPayload
   | CommentDeletedPayload
   | CommentHiddenPayload
@@ -311,8 +309,8 @@ export type CommentEventPayload =
   | VoteRemovedPayload;
 
 export interface CommentSocketEvent {
-event: CommentEventName;
-data: CommentEventPayload | WsErrorPayload;
+  event: CommentEventName;
+  data: CommentEventPayload | WsErrorPayload;
 }
 
 export const COINS_NAMESPACE = "/coins" as const;
@@ -321,61 +319,57 @@ export const COIN_BALANCE_CHANGED = "coin:balance_changed" as const;
 export const COIN_TRANSACTION_RECORDED = "coin:transaction_recorded" as const;
 
 export type CoinEventName =
-| typeof COIN_BALANCE_CHANGED
-  | typeof COIN_TRANSACTION_RECORDED;
+  typeof COIN_BALANCE_CHANGED | typeof COIN_TRANSACTION_RECORDED;
 
 export const COIN_EVENT_NAMES = [
-COIN_BALANCE_CHANGED,
-COIN_TRANSACTION_RECORDED,
+  COIN_BALANCE_CHANGED,
+  COIN_TRANSACTION_RECORDED,
 ] as const;
 
 export interface CoinBalanceChangedPayload {
+  newBalance: number;
 
-newBalance: number;
+  delta: number;
 
-delta: number;
+  reason: string;
 
-reason: string;
+  referenceType: string | null;
 
-referenceType: string | null;
+  referenceId: string | null;
 
-referenceId: string | null;
+  timestamp: string;
 
-timestamp: string;
+  userId: string;
 
-userId: string;
-
-eventType: "coin.balance_changed";
+  eventType: "coin.balance_changed";
 }
 
 export interface CoinTransactionRecordedPayload {
+  transactionId: string;
 
-transactionId: string;
+  userId: string;
 
-userId: string;
+  reason: string;
 
-reason: string;
+  amount: number;
 
-amount: number;
+  balanceAfter: number;
 
-balanceAfter: number;
+  referenceType: string | null;
 
-referenceType: string | null;
+  referenceId: string | null;
 
-referenceId: string | null;
+  metadata?: Record<string, unknown> | null;
 
-metadata?: Record<string, unknown> | null;
+  createdAt: string;
 
-createdAt: string;
-
-eventType: "coin.transaction_recorded";
+  eventType: "coin.transaction_recorded";
 }
 
 export type CoinEventPayload =
-| CoinBalanceChangedPayload
-  | CoinTransactionRecordedPayload;
+  CoinBalanceChangedPayload | CoinTransactionRecordedPayload;
 
 export interface CoinSocketEvent {
-event: CoinEventName;
-data: CoinEventPayload | WsErrorPayload;
+  event: CoinEventName;
+  data: CoinEventPayload | WsErrorPayload;
 }

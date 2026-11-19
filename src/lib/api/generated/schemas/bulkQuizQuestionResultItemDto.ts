@@ -1,16 +1,13 @@
-
-
-import type { BulkQuizQuestionResultItemDtoQuestionId } from './bulkQuizQuestionResultItemDtoQuestionId';
+import type { BulkQuizQuestionResultItemDtoQuestionId } from "./bulkQuizQuestionResultItemDtoQuestionId";
 
 export interface BulkQuizQuestionResultItemDto {
+  index: number;
 
-index: number;
+  status: number;
 
-status: number;
+  code: string;
 
-code: string;
+  message: string;
 
-message: string;
-
-questionId: BulkQuizQuestionResultItemDtoQuestionId;
+  questionId: BulkQuizQuestionResultItemDtoQuestionId;
 }

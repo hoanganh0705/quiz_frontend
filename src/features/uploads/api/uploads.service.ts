@@ -1,22 +1,32 @@
 import {
   uploadControllerUploadFile,
   uploadControllerBindUpload,
-} from '@/lib/api/generated/uploads';
-import { STORAGE_PUBLIC_ID_PATTERN, STORAGE_PUBLIC_ID_INVALID_MESSAGE } from '@/lib/storage/public-id-pattern';
+} from "@/lib/api/generated/uploads";
+import {
+  STORAGE_PUBLIC_ID_PATTERN,
+  STORAGE_PUBLIC_ID_INVALID_MESSAGE,
+} from "@/lib/storage/public-id-pattern";
 
 import type {
   UploadFileRequest,
   UploadFileResponse,
   BindUploadRequest,
   BindUploadResponse,
-} from '@/lib/api/generated/uploads';
+} from "@/lib/api/generated/uploads";
 
-export type { UploadFileRequest, UploadFileResponse, BindUploadRequest, BindUploadResponse };
+export type {
+  UploadFileRequest,
+  UploadFileResponse,
+  BindUploadRequest,
+  BindUploadResponse,
+};
 
 export class UploadResponseShapeError extends Error {
   constructor(publicId: string) {
-    super(`Upload endpoint returned a malformed publicId: ${publicId}. ${STORAGE_PUBLIC_ID_INVALID_MESSAGE}`);
-    this.name = 'UploadResponseShapeError';
+    super(
+      `Upload endpoint returned a malformed publicId: ${publicId}. ${STORAGE_PUBLIC_ID_INVALID_MESSAGE}`,
+    );
+    this.name = "UploadResponseShapeError";
   }
 }
 
@@ -27,7 +37,9 @@ export class UploadResponseShapeError extends Error {
  * the form value is written (defence-in-depth on top of the backend's
  * `STORAGE_PUBLIC_ID_PATTERN` check).
  */
-export async function uploadFile(payload: UploadFileRequest): Promise<UploadFileResponse> {
+export async function uploadFile(
+  payload: UploadFileRequest,
+): Promise<UploadFileResponse> {
   const result = await uploadControllerUploadFile(payload);
   if (!STORAGE_PUBLIC_ID_PATTERN.test(result.publicId)) {
     throw new UploadResponseShapeError(result.publicId);
@@ -47,7 +59,9 @@ export async function uploadFile(payload: UploadFileRequest): Promise<UploadFile
  * ownership row. The server validates the asset row exists and the
  * user is authenticated; this wrapper validates the wire shape only.
  */
-export async function bindUploadedAsset(payload: BindUploadRequest): Promise<BindUploadResponse> {
+export async function bindUploadedAsset(
+  payload: BindUploadRequest,
+): Promise<BindUploadResponse> {
   if (!STORAGE_PUBLIC_ID_PATTERN.test(payload.publicId)) {
     throw new UploadResponseShapeError(payload.publicId);
   }

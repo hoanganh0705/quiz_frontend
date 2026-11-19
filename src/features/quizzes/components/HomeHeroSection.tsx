@@ -1,12 +1,6 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
-import {
-  Play,
-  Sparkles,
-  CheckCircle2,
-  Timer,
-  Flame,
-} from "lucide-react";
+import { Play, Sparkles, CheckCircle2, Timer, Flame } from "lucide-react";
 
 export function HomeHeroSection() {
   return (
@@ -26,14 +20,13 @@ export function HomeHeroSection() {
         <div className="lg:col-span-7 flex flex-col items-start">
           <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight mb-3 leading-[1.2] text-foreground">
             Test Your Knowledge,{" "}
-            <span className="text-brand">Compete Live</span>{" "}
-            & Earn Rewards
+            <span className="text-brand">Compete Live</span> & Earn Rewards
           </h1>
 
           <p className="text-sm sm:text-base text-muted-foreground mb-6 max-w-xl leading-relaxed">
-            Dive into community-crafted challenges across science, history, tech,
-            and sports. Level up your rank, challenge friends, and collect verifiable
-            achievements.
+            Dive into community-crafted challenges across science, history,
+            tech, and sports. Level up your rank, challenge friends, and collect
+            verifiable achievements.
           </p>
 
           <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
@@ -81,7 +74,8 @@ export function HomeHeroSection() {
             {/* Question */}
             <div className="my-4">
               <p className="text-sm font-semibold text-foreground leading-snug">
-                Which organelle is recognized as the powerhouse of eukaryotic cells?
+                Which organelle is recognized as the powerhouse of eukaryotic
+                cells?
               </p>
             </div>
 
@@ -111,7 +105,9 @@ export function HomeHeroSection() {
                 <Flame className="h-3.5 w-3.5 fill-current" />
                 <span>3x Streak Bonus!</span>
               </span>
-              <span className="font-medium font-mono text-brand tabular-nums">+180 XP Earned</span>
+              <span className="font-medium font-mono text-brand tabular-nums">
+                +180 XP Earned
+              </span>
             </div>
           </div>
         </div>

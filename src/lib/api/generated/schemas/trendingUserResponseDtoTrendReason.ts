@@ -1,10 +1,9 @@
-
-
-export type TrendingUserResponseDtoTrendReason = typeof TrendingUserResponseDtoTrendReason[keyof typeof TrendingUserResponseDtoTrendReason];
+export type TrendingUserResponseDtoTrendReason =
+  (typeof TrendingUserResponseDtoTrendReason)[keyof typeof TrendingUserResponseDtoTrendReason];
 
 export const TrendingUserResponseDtoTrendReason = {
-most_followed: 'most_followed',
-fastest_growing: 'fastest_growing',
-most_active: 'most_active',
-rising_star: 'rising_star',
+  most_followed: "most_followed",
+  fastest_growing: "fastest_growing",
+  most_active: "most_active",
+  rising_star: "rising_star",
 } as const;

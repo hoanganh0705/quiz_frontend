@@ -1,24 +1,20 @@
-'use client';
+"use client";
 
-import * as React from 'react';
-import {
-  useController,
-  type FieldValues,
-  type Path,
-} from 'react-hook-form';
-import type { z } from 'zod';
-import { X, Loader2 } from 'lucide-react';
+import * as React from "react";
+import { useController, type FieldValues, type Path } from "react-hook-form";
+import type { z } from "zod";
+import { X, Loader2 } from "lucide-react";
 
-import { Label } from '@/components/ui/Label';
-import { cn } from '@/shared/utils/merge-class-names';
-import { useUpload } from '@/features/uploads/hooks/useUpload';
+import { Label } from "@/components/ui/Label";
+import { cn } from "@/shared/utils/merge-class-names";
+import { useUpload } from "@/features/uploads/hooks/useUpload";
 import {
   deriveUrlClient,
   type UploadPurpose,
-} from '@/lib/storage/public-id-pattern';
+} from "@/lib/storage/public-id-pattern";
 
 /**
- * Migration note (Phase 7 — migrate-on-write).
+ * Storage architecture note (migrate-on-write).
  *
  * The form field this component is bound to **always** holds a
  * `publicId` (the storage column). The legacy Base64 data URL column is still rendered by
@@ -33,9 +29,7 @@ import {
  * `data:image/...` fallback — this component does not need to
  * understand it.
  */
-export interface ImageUploadFieldProps<
-  T extends z.ZodTypeAny
-> {
+export interface ImageUploadFieldProps<T extends z.ZodTypeAny> {
   name: Path<z.infer<T>>;
   label: string;
   description?: string;
@@ -56,12 +50,12 @@ export interface ImageUploadFieldProps<
 const DEFAULT_MAX_BYTES = 5 * 1024 * 1024;
 
 function isPublicIdShape(value: unknown): value is string {
-  return typeof value === 'string' && value.length > 0;
+  return typeof value === "string" && value.length > 0;
 }
 
-export function ImageUploadField<
-  T extends z.ZodTypeAny
->(props: ImageUploadFieldProps<T>): React.ReactElement {
+export function ImageUploadField<T extends z.ZodTypeAny>(
+  props: ImageUploadFieldProps<T>,
+): React.ReactElement {
   const {
     name,
     label,
@@ -81,9 +75,13 @@ export function ImageUploadField<
   const { upload, isUploading, progress, error, retry } = useUpload();
 
   const inputDisabled =
-    disabled === true ? true : disabled === false ? false : formState.isSubmitting;
+    disabled === true
+      ? true
+      : disabled === false
+        ? false
+        : formState.isSubmitting;
 
-  const value = typeof field.value === 'string' ? field.value : '';
+  const value = typeof field.value === "string" ? field.value : "";
   const errorMessage = fieldState.error?.message;
   const inputId = React.useId();
 
@@ -111,93 +109,99 @@ export function ImageUploadField<
 
   function handleChange(event: React.ChangeEvent<HTMLInputElement>): void {
     const file = event.target.files?.[0];
-    event.target.value = '';
+    event.target.value = "";
     void handleFile(file ?? undefined);
   }
 
   function handleRemove(): void {
-    field.onChange('');
+    field.onChange("");
     setOversize(null);
   }
 
-  const previewUrl = isPublicIdShape(value) ? deriveUrlClient(value, purpose) : null;
+  const previewUrl = isPublicIdShape(value)
+    ? deriveUrlClient(value, purpose)
+    : null;
 
   return (
-    <div className={cn('space-y-2', className)} data-testid={`image-upload-field-${name}`}>
+    <div
+      className={cn("space-y-2", className)}
+      data-testid={`image-upload-field-${name}`}
+    >
       <Label htmlFor={inputId}>{label}</Label>
       {description ? (
-        <p className='text-xs text-muted-foreground'>{description}</p>
+        <p className="text-xs text-muted-foreground">{description}</p>
       ) : null}
 
       {previewUrl ? (
         <div
-          className='relative inline-block rounded-md border bg-muted p-2'
+          className="relative inline-block rounded-md border bg-muted p-2"
           data-testid={`image-upload-field-preview-${name}`}
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={previewUrl}
             alt={`${label} preview`}
-            className='max-h-40 max-w-xs rounded'
+            className="max-h-40 max-w-xs rounded"
           />
           <button
-            type='button'
+            type="button"
             onClick={handleRemove}
-            className='absolute -right-2 -top-2 inline-flex h-6 w-6 items-center justify-center rounded-full border bg-background text-muted-foreground hover:text-foreground'
-            aria-label='Remove image'
+            className="absolute -right-2 -top-2 inline-flex h-6 w-6 items-center justify-center rounded-full border bg-background text-muted-foreground hover:text-foreground"
+            aria-label="Remove image"
             data-testid={`image-upload-field-remove-${name}`}
           >
-            <X className='h-3 w-3' aria-hidden='true' />
+            <X className="h-3 w-3" aria-hidden="true" />
           </button>
         </div>
       ) : (
         <input
           id={inputId}
-          type='file'
-          accept='image/*'
+          type="file"
+          accept="image/*"
           disabled={inputDisabled || isUploading}
           onChange={handleChange}
-          className='block w-full text-sm text-foreground file:mr-4 file:rounded-md file:border-0 file:bg-secondary file:px-3 file:py-1.5 file:text-sm file:font-medium hover:file:bg-secondary/80 disabled:opacity-50'
+          className="block w-full text-sm text-foreground file:mr-4 file:rounded-md file:border-0 file:bg-secondary file:px-3 file:py-1.5 file:text-sm file:font-medium hover:file:bg-secondary/80 disabled:opacity-50"
           data-testid={`image-upload-field-input-${name}`}
         />
       )}
 
       {isUploading ? (
         <div
-          className='flex items-center gap-2 text-xs text-muted-foreground'
-          role='status'
-          aria-live='polite'
+          className="flex items-center gap-2 text-xs text-muted-foreground"
+          role="status"
+          aria-live="polite"
           data-testid={`image-upload-field-progress-${name}`}
         >
-          <Loader2 className='h-3 w-3 animate-spin' aria-hidden='true' />
-          <span>Uploading… {progress === null ? '' : `${progress}%`}</span>
+          <Loader2 className="h-3 w-3 animate-spin" aria-hidden="true" />
+          <span>Uploading… {progress === null ? "" : `${progress}%`}</span>
         </div>
       ) : null}
 
       {oversize ? (
         <p
-          className='text-xs text-destructive'
-          role='alert'
+          className="text-xs text-destructive"
+          role="alert"
           data-testid={`image-upload-field-oversize-${name}`}
         >
           Reduce file size — maximum {(maxBytes / (1024 * 1024)).toFixed(0)} MB
-          (selected {oversize.fileName} is {(oversize.fileSize / (1024 * 1024)).toFixed(1)} MB).
+          (selected {oversize.fileName} is{" "}
+          {(oversize.fileSize / (1024 * 1024)).toFixed(1)} MB).
         </p>
       ) : null}
 
       {error && !isUploading ? (
         <div
-          className='flex items-center gap-2 text-xs text-destructive'
-          role='alert'
+          className="flex items-center gap-2 text-xs text-destructive"
+          role="alert"
           data-testid={`image-upload-field-error-${name}`}
         >
           <span>Upload failed: {error.message}</span>
           <button
-            type='button'
+            type="button"
             onClick={() => {
               void retry();
             }}
-            className='rounded border border-destructive/40 px-2 py-0.5 text-xs font-semibold uppercase tracking-wide hover:bg-destructive/10'
+            className="rounded border border-destructive/40 px-2 py-0.5 text-xs font-semibold uppercase tracking-wide hover:bg-destructive/10"
           >
             Retry
           </button>
@@ -205,7 +209,7 @@ export function ImageUploadField<
       ) : null}
 
       {errorMessage ? (
-        <p className='text-xs text-destructive' role='alert'>
+        <p className="text-xs text-destructive" role="alert">
           {errorMessage}
         </p>
       ) : null}

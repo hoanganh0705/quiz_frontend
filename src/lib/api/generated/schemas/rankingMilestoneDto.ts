@@ -1,12 +1,9 @@
-
-
-import type { RankingMilestoneDtoMilestone } from './rankingMilestoneDtoMilestone';
+import type { RankingMilestoneDtoMilestone } from "./rankingMilestoneDtoMilestone";
 
 export interface RankingMilestoneDto {
+  milestone: RankingMilestoneDtoMilestone;
 
-milestone: RankingMilestoneDtoMilestone;
+  rank: number;
 
-rank: number;
-
-achievedAt: string;
+  achievedAt: string;
 }

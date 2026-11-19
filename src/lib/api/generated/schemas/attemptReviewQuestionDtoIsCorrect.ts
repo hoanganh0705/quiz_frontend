@@ -1,3 +1,3 @@
-
-
-export type AttemptReviewQuestionDtoIsCorrect = { [key: string]: unknown } | null;
+export type AttemptReviewQuestionDtoIsCorrect = {
+  [key: string]: unknown;
+} | null;

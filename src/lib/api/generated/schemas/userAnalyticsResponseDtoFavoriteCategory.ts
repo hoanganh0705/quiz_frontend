@@ -1,5 +1,4 @@
+import type { UserAnalyticsFavoriteCategoryDto } from "./userAnalyticsFavoriteCategoryDto";
 
-
-import type { UserAnalyticsFavoriteCategoryDto } from './userAnalyticsFavoriteCategoryDto';
-
-export type UserAnalyticsResponseDtoFavoriteCategory = UserAnalyticsFavoriteCategoryDto | null;
+export type UserAnalyticsResponseDtoFavoriteCategory =
+  UserAnalyticsFavoriteCategoryDto | null;

@@ -1,16 +1,13 @@
-
-
 export interface ApiErrorInput {
+  status?: number;
 
-status?: number;
+  code?: string;
 
-code?: string;
+  message?: string;
 
-message?: string;
+  requestId?: string;
 
-requestId?: string;
+  title?: string;
 
-title?: string;
-
-instance?: string;
+  instance?: string;
 }

@@ -1,14 +1,11 @@
-
-
-import type { QuizQuestionPlayerDto } from './quizQuestionPlayerDto';
+import type { QuizQuestionPlayerDto } from "./quizQuestionPlayerDto";
 
 export interface QuizPreviewResponseDto {
+  quizId: string;
 
-quizId: string;
+  publishedVersionId?: string | null;
 
-publishedVersionId?: string | null;
+  questions: QuizQuestionPlayerDto[];
 
-questions: QuizQuestionPlayerDto[];
-
-totalQuestions: number;
+  totalQuestions: number;
 }

@@ -1,5 +1,3 @@
-
-
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 
@@ -15,101 +13,107 @@ vi.mock("next/navigation", () => ({
 
 const mockGetFeatureFlagValue = vi.fn();
 vi.mock("@/lib/feature-flags", () => ({
-getFeatureFlagValue: (...args: unknown[]) => mockGetFeatureFlagValue(...args),
+  getFeatureFlagValue: (...args: unknown[]) => mockGetFeatureFlagValue(...args),
 }));
 
 vi.mock("@/features/achievements/components/BadgeGallery", () => ({
-BadgeGallery: () => <div data-testid="badge-gallery-stub" />,
+  BadgeGallery: () => <div data-testid="badge-gallery-stub" />,
 }));
 vi.mock("@/features/achievements/components/EarnedBadgeList", () => ({
-EarnedBadgeList: () => <div data-testid="earned-badge-list-stub" />,
+  EarnedBadgeList: () => <div data-testid="earned-badge-list-stub" />,
 }));
 vi.mock("@/features/achievements/components/AchievementHistory", () => ({
-AchievementHistory: () => <div data-testid="achievement-history-stub" />,
+  AchievementHistory: () => <div data-testid="achievement-history-stub" />,
 }));
 vi.mock("@/features/rankings/components/shared/Placeholder", () => ({
-AchievementsPlaceholder: () => (
-<div data-testid="achievements-placeholder-stub">coming soon</div>
+  AchievementsPlaceholder: () => (
+    <div data-testid="achievements-placeholder-stub">coming soon</div>
   ),
 }));
 
 const mockUseAchievementNotificationRevalidation = vi.fn();
-vi.mock("@/features/achievements/hooks/useAchievementNotificationRevalidation", () => ({
-useAchievementNotificationRevalidation: () =>
-mockUseAchievementNotificationRevalidation(),
-}));
+vi.mock(
+  "@/features/achievements/hooks/useAchievementNotificationRevalidation",
+  () => ({
+    useAchievementNotificationRevalidation: () =>
+      mockUseAchievementNotificationRevalidation(),
+  }),
+);
 
 const mockUseAchievementFocusRevalidation = vi.fn();
-vi.mock("@/features/achievements/hooks/useAchievementFocusRevalidation", () => ({
-useAchievementFocusRevalidation: () =>
-mockUseAchievementFocusRevalidation(),
-}));
+vi.mock(
+  "@/features/achievements/hooks/useAchievementFocusRevalidation",
+  () => ({
+    useAchievementFocusRevalidation: () =>
+      mockUseAchievementFocusRevalidation(),
+  }),
+);
 
 describe("AchievementsPage", () => {
-beforeEach(() => {
-vi.clearAllMocks();
+  beforeEach(() => {
+    vi.clearAllMocks();
   });
 
-afterEach(() => {
-vi.restoreAllMocks();
+  afterEach(() => {
+    vi.restoreAllMocks();
   });
 
-it("renders the placeholder view when the achievement surface flag is off", () => {
-mockGetFeatureFlagValue.mockReturnValue("placeholder");
+  it("renders the placeholder view when the achievement surface flag is off", () => {
+    mockGetFeatureFlagValue.mockReturnValue("placeholder");
 
-render(<AchievementsPage />);
+    render(<AchievementsPage />);
 
-expect(
-screen.getByTestId("achievements-page-placeholder"),
+    expect(
+      screen.getByTestId("achievements-page-placeholder"),
     ).toBeInTheDocument();
-expect(
-screen.getByTestId("achievements-placeholder-stub"),
+    expect(
+      screen.getByTestId("achievements-placeholder-stub"),
     ).toBeInTheDocument();
 
-expect(screen.queryByTestId("badge-gallery-stub")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("badge-gallery-stub")).not.toBeInTheDocument();
 
-expect(mockUseAchievementNotificationRevalidation).not.toHaveBeenCalled();
-expect(mockUseAchievementFocusRevalidation).not.toHaveBeenCalled();
+    expect(mockUseAchievementNotificationRevalidation).not.toHaveBeenCalled();
+    expect(mockUseAchievementFocusRevalidation).not.toHaveBeenCalled();
   });
 
-it("renders the live composition when the achievement surface flag is live", () => {
-mockGetFeatureFlagValue.mockReturnValue("live");
+  it("renders the live composition when the achievement surface flag is live", () => {
+    mockGetFeatureFlagValue.mockReturnValue("live");
 
-render(<AchievementsPage />);
+    render(<AchievementsPage />);
 
-expect(screen.getByTestId("achievements-page")).toBeInTheDocument();
-expect(screen.getByTestId("badge-gallery-stub")).toBeInTheDocument();
-expect(screen.getByTestId("earned-badge-list-stub")).toBeInTheDocument();
-expect(screen.getByTestId("achievement-history-stub")).toBeInTheDocument();
+    expect(screen.getByTestId("achievements-page")).toBeInTheDocument();
+    expect(screen.getByTestId("badge-gallery-stub")).toBeInTheDocument();
+    expect(screen.getByTestId("earned-badge-list-stub")).toBeInTheDocument();
+    expect(screen.getByTestId("achievement-history-stub")).toBeInTheDocument();
   });
 
-it("mounts both revalidation bridges when the flag is live", () => {
-mockGetFeatureFlagValue.mockReturnValue("live");
+  it("mounts both revalidation bridges when the flag is live", () => {
+    mockGetFeatureFlagValue.mockReturnValue("live");
 
-render(<AchievementsPage />);
+    render(<AchievementsPage />);
 
-expect(mockUseAchievementNotificationRevalidation).toHaveBeenCalledTimes(1);
-expect(mockUseAchievementFocusRevalidation).toHaveBeenCalledTimes(1);
+    expect(mockUseAchievementNotificationRevalidation).toHaveBeenCalledTimes(1);
+    expect(mockUseAchievementFocusRevalidation).toHaveBeenCalledTimes(1);
   });
 
-it("renders tab triggers and allows tab switching", () => {
-mockGetFeatureFlagValue.mockReturnValue("live");
+  it("renders tab triggers and allows tab switching", () => {
+    mockGetFeatureFlagValue.mockReturnValue("live");
 
-render(<AchievementsPage />);
+    render(<AchievementsPage />);
 
-const catalogTab = screen.getByRole("tab", { name: /Badge Catalog/i });
-const earnedTab = screen.getByRole("tab", { name: /My Badges/i });
-const historyTab = screen.getByRole("tab", { name: /History/i });
+    const catalogTab = screen.getByRole("tab", { name: /Badge Catalog/i });
+    const earnedTab = screen.getByRole("tab", { name: /My Badges/i });
+    const historyTab = screen.getByRole("tab", { name: /History/i });
 
-expect(catalogTab).toBeInTheDocument();
-expect(earnedTab).toBeInTheDocument();
-expect(historyTab).toBeInTheDocument();
+    expect(catalogTab).toBeInTheDocument();
+    expect(earnedTab).toBeInTheDocument();
+    expect(historyTab).toBeInTheDocument();
 
-expect(catalogTab).toHaveAttribute("data-state", "active");
+    expect(catalogTab).toHaveAttribute("data-state", "active");
 
-fireEvent.mouseDown(earnedTab, { button: 0, ctrlKey: false });
-expect(mockRouterReplace).toHaveBeenCalledWith("/achievements?tab=earned", {
-scroll: false,
+    fireEvent.mouseDown(earnedTab, { button: 0, ctrlKey: false });
+    expect(mockRouterReplace).toHaveBeenCalledWith("/achievements?tab=earned", {
+      scroll: false,
     });
   });
 });

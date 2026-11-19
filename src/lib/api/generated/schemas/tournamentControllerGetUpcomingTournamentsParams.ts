@@ -1,12 +1,9 @@
-
-
-import type { TournamentControllerGetUpcomingTournamentsSortBy } from './tournamentControllerGetUpcomingTournamentsSortBy';
+import type { TournamentControllerGetUpcomingTournamentsSortBy } from "./tournamentControllerGetUpcomingTournamentsSortBy";
 
 export type TournamentControllerGetUpcomingTournamentsParams = {
+  page?: number;
 
-page?: number;
+  limit?: number;
 
-limit?: number;
-
-sortBy?: TournamentControllerGetUpcomingTournamentsSortBy;
+  sortBy?: TournamentControllerGetUpcomingTournamentsSortBy;
 };

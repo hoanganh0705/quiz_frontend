@@ -1,20 +1,16 @@
-'use client';
+"use client";
 
-import { memo, useCallback, useEffect, useMemo, useState } from 'react';
-import {
-  FormProvider,
-  useForm,
-  type UseFormReturn,
-} from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
+import { memo, useCallback, useEffect, useMemo, useState } from "react";
+import { FormProvider, useForm, type UseFormReturn } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@/components/ui/Card';
+} from "@/components/ui/Card";
 import {
   Dialog,
   DialogContent,
@@ -23,24 +19,22 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/Dialog';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/Avatar';
-import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
-import { Label } from '@/components/ui/Label';
-import { useToast } from '@/lib/forms/useToast';
-import { FormErrorBanner } from '@/components/primitives/form/FormErrorBanner';
-import { ImageUploadField } from '@/components/primitives/form/ImageUploadField';
+} from "@/components/ui/Dialog";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/Avatar";
+import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Input";
+import { Label } from "@/components/ui/Label";
+import { useToast } from "@/lib/forms/useToast";
+import { FormErrorBanner } from "@/components/primitives/form/FormErrorBanner";
+import { ImageUploadField } from "@/components/primitives/form/ImageUploadField";
 import {
   useUpdateMyProfile,
   type UseUpdateMyProfileReturn,
-} from '@/features/users/hooks/useUpdateMyProfile';
-import {
-  useCheckUsername,
-} from '@/features/auth/hooks/use-check-username';
-import { updateMyProfileSchema } from '@/lib/forms';
-import { deriveUrlClient } from '@/lib/storage/public-id-pattern';
-import type { UserMeResponseDto } from '@/features/users/types/user-backend';
+} from "@/features/users/hooks/useUpdateMyProfile";
+import { useCheckUsername } from "@/features/auth/hooks/use-check-username";
+import { updateMyProfileSchema } from "@/lib/forms";
+import { deriveUrlClient } from "@/lib/storage/public-id-pattern";
+import type { UserMeResponseDto } from "@/features/users/types/user-backend";
 import {
   User,
   Mail,
@@ -52,7 +46,7 @@ import {
   EyeOff,
   Loader2,
   AlertCircle,
-} from 'lucide-react';
+} from "lucide-react";
 
 export interface AccountSettingsProps {
   profile: UserMeResponseDto | null;
@@ -75,19 +69,19 @@ const AvatarSection = memo(function AvatarSection({
   form: UseFormReturn<AccountSettingsFormValues>;
 }) {
   const initials = useMemo(() => {
-    if (!displayName) return '?';
+    if (!displayName) return "?";
     return displayName
-      .split(' ')
+      .split(" ")
       .map((n) => n[0])
-      .join('')
+      .join("")
       .toUpperCase()
       .slice(0, 2);
   }, [displayName]);
 
-  const currentPublicId = form.watch('avatarPublicId');
+  const currentPublicId = form.watch("avatarPublicId");
   const previewUrl = currentPublicId
-    ? deriveUrlClient(currentPublicId, 'avatar')
-    : profile.avatarUrl ?? null;
+    ? deriveUrlClient(currentPublicId, "avatar")
+    : (profile.avatarUrl ?? null);
 
   return (
     <Card className="border-border/40 py-4">
@@ -105,7 +99,7 @@ const AvatarSection = memo(function AvatarSection({
           <Avatar className="w-24 h-24 border-4 border-primary/20">
             <AvatarImage
               src={previewUrl ?? undefined}
-              alt={`${displayName ?? 'User'}'s profile picture`}
+              alt={`${displayName ?? "User"}'s profile picture`}
               loading="lazy"
             />
             <AvatarFallback className="text-2xl bg-primary/20">
@@ -151,19 +145,16 @@ const UsernameField = memo(function UsernameField({
           className="bg-muted/50"
           aria-label="Username (read-only — usernames cannot be changed)"
         />
-        {status === 'checking' && (
+        {status === "checking" && (
           <Loader2
             className="h-4 w-4 animate-spin text-muted-foreground"
             aria-hidden="true"
           />
         )}
-        {status === 'available' && (
-          <Check
-            className="h-4 w-4 text-success"
-            aria-hidden="true"
-          />
+        {status === "available" && (
+          <Check className="h-4 w-4 text-success" aria-hidden="true" />
         )}
-        {status === 'unavailable' && (
+        {status === "unavailable" && (
           <AlertCircle
             className="h-4 w-4 text-destructive"
             aria-hidden="true"
@@ -190,9 +181,9 @@ const PasswordDialog = memo(function PasswordDialog({
     confirm: false,
   });
   const [passwordData, setPasswordData] = useState({
-    currentPassword: '',
-    newPassword: '',
-    confirmPassword: '',
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: "",
   });
 
   return (
@@ -229,7 +220,7 @@ const PasswordDialog = memo(function PasswordDialog({
                 <div className="relative">
                   <Input
                     id="currentPassword"
-                    type={showPassword.current ? 'text' : 'password'}
+                    type={showPassword.current ? "text" : "password"}
                     value={passwordData.currentPassword}
                     onChange={(e) =>
                       setPasswordData((p) => ({
@@ -249,8 +240,8 @@ const PasswordDialog = memo(function PasswordDialog({
                     }
                     aria-label={
                       showPassword.current
-                        ? 'Hide current password'
-                        : 'Show current password'
+                        ? "Hide current password"
+                        : "Show current password"
                     }
                   >
                     {showPassword.current ? (
@@ -268,7 +259,7 @@ const PasswordDialog = memo(function PasswordDialog({
                 <div className="relative">
                   <Input
                     id="newPassword"
-                    type={showPassword.new ? 'text' : 'password'}
+                    type={showPassword.new ? "text" : "password"}
                     value={passwordData.newPassword}
                     onChange={(e) =>
                       setPasswordData((p) => ({
@@ -287,7 +278,9 @@ const PasswordDialog = memo(function PasswordDialog({
                       setShowPassword((p) => ({ ...p, new: !p.new }))
                     }
                     aria-label={
-                      showPassword.new ? 'Hide new password' : 'Show new password'
+                      showPassword.new
+                        ? "Hide new password"
+                        : "Show new password"
                     }
                   >
                     {showPassword.new ? (
@@ -308,7 +301,7 @@ const PasswordDialog = memo(function PasswordDialog({
                 <div className="relative">
                   <Input
                     id="confirmPassword"
-                    type={showPassword.confirm ? 'text' : 'password'}
+                    type={showPassword.confirm ? "text" : "password"}
                     value={passwordData.confirmPassword}
                     onChange={(e) =>
                       setPasswordData((p) => ({
@@ -328,8 +321,8 @@ const PasswordDialog = memo(function PasswordDialog({
                     }
                     aria-label={
                       showPassword.confirm
-                        ? 'Hide confirm password'
-                        : 'Show confirm password'
+                        ? "Hide confirm password"
+                        : "Show confirm password"
                     }
                   >
                     {showPassword.confirm ? (
@@ -350,19 +343,19 @@ const PasswordDialog = memo(function PasswordDialog({
                   if (
                     passwordData.newPassword !== passwordData.confirmPassword
                   ) {
-                    alert('Passwords do not match!');
+                    alert("Passwords do not match!");
                     return;
                   }
                   if (passwordData.newPassword.length < 8) {
-                    alert('Password must be at least 8 characters!');
+                    alert("Password must be at least 8 characters!");
                     return;
                   }
 
                   setOpen(false);
                   setPasswordData({
-                    currentPassword: '',
-                    newPassword: '',
-                    confirmPassword: '',
+                    currentPassword: "",
+                    newPassword: "",
+                    confirmPassword: "",
                   });
                 }}
               >
@@ -385,11 +378,17 @@ export const AccountSettings = memo(function AccountSettings({
   const defaultValues = useMemo<AccountSettingsFormValues | null>(() => {
     if (!profile) return null;
     return {
-      displayName: (profile.displayName ?? '') as string,
-      bio: (profile.bio ?? '') as string,
-      pronouns: ((profile as unknown as Record<string, unknown>).pronouns as string | undefined) ?? '',
-      location: ((profile as unknown as Record<string, unknown>).location as string | undefined) ?? '',
-      websiteUrl: ((profile as unknown as Record<string, unknown>).websiteUrl as string | undefined) ?? '',
+      displayName: (profile.displayName ?? "") as string,
+      bio: (profile.bio ?? "") as string,
+      pronouns:
+        ((profile as unknown as Record<string, unknown>).pronouns as
+          string | undefined) ?? "",
+      location:
+        ((profile as unknown as Record<string, unknown>).location as
+          string | undefined) ?? "",
+      websiteUrl:
+        ((profile as unknown as Record<string, unknown>).websiteUrl as
+          string | undefined) ?? "",
       avatarPublicId: null,
       username: profile.username,
       email: profile.email,
@@ -408,8 +407,8 @@ export const AccountSettings = memo(function AccountSettings({
   useEffect(() => {
     if (updateProfile.isSuccess) {
       toast.push({
-        title: 'Profile saved',
-        body: 'Your changes have been saved.',
+        title: "Profile saved",
+        body: "Your changes have been saved.",
         durationMs: 3000,
       });
       form.reset(form.getValues());
@@ -442,14 +441,17 @@ export const AccountSettings = memo(function AccountSettings({
 
   return (
     <FormProvider {...form}>
-      <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-6">
+      <form
+        onSubmit={form.handleSubmit(handleFormSubmit)}
+        className="space-y-6"
+      >
         {/* Error banner */}
         <FormErrorBanner
           lastError={
             updateProfile.lastError
               ? {
                   ...updateProfile.lastError,
-                  code: updateProfile.lastApiError?.code ?? 'GLOBAL_UNKNOWN',
+                  code: updateProfile.lastApiError?.code ?? "GLOBAL_UNKNOWN",
                 }
               : null
           }
@@ -471,9 +473,7 @@ export const AccountSettings = memo(function AccountSettings({
               <User className="w-5 h-5 text-primary" aria-hidden="true" />
               Account Information
             </CardTitle>
-            <CardDescription>
-              Manage your personal information.
-            </CardDescription>
+            <CardDescription>Manage your personal information.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             {/* Display name */}
@@ -484,12 +484,12 @@ export const AccountSettings = memo(function AccountSettings({
               </Label>
               <Input
                 id="displayName"
-                {...form.register('displayName')}
+                {...form.register("displayName")}
                 disabled={isSaving}
                 className="bg-background/50"
                 aria-describedby={
                   form.formState.errors.displayName
-                    ? 'displayName-error'
+                    ? "displayName-error"
                     : undefined
                 }
               />

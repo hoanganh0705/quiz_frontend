@@ -1,12 +1,9 @@
-
-
 export interface QuizMetricsDto {
+  totalAttempts: number;
 
-totalAttempts: number;
+  uniquePlayers: number;
 
-uniquePlayers: number;
+  averageScore: number;
 
-averageScore: number;
-
-completionRate: number;
+  completionRate: number;
 }

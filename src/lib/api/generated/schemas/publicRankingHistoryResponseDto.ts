@@ -1,12 +1,9 @@
-
-
-import type { RankingHistoryItemDto } from './rankingHistoryItemDto';
+import type { RankingHistoryItemDto } from "./rankingHistoryItemDto";
 
 export interface PublicRankingHistoryResponseDto {
+  userId: string;
 
-userId: string;
+  username: string;
 
-username: string;
-
-history: RankingHistoryItemDto[];
+  history: RankingHistoryItemDto[];
 }

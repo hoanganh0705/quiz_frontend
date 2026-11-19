@@ -1,12 +1,9 @@
-
-
-import type { UserReviewControllerListMyReportedReviewsStatus } from './userReviewControllerListMyReportedReviewsStatus';
+import type { UserReviewControllerListMyReportedReviewsStatus } from "./userReviewControllerListMyReportedReviewsStatus";
 
 export type UserReviewControllerListMyReportedReviewsParams = {
+  cursor?: string;
 
-cursor?: string;
+  limit?: number;
 
-limit?: number;
-
-status?: UserReviewControllerListMyReportedReviewsStatus;
+  status?: UserReviewControllerListMyReportedReviewsStatus;
 };

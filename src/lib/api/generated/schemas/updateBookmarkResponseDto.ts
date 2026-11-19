@@ -1,14 +1,11 @@
-
-
 export interface UpdateBookmarkResponseDto {
+  bookmarkId: string;
 
-bookmarkId: string;
+  collectionId: string;
 
-collectionId: string;
+  quizId: string;
 
-quizId: string;
+  notes?: string | null;
 
-notes?: string | null;
-
-updatedAt: string;
+  updatedAt: string;
 }

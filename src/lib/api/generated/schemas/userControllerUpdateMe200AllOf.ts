@@ -1,7 +1,5 @@
-
-
-import type { UserMeResponseDto } from './userMeResponseDto';
+import type { UserMeResponseDto } from "./userMeResponseDto";
 
 export type UserControllerUpdateMe200AllOf = {
-data?: UserMeResponseDto;
+  data?: UserMeResponseDto;
 };

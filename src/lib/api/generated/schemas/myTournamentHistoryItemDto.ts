@@ -1,16 +1,13 @@
-
-
 export interface MyTournamentHistoryItemDto {
+  tournamentId: string;
 
-tournamentId: string;
+  tournamentName: string;
 
-tournamentName: string;
+  rank?: number | null;
 
-rank?: number | null;
+  score: number;
 
-score: number;
+  participantCount: number;
 
-participantCount: number;
-
-completedAt: string;
+  completedAt: string;
 }

@@ -1,10 +1,7 @@
-
-
-import type { RecalculateResponseDtoPeriod } from './recalculateResponseDtoPeriod';
+import type { RecalculateResponseDtoPeriod } from "./recalculateResponseDtoPeriod";
 
 export interface RecalculateResponseDto {
+  message: string;
 
-message: string;
-
-period?: RecalculateResponseDtoPeriod;
+  period?: RecalculateResponseDtoPeriod;
 }

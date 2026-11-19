@@ -1,7 +1,5 @@
-
-
-import type { StartTournamentAttemptResponseDto } from './startTournamentAttemptResponseDto';
+import type { StartTournamentAttemptResponseDto } from "./startTournamentAttemptResponseDto";
 
 export type TournamentControllerStartRoundAttempt201AllOf = {
-data?: StartTournamentAttemptResponseDto;
+  data?: StartTournamentAttemptResponseDto;
 };

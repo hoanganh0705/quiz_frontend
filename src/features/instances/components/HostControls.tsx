@@ -30,13 +30,13 @@ export interface HostControlsProps {
   className?: string;
 }
 
-const STALE_ROLE_ERROR_CODES: ReadonlySet<InstanceLifecycleErrorCode> = new Set([
-  "INSTANCE_HOST_REQUIRED",
-  "INSTANCE_FORBIDDEN",
-  "GLOBAL_FORBIDDEN",
-]);
+const STALE_ROLE_ERROR_CODES: ReadonlySet<InstanceLifecycleErrorCode> = new Set(
+  ["INSTANCE_HOST_REQUIRED", "INSTANCE_FORBIDDEN", "GLOBAL_FORBIDDEN"],
+);
 
-function isStaleRoleErrorCode(code: string | undefined): code is InstanceLifecycleErrorCode {
+function isStaleRoleErrorCode(
+  code: string | undefined,
+): code is InstanceLifecycleErrorCode {
   if (!code) return false;
   return STALE_ROLE_ERROR_CODES.has(code as InstanceLifecycleErrorCode);
 }
@@ -51,13 +51,18 @@ export function HostControls({
   const permissions = useInstancePermissions(instanceId, {
     ...(currentUserId !== null ? { currentUserId } : {}),
   });
-  const { instance, refresh: refreshInstance } = useInstance(instanceId, currentUserId);
+  const { instance, refresh: refreshInstance } = useInstance(
+    instanceId,
+    currentUserId,
+  );
 
   const realtimeStatus = useInstanceRealtimeStore((state) =>
-    instanceId === null ? null : selectInstanceRealtimeStatus(state, instanceId),
+    instanceId === null
+      ? null
+      : selectInstanceRealtimeStatus(state, instanceId),
   );
   const status: InstanceStatus | null =
-    realtimeStatus ?? (instance?.status ?? null);
+    realtimeStatus ?? instance?.status ?? null;
 
   const {
     start,
@@ -96,11 +101,7 @@ export function HostControls({
   const closePending = closeState === "pending";
 
   const activeError: ApiError | null =
-    startError !== null
-      ? startError
-      : closeError !== null
-        ? closeError
-        : null;
+    startError !== null ? startError : closeError !== null ? closeError : null;
 
   const disabledByStaleRole =
     activeError !== null && isStaleRoleErrorCode(activeError.code);
@@ -155,11 +156,7 @@ export function HostControls({
       )}
 
       {activeError !== null && (
-        <div
-          role="alert"
-          aria-live="polite"
-          data-testid="host-controls-error"
-        >
+        <div role="alert" aria-live="polite" data-testid="host-controls-error">
           <InstanceErrorState
             error={activeError}
             onRetry={() => {
@@ -176,8 +173,12 @@ export function HostControls({
           className="text-xs text-muted-foreground"
           data-testid="host-controls-stale-role"
         >
-          <StopCircle className="inline-block h-3.5 w-3.5 mr-1 align-text-bottom" aria-hidden />
-          Controls are disabled because your role has changed. Refresh to continue.
+          <StopCircle
+            className="inline-block h-3.5 w-3.5 mr-1 align-text-bottom"
+            aria-hidden
+          />
+          Controls are disabled because your role has changed. Refresh to
+          continue.
         </p>
       )}
     </div>

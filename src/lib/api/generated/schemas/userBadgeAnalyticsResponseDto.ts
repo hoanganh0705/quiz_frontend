@@ -1,12 +1,9 @@
-
-
 export interface UserBadgeAnalyticsResponseDto {
+  totalBadges: number;
 
-totalBadges: number;
+  rareBadges: number;
 
-rareBadges: number;
+  completionRate: number;
 
-completionRate: number;
-
-latestBadgeEarnedAt: string | null;
+  latestBadgeEarnedAt: string | null;
 }

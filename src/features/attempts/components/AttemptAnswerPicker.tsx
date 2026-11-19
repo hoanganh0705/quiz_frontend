@@ -1,19 +1,15 @@
-'use client';
+"use client";
 
-import * as React from 'react';
+import * as React from "react";
 
-import { Label } from '@/components/ui/Label';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/RadioGroup';
-import { cn } from '@/shared/utils/merge-class-names';
+import { Label } from "@/components/ui/Label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/RadioGroup";
+import { cn } from "@/shared/utils/merge-class-names";
 
-import { deriveQuestionKind } from '@/features/attempts/lib/attempt-answer-validation';
-import type {
-  AnswerSelection,
-} from '@/features/attempts/types/attempt-runner.types';
+import { deriveQuestionKind } from "@/features/attempts/lib/attempt-answer-validation";
+import type { AnswerSelection } from "@/features/attempts/types/attempt-runner.types";
 
-import type {
-  QuizQuestionPlayerDto,
-} from '@/lib/api/generated/schemas';
+import type { QuizQuestionPlayerDto } from "@/lib/api/generated/schemas";
 
 export interface AttemptAnswerPickerProps {
   question: QuizQuestionPlayerDto;
@@ -25,7 +21,7 @@ export interface AttemptAnswerPickerProps {
   testIdPrefix?: string;
 }
 
-const OPTION_LETTERS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
+const OPTION_LETTERS = ["A", "B", "C", "D", "E", "F", "G", "H"];
 
 export function AttemptAnswerPicker(
   props: AttemptAnswerPickerProps,
@@ -45,12 +41,12 @@ export function AttemptAnswerPicker(
   const errorId = React.useId();
   const groupId = React.useId();
 
-  if (kind === 'true_false') {
+  if (kind === "true_false") {
     const trueOption = question.answerOptions.find(
-      (o) => typeof o.value === 'string' && o.value.toLowerCase() === 'true',
+      (o) => typeof o.value === "string" && o.value.toLowerCase() === "true",
     );
     const falseOption = question.answerOptions.find(
-      (o) => typeof o.value === 'string' && o.value.toLowerCase() === 'false',
+      (o) => typeof o.value === "string" && o.value.toLowerCase() === "false",
     );
 
     if (!trueOption || !falseOption) {
@@ -65,9 +61,11 @@ export function AttemptAnswerPicker(
     }
 
     const currentValue =
-      value?.kind === 'true_false' && value.questionId === question.questionId
-        ? value.value ? 'true' : 'false'
-        : '';
+      value?.kind === "true_false" && value.questionId === question.questionId
+        ? value.value
+          ? "true"
+          : "false"
+        : "";
 
     return (
       <div
@@ -80,9 +78,9 @@ export function AttemptAnswerPicker(
           disabled={disabled}
           onValueChange={(next) => {
             if (disabled) return;
-            const boolValue = next === 'true';
+            const boolValue = next === "true";
             onChange({
-              kind: 'true_false',
+              kind: "true_false",
               questionId: question.questionId,
               value: boolValue,
             });
@@ -92,34 +90,40 @@ export function AttemptAnswerPicker(
           className="grid grid-cols-1 sm:grid-cols-2 gap-3"
         >
           {[trueOption, falseOption].filter(Boolean).map((option, idx) => {
-            const optionValue = option!.value ?? '';
+            const optionValue = option!.value ?? "";
             const isSelected = currentValue === optionValue.toLowerCase();
-            const badgeLetter = idx === 0 ? 'T' : 'F';
+            const badgeLetter = idx === 0 ? "T" : "F";
 
             return (
               <label
                 key={option!.optionId}
                 htmlFor={`${groupId}-${option!.optionId}`}
                 className={cn(
-                  'flex items-center gap-3.5 p-4 rounded-xl border transition-all cursor-pointer select-none',
+                  "flex items-center gap-3.5 p-4 rounded-xl border transition-all cursor-pointer select-none",
                   isSelected
-                    ? 'border-brand bg-brand/10 shadow-xs ring-1 ring-brand/40'
-                    : 'border-border/80 bg-card hover:border-brand/40 hover:bg-main-hover',
-                  disabled && 'opacity-60 cursor-not-allowed',
+                    ? "border-brand bg-brand/10 shadow-xs ring-1 ring-brand/40"
+                    : "border-border/80 bg-card hover:border-brand/40 hover:bg-main-hover",
+                  disabled && "opacity-60 cursor-not-allowed",
                 )}
               >
                 <RadioGroupItem
                   id={`${groupId}-${option!.optionId}`}
                   value={optionValue}
-                  data-testid={testIdPrefix ? `${testIdPrefix}-${option!.optionId}` : undefined}
+                  data-testid={
+                    testIdPrefix
+                      ? `${testIdPrefix}-${option!.optionId}`
+                      : undefined
+                  }
                   className="shrink-0"
                 />
-                <span className={cn(
-                  'flex size-7 shrink-0 items-center justify-center rounded-lg border font-mono text-xs font-semibold',
-                  isSelected
-                    ? 'bg-brand text-white border-brand'
-                    : 'bg-muted text-muted-foreground border-border',
-                )}>
+                <span
+                  className={cn(
+                    "flex size-7 shrink-0 items-center justify-center rounded-lg border font-mono text-xs font-semibold",
+                    isSelected
+                      ? "bg-brand text-white border-brand"
+                      : "bg-muted text-muted-foreground border-border",
+                  )}
+                >
                   {badgeLetter}
                 </span>
                 <Label
@@ -147,7 +151,8 @@ export function AttemptAnswerPicker(
   }
 
   const currentIds =
-    value?.kind === 'multiple_choice' && value.questionId === question.questionId
+    value?.kind === "multiple_choice" &&
+    value.questionId === question.questionId
       ? value.selectedOptionIds
       : [];
 
@@ -158,12 +163,12 @@ export function AttemptAnswerPicker(
     >
       <RadioGroup
         id={groupId}
-        value={currentIds[0] ?? ''}
+        value={currentIds[0] ?? ""}
         disabled={disabled}
         onValueChange={(next) => {
           if (disabled) return;
           onChange({
-            kind: 'multiple_choice',
+            kind: "multiple_choice",
             questionId: question.questionId,
             selectedOptionIds: [next],
           });
@@ -181,25 +186,31 @@ export function AttemptAnswerPicker(
               key={option.optionId}
               htmlFor={`${groupId}-${option.optionId}`}
               className={cn(
-                'flex items-center gap-3.5 p-3.5 sm:p-4 rounded-xl border transition-all cursor-pointer select-none',
+                "flex items-center gap-3.5 p-3.5 sm:p-4 rounded-xl border transition-all cursor-pointer select-none",
                 isSelected
-                  ? 'border-brand bg-brand/10 shadow-xs ring-1 ring-brand/40'
-                  : 'border-border/80 bg-card hover:border-brand/40 hover:bg-main-hover',
-                disabled && 'opacity-60 cursor-not-allowed',
+                  ? "border-brand bg-brand/10 shadow-xs ring-1 ring-brand/40"
+                  : "border-border/80 bg-card hover:border-brand/40 hover:bg-main-hover",
+                disabled && "opacity-60 cursor-not-allowed",
               )}
             >
               <RadioGroupItem
                 id={`${groupId}-${option.optionId}`}
                 value={option.optionId}
-                data-testid={testIdPrefix ? `${testIdPrefix}-${option.optionId}` : undefined}
+                data-testid={
+                  testIdPrefix
+                    ? `${testIdPrefix}-${option.optionId}`
+                    : undefined
+                }
                 className="shrink-0"
               />
-              <span className={cn(
-                'flex size-7 shrink-0 items-center justify-center rounded-lg border font-mono text-xs font-semibold',
-                isSelected
-                  ? 'bg-brand text-white border-brand'
-                  : 'bg-muted text-muted-foreground border-border',
-              )}>
+              <span
+                className={cn(
+                  "flex size-7 shrink-0 items-center justify-center rounded-lg border font-mono text-xs font-semibold",
+                  isSelected
+                    ? "bg-brand text-white border-brand"
+                    : "bg-muted text-muted-foreground border-border",
+                )}
+              >
                 {letter}
               </span>
               <Label
@@ -215,7 +226,7 @@ export function AttemptAnswerPicker(
       {errorMessage ? (
         <p
           id={errorId}
-          className={cn('text-sm text-destructive')}
+          className={cn("text-sm text-destructive")}
           role="alert"
           data-testid={testIdPrefix ? `${testIdPrefix}-error` : undefined}
         >

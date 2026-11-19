@@ -1,11 +1,8 @@
-
-
-import type { ReviewResponseDto } from './reviewResponseDto';
-import type { ReviewPaginationResponseDto } from './reviewPaginationResponseDto';
+import type { ReviewResponseDto } from "./reviewResponseDto";
+import type { ReviewPaginationResponseDto } from "./reviewPaginationResponseDto";
 
 export interface ReviewListResponseDto {
+  items: ReviewResponseDto[];
 
-items: ReviewResponseDto[];
-
-pagination: ReviewPaginationResponseDto;
+  pagination: ReviewPaginationResponseDto;
 }

@@ -1,7 +1,5 @@
-
-
-import type { BadgeDetailsResponseDto } from './badgeDetailsResponseDto';
+import type { BadgeDetailsResponseDto } from "./badgeDetailsResponseDto";
 
 export type GetBadgeDetails200AllOf = {
-data?: BadgeDetailsResponseDto;
+  data?: BadgeDetailsResponseDto;
 };

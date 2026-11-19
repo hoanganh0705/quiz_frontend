@@ -13,17 +13,17 @@
  * here just remove the need for the `as never` cast and keep the call sites
  * type-safe.
  */
-import '@apollo/client';
+import "@apollo/client";
 
-declare module '@apollo/client' {
+declare module "@apollo/client" {
   namespace ApolloClient {
     namespace DeclareDefaultOptions {
       interface WatchQuery {
-        errorPolicy: 'all';
+        errorPolicy: "all";
         returnPartialData: false;
       }
       interface Query {
-        errorPolicy: 'all';
+        errorPolicy: "all";
       }
     }
   }

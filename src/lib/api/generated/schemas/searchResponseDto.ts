@@ -1,28 +1,25 @@
-
-
-import type { SearchUserResultDto } from './searchUserResultDto';
-import type { SearchQuizResultDto } from './searchQuizResultDto';
-import type { SearchCommentResultDto } from './searchCommentResultDto';
-import type { SearchCategoryResultDto } from './searchCategoryResultDto';
-import type { SearchTagResultDto } from './searchTagResultDto';
+import type { SearchUserResultDto } from "./searchUserResultDto";
+import type { SearchQuizResultDto } from "./searchQuizResultDto";
+import type { SearchCommentResultDto } from "./searchCommentResultDto";
+import type { SearchCategoryResultDto } from "./searchCategoryResultDto";
+import type { SearchTagResultDto } from "./searchTagResultDto";
 
 export interface SearchResponseDto {
+  query: string;
 
-query: string;
+  limit: number;
 
-limit: number;
+  nextCursor: string | null;
 
-nextCursor: string | null;
+  hasNextPage: boolean;
 
-hasNextPage: boolean;
+  users: SearchUserResultDto[];
 
-users: SearchUserResultDto[];
+  quizzes: SearchQuizResultDto[];
 
-quizzes: SearchQuizResultDto[];
+  comments: SearchCommentResultDto[];
 
-comments: SearchCommentResultDto[];
+  categories: SearchCategoryResultDto[];
 
-categories: SearchCategoryResultDto[];
-
-tags: SearchTagResultDto[];
+  tags: SearchTagResultDto[];
 }

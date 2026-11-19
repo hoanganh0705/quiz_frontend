@@ -1,18 +1,15 @@
-
-
 export interface RecentBookmarkItemDto {
+  quizId: string;
 
-quizId: string;
+  title: string;
 
-title: string;
+  slug: string;
 
-slug: string;
+  imageUrl?: string | null;
 
-imageUrl?: string | null;
+  collectionId: string;
 
-collectionId: string;
+  collectionName: string;
 
-collectionName: string;
-
-bookmarkedAt: string;
+  bookmarkedAt: string;
 }

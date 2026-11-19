@@ -3,7 +3,10 @@ import { cleanup, renderHook, waitFor } from "@testing-library/react";
 import * as React from "react";
 import { SWRConfig } from "swr";
 
-import { useListInstances, extractInstanceItems } from "@/features/instances/hooks/useListInstances";
+import {
+  useListInstances,
+  extractInstanceItems,
+} from "@/features/instances/hooks/useListInstances";
 
 const mockGetFeatureFlagValue = vi.fn();
 vi.mock("@/lib/feature-flags", () => ({

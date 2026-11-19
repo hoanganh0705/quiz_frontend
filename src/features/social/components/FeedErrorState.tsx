@@ -7,209 +7,207 @@ import { ApiError } from "@/lib/api";
 import { decodeRateLimit } from "@/features/social/rate-limit-decoder";
 
 export interface FeedErrorStateProps {
+  readonly error: ApiError | null;
 
-readonly error: ApiError | null;
-
-readonly onRetry: () => void;
+  readonly onRetry: () => void;
 }
 
 type ErrorClass =
-| "privacy"
-  | "rate_limit"
-  | "unauthenticated"
-  | "retryable"
-  | "generic";
+  "privacy" | "rate_limit" | "unauthenticated" | "retryable" | "generic";
 
 function classifyError(code: string | undefined): ErrorClass {
-if (!code) return "generic";
-switch (code) {
-case "USER_PROFILE_PRIVATE":
-case "SOCIAL_USER_BLOCKED":
-case "SOCIAL_BLOCKED_USER":
-case "SOCIAL_FRIEND_LIST_FORBIDDEN":
-return "privacy";
-case "GLOBAL_RATE_LIMITED":
-return "rate_limit";
-case "GLOBAL_UNAUTHENTICATED":
-return "unauthenticated";
-case "GLOBAL_INTERNAL_ERROR":
-case "GLOBAL_NOT_FOUND":
-case "NETWORK_ERROR":
-return "retryable";
-default:
-return "generic";
+  if (!code) return "generic";
+  switch (code) {
+    case "USER_PROFILE_PRIVATE":
+    case "SOCIAL_USER_BLOCKED":
+    case "SOCIAL_BLOCKED_USER":
+    case "SOCIAL_FRIEND_LIST_FORBIDDEN":
+      return "privacy";
+    case "GLOBAL_RATE_LIMITED":
+      return "rate_limit";
+    case "GLOBAL_UNAUTHENTICATED":
+      return "unauthenticated";
+    case "GLOBAL_INTERNAL_ERROR":
+    case "GLOBAL_NOT_FOUND":
+    case "NETWORK_ERROR":
+      return "retryable";
+    default:
+      return "generic";
   }
 }
 
 const GENERIC_COPY = {
-title: "We couldn't load the feed right now",
-body: "Please try again in a moment.",
+  title: "We couldn't load the feed right now",
+  body: "Please try again in a moment.",
 } as const;
 
 const UNAUTHENTICATED_COPY = {
-title: "Sign in to view the feed",
-body: "Sign in to see recent activity from the community.",
+  title: "Sign in to view the feed",
+  body: "Sign in to see recent activity from the community.",
 } as const;
 
 const RETRYABLE_COPY = {
-title: "We couldn't load the feed right now",
-body: "Please check your connection and try again.",
+  title: "We couldn't load the feed right now",
+  body: "Please check your connection and try again.",
 } as const;
 
 const PRIVACY_COPY = {
-title: "This feed is not available",
-body: "Some items are hidden because of a privacy or block setting.",
+  title: "This feed is not available",
+  body: "Some items are hidden because of a privacy or block setting.",
 } as const;
 
 export function FeedErrorState({
-error,
-onRetry,
+  error,
+  onRetry,
 }: FeedErrorStateProps): ReactElement {
-const errorClass = classifyError(error?.code);
+  const errorClass = classifyError(error?.code);
 
-const decoded = decodeRateLimit(error);
-const initialCooldown = decoded.cooldownSeconds ?? 0;
-const [secondsRemaining, setSecondsRemaining] = useState<number>(() =>
-Math.max(0, Math.floor(initialCooldown)),
+  const decoded = decodeRateLimit(error);
+  const initialCooldown = decoded.cooldownSeconds ?? 0;
+  const [secondsRemaining, setSecondsRemaining] = useState<number>(() =>
+    Math.max(0, Math.floor(initialCooldown)),
   );
 
-useEffect(() => {
-
-setSecondsRemaining(Math.max(0, Math.floor(initialCooldown)));
+  useEffect(() => {
+    setSecondsRemaining(Math.max(0, Math.floor(initialCooldown)));
   }, [initialCooldown]);
 
-useEffect(() => {
-if (errorClass !== "rate_limit") return;
-if (secondsRemaining <= 0) return;
-const timer = setTimeout(() => {
-setSecondsRemaining((prev) => Math.max(0, prev - 1));
+  useEffect(() => {
+    if (errorClass !== "rate_limit") return;
+    if (secondsRemaining <= 0) return;
+    const timer = setTimeout(() => {
+      setSecondsRemaining((prev) => Math.max(0, prev - 1));
     }, 1_000);
-return () => clearTimeout(timer);
+    return () => clearTimeout(timer);
   }, [secondsRemaining, errorClass]);
 
-const retryDisabled = errorClass === "rate_limit" && secondsRemaining > 0;
+  const retryDisabled = errorClass === "rate_limit" && secondsRemaining > 0;
 
-if (errorClass === "privacy") {
-return (
-<section
-role="alert"
-aria-label={PRIVACY_COPY.title}
-data-testid="feed-error-state"
-data-error-class="privacy"
-data-error-code={error?.code ?? "unknown"}
-className="flex flex-col gap-2 p-6 rounded-md border border-border"
+  if (errorClass === "privacy") {
+    return (
+      <section
+        role="alert"
+        aria-label={PRIVACY_COPY.title}
+        data-testid="feed-error-state"
+        data-error-class="privacy"
+        data-error-code={error?.code ?? "unknown"}
+        className="flex flex-col gap-2 p-6 rounded-md border border-border"
       >
-<p className="text-base font-semibold">{PRIVACY_COPY.title}</p>
-<p className="text-sm text-muted-foreground">{PRIVACY_COPY.body}</p>
-</section>
+        <p className="text-base font-semibold">{PRIVACY_COPY.title}</p>
+        <p className="text-sm text-muted-foreground">{PRIVACY_COPY.body}</p>
+      </section>
     );
   }
 
-if (errorClass === "unauthenticated") {
-return (
-<section
-role="alert"
-aria-label={UNAUTHENTICATED_COPY.title}
-data-testid="feed-error-state"
-data-error-class="unauthenticated"
-data-error-code={error?.code ?? "unknown"}
-className="flex flex-col gap-3 p-6 rounded-md border border-border"
+  if (errorClass === "unauthenticated") {
+    return (
+      <section
+        role="alert"
+        aria-label={UNAUTHENTICATED_COPY.title}
+        data-testid="feed-error-state"
+        data-error-class="unauthenticated"
+        data-error-code={error?.code ?? "unknown"}
+        className="flex flex-col gap-3 p-6 rounded-md border border-border"
       >
-<div className="flex flex-col gap-1">
-<p className="text-base font-semibold">{UNAUTHENTICATED_COPY.title}</p>
-<p className="text-sm text-muted-foreground">{UNAUTHENTICATED_COPY.body}</p>
-</div>
-<NextLink
-href="/login"
-data-testid="feed-error-state-sign-in"
-className="self-start rounded-md border border-border bg-background px-3 py-1 text-sm hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        <div className="flex flex-col gap-1">
+          <p className="text-base font-semibold">
+            {UNAUTHENTICATED_COPY.title}
+          </p>
+          <p className="text-sm text-muted-foreground">
+            {UNAUTHENTICATED_COPY.body}
+          </p>
+        </div>
+        <NextLink
+          href="/login"
+          data-testid="feed-error-state-sign-in"
+          className="self-start rounded-md border border-border bg-background px-3 py-1 text-sm hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
-Sign in
+          Sign in
         </NextLink>
-</section>
+      </section>
     );
   }
 
-if (errorClass === "rate_limit") {
-const copy =
-secondsRemaining > 0
-? `Try again in ${secondsRemaining} second${secondsRemaining === 1 ? "" : "s"}.`
-: "You can try again now.";
-return (
-<section
-role="alert"
-aria-live="polite"
-aria-label="Feed is rate-limited"
-data-testid="feed-error-state"
-data-error-class="rate_limit"
-data-error-code={error?.code ?? "unknown"}
-data-seconds-remaining={secondsRemaining}
-className="flex flex-col gap-3 p-6 rounded-md border border-amber-300 bg-amber-50 text-amber-900"
+  if (errorClass === "rate_limit") {
+    const copy =
+      secondsRemaining > 0
+        ? `Try again in ${secondsRemaining} second${secondsRemaining === 1 ? "" : "s"}.`
+        : "You can try again now.";
+    return (
+      <section
+        role="alert"
+        aria-live="polite"
+        aria-label="Feed is rate-limited"
+        data-testid="feed-error-state"
+        data-error-class="rate_limit"
+        data-error-code={error?.code ?? "unknown"}
+        data-seconds-remaining={secondsRemaining}
+        className="flex flex-col gap-3 p-6 rounded-md border border-amber-300 bg-amber-50 text-amber-900"
       >
-<p className="text-sm font-medium">{copy}</p>
-<button
-type="button"
-onClick={onRetry}
-disabled={retryDisabled}
-aria-label="Try again"
-data-testid="feed-error-state-retry"
-className="self-start rounded-md border border-amber-300 bg-background px-3 py-1 text-sm hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
+        <p className="text-sm font-medium">{copy}</p>
+        <button
+          type="button"
+          onClick={onRetry}
+          disabled={retryDisabled}
+          aria-label="Try again"
+          data-testid="feed-error-state-retry"
+          className="self-start rounded-md border border-amber-300 bg-background px-3 py-1 text-sm hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
         >
-Try again
+          Try again
         </button>
-</section>
+      </section>
     );
   }
 
-if (errorClass === "retryable") {
-return (
-<section
-role="alert"
-aria-label={RETRYABLE_COPY.title}
-data-testid="feed-error-state"
-data-error-class="retryable"
-data-error-code={error?.code ?? "unknown"}
-className="flex flex-col gap-3 p-6 rounded-md border border-border"
+  if (errorClass === "retryable") {
+    return (
+      <section
+        role="alert"
+        aria-label={RETRYABLE_COPY.title}
+        data-testid="feed-error-state"
+        data-error-class="retryable"
+        data-error-code={error?.code ?? "unknown"}
+        className="flex flex-col gap-3 p-6 rounded-md border border-border"
       >
-<div className="flex flex-col gap-1">
-<p className="text-base font-semibold">{RETRYABLE_COPY.title}</p>
-<p className="text-sm text-muted-foreground">{RETRYABLE_COPY.body}</p>
-</div>
-<button
-type="button"
-onClick={onRetry}
-aria-label="Try again"
-data-testid="feed-error-state-retry"
-className="self-start rounded-md border border-border bg-background px-3 py-1 text-sm hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        <div className="flex flex-col gap-1">
+          <p className="text-base font-semibold">{RETRYABLE_COPY.title}</p>
+          <p className="text-sm text-muted-foreground">{RETRYABLE_COPY.body}</p>
+        </div>
+        <button
+          type="button"
+          onClick={onRetry}
+          aria-label="Try again"
+          data-testid="feed-error-state-retry"
+          className="self-start rounded-md border border-border bg-background px-3 py-1 text-sm hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
-Try again
+          Try again
         </button>
-</section>
+      </section>
     );
   }
 
-return (
-<section
-role="alert"
-aria-label={GENERIC_COPY.title}
-data-testid="feed-error-state"
-data-error-class="generic"
-data-error-code={error?.code ?? "unknown"}
-className="flex flex-col gap-3 p-6 rounded-md border border-border"
+  return (
+    <section
+      role="alert"
+      aria-label={GENERIC_COPY.title}
+      data-testid="feed-error-state"
+      data-error-class="generic"
+      data-error-code={error?.code ?? "unknown"}
+      className="flex flex-col gap-3 p-6 rounded-md border border-border"
     >
-<div className="flex flex-col gap-1">
-<p className="text-base font-semibold">{GENERIC_COPY.title}</p>
-<p className="text-sm text-muted-foreground">{GENERIC_COPY.body}</p>
-</div>
-<button
-type="button"
-onClick={onRetry}
-aria-label="Try again"
-data-testid="feed-error-state-retry"
-className="self-start rounded-md border border-border bg-background px-3 py-1 text-sm hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      <div className="flex flex-col gap-1">
+        <p className="text-base font-semibold">{GENERIC_COPY.title}</p>
+        <p className="text-sm text-muted-foreground">{GENERIC_COPY.body}</p>
+      </div>
+      <button
+        type="button"
+        onClick={onRetry}
+        aria-label="Try again"
+        data-testid="feed-error-state-retry"
+        className="self-start rounded-md border border-border bg-background px-3 py-1 text-sm hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
-Try again
+        Try again
       </button>
-</section>
+    </section>
   );
 }

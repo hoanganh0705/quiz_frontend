@@ -1,29 +1,30 @@
-'use client';
+"use client";
 
-import type { ApiError } from '@/lib/api';
+import type { ApiError } from "@/lib/api";
 
-import { ErrorState } from '@/components/ui/loading-states/ErrorState';
+import { ErrorState } from "@/components/ui/loading-states/ErrorState";
 
 export interface CategoryAdminErrorStateProps {
+  error: ApiError;
 
-error: ApiError;
-
-onRetry: () => void;
+  onRetry: () => void;
 }
 
 export function CategoryAdminErrorState({
-error,
-onRetry,
+  error,
+  onRetry,
 }: CategoryAdminErrorStateProps) {
-return (
-<div className='space-y-4'>
-<ErrorState
-title='Failed to load categories'
-message={error.detail || 'An unexpected error occurred. Please try again.'}
-onRetry={onRetry}
-retryText='Try Again'
-variant='server'
+  return (
+    <div className="space-y-4">
+      <ErrorState
+        title="Failed to load categories"
+        message={
+          error.detail || "An unexpected error occurred. Please try again."
+        }
+        onRetry={onRetry}
+        retryText="Try Again"
+        variant="server"
       />
-</div>
+    </div>
   );
 }

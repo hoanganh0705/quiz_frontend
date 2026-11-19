@@ -1,6 +1,3 @@
-
-
 export interface UnregisterTournamentResponseDto {
-
-message: string;
+  message: string;
 }

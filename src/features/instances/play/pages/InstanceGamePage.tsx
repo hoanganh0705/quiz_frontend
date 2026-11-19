@@ -62,8 +62,7 @@ export function InstanceGamePage({
   }
 
   const isInitializing =
-    (isInitLoading && bundle === null) ||
-    (bundle === null && isReconciling);
+    (isInitLoading && bundle === null) || (bundle === null && isReconciling);
 
   if (isInitializing && !isClosed) {
     return (

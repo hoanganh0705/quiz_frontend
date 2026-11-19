@@ -1,82 +1,86 @@
-'use client';
+"use client";
 
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from "react";
 
 import {
-IRREVERSIBLE_INVARIANTS,
-isFullyValidConfirm,
-} from '../irreversible-confirm-invariants';
+  IRREVERSIBLE_INVARIANTS,
+  isFullyValidConfirm,
+} from "../irreversible-confirm-invariants";
 import {
-getIrreversibleConfirmString,
-type IrreversibleAdminOperation,
-} from '../admin-capabilities';
+  getIrreversibleConfirmString,
+  type IrreversibleAdminOperation,
+} from "../admin-capabilities";
 
 export interface UseTypedConfirm {
+  confirmString: string;
 
-confirmString: string;
+  input: string;
 
-input: string;
+  matches: boolean;
 
-matches: boolean;
+  isFullyValid: boolean;
 
-isFullyValid: boolean;
+  hasInput: boolean;
 
-hasInput: boolean;
+  setInput: (next: string) => void;
 
-setInput: (next: string) => void;
+  reset: () => void;
 
-reset: () => void;
-
-assertedConfirm: () => string;
+  assertedConfirm: () => string;
 }
 
 export function useTypedConfirm(
-operation: IrreversibleAdminOperation,
+  operation: IrreversibleAdminOperation,
 ): UseTypedConfirm {
-const confirmString = getIrreversibleConfirmString(operation) ?? '';
-const [input, setInputState] = useState('');
+  const confirmString = getIrreversibleConfirmString(operation) ?? "";
+  const [input, setInputState] = useState("");
 
-const matches = useMemo(() => input === confirmString, [input, confirmString]);
-const hasInput = useMemo(() => input.length > 0, [input]);
-const isFullyValid = useMemo(
-() => input.length > 0 && isFullyValidConfirm(input),
-[input],
+  const matches = useMemo(
+    () => input === confirmString,
+    [input, confirmString],
+  );
+  const hasInput = useMemo(() => input.length > 0, [input]);
+  const isFullyValid = useMemo(
+    () => input.length > 0 && isFullyValidConfirm(input),
+    [input],
   );
 
-const setInput = useCallback((next: string) => setInputState(next), []);
-const reset = useCallback(() => setInputState(''), []);
+  const setInput = useCallback((next: string) => setInputState(next), []);
+  const reset = useCallback(() => setInputState(""), []);
 
-const assertedConfirm = useCallback((): string => {
-if (!confirmString) {
-throw new Error(
-`useTypedConfirm: unknown irreversible operation "${operation}"`,
+  const assertedConfirm = useCallback((): string => {
+    if (!confirmString) {
+      throw new Error(
+        `useTypedConfirm: unknown irreversible operation "${operation}"`,
       );
     }
-if (!matches || !isFullyValid) {
-throw new Error(
-`useTypedConfirm: typed confirm did not match for "${operation}"`,
+    if (!matches || !isFullyValid) {
+      throw new Error(
+        `useTypedConfirm: typed confirm did not match for "${operation}"`,
       );
     }
 
-const failed = (Object.keys(IRREVERSIBLE_INVARIANTS) as Array<
-keyof typeof IRREVERSIBLE_INVARIANTS
-    >).filter((check) => !IRREVERSIBLE_INVARIANTS[check](input));
-if (failed.length > 0) {
-throw new Error(
-`useTypedConfirm: invariants failed for "${operation}" (${failed.join(', ')})`,
+    const failed = (
+      Object.keys(IRREVERSIBLE_INVARIANTS) as Array<
+        keyof typeof IRREVERSIBLE_INVARIANTS
+      >
+    ).filter((check) => !IRREVERSIBLE_INVARIANTS[check](input));
+    if (failed.length > 0) {
+      throw new Error(
+        `useTypedConfirm: invariants failed for "${operation}" (${failed.join(", ")})`,
       );
     }
-return confirmString;
+    return confirmString;
   }, [confirmString, input, matches, isFullyValid, operation]);
 
-return {
-confirmString,
-input,
-matches,
-isFullyValid,
-hasInput,
-setInput,
-reset,
-assertedConfirm,
+  return {
+    confirmString,
+    input,
+    matches,
+    isFullyValid,
+    hasInput,
+    setInput,
+    reset,
+    assertedConfirm,
   };
 }

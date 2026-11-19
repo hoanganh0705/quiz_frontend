@@ -1,6 +1,3 @@
-
-
 export interface VerifyEmailDto {
-
-token: string;
+  token: string;
 }

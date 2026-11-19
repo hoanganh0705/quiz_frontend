@@ -1,54 +1,51 @@
-
-
-import type { QuizListItemDtoCreator } from './quizListItemDtoCreator';
-import type { QuizListItemDtoPublishedVersion } from './quizListItemDtoPublishedVersion';
-import type { QuizTagDto } from './quizTagDto';
+import type { QuizListItemDtoCreator } from "./quizListItemDtoCreator";
+import type { QuizListItemDtoPublishedVersion } from "./quizListItemDtoPublishedVersion";
+import type { QuizTagDto } from "./quizTagDto";
 
 export interface QuizListItemDto {
+  quizId: string;
 
-quizId: string;
+  creatorId?: string | null;
 
-creatorId?: string | null;
+  creator: QuizListItemDtoCreator;
 
-creator: QuizListItemDtoCreator;
+  title: string;
 
-title: string;
+  description?: string | null;
 
-description?: string | null;
+  slug: string;
 
-slug: string;
+  requirements?: string | null;
 
-requirements?: string | null;
+  imageUrl?: string | null;
 
-imageUrl?: string | null;
+  categoryId?: string | null;
 
-categoryId?: string | null;
+  categoryName?: string | null;
 
-categoryName?: string | null;
+  categorySlug?: string | null;
 
-categorySlug?: string | null;
+  isFeatured: boolean;
 
-isFeatured: boolean;
+  isHidden: boolean;
 
-isHidden: boolean;
+  isVerified: boolean;
 
-isVerified: boolean;
+  publishedVersionId?: string | null;
 
-publishedVersionId?: string | null;
+  createdAt: string;
 
-createdAt: string;
+  updatedAt: string;
 
-updatedAt: string;
+  publishedVersion?: QuizListItemDtoPublishedVersion;
 
-publishedVersion?: QuizListItemDtoPublishedVersion;
+  questionCount: number;
 
-questionCount: number;
+  averageRating: number;
 
-averageRating: number;
+  reviewCount: number;
 
-reviewCount: number;
+  attemptCount: number;
 
-attemptCount: number;
-
-tags: QuizTagDto[];
+  tags: QuizTagDto[];
 }

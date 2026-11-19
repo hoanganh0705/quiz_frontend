@@ -1,32 +1,35 @@
 "use client";
 
 import { useEffect } from "react";
-import { useSWRConfig } from "swr";
+import { getQueryClient } from "@/providers/QueryProvider";
 
 import { isAchievementSurfaceEnabled } from "@/features/achievements/flags";
 import { makeAchievementInvalidationKeys } from "@/features/achievements/types";
 
 export function useAchievementFocusRevalidation(): void {
-const isLive = isAchievementSurfaceEnabled();
-const { mutate } = useSWRConfig();
+  const isLive = isAchievementSurfaceEnabled();
 
-useEffect(() => {
-
-if (!isLive) {
-return;
+  useEffect(() => {
+    if (!isLive) {
+      return;
     }
 
-const handleFocus = () => {
-const keys = makeAchievementInvalidationKeys();
+    const handleFocus = () => {
+      const keys = makeAchievementInvalidationKeys();
 
-void mutate(keys.catalog, undefined, { revalidate: true });
-void mutate(keys.myBadges, undefined, { revalidate: true });
-void mutate(keys.history, undefined, { revalidate: true });
+      try {
+        const queryClient = getQueryClient();
+        void queryClient.invalidateQueries({ queryKey: keys.catalog });
+        void queryClient.invalidateQueries({ queryKey: keys.myBadges });
+        void queryClient.invalidateQueries({ queryKey: keys.history });
+      } catch {
+        // Fail-open
+      }
     };
 
-window.addEventListener("focus", handleFocus);
-return () => {
-window.removeEventListener("focus", handleFocus);
+    window.addEventListener("focus", handleFocus);
+    return () => {
+      window.removeEventListener("focus", handleFocus);
     };
-  }, [isLive, mutate]);
+  }, [isLive]);
 }

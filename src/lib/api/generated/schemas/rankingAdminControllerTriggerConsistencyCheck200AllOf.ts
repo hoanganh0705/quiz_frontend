@@ -1,7 +1,5 @@
-
-
-import type { ConsistencyReportResponseDto } from './consistencyReportResponseDto';
+import type { ConsistencyReportResponseDto } from "./consistencyReportResponseDto";
 
 export type RankingAdminControllerTriggerConsistencyCheck200AllOf = {
-data?: ConsistencyReportResponseDto;
+  data?: ConsistencyReportResponseDto;
 };

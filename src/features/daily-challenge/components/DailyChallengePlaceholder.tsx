@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 /**
  * `DailyChallengePlaceholder` — the locked Phase 3 default surface.
@@ -34,14 +34,14 @@
  * and there is no ambient reload.
  */
 
-import { Sparkles } from 'lucide-react'
+import { Sparkles } from "lucide-react";
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 
-import { cn } from '@/shared/utils/merge-class-names'
+import { cn } from "@/shared/utils/merge-class-names";
 
 export interface DailyChallengePlaceholderProps {
-  className?: string
+  className?: string;
 }
 
 export function DailyChallengePlaceholder({
@@ -49,46 +49,45 @@ export function DailyChallengePlaceholder({
 }: DailyChallengePlaceholderProps) {
   return (
     <Card
-      role='region'
-      aria-labelledby='daily-challenge-placeholder-title'
-      aria-live='polite'
+      role="region"
+      aria-labelledby="daily-challenge-placeholder-title"
+      aria-live="polite"
       aria-busy={false}
-      data-testid='daily-challenge-placeholder'
+      data-testid="daily-challenge-placeholder"
       className={cn(
-        'min-h-40 border bg-background text-foreground py-6',
+        "min-h-40 border bg-background text-foreground py-6",
         className,
       )}
     >
       <CardHeader>
-        <div className='flex justify-between items-start gap-2'>
+        <div className="flex justify-between items-start gap-2">
           <div>
             <CardTitle
-              id='daily-challenge-placeholder-title'
-              className='text-xl font-bold'
+              id="daily-challenge-placeholder-title"
+              className="text-xl font-bold"
             >
               Daily Challenge
             </CardTitle>
-            <p className='mt-1 text-foreground-secondary text-sm'>
-              A new curated set of questions, every day. Keep your streak,
-              earn XP, and climb the global leaderboard.
+            <p className="mt-1 text-foreground-secondary text-sm">
+              A new curated set of questions, every day. Keep your streak, earn
+              XP, and climb the global leaderboard.
             </p>
           </div>
           <div
-            className='flex items-center space-x-2 text-muted-foreground text-sm'
-            aria-label='Coming soon'
+            className="flex items-center space-x-2 text-muted-foreground text-sm"
+            aria-label="Coming soon"
           >
-            <Sparkles className='h-4 w-4' aria-hidden='true' />
-            <span className='font-medium'>Coming soon</span>
+            <Sparkles className="h-4 w-4" aria-hidden="true" />
+            <span className="font-medium">Coming soon</span>
           </div>
         </div>
       </CardHeader>
       <CardContent>
-        <p className='text-sm text-foreground-secondary'>
-          We&apos;re preparing the daily-challenge experience. Check back
-          soon — your streak starts the moment the first challenge
-          goes live.
+        <p className="text-sm text-foreground-secondary">
+          We&apos;re preparing the daily-challenge experience. Check back soon —
+          your streak starts the moment the first challenge goes live.
         </p>
       </CardContent>
     </Card>
-  )
+  );
 }

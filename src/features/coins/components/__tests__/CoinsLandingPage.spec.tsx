@@ -136,7 +136,9 @@ describe("CoinsLandingPage (Phase 5.2)", () => {
     render(<CoinsLandingPage />);
     expect(screen.getByTestId("coins-landing-page")).toBeInTheDocument();
     expect(screen.getByTestId("coins-balance-value")).toHaveTextContent("250");
-    expect(screen.queryByTestId("coins-placeholder-pill")).not.toBeInTheDocument();
+    expect(
+      screen.queryByTestId("coins-placeholder-pill"),
+    ).not.toBeInTheDocument();
   });
 
   it("renders the placeholder pill when the wallet is in placeholder mode", () => {
@@ -252,12 +254,12 @@ describe("CoinsLandingPage (Phase 5.2)", () => {
     expect(rows).toHaveLength(2);
     expect(screen.getByText("Quiz completion")).toBeInTheDocument();
     expect(screen.getByText("Tip sent")).toBeInTheDocument();
-    expect(screen.getAllByTestId("coins-transaction-amount")[0]).toHaveTextContent(
-      "+25",
-    );
-    expect(screen.getAllByTestId("coins-transaction-amount")[1]).toHaveTextContent(
-      "-25",
-    );
+    expect(
+      screen.getAllByTestId("coins-transaction-amount")[0],
+    ).toHaveTextContent("+25");
+    expect(
+      screen.getAllByTestId("coins-transaction-amount")[1],
+    ).toHaveTextContent("-25");
   });
 
   it("renders the empty state when there are no transactions", () => {
@@ -281,7 +283,9 @@ describe("CoinsLandingPage (Phase 5.2)", () => {
     });
 
     render(<CoinsLandingPage />);
-    expect(screen.getByTestId("coins-transactions-empty-card")).toBeInTheDocument();
+    expect(
+      screen.getByTestId("coins-transactions-empty-card"),
+    ).toBeInTheDocument();
     expect(screen.getByText("No transactions yet")).toBeInTheDocument();
   });
 

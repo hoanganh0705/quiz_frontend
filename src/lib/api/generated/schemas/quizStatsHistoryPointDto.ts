@@ -1,12 +1,9 @@
-
-
 export interface QuizStatsHistoryPointDto {
+  date: string;
 
-date: string;
+  attempts: number;
 
-attempts: number;
+  completions: number;
 
-completions: number;
-
-uniquePlayers: number;
+  uniquePlayers: number;
 }

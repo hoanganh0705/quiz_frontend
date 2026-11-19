@@ -1,162 +1,160 @@
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { renderHook, waitFor } from "@testing-library/react";
 
+import { ApiError } from "@/lib/api";
 
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { renderHook, waitFor } from '@testing-library/react';
-
-import { ApiError } from '@/lib/api';
-
-import { useQuizAuthorView } from '@/features/quizzes/hooks/useQuizAuthorView';
+import { useQuizAuthorView } from "@/features/quizzes/hooks/useQuizAuthorView";
 
 const mockGetQuizByIdOrSlug = vi.fn();
-vi.mock('@/features/quizzes/services/quizzes.service', () => ({
-getQuizByIdOrSlug: (...args: unknown[]) => mockGetQuizByIdOrSlug(...args),
+vi.mock("@/features/quizzes/services/quizzes.service", () => ({
+  getQuizByIdOrSlug: (...args: unknown[]) => mockGetQuizByIdOrSlug(...args),
 }));
 
 function makeQuizResponse(quizId: string) {
-return {
-quizId,
-title: `Test Quiz ${quizId}`,
-description: 'A test quiz description',
-slug: `test-quiz-${quizId}`,
-creatorId: 'creator-123',
-imageUrl: null,
-categoryId: 'cat-123',
-isHidden: false,
-publishedVersionId: 'version-1',
-createdAt: '2026-01-01T00:00:00.000Z',
-updatedAt: '2026-01-02T00:00:00.000Z',
+  return {
+    quizId,
+    title: `Test Quiz ${quizId}`,
+    description: "A test quiz description",
+    slug: `test-quiz-${quizId}`,
+    creatorId: "creator-123",
+    imageUrl: null,
+    categoryId: "cat-123",
+    isHidden: false,
+    publishedVersionId: "version-1",
+    createdAt: "2026-01-01T00:00:00.000Z",
+    updatedAt: "2026-01-02T00:00:00.000Z",
   };
 }
 
 function makeApiError(
-status: number,
-code: string = `TEST_ERROR_${status}`,
+  status: number,
+  code: string = `TEST_ERROR_${status}`,
 ): ApiError {
-return new ApiError({
-isAxiosError: true,
-response: {
-status,
-data: {
-type: 'about:blank',
-title: `Error ${status}`,
-status,
+  return new ApiError({
+    isAxiosError: true,
+    response: {
+      status,
+      data: {
+        type: "about:blank",
+        title: `Error ${status}`,
+        status,
 
-extensions: { code },
+        extensions: { code },
       },
     },
-config: undefined,
+    config: undefined,
   } as unknown as Parameters<typeof ApiError.fromAxios>[0]);
 }
 
 beforeEach(() => {
-mockGetQuizByIdOrSlug.mockReset();
+  mockGetQuizByIdOrSlug.mockReset();
 });
 
 afterEach(() => {
-vi.restoreAllMocks();
+  vi.restoreAllMocks();
 });
 
-describe('useQuizAuthorView', () => {
-const quizId = 'quiz-123';
+describe("useQuizAuthorView", () => {
+  const quizId = "quiz-123";
 
-it('returns quiz data on success', async () => {
-const mockResponse = makeQuizResponse(quizId);
+  it("returns quiz data on success", async () => {
+    const mockResponse = makeQuizResponse(quizId);
 
-mockGetQuizByIdOrSlug.mockResolvedValueOnce(mockResponse);
+    mockGetQuizByIdOrSlug.mockResolvedValueOnce(mockResponse);
 
-const { result } = renderHook(() => useQuizAuthorView(quizId));
+    const { result } = renderHook(() => useQuizAuthorView(quizId));
 
-expect(result.current.isLoading).toBe(true);
+    expect(result.current.isLoading).toBe(true);
 
-await waitFor(() => {
-expect(result.current.isLoading).toBe(false);
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
     });
 
-expect(result.current.data).toEqual(mockResponse);
-expect(result.current.error).toBeNull();
-expect(result.current.notFound).toBe(false);
+    expect(result.current.data).toEqual(mockResponse);
+    expect(result.current.error).toBeNull();
+    expect(result.current.notFound).toBe(false);
   });
 
-it('returns notFound=true on 404', async () => {
-const error = makeApiError(404, 'QUIZ_NOT_FOUND');
-mockGetQuizByIdOrSlug.mockRejectedValueOnce(error);
+  it("returns notFound=true on 404", async () => {
+    const error = makeApiError(404, "QUIZ_NOT_FOUND");
+    mockGetQuizByIdOrSlug.mockRejectedValueOnce(error);
 
-const { result } = renderHook(() => useQuizAuthorView(quizId));
+    const { result } = renderHook(() => useQuizAuthorView(quizId));
 
-await waitFor(() => {
-expect(result.current.isLoading).toBe(false);
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
     });
 
-expect(result.current.notFound).toBe(true);
-expect(result.current.data).toBeNull();
+    expect(result.current.notFound).toBe(true);
+    expect(result.current.data).toBeNull();
   });
 
-it('returns error on 403 QUIZ_FORBIDDEN', async () => {
-const error = makeApiError(403, 'QUIZ_FORBIDDEN');
-mockGetQuizByIdOrSlug.mockRejectedValueOnce(error);
+  it("returns error on 403 QUIZ_FORBIDDEN", async () => {
+    const error = makeApiError(403, "QUIZ_FORBIDDEN");
+    mockGetQuizByIdOrSlug.mockRejectedValueOnce(error);
 
-const { result } = renderHook(() => useQuizAuthorView(quizId));
+    const { result } = renderHook(() => useQuizAuthorView(quizId));
 
-await waitFor(() => {
-expect(result.current.isLoading).toBe(false);
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
     });
 
-expect(result.current.error).toBeDefined();
-expect(result.current.error?.status).toBe(403);
-expect(result.current.error?.code).toBe('QUIZ_FORBIDDEN');
+    expect(result.current.error).toBeDefined();
+    expect(result.current.error?.status).toBe(403);
+    expect(result.current.error?.code).toBe("QUIZ_FORBIDDEN");
   });
 
-it('returns error on 429 rate limit', async () => {
-const error = makeApiError(429, 'GLOBAL_RATE_LIMITED');
+  it("returns error on 429 rate limit", async () => {
+    const error = makeApiError(429, "GLOBAL_RATE_LIMITED");
 
-mockGetQuizByIdOrSlug.mockRejectedValue(error);
+    mockGetQuizByIdOrSlug.mockRejectedValue(error);
 
-const { result } = renderHook(() => useQuizAuthorView(quizId));
+    const { result } = renderHook(() => useQuizAuthorView(quizId));
 
-await waitFor(
-() => {
-expect(result.current.isLoading).toBe(false);
+    await waitFor(
+      () => {
+        expect(result.current.isLoading).toBe(false);
       },
-{ timeout: 5_000 },
+      { timeout: 5_000 },
     );
 
-expect(result.current.error).toBeDefined();
-expect(result.current.error?.status).toBe(429);
-expect(result.current.error?.code).toBe('GLOBAL_RATE_LIMITED');
+    expect(result.current.error).toBeDefined();
+    expect(result.current.error?.status).toBe(429);
+    expect(result.current.error?.code).toBe("GLOBAL_RATE_LIMITED");
   });
 
-it('returns error on 5xx server error', async () => {
-const error = makeApiError(500, 'GLOBAL_INTERNAL_ERROR');
-mockGetQuizByIdOrSlug.mockRejectedValueOnce(error);
+  it("returns error on 5xx server error", async () => {
+    const error = makeApiError(500, "GLOBAL_INTERNAL_ERROR");
+    mockGetQuizByIdOrSlug.mockRejectedValueOnce(error);
 
-const { result } = renderHook(() => useQuizAuthorView(quizId));
+    const { result } = renderHook(() => useQuizAuthorView(quizId));
 
-await waitFor(() => {
-expect(result.current.isLoading).toBe(false);
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
     });
 
-expect(result.current.error).toBeDefined();
-expect(result.current.error?.status).toBe(500);
+    expect(result.current.error).toBeDefined();
+    expect(result.current.error?.status).toBe(500);
   });
 
-it('does not fetch when quizId is null', () => {
-const { result } = renderHook(() => useQuizAuthorView(null));
+  it("does not fetch when quizId is null", () => {
+    const { result } = renderHook(() => useQuizAuthorView(null));
 
-expect(result.current.isLoading).toBe(false);
-expect(result.current.data).toBeNull();
-expect(mockGetQuizByIdOrSlug).not.toHaveBeenCalled();
+    expect(result.current.isLoading).toBe(false);
+    expect(result.current.data).toBeNull();
+    expect(mockGetQuizByIdOrSlug).not.toHaveBeenCalled();
   });
 
-it('returns retry function', async () => {
-const mockResponse = makeQuizResponse(quizId);
-mockGetQuizByIdOrSlug.mockResolvedValueOnce({ data: mockResponse });
+  it("returns retry function", async () => {
+    const mockResponse = makeQuizResponse(quizId);
+    mockGetQuizByIdOrSlug.mockResolvedValueOnce({ data: mockResponse });
 
-const { result } = renderHook(() => useQuizAuthorView(quizId));
+    const { result } = renderHook(() => useQuizAuthorView(quizId));
 
-await waitFor(() => {
-expect(result.current.isLoading).toBe(false);
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
     });
 
-expect(typeof result.current.retry).toBe('function');
+    expect(typeof result.current.retry).toBe("function");
   });
 });

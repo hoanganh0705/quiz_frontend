@@ -1,31 +1,28 @@
-
-
-import type { AttemptReviewQuestionDtoIsCorrect } from './attemptReviewQuestionDtoIsCorrect';
-import type { AttemptReviewAnswerOptionDto } from './attemptReviewAnswerOptionDto';
+import type { AttemptReviewQuestionDtoIsCorrect } from "./attemptReviewQuestionDtoIsCorrect";
+import type { AttemptReviewAnswerOptionDto } from "./attemptReviewAnswerOptionDto";
 
 export interface AttemptReviewQuestionDto {
+  questionId: string;
 
-questionId: string;
+  position: number;
 
-position: number;
+  questionText: string;
 
-questionText: string;
+  imageUrl?: string | null;
 
-imageUrl?: string | null;
+  selectedOptionId: string | null;
 
-selectedOptionId: string | null;
+  isCorrect: AttemptReviewQuestionDtoIsCorrect;
 
-isCorrect: AttemptReviewQuestionDtoIsCorrect;
+  timeTakenMs?: number | null;
 
-timeTakenMs?: number | null;
+  answeredAt: string;
 
-answeredAt: string;
+  answerOptions: AttemptReviewAnswerOptionDto[];
 
-answerOptions: AttemptReviewAnswerOptionDto[];
+  explanation?: string | null;
 
-explanation?: string | null;
+  topicTags?: string[] | null;
 
-topicTags?: string[] | null;
-
-difficulty?: number | null;
+  difficulty?: number | null;
 }

@@ -1,8 +1,5 @@
-
-
 export type UserCategoryControllerListFollowedCategoriesParams = {
+  cursor?: string | null;
 
-cursor?: string | null;
-
-limit?: number;
+  limit?: number;
 };

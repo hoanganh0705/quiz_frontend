@@ -1,14 +1,11 @@
-
-
 export interface BookmarkCollectionAnalyticsSummaryDto {
+  totalBookmarks: number;
 
-totalBookmarks: number;
+  totalQuizzes: number;
 
-totalQuizzes: number;
+  averageQuizRating: number;
 
-averageQuizRating: number;
+  uniqueCategories: number;
 
-uniqueCategories: number;
-
-uniqueTags: number;
+  uniqueTags: number;
 }

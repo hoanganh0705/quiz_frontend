@@ -17,7 +17,8 @@ function computeSecondsRemaining(
   durationSeconds: number,
 ): number {
   if (countdownStartedAt) {
-    const elapsed = (Date.now() - new Date(countdownStartedAt).getTime()) / 1000;
+    const elapsed =
+      (Date.now() - new Date(countdownStartedAt).getTime()) / 1000;
     return Math.max(0, Math.ceil(durationSeconds - elapsed));
   }
   return durationSeconds;
@@ -86,7 +87,8 @@ export function InstanceCountdownBanner({
               <Zap className="h-5 w-5 text-amber-500 animate-bounce" />
             </div>
             <p className="text-sm text-muted-foreground mt-0.5">
-              Get ready! The quiz will begin automatically when the timer reaches zero.
+              Get ready! The quiz will begin automatically when the timer
+              reaches zero.
             </p>
           </div>
         </div>

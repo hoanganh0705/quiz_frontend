@@ -1,7 +1,5 @@
-
-
-import type { CheckUsernameResponseDto } from './checkUsernameResponseDto';
+import type { CheckUsernameResponseDto } from "./checkUsernameResponseDto";
 
 export type AuthControllerCheckUsernameDeprecated200AllOf = {
-data?: CheckUsernameResponseDto;
+  data?: CheckUsernameResponseDto;
 };

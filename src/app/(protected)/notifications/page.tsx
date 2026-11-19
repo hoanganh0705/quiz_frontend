@@ -4,16 +4,16 @@ import { NotificationCenterPage } from "@/features/notifications/components/Noti
 import { buildMetadata } from "@/shared/lib/seo";
 
 export const metadata = buildMetadata({
-title: "Notifications | QuizHub",
-description:
-"Stay updated on quiz invites, achievements, friend activity, and more.",
-path: "/notifications",
+  title: "Notifications | QuizHub",
+  description:
+    "Stay updated on quiz invites, achievements, friend activity, and more.",
+  path: "/notifications",
 });
 
 export default function NotificationsRoute(): React.ReactElement {
-return (
-<Suspense fallback={<RouteGateSkeleton />}>
-<NotificationCenterPage />
-</Suspense>
+  return (
+    <Suspense fallback={<RouteGateSkeleton />}>
+      <NotificationCenterPage />
+    </Suspense>
   );
 }

@@ -1,6 +1,3 @@
-
-
 export interface StartInstanceResponseDto {
-
-message: string;
+  message: string;
 }

@@ -1,48 +1,45 @@
-
-
-import type { AttemptResponseDtoContextType } from './attemptResponseDtoContextType';
-import type { AttemptResponseDtoStatus } from './attemptResponseDtoStatus';
-import type { AttemptAnswerResponseDto } from './attemptAnswerResponseDto';
+import type { AttemptResponseDtoContextType } from "./attemptResponseDtoContextType";
+import type { AttemptResponseDtoStatus } from "./attemptResponseDtoStatus";
+import type { AttemptAnswerResponseDto } from "./attemptAnswerResponseDto";
 
 export interface AttemptResponseDto {
+  attemptId: string;
 
-attemptId: string;
+  userId: string;
 
-userId: string;
+  quizId: string;
 
-quizId: string;
+  quizTitle: string;
 
-quizTitle: string;
+  quizSlug: string;
 
-quizSlug: string;
+  versionNumber: number;
 
-versionNumber: number;
+  difficulty: string;
 
-difficulty: string;
+  durationMs: number;
 
-durationMs: number;
+  passingScorePercent: number;
 
-passingScorePercent: number;
+  rewardXp: number;
 
-rewardXp: number;
+  contextType: AttemptResponseDtoContextType;
 
-contextType: AttemptResponseDtoContextType;
+  contextRefId?: string | null;
 
-contextRefId?: string | null;
+  status: AttemptResponseDtoStatus;
 
-status: AttemptResponseDtoStatus;
+  scorePercent?: number | null;
 
-scorePercent?: number | null;
+  correctCount?: number | null;
 
-correctCount?: number | null;
+  startedAt: string;
 
-startedAt: string;
+  finishedAt?: string | null;
 
-finishedAt?: string | null;
+  timeTakenMs?: number | null;
 
-timeTakenMs?: number | null;
+  xpEarned: number;
 
-xpEarned: number;
-
-answers: AttemptAnswerResponseDto[];
+  answers: AttemptAnswerResponseDto[];
 }

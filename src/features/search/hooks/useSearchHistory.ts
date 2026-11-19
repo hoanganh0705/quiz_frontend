@@ -12,49 +12,48 @@ export const SEARCH_HISTORY_MAX_ENTRIES = 10;
 export const SEARCH_HISTORY_STORAGE_KEY = "phase5:search:history:v1";
 
 export interface UseSearchHistoryResult {
+  entries: readonly SearchHistoryEntry[];
 
-entries: readonly SearchHistoryEntry[];
+  push: (query: string) => void;
 
-push: (query: string) => void;
+  clear: () => void;
 
-clear: () => void;
-
-remove: (query: string) => void;
+  remove: (query: string) => void;
 }
 
 function readPersistedHistory(): SearchHistoryEntry[] {
-if (typeof window === "undefined") return [];
-let raw: string | null = null;
-try {
-raw = window.sessionStorage.getItem(SEARCH_HISTORY_STORAGE_KEY);
+  if (typeof window === "undefined") return [];
+  let raw: string | null = null;
+  try {
+    raw = window.sessionStorage.getItem(SEARCH_HISTORY_STORAGE_KEY);
   } catch {
-return [];
+    return [];
   }
-if (!raw) return [];
-try {
-const parsed = JSON.parse(raw) as unknown;
-if (!Array.isArray(parsed)) return [];
+  if (!raw) return [];
+  try {
+    const parsed = JSON.parse(raw) as unknown;
+    if (!Array.isArray(parsed)) return [];
 
-return parsed
+    return parsed
       .filter(
-(e): e is SearchHistoryEntry =>
-typeof e === "object" &&
-e !== null &&
-typeof (e as { query?: unknown }).query === "string" &&
-typeof (e as { timestamp?: unknown }).timestamp === "number",
+        (e): e is SearchHistoryEntry =>
+          typeof e === "object" &&
+          e !== null &&
+          typeof (e as { query?: unknown }).query === "string" &&
+          typeof (e as { timestamp?: unknown }).timestamp === "number",
       )
       .slice(0, SEARCH_HISTORY_MAX_ENTRIES);
   } catch {
-return [];
+    return [];
   }
 }
 
 function writePersistedHistory(entries: readonly SearchHistoryEntry[]): void {
-if (typeof window === "undefined") return;
-try {
-window.sessionStorage.setItem(
-SEARCH_HISTORY_STORAGE_KEY,
-JSON.stringify(entries),
+  if (typeof window === "undefined") return;
+  try {
+    window.sessionStorage.setItem(
+      SEARCH_HISTORY_STORAGE_KEY,
+      JSON.stringify(entries),
     );
   } catch {
     // Storage unavailable — fall through silently.
@@ -62,108 +61,106 @@ JSON.stringify(entries),
 }
 
 function clearPersistedHistory(): void {
-if (typeof window === "undefined") return;
-try {
-window.sessionStorage.removeItem(SEARCH_HISTORY_STORAGE_KEY);
+  if (typeof window === "undefined") return;
+  try {
+    window.sessionStorage.removeItem(SEARCH_HISTORY_STORAGE_KEY);
   } catch {
     // Storage unavailable — fall through silently.
   }
 }
 
 function normaliseForDedupe(query: string): string {
-return query.trim().toLowerCase();
+  return query.trim().toLowerCase();
 }
 
 export function useSearchHistory(): UseSearchHistoryResult {
-const flagValue = getFeatureFlagValue("search_live");
-const isFlagPlaceholder = flagValue === "placeholder";
+  const flagValue = getFeatureFlagValue("search_live");
+  const isFlagPlaceholder = flagValue === "placeholder";
 
-const [entries, setEntries] = useState<readonly SearchHistoryEntry[]>(() => {
-
-return readPersistedHistory();
+  const [entries, setEntries] = useState<readonly SearchHistoryEntry[]>(() => {
+    return readPersistedHistory();
   });
 
-useEffect(() => {
-if (isFlagPlaceholder) return;
-const unsubscribe = subscribeToAuthEvents((event) => {
-if (
-event.type === "LOGGED_OUT" ||
-event.type === "ACCOUNT_DELETED" ||
-event.type === "LOGGED_IN"
+  useEffect(() => {
+    if (isFlagPlaceholder) return;
+    const unsubscribe = subscribeToAuthEvents((event) => {
+      if (
+        event.type === "LOGGED_OUT" ||
+        event.type === "ACCOUNT_DELETED" ||
+        event.type === "LOGGED_IN"
       ) {
-setEntries([]);
-clearPersistedHistory();
+        setEntries([]);
+        clearPersistedHistory();
       }
     });
-return () => {
-unsubscribe();
+    return () => {
+      unsubscribe();
     };
   }, [isFlagPlaceholder]);
 
-const noop = useCallback(() => {
+  const noop = useCallback(() => {
     /* no-op */
   }, []);
 
-const push = useCallback(
-(query: string) => {
-if (isFlagPlaceholder) return;
+  const push = useCallback(
+    (query: string) => {
+      if (isFlagPlaceholder) return;
 
-const trimmed = query.trim();
-if (trimmed.length < SEARCH_MIN_QUERY_LENGTH) {
-
-return;
+      const trimmed = query.trim();
+      if (trimmed.length < SEARCH_MIN_QUERY_LENGTH) {
+        return;
       }
 
-setEntries((current) => {
-const dedupeKey = normaliseForDedupe(trimmed);
-const filtered = current.filter(
-(entry) => normaliseForDedupe(entry.query) !== dedupeKey,
+      setEntries((current) => {
+        const dedupeKey = normaliseForDedupe(trimmed);
+        const filtered = current.filter(
+          (entry) => normaliseForDedupe(entry.query) !== dedupeKey,
         );
-const next: SearchHistoryEntry[] = [
-{ query: trimmed, timestamp: Date.now() },
-...filtered,
+        const next: SearchHistoryEntry[] = [
+          { query: trimmed, timestamp: Date.now() },
+          ...filtered,
         ].slice(0, SEARCH_HISTORY_MAX_ENTRIES);
-writePersistedHistory(next);
-return next;
+        writePersistedHistory(next);
+        return next;
       });
     },
-[isFlagPlaceholder],
+    [isFlagPlaceholder],
   );
 
-const clear = useCallback(() => {
-if (isFlagPlaceholder) return;
-setEntries([]);
-clearPersistedHistory();
+  const clear = useCallback(() => {
+    if (isFlagPlaceholder) return;
+    setEntries([]);
+    clearPersistedHistory();
   }, [isFlagPlaceholder]);
 
-const remove = useCallback(
-(query: string) => {
-if (isFlagPlaceholder) return;
-const dedupeKey = normaliseForDedupe(query);
-setEntries((current) => {
-const next = current.filter(
-(entry) => normaliseForDedupe(entry.query) !== dedupeKey,
+  const remove = useCallback(
+    (query: string) => {
+      if (isFlagPlaceholder) return;
+      const dedupeKey = normaliseForDedupe(query);
+      setEntries((current) => {
+        const next = current.filter(
+          (entry) => normaliseForDedupe(entry.query) !== dedupeKey,
         );
-if (next.length === current.length) return current;
-if (next.length === 0) {
-clearPersistedHistory();
+        if (next.length === current.length) return current;
+        if (next.length === 0) {
+          clearPersistedHistory();
         } else {
-writePersistedHistory(next);
+          writePersistedHistory(next);
         }
-return next;
+        return next;
       });
     },
-[isFlagPlaceholder],
+    [isFlagPlaceholder],
   );
 
-if (isFlagPlaceholder) {
-return {
-entries: [],
-push: noop,
-clear: noop,
-remove: noop,
+  if (isFlagPlaceholder) {
+    return {
+      entries: [],
+      push: noop,
+      clear: noop,
+      remove: noop,
     };
   }
 
-return { entries, push, clear, remove };
+  return { entries, push, clear, remove };
 }

@@ -1,7 +1,5 @@
-
-
-import type { WithdrawTournamentResponseDto } from './withdrawTournamentResponseDto';
+import type { WithdrawTournamentResponseDto } from "./withdrawTournamentResponseDto";
 
 export type TournamentControllerWithdrawFromTournament200AllOf = {
-data?: WithdrawTournamentResponseDto;
+  data?: WithdrawTournamentResponseDto;
 };

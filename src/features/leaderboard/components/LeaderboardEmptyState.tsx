@@ -1,48 +1,47 @@
-'use client'
+"use client";
 
-import { Trophy } from 'lucide-react'
+import { Trophy } from "lucide-react";
 
-import { EmptyState } from '@/components/ui/EmptyState'
-import { cn } from '@/shared/utils/merge-class-names'
+import { EmptyState } from "@/components/ui/EmptyState";
+import { cn } from "@/shared/utils/merge-class-names";
 
 const LEADERBOARD_EMPTY_COPY =
-'No leaderboard data yet — play some quizzes to populate the ranks.'
+  "No leaderboard data yet — play some quizzes to populate the ranks.";
 
 export interface LeaderboardEmptyStateProps {
+  onRetry?: () => void;
 
-onRetry?: () => void
-
-className?: string
+  className?: string;
 }
 
 export function LeaderboardEmptyState({
-onRetry,
-className,
+  onRetry,
+  className,
 }: LeaderboardEmptyStateProps) {
-return (
-<div
-data-testid='leaderboard-empty-state'
-className={cn(
-'bg-card border border-border rounded-lg overflow-hidden',
-className,
+  return (
+    <div
+      data-testid="leaderboard-empty-state"
+      className={cn(
+        "bg-card border border-border rounded-lg overflow-hidden",
+        className,
       )}
     >
-<EmptyState
-icon={Trophy}
-title='Leaderboard is empty'
-description={LEADERBOARD_EMPTY_COPY}
-actions={
-onRetry
-? [
-{
-label: 'Retry',
-variant: 'outline',
-onClick: onRetry,
+      <EmptyState
+        icon={Trophy}
+        title="Leaderboard is empty"
+        description={LEADERBOARD_EMPTY_COPY}
+        actions={
+          onRetry
+            ? [
+                {
+                  label: "Retry",
+                  variant: "outline",
+                  onClick: onRetry,
                 },
               ]
-: undefined
+            : undefined
         }
       />
-</div>
-  )
+    </div>
+  );
 }

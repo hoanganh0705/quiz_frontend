@@ -1,7 +1,5 @@
-
-
-import type { UserProfileBundleResponseDto } from './userProfileBundleResponseDto';
+import type { UserProfileBundleResponseDto } from "./userProfileBundleResponseDto";
 
 export type UserControllerGetMyProfileBundle200AllOf = {
-data?: UserProfileBundleResponseDto;
+  data?: UserProfileBundleResponseDto;
 };

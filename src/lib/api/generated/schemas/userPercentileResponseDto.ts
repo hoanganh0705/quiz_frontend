@@ -1,16 +1,13 @@
-
-
 export interface UserPercentileResponseDto {
+  rank?: number | null;
 
-rank?: number | null;
+  totalUsers: number;
 
-totalUsers: number;
+  percentile?: number | null;
 
-percentile?: number | null;
+  percentileLabel?: string | null;
 
-percentileLabel?: string | null;
+  betterThanUsers?: number | null;
 
-betterThanUsers?: number | null;
-
-worseThanUsers?: number | null;
+  worseThanUsers?: number | null;
 }

@@ -1,21 +1,18 @@
-
-
-import type { QuizMetricsDto } from './quizMetricsDto';
-import type { ReviewMetricsDto } from './reviewMetricsDto';
-import type { EngagementMetricsDto } from './engagementMetricsDto';
-import type { PopularityDto } from './popularityDto';
+import type { QuizMetricsDto } from "./quizMetricsDto";
+import type { ReviewMetricsDto } from "./reviewMetricsDto";
+import type { EngagementMetricsDto } from "./engagementMetricsDto";
+import type { PopularityDto } from "./popularityDto";
 
 export interface QuizAnalyticsResponseDto {
+  quizId: string;
 
-quizId: string;
+  metrics: QuizMetricsDto;
 
-metrics: QuizMetricsDto;
+  reviewMetrics: ReviewMetricsDto;
 
-reviewMetrics: ReviewMetricsDto;
+  engagementMetrics: EngagementMetricsDto;
 
-engagementMetrics: EngagementMetricsDto;
+  popularity: PopularityDto;
 
-popularity: PopularityDto;
-
-lastUpdated: string;
+  lastUpdated: string;
 }

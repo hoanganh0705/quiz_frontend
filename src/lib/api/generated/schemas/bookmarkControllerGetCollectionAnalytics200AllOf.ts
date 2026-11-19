@@ -1,7 +1,5 @@
-
-
-import type { BookmarkCollectionAnalyticsResponseDto } from './bookmarkCollectionAnalyticsResponseDto';
+import type { BookmarkCollectionAnalyticsResponseDto } from "./bookmarkCollectionAnalyticsResponseDto";
 
 export type BookmarkControllerGetCollectionAnalytics200AllOf = {
-data?: BookmarkCollectionAnalyticsResponseDto;
+  data?: BookmarkCollectionAnalyticsResponseDto;
 };

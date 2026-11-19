@@ -1,50 +1,48 @@
-
-
-import type { ApiError } from '@/lib/api/core/ApiError'
+import type { ApiError } from "@/lib/api/core/ApiError";
 
 export interface DailyChallengeView {
-id: string
-date: string
-quizId: string
-quizTitle: string
-slug: string
-category: string
-difficulty: 'easy' | 'medium' | 'hard'
-totalQuestions: number
-rewardXp: number
-expiresAt: string
-status: 'pending' | 'completed' | 'expired'
-scorePercent: number | null
-rank: number | null
+  id: string;
+  date: string;
+  quizId: string;
+  quizTitle: string;
+  slug: string;
+  category: string;
+  difficulty: "easy" | "medium" | "hard";
+  totalQuestions: number;
+  rewardXp: number;
+  expiresAt: string;
+  status: "pending" | "completed" | "expired";
+  scorePercent: number | null;
+  rank: number | null;
 }
 
 export interface DailyChallengeHistoryItemView {
-id: string
-date: string
-quizId: string
-quizTitle: string
-slug: string
-difficulty: 'easy' | 'medium' | 'hard'
-category: string
-score: number
-rank: number
-isTopTen: boolean
+  id: string;
+  date: string;
+  quizId: string;
+  quizTitle: string;
+  slug: string;
+  difficulty: "easy" | "medium" | "hard";
+  category: string;
+  score: number;
+  rank: number;
+  isTopTen: boolean;
 }
 
 export interface DailyChallengeHistoryPage {
-items: readonly DailyChallengeHistoryItemView[]
+  items: readonly DailyChallengeHistoryItemView[];
 
-nextCursor: string | null
-hasNextPage: boolean
-limit: number
+  nextCursor: string | null;
+  hasNextPage: boolean;
+  limit: number;
 }
 
 export interface DailyChallengeAnswerResponseView {
-correct: boolean
-nextQuestionIndex: number
-totalQuestions: number
-completed: boolean
-scorePercent: number | null
+  correct: boolean;
+  nextQuestionIndex: number;
+  totalQuestions: number;
+  completed: boolean;
+  scorePercent: number | null;
 }
 
 /**
@@ -58,15 +56,15 @@ scorePercent: number | null
  * `quizzes.categoryId` and grouped by `categories.category_id`).
  */
 export interface DailyChallengeCategoryBreakdownItemView {
-categoryId: string
-categoryName: string
-categorySlug: string
-attemptCount: number
-averageScorePercent: number
+  categoryId: string;
+  categoryName: string;
+  categorySlug: string;
+  attemptCount: number;
+  averageScorePercent: number;
 }
 
 export interface DailyChallengeCategoryBreakdownPage {
-items: readonly DailyChallengeCategoryBreakdownItemView[]
+  items: readonly DailyChallengeCategoryBreakdownItemView[];
 }
 
 /**
@@ -75,22 +73,22 @@ items: readonly DailyChallengeCategoryBreakdownItemView[]
  * other daily-challenge service methods.
  */
 export type DailyChallengeCategoryBreakdownResult =
-  | { kind: 'ok'; data: DailyChallengeCategoryBreakdownPage }
-  | { kind: 'missing-endpoint' }
-  | { kind: 'error'; error: ApiError }
+  | { kind: "ok"; data: DailyChallengeCategoryBreakdownPage }
+  | { kind: "missing-endpoint" }
+  | { kind: "error"; error: ApiError };
 
 export type DailyChallengeResult<T> =
-| { kind: 'ok'; data: T }
-  | { kind: 'missing-endpoint' }
-  | { kind: 'error'; error: ApiError }
+  | { kind: "ok"; data: T }
+  | { kind: "missing-endpoint" }
+  | { kind: "error"; error: ApiError };
 
 export interface GetDailyChallengeHistoryParams {
-cursor?: string
-offset?: number
-limit?: number
+  cursor?: string;
+  offset?: number;
+  limit?: number;
 }
 
 export interface SubmitDailyChallengeAnswerParams {
-questionIndex: number
-selectedOptionId: string | null
+  questionIndex: number;
+  selectedOptionId: string | null;
 }

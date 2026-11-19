@@ -1,81 +1,73 @@
-
-
 import type {
-QuizQuestionAuthorDto,
-QuizAnswerOptionAuthorDto,
-} from '@/lib/api/generated/schemas';
+  QuizQuestionAuthorDto,
+  QuizAnswerOptionAuthorDto,
+} from "@/lib/api/generated/schemas";
 
 export type QuizAuthorQuestionDto = QuizQuestionAuthorDto;
 
 export type QuizAuthorAnswerOptionDto = QuizAnswerOptionAuthorDto;
 
 export interface CreateQuestionDto {
+  position: number;
 
-position: number;
+  questionText: string;
 
-questionText: string;
+  imageUrl?: string | null;
 
-imageUrl?: string | null;
-
-answerOptions: CreateAnswerOptionDto[];
+  answerOptions: CreateAnswerOptionDto[];
 }
 
 export interface CreateAnswerOptionDto {
+  position: number;
 
-position: number;
+  value: string;
 
-value: string;
-
-isCorrect: boolean;
+  isCorrect: boolean;
 }
 
 export interface BulkCreateQuestionsDto {
-
-questions: CreateQuestionDto[];
+  questions: CreateQuestionDto[];
 }
 
 export interface BulkQuestionResultItem {
+  index: number;
 
-index: number;
+  status: number;
 
-status: number;
+  code: string;
 
-code: string;
+  message: string;
 
-message: string;
-
-questionId?: string;
+  questionId?: string;
 }
 
 export interface BulkQuestionsResultDto {
+  questions: QuizAuthorQuestionDto[];
 
-questions: QuizAuthorQuestionDto[];
-
-results: BulkQuestionResultItem[];
+  results: BulkQuestionResultItem[];
 }
 
 export const QUESTION_TYPE_VALUES = [
-'single_choice',
-'multiple_choice',
-'true_false',
-'short_answer',
+  "single_choice",
+  "multiple_choice",
+  "true_false",
+  "short_answer",
 ] as const;
 
 export type QuestionType = (typeof QUESTION_TYPE_VALUES)[number];
 
 export const QUESTION_VALIDATION = {
+  TEXT_MIN: 1,
+  TEXT_MAX: 1000,
 
-TEXT_MIN: 1,
-TEXT_MAX: 1000,
+  OPTION_TEXT_MIN: 1,
+  OPTION_TEXT_MAX: 200,
 
-OPTION_TEXT_MIN: 1,
-OPTION_TEXT_MAX: 200,
+  OPTIONS_MIN: 2,
+  OPTIONS_MAX: 6,
 
-OPTIONS_MIN: 2,
-OPTIONS_MAX: 6,
+  BULK_MIN: 1,
+  BULK_MAX: 50,
 
-BULK_MIN: 1,
-BULK_MAX: 50,
-
-PUBLISH_MIN: 5,
+  PUBLISH_MIN: 5,
 } as const;

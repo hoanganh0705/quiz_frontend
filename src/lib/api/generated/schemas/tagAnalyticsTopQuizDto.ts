@@ -1,22 +1,19 @@
-
-
 export interface TagAnalyticsTopQuizDto {
+  rank: number;
 
-rank: number;
+  quizId: string;
 
-quizId: string;
+  title: string;
 
-title: string;
+  slug: string;
 
-slug: string;
+  imageUrl: string | null;
 
-imageUrl: string | null;
+  popularityScore: number;
 
-popularityScore: number;
+  totalAttempts: number;
 
-totalAttempts: number;
+  averageRating: number;
 
-averageRating: number;
-
-bookmarkCount: number;
+  bookmarkCount: number;
 }

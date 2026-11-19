@@ -1,12 +1,9 @@
-
-
 export interface BadgeProgressResponseDto {
+  badgeId: string;
 
-badgeId: string;
+  current: number;
 
-current: number;
+  target: number;
 
-target: number;
-
-percent: number;
+  percent: number;
 }

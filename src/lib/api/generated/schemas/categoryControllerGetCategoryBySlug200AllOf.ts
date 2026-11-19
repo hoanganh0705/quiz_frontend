@@ -1,7 +1,5 @@
-
-
-import type { CategoryResponseDto } from './categoryResponseDto';
+import type { CategoryResponseDto } from "./categoryResponseDto";
 
 export type CategoryControllerGetCategoryBySlug200AllOf = {
-data?: CategoryResponseDto;
+  data?: CategoryResponseDto;
 };

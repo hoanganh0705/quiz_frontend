@@ -1,10 +1,7 @@
-
-
 export interface TournamentParticipantListItemDto {
+  userId: string;
 
-userId: string;
+  username: string;
 
-username: string;
-
-registeredAt: string;
+  registeredAt: string;
 }

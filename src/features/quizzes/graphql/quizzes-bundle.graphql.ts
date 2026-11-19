@@ -19,18 +19,18 @@
  * `DocumentNode`); the wrapper hook types will surface a TS error so a
  * developer is forced to run codegen before consuming the hook.
  */
-import { gql, type TypedDocumentNode } from '@apollo/client';
-import { useQuery } from '@apollo/client/react';
+import { gql, type TypedDocumentNode } from "@apollo/client";
+import { useQuery } from "@apollo/client/react";
 
 import type {
   QuizzesBundleQuery,
   QuizzesBundleQueryVariables,
-} from '@/lib/graphql/generated/graphql';
+} from "@/lib/graphql/generated/graphql";
 
 export type {
   QuizzesBundleQuery,
   QuizzesBundleQueryVariables,
-} from '@/lib/graphql/generated/graphql';
+} from "@/lib/graphql/generated/graphql";
 
 export const QUIZZES_BUNDLE_QUERY: TypedDocumentNode<
   QuizzesBundleQuery,
@@ -118,13 +118,14 @@ export const QUIZZES_BUNDLE_QUERY: TypedDocumentNode<
 
 export interface UseQuizzesBundleArgs {
   readonly variables?: QuizzesBundleQueryVariables;
-  readonly fetchPolicy?: 'cache-first' | 'cache-and-network' | 'network-only' | 'no-cache';
+  readonly fetchPolicy?:
+    "cache-first" | "cache-and-network" | "network-only" | "no-cache";
   readonly skip?: boolean;
 }
 
 export function useQuizzesBundleQuery(args: UseQuizzesBundleArgs = {}) {
   const { variables, fetchPolicy, skip } = args;
-  if (typeof skip === 'boolean') {
+  if (typeof skip === "boolean") {
     return useQuery(QUIZZES_BUNDLE_QUERY, {
       ...(variables ? { variables } : {}),
       ...(fetchPolicy ? { fetchPolicy } : {}),

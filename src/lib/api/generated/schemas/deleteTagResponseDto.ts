@@ -1,6 +1,3 @@
-
-
 export interface DeleteTagResponseDto {
-
-message: string;
+  message: string;
 }

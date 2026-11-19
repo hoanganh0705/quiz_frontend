@@ -1,10 +1,7 @@
-
-
 export interface SearchQuizResultDto {
+  quizId: string;
 
-quizId: string;
+  title: string;
 
-title: string;
-
-slug: string;
+  slug: string;
 }

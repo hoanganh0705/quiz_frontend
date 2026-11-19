@@ -1,12 +1,9 @@
-
-
-import type { RankingControllerGetMyRankingHistoryPeriod } from './rankingControllerGetMyRankingHistoryPeriod';
+import type { RankingControllerGetMyRankingHistoryPeriod } from "./rankingControllerGetMyRankingHistoryPeriod";
 
 export type RankingControllerGetMyRankingHistoryParams = {
+  period?: RankingControllerGetMyRankingHistoryPeriod;
 
-period?: RankingControllerGetMyRankingHistoryPeriod;
+  from?: string;
 
-from?: string;
-
-to?: string;
+  to?: string;
 };

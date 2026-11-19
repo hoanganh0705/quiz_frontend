@@ -1,3 +1,3 @@
-
-
-export type RankingStatusResponseDtoNextConsistencyCheck = { [key: string]: unknown };
+export type RankingStatusResponseDtoNextConsistencyCheck = {
+  [key: string]: unknown;
+};

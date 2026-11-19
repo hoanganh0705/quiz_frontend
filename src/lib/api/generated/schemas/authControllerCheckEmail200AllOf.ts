@@ -1,7 +1,5 @@
-
-
-import type { CheckEmailResponseDto } from './checkEmailResponseDto';
+import type { CheckEmailResponseDto } from "./checkEmailResponseDto";
 
 export type AuthControllerCheckEmail200AllOf = {
-data?: CheckEmailResponseDto;
+  data?: CheckEmailResponseDto;
 };

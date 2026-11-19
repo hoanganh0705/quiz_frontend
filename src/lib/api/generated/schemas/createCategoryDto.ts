@@ -1,12 +1,9 @@
-
-
 export interface CreateCategoryDto {
+  name: string;
 
-name: string;
+  description?: string | null;
 
-description?: string | null;
+  slug?: string | null;
 
-slug?: string | null;
-
-imageUrl?: string | null;
+  imageUrl?: string | null;
 }

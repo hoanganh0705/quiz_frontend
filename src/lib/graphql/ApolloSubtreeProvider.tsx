@@ -9,14 +9,13 @@
  * Note: this file is intentionally a client component because Apollo Client is
  * browser-side. RSC pages must use it from a client-only child component.
  */
-'use client';
+"use client";
 
-import { ApolloClient } from '@apollo/client';
-import { ApolloProvider } from '@apollo/client/react';
-import type { ReactNode } from 'react';
-import { useMemo } from 'react';
+import { ApolloProvider } from "@apollo/client/react";
+import type { ReactNode } from "react";
+import { useMemo } from "react";
 
-import { createApolloClient, type CreateApolloClientOptions } from './client';
+import { createApolloClient, type CreateApolloClientOptions } from "./client";
 
 export interface ApolloSubtreeProviderProps {
   children: ReactNode;

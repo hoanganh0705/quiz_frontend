@@ -1,16 +1,13 @@
-
-
 export interface RelationshipStatusDto {
+  isFriend: boolean;
 
-isFriend: boolean;
+  hasPendingRequest: boolean;
 
-hasPendingRequest: boolean;
+  isFollower: boolean;
 
-isFollower: boolean;
+  isFollowing: boolean;
 
-isFollowing: boolean;
+  isBlocked: boolean;
 
-isBlocked: boolean;
-
-isBlockedBy: boolean;
+  isBlockedBy: boolean;
 }

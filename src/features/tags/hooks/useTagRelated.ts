@@ -1,42 +1,43 @@
-'use client'
+"use client";
 
-import useSWR from 'swr'
+import { useQuery } from "@tanstack/react-query";
+import { getQueryClient } from "@/providers/QueryProvider";
 
-import { ApiError } from '@/lib/api'
-import type { TagResponseDto } from '@/lib/api/generated/schemas'
+import { ApiError } from "@/lib/api";
+import type { TagResponseDto } from "@/lib/api/generated/schemas";
 
-import { getRelatedTags } from '@/features/tags/services/tags.service'
+import { getRelatedTags } from "@/features/tags/services/tags.service";
 
 export interface UseTagRelatedParams {
-limit?: number
+  limit?: number;
 }
 
 export interface UseTagRelatedResult {
-tags: readonly TagResponseDto[]
-isLoading: boolean
-error: ApiError | null
+  tags: readonly TagResponseDto[];
+  isLoading: boolean;
+  error: ApiError | null;
 }
 
 export function useTagRelated(
-slug: string,
-params: UseTagRelatedParams = {},
+  slug: string,
+  params: UseTagRelatedParams = {},
 ): UseTagRelatedResult {
-const key = ['tag', slug, 'related', params] as const
+  const key = ["tag", slug, "related", params] as const;
 
-const { data, error, isLoading } = useSWR(
-key,
-async () => {
-const result = await getRelatedTags(slug, { limit: params.limit })
-return result.data ?? []
+  const { data, error, isLoading } = useQuery(
+    {
+      queryKey: key,
+      queryFn: async () => {
+        const result = await getRelatedTags(slug, { limit: params.limit });
+        return result.data ?? [];
+      },
     },
-{
-      // Inherit the global SwrProvider defaults.
-    },
-  )
+    getQueryClient(),
+  );
 
-return {
-tags: data ?? [],
-isLoading,
-error: error instanceof ApiError ? error : null,
-  }
+  return {
+    tags: data ?? [],
+    isLoading,
+    error: error instanceof ApiError ? error : null,
+  };
 }

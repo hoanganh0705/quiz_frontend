@@ -1,10 +1,7 @@
-
-
 export interface AchievementHistoryItemResponseDto {
+  badgeId: string;
 
-badgeId: string;
+  badgeName: string;
 
-badgeName: string;
-
-earnedAt: string;
+  earnedAt: string;
 }

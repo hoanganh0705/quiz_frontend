@@ -1,1 +1,1 @@
-export * from './tournaments.service';
+export * from "./tournaments.service";

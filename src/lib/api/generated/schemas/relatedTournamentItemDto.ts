@@ -1,12 +1,9 @@
-
-
 export interface RelatedTournamentItemDto {
+  tournamentId: string;
 
-tournamentId: string;
+  name: string;
 
-name: string;
+  startAt: string;
 
-startAt: string;
-
-participantCount: number;
+  participantCount: number;
 }

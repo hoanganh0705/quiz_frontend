@@ -1,7 +1,5 @@
-
-
-import type { QuizListItemDto } from './quizListItemDto';
+import type { QuizListItemDto } from "./quizListItemDto";
 
 export type QuizControllerGetRelatedQuizzes200AllOf = {
-data?: QuizListItemDto[];
+  data?: QuizListItemDto[];
 };

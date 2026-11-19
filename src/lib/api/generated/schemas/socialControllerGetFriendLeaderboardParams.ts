@@ -1,6 +1,4 @@
-
-
 export type SocialControllerGetFriendLeaderboardParams = {
-period: string;
-limit: number;
+  period: string;
+  limit: number;
 };

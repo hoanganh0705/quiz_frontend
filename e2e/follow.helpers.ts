@@ -1,10 +1,8 @@
 /**
  * `follow.helpers.ts` — shared stubbing + fixture helpers for the
- * `category-follow.spec.ts` (TKT-3.9.F2) and `tag-follow.spec.ts`
- * (TKT-3.9.F2) suites.
+ * `category-follow.spec.ts` and `tag-follow.spec.ts`
+ * suites.
  *
- * Source epic:   Story 3.9 — Follow / unfollow for categories + tags.
- * Source ticket: TKT-3.9.F2 — E2E Playwright tests for the follow
  *                 surface (category + tag detail pages).
  *
  * The helpers centralise the four follow endpoints so both spec
@@ -32,7 +30,7 @@
  * | `/api/v1/users/me/followed-tags*`            | GET    | Membership lookup (count source)          |
  */
 
-import type { Page } from '@playwright/test';
+import type { Page } from "@playwright/test";
 
 // ──────────────────────────────────────────────────────────────────────
 // Seed fixtures — the canonical IDs + slugs the live seed-data
@@ -40,15 +38,14 @@ import type { Page } from '@playwright/test';
 // data drifts between dev runs.
 // ──────────────────────────────────────────────────────────────────────
 
-export const CATEGORY_ID = '0192f4d8-aaaa-7000-8000-000000000001';
-export const CATEGORY_SLUG = 'epic-mathematics';
+export const CATEGORY_ID = "0192f4d8-aaaa-7000-8000-000000000001";
+export const CATEGORY_SLUG = "epic-mathematics";
 
-export const TAG_ID = '0192f4d8-bbbb-7000-8000-000000000001';
-export const TAG_SLUG = 'epic-science';
+export const TAG_ID = "0192f4d8-bbbb-7000-8000-000000000001";
+export const TAG_SLUG = "epic-science";
 
 // ──────────────────────────────────────────────────────────────────────
-// DTO factories — these mirror the SDK wire shape (TKT-3.9.A1 §1.1,
-// §1.2, §11). The follow endpoint returns 204 No Content; the
+// DTO factories — these mirror the SDK wire shape. The follow endpoint returns 204 No Content; the
 // `/me/followed-*` endpoint returns a cursor-paginated envelope
 // `{ data: FollowedItemDto[]; meta?: { pagination: ... } }` (no UI
 // component reads `meta.pagination` directly — the wrapper extracts
@@ -90,12 +87,12 @@ export function makeCategoryResponse(
 ): CategoryResponseDto {
   return {
     categoryId: CATEGORY_ID,
-    name: 'Mathematics',
-    description: 'All math quizzes.',
+    name: "Mathematics",
+    description: "All math quizzes.",
     slug: CATEGORY_SLUG,
     imageUrl: null,
-    createdAt: '2026-07-01T00:00:00.000Z',
-    updatedAt: '2026-07-01T00:00:00.000Z',
+    createdAt: "2026-07-01T00:00:00.000Z",
+    updatedAt: "2026-07-01T00:00:00.000Z",
     ...overrides,
   };
 }
@@ -105,10 +102,10 @@ export function makeTagResponse(
 ): TagResponseDto {
   return {
     tagId: TAG_ID,
-    name: 'Science',
+    name: "Science",
     slug: TAG_SLUG,
-    createdAt: '2026-07-01T00:00:00.000Z',
-    updatedAt: '2026-07-01T00:00:00.000Z',
+    createdAt: "2026-07-01T00:00:00.000Z",
+    updatedAt: "2026-07-01T00:00:00.000Z",
     ...overrides,
   };
 }
@@ -123,13 +120,13 @@ export function makeTagResponse(
  * The live `/categories/[idOrSlug]` route fires four requests in
  * parallel:
  *
- *   1. `GET /api/v1/categories/{slug}` — the header detail (TKT-3.3.B3)
+ *   1. `GET /api/v1/categories/{slug}` — the header detail
  *   2. `GET /api/v1/categories/{idOrSlug}/quizzes?cursor=...&limit=...`
- *      — the quiz grid (TKT-3.3.D1, cursor-paginated)
+ *      — the quiz grid
  *   3. `GET /api/v1/users/me/followed-categories?limit=500` — the
- *      membership lookup (TKT-3.9.B3)
+ *      membership lookup
  *   4. `POST|DELETE /api/v1/categories/{id}/follow` — the action
- *      surface (TKT-3.9.A2). The action endpoints return 204 No
+ *      surface. The action endpoints return 204 No
  *      Content; the membership lookup invalidates via SWR.
  *
  * Unauthenticated traffic to `/users/me/followed-*` returns 401
@@ -168,7 +165,7 @@ export async function stubCategoryFollow(
   const followCount = options.initialFollowCount ?? followed.size;
 
   // Header detail.
-  await page.route('**/api/v1/categories/**', async (route) => {
+  await page.route("**/api/v1/categories/**", async (route) => {
     const url = new URL(route.request().url());
     const pathname = url.pathname;
     const method = route.request().method();
@@ -176,14 +173,14 @@ export async function stubCategoryFollow(
     // /categories/{slug} (no /quizzes suffix, no /follow suffix) →
     // header detail.
     if (
-      method === 'GET' &&
-      !pathname.endsWith('/quizzes') &&
-      !pathname.endsWith('/follow') &&
-      !pathname.includes('/followed-')
+      method === "GET" &&
+      !pathname.endsWith("/quizzes") &&
+      !pathname.endsWith("/follow") &&
+      !pathname.includes("/followed-")
     ) {
       await route.fulfill({
         status: 200,
-        contentType: 'application/json',
+        contentType: "application/json",
         body: JSON.stringify({ data: makeCategoryResponse() }),
       });
       return;
@@ -191,15 +188,15 @@ export async function stubCategoryFollow(
 
     // /categories/{id}/quizzes → empty grid (the F2 tests focus
     // on the follow surface; the grid is incidental).
-    if (method === 'GET' && pathname.endsWith('/quizzes')) {
+    if (method === "GET" && pathname.endsWith("/quizzes")) {
       await route.fulfill({
         status: 200,
-        contentType: 'application/json',
+        contentType: "application/json",
         body: JSON.stringify({
           data: [],
           meta: {
             pagination: {
-              kind: 'cursor',
+              kind: "cursor",
               limit: 12,
               nextCursor: null,
               hasNextPage: false,
@@ -211,21 +208,21 @@ export async function stubCategoryFollow(
     }
 
     // /categories/{id}/follow POST → toggle membership.
-    if (method === 'POST' && pathname.endsWith('/follow')) {
+    if (method === "POST" && pathname.endsWith("/follow")) {
       followed.add(CATEGORY_ID);
-      await route.fulfill({ status: 204, body: '' });
+      await route.fulfill({ status: 204, body: "" });
       return;
     }
 
     // /categories/{id}/follow DELETE → untoggle membership.
-    if (method === 'DELETE' && pathname.endsWith('/follow')) {
+    if (method === "DELETE" && pathname.endsWith("/follow")) {
       followed.delete(CATEGORY_ID);
-      await route.fulfill({ status: 204, body: '' });
+      await route.fulfill({ status: 204, body: "" });
       return;
     }
 
     // /users/me/followed-categories → membership snapshot.
-    if (pathname.includes('/users/me/followed-categories')) {
+    if (pathname.includes("/users/me/followed-categories")) {
       const items: FollowedCategoryItemDto[] = Array.from(followed).map(
         (id) => ({
           categoryId: id,
@@ -235,12 +232,12 @@ export async function stubCategoryFollow(
       );
       await route.fulfill({
         status: 200,
-        contentType: 'application/json',
+        contentType: "application/json",
         body: JSON.stringify({
           data: items,
           meta: {
             pagination: {
-              kind: 'cursor',
+              kind: "cursor",
               limit: 500,
               nextCursor: null,
               hasNextPage: false,
@@ -256,12 +253,12 @@ export async function stubCategoryFollow(
     // in the URL pattern).
     await route.fulfill({
       status: 404,
-      contentType: 'application/json',
+      contentType: "application/json",
       body: JSON.stringify({
-        type: 'about:blank',
-        title: 'Not Found',
+        type: "about:blank",
+        title: "Not Found",
         status: 404,
-        extensions: { code: 'GLOBAL_NOT_FOUND' },
+        extensions: { code: "GLOBAL_NOT_FOUND" },
       }),
     });
   });
@@ -284,8 +281,8 @@ export async function stubCategoryFollow(
  * structurally identical with `/tags` + `/users/me/followed-tags`
  * instead of `/categories` + `/users/me/followed-categories`. The
  * tag side ALSO fires a `/tags/{slug}/analytics` request for the
- * `<TagAnalyticsPanel />` (TKT-3.4.C6) and a `/tags/{slug}/related`
- * request for the `<RelatedTagsStrip />` (TKT-3.4.C4) — both are
+ * `<TagAnalyticsPanel />` and a `/tags/{slug}/related`
+ * request for the `<RelatedTagsStrip />` — both are
  * stubbed to a 404-by-default zero-state so the analytics + related
  * panels don't introduce noise into the F2 assertions.
  */
@@ -301,38 +298,38 @@ export async function stubTagFollow(
   const followed = new Set<string>(options.initialFollowedIds ?? []);
   const followCount = options.initialFollowCount ?? followed.size;
 
-  await page.route('**/api/v1/tags/**', async (route) => {
+  await page.route("**/api/v1/tags/**", async (route) => {
     const url = new URL(route.request().url());
     const pathname = url.pathname;
     const method = route.request().method();
 
     // /tags/{slug} → header detail.
     if (
-      method === 'GET' &&
-      !pathname.endsWith('/quizzes') &&
-      !pathname.endsWith('/analytics') &&
-      !pathname.endsWith('/related') &&
-      !pathname.endsWith('/follow') &&
-      !pathname.includes('/followed-')
+      method === "GET" &&
+      !pathname.endsWith("/quizzes") &&
+      !pathname.endsWith("/analytics") &&
+      !pathname.endsWith("/related") &&
+      !pathname.endsWith("/follow") &&
+      !pathname.includes("/followed-")
     ) {
       await route.fulfill({
         status: 200,
-        contentType: 'application/json',
+        contentType: "application/json",
         body: JSON.stringify({ data: makeTagResponse() }),
       });
       return;
     }
 
     // /tags/{slug}/quizzes → empty grid (focus on the follow surface).
-    if (method === 'GET' && pathname.endsWith('/quizzes')) {
+    if (method === "GET" && pathname.endsWith("/quizzes")) {
       await route.fulfill({
         status: 200,
-        contentType: 'application/json',
+        contentType: "application/json",
         body: JSON.stringify({
           data: [],
           meta: {
             pagination: {
-              kind: 'cursor',
+              kind: "cursor",
               limit: 12,
               nextCursor: null,
               hasNextPage: false,
@@ -344,16 +341,16 @@ export async function stubTagFollow(
     }
 
     // /tags/{slug}/analytics → 404 zero-state ("Analytics will
-    // populate after activity" — Story 3.4 line 461).
-    if (method === 'GET' && pathname.endsWith('/analytics')) {
+    // populate after activity" — feature line 461).
+    if (method === "GET" && pathname.endsWith("/analytics")) {
       await route.fulfill({
         status: 404,
-        contentType: 'application/json',
+        contentType: "application/json",
         body: JSON.stringify({
-          type: 'about:blank',
-          title: 'Not Found',
+          type: "about:blank",
+          title: "Not Found",
           status: 404,
-          extensions: { code: 'TAG_ANALYTICS_NOT_FOUND' },
+          extensions: { code: "TAG_ANALYTICS_NOT_FOUND" },
         }),
       });
       return;
@@ -361,31 +358,31 @@ export async function stubTagFollow(
 
     // /tags/{slug}/related → empty (no related tags — the strip
     // hides itself when the array is empty).
-    if (method === 'GET' && pathname.endsWith('/related')) {
+    if (method === "GET" && pathname.endsWith("/related")) {
       await route.fulfill({
         status: 200,
-        contentType: 'application/json',
+        contentType: "application/json",
         body: JSON.stringify({ data: [] }),
       });
       return;
     }
 
     // /tags/{id}/follow POST → toggle membership.
-    if (method === 'POST' && pathname.endsWith('/follow')) {
+    if (method === "POST" && pathname.endsWith("/follow")) {
       followed.add(TAG_ID);
-      await route.fulfill({ status: 204, body: '' });
+      await route.fulfill({ status: 204, body: "" });
       return;
     }
 
     // /tags/{id}/follow DELETE → untoggle membership.
-    if (method === 'DELETE' && pathname.endsWith('/follow')) {
+    if (method === "DELETE" && pathname.endsWith("/follow")) {
       followed.delete(TAG_ID);
-      await route.fulfill({ status: 204, body: '' });
+      await route.fulfill({ status: 204, body: "" });
       return;
     }
 
     // /users/me/followed-tags → membership snapshot.
-    if (pathname.includes('/users/me/followed-tags')) {
+    if (pathname.includes("/users/me/followed-tags")) {
       const items: FollowedTagItemDto[] = Array.from(followed).map((id) => ({
         tagId: id,
         name: `Tag ${id}`,
@@ -393,12 +390,12 @@ export async function stubTagFollow(
       }));
       await route.fulfill({
         status: 200,
-        contentType: 'application/json',
+        contentType: "application/json",
         body: JSON.stringify({
           data: items,
           meta: {
             pagination: {
-              kind: 'cursor',
+              kind: "cursor",
               limit: 500,
               nextCursor: null,
               hasNextPage: false,
@@ -412,12 +409,12 @@ export async function stubTagFollow(
     // Catch-all → 404.
     await route.fulfill({
       status: 404,
-      contentType: 'application/json',
+      contentType: "application/json",
       body: JSON.stringify({
-        type: 'about:blank',
-        title: 'Not Found',
+        type: "about:blank",
+        title: "Not Found",
         status: 404,
-        extensions: { code: 'GLOBAL_NOT_FOUND' },
+        extensions: { code: "GLOBAL_NOT_FOUND" },
       }),
     });
   });

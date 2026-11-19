@@ -58,7 +58,7 @@ const eslintConfig = [
             "MemberExpression[object.name='data'][property.name='pagination']",
           message:
             "Reading 'data.pagination' in a feature or public page bypasses the " +
-            "useCursorPaginated hook (Epic 3.2). Move the read into the fetcher " +
+            "useCursorPaginated hook. Move the read into the fetcher " +
             "adapter at the SDK boundary; the rest of the component must consume " +
             "the hook's { items, hasMore, loadMore, … } result.",
         },
@@ -67,7 +67,7 @@ const eslintConfig = [
             "MemberExpression[object.name='meta'][property.name='pagination']",
           message:
             "Reading 'meta.pagination' in a feature or public page bypasses the " +
-            "useCursorPaginated hook (Epic 3.2). Move the read into the fetcher " +
+            "useCursorPaginated hook. Move the read into the fetcher " +
             "adapter at the SDK boundary; the rest of the component must consume " +
             "the hook's { items, hasMore, loadMore, … } result.",
         },
@@ -75,7 +75,7 @@ const eslintConfig = [
           selector: "Identifier[name='nextCursor']",
           message:
             "Using 'nextCursor' directly in a feature or public page bypasses the " +
-            "useCursorPaginated hook (Epic 3.2). The hook owns cursor handling; " +
+            "useCursorPaginated hook. The hook owns cursor handling; " +
             "consume the hook's { items, hasMore, loadMore, refresh } result " +
             "instead. The only allowed read is inside a fetcher adapter that " +
             "translates the SDK envelope to the hook's CursorPage shape.",

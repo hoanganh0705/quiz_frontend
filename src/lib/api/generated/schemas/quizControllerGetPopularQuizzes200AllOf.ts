@@ -1,7 +1,5 @@
-
-
-import type { PopularQuizItemDto } from './popularQuizItemDto';
+import type { PopularQuizItemDto } from "./popularQuizItemDto";
 
 export type QuizControllerGetPopularQuizzes200AllOf = {
-data?: PopularQuizItemDto[];
+  data?: PopularQuizItemDto[];
 };

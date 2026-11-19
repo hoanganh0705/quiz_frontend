@@ -1,15 +1,12 @@
-
-
-import type { PeriodInfoDtoType } from './periodInfoDtoType';
-import type { PeriodInfoDtoEnd } from './periodInfoDtoEnd';
+import type { PeriodInfoDtoType } from "./periodInfoDtoType";
+import type { PeriodInfoDtoEnd } from "./periodInfoDtoEnd";
 
 export interface PeriodInfoDto {
+  type: PeriodInfoDtoType;
 
-type: PeriodInfoDtoType;
+  start: string;
 
-start: string;
+  end?: PeriodInfoDtoEnd;
 
-end?: PeriodInfoDtoEnd;
-
-resetInSeconds: number;
+  resetInSeconds: number;
 }

@@ -1,7 +1,5 @@
-
-
-import type { ReevaluateUserResponseDto } from './reevaluateUserResponseDto';
+import type { ReevaluateUserResponseDto } from "./reevaluateUserResponseDto";
 
 export type ReevaluateUserBadges200AllOf = {
-data?: ReevaluateUserResponseDto;
+  data?: ReevaluateUserResponseDto;
 };

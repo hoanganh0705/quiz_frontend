@@ -72,13 +72,18 @@ export function InstanceQrCodeDialog({
             Scan to Join Live Battle
           </DialogTitle>
           <DialogDescription className="text-sm text-muted-foreground max-w-xs">
-            Point your phone camera at this QR code to jump straight into the room lobby.
+            Point your phone camera at this QR code to jump straight into the
+            room lobby.
           </DialogDescription>
         </DialogHeader>
 
         {/* QR Code Container */}
         <div className="flex flex-col items-center justify-center p-4 rounded-xl border bg-white shadow-xs">
-          <QrCodeSvg value={roomUrl} size={210} data-testid="instance-qr-code-svg" />
+          <QrCodeSvg
+            value={roomUrl}
+            size={210}
+            data-testid="instance-qr-code-svg"
+          />
         </div>
 
         {/* Room Details & Room Code */}
@@ -127,7 +132,8 @@ export function InstanceQrCodeDialog({
               variant="outline"
               className={cn(
                 "w-full font-medium transition-all",
-                hasCopiedUrl && "border-emerald-500 text-emerald-600 bg-emerald-500/10",
+                hasCopiedUrl &&
+                  "border-emerald-500 text-emerald-600 bg-emerald-500/10",
               )}
               onClick={handleCopyUrl}
               data-testid="qr-modal-copy-link-button"

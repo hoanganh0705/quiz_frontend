@@ -1,8 +1,5 @@
-
-
 export interface UserAnalyticsFavoriteTagDto {
+  tagId: string;
 
-tagId: string;
-
-name: string;
+  name: string;
 }

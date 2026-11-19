@@ -1,3 +1,3 @@
-
-
-export type SocialSuggestionItemDtoReasonLabel = { [key: string]: unknown } | null;
+export type SocialSuggestionItemDtoReasonLabel = {
+  [key: string]: unknown;
+} | null;

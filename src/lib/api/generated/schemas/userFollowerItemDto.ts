@@ -1,14 +1,11 @@
-
-
-import type { UserFollowerItemDtoAvatarUrl } from './userFollowerItemDtoAvatarUrl';
+import type { UserFollowerItemDtoAvatarUrl } from "./userFollowerItemDtoAvatarUrl";
 
 export interface UserFollowerItemDto {
+  userId: string;
 
-userId: string;
+  username: string;
 
-username: string;
+  avatarUrl?: UserFollowerItemDtoAvatarUrl;
 
-avatarUrl?: UserFollowerItemDtoAvatarUrl;
-
-followedAt: string;
+  followedAt: string;
 }

@@ -1,14 +1,11 @@
-
-
-import type { HealthStatusDtoStatus } from './healthStatusDtoStatus';
-import type { HealthStatusDtoDatabase } from './healthStatusDtoDatabase';
-import type { HealthStatusDtoRedis } from './healthStatusDtoRedis';
+import type { HealthStatusDtoStatus } from "./healthStatusDtoStatus";
+import type { HealthStatusDtoDatabase } from "./healthStatusDtoDatabase";
+import type { HealthStatusDtoRedis } from "./healthStatusDtoRedis";
 
 export interface HealthStatusDto {
+  status: HealthStatusDtoStatus;
 
-status: HealthStatusDtoStatus;
+  database: HealthStatusDtoDatabase;
 
-database: HealthStatusDtoDatabase;
-
-redis: HealthStatusDtoRedis;
+  redis: HealthStatusDtoRedis;
 }

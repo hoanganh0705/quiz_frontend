@@ -1,7 +1,5 @@
-
-
-import type { FriendRequestDto } from './friendRequestDto';
+import type { FriendRequestDto } from "./friendRequestDto";
 
 export type SocialControllerGetPendingRequests200AllOf = {
-data?: FriendRequestDto[];
+  data?: FriendRequestDto[];
 };

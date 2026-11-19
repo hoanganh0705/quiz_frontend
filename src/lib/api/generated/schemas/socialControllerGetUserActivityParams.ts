@@ -1,8 +1,5 @@
-
-
 export type SocialControllerGetUserActivityParams = {
+  cursor?: string;
 
-cursor?: string;
-
-limit?: number;
+  limit?: number;
 };

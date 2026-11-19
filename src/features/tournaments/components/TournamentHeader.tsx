@@ -6,12 +6,14 @@ import { Calendar, Users, Award, Crown } from "lucide-react";
 
 import { cn } from "@/shared/utils/merge-class-names";
 
-import type { TournamentDetail, TournamentStatus } from "@/features/tournaments/types";
+import type {
+  TournamentDetail,
+  TournamentStatus,
+} from "@/features/tournaments/types";
 import { TournamentStatusBadge } from "./TournamentStatusBadge";
 import { HEADER_STAT_ICONS } from "@/features/tournaments/lib/tournament-tokens";
 
 export interface TournamentHeaderProps {
-
   tournament: TournamentDetail;
 
   className?: string;
@@ -31,7 +33,10 @@ function formatDate(dateString: string): string {
   }
 }
 
-export function TournamentHeader({ tournament, className }: TournamentHeaderProps) {
+export function TournamentHeader({
+  tournament,
+  className,
+}: TournamentHeaderProps) {
   const {
     title,
     description,
@@ -70,7 +75,11 @@ export function TournamentHeader({ tournament, className }: TournamentHeaderProp
             strokeWidth="2"
             viewBox="0 0 24 24"
           >
-            <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M15 19l-7-7 7-7"
+            />
           </svg>
           Back to Tournaments
         </Link>
@@ -103,8 +112,13 @@ export function TournamentHeader({ tournament, className }: TournamentHeaderProp
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         {/* Participants */}
         <div className="flex items-start gap-3">
-          <div className={cn("p-2 rounded-lg", HEADER_STAT_ICONS.participants.bg)}>
-            <Users className={cn("h-5 w-5", HEADER_STAT_ICONS.participants.icon)} aria-hidden="true" />
+          <div
+            className={cn("p-2 rounded-lg", HEADER_STAT_ICONS.participants.bg)}
+          >
+            <Users
+              className={cn("h-5 w-5", HEADER_STAT_ICONS.participants.icon)}
+              aria-hidden="true"
+            />
           </div>
           <div>
             <p className="text-xs text-muted-foreground">Participants</p>
@@ -119,7 +133,10 @@ export function TournamentHeader({ tournament, className }: TournamentHeaderProp
         {prize && (
           <div className="flex items-start gap-3">
             <div className={cn("p-2 rounded-lg", HEADER_STAT_ICONS.prize.bg)}>
-              <Award className={cn("h-5 w-5", HEADER_STAT_ICONS.prize.icon)} aria-hidden="true" />
+              <Award
+                className={cn("h-5 w-5", HEADER_STAT_ICONS.prize.icon)}
+                aria-hidden="true"
+              />
             </div>
             <div>
               <p className="text-xs text-muted-foreground">Prize</p>
@@ -131,8 +148,12 @@ export function TournamentHeader({ tournament, className }: TournamentHeaderProp
         {/* Difficulty */}
         {difficulty && (
           <div className="flex items-start gap-3">
-            <div className={cn("p-2 rounded-lg", HEADER_STAT_ICONS.difficulty.bg)}>
-              <span className="text-xs font-bold uppercase">{difficulty[0]}</span>
+            <div
+              className={cn("p-2 rounded-lg", HEADER_STAT_ICONS.difficulty.bg)}
+            >
+              <span className="text-xs font-bold uppercase">
+                {difficulty[0]}
+              </span>
             </div>
             <div>
               <p className="text-xs text-muted-foreground">Difficulty</p>
@@ -146,7 +167,10 @@ export function TournamentHeader({ tournament, className }: TournamentHeaderProp
       <div className="flex flex-wrap gap-6">
         {startAt && (
           <div className="flex items-center gap-2">
-            <Calendar className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
+            <Calendar
+              className="h-4 w-4 text-muted-foreground"
+              aria-hidden="true"
+            />
             <div>
               <span className="text-xs text-muted-foreground">Starts: </span>
               <span className="text-sm">{formatDate(startAt)}</span>
@@ -155,7 +179,10 @@ export function TournamentHeader({ tournament, className }: TournamentHeaderProp
         )}
         {endAt && (
           <div className="flex items-center gap-2">
-            <Calendar className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
+            <Calendar
+              className="h-4 w-4 text-muted-foreground"
+              aria-hidden="true"
+            />
             <div>
               <span className="text-xs text-muted-foreground">Ends: </span>
               <span className="text-sm">{formatDate(endAt)}</span>

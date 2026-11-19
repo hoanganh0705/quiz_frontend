@@ -3,18 +3,17 @@
 import { getFeatureFlagValue } from "@/lib/feature-flags";
 
 export interface UseNotificationFeatureFlagResult {
+  isPlaceholder: boolean;
 
-isPlaceholder: boolean;
-
-flagValue: "live" | "placeholder";
+  flagValue: "live" | "placeholder";
 }
 
 export function useNotificationFeatureFlag(): UseNotificationFeatureFlagResult {
-const flagValue = getFeatureFlagValue("notifications_live");
-const isPlaceholder = flagValue === "placeholder";
+  const flagValue = getFeatureFlagValue("notifications_live");
+  const isPlaceholder = flagValue === "placeholder";
 
-return {
-isPlaceholder,
-flagValue,
+  return {
+    isPlaceholder,
+    flagValue,
   };
 }

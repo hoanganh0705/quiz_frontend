@@ -1,6 +1,3 @@
-
-
 export interface JoinInstanceResponseDto {
-
-message: string;
+  message: string;
 }

@@ -1,19 +1,16 @@
-
-
-import type { NotificationAnalyticsDtoByType } from './notificationAnalyticsDtoByType';
-import type { NotificationAnalyticsDtoByChannel } from './notificationAnalyticsDtoByChannel';
+import type { NotificationAnalyticsDtoByType } from "./notificationAnalyticsDtoByType";
+import type { NotificationAnalyticsDtoByChannel } from "./notificationAnalyticsDtoByChannel";
 
 export interface NotificationAnalyticsDto {
+  total: number;
 
-total: number;
+  unread: number;
 
-unread: number;
+  byType: NotificationAnalyticsDtoByType;
 
-byType: NotificationAnalyticsDtoByType;
+  byChannel: NotificationAnalyticsDtoByChannel;
 
-byChannel: NotificationAnalyticsDtoByChannel;
+  last24h: number;
 
-last24h: number;
-
-last7d: number;
+  last7d: number;
 }

@@ -1,8 +1,5 @@
-
-
 export interface SoftDeleteTournamentResponseDto {
+  tournamentId: string;
 
-tournamentId: string;
-
-deletedAt: string;
+  deletedAt: string;
 }

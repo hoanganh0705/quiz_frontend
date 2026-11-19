@@ -30,11 +30,6 @@ export const metadata: Metadata = {
 /**
  * `/admin` — admin landing page.
  *
- * Source epic:   Phase 1 (F-1 in the remaining-gaps plan) — strip
- *                hardcoded `stats` / `recentActivity` literals so no
- *                fake numbers are visible to admins.
- * Source ticket: F-1.
- *
  * Per the Sep 2026 user direction ("make sure no fake stats exist"),
  * this page intentionally renders ZERO platform-wide aggregate numbers
  * until a real `/admin/stats` (or equivalent) endpoint ships. The
@@ -145,17 +140,16 @@ export default function AdminDashboardPage() {
               Platform-wide aggregate stats are not available yet.
             </p>
             <p>
-              Live counts (total quizzes, active users, average score,
-              recent activity) will appear here once the admin
-              analytics endpoint ships. For now, use the{" "}
+              Live counts (total quizzes, active users, average score, recent
+              activity) will appear here once the admin analytics endpoint
+              ships. For now, use the{" "}
               <Link
                 href="/admin/audit"
                 className="font-medium text-brand underline-offset-4 hover:underline"
               >
                 audit log
               </Link>{" "}
-              for platform activity, or open one of the management
-              areas below.
+              for platform activity, or open one of the management areas below.
             </p>
           </div>
         </CardContent>
@@ -209,8 +203,7 @@ export default function AdminDashboardPage() {
         <CardHeader>
           <CardTitle>Platform Activity</CardTitle>
           <CardDescription>
-            See the live audit log for moderation and administrative
-            events
+            See the live audit log for moderation and administrative events
           </CardDescription>
         </CardHeader>
         <CardContent>

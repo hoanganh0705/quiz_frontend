@@ -1,14 +1,11 @@
-
-
-import type { CursorPaginationNextCursor } from './cursorPaginationNextCursor';
+import type { CursorPaginationNextCursor } from "./cursorPaginationNextCursor";
 
 export interface CursorPagination {
+  kind: string;
 
-kind: string;
+  limit: number;
 
-limit: number;
+  hasNextPage: boolean;
 
-hasNextPage: boolean;
-
-nextCursor: CursorPaginationNextCursor;
+  nextCursor: CursorPaginationNextCursor;
 }

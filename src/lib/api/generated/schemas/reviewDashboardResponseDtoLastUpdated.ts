@@ -1,3 +1,3 @@
-
-
-export type ReviewDashboardResponseDtoLastUpdated = { [key: string]: unknown } | null;
+export type ReviewDashboardResponseDtoLastUpdated = {
+  [key: string]: unknown;
+} | null;

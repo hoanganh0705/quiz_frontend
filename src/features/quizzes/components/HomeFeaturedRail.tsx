@@ -1,6 +1,9 @@
 "use client";
 
-import { FEATURED_RAIL_LIMIT, type QuizListItemDto } from "@/features/quizzes/types/home-rails";
+import {
+  FEATURED_RAIL_LIMIT,
+  type QuizListItemDto,
+} from "@/features/quizzes/types/home-rails";
 import { QuizRail } from "./QuizRail";
 import { QuizRailEmpty } from "./QuizRailEmpty";
 import { HomeFeaturedRefreshButton } from "./HomeFeaturedRefreshButton";

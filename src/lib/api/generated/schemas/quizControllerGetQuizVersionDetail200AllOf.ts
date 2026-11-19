@@ -1,7 +1,5 @@
-
-
-import type { QuizVersionDetailResponseDto } from './quizVersionDetailResponseDto';
+import type { QuizVersionDetailResponseDto } from "./quizVersionDetailResponseDto";
 
 export type QuizControllerGetQuizVersionDetail200AllOf = {
-data?: QuizVersionDetailResponseDto;
+  data?: QuizVersionDetailResponseDto;
 };

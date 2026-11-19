@@ -21,20 +21,20 @@
  * public `/profile/[name]` route.
  */
 
-import { expect, test, type Page, type Request } from '@playwright/test';
+import { expect, test, type Page, type Request } from "@playwright/test";
 
-const PROFILE_USERNAME = 'alice';
-const PROFILE_USER_ID = '0192f4d8-5001-7000-8000-000000000001';
-const VIEWER_USER_ID = '0192f4d8-5002-7000-8000-000000000002';
+const PROFILE_USERNAME = "alice";
+const PROFILE_USER_ID = "0192f4d8-5001-7000-8000-000000000001";
+const VIEWER_USER_ID = "0192f4d8-5002-7000-8000-000000000002";
 
 const LEGACY_ENDPOINTS = [
-  '/api/v1/users/',
-  '/profile-bundle',
-  '/quiz-analytics',
-  '/social/users/',
-  '/followers',
-  '/following',
-  '/user-activity',
+  "/api/v1/users/",
+  "/profile-bundle",
+  "/quiz-analytics",
+  "/social/users/",
+  "/followers",
+  "/following",
+  "/user-activity",
 ] as const;
 
 interface ProfileStubOptions {
@@ -56,21 +56,21 @@ function makeProfileResponse(options: ProfileStubOptions) {
     summary: {
       userId: PROFILE_USER_ID,
       username: PROFILE_USERNAME,
-      displayName: 'Alice Example',
+      displayName: "Alice Example",
       avatarUrl: null,
-      bio: 'Hello world',
-      country: 'Wonderland',
-      countryCode: 'WL',
+      bio: "Hello world",
+      country: "Wonderland",
+      countryCode: "WL",
       bgImageUrl: null,
-      createdAt: '2026-01-01T00:00:00.000Z',
-      updatedAt: '2026-01-01T00:00:00.000Z',
+      createdAt: "2026-01-01T00:00:00.000Z",
+      updatedAt: "2026-01-01T00:00:00.000Z",
       xpTotal: 1500,
       level: 3,
       currentLevelXP: 1000,
       nextLevelXP: 2000,
       xpProgressPercent: 50,
-      levelTitle: 'apprentice',
-      levelTitleLocalised: 'Apprentice',
+      levelTitle: "apprentice",
+      levelTitleLocalised: "Apprentice",
       currentStreak: 4,
       longestStreak: 9,
       quizzesCreated: 1,
@@ -84,30 +84,32 @@ function makeProfileResponse(options: ProfileStubOptions) {
     analytics: isSelf
       ? {
           userId: PROFILE_USER_ID,
-          summary: { totalAttempts: 30, completedQuizzes: 21, averageScore: 84.5 },
-          favoriteCategory: { id: 'cat-1', name: 'Science' },
+          summary: {
+            totalAttempts: 30,
+            completedQuizzes: 21,
+            averageScore: 84.5,
+          },
+          favoriteCategory: { id: "cat-1", name: "Science" },
           favoriteTag: null,
-          lastUpdated: '2026-08-10T12:00:00.000Z',
+          lastUpdated: "2026-08-10T12:00:00.000Z",
         }
       : null,
-    xpHistory: isSelf
-      ? { bucket: 'day', unit: 'xp', points: [] }
-      : null,
+    xpHistory: isSelf ? { bucket: "day", unit: "xp", points: [] } : null,
     recentActivity: isSelf
       ? [
           {
-            eventId: 'evt-1',
-            eventType: 'quiz_completed',
-            createdAt: '2026-08-10T12:00:00.000Z',
-            metadataKeys: ['quizTitle', 'score'],
+            eventId: "evt-1",
+            eventType: "quiz_completed",
+            createdAt: "2026-08-10T12:00:00.000Z",
+            metadataKeys: ["quizTitle", "score"],
           },
         ]
       : null,
     wallet: isSelf
       ? {
           balance: 50,
-          createdAt: '2026-01-01T00:00:00.000Z',
-          updatedAt: '2026-08-10T12:00:00.000Z',
+          createdAt: "2026-01-01T00:00:00.000Z",
+          updatedAt: "2026-08-10T12:00:00.000Z",
           lastTransactionAt: null,
           earnedToday: 0,
           dailyEarnCap: 100,
@@ -117,26 +119,32 @@ function makeProfileResponse(options: ProfileStubOptions) {
       ? {
           items: [
             {
-              userId: '00000000-0000-7000-8000-000000000777',
-              username: 'fan-1',
+              userId: "00000000-0000-7000-8000-000000000777",
+              username: "fan-1",
               avatarUrl: null,
-              followedAt: '2026-08-01T00:00:00.000Z',
+              followedAt: "2026-08-01T00:00:00.000Z",
             },
           ],
           pageInfo: { limit: 50, nextCursor: null, hasNextPage: false },
         }
       : null,
     following: isSelf
-      ? { items: [], pageInfo: { limit: 50, nextCursor: null, hasNextPage: false } }
+      ? {
+          items: [],
+          pageInfo: { limit: 50, nextCursor: null, hasNextPage: false },
+        }
       : null,
     activity: isSelf
-      ? { items: [], pageInfo: { limit: 30, nextCursor: null, hasNextPage: false } }
+      ? {
+          items: [],
+          pageInfo: { limit: 30, nextCursor: null, hasNextPage: false },
+        }
       : null,
   };
 
   return {
     status: 200,
-    contentType: 'application/json',
+    contentType: "application/json",
     body: JSON.stringify({ data: { userProfile: profile } }),
   };
 }
@@ -145,18 +153,18 @@ async function stubProfileApi(page: Page, options: ProfileStubOptions = {}) {
   const graphqlRequests: Request[] = [];
   const restRequests: Request[] = [];
 
-  page.on('request', (request) => {
+  page.on("request", (request) => {
     const url = request.url();
-    if (url.includes('/graphql') && !url.includes('/api/v1/')) {
+    if (url.includes("/graphql") && !url.includes("/api/v1/")) {
       graphqlRequests.push(request);
       return;
     }
-    if (url.includes('/api/v1/')) {
+    if (url.includes("/api/v1/")) {
       restRequests.push(request);
     }
   });
 
-  await page.route('**/graphql', async (route) => {
+  await page.route("**/graphql", async (route) => {
     const response = makeProfileResponse(options);
     await route.fulfill(response);
   });
@@ -164,17 +172,17 @@ async function stubProfileApi(page: Page, options: ProfileStubOptions = {}) {
   return { graphqlRequests, restRequests };
 }
 
-test.describe('/profile/[name] route — GraphQL bundle (single-request mount contract)', () => {
-  test('exactly 1 /graphql request fires on mount (no fan-out to legacy endpoints)', async ({
+test.describe("/profile/[name] route — GraphQL bundle (single-request mount contract)", () => {
+  test("exactly 1 /graphql request fires on mount (no fan-out to legacy endpoints)", async ({
     page,
   }) => {
     const { graphqlRequests, restRequests } = await stubProfileApi(page);
 
     await page.goto(`/profile/${PROFILE_USERNAME}`);
 
-    await expect(page.getByTestId('public-profile-page')).toBeVisible();
+    await expect(page.getByTestId("public-profile-page")).toBeVisible();
 
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState("networkidle");
 
     expect(graphqlRequests).toHaveLength(1);
     for (const legacy of LEGACY_ENDPOINTS) {
@@ -188,24 +196,24 @@ test.describe('/profile/[name] route — GraphQL bundle (single-request mount co
     }
   });
 
-  test('anonymous viewer requests includeAnalytics:false / includeFollowers:false', async ({
+  test("anonymous viewer requests includeAnalytics:false / includeFollowers:false", async ({
     page,
   }) => {
     const { graphqlRequests } = await stubProfileApi(page);
 
     await page.goto(`/profile/${PROFILE_USERNAME}`);
 
-    await expect(page.getByTestId('public-profile-page')).toBeVisible();
+    await expect(page.getByTestId("public-profile-page")).toBeVisible();
 
     expect(graphqlRequests).toHaveLength(1);
-    const body = JSON.parse(graphqlRequests[0].postData() ?? '{}');
-    expect(body.operationName).toBe('UserProfile');
+    const body = JSON.parse(graphqlRequests[0].postData() ?? "{}");
+    expect(body.operationName).toBe("UserProfile");
     expect(body.variables?.username).toBe(PROFILE_USERNAME);
     expect(body.variables?.includeAnalytics).toBe(false);
     expect(body.variables?.includeFollowers).toBe(false);
   });
 
-  test('authenticated self viewer requests includeAnalytics:true / includeFollowers:true', async ({
+  test("authenticated self viewer requests includeAnalytics:true / includeFollowers:true", async ({
     page,
     context,
   }) => {
@@ -213,10 +221,10 @@ test.describe('/profile/[name] route — GraphQL bundle (single-request mount co
     // the Apollo auth link picks it up on the first request.
     await context.addCookies([
       {
-        name: 'auth_token',
-        value: 'stub-jwt',
-        domain: 'localhost',
-        path: '/',
+        name: "auth_token",
+        value: "stub-jwt",
+        domain: "localhost",
+        path: "/",
       },
     ]);
 
@@ -227,47 +235,53 @@ test.describe('/profile/[name] route — GraphQL bundle (single-request mount co
 
     await page.goto(`/profile/${PROFILE_USERNAME}`);
 
-    await expect(page.getByTestId('public-profile-page')).toBeVisible();
+    await expect(page.getByTestId("public-profile-page")).toBeVisible();
 
     expect(graphqlRequests).toHaveLength(1);
-    const body = JSON.parse(graphqlRequests[0].postData() ?? '{}');
-    expect(body.operationName).toBe('UserProfile');
+    const body = JSON.parse(graphqlRequests[0].postData() ?? "{}");
+    expect(body.operationName).toBe("UserProfile");
     expect(body.variables?.username).toBe(PROFILE_USERNAME);
     expect(body.variables?.includeAnalytics).toBe(true);
     expect(body.variables?.includeFollowers).toBe(true);
   });
 
-  test('the request body includes the documented social-rail page sizes', async ({
+  test("the request body includes the documented social-rail page sizes", async ({
     page,
   }) => {
     const { graphqlRequests } = await stubProfileApi(page);
 
     await page.goto(`/profile/${PROFILE_USERNAME}`);
 
-    await expect(page.getByTestId('public-profile-page')).toBeVisible();
+    await expect(page.getByTestId("public-profile-page")).toBeVisible();
 
     expect(graphqlRequests).toHaveLength(1);
-    const body = JSON.parse(graphqlRequests[0].postData() ?? '{}');
+    const body = JSON.parse(graphqlRequests[0].postData() ?? "{}");
     expect(body.variables?.followersFirst).toBe(50);
     expect(body.variables?.followingFirst).toBe(50);
     expect(body.variables?.activityFirst).toBe(30);
   });
 
-  test('the printed document gates auth-conditional fields with @include(if:)', async ({
+  test("the printed document gates auth-conditional fields with @include(if:)", async ({
     page,
   }) => {
     const { graphqlRequests } = await stubProfileApi(page);
 
     await page.goto(`/profile/${PROFILE_USERNAME}`);
 
-    await expect(page.getByTestId('public-profile-page')).toBeVisible();
+    await expect(page.getByTestId("public-profile-page")).toBeVisible();
 
     expect(graphqlRequests).toHaveLength(1);
-    const body = JSON.parse(graphqlRequests[0].postData() ?? '{}');
-    const printedQuery: string = body.query ?? '';
-    expect(printedQuery).toContain('analytics @include(if: $includeAnalytics)');
-    expect(printedQuery).toContain('followers(first: $followersFirst) @include(if: $includeFollowers)');
-    expect(printedQuery).toContain('following(first: $followingFirst) @include(if: $includeFollowers)');
-    expect(printedQuery).toContain('activity(first: $activityFirst) @include(if: $includeFollowers)');
+    const body = JSON.parse(graphqlRequests[0].postData() ?? "{}");
+    const printedQuery: string = body.query ?? "";
+    expect(printedQuery).toContain("analytics @include(if: $includeAnalytics)");
+    expect(printedQuery).toContain(
+      "followers(first: $followersFirst) @include(if: $includeFollowers)",
+    );
+    expect(printedQuery).toContain(
+      "following(first: $followingFirst) @include(if: $includeFollowers)",
+    );
+    expect(printedQuery).toContain(
+      "activity(first: $activityFirst) @include(if: $includeFollowers)",
+    );
   });
 });

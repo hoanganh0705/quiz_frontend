@@ -1,6 +1,7 @@
-'use client';
+"use client";
 
-import useSWR from "swr";
+import { useQuery } from "@tanstack/react-query";
+import { getQueryClient } from "@/providers/QueryProvider";
 
 import { ApiError } from "@/lib/api";
 
@@ -9,38 +10,34 @@ import type { MyQuizzesAnalytics } from "@/features/quizzes/types/my-quizzes";
 import { myQuizzesKey } from "@/features/quizzes/types/my-quizzes";
 
 export interface UseMyQuizzesAnalyticsResult {
-
-analytics: MyQuizzesAnalytics | null;
-
-isLoading: boolean;
-
-isValidating: boolean;
-
-error: ApiError | null;
+  analytics: MyQuizzesAnalytics | null;
+  isLoading: boolean;
+  isValidating: boolean;
+  error: ApiError | null;
 }
 
 export function useMyQuizzesAnalytics(): UseMyQuizzesAnalyticsResult {
-const { data, error, isLoading, isValidating } = useSWR<
-MyQuizzesAnalytics,
-ApiError
+  const { data, error, isLoading, isFetching } = useQuery<
+    MyQuizzesAnalytics,
+    ApiError
   >(
-myQuizzesKey("analytics"),
-async () => {
-const result = await getMyQuizAnalytics();
-return result.data as MyQuizzesAnalytics;
+    {
+      queryKey: myQuizzesKey("analytics"),
+      queryFn: async () => {
+        const result = await getMyQuizAnalytics();
+        return result.data as MyQuizzesAnalytics;
+      },
     },
-{
-      // Inherit the global SwrProvider defaults.
-    },
+    getQueryClient(),
   );
 
-const normalisedError =
-error instanceof ApiError && error.status === 404 ? null : error;
+  const normalisedError =
+    error instanceof ApiError && error.status === 404 ? null : error;
 
-return {
-analytics: data ?? null,
-isLoading,
-isValidating,
-error: normalisedError ?? null,
+  return {
+    analytics: data ?? null,
+    isLoading: isLoading && !error,
+    isValidating: isFetching,
+    error: normalisedError ?? null,
   };
 }

@@ -34,9 +34,9 @@ not also use SWR for the same data. Mount Apollo with
 `<ApolloSubtreeProvider>` so each pilot page owns its own client instance.
 
 ```tsx
-'use client';
+"use client";
 
-import { ApolloSubtreeProvider } from '@/lib/graphql';
+import { ApolloSubtreeProvider } from "@/lib/graphql";
 
 export default function QuizzesPage() {
   return (
@@ -77,10 +77,10 @@ unchanged.
 `client.ts` so call sites get a typed result shape without having to
 pass `errorPolicy` / `fetchPolicy` on every hook call:
 
-| Operation  | `errorPolicy` | `fetchPolicy`           |
-| ---------- | ------------- | ----------------------- |
-| `watchQuery` (the default for `useQuery`) | `all`         | `cache-and-network`     |
-| `query` (one-shot `client.query`)         | `all`         | `cache-first` (Apollo)  |
+| Operation                                 | `errorPolicy` | `fetchPolicy`          |
+| ----------------------------------------- | ------------- | ---------------------- |
+| `watchQuery` (the default for `useQuery`) | `all`         | `cache-and-network`    |
+| `query` (one-shot `client.query`)         | `all`         | `cache-first` (Apollo) |
 
 `errorPolicy: 'all'` lets the page render partial data alongside a
 `GraphQL error` notification; `cache-and-network` keeps the previously
@@ -146,8 +146,8 @@ tab. Cross-tab sync remains a `BroadcastChannel` concern; the bus is
 strictly same-tab.
 
 ```ts
-import { useMutation } from '@apollo/client';
-import { handoffApolloUpdate } from '@/lib/graphql';
+import { useMutation } from "@apollo/client";
+import { handoffApolloUpdate } from "@/lib/graphql";
 
 const FOLLOW_MUTATION = graphql(`
   mutation Follow($userId: String!) { follow(userId: $userId) { ... } }
@@ -158,10 +158,10 @@ const [follow] = useMutation(FOLLOW_MUTATION, {
     handoffApolloUpdate({
       cache,
       event: {
-        kind: 'COIN_BALANCE_CHANGED',
+        kind: "COIN_BALANCE_CHANGED",
         balance: payload.data?.follow.coinBalance ?? 0,
         delta: payload.data?.follow.coinDelta ?? 0,
-        reason: 'follow',
+        reason: "follow",
       },
     });
   },
@@ -171,11 +171,11 @@ const [follow] = useMutation(FOLLOW_MUTATION, {
 Subscribers register against the bus:
 
 ```ts
-import { getDomainEventBus } from '@/lib/state/domain-event-bus';
+import { getDomainEventBus } from "@/lib/state/domain-event-bus";
 
 useEffect(() => {
   const unsubscribe = getDomainEventBus().on(
-    'COIN_BALANCE_CHANGED',
+    "COIN_BALANCE_CHANGED",
     (event) => {
       useCoinStore.setState({ balance: event.balance });
     },

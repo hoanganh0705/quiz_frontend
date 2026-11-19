@@ -1,37 +1,37 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { Loader2 } from 'lucide-react';
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { Loader2 } from "lucide-react";
 
 import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarSeparator,
-} from '@/components/ui/Sidebar';
+} from "@/components/ui/Sidebar";
 
-import { useAdminNav } from '../hooks/useAdminNav';
-import type { AdminNavEntry } from '../hooks/useAdminNav';
+import { useAdminNav } from "../hooks/useAdminNav";
+import type { AdminNavEntry } from "../hooks/useAdminNav";
 
 function isEntryActive(
   entry: AdminNavEntry,
   pathname: string,
   allEntries: AdminNavEntry[],
 ): boolean {
-  if (entry.href === '/admin') {
-    return pathname === '/admin';
+  if (entry.href === "/admin") {
+    return pathname === "/admin";
   }
   if (pathname === entry.href) {
     return true;
   }
-  if (pathname.startsWith(entry.href + '/')) {
+  if (pathname.startsWith(entry.href + "/")) {
     // If another entry is a more specific match for this pathname, this parent entry is NOT active
     const hasMoreSpecificMatch = allEntries.some(
       (other) =>
         other.href !== entry.href &&
         other.href.startsWith(entry.href) &&
-        (pathname === other.href || pathname.startsWith(other.href + '/')),
+        (pathname === other.href || pathname.startsWith(other.href + "/")),
     );
     return !hasMoreSpecificMatch;
   }
@@ -51,7 +51,7 @@ function NavItem({
   return (
     <SidebarMenuItem
       key={entry.href}
-      data-testid={`admin-nav-item-${entry.href.replace(/\//g, '-')}`}
+      data-testid={`admin-nav-item-${entry.href.replace(/\//g, "-")}`}
       className="min-w-0"
     >
       <SidebarMenuButton
@@ -59,12 +59,17 @@ function NavItem({
         isActive={active}
         className={
           active
-            ? 'text-white-primary bg-brand hover:bg-brand-hover data-[active=true]:bg-brand-hover'
-            : 'text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
+            ? "text-white-primary bg-brand hover:bg-brand-hover data-[active=true]:bg-brand-hover"
+            : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
         }
       >
-        <Link href={entry.href} className="flex items-center gap-2 min-w-0 w-full">
-          {entry.icon && <entry.icon className="h-4 w-4 shrink-0" aria-hidden="true" />}
+        <Link
+          href={entry.href}
+          className="flex items-center gap-2 min-w-0 w-full"
+        >
+          {entry.icon && (
+            <entry.icon className="h-4 w-4 shrink-0" aria-hidden="true" />
+          )}
           <span className="text-sm font-medium truncate">{entry.label}</span>
         </Link>
       </SidebarMenuButton>

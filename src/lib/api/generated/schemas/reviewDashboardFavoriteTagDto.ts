@@ -1,8 +1,5 @@
-
-
 export interface ReviewDashboardFavoriteTagDto {
+  tagId: string;
 
-tagId: string;
-
-name: string;
+  name: string;
 }

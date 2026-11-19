@@ -1,7 +1,5 @@
-
-
-import type { RecalculateResponseDto } from './recalculateResponseDto';
+import type { RecalculateResponseDto } from "./recalculateResponseDto";
 
 export type RankingAdminControllerTriggerRecalculation200AllOf = {
-data?: RecalculateResponseDto;
+  data?: RecalculateResponseDto;
 };

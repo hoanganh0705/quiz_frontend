@@ -1,21 +1,18 @@
-
-
-import type { RecentlyPlayedQuizItemDtoDifficulty } from './recentlyPlayedQuizItemDtoDifficulty';
-import type { RecentlyPlayedQuizItemDtoImageUrl } from './recentlyPlayedQuizItemDtoImageUrl';
+import type { RecentlyPlayedQuizItemDtoDifficulty } from "./recentlyPlayedQuizItemDtoDifficulty";
+import type { RecentlyPlayedQuizItemDtoImageUrl } from "./recentlyPlayedQuizItemDtoImageUrl";
 
 export interface RecentlyPlayedQuizItemDto {
+  quizId: string;
 
-quizId: string;
+  quizTitle: string;
 
-quizTitle: string;
+  slug: string;
 
-slug: string;
+  difficulty: RecentlyPlayedQuizItemDtoDifficulty;
 
-difficulty: RecentlyPlayedQuizItemDtoDifficulty;
+  imageUrl: RecentlyPlayedQuizItemDtoImageUrl;
 
-imageUrl: RecentlyPlayedQuizItemDtoImageUrl;
+  playedAt: string;
 
-playedAt: string;
-
-scorePercent: number;
+  scorePercent: number;
 }

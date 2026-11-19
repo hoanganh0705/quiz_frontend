@@ -56,26 +56,91 @@ interface QrVersionInfo {
 }
 
 const QR_VERSIONS: QrVersionInfo[] = [
-  { version: 1, totalCodewords: 26, ecCodewordsPerBlock: 10, numBlocks: 1, alignments: [] },
-  { version: 2, totalCodewords: 44, ecCodewordsPerBlock: 16, numBlocks: 1, alignments: [6, 18] },
-  { version: 3, totalCodewords: 70, ecCodewordsPerBlock: 26, numBlocks: 1, alignments: [6, 22] },
-  { version: 4, totalCodewords: 100, ecCodewordsPerBlock: 18, numBlocks: 2, alignments: [6, 26] },
-  { version: 5, totalCodewords: 134, ecCodewordsPerBlock: 24, numBlocks: 2, alignments: [6, 30] },
-  { version: 6, totalCodewords: 172, ecCodewordsPerBlock: 16, numBlocks: 4, alignments: [6, 34] },
-  { version: 7, totalCodewords: 196, ecCodewordsPerBlock: 18, numBlocks: 4, alignments: [6, 22, 38] },
-  { version: 8, totalCodewords: 242, ecCodewordsPerBlock: 22, numBlocks: 4, alignments: [6, 24, 42] },
-  { version: 9, totalCodewords: 292, ecCodewordsPerBlock: 22, numBlocks: 5, alignments: [6, 26, 46] },
-  { version: 10, totalCodewords: 346, ecCodewordsPerBlock: 26, numBlocks: 5, alignments: [6, 28, 50] },
+  {
+    version: 1,
+    totalCodewords: 26,
+    ecCodewordsPerBlock: 10,
+    numBlocks: 1,
+    alignments: [],
+  },
+  {
+    version: 2,
+    totalCodewords: 44,
+    ecCodewordsPerBlock: 16,
+    numBlocks: 1,
+    alignments: [6, 18],
+  },
+  {
+    version: 3,
+    totalCodewords: 70,
+    ecCodewordsPerBlock: 26,
+    numBlocks: 1,
+    alignments: [6, 22],
+  },
+  {
+    version: 4,
+    totalCodewords: 100,
+    ecCodewordsPerBlock: 18,
+    numBlocks: 2,
+    alignments: [6, 26],
+  },
+  {
+    version: 5,
+    totalCodewords: 134,
+    ecCodewordsPerBlock: 24,
+    numBlocks: 2,
+    alignments: [6, 30],
+  },
+  {
+    version: 6,
+    totalCodewords: 172,
+    ecCodewordsPerBlock: 16,
+    numBlocks: 4,
+    alignments: [6, 34],
+  },
+  {
+    version: 7,
+    totalCodewords: 196,
+    ecCodewordsPerBlock: 18,
+    numBlocks: 4,
+    alignments: [6, 22, 38],
+  },
+  {
+    version: 8,
+    totalCodewords: 242,
+    ecCodewordsPerBlock: 22,
+    numBlocks: 4,
+    alignments: [6, 24, 42],
+  },
+  {
+    version: 9,
+    totalCodewords: 292,
+    ecCodewordsPerBlock: 22,
+    numBlocks: 5,
+    alignments: [6, 26, 46],
+  },
+  {
+    version: 10,
+    totalCodewords: 346,
+    ecCodewordsPerBlock: 26,
+    numBlocks: 5,
+    alignments: [6, 28, 50],
+  },
 ];
 
-export function createQrMatrix(text: string): { size: number; modules: boolean[][] } {
+export function createQrMatrix(text: string): {
+  size: number;
+  modules: boolean[][];
+} {
   const textBytes = new TextEncoder().encode(text);
 
   let chosenVersion: QrVersionInfo | null = null;
   for (const v of QR_VERSIONS) {
     const dataCapacity = v.totalCodewords - v.ecCodewordsPerBlock * v.numBlocks;
     const headerBits = 4 + (v.version <= 9 ? 8 : 16);
-    const requiredBytes = Math.ceil((headerBits + textBytes.length * 8 + 4) / 8);
+    const requiredBytes = Math.ceil(
+      (headerBits + textBytes.length * 8 + 4) / 8,
+    );
     if (requiredBytes <= dataCapacity) {
       chosenVersion = v;
       break;
@@ -86,7 +151,13 @@ export function createQrMatrix(text: string): { size: number; modules: boolean[]
     chosenVersion = QR_VERSIONS[QR_VERSIONS.length - 1]!;
   }
 
-  const { version, totalCodewords, ecCodewordsPerBlock, numBlocks, alignments } = chosenVersion;
+  const {
+    version,
+    totalCodewords,
+    ecCodewordsPerBlock,
+    numBlocks,
+    alignments,
+  } = chosenVersion;
   const size = 17 + version * 4;
   const dataCodewordsCount = totalCodewords - ecCodewordsPerBlock * numBlocks;
 
@@ -152,8 +223,12 @@ export function createQrMatrix(text: string): { size: number; modules: boolean[]
     }
   }
 
-  const modules: boolean[][] = Array.from({ length: size }, () => Array(size).fill(false));
-  const isFunction: boolean[][] = Array.from({ length: size }, () => Array(size).fill(false));
+  const modules: boolean[][] = Array.from({ length: size }, () =>
+    Array(size).fill(false),
+  );
+  const isFunction: boolean[][] = Array.from({ length: size }, () =>
+    Array(size).fill(false),
+  );
 
   function setModule(r: number, c: number, val: boolean, isFn = true) {
     modules[r]![c] = val;
@@ -222,7 +297,8 @@ export function createQrMatrix(text: string): { size: number; modules: boolean[]
       const r = upward ? size - 1 - vert : vert;
       for (let c = right; c >= right - 1; c--) {
         if (!isFunction[r]![c]) {
-          const bit = bitIndex < allBits.length ? allBits[bitIndex]! === 1 : false;
+          const bit =
+            bitIndex < allBits.length ? allBits[bitIndex]! === 1 : false;
           modules[r]![c] = bit;
           bitIndex++;
         }

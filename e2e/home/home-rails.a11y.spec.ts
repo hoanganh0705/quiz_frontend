@@ -1,9 +1,7 @@
 /**
  * `home-rails.a11y.spec.ts` — accessibility + responsive validation
- * for the Story 3.7 home rails.
+ * for the feature home rails.
  *
- * Source epic: Story 3.7 — Featured / trending / popular rails on `/`.
- * Source ticket: TKT-3.7.E2.
  *
  * Five assertions lock the AC #3 + the implicit accessibility
  * contract:
@@ -27,42 +25,42 @@
  * `@axe-core/playwright` runtime).
  */
 
-import { readFileSync } from 'node:fs';
-import path from 'node:path';
-import { expect, test, type Page } from '@playwright/test';
+import { readFileSync } from "node:fs";
+import path from "node:path";
+import { expect, test, type Page } from "@playwright/test";
 
-import { stubHomeRails } from './home-rails.helpers';
+import { stubHomeRails } from "./home-rails.helpers";
 
 const AXE_PATH = path.join(
   // The spec is run from the project root via pnpm.
   process.cwd(),
-  'node_modules/axe-core/axe.min.js',
+  "node_modules/axe-core/axe.min.js",
 );
 
 const STRUCTURAL_RULES: string[] = [
-  'aria-allowed-attr',
-  'aria-required-attr',
-  'aria-required-children',
-  'aria-required-parent',
-  'aria-roles',
-  'aria-valid-attr',
-  'aria-valid-attr-value',
-  'button-name',
-  'bypass',
-  'document-title',
-  'duplicate-id',
-  'empty-heading',
-  'heading-order',
-  'html-has-lang',
-  'html-lang-valid',
-  'image-alt',
-  'input-image-alt',
-  'label',
-  'link-name',
-  'list',
-  'listitem',
-  'meta-refresh',
-  'region',
+  "aria-allowed-attr",
+  "aria-required-attr",
+  "aria-required-children",
+  "aria-required-parent",
+  "aria-roles",
+  "aria-valid-attr",
+  "aria-valid-attr-value",
+  "button-name",
+  "bypass",
+  "document-title",
+  "duplicate-id",
+  "empty-heading",
+  "heading-order",
+  "html-has-lang",
+  "html-lang-valid",
+  "image-alt",
+  "input-image-alt",
+  "label",
+  "link-name",
+  "list",
+  "listitem",
+  "meta-refresh",
+  "region",
 ];
 
 interface AxeViolationReport {
@@ -73,7 +71,7 @@ interface AxeViolationReport {
 }
 
 async function runAxe(page: Page): Promise<AxeViolationReport[]> {
-  const source = readFileSync(AXE_PATH, 'utf8');
+  const source = readFileSync(AXE_PATH, "utf8");
   await page.addScriptTag({ content: source });
   return page.evaluate(
     async ([rules]) => {
@@ -81,7 +79,7 @@ async function runAxe(page: Page): Promise<AxeViolationReport[]> {
         axe: {
           run: (
             root: Document,
-            options: { runOnly: { type: 'rule'; values: string[] } },
+            options: { runOnly: { type: "rule"; values: string[] } },
           ) => Promise<{
             violations: {
               id: string;
@@ -93,7 +91,7 @@ async function runAxe(page: Page): Promise<AxeViolationReport[]> {
         };
       };
       const results = await w.axe.run(document, {
-        runOnly: { type: 'rule', values: rules as string[] },
+        runOnly: { type: "rule", values: rules as string[] },
       });
       return results.violations.map((v) => ({
         id: v.id,
@@ -108,7 +106,7 @@ async function runAxe(page: Page): Promise<AxeViolationReport[]> {
 
 async function gotoResolved(page: Page) {
   await stubHomeRails(page);
-  await page.goto('/');
+  await page.goto("/");
   // The rails are live when the grid + scroller cells resolve.
   await expect(
     page.locator(
@@ -129,15 +127,15 @@ async function gotoResolved(page: Page) {
   ).toHaveCount(10);
 }
 
-test.describe('Home rails — accessibility + responsive (TKT-3.7.E2)', () => {
-  test('(a) axe-core: no serious or critical violations on the resolved home state', async ({
+test.describe("Home rails — accessibility + responsive", () => {
+  test("(a) axe-core: no serious or critical violations on the resolved home state", async ({
     page,
   }) => {
     await gotoResolved(page);
 
     const violations = await runAxe(page);
     const blockers = violations.filter(
-      (v) => v.impact === 'critical' || v.impact === 'serious',
+      (v) => v.impact === "critical" || v.impact === "serious",
     );
 
     expect(
@@ -146,7 +144,7 @@ test.describe('Home rails — accessibility + responsive (TKT-3.7.E2)', () => {
     ).toHaveLength(0);
   });
 
-  test('(b) keyboard order reaches hero CTAs → category filters → first cards', async ({
+  test("(b) keyboard order reaches hero CTAs → category filters → first cards", async ({
     page,
   }) => {
     await gotoResolved(page);
@@ -157,12 +155,12 @@ test.describe('Home rails — accessibility + responsive (TKT-3.7.E2)', () => {
     // first card of each rail.
     const reachedFocusableNames: string[] = [];
     for (let i = 0; i < 30; i += 1) {
-      await page.keyboard.press('Tab');
+      await page.keyboard.press("Tab");
       const focus = await page.evaluate(() => {
         const el = document.activeElement as HTMLElement | null;
         if (!el) return null;
         return (
-          el.getAttribute('aria-label') ??
+          el.getAttribute("aria-label") ??
           el.textContent?.trim().slice(0, 80) ??
           el.tagName.toLowerCase()
         );
@@ -176,7 +174,7 @@ test.describe('Home rails — accessibility + responsive (TKT-3.7.E2)', () => {
     );
     expect(
       heroIndex,
-      `Hero CTA not reached in first 30 tabs: ${reachedFocusableNames.join(' | ')}`,
+      `Hero CTA not reached in first 30 tabs: ${reachedFocusableNames.join(" | ")}`,
     ).toBeGreaterThanOrEqual(0);
 
     // The category filter trigger is reachable after the hero CTA.
@@ -185,11 +183,11 @@ test.describe('Home rails — accessibility + responsive (TKT-3.7.E2)', () => {
     );
     expect(
       filterIndex,
-      `Category filter not reached after hero CTA: ${reachedFocusableNames.join(' | ')}`,
+      `Category filter not reached after hero CTA: ${reachedFocusableNames.join(" | ")}`,
     ).toBeGreaterThanOrEqual(0);
   });
 
-  test('(c) each rail exposes exactly one accessible heading (aria-labelledby)', async ({
+  test("(c) each rail exposes exactly one accessible heading (aria-labelledby)", async ({
     page,
   }) => {
     await gotoResolved(page);
@@ -199,44 +197,46 @@ test.describe('Home rails — accessibility + responsive (TKT-3.7.E2)', () => {
 
     for (let i = 0; i < 3; i += 1) {
       const rail = rails.nth(i);
-      const headings = rail.getByRole('heading', { level: 2 });
+      const headings = rail.getByRole("heading", { level: 2 });
       await expect(
         headings,
         `Rail #${i} should have exactly one h2 heading`,
       ).toHaveCount(1);
 
       // The section's aria-labelledby points at the heading's id.
-      const labelledById = await rail.getAttribute('aria-labelledby');
-      const headingId = await headings.first().getAttribute('id');
+      const labelledById = await rail.getAttribute("aria-labelledby");
+      const headingId = await headings.first().getAttribute("id");
       expect(labelledById).toBeTruthy();
       expect(headingId).toBeTruthy();
       expect(labelledById).toBe(headingId);
     }
   });
 
-  test('(d) at 320 px width, the page does NOT overflow horizontally', async ({
+  test("(d) at 320 px width, the page does NOT overflow horizontally", async ({
     page,
   }) => {
     await page.setViewportSize({ width: 320, height: 800 });
     await gotoResolved(page);
 
     const overflows = await page.evaluate(
-      () => document.documentElement.scrollWidth > document.documentElement.clientWidth,
+      () =>
+        document.documentElement.scrollWidth >
+        document.documentElement.clientWidth,
     );
     expect(overflows).toBe(false);
 
     // The rails' internal scrollers are still allowed to overflow
     // — we only assert the PAGE itself does not.
-    const railScroller = page.locator(
-      '[data-testid="quiz-rail-scroller"]',
-    ).first();
+    const railScroller = page
+      .locator('[data-testid="quiz-rail-scroller"]')
+      .first();
     const railScrollerOverflows = await railScroller.evaluate(
       (el) => el.scrollWidth > el.clientWidth,
     );
     expect(railScrollerOverflows).toBe(true);
   });
 
-  test('(e) skeleton-to-content transition has no observed layout shift', async ({
+  test("(e) skeleton-to-content transition has no observed layout shift", async ({
     page,
   }) => {
     // Slow the featured endpoint so the skeleton is observable; the
@@ -253,18 +253,18 @@ test.describe('Home rails — accessibility + responsive (TKT-3.7.E2)', () => {
 
     // Slow the featured endpoint on the FIRST request only.
     let firstFeatured = true;
-    await page.route('**/api/v1/quizzes/featured*', async (route) => {
+    await page.route("**/api/v1/quizzes/featured*", async (route) => {
       if (firstFeatured) {
         firstFeatured = false;
         await new Promise((resolve) => setTimeout(resolve, 800));
       }
       await route.fulfill({
         status: 200,
-        contentType: 'application/json',
+        contentType: "application/json",
         body: JSON.stringify({
           data: Array.from({ length: 6 }, (_, i) => ({
-            quizId: `0192f4d8-9000-7000-8000-${String(i + 1).padStart(12, '0')}`,
-            creatorId: 'creator-1',
+            quizId: `0192f4d8-9000-7000-8000-${String(i + 1).padStart(12, "0")}`,
+            creatorId: "creator-1",
             title: `Featured ${i + 1}`,
             description: null,
             slug: `featured-${i + 1}`,
@@ -276,33 +276,31 @@ test.describe('Home rails — accessibility + responsive (TKT-3.7.E2)', () => {
             isVerified: false,
             publishedVersionId: null,
             publishedVersion: null,
-            createdAt: '2026-07-01T00:00:00.000Z',
-            updatedAt: '2026-07-01T00:00:00.000Z',
+            createdAt: "2026-07-01T00:00:00.000Z",
+            updatedAt: "2026-07-01T00:00:00.000Z",
             tags: [],
           })),
         }),
       });
     });
 
-    await page.goto('/');
+    await page.goto("/");
 
     // Capture the rail's outer-height while the skeleton is visible.
     const featuredRail = page.locator(
       '[data-testid="quiz-rail"][data-layout="grid"]',
     );
     await expect(featuredRail).toBeVisible();
-    await expect(featuredRail.getByTestId('quiz-card-skeleton')).toHaveCount(6);
+    await expect(featuredRail.getByTestId("quiz-card-skeleton")).toHaveCount(6);
     const skeletonHeight = await featuredRail.evaluate(
       (el) => el.getBoundingClientRect().height,
     );
 
     // Wait for the rail to resolve.
-    await expect(
-      featuredRail.getByTestId('quiz-card-grid'),
-    ).toBeVisible();
-    await expect(
-      featuredRail.locator('[data-testid="quiz-card"]'),
-    ).toHaveCount(6);
+    await expect(featuredRail.getByTestId("quiz-card-grid")).toBeVisible();
+    await expect(featuredRail.locator('[data-testid="quiz-card"]')).toHaveCount(
+      6,
+    );
 
     const resolvedHeight = await featuredRail.evaluate(
       (el) => el.getBoundingClientRect().height,

@@ -1,8 +1,5 @@
-
-
 export interface ReportCommentDto {
+  reason: string;
 
-reason: string;
-
-details?: string | null;
+  details?: string | null;
 }

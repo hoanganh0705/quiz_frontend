@@ -1,195 +1,223 @@
+"use client";
 
+import { useCallback, useRef, useState } from "react";
 
-'use client';
+import { mutate as globalMutate } from "swr";
+import { getQueryClient } from "@/providers/QueryProvider";
 
-import { useCallback, useRef, useState } from 'react';
-
-import { mutate as globalMutate } from 'swr';
-
-import { isApiError, ApiError } from '@/lib/api';
+import { isApiError, ApiError } from "@/lib/api";
 
 import {
-markReviewHelpful,
-unmarkReviewHelpful,
-} from '@/features/reviews/services/reviews.service';
-import type { ReviewDto } from '@/features/reviews/types';
+  markReviewHelpful,
+  unmarkReviewHelpful,
+} from "@/features/reviews/services/reviews.service";
+import type { ReviewDto } from "@/features/reviews/types";
 
-import type { CursorPage } from '@/lib/api/use-cursor-paginated.types';
+import type { CursorPage } from "@/lib/api/use-cursor-paginated.types";
 
 export interface UseHelpfulReviewParams {
+  quizId: string;
 
-quizId: string;
+  reviewId: string;
 
-reviewId: string;
-
-initialViewerMarkedHelpful: boolean;
+  initialViewerMarkedHelpful: boolean;
 }
 
 export interface UseHelpfulReviewResult {
+  toggle: () => Promise<void>;
 
-toggle: () => Promise<void>;
+  isPending: boolean;
 
-isPending: boolean;
+  viewerMarkedHelpful: boolean;
 
-viewerMarkedHelpful: boolean;
+  lastError: ApiError | null;
 
-lastError: ApiError | null;
-
-reset: () => void;
+  reset: () => void;
 }
 
 const COOLDOWN_MS = 500;
 
 function isReviewListPageForQuiz(
-key: readonly unknown[],
-quizId: string,
+  key: readonly unknown[],
+  quizId: string,
 ): boolean {
-if (!Array.isArray(key)) return false;
-if (key[0] !== 'reviews' || key[1] !== 'quiz') return false;
-return key[2] === quizId;
+  if (!Array.isArray(key)) return false;
+  if (key[0] !== "reviews" || key[1] !== "quiz") return false;
+  return key[2] === quizId;
 }
 
 function applyCountDeltaToPage(
-page: CursorPage<ReviewDto>,
-reviewId: string,
-delta: number,
+  page: CursorPage<ReviewDto>,
+  reviewId: string,
+  delta: number,
 ): CursorPage<ReviewDto> {
-let touched = false;
-const nextItems = page.items.map((item): ReviewDto => {
-if (item.reviewId !== reviewId) return item;
-touched = true;
-const next = Math.max(0, item.helpfulCount + delta);
-return { ...item, helpfulCount: next };
+  let touched = false;
+  const nextItems = page.items.map((item): ReviewDto => {
+    if (item.reviewId !== reviewId) return item;
+    touched = true;
+    const next = Math.max(0, item.helpfulCount + delta);
+    return { ...item, helpfulCount: next };
   });
 
-if (!touched) return page;
-return { ...page, items: nextItems };
+  if (!touched) return page;
+  return { ...page, items: nextItems };
 }
 
 async function applyOptimisticCountDelta(
-quizId: string,
-reviewId: string,
-delta: number,
+  quizId: string,
+  reviewId: string,
+  delta: number,
 ): Promise<void> {
-await globalMutate(
-(key: readonly unknown[]) => isReviewListPageForQuiz(key, quizId),
-(current: unknown): unknown => {
-if (!current) return current;
-const page = current as CursorPage<ReviewDto> | undefined;
-if (!page || !Array.isArray(page.items)) return current;
-return applyCountDeltaToPage(page, reviewId, delta);
+  try {
+    const qc = getQueryClient();
+    qc.setQueriesData(
+      { predicate: (query) => isReviewListPageForQuiz(query.queryKey, quizId) },
+      (current: unknown): unknown => {
+        if (!current) return current;
+        const anyCurrent = current as any;
+        if (anyCurrent.pages && Array.isArray(anyCurrent.pages)) {
+          return {
+            ...anyCurrent,
+            pages: anyCurrent.pages.map((p: any) =>
+              applyCountDeltaToPage(
+                p as CursorPage<ReviewDto>,
+                reviewId,
+                delta,
+              ),
+            ),
+          };
+        }
+        if (Array.isArray(anyCurrent.items)) {
+          return applyCountDeltaToPage(
+            anyCurrent as CursorPage<ReviewDto>,
+            reviewId,
+            delta,
+          );
+        }
+        return current;
+      },
+    );
+  } catch {}
+  await globalMutate(
+    (key: readonly unknown[]) => isReviewListPageForQuiz(key, quizId),
+    (current: unknown): unknown => {
+      if (!current) return current;
+      const page = current as CursorPage<ReviewDto> | undefined;
+      if (!page || !Array.isArray(page.items)) return current;
+      return applyCountDeltaToPage(page, reviewId, delta);
     },
-{ revalidate: false, populateCache: true },
+    { revalidate: false, populateCache: true },
   );
 }
 
 async function revalidateReviewListPages(quizId: string): Promise<void> {
-await globalMutate(
-(key: readonly unknown[]) => isReviewListPageForQuiz(key, quizId),
-undefined,
-{ revalidate: true },
+  try {
+    const qc = getQueryClient();
+    void qc.invalidateQueries({
+      predicate: (query) => isReviewListPageForQuiz(query.queryKey, quizId),
+    });
+  } catch {}
+  await globalMutate(
+    (key: readonly unknown[]) => isReviewListPageForQuiz(key, quizId),
+    undefined,
+    { revalidate: true },
   );
 }
 
 export function useHelpfulReview(
-params: UseHelpfulReviewParams,
+  params: UseHelpfulReviewParams,
 ): UseHelpfulReviewResult {
-const { quizId, reviewId, initialViewerMarkedHelpful } = params;
+  const { quizId, reviewId, initialViewerMarkedHelpful } = params;
 
-const [viewerMarkedHelpful, setViewerMarkedHelpful] = useState<boolean>(
-initialViewerMarkedHelpful,
+  const [viewerMarkedHelpful, setViewerMarkedHelpful] = useState<boolean>(
+    initialViewerMarkedHelpful,
   );
-const [isPending, setIsPending] = useState(false);
-const [lastError, setLastError] = useState<ApiError | null>(null);
+  const [isPending, setIsPending] = useState(false);
+  const [lastError, setLastError] = useState<ApiError | null>(null);
 
-const lastInvocationRef = useRef<number>(0);
+  const lastInvocationRef = useRef<number>(0);
 
-const previousMarkedRef = useRef<boolean>(initialViewerMarkedHelpful);
+  const previousMarkedRef = useRef<boolean>(initialViewerMarkedHelpful);
 
-const handleToggle = useCallback(async (): Promise<void> => {
-const now =
-typeof performance !== 'undefined' ? performance.now() : Date.now();
-if (now - lastInvocationRef.current < COOLDOWN_MS) {
-
-return;
+  const handleToggle = useCallback(async (): Promise<void> => {
+    const now =
+      typeof performance !== "undefined" ? performance.now() : Date.now();
+    if (now - lastInvocationRef.current < COOLDOWN_MS) {
+      return;
     }
-lastInvocationRef.current = now;
+    lastInvocationRef.current = now;
 
-if (!quizId || !reviewId) {
-
-return;
+    if (!quizId || !reviewId) {
+      return;
     }
 
-previousMarkedRef.current = viewerMarkedHelpful;
-const nextMarked = !viewerMarkedHelpful;
+    previousMarkedRef.current = viewerMarkedHelpful;
+    const nextMarked = !viewerMarkedHelpful;
 
-setViewerMarkedHelpful(nextMarked);
-setLastError(null);
-setIsPending(true);
+    setViewerMarkedHelpful(nextMarked);
+    setLastError(null);
+    setIsPending(true);
 
-const delta = nextMarked ? 1 : -1;
-await applyOptimisticCountDelta(quizId, reviewId, delta);
+    const delta = nextMarked ? 1 : -1;
+    await applyOptimisticCountDelta(quizId, reviewId, delta);
 
-try {
-if (nextMarked) {
-await markReviewHelpful(reviewId, { helpful: true });
+    try {
+      if (nextMarked) {
+        await markReviewHelpful(reviewId, { helpful: true });
       } else {
-await unmarkReviewHelpful(reviewId);
+        await unmarkReviewHelpful(reviewId);
       }
     } catch (cause: unknown) {
-
-setViewerMarkedHelpful(previousMarkedRef.current);
-await revalidateReviewListPages(quizId);
-if (isApiError(cause)) {
-setLastError(cause);
+      setViewerMarkedHelpful(previousMarkedRef.current);
+      await revalidateReviewListPages(quizId);
+      if (isApiError(cause)) {
+        setLastError(cause);
       } else {
-setLastError(
-makeSyntheticApiError(0, 'GLOBAL_UNKNOWN', String(cause)),
-        );
+        setLastError(makeSyntheticApiError(0, "GLOBAL_UNKNOWN", String(cause)));
       }
     } finally {
-setIsPending(false);
+      setIsPending(false);
     }
   }, [quizId, reviewId, viewerMarkedHelpful]);
 
-const reset = useCallback(() => {
-setLastError(null);
+  const reset = useCallback(() => {
+    setLastError(null);
   }, []);
 
-return {
-toggle: handleToggle,
-isPending,
-viewerMarkedHelpful,
-lastError,
-reset,
+  return {
+    toggle: handleToggle,
+    isPending,
+    viewerMarkedHelpful,
+    lastError,
+    reset,
   };
 }
 
 function makeSyntheticApiError(
-status: number,
-code: string,
-message: string,
+  status: number,
+  code: string,
+  message: string,
 ): ApiError {
-return new ApiError({
-isAxiosError: true,
-name: 'AxiosError',
-message,
-code,
-config: undefined,
-request: undefined,
-response: {
-status,
-statusText: message,
-data: {
-type: 'https://api.quiz.local/problems/synthetic',
-title: message,
-status,
-detail: message,
-extensions: { code, requestId: 'req-synthetic' },
+  return new ApiError({
+    isAxiosError: true,
+    name: "AxiosError",
+    message,
+    code,
+    config: undefined,
+    request: undefined,
+    response: {
+      status,
+      statusText: message,
+      data: {
+        type: "https://api.quiz.local/problems/synthetic",
+        title: message,
+        status,
+        detail: message,
+        extensions: { code, requestId: "req-synthetic" },
       },
-headers: {},
-config: undefined as never,
+      headers: {},
+      config: undefined as never,
     },
-toJSON: () => ({}),
+    toJSON: () => ({}),
   } as unknown as Parameters<typeof ApiError.fromAxios>[0]);
 }

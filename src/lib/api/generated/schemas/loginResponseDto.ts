@@ -1,14 +1,11 @@
-
-
 export interface LoginResponseDto {
+  userId: string;
 
-userId: string;
+  username: string;
 
-username: string;
+  email: string;
 
-email: string;
+  accessToken: string;
 
-accessToken: string;
-
-sessionId: string;
+  sessionId: string;
 }

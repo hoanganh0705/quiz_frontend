@@ -4,9 +4,6 @@
  * `SecuritySummaryCard` — renders every `AccountSecurityDto` field
  * with null-aware labels.
  *
- * Source epic: Epic 2.8 — Security dashboard and active-session management.
- * Source ticket: 2.8.T10.
- *
  * ## Composition contract
  *
  * This card owns the US-2.8.1 visual contract:

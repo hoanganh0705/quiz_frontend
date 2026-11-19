@@ -1,112 +1,110 @@
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 
-
-import { afterEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, fireEvent, render, screen } from '@testing-library/react';
-
-import { ReviewGateNotice } from '@/features/reviews/components';
+import { ReviewGateNotice } from "@/features/reviews/components";
 
 afterEach(() => {
-cleanup();
+  cleanup();
 });
 
-describe('ReviewGateState — copy', () => {
-it('renders the default heading without a quiz title', () => {
-render(<ReviewGateNotice />);
-expect(
-screen.getByRole('heading', {
-name: /Complete an attempt before writing a review/i,
+describe("ReviewGateState — copy", () => {
+  it("renders the default heading without a quiz title", () => {
+    render(<ReviewGateNotice />);
+    expect(
+      screen.getByRole("heading", {
+        name: /Complete an attempt before writing a review/i,
       }),
     ).toBeInTheDocument();
   });
 
-it('renders the personalised heading with the quiz title', () => {
-render(<ReviewGateNotice quizTitle='Math 101' />);
-expect(
-screen.getByRole('heading', {
-name: /Complete an attempt before reviewing .Math 101./i,
+  it("renders the personalised heading with the quiz title", () => {
+    render(<ReviewGateNotice quizTitle="Math 101" />);
+    expect(
+      screen.getByRole("heading", {
+        name: /Complete an attempt before reviewing .Math 101./i,
       }),
     ).toBeInTheDocument();
   });
 
-it('exposes the notice with `role="status"`', () => {
-render(<ReviewGateNotice />);
-expect(screen.getByRole('status')).toBeInTheDocument();
+  it('exposes the notice with `role="status"`', () => {
+    render(<ReviewGateNotice />);
+    expect(screen.getByRole("status")).toBeInTheDocument();
   });
 });
 
-describe('ReviewGateState — CTA', () => {
-it('renders a live CTA when `onStartAttempt` is supplied', () => {
-const onStartAttempt = vi.fn();
+describe("ReviewGateState — CTA", () => {
+  it("renders a live CTA when `onStartAttempt` is supplied", () => {
+    const onStartAttempt = vi.fn();
 
-render(<ReviewGateNotice onStartAttempt={onStartAttempt} />);
+    render(<ReviewGateNotice onStartAttempt={onStartAttempt} />);
 
-const cta = screen.getByTestId('review-gate-state-cta');
-expect(cta).toBeInTheDocument();
-expect(cta).not.toBeDisabled();
-expect(cta).toHaveTextContent(/Start attempt/);
+    const cta = screen.getByTestId("review-gate-state-cta");
+    expect(cta).toBeInTheDocument();
+    expect(cta).not.toBeDisabled();
+    expect(cta).toHaveTextContent(/Start attempt/);
 
-fireEvent.click(cta);
-expect(onStartAttempt).toHaveBeenCalledTimes(1);
+    fireEvent.click(cta);
+    expect(onStartAttempt).toHaveBeenCalledTimes(1);
   });
 
-it('renders a live CTA with `data-href` when `startAttemptHref` is supplied', () => {
-render(<ReviewGateNotice startAttemptHref='/quizzes/foo/attempt' />);
+  it("renders a live CTA with `data-href` when `startAttemptHref` is supplied", () => {
+    render(<ReviewGateNotice startAttemptHref="/quizzes/foo/attempt" />);
 
-const cta = screen.getByTestId('review-gate-state-cta');
-expect(cta).toBeInTheDocument();
-expect(cta).toHaveAttribute('data-href', '/quizzes/foo/attempt');
-expect(cta).not.toBeDisabled();
+    const cta = screen.getByTestId("review-gate-state-cta");
+    expect(cta).toBeInTheDocument();
+    expect(cta).toHaveAttribute("data-href", "/quizzes/foo/attempt");
+    expect(cta).not.toBeDisabled();
   });
 
-it('renders a disabled CTA when neither `onStartAttempt` nor `startAttemptHref` is supplied', () => {
-render(<ReviewGateNotice />);
+  it("renders a disabled CTA when neither `onStartAttempt` nor `startAttemptHref` is supplied", () => {
+    render(<ReviewGateNotice />);
 
-const cta = screen.getByTestId('review-gate-state-cta-unavailable');
-expect(cta).toBeInTheDocument();
-expect(cta).toBeDisabled();
-expect(cta).toHaveAttribute('aria-disabled', 'true');
-expect(cta).toHaveTextContent(/coming soon/i);
-  });
-});
-
-describe('ReviewGateState — retry', () => {
-it('renders a retry button when `onRetry` is supplied and invokes it on click', () => {
-const onRetry = vi.fn();
-
-render(<ReviewGateNotice onRetry={onRetry} />);
-
-const retry = screen.getByTestId('review-gate-state-retry');
-expect(retry).toBeInTheDocument();
-
-fireEvent.click(retry);
-expect(onRetry).toHaveBeenCalledTimes(1);
-  });
-
-it('does not render a retry button when `onRetry` is omitted', () => {
-render(<ReviewGateNotice />);
-expect(screen.queryByTestId('review-gate-state-retry')).toBeNull();
+    const cta = screen.getByTestId("review-gate-state-cta-unavailable");
+    expect(cta).toBeInTheDocument();
+    expect(cta).toBeDisabled();
+    expect(cta).toHaveAttribute("aria-disabled", "true");
+    expect(cta).toHaveTextContent(/coming soon/i);
   });
 });
 
-describe('ReviewGateState — error message', () => {
-it('renders the error message with `role="alert"` when supplied', () => {
-render(<ReviewGateNotice errorMessage='Could not check eligibility' />);
+describe("ReviewGateState — retry", () => {
+  it("renders a retry button when `onRetry` is supplied and invokes it on click", () => {
+    const onRetry = vi.fn();
 
-const error = screen.getByTestId('review-gate-state-error');
-expect(error).toHaveTextContent('Could not check eligibility');
-expect(error).toHaveAttribute('role', 'alert');
+    render(<ReviewGateNotice onRetry={onRetry} />);
+
+    const retry = screen.getByTestId("review-gate-state-retry");
+    expect(retry).toBeInTheDocument();
+
+    fireEvent.click(retry);
+    expect(onRetry).toHaveBeenCalledTimes(1);
   });
 
-it('does not render an error region when no message is supplied', () => {
-render(<ReviewGateNotice />);
-expect(screen.queryByRole('alert')).toBeNull();
+  it("does not render a retry button when `onRetry` is omitted", () => {
+    render(<ReviewGateNotice />);
+    expect(screen.queryByTestId("review-gate-state-retry")).toBeNull();
   });
 });
 
-describe('ReviewGateState — keyboard accessibility', () => {
-it('the live CTA is reachable via Tab', () => {
-render(<ReviewGateNotice onStartAttempt={() => undefined} />);
+describe("ReviewGateState — error message", () => {
+  it('renders the error message with `role="alert"` when supplied', () => {
+    render(<ReviewGateNotice errorMessage="Could not check eligibility" />);
 
-expect(screen.getByTestId('review-gate-state-cta')).toBeInTheDocument();
+    const error = screen.getByTestId("review-gate-state-error");
+    expect(error).toHaveTextContent("Could not check eligibility");
+    expect(error).toHaveAttribute("role", "alert");
+  });
+
+  it("does not render an error region when no message is supplied", () => {
+    render(<ReviewGateNotice />);
+    expect(screen.queryByRole("alert")).toBeNull();
+  });
+});
+
+describe("ReviewGateState — keyboard accessibility", () => {
+  it("the live CTA is reachable via Tab", () => {
+    render(<ReviewGateNotice onStartAttempt={() => undefined} />);
+
+    expect(screen.getByTestId("review-gate-state-cta")).toBeInTheDocument();
   });
 });

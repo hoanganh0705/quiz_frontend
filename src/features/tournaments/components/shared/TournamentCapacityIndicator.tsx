@@ -6,7 +6,6 @@ import { Users } from "lucide-react";
 import { CAPACITY_TOKENS } from "@/features/tournaments/lib/tournament-tokens";
 
 export interface TournamentCapacityIndicatorProps {
-
   currentParticipants?: number | null;
 
   maxParticipants?: number | null;
@@ -19,18 +18,14 @@ export function TournamentCapacityIndicator({
   maxParticipants,
   className,
 }: TournamentCapacityIndicatorProps) {
-
-  if (
-    currentParticipants === null ||
-    currentParticipants === undefined
-  ) {
+  if (currentParticipants === null || currentParticipants === undefined) {
     return null;
   }
 
-  const hasCap =
-    maxParticipants !== null && maxParticipants !== undefined;
+  const hasCap = maxParticipants !== null && maxParticipants !== undefined;
   const isFull = hasCap && currentParticipants >= maxParticipants;
-  const isNearFull = hasCap && !isFull && currentParticipants >= maxParticipants * 0.8;
+  const isNearFull =
+    hasCap && !isFull && currentParticipants >= maxParticipants * 0.8;
   const progressPercent = hasCap
     ? Math.min((currentParticipants / maxParticipants) * 100, 100)
     : 0;
@@ -39,8 +34,8 @@ export function TournamentCapacityIndicator({
   const barColorClass = isFull
     ? CAPACITY_TOKENS.full.bar
     : isNearFull
-    ? CAPACITY_TOKENS.nearFull.bar
-    : CAPACITY_TOKENS.open.bar;
+      ? CAPACITY_TOKENS.nearFull.bar
+      : CAPACITY_TOKENS.open.bar;
 
   return (
     <div
@@ -83,14 +78,18 @@ export function TournamentCapacityIndicator({
             }
           >
             <div
-              className={cn("h-full rounded-full transition-all", barColorClass)}
+              className={cn(
+                "h-full rounded-full transition-all",
+                barColorClass,
+              )}
               style={{ width: `${progressPercent}%` }}
             />
           </div>
         </div>
       ) : (
         <span className="text-sm font-medium text-foreground">
-          {currentParticipants} participant{currentParticipants !== 1 ? "s" : ""}
+          {currentParticipants} participant
+          {currentParticipants !== 1 ? "s" : ""}
         </span>
       )}
     </div>

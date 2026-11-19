@@ -1,12 +1,10 @@
-
-
 import { AttemptDetailPage } from "@/features/attempts";
 
 export default async function QuizHistoryDetailPage({
-params,
+  params,
 }: {
-params: Promise<{ attemptId: string }>;
+  params: Promise<{ attemptId: string }>;
 }) {
-const { attemptId } = await params;
-return <AttemptDetailPage attemptId={decodeURIComponent(attemptId)} />;
+  const { attemptId } = await params;
+  return <AttemptDetailPage attemptId={decodeURIComponent(attemptId)} />;
 }

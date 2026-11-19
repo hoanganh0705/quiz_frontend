@@ -2,8 +2,6 @@
  * `daily-challenge.spec.ts` — Playwright e2e coverage for the
  * `/daily-challenge` route.
  *
- * Source epic:   Story 3.12 — `/daily-challenge` read-only render.
- * Source ticket: TKT-3.12.E2 — E2E Playwright tests for the
  *                 daily-challenge surface.
  *
  * The spec runs against a running dev backend (per
@@ -40,20 +38,20 @@
  * line 67).
  */
 
-import { expect, test } from '@playwright/test'
+import { expect, test } from "@playwright/test";
 
 import {
   stubAuth,
   stubDailyChallengeHistory,
   stubDailyChallengeLive,
   stubDailyChallengeToday,
-} from './daily-challenge.helpers'
+} from "./daily-challenge.helpers";
 
-test.describe('Daily-challenge acceptance (Story 3.12 / TKT-3.12.E2)', () => {
+test.describe("Daily-challenge acceptance", () => {
   test.beforeEach(async ({ page }) => {
-    await page.context().clearCookies()
-    await page.evaluate(() => localStorage.clear())
-  })
+    await page.context().clearCookies();
+    await page.evaluate(() => localStorage.clear());
+  });
 
   // ─────────────────────────────────────────────────────────────────
   // (a) Placeholder renders on first paint (locked default flag).
@@ -62,215 +60,209 @@ test.describe('Daily-challenge acceptance (Story 3.12 / TKT-3.12.E2)', () => {
   test('(a) renders the placeholder on first paint with the locked default flag = "placeholder"', async ({
     page,
   }) => {
-    await stubAuth(page, { authenticate: false })
+    await stubAuth(page, { authenticate: false });
 
-    await page.goto('/daily-challenge')
+    await page.goto("/daily-challenge");
 
     // The live composition reaches Branch 1 (placeholder) because
     // the flag is locked to 'placeholder' at this commit.
     await expect(
-      page.getByTestId('daily-challenge-page-placeholder'),
-    ).toBeVisible()
+      page.getByTestId("daily-challenge-page-placeholder"),
+    ).toBeVisible();
 
     // The placeholder primitive is the visible surface.
-    await expect(page.getByTestId('daily-challenge-placeholder')).toBeVisible()
-  })
+    await expect(page.getByTestId("daily-challenge-placeholder")).toBeVisible();
+  });
 
   // ─────────────────────────────────────────────────────────────────
   // (b) Never 404s — the page renders SOMETHING.
   // ─────────────────────────────────────────────────────────────────
 
-  test('(b) the page renders without 404ing, in unauthenticated + placeholder branches', async ({
+  test("(b) the page renders without 404ing, in unauthenticated + placeholder branches", async ({
     page,
   }) => {
-    await stubAuth(page, { authenticate: false })
+    await stubAuth(page, { authenticate: false });
 
-    const response = await page.goto('/daily-challenge')
+    const response = await page.goto("/daily-challenge");
 
-    // The route MUST NOT 404. AC #2 of Story 3.12 — "Either way,
+    // The route MUST NOT 404. AC #2 of feature — "Either way,
     // the page does not 404 on the user".
-    expect(response?.status()).toBeLessThan(400)
-    expect(response?.status()).toBe(200)
+    expect(response?.status()).toBeLessThan(400);
+    expect(response?.status()).toBe(200);
 
     // The header is preserved (it is NOT gated on the flag).
     await expect(
-      page.getByRole('heading', { name: /daily challenge/i, level: 1 }),
-    ).toBeVisible()
-  })
+      page.getByRole("heading", { name: /daily challenge/i, level: 1 }),
+    ).toBeVisible();
+  });
 
   // ─────────────────────────────────────────────────────────────────
   // (c) Placeholder carries an accessible region.
   // ─────────────────────────────────────────────────────────────────
 
-  test('(c) the placeholder surface carries role + aria-label', async ({
+  test("(c) the placeholder surface carries role + aria-label", async ({
     page,
   }) => {
-    await stubAuth(page, { authenticate: false })
+    await stubAuth(page, { authenticate: false });
 
-    await page.goto('/daily-challenge')
+    await page.goto("/daily-challenge");
 
-    const region = page.getByTestId('daily-challenge-page-placeholder')
-    await expect(region).toBeVisible()
-    await expect(region).toHaveAttribute('role', 'region')
-    await expect(region).toHaveAttribute('aria-label', /daily challenge/i)
-  })
+    const region = page.getByTestId("daily-challenge-page-placeholder");
+    await expect(region).toBeVisible();
+    await expect(region).toHaveAttribute("role", "region");
+    await expect(region).toHaveAttribute("aria-label", /daily challenge/i);
+  });
 
   // ─────────────────────────────────────────────────────────────────
   // (d) Page chrome is preserved (header + InfoCard siblings).
   // ─────────────────────────────────────────────────────────────────
 
-  test('(d) the page chrome (heading + InfoCard) is preserved in the placeholder branch', async ({
+  test("(d) the page chrome (heading + InfoCard) is preserved in the placeholder branch", async ({
     page,
   }) => {
-    await stubAuth(page, { authenticate: false })
+    await stubAuth(page, { authenticate: false });
 
-    await page.goto('/daily-challenge')
-
-    await expect(
-      page.getByRole('heading', { name: /daily challenge/i, level: 1 }),
-    ).toBeVisible()
+    await page.goto("/daily-challenge");
 
     await expect(
-      page.getByRole('region', { name: 'Challenge information' }),
-    ).toBeVisible()
-  })
+      page.getByRole("heading", { name: /daily challenge/i, level: 1 }),
+    ).toBeVisible();
+
+    await expect(
+      page.getByRole("region", { name: "Challenge information" }),
+    ).toBeVisible();
+  });
 
   // ─────────────────────────────────────────────────────────────────
   // (e) Authenticated placeholder — streak indicator is NOT rendered.
   // ─────────────────────────────────────────────────────────────────
 
-  test('(e) authenticated user with the placeholder flag: streak indicator is NOT rendered', async ({
+  test("(e) authenticated user with the placeholder flag: streak indicator is NOT rendered", async ({
     page,
   }) => {
-    await stubAuth(page, { authenticate: true })
+    await stubAuth(page, { authenticate: true });
 
-    await page.goto('/daily-challenge')
+    await page.goto("/daily-challenge");
 
     await expect(
-      page.getByTestId('daily-challenge-page-placeholder'),
-    ).toBeVisible()
+      page.getByTestId("daily-challenge-page-placeholder"),
+    ).toBeVisible();
     await expect(
       page.locator('[data-testid="daily-challenge-streak-indicator"]'),
-    ).toHaveCount(0)
-  })
+    ).toHaveCount(0);
+  });
 
   // ─────────────────────────────────────────────────────────────────
   // (f) Live branch — authenticated user with the live flag.
   // ─────────────────────────────────────────────────────────────────
 
-  test('(f) authenticated user with the live flag: card + streak + history list render', async ({
+  test("(f) authenticated user with the live flag: card + streak + history list render", async ({
     page,
   }) => {
-    await stubDailyChallengeLive(page, { authenticate: true })
+    await stubDailyChallengeLive(page, { authenticate: true });
 
-    await page.goto('/daily-challenge')
+    await page.goto("/daily-challenge");
 
+    await expect(page.getByTestId("daily-challenge-page-live")).toBeVisible();
+    await expect(page.getByTestId("daily-challenge-card")).toBeVisible();
     await expect(
-      page.getByTestId('daily-challenge-page-live'),
-    ).toBeVisible()
+      page.getByTestId("daily-challenge-streak-indicator"),
+    ).toBeVisible();
     await expect(
-      page.getByTestId('daily-challenge-card'),
-    ).toBeVisible()
-    await expect(
-      page.getByTestId('daily-challenge-streak-indicator'),
-    ).toBeVisible()
-    await expect(
-      page.getByTestId('daily-challenge-history-list'),
-    ).toBeVisible()
+      page.getByTestId("daily-challenge-history-list"),
+    ).toBeVisible();
     // The card renders the quiz title from the backend.
-    await expect(
-      page.getByText(/Solar System Trivia/),
-    ).toBeVisible()
-  })
+    await expect(page.getByText(/Solar System Trivia/)).toBeVisible();
+  });
 
   // ─────────────────────────────────────────────────────────────────
   // (g) Load more appends the next cursor page.
   // ─────────────────────────────────────────────────────────────────
 
-  test('(g) clicking load-more appends additional entries from the next cursor page', async ({
+  test("(g) clicking load-more appends additional entries from the next cursor page", async ({
     page,
   }) => {
-    await stubAuth(page, { authenticate: true })
-    await stubDailyChallengeToday(page)
+    await stubAuth(page, { authenticate: true });
+    await stubDailyChallengeToday(page);
     await stubDailyChallengeHistory(page, {
       items: Array.from({ length: 4 }, (_, i) => ({
         date: `2026-08-0${i + 1}T00:00:00.000Z`,
         quizId: `0192f4d8-cccc-7000-8000-0000000001${i + 1}0`,
         quizTitle: `Solar System Quiz ${i + 1}`,
-        difficulty: 'medium' as const,
+        difficulty: "medium" as const,
         score: 80,
         rank: 5,
       })),
       hasNextPage: true,
-      nextCursor: 'cursor-2',
-    })
+      nextCursor: "cursor-2",
+    });
 
-    await page.goto('/daily-challenge')
+    await page.goto("/daily-challenge");
 
-    const loadMore = page.getByRole('button', {
+    const loadMore = page.getByRole("button", {
       name: /Load 1 more past challenges/i,
-    })
-    await expect(loadMore).toBeVisible()
-    await loadMore.click()
+    });
+    await expect(loadMore).toBeVisible();
+    await loadMore.click();
 
     // The "View Less" affordance appears after load-more is clicked
     // (the list no longer truncates to 3).
     await expect(
-      page.getByRole('button', { name: /View less challenge history/i }),
-    ).toBeVisible()
-  })
+      page.getByRole("button", { name: /View less challenge history/i }),
+    ).toBeVisible();
+  });
 
   // ─────────────────────────────────────────────────────────────────
   // (h) Empty history — empty state primitive renders.
   // ─────────────────────────────────────────────────────────────────
 
-  test('(h) empty history response: the empty state primitive renders', async ({
+  test("(h) empty history response: the empty state primitive renders", async ({
     page,
   }) => {
-    await stubAuth(page, { authenticate: true })
-    await stubDailyChallengeToday(page)
-    await stubDailyChallengeHistory(page, { items: [] })
+    await stubAuth(page, { authenticate: true });
+    await stubDailyChallengeToday(page);
+    await stubDailyChallengeHistory(page, { items: [] });
 
-    await page.goto('/daily-challenge')
+    await page.goto("/daily-challenge");
 
     await expect(
-      page.getByTestId('daily-challenge-history-empty-state'),
-    ).toBeVisible()
-  })
+      page.getByTestId("daily-challenge-history-empty-state"),
+    ).toBeVisible();
+  });
 
   // ─────────────────────────────────────────────────────────────────
   // (i) Play surface — mount + submit advances to next question.
   // ─────────────────────────────────────────────────────────────────
 
-  test('(i) play surface mounts when status=pending and a correct submit advances to the next question', async ({
+  test("(i) play surface mounts when status=pending and a correct submit advances to the next question", async ({
     page,
   }) => {
-    await stubDailyChallengeLive(page, { authenticate: true })
+    await stubDailyChallengeLive(page, { authenticate: true });
 
-    await page.goto('/daily-challenge')
+    await page.goto("/daily-challenge");
 
     // The play surface is mounted inside Branch 4 when status=pending
     // and the viewer is authenticated.
     await expect(
-      page.getByTestId('daily-challenge-play-surface'),
-    ).toBeVisible()
+      page.getByTestId("daily-challenge-play-surface"),
+    ).toBeVisible();
 
     // The first question is rendered.
     await expect(
-      page.getByText('Which planet is closest to the Sun?'),
-    ).toBeVisible()
+      page.getByText("Which planet is closest to the Sun?"),
+    ).toBeVisible();
 
     // Pick the first option and submit.
-    const firstOption = page.getByRole('radio', { name: /Mercury/ })
-    await firstOption.click()
-    await expect(firstOption).toHaveAttribute('aria-checked', 'true')
+    const firstOption = page.getByRole("radio", { name: /Mercury/ });
+    await firstOption.click();
+    await expect(firstOption).toHaveAttribute("aria-checked", "true");
 
-    await page.getByTestId('daily-challenge-play-submit').click()
+    await page.getByTestId("daily-challenge-play-submit").click();
 
     // After submit, the next question is rendered (because
     // nextQuestionIndex=1 in the default stub).
-    await expect(
-      page.getByText('Which planet is the largest?'),
-    ).toBeVisible({ timeout: 5_000 })
-  })
-})
+    await expect(page.getByText("Which planet is the largest?")).toBeVisible({
+      timeout: 5_000,
+    });
+  });
+});

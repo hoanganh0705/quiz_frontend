@@ -1,15 +1,12 @@
-
-
-import type { RankingStatusResponseDtoNextConsistencyCheck } from './rankingStatusResponseDtoNextConsistencyCheck';
-import type { RankingStatusResponseDtoNextPeriodReset } from './rankingStatusResponseDtoNextPeriodReset';
+import type { RankingStatusResponseDtoNextConsistencyCheck } from "./rankingStatusResponseDtoNextConsistencyCheck";
+import type { RankingStatusResponseDtoNextPeriodReset } from "./rankingStatusResponseDtoNextPeriodReset";
 
 export interface RankingStatusResponseDto {
+  schedulerRunning: boolean;
 
-schedulerRunning: boolean;
+  dirtyQueueSize: number;
 
-dirtyQueueSize: number;
+  nextConsistencyCheck?: RankingStatusResponseDtoNextConsistencyCheck;
 
-nextConsistencyCheck?: RankingStatusResponseDtoNextConsistencyCheck;
-
-nextPeriodReset: RankingStatusResponseDtoNextPeriodReset;
+  nextPeriodReset: RankingStatusResponseDtoNextPeriodReset;
 }

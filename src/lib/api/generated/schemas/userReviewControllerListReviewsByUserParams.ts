@@ -1,8 +1,5 @@
-
-
 export type UserReviewControllerListReviewsByUserParams = {
+  cursor?: string;
 
-cursor?: string;
-
-limit?: number;
+  limit?: number;
 };

@@ -1,35 +1,31 @@
-
-
 export interface CaptureContext {
+  tags?: Readonly<Record<string, string>>;
 
-tags?: Readonly<Record<string, string>>;
-
-contexts?: Readonly<Record<string, unknown>>;
+  contexts?: Readonly<Record<string, unknown>>;
 }
 
 export function captureException(
-error: unknown,
-context?: CaptureContext
+  error: unknown,
+  context?: CaptureContext,
 ): void {
-
-void error;
-void context;
+  void error;
+  void context;
 }
 
 export const CAPTURE_SURFACES = {
-useCursorPaginated: 'useCursorPaginated',
+  useCursorPaginated: "useCursorPaginated",
 
-useQuizByIdOrSlug: 'useQuizByIdOrSlug',
+  useQuizByIdOrSlug: "useQuizByIdOrSlug",
 } as const;
 
 export const CAPTURE_REASONS = {
-cursorDecode: 'cursor-decode',
+  cursorDecode: "cursor-decode",
 
-isCorrectLeak: 'isCorrect-leak',
+  isCorrectLeak: "isCorrect-leak",
 } as const;
 
 export type CaptureSurface =
-(typeof CAPTURE_SURFACES)[keyof typeof CAPTURE_SURFACES];
+  (typeof CAPTURE_SURFACES)[keyof typeof CAPTURE_SURFACES];
 
 export type CaptureReason =
-(typeof CAPTURE_REASONS)[keyof typeof CAPTURE_REASONS];
+  (typeof CAPTURE_REASONS)[keyof typeof CAPTURE_REASONS];

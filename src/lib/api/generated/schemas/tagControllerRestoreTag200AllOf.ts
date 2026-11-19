@@ -1,7 +1,5 @@
-
-
-import type { TagResponseDto } from './tagResponseDto';
+import type { TagResponseDto } from "./tagResponseDto";
 
 export type TagControllerRestoreTag200AllOf = {
-data?: TagResponseDto;
+  data?: TagResponseDto;
 };

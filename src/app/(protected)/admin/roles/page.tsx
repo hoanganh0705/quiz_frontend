@@ -1,5 +1,5 @@
-import { redirect } from 'next/navigation';
+import { redirect } from "next/navigation";
 
 export default function AdminRolesRedirectPage() {
-  redirect('/admin/users/roles');
+  redirect("/admin/users/roles");
 }

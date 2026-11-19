@@ -1,5 +1,3 @@
-
-
 import { render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -7,26 +5,26 @@ import SearchRoute from "@/app/(protected)/social/users/search/page";
 
 const mockUseAuthBootstrap = vi.fn();
 vi.mock("@/features/auth/hooks/use-auth-session", () => ({
-useAuthSession: () => mockUseAuthBootstrap(),
+  useAuthSession: () => mockUseAuthBootstrap(),
 }));
 
 const mockGetFeatureFlagValue = vi.fn();
 vi.mock("@/lib/feature-flags", () => ({
-getFeatureFlagValue: (...args: unknown[]) => mockGetFeatureFlagValue(...args),
+  getFeatureFlagValue: (...args: unknown[]) => mockGetFeatureFlagValue(...args),
 }));
 
 const mockSocialSearchPlaceholder = vi.fn(() => (
-<div data-testid="social-search-placeholder">Placeholder</div>
+  <div data-testid="social-search-placeholder">Placeholder</div>
 ));
 vi.mock("@/features/social/components/SocialSearchPlaceholder", () => ({
-SocialSearchPlaceholder: () => mockSocialSearchPlaceholder(),
+  SocialSearchPlaceholder: () => mockSocialSearchPlaceholder(),
 }));
 
 const mockUserSearchResults = vi.fn(() => (
-<div data-testid="user-search-results">Live Results</div>
+  <div data-testid="user-search-results">Live Results</div>
 ));
 vi.mock("@/features/social/lists/UserSearchResults", () => ({
-UserSearchResults: () => mockUserSearchResults(),
+  UserSearchResults: () => mockUserSearchResults(),
 }));
 
 const mockUseSearchParams = vi.fn();
@@ -34,94 +32,102 @@ const mockUseRouter = vi.fn();
 const mockUsePathname = vi.fn();
 
 vi.mock("next/navigation", () => ({
-useSearchParams: () => mockUseSearchParams(),
-useRouter: () => mockUseRouter(),
-usePathname: () => mockUsePathname(),
+  useSearchParams: () => mockUseSearchParams(),
+  useRouter: () => mockUseRouter(),
+  usePathname: () => mockUsePathname(),
 }));
 
 const authenticatedUser = {
-isAuthenticated: true,
-isBootstrapping: false,
-isDegraded: false,
-error: null as Error | null,
-profileError: null as Error | null,
-currentUser: null,
-user: { userId: "user-1", username: "testuser", email: "test@test.com" } as any,
-refetch: vi.fn(),
-clearBootstrap: vi.fn(),
+  isAuthenticated: true,
+  isBootstrapping: false,
+  isDegraded: false,
+  error: null as Error | null,
+  profileError: null as Error | null,
+  currentUser: null,
+  user: {
+    userId: "user-1",
+    username: "testuser",
+    email: "test@test.com",
+  } as any,
+  refetch: vi.fn(),
+  clearBootstrap: vi.fn(),
 };
 
 const mockSearchParams = new URLSearchParams();
 
 beforeEach(() => {
-vi.clearAllMocks();
-mockGetFeatureFlagValue.mockReturnValue("placeholder");
-mockUseAuthBootstrap.mockReturnValue(authenticatedUser);
-mockUseSearchParams.mockReturnValue(mockSearchParams);
-mockUseRouter.mockReturnValue({ replace: vi.fn() });
-mockUsePathname.mockReturnValue("/social/users/search");
+  vi.clearAllMocks();
+  mockGetFeatureFlagValue.mockReturnValue("placeholder");
+  mockUseAuthBootstrap.mockReturnValue(authenticatedUser);
+  mockUseSearchParams.mockReturnValue(mockSearchParams);
+  mockUseRouter.mockReturnValue({ replace: vi.fn() });
+  mockUsePathname.mockReturnValue("/social/users/search");
 });
 
 describe("SearchRoute", () => {
-describe("placeholder branch", () => {
-it("renders SocialSearchPlaceholder when flag is placeholder", () => {
-mockGetFeatureFlagValue.mockReturnValueOnce("placeholder");
+  describe("placeholder branch", () => {
+    it("renders SocialSearchPlaceholder when flag is placeholder", () => {
+      mockGetFeatureFlagValue.mockReturnValueOnce("placeholder");
 
-render(<SearchRoute />);
+      render(<SearchRoute />);
 
-expect(screen.getByTestId("social-search-placeholder")).toBeInTheDocument();
+      expect(
+        screen.getByTestId("social-search-placeholder"),
+      ).toBeInTheDocument();
     });
   });
 
-describe("live branch", () => {
-it("renders UserSearchResults when flag is live and user is authenticated", async () => {
-mockGetFeatureFlagValue.mockReturnValueOnce("live");
+  describe("live branch", () => {
+    it("renders UserSearchResults when flag is live and user is authenticated", async () => {
+      mockGetFeatureFlagValue.mockReturnValueOnce("live");
 
-render(<SearchRoute />);
+      render(<SearchRoute />);
 
-await waitFor(() => {
-expect(screen.getByTestId("user-search-results")).toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.getByTestId("user-search-results")).toBeInTheDocument();
       });
     });
   });
 
-describe("auth handling", () => {
-it("renders placeholder when user is not authenticated", () => {
-mockGetFeatureFlagValue.mockReturnValueOnce("live");
-mockUseAuthBootstrap.mockReturnValueOnce({
-isAuthenticated: false,
-isBootstrapping: false,
-isDegraded: false,
-error: null,
-profileError: null,
-currentUser: null,
-user: null,
-refetch: vi.fn(),
-clearBootstrap: vi.fn(),
+  describe("auth handling", () => {
+    it("renders placeholder when user is not authenticated", () => {
+      mockGetFeatureFlagValue.mockReturnValueOnce("live");
+      mockUseAuthBootstrap.mockReturnValueOnce({
+        isAuthenticated: false,
+        isBootstrapping: false,
+        isDegraded: false,
+        error: null,
+        profileError: null,
+        currentUser: null,
+        user: null,
+        refetch: vi.fn(),
+        clearBootstrap: vi.fn(),
       });
 
-render(<SearchRoute />);
+      render(<SearchRoute />);
 
-expect(screen.getByTestId("social-search-placeholder")).toBeInTheDocument();
+      expect(
+        screen.getByTestId("social-search-placeholder"),
+      ).toBeInTheDocument();
     });
 
-it("renders loading state while auth is loading", () => {
-mockGetFeatureFlagValue.mockReturnValueOnce("live");
-mockUseAuthBootstrap.mockReturnValueOnce({
-isAuthenticated: false,
-isBootstrapping: true,
-isDegraded: false,
-error: null,
-profileError: null,
-currentUser: null,
-user: null,
-refetch: vi.fn(),
-clearBootstrap: vi.fn(),
+    it("renders loading state while auth is loading", () => {
+      mockGetFeatureFlagValue.mockReturnValueOnce("live");
+      mockUseAuthBootstrap.mockReturnValueOnce({
+        isAuthenticated: false,
+        isBootstrapping: true,
+        isDegraded: false,
+        error: null,
+        profileError: null,
+        currentUser: null,
+        user: null,
+        refetch: vi.fn(),
+        clearBootstrap: vi.fn(),
       });
 
-const { container } = render(<SearchRoute />);
+      const { container } = render(<SearchRoute />);
 
-expect(container.querySelector(".animate-spin")).toBeInTheDocument();
+      expect(container.querySelector(".animate-spin")).toBeInTheDocument();
     });
   });
 });

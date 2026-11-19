@@ -1,11 +1,9 @@
-
-
 export {
-NotificationItemSkeleton,
-NotificationListSkeleton,
-NotificationEmptyState,
-NotificationErrorState,
-type NotificationEmptyStateVariant,
+  NotificationItemSkeleton,
+  NotificationListSkeleton,
+  NotificationEmptyState,
+  NotificationErrorState,
+  type NotificationEmptyStateVariant,
 } from "./shared";
 
 export { UnreadBadge } from "./UnreadBadge";
@@ -26,11 +24,7 @@ export { NotificationCenterPage } from "./NotificationCenterPage";
 export type { NotificationCenterPageProps } from "./NotificationCenterPage";
 
 export { NotificationPreferencesPage } from "./NotificationPreferencesPage";
-export type {
-NotificationPreferencesPageProps,
-} from "./NotificationPreferencesPage";
+export type { NotificationPreferencesPageProps } from "./NotificationPreferencesPage";
 
 export { NotificationPreferencesForm } from "./NotificationPreferencesForm";
-export type {
-NotificationPreferencesFormProps,
-} from "./NotificationPreferencesForm";
+export type { NotificationPreferencesFormProps } from "./NotificationPreferencesForm";

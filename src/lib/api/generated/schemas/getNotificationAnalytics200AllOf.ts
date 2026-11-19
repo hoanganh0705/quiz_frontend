@@ -1,7 +1,5 @@
-
-
-import type { NotificationAnalyticsDto } from './notificationAnalyticsDto';
+import type { NotificationAnalyticsDto } from "./notificationAnalyticsDto";
 
 export type GetNotificationAnalytics200AllOf = {
-data?: NotificationAnalyticsDto;
+  data?: NotificationAnalyticsDto;
 };

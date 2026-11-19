@@ -1,15 +1,12 @@
 /**
  * `bookmark.helpers.ts` — shared stubbing + fixture helpers for the
- * bookmark acceptance suite (Story 3.10 / TKT-3.10.G2).
+ * bookmark acceptance suite.
  *
- * Source epic:   Story 3.10 — Bookmarks add / remove + membership lookup.
- * Source ticket: TKT-3.10.G2 — Browser acceptance tests for bookmark,
  *                 reload, and cross-tab flows.
  *
  * The helpers centralise the bookmark controller endpoints so the
  * acceptance spec stays focused on assertions instead of boilerplate.
- * All shapes mirror the orval-generated wire output (TKT-3.10.A1 §1 +
- * §2). The endpoints stubbed here are the ones the Story 3.10 hooks
+ * All shapes mirror the orval-generated wire output. The endpoints stubbed here are the ones the feature hooks
  * actually hit; other endpoints (analytics, recent, search) are NOT
  * stubbed and will 404 against an unseeded dev backend (correct
  * behaviour — the production hooks never read them).
@@ -36,21 +33,21 @@
  * Operators may override these via env if the seed data drifts.
  */
 
-import type { Page, Request } from '@playwright/test';
+import type { Page, Request } from "@playwright/test";
 
 // ---------------------------------------------------------------------------
 // Seed fixtures
 // ---------------------------------------------------------------------------
 
-export const QUIZ_ID = '0192f4d8-1111-7000-8000-000000000001';
-export const QUIZ_SLUG = 'epic-science-challenge';
-export const RELATED_QUIZ_ID = '0192f4d8-2222-7000-8000-000000000002';
-export const TITLE = 'Epic Science Challenge';
+export const QUIZ_ID = "0192f4d8-1111-7000-8000-000000000001";
+export const QUIZ_SLUG = "epic-science-challenge";
+export const RELATED_QUIZ_ID = "0192f4d8-2222-7000-8000-000000000002";
+export const TITLE = "Epic Science Challenge";
 
-export const FAVOURITES_COLLECTION_ID = '0192f4d8-1111-7000-8000-000000000010';
-export const ANOTHER_COLLECTION_ID = '0192f4d8-1111-7000-8000-000000000011';
+export const FAVOURITES_COLLECTION_ID = "0192f4d8-1111-7000-8000-000000000010";
+export const ANOTHER_COLLECTION_ID = "0192f4d8-1111-7000-8000-000000000011";
 
-export const USER_ID = '0192f4d8-3333-7000-8000-000000000001';
+export const USER_ID = "0192f4d8-3333-7000-8000-000000000001";
 
 // ---------------------------------------------------------------------------
 // DTO factories
@@ -101,7 +98,7 @@ export function makeQuizListItem(
     quizId: QUIZ_ID,
     creatorId: null,
     title: TITLE,
-    description: 'Explore the science of everyday life.',
+    description: "Explore the science of everyday life.",
     slug: QUIZ_SLUG,
     requirements: null,
     imageUrl: null,
@@ -110,8 +107,8 @@ export function makeQuizListItem(
     isHidden: false,
     isVerified: true,
     publishedVersionId: null,
-    createdAt: '2026-07-01T00:00:00.000Z',
-    updatedAt: '2026-07-01T00:00:00.000Z',
+    createdAt: "2026-07-01T00:00:00.000Z",
+    updatedAt: "2026-07-01T00:00:00.000Z",
     ...overrides,
   };
 }
@@ -122,11 +119,11 @@ export function makeCollection(
   return {
     collectionId: FAVOURITES_COLLECTION_ID,
     userId: USER_ID,
-    name: 'Favourites',
+    name: "Favourites",
     description: null,
     quizCount: 0,
-    createdAt: '2026-07-01T00:00:00.000Z',
-    updatedAt: '2026-07-01T00:00:00.000Z',
+    createdAt: "2026-07-01T00:00:00.000Z",
+    updatedAt: "2026-07-01T00:00:00.000Z",
     ...overrides,
   };
 }
@@ -143,7 +140,7 @@ export function makeBookmark(
     quizImageUrl: null,
     quizIsFeatured: false,
     notes: null,
-    bookmarkedAt: '2026-07-01T00:00:00.000Z',
+    bookmarkedAt: "2026-07-01T00:00:00.000Z",
     ...overrides,
   };
 }
@@ -154,16 +151,16 @@ export function makeBookmark(
 
 const answerOptions = [
   {
-    optionId: 'option-1',
+    optionId: "option-1",
     position: 1,
-    value: 'First option',
-    createdAt: '2026-07-01T00:00:00.000Z',
+    value: "First option",
+    createdAt: "2026-07-01T00:00:00.000Z",
   },
   {
-    optionId: 'option-2',
+    optionId: "option-2",
     position: 2,
-    value: 'Second option',
-    createdAt: '2026-07-01T00:00:00.000Z',
+    value: "Second option",
+    createdAt: "2026-07-01T00:00:00.000Z",
   },
 ];
 
@@ -172,7 +169,7 @@ function makeQuizDetail() {
     quizId: QUIZ_ID,
     creatorId: null,
     title: TITLE,
-    description: 'A short description.',
+    description: "A short description.",
     slug: QUIZ_SLUG,
     requirements: null,
     imageUrl: null,
@@ -180,33 +177,33 @@ function makeQuizDetail() {
     isFeatured: false,
     isHidden: false,
     isVerified: true,
-    publishedVersionId: 'version-1',
-    createdAt: '2026-07-01T00:00:00.000Z',
-    updatedAt: '2026-07-01T00:00:00.000Z',
+    publishedVersionId: "version-1",
+    createdAt: "2026-07-01T00:00:00.000Z",
+    updatedAt: "2026-07-01T00:00:00.000Z",
     tags: [],
     publishedVersion: {
-      quizVersionId: 'version-1',
+      quizVersionId: "version-1",
       quizId: QUIZ_ID,
       versionNumber: 1,
-      status: 'published',
-      difficulty: 'medium',
+      status: "published",
+      difficulty: "medium",
       durationMs: 900_000,
       passingScorePercent: 70,
       rewardXp: 50,
       creatorId: null,
-      createdAt: '2026-07-01T00:00:00.000Z',
-      publishedAt: '2026-07-02T00:00:00.000Z',
+      createdAt: "2026-07-01T00:00:00.000Z",
+      publishedAt: "2026-07-02T00:00:00.000Z",
       archivedAt: null,
-      updatedAt: '2026-07-02T00:00:00.000Z',
+      updatedAt: "2026-07-02T00:00:00.000Z",
       questions: [
         {
-          questionId: 'question-1',
-          quizVersionId: 'version-1',
+          questionId: "question-1",
+          quizVersionId: "version-1",
           position: 1,
-          questionText: 'First question',
+          questionText: "First question",
           imageUrl: null,
-          createdAt: '2026-07-01T00:00:00.000Z',
-          updatedAt: '2026-07-01T00:00:00.000Z',
+          createdAt: "2026-07-01T00:00:00.000Z",
+          updatedAt: "2026-07-01T00:00:00.000Z",
           answerOptions,
         },
       ],
@@ -317,13 +314,13 @@ export async function stubBookmarks(
     return undefined;
   }
 
-  page.on('request', (request) => {
-    if (request.url().includes('/api/v1/')) {
+  page.on("request", (request) => {
+    if (request.url().includes("/api/v1/")) {
       requests.push(request);
     }
   });
 
-  await page.route('**/api/v1/**', async (route) => {
+  await page.route("**/api/v1/**", async (route) => {
     const url = new URL(route.request().url());
     const pathname = url.pathname;
     const method = route.request().method();
@@ -332,20 +329,20 @@ export async function stubBookmarks(
     if (failureStatus !== undefined) {
       await route.fulfill({
         status: failureStatus,
-        contentType: 'application/json',
+        contentType: "application/json",
         body: JSON.stringify({
-          type: 'about:blank',
+          type: "about:blank",
           title: `Error ${failureStatus}`,
           status: failureStatus,
           extensions: {
             code:
               failureStatus === 429
-                ? 'GLOBAL_RATE_LIMITED'
+                ? "GLOBAL_RATE_LIMITED"
                 : failureStatus === 404
-                  ? 'GLOBAL_NOT_FOUND'
+                  ? "GLOBAL_NOT_FOUND"
                   : failureStatus >= 500
-                    ? 'GLOBAL_INTERNAL_ERROR'
-                    : 'GLOBAL_BAD_REQUEST',
+                    ? "GLOBAL_INTERNAL_ERROR"
+                    : "GLOBAL_BAD_REQUEST",
           },
         }),
       });
@@ -353,12 +350,16 @@ export async function stubBookmarks(
     }
 
     // /auth/me — bootstrap the auth state.
-    if (pathname.endsWith('/auth/me')) {
+    if (pathname.endsWith("/auth/me")) {
       await route.fulfill({
         status: 200,
-        contentType: 'application/json',
+        contentType: "application/json",
         body: JSON.stringify({
-          data: { userId: USER_ID, username: 'acceptance', email: 'a@example.com' },
+          data: {
+            userId: USER_ID,
+            username: "acceptance",
+            email: "a@example.com",
+          },
         }),
       });
       return;
@@ -366,22 +367,22 @@ export async function stubBookmarks(
 
     // /users/me/profile (or profile-shape endpoint) — Stage 2 returned
     // shape varies; the bookmark broadcasts consume the `userId` only.
-    if (pathname.includes('/users/me/profile')) {
+    if (pathname.includes("/users/me/profile")) {
       await route.fulfill({
         status: 200,
-        contentType: 'application/json',
+        contentType: "application/json",
         body: JSON.stringify({
-          data: { userId: USER_ID, username: 'acceptance' },
+          data: { userId: USER_ID, username: "acceptance" },
         }),
       });
       return;
     }
 
     // /bookmarks/collections — collections list.
-    if (pathname === '/api/v1/bookmarks/collections' && method === 'GET') {
+    if (pathname === "/api/v1/bookmarks/collections" && method === "GET") {
       await route.fulfill({
         status: 200,
-        contentType: 'application/json',
+        contentType: "application/json",
         body: JSON.stringify({ data: { items: collections } }),
       });
       return;
@@ -391,14 +392,14 @@ export async function stubBookmarks(
     const collectionMatch = pathname.match(
       /^\/api\/v1\/bookmarks\/collections\/([^/]+)$/,
     );
-    if (collectionMatch && method === 'GET') {
+    if (collectionMatch && method === "GET") {
       const collectionId = collectionMatch[1];
       const items = (membership[collectionId] ?? []).map((quizId) =>
         makeBookmark(quizId),
       );
       await route.fulfill({
         status: 200,
-        contentType: 'application/json',
+        contentType: "application/json",
         body: JSON.stringify({ data: { items } }),
       });
       return;
@@ -408,10 +409,10 @@ export async function stubBookmarks(
     const statusMatch = pathname.match(
       /^\/api\/v1\/bookmarks\/quizzes\/([^/]+)\/status$/,
     );
-    if (statusMatch && method === 'GET') {
+    if (statusMatch && method === "GET") {
       await route.fulfill({
         status: 200,
-        contentType: 'application/json',
+        contentType: "application/json",
         body: JSON.stringify({ data: status }),
       });
       return;
@@ -421,12 +422,12 @@ export async function stubBookmarks(
     const addMatch = pathname.match(
       /^\/api\/v1\/bookmarks\/collections\/([^/]+)\/quizzes$/,
     );
-    if (addMatch && method === 'POST') {
+    if (addMatch && method === "POST") {
       const collectionId = addMatch[1];
-      const body = JSON.parse(route.request().postData() ?? '{}') as {
+      const body = JSON.parse(route.request().postData() ?? "{}") as {
         quizId?: string;
       };
-      const quizId = body.quizId ?? '';
+      const quizId = body.quizId ?? "";
       if (quizId) {
         const list = membership[collectionId] ?? [];
         if (!list.includes(quizId)) {
@@ -442,7 +443,7 @@ export async function stubBookmarks(
       }
       await route.fulfill({
         status: 201,
-        contentType: 'application/json',
+        contentType: "application/json",
         body: JSON.stringify({ data: { bookmarkId: `bm-${quizId}` } }),
       });
       return;
@@ -452,7 +453,7 @@ export async function stubBookmarks(
     const removeMatch = pathname.match(
       /^\/api\/v1\/bookmarks\/collections\/([^/]+)\/quizzes\/([^/]+)$/,
     );
-    if (removeMatch && method === 'DELETE') {
+    if (removeMatch && method === "DELETE") {
       const collectionId = removeMatch[1];
       const quizId = removeMatch[2];
       const list = membership[collectionId] ?? [];
@@ -468,55 +469,57 @@ export async function stubBookmarks(
           (c) => c.collectionId !== collectionId,
         );
       }
-      await route.fulfill({ status: 204, body: '' });
+      await route.fulfill({ status: 204, body: "" });
       return;
     }
 
     // /quizzes/{idOrSlug}/related — empty related set.
-    if (pathname.endsWith('/related') && method === 'GET') {
+    if (pathname.endsWith("/related") && method === "GET") {
       await route.fulfill({
         status: 200,
-        contentType: 'application/json',
+        contentType: "application/json",
         body: JSON.stringify({ data: [] }),
       });
       return;
     }
 
     // /quizzes/{idOrSlug}/stats — at-least stat for the CTA strip.
-    if (pathname.endsWith('/stats') && method === 'GET') {
+    if (pathname.endsWith("/stats") && method === "GET") {
       await route.fulfill({
         status: 200,
-        contentType: 'application/json',
+        contentType: "application/json",
         body: JSON.stringify({ data: stats }),
       });
       return;
     }
 
     // /quizzes/{idOrSlug} — quiz detail.
-    if (pathname.startsWith('/api/v1/quizzes/') && method === 'GET') {
+    if (pathname.startsWith("/api/v1/quizzes/") && method === "GET") {
       await route.fulfill({
         status: 200,
-        contentType: 'application/json',
+        contentType: "application/json",
         body: JSON.stringify({ data: makeQuizDetail() }),
       });
       return;
     }
 
     // /quizzes/{idOrSlug}/questions — seeded question set.
-    if (pathname.endsWith('/questions') && method === 'GET') {
+    if (pathname.endsWith("/questions") && method === "GET") {
       await route.fulfill({
         status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify({ data: makeQuizDetail().publishedVersion.questions }),
+        contentType: "application/json",
+        body: JSON.stringify({
+          data: makeQuizDetail().publishedVersion.questions,
+        }),
       });
       return;
     }
 
     // /quizzes (list) — empty result for the related-strip no-op.
-    if (pathname.endsWith('/quizzes') && method === 'GET') {
+    if (pathname.endsWith("/quizzes") && method === "GET") {
       await route.fulfill({
         status: 200,
-        contentType: 'application/json',
+        contentType: "application/json",
         body: JSON.stringify({ data: [] }),
       });
       return;
@@ -526,12 +529,12 @@ export async function stubBookmarks(
     // unknown path; we mirror that here so the test catches a typo).
     await route.fulfill({
       status: 404,
-      contentType: 'application/json',
+      contentType: "application/json",
       body: JSON.stringify({
-        type: 'about:blank',
-        title: 'Not Found',
+        type: "about:blank",
+        title: "Not Found",
         status: 404,
-        extensions: { code: 'GLOBAL_NOT_FOUND' },
+        extensions: { code: "GLOBAL_NOT_FOUND" },
       }),
     });
   });
@@ -554,6 +557,6 @@ export async function stubBookmarks(
  * tests stay isolated from quiz-detail changes.
  */
 export async function expectResolvedQuizPage(page: Page) {
-  await page.getByRole('heading', { level: 1, name: TITLE }).waitFor();
-  await page.getByTestId('quiz-question-card').first().waitFor();
+  await page.getByRole("heading", { level: 1, name: TITLE }).waitFor();
+  await page.getByTestId("quiz-question-card").first().waitFor();
 }

@@ -1,6 +1,3 @@
-
-
 export interface BulkAddBookmarksResponseDto {
-
-addedCount: number;
+  addedCount: number;
 }

@@ -1,14 +1,11 @@
-
-
 export interface UserRankingResponseDto {
+  userId: string;
 
-userId: string;
+  globalRank?: number | null;
 
-globalRank?: number | null;
+  totalScore: number;
 
-totalScore: number;
+  level: number;
 
-level: number;
-
-updatedAt: string;
+  updatedAt: string;
 }

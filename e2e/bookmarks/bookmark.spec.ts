@@ -2,8 +2,6 @@
  * `bookmark.spec.ts` — Playwright e2e coverage for the bookmark
  * add / remove + cross-tab sync flow.
  *
- * Source epic:   Story 3.10 — Bookmarks add / remove + membership lookup.
- * Source ticket: TKT-3.10.G2 — Browser acceptance tests for bookmark,
  *                 reload, and cross-tab flows.
  *
  * The spec runs against a running dev backend with the seeded data
@@ -71,7 +69,7 @@
  * not leak.
  */
 
-import { expect, test } from '@playwright/test';
+import { expect, test } from "@playwright/test";
 
 import {
   expectResolvedQuizPage,
@@ -82,9 +80,9 @@ import {
   USER_ID,
   stubBookmarks,
   type CollectionDto,
-} from './bookmark.helpers';
+} from "./bookmark.helpers";
 
-test.describe('Bookmark acceptance (Story 3.10 / TKT-3.10.G2)', () => {
+test.describe("Bookmark acceptance", () => {
   test.beforeEach(async ({ page }) => {
     await page.context().clearCookies();
     await page.evaluate(() => localStorage.clear());
@@ -94,7 +92,7 @@ test.describe('Bookmark acceptance (Story 3.10 / TKT-3.10.G2)', () => {
   // (a) Card add is immediate + survives hard reload
   // ───────────────────────────────────────────────────────────────────
 
-  test('(a) card add is immediate and the bookmarked state survives a hard reload', async ({
+  test("(a) card add is immediate and the bookmarked state survives a hard reload", async ({
     page,
   }) => {
     const stub = await stubBookmarks(page);
@@ -103,24 +101,31 @@ test.describe('Bookmark acceptance (Story 3.10 / TKT-3.10.G2)', () => {
     await expectResolvedQuizPage(page);
 
     // Initial state: card AND CTA strip are unbookmarked.
-    const cardButton = page.getByTestId('bookmark-button-not-bookmarked').first();
+    const cardButton = page
+      .getByTestId("bookmark-button-not-bookmarked")
+      .first();
     await expect(cardButton).toBeVisible();
     const detailButton = page
-      .getByTestId('quiz-cta-strip')
-      .getByTestId('bookmark-button-not-bookmarked');
+      .getByTestId("quiz-cta-strip")
+      .getByTestId("bookmark-button-not-bookmarked");
     await expect(detailButton).toBeVisible();
 
     // Click the card's bookmark icon — must POST exactly once with
     // the default collectionId + the quizId.
     await cardButton.click();
 
-    await expect(page.getByTestId('bookmark-button-bookmarked').first())
-      .toBeVisible();
+    await expect(
+      page.getByTestId("bookmark-button-bookmarked").first(),
+    ).toBeVisible();
 
     const addRequests = stub.requests.filter(
       (r) =>
-        r.method() === 'POST' &&
-        r.url().includes(`/api/v1/bookmarks/collections/${FAVOURITES_COLLECTION_ID}/quizzes`),
+        r.method() === "POST" &&
+        r
+          .url()
+          .includes(
+            `/api/v1/bookmarks/collections/${FAVOURITES_COLLECTION_ID}/quizzes`,
+          ),
     );
     expect(addRequests).toHaveLength(1);
 
@@ -130,12 +135,12 @@ test.describe('Bookmark acceptance (Story 3.10 / TKT-3.10.G2)', () => {
     await expectResolvedQuizPage(page);
 
     await expect(
-      page.getByTestId('bookmark-button-bookmarked').first(),
+      page.getByTestId("bookmark-button-bookmarked").first(),
     ).toBeVisible();
     await expect(
       page
-        .getByTestId('quiz-cta-strip')
-        .getByTestId('bookmark-button-bookmarked'),
+        .getByTestId("quiz-cta-strip")
+        .getByTestId("bookmark-button-bookmarked"),
     ).toBeVisible();
   });
 
@@ -143,7 +148,7 @@ test.describe('Bookmark acceptance (Story 3.10 / TKT-3.10.G2)', () => {
   // (b) Detail remove is immediate + survives hard reload
   // ───────────────────────────────────────────────────────────────────
 
-  test('(b) detail remove is immediate and the unbookmarked state survives a hard reload', async ({
+  test("(b) detail remove is immediate and the unbookmarked state survives a hard reload", async ({
     page,
   }) => {
     // Seed: the user has already bookmarked the quiz.
@@ -160,26 +165,30 @@ test.describe('Bookmark acceptance (Story 3.10 / TKT-3.10.G2)', () => {
 
     // Initial state: card AND CTA strip are bookmarked.
     await expect(
-      page.getByTestId('bookmark-button-bookmarked').first(),
+      page.getByTestId("bookmark-button-bookmarked").first(),
     ).toBeVisible();
     const detailButton = page
-      .getByTestId('quiz-cta-strip')
-      .getByTestId('bookmark-button-bookmarked');
+      .getByTestId("quiz-cta-strip")
+      .getByTestId("bookmark-button-bookmarked");
     await expect(detailButton).toBeVisible();
 
     // Click the CTA strip's bookmark to unbookmark.
     await detailButton.click();
 
     await expect(
-      page.getByTestId('quiz-cta-strip').getByTestId('bookmark-button-not-bookmarked'),
+      page
+        .getByTestId("quiz-cta-strip")
+        .getByTestId("bookmark-button-not-bookmarked"),
     ).toBeVisible();
 
     const removeRequests = stub.requests.filter(
       (r) =>
-        r.method() === 'DELETE' &&
-        r.url().includes(
-          `/api/v1/bookmarks/collections/${FAVOURITES_COLLECTION_ID}/quizzes/${QUIZ_ID}`,
-        ),
+        r.method() === "DELETE" &&
+        r
+          .url()
+          .includes(
+            `/api/v1/bookmarks/collections/${FAVOURITES_COLLECTION_ID}/quizzes/${QUIZ_ID}`,
+          ),
     );
     expect(removeRequests).toHaveLength(1);
 
@@ -188,12 +197,12 @@ test.describe('Bookmark acceptance (Story 3.10 / TKT-3.10.G2)', () => {
     await expectResolvedQuizPage(page);
 
     await expect(
-      page.getByTestId('bookmark-button-not-bookmarked').first(),
+      page.getByTestId("bookmark-button-not-bookmarked").first(),
     ).toBeVisible();
     await expect(
       page
-        .getByTestId('quiz-cta-strip')
-        .getByTestId('bookmark-button-not-bookmarked'),
+        .getByTestId("quiz-cta-strip")
+        .getByTestId("bookmark-button-not-bookmarked"),
     ).toBeVisible();
   });
 
@@ -201,7 +210,7 @@ test.describe('Bookmark acceptance (Story 3.10 / TKT-3.10.G2)', () => {
   // (c) Zero-collection user sees the setup prompt + no add request
   // ───────────────────────────────────────────────────────────────────
 
-  test('(c) zero-collection user opens the setup prompt and no add POST is fired', async ({
+  test("(c) zero-collection user opens the setup prompt and no add POST is fired", async ({
     page,
   }) => {
     const stub = await stubBookmarks(page, { collections: [] });
@@ -212,29 +221,33 @@ test.describe('Bookmark acceptance (Story 3.10 / TKT-3.10.G2)', () => {
     // Initially the button is rendered but disabled (the no-collection
     // branch still surfaces the icon button per D4's slot — the slot
     // is visible, the click is short-circuited).
-    const cardButton = page.getByTestId('bookmark-button-not-bookmarked').first();
+    const cardButton = page
+      .getByTestId("bookmark-button-not-bookmarked")
+      .first();
     await expect(cardButton).toBeVisible();
 
     await cardButton.click();
 
     // The setup prompt dialog must appear.
-    const dialog = page.getByTestId('bookmarks-setup-prompt');
+    const dialog = page.getByTestId("bookmarks-setup-prompt");
     await expect(dialog).toBeVisible();
-    await expect(dialog.getByText('Bookmark collections')).toBeVisible();
+    await expect(dialog.getByText("Bookmark collections")).toBeVisible();
 
     // The "Not now" affordance should be visible.
-    await expect(page.getByTestId('bookmarks-setup-prompt-not-now')).toBeVisible();
+    await expect(
+      page.getByTestId("bookmarks-setup-prompt-not-now"),
+    ).toBeVisible();
 
     // No POST to addBookmark.
     const addRequests = stub.requests.filter(
       (r) =>
-        r.method() === 'POST' &&
-        r.url().includes('/api/v1/bookmarks/collections/'),
+        r.method() === "POST" &&
+        r.url().includes("/api/v1/bookmarks/collections/"),
     );
     expect(addRequests).toHaveLength(0);
 
     // Dismiss the prompt.
-    await page.getByTestId('bookmarks-setup-prompt-not-now').click();
+    await page.getByTestId("bookmarks-setup-prompt-not-now").click();
     await expect(dialog).toBeHidden();
   });
 
@@ -242,27 +255,27 @@ test.describe('Bookmark acceptance (Story 3.10 / TKT-3.10.G2)', () => {
   // (d) Multi-collection user uses the default rule
   // ───────────────────────────────────────────────────────────────────
 
-  test('(d) multi-collection user routes the add to the default (Favourites) collection', async ({
+  test("(d) multi-collection user routes the add to the default (Favourites) collection", async ({
     page,
   }) => {
     const collections: CollectionDto[] = [
       {
         collectionId: FAVOURITES_COLLECTION_ID,
         userId: USER_ID,
-        name: 'Favourites',
+        name: "Favourites",
         description: null,
         quizCount: 0,
-        createdAt: '2026-07-01T00:00:00.000Z',
-        updatedAt: '2026-07-01T00:00:00.000Z',
+        createdAt: "2026-07-01T00:00:00.000Z",
+        updatedAt: "2026-07-01T00:00:00.000Z",
       },
       {
         collectionId: ANOTHER_COLLECTION_ID,
         userId: USER_ID,
-        name: 'To revisit',
+        name: "To revisit",
         description: null,
         quizCount: 0,
-        createdAt: '2026-07-01T00:00:00.000Z',
-        updatedAt: '2026-07-01T00:00:00.000Z',
+        createdAt: "2026-07-01T00:00:00.000Z",
+        updatedAt: "2026-07-01T00:00:00.000Z",
       },
     ];
 
@@ -271,11 +284,13 @@ test.describe('Bookmark acceptance (Story 3.10 / TKT-3.10.G2)', () => {
     await page.goto(`/quizzes/${QUIZ_SLUG}`);
     await expectResolvedQuizPage(page);
 
-    const cardButton = page.getByTestId('bookmark-button-not-bookmarked').first();
+    const cardButton = page
+      .getByTestId("bookmark-button-not-bookmarked")
+      .first();
     await cardButton.click();
 
     await expect(
-      page.getByTestId('bookmark-button-bookmarked').first(),
+      page.getByTestId("bookmark-button-bookmarked").first(),
     ).toBeVisible();
 
     // The add POST must hit the Favourites collection — the
@@ -283,8 +298,8 @@ test.describe('Bookmark acceptance (Story 3.10 / TKT-3.10.G2)', () => {
     // sort order (Favourites precedes To revisit alphabetically).
     const addRequests = stub.requests.filter(
       (r) =>
-        r.method() === 'POST' &&
-        r.url().includes('/api/v1/bookmarks/collections/'),
+        r.method() === "POST" &&
+        r.url().includes("/api/v1/bookmarks/collections/"),
     );
     expect(addRequests).toHaveLength(1);
     expect(addRequests[0]!.url()).toContain(FAVOURITES_COLLECTION_ID);
@@ -294,7 +309,7 @@ test.describe('Bookmark acceptance (Story 3.10 / TKT-3.10.G2)', () => {
   // (e) Cross-tab invalidation within ~1 second
   // ───────────────────────────────────────────────────────────────────
 
-  test('(e) cross-tab invalidation reflects a sibling-tab mutation within ~1 second', async ({
+  test("(e) cross-tab invalidation reflects a sibling-tab mutation within ~1 second", async ({
     browser,
   }) => {
     // Open two pages in the same browser context (they share the
@@ -317,12 +332,12 @@ test.describe('Bookmark acceptance (Story 3.10 / TKT-3.10.G2)', () => {
 
       // Bookmark from page1.
       const page1Button = page1
-        .getByTestId('bookmark-button-not-bookmarked')
+        .getByTestId("bookmark-button-not-bookmarked")
         .first();
       await page1Button.click();
 
       await expect(
-        page1.getByTestId('bookmark-button-bookmarked').first(),
+        page1.getByTestId("bookmark-button-bookmarked").first(),
       ).toBeVisible();
 
       // Page2 should reflect the bookmarked state within ~1s.
@@ -331,8 +346,8 @@ test.describe('Bookmark acceptance (Story 3.10 / TKT-3.10.G2)', () => {
       const startTime = Date.now();
       await expect(
         page2
-          .getByTestId('quiz-cta-strip')
-          .getByTestId('bookmark-button-bookmarked'),
+          .getByTestId("quiz-cta-strip")
+          .getByTestId("bookmark-button-bookmarked"),
       ).toBeVisible({ timeout: 2000 });
       const elapsed = Date.now() - startTime;
       expect(elapsed).toBeLessThan(2000);
@@ -342,8 +357,8 @@ test.describe('Bookmark acceptance (Story 3.10 / TKT-3.10.G2)', () => {
       // the membership read fires.
       const addRequests = stub.requests.filter(
         (r) =>
-          r.method() === 'POST' &&
-          r.url().includes('/api/v1/bookmarks/collections/'),
+          r.method() === "POST" &&
+          r.url().includes("/api/v1/bookmarks/collections/"),
       );
       expect(addRequests).toHaveLength(1);
     } finally {
@@ -355,77 +370,83 @@ test.describe('Bookmark acceptance (Story 3.10 / TKT-3.10.G2)', () => {
   // (f) 4xx / 429 / 5xx rollback the optimistic update
   // ───────────────────────────────────────────────────────────────────
 
-  test('(f1) a 400 BAD_REQUEST on the add POST reverts the bookmark icon', async ({
+  test("(f1) a 400 BAD_REQUEST on the add POST reverts the bookmark icon", async ({
     page,
   }) => {
     const stub = await stubBookmarks(page, {
       failuresByPath: {
-        '/bookmarks/collections/': 400,
+        "/bookmarks/collections/": 400,
       },
     });
 
     await page.goto(`/quizzes/${QUIZ_SLUG}`);
     await expectResolvedQuizPage(page);
 
-    const cardButton = page.getByTestId('bookmark-button-not-bookmarked').first();
+    const cardButton = page
+      .getByTestId("bookmark-button-not-bookmarked")
+      .first();
     await cardButton.click();
 
     // The optimistic update pushes the icon to bookmarked, then
     // the rollback reverts it. The CTA strip and the card both
     // return to the unbookmarked branch.
     await expect(
-      page.getByTestId('bookmark-button-not-bookmarked').first(),
+      page.getByTestId("bookmark-button-not-bookmarked").first(),
     ).toBeVisible({ timeout: 2000 });
 
     const addRequests = stub.requests.filter(
       (r) =>
-        r.method() === 'POST' &&
-        r.url().includes('/api/v1/bookmarks/collections/'),
+        r.method() === "POST" &&
+        r.url().includes("/api/v1/bookmarks/collections/"),
     );
     expect(addRequests).toHaveLength(1);
   });
 
-  test('(f2) a 429 RATE_LIMITED on the add POST reverts the bookmark icon', async ({
+  test("(f2) a 429 RATE_LIMITED on the add POST reverts the bookmark icon", async ({
     page,
   }) => {
     await stubBookmarks(page, {
       failuresByPath: {
-        '/bookmarks/collections/': 429,
+        "/bookmarks/collections/": 429,
       },
     });
 
     await page.goto(`/quizzes/${QUIZ_SLUG}`);
     await expectResolvedQuizPage(page);
 
-    const cardButton = page.getByTestId('bookmark-button-not-bookmarked').first();
+    const cardButton = page
+      .getByTestId("bookmark-button-not-bookmarked")
+      .first();
     await cardButton.click();
 
     await expect(
-      page.getByTestId('bookmark-button-not-bookmarked').first(),
+      page.getByTestId("bookmark-button-not-bookmarked").first(),
     ).toBeVisible({ timeout: 2000 });
   });
 
-  test('(f3) a 500 INTERNAL_ERROR on the add POST reverts the bookmark icon', async ({
+  test("(f3) a 500 INTERNAL_ERROR on the add POST reverts the bookmark icon", async ({
     page,
   }) => {
     await stubBookmarks(page, {
       failuresByPath: {
-        '/bookmarks/collections/': 500,
+        "/bookmarks/collections/": 500,
       },
     });
 
     await page.goto(`/quizzes/${QUIZ_SLUG}`);
     await expectResolvedQuizPage(page);
 
-    const cardButton = page.getByTestId('bookmark-button-not-bookmarked').first();
+    const cardButton = page
+      .getByTestId("bookmark-button-not-bookmarked")
+      .first();
     await cardButton.click();
 
     await expect(
-      page.getByTestId('bookmark-button-not-bookmarked').first(),
+      page.getByTestId("bookmark-button-not-bookmarked").first(),
     ).toBeVisible({ timeout: 2000 });
   });
 
-  test('(f4) a 429 on the remove DELETE reverts the bookmark icon to bookmarked', async ({
+  test("(f4) a 429 on the remove DELETE reverts the bookmark icon to bookmarked", async ({
     page,
   }) => {
     // Seed: the user has already bookmarked the quiz.
@@ -443,15 +464,15 @@ test.describe('Bookmark acceptance (Story 3.10 / TKT-3.10.G2)', () => {
     await page.route(
       `**/api/v1/bookmarks/collections/${FAVOURITES_COLLECTION_ID}/quizzes/${QUIZ_ID}`,
       async (route) => {
-        if (route.request().method() === 'DELETE') {
+        if (route.request().method() === "DELETE") {
           await route.fulfill({
             status: 429,
-            contentType: 'application/json',
+            contentType: "application/json",
             body: JSON.stringify({
-              type: 'about:blank',
-              title: 'Too Many Requests',
+              type: "about:blank",
+              title: "Too Many Requests",
               status: 429,
-              extensions: { code: 'GLOBAL_RATE_LIMITED' },
+              extensions: { code: "GLOBAL_RATE_LIMITED" },
             }),
           });
           return;
@@ -464,8 +485,8 @@ test.describe('Bookmark acceptance (Story 3.10 / TKT-3.10.G2)', () => {
     await expectResolvedQuizPage(page);
 
     const detailButton = page
-      .getByTestId('quiz-cta-strip')
-      .getByTestId('bookmark-button-bookmarked');
+      .getByTestId("quiz-cta-strip")
+      .getByTestId("bookmark-button-bookmarked");
     await expect(detailButton).toBeVisible();
 
     await detailButton.click();
@@ -473,8 +494,8 @@ test.describe('Bookmark acceptance (Story 3.10 / TKT-3.10.G2)', () => {
     // The icon must rollback to the bookmarked branch.
     await expect(
       page
-        .getByTestId('quiz-cta-strip')
-        .getByTestId('bookmark-button-bookmarked'),
+        .getByTestId("quiz-cta-strip")
+        .getByTestId("bookmark-button-bookmarked"),
     ).toBeVisible({ timeout: 2000 });
   });
 });

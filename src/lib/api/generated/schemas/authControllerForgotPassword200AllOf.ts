@@ -1,7 +1,5 @@
-
-
-import type { ForgotPasswordResponseDto } from './forgotPasswordResponseDto';
+import type { ForgotPasswordResponseDto } from "./forgotPasswordResponseDto";
 
 export type AuthControllerForgotPassword200AllOf = {
-data?: ForgotPasswordResponseDto;
+  data?: ForgotPasswordResponseDto;
 };

@@ -1,37 +1,34 @@
-
-
-import type { AttemptReviewResponseDtoStatus } from './attemptReviewResponseDtoStatus';
-import type { AttemptReviewQuestionDto } from './attemptReviewQuestionDto';
+import type { AttemptReviewResponseDtoStatus } from "./attemptReviewResponseDtoStatus";
+import type { AttemptReviewQuestionDto } from "./attemptReviewQuestionDto";
 
 export interface AttemptReviewResponseDto {
+  attemptId: string;
 
-attemptId: string;
+  status: AttemptReviewResponseDtoStatus;
 
-status: AttemptReviewResponseDtoStatus;
+  quizId: string;
 
-quizId: string;
+  quizTitle: string;
 
-quizTitle: string;
+  quizSlug: string;
 
-quizSlug: string;
+  versionNumber: number;
 
-versionNumber: number;
+  difficulty: string;
 
-difficulty: string;
+  passingScorePercent: number;
 
-passingScorePercent: number;
+  scorePercent?: number | null;
 
-scorePercent?: number | null;
+  correctCount?: number | null;
 
-correctCount?: number | null;
+  totalQuestions: number;
 
-totalQuestions: number;
+  timeTakenMs?: number | null;
 
-timeTakenMs?: number | null;
+  xpEarned: number;
 
-xpEarned: number;
+  finishedAt: string;
 
-finishedAt: string;
-
-questions: AttemptReviewQuestionDto[];
+  questions: AttemptReviewQuestionDto[];
 }

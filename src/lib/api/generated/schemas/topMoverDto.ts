@@ -1,14 +1,11 @@
-
-
 export interface TopMoverDto {
+  userId: string;
 
-userId: string;
+  username: string;
 
-username: string;
+  currentRank: number;
 
-currentRank: number;
+  previousRank: number;
 
-previousRank: number;
-
-change: number;
+  change: number;
 }

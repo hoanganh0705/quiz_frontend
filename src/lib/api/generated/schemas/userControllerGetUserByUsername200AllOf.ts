@@ -1,7 +1,5 @@
-
-
-import type { UserLookupResponseDto } from './userLookupResponseDto';
+import type { UserLookupResponseDto } from "./userLookupResponseDto";
 
 export type UserControllerGetUserByUsername200AllOf = {
-data?: UserLookupResponseDto;
+  data?: UserLookupResponseDto;
 };

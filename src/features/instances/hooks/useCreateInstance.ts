@@ -2,6 +2,7 @@
 
 import { useCallback, useRef, useState } from "react";
 import { mutate as globalMutate } from "swr";
+import { getQueryClient } from "@/providers/QueryProvider";
 
 import { ApiError, coerceToApiError, isApiError } from "@/lib/api";
 import { createInstance } from "@/features/instances/services/instances.service";
@@ -16,7 +17,9 @@ import type {
 } from "@/lib/api/generated/schemas";
 
 export interface UseCreateInstanceResult {
-  create: (params: CreateInstanceDto) => Promise<CreateInstanceResponseDto | null>;
+  create: (
+    params: CreateInstanceDto,
+  ) => Promise<CreateInstanceResponseDto | null>;
   state: InstanceLifecycleMutationState;
   isCreating: boolean;
   error: ApiError | null;
@@ -37,7 +40,9 @@ export function useCreateInstance(): UseCreateInstanceResult {
   }, []);
 
   const create = useCallback(
-    async (params: CreateInstanceDto): Promise<CreateInstanceResponseDto | null> => {
+    async (
+      params: CreateInstanceDto,
+    ): Promise<CreateInstanceResponseDto | null> => {
       if (isFlagPlaceholder) {
         return null;
       }
@@ -53,6 +58,13 @@ export function useCreateInstance(): UseCreateInstanceResult {
       try {
         const wire = await createInstance(params);
         setState("success");
+        try {
+          void getQueryClient().invalidateQueries({
+            queryKey: INSTANCE_CACHE_KEYS.list(),
+          });
+        } catch {
+          // ignore
+        }
         void globalMutate(INSTANCE_CACHE_KEYS.list());
         return wire as CreateInstanceResponseDto;
       } catch (err: unknown) {

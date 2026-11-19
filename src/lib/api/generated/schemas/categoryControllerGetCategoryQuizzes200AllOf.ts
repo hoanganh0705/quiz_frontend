@@ -1,9 +1,7 @@
-
-
-import type { QuizListItemDto } from './quizListItemDto';
-import type { CategoryControllerGetCategoryQuizzes200AllOfMeta } from './categoryControllerGetCategoryQuizzes200AllOfMeta';
+import type { QuizListItemDto } from "./quizListItemDto";
+import type { CategoryControllerGetCategoryQuizzes200AllOfMeta } from "./categoryControllerGetCategoryQuizzes200AllOfMeta";
 
 export type CategoryControllerGetCategoryQuizzes200AllOf = {
-data?: QuizListItemDto[];
-meta?: CategoryControllerGetCategoryQuizzes200AllOfMeta;
+  data?: QuizListItemDto[];
+  meta?: CategoryControllerGetCategoryQuizzes200AllOfMeta;
 };

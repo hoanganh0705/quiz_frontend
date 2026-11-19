@@ -1,7 +1,5 @@
-
-
-import type { QuizResponseDto } from './quizResponseDto';
+import type { QuizResponseDto } from "./quizResponseDto";
 
 export type QuizControllerUpdateQuiz200AllOf = {
-data?: QuizResponseDto;
+  data?: QuizResponseDto;
 };

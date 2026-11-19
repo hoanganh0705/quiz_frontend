@@ -1,6 +1,3 @@
-
-
 export interface VerifyPasswordResponseDto {
-
-valid: boolean;
+  valid: boolean;
 }

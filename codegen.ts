@@ -14,29 +14,30 @@
  * codegen recognise the in-source tag so it can match operations to schema
  * types.
  */
-import 'dotenv/config';
-import type { CodegenConfig } from '@graphql-codegen/cli';
+import "dotenv/config";
+import type { CodegenConfig } from "@graphql-codegen/cli";
 
-const schemaFromEnv = process.env.NEXT_PUBLIC_GRAPHQL_URL ?? 'http://localhost:8080/graphql';
+const schemaFromEnv =
+  process.env.NEXT_PUBLIC_GRAPHQL_URL ?? "http://localhost:8080/graphql";
 
 const config: CodegenConfig = {
   overwrite: true,
   schema: schemaFromEnv,
-  documents: ['src/features/**/graphql/**/*.graphql.ts'],
+  documents: ["src/features/**/graphql/**/*.graphql.ts"],
   ignoreNoDocuments: true,
   pluckConfig: {
-    modules: [{ name: '@apollo/client', identifier: 'gql' }],
+    modules: [{ name: "@apollo/client", identifier: "gql" }],
   },
   generates: {
-    'src/lib/graphql/generated/graphql.ts': {
-      plugins: ['typescript', 'typescript-operations', 'typed-document-node'],
+    "src/lib/graphql/generated/graphql.ts": {
+      plugins: ["typescript", "typescript-operations", "typed-document-node"],
       config: {
         avoidOptionals: true,
         skipTypename: false,
         scalars: {
-          ID: 'string',
-          DateTime: 'string',
-          JSON: 'unknown',
+          ID: "string",
+          DateTime: "string",
+          JSON: "unknown",
         },
         useTypeImports: true,
         dedupeFragments: true,

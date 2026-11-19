@@ -1,13 +1,10 @@
-
-
-import type { NearbyRankEntryDto } from './nearbyRankEntryDto';
-import type { NearbyRanksResponseDtoMe } from './nearbyRanksResponseDtoMe';
+import type { NearbyRankEntryDto } from "./nearbyRankEntryDto";
+import type { NearbyRanksResponseDtoMe } from "./nearbyRanksResponseDtoMe";
 
 export interface NearbyRanksResponseDto {
+  above: NearbyRankEntryDto[];
 
-above: NearbyRankEntryDto[];
+  me?: NearbyRanksResponseDtoMe;
 
-me?: NearbyRanksResponseDtoMe;
-
-below: NearbyRankEntryDto[];
+  below: NearbyRankEntryDto[];
 }

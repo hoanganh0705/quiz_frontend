@@ -1,7 +1,5 @@
-
-
-import type { HealthStatusDto } from './healthStatusDto';
+import type { HealthStatusDto } from "./healthStatusDto";
 
 export type HealthControllerCheck200AllOf = {
-data?: HealthStatusDto;
+  data?: HealthStatusDto;
 };

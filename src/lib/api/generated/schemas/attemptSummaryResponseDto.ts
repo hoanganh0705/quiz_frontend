@@ -1,33 +1,30 @@
-
-
-import type { AttemptSummaryResponseDtoContextType } from './attemptSummaryResponseDtoContextType';
-import type { AttemptSummaryResponseDtoStatus } from './attemptSummaryResponseDtoStatus';
+import type { AttemptSummaryResponseDtoContextType } from "./attemptSummaryResponseDtoContextType";
+import type { AttemptSummaryResponseDtoStatus } from "./attemptSummaryResponseDtoStatus";
 
 export interface AttemptSummaryResponseDto {
+  attemptId: string;
 
-attemptId: string;
+  quizId: string;
 
-quizId: string;
+  quizTitle: string;
 
-quizTitle: string;
+  quizSlug: string;
 
-quizSlug: string;
+  versionNumber: number;
 
-versionNumber: number;
+  difficulty: string;
 
-difficulty: string;
+  contextType: AttemptSummaryResponseDtoContextType;
 
-contextType: AttemptSummaryResponseDtoContextType;
+  status: AttemptSummaryResponseDtoStatus;
 
-status: AttemptSummaryResponseDtoStatus;
+  scorePercent?: number | null;
 
-scorePercent?: number | null;
+  correctCount?: number | null;
 
-correctCount?: number | null;
+  startedAt: string;
 
-startedAt: string;
+  finishedAt?: string | null;
 
-finishedAt?: string | null;
-
-xpEarned: number;
+  xpEarned: number;
 }

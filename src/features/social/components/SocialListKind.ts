@@ -1,7 +1,5 @@
-
-
 export type SocialListKind =
-| "followers"
+  | "followers"
   | "following"
   | "friends"
   | "blocked"
@@ -11,12 +9,12 @@ export type SocialListKind =
   | "feed";
 
 export const SOCIAL_LIST_KINDS: readonly SocialListKind[] = [
-"followers",
-"following",
-"friends",
-"blocked",
-"mutual-friends",
-"mutual-followers",
-"activity",
-"feed",
+  "followers",
+  "following",
+  "friends",
+  "blocked",
+  "mutual-friends",
+  "mutual-followers",
+  "activity",
+  "feed",
 ] as const;

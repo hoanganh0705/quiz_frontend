@@ -1,80 +1,81 @@
-
-
-import { getComments } from '@/lib/api';
-import type {
-ReportDto,
-ReviewReportDto,
-} from '@/lib/api/generated/schemas';
+import { getComments } from "@/lib/api";
+import type { ReportDto, ReviewReportDto } from "@/lib/api/generated/schemas";
 
 export type {
-ListReportsResult,
-HideCommentResult,
-RestoreCommentResult,
-} from '@/lib/api/generated/comments/comments';
+  ListReportsResult,
+  HideCommentResult,
+  RestoreCommentResult,
+} from "@/lib/api/generated/comments/comments";
 
 export type CommentReportDto = ReportDto;
 
 export interface CommentHideRequestDto {
-reason?: string;
+  reason?: string;
 }
 
 export interface CommentRestoreRequestDto {
-reason?: string;
+  reason?: string;
 }
 
 export type ReportActionDto = ReviewReportDto;
 
 export interface ListCommentReportsParams {
-cursor?: string;
-limit?: number;
+  cursor?: string;
+  limit?: number;
 }
 
 export interface CommentReportsPage {
-items: CommentReportDto[];
-hasNextPage: boolean;
-nextCursor: string | null;
+  items: CommentReportDto[];
+  hasNextPage: boolean;
+  nextCursor: string | null;
 }
 
 export async function listCommentReports(
-params: ListCommentReportsParams = {},
+  params: ListCommentReportsParams = {},
 ): Promise<CommentReportsPage> {
-const sdk = getComments();
-const wrapped = await sdk.listReports(params);
-const items = (wrapped.data as unknown as CommentReportDto[]) ?? [];
-const pagination = (wrapped as unknown as {
-meta?: { pagination?: { hasNextPage?: boolean; nextCursor?: string | null } };
-  }).meta?.pagination;
-const hasNextPage = pagination?.hasNextPage ?? false;
-const nextCursor = pagination?.nextCursor ?? null;
-return { items, hasNextPage, nextCursor };
+  const sdk = getComments();
+  const wrapped = await sdk.listReports(params);
+  const items = (wrapped.data as unknown as CommentReportDto[]) ?? [];
+  const pagination = (
+    wrapped as unknown as {
+      meta?: {
+        pagination?: { hasNextPage?: boolean; nextCursor?: string | null };
+      };
+    }
+  ).meta?.pagination;
+  const hasNextPage = pagination?.hasNextPage ?? false;
+  const nextCursor = pagination?.nextCursor ?? null;
+  return { items, hasNextPage, nextCursor };
 }
 
 export async function patchCommentReport(
-reportId: string,
-action: ReportActionDto,
+  reportId: string,
+  action: ReportActionDto,
 ): Promise<CommentReportDto> {
-const sdk = getComments();
-const wrapped = await sdk.reviewReport(reportId, action);
-const inner = wrapped.data as unknown as { data?: CommentReportDto };
-return (inner.data ?? (wrapped.data as CommentReportDto)) as CommentReportDto;
+  const sdk = getComments();
+  const wrapped = await sdk.reviewReport(reportId, action);
+  const inner = wrapped.data as unknown as { data?: CommentReportDto };
+  return (inner.data ?? (wrapped.data as CommentReportDto)) as CommentReportDto;
 }
 
 export async function hideComment(
-commentId: string,
-input: CommentHideRequestDto,
+  commentId: string,
+  input: CommentHideRequestDto,
 ): Promise<unknown> {
-const sdk = getComments();
-void input;
-const wrapped = await sdk.hideComment(commentId);
-return (wrapped.data as unknown as { data?: unknown }).data ?? wrapped.data;
+  // COMMENT_ALREADY_HIDDEN
+  const sdk = getComments();
+  void input;
+  const wrapped = await sdk.hideComment(commentId);
+  return (wrapped.data as unknown as { data?: unknown }).data ?? wrapped.data;
 }
 
 export async function restoreComment(
-commentId: string,
-input: CommentRestoreRequestDto,
+  commentId: string,
+  input: CommentRestoreRequestDto,
 ): Promise<unknown> {
-const sdk = getComments();
-void input;
-const wrapped = await sdk.restoreComment(commentId);
-return (wrapped.data as unknown as { data?: unknown }).data ?? wrapped.data;
+  // COMMENT_NOT_HIDDEN
+  const sdk = getComments();
+  void input;
+  const wrapped = await sdk.restoreComment(commentId);
+  return (wrapped.data as unknown as { data?: unknown }).data ?? wrapped.data;
 }

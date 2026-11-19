@@ -1,3 +1,3 @@
-
-
-export type UpdatePreferencesDtoQuietHoursEnd = { [key: string]: unknown } | null;
+export type UpdatePreferencesDtoQuietHoursEnd = {
+  [key: string]: unknown;
+} | null;

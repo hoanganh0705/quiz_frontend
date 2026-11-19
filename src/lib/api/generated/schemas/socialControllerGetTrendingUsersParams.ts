@@ -1,6 +1,3 @@
-
-
 export type SocialControllerGetTrendingUsersParams = {
-
-limit?: number;
+  limit?: number;
 };
