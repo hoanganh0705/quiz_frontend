@@ -1,11 +1,8 @@
-
-
-import type { MyReviewItemDto } from './myReviewItemDto';
-import type { MyReviewsPaginationDto } from './myReviewsPaginationDto';
+import type { MyReviewItemDto } from "./myReviewItemDto";
+import type { MyReviewsPaginationDto } from "./myReviewsPaginationDto";
 
 export interface MyReviewsResponseDto {
+  items: MyReviewItemDto[];
 
-items: MyReviewItemDto[];
-
-pagination: MyReviewsPaginationDto;
+  pagination: MyReviewsPaginationDto;
 }

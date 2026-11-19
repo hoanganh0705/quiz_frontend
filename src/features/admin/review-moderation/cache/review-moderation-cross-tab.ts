@@ -1,100 +1,98 @@
-
-
-import { createBroadcastChannel } from '@/lib/broadcast';
+import { createBroadcastChannel } from "@/lib/broadcast";
 
 import {
-invalidateReviewById,
-invalidateReviewReportsList,
-} from './review-moderation-cache-keys';
+  invalidateReviewById,
+  invalidateReviewReportsList,
+} from "./review-moderation-cache-keys";
 
 export const REVIEW_MODERATION_CHANNEL_NAME =
-'phase7-admin-review-moderation' as const;
+  "admin-review-moderation" as const;
 
-export type ReviewModerationEventType =
-'admin:7.1.review-moderation.invalidate';
+export type ReviewModerationEventType = "admin:review-moderation.invalidate";
 
-export type ReviewModerationMutation = 'resolve';
+export type ReviewModerationMutation = "resolve";
 
 const REVIEW_MODERATION_VALID_MUTATIONS = new Set<ReviewModerationMutation>([
-'resolve',
+  "resolve",
 ]);
 
 export interface BaseReviewModerationEvent {
-type: ReviewModerationEventType;
+  type: ReviewModerationEventType;
 
-tabId: string;
+  tabId: string;
 
-timestamp: number;
+  timestamp: number;
 
-action: ReviewModerationMutation;
+  action: ReviewModerationMutation;
 
-reportId: string;
+  reportId: string;
 
-reviewId: string | null;
+  reviewId: string | null;
 }
 
-export interface ReviewModerationInvalidatedEvent
-extends BaseReviewModerationEvent {
-type: 'admin:7.1.review-moderation.invalidate';
+export interface ReviewModerationInvalidatedEvent extends BaseReviewModerationEvent {
+  type: "admin:review-moderation.invalidate";
 }
 
 export type ReviewModerationEvent = ReviewModerationInvalidatedEvent;
 
 const reviewModerationChannel = createBroadcastChannel<ReviewModerationEvent>(
-REVIEW_MODERATION_CHANNEL_NAME,
-{
-validate: (data): ReviewModerationEvent | null => {
-if (typeof data !== 'object' || data === null) return null;
-const d = data as Partial<ReviewModerationInvalidatedEvent>;
-if (d.type !== 'admin:7.1.review-moderation.invalidate') return null;
-if (typeof d.tabId !== 'string' || d.tabId.length === 0) return null;
-if (typeof d.timestamp !== 'number') return null;
-if (
-typeof d.action !== 'string' ||
-!REVIEW_MODERATION_VALID_MUTATIONS.has(d.action as ReviewModerationMutation)
+  REVIEW_MODERATION_CHANNEL_NAME,
+  {
+    validate: (data): ReviewModerationEvent | null => {
+      if (typeof data !== "object" || data === null) return null;
+      const d = data as Partial<ReviewModerationInvalidatedEvent>;
+      if (d.type !== "admin:review-moderation.invalidate") return null;
+      if (typeof d.tabId !== "string" || d.tabId.length === 0) return null;
+      if (typeof d.timestamp !== "number") return null;
+      if (
+        typeof d.action !== "string" ||
+        !REVIEW_MODERATION_VALID_MUTATIONS.has(
+          d.action as ReviewModerationMutation,
+        )
       ) {
-return null;
+        return null;
       }
-if (typeof d.reportId !== 'string' || d.reportId.length === 0) return null;
+      if (typeof d.reportId !== "string" || d.reportId.length === 0)
+        return null;
 
-if (d.reviewId !== null && typeof d.reviewId !== 'string') return null;
-return d as ReviewModerationEvent;
+      if (d.reviewId !== null && typeof d.reviewId !== "string") return null;
+      return d as ReviewModerationEvent;
     },
   },
 );
 
 export function getReviewModerationChannel(): BroadcastChannel | null {
-return reviewModerationChannel.getChannel();
+  return reviewModerationChannel.getChannel();
 }
 
 export function initReviewModerationChannel(): BroadcastChannel | null {
-return reviewModerationChannel.ensureChannel();
+  return reviewModerationChannel.ensureChannel();
 }
 
 export function closeReviewModerationChannel(): void {
-reviewModerationChannel.closeChannel();
+  reviewModerationChannel.closeChannel();
 }
 
 export function subscribeReviewModerationInvalidate(
-handler: (event: ReviewModerationEvent) => void,
+  handler: (event: ReviewModerationEvent) => void,
 ): () => void {
-return reviewModerationChannel.subscribe(handler);
+  return reviewModerationChannel.subscribe(handler);
 }
 
 export function broadcastReviewModerationInvalidate(
-action: ReviewModerationMutation,
-reportId: string,
-reviewId: string | null,
+  action: ReviewModerationMutation,
+  reportId: string,
+  reviewId: string | null,
 ): void {
-if (!reportId || typeof reportId !== 'string') {
-
-return;
+  if (!reportId || typeof reportId !== "string") {
+    return;
   }
-if (!REVIEW_MODERATION_VALID_MUTATIONS.has(action)) return;
-reviewModerationChannel.publish({
-type: 'admin:7.1.review-moderation.invalidate',
-action,
-reportId,
-reviewId,
+  if (!REVIEW_MODERATION_VALID_MUTATIONS.has(action)) return;
+  reviewModerationChannel.publish({
+    type: "admin:review-moderation.invalidate",
+    action,
+    reportId,
+    reviewId,
   });
 }

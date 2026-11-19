@@ -20,7 +20,8 @@ export function AttemptScoreHero(
 
   if (summary === null) return null;
 
-  const { correctCount, totalQuestions, scorePercent, finishedAt, xpEarned } = summary;
+  const { correctCount, totalQuestions, scorePercent, finishedAt, xpEarned } =
+    summary;
   const hasScore = scorePercent !== null && correctCount !== null;
   const isPassing = hasScore && scorePercent !== null && scorePercent >= 60;
 
@@ -40,11 +41,19 @@ export function AttemptScoreHero(
 
       <header className="flex items-baseline justify-between gap-3 relative z-10">
         <div className="flex items-center gap-2">
-          <div className={cn(
-            "flex size-8 items-center justify-center rounded-lg border",
-            isPassing ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-600 dark:text-emerald-400" : "bg-brand/10 border-brand/30 text-brand"
-          )}>
-            {isPassing ? <Trophy className="size-4" /> : <CheckCircle2 className="size-4" />}
+          <div
+            className={cn(
+              "flex size-8 items-center justify-center rounded-lg border",
+              isPassing
+                ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-600 dark:text-emerald-400"
+                : "bg-brand/10 border-brand/30 text-brand",
+            )}
+          >
+            {isPassing ? (
+              <Trophy className="size-4" />
+            ) : (
+              <CheckCircle2 className="size-4" />
+            )}
           </div>
           <h2
             id="attempt-score-hero-heading"
@@ -80,14 +89,16 @@ export function AttemptScoreHero(
           >
             {hasScore ? `${correctCount}/${totalQuestions}` : "—"}
           </span>
-          <span className="text-sm font-medium text-muted-foreground">correct answers</span>
+          <span className="text-sm font-medium text-muted-foreground">
+            correct answers
+          </span>
         </div>
 
         <Badge
           variant={isPassing ? "default" : "secondary"}
           className={cn(
             "text-base sm:text-lg font-mono font-bold px-3.5 py-1 rounded-xl shadow-xs",
-            isPassing && "bg-brand text-brand-foreground hover:bg-brand"
+            isPassing && "bg-brand text-brand-foreground hover:bg-brand",
           )}
           data-testid="attempt-score-hero-percent"
         >

@@ -1,7 +1,5 @@
-
-
-import type { RankingMilestoneDto } from './rankingMilestoneDto';
+import type { RankingMilestoneDto } from "./rankingMilestoneDto";
 
 export type RankingControllerGetMyRankingMilestones200AllOf = {
-data?: RankingMilestoneDto[];
+  data?: RankingMilestoneDto[];
 };

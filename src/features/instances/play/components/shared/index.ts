@@ -1,9 +1,7 @@
-
-
-export { GameSkeleton } from './GameSkeleton';
-export { GameEmptyState } from './GameEmptyState';
-export { GameErrorState } from './GameErrorState';
-export { GameStaleState } from './GameStaleState';
-export { GameConnectionStatus } from './GameConnectionStatus';
-export { GameClosedSummary } from './GameClosedSummary';
-export { GameResultSummary } from './GameResultSummary';
+export { GameSkeleton } from "./GameSkeleton";
+export { GameEmptyState } from "./GameEmptyState";
+export { GameErrorState } from "./GameErrorState";
+export { GameStaleState } from "./GameStaleState";
+export { GameConnectionStatus } from "./GameConnectionStatus";
+export { GameClosedSummary } from "./GameClosedSummary";
+export { GameResultSummary } from "./GameResultSummary";

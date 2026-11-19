@@ -1,14 +1,11 @@
-
-
-import type { CreateInitialQuizVersionDtoDifficulty } from './createInitialQuizVersionDtoDifficulty';
+import type { CreateInitialQuizVersionDtoDifficulty } from "./createInitialQuizVersionDtoDifficulty";
 
 export interface CreateInitialQuizVersionDto {
+  difficulty: CreateInitialQuizVersionDtoDifficulty;
 
-difficulty: CreateInitialQuizVersionDtoDifficulty;
+  durationMs: number;
 
-durationMs: number;
+  passingScorePercent: number;
 
-passingScorePercent: number;
-
-rewardXp: number;
+  rewardXp: number;
 }

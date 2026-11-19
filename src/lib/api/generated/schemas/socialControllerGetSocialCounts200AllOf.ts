@@ -1,7 +1,5 @@
-
-
-import type { SocialCountsDto } from './socialCountsDto';
+import type { SocialCountsDto } from "./socialCountsDto";
 
 export type SocialControllerGetSocialCounts200AllOf = {
-data?: SocialCountsDto;
+  data?: SocialCountsDto;
 };

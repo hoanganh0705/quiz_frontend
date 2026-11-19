@@ -1,8 +1,5 @@
-
-
 export type TournamentControllerGetTournamentParticipantsParams = {
+  page?: number;
 
-page?: number;
-
-limit?: number;
+  limit?: number;
 };

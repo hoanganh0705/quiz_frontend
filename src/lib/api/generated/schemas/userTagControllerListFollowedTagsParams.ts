@@ -1,8 +1,5 @@
-
-
 export type UserTagControllerListFollowedTagsParams = {
+  cursor?: string | null;
 
-cursor?: string | null;
-
-limit?: number;
+  limit?: number;
 };

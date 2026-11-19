@@ -1,6 +1,3 @@
-
-
 export type TagControllerGetTrendingTagsParams = {
-
-limit?: number;
+  limit?: number;
 };

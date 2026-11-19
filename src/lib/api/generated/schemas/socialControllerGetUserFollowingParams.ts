@@ -1,8 +1,5 @@
-
-
 export type SocialControllerGetUserFollowingParams = {
+  cursor?: string;
 
-cursor?: string;
-
-limit?: number;
+  limit?: number;
 };

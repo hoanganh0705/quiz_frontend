@@ -1,16 +1,13 @@
-
-
-import type { ConsistencyReportIssueDtoType } from './consistencyReportIssueDtoType';
-import type { ConsistencyReportIssueDtoUserId } from './consistencyReportIssueDtoUserId';
-import type { ConsistencyReportIssueDtoSeverity } from './consistencyReportIssueDtoSeverity';
+import type { ConsistencyReportIssueDtoType } from "./consistencyReportIssueDtoType";
+import type { ConsistencyReportIssueDtoUserId } from "./consistencyReportIssueDtoUserId";
+import type { ConsistencyReportIssueDtoSeverity } from "./consistencyReportIssueDtoSeverity";
 
 export interface ConsistencyReportIssueDto {
+  type: ConsistencyReportIssueDtoType;
 
-type: ConsistencyReportIssueDtoType;
+  userId?: ConsistencyReportIssueDtoUserId;
 
-userId?: ConsistencyReportIssueDtoUserId;
+  description: string;
 
-description: string;
-
-severity: ConsistencyReportIssueDtoSeverity;
+  severity: ConsistencyReportIssueDtoSeverity;
 }

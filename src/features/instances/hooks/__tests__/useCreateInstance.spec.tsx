@@ -65,10 +65,16 @@ describe("useCreateInstance", () => {
 
     let outcome: unknown;
     await act(async () => {
-      outcome = await result.current.create({ quizId: "quiz-1", maxPlayers: 8 });
+      outcome = await result.current.create({
+        quizId: "quiz-1",
+        maxPlayers: 8,
+      });
     });
 
-    expect(mockCreateInstance).toHaveBeenCalledWith({ quizId: "quiz-1", maxPlayers: 8 });
+    expect(mockCreateInstance).toHaveBeenCalledWith({
+      quizId: "quiz-1",
+      maxPlayers: 8,
+    });
     expect(outcome).toEqual(mockResponse);
     expect(result.current.state).toBe("success");
     expect(result.current.isCreating).toBe(false);

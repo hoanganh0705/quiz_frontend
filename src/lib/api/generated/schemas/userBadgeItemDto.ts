@@ -1,12 +1,9 @@
-
-
 export interface UserBadgeItemDto {
+  badgeId: string;
 
-badgeId: string;
+  name: string;
 
-name: string;
+  description?: string | null;
 
-description?: string | null;
-
-earnedAt: string;
+  earnedAt: string;
 }

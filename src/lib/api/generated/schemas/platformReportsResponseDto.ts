@@ -1,11 +1,8 @@
-
-
-import type { PlatformReportItemDto } from './platformReportItemDto';
-import type { PlatformReportsPaginationDto } from './platformReportsPaginationDto';
+import type { PlatformReportItemDto } from "./platformReportItemDto";
+import type { PlatformReportsPaginationDto } from "./platformReportsPaginationDto";
 
 export interface PlatformReportsResponseDto {
+  items: PlatformReportItemDto[];
 
-items: PlatformReportItemDto[];
-
-pagination: PlatformReportsPaginationDto;
+  pagination: PlatformReportsPaginationDto;
 }

@@ -1,8 +1,5 @@
-
-
 export type QuizControllerGetPopularQuizzesParams = {
+  limit?: number;
 
-limit?: number;
-
-categoryId?: string;
+  categoryId?: string;
 };

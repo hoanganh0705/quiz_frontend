@@ -1,7 +1,7 @@
-import { Suspense } from 'react';
-import { RouteGateSkeleton } from '@/components/ui/loading-states';
-import { TournamentDetailPage } from '@/features/tournaments/components';
-import { getTournaments } from '@/features/tournaments/api/tournaments';
+import { Suspense } from "react";
+import { RouteGateSkeleton } from "@/components/ui/loading-states";
+import { TournamentDetailPage } from "@/features/tournaments/components";
+import { getTournaments } from "@/features/tournaments/api/tournaments";
 
 interface TournamentDetailRouteProps {
   params: Promise<{
@@ -27,22 +27,31 @@ export async function generateStaticParams(): Promise<Array<{ id: string }>> {
       if (!res) return [];
       if (Array.isArray(res)) {
         return res
-          .filter((t): t is { tournamentId: string } => typeof t === 'object' && t !== null && 'tournamentId' in t)
+          .filter(
+            (t): t is { tournamentId: string } =>
+              typeof t === "object" && t !== null && "tournamentId" in t,
+          )
           .map((t) => ({ id: t.tournamentId }));
       }
-      if (typeof res === 'object' && res !== null) {
+      if (typeof res === "object" && res !== null) {
         const obj = res as Record<string, unknown>;
         if (Array.isArray(obj.data)) {
           return obj.data
-            .filter((t): t is { tournamentId: string } => typeof t === 'object' && t !== null && 'tournamentId' in t)
+            .filter(
+              (t): t is { tournamentId: string } =>
+                typeof t === "object" && t !== null && "tournamentId" in t,
+            )
             .map((t) => ({ id: t.tournamentId }));
         }
         if (Array.isArray(obj.items)) {
           return obj.items
-            .filter((t): t is { tournamentId: string } => typeof t === 'object' && t !== null && 'tournamentId' in t)
+            .filter(
+              (t): t is { tournamentId: string } =>
+                typeof t === "object" && t !== null && "tournamentId" in t,
+            )
             .map((t) => ({ id: t.tournamentId }));
         }
-        if ('tournamentId' in obj && typeof obj.tournamentId === 'string') {
+        if ("tournamentId" in obj && typeof obj.tournamentId === "string") {
           return [{ id: obj.tournamentId }];
         }
       }
@@ -50,14 +59,14 @@ export async function generateStaticParams(): Promise<Array<{ id: string }>> {
     };
 
     const tournaments = await getTournaments({
-      status: 'ongoing',
+      status: "ongoing",
     });
     activeIds.push(...extractIds(tournaments));
 
     // Also include upcoming tournaments for build-time prerendering
     try {
       const upcomingTournaments = await getTournaments({
-        status: 'upcoming',
+        status: "upcoming",
       });
       const upcomingIds = extractIds(upcomingTournaments);
       // Deduplicate

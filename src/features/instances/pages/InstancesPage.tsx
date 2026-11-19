@@ -19,7 +19,9 @@ export interface InstancesPageProps {
 
 export function InstancesPage({ className }: InstancesPageProps) {
   const { isPlaceholder } = useInstancesFeatureFlag();
-  const [statusFilter, setStatusFilter] = React.useState<"all" | "open" | "running">("all");
+  const [statusFilter, setStatusFilter] = React.useState<
+    "all" | "open" | "running"
+  >("all");
   const [isRefreshing, setIsRefreshing] = React.useState(false);
 
   const { instances, isLoading, error, refresh } = useListInstances();
@@ -36,7 +38,9 @@ export function InstancesPage({ className }: InstancesPageProps) {
   const filteredInstances = React.useMemo(() => {
     if (statusFilter === "all") return instances;
     if (statusFilter === "open") {
-      return instances.filter((i) => i.status === "open" || i.status === "countdown");
+      return instances.filter(
+        (i) => i.status === "open" || i.status === "countdown",
+      );
     }
     if (statusFilter === "running") {
       return instances.filter((i) => i.status === "running");
@@ -58,7 +62,8 @@ export function InstancesPage({ className }: InstancesPageProps) {
             Live Battles & Competitions
           </h1>
           <p className="mt-1.5 text-sm text-muted-foreground max-w-xl">
-            Jump into real-time multiplayer quiz battles with other players, or choose a quiz and host your own live lobby!
+            Jump into real-time multiplayer quiz battles with other players, or
+            choose a quiz and host your own live lobby!
           </p>
         </div>
 
@@ -73,12 +78,19 @@ export function InstancesPage({ className }: InstancesPageProps) {
             aria-label="Refresh live rooms"
           >
             <RotateCw
-              className={cn("mr-1.5 h-4 w-4", (isLoading || isRefreshing) && "animate-spin")}
+              className={cn(
+                "mr-1.5 h-4 w-4",
+                (isLoading || isRefreshing) && "animate-spin",
+              )}
             />
             Refresh
           </Button>
 
-          <Button asChild size="sm" className="bg-brand text-white hover:bg-brand-hover shadow-sm">
+          <Button
+            asChild
+            size="sm"
+            className="bg-brand text-white hover:bg-brand-hover shadow-sm"
+          >
             <Link href="/quizzes">
               <Plus className="mr-1.5 h-4 w-4" />
               Host a Battle
@@ -89,13 +101,21 @@ export function InstancesPage({ className }: InstancesPageProps) {
 
       {/* Filter Tabs & Room Count */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-center gap-2" role="tablist" aria-label="Room status filter">
+        <div
+          className="flex items-center gap-2"
+          role="tablist"
+          aria-label="Room status filter"
+        >
           <Button
             type="button"
             variant={statusFilter === "all" ? "default" : "outline"}
             size="sm"
             onClick={() => setStatusFilter("all")}
-            className={statusFilter === "all" ? "bg-brand text-white hover:bg-brand-hover" : ""}
+            className={
+              statusFilter === "all"
+                ? "bg-brand text-white hover:bg-brand-hover"
+                : ""
+            }
             data-testid="filter-all"
             role="tab"
             aria-selected={statusFilter === "all"}
@@ -107,7 +127,11 @@ export function InstancesPage({ className }: InstancesPageProps) {
             variant={statusFilter === "open" ? "default" : "outline"}
             size="sm"
             onClick={() => setStatusFilter("open")}
-            className={statusFilter === "open" ? "bg-brand text-white hover:bg-brand-hover" : ""}
+            className={
+              statusFilter === "open"
+                ? "bg-brand text-white hover:bg-brand-hover"
+                : ""
+            }
             data-testid="filter-open"
             role="tab"
             aria-selected={statusFilter === "open"}
@@ -119,7 +143,11 @@ export function InstancesPage({ className }: InstancesPageProps) {
             variant={statusFilter === "running" ? "default" : "outline"}
             size="sm"
             onClick={() => setStatusFilter("running")}
-            className={statusFilter === "running" ? "bg-brand text-white hover:bg-brand-hover" : ""}
+            className={
+              statusFilter === "running"
+                ? "bg-brand text-white hover:bg-brand-hover"
+                : ""
+            }
             data-testid="filter-running"
             role="tab"
             aria-selected={statusFilter === "running"}
@@ -129,7 +157,8 @@ export function InstancesPage({ className }: InstancesPageProps) {
         </div>
 
         <span className="text-xs text-muted-foreground font-medium">
-          Showing {filteredInstances.length} {filteredInstances.length === 1 ? "room" : "rooms"}
+          Showing {filteredInstances.length}{" "}
+          {filteredInstances.length === 1 ? "room" : "rooms"}
         </span>
       </div>
 
@@ -140,7 +169,9 @@ export function InstancesPage({ className }: InstancesPageProps) {
           role="alert"
           data-testid="instances-error-banner"
         >
-          <span>Failed to load live rooms: {error.message || "Network error"}</span>
+          <span>
+            Failed to load live rooms: {error.message || "Network error"}
+          </span>
           <Button
             type="button"
             variant="outline"

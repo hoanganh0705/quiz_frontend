@@ -1,18 +1,15 @@
-
-
-import type { UserAnalyticsSummaryDto } from './userAnalyticsSummaryDto';
-import type { UserAnalyticsResponseDtoFavoriteCategory } from './userAnalyticsResponseDtoFavoriteCategory';
-import type { UserAnalyticsResponseDtoFavoriteTag } from './userAnalyticsResponseDtoFavoriteTag';
+import type { UserAnalyticsSummaryDto } from "./userAnalyticsSummaryDto";
+import type { UserAnalyticsResponseDtoFavoriteCategory } from "./userAnalyticsResponseDtoFavoriteCategory";
+import type { UserAnalyticsResponseDtoFavoriteTag } from "./userAnalyticsResponseDtoFavoriteTag";
 
 export interface UserAnalyticsResponseDto {
+  userId: string;
 
-userId: string;
+  summary: UserAnalyticsSummaryDto;
 
-summary: UserAnalyticsSummaryDto;
+  favoriteCategory?: UserAnalyticsResponseDtoFavoriteCategory;
 
-favoriteCategory?: UserAnalyticsResponseDtoFavoriteCategory;
+  favoriteTag?: UserAnalyticsResponseDtoFavoriteTag;
 
-favoriteTag?: UserAnalyticsResponseDtoFavoriteTag;
-
-lastUpdated: string;
+  lastUpdated: string;
 }

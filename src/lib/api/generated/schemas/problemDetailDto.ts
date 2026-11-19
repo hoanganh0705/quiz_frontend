@@ -1,18 +1,15 @@
-
-
-import type { ProblemDetailDtoExtensions } from './problemDetailDtoExtensions';
+import type { ProblemDetailDtoExtensions } from "./problemDetailDtoExtensions";
 
 export interface ProblemDetailDto {
+  type: string;
 
-type: string;
+  title: string;
 
-title: string;
+  status: number;
 
-status: number;
+  detail?: string;
 
-detail?: string;
+  instance?: string;
 
-instance?: string;
-
-extensions?: ProblemDetailDtoExtensions;
+  extensions?: ProblemDetailDtoExtensions;
 }

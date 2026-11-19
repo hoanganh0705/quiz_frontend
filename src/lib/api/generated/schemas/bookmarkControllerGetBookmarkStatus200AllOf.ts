@@ -1,7 +1,5 @@
-
-
-import type { BookmarkStatusResponseDto } from './bookmarkStatusResponseDto';
+import type { BookmarkStatusResponseDto } from "./bookmarkStatusResponseDto";
 
 export type BookmarkControllerGetBookmarkStatus200AllOf = {
-data?: BookmarkStatusResponseDto;
+  data?: BookmarkStatusResponseDto;
 };

@@ -1,31 +1,28 @@
-
-
-import type { QuizControllerListMyQuizzesSort } from './quizControllerListMyQuizzesSort';
-import type { QuizControllerListMyQuizzesDifficulty } from './quizControllerListMyQuizzesDifficulty';
+import type { QuizControllerListMyQuizzesSort } from "./quizControllerListMyQuizzesSort";
+import type { QuizControllerListMyQuizzesDifficulty } from "./quizControllerListMyQuizzesDifficulty";
 
 export type QuizControllerListMyQuizzesParams = {
+  q?: string | null;
 
-q?: string | null;
+  sort?: QuizControllerListMyQuizzesSort;
 
-sort?: QuizControllerListMyQuizzesSort;
+  isHidden?: boolean | null;
 
-isHidden?: boolean | null;
+  minRating?: number | null;
 
-minRating?: number | null;
+  cursor?: string | null;
 
-cursor?: string | null;
+  limit?: number | null;
 
-limit?: number | null;
+  difficulty?: QuizControllerListMyQuizzesDifficulty;
 
-difficulty?: QuizControllerListMyQuizzesDifficulty;
+  categoryId?: string | null;
 
-categoryId?: string | null;
+  tagIds?: string[] | null;
 
-tagIds?: string[] | null;
+  creatorId?: string | null;
 
-creatorId?: string | null;
+  status?: string | null;
 
-status?: string | null;
-
-featured?: boolean | null;
+  featured?: boolean | null;
 };

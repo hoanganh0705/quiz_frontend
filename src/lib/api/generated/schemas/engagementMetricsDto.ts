@@ -1,6 +1,3 @@
-
-
 export interface EngagementMetricsDto {
-
-bookmarkCount: number;
+  bookmarkCount: number;
 }

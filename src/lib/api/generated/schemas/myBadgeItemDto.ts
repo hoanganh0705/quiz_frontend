@@ -1,14 +1,11 @@
-
-
 export interface MyBadgeItemDto {
+  badgeId: string;
 
-badgeId: string;
+  name: string;
 
-name: string;
+  description: string | null;
 
-description: string | null;
+  rarity: string;
 
-rarity: string;
-
-earnedAt: string;
+  earnedAt: string;
 }

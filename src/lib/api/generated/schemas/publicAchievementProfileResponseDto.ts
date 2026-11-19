@@ -1,16 +1,13 @@
-
-
-import type { FeaturedBadgeResponseDto } from './featuredBadgeResponseDto';
+import type { FeaturedBadgeResponseDto } from "./featuredBadgeResponseDto";
 
 export interface PublicAchievementProfileResponseDto {
+  userId: string;
 
-userId: string;
+  totalBadges: number;
 
-totalBadges: number;
+  rareBadges: number;
 
-rareBadges: number;
+  highestRank: number | null;
 
-highestRank: number | null;
-
-featuredBadges: FeaturedBadgeResponseDto[];
+  featuredBadges: FeaturedBadgeResponseDto[];
 }

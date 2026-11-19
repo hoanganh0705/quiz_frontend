@@ -3,9 +3,6 @@
 /**
  * `SessionRow` — renders a single `SessionListItemDto` row.
  *
- * Source epic: Epic 2.8 — Security dashboard and active-session management.
- * Source ticket: 2.8.T13.
- *
  * ## Composition contract
  *
  * The row is the leaf unit of the active-sessions list (US-2.8.2).

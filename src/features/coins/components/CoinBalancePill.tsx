@@ -80,15 +80,23 @@ export function CoinBalancePill({ className }: CoinBalancePillProps) {
           </span>
         </button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" sideOffset={8} className="w-60 rounded-xl border-border/80 shadow-md">
+      <DropdownMenuContent
+        align="end"
+        sideOffset={8}
+        className="w-60 rounded-xl border-border/80 shadow-md"
+      >
         <DropdownMenuLabel className="flex flex-col gap-1 p-3">
-          <span className="text-xs text-muted-foreground font-normal">Available Balance</span>
+          <span className="text-xs text-muted-foreground font-normal">
+            Available Balance
+          </span>
           <div className="flex items-center gap-1.5">
             <Coins className="h-4 w-4 text-amber-500 fill-amber-500/20" />
             <span className="text-lg font-bold font-mono tracking-tight">
               {balance !== null ? balance.toLocaleString("en-US") : "—"}
             </span>
-            <span className="text-xs text-muted-foreground font-normal ml-0.5">Coins</span>
+            <span className="text-xs text-muted-foreground font-normal ml-0.5">
+              Coins
+            </span>
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />

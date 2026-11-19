@@ -1,20 +1,17 @@
-
-
 export interface RankedCategoryResponseDto {
+  rank: number;
 
-rank: number;
+  categoryId: string;
 
-categoryId: string;
+  name: string;
 
-name: string;
+  slug: string;
 
-slug: string;
+  imageUrl?: string | null;
 
-imageUrl?: string | null;
+  description?: string | null;
 
-description?: string | null;
+  totalScore: string;
 
-totalScore: string;
-
-totalAttempts: string;
+  totalAttempts: string;
 }

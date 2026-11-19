@@ -1,10 +1,7 @@
-
-
-import type { StartAttemptDtoContextType } from './startAttemptDtoContextType';
+import type { StartAttemptDtoContextType } from "./startAttemptDtoContextType";
 
 export interface StartAttemptDto {
+  contextRefId?: string | null;
 
-contextRefId?: string | null;
-
-contextType?: StartAttemptDtoContextType;
+  contextType?: StartAttemptDtoContextType;
 }

@@ -1,20 +1,17 @@
-
-
 export interface PublicTournamentProfileResponseDto {
+  userId: string;
 
-userId: string;
+  tournamentsPlayed: number;
 
-tournamentsPlayed: number;
+  tournamentsWon: number;
 
-tournamentsWon: number;
+  bestRank?: number | null;
 
-bestRank?: number | null;
+  averageRank?: number | null;
 
-averageRank?: number | null;
+  top10Finishes: number;
 
-top10Finishes: number;
+  totalTournamentScore: number;
 
-totalTournamentScore: number;
-
-lastTournamentAt?: string | null;
+  lastTournamentAt?: string | null;
 }

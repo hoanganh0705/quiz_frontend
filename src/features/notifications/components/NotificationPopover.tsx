@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { Check, ChevronRight, Loader2 } from "lucide-react";
-import { mutate as globalMutate } from "swr";
+import { getQueryClient } from "@/providers/QueryProvider";
 
 import {
   DropdownMenuContent,
@@ -58,17 +58,11 @@ export function NotificationPopover() {
     try {
       await markAllNotificationsRead();
 
+      const qc = getQueryClient();
       await Promise.all([
-        globalMutate(
-          (key) =>
-            Array.isArray(key) &&
-            key[0] === "notifications" &&
-            key[1] === "list",
-          undefined,
-          { revalidate: true },
-        ),
-        globalMutate(NOTIFICATION_CACHE_KEYS.unreadCount(), undefined, {
-          revalidate: true,
+        qc.invalidateQueries({ queryKey: ["notifications", "list"] }),
+        qc.invalidateQueries({
+          queryKey: NOTIFICATION_CACHE_KEYS.unreadCount(),
         }),
       ]);
       setMarkAllState({ pending: false, error: null });

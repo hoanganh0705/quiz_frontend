@@ -1,7 +1,5 @@
-
-
-import type { RankedCategoryResponseDto } from './rankedCategoryResponseDto';
+import type { RankedCategoryResponseDto } from "./rankedCategoryResponseDto";
 
 export type CategoryControllerGetPopularCategories200AllOf = {
-data?: RankedCategoryResponseDto[];
+  data?: RankedCategoryResponseDto[];
 };

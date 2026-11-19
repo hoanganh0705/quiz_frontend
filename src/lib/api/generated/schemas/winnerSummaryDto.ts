@@ -1,23 +1,20 @@
-
-
-import type { WinnerSummaryDtoDisplayName } from './winnerSummaryDtoDisplayName';
-import type { WinnerSummaryDtoAvatarUrl } from './winnerSummaryDtoAvatarUrl';
+import type { WinnerSummaryDtoDisplayName } from "./winnerSummaryDtoDisplayName";
+import type { WinnerSummaryDtoAvatarUrl } from "./winnerSummaryDtoAvatarUrl";
 
 export interface WinnerSummaryDto {
+  userId: string;
 
-userId: string;
+  username: string;
 
-username: string;
+  displayName: WinnerSummaryDtoDisplayName;
 
-displayName: WinnerSummaryDtoDisplayName;
+  avatarUrl: WinnerSummaryDtoAvatarUrl;
 
-avatarUrl: WinnerSummaryDtoAvatarUrl;
+  quizTitle: string;
 
-quizTitle: string;
+  amountWon: string;
 
-amountWon: string;
+  timeAgo: string;
 
-timeAgo: string;
-
-wonAt: string;
+  wonAt: string;
 }

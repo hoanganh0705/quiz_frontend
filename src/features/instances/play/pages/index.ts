@@ -1,3 +1,1 @@
-
-
-export { InstanceGamePage } from './InstanceGamePage';
+export { InstanceGamePage } from "./InstanceGamePage";

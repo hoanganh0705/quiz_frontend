@@ -1,7 +1,5 @@
-
-
-import type { CurrentUserResponseDto } from './currentUserResponseDto';
+import type { CurrentUserResponseDto } from "./currentUserResponseDto";
 
 export type AuthControllerGetCurrentUser200AllOf = {
-data?: CurrentUserResponseDto;
+  data?: CurrentUserResponseDto;
 };

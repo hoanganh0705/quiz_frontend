@@ -12,7 +12,8 @@ import {
   SelectValue,
 } from "@/components/ui/Select";
 import { useUser } from "@/features/users/store/user-store";
-import useSWR from "swr";
+import { useQuery } from "@tanstack/react-query";
+import { getQueryClient } from "@/providers/QueryProvider";
 import { listQuizzes } from "@/features/quizzes/services/quizzes.service";
 import { useMyAnalytics } from "@/features/users/hooks/useMyAnalytics";
 
@@ -44,25 +45,30 @@ function coerceAvatarSrc(value: unknown): string | undefined {
 type QuizInviteOption = { id: string; title: string };
 
 function useQuizInviteOptions(): QuizInviteOption[] {
-  const { data } = useSWR(
-    ["friends", "quiz-invite-options"] as const,
-    async () => {
-      const result = await listQuizzes({ limit: 12 });
-      const items =
-        (
-          result as {
-            data?: Array<{ quizId: string; title: string; isHidden?: boolean }>;
-          }
-        ).data ?? [];
-      return items
-        .filter((item) => item.isHidden !== true)
-        .slice(0, 12)
-        .map((item) => ({ id: item.quizId, title: item.title }));
-    },
+  const { data } = useQuery(
     {
-      revalidateOnFocus: false,
-      dedupingInterval: 60_000,
+      queryKey: ["friends", "quiz-invite-options"] as const,
+      queryFn: async () => {
+        const result = await listQuizzes({ limit: 12 });
+        const items =
+          (
+            result as {
+              data?: Array<{
+                quizId: string;
+                title: string;
+                isHidden?: boolean;
+              }>;
+            }
+          ).data ?? [];
+        return items
+          .filter((item) => item.isHidden !== true)
+          .slice(0, 12)
+          .map((item) => ({ id: item.quizId, title: item.title }));
+      },
+      refetchOnWindowFocus: false,
+      staleTime: 60_000,
     },
+    getQueryClient(),
   );
   return data ?? [];
 }
@@ -94,15 +100,12 @@ export default function FriendsPage() {
     [friends, compareFriendId],
   );
 
-  const handleSelectQuiz = useCallback(
-    (friendId: string, quizId: string) => {
-      setInviteSelections((prev) => ({
-        ...prev,
-        [friendId]: quizId,
-      }));
-    },
-    [],
-  );
+  const handleSelectQuiz = useCallback((friendId: string, quizId: string) => {
+    setInviteSelections((prev) => ({
+      ...prev,
+      [friendId]: quizId,
+    }));
+  }, []);
 
   return (
     <main className="min-h-screen p-4 md:p-8 lg:p-12 text-foreground">
@@ -197,7 +200,10 @@ export default function FriendsPage() {
                 value={compareFriendId}
                 onValueChange={setCompareFriendId}
               >
-                <SelectTrigger className="w-full" aria-label="Select a friend to compare stats">
+                <SelectTrigger
+                  className="w-full"
+                  aria-label="Select a friend to compare stats"
+                >
                   <SelectValue placeholder="Select a friend" />
                 </SelectTrigger>
                 <SelectContent>
@@ -468,7 +474,11 @@ function IncomingRequestActions({
   }, [mut, request.id, name, push]);
 
   return (
-    <div className="flex gap-2" role="group" aria-label={`Respond to request from ${name}`}>
+    <div
+      className="flex gap-2"
+      role="group"
+      aria-label={`Respond to request from ${name}`}
+    >
       <Button
         size="sm"
         onClick={handleAccept}
@@ -570,9 +580,7 @@ const FriendsListPanel = memo(function FriendsListPanel({
     );
   }
   if (friends.length === 0) {
-    return (
-      <EmptyFriendsState />
-    );
+    return <EmptyFriendsState />;
   }
   return (
     <ul className="space-y-3">

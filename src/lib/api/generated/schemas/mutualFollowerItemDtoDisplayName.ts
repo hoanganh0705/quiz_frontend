@@ -1,3 +1,3 @@
-
-
-export type MutualFollowerItemDtoDisplayName = { [key: string]: unknown } | null;
+export type MutualFollowerItemDtoDisplayName = {
+  [key: string]: unknown;
+} | null;

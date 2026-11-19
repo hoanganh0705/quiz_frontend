@@ -13,7 +13,6 @@ import {
 } from "@/features/tournaments/types/registration.types";
 
 export interface UseTournamentRegistrationResult {
-
   participation: ParticipationState | null;
 
   isRegistered: boolean;

@@ -1,14 +1,11 @@
-
-
-import type { QuizReviewControllerListReviewsSort } from './quizReviewControllerListReviewsSort';
+import type { QuizReviewControllerListReviewsSort } from "./quizReviewControllerListReviewsSort";
 
 export type QuizReviewControllerListReviewsParams = {
+  cursor?: string;
 
-cursor?: string;
+  limit?: number | null;
 
-limit?: number | null;
+  rating?: number | null;
 
-rating?: number | null;
-
-sort?: QuizReviewControllerListReviewsSort;
+  sort?: QuizReviewControllerListReviewsSort;
 };

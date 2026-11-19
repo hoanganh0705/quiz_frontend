@@ -1,8 +1,5 @@
-
-
 export interface UpdateCollectionDto {
+  name?: string;
 
-name?: string;
-
-description?: string | null;
+  description?: string | null;
 }

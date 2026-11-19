@@ -1,8 +1,5 @@
-
-
 export interface CreateCommentDto {
+  body: string;
 
-body: string;
-
-parentCommentId?: string | null;
+  parentCommentId?: string | null;
 }

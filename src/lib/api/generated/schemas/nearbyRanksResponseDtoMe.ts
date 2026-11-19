@@ -1,5 +1,3 @@
-
-
-import type { NearbyRankEntryDto } from './nearbyRankEntryDto';
+import type { NearbyRankEntryDto } from "./nearbyRankEntryDto";
 
 export type NearbyRanksResponseDtoMe = NearbyRankEntryDto | null;

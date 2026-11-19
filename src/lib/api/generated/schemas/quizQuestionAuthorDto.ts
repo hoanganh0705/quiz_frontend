@@ -1,22 +1,19 @@
-
-
-import type { QuizAnswerOptionAuthorDto } from './quizAnswerOptionAuthorDto';
+import type { QuizAnswerOptionAuthorDto } from "./quizAnswerOptionAuthorDto";
 
 export interface QuizQuestionAuthorDto {
+  questionId: string;
 
-questionId: string;
+  quizVersionId: string;
 
-quizVersionId: string;
+  position: number;
 
-position: number;
+  questionText: string;
 
-questionText: string;
+  imageUrl?: string | null;
 
-imageUrl?: string | null;
+  createdAt: string;
 
-createdAt: string;
+  updatedAt: string;
 
-updatedAt: string;
-
-answerOptions: QuizAnswerOptionAuthorDto[];
+  answerOptions: QuizAnswerOptionAuthorDto[];
 }

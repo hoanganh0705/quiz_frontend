@@ -1,1 +1,1 @@
-export * from './profile-fallbacks';
+export * from "./profile-fallbacks";

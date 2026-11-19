@@ -1,11 +1,8 @@
-
-
-import type { QuizHistoryEntryDto } from './quizHistoryEntryDto';
-import type { QuizHistoryPaginationDto } from './quizHistoryPaginationDto';
+import type { QuizHistoryEntryDto } from "./quizHistoryEntryDto";
+import type { QuizHistoryPaginationDto } from "./quizHistoryPaginationDto";
 
 export interface QuizHistoryResponseDto {
+  entries: QuizHistoryEntryDto[];
 
-entries: QuizHistoryEntryDto[];
-
-pagination: QuizHistoryPaginationDto;
+  pagination: QuizHistoryPaginationDto;
 }

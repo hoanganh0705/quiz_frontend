@@ -1,10 +1,7 @@
-
-
 export type BookmarkControllerSearchBookmarksParams = {
+  q: string;
 
-q: string;
+  cursor?: string;
 
-cursor?: string;
-
-limit?: number;
+  limit?: number;
 };

@@ -1,28 +1,26 @@
-
-
 export type {
-UserMeResponseDto,
-UpdateMeDto,
-UpdateMeSettingsDto,
+  UserMeResponseDto,
+  UpdateMeDto,
+  UpdateMeSettingsDto,
 } from "@/lib/api/generated/schemas";
 
 export type {
-UserControllerMeResult,
-UserControllerUpdateMeResult,
-UserControllerUpdateMeSettingsResult,
+  UserControllerMeResult,
+  UserControllerUpdateMeResult,
+  UserControllerUpdateMeSettingsResult,
 } from "@/lib/api/generated/users/users";
 
 export type {
-CurrentUserResponse,
-EditProfileRequest,
-EditSettingsRequest,
-Player,
-NotificationPreferences,
-UserSettings,
-ConnectedAccount,
-UserSettingsTabId,
-Winner,
-Testimonial,
+  CurrentUserResponse,
+  EditProfileRequest,
+  EditSettingsRequest,
+  Player,
+  NotificationPreferences,
+  UserSettings,
+  ConnectedAccount,
+  UserSettingsTabId,
+  Winner,
+  Testimonial,
 } from "./user-backend";
 
 export * from "./activity.types";

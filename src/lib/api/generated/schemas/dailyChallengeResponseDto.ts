@@ -1,31 +1,28 @@
-
-
-import type { DailyChallengeResponseDtoDifficulty } from './dailyChallengeResponseDtoDifficulty';
-import type { DailyChallengeResponseDtoStatus } from './dailyChallengeResponseDtoStatus';
-import type { DailyChallengeResponseDtoScorePercent } from './dailyChallengeResponseDtoScorePercent';
-import type { DailyChallengeResponseDtoRank } from './dailyChallengeResponseDtoRank';
+import type { DailyChallengeResponseDtoDifficulty } from "./dailyChallengeResponseDtoDifficulty";
+import type { DailyChallengeResponseDtoStatus } from "./dailyChallengeResponseDtoStatus";
+import type { DailyChallengeResponseDtoScorePercent } from "./dailyChallengeResponseDtoScorePercent";
+import type { DailyChallengeResponseDtoRank } from "./dailyChallengeResponseDtoRank";
 
 export interface DailyChallengeResponseDto {
+  date: string;
 
-date: string;
+  quizId: string;
 
-quizId: string;
+  quizTitle: string;
 
-quizTitle: string;
+  slug: string;
 
-slug: string;
+  difficulty: DailyChallengeResponseDtoDifficulty;
 
-difficulty: DailyChallengeResponseDtoDifficulty;
+  questionCount: number;
 
-questionCount: number;
+  rewardXp: number;
 
-rewardXp: number;
+  expiresAt: string;
 
-expiresAt: string;
+  status: DailyChallengeResponseDtoStatus;
 
-status: DailyChallengeResponseDtoStatus;
+  scorePercent?: DailyChallengeResponseDtoScorePercent;
 
-scorePercent?: DailyChallengeResponseDtoScorePercent;
-
-rank?: DailyChallengeResponseDtoRank;
+  rank?: DailyChallengeResponseDtoRank;
 }

@@ -1,21 +1,18 @@
-
-
-import type { SearchableUserDtoDisplayName } from './searchableUserDtoDisplayName';
-import type { SearchableUserDtoAvatarUrl } from './searchableUserDtoAvatarUrl';
+import type { SearchableUserDtoDisplayName } from "./searchableUserDtoDisplayName";
+import type { SearchableUserDtoAvatarUrl } from "./searchableUserDtoAvatarUrl";
 
 export interface SearchableUserDto {
+  userId: string;
 
-userId: string;
+  username: string;
 
-username: string;
+  displayName?: SearchableUserDtoDisplayName;
 
-displayName?: SearchableUserDtoDisplayName;
+  avatarUrl?: SearchableUserDtoAvatarUrl;
 
-avatarUrl?: SearchableUserDtoAvatarUrl;
+  isFriend: boolean;
 
-isFriend: boolean;
+  hasPendingRequest: boolean;
 
-hasPendingRequest: boolean;
-
-isBlocked: boolean;
+  isBlocked: boolean;
 }

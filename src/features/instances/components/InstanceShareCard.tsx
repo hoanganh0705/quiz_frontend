@@ -27,7 +27,10 @@ export function InstanceShareCard({
 
   // Short 8-character code for easy verbal sharing
   const roomCode = React.useMemo(() => {
-    return instanceId.replace(/[^a-zA-Z0-9]/g, "").slice(0, 8).toUpperCase();
+    return instanceId
+      .replace(/[^a-zA-Z0-9]/g, "")
+      .slice(0, 8)
+      .toUpperCase();
   }, [instanceId]);
 
   // Absolute room URL
@@ -39,7 +42,10 @@ export function InstanceShareCard({
   }, [instanceId]);
 
   React.useEffect(() => {
-    if (typeof navigator !== "undefined" && typeof navigator.share === "function") {
+    if (
+      typeof navigator !== "undefined" &&
+      typeof navigator.share === "function"
+    ) {
       setCanNativeShare(true);
     }
   }, []);
@@ -72,7 +78,9 @@ export function InstanceShareCard({
     if (canNativeShare && navigator.share) {
       try {
         await navigator.share({
-          title: quizTitle ? `Join Live Quiz: ${quizTitle}` : "Join QuizHub Live Battle",
+          title: quizTitle
+            ? `Join Live Quiz: ${quizTitle}`
+            : "Join QuizHub Live Battle",
           text: `Join my live quiz room on QuizHub! Room Code: ${roomCode}`,
           url: roomUrl,
         });

@@ -1,10 +1,7 @@
-
-
 export interface BookmarkStatsFavoriteCategoryDto {
+  categoryId: string;
 
-categoryId: string;
+  name: string;
 
-name: string;
-
-slug: string;
+  slug: string;
 }

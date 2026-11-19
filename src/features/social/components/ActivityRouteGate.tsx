@@ -9,40 +9,34 @@ import { UserActivityStream } from "@/features/social/lists/UserActivityStream";
 import { getFeatureFlagValue } from "@/lib/feature-flags";
 
 interface ActivityRouteGateProps {
-
-targetUserId: string;
+  targetUserId: string;
 }
 
 export function ActivityRouteGate(
-props: ActivityRouteGateProps,
+  props: ActivityRouteGateProps,
 ): React.ReactElement {
-const { targetUserId } = props;
+  const { targetUserId } = props;
 
-const parentFlag = useMemo(
-() => getFeatureFlagValue("social_live"),
-[],
-  );
-const activityFlag = useMemo(
-() => getFeatureFlagValue("social_activity_live"),
-[],
+  const parentFlag = useMemo(() => getFeatureFlagValue("social_live"), []);
+  const activityFlag = useMemo(
+    () => getFeatureFlagValue("social_activity_live"),
+    [],
   );
 
-const { isAuthenticated } = useAuthState();
+  const { isAuthenticated } = useAuthState();
 
-if (!isAuthenticated) {
-return (
-<PrivacyRestrictedNotice
-variant="not_available"
-resourceKind="activity"
+  if (!isAuthenticated) {
+    return (
+      <PrivacyRestrictedNotice
+        variant="not_available"
+        resourceKind="activity"
       />
     );
   }
 
-if (parentFlag === "placeholder" || activityFlag === "placeholder") {
-return (
-<SocialActivityPlaceholder targetUserId={targetUserId} />
-    );
+  if (parentFlag === "placeholder" || activityFlag === "placeholder") {
+    return <SocialActivityPlaceholder targetUserId={targetUserId} />;
   }
 
-return <UserActivityStream targetUserId={targetUserId} />;
+  return <UserActivityStream targetUserId={targetUserId} />;
 }

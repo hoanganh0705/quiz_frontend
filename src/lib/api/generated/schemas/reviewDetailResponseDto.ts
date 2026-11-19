@@ -1,24 +1,21 @@
-
-
 export interface ReviewDetailResponseDto {
+  reviewId: string;
 
-reviewId: string;
+  quizId: string;
 
-quizId: string;
+  quizTitle: string;
 
-quizTitle: string;
+  userId: string;
 
-userId: string;
+  username: string;
 
-username: string;
+  rating: number;
 
-rating: number;
+  comment?: string | null;
 
-comment?: string | null;
+  createdAt: string;
 
-createdAt: string;
+  updatedAt: string;
 
-updatedAt: string;
-
-helpfulCount: number;
+  helpfulCount: number;
 }

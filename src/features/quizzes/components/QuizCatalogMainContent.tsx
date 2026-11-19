@@ -1,11 +1,11 @@
-'use client'
+"use client";
 
-import { memo } from 'react'
+import { memo } from "react";
 
-import { QuizzesDirectoryPage } from './QuizzesDirectoryPage'
+import { QuizzesDirectoryPage } from "./QuizzesDirectoryPage";
 
 interface QuizCatalogMainContentProps {
-  categorySlug?: string
+  categorySlug?: string;
 }
 
 const QuizCatalogMainContent = memo(function QuizCatalogMainContent({
@@ -17,7 +17,7 @@ const QuizCatalogMainContent = memo(function QuizCatalogMainContent({
         ...(categorySlug !== undefined && { categoryId: categorySlug }),
       }}
     />
-  )
-})
+  );
+});
 
-export default QuizCatalogMainContent
+export default QuizCatalogMainContent;

@@ -1,24 +1,21 @@
-
-
 export interface TournamentStatsResponseDto {
+  tournamentId: string;
 
-tournamentId: string;
+  participants: number;
 
-participants: number;
+  completedParticipants: number;
 
-completedParticipants: number;
+  averageScore: number;
 
-averageScore: number;
+  highestScore?: number | null;
 
-highestScore?: number | null;
+  lowestScore?: number | null;
 
-lowestScore?: number | null;
+  completionRate: number;
 
-completionRate: number;
+  averageRank?: number | null;
 
-averageRank?: number | null;
+  startedAt: string;
 
-startedAt: string;
-
-endedAt: string;
+  endedAt: string;
 }

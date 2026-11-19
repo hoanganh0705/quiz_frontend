@@ -1,7 +1,5 @@
-
-
-import type { TournamentWinnerDto } from './tournamentWinnerDto';
+import type { TournamentWinnerDto } from "./tournamentWinnerDto";
 
 export type TournamentControllerGetTournamentWinners200AllOf = {
-data?: TournamentWinnerDto[];
+  data?: TournamentWinnerDto[];
 };

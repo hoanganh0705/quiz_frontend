@@ -3,8 +3,6 @@
  * body is byte-identical for unknown, expired, and consumed tokens;
  * the form is rendered for a valid-looking token.
  *
- * Source epic: Epic 2.3 — Forgot-password and reset-password recovery.
- * Source ticket: TKT-2.3.E2.
  *
  * ## What this spec proves
  *
@@ -21,7 +19,7 @@
  *
  *   - The dev backend's `/auth/reset-password` endpoint returns
  *     `400` with code `AUTH_INVALID_TOKEN` for unknown, expired,
- *     and consumed tokens. The frontend's mapper (TKT-2.3.B2)
+ *     and consumed tokens. The frontend's mapper
  *     collapses all three into the `'invalid_link'` kind so the
  *     page renders one neutral body for every backend response.
  *   - The three tokens used here are arbitrary 64-char hex
@@ -39,22 +37,22 @@
  * registry is the bug — never the backend.
  */
 
-import { test, expect, type Route } from '@playwright/test';
+import { test, expect, type Route } from "@playwright/test";
 
-const TOKEN_VALID = 'a'.repeat(64); // well-formed 64-char hex
-const TOKEN_UNKNOWN = 'b'.repeat(64); // well-formed but unknown
-const TOKEN_EXPIRED = 'c'.repeat(64); // well-formed but expired
-const TOKEN_CONSUMED = 'd'.repeat(64); // well-formed but consumed
-const TOKEN_SHORT = 'short'; // < 32 chars; client-side guard fires
+const TOKEN_VALID = "a".repeat(64); // well-formed 64-char hex
+const TOKEN_UNKNOWN = "b".repeat(64); // well-formed but unknown
+const TOKEN_EXPIRED = "c".repeat(64); // well-formed but expired
+const TOKEN_CONSUMED = "d".repeat(64); // well-formed but consumed
+const TOKEN_SHORT = "short"; // < 32 chars; client-side guard fires
 
 const apiErrorBody = (
   status: number,
   code: string,
-  path: string
+  path: string,
 ): Record<string, unknown> => ({
   statusCode: status,
   code,
-  message: 'synthesized for test',
+  message: "synthesized for test",
   isValidationError: false,
   isServerError: status >= 500,
   validationMessages: [],
@@ -67,18 +65,18 @@ const RESET_URL = /\/api\/v1\/auth\/reset-password$/;
 const forceAuthInvalidToken = (route: Route) =>
   route.fulfill({
     status: 400,
-    contentType: 'application/json',
+    contentType: "application/json",
     body: JSON.stringify(
-      apiErrorBody(400, 'AUTH_INVALID_TOKEN', '/api/v1/auth/reset-password')
+      apiErrorBody(400, "AUTH_INVALID_TOKEN", "/api/v1/auth/reset-password"),
     ),
   });
 
 const captureInvalidBody = async (
-  page: import('@playwright/test').Page,
-  token: string
+  page: import("@playwright/test").Page,
+  token: string,
 ): Promise<string> => {
   await page.goto(`/reset-password?token=${token}`);
-  const body = page.getByTestId('reset-invalid-body');
+  const body = page.getByTestId("reset-invalid-body");
   await expect(body).toBeVisible({ timeout: 10_000 });
   const text = await body.textContent();
   if (text === null) {
@@ -87,7 +85,7 @@ const captureInvalidBody = async (
   return text;
 };
 
-test('reset-password renders the form for a valid-looking token', async ({
+test("reset-password renders the form for a valid-looking token", async ({
   page,
 }) => {
   // Route reset-password to a 201 stub so the page does not block
@@ -96,24 +94,24 @@ test('reset-password renders the form for a valid-looking token', async ({
   await page.route(RESET_URL, (route) =>
     route.fulfill({
       status: 201,
-      contentType: 'application/json',
+      contentType: "application/json",
       body: JSON.stringify({
         statusCode: 201,
-        message: 'Password updated',
-        data: { message: 'Password updated' },
+        message: "Password updated",
+        data: { message: "Password updated" },
         timestamp: new Date().toISOString(),
-        path: '/api/v1/auth/reset-password',
+        path: "/api/v1/auth/reset-password",
       }),
-    })
+    }),
   );
 
   await page.goto(`/reset-password?token=${TOKEN_VALID}`);
   // The form is rendered (not the invalid-link body).
-  await expect(page.getByTestId('reset-form')).toBeVisible({ timeout: 5_000 });
-  await expect(page.getByTestId('reset-invalid-body')).toHaveCount(0);
+  await expect(page.getByTestId("reset-form")).toBeVisible({ timeout: 5_000 });
+  await expect(page.getByTestId("reset-invalid-body")).toHaveCount(0);
 });
 
-test('reset-password renders the same invalid-link body for unknown / expired / consumed tokens', async ({
+test("reset-password renders the same invalid-link body for unknown / expired / consumed tokens", async ({
   page,
 }) => {
   // Force every reset-password call to a 400 AUTH_INVALID_TOKEN
@@ -147,22 +145,22 @@ test('reset-password renders the same invalid-link body for unknown / expired / 
     // the mapper is actually exercised, and the other two via the
     // short-circuit (same body, same registry, same literal).
     await page
-      .getByTestId('reset-form')
+      .getByTestId("reset-form")
       .locator('input[type="password"]')
       .first()
-      .fill('GoodPass1!');
+      .fill("GoodPass1!");
     await page
-      .getByTestId('reset-form')
+      .getByTestId("reset-form")
       .locator('input[type="password"]')
       .nth(1)
-      .fill('GoodPass1!');
-    await page.getByTestId('reset-submit').click();
+      .fill("GoodPass1!");
+    await page.getByTestId("reset-submit").click();
 
     // After the 400 maps to 'invalid_link', the same body renders.
     // We re-target the assertion so the test catches either the
     // pre-submit short-circuit body or the post-submit
     // mapper-collapsed body.
-    const body = page.getByTestId('reset-invalid-body');
+    const body = page.getByTestId("reset-invalid-body");
     await expect(body).toBeVisible({ timeout: 10_000 });
     const text = await body.textContent();
     if (text === null) {
@@ -180,17 +178,17 @@ test('reset-password renders the same invalid-link body for unknown / expired / 
   expect(bodyExpired).toBe(bodyConsumed);
 });
 
-test('reset-password renders the invalid-link body for a missing or malformed token without a network call', async ({
+test("reset-password renders the invalid-link body for a missing or malformed token without a network call", async ({
   page,
 }) => {
   // The C2 client-side guard fires for tokens shorter than 32
   // characters. The page renders the same invalid-link body but
   // does NOT issue a backend request.
   const resetCalls: Array<unknown> = [];
-  page.on('request', (req) => {
+  page.on("request", (req) => {
     if (
-      req.url().endsWith('/api/v1/auth/reset-password') &&
-      req.method() === 'POST'
+      req.url().endsWith("/api/v1/auth/reset-password") &&
+      req.method() === "POST"
     ) {
       resetCalls.push(req.postDataJSON());
     }
@@ -199,14 +197,14 @@ test('reset-password renders the invalid-link body for a missing or malformed to
   await page.goto(`/reset-password?token=${TOKEN_SHORT}`);
 
   // The body is the same invalid-link body.
-  await expect(page.getByTestId('reset-invalid-body')).toBeVisible();
+  await expect(page.getByTestId("reset-invalid-body")).toBeVisible();
 
   // Wait a moment to be sure no late request was issued.
   await page.waitForTimeout(500);
   expect(resetCalls).toHaveLength(0);
 });
 
-test('reset-password body never contains the user-supplied token', async ({
+test("reset-password body never contains the user-supplied token", async ({
   page,
 }) => {
   await page.route(RESET_URL, forceAuthInvalidToken);

@@ -1,250 +1,253 @@
-
-
-import { ApiError, getDailyChallenge, isApiError } from '@/lib/api';
+import { ApiError, getDailyChallenge, isApiError } from "@/lib/api";
 
 import type {
-DailyChallengeAnswerResponseView,
-DailyChallengeCategoryBreakdownItemView,
-DailyChallengeCategoryBreakdownResult,
-DailyChallengeHistoryItemView,
-DailyChallengeHistoryPage,
-DailyChallengeResult,
-DailyChallengeView,
-GetDailyChallengeHistoryParams,
-SubmitDailyChallengeAnswerParams,
-} from '../types/dto';
-import type { DailyChallengeHistoryResponseDto } from '@/lib/api/generated/schemas/dailyChallengeHistoryResponseDto';
-import type { DailyChallengeCategoryBreakdownResponseDto } from '@/lib/api/generated/schemas/dailyChallengeCategoryBreakdownResponseDto';
+  DailyChallengeAnswerResponseView,
+  DailyChallengeCategoryBreakdownItemView,
+  DailyChallengeCategoryBreakdownResult,
+  DailyChallengeHistoryItemView,
+  DailyChallengeHistoryPage,
+  DailyChallengeResult,
+  DailyChallengeView,
+  GetDailyChallengeHistoryParams,
+  SubmitDailyChallengeAnswerParams,
+} from "../types/dto";
+import type { DailyChallengeHistoryResponseDto } from "@/lib/api/generated/schemas/dailyChallengeHistoryResponseDto";
+import type { DailyChallengeCategoryBreakdownResponseDto } from "@/lib/api/generated/schemas/dailyChallengeCategoryBreakdownResponseDto";
 
 const HAS_DAILY_CHALLENGE_SDK = true;
 
-function toErrorResult(error: unknown): { kind: 'error'; error: ApiError } {
-if (isApiError(error)) {
-return { kind: 'error', error };
+function toErrorResult(error: unknown): { kind: "error"; error: ApiError } {
+  if (isApiError(error)) {
+    return { kind: "error", error };
   }
-throw error;
+  throw error;
 }
 
 function toNumberOrNull(value: unknown): number | null {
-if (value === null || value === undefined) return null;
-if (typeof value === 'number') return value;
-if (typeof value === 'string') {
-const parsed = Number(value);
-return Number.isFinite(parsed) ? parsed : null;
+  if (value === null || value === undefined) return null;
+  if (typeof value === "number") return value;
+  if (typeof value === "string") {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : null;
   }
-return null;
+  return null;
 }
 
 function toStringOrNull(value: unknown): string | null {
-if (value === null || value === undefined) return null;
-if (typeof value === 'string') return value;
-if (typeof value === 'number') return String(value);
-return null;
+  if (value === null || value === undefined) return null;
+  if (typeof value === "string") return value;
+  if (typeof value === "number") return String(value);
+  return null;
 }
 
 function toTodayView(
-dto:
-| NonNullable<
-Awaited<
-ReturnType<
-ReturnType<
-typeof getDailyChallenge
-            >['dailyChallengeControllerGetToday']
+  dto:
+    | NonNullable<
+        Awaited<
+          ReturnType<
+            ReturnType<
+              typeof getDailyChallenge
+            >["dailyChallengeControllerGetToday"]
           >
-        >['data']
+        >["data"]
       >
     | undefined,
 ): DailyChallengeView | null {
-if (!dto) return null;
-const difficulty = (dto.difficulty ?? 'medium') as 'easy' | 'medium' | 'hard';
-return {
-id: dto.quizId,
-date: dto.date,
-quizId: dto.quizId,
-quizTitle: dto.quizTitle ?? '',
-slug: dto.slug ?? '',
-difficulty,
-category:
-  (dto as { categoryName?: string | null }).categoryName ||
-  (difficulty.charAt(0).toUpperCase() + difficulty.slice(1)),
-totalQuestions: dto.questionCount,
-rewardXp: dto.rewardXp,
-expiresAt: dto.expiresAt,
-status: dto.status,
-scorePercent: toNumberOrNull(dto.scorePercent),
-rank: toNumberOrNull(dto.rank),
+  if (!dto) return null;
+  const difficulty = (dto.difficulty ?? "medium") as "easy" | "medium" | "hard";
+  return {
+    id: dto.quizId,
+    date: dto.date,
+    quizId: dto.quizId,
+    quizTitle: dto.quizTitle ?? "",
+    slug: dto.slug ?? "",
+    difficulty,
+    category:
+      (dto as { categoryName?: string | null }).categoryName ||
+      difficulty.charAt(0).toUpperCase() + difficulty.slice(1),
+    totalQuestions: dto.questionCount,
+    rewardXp: dto.rewardXp,
+    expiresAt: dto.expiresAt,
+    status: dto.status,
+    scorePercent: toNumberOrNull(dto.scorePercent),
+    rank: toNumberOrNull(dto.rank),
   };
 }
 
 function toHistoryItemView(
-dto: DailyChallengeHistoryResponseDto['items'][number] | undefined,
+  dto: DailyChallengeHistoryResponseDto["items"][number] | undefined,
 ): DailyChallengeHistoryItemView | null {
-if (!dto) return null;
-const difficulty = (dto.difficulty ?? 'medium') as 'easy' | 'medium' | 'hard';
-return {
-id: `${dto.date}-${dto.quizId}`,
-date: dto.date,
-quizId: dto.quizId,
-quizTitle: dto.quizTitle ?? 'Untitled quiz',
-slug: dto.slug ?? '',
-difficulty,
-category: difficulty,
-score: dto.score,
-rank: dto.rank,
-isTopTen: dto.rank > 0 && dto.rank <= 10,
+  if (!dto) return null;
+  const difficulty = (dto.difficulty ?? "medium") as "easy" | "medium" | "hard";
+  return {
+    id: `${dto.date}-${dto.quizId}`,
+    date: dto.date,
+    quizId: dto.quizId,
+    quizTitle: dto.quizTitle ?? "Untitled quiz",
+    slug: dto.slug ?? "",
+    difficulty,
+    category: difficulty,
+    score: dto.score,
+    rank: dto.rank,
+    isTopTen: dto.rank > 0 && dto.rank <= 10,
   };
 }
 
 export async function getDailyChallengeToday(): Promise<
-DailyChallengeResult<DailyChallengeView>
+  DailyChallengeResult<DailyChallengeView>
 > {
-if (!HAS_DAILY_CHALLENGE_SDK) {
-return { kind: 'missing-endpoint' };
+  if (!HAS_DAILY_CHALLENGE_SDK) {
+    return { kind: "missing-endpoint" };
   }
-try {
-const envelope = await getDailyChallenge().dailyChallengeControllerGetToday();
-const view = toTodayView(envelope?.data);
-if (!view) {
-return {
-kind: 'error',
-error: ApiError.fromInput({
-status: 500,
-code: 'GLOBAL_INTERNAL_ERROR',
-message: 'Daily challenge today payload missing',
+  try {
+    const envelope =
+      await getDailyChallenge().dailyChallengeControllerGetToday();
+    const view = toTodayView(envelope?.data);
+    if (!view) {
+      return {
+        kind: "error",
+        error: ApiError.fromInput({
+          status: 500,
+          code: "GLOBAL_INTERNAL_ERROR",
+          message: "Daily challenge today payload missing",
         }),
       };
     }
-return { kind: 'ok', data: view };
+    return { kind: "ok", data: view };
   } catch (error) {
-return toErrorResult(error);
+    return toErrorResult(error);
   }
 }
 
 export async function getDailyChallengeHistoryPage(
-params: GetDailyChallengeHistoryParams,
+  params: GetDailyChallengeHistoryParams,
 ): Promise<DailyChallengeResult<DailyChallengeHistoryPage>> {
-if (!HAS_DAILY_CHALLENGE_SDK) {
-return { kind: 'missing-endpoint' };
+  if (!HAS_DAILY_CHALLENGE_SDK) {
+    return { kind: "missing-endpoint" };
   }
-try {
-const response = await getDailyChallenge().dailyChallengeControllerGetHistory(
-{
-...(params.cursor ? { cursor: params.cursor } : {}),
-limit: params.limit,
-      },
-    );
-const pages = (response?.data ?? []) as DailyChallengeHistoryResponseDto[];
-const firstPage = pages[0];
-const items = (firstPage?.items ?? [])
+  try {
+    const response =
+      await getDailyChallenge().dailyChallengeControllerGetHistory({
+        ...(params.cursor ? { cursor: params.cursor } : {}),
+        limit: params.limit,
+      });
+    const pages = (response?.data ?? []) as DailyChallengeHistoryResponseDto[];
+    const firstPage = pages[0];
+    const items = (firstPage?.items ?? [])
       .map((dto) => toHistoryItemView(dto))
       .filter((item): item is DailyChallengeHistoryItemView => item !== null);
-const pagination = firstPage?.pagination;
+    const pagination = firstPage?.pagination;
 
-return {
-kind: 'ok',
-data: {
-items,
-nextCursor: toStringOrNull(pagination?.nextCursor),
-hasNextPage: pagination?.hasNextPage ?? false,
-limit: pagination?.limit ?? params.limit ?? 5,
+    return {
+      kind: "ok",
+      data: {
+        items,
+        nextCursor: toStringOrNull(pagination?.nextCursor),
+        hasNextPage: pagination?.hasNextPage ?? false,
+        limit: pagination?.limit ?? params.limit ?? 5,
       },
     };
   } catch (error) {
-return toErrorResult(error);
+    return toErrorResult(error);
   }
 }
 
 export async function submitDailyChallengeAnswer(
-payload: SubmitDailyChallengeAnswerParams,
+  payload: SubmitDailyChallengeAnswerParams,
 ): Promise<DailyChallengeResult<DailyChallengeAnswerResponseView>> {
-if (!HAS_DAILY_CHALLENGE_SDK) {
-return { kind: 'missing-endpoint' };
+  if (!HAS_DAILY_CHALLENGE_SDK) {
+    return { kind: "missing-endpoint" };
   }
-try {
-
-const body: import('@/lib/api/generated/schemas/dailyChallengeAnswerDto').DailyChallengeAnswerDto = {
-questionIndex: payload.questionIndex,
-...(payload.selectedOptionId !== null
-? { selectedOptionId: payload.selectedOptionId as unknown as Record<string, unknown> }
-: {}),
-    };
-const response =
-await getDailyChallenge().dailyChallengeControllerSubmitAnswer(body);
-const dto = response?.data;
-if (!dto) {
-return {
-kind: 'error',
-error: ApiError.fromInput({
-status: 500,
-code: 'GLOBAL_INTERNAL_ERROR',
-message: 'Daily challenge answer payload missing',
+  try {
+    const body: import("@/lib/api/generated/schemas/dailyChallengeAnswerDto").DailyChallengeAnswerDto =
+      {
+        questionIndex: payload.questionIndex,
+        ...(payload.selectedOptionId !== null
+          ? {
+              selectedOptionId: payload.selectedOptionId as unknown as Record<
+                string,
+                unknown
+              >,
+            }
+          : {}),
+      };
+    const response =
+      await getDailyChallenge().dailyChallengeControllerSubmitAnswer(body);
+    const dto = response?.data;
+    if (!dto) {
+      return {
+        kind: "error",
+        error: ApiError.fromInput({
+          status: 500,
+          code: "GLOBAL_INTERNAL_ERROR",
+          message: "Daily challenge answer payload missing",
         }),
       };
     }
-return {
-kind: 'ok',
-data: {
-correct: dto.correct,
-nextQuestionIndex: dto.nextQuestionIndex,
-totalQuestions: dto.totalQuestions,
-completed: dto.completed,
-scorePercent: toNumberOrNull(dto.scorePercent),
+    return {
+      kind: "ok",
+      data: {
+        correct: dto.correct,
+        nextQuestionIndex: dto.nextQuestionIndex,
+        totalQuestions: dto.totalQuestions,
+        completed: dto.completed,
+        scorePercent: toNumberOrNull(dto.scorePercent),
       },
     };
   } catch (error) {
-return toErrorResult(error);
+    return toErrorResult(error);
   }
 }
 
-export async function getDailyChallengeCategoryBreakdown(): Promise<
-DailyChallengeCategoryBreakdownResult
-> {
-if (!HAS_DAILY_CHALLENGE_SDK) {
-return { kind: 'missing-endpoint' };
+export async function getDailyChallengeCategoryBreakdown(): Promise<DailyChallengeCategoryBreakdownResult> {
+  if (!HAS_DAILY_CHALLENGE_SDK) {
+    return { kind: "missing-endpoint" };
   }
-try {
-const envelope = await getDailyChallenge().dailyChallengeControllerGetCategoryBreakdown();
-const items = toCategoryBreakdownItems(envelope?.data?.items);
-return {
-kind: 'ok',
-data: { items },
+  try {
+    const envelope =
+      await getDailyChallenge().dailyChallengeControllerGetCategoryBreakdown();
+    const items = toCategoryBreakdownItems(envelope?.data?.items);
+    return {
+      kind: "ok",
+      data: { items },
     };
   } catch (error) {
-return toErrorResult(error);
+    return toErrorResult(error);
   }
 }
 
 export function toCategoryBreakdownItems(
-  rawItems: DailyChallengeCategoryBreakdownResponseDto['items'] | undefined,
+  rawItems: DailyChallengeCategoryBreakdownResponseDto["items"] | undefined,
 ): readonly DailyChallengeCategoryBreakdownItemView[] {
-  if (!rawItems) return []
+  if (!rawItems) return [];
   return rawItems
     .filter(
-      (item): item is NonNullable<typeof item> => item !== undefined && item !== null,
+      (item): item is NonNullable<typeof item> =>
+        item !== undefined && item !== null,
     )
     .map((item) => ({
       categoryId: item.categoryId,
-      categoryName: item.categoryName ?? '',
-      categorySlug: item.categorySlug ?? '',
+      categoryName: item.categoryName ?? "",
+      categorySlug: item.categorySlug ?? "",
       attemptCount:
-        typeof item.attemptCount === 'number'
+        typeof item.attemptCount === "number"
           ? item.attemptCount
           : Number(item.attemptCount ?? 0),
       averageScorePercent:
-        typeof item.averageScorePercent === 'number'
+        typeof item.averageScorePercent === "number"
           ? item.averageScorePercent
           : Number(item.averageScorePercent ?? 0),
-    }))
+    }));
 }
 
 export type {
-DailyChallengeAnswerResponseView,
-DailyChallengeCategoryBreakdownItemView,
-DailyChallengeCategoryBreakdownResult,
-DailyChallengeHistoryItemView,
-DailyChallengeHistoryPage,
-DailyChallengeResult,
-DailyChallengeView,
-GetDailyChallengeHistoryParams,
-SubmitDailyChallengeAnswerParams,
-} from '../types/dto';
+  DailyChallengeAnswerResponseView,
+  DailyChallengeCategoryBreakdownItemView,
+  DailyChallengeCategoryBreakdownResult,
+  DailyChallengeHistoryItemView,
+  DailyChallengeHistoryPage,
+  DailyChallengeResult,
+  DailyChallengeView,
+  GetDailyChallengeHistoryParams,
+  SubmitDailyChallengeAnswerParams,
+} from "../types/dto";

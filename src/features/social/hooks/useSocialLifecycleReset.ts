@@ -8,67 +8,65 @@ import { useAuthSession } from "@/features/auth/hooks/use-auth-session";
 const AUTH_STATE_EVENT = "auth-state-change";
 
 export interface UseSocialLifecycleResetOptions {
+  targetUserId?: string | null;
 
-targetUserId?: string | null;
+  listReset?: () => void;
 
-listReset?: () => void;
-
-periodReset?: () => void;
+  periodReset?: () => void;
 }
 
 function readIsAuthenticatedFromWindow(): boolean {
-if (typeof document === "undefined") return false;
-return /(?:^|;\s*)auth_token=/.test(document.cookie);
+  if (typeof document === "undefined") return false;
+  return /(?:^|;\s*)auth_token=/.test(document.cookie);
 }
 
 export function useSocialLifecycleReset(
-options: UseSocialLifecycleResetOptions,
+  options: UseSocialLifecycleResetOptions,
 ): void {
-const { targetUserId, listReset, periodReset } = options;
-const pathname = usePathname() ?? "";
-const auth = useAuthSession();
-const isAuthenticated = auth.isAuthenticated;
+  const { targetUserId, listReset, periodReset } = options;
+  const pathname = usePathname() ?? "";
+  const auth = useAuthSession();
+  const isAuthenticated = auth.isAuthenticated;
 
-const listResetRef = useRef(listReset);
-const periodResetRef = useRef(periodReset);
+  const listResetRef = useRef(listReset);
+  const periodResetRef = useRef(periodReset);
 
-const wasAuthenticatedRef = useRef<boolean>(isAuthenticated);
+  const wasAuthenticatedRef = useRef<boolean>(isAuthenticated);
 
-useEffect(() => {
-listResetRef.current = listReset;
-periodResetRef.current = periodReset;
+  useEffect(() => {
+    listResetRef.current = listReset;
+    periodResetRef.current = periodReset;
   }, [listReset, periodReset]);
 
-useEffect(() => {
-if (typeof window === "undefined") return;
-const onAuthStateChange = () => {
-const next = readIsAuthenticatedFromWindow();
-const was = wasAuthenticatedRef.current;
-if (was === true && next === false) {
-
-if (pathname.startsWith("/social/me/analytics")) {
-periodResetRef.current?.();
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const onAuthStateChange = () => {
+      const next = readIsAuthenticatedFromWindow();
+      const was = wasAuthenticatedRef.current;
+      if (was === true && next === false) {
+        if (pathname.startsWith("/social/me/analytics")) {
+          periodResetRef.current?.();
         } else if (
-targetUserId &&
-pathname.startsWith(`/social/users/${targetUserId}`)
+          targetUserId &&
+          pathname.startsWith(`/social/users/${targetUserId}`)
         ) {
-listResetRef.current?.();
+          listResetRef.current?.();
         }
       }
-wasAuthenticatedRef.current = next;
+      wasAuthenticatedRef.current = next;
     };
-window.addEventListener(AUTH_STATE_EVENT, onAuthStateChange);
-return () => {
-window.removeEventListener(AUTH_STATE_EVENT, onAuthStateChange);
+    window.addEventListener(AUTH_STATE_EVENT, onAuthStateChange);
+    return () => {
+      window.removeEventListener(AUTH_STATE_EVENT, onAuthStateChange);
     };
   }, [pathname, targetUserId]);
 
-useEffect(() => {
-wasAuthenticatedRef.current = isAuthenticated;
+  useEffect(() => {
+    wasAuthenticatedRef.current = isAuthenticated;
   }, [isAuthenticated]);
 }
 
 export const __testing = {
-AUTH_STATE_EVENT,
-readIsAuthenticatedFromWindow,
+  AUTH_STATE_EVENT,
+  readIsAuthenticatedFromWindow,
 };

@@ -1,5 +1,5 @@
-@import 'tailwindcss';
-@import 'tw-animate-css';
+@import "tailwindcss";
+@import "tw-animate-css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -210,10 +210,12 @@
 
   --radius: var(--radius);
 
-  --font-sans: var(--font-app-sans), ui-sans-serif, system-ui, -apple-system,
-    "Segoe UI", Roboto, sans-serif;
-  --font-mono: var(--font-app-mono), ui-monospace, "SFMono-Regular", Menlo,
-    Consolas, monospace;
+  --font-sans:
+    var(--font-app-sans), ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+    Roboto, sans-serif;
+  --font-mono:
+    var(--font-app-mono), ui-monospace, "SFMono-Regular", Menlo, Consolas,
+    monospace;
 }
 
 @theme {

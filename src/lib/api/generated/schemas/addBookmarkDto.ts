@@ -1,8 +1,5 @@
-
-
 export interface AddBookmarkDto {
+  quizId: string;
 
-quizId: string;
-
-notes?: string | null;
+  notes?: string | null;
 }

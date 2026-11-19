@@ -18,13 +18,13 @@
  *     surfaced as `error` so the page can show the existing items + a
  *     retry surface, matching the SWR `useCursorPaginated` error contract.
  */
-'use client';
+"use client";
 
-import { useCallback, useState } from 'react';
-import type { OperationVariables } from '@apollo/client';
-import type { ObservableQuery } from '@apollo/client';
+import { useCallback, useState } from "react";
+import type { OperationVariables } from "@apollo/client";
+import type { ObservableQuery } from "@apollo/client";
 
-import { ApiError, coerceToApiError } from '@/lib/api';
+import { ApiError, coerceToApiError } from "@/lib/api";
 
 /**
  * Local concrete shape for the `quizzesBundle` payload. The placeholder
@@ -105,9 +105,9 @@ export interface BundleTag {
   readonly slug: string;
 }
 
-type Bundle = NonNullable<QuizzesBundlePayload['quizzesBundle']>;
-export type QuizzesBundlePageInfo = NonNullable<Bundle['pageInfo']>;
-export type QuizzesBundleItems = NonNullable<Bundle['items']>;
+type Bundle = NonNullable<QuizzesBundlePayload["quizzesBundle"]>;
+export type QuizzesBundlePageInfo = NonNullable<Bundle["pageInfo"]>;
+export type QuizzesBundleItems = NonNullable<Bundle["items"]>;
 
 export interface UseQuizzesLoadMoreArgs<
   TFetchVars extends OperationVariables = OperationVariables,
@@ -155,11 +155,15 @@ export function useQuizzesLoadMore<
       } as TFetchVars,
       updateQuery: (
         previous: QuizzesBundlePayload,
-        { fetchMoreResult }: { fetchMoreResult: QuizzesBundlePayload | null | undefined },
+        {
+          fetchMoreResult,
+        }: { fetchMoreResult: QuizzesBundlePayload | null | undefined },
       ) => {
         if (!fetchMoreResult) return previous;
-        const previousBundle = previous.quizzesBundle as Bundle | undefined | null;
-        const nextBundle = fetchMoreResult.quizzesBundle as Bundle | undefined | null;
+        const previousBundle = previous.quizzesBundle as
+          Bundle | undefined | null;
+        const nextBundle = fetchMoreResult.quizzesBundle as
+          Bundle | undefined | null;
         if (!previousBundle || !nextBundle) return previous;
 
         const previousItems = Array.isArray(previousBundle.items)

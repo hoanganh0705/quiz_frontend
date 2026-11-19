@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 /**
  * Shared "feature is on the roadmap" banner used by placeholder admin
@@ -22,15 +22,15 @@
  * exists to be honest about what is and isn't wired.
  */
 
-import type React from 'react'
+import type React from "react";
 
 interface FeaturePlaceholderBannerProps {
-  title: string
-  description: React.ReactNode
-  codexLink?: string
-  cta?: React.ReactNode
+  title: string;
+  description: React.ReactNode;
+  codexLink?: string;
+  cta?: React.ReactNode;
   /** Optional test id hook for assertions. */
-  testId?: string
+  testId?: string;
 }
 
 export function FeaturePlaceholderBanner({
@@ -42,24 +42,24 @@ export function FeaturePlaceholderBanner({
 }: FeaturePlaceholderBannerProps): React.ReactElement {
   return (
     <div
-      className='rounded-lg border border-dashed border-border p-8 text-center bg-muted/30'
+      className="rounded-lg border border-dashed border-border p-8 text-center bg-muted/30"
       data-testid={testId}
     >
-      <h2 className='text-lg font-semibold text-foreground'>{title}</h2>
-      <div className='text-sm text-muted-foreground mt-2 max-w-md mx-auto'>
+      <h2 className="text-lg font-semibold text-foreground">{title}</h2>
+      <div className="text-sm text-muted-foreground mt-2 max-w-md mx-auto">
         {description}
         {codexLink && (
           <>
-            {' '}
-            The feature will be backed by{' '}
-            <code className='rounded bg-background px-1 py-0.5 text-xs'>
+            {" "}
+            The feature will be backed by{" "}
+            <code className="rounded bg-background px-1 py-0.5 text-xs">
               {codexLink}
             </code>
             .
           </>
         )}
       </div>
-      {cta && <div className='mt-4 flex justify-center'>{cta}</div>}
+      {cta && <div className="mt-4 flex justify-center">{cta}</div>}
     </div>
-  )
+  );
 }

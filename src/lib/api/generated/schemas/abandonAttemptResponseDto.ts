@@ -1,14 +1,11 @@
-
-
-import type { AbandonAttemptResponseDtoStatus } from './abandonAttemptResponseDtoStatus';
+import type { AbandonAttemptResponseDtoStatus } from "./abandonAttemptResponseDtoStatus";
 
 export interface AbandonAttemptResponseDto {
+  attemptId: string;
 
-attemptId: string;
+  status: AbandonAttemptResponseDtoStatus;
 
-status: AbandonAttemptResponseDtoStatus;
+  finishedAt: string;
 
-finishedAt: string;
-
-message: string;
+  message: string;
 }

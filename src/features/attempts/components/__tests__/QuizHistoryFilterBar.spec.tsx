@@ -1,153 +1,149 @@
-
-
-import { afterEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 
 import {
-QuizHistoryFilterBar,
-type QuizHistoryFilterBarProps,
-} from '@/features/attempts/components/QuizHistoryFilterBar';
-import type { AttemptHistoryFilters } from '@/features/attempts/types/attempt-history.types';
-import {
-DEFAULT_ATTEMPT_HISTORY_FILTERS,
-} from '@/features/attempts/types/attempt-history.types';
+  QuizHistoryFilterBar,
+  type QuizHistoryFilterBarProps,
+} from "@/features/attempts/components/QuizHistoryFilterBar";
+import type { AttemptHistoryFilters } from "@/features/attempts/types/attempt-history.types";
+import { DEFAULT_ATTEMPT_HISTORY_FILTERS } from "@/features/attempts/types/attempt-history.types";
 
 afterEach(() => {
-cleanup();
+  cleanup();
 });
 
 function makeFilters(
-overrides: Partial<AttemptHistoryFilters> = {},
+  overrides: Partial<AttemptHistoryFilters> = {},
 ): AttemptHistoryFilters {
-return {
-status: 'all',
-dateRange: 'all',
-search: '',
-cursor: null,
-...overrides,
+  return {
+    status: "all",
+    dateRange: "all",
+    search: "",
+    cursor: null,
+    ...overrides,
   };
 }
 
 function renderFilterBar(props: Partial<QuizHistoryFilterBarProps> = {}) {
-const filters = makeFilters(props.filters);
-const onFilterChange = props.onFilterChange ?? vi.fn();
-const onReset = props.onReset ?? vi.fn();
+  const filters = makeFilters(props.filters);
+  const onFilterChange = props.onFilterChange ?? vi.fn();
+  const onReset = props.onReset ?? vi.fn();
 
-return {
-...render(
-<QuizHistoryFilterBar
-filters={filters}
-onFilterChange={onFilterChange}
-onReset={onReset}
+  return {
+    ...render(
+      <QuizHistoryFilterBar
+        filters={filters}
+        onFilterChange={onFilterChange}
+        onReset={onReset}
       />,
     ),
-onFilterChange,
-onReset,
+    onFilterChange,
+    onReset,
   };
 }
 
-describe('QuizHistoryFilterBar — rendering', () => {
-it('renders the status dropdown', () => {
-renderFilterBar();
-expect(
-screen.getByTestId('quiz-history-filter-status-trigger'),
+describe("QuizHistoryFilterBar — rendering", () => {
+  it("renders the status dropdown", () => {
+    renderFilterBar();
+    expect(
+      screen.getByTestId("quiz-history-filter-status-trigger"),
     ).toBeInTheDocument();
   });
 
-it('renders the date-range dropdown', () => {
-renderFilterBar();
-expect(
-screen.getByTestId('quiz-history-filter-date-trigger'),
+  it("renders the date-range dropdown", () => {
+    renderFilterBar();
+    expect(
+      screen.getByTestId("quiz-history-filter-date-trigger"),
     ).toBeInTheDocument();
   });
 
-it('renders the search input', () => {
-renderFilterBar();
-expect(
-screen.getByTestId('quiz-history-filter-search-input'),
+  it("renders the search input", () => {
+    renderFilterBar();
+    expect(
+      screen.getByTestId("quiz-history-filter-search-input"),
     ).toBeInTheDocument();
   });
 
-it('renders the reset button', () => {
-renderFilterBar();
-expect(screen.getByTestId('quiz-history-filter-reset')).toBeInTheDocument();
+  it("renders the reset button", () => {
+    renderFilterBar();
+    expect(screen.getByTestId("quiz-history-filter-reset")).toBeInTheDocument();
   });
 });
 
-describe('QuizHistoryFilterBar — controls', () => {
-it('displays the current status value in the dropdown', () => {
-renderFilterBar({ filters: makeFilters({ status: 'completed' }) });
-expect(
-screen.getByTestId('quiz-history-filter-status-trigger'),
-    ).toHaveTextContent('Completed');
+describe("QuizHistoryFilterBar — controls", () => {
+  it("displays the current status value in the dropdown", () => {
+    renderFilterBar({ filters: makeFilters({ status: "completed" }) });
+    expect(
+      screen.getByTestId("quiz-history-filter-status-trigger"),
+    ).toHaveTextContent("Completed");
   });
 
-it('displays the current date-range value in the dropdown', () => {
-renderFilterBar({ filters: makeFilters({ dateRange: 'last_7_days' }) });
-expect(
-screen.getByTestId('quiz-history-filter-date-trigger'),
-    ).toHaveTextContent('Last 7 days');
+  it("displays the current date-range value in the dropdown", () => {
+    renderFilterBar({ filters: makeFilters({ dateRange: "last_7_days" }) });
+    expect(
+      screen.getByTestId("quiz-history-filter-date-trigger"),
+    ).toHaveTextContent("Last 7 days");
   });
 
-it('displays the current search value in the input', () => {
-renderFilterBar({ filters: makeFilters({ search: 'my quiz' }) });
-expect(
-screen.getByTestId('quiz-history-filter-search-input'),
-    ).toHaveValue('my quiz');
-  });
-});
-
-describe('QuizHistoryFilterBar — onFilterChange', () => {
-it('calls onFilterChange when the search input changes', () => {
-const { onFilterChange } = renderFilterBar();
-const input = screen.getByTestId('quiz-history-filter-search-input');
-
-fireEvent.change(input, { target: { value: 'test quiz' } });
-
-expect(onFilterChange).toHaveBeenCalledWith('search', 'test quiz');
-  });
-
-it('onFilterChange is called on every keystroke (not just on blur)', () => {
-const { onFilterChange } = renderFilterBar();
-const input = screen.getByTestId('quiz-history-filter-search-input');
-
-fireEvent.change(input, { target: { value: 'a' } });
-fireEvent.change(input, { target: { value: 'ab' } });
-fireEvent.change(input, { target: { value: 'abc' } });
-
-expect(onFilterChange).toHaveBeenCalledTimes(3);
-expect(onFilterChange).toHaveBeenLastCalledWith('search', 'abc');
+  it("displays the current search value in the input", () => {
+    renderFilterBar({ filters: makeFilters({ search: "my quiz" }) });
+    expect(screen.getByTestId("quiz-history-filter-search-input")).toHaveValue(
+      "my quiz",
+    );
   });
 });
 
-describe('QuizHistoryFilterBar — reset', () => {
-it('calls onReset when the reset button is clicked', () => {
-const { onReset } = renderFilterBar({
-filters: makeFilters({ status: 'completed' }),
-    });
-const btn = screen.getByTestId('quiz-history-filter-reset');
+describe("QuizHistoryFilterBar — onFilterChange", () => {
+  it("calls onFilterChange when the search input changes", () => {
+    const { onFilterChange } = renderFilterBar();
+    const input = screen.getByTestId("quiz-history-filter-search-input");
 
-fireEvent.click(btn);
+    fireEvent.change(input, { target: { value: "test quiz" } });
 
-expect(onReset).toHaveBeenCalledTimes(1);
+    expect(onFilterChange).toHaveBeenCalledWith("search", "test quiz");
   });
 
-it('reset button is disabled when no filters are active', () => {
-renderFilterBar({ filters: DEFAULT_ATTEMPT_HISTORY_FILTERS });
-expect(screen.getByTestId('quiz-history-filter-reset')).toBeDisabled();
+  it("onFilterChange is called on every keystroke (not just on blur)", () => {
+    const { onFilterChange } = renderFilterBar();
+    const input = screen.getByTestId("quiz-history-filter-search-input");
+
+    fireEvent.change(input, { target: { value: "a" } });
+    fireEvent.change(input, { target: { value: "ab" } });
+    fireEvent.change(input, { target: { value: "abc" } });
+
+    expect(onFilterChange).toHaveBeenCalledTimes(3);
+    expect(onFilterChange).toHaveBeenLastCalledWith("search", "abc");
+  });
+});
+
+describe("QuizHistoryFilterBar — reset", () => {
+  it("calls onReset when the reset button is clicked", () => {
+    const { onReset } = renderFilterBar({
+      filters: makeFilters({ status: "completed" }),
+    });
+    const btn = screen.getByTestId("quiz-history-filter-reset");
+
+    fireEvent.click(btn);
+
+    expect(onReset).toHaveBeenCalledTimes(1);
   });
 
-it('reset button is enabled when status is non-default', () => {
-renderFilterBar({
-filters: makeFilters({ status: 'completed' }),
-    });
-expect(screen.getByTestId('quiz-history-filter-reset')).toBeEnabled();
+  it("reset button is disabled when no filters are active", () => {
+    renderFilterBar({ filters: DEFAULT_ATTEMPT_HISTORY_FILTERS });
+    expect(screen.getByTestId("quiz-history-filter-reset")).toBeDisabled();
   });
 
-it('reset button is enabled when search is non-empty', () => {
-renderFilterBar({
-filters: makeFilters({ search: 'something' }),
+  it("reset button is enabled when status is non-default", () => {
+    renderFilterBar({
+      filters: makeFilters({ status: "completed" }),
     });
-expect(screen.getByTestId('quiz-history-filter-reset')).toBeEnabled();
+    expect(screen.getByTestId("quiz-history-filter-reset")).toBeEnabled();
+  });
+
+  it("reset button is enabled when search is non-empty", () => {
+    renderFilterBar({
+      filters: makeFilters({ search: "something" }),
+    });
+    expect(screen.getByTestId("quiz-history-filter-reset")).toBeEnabled();
   });
 });

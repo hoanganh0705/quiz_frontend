@@ -109,7 +109,10 @@ export function InstanceCard({ instance, className }: InstanceCardProps) {
           {/* Quiz title */}
           <div>
             <h3 className="font-semibold text-lg line-clamp-2 leading-snug group-hover:text-brand transition-colors">
-              <Link href={roomUrl} className="focus:outline-none focus:underline">
+              <Link
+                href={roomUrl}
+                className="focus:outline-none focus:underline"
+              >
                 {quizTitle || "Untitled Quiz"}
               </Link>
             </h3>
@@ -117,7 +120,10 @@ export function InstanceCard({ instance, className }: InstanceCardProps) {
 
           {/* Metadata: Host & Players */}
           <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-muted-foreground pt-1">
-            <span className="inline-flex items-center gap-1.5" title={`Host: ${hostName}`}>
+            <span
+              className="inline-flex items-center gap-1.5"
+              title={`Host: ${hostName}`}
+            >
               <Crown className="h-3.5 w-3.5 text-amber-500" />
               <span className="truncate max-w-32">{hostName}</span>
             </span>

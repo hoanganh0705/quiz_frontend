@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { TournamentAdminRouteHandoff } from './_components/TournamentAdminRouteHandoff';
+import { TournamentAdminRouteHandoff } from "./_components/TournamentAdminRouteHandoff";
 
 export default function AdminTournamentsPage() {
-return <TournamentAdminRouteHandoff />;
+  return <TournamentAdminRouteHandoff />;
 }

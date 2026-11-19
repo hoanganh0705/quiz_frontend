@@ -1,8 +1,5 @@
-
-
-import type { DailyChallengeControllerGetLeaderboardPeriod } from './dailyChallengeControllerGetLeaderboardPeriod';
+import type { DailyChallengeControllerGetLeaderboardPeriod } from "./dailyChallengeControllerGetLeaderboardPeriod";
 
 export type DailyChallengeControllerGetLeaderboardParams = {
-
-period?: DailyChallengeControllerGetLeaderboardPeriod;
+  period?: DailyChallengeControllerGetLeaderboardPeriod;
 };

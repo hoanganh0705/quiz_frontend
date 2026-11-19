@@ -1,10 +1,7 @@
-
-
 export interface SocialCountsDto {
+  friendCount: number;
 
-friendCount: number;
+  followerCount: number;
 
-followerCount: number;
-
-followingCount: number;
+  followingCount: number;
 }

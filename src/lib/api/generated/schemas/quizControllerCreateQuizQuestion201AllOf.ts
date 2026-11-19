@@ -1,7 +1,5 @@
-
-
-import type { QuizQuestionAuthorDto } from './quizQuestionAuthorDto';
+import type { QuizQuestionAuthorDto } from "./quizQuestionAuthorDto";
 
 export type QuizControllerCreateQuizQuestion201AllOf = {
-data?: QuizQuestionAuthorDto;
+  data?: QuizQuestionAuthorDto;
 };

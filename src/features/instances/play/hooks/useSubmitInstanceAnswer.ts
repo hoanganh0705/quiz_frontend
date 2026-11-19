@@ -20,7 +20,11 @@ export interface UseSubmitInstanceAnswerResult {
   submit: (optionId: string) => Promise<void>;
   state: AnswerSubmissionState;
   lastError: ApiError | null;
-  submission: { questionId: string; submittedAt: string; accepted: boolean } | null;
+  submission: {
+    questionId: string;
+    submittedAt: string;
+    accepted: boolean;
+  } | null;
   selectedOptionId: string | null;
   canSubmit: boolean;
   reset: () => void;

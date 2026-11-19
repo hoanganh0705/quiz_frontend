@@ -1,101 +1,98 @@
+"use client";
 
-
-'use client';
-
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import {
-mapAvailabilityError,
-type AvailabilityStatus,
-} from '@/features/auth/errors/register-error-mapper';
+  mapAvailabilityError,
+  type AvailabilityStatus,
+} from "@/features/auth/errors/register-error-mapper";
 
 export interface UseAvailabilityCheckInput<TResult> {
+  value: string;
 
-value: string;
+  enabled?: boolean;
 
-enabled?: boolean;
+  isWellFormed: (value: string) => boolean;
 
-isWellFormed: (value: string) => boolean;
+  debounceMs?: number;
 
-debounceMs?: number;
+  check: (value: string) => Promise<TResult>;
 
-check: (value: string) => Promise<TResult>;
-
-isAvailable: (result: TResult) => boolean;
+  isAvailable: (result: TResult) => boolean;
 }
 
 export interface UseAvailabilityCheckResult {
-status: AvailabilityStatus;
+  status: AvailabilityStatus;
 
-debouncedValue: string;
+  debouncedValue: string;
 }
 
 const DEFAULT_DEBOUNCE_MS = 350;
 
 export function useAvailabilityCheck<TResult>({
-value,
-enabled = true,
-isWellFormed,
-debounceMs = DEFAULT_DEBOUNCE_MS,
-check,
-isAvailable,
+  value,
+  enabled = true,
+  isWellFormed,
+  debounceMs = DEFAULT_DEBOUNCE_MS,
+  check,
+  isAvailable,
 }: UseAvailabilityCheckInput<TResult>): UseAvailabilityCheckResult {
-const [status, setStatus] = useState<AvailabilityStatus>('idle');
-const [debouncedValue, setDebouncedValue] = useState<string>('');
+  const [status, setStatus] = useState<AvailabilityStatus>("idle");
+  const [debouncedValue, setDebouncedValue] = useState<string>("");
 
-const tokenRef = useRef(0);
+  const tokenRef = useRef(0);
 
-const controllerRef = useRef<AbortController | null>(null);
+  const controllerRef = useRef<AbortController | null>(null);
 
-const shouldFire = useMemo<boolean>(
-() => enabled && isWellFormed(value),
-[enabled, value, isWellFormed],
+  const shouldFire = useMemo<boolean>(
+    () => enabled && isWellFormed(value),
+    [enabled, value, isWellFormed],
   );
 
-useEffect(() => {
-if (!shouldFire) {
-if (controllerRef.current) controllerRef.current.abort();
-controllerRef.current = null;
+  useEffect(() => {
+    if (!shouldFire) {
+      if (controllerRef.current) controllerRef.current.abort();
+      controllerRef.current = null;
 
-setDebouncedValue('');
-setStatus('idle');
+      setDebouncedValue("");
+      setStatus("idle");
 
-return;
+      return;
     }
 
-const token = ++tokenRef.current;
+    const token = ++tokenRef.current;
 
-const timer = window.setTimeout(() => {
-const controller = new AbortController();
-controllerRef.current = controller;
+    const timer = window.setTimeout(() => {
+      const controller = new AbortController();
+      controllerRef.current = controller;
 
-setDebouncedValue(value);
-setStatus('checking');
+      setDebouncedValue(value);
+      setStatus("checking");
 
-check(value)
+      check(value)
         .then((result) => {
-if (tokenRef.current !== token) return;
-if (controller.signal.aborted) return;
-setStatus(isAvailable(result) ? 'available' : 'unavailable');
+          if (tokenRef.current !== token) return;
+          if (controller.signal.aborted) return;
+          setStatus(isAvailable(result) ? "available" : "unavailable");
         })
         .catch((err: unknown) => {
-if (tokenRef.current !== token) return;
-if (controller.signal.aborted) return;
-setStatus(mapAvailabilityError(err));
+          if (tokenRef.current !== token) return;
+          if (controller.signal.aborted) return;
+          setStatus(mapAvailabilityError(err));
         })
         .finally(() => {
-if (controllerRef.current === controller) {
-controllerRef.current = null;
+          if (controllerRef.current === controller) {
+            controllerRef.current = null;
           }
         });
     }, debounceMs);
 
-return () => {
-window.clearTimeout(timer);
-if (controllerRef.current) controllerRef.current.abort();
-controllerRef.current = null;
+    return () => {
+      window.clearTimeout(timer);
+      if (controllerRef.current) controllerRef.current.abort();
+      controllerRef.current = null;
     };
   }, [value, shouldFire, debounceMs, check, isAvailable]);
 
-return { status, debouncedValue };
+  return { status, debouncedValue };
 }

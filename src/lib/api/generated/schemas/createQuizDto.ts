@@ -9,7 +9,7 @@
  * `ASSET_NOT_OWNED`.
  */
 
-import type { CreateInitialQuizVersionDto } from './createInitialQuizVersionDto';
+import type { CreateInitialQuizVersionDto } from "./createInitialQuizVersionDto";
 
 export interface CreateQuizDto {
   title: string;

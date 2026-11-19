@@ -1,10 +1,7 @@
-
-
-import type { BlockedUserDtoReason } from './blockedUserDtoReason';
+import type { BlockedUserDtoReason } from "./blockedUserDtoReason";
 
 export interface BlockedUserDto {
+  blockedId: string;
 
-blockedId: string;
-
-reason?: BlockedUserDtoReason;
+  reason?: BlockedUserDtoReason;
 }

@@ -1,8 +1,5 @@
-
-
 export interface AttemptStatsFavoriteCategoryDto {
+  categoryId: string;
 
-categoryId: string;
-
-name: string;
+  name: string;
 }

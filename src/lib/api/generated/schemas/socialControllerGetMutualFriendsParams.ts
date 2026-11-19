@@ -1,8 +1,5 @@
-
-
 export type SocialControllerGetMutualFriendsParams = {
+  cursor?: string;
 
-cursor?: string;
-
-limit?: number;
+  limit?: number;
 };

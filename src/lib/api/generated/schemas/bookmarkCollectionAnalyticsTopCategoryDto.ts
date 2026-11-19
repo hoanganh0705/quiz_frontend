@@ -1,12 +1,9 @@
-
-
 export interface BookmarkCollectionAnalyticsTopCategoryDto {
+  categoryId: string;
 
-categoryId: string;
+  name: string;
 
-name: string;
+  slug: string;
 
-slug: string;
-
-bookmarkCount: number;
+  bookmarkCount: number;
 }

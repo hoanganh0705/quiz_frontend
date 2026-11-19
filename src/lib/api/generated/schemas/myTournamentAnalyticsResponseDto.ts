@@ -1,24 +1,21 @@
-
-
 export interface MyTournamentAnalyticsResponseDto {
+  tournamentsPlayed: number;
 
-tournamentsPlayed: number;
+  wins: number;
 
-wins: number;
+  top3Finishes: number;
 
-top3Finishes: number;
+  top10Finishes: number;
 
-top10Finishes: number;
+  averageRank?: number | null;
 
-averageRank?: number | null;
+  bestRank?: number | null;
 
-bestRank?: number | null;
+  averageScore: number;
 
-averageScore: number;
+  totalTournamentScore: number;
 
-totalTournamentScore: number;
+  completionRate: number;
 
-completionRate: number;
-
-lastTournamentAt?: string | null;
+  lastTournamentAt?: string | null;
 }

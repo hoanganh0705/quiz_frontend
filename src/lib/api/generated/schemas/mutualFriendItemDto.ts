@@ -1,15 +1,12 @@
-
-
-import type { MutualFriendItemDtoDisplayName } from './mutualFriendItemDtoDisplayName';
-import type { MutualFriendItemDtoAvatarUrl } from './mutualFriendItemDtoAvatarUrl';
+import type { MutualFriendItemDtoDisplayName } from "./mutualFriendItemDtoDisplayName";
+import type { MutualFriendItemDtoAvatarUrl } from "./mutualFriendItemDtoAvatarUrl";
 
 export interface MutualFriendItemDto {
+  userId: string;
 
-userId: string;
+  username: string;
 
-username: string;
+  displayName?: MutualFriendItemDtoDisplayName;
 
-displayName?: MutualFriendItemDtoDisplayName;
-
-avatarUrl?: MutualFriendItemDtoAvatarUrl;
+  avatarUrl?: MutualFriendItemDtoAvatarUrl;
 }

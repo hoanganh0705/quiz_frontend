@@ -1,10 +1,7 @@
-
-
-import type { WinnerSummaryDto } from './winnerSummaryDto';
+import type { WinnerSummaryDto } from "./winnerSummaryDto";
 
 export interface RecentWinnersResponseDto {
+  winners: WinnerSummaryDto[];
 
-winners: WinnerSummaryDto[];
-
-lastUpdated: string;
+  lastUpdated: string;
 }

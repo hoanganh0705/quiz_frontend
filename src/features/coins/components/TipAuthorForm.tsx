@@ -20,7 +20,8 @@ export interface TipAuthorFormProps {
 
 const INTEGER_FORMAT = new Intl.NumberFormat("en-US");
 
-const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const UUID_PATTERN =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 /**
  * `<TipAuthorForm />` — Phase 5.2 spend form.
@@ -75,7 +76,10 @@ export function TipAuthorForm({
       setValidationError("You can't tip yourself.");
       return;
     }
-    if (quizIdValue.trim().length > 0 && !UUID_PATTERN.test(quizIdValue.trim())) {
+    if (
+      quizIdValue.trim().length > 0 &&
+      !UUID_PATTERN.test(quizIdValue.trim())
+    ) {
       setValidationError("Quiz id, if provided, must be a UUID.");
       return;
     }
@@ -91,13 +95,7 @@ export function TipAuthorForm({
       `tip:${currentUser?.userId ?? "anon"}:${trimmedRecipient}:${quizIdValue.trim() || "no-quiz"}`,
     );
     setOpen(false);
-  }, [
-    recipientUserId,
-    currentUser,
-    quizIdValue,
-    message,
-    tip,
-  ]);
+  }, [recipientUserId, currentUser, quizIdValue, message, tip]);
 
   const disabledReason = isPlaceholder
     ? "Coin spend is in preview mode."
@@ -115,7 +113,8 @@ export function TipAuthorForm({
     <Card data-testid="tip-author-form-card">
       <CardContent className="p-5 space-y-4">
         <p className="text-sm text-muted-foreground">
-          Send {INTEGER_FORMAT.format(cost)} coins to another user as a thank-you.
+          Send {INTEGER_FORMAT.format(cost)} coins to another user as a
+          thank-you.
         </p>
 
         <div className="space-y-1.5">
@@ -168,7 +167,10 @@ export function TipAuthorForm({
         ) : null}
 
         {disabledReason ? (
-          <p className="text-xs text-muted-foreground" data-testid="tip-disabled-reason">
+          <p
+            className="text-xs text-muted-foreground"
+            data-testid="tip-disabled-reason"
+          >
             {disabledReason}
           </p>
         ) : null}

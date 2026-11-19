@@ -1,26 +1,23 @@
-
-
-import type { InstanceLeaderboardEntryDtoStatus } from './instanceLeaderboardEntryDtoStatus';
+import type { InstanceLeaderboardEntryDtoStatus } from "./instanceLeaderboardEntryDtoStatus";
 
 export interface InstanceLeaderboardEntryDto {
+  rank: number;
 
-rank: number;
+  instancePlayerId: string;
 
-instancePlayerId: string;
+  userId: string;
 
-userId: string;
+  username: string;
 
-username: string;
+  displayName?: string | null;
 
-displayName?: string | null;
+  avatarUrl?: string | null;
 
-avatarUrl?: string | null;
+  status: InstanceLeaderboardEntryDtoStatus;
 
-status: InstanceLeaderboardEntryDtoStatus;
+  scorePercent?: number | null;
 
-scorePercent?: number | null;
+  correctCount?: number | null;
 
-correctCount?: number | null;
-
-timeTakenMs?: number | null;
+  timeTakenMs?: number | null;
 }

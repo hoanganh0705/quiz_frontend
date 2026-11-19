@@ -1,10 +1,7 @@
-
-
 export interface ModerationResultDto {
+  commentId: string;
 
-commentId: string;
+  isHidden: boolean;
 
-isHidden: boolean;
-
-changed: boolean;
+  changed: boolean;
 }

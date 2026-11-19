@@ -1,7 +1,5 @@
-
-
-import type { UpdateCollectionResponseDto } from './updateCollectionResponseDto';
+import type { UpdateCollectionResponseDto } from "./updateCollectionResponseDto";
 
 export type BookmarkControllerUpdateCollection200AllOf = {
-data?: UpdateCollectionResponseDto;
+  data?: UpdateCollectionResponseDto;
 };

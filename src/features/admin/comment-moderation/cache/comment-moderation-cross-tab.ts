@@ -1,105 +1,102 @@
-
-
-import { createBroadcastChannel } from '@/lib/broadcast';
+import { createBroadcastChannel } from "@/lib/broadcast";
 
 import {
-invalidateCommentById,
-invalidateCommentReportsList,
-} from './comment-moderation-cache-keys';
+  invalidateCommentById,
+  invalidateCommentReportsList,
+} from "./comment-moderation-cache-keys";
 
 export const COMMENT_MODERATION_CHANNEL_NAME =
-'phase7-admin-comment-moderation' as const;
+  "admin-comment-moderation" as const;
 
-export type CommentModerationEventType =
-'admin:7.1.comment-moderation.invalidate';
+export type CommentModerationEventType = "admin:comment-moderation.invalidate";
 
-export type CommentModerationMutation = 'resolve' | 'hide' | 'restore';
+export type CommentModerationMutation = "resolve" | "hide" | "restore";
 
 const COMMENT_MODERATION_VALID_MUTATIONS = new Set<CommentModerationMutation>([
-'resolve',
-'hide',
-'restore',
+  "resolve",
+  "hide",
+  "restore",
 ]);
 
 export interface BaseCommentModerationEvent {
-type: CommentModerationEventType;
+  type: CommentModerationEventType;
 
-tabId: string;
+  tabId: string;
 
-timestamp: number;
+  timestamp: number;
 
-action: CommentModerationMutation;
+  action: CommentModerationMutation;
 
-reportId: string | null;
+  reportId: string | null;
 
-commentId: string;
+  commentId: string;
 }
 
-export interface CommentModerationInvalidatedEvent
-extends BaseCommentModerationEvent {
-type: 'admin:7.1.comment-moderation.invalidate';
+export interface CommentModerationInvalidatedEvent extends BaseCommentModerationEvent {
+  type: "admin:comment-moderation.invalidate";
 }
 
 export type CommentModerationEvent = CommentModerationInvalidatedEvent;
 
 const commentModerationChannel = createBroadcastChannel<CommentModerationEvent>(
-COMMENT_MODERATION_CHANNEL_NAME,
-{
-validate: (data): CommentModerationEvent | null => {
-if (typeof data !== 'object' || data === null) return null;
-const d = data as Partial<CommentModerationInvalidatedEvent>;
-if (d.type !== 'admin:7.1.comment-moderation.invalidate') return null;
-if (typeof d.tabId !== 'string' || d.tabId.length === 0) return null;
-if (typeof d.timestamp !== 'number') return null;
-if (
-typeof d.action !== 'string' ||
-!COMMENT_MODERATION_VALID_MUTATIONS.has(d.action as CommentModerationMutation)
+  COMMENT_MODERATION_CHANNEL_NAME,
+  {
+    validate: (data): CommentModerationEvent | null => {
+      if (typeof data !== "object" || data === null) return null;
+      const d = data as Partial<CommentModerationInvalidatedEvent>;
+      if (d.type !== "admin:comment-moderation.invalidate") return null;
+      if (typeof d.tabId !== "string" || d.tabId.length === 0) return null;
+      if (typeof d.timestamp !== "number") return null;
+      if (
+        typeof d.action !== "string" ||
+        !COMMENT_MODERATION_VALID_MUTATIONS.has(
+          d.action as CommentModerationMutation,
+        )
       ) {
-return null;
+        return null;
       }
-if (typeof d.commentId !== 'string' || d.commentId.length === 0) {
-return null;
+      if (typeof d.commentId !== "string" || d.commentId.length === 0) {
+        return null;
       }
 
-if (d.reportId !== null && typeof d.reportId !== 'string') return null;
-return d as CommentModerationEvent;
+      if (d.reportId !== null && typeof d.reportId !== "string") return null;
+      return d as CommentModerationEvent;
     },
   },
 );
 
 export function getCommentModerationChannel(): BroadcastChannel | null {
-return commentModerationChannel.getChannel();
+  return commentModerationChannel.getChannel();
 }
 
 export function initCommentModerationChannel(): BroadcastChannel | null {
-return commentModerationChannel.ensureChannel();
+  return commentModerationChannel.ensureChannel();
 }
 
 export function closeCommentModerationChannel(): void {
-commentModerationChannel.closeChannel();
+  commentModerationChannel.closeChannel();
 }
 
 export function subscribeCommentModerationInvalidate(
-handler: (event: CommentModerationEvent) => void,
+  handler: (event: CommentModerationEvent) => void,
 ): () => void {
-return commentModerationChannel.subscribe(handler);
+  return commentModerationChannel.subscribe(handler);
 }
 
 export function broadcastCommentModerationInvalidate(
-action: CommentModerationMutation,
-reportId: string | undefined,
-commentId: string,
+  action: CommentModerationMutation,
+  reportId: string | undefined,
+  commentId: string,
 ): void {
-if (!commentId || typeof commentId !== 'string') {
-
-return;
+  if (!commentId || typeof commentId !== "string") {
+    return;
   }
-if (!COMMENT_MODERATION_VALID_MUTATIONS.has(action)) return;
-commentModerationChannel.publish({
-type: 'admin:7.1.comment-moderation.invalidate',
-action,
-reportId:
-typeof reportId === 'string' && reportId.length > 0 ? reportId : null,
-commentId,
+  if (!COMMENT_MODERATION_VALID_MUTATIONS.has(action)) return;
+  commentModerationChannel.publish({
+    type: "admin:comment-moderation.invalidate",
+    action,
+    reportId:
+      typeof reportId === "string" && reportId.length > 0 ? reportId : null,
+    commentId,
   });
 }

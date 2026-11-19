@@ -10,56 +10,60 @@ import { getFeatureFlagValue } from "@/lib/feature-flags";
 import { usePrefersReducedMotion } from "@/shared/hooks";
 
 import {
-useTournamentRegistration,
-type UseTournamentRegistrationResult,
+  useTournamentRegistration,
+  type UseTournamentRegistrationResult,
 } from "@/features/tournaments/hooks";
-import {
-RegistrationErrorBanner,
-} from "@/features/tournaments/components/shared/RegistrationErrorBanner";
+import { RegistrationErrorBanner } from "@/features/tournaments/components/shared/RegistrationErrorBanner";
 import { WithdrawDialog } from "@/features/tournaments/components/shared/WithdrawDialog";
 
 export interface TournamentRegistrationCtaProps {
+  tournamentId: string;
 
-tournamentId: string;
+  tournamentName?: string;
 
-tournamentName?: string;
-
-className?: string;
+  className?: string;
 }
 
 function getCtaState(params: {
-isAuthenticated: boolean;
-isLoading: boolean;
-isRegistered: boolean;
-isEligible: boolean;
-registerState: UseTournamentRegistrationResult["registerState"];
-withdrawState: UseTournamentRegistrationResult["withdrawState"];
+  isAuthenticated: boolean;
+  isLoading: boolean;
+  isRegistered: boolean;
+  isEligible: boolean;
+  registerState: UseTournamentRegistrationResult["registerState"];
+  withdrawState: UseTournamentRegistrationResult["withdrawState"];
 }): {
-variant: "signIn" | "register" | "withdraw" | "none";
-disabled: boolean;
-pending: boolean;
+  variant: "signIn" | "register" | "withdraw" | "none";
+  disabled: boolean;
+  pending: boolean;
 } {
-const { isAuthenticated, isLoading, isRegistered, isEligible, registerState, withdrawState } = params;
+  const {
+    isAuthenticated,
+    isLoading,
+    isRegistered,
+    isEligible,
+    registerState,
+    withdrawState,
+  } = params;
 
-if (isLoading) {
-return { variant: "none", disabled: true, pending: false };
+  if (isLoading) {
+    return { variant: "none", disabled: true, pending: false };
   }
 
-if (!isAuthenticated) {
-return { variant: "signIn", disabled: false, pending: false };
+  if (!isAuthenticated) {
+    return { variant: "signIn", disabled: false, pending: false };
   }
 
-if (!isEligible) {
-return { variant: "none", disabled: false, pending: false };
+  if (!isEligible) {
+    return { variant: "none", disabled: false, pending: false };
   }
 
-if (isRegistered) {
-const isPending = withdrawState === "pending";
-return { variant: "withdraw", disabled: isPending, pending: isPending };
+  if (isRegistered) {
+    const isPending = withdrawState === "pending";
+    return { variant: "withdraw", disabled: isPending, pending: isPending };
   }
 
-const isPending = registerState === "pending";
-return { variant: "register", disabled: isPending, pending: isPending };
+  const isPending = registerState === "pending";
+  return { variant: "register", disabled: isPending, pending: isPending };
 }
 
 export function TournamentRegistrationCta({
@@ -70,103 +74,109 @@ export function TournamentRegistrationCta({
   const prefersReducedMotion = usePrefersReducedMotion();
 
   const flagValue = getFeatureFlagValue("tournaments_live");
-const isFlagPlaceholder = flagValue === "placeholder";
+  const isFlagPlaceholder = flagValue === "placeholder";
 
-const { bootstrapState } = useAuthSession();
-const isAuthenticated = bootstrapState === "authenticated";
+  const { bootstrapState } = useAuthSession();
+  const isAuthenticated = bootstrapState === "authenticated";
 
-const {
-isRegistered,
-isEligible,
-isLoading,
-register,
-withdraw,
-registerState,
-withdrawState,
-registerError,
-withdrawError,
-reset,
+  const {
+    isRegistered,
+    isEligible,
+    isLoading,
+    register,
+    withdraw,
+    registerState,
+    withdrawState,
+    registerError,
+    withdrawError,
+    reset,
   } = useTournamentRegistration(tournamentId);
 
-const [showWithdrawDialog, setShowWithdrawDialog] = useState(false);
+  const [showWithdrawDialog, setShowWithdrawDialog] = useState(false);
 
-const ctaState = useMemo(() => {
-return getCtaState({
-isAuthenticated,
-isLoading,
-isRegistered,
-isEligible,
-registerState,
-withdrawState,
+  const ctaState = useMemo(() => {
+    return getCtaState({
+      isAuthenticated,
+      isLoading,
+      isRegistered,
+      isEligible,
+      registerState,
+      withdrawState,
     });
-  }, [isAuthenticated, isLoading, isRegistered, isEligible, registerState, withdrawState]);
+  }, [
+    isAuthenticated,
+    isLoading,
+    isRegistered,
+    isEligible,
+    registerState,
+    withdrawState,
+  ]);
 
-const currentError =
-registerState === "error"
-? registerError
-: withdrawState === "error"
-? withdrawError
-: null;
+  const currentError =
+    registerState === "error"
+      ? registerError
+      : withdrawState === "error"
+        ? withdrawError
+        : null;
 
-const handleSignIn = useCallback(() => {
-
-const returnUrl = encodeURIComponent(window.location.pathname);
-window.location.href = `/sign-in?returnUrl=${returnUrl}`;
+  const handleSignIn = useCallback(() => {
+    const returnUrl = encodeURIComponent(window.location.pathname);
+    window.location.href = `/sign-in?returnUrl=${returnUrl}`;
   }, []);
 
-const handleRegister = useCallback(async () => {
-await register();
+  const handleRegister = useCallback(async () => {
+    await register();
   }, [register]);
 
-const handleWithdrawClick = useCallback(() => {
-setShowWithdrawDialog(true);
+  const handleWithdrawClick = useCallback(() => {
+    setShowWithdrawDialog(true);
   }, []);
 
-const handleWithdrawConfirm = useCallback(async () => {
-setShowWithdrawDialog(false);
-await withdraw();
+  const handleWithdrawConfirm = useCallback(async () => {
+    setShowWithdrawDialog(false);
+    await withdraw();
   }, [withdraw]);
 
-const handleWithdrawCancel = useCallback(() => {
-setShowWithdrawDialog(false);
+  const handleWithdrawCancel = useCallback(() => {
+    setShowWithdrawDialog(false);
   }, []);
 
-const handleDismissError = useCallback(() => {
-reset();
+  const handleDismissError = useCallback(() => {
+    reset();
   }, [reset]);
 
-if (isFlagPlaceholder) {
-return null;
+  if (isFlagPlaceholder) {
+    return null;
   }
 
-if (ctaState.variant === "none") {
-return null;
+  if (ctaState.variant === "none") {
+    return null;
   }
 
-return (
-<div className={cn("flex flex-col gap-3", className)}>
-{/* Error banner */}
-{currentError && (
-<RegistrationErrorBanner
-error={currentError}
-onDismiss={handleDismissError}
+  return (
+    <div className={cn("flex flex-col gap-3", className)}>
+      {/* Error banner */}
+      {currentError && (
+        <RegistrationErrorBanner
+          error={currentError}
+          onDismiss={handleDismissError}
         />
       )}
 
-{/* CTA button */}
-{ctaState.variant === "signIn" && (
-<Button
-variant="default"
-size="lg"
-onClick={handleSignIn}
-className="w-full"
-data-testid="tournament-cta-sign-in"
+      {/* CTA button */}
+      {ctaState.variant === "signIn" && (
+        <Button
+          variant="default"
+          size="lg"
+          onClick={handleSignIn}
+          className="w-full"
+          data-testid="tournament-cta-sign-in"
         >
-Sign in to register
+          Sign in to register
         </Button>
       )}
 
-{ctaState.variant === "register" && (
+      {ctaState.variant === "register" && (
         <Button
           variant="default"
           size="lg"
@@ -177,9 +187,17 @@ Sign in to register
         >
           {ctaState.pending ? (
             <>
-              <LoaderCircle className={cn("h-4 w-4", !prefersReducedMotion && "animate-spin")} aria-hidden="true" />
+              <LoaderCircle
+                className={cn(
+                  "h-4 w-4",
+                  !prefersReducedMotion && "animate-spin",
+                )}
+                aria-hidden="true"
+              />
               <span>Registering...</span>
-              <span className="sr-only">Registering for {tournamentName ?? "tournament"}...</span>
+              <span className="sr-only">
+                Registering for {tournamentName ?? "tournament"}...
+              </span>
             </>
           ) : (
             "Register"
@@ -198,9 +216,17 @@ Sign in to register
         >
           {ctaState.pending ? (
             <>
-              <LoaderCircle className={cn("h-4 w-4", !prefersReducedMotion && "animate-spin")} aria-hidden="true" />
+              <LoaderCircle
+                className={cn(
+                  "h-4 w-4",
+                  !prefersReducedMotion && "animate-spin",
+                )}
+                aria-hidden="true"
+              />
               <span>Withdrawing...</span>
-              <span className="sr-only">Withdrawing from {tournamentName ?? "tournament"}...</span>
+              <span className="sr-only">
+                Withdrawing from {tournamentName ?? "tournament"}...
+              </span>
             </>
           ) : (
             "Withdraw"
@@ -208,14 +234,14 @@ Sign in to register
         </Button>
       )}
 
-{/* Withdraw confirmation dialog */}
-<WithdrawDialog
-open={showWithdrawDialog}
-tournamentName={tournamentName}
-onConfirm={handleWithdrawConfirm}
-onCancel={handleWithdrawCancel}
-loading={withdrawState === "pending"}
+      {/* Withdraw confirmation dialog */}
+      <WithdrawDialog
+        open={showWithdrawDialog}
+        tournamentName={tournamentName}
+        onConfirm={handleWithdrawConfirm}
+        onCancel={handleWithdrawCancel}
+        loading={withdrawState === "pending"}
       />
-</div>
+    </div>
   );
 }

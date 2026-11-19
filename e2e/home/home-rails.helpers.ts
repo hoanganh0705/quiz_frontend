@@ -2,25 +2,23 @@
  * `home-rails.helpers.ts` — shared stubbing + fixture helpers for the
  * `home-rails.spec.ts` (E1) and `home-rails.a11y.spec.ts` (E2) suites.
  *
- * Source epic: Story 3.7 — Featured / trending / popular rails on `/`.
- * Source tickets: TKT-3.7.E1 / TKT-3.7.E2.
  *
  * The helper centralises the three quiz endpoints + the categories
  * endpoint so the spec suites stay focused on assertions instead of
  * boilerplate. All shapes mirror the SDK wire shapes
- * (TKT-3.7.A1 §3).
+ *.
  */
 
-import type { Page, Request, Route } from '@playwright/test';
+import type { Page, Request, Route } from "@playwright/test";
 
 // ──────────────────────────────────────────────────────────────────────
 // Endpoints
 // ──────────────────────────────────────────────────────────────────────
 
-export const FEATURED_PATH = '**/api/v1/quizzes/featured*';
-export const TRENDING_PATH = '**/api/v1/quizzes/trending*';
-export const POPULAR_PATH = '**/api/v1/quizzes/popular*';
-export const CATEGORIES_PATH = '**/api/v1/categories/popular*';
+export const FEATURED_PATH = "**/api/v1/quizzes/featured*";
+export const TRENDING_PATH = "**/api/v1/quizzes/trending*";
+export const POPULAR_PATH = "**/api/v1/quizzes/popular*";
+export const CATEGORIES_PATH = "**/api/v1/categories/popular*";
 
 export const FEATURED_LIMIT = 6;
 export const TRENDING_LIMIT = 10;
@@ -79,8 +77,8 @@ export interface RankedCategory {
 
 export function makeFeaturedQuiz(i: number): QuizItem {
   return {
-    quizId: `0192f4d8-1000-7000-8000-${String(i).padStart(12, '0')}`,
-    creatorId: 'creator-1',
+    quizId: `0192f4d8-1000-7000-8000-${String(i).padStart(12, "0")}`,
+    creatorId: "creator-1",
     title: `Featured Quiz ${i}`,
     description: null,
     slug: `featured-quiz-${i}`,
@@ -92,8 +90,8 @@ export function makeFeaturedQuiz(i: number): QuizItem {
     isVerified: true,
     publishedVersionId: null,
     publishedVersion: null,
-    createdAt: '2026-07-01T00:00:00.000Z',
-    updatedAt: '2026-07-01T00:00:00.000Z',
+    createdAt: "2026-07-01T00:00:00.000Z",
+    updatedAt: "2026-07-01T00:00:00.000Z",
     tags: [],
   };
 }
@@ -101,8 +99,8 @@ export function makeFeaturedQuiz(i: number): QuizItem {
 export function makeTrendingQuiz(i: number): TrendingItem {
   return {
     rank: i,
-    quizId: `0192f4d8-2000-7000-8000-${String(i).padStart(12, '0')}`,
-    creatorId: 'creator-1',
+    quizId: `0192f4d8-2000-7000-8000-${String(i).padStart(12, "0")}`,
+    creatorId: "creator-1",
     title: `Trending Quiz ${i}`,
     description: null,
     slug: `trending-quiz-${i}`,
@@ -114,8 +112,8 @@ export function makeTrendingQuiz(i: number): TrendingItem {
     isVerified: false,
     publishedVersionId: null,
     publishedVersion: null,
-    createdAt: '2026-07-01T00:00:00.000Z',
-    updatedAt: '2026-07-01T00:00:00.000Z',
+    createdAt: "2026-07-01T00:00:00.000Z",
+    updatedAt: "2026-07-01T00:00:00.000Z",
     tags: [],
     trendingScore: 100 - i,
     totalAttempts: 1000 - i * 10,
@@ -126,8 +124,8 @@ export function makeTrendingQuiz(i: number): TrendingItem {
 export function makePopularQuiz(i: number): PopularItem {
   return {
     rank: i,
-    quizId: `0192f4d8-3000-7000-8000-${String(i).padStart(12, '0')}`,
-    creatorId: 'creator-1',
+    quizId: `0192f4d8-3000-7000-8000-${String(i).padStart(12, "0")}`,
+    creatorId: "creator-1",
     title: `Popular Quiz ${i}`,
     description: null,
     slug: `popular-quiz-${i}`,
@@ -139,8 +137,8 @@ export function makePopularQuiz(i: number): PopularItem {
     isVerified: false,
     publishedVersionId: null,
     publishedVersion: null,
-    createdAt: '2026-07-01T00:00:00.000Z',
-    updatedAt: '2026-07-01T00:00:00.000Z',
+    createdAt: "2026-07-01T00:00:00.000Z",
+    updatedAt: "2026-07-01T00:00:00.000Z",
     tags: [],
     popularityScore: 200 - i,
     totalAttempts: 5000 - i * 10,
@@ -151,7 +149,7 @@ export function makePopularQuiz(i: number): PopularItem {
 
 export function makeCategory(i: number): RankedCategory {
   return {
-    categoryId: `0192f4d8-4000-7000-8000-${String(i).padStart(12, '0')}`,
+    categoryId: `0192f4d8-4000-7000-8000-${String(i).padStart(12, "0")}`,
     name: `Category ${i}`,
     slug: `category-${i}`,
     rank: i,
@@ -195,13 +193,17 @@ export async function stubHomeRails(
     options.featuredItems ??
     (options.featuredEmpty
       ? []
-      : Array.from({ length: FEATURED_LIMIT }, (_, i) => makeFeaturedQuiz(i + 1)));
+      : Array.from({ length: FEATURED_LIMIT }, (_, i) =>
+          makeFeaturedQuiz(i + 1),
+        ));
 
   const trendingItems: TrendingItem[] =
     options.trendingItems ??
     (options.trendingEmpty
       ? []
-      : Array.from({ length: TRENDING_LIMIT }, (_, i) => makeTrendingQuiz(i + 1)));
+      : Array.from({ length: TRENDING_LIMIT }, (_, i) =>
+          makeTrendingQuiz(i + 1),
+        ));
 
   const popularItems: PopularItem[] =
     options.popularItems ??
@@ -212,24 +214,24 @@ export async function stubHomeRails(
     Array.from({ length: 3 }, (_, i) => makeCategory(i + 1));
 
   const requests: Request[] = [];
-  page.on('request', (request) => {
-    if (request.url().includes('/api/v1/')) requests.push(request);
+  page.on("request", (request) => {
+    if (request.url().includes("/api/v1/")) requests.push(request);
   });
 
   async function respond(route: Route, status: number, body: unknown) {
     await route.fulfill({
       status,
-      contentType: 'application/json',
+      contentType: "application/json",
       body: JSON.stringify(body),
     });
   }
 
   function errorBody(status: number) {
     return {
-      type: 'about:blank',
-      title: status === 503 ? 'Service Unavailable' : 'Internal Server Error',
+      type: "about:blank",
+      title: status === 503 ? "Service Unavailable" : "Internal Server Error",
       status,
-      extensions: { code: 'GLOBAL_INTERNAL_ERROR' },
+      extensions: { code: "GLOBAL_INTERNAL_ERROR" },
     };
   }
 

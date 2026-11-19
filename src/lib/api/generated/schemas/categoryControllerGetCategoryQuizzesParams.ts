@@ -1,14 +1,11 @@
-
-
-import type { CategoryControllerGetCategoryQuizzesDifficulty } from './categoryControllerGetCategoryQuizzesDifficulty';
+import type { CategoryControllerGetCategoryQuizzesDifficulty } from "./categoryControllerGetCategoryQuizzesDifficulty";
 
 export type CategoryControllerGetCategoryQuizzesParams = {
+  cursor?: string | null;
 
-cursor?: string | null;
+  limit?: number | null;
 
-limit?: number | null;
+  difficulty?: CategoryControllerGetCategoryQuizzesDifficulty;
 
-difficulty?: CategoryControllerGetCategoryQuizzesDifficulty;
-
-tagIds?: string[] | null;
+  tagIds?: string[] | null;
 };

@@ -1,205 +1,200 @@
-
-
 import { create } from "zustand";
 
 import type {
-InstanceLifecycleEvent,
-InstancePlayer,
-InstanceStatus,
-PlayerJoinEvent,
-PlayerLeaveEvent,
+  InstanceLifecycleEvent,
+  InstancePlayer,
+  InstanceStatus,
+  PlayerJoinEvent,
+  PlayerLeaveEvent,
 } from "../types/instance.types";
 
 export interface InstanceRealtimeEntry {
+  playersByUserId: Record<string, InstancePlayer>;
 
-playersByUserId: Record<string, InstancePlayer>;
+  lastEventSequence: number;
 
-lastEventSequence: number;
+  instanceStatus: InstanceStatus | null;
 
-instanceStatus: InstanceStatus | null;
+  countdownStartedAt: string | null;
 
-countdownStartedAt: string | null;
-
-closedAt: string | null;
+  closedAt: string | null;
 }
 
 export interface InstanceRealtimeState {
-entries: Record<string, InstanceRealtimeEntry>;
+  entries: Record<string, InstanceRealtimeEntry>;
 }
 
 export interface InstanceRealtimeActions {
+  applyPlayerJoined: (event: PlayerJoinEvent) => void;
 
-applyPlayerJoined: (event: PlayerJoinEvent) => void;
+  applyPlayerLeft: (event: PlayerLeaveEvent) => void;
 
-applyPlayerLeft: (event: PlayerLeaveEvent) => void;
+  applyLifecycleEvent: (event: InstanceLifecycleEvent) => void;
 
-applyLifecycleEvent: (event: InstanceLifecycleEvent) => void;
+  reset: (instanceId: string) => void;
 
-reset: (instanceId: string) => void;
-
-resetAll: () => void;
+  resetAll: () => void;
 }
 
-export type InstanceRealtimeStore =
-InstanceRealtimeState & InstanceRealtimeActions;
+export type InstanceRealtimeStore = InstanceRealtimeState &
+  InstanceRealtimeActions;
 
 const INITIAL_STATE: InstanceRealtimeState = {
-entries: {},
+  entries: {},
 };
 
 function ensureEntry(
-state: InstanceRealtimeState,
-instanceId: string,
+  state: InstanceRealtimeState,
+  instanceId: string,
 ): InstanceRealtimeEntry {
-const existing = state.entries[instanceId];
-if (existing !== undefined) return existing;
-return {
-playersByUserId: {},
-lastEventSequence: 0,
-instanceStatus: null,
-countdownStartedAt: null,
-closedAt: null,
+  const existing = state.entries[instanceId];
+  if (existing !== undefined) return existing;
+  return {
+    playersByUserId: {},
+    lastEventSequence: 0,
+    instanceStatus: null,
+    countdownStartedAt: null,
+    closedAt: null,
   };
 }
 
-function isStale(
-entry: InstanceRealtimeEntry,
-eventSequence: number,
-): boolean {
-if (typeof eventSequence !== "number" || eventSequence <= 0) {
-return false;
-}
-return eventSequence <= entry.lastEventSequence;
+function isStale(entry: InstanceRealtimeEntry, eventSequence: number): boolean {
+  if (typeof eventSequence !== "number" || eventSequence <= 0) {
+    return false;
+  }
+  return eventSequence <= entry.lastEventSequence;
 }
 
 export const useInstanceRealtimeStore = create<InstanceRealtimeStore>(
-(set) => ({
-...INITIAL_STATE,
+  (set) => ({
+    ...INITIAL_STATE,
 
-applyPlayerJoined: (event) => {
-set((state) => {
-const entry = ensureEntry(state, event.instanceId);
-if (isStale(entry, event.eventSequence)) return state;
+    applyPlayerJoined: (event) => {
+      set((state) => {
+        const entry = ensureEntry(state, event.instanceId);
+        if (isStale(entry, event.eventSequence)) return state;
 
-const nextPlayersByUserId = {
-...entry.playersByUserId,
-[event.player.id]: event.player,
+        const nextPlayersByUserId = {
+          ...entry.playersByUserId,
+          [event.player.id]: event.player,
         };
 
-return {
-entries: {
-...state.entries,
-[event.instanceId]: {
-...entry,
-playersByUserId: nextPlayersByUserId,
-lastEventSequence: event.eventSequence,
+        return {
+          entries: {
+            ...state.entries,
+            [event.instanceId]: {
+              ...entry,
+              playersByUserId: nextPlayersByUserId,
+              lastEventSequence: event.eventSequence,
             },
           },
         };
       });
     },
 
-applyPlayerLeft: (event) => {
-set((state) => {
-const entry = ensureEntry(state, event.instanceId);
-if (isStale(entry, event.eventSequence)) return state;
+    applyPlayerLeft: (event) => {
+      set((state) => {
+        const entry = ensureEntry(state, event.instanceId);
+        if (isStale(entry, event.eventSequence)) return state;
 
-const nextPlayersByUserId = { ...entry.playersByUserId };
-delete nextPlayersByUserId[event.playerId];
+        const nextPlayersByUserId = { ...entry.playersByUserId };
+        delete nextPlayersByUserId[event.playerId];
 
-return {
-entries: {
-...state.entries,
-[event.instanceId]: {
-...entry,
-playersByUserId: nextPlayersByUserId,
-lastEventSequence: event.eventSequence,
+        return {
+          entries: {
+            ...state.entries,
+            [event.instanceId]: {
+              ...entry,
+              playersByUserId: nextPlayersByUserId,
+              lastEventSequence: event.eventSequence,
             },
           },
         };
       });
     },
 
-applyLifecycleEvent: (event) => {
-set((state) => {
-const entry = ensureEntry(state, event.instanceId);
-if (isStale(entry, event.eventSequence)) return state;
+    applyLifecycleEvent: (event) => {
+      set((state) => {
+        const entry = ensureEntry(state, event.instanceId);
+        if (isStale(entry, event.eventSequence)) return state;
 
-const isTerminal =
-event.type === "instance_closed" || event.type === "instance_cancelled";
-const isCountdownStarted = event.type === "countdown_started";
-const isCountdownEnded =
-event.type === "countdown_cancelled" ||
-event.type === "instance_started" ||
-isTerminal;
+        const isTerminal =
+          event.type === "instance_closed" ||
+          event.type === "instance_cancelled";
+        const isCountdownStarted = event.type === "countdown_started";
+        const isCountdownEnded =
+          event.type === "countdown_cancelled" ||
+          event.type === "instance_started" ||
+          isTerminal;
 
-return {
-entries: {
-...state.entries,
-[event.instanceId]: {
-...entry,
-lastEventSequence:
-event.eventSequence > 0 ? event.eventSequence : entry.lastEventSequence + 1,
-instanceStatus:
-event.status ?? entry.instanceStatus ?? null,
-countdownStartedAt: isCountdownStarted
-? (event.countdownStartedAt ?? event.at)
-: isCountdownEnded
-? null
-: entry.countdownStartedAt,
-closedAt: isTerminal ? event.at : entry.closedAt,
+        return {
+          entries: {
+            ...state.entries,
+            [event.instanceId]: {
+              ...entry,
+              lastEventSequence:
+                event.eventSequence > 0
+                  ? event.eventSequence
+                  : entry.lastEventSequence + 1,
+              instanceStatus: event.status ?? entry.instanceStatus ?? null,
+              countdownStartedAt: isCountdownStarted
+                ? (event.countdownStartedAt ?? event.at)
+                : isCountdownEnded
+                  ? null
+                  : entry.countdownStartedAt,
+              closedAt: isTerminal ? event.at : entry.closedAt,
             },
           },
         };
       });
     },
 
-reset: (instanceId) => {
-set((state) => {
-if (state.entries[instanceId] === undefined) return state;
-const nextEntries = { ...state.entries };
-delete nextEntries[instanceId];
-return { entries: nextEntries };
+    reset: (instanceId) => {
+      set((state) => {
+        if (state.entries[instanceId] === undefined) return state;
+        const nextEntries = { ...state.entries };
+        delete nextEntries[instanceId];
+        return { entries: nextEntries };
       });
     },
 
-resetAll: () => {
-set(() => ({ entries: {} }));
+    resetAll: () => {
+      set(() => ({ entries: {} }));
     },
   }),
 );
 
 export function selectInstanceRealtimeEntry(
-state: InstanceRealtimeStore,
-instanceId: string,
+  state: InstanceRealtimeStore,
+  instanceId: string,
 ): InstanceRealtimeEntry | null {
-return state.entries[instanceId] ?? null;
+  return state.entries[instanceId] ?? null;
 }
 
 export function selectInstanceRealtimePlayers(
-state: InstanceRealtimeStore,
-instanceId: string,
+  state: InstanceRealtimeStore,
+  instanceId: string,
 ): Record<string, InstancePlayer> | null {
-return state.entries[instanceId]?.playersByUserId ?? null;
+  return state.entries[instanceId]?.playersByUserId ?? null;
 }
 
 export function selectInstanceRealtimeStatus(
-state: InstanceRealtimeStore,
-instanceId: string,
+  state: InstanceRealtimeStore,
+  instanceId: string,
 ): InstanceStatus | null {
-return state.entries[instanceId]?.instanceStatus ?? null;
+  return state.entries[instanceId]?.instanceStatus ?? null;
 }
 
 export function selectInstanceRealtimeLastSequence(
-state: InstanceRealtimeStore,
-instanceId: string,
+  state: InstanceRealtimeStore,
+  instanceId: string,
 ): number {
-return state.entries[instanceId]?.lastEventSequence ?? 0;
+  return state.entries[instanceId]?.lastEventSequence ?? 0;
 }
 
 export function selectInstanceRealtimeCountdownStartedAt(
-state: InstanceRealtimeStore,
-instanceId: string,
+  state: InstanceRealtimeStore,
+  instanceId: string,
 ): string | null {
-return state.entries[instanceId]?.countdownStartedAt ?? null;
+  return state.entries[instanceId]?.countdownStartedAt ?? null;
 }

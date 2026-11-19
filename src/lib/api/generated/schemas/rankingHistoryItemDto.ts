@@ -1,8 +1,5 @@
-
-
 export interface RankingHistoryItemDto {
+  date: string;
 
-date: string;
-
-rank: number;
+  rank: number;
 }

@@ -1,8 +1,5 @@
-
-
 export type UserControllerListMyTournamentsParams = {
+  cursor?: string;
 
-cursor?: string;
-
-limit?: number;
+  limit?: number;
 };

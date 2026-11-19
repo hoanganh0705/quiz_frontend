@@ -1,10 +1,7 @@
-
-
-import type { AttemptAnswerItemDto } from './attemptAnswerItemDto';
+import type { AttemptAnswerItemDto } from "./attemptAnswerItemDto";
 
 export interface AttemptAnswersResponseDto {
+  attemptId: string;
 
-attemptId: string;
-
-answers: AttemptAnswerItemDto[];
+  answers: AttemptAnswerItemDto[];
 }

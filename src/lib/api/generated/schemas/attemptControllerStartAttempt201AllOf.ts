@@ -1,7 +1,5 @@
-
-
-import type { AttemptResponseDto } from './attemptResponseDto';
+import type { AttemptResponseDto } from "./attemptResponseDto";
 
 export type AttemptControllerStartAttempt201AllOf = {
-data?: AttemptResponseDto;
+  data?: AttemptResponseDto;
 };

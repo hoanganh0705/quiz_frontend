@@ -1,10 +1,7 @@
-
-
-import type { ReviewReportDtoStatus } from './reviewReportDtoStatus';
+import type { ReviewReportDtoStatus } from "./reviewReportDtoStatus";
 
 export interface ReviewReportDto {
+  status: ReviewReportDtoStatus;
 
-status: ReviewReportDtoStatus;
-
-actionTaken?: boolean;
+  actionTaken?: boolean;
 }

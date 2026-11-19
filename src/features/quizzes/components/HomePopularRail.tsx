@@ -1,14 +1,17 @@
 "use client";
 
 import { useCallback } from "react";
-import { mutate } from "swr";
+import { getQueryClient } from "@/providers/QueryProvider";
 import { WifiOff } from "lucide-react";
 
 import { ApiError } from "@/lib/api";
 import { EmptyState } from "@/components/ui/EmptyState";
 
 import { useQuizzesPopular } from "@/features/quizzes/hooks/useQuizzesPopular";
-import { POPULAR_RAIL_LIMIT, type PopularQuizItemDto } from "@/features/quizzes/types/home-rails";
+import {
+  POPULAR_RAIL_LIMIT,
+  type PopularQuizItemDto,
+} from "@/features/quizzes/types/home-rails";
 import {
   setPopularCategory,
   usePopularCategoryId,
@@ -66,11 +69,13 @@ export function HomePopularRail({
   }, []);
 
   const handleRetry = useCallback(() => {
-    void mutate([
-      "quizzes",
-      "popular",
-      { limit: POPULAR_RAIL_LIMIT, categoryId },
-    ]);
+    void getQueryClient().invalidateQueries({
+      queryKey: [
+        "quizzes",
+        "popular",
+        { limit: POPULAR_RAIL_LIMIT, categoryId },
+      ],
+    });
   }, [categoryId]);
 
   const filterSlot = (
@@ -82,7 +87,10 @@ export function HomePopularRail({
   );
 
   const showSkeleton =
-    isLoading && (categoryId !== undefined ? quizzes.length === 0 : visibleItems.length === 0);
+    isLoading &&
+    (categoryId !== undefined
+      ? quizzes.length === 0
+      : visibleItems.length === 0);
 
   return (
     <QuizRail

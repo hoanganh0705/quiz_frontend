@@ -1,8 +1,11 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { createApolloClient, DEFAULT_GRAPHQL_ENDPOINT } from '@/lib/graphql/client';
+import {
+  createApolloClient,
+  DEFAULT_GRAPHQL_ENDPOINT,
+} from "@/lib/graphql/client";
 
-describe('createApolloClient', () => {
+describe("createApolloClient", () => {
   const originalEnv = process.env.NEXT_PUBLIC_GRAPHQL_URL;
 
   beforeEach(() => {
@@ -17,7 +20,7 @@ describe('createApolloClient', () => {
     }
   });
 
-  it('defaults the endpoint to /graphql when NEXT_PUBLIC_GRAPHQL_URL is unset', () => {
+  it("defaults the endpoint to /graphql when NEXT_PUBLIC_GRAPHQL_URL is unset", () => {
     delete process.env.NEXT_PUBLIC_GRAPHQL_URL;
     const client = createApolloClient();
     expect(client).toBeDefined();
@@ -27,28 +30,30 @@ describe('createApolloClient', () => {
     // client is constructed without an override here.
   });
 
-  it('honours NEXT_PUBLIC_GRAPHQL_URL when present', () => {
-    process.env.NEXT_PUBLIC_GRAPHQL_URL = 'https://example.test/graphql';
+  it("honours NEXT_PUBLIC_GRAPHQL_URL when present", () => {
+    process.env.NEXT_PUBLIC_GRAPHQL_URL = "https://example.test/graphql";
     const client = createApolloClient();
     expect(client).toBeDefined();
   });
 
-  it('accepts an explicit endpoint override', () => {
-    const client = createApolloClient({ endpoint: 'https://override.test/graphql' });
+  it("accepts an explicit endpoint override", () => {
+    const client = createApolloClient({
+      endpoint: "https://override.test/graphql",
+    });
     expect(client).toBeDefined();
   });
 
-  it('uses the injected auth token source when supplied', () => {
-    const getAuthToken = vi.fn().mockReturnValue('test-token');
+  it("uses the injected auth token source when supplied", () => {
+    const getAuthToken = vi.fn().mockReturnValue("test-token");
     const client = createApolloClient({
-      endpoint: 'https://example.test/graphql',
+      endpoint: "https://example.test/graphql",
       getAuthToken,
     });
     expect(client).toBeDefined();
     expect(getAuthToken).not.toHaveBeenCalled();
   });
 
-  it('exposes DEFAULT_GRAPHQL_ENDPOINT for tests and callers', () => {
-    expect(DEFAULT_GRAPHQL_ENDPOINT).toBe('/graphql');
+  it("exposes DEFAULT_GRAPHQL_ENDPOINT for tests and callers", () => {
+    expect(DEFAULT_GRAPHQL_ENDPOINT).toBe("/graphql");
   });
 });

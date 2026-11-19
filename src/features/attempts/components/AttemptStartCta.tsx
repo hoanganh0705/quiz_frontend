@@ -1,21 +1,21 @@
-'use client';
+"use client";
 
-import * as React from 'react';
-import { useRouter } from 'next/navigation';
-import { Play, Loader2 } from 'lucide-react';
+import * as React from "react";
+import { useRouter } from "next/navigation";
+import { Play, Loader2 } from "lucide-react";
 
-import { Button } from '@/components/ui/Button';
+import { Button } from "@/components/ui/Button";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from '@/components/ui/Tooltip';
-import { useToast } from '@/lib/forms/useToast';
-import { getUserCopy } from '@/lib/api/error-codes';
+} from "@/components/ui/Tooltip";
+import { useToast } from "@/lib/forms/useToast";
+import { getUserCopy } from "@/lib/api/error-codes";
 
-import { useAuthSession } from '@/features/auth/hooks/use-auth-session';
-import { useStartAttempt } from '@/features/attempts/hooks/useStartAttempt';
-import { ApiError } from '@/lib/api';
+import { useAuthSession } from "@/features/auth/hooks/use-auth-session";
+import { useStartAttempt } from "@/features/attempts/hooks/useStartAttempt";
+import { ApiError } from "@/lib/api";
 
 export interface AttemptStartCtaProps {
   quizId: string | null;
@@ -27,7 +27,7 @@ export interface AttemptStartCtaProps {
   className?: string;
 }
 
-const BUTTON_CLASS = 'h-10 w-full min-w-40 sm:w-44';
+const BUTTON_CLASS = "h-10 w-full min-w-40 sm:w-44";
 
 export function AttemptStartCta(
   props: AttemptStartCtaProps,
@@ -47,7 +47,7 @@ export function AttemptStartCta(
   const { bootstrapState, currentUser } = useAuthSession();
 
   const isAuthenticated =
-    bootstrapState === 'authenticated' && currentUser !== null;
+    bootstrapState === "authenticated" && currentUser !== null;
 
   const startHook = useStartAttempt({
     quizId,
@@ -60,34 +60,34 @@ export function AttemptStartCta(
   const isPending = startHook.isPending;
   const error = startHook.error;
   const tooltip = error
-    ? getUserCopy((error as ApiError).code ?? 'GLOBAL_INTERNAL_ERROR').body
+    ? getUserCopy((error as ApiError).code ?? "GLOBAL_INTERNAL_ERROR").body
     : (disabledTooltip ?? null);
 
   const handleClick = async () => {
     const outcome = await startHook.start();
-    if (outcome.kind === 'success') {
+    if (outcome.kind === "success") {
       if (idOrSlug) {
         router.push(`/quizzes/${encodeURIComponent(idOrSlug)}/attempt`);
       }
       return;
     }
-    if (outcome.kind === 'already_started') {
-      const copy = getUserCopy('ATTEMPT_ALREADY_STARTED');
+    if (outcome.kind === "already_started") {
+      const copy = getUserCopy("ATTEMPT_ALREADY_STARTED");
       push({ title: copy.title, body: copy.body, durationMs: 5000 });
       onAlreadyStarted?.();
       return;
     }
-    if (outcome.kind === 'quiz_unpublished') {
-      const copy = getUserCopy('ATTEMPT_QUIZ_NOT_PUBLISHED');
+    if (outcome.kind === "quiz_unpublished") {
+      const copy = getUserCopy("ATTEMPT_QUIZ_NOT_PUBLISHED");
       push({ title: copy.title, body: copy.body, durationMs: 5000 });
       if (idOrSlug) {
         router.replace(`/quizzes/${encodeURIComponent(idOrSlug)}`);
       }
       return;
     }
-    if (outcome.kind === 'retryable') {
+    if (outcome.kind === "retryable") {
       const apiError = outcome.error as ApiError;
-      const copy = getUserCopy(apiError.code ?? 'GLOBAL_INTERNAL_ERROR');
+      const copy = getUserCopy(apiError.code ?? "GLOBAL_INTERNAL_ERROR");
       push({ title: copy.title, body: copy.body, durationMs: 5000 });
       return;
     }
@@ -99,7 +99,7 @@ export function AttemptStartCta(
       className={className ?? BUTTON_CLASS}
       disabled={isPending || startHook.isCoolingDown}
       onClick={handleClick}
-      aria-label={isPending ? 'Starting attempt…' : 'Start attempt'}
+      aria-label={isPending ? "Starting attempt…" : "Start attempt"}
       data-testid="quiz-start-attempt-button"
     >
       {isPending ? (

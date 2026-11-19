@@ -1,2 +1,2 @@
-export { FilterBar } from './FilterBar'
-export type { FilterBarProps } from './FilterBar'
+export { FilterBar } from "./FilterBar";
+export type { FilterBarProps } from "./FilterBar";

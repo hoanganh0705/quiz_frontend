@@ -1,10 +1,7 @@
-
-
 export interface AttemptAnswerItemDto {
+  questionId: string;
 
-questionId: string;
+  selectedOptionId?: string | null;
 
-selectedOptionId?: string | null;
-
-submittedAt: string;
+  submittedAt: string;
 }

@@ -1,3 +1,3 @@
-
-
-export type BulkQuizQuestionResultItemDtoQuestionId = { [key: string]: unknown } | null;
+export type BulkQuizQuestionResultItemDtoQuestionId = {
+  [key: string]: unknown;
+} | null;

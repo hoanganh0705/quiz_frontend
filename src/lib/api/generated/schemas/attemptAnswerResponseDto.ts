@@ -1,14 +1,11 @@
-
-
 export interface AttemptAnswerResponseDto {
+  attemptAnswerId: string;
 
-attemptAnswerId: string;
+  questionId: string;
 
-questionId: string;
+  selectedOptionId?: string | null;
 
-selectedOptionId?: string | null;
+  answeredAt: string;
 
-answeredAt: string;
-
-timeTakenMs?: number | null;
+  timeTakenMs?: number | null;
 }

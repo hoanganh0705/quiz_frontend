@@ -1,7 +1,8 @@
 "use client";
 
 import { useCallback, useMemo } from "react";
-import useSWR from "swr";
+import { useQuery } from "@tanstack/react-query";
+import { getQueryClient } from "@/providers/QueryProvider";
 
 import { ApiError, coerceToApiError, isApiError } from "@/lib/api";
 import { listInstances } from "@/features/instances/services/instances.service";
@@ -29,7 +30,9 @@ export function extractInstanceItems(data: unknown): InstanceListItemDto[] {
       "items" in data[0] &&
       Array.isArray((data[0] as { items: unknown }).items)
     ) {
-      return (data as { items: InstanceListItemDto[] }[]).flatMap((d) => d.items);
+      return (data as { items: InstanceListItemDto[] }[]).flatMap(
+        (d) => d.items,
+      );
     }
     return data as InstanceListItemDto[];
   }
@@ -63,11 +66,21 @@ export function useListInstances(
     return extractInstanceItems(raw);
   }, [isFlagPlaceholder, params]);
 
-  const { data, error: rawError, isLoading, mutate } = useSWR(key, fetcher, {
-    revalidateOnFocus: true,
-    revalidateOnMount: true,
-    dedupingInterval: 1000,
-  });
+  const {
+    data,
+    error: rawError,
+    isLoading,
+    refetch,
+  } = useQuery<InstanceListItemDto[]>(
+    {
+      queryKey: key ?? ["instances", "list", "disabled"],
+      queryFn: fetcher,
+      enabled: !isFlagPlaceholder,
+      refetchOnWindowFocus: true,
+      staleTime: 1000,
+    },
+    getQueryClient(),
+  );
 
   const error = useMemo(() => {
     if (!rawError) return null;
@@ -75,8 +88,8 @@ export function useListInstances(
   }, [rawError]);
 
   const refresh = useCallback(async () => {
-    await mutate();
-  }, [mutate]);
+    await refetch();
+  }, [refetch]);
 
   return {
     instances: data ?? [],

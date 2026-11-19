@@ -1,8 +1,5 @@
-
-
 export type SocialControllerSearchUsersParams = {
+  q: string;
 
-q: string;
-
-limit?: number;
+  limit?: number;
 };

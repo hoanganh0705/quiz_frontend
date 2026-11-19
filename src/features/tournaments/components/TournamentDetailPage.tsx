@@ -3,94 +3,92 @@
 import * as React from "react";
 
 import {
-useTournamentFeatureFlag,
-useTournament,
-useTournamentParticipants,
-useTournamentLeaderboard,
-useTournamentParticipation,
+  useTournamentFeatureFlag,
+  useTournament,
+  useTournamentParticipants,
+  useTournamentLeaderboard,
+  useTournamentParticipation,
 } from "@/features/tournaments/hooks";
 
 import {
-TournamentPlaceholder,
-TournamentDetailSkeleton,
-TournamentErrorState,
-TournamentHeader,
-ParticipantList,
-TournamentLeaderboard,
-TournamentRegistrationCta,
-TournamentCapacityIndicator,
-RegistrationState,
+  TournamentPlaceholder,
+  TournamentDetailSkeleton,
+  TournamentErrorState,
+  TournamentHeader,
+  ParticipantList,
+  TournamentLeaderboard,
+  TournamentRegistrationCta,
+  TournamentCapacityIndicator,
+  RegistrationState,
 } from "@/features/tournaments/components";
 
 export interface TournamentDetailPageProps {
-tournamentId: string;
-className?: string;
+  tournamentId: string;
+  className?: string;
 }
 
 export function TournamentDetailPage({
-tournamentId,
-className,
+  tournamentId,
+  className,
 }: TournamentDetailPageProps) {
-const { isPlaceholder } = useTournamentFeatureFlag();
+  const { isPlaceholder } = useTournamentFeatureFlag();
 
-const tournamentResult = useTournament(tournamentId);
-const participantsResult = useTournamentParticipants(tournamentId);
-const leaderboardResult = useTournamentLeaderboard(tournamentId);
-const participationResult = useTournamentParticipation(tournamentId);
+  const tournamentResult = useTournament(tournamentId);
+  const participantsResult = useTournamentParticipants(tournamentId);
+  const leaderboardResult = useTournamentLeaderboard(tournamentId);
+  const participationResult = useTournamentParticipation(tournamentId);
 
-if (isPlaceholder) {
-return <TournamentPlaceholder />;
+  if (isPlaceholder) {
+    return <TournamentPlaceholder />;
   }
 
-if (tournamentResult.isLoading) {
-return (
-<div className={className}>
-<TournamentDetailSkeleton />
-</div>
+  if (tournamentResult.isLoading) {
+    return (
+      <div className={className}>
+        <TournamentDetailSkeleton />
+      </div>
     );
   }
 
-if (tournamentResult.error !== null) {
-const errorCode = tournamentResult.error.code;
+  if (tournamentResult.error !== null) {
+    const errorCode = tournamentResult.error.code;
 
-if (errorCode === "TOURNAMENT_NOT_FOUND") {
-return (
-<div className={className}>
-<TournamentErrorState
-error={tournamentResult.error}
-onRetry={tournamentResult.refresh}
+    if (errorCode === "TOURNAMENT_NOT_FOUND") {
+      return (
+        <div className={className}>
+          <TournamentErrorState
+            error={tournamentResult.error}
+            onRetry={tournamentResult.refresh}
           />
-</div>
+        </div>
       );
     }
 
-if (errorCode === "TOURNAMENT_FORBIDDEN") {
-return (
-<div className={className}>
-<TournamentErrorState
-error={tournamentResult.error}
-onRetry={tournamentResult.refresh}
+    if (errorCode === "TOURNAMENT_FORBIDDEN") {
+      return (
+        <div className={className}>
+          <TournamentErrorState
+            error={tournamentResult.error}
+            onRetry={tournamentResult.refresh}
           />
-</div>
+        </div>
       );
     }
 
-return (
-<div className={className}>
-<TournamentErrorState
-error={tournamentResult.error}
-onRetry={tournamentResult.refresh}
+    return (
+      <div className={className}>
+        <TournamentErrorState
+          error={tournamentResult.error}
+          onRetry={tournamentResult.refresh}
         />
-</div>
+      </div>
     );
   }
 
   if (tournamentResult.tournament === null) {
     return (
       <div className={className}>
-        <TournamentErrorState
-          error={null}
-        />
+        <TournamentErrorState error={null} />
       </div>
     );
   }
@@ -121,7 +119,12 @@ onRetry={tournamentResult.refresh}
               <div className="flex-1">
                 {/* Registration state indicator */}
                 <div className="flex items-center gap-3">
-                  <RegistrationState status={participationResult.participation?.registrationStatus ?? null} />
+                  <RegistrationState
+                    status={
+                      participationResult.participation?.registrationStatus ??
+                      null
+                    }
+                  />
                   <TournamentCapacityIndicator
                     currentParticipants={tournament.totalParticipants}
                     maxParticipants={tournament.maxParticipants}

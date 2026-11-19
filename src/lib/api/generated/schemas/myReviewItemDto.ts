@@ -1,18 +1,15 @@
-
-
 export interface MyReviewItemDto {
+  reviewId: string;
 
-reviewId: string;
+  quizId: string;
 
-quizId: string;
+  quizTitle: string;
 
-quizTitle: string;
+  rating: number;
 
-rating: number;
+  comment?: string | null;
 
-comment?: string | null;
+  createdAt: string;
 
-createdAt: string;
-
-updatedAt?: string | null;
+  updatedAt?: string | null;
 }

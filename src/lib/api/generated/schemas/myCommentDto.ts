@@ -1,20 +1,17 @@
-
-
 export interface MyCommentDto {
+  id: string;
 
-id: string;
+  quizId: string;
 
-quizId: string;
+  quizTitle: string;
 
-quizTitle: string;
+  body: string;
 
-body: string;
+  votesCount: number;
 
-votesCount: number;
+  repliesCount: number;
 
-repliesCount: number;
+  createdAt: string;
 
-createdAt: string;
-
-updatedAt: string;
+  updatedAt: string;
 }

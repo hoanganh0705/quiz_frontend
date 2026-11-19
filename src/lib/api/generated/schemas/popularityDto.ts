@@ -1,10 +1,7 @@
-
-
 export interface PopularityDto {
+  popularityScore: number;
 
-popularityScore: number;
+  trendingScore: number;
 
-trendingScore: number;
-
-rank?: number;
+  rank?: number;
 }

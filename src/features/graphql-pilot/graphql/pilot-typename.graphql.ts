@@ -12,15 +12,17 @@
  * The page imports the `TypedDocumentNode` so future changes can move to a
  * typed query without changing the caller.
  */
-import { gql, type TypedDocumentNode } from '@apollo/client';
+import { gql, type TypedDocumentNode } from "@apollo/client";
 
 export type PilotTypenameQuery = {
-  readonly __typename: 'Query';
+  readonly __typename: "Query";
 };
 
-export const PILOT_TYPENAME_QUERY: TypedDocumentNode<PilotTypenameQuery, Record<string, never>> =
-  gql`
-    query PilotTypename {
-      __typename
-    }
-  `;
+export const PILOT_TYPENAME_QUERY: TypedDocumentNode<
+  PilotTypenameQuery,
+  Record<string, never>
+> = gql`
+  query PilotTypename {
+    __typename
+  }
+`;

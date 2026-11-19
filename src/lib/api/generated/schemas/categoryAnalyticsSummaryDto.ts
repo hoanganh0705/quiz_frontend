@@ -1,16 +1,13 @@
-
-
 export interface CategoryAnalyticsSummaryDto {
+  totalQuizzes: number;
 
-totalQuizzes: number;
+  activeQuizzes: number;
 
-activeQuizzes: number;
+  totalAttempts: number;
 
-totalAttempts: number;
+  uniquePlayers: number;
 
-uniquePlayers: number;
+  averageScore: number;
 
-averageScore: number;
-
-averageRating: number;
+  averageRating: number;
 }

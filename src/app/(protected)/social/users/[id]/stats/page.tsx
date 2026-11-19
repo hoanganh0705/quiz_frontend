@@ -6,19 +6,19 @@ import { AnalyticsRouteGate } from "@/features/social/components/AnalyticsRouteG
 import { isUuid } from "@/features/social/utils/is-uuid";
 
 interface UserStatsRouteProps {
-params: Promise<{ id: string }>;
+  params: Promise<{ id: string }>;
 }
 
 export default async function UserStatsRoute({
-params,
+  params,
 }: UserStatsRouteProps): Promise<React.ReactElement> {
-const { id } = await params;
-if (!isUuid(id)) {
-notFound();
+  const { id } = await params;
+  if (!isUuid(id)) {
+    notFound();
   }
-return (
-<Suspense fallback={<RouteGateSkeleton />}>
-<AnalyticsRouteGate kind="stats" targetUserId={id} />
-</Suspense>
+  return (
+    <Suspense fallback={<RouteGateSkeleton />}>
+      <AnalyticsRouteGate kind="stats" targetUserId={id} />
+    </Suspense>
   );
 }

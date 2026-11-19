@@ -1,7 +1,5 @@
-
-
-import type { UserAnalyticsResponseDto } from './userAnalyticsResponseDto';
+import type { UserAnalyticsResponseDto } from "./userAnalyticsResponseDto";
 
 export type UserControllerGetMyAnalytics200AllOf = {
-data?: UserAnalyticsResponseDto;
+  data?: UserAnalyticsResponseDto;
 };

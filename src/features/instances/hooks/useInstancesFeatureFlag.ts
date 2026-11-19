@@ -3,22 +3,21 @@
 import { getFeatureFlagValue } from "@/lib/feature-flags";
 
 export interface UseInstancesFeatureFlagResult {
+  isPlaceholder: boolean;
 
-isPlaceholder: boolean;
+  isLive: boolean;
 
-isLive: boolean;
-
-flagValue: "live" | "placeholder";
+  flagValue: "live" | "placeholder";
 }
 
 export function useInstancesFeatureFlag(): UseInstancesFeatureFlagResult {
-const flagValue = getFeatureFlagValue("multiplayer_instances_live");
-const isPlaceholder = flagValue === "placeholder";
-const isLive = flagValue === "live";
+  const flagValue = getFeatureFlagValue("multiplayer_instances_live");
+  const isPlaceholder = flagValue === "placeholder";
+  const isLive = flagValue === "live";
 
-return {
-isPlaceholder,
-isLive,
-flagValue,
+  return {
+    isPlaceholder,
+    isLive,
+    flagValue,
   };
 }

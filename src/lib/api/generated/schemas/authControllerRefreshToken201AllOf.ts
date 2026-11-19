@@ -1,7 +1,5 @@
-
-
-import type { RefreshTokenResponseDto } from './refreshTokenResponseDto';
+import type { RefreshTokenResponseDto } from "./refreshTokenResponseDto";
 
 export type AuthControllerRefreshToken201AllOf = {
-data?: RefreshTokenResponseDto;
+  data?: RefreshTokenResponseDto;
 };

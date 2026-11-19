@@ -1,8 +1,5 @@
-
-
 export type TagControllerListTagsParams = {
+  cursor?: string | null;
 
-cursor?: string | null;
-
-limit?: number | null;
+  limit?: number | null;
 };

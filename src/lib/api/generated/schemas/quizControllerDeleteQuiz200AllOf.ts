@@ -1,7 +1,5 @@
-
-
-import type { DeleteQuizResponseDto } from './deleteQuizResponseDto';
+import type { DeleteQuizResponseDto } from "./deleteQuizResponseDto";
 
 export type QuizControllerDeleteQuiz200AllOf = {
-data?: DeleteQuizResponseDto;
+  data?: DeleteQuizResponseDto;
 };

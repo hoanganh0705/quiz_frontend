@@ -1,12 +1,9 @@
-
-
-import type { ReviewRatingDistributionDto } from './reviewRatingDistributionDto';
+import type { ReviewRatingDistributionDto } from "./reviewRatingDistributionDto";
 
 export interface ReviewStatsResponseDto {
+  averageRating: number;
 
-averageRating: number;
+  totalReviews: number;
 
-totalReviews: number;
-
-ratingDistribution: ReviewRatingDistributionDto;
+  ratingDistribution: ReviewRatingDistributionDto;
 }

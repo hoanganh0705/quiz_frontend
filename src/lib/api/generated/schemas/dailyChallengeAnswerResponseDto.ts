@@ -1,16 +1,13 @@
-
-
-import type { DailyChallengeAnswerResponseDtoScorePercent } from './dailyChallengeAnswerResponseDtoScorePercent';
+import type { DailyChallengeAnswerResponseDtoScorePercent } from "./dailyChallengeAnswerResponseDtoScorePercent";
 
 export interface DailyChallengeAnswerResponseDto {
+  correct: boolean;
 
-correct: boolean;
+  nextQuestionIndex: number;
 
-nextQuestionIndex: number;
+  totalQuestions: number;
 
-totalQuestions: number;
+  completed: boolean;
 
-completed: boolean;
-
-scorePercent: DailyChallengeAnswerResponseDtoScorePercent;
+  scorePercent: DailyChallengeAnswerResponseDtoScorePercent;
 }

@@ -1,14 +1,17 @@
 "use client";
 
 import { useCallback } from "react";
-import { mutate } from "swr";
+import { getQueryClient } from "@/providers/QueryProvider";
 import { WifiOff } from "lucide-react";
 
 import { ApiError } from "@/lib/api";
 import { EmptyState } from "@/components/ui/EmptyState";
 
 import { useQuizzesTrending } from "@/features/quizzes/hooks/useQuizzesTrending";
-import { TRENDING_RAIL_LIMIT, type TrendingQuizItemDto } from "@/features/quizzes/types/home-rails";
+import {
+  TRENDING_RAIL_LIMIT,
+  type TrendingQuizItemDto,
+} from "@/features/quizzes/types/home-rails";
 import {
   setTrendingCategory,
   useTrendingCategoryId,
@@ -68,11 +71,13 @@ export function HomeTrendingRail({
   }, []);
 
   const handleRetry = useCallback(() => {
-    void mutate([
-      "quizzes",
-      "trending",
-      { limit: TRENDING_RAIL_LIMIT, categoryId },
-    ]);
+    void getQueryClient().invalidateQueries({
+      queryKey: [
+        "quizzes",
+        "trending",
+        { limit: TRENDING_RAIL_LIMIT, categoryId },
+      ],
+    });
   }, [categoryId]);
 
   const filterSlot = (
@@ -84,7 +89,10 @@ export function HomeTrendingRail({
   );
 
   const showSkeleton =
-    isLoading && (categoryId !== undefined ? quizzes.length === 0 : visibleItems.length === 0);
+    isLoading &&
+    (categoryId !== undefined
+      ? quizzes.length === 0
+      : visibleItems.length === 0);
 
   return (
     <QuizRail

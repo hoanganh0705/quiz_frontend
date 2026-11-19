@@ -1,4 +1,6 @@
-
-
-export { SwrProvider } from './SwrProvider'
-export { ThemeProvider } from './ThemeProvider'
+export { ThemeProvider } from "./ThemeProvider";
+export {
+  QueryProvider,
+  getQueryClient,
+  makeQueryClient,
+} from "./QueryProvider";

@@ -1,7 +1,5 @@
-
-
-import type { QuizPreviewResponseDto } from './quizPreviewResponseDto';
+import type { QuizPreviewResponseDto } from "./quizPreviewResponseDto";
 
 export type QuizControllerGetQuizPreview200AllOf = {
-data?: QuizPreviewResponseDto;
+  data?: QuizPreviewResponseDto;
 };

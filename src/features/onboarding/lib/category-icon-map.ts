@@ -25,38 +25,38 @@
  *      onboarding step doesn't visually regress.
  */
 export const SLUG_TO_ICON: Readonly<Record<string, string>> = Object.freeze({
-  'general-knowledge': '🧠',
-  science: '🔬',
-  history: '🏛️',
-  geography: '🌍',
-  literature: '📚',
-  mathematics: '➗',
-  music: '🎵',
-  movies: '🎬',
-  'movies-tv': '🎬',
-  sports: '⚽',
-  technology: '💻',
-  food: '🍔',
-  'food-drink': '🍔',
-  animals: '🐾',
-  art: '🎨',
-  'art-design': '🎨',
-  language: '🗣️',
-  languages: '🗣️',
-  'video-games': '🎮',
-  anime: '🌸',
-  'anime-manga': '🌸',
-  politics: '🏛️',
-  mythology: '⚡',
-  space: '🚀',
-  'space-astronomy': '🚀',
-  business: '💼',
-  'business-finance': '💼',
-})
+  "general-knowledge": "🧠",
+  science: "🔬",
+  history: "🏛️",
+  geography: "🌍",
+  literature: "📚",
+  mathematics: "➗",
+  music: "🎵",
+  movies: "🎬",
+  "movies-tv": "🎬",
+  sports: "⚽",
+  technology: "💻",
+  food: "🍔",
+  "food-drink": "🍔",
+  animals: "🐾",
+  art: "🎨",
+  "art-design": "🎨",
+  language: "🗣️",
+  languages: "🗣️",
+  "video-games": "🎮",
+  anime: "🌸",
+  "anime-manga": "🌸",
+  politics: "🏛️",
+  mythology: "⚡",
+  space: "🚀",
+  "space-astronomy": "🚀",
+  business: "💼",
+  "business-finance": "💼",
+});
 
-const FALLBACK_ICON = '📚'
+const FALLBACK_ICON = "📚";
 
-export { FALLBACK_ICON }
+export { FALLBACK_ICON };
 
 /**
  * Resolve the emoji icon for a category slug. Falls back to a generic
@@ -64,14 +64,14 @@ export { FALLBACK_ICON }
  */
 export function getCategoryIcon(slug: string): string {
   // Direct hit.
-  const direct = SLUG_TO_ICON[slug]
-  if (direct !== undefined) return direct
+  const direct = SLUG_TO_ICON[slug];
+  if (direct !== undefined) return direct;
   // Fuzzy suffix match — backend slugs are usually of the form
   // `<topic>` or `<topic>-<narrower>`. Try the leading token.
-  const head = slug.split('-')[0]
+  const head = slug.split("-")[0];
   if (head !== undefined) {
-    const headHit = SLUG_TO_ICON[head]
-    if (headHit !== undefined) return headHit
+    const headHit = SLUG_TO_ICON[head];
+    if (headHit !== undefined) return headHit;
   }
-  return FALLBACK_ICON
+  return FALLBACK_ICON;
 }

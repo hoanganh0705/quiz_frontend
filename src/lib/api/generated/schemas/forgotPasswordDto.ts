@@ -1,6 +1,3 @@
-
-
 export interface ForgotPasswordDto {
-
-email: string;
+  email: string;
 }

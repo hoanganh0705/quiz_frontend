@@ -1,10 +1,7 @@
-
-
 export interface UserBadgesDto {
+  isNew: boolean;
 
-isNew: boolean;
+  isRisingStar: boolean;
 
-isRisingStar: boolean;
-
-isActive: boolean;
+  isActive: boolean;
 }

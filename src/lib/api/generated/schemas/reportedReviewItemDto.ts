@@ -1,35 +1,32 @@
-
-
-import type { ReportedReviewItemDtoQuizId } from './reportedReviewItemDtoQuizId';
-import type { ReportedReviewItemDtoQuizTitle } from './reportedReviewItemDtoQuizTitle';
-import type { ReportedReviewItemDtoReviewerUsername } from './reportedReviewItemDtoReviewerUsername';
-import type { ReportedReviewItemDtoRating } from './reportedReviewItemDtoRating';
-import type { ReportedReviewItemDtoReason } from './reportedReviewItemDtoReason';
-import type { ReportedReviewItemDtoStatus } from './reportedReviewItemDtoStatus';
+import type { ReportedReviewItemDtoQuizId } from "./reportedReviewItemDtoQuizId";
+import type { ReportedReviewItemDtoQuizTitle } from "./reportedReviewItemDtoQuizTitle";
+import type { ReportedReviewItemDtoReviewerUsername } from "./reportedReviewItemDtoReviewerUsername";
+import type { ReportedReviewItemDtoRating } from "./reportedReviewItemDtoRating";
+import type { ReportedReviewItemDtoReason } from "./reportedReviewItemDtoReason";
+import type { ReportedReviewItemDtoStatus } from "./reportedReviewItemDtoStatus";
 
 export interface ReportedReviewItemDto {
+  reportId: string;
 
-reportId: string;
+  reviewId: string;
 
-reviewId: string;
+  quizId: ReportedReviewItemDtoQuizId;
 
-quizId: ReportedReviewItemDtoQuizId;
+  quizTitle: ReportedReviewItemDtoQuizTitle;
 
-quizTitle: ReportedReviewItemDtoQuizTitle;
+  reviewerUsername: ReportedReviewItemDtoReviewerUsername;
 
-reviewerUsername: ReportedReviewItemDtoReviewerUsername;
+  rating: ReportedReviewItemDtoRating;
 
-rating: ReportedReviewItemDtoRating;
+  comment?: string | null;
 
-comment?: string | null;
+  reason: ReportedReviewItemDtoReason;
 
-reason: ReportedReviewItemDtoReason;
+  details?: string | null;
 
-details?: string | null;
+  status: ReportedReviewItemDtoStatus;
 
-status: ReportedReviewItemDtoStatus;
+  createdAt: string;
 
-createdAt: string;
-
-updatedAt?: string | null;
+  updatedAt?: string | null;
 }

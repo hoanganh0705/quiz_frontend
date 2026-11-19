@@ -1,110 +1,95 @@
-
-
 import type { Relationship } from "@/features/social/types/relationship";
 
 interface SocialSocketEventBasePayload {
+  version: 1;
 
-version: 1;
+  actorUserId: string;
 
-actorUserId: string;
+  targetUserId: string;
 
-targetUserId: string;
-
-correlationId: string;
+  correlationId: string;
 }
 
 export interface RelationshipChangedPayload extends SocialSocketEventBasePayload {
+  relationship: Relationship;
 
-relationship: Relationship;
+  previousRelationship: Relationship;
 
-previousRelationship: Relationship;
-
-changedAt: string;
+  changedAt: string;
 }
 
 export interface BlockedChangedPayload extends SocialSocketEventBasePayload {
+  relationship: Relationship;
 
-relationship: Relationship;
+  isBlocked: boolean;
 
-isBlocked: boolean;
-
-changedAt: string;
+  changedAt: string;
 }
 
-export interface FriendRequestReceivedPayload
-extends SocialSocketEventBasePayload {
+export interface FriendRequestReceivedPayload extends SocialSocketEventBasePayload {
+  requesterUserId: string;
 
-requesterUserId: string;
+  recipientUserId: string;
 
-recipientUserId: string;
-
-requestedAt: string;
+  requestedAt: string;
 }
 
-export interface FriendRequestRespondedPayload
-extends SocialSocketEventBasePayload {
+export interface FriendRequestRespondedPayload extends SocialSocketEventBasePayload {
+  requesterUserId: string;
 
-requesterUserId: string;
+  recipientUserId: string;
 
-recipientUserId: string;
+  decision: "accept" | "decline";
 
-decision: "accept" | "decline";
-
-respondedAt: string;
+  respondedAt: string;
 }
 
-export interface FriendRequestCancelledPayload
-extends SocialSocketEventBasePayload {
+export interface FriendRequestCancelledPayload extends SocialSocketEventBasePayload {
+  requesterUserId: string;
 
-requesterUserId: string;
+  recipientUserId: string;
 
-recipientUserId: string;
-
-cancelledAt: string;
+  cancelledAt: string;
 }
 
 export interface FriendAddedPayload extends SocialSocketEventBasePayload {
+  actorUserId: string;
 
-actorUserId: string;
+  targetUserId: string;
 
-targetUserId: string;
+  mutual: true;
 
-mutual: true;
-
-addedAt: string;
+  addedAt: string;
 }
 
 export interface FriendRemovedPayload extends SocialSocketEventBasePayload {
+  actorUserId: string;
 
-actorUserId: string;
+  targetUserId: string;
 
-targetUserId: string;
+  mutual: false;
 
-mutual: false;
-
-removedAt: string;
+  removedAt: string;
 }
 
 export interface FollowReceivedPayload extends SocialSocketEventBasePayload {
+  followerUserId: string;
 
-followerUserId: string;
+  targetUserId: string;
 
-targetUserId: string;
-
-followedAt: string;
+  followedAt: string;
 }
 
 export interface FeedItemAddedPayload extends SocialSocketEventBasePayload {
+  feedItemId: string;
 
-feedItemId: string;
+  feedItemType: string;
 
-feedItemType: string;
-
-addedAt: string;
+  addedAt: string;
 }
 
 export type SocialSocketEventPayload =
-| RelationshipChangedPayload
+  | RelationshipChangedPayload
   | BlockedChangedPayload
   | FriendRequestReceivedPayload
   | FriendRequestRespondedPayload
@@ -115,7 +100,7 @@ export type SocialSocketEventPayload =
   | FeedItemAddedPayload;
 
 export type SocialEventKind =
-| "relationship.changed"
+  | "relationship.changed"
   | "blocked.changed"
   | "friend.request.received"
   | "friend.request.responded"

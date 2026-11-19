@@ -1,20 +1,17 @@
-
-
 export interface BookmarkedQuizResponseDto {
+  bookmarkId: string;
 
-bookmarkId: string;
+  quizId: string;
 
-quizId: string;
+  quizTitle: string;
 
-quizTitle: string;
+  quizSlug: string;
 
-quizSlug: string;
+  quizImageUrl?: string | null;
 
-quizImageUrl?: string | null;
+  quizIsFeatured: boolean;
 
-quizIsFeatured: boolean;
+  notes?: string | null;
 
-notes?: string | null;
-
-bookmarkedAt: string;
+  bookmarkedAt: string;
 }

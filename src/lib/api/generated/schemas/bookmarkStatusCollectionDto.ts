@@ -1,8 +1,5 @@
-
-
 export interface BookmarkStatusCollectionDto {
+  collectionId: string;
 
-collectionId: string;
-
-name: string;
+  name: string;
 }

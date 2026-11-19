@@ -1,46 +1,29 @@
-/**
- * Apollo Client factory for the GraphQL pilot.
- *
- * The pilot covers two pages (`/quizzes` and `/profile/[name]`). Every other
- * page keeps using SWR + the orval-generated REST client, so this client is
- * instantiated per page subtree by `ApolloSubtreeProvider` rather than mounted
- * globally. That keeps the Apollo and SWR cache spaces disjoint, which is the
- * boundary rule documented in the implementation plan.
- *
- * The endpoint defaults to `/graphql` (same-origin) because the backend mounts
- * the GraphQL handler outside its REST global prefix; an explicit
- * `NEXT_PUBLIC_GRAPHQL_URL` override is honoured for environments that put a
- * gateway in front of it.
- *
- * Errors carrying `extensions.code` are coerced into `ApiError` so existing
- * `isApiError` consumers keep working unchanged.
- */
 import {
   ApolloClient,
   ApolloLink,
   HttpLink,
   InMemoryCache,
-} from '@apollo/client';
-import { ErrorLink } from '@apollo/client/link/error';
+} from "@apollo/client";
+import { ErrorLink } from "@apollo/client/link/error";
 import {
   CombinedGraphQLErrors,
   CombinedProtocolErrors,
-} from '@apollo/client/errors';
-import { setContext } from '@apollo/client/link/context';
+} from "@apollo/client/errors";
+import { setContext } from "@apollo/client/link/context";
 
-import { ApiError } from '@/lib/api/core/ApiError';
+import { ApiError } from "@/lib/api/core/ApiError";
 
-export const DEFAULT_GRAPHQL_ENDPOINT = '/graphql';
-const AUTH_TOKEN_COOKIE_NAME = 'auth_token';
+export const DEFAULT_GRAPHQL_ENDPOINT = "/graphql";
+const AUTH_TOKEN_COOKIE_NAME = "auth_token";
 
 const resolveEndpoint = (): string => {
   const fromEnv = process.env.NEXT_PUBLIC_GRAPHQL_URL;
-  if (typeof fromEnv === 'string' && fromEnv.length > 0) return fromEnv;
+  if (typeof fromEnv === "string" && fromEnv.length > 0) return fromEnv;
   return DEFAULT_GRAPHQL_ENDPOINT;
 };
 
 const readAuthCookie = (): string | null => {
-  if (typeof document === 'undefined') return null;
+  if (typeof document === "undefined") return null;
   const match = document.cookie.match(
     new RegExp(`(?:^|;\\s*)${AUTH_TOKEN_COOKIE_NAME}=([^;]*)`),
   );
@@ -80,17 +63,17 @@ type Rfc7807Extensions = {
  */
 const statusForCode = (code: string | undefined): number => {
   switch (code) {
-    case 'UNAUTHENTICATED':
+    case "UNAUTHENTICATED":
       return 401;
-    case 'FORBIDDEN':
+    case "FORBIDDEN":
       return 403;
-    case 'NOT_FOUND':
+    case "NOT_FOUND":
       return 404;
-    case 'QUERY_TOO_DEEP':
-    case 'QUERY_TOO_COMPLEX':
-    case 'BAD_USER_INPUT':
+    case "QUERY_TOO_DEEP":
+    case "QUERY_TOO_COMPLEX":
+    case "BAD_USER_INPUT":
       return 400;
-    case 'RATE_LIMITED':
+    case "RATE_LIMITED":
       return 429;
     default:
       return 500;
@@ -110,11 +93,11 @@ const buildErrorLink = (): ApolloLink =>
       const extensions = (first.extensions ?? {}) as Rfc7807Extensions;
       // eslint-disable-next-line no-console
       console.warn(
-        `[graphql] operation="${operation.operationName ?? 'anonymous'}" code="${extensions.code ?? 'UNKNOWN'}" message="${first.message}"`,
+        `[graphql] operation="${operation.operationName ?? "anonymous"}" code="${extensions.code ?? "UNKNOWN"}" message="${first.message}"`,
       );
       throw ApiError.fromInput({
         status:
-          typeof extensions.status === 'number'
+          typeof extensions.status === "number"
             ? extensions.status
             : statusForCode(extensions.code),
         code: extensions.code,
@@ -128,14 +111,14 @@ const buildErrorLink = (): ApolloLink =>
       // can branch on `isServerError`.
       throw ApiError.fromInput({
         status: 500,
-        code: 'GLOBAL_INTERNAL_ERROR',
-        message: 'GraphQL protocol error',
+        code: "GLOBAL_INTERNAL_ERROR",
+        message: "GraphQL protocol error",
       });
     }
     if (error instanceof Error) {
       throw ApiError.fromInput({
         status: 0,
-        code: 'GLOBAL_NETWORK_ERROR',
+        code: "GLOBAL_NETWORK_ERROR",
         message: error.message,
       });
     }
@@ -175,11 +158,11 @@ export const createApolloClient = (
     cache: buildCache(),
     defaultOptions: {
       watchQuery: {
-        fetchPolicy: 'cache-and-network',
-        errorPolicy: 'all',
+        fetchPolicy: "cache-and-network",
+        errorPolicy: "all",
         returnPartialData: false,
       },
-      query: { fetchPolicy: 'cache-first', errorPolicy: 'all' },
+      query: { fetchPolicy: "cache-first", errorPolicy: "all" },
     },
   });
 };

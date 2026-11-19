@@ -1,6 +1,3 @@
-
-
 export interface DeleteQuizResponseDto {
-
-message: string;
+  message: string;
 }

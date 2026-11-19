@@ -9,195 +9,190 @@ import { ErrorState } from "@/components/ui/loading-states/ErrorState";
 import type { ApiError } from "@/lib/api";
 
 interface RankingSummarySkeletonProps {
-className?: string;
+  className?: string;
 }
 
-export function RankingSummarySkeleton({ className }: RankingSummarySkeletonProps) {
-return (
-<div
-data-testid="ranking-summary-skeleton"
-className={`rounded-lg border bg-card p-4 sm:p-6 space-y-3 ${className ?? ""}`}
+export function RankingSummarySkeleton({
+  className,
+}: RankingSummarySkeletonProps) {
+  return (
+    <div
+      data-testid="ranking-summary-skeleton"
+      className={`rounded-lg border bg-card p-4 sm:p-6 space-y-3 ${className ?? ""}`}
     >
-<div className="flex items-center justify-between">
-<Skeleton className="h-5 w-32" />
-<Skeleton className="h-4 w-16" />
-</div>
-<div className="grid grid-cols-2 gap-4">
-<div className="space-y-2">
-<Skeleton className="h-3 w-16" />
-<Skeleton className="h-7 w-24" />
-</div>
-<div className="space-y-2">
-<Skeleton className="h-3 w-16" />
-<Skeleton className="h-7 w-24" />
-</div>
-</div>
-<Skeleton className="h-3 w-44" />
-</div>
+      <div className="flex items-center justify-between">
+        <Skeleton className="h-5 w-32" />
+        <Skeleton className="h-4 w-16" />
+      </div>
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Skeleton className="h-3 w-16" />
+          <Skeleton className="h-7 w-24" />
+        </div>
+        <div className="space-y-2">
+          <Skeleton className="h-3 w-16" />
+          <Skeleton className="h-7 w-24" />
+        </div>
+      </div>
+      <Skeleton className="h-3 w-44" />
+    </div>
   );
 }
 
 interface LeaderboardTableSkeletonProps {
-
-rows?: number;
-className?: string;
+  rows?: number;
+  className?: string;
 }
 
 export function LeaderboardTableSkeleton({
-rows = 10,
-className,
+  rows = 10,
+  className,
 }: LeaderboardTableSkeletonProps) {
-return (
-<div
-role="status"
-aria-live="polite"
-aria-label="Loading leaderboard"
-data-testid="leaderboard-table-skeleton"
-className={`rounded-lg border bg-card overflow-hidden ${className ?? ""}`}
+  return (
+    <div
+      role="status"
+      aria-live="polite"
+      aria-label="Loading leaderboard"
+      data-testid="leaderboard-table-skeleton"
+      className={`rounded-lg border bg-card overflow-hidden ${className ?? ""}`}
     >
-<div className="space-y-1 p-2">
-{Array.from({ length: rows }).map((_, i) => (
-<div
-key={i}
-className="flex items-center gap-3 p-2 rounded-md"
-          >
-<Skeleton className="h-6 w-10 shrink-0" />
-<Skeleton className="h-7 w-7 rounded-full shrink-0" />
-<Skeleton className="h-4 flex-1" />
-<Skeleton className="h-4 w-16 shrink-0" />
-</div>
+      <div className="space-y-1 p-2">
+        {Array.from({ length: rows }).map((_, i) => (
+          <div key={i} className="flex items-center gap-3 p-2 rounded-md">
+            <Skeleton className="h-6 w-10 shrink-0" />
+            <Skeleton className="h-7 w-7 rounded-full shrink-0" />
+            <Skeleton className="h-4 flex-1" />
+            <Skeleton className="h-4 w-16 shrink-0" />
+          </div>
         ))}
-</div>
-</div>
+      </div>
+    </div>
   );
 }
 
 interface RankingHistorySkeletonProps {
-rows?: number;
-className?: string;
+  rows?: number;
+  className?: string;
 }
 
 export function RankingHistorySkeleton({
-rows = 6,
-className,
+  rows = 6,
+  className,
 }: RankingHistorySkeletonProps) {
-return (
-<div
-data-testid="ranking-history-skeleton"
-className={`rounded-lg border bg-card p-4 space-y-3 ${className ?? ""}`}
+  return (
+    <div
+      data-testid="ranking-history-skeleton"
+      className={`rounded-lg border bg-card p-4 space-y-3 ${className ?? ""}`}
     >
-{Array.from({ length: rows }).map((_, i) => (
-<div key={i} className="flex items-center justify-between gap-3">
-<Skeleton className="h-4 w-24" />
-<Skeleton className="h-4 w-12" />
-</div>
+      {Array.from({ length: rows }).map((_, i) => (
+        <div key={i} className="flex items-center justify-between gap-3">
+          <Skeleton className="h-4 w-24" />
+          <Skeleton className="h-4 w-12" />
+        </div>
       ))}
-</div>
+    </div>
   );
 }
 
 interface MilestonesListSkeletonProps {
-rows?: number;
-className?: string;
+  rows?: number;
+  className?: string;
 }
 
 export function MilestonesListSkeleton({
-rows = 3,
-className,
+  rows = 3,
+  className,
 }: MilestonesListSkeletonProps) {
-return (
-<div
-data-testid="milestones-list-skeleton"
-className={`space-y-2 ${className ?? ""}`}
+  return (
+    <div
+      data-testid="milestones-list-skeleton"
+      className={`space-y-2 ${className ?? ""}`}
     >
-{Array.from({ length: rows }).map((_, i) => (
-<div
-key={i}
-className="flex items-center gap-3 rounded-lg border bg-card p-3"
+      {Array.from({ length: rows }).map((_, i) => (
+        <div
+          key={i}
+          className="flex items-center gap-3 rounded-lg border bg-card p-3"
         >
-<Skeleton className="h-8 w-8 rounded-full shrink-0" />
-<div className="flex-1 space-y-1.5">
-<Skeleton className="h-4 w-32" />
-<Skeleton className="h-3 w-24" />
-</div>
-</div>
+          <Skeleton className="h-8 w-8 rounded-full shrink-0" />
+          <div className="flex-1 space-y-1.5">
+            <Skeleton className="h-4 w-32" />
+            <Skeleton className="h-3 w-24" />
+          </div>
+        </div>
       ))}
-</div>
+    </div>
   );
 }
 
 interface RankingEmptyStateProps {
-variant: "leaderboard" | "history" | "summary";
-className?: string;
+  variant: "leaderboard" | "history" | "summary";
+  className?: string;
 }
 
 const RANKING_EMPTY_CONFIG = {
-leaderboard: {
-icon: Trophy,
-title: "No leaderboard data",
-description:
-"The leaderboard will populate as more players complete quizzes. Check back soon.",
+  leaderboard: {
+    icon: Trophy,
+    title: "No leaderboard data",
+    description:
+      "The leaderboard will populate as more players complete quizzes. Check back soon.",
   },
-history: {
-icon: Calendar,
-title: "No ranking history yet",
-description:
-"Your daily rank snapshots will appear here once you have completed more quizzes.",
+  history: {
+    icon: Calendar,
+    title: "No ranking history yet",
+    description:
+      "Your daily rank snapshots will appear here once you have completed more quizzes.",
   },
-summary: {
-icon: BarChart3,
-title: "No rankings yet",
-description:
-"Complete a few quizzes to see where you rank against other players.",
+  summary: {
+    icon: BarChart3,
+    title: "No rankings yet",
+    description:
+      "Complete a few quizzes to see where you rank against other players.",
   },
 } as const;
 
 export function RankingEmptyState({
-variant,
-className,
+  variant,
+  className,
 }: RankingEmptyStateProps) {
-const config = RANKING_EMPTY_CONFIG[variant];
-return (
-<EmptyState
-icon={config.icon}
-title={config.title}
-description={config.description}
-size="sm"
-className={className}
-data-testid={`ranking-empty-${variant}`}
+  const config = RANKING_EMPTY_CONFIG[variant];
+  return (
+    <EmptyState
+      icon={config.icon}
+      title={config.title}
+      description={config.description}
+      size="sm"
+      className={className}
+      data-testid={`ranking-empty-${variant}`}
     />
   );
 }
 
 interface RankingErrorStateProps {
-error: ApiError | null;
-onRetry?: () => void;
-className?: string;
+  error: ApiError | null;
+  onRetry?: () => void;
+  className?: string;
 }
 
 export function RankingErrorState({
-error,
-onRetry,
-className,
+  error,
+  onRetry,
+  className,
 }: RankingErrorStateProps) {
-
-const code = String(error?.code ?? "");
-const variant =
-code === "RANKING_NOT_FOUND" || error?.status === 404
-? "notFound"
-: error?.status === 0
-? "network"
-: "server";
-return (
-<ErrorState
-variant={variant}
-onRetry={onRetry}
-className={className}
-data-testid="ranking-error-state"
-title={error ? "Could not load rankings" : undefined}
-message={
-error ? (error.detail || error.message || undefined) : undefined
-      }
+  const code = String(error?.code ?? "");
+  const variant =
+    code === "RANKING_NOT_FOUND" || error?.status === 404
+      ? "notFound"
+      : error?.status === 0
+        ? "network"
+        : "server";
+  return (
+    <ErrorState
+      variant={variant}
+      onRetry={onRetry}
+      className={className}
+      data-testid="ranking-error-state"
+      title={error ? "Could not load rankings" : undefined}
+      message={error ? error.detail || error.message || undefined : undefined}
     />
   );
 }

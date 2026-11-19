@@ -1,6 +1,3 @@
-
-
 export type AuthControllerCheckEmailParams = {
-
-email: string;
+  email: string;
 };

@@ -292,9 +292,7 @@ function useInitialState(initialState?: Partial<QuizFilterUrlState>): void {
 // ─── Sub-components ──────────────────────────────────────────────────────
 
 import { ApiError } from "@/lib/api";
-import {
-  initialsFromQuizId,
-} from "@/features/quizzes/utils/quiz-card-decoration";
+import { initialsFromQuizId } from "@/features/quizzes/utils/quiz-card-decoration";
 import type {
   PopularQuizItemDto,
   TrendingQuizItemDto,

@@ -1,7 +1,10 @@
 import { describe, expect, it, afterEach } from "vitest";
 import { cleanup, render, screen } from "@testing-library/react";
 
-import { RailQuizCard, type RailQuiz } from "@/features/quizzes/components/RailQuizCard";
+import {
+  RailQuizCard,
+  type RailQuiz,
+} from "@/features/quizzes/components/RailQuizCard";
 
 afterEach(() => cleanup());
 
@@ -17,12 +20,16 @@ function makeRailQuiz(overrides: Partial<RailQuiz> = {}): RailQuiz {
 
 describe("RailQuizCard — minimal wire projection", () => {
   it("(a) renders the title from the wire shape", () => {
-    render(<RailQuizCard quiz={makeRailQuiz({ title: "Capitals of Europe" })} />);
+    render(
+      <RailQuizCard quiz={makeRailQuiz({ title: "Capitals of Europe" })} />,
+    );
     expect(screen.getByText("Capitals of Europe")).toBeInTheDocument();
   });
 
   it("(b) links to /quizzes/{slug} when slug is present", () => {
-    render(<RailQuizCard quiz={makeRailQuiz({ slug: "capitals-of-europe" })} />);
+    render(
+      <RailQuizCard quiz={makeRailQuiz({ slug: "capitals-of-europe" })} />,
+    );
     const link = screen.getByTestId("rail-quiz-card");
     expect(link.getAttribute("href")).toBe("/quizzes/capitals-of-europe");
   });

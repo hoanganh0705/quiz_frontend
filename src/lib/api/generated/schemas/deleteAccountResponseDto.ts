@@ -1,6 +1,3 @@
-
-
 export interface DeleteAccountResponseDto {
-
-message: string;
+  message: string;
 }

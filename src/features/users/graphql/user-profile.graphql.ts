@@ -32,18 +32,18 @@
  * surface a TS error so a developer is forced to run codegen before
  * consuming the hook.
  */
-import { gql, type TypedDocumentNode } from '@apollo/client';
-import { useQuery } from '@apollo/client/react';
+import { gql, type TypedDocumentNode } from "@apollo/client";
+import { useQuery } from "@apollo/client/react";
 
 import type {
   UserProfileQuery,
   UserProfileQueryVariables,
-} from '@/lib/graphql/generated/graphql';
+} from "@/lib/graphql/generated/graphql";
 
 export type {
   UserProfileQuery,
   UserProfileQueryVariables,
-} from '@/lib/graphql/generated/graphql';
+} from "@/lib/graphql/generated/graphql";
 
 export const USER_PROFILE_QUERY: TypedDocumentNode<
   UserProfileQuery,
@@ -184,13 +184,14 @@ export const USER_PROFILE_DEFAULT_ACTIVITY_FIRST = 30;
 
 export interface UseUserProfileArgs {
   readonly variables: UserProfileQueryVariables;
-  readonly fetchPolicy?: 'cache-first' | 'cache-and-network' | 'network-only' | 'no-cache';
+  readonly fetchPolicy?:
+    "cache-first" | "cache-and-network" | "network-only" | "no-cache";
   readonly skip?: boolean;
 }
 
 export function useUserProfileQuery(args: UseUserProfileArgs) {
   const { variables, fetchPolicy, skip } = args;
-  if (typeof skip === 'boolean') {
+  if (typeof skip === "boolean") {
     return useQuery(USER_PROFILE_QUERY, {
       variables,
       ...(fetchPolicy ? { fetchPolicy } : {}),

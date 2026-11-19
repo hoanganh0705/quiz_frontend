@@ -1,12 +1,9 @@
-
-
 export interface CreateCollectionResponseDto {
+  collectionId: string;
 
-collectionId: string;
+  name: string;
 
-name: string;
+  description?: string | null;
 
-description?: string | null;
-
-createdAt: string;
+  createdAt: string;
 }

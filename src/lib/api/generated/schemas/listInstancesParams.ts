@@ -1,19 +1,16 @@
-
-
-import type { ListInstancesStatus } from './listInstancesStatus';
-import type { ListInstancesDifficulty } from './listInstancesDifficulty';
+import type { ListInstancesStatus } from "./listInstancesStatus";
+import type { ListInstancesDifficulty } from "./listInstancesDifficulty";
 
 export type ListInstancesParams = {
+  cursor?: string | null;
 
-cursor?: string | null;
+  limit?: number | null;
 
-limit?: number | null;
+  status?: ListInstancesStatus;
 
-status?: ListInstancesStatus;
+  difficulty?: ListInstancesDifficulty;
 
-difficulty?: ListInstancesDifficulty;
+  quizId?: string | null;
 
-quizId?: string | null;
-
-creatorId?: string | null;
+  creatorId?: string | null;
 };

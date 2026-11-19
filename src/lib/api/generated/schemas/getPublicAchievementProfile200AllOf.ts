@@ -1,7 +1,5 @@
-
-
-import type { PublicAchievementProfileResponseDto } from './publicAchievementProfileResponseDto';
+import type { PublicAchievementProfileResponseDto } from "./publicAchievementProfileResponseDto";
 
 export type GetPublicAchievementProfile200AllOf = {
-data?: PublicAchievementProfileResponseDto;
+  data?: PublicAchievementProfileResponseDto;
 };

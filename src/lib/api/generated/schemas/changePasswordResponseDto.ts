@@ -1,6 +1,3 @@
-
-
 export interface ChangePasswordResponseDto {
-
-message: string;
+  message: string;
 }

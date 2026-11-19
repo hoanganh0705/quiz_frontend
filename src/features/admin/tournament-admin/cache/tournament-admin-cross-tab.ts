@@ -1,62 +1,62 @@
+import { createBroadcastChannel } from "@/lib/broadcast";
 
+export const TOURNAMENT_ADMIN_CHANNEL_NAME = "admin-tournament" as const;
 
-import { createBroadcastChannel } from '@/lib/broadcast';
+export type TournamentAdminEventType = "admin:tournament-admin.invalidate";
 
-export const TOURNAMENT_ADMIN_CHANNEL_NAME = 'phase7-admin-tournament' as const;
-
-export type TournamentAdminEventType = 'admin:7.1.tournament-admin.invalidate';
-
-export type TournamentAdminMutation = 'create' | 'update' | 'delete';
+export type TournamentAdminMutation = "create" | "update" | "delete";
 
 const TOURNAMENT_ADMIN_VALID_MUTATIONS = new Set<TournamentAdminMutation>([
-'create',
-'update',
-'delete',
+  "create",
+  "update",
+  "delete",
 ]);
 
 export interface BaseTournamentAdminEvent {
-type: TournamentAdminEventType;
+  type: TournamentAdminEventType;
 
-tabId: string;
+  tabId: string;
 
-timestamp: number;
+  timestamp: number;
 
-mutation: TournamentAdminMutation;
+  mutation: TournamentAdminMutation;
 
-tournamentId: string;
+  tournamentId: string;
 }
 
 export interface TournamentAdminInvalidatedEvent extends BaseTournamentAdminEvent {
-type: 'admin:7.1.tournament-admin.invalidate';
+  type: "admin:tournament-admin.invalidate";
 }
 
 export type TournamentAdminEvent = TournamentAdminInvalidatedEvent;
 
 const tournamentAdminChannel = createBroadcastChannel<TournamentAdminEvent>(
-TOURNAMENT_ADMIN_CHANNEL_NAME,
-{
-validate: (data): TournamentAdminEvent | null => {
-if (typeof data !== 'object' || data === null) return null;
-const d = data as Partial<TournamentAdminInvalidatedEvent>;
-if (d.type !== 'admin:7.1.tournament-admin.invalidate') return null;
-if (typeof d.tabId !== 'string' || d.tabId.length === 0) return null;
-if (typeof d.timestamp !== 'number') return null;
-if (
-typeof d.mutation !== 'string' ||
-!TOURNAMENT_ADMIN_VALID_MUTATIONS.has(d.mutation as TournamentAdminMutation)
+  TOURNAMENT_ADMIN_CHANNEL_NAME,
+  {
+    validate: (data): TournamentAdminEvent | null => {
+      if (typeof data !== "object" || data === null) return null;
+      const d = data as Partial<TournamentAdminInvalidatedEvent>;
+      if (d.type !== "admin:tournament-admin.invalidate") return null;
+      if (typeof d.tabId !== "string" || d.tabId.length === 0) return null;
+      if (typeof d.timestamp !== "number") return null;
+      if (
+        typeof d.mutation !== "string" ||
+        !TOURNAMENT_ADMIN_VALID_MUTATIONS.has(
+          d.mutation as TournamentAdminMutation,
+        )
       ) {
-return null;
+        return null;
       }
-if (typeof d.tournamentId !== 'string' || d.tournamentId.length === 0) {
-return null;
+      if (typeof d.tournamentId !== "string" || d.tournamentId.length === 0) {
+        return null;
       }
-return d as TournamentAdminEvent;
+      return d as TournamentAdminEvent;
     },
   },
 );
 
 export function closeTournamentAdminChannel(): void {
-tournamentAdminChannel.closeChannel();
+  tournamentAdminChannel.closeChannel();
 }
 
 export function resetTournamentAdminBroadcastChannelAvailability(): void {
@@ -68,27 +68,26 @@ export function resetTournamentAdminBroadcastChannelAvailability(): void {
 }
 
 export function __resetTournamentAdminChannelForTest(): void {
-tournamentAdminChannel.closeChannel();
+  tournamentAdminChannel.closeChannel();
 }
 
 export function subscribeTournamentAdminInvalidate(
-handler: (event: TournamentAdminEvent) => void,
+  handler: (event: TournamentAdminEvent) => void,
 ): () => void {
-return tournamentAdminChannel.subscribe(handler);
+  return tournamentAdminChannel.subscribe(handler);
 }
 
 export function broadcastTournamentAdminInvalidate(
-mutation: TournamentAdminMutation,
-tournamentId: string,
+  mutation: TournamentAdminMutation,
+  tournamentId: string,
 ): void {
-if (!tournamentId || typeof tournamentId !== 'string') {
-
-return;
+  if (!tournamentId || typeof tournamentId !== "string") {
+    return;
   }
-if (!TOURNAMENT_ADMIN_VALID_MUTATIONS.has(mutation)) return;
-tournamentAdminChannel.publish({
-type: 'admin:7.1.tournament-admin.invalidate',
-mutation,
-tournamentId,
+  if (!TOURNAMENT_ADMIN_VALID_MUTATIONS.has(mutation)) return;
+  tournamentAdminChannel.publish({
+    type: "admin:tournament-admin.invalidate",
+    mutation,
+    tournamentId,
   });
 }

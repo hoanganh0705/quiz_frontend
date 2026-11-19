@@ -1,38 +1,35 @@
-
-
-import type { QuizVersionResponseDtoStatus } from './quizVersionResponseDtoStatus';
-import type { QuizVersionResponseDtoDifficulty } from './quizVersionResponseDtoDifficulty';
-import type { QuizQuestionAuthorDto } from './quizQuestionAuthorDto';
+import type { QuizVersionResponseDtoStatus } from "./quizVersionResponseDtoStatus";
+import type { QuizVersionResponseDtoDifficulty } from "./quizVersionResponseDtoDifficulty";
+import type { QuizQuestionAuthorDto } from "./quizQuestionAuthorDto";
 
 export interface QuizVersionResponseDto {
+  quizVersionId: string;
 
-quizVersionId: string;
+  quizId: string;
 
-quizId: string;
+  versionNumber: number;
 
-versionNumber: number;
+  status: QuizVersionResponseDtoStatus;
 
-status: QuizVersionResponseDtoStatus;
+  difficulty: QuizVersionResponseDtoDifficulty;
 
-difficulty: QuizVersionResponseDtoDifficulty;
+  durationMs: number;
 
-durationMs: number;
+  passingScorePercent: number;
 
-passingScorePercent: number;
+  rewardXp: number;
 
-rewardXp: number;
+  questionCount: number;
 
-questionCount: number;
+  creatorId?: string | null;
 
-creatorId?: string | null;
+  createdAt: string;
 
-createdAt: string;
+  publishedAt?: string | null;
 
-publishedAt?: string | null;
+  archivedAt?: string | null;
 
-archivedAt?: string | null;
+  updatedAt: string;
 
-updatedAt: string;
-
-questions?: QuizQuestionAuthorDto[] | null;
+  questions?: QuizQuestionAuthorDto[] | null;
 }

@@ -35,19 +35,13 @@ export const EditProfileForm = memo(function EditProfileForm({
       bio: profile.bio ?? null,
       pronouns:
         ((profile as unknown as Record<string, unknown>).pronouns as
-          | string
-          | null
-          | undefined) ?? null,
+          string | null | undefined) ?? null,
       location:
         ((profile as unknown as Record<string, unknown>).location as
-          | string
-          | null
-          | undefined) ?? null,
+          string | null | undefined) ?? null,
       websiteUrl:
         ((profile as unknown as Record<string, unknown>).websiteUrl as
-          | string
-          | null
-          | undefined) ?? null,
+          string | null | undefined) ?? null,
       avatarPublicId: null,
     };
   }, [profile]);

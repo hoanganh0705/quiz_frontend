@@ -1,33 +1,30 @@
-
-
-import type { UpdatePreferencesDtoQuietHoursStart } from './updatePreferencesDtoQuietHoursStart';
-import type { UpdatePreferencesDtoQuietHoursEnd } from './updatePreferencesDtoQuietHoursEnd';
+import type { UpdatePreferencesDtoQuietHoursStart } from "./updatePreferencesDtoQuietHoursStart";
+import type { UpdatePreferencesDtoQuietHoursEnd } from "./updatePreferencesDtoQuietHoursEnd";
 
 export interface UpdatePreferencesDto {
+  inAppEnabled?: boolean;
 
-inAppEnabled?: boolean;
+  emailEnabled?: boolean;
 
-emailEnabled?: boolean;
+  pushEnabled?: boolean;
 
-pushEnabled?: boolean;
+  achievementEnabled?: boolean;
 
-achievementEnabled?: boolean;
+  tournamentEnabled?: boolean;
 
-tournamentEnabled?: boolean;
+  rankEnabled?: boolean;
 
-rankEnabled?: boolean;
+  friendEnabled?: boolean;
 
-friendEnabled?: boolean;
+  commentEnabled?: boolean;
 
-commentEnabled?: boolean;
+  summaryEnabled?: boolean;
 
-summaryEnabled?: boolean;
+  marketingEnabled?: boolean;
 
-marketingEnabled?: boolean;
+  rankImprovementThreshold?: number;
 
-rankImprovementThreshold?: number;
+  quietHoursStart?: UpdatePreferencesDtoQuietHoursStart;
 
-quietHoursStart?: UpdatePreferencesDtoQuietHoursStart;
-
-quietHoursEnd?: UpdatePreferencesDtoQuietHoursEnd;
+  quietHoursEnd?: UpdatePreferencesDtoQuietHoursEnd;
 }

@@ -1,8 +1,5 @@
-
-
 export interface UserAnalyticsFavoriteCategoryDto {
+  categoryId: string;
 
-categoryId: string;
-
-name: string;
+  name: string;
 }

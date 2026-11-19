@@ -1,29 +1,26 @@
-
-
-import type { UserRankSummaryDtoTrend } from './userRankSummaryDtoTrend';
-import type { UserRankSummaryDtoPeriod } from './userRankSummaryDtoPeriod';
+import type { UserRankSummaryDtoTrend } from "./userRankSummaryDtoTrend";
+import type { UserRankSummaryDtoPeriod } from "./userRankSummaryDtoPeriod";
 
 export interface UserRankSummaryDto {
+  rank: number;
 
-rank: number;
+  denseRank: number;
 
-denseRank: number;
+  percentile: number;
 
-percentile: number;
+  percentileLabel: string;
 
-percentileLabel: string;
+  xp: number;
 
-xp: number;
+  xpToNextRank?: number | null;
 
-xpToNextRank?: number | null;
+  nextRankXp?: number | null;
 
-nextRankXp?: number | null;
+  trend: UserRankSummaryDtoTrend;
 
-trend: UserRankSummaryDtoTrend;
+  trendAmount?: number | null;
 
-trendAmount?: number | null;
+  period: UserRankSummaryDtoPeriod;
 
-period: UserRankSummaryDtoPeriod;
-
-resetInSeconds: number;
+  resetInSeconds: number;
 }

@@ -1,19 +1,16 @@
-
-
-import type { TrendingUserResponseDtoAvatarUrl } from './trendingUserResponseDtoAvatarUrl';
-import type { TrendingUserResponseDtoTrendReason } from './trendingUserResponseDtoTrendReason';
+import type { TrendingUserResponseDtoAvatarUrl } from "./trendingUserResponseDtoAvatarUrl";
+import type { TrendingUserResponseDtoTrendReason } from "./trendingUserResponseDtoTrendReason";
 
 export interface TrendingUserResponseDto {
+  userId: string;
 
-userId: string;
+  username: string;
 
-username: string;
+  avatarUrl?: TrendingUserResponseDtoAvatarUrl;
 
-avatarUrl?: TrendingUserResponseDtoAvatarUrl;
+  followers: number;
 
-followers: number;
+  trendScore: number;
 
-trendScore: number;
-
-trendReason: TrendingUserResponseDtoTrendReason;
+  trendReason: TrendingUserResponseDtoTrendReason;
 }

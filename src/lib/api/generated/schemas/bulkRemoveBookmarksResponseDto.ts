@@ -1,6 +1,3 @@
-
-
 export interface BulkRemoveBookmarksResponseDto {
-
-removedCount: number;
+  removedCount: number;
 }

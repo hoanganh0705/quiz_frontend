@@ -3,18 +3,17 @@
 import { getFeatureFlagValue } from "@/lib/feature-flags";
 
 export interface UseTournamentFeatureFlagResult {
+  isPlaceholder: boolean;
 
-isPlaceholder: boolean;
-
-flagValue: "live" | "placeholder";
+  flagValue: "live" | "placeholder";
 }
 
 export function useTournamentFeatureFlag(): UseTournamentFeatureFlagResult {
-const flagValue = getFeatureFlagValue("tournaments_live");
-const isPlaceholder = flagValue === "placeholder";
+  const flagValue = getFeatureFlagValue("tournaments_live");
+  const isPlaceholder = flagValue === "placeholder";
 
-return {
-isPlaceholder,
-flagValue,
+  return {
+    isPlaceholder,
+    flagValue,
   };
 }

@@ -1,10 +1,7 @@
-
-
 export interface UserAnalyticsSummaryDto {
+  totalAttempts: number;
 
-totalAttempts: number;
+  completedQuizzes: number;
 
-completedQuizzes: number;
-
-averageScore: number;
+  averageScore: number;
 }

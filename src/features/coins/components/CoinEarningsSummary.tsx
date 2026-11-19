@@ -48,8 +48,7 @@ export function CoinEarningsSummary({
                 className="inline-flex items-center gap-2 text-muted-foreground"
                 aria-label="Loading lifetime earned"
               >
-                <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
-                …
+                <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />…
               </span>
             ) : isPlaceholder || earned === null ? (
               <span className="text-muted-foreground">—</span>
@@ -78,8 +77,7 @@ export function CoinEarningsSummary({
                 className="inline-flex items-center gap-2 text-muted-foreground"
                 aria-label="Loading lifetime spent"
               >
-                <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
-                …
+                <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />…
               </span>
             ) : isPlaceholder || spent === null ? (
               <span className="text-muted-foreground">—</span>

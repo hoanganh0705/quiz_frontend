@@ -1,5 +1,3 @@
-
-
 export { SearchInput } from "./SearchInput";
 export type { SearchInputProps } from "./SearchInput";
 
@@ -14,21 +12,21 @@ export { SearchPage } from "./SearchPage";
 export { GlobalSearch } from "./GlobalSearch";
 
 export {
-QuizResultCard,
-UserResultCard,
-TournamentResultCard,
-AchievementResultCard,
-RankingResultCard,
-TagResultCard,
-CategoryResultCard,
-CommentResultCard,
-SocialReadResultCard,
+  QuizResultCard,
+  UserResultCard,
+  TournamentResultCard,
+  AchievementResultCard,
+  RankingResultCard,
+  TagResultCard,
+  CategoryResultCard,
+  CommentResultCard,
+  SocialReadResultCard,
 } from "./cards";
 
 export {
-SearchResultSkeleton,
-SearchResultGroupSkeleton,
-SEARCH_RESULT_KINDS,
+  SearchResultSkeleton,
+  SearchResultGroupSkeleton,
+  SEARCH_RESULT_KINDS,
 } from "./shared/SearchResultSkeleton";
 
 export { SearchEmptyState } from "./shared/SearchEmptyState";

@@ -1,32 +1,28 @@
-
-
-'use client';
+"use client";
 
 import {
-computePublishReadiness,
-type PublishReadiness,
-} from '@/features/quizzes/types/publish.types';
+  computePublishReadiness,
+  type PublishReadiness,
+} from "@/features/quizzes/types/publish.types";
 
 export interface UsePublishReadinessOptions {
-
-questionCount: number;
+  questionCount: number;
 }
 
 export interface UsePublishReadinessReturn extends PublishReadiness {
-
-isLoading: false;
+  isLoading: false;
 }
 
 export function usePublishReadiness(
-options: UsePublishReadinessOptions,
+  options: UsePublishReadinessOptions,
 ): UsePublishReadinessReturn {
-const { questionCount } = options;
+  const { questionCount } = options;
 
-const readiness = computePublishReadiness(questionCount);
+  const readiness = computePublishReadiness(questionCount);
 
-return {
-...readiness,
+  return {
+    ...readiness,
 
-isLoading: false,
+    isLoading: false,
   };
 }

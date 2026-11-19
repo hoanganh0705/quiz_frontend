@@ -8,7 +8,6 @@ import type { RegistrationStatus } from "@/features/tournaments/types";
 import { REGISTRATION_STATE_TOKENS } from "@/features/tournaments/lib/tournament-tokens";
 
 export interface RegistrationStateProps {
-
   status: RegistrationStatus | null;
 
   className?: string;
@@ -56,7 +55,6 @@ export function RegistrationState({
   status,
   className,
 }: RegistrationStateProps) {
-
   if (status === null || status === "unknown") {
     return null;
   }
@@ -79,7 +77,10 @@ export function RegistrationState({
       data-status={status}
     >
       <Icon
-        className={cn("h-3.5 w-3.5 shrink-0", REGISTRATION_STATE_TOKENS[badge.variant].icon)}
+        className={cn(
+          "h-3.5 w-3.5 shrink-0",
+          REGISTRATION_STATE_TOKENS[badge.variant].icon,
+        )}
         aria-hidden="true"
       />
       {badge.label}

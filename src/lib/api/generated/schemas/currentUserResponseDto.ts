@@ -1,14 +1,11 @@
-
-
 export interface CurrentUserResponseDto {
+  userId: string;
 
-userId: string;
+  username: string;
 
-username: string;
+  email: string;
 
-email: string;
+  role: string;
 
-role: string;
-
-isVerified: boolean;
+  isVerified: boolean;
 }

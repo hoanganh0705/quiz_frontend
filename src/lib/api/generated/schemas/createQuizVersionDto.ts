@@ -1,16 +1,13 @@
-
-
-import type { CreateQuizVersionDtoDifficulty } from './createQuizVersionDtoDifficulty';
+import type { CreateQuizVersionDtoDifficulty } from "./createQuizVersionDtoDifficulty";
 
 export interface CreateQuizVersionDto {
+  sourceVersionId?: string | null;
 
-sourceVersionId?: string | null;
+  difficulty: CreateQuizVersionDtoDifficulty;
 
-difficulty: CreateQuizVersionDtoDifficulty;
+  durationMs: number;
 
-durationMs: number;
+  passingScorePercent: number;
 
-passingScorePercent: number;
-
-rewardXp: number;
+  rewardXp: number;
 }

@@ -1,8 +1,5 @@
-
-
 export type ListMyBadgesParams = {
+  limit?: number;
 
-limit?: number;
-
-offset?: number;
+  offset?: number;
 };

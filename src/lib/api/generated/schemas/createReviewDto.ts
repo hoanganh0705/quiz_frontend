@@ -1,10 +1,7 @@
-
-
 export interface CreateReviewDto {
+  rating: number;
 
-rating: number;
+  comment?: string | null;
 
-comment?: string | null;
-
-idempotencyKey?: string | null;
+  idempotencyKey?: string | null;
 }

@@ -148,7 +148,9 @@ const PlayerRanking = () => {
             className="rounded-lg border border-border bg-background p-6 text-center"
             role="status"
           >
-            <p className="text-sm text-foreground-secondary">No players ranked yet.</p>
+            <p className="text-sm text-foreground-secondary">
+              No players ranked yet.
+            </p>
           </div>
         ) : (
           <Swiper

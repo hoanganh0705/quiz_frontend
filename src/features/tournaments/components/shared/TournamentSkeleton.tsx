@@ -11,7 +11,9 @@ interface TournamentDetailSkeletonProps {
   className?: string;
 }
 
-export function TournamentCardSkeleton({ className }: TournamentCardSkeletonProps) {
+export function TournamentCardSkeleton({
+  className,
+}: TournamentCardSkeletonProps) {
   return (
     <div
       className={cn(
@@ -47,7 +49,9 @@ export function TournamentCardSkeleton({ className }: TournamentCardSkeletonProp
   );
 }
 
-export function TournamentDetailSkeleton({ className }: TournamentDetailSkeletonProps) {
+export function TournamentDetailSkeleton({
+  className,
+}: TournamentDetailSkeletonProps) {
   return (
     <div className={cn("space-y-6", className)}>
       {/* Header */}
@@ -72,12 +76,14 @@ export function TournamentDetailSkeleton({ className }: TournamentDetailSkeleton
 
       {/* Dates */}
       <div className="flex flex-wrap gap-6">
-        {["Starts", "Ends", "Registration Opens", "Registration Closes"].map((label) => (
-          <div key={label} className="space-y-1">
-            <Skeleton className="h-3 w-24" />
-            <Skeleton className="h-4 w-32" />
-          </div>
-        ))}
+        {["Starts", "Ends", "Registration Opens", "Registration Closes"].map(
+          (label) => (
+            <div key={label} className="space-y-1">
+              <Skeleton className="h-3 w-24" />
+              <Skeleton className="h-4 w-32" />
+            </div>
+          ),
+        )}
       </div>
 
       {/* Description */}

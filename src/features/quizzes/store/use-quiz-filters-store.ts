@@ -1,52 +1,50 @@
+import { create } from "zustand";
 
-
-import { create } from 'zustand'
-
-import type { QuizFilterUrlState } from '@/features/quizzes/types/quiz-filter-params'
+import type { QuizFilterUrlState } from "@/features/quizzes/types/quiz-filter-params";
 import {
-parseQuizFilterUrl,
-serializeQuizFilterUrl,
-} from '@/features/quizzes/types/quiz-filter-params'
+  parseQuizFilterUrl,
+  serializeQuizFilterUrl,
+} from "@/features/quizzes/types/quiz-filter-params";
 
-type QuizFiltersData = QuizFilterUrlState
+type QuizFiltersData = QuizFilterUrlState;
 
-export const useQuizFiltersStore = create<QuizFiltersData>()(() => ({}))
+export const useQuizFiltersStore = create<QuizFiltersData>()(() => ({}));
 
 export function setFilter<K extends keyof QuizFilterUrlState>(
-key: K,
-value: QuizFilterUrlState[K]
+  key: K,
+  value: QuizFilterUrlState[K],
 ): void {
-useQuizFiltersStore.setState((state) => {
-const next: QuizFilterUrlState = { ...state }
-if (value === undefined) {
-delete next[key]
+  useQuizFiltersStore.setState((state) => {
+    const next: QuizFilterUrlState = { ...state };
+    if (value === undefined) {
+      delete next[key];
     } else {
-next[key] = value
+      next[key] = value;
     }
-return next
-  }, true)
+    return next;
+  }, true);
 }
 
 export function setFromUrlSearchParams(params: URLSearchParams): void {
-useQuizFiltersStore.setState(() => parseQuizFilterUrl(params), true)
+  useQuizFiltersStore.setState(() => parseQuizFilterUrl(params), true);
 }
 
 export function getUrlSearchParams(): URLSearchParams {
-return serializeQuizFilterUrl(useQuizFiltersStore.getState())
+  return serializeQuizFilterUrl(useQuizFiltersStore.getState());
 }
 
 export function resetFilters(): void {
-useQuizFiltersStore.setState(() => ({}), true)
+  useQuizFiltersStore.setState(() => ({}), true);
 }
 
 export const useQuizFiltersCategoryId = () =>
-useQuizFiltersStore((state) => state.categoryId)
+  useQuizFiltersStore((state) => state.categoryId);
 
 export const useQuizFiltersTagSlugs = () =>
-useQuizFiltersStore((state) => state.tagSlugs)
+  useQuizFiltersStore((state) => state.tagSlugs);
 
 export const useQuizFiltersSort = () =>
-useQuizFiltersStore((state) => state.sort)
+  useQuizFiltersStore((state) => state.sort);
 
 export const useQuizFiltersDifficulty = () =>
-useQuizFiltersStore((state) => state.difficulty)
+  useQuizFiltersStore((state) => state.difficulty);

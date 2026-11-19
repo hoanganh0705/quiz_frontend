@@ -4,16 +4,16 @@ import { NotificationPreferencesPage } from "@/features/notifications/components
 import { buildMetadata } from "@/shared/lib/seo";
 
 export const metadata = buildMetadata({
-title: "Notification preferences | QuizHub",
-description:
-"Choose how and when you'd like to receive quiz invites, achievement updates, friend activity, and other notifications.",
-path: "/notifications/preferences",
+  title: "Notification preferences | QuizHub",
+  description:
+    "Choose how and when you'd like to receive quiz invites, achievement updates, friend activity, and other notifications.",
+  path: "/notifications/preferences",
 });
 
 export default function NotificationPreferencesRoute(): React.ReactElement {
-return (
-<Suspense fallback={<RouteGateSkeleton />}>
-<NotificationPreferencesPage />
-</Suspense>
+  return (
+    <Suspense fallback={<RouteGateSkeleton />}>
+      <NotificationPreferencesPage />
+    </Suspense>
   );
 }

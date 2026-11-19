@@ -1,7 +1,6 @@
-
-
-export type AttemptReviewResponseDtoStatus = typeof AttemptReviewResponseDtoStatus[keyof typeof AttemptReviewResponseDtoStatus];
+export type AttemptReviewResponseDtoStatus =
+  (typeof AttemptReviewResponseDtoStatus)[keyof typeof AttemptReviewResponseDtoStatus];
 
 export const AttemptReviewResponseDtoStatus = {
-completed: 'completed',
+  completed: "completed",
 } as const;

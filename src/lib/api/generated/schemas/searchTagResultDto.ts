@@ -1,8 +1,5 @@
-
-
 export interface SearchTagResultDto {
+  tagId: string;
 
-tagId: string;
-
-name: string;
+  name: string;
 }

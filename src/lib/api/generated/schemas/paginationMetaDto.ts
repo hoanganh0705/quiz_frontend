@@ -1,12 +1,9 @@
-
-
 export interface PaginationMetaDto {
+  kind: string;
 
-kind: string;
+  limit: number;
 
-limit: number;
+  nextCursor: string | null;
 
-nextCursor: string | null;
-
-hasNextPage: boolean;
+  hasNextPage: boolean;
 }

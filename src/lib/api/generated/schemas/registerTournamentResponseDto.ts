@@ -1,14 +1,11 @@
-
-
 export interface RegisterTournamentResponseDto {
+  participantId: string;
 
-participantId: string;
+  tournamentId: string;
 
-tournamentId: string;
+  userId: string;
 
-userId: string;
+  registeredAt: string;
 
-registeredAt: string;
-
-message: string;
+  message: string;
 }

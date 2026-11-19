@@ -1,7 +1,5 @@
-
-
-import type { RankedTagResponseDto } from './rankedTagResponseDto';
+import type { RankedTagResponseDto } from "./rankedTagResponseDto";
 
 export type TagControllerGetPopularTags200AllOf = {
-data?: RankedTagResponseDto[];
+  data?: RankedTagResponseDto[];
 };

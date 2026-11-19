@@ -61,9 +61,6 @@ const settingsTabs: {
 /**
  * `SettingsPage` — the settings page, rewritten to use the API.
  *
- * Source epic:   Epic 4.3 — Edit profile + user settings.
- * Source batch:  Batch E (TKT-4.3.E1).
- *
  * ## Diff from the previous version
  *
  * The old page managed `settings` via `useLocalStorage` and passed them down
@@ -81,7 +78,7 @@ const SettingsPage = memo(function SettingsPage() {
   const { profile, isHydrated } = useMyProfile();
   const logoutAll = useLogoutAll();
 
-  // ── Deletion flow (unchanged — Epic 2.10) ─────────────────────────────
+  // ── Deletion flow ──────────────────────────────────────────────────
 
   const router = useRouter();
   const deletion = useDeleteAccount({
@@ -112,8 +109,7 @@ const SettingsPage = memo(function SettingsPage() {
   }, [logoutAll]);
 
   const isDeleteTerminal =
-    deletion.state.kind === "cleanup" ||
-    deletion.state.kind === "completed";
+    deletion.state.kind === "cleanup" || deletion.state.kind === "completed";
 
   // ── Loading / unauthenticated state ────────────────────────────────────
 
@@ -207,7 +203,7 @@ const SettingsPage = memo(function SettingsPage() {
                       URL.revokeObjectURL(url);
                     }}
                     onSignOutAll={handleSignOutAll}
-                    isSignOutAllPending={logoutAll.status === 'pending'}
+                    isSignOutAllPending={logoutAll.status === "pending"}
                     isDeleteAccountPending={isDeleteTerminal}
                   />
                 </TabsContent>

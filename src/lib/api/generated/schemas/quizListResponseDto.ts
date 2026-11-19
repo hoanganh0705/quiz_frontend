@@ -1,11 +1,8 @@
-
-
-import type { QuizListItemDto } from './quizListItemDto';
-import type { QuizPaginationResponseDto } from './quizPaginationResponseDto';
+import type { QuizListItemDto } from "./quizListItemDto";
+import type { QuizPaginationResponseDto } from "./quizPaginationResponseDto";
 
 export interface QuizListResponseDto {
+  items: QuizListItemDto[];
 
-items: QuizListItemDto[];
-
-pagination: QuizPaginationResponseDto;
+  pagination: QuizPaginationResponseDto;
 }

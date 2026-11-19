@@ -1,7 +1,5 @@
-
-
-import type { MyTournamentStandingResponseDto } from './myTournamentStandingResponseDto';
+import type { MyTournamentStandingResponseDto } from "./myTournamentStandingResponseDto";
 
 export type TournamentControllerGetMyTournamentStanding200AllOf = {
-data?: MyTournamentStandingResponseDto;
+  data?: MyTournamentStandingResponseDto;
 };

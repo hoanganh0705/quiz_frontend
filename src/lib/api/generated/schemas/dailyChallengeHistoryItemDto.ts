@@ -1,20 +1,17 @@
-
-
-import type { DailyChallengeHistoryItemDtoDifficulty } from './dailyChallengeHistoryItemDtoDifficulty';
+import type { DailyChallengeHistoryItemDtoDifficulty } from "./dailyChallengeHistoryItemDtoDifficulty";
 
 export interface DailyChallengeHistoryItemDto {
+  date: string;
 
-date: string;
+  quizId: string;
 
-quizId: string;
+  quizTitle: string;
 
-quizTitle: string;
+  slug: string;
 
-slug: string;
+  difficulty: DailyChallengeHistoryItemDtoDifficulty;
 
-difficulty: DailyChallengeHistoryItemDtoDifficulty;
+  score: number;
 
-score: number;
-
-rank: number;
+  rank: number;
 }

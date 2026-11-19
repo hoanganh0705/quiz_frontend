@@ -1,14 +1,11 @@
-
-
-import type { WithdrawTournamentResponseDtoStatus } from './withdrawTournamentResponseDtoStatus';
+import type { WithdrawTournamentResponseDtoStatus } from "./withdrawTournamentResponseDtoStatus";
 
 export interface WithdrawTournamentResponseDto {
+  success: boolean;
 
-success: boolean;
+  tournamentId: string;
 
-tournamentId: string;
+  status: WithdrawTournamentResponseDtoStatus;
 
-status: WithdrawTournamentResponseDtoStatus;
-
-withdrawnAt: string;
+  withdrawnAt: string;
 }

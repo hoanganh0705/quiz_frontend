@@ -1,7 +1,5 @@
-
-
-import { QuizzesDirectoryPage } from '@/features/quizzes'
+import { QuizzesDirectoryPage } from "@/features/quizzes";
 
 export default function QuizzesPage() {
-return <QuizzesDirectoryPage />
+  return <QuizzesDirectoryPage />;
 }

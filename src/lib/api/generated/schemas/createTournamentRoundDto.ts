@@ -1,24 +1,21 @@
-
-
-import type { CreateTournamentRoundDtoDescription } from './createTournamentRoundDtoDescription';
-import type { CreateTournamentRoundDtoDurationMs } from './createTournamentRoundDtoDurationMs';
-import type { CreateTournamentRoundDtoParticipantLimit } from './createTournamentRoundDtoParticipantLimit';
+import type { CreateTournamentRoundDtoDescription } from "./createTournamentRoundDtoDescription";
+import type { CreateTournamentRoundDtoDurationMs } from "./createTournamentRoundDtoDurationMs";
+import type { CreateTournamentRoundDtoParticipantLimit } from "./createTournamentRoundDtoParticipantLimit";
 
 export interface CreateTournamentRoundDto {
+  name: string;
 
-name: string;
+  description?: CreateTournamentRoundDtoDescription;
 
-description?: CreateTournamentRoundDtoDescription;
+  quizVersionId: string;
 
-quizVersionId: string;
+  startAt?: string | null;
 
-startAt?: string | null;
+  endAt?: string | null;
 
-endAt?: string | null;
+  durationMs?: CreateTournamentRoundDtoDurationMs;
 
-durationMs?: CreateTournamentRoundDtoDurationMs;
+  isElimination?: boolean;
 
-isElimination?: boolean;
-
-participantLimit?: CreateTournamentRoundDtoParticipantLimit;
+  participantLimit?: CreateTournamentRoundDtoParticipantLimit;
 }

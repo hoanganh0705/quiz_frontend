@@ -1,8 +1,5 @@
-
-
-import type { VoteDtoValue } from './voteDtoValue';
+import type { VoteDtoValue } from "./voteDtoValue";
 
 export interface VoteDto {
-
-value: VoteDtoValue;
+  value: VoteDtoValue;
 }

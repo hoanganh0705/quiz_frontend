@@ -1,20 +1,17 @@
-
-
-import type { BookmarkCollectionAnalyticsSummaryDto } from './bookmarkCollectionAnalyticsSummaryDto';
-import type { BookmarkCollectionAnalyticsTopCategoryDto } from './bookmarkCollectionAnalyticsTopCategoryDto';
-import type { BookmarkCollectionAnalyticsTopTagDto } from './bookmarkCollectionAnalyticsTopTagDto';
+import type { BookmarkCollectionAnalyticsSummaryDto } from "./bookmarkCollectionAnalyticsSummaryDto";
+import type { BookmarkCollectionAnalyticsTopCategoryDto } from "./bookmarkCollectionAnalyticsTopCategoryDto";
+import type { BookmarkCollectionAnalyticsTopTagDto } from "./bookmarkCollectionAnalyticsTopTagDto";
 
 export interface BookmarkCollectionAnalyticsResponseDto {
+  collectionId: string;
 
-collectionId: string;
+  collectionName: string;
 
-collectionName: string;
+  summary: BookmarkCollectionAnalyticsSummaryDto;
 
-summary: BookmarkCollectionAnalyticsSummaryDto;
+  topCategories: BookmarkCollectionAnalyticsTopCategoryDto[];
 
-topCategories: BookmarkCollectionAnalyticsTopCategoryDto[];
+  topTags: BookmarkCollectionAnalyticsTopTagDto[];
 
-topTags: BookmarkCollectionAnalyticsTopTagDto[];
-
-lastUpdated: string;
+  lastUpdated: string;
 }

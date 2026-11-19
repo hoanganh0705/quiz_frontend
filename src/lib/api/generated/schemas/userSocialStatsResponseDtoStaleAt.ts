@@ -1,3 +1,3 @@
-
-
-export type UserSocialStatsResponseDtoStaleAt = { [key: string]: unknown } | null;
+export type UserSocialStatsResponseDtoStaleAt = {
+  [key: string]: unknown;
+} | null;

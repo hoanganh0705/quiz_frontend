@@ -1,24 +1,21 @@
-
-
-import type { UpdateTournamentDtoDescription } from './updateTournamentDtoDescription';
-import type { UpdateTournamentDtoDifficulty } from './updateTournamentDtoDifficulty';
-import type { UpdateTournamentDtoPrize } from './updateTournamentDtoPrize';
+import type { UpdateTournamentDtoDescription } from "./updateTournamentDtoDescription";
+import type { UpdateTournamentDtoDifficulty } from "./updateTournamentDtoDifficulty";
+import type { UpdateTournamentDtoPrize } from "./updateTournamentDtoPrize";
 
 export interface UpdateTournamentDto {
+  title?: string;
 
-title?: string;
+  description?: UpdateTournamentDtoDescription;
 
-description?: UpdateTournamentDtoDescription;
+  difficulty?: UpdateTournamentDtoDifficulty;
 
-difficulty?: UpdateTournamentDtoDifficulty;
+  prize?: UpdateTournamentDtoPrize;
 
-prize?: UpdateTournamentDtoPrize;
+  startAt?: string;
 
-startAt?: string;
+  endAt?: string;
 
-endAt?: string;
+  maxParticipants?: number | null;
 
-maxParticipants?: number | null;
-
-categoryId?: string | null;
+  categoryId?: string | null;
 }

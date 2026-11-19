@@ -4,15 +4,15 @@ import { MutualsRouteGate } from "@/features/social/components/MutualsRouteGate"
 import { isUuid } from "@/features/social/utils/is-uuid";
 
 interface MutualFriendsRouteProps {
-params: Promise<{ id: string }>;
+  params: Promise<{ id: string }>;
 }
 
 export default async function MutualFriendsRoute({
-params,
+  params,
 }: MutualFriendsRouteProps): Promise<React.ReactElement> {
-const { id } = await params;
-if (!isUuid(id)) {
-notFound();
+  const { id } = await params;
+  if (!isUuid(id)) {
+    notFound();
   }
-return <MutualsRouteGate kind="friends" targetUserId={id} />;
+  return <MutualsRouteGate kind="friends" targetUserId={id} />;
 }

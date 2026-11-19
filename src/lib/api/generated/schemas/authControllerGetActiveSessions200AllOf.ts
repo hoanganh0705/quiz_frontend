@@ -1,7 +1,5 @@
-
-
-import type { SessionListResponseDto } from './sessionListResponseDto';
+import type { SessionListResponseDto } from "./sessionListResponseDto";
 
 export type AuthControllerGetActiveSessions200AllOf = {
-data?: SessionListResponseDto;
+  data?: SessionListResponseDto;
 };

@@ -1,9 +1,9 @@
-import type { ReactNode } from 'react';
+import type { ReactNode } from "react";
 
 export default function QuizAttemptLayout({
-children,
+  children,
 }: {
-children: ReactNode;
+  children: ReactNode;
 }) {
-return children;
+  return children;
 }

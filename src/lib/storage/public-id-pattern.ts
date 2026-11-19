@@ -25,7 +25,8 @@ declare const process: {
  *     or `NEXT_PUBLIC_R2_PUBLIC_URL`.
  */
 
-const UUID_V7_PATTERN = '[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}';
+const UUID_V7_PATTERN =
+  "[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}";
 
 export const STORAGE_PUBLIC_ID_PATTERN = new RegExp(
   `^quiz-app/(avatars|quizzes)/(${UUID_V7_PATTERN})/(${UUID_V7_PATTERN})$`,
@@ -36,9 +37,9 @@ export const STORAGE_PUBLIC_ID_TAIL_PATTERN = new RegExp(
 );
 
 export const STORAGE_PUBLIC_ID_INVALID_MESSAGE =
-  'publicId must match the expected shape: quiz-app/<purpose>/<uuidv7>/<uuidv7>';
+  "publicId must match the expected shape: quiz-app/<purpose>/<uuidv7>/<uuidv7>";
 
-export type UploadPurpose = 'avatar' | 'quiz';
+export type UploadPurpose = "avatar" | "quiz";
 
 /**
  * Pure URL derivation for client-side preview rendering.
@@ -46,14 +47,18 @@ export type UploadPurpose = 'avatar' | 'quiz';
  * Reads public URL from `NEXT_PUBLIC_STORAGE_PUBLIC_URL` or `NEXT_PUBLIC_R2_PUBLIC_URL`.
  * When missing, returns the raw `publicId`.
  */
-export function deriveUrlClient(publicId: string, _purpose?: UploadPurpose): string {
-  if (publicId.startsWith('http://') || publicId.startsWith('https://')) {
+export function deriveUrlClient(
+  publicId: string,
+  _purpose?: UploadPurpose,
+): string {
+  if (publicId.startsWith("http://") || publicId.startsWith("https://")) {
     return publicId;
   }
   const storagePublicUrl =
-    process.env.NEXT_PUBLIC_STORAGE_PUBLIC_URL || process.env.NEXT_PUBLIC_R2_PUBLIC_URL;
+    process.env.NEXT_PUBLIC_STORAGE_PUBLIC_URL ||
+    process.env.NEXT_PUBLIC_R2_PUBLIC_URL;
   if (storagePublicUrl) {
-    const base = storagePublicUrl.replace(/\/+$/, '');
+    const base = storagePublicUrl.replace(/\/+$/, "");
     return `${base}/${publicId}`;
   }
   return publicId;

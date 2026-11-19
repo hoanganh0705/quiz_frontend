@@ -1,6 +1,3 @@
-
-
 export interface ResetPasswordResponseDto {
-
-message: string;
+  message: string;
 }

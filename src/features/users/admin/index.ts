@@ -1,3 +1,1 @@
-
-
-export type { CurrentUserResponse } from '../types'
+export type { CurrentUserResponse } from "../types";

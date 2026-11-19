@@ -1,12 +1,9 @@
-
-
 export interface MyTournamentStandingResponseDto {
+  rank: number;
 
-rank: number;
+  score: number;
 
-score: number;
+  percentile: number;
 
-percentile: number;
-
-participantCount: number;
+  participantCount: number;
 }

@@ -1,19 +1,16 @@
-
-
-import type { LeaderboardEntryDto } from './leaderboardEntryDto';
-import type { LeaderboardResponseDtoUserPosition } from './leaderboardResponseDtoUserPosition';
-import type { PeriodInfoDto } from './periodInfoDto';
-import type { PaginationDto } from './paginationDto';
+import type { LeaderboardEntryDto } from "./leaderboardEntryDto";
+import type { LeaderboardResponseDtoUserPosition } from "./leaderboardResponseDtoUserPosition";
+import type { PeriodInfoDto } from "./periodInfoDto";
+import type { PaginationDto } from "./paginationDto";
 
 export interface LeaderboardResponseDto {
+  entries: LeaderboardEntryDto[];
 
-entries: LeaderboardEntryDto[];
+  totalParticipants: number;
 
-totalParticipants: number;
+  userPosition?: LeaderboardResponseDtoUserPosition;
 
-userPosition?: LeaderboardResponseDtoUserPosition;
+  period: PeriodInfoDto;
 
-period: PeriodInfoDto;
-
-pagination: PaginationDto;
+  pagination: PaginationDto;
 }

@@ -19,11 +19,11 @@
  * purpose)` ownership row. The route requires an authenticated user.
  */
 
-import { customInstance } from '../core/custom-instance';
+import { customInstance } from "../core/custom-instance";
 
 export interface UploadFileRequest {
   file: File;
-  purpose: 'avatar' | 'quiz';
+  purpose: "avatar" | "quiz";
 }
 
 export interface UploadFileResponse {
@@ -33,7 +33,7 @@ export interface UploadFileResponse {
   format: string;
   width: number;
   height: number;
-  purpose: 'avatar' | 'quiz';
+  purpose: "avatar" | "quiz";
 }
 
 export type UploadControllerUploadFileResult = UploadFileResponse;
@@ -42,15 +42,15 @@ export const uploadControllerUploadFile = async (
   payload: UploadFileRequest,
 ): Promise<UploadFileResponse> => {
   const formData = new FormData();
-  formData.append('file', payload.file);
-  formData.append('purpose', payload.purpose);
+  formData.append("file", payload.file);
+  formData.append("purpose", payload.purpose);
 
   const response = await customInstance.request<UploadFileResponse>({
-    url: '/api/v1/uploads',
-    method: 'POST',
+    url: "/api/v1/uploads",
+    method: "POST",
     data: formData,
     headers: {
-      'Content-Type': undefined,
+      "Content-Type": undefined,
     },
   });
   return response.data;
@@ -67,13 +67,13 @@ export const uploadControllerUploadFile = async (
  */
 export interface BindUploadRequest {
   publicId: string;
-  purpose: 'avatar' | 'quiz';
+  purpose: "avatar" | "quiz";
 }
 
 export interface BindUploadResponse {
   publicId: string;
   bound: true;
-  purpose: 'avatar' | 'quiz';
+  purpose: "avatar" | "quiz";
   ownerId: string;
 }
 
@@ -84,7 +84,7 @@ export const uploadControllerBindUpload = async (
 ): Promise<BindUploadResponse> => {
   const response = await customInstance.request<BindUploadResponse>({
     url: `/api/v1/uploads/${encodeURIComponent(payload.publicId)}/bind`,
-    method: 'POST',
+    method: "POST",
     data: { purpose: payload.purpose },
   });
   return response.data;

@@ -1,3 +1,3 @@
-
-
-export type DailyChallengeLeaderboardEntryDtoAvatarUrl = { [key: string]: unknown } | null;
+export type DailyChallengeLeaderboardEntryDtoAvatarUrl = {
+  [key: string]: unknown;
+} | null;

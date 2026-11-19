@@ -2,117 +2,128 @@
 
 import { useCallback, useRef, useState } from "react";
 import { mutate as globalMutate, useSWRConfig } from "swr";
+import { getQueryClient } from "@/providers/QueryProvider";
 
 import { ApiError, isApiError } from "@/lib/api";
 
 import { markNotificationRead } from "@/features/notifications/services/notifications.service";
 import {
-NOTIFICATION_CACHE_KEYS,
-type NotificationMutationState,
+  NOTIFICATION_CACHE_KEYS,
+  type NotificationMutationState,
 } from "@/features/notifications/types/notification.types";
 import { getFeatureFlagValue } from "@/lib/feature-flags";
 import {
-buildNotificationListRevalidations,
-findNotificationInfiniteKeys,
+  buildNotificationListRevalidations,
+  findNotificationInfiniteKeys,
 } from "@/features/notifications/utils/swr-infinite-cache";
 
 export interface UseMarkNotificationReadResult {
-markRead: () => Promise<void>;
-state: NotificationMutationState;
-error: ApiError | null;
-reset: () => void;
+  markRead: () => Promise<void>;
+  state: NotificationMutationState;
+  error: ApiError | null;
+  reset: () => void;
 }
 
 export function useMarkNotificationRead(
-notificationId: string | null,
+  notificationId: string | null,
 ): UseMarkNotificationReadResult {
-const flagValue = getFeatureFlagValue("notifications_live");
-const isFlagPlaceholder = flagValue === "placeholder";
+  const flagValue = getFeatureFlagValue("notifications_live");
+  const isFlagPlaceholder = flagValue === "placeholder";
 
-const [state, setState] = useState<NotificationMutationState>("idle");
-const [error, setError] = useState<ApiError | null>(null);
+  const [state, setState] = useState<NotificationMutationState>("idle");
+  const [error, setError] = useState<ApiError | null>(null);
+  const inFlightRef = useRef(false);
 
-const inFlightRef = useRef(false);
+  const swrConfig = useSWRConfig();
 
-const swrConfig = useSWRConfig();
-
-const markRead = useCallback(async (): Promise<void> => {
-if (isFlagPlaceholder || notificationId === null) {
-return;
+  const markRead = useCallback(async (): Promise<void> => {
+    if (isFlagPlaceholder) {
+      return;
     }
 
-if (state === "pending" || inFlightRef.current) {
-return;
+    if (!notificationId) {
+      return;
     }
 
-inFlightRef.current = true;
-setState("pending");
-setError(null);
+    if (state === "pending" || inFlightRef.current) {
+      return;
+    }
 
-try {
+    inFlightRef.current = true;
+    setState("pending");
+    setError(null);
 
-await markNotificationRead(notificationId);
+    try {
+      await markNotificationRead(notificationId);
 
-const infiniteKeys = findNotificationInfiniteKeys(swrConfig.cache);
+      const qc = getQueryClient();
+      const infiniteKeys = findNotificationInfiniteKeys(swrConfig.cache);
 
-await Promise.all([
-...buildNotificationListRevalidations(swrConfig, infiniteKeys),
-globalMutate(
-(key) =>
-Array.isArray(key) &&
-key[0] === "notifications" &&
-key[1] === "list",
-undefined,
-{ revalidate: true },
-        ),
-globalMutate(NOTIFICATION_CACHE_KEYS.unreadCount(), undefined, {
-revalidate: true,
+      await Promise.all([
+        qc.invalidateQueries({ queryKey: ["notifications", "list"] }),
+        qc.invalidateQueries({
+          queryKey: NOTIFICATION_CACHE_KEYS.unreadCount(),
         }),
-globalMutate(
-NOTIFICATION_CACHE_KEYS.detail(notificationId),
-undefined,
-{ revalidate: true },
+        qc.invalidateQueries({
+          queryKey: NOTIFICATION_CACHE_KEYS.detail(notificationId),
+        }),
+        ...buildNotificationListRevalidations(swrConfig, infiniteKeys),
+        globalMutate(
+          (key) =>
+            Array.isArray(key) &&
+            key[0] === "notifications" &&
+            key[1] === "list",
+          undefined,
+          { revalidate: true },
+        ),
+        globalMutate(NOTIFICATION_CACHE_KEYS.unreadCount(), undefined, {
+          revalidate: true,
+        }),
+        globalMutate(
+          NOTIFICATION_CACHE_KEYS.detail(notificationId),
+          undefined,
+          { revalidate: true },
         ),
       ]);
 
-setState("success");
-setError(null);
+      setState("success");
+      setError(null);
 
-setTimeout(() => {
-setState("idle");
+      setTimeout(() => {
+        setState("idle");
       }, 1_000);
     } catch (cause: unknown) {
-if (isApiError(cause)) {
-setState("error");
-setError(cause);
+      if (isApiError(cause)) {
+        setState("error");
+        setError(cause);
       } else if (cause instanceof Error) {
-const mappedError = new ApiError(
-cause as unknown as ConstructorParameters<typeof ApiError>[0],
+        const mappedError = new ApiError(
+          cause as unknown as ConstructorParameters<typeof ApiError>[0],
         );
-setState("error");
-setError(mappedError);
+        setState("error");
+        setError(mappedError);
       } else {
-const mappedError = new ApiError(
-cause as unknown as ConstructorParameters<typeof ApiError>[0],
+        const mappedError = new ApiError(
+          cause as unknown as ConstructorParameters<typeof ApiError>[0],
         );
-setState("error");
-setError(mappedError);
+        setState("error");
+        setError(mappedError);
       }
     } finally {
-inFlightRef.current = false;
+      inFlightRef.current = false;
     }
   }, [isFlagPlaceholder, notificationId, state, swrConfig]);
 
-const reset = useCallback(() => {
-setState("idle");
-setError(null);
-inFlightRef.current = false;
+  const reset = useCallback(() => {
+    setState("idle");
+    setError(null);
+    inFlightRef.current = false;
   }, []);
 
-return {
-markRead,
-state,
-error,
-reset,
+  return {
+    markRead,
+    state,
+    error,
+    reset,
   };
 }

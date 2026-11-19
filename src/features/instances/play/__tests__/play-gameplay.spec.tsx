@@ -108,7 +108,9 @@ describe("Instance gameplay store and progression", () => {
     const bundle2 = selectGameplayBundle(stateAfterAdvance, mockInstanceId);
     expect(bundle2?.question.id).toBe("q-2");
     expect(bundle2?.question.text).toBe("What is 2 + 2?");
-    expect(selectCanAdvanceQuestion(stateAfterAdvance, mockInstanceId)).toBe(false);
+    expect(selectCanAdvanceQuestion(stateAfterAdvance, mockInstanceId)).toBe(
+      false,
+    );
 
     // Advance past last question -> completes game
     act(() => {
@@ -117,7 +119,9 @@ describe("Instance gameplay store and progression", () => {
 
     const stateAfterFinish = useInstanceGameplayStore.getState();
     expect(stateAfterFinish.entries[mockInstanceId]?.closure).not.toBeNull();
-    expect(stateAfterFinish.entries[mockInstanceId]?.closure?.status).toBe("closed");
+    expect(stateAfterFinish.entries[mockInstanceId]?.closure?.status).toBe(
+      "closed",
+    );
   });
 });
 
@@ -197,7 +201,9 @@ describe("InstanceGamePage initialization", () => {
     };
 
     vi.spyOn(instancesService, "getInstance").mockResolvedValue(
-      mockInstanceDetail as unknown as Awaited<ReturnType<typeof instancesService.getInstance>>,
+      mockInstanceDetail as unknown as Awaited<
+        ReturnType<typeof instancesService.getInstance>
+      >,
     );
 
     vi.spyOn(quizzesService, "getQuizByIdOrSlug").mockResolvedValue(
@@ -212,7 +218,9 @@ describe("InstanceGamePage initialization", () => {
     // Once hydrated, live game view renders
     const pageEl = await screen.findByTestId("instance-game-page");
     expect(pageEl.getAttribute("data-state")).toBe("live");
-    expect(screen.getByText("What is the capital of France?")).toBeInTheDocument();
+    expect(
+      screen.getByText("What is the capital of France?"),
+    ).toBeInTheDocument();
     expect(screen.getByText("Paris")).toBeInTheDocument();
     expect(screen.getByText("London")).toBeInTheDocument();
   });

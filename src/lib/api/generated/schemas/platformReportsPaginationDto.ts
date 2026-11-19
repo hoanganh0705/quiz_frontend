@@ -1,10 +1,7 @@
-
-
 export interface PlatformReportsPaginationDto {
+  limit: number;
 
-limit: number;
+  hasNextPage: boolean;
 
-hasNextPage: boolean;
-
-nextCursor?: string | null;
+  nextCursor?: string | null;
 }

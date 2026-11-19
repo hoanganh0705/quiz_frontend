@@ -2,6 +2,7 @@
 
 import { useCallback, useRef, useState } from "react";
 import { mutate as globalMutate } from "swr";
+import { getQueryClient } from "@/providers/QueryProvider";
 
 import { ApiError, coerceToApiError } from "@/lib/api";
 
@@ -118,7 +119,8 @@ export function useStartInstance(
           at: result?.countdownStartedAt ?? new Date().toISOString(),
           eventSequence: Date.now(),
           status: "countdown",
-          countdownStartedAt: result?.countdownStartedAt ?? new Date().toISOString(),
+          countdownStartedAt:
+            result?.countdownStartedAt ?? new Date().toISOString(),
         });
       } else {
         try {
@@ -140,7 +142,8 @@ export function useStartInstance(
               at: result?.countdownStartedAt ?? new Date().toISOString(),
               eventSequence: Date.now(),
               status: "countdown",
-              countdownStartedAt: result?.countdownStartedAt ?? new Date().toISOString(),
+              countdownStartedAt:
+                result?.countdownStartedAt ?? new Date().toISOString(),
             });
           } else if (innerError.code === "INSTANCE_ALREADY_STARTED") {
             useInstanceRealtimeStore.getState().applyLifecycleEvent({
@@ -157,6 +160,15 @@ export function useStartInstance(
       }
 
       const keys = INSTANCE_CACHE_KEYS.all(instanceId);
+      try {
+        const qc = getQueryClient();
+        await Promise.all([
+          qc.invalidateQueries({ queryKey: keys.detail }),
+          qc.invalidateQueries({ queryKey: keys.players }),
+        ]);
+      } catch {
+        // ignore
+      }
       await Promise.all([
         globalMutate(keys.detail, undefined, { revalidate: true }),
         globalMutate(keys.players, undefined, { revalidate: true }),

@@ -1,3 +1,3 @@
-
-
-export type ReportedReviewItemDtoReviewerUsername = { [key: string]: unknown } | null;
+export type ReportedReviewItemDtoReviewerUsername = {
+  [key: string]: unknown;
+} | null;

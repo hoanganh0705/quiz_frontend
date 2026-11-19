@@ -1,10 +1,7 @@
-
-
 export interface CreateQuizAnswerOptionDto {
+  position: number;
 
-position: number;
+  value: string;
 
-value: string;
-
-isCorrect: boolean;
+  isCorrect: boolean;
 }

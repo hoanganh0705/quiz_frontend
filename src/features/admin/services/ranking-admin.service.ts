@@ -1,74 +1,85 @@
-
-
-import { orvalCustomInstance } from '@/lib/api/core/custom-instance';
+import { orvalCustomInstance } from "@/lib/api/core/custom-instance";
 
 export interface RankingRecalculateRequestDto {
+  periodId?: string;
 
-periodId?: string;
-
-includeArchived?: boolean;
+  includeArchived?: boolean;
 }
 
 export interface RankingRecalculateResponseDto {
-jobId: string;
-status: 'queued' | 'running' | 'completed' | 'failed';
-startedAt: string;
-estimatedDurationMs?: number;
+  jobId: string;
+  status: "queued" | "running" | "completed" | "failed";
+  startedAt: string;
+  estimatedDurationMs?: number;
 }
 
 export interface RankingPeriodResetRequestDto {
-periodId: string;
+  periodId: string;
 
-confirmString: string;
+  confirmString: string;
 }
 
 export interface RankingPeriodResetResponseDto {
-periodId: string;
-resetAt: string;
-affectedUsers: number;
+  periodId: string;
+  resetAt: string;
+  affectedUsers: number;
 }
 
 export interface RankingConsistencyCheckResponseDto {
+  status: "ok" | "warning" | "error";
 
-status: 'ok' | 'warning' | 'error';
+  severity: "low" | "medium" | "high";
 
-severity: 'low' | 'medium' | 'high';
+  issueCount: number;
 
-issueCount: number;
+  primaryIssue?: string;
 
-primaryIssue?: string;
-
-checkedAt: string;
+  checkedAt: string;
 }
 
+/**
+ * Triggers ranking recalculation.
+ * @throws {ApiError} OPERATION_RUNNING
+ * @throws {ApiError} OPERATION_COOLDOWN
+ */
 export async function recalculateRanking(
-input: RankingRecalculateRequestDto = {},
+  input: RankingRecalculateRequestDto = {},
 ): Promise<RankingRecalculateResponseDto> {
-const wire = await orvalCustomInstance<{ data: RankingRecalculateResponseDto }>({
-url: '/api/v1/admin/ranking/recalculate',
-method: 'POST',
-headers: { 'Content-Type': 'application/json' },
-data: input,
+  const wire = await orvalCustomInstance<{
+    data: RankingRecalculateResponseDto;
+  }>({
+    url: "/api/v1/admin/ranking/recalculate",
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    data: input,
   });
-return (wire as { data: RankingRecalculateResponseDto }).data;
+  return (wire as { data: RankingRecalculateResponseDto }).data;
 }
 
+/**
+ * Resets a ranking period.
+ * @throws {ApiError} IRREVERSIBLE_CONFIRM_REQUIRED
+ */
 export async function resetRankingPeriod(
-input: RankingPeriodResetRequestDto,
+  input: RankingPeriodResetRequestDto,
 ): Promise<RankingPeriodResetResponseDto> {
-const wire = await orvalCustomInstance<{ data: RankingPeriodResetResponseDto }>({
-url: '/api/v1/admin/ranking/reset',
-method: 'POST',
-headers: { 'Content-Type': 'application/json' },
-data: input,
+  const wire = await orvalCustomInstance<{
+    data: RankingPeriodResetResponseDto;
+  }>({
+    url: "/api/v1/admin/ranking/reset",
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    data: input,
   });
-return (wire as { data: RankingPeriodResetResponseDto }).data;
+  return (wire as { data: RankingPeriodResetResponseDto }).data;
 }
 
 export async function checkRankingConsistency(): Promise<RankingConsistencyCheckResponseDto> {
-const wire = await orvalCustomInstance<{ data: RankingConsistencyCheckResponseDto }>({
-url: '/api/v1/admin/ranking/consistency-check',
-method: 'GET',
+  const wire = await orvalCustomInstance<{
+    data: RankingConsistencyCheckResponseDto;
+  }>({
+    url: "/api/v1/admin/ranking/consistency-check",
+    method: "GET",
   });
-return (wire as { data: RankingConsistencyCheckResponseDto }).data;
+  return (wire as { data: RankingConsistencyCheckResponseDto }).data;
 }

@@ -1,43 +1,43 @@
-'use client'
+"use client";
 
-import { useState, useCallback } from 'react'
-import { useEffect, useRef } from 'react'
-import { logger } from '@/shared/log'
+import { useState, useCallback } from "react";
+import { useEffect, useRef } from "react";
+import { logger } from "@/shared/log";
 
 export function useClipboard(timeout = 2000) {
-const [copied, setCopied] = useState(false)
-const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const [copied, setCopied] = useState(false);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-useEffect(() => {
-return () => {
-if (timeoutRef.current) {
-clearTimeout(timeoutRef.current)
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
       }
-    }
-  }, [])
+    };
+  }, []);
 
-const copy = useCallback(
-(text: string) => {
-if (typeof window === 'undefined' || !navigator.clipboard) {
-logger.warn('clipboard', 'Clipboard API not available')
-return
+  const copy = useCallback(
+    (text: string) => {
+      if (typeof window === "undefined" || !navigator.clipboard) {
+        logger.warn("clipboard", "Clipboard API not available");
+        return;
       }
 
-navigator.clipboard
+      navigator.clipboard
         .writeText(text)
         .then(() => {
-setCopied(true)
-if (timeoutRef.current) {
-clearTimeout(timeoutRef.current)
+          setCopied(true);
+          if (timeoutRef.current) {
+            clearTimeout(timeoutRef.current);
           }
-timeoutRef.current = setTimeout(() => setCopied(false), timeout)
+          timeoutRef.current = setTimeout(() => setCopied(false), timeout);
         })
         .catch((error) => {
-logger.error('clipboard', 'Failed to copy', error)
-        })
+          logger.error("clipboard", "Failed to copy", error);
+        });
     },
-[timeout]
-  )
+    [timeout],
+  );
 
-return { copied, copy }
+  return { copied, copy };
 }

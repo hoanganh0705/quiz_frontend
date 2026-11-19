@@ -1,3 +1,3 @@
-
-
-export type RankingStatusResponseDtoNextPeriodReset = { [key: string]: unknown };
+export type RankingStatusResponseDtoNextPeriodReset = {
+  [key: string]: unknown;
+};

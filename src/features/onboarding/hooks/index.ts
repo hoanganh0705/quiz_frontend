@@ -1,2 +1,1 @@
-
-export { useOnboarding } from './use-onboarding'
+export { useOnboarding } from "./use-onboarding";

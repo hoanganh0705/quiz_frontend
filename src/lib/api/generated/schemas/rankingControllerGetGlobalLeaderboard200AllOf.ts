@@ -1,7 +1,5 @@
-
-
-import type { LeaderboardResponseDto } from './leaderboardResponseDto';
+import type { LeaderboardResponseDto } from "./leaderboardResponseDto";
 
 export type RankingControllerGetGlobalLeaderboard200AllOf = {
-data?: LeaderboardResponseDto;
+  data?: LeaderboardResponseDto;
 };

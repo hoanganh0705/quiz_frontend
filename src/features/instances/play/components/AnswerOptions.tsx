@@ -96,7 +96,9 @@ export function AnswerOptions({ instanceId, className }: AnswerOptionsProps) {
 
       {!isWindowOpen && !isAccepted && !isPending && (
         <div className="pt-4 flex items-center justify-between">
-          <span className="text-sm text-destructive font-medium">Time&apos;s up!</span>
+          <span className="text-sm text-destructive font-medium">
+            Time&apos;s up!
+          </span>
           <Button
             type="button"
             onClick={() => advanceQuestion(instanceId)}
@@ -159,9 +161,7 @@ function OptionRow({
         )}
         aria-hidden="true"
       >
-        {isPending && (
-          <Loader2 className="h-3 w-3 text-white animate-spin" />
-        )}
+        {isPending && <Loader2 className="h-3 w-3 text-white animate-spin" />}
       </div>
 
       {/* Option content */}

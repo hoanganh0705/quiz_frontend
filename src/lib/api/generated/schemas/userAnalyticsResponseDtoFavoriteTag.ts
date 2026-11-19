@@ -1,5 +1,4 @@
+import type { UserAnalyticsFavoriteTagDto } from "./userAnalyticsFavoriteTagDto";
 
-
-import type { UserAnalyticsFavoriteTagDto } from './userAnalyticsFavoriteTagDto';
-
-export type UserAnalyticsResponseDtoFavoriteTag = UserAnalyticsFavoriteTagDto | null;
+export type UserAnalyticsResponseDtoFavoriteTag =
+  UserAnalyticsFavoriteTagDto | null;

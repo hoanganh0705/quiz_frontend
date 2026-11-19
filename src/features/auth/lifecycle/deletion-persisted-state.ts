@@ -1,60 +1,57 @@
-
-
 export const AUTH_PERSISTENT_KEYS: ReadonlyArray<string> = Object.freeze([
+  "user_store_v1",
 
-'user_store_v1',
-
-'user_settings',
+  "user_settings",
 ]);
 
 export function clearPersistedUserStore(): boolean {
-if (typeof localStorage === 'undefined') return false;
+  if (typeof localStorage === "undefined") return false;
 
-try {
-if (localStorage.getItem('user_store_v1') !== null) {
-localStorage.removeItem('user_store_v1');
+  try {
+    if (localStorage.getItem("user_store_v1") !== null) {
+      localStorage.removeItem("user_store_v1");
     }
-return true;
+    return true;
   } catch {
-return false;
+    return false;
   }
 }
 
 export function clearDeletionPersistedAccountState(): ReadonlyArray<string> {
-if (typeof localStorage === 'undefined') return [];
+  if (typeof localStorage === "undefined") return [];
 
-const removed: string[] = [];
-try {
-for (const key of AUTH_PERSISTENT_KEYS) {
-if (localStorage.getItem(key) !== null) {
-localStorage.removeItem(key);
-removed.push(key);
+  const removed: string[] = [];
+  try {
+    for (const key of AUTH_PERSISTENT_KEYS) {
+      if (localStorage.getItem(key) !== null) {
+        localStorage.removeItem(key);
+        removed.push(key);
       }
     }
   } catch {
     // Storage unavailable — return what we have so far
   }
-return removed;
+  return removed;
 }
 
 export interface DeletionFormSetters {
-setPassword: (value: string) => void;
-setTypedConfirmation: (value: string) => void;
+  setPassword: (value: string) => void;
+  setTypedConfirmation: (value: string) => void;
 }
 
 export function clearSensitiveDeletionFormValues(
-setters: Partial<DeletionFormSetters>,
+  setters: Partial<DeletionFormSetters>,
 ): void {
-if (setters.setPassword) {
-try {
-setters.setPassword('');
+  if (setters.setPassword) {
+    try {
+      setters.setPassword("");
     } catch {
       // Defensive — the setter may not be ready yet
     }
   }
-if (setters.setTypedConfirmation) {
-try {
-setters.setTypedConfirmation('');
+  if (setters.setTypedConfirmation) {
+    try {
+      setters.setTypedConfirmation("");
     } catch {
       // Defensive — the setter may not be ready yet
     }
@@ -62,5 +59,5 @@ setters.setTypedConfirmation('');
 }
 
 export function _internalAuthPersistentKeysForTest(): ReadonlyArray<string> {
-return AUTH_PERSISTENT_KEYS;
+  return AUTH_PERSISTENT_KEYS;
 }

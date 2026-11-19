@@ -1,10 +1,7 @@
-
-
-import type { RankingControllerGetNearbyRanksPeriod } from './rankingControllerGetNearbyRanksPeriod';
+import type { RankingControllerGetNearbyRanksPeriod } from "./rankingControllerGetNearbyRanksPeriod";
 
 export type RankingControllerGetNearbyRanksParams = {
+  period?: RankingControllerGetNearbyRanksPeriod;
 
-period?: RankingControllerGetNearbyRanksPeriod;
-
-radius?: number;
+  radius?: number;
 };

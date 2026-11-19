@@ -1,7 +1,5 @@
-
-
-import type { MessageResponseDto } from './messageResponseDto';
+import type { MessageResponseDto } from "./messageResponseDto";
 
 export type CategoryControllerDeleteCategory200AllOf = {
-data?: MessageResponseDto;
+  data?: MessageResponseDto;
 };

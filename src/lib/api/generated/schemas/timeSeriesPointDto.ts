@@ -1,8 +1,5 @@
-
-
 export interface TimeSeriesPointDto {
+  date: string;
 
-date: string;
-
-value: number;
+  value: number;
 }

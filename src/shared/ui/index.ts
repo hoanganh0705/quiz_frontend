@@ -1,6 +1,5 @@
-
-export { GoBackButton } from './GoBackButton'
-export { PwaServiceWorker } from './PwaServiceWorker'
-export { QuickSearch } from './QuickSearch'
-export { ShortcutsHelpModal } from './ShortcutsHelpModal'
-export { ShareModal } from './ShareModal'
+export { GoBackButton } from "./GoBackButton";
+export { PwaServiceWorker } from "./PwaServiceWorker";
+export { QuickSearch } from "./QuickSearch";
+export { ShortcutsHelpModal } from "./ShortcutsHelpModal";
+export { ShareModal } from "./ShareModal";

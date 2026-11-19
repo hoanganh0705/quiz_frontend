@@ -9,7 +9,10 @@ import { Label } from "@/components/ui/Label";
 import { Search, RotateCcwIcon } from "lucide-react";
 import { cn } from "@/shared/utils/merge-class-names";
 
-import type { TournamentListFilters, TournamentStatus } from "@/features/tournaments/types";
+import type {
+  TournamentListFilters,
+  TournamentStatus,
+} from "@/features/tournaments/types";
 
 export interface TournamentFiltersProps {
   filters: TournamentListFilters;
@@ -72,7 +75,9 @@ export function TournamentFilters({
     filters.status !== undefined || filters.search.trim().length > 0;
 
   return (
-    <div className={cn("flex flex-col gap-4 sm:flex-row sm:items-end", className)}>
+    <div
+      className={cn("flex flex-col gap-4 sm:flex-row sm:items-end", className)}
+    >
       {/* Status tabs — wrapped in fieldset/legend for screen reader grouping */}
       <fieldset className="flex flex-col gap-1.5">
         <legend className="sr-only">Filter by status</legend>
@@ -113,7 +118,10 @@ export function TournamentFilters({
         <legend className="sr-only">Search tournaments</legend>
         <Label htmlFor="tournament-search">Search</Label>
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" aria-hidden="true" />
+          <Search
+            className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"
+            aria-hidden="true"
+          />
           <Input
             id="tournament-search"
             type="search"

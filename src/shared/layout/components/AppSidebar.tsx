@@ -182,7 +182,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { isLoading: isAdminLoading, role } = useAdminRole();
   const { isLive } = useAdminFeatureFlag("admin_live");
 
-  const canSeeAdmin = isLive && !isAdminLoading && (role === "admin" || role === "moderator");
+  const canSeeAdmin =
+    isLive && !isAdminLoading && (role === "admin" || role === "moderator");
 
   return (
     <Sidebar
@@ -220,9 +221,13 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton
                     asChild
-                    isActive={pathname === item.url || (item.url !== "/" && pathname.startsWith(`${item.url}/`))}
+                    isActive={
+                      pathname === item.url ||
+                      (item.url !== "/" && pathname.startsWith(`${item.url}/`))
+                    }
                     className={`${
-                      pathname === item.url || (item.url !== "/" && pathname.startsWith(`${item.url}/`))
+                      pathname === item.url ||
+                      (item.url !== "/" && pathname.startsWith(`${item.url}/`))
                         ? "text-white hover:bg-brand-hover data-[active=true]:bg-brand"
                         : "text-foreground hover:bg-main-hover"
                     } text-sm flex items-center gap-2.5 rounded-md transition-colors`}
@@ -249,9 +254,13 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton
                     asChild
-                    isActive={pathname === item.url || (item.url !== "/" && pathname.startsWith(`${item.url}/`))}
+                    isActive={
+                      pathname === item.url ||
+                      (item.url !== "/" && pathname.startsWith(`${item.url}/`))
+                    }
                     className={`${
-                      pathname === item.url || (item.url !== "/" && pathname.startsWith(`${item.url}/`))
+                      pathname === item.url ||
+                      (item.url !== "/" && pathname.startsWith(`${item.url}/`))
                         ? "text-white hover:bg-brand-hover data-[active=true]:bg-brand"
                         : "text-foreground hover:bg-main-hover"
                     } text-sm flex items-center gap-2.5 rounded-md transition-colors`}
@@ -278,9 +287,13 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton
                     asChild
-                    isActive={pathname === item.url || (item.url !== "/" && pathname.startsWith(`${item.url}/`))}
+                    isActive={
+                      pathname === item.url ||
+                      (item.url !== "/" && pathname.startsWith(`${item.url}/`))
+                    }
                     className={`${
-                      pathname === item.url || (item.url !== "/" && pathname.startsWith(`${item.url}/`))
+                      pathname === item.url ||
+                      (item.url !== "/" && pathname.startsWith(`${item.url}/`))
                         ? "text-white hover:bg-brand-hover data-[active=true]:bg-brand"
                         : "text-foreground hover:bg-main-hover"
                     } text-sm flex items-center gap-2.5 rounded-md transition-colors`}
@@ -311,16 +324,22 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                     <SidebarMenuItem key={item.url}>
                       <SidebarMenuButton
                         asChild
-                        isActive={pathname === item.url || pathname.startsWith(`${item.url}/`)}
+                        isActive={
+                          pathname === item.url ||
+                          pathname.startsWith(`${item.url}/`)
+                        }
                         className={`${
-                          pathname === item.url || pathname.startsWith(`${item.url}/`)
+                          pathname === item.url ||
+                          pathname.startsWith(`${item.url}/`)
                             ? "text-white hover:bg-brand-hover data-[active=true]:bg-brand"
                             : "text-foreground hover:bg-main-hover"
                         } text-sm flex items-center gap-2.5 rounded-md transition-colors`}
                       >
                         <Link href={item.url}>
                           <item.icon className="size-4 shrink-0" />
-                          <span className="text-sm font-medium">{item.title}</span>
+                          <span className="text-sm font-medium">
+                            {item.title}
+                          </span>
                         </Link>
                       </SidebarMenuButton>
                     </SidebarMenuItem>

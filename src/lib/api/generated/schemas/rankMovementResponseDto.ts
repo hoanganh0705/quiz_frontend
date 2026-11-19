@@ -1,14 +1,11 @@
-
-
-import type { RankMovementResponseDtoDirection } from './rankMovementResponseDtoDirection';
+import type { RankMovementResponseDtoDirection } from "./rankMovementResponseDtoDirection";
 
 export interface RankMovementResponseDto {
+  previousRank?: number | null;
 
-previousRank?: number | null;
+  currentRank?: number | null;
 
-currentRank?: number | null;
+  change?: number | null;
 
-change?: number | null;
-
-direction: RankMovementResponseDtoDirection;
+  direction: RankMovementResponseDtoDirection;
 }

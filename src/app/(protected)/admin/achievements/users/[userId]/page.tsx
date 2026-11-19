@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import * as React from 'react';
-import { AchievementAdminUserRouteHandoff } from './_components/AchievementAdminUserRouteHandoff';
+import * as React from "react";
+import { AchievementAdminUserRouteHandoff } from "./_components/AchievementAdminUserRouteHandoff";
 
 export default function AdminAchievementUserPage({
   params,

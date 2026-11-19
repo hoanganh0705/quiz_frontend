@@ -18,7 +18,11 @@ import type {
 export interface InstanceGameplayEntry {
   bundle: PlayerQuestionBundleDto | null;
   timing: QuestionTimingDto | null;
-  submission: { questionId: string; submittedAt: string; accepted: boolean } | null;
+  submission: {
+    questionId: string;
+    submittedAt: string;
+    accepted: boolean;
+  } | null;
   result: AnswerResultDto | null;
   progress: PlayerProgressDto | null;
   leaderboard: LeaderboardEntryDto[];
@@ -39,12 +43,20 @@ export interface InstanceGameplayState {
 }
 
 export interface InstanceGameplayActions {
-  applyQuestionRevealed: (envelope: GameplayEventEnvelope<PlayerQuestionBundleDto>) => void;
+  applyQuestionRevealed: (
+    envelope: GameplayEventEnvelope<PlayerQuestionBundleDto>,
+  ) => void;
   applyAnswerResult: (envelope: GameplayEventEnvelope<AnswerResultDto>) => void;
-  applyLeaderboardUpdated: (envelope: GameplayEventEnvelope<LeaderboardUpdatedEventDto>) => void;
+  applyLeaderboardUpdated: (
+    envelope: GameplayEventEnvelope<LeaderboardUpdatedEventDto>,
+  ) => void;
   applyPlayerProgress: (progress: PlayerProgressDto) => void;
-  applyInstanceClosed: (envelope: GameplayEventEnvelope<InstanceClosedEventDto>) => void;
-  applyFinalLeaderboard: (envelope: GameplayEventEnvelope<FinalLeaderboardDto>) => void;
+  applyInstanceClosed: (
+    envelope: GameplayEventEnvelope<InstanceClosedEventDto>,
+  ) => void;
+  applyFinalLeaderboard: (
+    envelope: GameplayEventEnvelope<FinalLeaderboardDto>,
+  ) => void;
   applySubmission: (questionId: string, submittedAt: string) => void;
   clearSubmission: (questionId: string) => void;
   initializeQuestions: (
@@ -64,8 +76,8 @@ export interface InstanceGameplayActions {
   resetAll: () => void;
 }
 
-export type InstanceGameplayStore =
-  InstanceGameplayState & InstanceGameplayActions;
+export type InstanceGameplayStore = InstanceGameplayState &
+  InstanceGameplayActions;
 
 const INITIAL_STATE: InstanceGameplayState = {
   entries: {},
@@ -101,7 +113,10 @@ function isStaleEntry(
   eventSequence: number,
 ): boolean {
   const last = entry.lastEventSequence[eventName];
-  return typeof eventSequence !== "number" || (typeof last === "number" && eventSequence <= last);
+  return (
+    typeof eventSequence !== "number" ||
+    (typeof last === "number" && eventSequence <= last)
+  );
 }
 
 export const useInstanceGameplayStore = create<InstanceGameplayStore>(
@@ -112,7 +127,8 @@ export const useInstanceGameplayStore = create<InstanceGameplayStore>(
       const { instanceId, data, eventSequence } = envelope;
       set((state) => {
         const entry = ensureEntry(state, instanceId);
-        if (isStaleEntry(entry, "question_revealed", eventSequence)) return state;
+        if (isStaleEntry(entry, "question_revealed", eventSequence))
+          return state;
         return {
           entries: {
             ...state.entries,
@@ -157,7 +173,8 @@ export const useInstanceGameplayStore = create<InstanceGameplayStore>(
       const { instanceId, data, eventSequence } = envelope;
       set((state) => {
         const entry = ensureEntry(state, instanceId);
-        if (isStaleEntry(entry, "leaderboard_updated", eventSequence)) return state;
+        if (isStaleEntry(entry, "leaderboard_updated", eventSequence))
+          return state;
         return {
           entries: {
             ...state.entries,
@@ -218,7 +235,8 @@ export const useInstanceGameplayStore = create<InstanceGameplayStore>(
       const { instanceId, data, eventSequence } = envelope;
       set((state) => {
         const entry = ensureEntry(state, instanceId);
-        if (isStaleEntry(entry, "instance_final_leaderboard", eventSequence)) return state;
+        if (isStaleEntry(entry, "instance_final_leaderboard", eventSequence))
+          return state;
         return {
           entries: {
             ...state.entries,

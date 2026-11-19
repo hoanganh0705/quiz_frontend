@@ -1,7 +1,5 @@
-
-
-import type { UserRankingResponseDto } from './userRankingResponseDto';
+import type { UserRankingResponseDto } from "./userRankingResponseDto";
 
 export type UserControllerGetMyRanking200AllOf = {
-data?: UserRankingResponseDto;
+  data?: UserRankingResponseDto;
 };

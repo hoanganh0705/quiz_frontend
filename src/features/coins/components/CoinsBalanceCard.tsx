@@ -36,7 +36,10 @@ export function CoinsBalanceCard({
         <div className="flex items-start justify-between gap-4">
           <div>
             <p className="text-xs uppercase tracking-wide text-muted-foreground inline-flex items-center gap-1.5">
-              <Coins className="h-3.5 w-3.5 text-amber-500" aria-hidden="true" />
+              <Coins
+                className="h-3.5 w-3.5 text-amber-500"
+                aria-hidden="true"
+              />
               Current balance
             </p>
             <p
@@ -48,7 +51,10 @@ export function CoinsBalanceCard({
                   className="inline-flex items-center gap-2 text-muted-foreground"
                   aria-label="Loading balance"
                 >
-                  <Loader2 className="h-5 w-5 animate-spin" aria-hidden="true" />
+                  <Loader2
+                    className="h-5 w-5 animate-spin"
+                    aria-hidden="true"
+                  />
                   …
                 </span>
               ) : isEmpty ? (

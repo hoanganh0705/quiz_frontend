@@ -4,8 +4,6 @@
  * submit a new password, observe the user routed to `/login` with
  * local auth state cleared.
  *
- * Source epic: Epic 2.3 — Forgot-password and reset-password recovery.
- * Source ticket: TKT-2.3.E1.
  *
  * ## What this spec proves
  *
@@ -15,8 +13,7 @@
  *      /auth/reset-password` request with `{ token, newPassword }`
  *      (the wire DTO strips `newPasswordConfirmation`).
  *   3. After success, the user is routed to `/login`.
- *   4. The local `auth_token` cookie is gone (TKT-2.3.C5
- *      `clearAuthToken` side-effect fires before the redirect).
+ *   4. The local `auth_token` cookie is gone.
  *   5. The cross-tab `BroadcastChannel('auth')` LOGGED_OUT event is
  *      posted exactly once.
  *
@@ -45,33 +42,33 @@
  * success path: the user can complete a reset and is signed out.
  */
 
-import { test, expect, type Route } from '@playwright/test';
+import { test, expect, type Route } from "@playwright/test";
 
 const uniqueSuffix = (): string => {
   return `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
 };
 
-const RESET_TOKEN = 'a'.repeat(64); // 64-char hex, well-formed per C2
+const RESET_TOKEN = "a".repeat(64); // 64-char hex, well-formed per C2
 
 const apiSuccessBody = (
   status: number,
-  message: string
+  message: string,
 ): Record<string, unknown> => ({
   statusCode: status,
   message,
   data: { message },
   timestamp: new Date().toISOString(),
-  path: '/api/v1/auth/reset-password',
+  path: "/api/v1/auth/reset-password",
 });
 
-test('reset-password happy path: submit a new password and route to /login with auth cleared', async ({
+test("reset-password happy path: submit a new password and route to /login with auth cleared", async ({
   page,
   context,
 }) => {
   const suffix = uniqueSuffix();
   const uniqueEmail = `reset_e1_${suffix}@example.test`;
   const uniqueUsername = `resete1_${suffix}`.slice(0, 50);
-  const password = 'Abcdef1!';
+  const password = "Abcdef1!";
 
   // 1. Register a brand-new account. We do this for two reasons:
   //    (a) the live backend's `register` call queues a verification
@@ -79,23 +76,23 @@ test('reset-password happy path: submit a new password and route to /login with 
   //        end-to-end before we exercise the reset stub; and
   //    (b) the registration leaves the browser context with a fresh
   //        `auth_token` cookie we can later assert is gone.
-  await page.goto('/signup');
-  await page.getByTestId('registration-form').waitFor();
-  await page.getByLabel('Username').fill(uniqueUsername);
-  await page.getByLabel('Email').fill(uniqueEmail);
-  await page.getByLabel('Password', { exact: true }).fill(password);
-  await page.getByLabel('Confirm password').fill(password);
+  await page.goto("/signup");
+  await page.getByTestId("registration-form").waitFor();
+  await page.getByLabel("Username").fill(uniqueUsername);
+  await page.getByLabel("Email").fill(uniqueEmail);
+  await page.getByLabel("Password", { exact: true }).fill(password);
+  await page.getByLabel("Confirm password").fill(password);
   await page.getByText(/I agree to the/).click();
 
   await expect(
     page
-      .getByTestId('signup-availability-strip')
-      .getByText('Available', { exact: true })
+      .getByTestId("signup-availability-strip")
+      .getByText("Available", { exact: true }),
   ).toHaveCount(2, { timeout: 10_000 });
 
   await Promise.all([
     page.waitForURL(/\/register\/check-inbox$/),
-    page.getByTestId('registration-submit').click(),
+    page.getByTestId("registration-submit").click(),
   ]);
 
   // 2. Confirm the `auth_token` cookie is set after registration
@@ -104,17 +101,15 @@ test('reset-password happy path: submit a new password and route to /login with 
   //    requirement — the reset-clear assertion below is the real
   //    contract).
   const cookiesBefore = await context.cookies();
-  const hadAuthTokenBefore = cookiesBefore.some(
-    (c) => c.name === 'auth_token'
-  );
+  const hadAuthTokenBefore = cookiesBefore.some((c) => c.name === "auth_token");
 
   // 3. Capture the network calls. The spec asserts the count and
   //    body of `reset-password` requests below.
   const resetCalls: Array<unknown> = [];
-  page.on('request', (req) => {
+  page.on("request", (req) => {
     if (
-      req.url().endsWith('/api/v1/auth/reset-password') &&
-      req.method() === 'POST'
+      req.url().endsWith("/api/v1/auth/reset-password") &&
+      req.method() === "POST"
     ) {
       resetCalls.push(req.postDataJSON());
     }
@@ -126,9 +121,9 @@ test('reset-password happy path: submit a new password and route to /login with 
   await page.route(/\/api\/v1\/auth\/reset-password$/, (route: Route) =>
     route.fulfill({
       status: 201,
-      contentType: 'application/json',
-      body: JSON.stringify(apiSuccessBody(201, 'Password updated')),
-    })
+      contentType: "application/json",
+      body: JSON.stringify(apiSuccessBody(201, "Password updated")),
+    }),
   );
 
   // 5. Open `/reset-password?token=...`. The C2 client-side guard
@@ -137,14 +132,14 @@ test('reset-password happy path: submit a new password and route to /login with 
   await page.goto(`/reset-password?token=${RESET_TOKEN}`);
 
   // 6. The form is rendered (not the invalid-link body).
-  const form = page.getByTestId('reset-form');
+  const form = page.getByTestId("reset-form");
   await expect(form).toBeVisible({ timeout: 5_000 });
 
   // 7. Fill the new password fields. The C2 schema enforces the
   //    shared policy (1 uppercase, 1 number, 1 symbol, minLength 8).
-  const newPassword = 'NewPass1!';
-  await page.getByLabel('New password').fill(newPassword);
-  await page.getByLabel('Confirm new password').fill(newPassword);
+  const newPassword = "NewPass1!";
+  await page.getByLabel("New password").fill(newPassword);
+  await page.getByLabel("Confirm new password").fill(newPassword);
 
   // 8. Wire a BroadcastChannel listener on the LIVE page. We do
   //    this just before the submit so the listener is registered
@@ -154,8 +149,8 @@ test('reset-password happy path: submit a new password and route to /login with 
       __loggedOutPosts?: Array<unknown>;
     };
     w.__loggedOutPosts = [];
-    const channel = new BroadcastChannel('auth');
-    channel.addEventListener('message', (ev) => {
+    const channel = new BroadcastChannel("auth");
+    channel.addEventListener("message", (ev) => {
       w.__loggedOutPosts?.push(ev.data);
     });
   });
@@ -164,7 +159,7 @@ test('reset-password happy path: submit a new password and route to /login with 
   //    calls `clearAuthToken` and posts `LOGGED_OUT`.
   await Promise.all([
     page.waitForURL(/\/login$/),
-    page.getByTestId('reset-submit').click(),
+    page.getByTestId("reset-submit").click(),
   ]);
 
   // 10. Final assertion: exactly one `reset-password` request was
@@ -182,7 +177,7 @@ test('reset-password happy path: submit a new password and route to /login with 
   //     either cleared the cookie or never set it; either way,
   //     the cookie is not present post-reset.
   const cookiesAfter = await context.cookies();
-  const hasAuthTokenAfter = cookiesAfter.some((c) => c.name === 'auth_token');
+  const hasAuthTokenAfter = cookiesAfter.some((c) => c.name === "auth_token");
   if (hadAuthTokenBefore) {
     expect(hasAuthTokenAfter).toBe(false);
   } else {
@@ -202,5 +197,5 @@ test('reset-password happy path: submit a new password and route to /login with 
     };
     return w.__loggedOutPosts ?? [];
   });
-  expect(posts).toEqual([{ type: 'LOGGED_OUT' }]);
+  expect(posts).toEqual([{ type: "LOGGED_OUT" }]);
 });

@@ -4,15 +4,15 @@ import { ActivityRouteGate } from "@/features/social/components/ActivityRouteGat
 import { isUuid } from "@/features/social/utils/is-uuid";
 
 interface ActivityRouteProps {
-params: Promise<{ id: string }>;
+  params: Promise<{ id: string }>;
 }
 
 export default async function UserActivityRoute({
-params,
+  params,
 }: ActivityRouteProps): Promise<React.ReactElement> {
-const { id } = await params;
-if (!isUuid(id)) {
-notFound();
+  const { id } = await params;
+  if (!isUuid(id)) {
+    notFound();
   }
-return <ActivityRouteGate targetUserId={id} />;
+  return <ActivityRouteGate targetUserId={id} />;
 }

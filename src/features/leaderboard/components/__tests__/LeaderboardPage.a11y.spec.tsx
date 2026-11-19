@@ -1,384 +1,386 @@
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { cleanup, render } from "@testing-library/react";
+import axe from "axe-core";
+import { SWRConfig } from "swr";
 
-
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { cleanup, render } from '@testing-library/react'
-import axe from 'axe-core'
-import { SWRConfig } from 'swr'
-
-import { ApiError } from '@/lib/api'
+import { ApiError } from "@/lib/api";
 
 import {
-useLeaderboard,
-type LeaderboardEntryWithId,
-} from '@/features/leaderboard/hooks/useLeaderboard'
-import { useAuthState } from '@/features/auth/hooks/use-auth-state'
+  useLeaderboard,
+  type LeaderboardEntryWithId,
+} from "@/features/leaderboard/hooks/useLeaderboard";
+import { useAuthState } from "@/features/auth/hooks/use-auth-state";
 
-import { LeaderboardPage } from '@/features/leaderboard/components/LeaderboardPage'
+import { LeaderboardPage } from "@/features/leaderboard/components/LeaderboardPage";
 
-vi.mock('@/features/leaderboard/hooks/useLeaderboard', async () => {
-const actual =
-await vi.importActual<
-typeof import('@/features/leaderboard/hooks/useLeaderboard')
-    >('@/features/leaderboard/hooks/useLeaderboard')
-return {
-...actual,
-useLeaderboard: vi.fn(),
-  }
-})
+vi.mock("@/features/leaderboard/hooks/useLeaderboard", async () => {
+  const actual = await vi.importActual<
+    typeof import("@/features/leaderboard/hooks/useLeaderboard")
+  >("@/features/leaderboard/hooks/useLeaderboard");
+  return {
+    ...actual,
+    useLeaderboard: vi.fn(),
+  };
+});
 
-vi.mock('@/features/auth/hooks/use-auth-state', async () => {
-const actual =
-await vi.importActual<
-typeof import('@/features/auth/hooks/use-auth-state')
-    >('@/features/auth/hooks/use-auth-state')
-return {
-...actual,
-useAuthState: vi.fn(),
-  }
-})
+vi.mock("@/features/auth/hooks/use-auth-state", async () => {
+  const actual = await vi.importActual<
+    typeof import("@/features/auth/hooks/use-auth-state")
+  >("@/features/auth/hooks/use-auth-state");
+  return {
+    ...actual,
+    useAuthState: vi.fn(),
+  };
+});
 
-const useLeaderboardMock = vi.mocked(useLeaderboard)
-const useAuthStateMock = vi.mocked(useAuthState)
+const useLeaderboardMock = vi.mocked(useLeaderboard);
+const useAuthStateMock = vi.mocked(useAuthState);
 
 function makeApiError(status: number): ApiError {
-return new ApiError({
-isAxiosError: true,
-name: 'AxiosError',
-message: `Mock ${status}`,
-code: `CODE_${status}`,
-config: undefined,
-request: undefined,
-response: {
-status,
-data: { code: `CODE_${status}`, detail: 'fixture' },
+  return new ApiError({
+    isAxiosError: true,
+    name: "AxiosError",
+    message: `Mock ${status}`,
+    code: `CODE_${status}`,
+    config: undefined,
+    request: undefined,
+    response: {
+      status,
+      data: { code: `CODE_${status}`, detail: "fixture" },
     },
-toJSON: () => ({}),
-  } as unknown as Parameters<typeof ApiError.fromAxios>[0])
+    toJSON: () => ({}),
+  } as unknown as Parameters<typeof ApiError.fromAxios>[0]);
 }
 
 function makeEntry(
-overrides: Partial<LeaderboardEntryWithId> = {},
+  overrides: Partial<LeaderboardEntryWithId> = {},
 ): LeaderboardEntryWithId {
-return {
-id: overrides.userId ?? 'user-1',
-rank: 1,
-denseRank: 1,
-userId: 'user-1',
-displayName: 'Alice',
-avatarUrl: null,
-xp: 100,
-isTied: false,
-isCurrentUser: false,
-...overrides,
-  }
+  return {
+    id: overrides.userId ?? "user-1",
+    rank: 1,
+    denseRank: 1,
+    userId: "user-1",
+    displayName: "Alice",
+    avatarUrl: null,
+    xp: 100,
+    isTied: false,
+    isCurrentUser: false,
+    ...overrides,
+  };
 }
 
 function setHookReturn(overrides: Partial<ReturnType<typeof useLeaderboard>>) {
-const stable = {
-entries: [] as ReturnType<typeof useLeaderboard>['entries'],
-isLoading: false,
-isLoadingMore: false,
-hasMore: false,
-loadMore: vi.fn(),
-error: null as ReturnType<typeof useLeaderboard>['error'],
-refresh: vi.fn(async () => undefined),
-retryBannerVisible: false,
-...overrides,
-  }
-useLeaderboardMock.mockImplementation(() => stable)
+  const stable = {
+    entries: [] as ReturnType<typeof useLeaderboard>["entries"],
+    isLoading: false,
+    isLoadingMore: false,
+    hasMore: false,
+    loadMore: vi.fn(),
+    error: null as ReturnType<typeof useLeaderboard>["error"],
+    refresh: vi.fn(async () => undefined),
+    retryBannerVisible: false,
+    ...overrides,
+  };
+  useLeaderboardMock.mockImplementation(() => stable);
 }
 
 function TestSwrProvider({ children }: { children: React.ReactNode }) {
-return (
-<SWRConfig
-value={{
-provider: () => new Map(),
-revalidateOnFocus: false,
-revalidateIfStale: false,
-dedupingInterval: 0,
-errorRetryCount: 0,
+  return (
+    <SWRConfig
+      value={{
+        provider: () => new Map(),
+        revalidateOnFocus: false,
+        revalidateIfStale: false,
+        dedupingInterval: 0,
+        errorRetryCount: 0,
       }}
     >
-{children}
-</SWRConfig>
-  )
+      {children}
+    </SWRConfig>
+  );
 }
 
 async function auditLeaderboard() {
-return axe.run(document.body, {
-runOnly: {
-type: 'rule',
-values: [
-'area-alt',
-'aria-allowed-attr',
-'aria-required-attr',
-'aria-required-children',
-'aria-required-parent',
-'aria-roles',
-'aria-valid-attr',
-'aria-valid-attr-value',
-'button-name',
-'bypass',
-'document-title',
-'duplicate-id',
-'empty-heading',
-'heading-order',
-'html-has-lang',
-'html-lang-valid',
-'image-alt',
-'input-image-alt',
-'label',
-'link-name',
-'list',
-'listitem',
-'meta-refresh',
-'region',
+  return axe.run(document.body, {
+    runOnly: {
+      type: "rule",
+      values: [
+        "area-alt",
+        "aria-allowed-attr",
+        "aria-required-attr",
+        "aria-required-children",
+        "aria-required-parent",
+        "aria-roles",
+        "aria-valid-attr",
+        "aria-valid-attr-value",
+        "button-name",
+        "bypass",
+        "document-title",
+        "duplicate-id",
+        "empty-heading",
+        "heading-order",
+        "html-has-lang",
+        "html-lang-valid",
+        "image-alt",
+        "input-image-alt",
+        "label",
+        "link-name",
+        "list",
+        "listitem",
+        "meta-refresh",
+        "region",
       ],
     },
-  })
+  });
 }
 
 beforeEach(() => {
-useLeaderboardMock.mockReset()
-useAuthStateMock.mockReset()
-useAuthStateMock.mockReturnValue({
-isAuthenticated: false,
-setAuthenticated: vi.fn(),
-  })
-})
+  useLeaderboardMock.mockReset();
+  useAuthStateMock.mockReset();
+  useAuthStateMock.mockReturnValue({
+    isAuthenticated: false,
+    setAuthenticated: vi.fn(),
+  });
+});
 
 afterEach(() => {
-cleanup()
-document.body.innerHTML = ''
-})
+  cleanup();
+  document.body.innerHTML = "";
+});
 
-describe('LeaderboardPage — axe a11y audit (resolved live, authenticated)', () => {
-it('renders without critical or serious axe violations', async () => {
-useAuthStateMock.mockReturnValue({
-isAuthenticated: true,
-setAuthenticated: vi.fn(),
-    })
-setHookReturn({
-entries: [
-makeEntry({ userId: 'u-1', rank: 1, displayName: 'Alice' }),
-makeEntry({ userId: 'u-2', rank: 2, displayName: 'Bob' }),
-makeEntry({ userId: 'u-3', rank: 3, displayName: 'Carol' }),
-makeEntry({
-userId: 'me',
-rank: 4,
-isCurrentUser: true,
-displayName: 'Meee',
+describe("LeaderboardPage — axe a11y audit (resolved live, authenticated)", () => {
+  it("renders without critical or serious axe violations", async () => {
+    useAuthStateMock.mockReturnValue({
+      isAuthenticated: true,
+      setAuthenticated: vi.fn(),
+    });
+    setHookReturn({
+      entries: [
+        makeEntry({ userId: "u-1", rank: 1, displayName: "Alice" }),
+        makeEntry({ userId: "u-2", rank: 2, displayName: "Bob" }),
+        makeEntry({ userId: "u-3", rank: 3, displayName: "Carol" }),
+        makeEntry({
+          userId: "me",
+          rank: 4,
+          isCurrentUser: true,
+          displayName: "Meee",
         }),
       ],
-    })
+    });
 
-const { container } = render(
-<TestSwrProvider>
-<LeaderboardPage />
-</TestSwrProvider>,
-    )
-document.body.appendChild(container)
+    const { container } = render(
+      <TestSwrProvider>
+        <LeaderboardPage />
+      </TestSwrProvider>,
+    );
+    document.body.appendChild(container);
 
-const results = await auditLeaderboard()
-const blockers = results.violations.filter(
-(v) => v.impact === 'critical' || v.impact === 'serious',
-    )
-expect(blockers, JSON.stringify(blockers, null, 2)).toHaveLength(0)
-  })
+    const results = await auditLeaderboard();
+    const blockers = results.violations.filter(
+      (v) => v.impact === "critical" || v.impact === "serious",
+    );
+    expect(blockers, JSON.stringify(blockers, null, 2)).toHaveLength(0);
+  });
 
-it('the period selector buttons have accessible names + `aria-pressed`', () => {
-useAuthStateMock.mockReturnValue({
-isAuthenticated: true,
-setAuthenticated: vi.fn(),
-    })
-setHookReturn({ entries: [] })
+  it("the period selector buttons have accessible names + `aria-pressed`", () => {
+    useAuthStateMock.mockReturnValue({
+      isAuthenticated: true,
+      setAuthenticated: vi.fn(),
+    });
+    setHookReturn({ entries: [] });
 
-const { container } = render(
-<TestSwrProvider>
-<LeaderboardPage />
-</TestSwrProvider>,
-    )
-document.body.appendChild(container)
+    const { container } = render(
+      <TestSwrProvider>
+        <LeaderboardPage />
+      </TestSwrProvider>,
+    );
+    document.body.appendChild(container);
 
-const weekly = container.querySelector(
-'button[aria-pressed]',
-    ) as HTMLButtonElement | null
-expect(weekly).toBeTruthy()
+    const weekly = container.querySelector(
+      "button[aria-pressed]",
+    ) as HTMLButtonElement | null;
+    expect(weekly).toBeTruthy();
 
-expect(weekly?.getAttribute('aria-pressed')).toBe('true')
-expect(weekly?.textContent).toMatch(/weekly/i)
-  })
+    expect(weekly?.getAttribute("aria-pressed")).toBe("true");
+    expect(weekly?.textContent).toMatch(/weekly/i);
+  });
 
-it('the self-entry row has `aria-current="true"` when authenticated', () => {
-useAuthStateMock.mockReturnValue({
-isAuthenticated: true,
-setAuthenticated: vi.fn(),
-    })
-setHookReturn({
-entries: [
-makeEntry({
-userId: 'me',
-rank: 4,
-isCurrentUser: true,
-displayName: 'Meee',
+  it('the self-entry row has `aria-current="true"` when authenticated', () => {
+    useAuthStateMock.mockReturnValue({
+      isAuthenticated: true,
+      setAuthenticated: vi.fn(),
+    });
+    setHookReturn({
+      entries: [
+        makeEntry({
+          userId: "me",
+          rank: 4,
+          isCurrentUser: true,
+          displayName: "Meee",
         }),
       ],
-    })
+    });
 
-const { container } = render(
-<TestSwrProvider>
-<LeaderboardPage />
-</TestSwrProvider>,
-    )
-document.body.appendChild(container)
+    const { container } = render(
+      <TestSwrProvider>
+        <LeaderboardPage />
+      </TestSwrProvider>,
+    );
+    document.body.appendChild(container);
 
-const selfRow = container.querySelector('[data-leaderboard-row="me"]')
-expect(selfRow).toBeTruthy()
-expect(selfRow).toHaveAttribute('aria-current', 'true')
-  })
-})
+    const selfRow = container.querySelector('[data-leaderboard-row="me"]');
+    expect(selfRow).toBeTruthy();
+    expect(selfRow).toHaveAttribute("aria-current", "true");
+  });
+});
 
-describe('LeaderboardPage — axe a11y audit (unauthenticated)', () => {
-it('does NOT highlight any row when `isAuthenticated === false`', () => {
-setHookReturn({
-entries: [
-makeEntry({
-userId: 'me',
-rank: 4,
-isCurrentUser: true,
-displayName: 'Meee',
+describe("LeaderboardPage — axe a11y audit (unauthenticated)", () => {
+  it("does NOT highlight any row when `isAuthenticated === false`", () => {
+    setHookReturn({
+      entries: [
+        makeEntry({
+          userId: "me",
+          rank: 4,
+          isCurrentUser: true,
+          displayName: "Meee",
         }),
       ],
-    })
+    });
 
-const { container } = render(
-<TestSwrProvider>
-<LeaderboardPage />
-</TestSwrProvider>,
-    )
-document.body.appendChild(container)
+    const { container } = render(
+      <TestSwrProvider>
+        <LeaderboardPage />
+      </TestSwrProvider>,
+    );
+    document.body.appendChild(container);
 
-const selfRow = container.querySelector('[data-leaderboard-row="me"]')
-expect(selfRow).toBeTruthy()
+    const selfRow = container.querySelector('[data-leaderboard-row="me"]');
+    expect(selfRow).toBeTruthy();
 
-expect(selfRow).not.toHaveAttribute('aria-current')
+    expect(selfRow).not.toHaveAttribute("aria-current");
 
-const highlighted = container.querySelectorAll('[aria-current="true"]')
-expect(highlighted).toHaveLength(0)
-  })
+    const highlighted = container.querySelectorAll('[aria-current="true"]');
+    expect(highlighted).toHaveLength(0);
+  });
 
-it('renders without critical or serious axe violations', async () => {
-setHookReturn({ entries: [] })
+  it("renders without critical or serious axe violations", async () => {
+    setHookReturn({ entries: [] });
 
-const { container } = render(
-<TestSwrProvider>
-<LeaderboardPage />
-</TestSwrProvider>,
-    )
-document.body.appendChild(container)
+    const { container } = render(
+      <TestSwrProvider>
+        <LeaderboardPage />
+      </TestSwrProvider>,
+    );
+    document.body.appendChild(container);
 
-const results = await auditLeaderboard()
-const blockers = results.violations.filter(
-(v) => v.impact === 'critical' || v.impact === 'serious',
-    )
-expect(blockers, JSON.stringify(blockers, null, 2)).toHaveLength(0)
-  })
-})
+    const results = await auditLeaderboard();
+    const blockers = results.violations.filter(
+      (v) => v.impact === "critical" || v.impact === "serious",
+    );
+    expect(blockers, JSON.stringify(blockers, null, 2)).toHaveLength(0);
+  });
+});
 
-describe('LeaderboardPage — axe a11y audit (loading)', () => {
-it('renders the skeleton with role="status" + aria-live="polite"', () => {
-setHookReturn({ isLoading: true, entries: [] })
+describe("LeaderboardPage — axe a11y audit (loading)", () => {
+  it('renders the skeleton with role="status" + aria-live="polite"', () => {
+    setHookReturn({ isLoading: true, entries: [] });
 
-const { container } = render(
-<TestSwrProvider>
-<LeaderboardPage />
-</TestSwrProvider>,
-    )
-document.body.appendChild(container)
+    const { container } = render(
+      <TestSwrProvider>
+        <LeaderboardPage />
+      </TestSwrProvider>,
+    );
+    document.body.appendChild(container);
 
-const skeleton = container.querySelector('[data-testid="leaderboard-skeleton"]')
-expect(skeleton).toBeTruthy()
-expect(skeleton).toHaveAttribute('role', 'status')
-expect(skeleton).toHaveAttribute('aria-live', 'polite')
-  })
+    const skeleton = container.querySelector(
+      '[data-testid="leaderboard-skeleton"]',
+    );
+    expect(skeleton).toBeTruthy();
+    expect(skeleton).toHaveAttribute("role", "status");
+    expect(skeleton).toHaveAttribute("aria-live", "polite");
+  });
 
-it('renders without critical or serious axe violations', async () => {
-setHookReturn({ isLoading: true, entries: [] })
+  it("renders without critical or serious axe violations", async () => {
+    setHookReturn({ isLoading: true, entries: [] });
 
-const { container } = render(
-<TestSwrProvider>
-<LeaderboardPage />
-</TestSwrProvider>,
-    )
-document.body.appendChild(container)
+    const { container } = render(
+      <TestSwrProvider>
+        <LeaderboardPage />
+      </TestSwrProvider>,
+    );
+    document.body.appendChild(container);
 
-const results = await auditLeaderboard()
-const blockers = results.violations.filter(
-(v) => v.impact === 'critical' || v.impact === 'serious',
-    )
-expect(blockers, JSON.stringify(blockers, null, 2)).toHaveLength(0)
-  })
-})
+    const results = await auditLeaderboard();
+    const blockers = results.violations.filter(
+      (v) => v.impact === "critical" || v.impact === "serious",
+    );
+    expect(blockers, JSON.stringify(blockers, null, 2)).toHaveLength(0);
+  });
+});
 
-describe('LeaderboardPage — axe a11y audit (empty state)', () => {
-it('renders without critical or serious axe violations', async () => {
-setHookReturn({ entries: [] })
+describe("LeaderboardPage — axe a11y audit (empty state)", () => {
+  it("renders without critical or serious axe violations", async () => {
+    setHookReturn({ entries: [] });
 
-const { container } = render(
-<TestSwrProvider>
-<LeaderboardPage />
-</TestSwrProvider>,
-    )
-document.body.appendChild(container)
+    const { container } = render(
+      <TestSwrProvider>
+        <LeaderboardPage />
+      </TestSwrProvider>,
+    );
+    document.body.appendChild(container);
 
-const results = await auditLeaderboard()
-const blockers = results.violations.filter(
-(v) => v.impact === 'critical' || v.impact === 'serious',
-    )
-expect(blockers, JSON.stringify(blockers, null, 2)).toHaveLength(0)
-  })
-})
+    const results = await auditLeaderboard();
+    const blockers = results.violations.filter(
+      (v) => v.impact === "critical" || v.impact === "serious",
+    );
+    expect(blockers, JSON.stringify(blockers, null, 2)).toHaveLength(0);
+  });
+});
 
-describe('LeaderboardPage — axe a11y audit (error state)', () => {
-it('renders the 404 inline error with role="alert"', () => {
-setHookReturn({
-entries: [],
-error: makeApiError(404),
-    })
+describe("LeaderboardPage — axe a11y audit (error state)", () => {
+  it('renders the 404 inline error with role="alert"', () => {
+    setHookReturn({
+      entries: [],
+      error: makeApiError(404),
+    });
 
-const { container } = render(
-<TestSwrProvider>
-<LeaderboardPage />
-</TestSwrProvider>,
-    )
-document.body.appendChild(container)
+    const { container } = render(
+      <TestSwrProvider>
+        <LeaderboardPage />
+      </TestSwrProvider>,
+    );
+    document.body.appendChild(container);
 
-const banner404 = container.querySelector('[data-testid="leaderboard-404"]')
-expect(banner404).toBeTruthy()
-expect(banner404).toHaveAttribute('role', 'alert')
-  })
+    const banner404 = container.querySelector(
+      '[data-testid="leaderboard-404"]',
+    );
+    expect(banner404).toBeTruthy();
+    expect(banner404).toHaveAttribute("role", "alert");
+  });
 
-it('renders the 5xx retry banner with role="alert" + Retry button accessible name', () => {
-const refresh = vi.fn(async () => undefined)
-setHookReturn({
-entries: [makeEntry({ userId: 'u-1', rank: 1 })],
-error: makeApiError(500),
-refresh,
-    })
+  it('renders the 5xx retry banner with role="alert" + Retry button accessible name', () => {
+    const refresh = vi.fn(async () => undefined);
+    setHookReturn({
+      entries: [makeEntry({ userId: "u-1", rank: 1 })],
+      error: makeApiError(500),
+      refresh,
+    });
 
-const { container } = render(
-<TestSwrProvider>
-<LeaderboardPage />
-</TestSwrProvider>,
-    )
-document.body.appendChild(container)
+    const { container } = render(
+      <TestSwrProvider>
+        <LeaderboardPage />
+      </TestSwrProvider>,
+    );
+    document.body.appendChild(container);
 
-const banner = container.querySelector('[data-testid="leaderboard-5xx-banner"]')
-expect(banner).toBeTruthy()
-expect(banner).toHaveAttribute('role', 'alert')
+    const banner = container.querySelector(
+      '[data-testid="leaderboard-5xx-banner"]',
+    );
+    expect(banner).toBeTruthy();
+    expect(banner).toHaveAttribute("role", "alert");
 
-const retry = banner?.querySelector('button')
-expect(retry).toBeTruthy()
-expect(retry?.textContent).toMatch(/retry/i)
-  })
-})
+    const retry = banner?.querySelector("button");
+    expect(retry).toBeTruthy();
+    expect(retry?.textContent).toMatch(/retry/i);
+  });
+});

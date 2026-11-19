@@ -7,7 +7,10 @@ import { Card, CardContent } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ApiError } from "@/lib/api";
 
-import type { CoinReason, CoinTransaction } from "@/features/coins/types/coin.types";
+import type {
+  CoinReason,
+  CoinTransaction,
+} from "@/features/coins/types/coin.types";
 
 export interface CoinTransactionListProps {
   items: readonly CoinTransaction[];

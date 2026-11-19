@@ -1,22 +1,19 @@
-
-
-import type { CompleteAttemptResponseDtoStatus } from './completeAttemptResponseDtoStatus';
+import type { CompleteAttemptResponseDtoStatus } from "./completeAttemptResponseDtoStatus";
 
 export interface CompleteAttemptResponseDto {
+  attemptId: string;
 
-attemptId: string;
+  quizId: string;
 
-quizId: string;
+  status: CompleteAttemptResponseDtoStatus;
 
-status: CompleteAttemptResponseDtoStatus;
+  scorePercent?: number | null;
 
-scorePercent?: number | null;
+  correctCount?: number | null;
 
-correctCount?: number | null;
+  timeTakenMs?: number | null;
 
-timeTakenMs?: number | null;
+  xpEarned: number;
 
-xpEarned: number;
-
-finishedAt: string;
+  finishedAt: string;
 }

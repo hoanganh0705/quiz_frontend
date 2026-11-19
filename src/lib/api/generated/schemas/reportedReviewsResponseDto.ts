@@ -1,11 +1,8 @@
-
-
-import type { ReportedReviewItemDto } from './reportedReviewItemDto';
-import type { ReportedReviewsPaginationDto } from './reportedReviewsPaginationDto';
+import type { ReportedReviewItemDto } from "./reportedReviewItemDto";
+import type { ReportedReviewsPaginationDto } from "./reportedReviewsPaginationDto";
 
 export interface ReportedReviewsResponseDto {
+  items: ReportedReviewItemDto[];
 
-items: ReportedReviewItemDto[];
-
-pagination: ReportedReviewsPaginationDto;
+  pagination: ReportedReviewsPaginationDto;
 }

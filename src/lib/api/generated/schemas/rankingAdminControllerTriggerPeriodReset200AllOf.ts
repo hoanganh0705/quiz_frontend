@@ -1,7 +1,5 @@
-
-
-import type { PeriodResetResponseDto } from './periodResetResponseDto';
+import type { PeriodResetResponseDto } from "./periodResetResponseDto";
 
 export type RankingAdminControllerTriggerPeriodReset200AllOf = {
-data?: PeriodResetResponseDto;
+  data?: PeriodResetResponseDto;
 };

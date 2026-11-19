@@ -1,102 +1,100 @@
+import { describe, expect, it } from "vitest";
 
-
-import { describe, expect, it } from 'vitest';
-
-import { readFileSync } from 'node:fs';
-import { resolve } from 'node:path';
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 
 const ROOT_DIR = process.cwd();
-const FEATURE_DIR = resolve(ROOT_DIR, 'src/features/attempts');
+const FEATURE_DIR = resolve(ROOT_DIR, "src/features/attempts");
 const COMPONENTS_DIR = `${FEATURE_DIR}/components`;
 const HOOKS_DIR = `${FEATURE_DIR}/hooks`;
-const APP_DIR = resolve(ROOT_DIR, 'src/app');
+const APP_DIR = resolve(ROOT_DIR, "src/app");
 
 const FORBIDDEN_AUTH_REVIEW_OR_SCORE = [
-/completeAttempt\(/,
-/attemptControllerCompleteAttempt/,
-/\bisCorrect\b/,
-/\bcorrectAnswer\b/,
-/\bcorrectOptionId\b/,
-/\bscorePercent\b/,
-/\bgetAttemptReview\b/,
-/\bgetAttemptAnalytics\b/,
+  /completeAttempt\(/,
+  /attemptControllerCompleteAttempt/,
+  /\bisCorrect\b/,
+  /\bcorrectAnswer\b/,
+  /\bcorrectOptionId\b/,
+  /\bscorePercent\b/,
+  /\bgetAttemptReview\b/,
+  /\bgetAttemptAnalytics\b/,
 ];
 
 function readSource(file: string): string {
-return readFileSync(file, 'utf8');
+  return readFileSync(file, "utf8");
 }
 
-describe('AttemptRunner — integration: player-DTO + 4.15 reservation', () => {
-it('AttemptRunner.tsx source never imports forbidden surface', () => {
-const src = readSource(`${COMPONENTS_DIR}/AttemptRunner.tsx`);
-for (const pattern of FORBIDDEN_AUTH_REVIEW_OR_SCORE) {
-expect(src).not.toMatch(pattern);
+describe("AttemptRunner — integration: player-DTO + 4.15 reservation", () => {
+  it("AttemptRunner.tsx source never imports forbidden surface", () => {
+    const src = readSource(`${COMPONENTS_DIR}/AttemptRunner.tsx`);
+    for (const pattern of FORBIDDEN_AUTH_REVIEW_OR_SCORE) {
+      expect(src).not.toMatch(pattern);
     }
   });
 
-it('AttemptRunnerPage.tsx source never imports forbidden surface', () => {
-const src = readSource(`${COMPONENTS_DIR}/AttemptRunnerPage.tsx`);
-for (const pattern of FORBIDDEN_AUTH_REVIEW_OR_SCORE) {
-expect(src).not.toMatch(pattern);
+  it("AttemptRunnerPage.tsx source never imports forbidden surface", () => {
+    const src = readSource(`${COMPONENTS_DIR}/AttemptRunnerPage.tsx`);
+    for (const pattern of FORBIDDEN_AUTH_REVIEW_OR_SCORE) {
+      expect(src).not.toMatch(pattern);
     }
   });
 
-it('useAttemptRunner.ts source never imports forbidden surface', () => {
-const src = readSource(`${HOOKS_DIR}/useAttemptRunner.ts`);
-for (const pattern of FORBIDDEN_AUTH_REVIEW_OR_SCORE) {
-expect(src).not.toMatch(pattern);
+  it("useAttemptRunner.ts source never imports forbidden surface", () => {
+    const src = readSource(`${HOOKS_DIR}/useAttemptRunner.ts`);
+    for (const pattern of FORBIDDEN_AUTH_REVIEW_OR_SCORE) {
+      expect(src).not.toMatch(pattern);
     }
   });
 });
 
-describe('AttemptRunner — integration: feature barrel', () => {
-it('the feature barrel re-exports the runner hook and the runner page', () => {
-const barrel = readSource(`${FEATURE_DIR}/index.ts`);
-expect(barrel).toMatch(/useAttemptRunner|export[\s\S]*useAttemptRunner/);
-expect(barrel).toMatch(/AttemptRunnerPage/);
+describe("AttemptRunner — integration: feature barrel", () => {
+  it("the feature barrel re-exports the runner hook and the runner page", () => {
+    const barrel = readSource(`${FEATURE_DIR}/index.ts`);
+    expect(barrel).toMatch(/useAttemptRunner|export[\s\S]*useAttemptRunner/);
+    expect(barrel).toMatch(/AttemptRunnerPage/);
   });
 
-it('the components barrel exports the runner UI primitives', () => {
-const barrel = readSource(`${COMPONENTS_DIR}/index.ts`);
-for (const name of [
-'AttemptRunner',
-'AttemptRunnerPage',
-'AttemptStartCta',
-'AttemptContinueCta',
-'AttemptHeader',
-'AttemptQuestionCard',
-'AttemptAnswerPicker',
-'AttemptProgressBar',
-'AttemptAbandonDialog',
+  it("the components barrel exports the runner UI primitives", () => {
+    const barrel = readSource(`${COMPONENTS_DIR}/index.ts`);
+    for (const name of [
+      "AttemptRunner",
+      "AttemptRunnerPage",
+      "AttemptStartCta",
+      "AttemptContinueCta",
+      "AttemptHeader",
+      "AttemptQuestionCard",
+      "AttemptAnswerPicker",
+      "AttemptProgressBar",
+      "AttemptAbandonDialog",
     ]) {
-expect(barrel).toContain(name);
+      expect(barrel).toContain(name);
     }
   });
 });
 
-describe('AttemptRunner — integration: canonical route mounted', () => {
-it('the protected /attempt route page mounts AttemptRunnerPage', () => {
-const page = readSource(
-`${APP_DIR}/(protected)/quizzes/[idOrSlug]/attempt/page.tsx`,
+describe("AttemptRunner — integration: canonical route mounted", () => {
+  it("the protected /attempt route page mounts AttemptRunnerPage", () => {
+    const page = readSource(
+      `${APP_DIR}/(protected)/quizzes/[idOrSlug]/attempt/page.tsx`,
     );
-expect(page).toMatch(/AttemptRunnerPage/);
+    expect(page).toMatch(/AttemptRunnerPage/);
   });
 
-it('the legacy /start route redirects to the canonical /attempt route', () => {
-const startPage = readSource(
-`${APP_DIR}/(public)/quizzes/[idOrSlug]/start/page.tsx`,
+  it("the legacy /start route redirects to the canonical /attempt route", () => {
+    const startPage = readSource(
+      `${APP_DIR}/(public)/quizzes/[idOrSlug]/start/page.tsx`,
     );
 
-expect(startPage).toMatch(/\/attempt/);
+    expect(startPage).toMatch(/\/attempt/);
   });
 });
 
-describe('AttemptRunner — integration: CTA delegation', () => {
-it('the QuizCtaStrip delegates Start/Continue to the active-attempt hook', () => {
-const strip = readSource(
-resolve(ROOT_DIR, 'src/features/quizzes/components/QuizCtaStrip.tsx'),
+describe("AttemptRunner — integration: CTA delegation", () => {
+  it("the QuizCtaStrip delegates Start/Continue to the active-attempt hook", () => {
+    const strip = readSource(
+      resolve(ROOT_DIR, "src/features/quizzes/components/QuizCtaStrip.tsx"),
     );
-expect(strip).toMatch(/useActiveAttempt/);
-expect(strip).toMatch(/AttemptStartCta|AttemptContinueCta/);
+    expect(strip).toMatch(/useActiveAttempt/);
+    expect(strip).toMatch(/AttemptStartCta|AttemptContinueCta/);
   });
 });

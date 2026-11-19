@@ -1,5 +1,4 @@
+import type { ReviewDashboardFavoriteCategoryDto } from "./reviewDashboardFavoriteCategoryDto";
 
-
-import type { ReviewDashboardFavoriteCategoryDto } from './reviewDashboardFavoriteCategoryDto';
-
-export type ReviewDashboardResponseDtoFavoriteCategory = ReviewDashboardFavoriteCategoryDto | null;
+export type ReviewDashboardResponseDtoFavoriteCategory =
+  ReviewDashboardFavoriteCategoryDto | null;

@@ -1,7 +1,5 @@
-
-
-import type { UserSummaryResponseDto } from './userSummaryResponseDto';
+import type { UserSummaryResponseDto } from "./userSummaryResponseDto";
 
 export type UserControllerGetMySummary200AllOf = {
-data?: UserSummaryResponseDto;
+  data?: UserSummaryResponseDto;
 };

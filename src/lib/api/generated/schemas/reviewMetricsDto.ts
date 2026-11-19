@@ -1,8 +1,5 @@
-
-
 export interface ReviewMetricsDto {
+  averageRating: number;
 
-averageRating: number;
-
-ratingCount: number;
+  ratingCount: number;
 }

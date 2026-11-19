@@ -1,104 +1,104 @@
-'use client'
+"use client";
 
-import { useState, useCallback, useEffect, memo } from 'react'
+import { useState, useCallback, useEffect, memo } from "react";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogDescription
-} from '@/components/ui/Dialog'
-import { Keyboard } from 'lucide-react'
-import { useKeyboardShortcut } from '@/shared/hooks/use-keyboard-shortcut'
+  DialogDescription,
+} from "@/components/ui/Dialog";
+import { Keyboard } from "lucide-react";
+import { useKeyboardShortcut } from "@/shared/hooks/use-keyboard-shortcut";
 
 interface ShortcutEntry {
-  keys: string[]
-  description: string
+  keys: string[];
+  description: string;
 }
 
 interface ShortcutGroup {
-  title: string
-  shortcuts: ShortcutEntry[]
+  title: string;
+  shortcuts: ShortcutEntry[];
 }
 
 const shortcutGroups: ShortcutGroup[] = [
   {
-    title: 'General',
+    title: "General",
     shortcuts: [
-      { keys: ['⌘/Ctrl', 'K'], description: 'Open quick search' },
-      { keys: ['?'], description: 'Show keyboard shortcuts' }
-    ]
+      { keys: ["⌘/Ctrl", "K"], description: "Open quick search" },
+      { keys: ["?"], description: "Show keyboard shortcuts" },
+    ],
   },
   {
-    title: 'Quiz Navigation',
+    title: "Quiz Navigation",
     shortcuts: [
-      { keys: ['←'], description: 'Previous question' },
-      { keys: ['→'], description: 'Next question' },
-      { keys: ['1-4'], description: 'Select answer option' },
-      { keys: ['Enter'], description: 'Submit answer / Next question' }
-    ]
+      { keys: ["←"], description: "Previous question" },
+      { keys: ["→"], description: "Next question" },
+      { keys: ["1-4"], description: "Select answer option" },
+      { keys: ["Enter"], description: "Submit answer / Next question" },
+    ],
   },
   {
-    title: 'Quick Search',
+    title: "Quick Search",
     shortcuts: [
-      { keys: ['↑', '↓'], description: 'Navigate results' },
-      { keys: ['Enter'], description: 'Select result' },
-      { keys: ['Esc'], description: 'Close search' }
-    ]
-  }
-]
+      { keys: ["↑", "↓"], description: "Navigate results" },
+      { keys: ["Enter"], description: "Select result" },
+      { keys: ["Esc"], description: "Close search" },
+    ],
+  },
+];
 
 const Kbd = memo(function Kbd({ children }: { children: React.ReactNode }) {
   return (
-    <kbd className='inline-flex items-center justify-center min-w-6 h-6 px-1.5 rounded border border-border bg-muted text-xs font-medium text-foreground/70 shadow-sm'>
+    <kbd className="inline-flex items-center justify-center min-w-6 h-6 px-1.5 rounded border border-border bg-muted text-xs font-medium text-foreground/70 shadow-sm">
       {children}
     </kbd>
-  )
-})
+  );
+});
 
 const ShortcutRow = memo(function ShortcutRow({
-  shortcut
+  shortcut,
 }: {
-  shortcut: ShortcutEntry
+  shortcut: ShortcutEntry;
 }) {
   return (
-    <div className='flex items-center justify-between py-2'>
-      <span className='text-sm text-foreground/80'>{shortcut.description}</span>
-      <div className='flex items-center gap-1'>
+    <div className="flex items-center justify-between py-2">
+      <span className="text-sm text-foreground/80">{shortcut.description}</span>
+      <div className="flex items-center gap-1">
         {shortcut.keys.map((key, i) => (
-          <span key={key} className='flex items-center gap-1'>
-            {i > 0 && <span className='text-xs text-foreground/30'>+</span>}
+          <span key={key} className="flex items-center gap-1">
+            {i > 0 && <span className="text-xs text-foreground/30">+</span>}
             <Kbd>{key}</Kbd>
           </span>
         ))}
       </div>
     </div>
-  )
-})
+  );
+});
 
 export function ShortcutsHelpModal() {
-  const [open, setOpen] = useState(false)
+  const [open, setOpen] = useState(false);
 
   // Register ? shortcut to open this modal
   useKeyboardShortcut(
-    '?',
+    "?",
     useCallback(() => setOpen(true), []),
-    { meta: false, shift: true, preventDefault: true }
-  )
+    { meta: false, shift: true, preventDefault: true },
+  );
 
   // Listen for custom event from QuickSearch
   useEffect(() => {
-    const handler = () => setOpen(true)
-    window.addEventListener('open-shortcuts-modal', handler)
-    return () => window.removeEventListener('open-shortcuts-modal', handler)
-  }, [])
+    const handler = () => setOpen(true);
+    window.addEventListener("open-shortcuts-modal", handler);
+    return () => window.removeEventListener("open-shortcuts-modal", handler);
+  }, []);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className='sm:max-w-md'>
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className='flex items-center gap-2'>
-            <Keyboard className='h-5 w-5' aria-hidden='true' />
+          <DialogTitle className="flex items-center gap-2">
+            <Keyboard className="h-5 w-5" aria-hidden="true" />
             Keyboard Shortcuts
           </DialogTitle>
           <DialogDescription>
@@ -106,13 +106,13 @@ export function ShortcutsHelpModal() {
           </DialogDescription>
         </DialogHeader>
 
-        <div className='space-y-6 mt-2'>
+        <div className="space-y-6 mt-2">
           {shortcutGroups.map((group) => (
             <div key={group.title}>
-              <h3 className='text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2'>
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
                 {group.title}
               </h3>
-              <div className='divide-y divide-border'>
+              <div className="divide-y divide-border">
                 {group.shortcuts.map((shortcut) => (
                   <ShortcutRow key={shortcut.description} shortcut={shortcut} />
                 ))}
@@ -121,12 +121,12 @@ export function ShortcutsHelpModal() {
           ))}
         </div>
 
-        <div className='mt-4 pt-3 border-t border-border'>
-          <p className='text-xs text-muted-foreground text-center'>
+        <div className="mt-4 pt-3 border-t border-border">
+          <p className="text-xs text-muted-foreground text-center">
             Press <Kbd>?</Kbd> anytime to view this help
           </p>
         </div>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

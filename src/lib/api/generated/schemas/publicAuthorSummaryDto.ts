@@ -1,15 +1,12 @@
-
-
-import type { PublicAuthorSummaryDtoDisplayName } from './publicAuthorSummaryDtoDisplayName';
-import type { PublicAuthorSummaryDtoAvatarUrl } from './publicAuthorSummaryDtoAvatarUrl';
+import type { PublicAuthorSummaryDtoDisplayName } from "./publicAuthorSummaryDtoDisplayName";
+import type { PublicAuthorSummaryDtoAvatarUrl } from "./publicAuthorSummaryDtoAvatarUrl";
 
 export interface PublicAuthorSummaryDto {
+  userId: string;
 
-userId: string;
+  username: string;
 
-username: string;
+  displayName: PublicAuthorSummaryDtoDisplayName;
 
-displayName: PublicAuthorSummaryDtoDisplayName;
-
-avatarUrl: PublicAuthorSummaryDtoAvatarUrl;
+  avatarUrl: PublicAuthorSummaryDtoAvatarUrl;
 }

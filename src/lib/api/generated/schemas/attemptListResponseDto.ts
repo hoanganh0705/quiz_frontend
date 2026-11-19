@@ -1,11 +1,8 @@
-
-
-import type { AttemptSummaryResponseDto } from './attemptSummaryResponseDto';
-import type { AttemptPaginationResponseDto } from './attemptPaginationResponseDto';
+import type { AttemptSummaryResponseDto } from "./attemptSummaryResponseDto";
+import type { AttemptPaginationResponseDto } from "./attemptPaginationResponseDto";
 
 export interface AttemptListResponseDto {
+  items: AttemptSummaryResponseDto[];
 
-items: AttemptSummaryResponseDto[];
-
-pagination: AttemptPaginationResponseDto;
+  pagination: AttemptPaginationResponseDto;
 }

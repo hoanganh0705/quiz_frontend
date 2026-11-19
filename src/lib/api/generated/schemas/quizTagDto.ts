@@ -1,10 +1,7 @@
-
-
 export interface QuizTagDto {
+  tagId: string;
 
-tagId: string;
+  name: string;
 
-name: string;
-
-slug: string;
+  slug: string;
 }

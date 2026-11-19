@@ -1,1 +1,1 @@
-export * from './leaderboard-presentation'
+export * from "./leaderboard-presentation";

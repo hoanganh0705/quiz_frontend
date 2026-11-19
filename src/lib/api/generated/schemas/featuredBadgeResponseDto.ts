@@ -1,10 +1,7 @@
-
-
 export interface FeaturedBadgeResponseDto {
+  badgeId: string;
 
-badgeId: string;
+  badgeName: string;
 
-badgeName: string;
-
-rarity: string;
+  rarity: string;
 }

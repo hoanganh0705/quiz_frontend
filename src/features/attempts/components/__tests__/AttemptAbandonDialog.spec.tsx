@@ -1,101 +1,83 @@
+import { describe, expect, it, vi } from "vitest";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 
+import { AttemptAbandonDialog } from "@/features/attempts/components/AttemptAbandonDialog";
 
-import { describe, expect, it, vi } from 'vitest';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
-
-import { AttemptAbandonDialog } from '@/features/attempts/components/AttemptAbandonDialog';
-
-describe('AttemptAbandonDialog — rendering', () => {
-it('renders the destructive-permanent copy', () => {
-render(
-<AttemptAbandonDialog
-open
-onConfirm={() => {}}
-onCancel={() => {}}
-      />,
+describe("AttemptAbandonDialog — rendering", () => {
+  it("renders the destructive-permanent copy", () => {
+    render(
+      <AttemptAbandonDialog open onConfirm={() => {}} onCancel={() => {}} />,
     );
 
-expect(screen.getByTestId('attempt-abandon-dialog')).toBeInTheDocument();
-expect(screen.getByText(/Delete permanently/i)).toBeInTheDocument();
+    expect(screen.getByTestId("attempt-abandon-dialog")).toBeInTheDocument();
+    expect(screen.getByText(/Delete permanently/i)).toBeInTheDocument();
   });
 });
 
-describe('AttemptAbandonDialog — typed confirm', () => {
-it('disables confirm until the user types the exact string', () => {
-const onConfirm = vi.fn();
-render(
-<AttemptAbandonDialog
-open
-onConfirm={onConfirm}
-onCancel={() => {}}
-      />,
+describe("AttemptAbandonDialog — typed confirm", () => {
+  it("disables confirm until the user types the exact string", () => {
+    const onConfirm = vi.fn();
+    render(
+      <AttemptAbandonDialog open onConfirm={onConfirm} onCancel={() => {}} />,
     );
 
-const confirmBtn = screen.getByRole('button', { name: /abandon attempt/i });
-expect(confirmBtn).toBeDisabled();
+    const confirmBtn = screen.getByRole("button", { name: /abandon attempt/i });
+    expect(confirmBtn).toBeDisabled();
 
-const input = screen.getByRole('textbox');
-fireEvent.change(input, { target: { value: 'wrong' } });
-expect(confirmBtn).toBeDisabled();
+    const input = screen.getByRole("textbox");
+    fireEvent.change(input, { target: { value: "wrong" } });
+    expect(confirmBtn).toBeDisabled();
 
-fireEvent.change(input, { target: { value: 'abandon' } });
-expect(confirmBtn).not.toBeDisabled();
+    fireEvent.change(input, { target: { value: "abandon" } });
+    expect(confirmBtn).not.toBeDisabled();
   });
 
-it('invokes the callback exactly once when confirm is clicked', async () => {
-const onConfirm = vi.fn();
-render(
-<AttemptAbandonDialog
-open
-onConfirm={onConfirm}
-onCancel={() => {}}
-      />,
+  it("invokes the callback exactly once when confirm is clicked", async () => {
+    const onConfirm = vi.fn();
+    render(
+      <AttemptAbandonDialog open onConfirm={onConfirm} onCancel={() => {}} />,
     );
 
-const input = screen.getByRole('textbox');
-fireEvent.change(input, { target: { value: 'abandon' } });
+    const input = screen.getByRole("textbox");
+    fireEvent.change(input, { target: { value: "abandon" } });
 
-const confirmBtn = screen.getByRole('button', { name: /abandon attempt/i });
-fireEvent.click(confirmBtn);
+    const confirmBtn = screen.getByRole("button", { name: /abandon attempt/i });
+    fireEvent.click(confirmBtn);
 
-await waitFor(() => {
-expect(onConfirm).toHaveBeenCalledTimes(1);
+    await waitFor(() => {
+      expect(onConfirm).toHaveBeenCalledTimes(1);
     });
   });
 });
 
-describe('AttemptAbandonDialog — cancel', () => {
-it('invokes the cancel callback and performs no mutation', () => {
-const onConfirm = vi.fn();
-const onCancel = vi.fn();
-render(
-<AttemptAbandonDialog
-open
-onConfirm={onConfirm}
-onCancel={onCancel}
-      />,
+describe("AttemptAbandonDialog — cancel", () => {
+  it("invokes the cancel callback and performs no mutation", () => {
+    const onConfirm = vi.fn();
+    const onCancel = vi.fn();
+    render(
+      <AttemptAbandonDialog open onConfirm={onConfirm} onCancel={onCancel} />,
     );
 
-fireEvent.click(screen.getByRole('button', { name: /go back/i }));
-expect(onCancel).toHaveBeenCalledTimes(1);
-expect(onConfirm).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole("button", { name: /go back/i }));
+    expect(onCancel).toHaveBeenCalledTimes(1);
+    expect(onConfirm).not.toHaveBeenCalled();
   });
 });
 
-describe('AttemptAbandonDialog — pending state', () => {
-it('disables confirm and cancel while pending', () => {
-render(
-<AttemptAbandonDialog
-open
-onConfirm={() => {}}
-onCancel={() => {}}
-isPending
+describe("AttemptAbandonDialog — pending state", () => {
+  it("disables confirm and cancel while pending", () => {
+    render(
+      <AttemptAbandonDialog
+        open
+        onConfirm={() => {}}
+        onCancel={() => {}}
+        isPending
       />,
     );
 
-expect(
-screen.getByRole('button', { name: /abandon attempt/i }),
+    expect(
+      screen.getByRole("button", { name: /abandon attempt/i }),
     ).toBeDisabled();
-expect(screen.getByRole('button', { name: /go back/i })).toBeDisabled();
+    expect(screen.getByRole("button", { name: /go back/i })).toBeDisabled();
   });
 });

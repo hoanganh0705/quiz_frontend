@@ -1,12 +1,9 @@
-
-
 export interface ReevaluateUserResponseDto {
+  message: string;
 
-message: string;
+  checked: number;
 
-checked: number;
+  awarded: number;
 
-awarded: number;
-
-errors: number;
+  errors: number;
 }

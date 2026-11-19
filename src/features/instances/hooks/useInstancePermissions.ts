@@ -81,7 +81,9 @@ export function resolveInstancePermissions(args: {
     canLeave: isPlayer,
     canStart: isHost && (status === "countdown" || status === "open"),
     canCancel: isHost && status === "countdown",
-    canClose: isHost && (status === "running" || status === "countdown" || status === "open"),
+    canClose:
+      isHost &&
+      (status === "running" || status === "countdown" || status === "open"),
     role,
     isAuthenticated,
   };
@@ -109,8 +111,7 @@ export function useInstancePermissions(
       : selectInstanceRealtimeStatus(state, instanceId),
   );
 
-  const effectiveStatus =
-    realtimeStatus ?? (instance?.status ?? null);
+  const effectiveStatus = realtimeStatus ?? instance?.status ?? null;
 
   return useMemo<InstancePermissions>(() => {
     if (instanceId === null) {
@@ -126,5 +127,12 @@ export function useInstancePermissions(
       role,
       isAuthenticated,
     });
-  }, [instanceId, instance, currentUserId, isAuthenticated, options.isInRoster, effectiveStatus]);
+  }, [
+    instanceId,
+    instance,
+    currentUserId,
+    isAuthenticated,
+    options.isInRoster,
+    effectiveStatus,
+  ]);
 }

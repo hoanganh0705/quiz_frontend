@@ -1,146 +1,148 @@
-'use client'
+"use client";
 
-import { Loader2, RefreshCw } from 'lucide-react'
-import { cn } from '@/shared/utils/merge-class-names'
+import { Loader2, RefreshCw } from "lucide-react";
+import { cn } from "@/shared/utils/merge-class-names";
 
 interface LoadingSpinnerProps {
-  size?: 'sm' | 'md' | 'lg' | 'xl'
-  variant?: 'default' | 'primary' | 'secondary'
-  text?: string
-  className?: string
-  fullScreen?: boolean
+  size?: "sm" | "md" | "lg" | "xl";
+  variant?: "default" | "primary" | "secondary";
+  text?: string;
+  className?: string;
+  fullScreen?: boolean;
 }
 
 const sizeMap = {
-  sm: 'w-4 h-4',
-  md: 'w-6 h-6',
-  lg: 'w-10 h-10',
-  xl: 'w-16 h-16'
-}
+  sm: "w-4 h-4",
+  md: "w-6 h-6",
+  lg: "w-10 h-10",
+  xl: "w-16 h-16",
+};
 
 const textSizeMap = {
-  sm: 'text-xs',
-  md: 'text-sm',
-  lg: 'text-base',
-  xl: 'text-lg'
-}
+  sm: "text-xs",
+  md: "text-sm",
+  lg: "text-base",
+  xl: "text-lg",
+};
 
 const variantMap = {
-  default: 'text-foreground-secondary',
-  primary: 'text-default',
-  secondary: 'text-muted-foreground'
-}
+  default: "text-foreground-secondary",
+  primary: "text-default",
+  secondary: "text-muted-foreground",
+};
 
 export function LoadingSpinner({
-  size = 'md',
-  variant = 'primary',
+  size = "md",
+  variant = "primary",
   text,
   className,
-  fullScreen = false
+  fullScreen = false,
 }: LoadingSpinnerProps) {
   const content = (
     <div
       className={cn(
-        'flex flex-col items-center justify-center gap-2',
-        className
+        "flex flex-col items-center justify-center gap-2",
+        className,
       )}
     >
       <Loader2
-        className={cn(sizeMap[size], variantMap[variant], 'animate-spin')}
+        className={cn(sizeMap[size], variantMap[variant], "animate-spin")}
       />
       {text && (
-        <p className={cn(textSizeMap[size], 'text-foreground-secondary')}>{text}</p>
+        <p className={cn(textSizeMap[size], "text-foreground-secondary")}>
+          {text}
+        </p>
       )}
     </div>
-  )
+  );
 
   if (fullScreen) {
     return (
-      <div className='min-h-screen bg-background flex items-center justify-center'>
+      <div className="min-h-screen bg-background flex items-center justify-center">
         {content}
       </div>
-    )
+    );
   }
 
-  return content
+  return content;
 }
 
 interface RefreshSpinnerProps {
-  isRefreshing?: boolean
-  size?: 'sm' | 'md' | 'lg'
-  className?: string
+  isRefreshing?: boolean;
+  size?: "sm" | "md" | "lg";
+  className?: string;
 }
 
 export function RefreshSpinner({
   isRefreshing = false,
-  size = 'md',
-  className
+  size = "md",
+  className,
 }: RefreshSpinnerProps) {
   return (
     <RefreshCw
       className={cn(
         sizeMap[size],
-        'text-foreground-secondary transition-transform',
-        isRefreshing && 'animate-spin',
-        className
+        "text-foreground-secondary transition-transform",
+        isRefreshing && "animate-spin",
+        className,
       )}
     />
-  )
+  );
 }
 
 // Inline loading for buttons
 interface ButtonLoadingProps {
-  isLoading?: boolean
-  children: React.ReactNode
-  loadingText?: string
-  className?: string
+  isLoading?: boolean;
+  children: React.ReactNode;
+  loadingText?: string;
+  className?: string;
 }
 
 export function ButtonLoading({
   isLoading = false,
   children,
   loadingText,
-  className
+  className,
 }: ButtonLoadingProps) {
   if (isLoading) {
     return (
-      <span className={cn('inline-flex items-center gap-2', className)}>
-        <Loader2 className='w-4 h-4 animate-spin' />
-        {loadingText || 'Loading...'}
+      <span className={cn("inline-flex items-center gap-2", className)}>
+        <Loader2 className="w-4 h-4 animate-spin" />
+        {loadingText || "Loading..."}
       </span>
-    )
+    );
   }
 
-  return <>{children}</>
+  return <>{children}</>;
 }
 
 // Dots loading animation
 interface DotsLoadingProps {
-  className?: string
+  className?: string;
 }
 
 export function DotsLoading({ className }: DotsLoadingProps) {
   return (
-    <div className={cn('flex items-center gap-1.5', className)}>
-      <span className='w-2 h-2 rounded-full bg-default animate-pulse motion-reduce:animate-none [animation-delay:-0.3s]' />
-      <span className='w-2 h-2 rounded-full bg-default animate-pulse motion-reduce:animate-none [animation-delay:-0.15s]' />
-      <span className='w-2 h-2 rounded-full bg-default animate-pulse motion-reduce:animate-none' />
+    <div className={cn("flex items-center gap-1.5", className)}>
+      <span className="w-2 h-2 rounded-full bg-default animate-pulse motion-reduce:animate-none [animation-delay:-0.3s]" />
+      <span className="w-2 h-2 rounded-full bg-default animate-pulse motion-reduce:animate-none [animation-delay:-0.15s]" />
+      <span className="w-2 h-2 rounded-full bg-default animate-pulse motion-reduce:animate-none" />
     </div>
-  )
+  );
 }
 
 // Pulse loading
 interface PulseLoadingProps {
-  className?: string
+  className?: string;
 }
 
 export function PulseLoading({ className }: PulseLoadingProps) {
   return (
-    <div className={cn('flex items-center justify-center', className)}>
-      <div className='relative'>
-        <div className='w-8 h-8 rounded-full bg-default/30 animate-ping absolute' />
-        <div className='w-8 h-8 rounded-full bg-default' />
+    <div className={cn("flex items-center justify-center", className)}>
+      <div className="relative">
+        <div className="w-8 h-8 rounded-full bg-default/30 animate-ping absolute" />
+        <div className="w-8 h-8 rounded-full bg-default" />
       </div>
     </div>
-  )
+  );
 }

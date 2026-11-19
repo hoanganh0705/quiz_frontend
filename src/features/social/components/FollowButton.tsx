@@ -15,97 +15,101 @@ import { useFollow } from "@/features/social/hooks/useFollow";
 import { useUnfollow } from "@/features/social/hooks/useUnfollow";
 
 export interface FollowButtonProps {
+  targetUserId: string;
 
-targetUserId: string;
+  onUnfollowRequest: () => void;
 
-onUnfollowRequest: () => void;
-
-className?: string;
+  className?: string;
 }
 
 const BUTTON_BASE =
-"h-9 min-w-28 px-4 text-sm font-medium transition focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2";
+  "h-9 min-w-28 px-4 text-sm font-medium transition focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2";
 
 export function FollowButton({
-targetUserId,
-onUnfollowRequest,
-className,
+  targetUserId,
+  onUnfollowRequest,
+  className,
 }: FollowButtonProps): ReactNode {
+  const { relationship, isLoading } = useRelationship(targetUserId);
+  const { canFollow, canUnfollow } = useSocialPermissions(targetUserId);
+  const {
+    follow,
+    isPending: isFollowPending,
+    error: followError,
+  } = useFollow(targetUserId);
+  const { isPending: isUnfollowPending, error: unfollowError } =
+    useUnfollow(targetUserId);
 
-const { relationship, isLoading } = useRelationship(targetUserId);
-const { canFollow, canUnfollow } = useSocialPermissions(targetUserId);
-const { follow, isPending: isFollowPending, error: followError } =
-useFollow(targetUserId);
-const { isPending: isUnfollowPending, error: unfollowError } =
-useUnfollow(targetUserId);
+  const isPending = isFollowPending || isUnfollowPending;
+  const error: FollowErrorCode | null = followError ?? unfollowError ?? null;
 
-const isPending = isFollowPending || isUnfollowPending;
-const error: FollowErrorCode | null =
-(followError ?? unfollowError) ?? null;
+  if (isLoading) return null;
+  if (!canFollow && !canUnfollow) return null;
 
-if (isLoading) return null;
-if (!canFollow && !canUnfollow) return null;
-
-return (
-<SelfActionGate targetUserId={targetUserId} fallback={null}>
-<div className={className} data-testid="follow-button-root">
-{isPending ? (
-<FollowPendingIndicator
-text={relationship === "following" ? "Unfollowing..." : "Following..."}
-size="md"
+  return (
+    <SelfActionGate targetUserId={targetUserId} fallback={null}>
+      <div className={className} data-testid="follow-button-root">
+        {isPending ? (
+          <FollowPendingIndicator
+            text={
+              relationship === "following" ? "Unfollowing..." : "Following..."
+            }
+            size="md"
           />
         ) : (
-<>
-{relationship === "none" && canFollow ? (
-<Button
-type="button"
-variant="default"
-className={BUTTON_BASE}
-data-testid="follow-button-follow"
-aria-label="Follow this user"
-onClick={() => {
-void follow();
+          <>
+            {relationship === "none" && canFollow ? (
+              <Button
+                type="button"
+                variant="default"
+                className={BUTTON_BASE}
+                data-testid="follow-button-follow"
+                aria-label="Follow this user"
+                onClick={() => {
+                  void follow();
                 }}
               >
-<ArrowRightIcon
-className="mr-1.5 inline-block h-4 w-4"
-aria-hidden="true"
+                <ArrowRightIcon
+                  className="mr-1.5 inline-block h-4 w-4"
+                  aria-hidden="true"
                 />
-Follow
+                Follow
               </Button>
             ) : null}
 
-{relationship === "following" && canUnfollow ? (
-<Button
-type="button"
-variant="secondary"
-className={BUTTON_BASE}
-data-testid="follow-button-following"
-aria-label="Unfollow this user"
-aria-pressed="true"
-onClick={onUnfollowRequest}
+            {relationship === "following" && canUnfollow ? (
+              <Button
+                type="button"
+                variant="secondary"
+                className={BUTTON_BASE}
+                data-testid="follow-button-following"
+                aria-label="Unfollow this user"
+                aria-pressed="true"
+                onClick={onUnfollowRequest}
               >
-<CheckIcon
-className="mr-1.5 inline-block h-4 w-4"
-aria-hidden="true"
+                <CheckIcon
+                  className="mr-1.5 inline-block h-4 w-4"
+                  aria-hidden="true"
                 />
-Following
+                Following
               </Button>
             ) : null}
-</>
+          </>
         )}
 
-{error !== null && !isPending && (
-<FollowErrorBanner
-error={error}
-onRetry={
-relationship === "none" ? () => {
-void follow();
-              } : undefined
+        {error !== null && !isPending && (
+          <FollowErrorBanner
+            error={error}
+            onRetry={
+              relationship === "none"
+                ? () => {
+                    void follow();
+                  }
+                : undefined
             }
           />
         )}
-</div>
-</SelfActionGate>
+      </div>
+    </SelfActionGate>
   );
 }

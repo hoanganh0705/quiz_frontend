@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 /**
  * `<CategoryDetailPage />` — the `/categories/[idOrSlug]` route's
@@ -38,134 +38,138 @@
  * CLS = 0 once items arrive.
  */
 
-import { CategoryFollowButtonSlot } from './CategoryFollowButtonSlot'
-import { CategoryHeader } from './CategoryHeader'
-import { CategoryQuizGrid } from './CategoryQuizGrid'
-import { useCategory } from '@/features/categories/hooks'
-import { Button } from '@/components/ui/Button'
-import { mutate } from 'swr'
-import Link from 'next/link'
-import { Home, Search } from 'lucide-react'
+import { CategoryFollowButtonSlot } from "./CategoryFollowButtonSlot";
+import { CategoryHeader } from "./CategoryHeader";
+import { CategoryQuizGrid } from "./CategoryQuizGrid";
+import { useCategory } from "@/features/categories/hooks";
+import { Button } from "@/components/ui/Button";
+import { getQueryClient } from "@/providers/QueryProvider";
+import Link from "next/link";
+import { Home, Search } from "lucide-react";
 
 export interface CategoryDetailPageProps {
-  idOrSlug: string
+  idOrSlug: string;
 }
 
 export function CategoryDetailPage({
   idOrSlug,
 }: CategoryDetailPageProps): React.ReactElement {
-  const { category, isLoading, error, notFound } = useCategory(idOrSlug)
+  const { category, isLoading, error, notFound } = useCategory(idOrSlug);
 
   // 404 — inline 404 block (matches the app's not-found.tsx style).
   if (notFound) {
     return (
       <div
-        className='min-h-screen bg-background flex items-center justify-center p-4'
-        data-testid='category-detail-page-not-found'
+        className="min-h-screen bg-background flex items-center justify-center p-4"
+        data-testid="category-detail-page-not-found"
       >
-        <div className='max-w-md w-full text-center'>
-          <div className='mb-8'>
-            <h1 className='text-8xl font-bold text-default mb-2'>404</h1>
+        <div className="max-w-md w-full text-center">
+          <div className="mb-8">
+            <h1 className="text-8xl font-bold text-default mb-2">404</h1>
           </div>
-          <h2 className='text-2xl font-bold text-foreground mb-2'>
+          <h2 className="text-2xl font-bold text-foreground mb-2">
             Category Not Found
           </h2>
-          <p className='text-foreground-secondary mb-8'>
-            The category you&apos;re looking for doesn&apos;t exist or has
-            been removed.
+          <p className="text-foreground-secondary mb-8">
+            The category you&apos;re looking for doesn&apos;t exist or has been
+            removed.
           </p>
-          <div className='flex flex-col sm:flex-row gap-3 justify-center'>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <Button
               asChild
-              className='bg-default hover:bg-default-hover text-white'
+              className="bg-default hover:bg-default-hover text-white"
             >
-              <Link href='/'>
-                <Home className='w-4 h-4 mr-2' />
+              <Link href="/">
+                <Home className="w-4 h-4 mr-2" />
                 Go Home
               </Link>
             </Button>
             <Button
               asChild
-              variant='outline'
-              className='border-border text-primary'
+              variant="outline"
+              className="border-border text-primary"
             >
-              <Link href='/categories'>
-                <Search className='w-4 h-4 mr-2' />
+              <Link href="/categories">
+                <Search className="w-4 h-4 mr-2" />
                 Browse Categories
               </Link>
             </Button>
           </div>
         </div>
       </div>
-    )
+    );
   }
 
   // 5xx — generic error message + retry button.
   if (error && error.status >= 500) {
     return (
       <div
-        className='min-h-screen bg-background flex items-center justify-center p-4'
-        data-testid='category-detail-page-server-error'
+        className="min-h-screen bg-background flex items-center justify-center p-4"
+        data-testid="category-detail-page-server-error"
       >
-        <div className='max-w-md w-full text-center'>
-          <h2 className='text-2xl font-bold text-foreground mb-2'>
+        <div className="max-w-md w-full text-center">
+          <h2 className="text-2xl font-bold text-foreground mb-2">
             Something went wrong
           </h2>
-          <p className='text-foreground-secondary mb-6'>
+          <p className="text-foreground-secondary mb-6">
             We couldn&apos;t load this category. Please try again.
           </p>
           <Button
-            variant='outline'
-            onClick={() => void mutate(['category', idOrSlug])}
-            data-testid='category-detail-page-retry'
+            variant="outline"
+            onClick={() =>
+              void getQueryClient().invalidateQueries({
+                queryKey: ["category", idOrSlug],
+              })
+            }
+            data-testid="category-detail-page-retry"
           >
             Retry
           </Button>
         </div>
       </div>
-    )
+    );
   }
 
   // Loading — header skeleton + grid skeleton. CLS = 0.
   if (isLoading || !category) {
     return (
       <div
-        className='min-h-screen text-foreground p-4 md:p-8 lg:p-12'
-        data-testid='category-detail-page-loading'
+        className="min-h-screen text-foreground p-4 md:p-8 lg:p-12"
+        data-testid="category-detail-page-loading"
       >
-        <CategoryHeader title=' ' description={null} />
+        <CategoryHeader title=" " description={null} />
         <CategoryQuizGrid idOrSlug={idOrSlug} skeletonCount={12} />
       </div>
-    )
+    );
   }
 
   // Resolved — breadcrumb + header + grid.
   return (
     <div
-      className='min-h-screen text-foreground p-4 md:p-8 lg:p-12'
-      data-testid='category-detail-page'
+      className="min-h-screen text-foreground p-4 md:p-8 lg:p-12"
+      data-testid="category-detail-page"
     >
       <nav
-        aria-label='Breadcrumb'
-        className='mb-4 text-sm text-muted-foreground'
-        data-testid='category-detail-page-breadcrumb'
+        aria-label="Breadcrumb"
+        className="mb-4 text-sm text-muted-foreground"
+        data-testid="category-detail-page-breadcrumb"
       >
-        <ol className='flex flex-wrap items-center gap-1'>
+        <ol className="flex flex-wrap items-center gap-1">
           <li>
-            <Link href='/' className='hover:text-foreground hover:underline'>
+            <Link href="/" className="hover:text-foreground hover:underline">
               Home
             </Link>
           </li>
-          <li aria-hidden='true'>/</li>
+          <li aria-hidden="true">/</li>
           <li>
             <Link
-              href='/categories'
-              className='hover:text-foreground hover:underline'
+              href="/categories"
+              className="hover:text-foreground hover:underline"
             >
               Categories
             </Link>
           </li>
-          <li aria-hidden='true'>/</li>
+          <li aria-hidden="true">/</li>
           <li>
             {/*
              * The breadcrumb target uses `category.slug` from the
@@ -179,14 +183,14 @@ export function CategoryDetailPage({
              */}
             <Link
               href={`/categories/${category.slug}`}
-              className='hover:text-foreground hover:underline'
+              className="hover:text-foreground hover:underline"
             >
               {category.name}
             </Link>
           </li>
         </ol>
       </nav>
-      <div className='flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between'>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <CategoryHeader
           title={category.name}
           description={category.description}
@@ -202,5 +206,5 @@ export function CategoryDetailPage({
       </div>
       <CategoryQuizGrid idOrSlug={idOrSlug} />
     </div>
-  )
+  );
 }

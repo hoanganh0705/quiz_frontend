@@ -1,26 +1,23 @@
-
-
 export interface CreatorQuizAnalyticsDto {
+  userId: string;
 
-userId: string;
+  totalQuizzes: number;
 
-totalQuizzes: number;
+  draftQuizzes: number;
 
-draftQuizzes: number;
+  publishedQuizzes: number;
 
-publishedQuizzes: number;
+  totalAttempts: number;
 
-totalAttempts: number;
+  uniquePlayers: number;
 
-uniquePlayers: number;
+  averageScore: number;
 
-averageScore: number;
+  averageRating: number;
 
-averageRating: number;
+  totalBookmarks: number;
 
-totalBookmarks: number;
+  totalReviews: number;
 
-totalReviews: number;
-
-lastUpdated: string;
+  lastUpdated: string;
 }

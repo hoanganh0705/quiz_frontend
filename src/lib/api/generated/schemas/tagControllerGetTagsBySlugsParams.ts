@@ -1,6 +1,3 @@
-
-
 export type TagControllerGetTagsBySlugsParams = {
-
-slugs?: string;
+  slugs?: string;
 };

@@ -1,9 +1,8 @@
-
-
 import type {
-ReviewResponseDto,
-ReviewDetailResponseDto,
-} from '@/lib/api/generated/schemas';
+  ReviewResponseDto,
+  ReviewDetailResponseDto,
+} from "@/lib/api/generated/schemas";
+import { getQueryClient } from "@/providers/QueryProvider";
 
 export const REVIEWS_DEFAULT_LIMIT = 20;
 
@@ -12,91 +11,107 @@ export type ReviewDto = ReviewResponseDto & { id: string };
 export type MyReviewDto = ReviewDetailResponseDto & { id: string };
 
 export interface ReviewFilters {
-cursor?: string;
-limit?: number;
+  cursor?: string;
+  limit?: number;
 }
 
 export interface ReviewPage {
-items: readonly ReviewDto[];
+  items: readonly ReviewDto[];
 
-nextCursor: string | null;
+  nextCursor: string | null;
 
-hasNextPage: boolean;
+  hasNextPage: boolean;
 
-limit: number;
+  limit: number;
 }
 
 export type ReviewGateState =
-| { kind: 'loading' }
-  | { kind: 'unauthenticated' }
-  | { kind: 'existing-review'; review: MyReviewDto }
-  | { kind: 'eligible' }
-  | { kind: 'attempt-required' }
-  | { kind: 'error'; error: unknown };
+  | { kind: "loading" }
+  | { kind: "unauthenticated" }
+  | { kind: "existing-review"; review: MyReviewDto }
+  | { kind: "eligible" }
+  | { kind: "attempt-required" }
+  | { kind: "error"; error: unknown };
 
 export interface ReviewGateResult {
-state: ReviewGateState;
+  state: ReviewGateState;
 
-isLoading: boolean;
+  isLoading: boolean;
 
-revalidate: () => Promise<void>;
+  revalidate: () => Promise<void>;
 }
 
 export function quizReviewsKey(
-quizId: string,
-filters?: ReviewFilters,
-): ['reviews', 'quiz', string, ReadonlyArray<string | number | undefined>] {
-return [
-'reviews',
-'quiz',
-quizId,
-[filters?.cursor ?? undefined, filters?.limit ?? undefined],
+  quizId: string,
+  filters?: ReviewFilters,
+): ["reviews", "quiz", string, ReadonlyArray<string | number | undefined>] {
+  return [
+    "reviews",
+    "quiz",
+    quizId,
+    [filters?.cursor ?? undefined, filters?.limit ?? undefined],
   ];
 }
 
 export function myQuizReviewKey(
-quizId: string,
-sessionId: string,
-): ['reviews', 'my', string, string] {
-return ['reviews', 'my', quizId, sessionId];
+  quizId: string,
+  sessionId: string,
+): ["reviews", "my", string, string] {
+  return ["reviews", "my", quizId, sessionId];
 }
 
 export function reviewQuizAttemptKey(
-quizId: string,
-sessionId: string,
-): ['reviews', 'eligibility', string, string] {
-return ['reviews', 'eligibility', quizId, sessionId];
+  quizId: string,
+  sessionId: string,
+): ["reviews", "eligibility", string, string] {
+  return ["reviews", "eligibility", quizId, sessionId];
 }
 
 export interface InvalidateReviewCachesArgs {
-quizId: string;
-sessionId: string;
+  quizId: string;
+  sessionId: string;
 }
 
 export async function invalidateReviewCaches(
-mutate: (
-key: readonly unknown[] | ((k: readonly unknown[]) => boolean),
-data: unknown,
-opts?: { revalidate?: boolean },
+  mutate: (
+    key: readonly unknown[] | ((k: readonly unknown[]) => boolean),
+    data: unknown,
+    opts?: { revalidate?: boolean },
   ) => Promise<unknown>,
-args: InvalidateReviewCachesArgs,
+  args: InvalidateReviewCachesArgs,
 ): Promise<void> {
-const { quizId, sessionId } = args;
+  const { quizId, sessionId } = args;
 
-await mutate(
-(k) =>
-Array.isArray(k) &&
-k[0] === 'reviews' &&
-k[1] === 'quiz' &&
-k[2] === quizId,
-undefined,
-{ revalidate: true },
+  try {
+    const qc = getQueryClient();
+    void qc.invalidateQueries({
+      predicate: (query) =>
+        Array.isArray(query.queryKey) &&
+        query.queryKey[0] === "reviews" &&
+        query.queryKey[1] === "quiz" &&
+        query.queryKey[2] === quizId,
+    });
+    void qc.invalidateQueries({ queryKey: myQuizReviewKey(quizId, sessionId) });
+    void qc.invalidateQueries({
+      queryKey: reviewQuizAttemptKey(quizId, sessionId),
+    });
+    void qc.invalidateQueries({ queryKey: ["reviews"] });
+  } catch {}
+
+  await mutate(
+    (k) =>
+      Array.isArray(k) &&
+      k[0] === "reviews" &&
+      k[1] === "quiz" &&
+      k[2] === quizId,
+    undefined,
+    { revalidate: true },
   );
 
-await mutate(myQuizReviewKey(quizId, sessionId), undefined, {
-revalidate: true,
+  await mutate(myQuizReviewKey(quizId, sessionId), undefined, {
+    revalidate: true,
   });
-await mutate(reviewQuizAttemptKey(quizId, sessionId), undefined, {
-revalidate: true,
+  await mutate(reviewQuizAttemptKey(quizId, sessionId), undefined, {
+    revalidate: true,
   });
 }

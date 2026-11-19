@@ -1,14 +1,11 @@
-
-
 export interface BadgeCatalogItemResponseDto {
+  id: string;
 
-id: string;
+  name: string;
 
-name: string;
+  description: string | null;
 
-description: string | null;
+  rarity: string;
 
-rarity: string;
-
-earnedCount: number;
+  earnedCount: number;
 }

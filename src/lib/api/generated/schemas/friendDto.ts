@@ -1,19 +1,16 @@
-
-
-import type { FriendDtoDisplayName } from './friendDtoDisplayName';
-import type { FriendDtoAvatarUrl } from './friendDtoAvatarUrl';
+import type { FriendDtoDisplayName } from "./friendDtoDisplayName";
+import type { FriendDtoAvatarUrl } from "./friendDtoAvatarUrl";
 
 export interface FriendDto {
+  friendshipId: string;
 
-friendshipId: string;
+  userId: string;
 
-userId: string;
+  username: string;
 
-username: string;
+  displayName?: FriendDtoDisplayName;
 
-displayName?: FriendDtoDisplayName;
+  avatarUrl?: FriendDtoAvatarUrl;
 
-avatarUrl?: FriendDtoAvatarUrl;
-
-friendSince: string;
+  friendSince: string;
 }

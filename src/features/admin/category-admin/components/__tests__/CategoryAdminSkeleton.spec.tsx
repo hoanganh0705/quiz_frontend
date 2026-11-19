@@ -1,25 +1,23 @@
+import { render } from "@testing-library/react";
+import { describe, expect, it } from "vitest";
 
+import { CategoryAdminSkeleton } from "../CategoryAdminSkeleton";
 
-import { render } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
-
-import { CategoryAdminSkeleton } from '../CategoryAdminSkeleton';
-
-describe('CategoryAdminSkeleton', () => {
-it('renders without crashing in active tab', () => {
-const { container } = render(<CategoryAdminSkeleton tab='active' />);
-expect(container.firstChild).not.toBeNull();
+describe("CategoryAdminSkeleton", () => {
+  it("renders without crashing in active tab", () => {
+    const { container } = render(<CategoryAdminSkeleton tab="active" />);
+    expect(container.firstChild).not.toBeNull();
   });
 
-it('renders without crashing in deleted tab', () => {
-const { container } = render(<CategoryAdminSkeleton tab='deleted' />);
-expect(container.firstChild).not.toBeNull();
+  it("renders without crashing in deleted tab", () => {
+    const { container } = render(<CategoryAdminSkeleton tab="deleted" />);
+    expect(container.firstChild).not.toBeNull();
   });
 
-it('renders the tab header skeletons', () => {
-const { container } = render(<CategoryAdminSkeleton tab='active' />);
+  it("renders the tab header skeletons", () => {
+    const { container } = render(<CategoryAdminSkeleton tab="active" />);
 
-const skeletons = container.querySelectorAll('[data-slot="skeleton"]');
-expect(skeletons.length).toBeGreaterThanOrEqual(2);
+    const skeletons = container.querySelectorAll('[data-slot="skeleton"]');
+    expect(skeletons.length).toBeGreaterThanOrEqual(2);
   });
 });

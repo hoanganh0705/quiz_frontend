@@ -1,10 +1,7 @@
-
-
-import type { PeriodResetResponseDtoPeriod } from './periodResetResponseDtoPeriod';
+import type { PeriodResetResponseDtoPeriod } from "./periodResetResponseDtoPeriod";
 
 export interface PeriodResetResponseDto {
+  message: string;
 
-message: string;
-
-period: PeriodResetResponseDtoPeriod;
+  period: PeriodResetResponseDtoPeriod;
 }

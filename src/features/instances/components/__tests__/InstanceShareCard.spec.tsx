@@ -21,11 +21,15 @@ describe("InstanceShareCard", () => {
   });
 
   it("renders share card with room link, copy button, and room code", () => {
-    render(<InstanceShareCard instanceId="inst-12345678" quizTitle="Science Quiz" />);
+    render(
+      <InstanceShareCard instanceId="inst-12345678" quizTitle="Science Quiz" />,
+    );
 
     expect(screen.getByTestId("instance-share-card")).toBeInTheDocument();
     expect(screen.getByText("Invite Players & Share Room")).toBeInTheDocument();
-    expect(screen.getByDisplayValue(/instances\/inst-12345678/)).toBeInTheDocument();
+    expect(
+      screen.getByDisplayValue(/instances\/inst-12345678/),
+    ).toBeInTheDocument();
     expect(screen.getByTestId("copy-room-link-button")).toBeInTheDocument();
     expect(screen.getByTestId("copy-room-pin-button")).toBeInTheDocument();
     expect(screen.getByTestId("show-qr-modal-button")).toBeInTheDocument();
@@ -38,7 +42,9 @@ describe("InstanceShareCard", () => {
     fireEvent.click(copyBtn);
 
     await waitFor(() => {
-      expect(writeTextMock).toHaveBeenCalledWith(expect.stringContaining("/instances/inst-12345678"));
+      expect(writeTextMock).toHaveBeenCalledWith(
+        expect.stringContaining("/instances/inst-12345678"),
+      );
       expect(screen.getByText("Copied!")).toBeInTheDocument();
     });
   });
@@ -57,7 +63,9 @@ describe("InstanceShareCard", () => {
   });
 
   it("opens QR code dialog when clicking the QR Code button", async () => {
-    render(<InstanceShareCard instanceId="inst-12345678" quizTitle="Science Quiz" />);
+    render(
+      <InstanceShareCard instanceId="inst-12345678" quizTitle="Science Quiz" />,
+    );
 
     const qrBtn = screen.getByTestId("show-qr-modal-button");
     fireEvent.click(qrBtn);

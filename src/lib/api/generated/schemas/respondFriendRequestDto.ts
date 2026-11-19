@@ -1,6 +1,3 @@
-
-
 export interface RespondFriendRequestDto {
-
-accept: boolean;
+  accept: boolean;
 }

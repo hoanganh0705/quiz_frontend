@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 /**
  * `<ChallengePieChart />` — Categories tab content for the Daily
@@ -28,7 +28,7 @@
  * colour for the same category).
  */
 
-import { AlertCircle, RefreshCw } from 'lucide-react'
+import { AlertCircle, RefreshCw } from "lucide-react";
 import {
   Cell,
   Legend,
@@ -37,47 +37,47 @@ import {
   PieLabelRenderProps,
   ResponsiveContainer,
   Tooltip,
-} from 'recharts'
+} from "recharts";
 
-import { ApiError } from '@/lib/api'
+import { ApiError } from "@/lib/api";
 
 import {
   useDailyChallengeCategoryBreakdown,
   type DailyChallengeCategoryBreakdownItemWithMeta,
-} from '@/features/daily-challenge/hooks/useDailyChallengeCategoryBreakdown'
+} from "@/features/daily-challenge/hooks/useDailyChallengeCategoryBreakdown";
 
 // 8-hue palette designed to be distinct in both light + dark themes
 // (saturated mid-tones with reasonable luminance separation).
 const PIE_PALETTE = [
-  '#a855f7', // purple-500
-  '#22c55e', // green-500
-  '#f59e0b', // amber-500
-  '#ef4444', // red-500
-  '#3b82f6', // blue-500
-  '#ec4899', // pink-500
-  '#14b8a6', // teal-500
-  '#f97316', // orange-500
-] as const
+  "#a855f7", // purple-500
+  "#22c55e", // green-500
+  "#f59e0b", // amber-500
+  "#ef4444", // red-500
+  "#3b82f6", // blue-500
+  "#ec4899", // pink-500
+  "#14b8a6", // teal-500
+  "#f97316", // orange-500
+] as const;
 
-const RADIAN = Math.PI / 180
+const RADIAN = Math.PI / 180;
 
 function colorForSlug(slug: string): string {
   // Cheap deterministic hash → palette index. djb2-ish; collision
   // rate is irrelevant here because we just need stable colours.
-  let hash = 5381
+  let hash = 5381;
   for (let i = 0; i < slug.length; i += 1) {
-    hash = (hash * 33) ^ slug.charCodeAt(i)
+    hash = (hash * 33) ^ slug.charCodeAt(i);
   }
-  const index = Math.abs(hash) % PIE_PALETTE.length
-  return PIE_PALETTE[index]!
+  const index = Math.abs(hash) % PIE_PALETTE.length;
+  return PIE_PALETTE[index]!;
 }
 
 interface ChartDatum {
-  id: string
-  name: string
-  value: number
-  color: string
-  averageScorePercent: number
+  id: string;
+  name: string;
+  value: number;
+  color: string;
+  averageScorePercent: number;
 }
 
 function toChartData(
@@ -89,178 +89,174 @@ function toChartData(
     value: item.attemptCount,
     color: colorForSlug(item.categorySlug || item.categoryId),
     averageScorePercent: item.averageScorePercent,
-  }))
+  }));
 }
 
 function isTransient5xx(error: ApiError | null): boolean {
-  return error !== null && error.status >= 500
+  return error !== null && error.status >= 500;
 }
 
 function PieEmptyState() {
   return (
     <div
-      data-testid='challenge-pie-empty-state'
-      role='status'
-      className='flex h-96 flex-col items-center justify-center gap-2 rounded-md border border-dashed border-border bg-muted/40 px-4 py-10 text-center text-sm text-muted-foreground'
+      data-testid="challenge-pie-empty-state"
+      role="status"
+      className="flex h-96 flex-col items-center justify-center gap-2 rounded-md border border-dashed border-border bg-muted/40 px-4 py-10 text-center text-sm text-muted-foreground"
     >
-      <p className='font-medium text-foreground'>No category breakdown yet.</p>
+      <p className="font-medium text-foreground">No category breakdown yet.</p>
       <p>Take today&apos;s challenge to start your per-category stats.</p>
     </div>
-  )
+  );
 }
 
 function PieErrorState({
   error,
   onRetry,
 }: {
-  error: ApiError
-  onRetry: () => void
+  error: ApiError;
+  onRetry: () => void;
 }) {
-  const transient = isTransient5xx(error)
+  const transient = isTransient5xx(error);
   return (
     <div
-      data-testid='challenge-pie-error-state'
-      role='alert'
+      data-testid="challenge-pie-error-state"
+      role="alert"
       className={`flex items-start gap-3 rounded-md border px-4 py-3 text-sm ${
         transient
-          ? 'border-destructive/30 bg-destructive/10 text-destructive'
-          : 'border-border bg-muted/50 text-foreground/80'
+          ? "border-destructive/30 bg-destructive/10 text-destructive"
+          : "border-border bg-muted/50 text-foreground/80"
       }`}
     >
-      <AlertCircle className='mt-0.5 h-4 w-4 shrink-0' aria-hidden='true' />
-      <div className='flex-1 space-y-2'>
+      <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+      <div className="flex-1 space-y-2">
         <p>
           {transient
             ? "We're having trouble loading your category breakdown. Please try again in a moment."
-            : 'Your category breakdown is unavailable right now.'}
+            : "Your category breakdown is unavailable right now."}
         </p>
         <button
-          type='button'
+          type="button"
           onClick={onRetry}
-          className='inline-flex items-center gap-1 rounded border border-border bg-background px-2 py-1 text-xs font-medium text-foreground hover:bg-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-brand'
-          aria-label='Retry loading category breakdown'
+          className="inline-flex items-center gap-1 rounded border border-border bg-background px-2 py-1 text-xs font-medium text-foreground hover:bg-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+          aria-label="Retry loading category breakdown"
         >
-          <RefreshCw className='h-3 w-3' aria-hidden='true' />
+          <RefreshCw className="h-3 w-3" aria-hidden="true" />
           Retry
         </button>
       </div>
     </div>
-  )
+  );
 }
 
 function PieLoadingSkeleton() {
   return (
     <div
-      data-testid='challenge-pie-loading'
-      role='status'
+      data-testid="challenge-pie-loading"
+      role="status"
       aria-busy={true}
-      aria-label='Loading category breakdown'
-      className='h-96 w-full animate-pulse rounded-md bg-muted/40'
+      aria-label="Loading category breakdown"
+      className="h-96 w-full animate-pulse rounded-md bg-muted/40"
     />
-  )
+  );
 }
 
 function renderCustomizedLabel(props: PieLabelRenderProps) {
-  const { cx, cy, midAngle, innerRadius, outerRadius, percent, name } = props
+  const { cx, cy, midAngle, innerRadius, outerRadius, percent, name } = props;
   if (
-    typeof cx !== 'number' ||
-    typeof cy !== 'number' ||
-    typeof midAngle !== 'number' ||
-    typeof innerRadius !== 'number' ||
-    typeof outerRadius !== 'number' ||
-    typeof percent !== 'number'
+    typeof cx !== "number" ||
+    typeof cy !== "number" ||
+    typeof midAngle !== "number" ||
+    typeof innerRadius !== "number" ||
+    typeof outerRadius !== "number" ||
+    typeof percent !== "number"
   ) {
-    return null
+    return null;
   }
   // Hide labels for tiny slices (< 5%) — they crowd the chart and
   // the legend covers them anyway.
-  if (percent < 0.05) return null
+  if (percent < 0.05) return null;
 
-  const radius = innerRadius + (outerRadius - innerRadius) * 1.2
-  const x = cx + radius * Math.cos(-midAngle * RADIAN)
-  const y = cy + radius * Math.sin(-midAngle * RADIAN)
+  const radius = innerRadius + (outerRadius - innerRadius) * 1.2;
+  const x = cx + radius * Math.cos(-midAngle * RADIAN);
+  const y = cy + radius * Math.sin(-midAngle * RADIAN);
 
   return (
     <text
       x={x}
       y={y}
-      fill='currentColor'
-      textAnchor={x > cx ? 'start' : 'end'}
-      dominantBaseline='central'
-      className='text-sm font-medium'
+      fill="currentColor"
+      textAnchor={x > cx ? "start" : "end"}
+      dominantBaseline="central"
+      className="text-sm font-medium"
     >
       {`${name} ${(percent * 100).toFixed(0)}%`}
     </text>
-  )
+  );
 }
 
-function CategoryPie({
-  data,
-}: {
-  data: readonly ChartDatum[]
-}) {
+function CategoryPie({ data }: { data: readonly ChartDatum[] }) {
   return (
     <div
-      data-testid='challenge-pie-chart'
-      className='h-96 w-full max-w-4xl mx-auto p-8 bg-background rounded-lg text-foreground'
+      data-testid="challenge-pie-chart"
+      className="h-96 w-full max-w-4xl mx-auto p-8 bg-background rounded-lg text-foreground"
     >
-      <ResponsiveContainer width='100%' height='100%'>
+      <ResponsiveContainer width="100%" height="100%">
         <PieChart>
           <Pie
             data={data as ChartDatum[]}
-            cx='50%'
-            cy='50%'
+            cx="50%"
+            cy="50%"
             labelLine={false}
             label={renderCustomizedLabel}
             outerRadius={120}
-            fill='#8884d8'
-            dataKey='value'
-            className='text-foreground'
+            fill="#8884d8"
+            dataKey="value"
+            className="text-foreground"
             isAnimationActive={false}
           >
             {data.map((entry) => (
               <Cell
                 key={entry.id}
                 fill={entry.color}
-                className='text-foreground'
+                className="text-foreground"
               />
             ))}
           </Pie>
           <Tooltip
             contentStyle={{
-              backgroundColor: 'var(--main)',
-              border: 'none',
-              padding: '10px',
+              backgroundColor: "var(--main)",
+              border: "none",
+              padding: "10px",
             }}
-            itemStyle={{ color: 'var(--foreground)' }}
+            itemStyle={{ color: "var(--foreground)" }}
             // Recharts formatter signature: (value, name, props) => ReactNode
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             formatter={(value: number, _name: string, item: any) => {
-              const datum = item?.payload as ChartDatum | undefined
+              const datum = item?.payload as ChartDatum | undefined;
               return [
-                `${value} attempt${value === 1 ? '' : 's'}${
-                  datum ? ` · ${datum.averageScorePercent.toFixed(1)}% avg` : ''
+                `${value} attempt${value === 1 ? "" : "s"}${
+                  datum ? ` · ${datum.averageScorePercent.toFixed(1)}% avg` : ""
                 }`,
-                datum?.name ?? '',
-              ]
+                datum?.name ?? "",
+              ];
             }}
           />
-          <Legend wrapperStyle={{ color: 'var(--foreground)' }} />
+          <Legend wrapperStyle={{ color: "var(--foreground)" }} />
         </PieChart>
       </ResponsiveContainer>
-      <p className='text-center text-muted-foreground text-sm mt-4'>
+      <p className="text-center text-muted-foreground text-sm mt-4">
         Distribution of your completed daily challenges by category
       </p>
     </div>
-  )
+  );
 }
 
 function CategoryPiePanel() {
   const { items, isLoading, error, refresh } =
-    useDailyChallengeCategoryBreakdown()
+    useDailyChallengeCategoryBreakdown();
 
   if (isLoading) {
-    return <PieLoadingSkeleton />
+    return <PieLoadingSkeleton />;
   }
 
   if (error !== null) {
@@ -268,22 +264,22 @@ function CategoryPiePanel() {
       <PieErrorState
         error={error}
         onRetry={() => {
-          void refresh()
+          void refresh();
         }}
       />
-    )
+    );
   }
 
   if (items.length === 0) {
-    return <PieEmptyState />
+    return <PieEmptyState />;
   }
 
-  const data = toChartData(items)
-  return <CategoryPie data={data} />
+  const data = toChartData(items);
+  return <CategoryPie data={data} />;
 }
 
 export function ChallengeChart() {
-  return <CategoryPiePanel />
+  return <CategoryPiePanel />;
 }
 
-export default ChallengeChart
+export default ChallengeChart;

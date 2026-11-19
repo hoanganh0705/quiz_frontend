@@ -1,7 +1,5 @@
-
-
-import { TagsDirectoryPage } from '@/features/tags'
+import { TagsDirectoryPage } from "@/features/tags";
 
 export default function TagsPage() {
-return <TagsDirectoryPage />
+  return <TagsDirectoryPage />;
 }

@@ -1,3 +1,3 @@
-
-
-export type DailyChallengeResponseDtoScorePercent = { [key: string]: unknown } | null;
+export type DailyChallengeResponseDtoScorePercent = {
+  [key: string]: unknown;
+} | null;

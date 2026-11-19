@@ -1,41 +1,40 @@
-
-
-import type { QuizVersionResponseDto } from '@/lib/api/generated/schemas';
+import type { QuizVersionResponseDto } from "@/lib/api/generated/schemas";
 
 export const PUBLISH_MIN_QUESTIONS = 5;
 
 export function publishResultKey(
-quizId: string,
-versionId: string,
-): ['quiz', 'publish', string, string] {
-return ['quiz', 'publish', quizId, versionId];
+  quizId: string,
+  versionId: string,
+): ["quiz", "publish", string, string] {
+  return ["quiz", "publish", quizId, versionId];
 }
 
 export interface PublishReadiness {
+  isReady: boolean;
 
-isReady: boolean;
+  questionCount: number;
 
-questionCount: number;
+  minRequired: number;
 
-minRequired: number;
+  disabledReason: "QUIZ_INSUFFICIENT_QUESTIONS" | null;
 
-disabledReason: 'QUIZ_INSUFFICIENT_QUESTIONS' | null;
-
-tooltipContent: string | null;
+  tooltipContent: string | null;
 }
 
 export type PublishResult = QuizVersionResponseDto;
 
-export function computePublishReadiness(questionCount: number): PublishReadiness {
-const isReady = questionCount >= PUBLISH_MIN_QUESTIONS;
+export function computePublishReadiness(
+  questionCount: number,
+): PublishReadiness {
+  const isReady = questionCount >= PUBLISH_MIN_QUESTIONS;
 
-return {
-isReady,
-questionCount,
-minRequired: PUBLISH_MIN_QUESTIONS,
-disabledReason: isReady ? null : 'QUIZ_INSUFFICIENT_QUESTIONS',
-tooltipContent: isReady
-? null
-: `Add at least ${PUBLISH_MIN_QUESTIONS} questions to publish.`,
+  return {
+    isReady,
+    questionCount,
+    minRequired: PUBLISH_MIN_QUESTIONS,
+    disabledReason: isReady ? null : "QUIZ_INSUFFICIENT_QUESTIONS",
+    tooltipContent: isReady
+      ? null
+      : `Add at least ${PUBLISH_MIN_QUESTIONS} questions to publish.`,
   };
 }

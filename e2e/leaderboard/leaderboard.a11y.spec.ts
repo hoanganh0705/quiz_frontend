@@ -2,8 +2,6 @@
  * `leaderboard.a11y.spec.ts` — accessibility + keyboard navigation
  * tests for the live `/leaderboard` route.
  *
- * Source epic:   Story 3.11 — `/leaderboard` read-only render.
- * Source ticket: TKT-3.11.F4 — a11y evidence (axe-core + keyboard
  *                 trace).
  *
  * Five assertions lock the AC #3 self-entry highlight a11y and the
@@ -29,42 +27,42 @@
  * `@axe-core/playwright` runtime).
  */
 
-import { readFileSync } from 'node:fs';
-import path from 'node:path';
-import { expect, test, type Page } from '@playwright/test';
+import { readFileSync } from "node:fs";
+import path from "node:path";
+import { expect, test, type Page } from "@playwright/test";
 
-import { SELF_USER_ID, stubLeaderboard } from './leaderboard.helpers';
+import { SELF_USER_ID, stubLeaderboard } from "./leaderboard.helpers";
 
 const AXE_PATH = path.join(
   // The spec is run from the project root via pnpm.
   process.cwd(),
-  'node_modules/axe-core/axe.min.js',
+  "node_modules/axe-core/axe.min.js",
 );
 
 const STRUCTURAL_RULES: string[] = [
-  'aria-allowed-attr',
-  'aria-required-attr',
-  'aria-required-children',
-  'aria-required-parent',
-  'aria-roles',
-  'aria-valid-attr',
-  'aria-valid-attr-value',
-  'button-name',
-  'bypass',
-  'document-title',
-  'duplicate-id',
-  'empty-heading',
-  'heading-order',
-  'html-has-lang',
-  'html-lang-valid',
-  'image-alt',
-  'input-image-alt',
-  'label',
-  'link-name',
-  'list',
-  'listitem',
-  'meta-refresh',
-  'region',
+  "aria-allowed-attr",
+  "aria-required-attr",
+  "aria-required-children",
+  "aria-required-parent",
+  "aria-roles",
+  "aria-valid-attr",
+  "aria-valid-attr-value",
+  "button-name",
+  "bypass",
+  "document-title",
+  "duplicate-id",
+  "empty-heading",
+  "heading-order",
+  "html-has-lang",
+  "html-lang-valid",
+  "image-alt",
+  "input-image-alt",
+  "label",
+  "link-name",
+  "list",
+  "listitem",
+  "meta-refresh",
+  "region",
 ];
 
 interface AxeViolationReport {
@@ -75,7 +73,7 @@ interface AxeViolationReport {
 }
 
 async function runAxe(page: Page): Promise<AxeViolationReport[]> {
-  const source = readFileSync(AXE_PATH, 'utf8');
+  const source = readFileSync(AXE_PATH, "utf8");
   await page.addScriptTag({ content: source });
   return page.evaluate(
     async ([rules]) => {
@@ -83,7 +81,7 @@ async function runAxe(page: Page): Promise<AxeViolationReport[]> {
         axe: {
           run: (
             root: Document,
-            options: { runOnly: { type: 'rule'; values: string[] } },
+            options: { runOnly: { type: "rule"; values: string[] } },
           ) => Promise<{
             violations: {
               id: string;
@@ -95,7 +93,7 @@ async function runAxe(page: Page): Promise<AxeViolationReport[]> {
         };
       };
       const results = await w.axe.run(document, {
-        runOnly: { type: 'rule', values: rules as string[] },
+        runOnly: { type: "rule", values: rules as string[] },
       });
       return results.violations.map((v) => ({
         id: v.id,
@@ -108,7 +106,7 @@ async function runAxe(page: Page): Promise<AxeViolationReport[]> {
   );
 }
 
-test.describe('Leaderboard a11y (Story 3.11 / TKT-3.11.F4)', () => {
+test.describe("Leaderboard a11y", () => {
   test.beforeEach(async ({ page }) => {
     await page.context().clearCookies();
     await page.evaluate(() => localStorage.clear());
@@ -118,17 +116,17 @@ test.describe('Leaderboard a11y (Story 3.11 / TKT-3.11.F4)', () => {
   // (a) Authenticated live state — no axe violations
   // ───────────────────────────────────────────────────────────────────
 
-  test('(a) authenticated live state: no serious or critical violations', async ({
+  test("(a) authenticated live state: no serious or critical violations", async ({
     page,
   }) => {
     await stubLeaderboard(page, { authenticate: true });
 
-    await page.goto('/leaderboard');
-    await expect(page.getByTestId('leaderboard-page')).toBeVisible();
+    await page.goto("/leaderboard");
+    await expect(page.getByTestId("leaderboard-page")).toBeVisible();
 
     const violations = await runAxe(page);
     const blockers = violations.filter(
-      (v) => v.impact === 'critical' || v.impact === 'serious',
+      (v) => v.impact === "critical" || v.impact === "serious",
     );
     expect(
       blockers,
@@ -140,17 +138,17 @@ test.describe('Leaderboard a11y (Story 3.11 / TKT-3.11.F4)', () => {
   // (b) Unauthenticated state — no axe violations + no self-entry highlight
   // ───────────────────────────────────────────────────────────────────
 
-  test('(b) unauthenticated state: no serious or critical violations AND no self-entry highlight', async ({
+  test("(b) unauthenticated state: no serious or critical violations AND no self-entry highlight", async ({
     page,
   }) => {
     await stubLeaderboard(page, { authenticate: false });
 
-    await page.goto('/leaderboard');
-    await expect(page.getByTestId('leaderboard-page')).toBeVisible();
+    await page.goto("/leaderboard");
+    await expect(page.getByTestId("leaderboard-page")).toBeVisible();
 
     const violations = await runAxe(page);
     const blockers = violations.filter(
-      (v) => v.impact === 'critical' || v.impact === 'serious',
+      (v) => v.impact === "critical" || v.impact === "serious",
     );
     expect(
       blockers,
@@ -166,40 +164,42 @@ test.describe('Leaderboard a11y (Story 3.11 / TKT-3.11.F4)', () => {
   // (c) Keyboard order reaches the period selector
   // ───────────────────────────────────────────────────────────────────
 
-  test('(c) keyboard order reaches the period selector (Tab + Enter activate the focused option)', async ({
+  test("(c) keyboard order reaches the period selector (Tab + Enter activate the focused option)", async ({
     page,
   }) => {
     await stubLeaderboard(page);
 
-    await page.goto('/leaderboard');
-    await expect(page.getByTestId('leaderboard-page')).toBeVisible();
+    await page.goto("/leaderboard");
+    await expect(page.getByTestId("leaderboard-page")).toBeVisible();
 
     // The Weekly button starts with aria-pressed=true.
-    await expect(
-      page.getByRole('button', { name: 'Weekly' }),
-    ).toHaveAttribute('aria-pressed', 'true');
+    await expect(page.getByRole("button", { name: "Weekly" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
 
     // Focus the Monthly button and activate it via Enter.
-    const monthly = page.getByRole('button', { name: 'Monthly' });
+    const monthly = page.getByRole("button", { name: "Monthly" });
     await monthly.focus();
-    await page.keyboard.press('Enter');
+    await page.keyboard.press("Enter");
 
     // After the keyboard activation, the Monthly button is
     // aria-pressed=true and a new request to `/api/v1/leaderboard`
     // with `period=monthly` was sent.
-    await expect(monthly).toHaveAttribute('aria-pressed', 'true');
-    await expect(
-      page.getByRole('button', { name: 'Weekly' }),
-    ).toHaveAttribute('aria-pressed', 'false');
+    await expect(monthly).toHaveAttribute("aria-pressed", "true");
+    await expect(page.getByRole("button", { name: "Weekly" })).toHaveAttribute(
+      "aria-pressed",
+      "false",
+    );
 
     // The wire-side enum is `monthly` (not kebab-case).
     const monthlyRequests = await page.evaluate(() => {
-      const perfEntries = performance.getEntriesByType('resource');
+      const perfEntries = performance.getEntriesByType("resource");
       return perfEntries
-        .filter((entry) => entry.name.includes('/api/v1/leaderboard'))
-        .map((entry) => new URL(entry.name).searchParams.get('period'));
+        .filter((entry) => entry.name.includes("/api/v1/leaderboard"))
+        .map((entry) => new URL(entry.name).searchParams.get("period"));
     });
-    expect(monthlyRequests).toContain('monthly');
+    expect(monthlyRequests).toContain("monthly");
   });
 
   // ───────────────────────────────────────────────────────────────────
@@ -211,21 +211,21 @@ test.describe('Leaderboard a11y (Story 3.11 / TKT-3.11.F4)', () => {
   }) => {
     await stubLeaderboard(page, { authenticate: true });
 
-    await page.goto('/leaderboard');
-    await expect(page.getByTestId('leaderboard-page')).toBeVisible();
+    await page.goto("/leaderboard");
+    await expect(page.getByTestId("leaderboard-page")).toBeVisible();
 
     const selfRow = page.locator(`[data-leaderboard-row="${SELF_USER_ID}"]`);
     await expect(selfRow).toBeVisible();
-    await expect(selfRow).toHaveAttribute('aria-current', 'true');
+    await expect(selfRow).toHaveAttribute("aria-current", "true");
   });
 
-  test('(d′) self-entry highlight is ABSENT when unauthenticated', async ({
+  test("(d′) self-entry highlight is ABSENT when unauthenticated", async ({
     page,
   }) => {
     await stubLeaderboard(page, { authenticate: false });
 
-    await page.goto('/leaderboard');
-    await expect(page.getByTestId('leaderboard-page')).toBeVisible();
+    await page.goto("/leaderboard");
+    await expect(page.getByTestId("leaderboard-page")).toBeVisible();
 
     // No row carries the highlight regardless of the wire payload
     // — the auth gate is the source of truth.
@@ -237,26 +237,26 @@ test.describe('Leaderboard a11y (Story 3.11 / TKT-3.11.F4)', () => {
   // (e) Period selector is keyboard-reachable (Tab + Space activate)
   // ───────────────────────────────────────────────────────────────────
 
-  test('(e) period selector activates via Space key', async ({ page }) => {
+  test("(e) period selector activates via Space key", async ({ page }) => {
     await stubLeaderboard(page);
 
-    await page.goto('/leaderboard');
-    await expect(page.getByTestId('leaderboard-page')).toBeVisible();
+    await page.goto("/leaderboard");
+    await expect(page.getByTestId("leaderboard-page")).toBeVisible();
 
-    const allTime = page.getByRole('button', { name: 'All-time' });
+    const allTime = page.getByRole("button", { name: "All-time" });
     await allTime.focus();
-    await page.keyboard.press(' ');
+    await page.keyboard.press(" ");
 
     // Space toggles the focus to the pressed state.
-    await expect(allTime).toHaveAttribute('aria-pressed', 'true');
+    await expect(allTime).toHaveAttribute("aria-pressed", "true");
 
     // The wire-side enum is `all_time` (snake_case — drift A1 §7.2).
     const allTimeRequests = await page.evaluate(() => {
-      const perfEntries = performance.getEntriesByType('resource');
+      const perfEntries = performance.getEntriesByType("resource");
       return perfEntries
-        .filter((entry) => entry.name.includes('/api/v1/leaderboard'))
-        .map((entry) => new URL(entry.name).searchParams.get('period'));
+        .filter((entry) => entry.name.includes("/api/v1/leaderboard"))
+        .map((entry) => new URL(entry.name).searchParams.get("period"));
     });
-    expect(allTimeRequests).toContain('all_time');
+    expect(allTimeRequests).toContain("all_time");
   });
 });

@@ -1,6 +1,3 @@
-
-
 export type TagControllerGetPopularTagsParams = {
-
-limit?: number;
+  limit?: number;
 };

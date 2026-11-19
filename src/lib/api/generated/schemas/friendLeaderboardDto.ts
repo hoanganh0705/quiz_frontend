@@ -1,21 +1,18 @@
-
-
-import type { FriendLeaderboardDtoPeriod } from './friendLeaderboardDtoPeriod';
-import type { FriendRankingEntryDto } from './friendRankingEntryDto';
-import type { FriendLeaderboardDtoCurrentUserRank } from './friendLeaderboardDtoCurrentUserRank';
-import type { FriendLeaderboardDtoStaleAt } from './friendLeaderboardDtoStaleAt';
+import type { FriendLeaderboardDtoPeriod } from "./friendLeaderboardDtoPeriod";
+import type { FriendRankingEntryDto } from "./friendRankingEntryDto";
+import type { FriendLeaderboardDtoCurrentUserRank } from "./friendLeaderboardDtoCurrentUserRank";
+import type { FriendLeaderboardDtoStaleAt } from "./friendLeaderboardDtoStaleAt";
 
 export interface FriendLeaderboardDto {
+  period: FriendLeaderboardDtoPeriod;
 
-period: FriendLeaderboardDtoPeriod;
+  entries: FriendRankingEntryDto[];
 
-entries: FriendRankingEntryDto[];
+  currentUserRank?: FriendLeaderboardDtoCurrentUserRank;
 
-currentUserRank?: FriendLeaderboardDtoCurrentUserRank;
+  totalParticipants: number;
 
-totalParticipants: number;
+  staleAt?: FriendLeaderboardDtoStaleAt;
 
-staleAt?: FriendLeaderboardDtoStaleAt;
-
-isStale: boolean;
+  isStale: boolean;
 }

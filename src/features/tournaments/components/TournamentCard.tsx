@@ -32,8 +32,16 @@ function formatDate(dateString: string): string {
 
 export function TournamentCard({ tournament, className }: TournamentCardProps) {
   const prefersReducedMotion = usePrefersReducedMotion();
-  const { id, title, description, status, startAt, endAt, difficulty, maxParticipants } =
-    tournament;
+  const {
+    id,
+    title,
+    description,
+    status,
+    startAt,
+    endAt,
+    difficulty,
+    maxParticipants,
+  } = tournament;
 
   const tournamentUrl = "/tournaments/" + id;
 
@@ -92,7 +100,9 @@ export function TournamentCard({ tournament, className }: TournamentCardProps) {
             </span>
           )}
           <Button asChild size="sm" variant="outline" className="ml-auto">
-            <Link href={tournamentUrl} aria-label={`View ${title} tournament`}>View</Link>
+            <Link href={tournamentUrl} aria-label={`View ${title} tournament`}>
+              View
+            </Link>
           </Button>
         </div>
       </CardContent>

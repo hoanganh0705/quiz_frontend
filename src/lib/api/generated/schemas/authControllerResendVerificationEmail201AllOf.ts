@@ -1,7 +1,5 @@
-
-
-import type { VerifyEmailResponseDto } from './verifyEmailResponseDto';
+import type { VerifyEmailResponseDto } from "./verifyEmailResponseDto";
 
 export type AuthControllerResendVerificationEmail201AllOf = {
-data?: VerifyEmailResponseDto;
+  data?: VerifyEmailResponseDto;
 };

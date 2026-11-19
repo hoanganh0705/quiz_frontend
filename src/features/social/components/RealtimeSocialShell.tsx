@@ -1,5 +1,3 @@
-
-
 "use client";
 
 import { useMemo, type ReactElement, type ReactNode } from "react";
@@ -17,67 +15,68 @@ import { ConnectionStatusBadge } from "./ConnectionStatusBadge";
 import { RealtimeWsErrorToast } from "./RealtimeWsErrorToast";
 
 import {
-EventDeduplicator,
-EventDeduplicatorContext,
+  EventDeduplicator,
+  EventDeduplicatorContext,
 } from "@/features/social/realtime/event-deduplicator";
 import {
-EventSequenceGuard,
-EventSequenceGuardContext,
+  EventSequenceGuard,
+  EventSequenceGuardContext,
 } from "@/features/social/realtime/event-sequence-guard";
 
 import { getFeatureFlagValue } from "@/lib/feature-flags/feature-flags";
 
 export interface RealtimeSocialShellProps {
-
-children: ReactNode;
+  children: ReactNode;
 }
 
 function TabScopedListeners(): null {
-useFriendRequestInvalidation();
-useFollowInvalidation();
-useBlockInvalidation();
-useSocialFeedInvalidation(null);
-useNotificationEventRouter();
-useReconnectReconciliation();
-return null;
+  useFriendRequestInvalidation();
+  useFollowInvalidation();
+  useBlockInvalidation();
+  useSocialFeedInvalidation(null);
+  useNotificationEventRouter();
+  useReconnectReconciliation();
+  return null;
 }
 
 function UiPrimitives(): ReactElement {
-return (
-<>
-<BadgeSyncLayer />
-<ConnectionStatusBadge />
-<RealtimeWsErrorToast />
-</>
+  return (
+    <>
+      <BadgeSyncLayer />
+      <ConnectionStatusBadge />
+      <RealtimeWsErrorToast />
+    </>
   );
 }
 
 export function RealtimeSocialShell({
-children,
+  children,
 }: RealtimeSocialShellProps): ReactElement {
+  const flagValue = getFeatureFlagValue("social_realtime_notifications_live");
 
-const flagValue = getFeatureFlagValue("social_realtime_notifications_live");
+  const auth = useAuthSession();
+  const isAuthenticated = auth.currentUser !== null;
 
-const auth = useAuthSession();
-const isAuthenticated = auth.currentUser !== null;
-
-const dedup = useMemo(
-() => (flagValue === "live" && isAuthenticated ? new EventDeduplicator() : null),
-[flagValue, isAuthenticated],
+  const dedup = useMemo(
+    () =>
+      flagValue === "live" && isAuthenticated ? new EventDeduplicator() : null,
+    [flagValue, isAuthenticated],
   );
-const sequenceGuard = useMemo(
-() =>
-flagValue === "live" && isAuthenticated ? new EventSequenceGuard() : null,
-[flagValue, isAuthenticated],
+  const sequenceGuard = useMemo(
+    () =>
+      flagValue === "live" && isAuthenticated ? new EventSequenceGuard() : null,
+    [flagValue, isAuthenticated],
   );
 
-return (
-<EventDeduplicatorContext.Provider value={dedup}>
-<EventSequenceGuardContext.Provider value={sequenceGuard}>
-{flagValue === "live" && isAuthenticated ? <TabScopedListeners /> : null}
-<UiPrimitives />
-{children}
-</EventSequenceGuardContext.Provider>
-</EventDeduplicatorContext.Provider>
+  return (
+    <EventDeduplicatorContext.Provider value={dedup}>
+      <EventSequenceGuardContext.Provider value={sequenceGuard}>
+        {flagValue === "live" && isAuthenticated ? (
+          <TabScopedListeners />
+        ) : null}
+        <UiPrimitives />
+        {children}
+      </EventSequenceGuardContext.Provider>
+    </EventDeduplicatorContext.Provider>
   );
 }

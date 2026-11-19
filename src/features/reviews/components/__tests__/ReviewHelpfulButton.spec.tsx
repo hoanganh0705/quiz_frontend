@@ -1,194 +1,188 @@
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 
-
-import { afterEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, fireEvent, render, screen } from '@testing-library/react';
-
-import { ReviewHelpfulButton } from '@/features/reviews/components/ReviewHelpfulButton';
+import { ReviewHelpfulButton } from "@/features/reviews/components/ReviewHelpfulButton";
 
 afterEach(() => {
-cleanup();
+  cleanup();
 });
 
-const REVIEW_ID = 'r-1';
+const REVIEW_ID = "r-1";
 
-describe('ReviewHelpfulButton — toggle', () => {
-it('renders the count and an accessible label', () => {
-render(
-<ReviewHelpfulButton
-reviewId={REVIEW_ID}
-helpfulCount={12}
-viewerMarkedHelpful={false}
-isPending={false}
-onToggle={() => undefined}
+describe("ReviewHelpfulButton — toggle", () => {
+  it("renders the count and an accessible label", () => {
+    render(
+      <ReviewHelpfulButton
+        reviewId={REVIEW_ID}
+        helpfulCount={12}
+        viewerMarkedHelpful={false}
+        isPending={false}
+        onToggle={() => undefined}
       />,
     );
 
-const button = screen.getByTestId(`review-helpful-button-${REVIEW_ID}`);
-expect(button).toHaveAttribute('aria-label', 'Helpful (12)');
-expect(button).toHaveTextContent('12');
+    const button = screen.getByTestId(`review-helpful-button-${REVIEW_ID}`);
+    expect(button).toHaveAttribute("aria-label", "Helpful (12)");
+    expect(button).toHaveTextContent("12");
   });
 
-it('uses `aria-pressed=false` when unmarked', () => {
-render(
-<ReviewHelpfulButton
-reviewId={REVIEW_ID}
-helpfulCount={12}
-viewerMarkedHelpful={false}
-isPending={false}
-onToggle={() => undefined}
+  it("uses `aria-pressed=false` when unmarked", () => {
+    render(
+      <ReviewHelpfulButton
+        reviewId={REVIEW_ID}
+        helpfulCount={12}
+        viewerMarkedHelpful={false}
+        isPending={false}
+        onToggle={() => undefined}
       />,
     );
-expect(
-screen.getByTestId(`review-helpful-button-${REVIEW_ID}`),
-    ).toHaveAttribute('aria-pressed', 'false');
+    expect(
+      screen.getByTestId(`review-helpful-button-${REVIEW_ID}`),
+    ).toHaveAttribute("aria-pressed", "false");
   });
 
-it('uses `aria-pressed=true` when marked', () => {
-render(
-<ReviewHelpfulButton
-reviewId={REVIEW_ID}
-helpfulCount={12}
-viewerMarkedHelpful
-isPending={false}
-onToggle={() => undefined}
+  it("uses `aria-pressed=true` when marked", () => {
+    render(
+      <ReviewHelpfulButton
+        reviewId={REVIEW_ID}
+        helpfulCount={12}
+        viewerMarkedHelpful
+        isPending={false}
+        onToggle={() => undefined}
       />,
     );
-expect(
-screen.getByTestId(`review-helpful-button-${REVIEW_ID}`),
-    ).toHaveAttribute('aria-pressed', 'true');
+    expect(
+      screen.getByTestId(`review-helpful-button-${REVIEW_ID}`),
+    ).toHaveAttribute("aria-pressed", "true");
   });
 
-it('calls `onToggle` exactly once per click', () => {
-const onToggle = vi.fn();
+  it("calls `onToggle` exactly once per click", () => {
+    const onToggle = vi.fn();
 
-render(
-<ReviewHelpfulButton
-reviewId={REVIEW_ID}
-helpfulCount={12}
-viewerMarkedHelpful={false}
-isPending={false}
-onToggle={onToggle}
+    render(
+      <ReviewHelpfulButton
+        reviewId={REVIEW_ID}
+        helpfulCount={12}
+        viewerMarkedHelpful={false}
+        isPending={false}
+        onToggle={onToggle}
       />,
     );
 
-fireEvent.click(
-screen.getByTestId(`review-helpful-button-${REVIEW_ID}`),
-    );
+    fireEvent.click(screen.getByTestId(`review-helpful-button-${REVIEW_ID}`));
 
-expect(onToggle).toHaveBeenCalledTimes(1);
-  });
-});
-
-describe('ReviewHelpfulButton — pending', () => {
-it('is disabled while pending and exposes `aria-busy`', () => {
-render(
-<ReviewHelpfulButton
-reviewId={REVIEW_ID}
-helpfulCount={12}
-viewerMarkedHelpful={false}
-isPending
-onToggle={() => undefined}
-      />,
-    );
-
-const button = screen.getByTestId(`review-helpful-button-${REVIEW_ID}`);
-expect(button).toBeDisabled();
-expect(button).toHaveAttribute('aria-busy', 'true');
-  });
-
-it('blocks a click while pending', () => {
-const onToggle = vi.fn();
-
-render(
-<ReviewHelpfulButton
-reviewId={REVIEW_ID}
-helpfulCount={12}
-viewerMarkedHelpful={false}
-isPending
-onToggle={onToggle}
-      />,
-    );
-
-fireEvent.click(
-screen.getByTestId(`review-helpful-button-${REVIEW_ID}`),
-    );
-
-expect(onToggle).not.toHaveBeenCalled();
+    expect(onToggle).toHaveBeenCalledTimes(1);
   });
 });
 
-describe('ReviewHelpfulButton — owner', () => {
-it('hides the toggle and renders only a read-only count when `isOwner` is true', () => {
-render(
-<ReviewHelpfulButton
-reviewId={REVIEW_ID}
-helpfulCount={12}
-viewerMarkedHelpful={false}
-isPending={false}
-isOwner
-onToggle={() => undefined}
+describe("ReviewHelpfulButton — pending", () => {
+  it("is disabled while pending and exposes `aria-busy`", () => {
+    render(
+      <ReviewHelpfulButton
+        reviewId={REVIEW_ID}
+        helpfulCount={12}
+        viewerMarkedHelpful={false}
+        isPending
+        onToggle={() => undefined}
       />,
     );
 
-expect(
-screen.queryByTestId(`review-helpful-button-${REVIEW_ID}`),
+    const button = screen.getByTestId(`review-helpful-button-${REVIEW_ID}`);
+    expect(button).toBeDisabled();
+    expect(button).toHaveAttribute("aria-busy", "true");
+  });
+
+  it("blocks a click while pending", () => {
+    const onToggle = vi.fn();
+
+    render(
+      <ReviewHelpfulButton
+        reviewId={REVIEW_ID}
+        helpfulCount={12}
+        viewerMarkedHelpful={false}
+        isPending
+        onToggle={onToggle}
+      />,
+    );
+
+    fireEvent.click(screen.getByTestId(`review-helpful-button-${REVIEW_ID}`));
+
+    expect(onToggle).not.toHaveBeenCalled();
+  });
+});
+
+describe("ReviewHelpfulButton — owner", () => {
+  it("hides the toggle and renders only a read-only count when `isOwner` is true", () => {
+    render(
+      <ReviewHelpfulButton
+        reviewId={REVIEW_ID}
+        helpfulCount={12}
+        viewerMarkedHelpful={false}
+        isPending={false}
+        isOwner
+        onToggle={() => undefined}
+      />,
+    );
+
+    expect(
+      screen.queryByTestId(`review-helpful-button-${REVIEW_ID}`),
     ).toBeNull();
-expect(
-screen.getByTestId(`review-helpful-count-${REVIEW_ID}`),
-    ).toHaveTextContent('12');
+    expect(
+      screen.getByTestId(`review-helpful-count-${REVIEW_ID}`),
+    ).toHaveTextContent("12");
   });
 });
 
-describe('ReviewHelpfulButton — unauthenticated', () => {
-it('hides the toggle and renders only a read-only count when `isAuthenticated` is false', () => {
-render(
-<ReviewHelpfulButton
-reviewId={REVIEW_ID}
-helpfulCount={12}
-viewerMarkedHelpful={false}
-isPending={false}
-isAuthenticated={false}
-onToggle={() => undefined}
+describe("ReviewHelpfulButton — unauthenticated", () => {
+  it("hides the toggle and renders only a read-only count when `isAuthenticated` is false", () => {
+    render(
+      <ReviewHelpfulButton
+        reviewId={REVIEW_ID}
+        helpfulCount={12}
+        viewerMarkedHelpful={false}
+        isPending={false}
+        isAuthenticated={false}
+        onToggle={() => undefined}
       />,
     );
 
-expect(
-screen.queryByTestId(`review-helpful-button-${REVIEW_ID}`),
+    expect(
+      screen.queryByTestId(`review-helpful-button-${REVIEW_ID}`),
     ).toBeNull();
-expect(
-screen.getByTestId(`review-helpful-count-${REVIEW_ID}`),
-    ).toHaveTextContent('12');
+    expect(
+      screen.getByTestId(`review-helpful-count-${REVIEW_ID}`),
+    ).toHaveTextContent("12");
   });
 });
 
-describe('ReviewHelpfulButton — error rollback', () => {
-it('reflects the parent-driven flip back to unmarked when the optimistic update is rolled back', () => {
-const { rerender } = render(
-<ReviewHelpfulButton
-reviewId={REVIEW_ID}
-helpfulCount={13}
-viewerMarkedHelpful
-isPending
-onToggle={() => undefined}
+describe("ReviewHelpfulButton — error rollback", () => {
+  it("reflects the parent-driven flip back to unmarked when the optimistic update is rolled back", () => {
+    const { rerender } = render(
+      <ReviewHelpfulButton
+        reviewId={REVIEW_ID}
+        helpfulCount={13}
+        viewerMarkedHelpful
+        isPending
+        onToggle={() => undefined}
       />,
     );
 
-expect(
-screen.getByTestId(`review-helpful-button-${REVIEW_ID}`),
-    ).toHaveAttribute('aria-pressed', 'true');
+    expect(
+      screen.getByTestId(`review-helpful-button-${REVIEW_ID}`),
+    ).toHaveAttribute("aria-pressed", "true");
 
-rerender(
-<ReviewHelpfulButton
-reviewId={REVIEW_ID}
-helpfulCount={12}
-viewerMarkedHelpful={false}
-isPending={false}
-onToggle={() => undefined}
+    rerender(
+      <ReviewHelpfulButton
+        reviewId={REVIEW_ID}
+        helpfulCount={12}
+        viewerMarkedHelpful={false}
+        isPending={false}
+        onToggle={() => undefined}
       />,
     );
 
-const button = screen.getByTestId(`review-helpful-button-${REVIEW_ID}`);
-expect(button).toHaveAttribute('aria-pressed', 'false');
-expect(button).toHaveTextContent('12');
+    const button = screen.getByTestId(`review-helpful-button-${REVIEW_ID}`);
+    expect(button).toHaveAttribute("aria-pressed", "false");
+    expect(button).toHaveTextContent("12");
   });
 });

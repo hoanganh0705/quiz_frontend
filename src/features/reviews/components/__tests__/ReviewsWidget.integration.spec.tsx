@@ -1,24 +1,22 @@
-
-
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
-cleanup,
-fireEvent,
-render,
-screen,
-within,
-} from '@testing-library/react';
-import { SWRConfig } from 'swr';
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  within,
+} from "@testing-library/react";
+import { SWRConfig } from "swr";
 
-import { ApiError } from '@/lib/api';
+import { ApiError } from "@/lib/api";
 
-import { ReviewsWidget } from '@/features/reviews/components/ReviewsWidget';
-import { type CurrentUserResponseDto } from '@/features/auth/types';
+import { ReviewsWidget } from "@/features/reviews/components/ReviewsWidget";
+import { type CurrentUserResponseDto } from "@/features/auth/types";
 import {
-type MyReviewDto,
-type ReviewDto,
-type ReviewGateState,
-} from '@/features/reviews/types';
+  type MyReviewDto,
+  type ReviewDto,
+  type ReviewGateState,
+} from "@/features/reviews/types";
 
 const useAuthSessionMock = vi.fn();
 const useMyQuizReviewMock = vi.fn();
@@ -29,854 +27,969 @@ const useDeleteReviewMock = vi.fn();
 const useHelpfulReviewMock = vi.fn();
 const useQuizReviewsMock = vi.fn();
 
-vi.mock('@/features/auth/hooks/use-auth-session', () => ({
-useAuthSession: () => useAuthSessionMock(),
+vi.mock("@/features/auth/hooks/use-auth-session", () => ({
+  useAuthSession: () => useAuthSessionMock(),
 }));
 
-vi.mock('@/features/reviews/hooks/useMyQuizReview', () => ({
-useMyQuizReview: (params: unknown) => useMyQuizReviewMock(params),
+vi.mock("@/features/reviews/hooks/useMyQuizReview", () => ({
+  useMyQuizReview: (params: unknown) => useMyQuizReviewMock(params),
 }));
 
-vi.mock('@/features/reviews/hooks/useReviewGate', () => ({
-useReviewGate: (params: unknown) => useReviewGateMock(params),
+vi.mock("@/features/reviews/hooks/useReviewGate", () => ({
+  useReviewGate: (params: unknown) => useReviewGateMock(params),
 }));
 
-vi.mock('@/features/reviews/hooks/useCreateReview', () => ({
-useCreateReview: (quizId: unknown) => useCreateReviewMock(quizId),
+vi.mock("@/features/reviews/hooks/useCreateReview", () => ({
+  useCreateReview: (quizId: unknown) => useCreateReviewMock(quizId),
 }));
 
-vi.mock('@/features/reviews/hooks/useEditReview', () => ({
-useEditReview: (quizId: unknown) => useEditReviewMock(quizId),
+vi.mock("@/features/reviews/hooks/useEditReview", () => ({
+  useEditReview: (quizId: unknown) => useEditReviewMock(quizId),
 }));
 
-vi.mock('@/features/reviews/hooks/useDeleteReview', () => ({
-useDeleteReview: (quizId: unknown) => useDeleteReviewMock(quizId),
+vi.mock("@/features/reviews/hooks/useDeleteReview", () => ({
+  useDeleteReview: (quizId: unknown) => useDeleteReviewMock(quizId),
 }));
 
-vi.mock('@/features/reviews/hooks/useHelpfulReview', () => ({
-useHelpfulReview: (params: unknown) => useHelpfulReviewMock(params),
+vi.mock("@/features/reviews/hooks/useHelpfulReview", () => ({
+  useHelpfulReview: (params: unknown) => useHelpfulReviewMock(params),
 }));
 
-vi.mock('@/features/reviews/hooks/useQuizReviews', () => ({
-useQuizReviews: (params: unknown) => useQuizReviewsMock(params),
+vi.mock("@/features/reviews/hooks/useQuizReviews", () => ({
+  useQuizReviews: (params: unknown) => useQuizReviewsMock(params),
 }));
 
-const QUIZ_ID = '0192f4d8-3333-7000-8000-000000000001';
-const OTHER_USER_ID = '0192f4d8-eeee-7000-8000-000000000099';
+const QUIZ_ID = "0192f4d8-3333-7000-8000-000000000001";
+const OTHER_USER_ID = "0192f4d8-eeee-7000-8000-000000000099";
 
 const SELF_USER: CurrentUserResponseDto = {
-userId: '0192f4d8-cccc-7000-8000-00000000000d',
-username: 'self',
-email: 'self@example.test',
-role: 'user',
-isVerified: true,
+  userId: "0192f4d8-cccc-7000-8000-00000000000d",
+  username: "self",
+  email: "self@example.test",
+  role: "user",
+  isVerified: true,
 };
 
-function makeReview(
-id: string,
-overrides: Partial<ReviewDto> = {},
-): ReviewDto {
-return {
-reviewId: id,
-quizId: QUIZ_ID,
-userId: OTHER_USER_ID,
-username: 'other-user',
-userAvatarUrl: null,
-rating: 5,
-comment: `body of ${id}`,
-createdAt: '2026-08-01T00:00:00.000Z',
-updatedAt: '2026-08-01T00:00:00.000Z',
-helpfulCount: 0,
-id,
-...overrides,
+function makeReview(id: string, overrides: Partial<ReviewDto> = {}): ReviewDto {
+  return {
+    reviewId: id,
+    quizId: QUIZ_ID,
+    userId: OTHER_USER_ID,
+    username: "other-user",
+    userAvatarUrl: null,
+    rating: 5,
+    comment: `body of ${id}`,
+    createdAt: "2026-08-01T00:00:00.000Z",
+    updatedAt: "2026-08-01T00:00:00.000Z",
+    helpfulCount: 0,
+    id,
+    ...overrides,
   };
 }
 
-function makeMyReview(
-overrides: Partial<MyReviewDto> = {},
-): MyReviewDto {
-return {
-reviewId: 'r-self',
-quizId: QUIZ_ID,
-quizTitle: 'My Quiz',
-userId: SELF_USER.userId,
-username: SELF_USER.username,
-rating: 4,
-comment: 'my review',
-createdAt: '2026-08-01T00:00:00.000Z',
-updatedAt: '2026-08-01T00:00:00.000Z',
-helpfulCount: 3,
-id: 'r-self',
-...overrides,
+function makeMyReview(overrides: Partial<MyReviewDto> = {}): MyReviewDto {
+  return {
+    reviewId: "r-self",
+    quizId: QUIZ_ID,
+    quizTitle: "My Quiz",
+    userId: SELF_USER.userId,
+    username: SELF_USER.username,
+    rating: 4,
+    comment: "my review",
+    createdAt: "2026-08-01T00:00:00.000Z",
+    updatedAt: "2026-08-01T00:00:00.000Z",
+    helpfulCount: 3,
+    id: "r-self",
+    ...overrides,
   };
 }
 
 function makeApiError(
-status: number,
-code: string,
-message = `Mock ${status}`,
+  status: number,
+  code: string,
+  message = `Mock ${status}`,
 ): ApiError {
-return new ApiError({
-isAxiosError: true,
-name: 'AxiosError',
-message,
-code,
-config: undefined,
-request: undefined,
-response: {
-status,
-statusText: message,
-data: {
-type: 'https://api.quiz.local/problems/x',
-title: message,
-status,
-detail: message,
-extensions: { code, requestId: 'req-test' },
+  return new ApiError({
+    isAxiosError: true,
+    name: "AxiosError",
+    message,
+    code,
+    config: undefined,
+    request: undefined,
+    response: {
+      status,
+      statusText: message,
+      data: {
+        type: "https://api.quiz.local/problems/x",
+        title: message,
+        status,
+        detail: message,
+        extensions: { code, requestId: "req-test" },
       },
-headers: {},
-config: undefined as never,
+      headers: {},
+      config: undefined as never,
     },
-toJSON: () => ({}),
+    toJSON: () => ({}),
   } as unknown as Parameters<typeof ApiError.fromAxios>[0]);
 }
 
 const defaultAuthBootstrap = {
-bootstrapState: 'unauthenticated' as const,
-isBootstrapping: false,
-isAuthenticated: false,
-isDegraded: false,
-currentUser: null,
-user: null,
-error: null,
-profileError: null,
-refetch: vi.fn(),
-clearBootstrap: vi.fn(),
+  bootstrapState: "unauthenticated" as const,
+  isBootstrapping: false,
+  isAuthenticated: false,
+  isDegraded: false,
+  currentUser: null,
+  user: null,
+  error: null,
+  profileError: null,
+  refetch: vi.fn(),
+  clearBootstrap: vi.fn(),
 };
 
 const defaultMyReview = {
-review: null,
-isLoading: false,
-hasResolved: true,
-error: null,
-retry: vi.fn(),
+  review: null,
+  isLoading: false,
+  hasResolved: true,
+  error: null,
+  retry: vi.fn(),
 };
 
 const defaultWriteHooks = {
-create: {
-submit: vi.fn().mockResolvedValue(true),
-isLoading: false,
-error: null,
-lastOutcome: null,
-reset: vi.fn(),
+  create: {
+    submit: vi.fn().mockResolvedValue(true),
+    isLoading: false,
+    error: null,
+    lastOutcome: null,
+    reset: vi.fn(),
   },
-edit: {
-update: vi.fn().mockResolvedValue(true),
-isLoading: false,
-error: null,
-lastOutcome: null,
-reset: vi.fn(),
+  edit: {
+    update: vi.fn().mockResolvedValue(true),
+    isLoading: false,
+    error: null,
+    lastOutcome: null,
+    reset: vi.fn(),
   },
-delete: {
-remove: vi.fn().mockResolvedValue(true),
-isLoading: false,
-error: null,
-lastOutcome: null,
-reset: vi.fn(),
+  delete: {
+    remove: vi.fn().mockResolvedValue(true),
+    isLoading: false,
+    error: null,
+    lastOutcome: null,
+    reset: vi.fn(),
   },
-helpful: {
-toggle: vi.fn().mockResolvedValue(undefined),
-isPending: false,
-viewerMarkedHelpful: false,
-lastError: null,
-reset: vi.fn(),
+  helpful: {
+    toggle: vi.fn().mockResolvedValue(undefined),
+    isPending: false,
+    viewerMarkedHelpful: false,
+    lastError: null,
+    reset: vi.fn(),
   },
 };
 
 const defaultList = {
-items: [] as ReviewDto[],
-isLoading: false,
-isLoadingMore: false,
-hasMore: false,
-loadMore: vi.fn(),
-error: null,
-refresh: vi.fn(),
+  items: [] as ReviewDto[],
+  isLoading: false,
+  isLoadingMore: false,
+  hasMore: false,
+  loadMore: vi.fn(),
+  error: null,
+  refresh: vi.fn(),
 };
 
 function setUnauthenticated() {
-useAuthSessionMock.mockReturnValue({
-...defaultAuthBootstrap,
-bootstrapState: 'unauthenticated',
-isAuthenticated: false,
+  useAuthSessionMock.mockReturnValue({
+    ...defaultAuthBootstrap,
+    bootstrapState: "unauthenticated",
+    isAuthenticated: false,
   });
 }
 
 function setAuthBootstrapLoading() {
-useAuthSessionMock.mockReturnValue({
-...defaultAuthBootstrap,
-bootstrapState: 'bootstrapping',
-isBootstrapping: true,
-isAuthenticated: false,
+  useAuthSessionMock.mockReturnValue({
+    ...defaultAuthBootstrap,
+    bootstrapState: "bootstrapping",
+    isBootstrapping: true,
+    isAuthenticated: false,
   });
 }
 
 function setAuthenticated(user: CurrentUserResponseDto = SELF_USER) {
-useAuthSessionMock.mockReturnValue({
-...defaultAuthBootstrap,
-bootstrapState: 'authenticated',
-isAuthenticated: true,
-currentUser: user,
+  useAuthSessionMock.mockReturnValue({
+    ...defaultAuthBootstrap,
+    bootstrapState: "authenticated",
+    isAuthenticated: true,
+    currentUser: user,
   });
 }
 
 function setMyReview(review: MyReviewDto | null = null, isLoading = false) {
-useMyQuizReviewMock.mockReturnValue({
-...defaultMyReview,
-review,
-isLoading,
-hasResolved: !isLoading,
+  useMyQuizReviewMock.mockReturnValue({
+    ...defaultMyReview,
+    review,
+    isLoading,
+    hasResolved: !isLoading,
   });
 }
 
-function setGate(state: ReviewGateState, revalidate = vi.fn().mockResolvedValue(undefined)) {
-useReviewGateMock.mockReturnValue({
-state,
-isLoading: state.kind === 'loading',
-revalidate,
+function setGate(
+  state: ReviewGateState,
+  revalidate = vi.fn().mockResolvedValue(undefined),
+) {
+  useReviewGateMock.mockReturnValue({
+    state,
+    isLoading: state.kind === "loading",
+    revalidate,
   });
 }
 
 function setWriteHooks() {
-useCreateReviewMock.mockReturnValue(defaultWriteHooks.create);
-useEditReviewMock.mockReturnValue(defaultWriteHooks.edit);
-useDeleteReviewMock.mockReturnValue(defaultWriteHooks.delete);
-useHelpfulReviewMock.mockReturnValue(defaultWriteHooks.helpful);
+  useCreateReviewMock.mockReturnValue(defaultWriteHooks.create);
+  useEditReviewMock.mockReturnValue(defaultWriteHooks.edit);
+  useDeleteReviewMock.mockReturnValue(defaultWriteHooks.delete);
+  useHelpfulReviewMock.mockReturnValue(defaultWriteHooks.helpful);
 }
 
-function setList(args: {
-items?: ReviewDto[];
-isLoading?: boolean;
-isLoadingMore?: boolean;
-hasMore?: boolean;
-error?: ApiError | null;
-loadMore?: () => Promise<void>;
-refresh?: () => Promise<void>;
-} = {}) {
-useQuizReviewsMock.mockReturnValue({
-items: args.items ?? defaultList.items,
-isLoading: args.isLoading ?? defaultList.isLoading,
-isLoadingMore: args.isLoadingMore ?? defaultList.isLoadingMore,
-hasMore: args.hasMore ?? defaultList.hasMore,
-loadMore: args.loadMore ?? defaultList.loadMore,
-error: args.error ?? defaultList.error,
-refresh: args.refresh ?? defaultList.refresh,
+function setList(
+  args: {
+    items?: ReviewDto[];
+    isLoading?: boolean;
+    isLoadingMore?: boolean;
+    hasMore?: boolean;
+    error?: ApiError | null;
+    loadMore?: () => Promise<void>;
+    refresh?: () => Promise<void>;
+  } = {},
+) {
+  useQuizReviewsMock.mockReturnValue({
+    items: args.items ?? defaultList.items,
+    isLoading: args.isLoading ?? defaultList.isLoading,
+    isLoadingMore: args.isLoadingMore ?? defaultList.isLoadingMore,
+    hasMore: args.hasMore ?? defaultList.hasMore,
+    loadMore: args.loadMore ?? defaultList.loadMore,
+    error: args.error ?? defaultList.error,
+    refresh: args.refresh ?? defaultList.refresh,
   });
 }
 
 function renderWidget() {
-return render(
-<SWRConfig
-value={{
-provider: () => new Map(),
-revalidateOnFocus: false,
-revalidateIfStale: false,
-dedupingInterval: 0,
-errorRetryCount: 0,
+  return render(
+    <SWRConfig
+      value={{
+        provider: () => new Map(),
+        revalidateOnFocus: false,
+        revalidateIfStale: false,
+        dedupingInterval: 0,
+        errorRetryCount: 0,
       }}
     >
-<ReviewsWidget quizId={QUIZ_ID} />
-</SWRConfig>,
+      <ReviewsWidget quizId={QUIZ_ID} />
+    </SWRConfig>,
   );
 }
 
 beforeEach(() => {
-vi.clearAllMocks();
-setUnauthenticated();
-setMyReview(null);
-setGate({ kind: 'loading' });
-setWriteHooks();
-setList();
+  vi.clearAllMocks();
+  setUnauthenticated();
+  setMyReview(null);
+  setGate({ kind: "loading" });
+  setWriteHooks();
+  setList();
 });
 
 afterEach(() => {
-cleanup();
-vi.useRealTimers();
+  cleanup();
+  vi.useRealTimers();
 });
 
-describe('ReviewsWidget — section composition', () => {
-it('renders the reviews section with the heading and quiz id', () => {
-setUnauthenticated();
-setList({ items: [] });
-renderWidget();
+describe("ReviewsWidget — section composition", () => {
+  it("renders the reviews section with the heading and quiz id", () => {
+    setUnauthenticated();
+    setList({ items: [] });
+    renderWidget();
 
-const section = screen.getByTestId('reviews-widget');
-expect(section).toBeInTheDocument();
-expect(section).toHaveAttribute('data-quiz-id', QUIZ_ID);
-expect(
-screen.getByRole('heading', { level: 2, name: 'Reviews' }),
+    const section = screen.getByTestId("reviews-widget");
+    expect(section).toBeInTheDocument();
+    expect(section).toHaveAttribute("data-quiz-id", QUIZ_ID);
+    expect(
+      screen.getByRole("heading", { level: 2, name: "Reviews" }),
     ).toBeInTheDocument();
   });
 
-it('renders the public list regardless of authentication state', () => {
-setUnauthenticated();
-setList({
-items: [makeReview('r-1'), makeReview('r-2')],
+  it("renders the public list regardless of authentication state", () => {
+    setUnauthenticated();
+    setList({
+      items: [makeReview("r-1"), makeReview("r-2")],
     });
-renderWidget();
+    renderWidget();
 
-expect(screen.getByTestId('reviews-list')).toBeInTheDocument();
-expect(screen.getAllByTestId('review-item-r-1')).toHaveLength(1);
-expect(screen.getAllByTestId('review-item-r-2')).toHaveLength(1);
+    expect(screen.getByTestId("reviews-list")).toBeInTheDocument();
+    expect(screen.getAllByTestId("review-item-r-1")).toHaveLength(1);
+    expect(screen.getAllByTestId("review-item-r-2")).toHaveLength(1);
   });
 
-it('does NOT render the write form for unauthenticated viewers', () => {
-setUnauthenticated();
-setList({ items: [] });
-renderWidget();
+  it("does NOT render the write form for unauthenticated viewers", () => {
+    setUnauthenticated();
+    setList({ items: [] });
+    renderWidget();
 
-expect(screen.queryByTestId('review-form')).not.toBeInTheDocument();
-expect(screen.queryByTestId('review-form-signin')).not.toBeInTheDocument();
+    expect(screen.queryByTestId("review-form")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("review-form-signin")).not.toBeInTheDocument();
   });
 
-it('does NOT render any report / admin / moderation UI in the DOM', () => {
-setUnauthenticated();
-setList({
-items: [
-makeReview('r-1', { comment: 'Visible review text' }),
-      ],
+  it("does NOT render any report / admin / moderation UI in the DOM", () => {
+    setUnauthenticated();
+    setList({
+      items: [makeReview("r-1", { comment: "Visible review text" })],
     });
-renderWidget();
+    renderWidget();
 
-const root = screen.getByTestId('reviews-widget');
+    const root = screen.getByTestId("reviews-widget");
 
-expect(within(root).queryByText(/report/i)).not.toBeInTheDocument();
-expect(within(root).queryByText(/moderate/i)).not.toBeInTheDocument();
-expect(within(root).queryByText(/admin/i)).not.toBeInTheDocument();
-expect(within(root).queryByRole('link', { name: /report/i })).toBeNull();
+    expect(within(root).queryByText(/report/i)).not.toBeInTheDocument();
+    expect(within(root).queryByText(/moderate/i)).not.toBeInTheDocument();
+    expect(within(root).queryByText(/admin/i)).not.toBeInTheDocument();
+    expect(within(root).queryByRole("link", { name: /report/i })).toBeNull();
   });
 });
 
-describe('ReviewsWidget — public list', () => {
-it('renders five skeleton rows while the list is initially loading', () => {
-setUnauthenticated();
-setList({ items: [], isLoading: true });
-renderWidget();
+describe("ReviewsWidget — public list", () => {
+  it("renders five skeleton rows while the list is initially loading", () => {
+    setUnauthenticated();
+    setList({ items: [], isLoading: true });
+    renderWidget();
 
-const skeleton = screen.getByTestId('reviews-list-skeleton');
-expect(within(skeleton).getAllByTestId('review-item-skeleton')).toHaveLength(5);
+    const skeleton = screen.getByTestId("reviews-list-skeleton");
+    expect(
+      within(skeleton).getAllByTestId("review-item-skeleton"),
+    ).toHaveLength(5);
   });
 
-it('renders the empty state with the exact approved copy', () => {
-setUnauthenticated();
-setList({ items: [] });
-renderWidget();
+  it("renders the empty state with the exact approved copy", () => {
+    setUnauthenticated();
+    setList({ items: [] });
+    renderWidget();
 
-const empty = screen.getByTestId('reviews-list-empty');
-expect(empty).toBeInTheDocument();
-expect(empty).toHaveTextContent('Be the first to review.');
+    const empty = screen.getByTestId("reviews-list-empty");
+    expect(empty).toBeInTheDocument();
+    expect(empty).toHaveTextContent("Be the first to review.");
   });
 
-it('renders review items in server order', () => {
-setUnauthenticated();
-setList({
-items: [
-makeReview('r-1', { username: 'alpha', comment: 'first', helpfulCount: 2 }),
-makeReview('r-2', { username: 'beta', comment: 'second', helpfulCount: 5 }),
+  it("renders review items in server order", () => {
+    setUnauthenticated();
+    setList({
+      items: [
+        makeReview("r-1", {
+          username: "alpha",
+          comment: "first",
+          helpfulCount: 2,
+        }),
+        makeReview("r-2", {
+          username: "beta",
+          comment: "second",
+          helpfulCount: 5,
+        }),
       ],
     });
-renderWidget();
+    renderWidget();
 
-const items = [
-screen.getByTestId('review-item-r-1'),
-screen.getByTestId('review-item-r-2'),
+    const items = [
+      screen.getByTestId("review-item-r-1"),
+      screen.getByTestId("review-item-r-2"),
     ];
-expect(items[0]).toHaveAttribute('data-testid', 'review-item-r-1');
-expect(items[1]).toHaveAttribute('data-testid', 'review-item-r-2');
+    expect(items[0]).toHaveAttribute("data-testid", "review-item-r-1");
+    expect(items[1]).toHaveAttribute("data-testid", "review-item-r-2");
   });
 
-it('shows "Load more" only when another cursor exists', () => {
-setUnauthenticated();
-setList({
-items: [makeReview('r-1')],
-hasMore: true,
+  it('shows "Load more" only when another cursor exists', () => {
+    setUnauthenticated();
+    setList({
+      items: [makeReview("r-1")],
+      hasMore: true,
     });
-renderWidget();
+    renderWidget();
 
-expect(screen.getByTestId('reviews-list-load-more')).toBeInTheDocument();
+    expect(screen.getByTestId("reviews-list-load-more")).toBeInTheDocument();
   });
 
-it('hides "Load more" when no further pages exist', () => {
-setUnauthenticated();
-setList({
-items: [makeReview('r-1')],
-hasMore: false,
+  it('hides "Load more" when no further pages exist', () => {
+    setUnauthenticated();
+    setList({
+      items: [makeReview("r-1")],
+      hasMore: false,
     });
-renderWidget();
+    renderWidget();
 
-expect(screen.queryByTestId('reviews-list-load-more')).not.toBeInTheDocument();
+    expect(
+      screen.queryByTestId("reviews-list-load-more"),
+    ).not.toBeInTheDocument();
   });
 
-it('renders the list error banner with retry on initial-load failure', () => {
-setUnauthenticated();
-const refresh = vi.fn().mockResolvedValue(undefined);
-setList({
-items: [],
-error: makeApiError(503, 'GLOBAL_INTERNAL_ERROR'),
-refresh,
+  it("renders the list error banner with retry on initial-load failure", () => {
+    setUnauthenticated();
+    const refresh = vi.fn().mockResolvedValue(undefined);
+    setList({
+      items: [],
+      error: makeApiError(503, "GLOBAL_INTERNAL_ERROR"),
+      refresh,
     });
-renderWidget();
+    renderWidget();
 
-const banner = screen.getByTestId('reviews-list-error');
-expect(banner).toHaveAttribute('role', 'alert');
-fireEvent.click(within(banner).getByTestId('reviews-list-retry'));
-expect(refresh).toHaveBeenCalledTimes(1);
+    const banner = screen.getByTestId("reviews-list-error");
+    expect(banner).toHaveAttribute("role", "alert");
+    fireEvent.click(within(banner).getByTestId("reviews-list-retry"));
+    expect(refresh).toHaveBeenCalledTimes(1);
   });
 
-it('does not surface the opaque cursor in the DOM', () => {
-setUnauthenticated();
-setList({
-items: [makeReview('r-1')],
-hasMore: true,
+  it("does not surface the opaque cursor in the DOM", () => {
+    setUnauthenticated();
+    setList({
+      items: [makeReview("r-1")],
+      hasMore: true,
     });
-renderWidget();
+    renderWidget();
 
-const root = screen.getByTestId('reviews-widget');
-expect(root.textContent).not.toMatch(/eyJ[A-Za-z0-9]/);
+    const root = screen.getByTestId("reviews-widget");
+    expect(root.textContent).not.toMatch(/eyJ[A-Za-z0-9]/);
   });
 });
 
-describe('ReviewsWidget — gate branches', () => {
-it('renders the auth bootstrap loader while bootstrapping', () => {
-setAuthBootstrapLoading();
-setList({ items: [] });
-renderWidget();
+describe("ReviewsWidget — gate branches", () => {
+  it("renders the auth bootstrap loader while bootstrapping", () => {
+    setAuthBootstrapLoading();
+    setList({ items: [] });
+    renderWidget();
 
-setGate({ kind: 'loading' });
-renderWidget();
+    setGate({ kind: "loading" });
+    renderWidget();
 
-expect(screen.queryByTestId('review-form')).not.toBeInTheDocument();
+    expect(screen.queryByTestId("review-form")).not.toBeInTheDocument();
   });
 
-it('renders the sign-in prompt for unauthenticated viewers (no form)', () => {
-setUnauthenticated();
-setList({ items: [] });
-setGate({ kind: 'unauthenticated' });
-renderWidget();
+  it("renders the sign-in prompt for unauthenticated viewers (no form)", () => {
+    setUnauthenticated();
+    setList({ items: [] });
+    setGate({ kind: "unauthenticated" });
+    renderWidget();
 
-expect(screen.queryByTestId('review-form')).not.toBeInTheDocument();
+    expect(screen.queryByTestId("review-form")).not.toBeInTheDocument();
 
-expect(screen.getByTestId('reviews-list')).toBeInTheDocument();
+    expect(screen.getByTestId("reviews-list")).toBeInTheDocument();
   });
 
-it('renders the attempt-required notice when the gate resolves to attempt-required', () => {
-setAuthenticated();
-setGate({ kind: 'attempt-required' });
-setList({ items: [] });
-renderWidget();
+  it("renders the attempt-required notice when the gate resolves to attempt-required", () => {
+    setAuthenticated();
+    setGate({ kind: "attempt-required" });
+    setList({ items: [] });
+    renderWidget();
 
-expect(screen.getByTestId('review-gate-state')).toBeInTheDocument();
-expect(screen.queryByTestId('review-form')).not.toBeInTheDocument();
+    expect(screen.getByTestId("review-gate-state")).toBeInTheDocument();
+    expect(screen.queryByTestId("review-form")).not.toBeInTheDocument();
   });
 
-it('renders the gate error banner + retry when the gate resolves to error', () => {
-const revalidate = vi.fn().mockResolvedValue(undefined);
-setAuthenticated();
-setGate({ kind: 'error', error: makeApiError(503, 'GLOBAL_INTERNAL_ERROR') }, revalidate);
-setList({ items: [] });
-renderWidget();
-
-const banner = screen.getByTestId('review-form-error');
-expect(banner).toHaveAttribute('role', 'alert');
-fireEvent.click(within(banner).getByTestId('review-form-retry'));
-expect(revalidate).toHaveBeenCalledTimes(1);
-  });
-
-it('renders the eligible branch with the create form when the gate resolves to eligible', () => {
-setAuthenticated();
-setGate({ kind: 'eligible' });
-setList({ items: [] });
-renderWidget();
-
-expect(screen.getByTestId('review-form')).toBeInTheDocument();
-expect(screen.getByTestId('review-form-rating')).toBeInTheDocument();
-expect(screen.getByTestId('review-form-comment')).toBeInTheDocument();
-expect(screen.getByTestId('review-form-submit')).toBeInTheDocument();
-  });
-
-it('renders the existing-review editor when the gate resolves to existing-review', () => {
-const myReview = makeMyReview();
-setAuthenticated();
-setMyReview(myReview);
-setGate({ kind: 'existing-review', review: myReview });
-setList({ items: [] });
-renderWidget();
-
-expect(screen.queryByTestId('review-form')).not.toBeInTheDocument();
-  });
-});
-
-describe('ReviewsWidget — gate transitions after create', () => {
-it('REVIEW_ATTEMPT_REQUIRED race → swaps to the gate notice', () => {
-setAuthenticated();
-setGate({ kind: 'eligible' });
-setList({ items: [] });
-const submit = vi.fn().mockResolvedValue(false);
-useCreateReviewMock.mockReturnValue({
-submit,
-isLoading: false,
-error: null,
-lastOutcome: { kind: 'attempt-required', cause: makeApiError(403, 'REVIEW_ATTEMPT_REQUIRED') },
-reset: vi.fn(),
-    });
-renderWidget();
-
-expect(screen.getByTestId('review-gate-state')).toBeInTheDocument();
-  });
-
-it('REVIEW_CONFLICT race → swaps to a conflict notice', () => {
-setAuthenticated();
-setGate({ kind: 'eligible' });
-setList({ items: [] });
-useCreateReviewMock.mockReturnValue({
-submit: vi.fn().mockResolvedValue(false),
-isLoading: false,
-error: null,
-lastOutcome: { kind: 'conflict', cause: makeApiError(409, 'REVIEW_CONFLICT') },
-reset: vi.fn(),
-    });
-renderWidget();
-
-expect(screen.getByTestId('review-form-conflict')).toBeInTheDocument();
-  });
-
-it('REVIEW_VALIDATION → renders an inline field error and retains the form', () => {
-setAuthenticated();
-setGate({ kind: 'eligible' });
-setList({ items: [] });
-useCreateReviewMock.mockReturnValue({
-submit: vi.fn().mockResolvedValue(false),
-isLoading: false,
-error: makeApiError(422, 'REVIEW_VALIDATION'),
-lastOutcome: { kind: 'validation', cause: makeApiError(422, 'REVIEW_VALIDATION') },
-reset: vi.fn(),
-    });
-renderWidget();
-
-expect(screen.getByTestId('review-form')).toBeInTheDocument();
-expect(screen.getByTestId('review-form-comment')).toHaveAttribute('aria-invalid', 'true');
-  });
-
-it('reverted (5xx) → renders the inline error notice and retains the form', () => {
-setAuthenticated();
-setGate({ kind: 'eligible' });
-setList({ items: [] });
-useCreateReviewMock.mockReturnValue({
-submit: vi.fn().mockResolvedValue(false),
-isLoading: false,
-error: makeApiError(503, 'GLOBAL_INTERNAL_ERROR'),
-lastOutcome: { kind: 'reverted', cause: makeApiError(503, 'GLOBAL_INTERNAL_ERROR') },
-reset: vi.fn(),
-    });
-renderWidget();
-
-expect(screen.getByTestId('review-form')).toBeInTheDocument();
-expect(screen.getByTestId('review-form-submit-error')).toBeInTheDocument();
-  });
-
-it('successful create → the next render (existing-review) replaces the form', () => {
-const myReview = makeMyReview();
-setAuthenticated();
-setGate({ kind: 'existing-review', review: myReview });
-setList({ items: [] });
-renderWidget();
-
-expect(screen.queryByTestId('review-form')).not.toBeInTheDocument();
-  });
-});
-
-describe('ReviewsWidget — owner-only edit + delete', () => {
-it('renders the edit pencil and delete trash for the owner item', () => {
-const myReview = makeMyReview();
-setAuthenticated();
-setMyReview(myReview);
-setGate({ kind: 'existing-review', review: myReview });
-setList({
-items: [makeReview('r-self', { userId: SELF_USER.userId, reviewId: myReview.reviewId })],
-    });
-renderWidget();
-
-expect(screen.getAllByTestId('review-edit-inline-r-self').length).toBeGreaterThan(0);
-expect(screen.getAllByTestId('review-edit-open-r-self').length).toBeGreaterThan(0);
-expect(screen.getAllByTestId('review-delete-open-r-self').length).toBeGreaterThan(0);
-  });
-
-it('does NOT render the helpful toggle for the owner item', () => {
-const myReview = makeMyReview();
-setAuthenticated();
-setMyReview(myReview);
-setGate({ kind: 'existing-review', review: myReview });
-setList({
-items: [makeReview('r-self', { userId: SELF_USER.userId, reviewId: myReview.reviewId })],
-    });
-renderWidget();
-
-expect(screen.queryByTestId('review-helpful-button-r-self')).not.toBeInTheDocument();
-expect(screen.queryByTestId('review-helpful-count-r-self')).not.toBeInTheDocument();
-
-expect(screen.getAllByTestId('review-edit-inline-r-self').length).toBeGreaterThan(0);
-  });
-
-it('opens the typed-confirm dialog and requires the literal "delete" token', () => {
-const myReview = makeMyReview();
-setAuthenticated();
-setMyReview(myReview);
-setGate({ kind: 'existing-review', review: myReview });
-setList({
-items: [makeReview('r-self', { userId: SELF_USER.userId, reviewId: myReview.reviewId })],
-    });
-renderWidget();
-
-const deleteOpenTriggers = screen.getAllByTestId('review-delete-open-r-self');
-fireEvent.click(deleteOpenTriggers[0]);
-
-const dialog = screen.getByTestId(`review-delete-confirm-${myReview.reviewId}`);
-expect(dialog).toBeInTheDocument();
-expect(within(dialog).getByTestId(`review-delete-confirm-${myReview.reviewId}-title`))
-      .toHaveTextContent('Delete your review?');
-expect(within(dialog).getByTestId(`review-delete-confirm-${myReview.reviewId}-body`))
-      .toHaveTextContent(/remove your rating and helpful counts associated with it/);
-
-const confirm = within(dialog).getByTestId(`review-delete-confirm-${myReview.reviewId}-confirm`);
-
-expect(confirm).toBeDisabled();
-
-fireEvent.change(
-within(dialog).getByTestId(`review-delete-confirm-${myReview.reviewId}-typed-input`),
-{ target: { value: 'delete' } },
+  it("renders the gate error banner + retry when the gate resolves to error", () => {
+    const revalidate = vi.fn().mockResolvedValue(undefined);
+    setAuthenticated();
+    setGate(
+      { kind: "error", error: makeApiError(503, "GLOBAL_INTERNAL_ERROR") },
+      revalidate,
     );
-expect(confirm).not.toBeDisabled();
+    setList({ items: [] });
+    renderWidget();
+
+    const banner = screen.getByTestId("review-form-error");
+    expect(banner).toHaveAttribute("role", "alert");
+    fireEvent.click(within(banner).getByTestId("review-form-retry"));
+    expect(revalidate).toHaveBeenCalledTimes(1);
   });
 
-it('confirming the typed delete calls the remove hook once', () => {
-const myReview = makeMyReview();
-const remove = vi.fn().mockResolvedValue(true);
-setAuthenticated();
-setMyReview(myReview);
-setGate({ kind: 'existing-review', review: myReview });
-setList({
-items: [makeReview('r-self', { userId: SELF_USER.userId, reviewId: myReview.reviewId })],
-    });
-useDeleteReviewMock.mockReturnValue({
-remove,
-isLoading: false,
-error: null,
-lastOutcome: null,
-reset: vi.fn(),
-    });
-renderWidget();
+  it("renders the eligible branch with the create form when the gate resolves to eligible", () => {
+    setAuthenticated();
+    setGate({ kind: "eligible" });
+    setList({ items: [] });
+    renderWidget();
 
-const deleteOpenTriggers = screen.getAllByTestId('review-delete-open-r-self');
-fireEvent.click(deleteOpenTriggers[0]);
+    expect(screen.getByTestId("review-form")).toBeInTheDocument();
+    expect(screen.getByTestId("review-form-rating")).toBeInTheDocument();
+    expect(screen.getByTestId("review-form-comment")).toBeInTheDocument();
+    expect(screen.getByTestId("review-form-submit")).toBeInTheDocument();
+  });
 
-const dialog = screen.getByTestId(`review-delete-confirm-${myReview.reviewId}`);
-fireEvent.change(
-within(dialog).getByTestId(`review-delete-confirm-${myReview.reviewId}-typed-input`),
-{ target: { value: 'delete' } },
+  it("renders the existing-review editor when the gate resolves to existing-review", () => {
+    const myReview = makeMyReview();
+    setAuthenticated();
+    setMyReview(myReview);
+    setGate({ kind: "existing-review", review: myReview });
+    setList({ items: [] });
+    renderWidget();
+
+    expect(screen.queryByTestId("review-form")).not.toBeInTheDocument();
+  });
+});
+
+describe("ReviewsWidget — gate transitions after create", () => {
+  it("REVIEW_ATTEMPT_REQUIRED race → swaps to the gate notice", () => {
+    setAuthenticated();
+    setGate({ kind: "eligible" });
+    setList({ items: [] });
+    const submit = vi.fn().mockResolvedValue(false);
+    useCreateReviewMock.mockReturnValue({
+      submit,
+      isLoading: false,
+      error: null,
+      lastOutcome: {
+        kind: "attempt-required",
+        cause: makeApiError(403, "REVIEW_ATTEMPT_REQUIRED"),
+      },
+      reset: vi.fn(),
+    });
+    renderWidget();
+
+    expect(screen.getByTestId("review-gate-state")).toBeInTheDocument();
+  });
+
+  it("REVIEW_CONFLICT race → swaps to a conflict notice", () => {
+    setAuthenticated();
+    setGate({ kind: "eligible" });
+    setList({ items: [] });
+    useCreateReviewMock.mockReturnValue({
+      submit: vi.fn().mockResolvedValue(false),
+      isLoading: false,
+      error: null,
+      lastOutcome: {
+        kind: "conflict",
+        cause: makeApiError(409, "REVIEW_CONFLICT"),
+      },
+      reset: vi.fn(),
+    });
+    renderWidget();
+
+    expect(screen.getByTestId("review-form-conflict")).toBeInTheDocument();
+  });
+
+  it("REVIEW_VALIDATION → renders an inline field error and retains the form", () => {
+    setAuthenticated();
+    setGate({ kind: "eligible" });
+    setList({ items: [] });
+    useCreateReviewMock.mockReturnValue({
+      submit: vi.fn().mockResolvedValue(false),
+      isLoading: false,
+      error: makeApiError(422, "REVIEW_VALIDATION"),
+      lastOutcome: {
+        kind: "validation",
+        cause: makeApiError(422, "REVIEW_VALIDATION"),
+      },
+      reset: vi.fn(),
+    });
+    renderWidget();
+
+    expect(screen.getByTestId("review-form")).toBeInTheDocument();
+    expect(screen.getByTestId("review-form-comment")).toHaveAttribute(
+      "aria-invalid",
+      "true",
     );
-fireEvent.click(within(dialog).getByTestId(`review-delete-confirm-${myReview.reviewId}-confirm`));
-
-expect(remove).toHaveBeenCalledTimes(1);
   });
 
-it('cancel does not call remove', () => {
-const myReview = makeMyReview();
-const remove = vi.fn().mockResolvedValue(true);
-setAuthenticated();
-setMyReview(myReview);
-setGate({ kind: 'existing-review', review: myReview });
-setList({
-items: [makeReview('r-self', { userId: SELF_USER.userId, reviewId: myReview.reviewId })],
+  it("reverted (5xx) → renders the inline error notice and retains the form", () => {
+    setAuthenticated();
+    setGate({ kind: "eligible" });
+    setList({ items: [] });
+    useCreateReviewMock.mockReturnValue({
+      submit: vi.fn().mockResolvedValue(false),
+      isLoading: false,
+      error: makeApiError(503, "GLOBAL_INTERNAL_ERROR"),
+      lastOutcome: {
+        kind: "reverted",
+        cause: makeApiError(503, "GLOBAL_INTERNAL_ERROR"),
+      },
+      reset: vi.fn(),
     });
-useDeleteReviewMock.mockReturnValue({
-remove,
-isLoading: false,
-error: null,
-lastOutcome: null,
-reset: vi.fn(),
-    });
-renderWidget();
+    renderWidget();
 
-const deleteOpenTriggers = screen.getAllByTestId('review-delete-open-r-self');
-fireEvent.click(deleteOpenTriggers[0]);
-fireEvent.click(screen.getByTestId(`review-delete-confirm-${myReview.reviewId}-cancel`));
+    expect(screen.getByTestId("review-form")).toBeInTheDocument();
+    expect(screen.getByTestId("review-form-submit-error")).toBeInTheDocument();
+  });
 
-expect(remove).not.toHaveBeenCalled();
+  it("successful create → the next render (existing-review) replaces the form", () => {
+    const myReview = makeMyReview();
+    setAuthenticated();
+    setGate({ kind: "existing-review", review: myReview });
+    setList({ items: [] });
+    renderWidget();
+
+    expect(screen.queryByTestId("review-form")).not.toBeInTheDocument();
   });
 });
 
-describe('ReviewsWidget — helpful toggle', () => {
-it('renders the helpful button for non-owner items', () => {
-setAuthenticated();
-setList({ items: [makeReview('r-1', { userId: OTHER_USER_ID })] });
-renderWidget();
-
-const button = screen.getByTestId('review-helpful-button-r-1');
-expect(button).toHaveAttribute('aria-pressed', 'false');
-expect(button).toHaveTextContent('0');
-  });
-
-it('routes a helpful click through the optimistic hook', () => {
-const toggle = vi.fn().mockResolvedValue(undefined);
-setAuthenticated();
-setList({ items: [makeReview('r-1', { userId: OTHER_USER_ID, helpfulCount: 4 })] });
-useHelpfulReviewMock.mockReturnValue({
-toggle,
-isPending: false,
-viewerMarkedHelpful: false,
-lastError: null,
-reset: vi.fn(),
+describe("ReviewsWidget — owner-only edit + delete", () => {
+  it("renders the edit pencil and delete trash for the owner item", () => {
+    const myReview = makeMyReview();
+    setAuthenticated();
+    setMyReview(myReview);
+    setGate({ kind: "existing-review", review: myReview });
+    setList({
+      items: [
+        makeReview("r-self", {
+          userId: SELF_USER.userId,
+          reviewId: myReview.reviewId,
+        }),
+      ],
     });
-renderWidget();
+    renderWidget();
 
-fireEvent.click(screen.getByTestId('review-helpful-button-r-1'));
-expect(toggle).toHaveBeenCalledTimes(1);
+    expect(
+      screen.getAllByTestId("review-edit-inline-r-self").length,
+    ).toBeGreaterThan(0);
+    expect(
+      screen.getAllByTestId("review-edit-open-r-self").length,
+    ).toBeGreaterThan(0);
+    expect(
+      screen.getAllByTestId("review-delete-open-r-self").length,
+    ).toBeGreaterThan(0);
   });
 
-it('reflects the marked state via aria-pressed', () => {
-setAuthenticated();
-setList({ items: [makeReview('r-1', { userId: OTHER_USER_ID, helpfulCount: 5 })] });
-useHelpfulReviewMock.mockReturnValue({
-toggle: vi.fn(),
-isPending: false,
-viewerMarkedHelpful: true,
-lastError: null,
-reset: vi.fn(),
+  it("does NOT render the helpful toggle for the owner item", () => {
+    const myReview = makeMyReview();
+    setAuthenticated();
+    setMyReview(myReview);
+    setGate({ kind: "existing-review", review: myReview });
+    setList({
+      items: [
+        makeReview("r-self", {
+          userId: SELF_USER.userId,
+          reviewId: myReview.reviewId,
+        }),
+      ],
     });
-renderWidget();
+    renderWidget();
 
-const button = screen.getByTestId('review-helpful-button-r-1');
-expect(button).toHaveAttribute('aria-pressed', 'true');
-expect(button).toHaveTextContent('5');
+    expect(
+      screen.queryByTestId("review-helpful-button-r-self"),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByTestId("review-helpful-count-r-self"),
+    ).not.toBeInTheDocument();
+
+    expect(
+      screen.getAllByTestId("review-edit-inline-r-self").length,
+    ).toBeGreaterThan(0);
   });
 
-it('disables the button while the optimistic toggle is pending', () => {
-setAuthenticated();
-setList({ items: [makeReview('r-1', { userId: OTHER_USER_ID })] });
-useHelpfulReviewMock.mockReturnValue({
-toggle: vi.fn(),
-isPending: true,
-viewerMarkedHelpful: false,
-lastError: null,
-reset: vi.fn(),
+  it('opens the typed-confirm dialog and requires the literal "delete" token', () => {
+    const myReview = makeMyReview();
+    setAuthenticated();
+    setMyReview(myReview);
+    setGate({ kind: "existing-review", review: myReview });
+    setList({
+      items: [
+        makeReview("r-self", {
+          userId: SELF_USER.userId,
+          reviewId: myReview.reviewId,
+        }),
+      ],
     });
-renderWidget();
+    renderWidget();
 
-const button = screen.getByTestId('review-helpful-button-r-1');
-expect(button).toBeDisabled();
-expect(button).toHaveAttribute('aria-busy', 'true');
+    const deleteOpenTriggers = screen.getAllByTestId(
+      "review-delete-open-r-self",
+    );
+    fireEvent.click(deleteOpenTriggers[0]);
+
+    const dialog = screen.getByTestId(
+      `review-delete-confirm-${myReview.reviewId}`,
+    );
+    expect(dialog).toBeInTheDocument();
+    expect(
+      within(dialog).getByTestId(
+        `review-delete-confirm-${myReview.reviewId}-title`,
+      ),
+    ).toHaveTextContent("Delete your review?");
+    expect(
+      within(dialog).getByTestId(
+        `review-delete-confirm-${myReview.reviewId}-body`,
+      ),
+    ).toHaveTextContent(
+      /remove your rating and helpful counts associated with it/,
+    );
+
+    const confirm = within(dialog).getByTestId(
+      `review-delete-confirm-${myReview.reviewId}-confirm`,
+    );
+
+    expect(confirm).toBeDisabled();
+
+    fireEvent.change(
+      within(dialog).getByTestId(
+        `review-delete-confirm-${myReview.reviewId}-typed-input`,
+      ),
+      { target: { value: "delete" } },
+    );
+    expect(confirm).not.toBeDisabled();
   });
 
-it('hides the helpful toggle on the viewer\'s own review', () => {
-const myReview = makeMyReview();
-setAuthenticated();
-setMyReview(myReview);
-setGate({ kind: 'existing-review', review: myReview });
-setList({
-items: [makeReview('r-self', { userId: SELF_USER.userId, reviewId: myReview.reviewId })],
+  it("confirming the typed delete calls the remove hook once", () => {
+    const myReview = makeMyReview();
+    const remove = vi.fn().mockResolvedValue(true);
+    setAuthenticated();
+    setMyReview(myReview);
+    setGate({ kind: "existing-review", review: myReview });
+    setList({
+      items: [
+        makeReview("r-self", {
+          userId: SELF_USER.userId,
+          reviewId: myReview.reviewId,
+        }),
+      ],
     });
-renderWidget();
-
-expect(screen.queryByTestId('review-helpful-button-r-self')).not.toBeInTheDocument();
-expect(screen.queryByTestId('review-helpful-count-r-self')).not.toBeInTheDocument();
-
-expect(screen.getAllByTestId('review-edit-inline-r-self').length).toBeGreaterThan(0);
-  });
-
-it('renders the read-only count for unauthenticated viewers', () => {
-setUnauthenticated();
-setList({ items: [makeReview('r-1', { userId: OTHER_USER_ID, helpfulCount: 7 })] });
-renderWidget();
-
-expect(screen.queryByTestId('review-helpful-button-r-1')).not.toBeInTheDocument();
-expect(screen.getByTestId('review-helpful-count-r-1')).toBeInTheDocument();
-  });
-
-it('drops rapid-fire clicks via the hook\'s 500 ms cooldown', () => {
-vi.useFakeTimers();
-const toggle = vi.fn().mockResolvedValue(undefined);
-setAuthenticated();
-setList({ items: [makeReview('r-1', { userId: OTHER_USER_ID })] });
-useHelpfulReviewMock.mockReturnValue({
-toggle,
-isPending: false,
-viewerMarkedHelpful: false,
-lastError: null,
-reset: vi.fn(),
+    useDeleteReviewMock.mockReturnValue({
+      remove,
+      isLoading: false,
+      error: null,
+      lastOutcome: null,
+      reset: vi.fn(),
     });
-renderWidget();
+    renderWidget();
 
-const button = screen.getByTestId('review-helpful-button-r-1');
-fireEvent.click(button);
+    const deleteOpenTriggers = screen.getAllByTestId(
+      "review-delete-open-r-self",
+    );
+    fireEvent.click(deleteOpenTriggers[0]);
 
-expect(button).not.toBeDisabled();
-vi.useRealTimers();
+    const dialog = screen.getByTestId(
+      `review-delete-confirm-${myReview.reviewId}`,
+    );
+    fireEvent.change(
+      within(dialog).getByTestId(
+        `review-delete-confirm-${myReview.reviewId}-typed-input`,
+      ),
+      { target: { value: "delete" } },
+    );
+    fireEvent.click(
+      within(dialog).getByTestId(
+        `review-delete-confirm-${myReview.reviewId}-confirm`,
+      ),
+    );
+
+    expect(remove).toHaveBeenCalledTimes(1);
+  });
+
+  it("cancel does not call remove", () => {
+    const myReview = makeMyReview();
+    const remove = vi.fn().mockResolvedValue(true);
+    setAuthenticated();
+    setMyReview(myReview);
+    setGate({ kind: "existing-review", review: myReview });
+    setList({
+      items: [
+        makeReview("r-self", {
+          userId: SELF_USER.userId,
+          reviewId: myReview.reviewId,
+        }),
+      ],
+    });
+    useDeleteReviewMock.mockReturnValue({
+      remove,
+      isLoading: false,
+      error: null,
+      lastOutcome: null,
+      reset: vi.fn(),
+    });
+    renderWidget();
+
+    const deleteOpenTriggers = screen.getAllByTestId(
+      "review-delete-open-r-self",
+    );
+    fireEvent.click(deleteOpenTriggers[0]);
+    fireEvent.click(
+      screen.getByTestId(`review-delete-confirm-${myReview.reviewId}-cancel`),
+    );
+
+    expect(remove).not.toHaveBeenCalled();
   });
 });
 
-describe('ReviewsWidget — defensive REVIEW_ALREADY_REPORTED', () => {
-it('does not surface any report / admin link when the error path is hit', () => {
-setAuthenticated();
-setGate({ kind: 'eligible' });
-setList({ items: [] });
-useCreateReviewMock.mockReturnValue({
-submit: vi.fn().mockResolvedValue(false),
-isLoading: false,
-error: makeApiError(409, 'REVIEW_ALREADY_REPORTED'),
-lastOutcome: { kind: 'reverted', cause: makeApiError(409, 'REVIEW_ALREADY_REPORTED') },
-reset: vi.fn(),
+describe("ReviewsWidget — helpful toggle", () => {
+  it("renders the helpful button for non-owner items", () => {
+    setAuthenticated();
+    setList({ items: [makeReview("r-1", { userId: OTHER_USER_ID })] });
+    renderWidget();
+
+    const button = screen.getByTestId("review-helpful-button-r-1");
+    expect(button).toHaveAttribute("aria-pressed", "false");
+    expect(button).toHaveTextContent("0");
+  });
+
+  it("routes a helpful click through the optimistic hook", () => {
+    const toggle = vi.fn().mockResolvedValue(undefined);
+    setAuthenticated();
+    setList({
+      items: [makeReview("r-1", { userId: OTHER_USER_ID, helpfulCount: 4 })],
     });
-renderWidget();
+    useHelpfulReviewMock.mockReturnValue({
+      toggle,
+      isPending: false,
+      viewerMarkedHelpful: false,
+      lastError: null,
+      reset: vi.fn(),
+    });
+    renderWidget();
 
-const root = screen.getByTestId('reviews-widget');
-expect(within(root).queryByText(/report/i)).not.toBeInTheDocument();
-expect(within(root).queryByText(/moderate/i)).not.toBeInTheDocument();
-expect(within(root).queryByText(/admin/i)).not.toBeInTheDocument();
-expect(within(root).queryByRole('link', { name: /report/i })).toBeNull();
+    fireEvent.click(screen.getByTestId("review-helpful-button-r-1"));
+    expect(toggle).toHaveBeenCalledTimes(1);
+  });
+
+  it("reflects the marked state via aria-pressed", () => {
+    setAuthenticated();
+    setList({
+      items: [makeReview("r-1", { userId: OTHER_USER_ID, helpfulCount: 5 })],
+    });
+    useHelpfulReviewMock.mockReturnValue({
+      toggle: vi.fn(),
+      isPending: false,
+      viewerMarkedHelpful: true,
+      lastError: null,
+      reset: vi.fn(),
+    });
+    renderWidget();
+
+    const button = screen.getByTestId("review-helpful-button-r-1");
+    expect(button).toHaveAttribute("aria-pressed", "true");
+    expect(button).toHaveTextContent("5");
+  });
+
+  it("disables the button while the optimistic toggle is pending", () => {
+    setAuthenticated();
+    setList({ items: [makeReview("r-1", { userId: OTHER_USER_ID })] });
+    useHelpfulReviewMock.mockReturnValue({
+      toggle: vi.fn(),
+      isPending: true,
+      viewerMarkedHelpful: false,
+      lastError: null,
+      reset: vi.fn(),
+    });
+    renderWidget();
+
+    const button = screen.getByTestId("review-helpful-button-r-1");
+    expect(button).toBeDisabled();
+    expect(button).toHaveAttribute("aria-busy", "true");
+  });
+
+  it("hides the helpful toggle on the viewer's own review", () => {
+    const myReview = makeMyReview();
+    setAuthenticated();
+    setMyReview(myReview);
+    setGate({ kind: "existing-review", review: myReview });
+    setList({
+      items: [
+        makeReview("r-self", {
+          userId: SELF_USER.userId,
+          reviewId: myReview.reviewId,
+        }),
+      ],
+    });
+    renderWidget();
+
+    expect(
+      screen.queryByTestId("review-helpful-button-r-self"),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByTestId("review-helpful-count-r-self"),
+    ).not.toBeInTheDocument();
+
+    expect(
+      screen.getAllByTestId("review-edit-inline-r-self").length,
+    ).toBeGreaterThan(0);
+  });
+
+  it("renders the read-only count for unauthenticated viewers", () => {
+    setUnauthenticated();
+    setList({
+      items: [makeReview("r-1", { userId: OTHER_USER_ID, helpfulCount: 7 })],
+    });
+    renderWidget();
+
+    expect(
+      screen.queryByTestId("review-helpful-button-r-1"),
+    ).not.toBeInTheDocument();
+    expect(screen.getByTestId("review-helpful-count-r-1")).toBeInTheDocument();
+  });
+
+  it("drops rapid-fire clicks via the hook's 500 ms cooldown", () => {
+    vi.useFakeTimers();
+    const toggle = vi.fn().mockResolvedValue(undefined);
+    setAuthenticated();
+    setList({ items: [makeReview("r-1", { userId: OTHER_USER_ID })] });
+    useHelpfulReviewMock.mockReturnValue({
+      toggle,
+      isPending: false,
+      viewerMarkedHelpful: false,
+      lastError: null,
+      reset: vi.fn(),
+    });
+    renderWidget();
+
+    const button = screen.getByTestId("review-helpful-button-r-1");
+    fireEvent.click(button);
+
+    expect(button).not.toBeDisabled();
+    vi.useRealTimers();
   });
 });
 
-describe('ReviewsWidget — cache isolation', () => {
-it('renders empty list when the provider is empty', () => {
-setUnauthenticated();
-setList({ items: [] });
-renderWidget();
+describe("ReviewsWidget — defensive REVIEW_ALREADY_REPORTED", () => {
+  it("does not surface any report / admin link when the error path is hit", () => {
+    setAuthenticated();
+    setGate({ kind: "eligible" });
+    setList({ items: [] });
+    useCreateReviewMock.mockReturnValue({
+      submit: vi.fn().mockResolvedValue(false),
+      isLoading: false,
+      error: makeApiError(409, "REVIEW_ALREADY_REPORTED"),
+      lastOutcome: {
+        kind: "reverted",
+        cause: makeApiError(409, "REVIEW_ALREADY_REPORTED"),
+      },
+      reset: vi.fn(),
+    });
+    renderWidget();
 
-expect(screen.getByTestId('reviews-list-empty')).toBeInTheDocument();
-  });
-
-it('does not leak prior reviews into a fresh widget mount', () => {
-
-setUnauthenticated();
-setList({ items: [makeReview('r-leak')] });
-const first = renderWidget();
-expect(first.queryByTestId('review-item-r-leak')).toBeTruthy();
-first.unmount();
-
-setList({ items: [] });
-renderWidget();
-expect(screen.queryByTestId('review-item-r-leak')).not.toBeInTheDocument();
+    const root = screen.getByTestId("reviews-widget");
+    expect(within(root).queryByText(/report/i)).not.toBeInTheDocument();
+    expect(within(root).queryByText(/moderate/i)).not.toBeInTheDocument();
+    expect(within(root).queryByText(/admin/i)).not.toBeInTheDocument();
+    expect(within(root).queryByRole("link", { name: /report/i })).toBeNull();
   });
 });
 
-describe('ReviewsWidget — mutation revalidation', () => {
-it('does not force a full quiz-detail page reload on a successful create', () => {
+describe("ReviewsWidget — cache isolation", () => {
+  it("renders empty list when the provider is empty", () => {
+    setUnauthenticated();
+    setList({ items: [] });
+    renderWidget();
 
-const myReview = makeMyReview();
-setAuthenticated();
-setGate({ kind: 'existing-review', review: myReview });
-setList({ items: [] });
-renderWidget();
+    expect(screen.getByTestId("reviews-list-empty")).toBeInTheDocument();
+  });
 
-expect(screen.queryByTestId('review-form')).not.toBeInTheDocument();
-expect(screen.getByTestId('reviews-widget')).toBeInTheDocument();
+  it("does not leak prior reviews into a fresh widget mount", () => {
+    setUnauthenticated();
+    setList({ items: [makeReview("r-leak")] });
+    const first = renderWidget();
+    expect(first.queryByTestId("review-item-r-leak")).toBeTruthy();
+    first.unmount();
+
+    setList({ items: [] });
+    renderWidget();
+    expect(screen.queryByTestId("review-item-r-leak")).not.toBeInTheDocument();
+  });
+});
+
+describe("ReviewsWidget — mutation revalidation", () => {
+  it("does not force a full quiz-detail page reload on a successful create", () => {
+    const myReview = makeMyReview();
+    setAuthenticated();
+    setGate({ kind: "existing-review", review: myReview });
+    setList({ items: [] });
+    renderWidget();
+
+    expect(screen.queryByTestId("review-form")).not.toBeInTheDocument();
+    expect(screen.getByTestId("reviews-widget")).toBeInTheDocument();
   });
 });

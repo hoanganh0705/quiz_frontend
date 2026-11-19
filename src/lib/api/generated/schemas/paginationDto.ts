@@ -1,10 +1,7 @@
-
-
 export interface PaginationDto {
+  limit: number;
 
-limit: number;
+  offset: number;
 
-offset: number;
-
-hasMore: boolean;
+  hasMore: boolean;
 }

@@ -1,8 +1,5 @@
-
-
 export interface ReviewDashboardFavoriteCategoryDto {
+  categoryId: string;
 
-categoryId: string;
-
-name: string;
+  name: string;
 }

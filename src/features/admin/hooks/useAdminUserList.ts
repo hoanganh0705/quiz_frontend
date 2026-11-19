@@ -1,17 +1,17 @@
-'use client';
+"use client";
 
-import { useCallback, useState } from 'react';
-import useSWR from 'swr';
+import { useCallback, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { getQueryClient } from "@/providers/QueryProvider";
 
 import {
   listAdminUsers,
   createAdminUser,
   updateAdminUserRole,
   deleteAdminUser,
-  type AdminUserDto,
   type AdminUserQuery,
   type CreateAdminUserInput,
-} from '../services/user-admin.service';
+} from "../services/user-admin.service";
 
 export function useAdminUserList(initialQuery: AdminUserQuery = {}) {
   const [query, setQuery] = useState<AdminUserQuery>({
@@ -20,15 +20,26 @@ export function useAdminUserList(initialQuery: AdminUserQuery = {}) {
     ...initialQuery,
   });
 
-  const swrKey = ['admin', 'users', query.page, query.limit, query.search, query.role, query.isVerified, query.sortBy, query.sortOrder];
+  const queryKey = [
+    "admin",
+    "users",
+    query.page,
+    query.limit,
+    query.search,
+    query.role,
+    query.isVerified,
+    query.sortBy,
+    query.sortOrder,
+  ] as const;
 
-  const { data, error, isLoading, isValidating, mutate } = useSWR(
-    swrKey,
-    () => listAdminUsers(query),
+  const { data, error, isLoading, isFetching, refetch } = useQuery(
     {
-      revalidateOnFocus: false,
-      dedupingInterval: 5000,
+      queryKey,
+      queryFn: () => listAdminUsers(query),
+      refetchOnWindowFocus: false,
+      staleTime: 5000,
     },
+    getQueryClient(),
   );
 
   const setPage = useCallback((page: number) => {
@@ -36,11 +47,23 @@ export function useAdminUserList(initialQuery: AdminUserQuery = {}) {
   }, []);
 
   const setSearch = useCallback((search: string) => {
-    setQuery((prev) => ({ ...prev, search: search.trim() || undefined, page: 1 }));
+    setQuery((prev) => ({
+      ...prev,
+      search: search.trim() || undefined,
+      page: 1,
+    }));
   }, []);
 
-  const setRole = useCallback((role: 'user' | 'moderator' | 'admin' | undefined) => {
-    setQuery((prev) => ({ ...prev, role, page: 1 }));
+  const setRole = useCallback(
+    (role: "user" | "moderator" | "admin" | undefined) => {
+      setQuery((prev) => ({ ...prev, role, page: 1 }));
+    },
+    [],
+  );
+
+  const mutate = useCallback(async () => {
+    const qc = getQueryClient();
+    await qc.invalidateQueries({ queryKey: ["admin", "users"] });
   }, []);
 
   const createUser = useCallback(
@@ -53,7 +76,7 @@ export function useAdminUserList(initialQuery: AdminUserQuery = {}) {
   );
 
   const updateRole = useCallback(
-    async (userId: string, role: 'user' | 'moderator' | 'admin') => {
+    async (userId: string, role: "user" | "moderator" | "admin") => {
       const updated = await updateAdminUserRole(userId, role);
       await mutate();
       return updated;
@@ -70,20 +93,31 @@ export function useAdminUserList(initialQuery: AdminUserQuery = {}) {
     [mutate],
   );
 
+  const pagination = {
+    page: query.page ?? 1,
+    limit: query.limit ?? 20,
+    total: data?.meta?.total ?? 0,
+    totalPages: data?.meta?.totalPages ?? 1,
+    hasMore: (query.page ?? 1) < (data?.meta?.totalPages ?? 1),
+  };
+
   return {
-    users: data?.data ?? ([] as AdminUserDto[]),
-    pagination: data?.meta?.pagination,
-    isLoading,
-    isValidating,
-    error: error as Error | null,
+    users: data?.data ?? [],
+    total: data?.meta?.total ?? 0,
+    page: query.page ?? 1,
+    limit: query.limit ?? 20,
+    totalPages: data?.meta?.totalPages ?? 1,
+    pagination,
     query,
+    isLoading: isLoading && data === undefined,
+    isValidating: isFetching,
+    error: error ?? null,
     setPage,
     setSearch,
     setRole,
-    setQuery,
     createUser,
     updateRole,
     removeUser,
-    refresh: mutate,
+    refresh: () => mutate(),
   };
 }

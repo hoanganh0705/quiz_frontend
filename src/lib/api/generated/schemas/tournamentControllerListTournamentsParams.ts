@@ -1,21 +1,18 @@
-
-
-import type { TournamentControllerListTournamentsStatus } from './tournamentControllerListTournamentsStatus';
-import type { TournamentControllerListTournamentsDifficulty } from './tournamentControllerListTournamentsDifficulty';
+import type { TournamentControllerListTournamentsStatus } from "./tournamentControllerListTournamentsStatus";
+import type { TournamentControllerListTournamentsDifficulty } from "./tournamentControllerListTournamentsDifficulty";
 
 export type TournamentControllerListTournamentsParams = {
+  cursor?: string | null;
 
-cursor?: string | null;
+  limit?: number | null;
 
-limit?: number | null;
+  status?: TournamentControllerListTournamentsStatus;
 
-status?: TournamentControllerListTournamentsStatus;
+  difficulty?: TournamentControllerListTournamentsDifficulty;
 
-difficulty?: TournamentControllerListTournamentsDifficulty;
+  categoryId?: string | null;
 
-categoryId?: string | null;
+  tagIds?: string[] | null;
 
-tagIds?: string[] | null;
-
-creatorId?: string | null;
+  creatorId?: string | null;
 };

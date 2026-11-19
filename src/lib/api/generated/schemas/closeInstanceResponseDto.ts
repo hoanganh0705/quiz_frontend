@@ -1,6 +1,3 @@
-
-
 export interface CloseInstanceResponseDto {
-
-message: string;
+  message: string;
 }

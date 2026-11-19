@@ -1,1 +1,1 @@
-export * from './instances.service';
+export * from "./instances.service";

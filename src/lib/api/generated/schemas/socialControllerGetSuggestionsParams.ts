@@ -1,8 +1,5 @@
-
-
 export type SocialControllerGetSuggestionsParams = {
+  cursor?: string;
 
-cursor?: string;
-
-limit?: number;
+  limit?: number;
 };

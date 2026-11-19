@@ -64,10 +64,7 @@ export const REGISTRATION_STATE_TOKENS: Record<
 
 /* ─── Leaderboard rank colors ───────────────────────────────────── */
 
-export const LEADERBOARD_RANK_TOKENS: Record<
-  1 | 2 | 3,
-  string
-> = {
+export const LEADERBOARD_RANK_TOKENS: Record<1 | 2 | 3, string> = {
   1: "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-200",
   2: "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200",
   3: "bg-orange-100 text-orange-800 dark:bg-orange-900/40 dark:text-orange-200",
@@ -93,10 +90,7 @@ export const CAPACITY_TOKENS = {
 /* ─── Header stat card accent colors ───────────────────────────── */
 
 export const HEADER_STAT_ICONS: Record<
-  | "participants"
-  | "prize"
-  | "host"
-  | "difficulty",
+  "participants" | "prize" | "host" | "difficulty",
   { bg: string; icon: string }
 > = {
   participants: {

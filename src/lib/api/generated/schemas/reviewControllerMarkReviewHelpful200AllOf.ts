@@ -1,7 +1,5 @@
-
-
-import type { HelpfulReviewResponseDto } from './helpfulReviewResponseDto';
+import type { HelpfulReviewResponseDto } from "./helpfulReviewResponseDto";
 
 export type ReviewControllerMarkReviewHelpful200AllOf = {
-data?: HelpfulReviewResponseDto;
+  data?: HelpfulReviewResponseDto;
 };

@@ -7,47 +7,43 @@ import { QuizHistoryList } from "./QuizHistoryList";
 import { useAttemptHistoryFilters } from "@/features/attempts/hooks/useAttemptHistoryFilters";
 
 export interface QuizHistoryPageProps {
-
-className?: string;
+  className?: string;
 }
 
 export function QuizHistoryPage(
-props: QuizHistoryPageProps,
+  props: QuizHistoryPageProps,
 ): React.ReactElement {
-const { className } = props;
-const { filters, setFilter, resetFilters } = useAttemptHistoryFilters();
+  const { className } = props;
+  const { filters, setFilter, resetFilters } = useAttemptHistoryFilters();
 
-return (
-<div
-className={className}
-data-testid="quiz-history-page"
-    >
-{/* Page header */}
-<div className="mb-6 space-y-1">
-<h1
-className="text-2xl font-bold text-foreground"
-data-testid="quiz-history-page-heading"
+  return (
+    <div className={className} data-testid="quiz-history-page">
+      {/* Page header */}
+      <div className="mb-6 space-y-1">
+        <h1
+          className="text-2xl font-bold text-foreground"
+          data-testid="quiz-history-page-heading"
         >
-Your quiz history
+          Your quiz history
         </h1>
-<p
-className="text-sm text-muted-foreground"
-data-testid="quiz-history-page-subheading"
+        <p
+          className="text-sm text-muted-foreground"
+          data-testid="quiz-history-page-subheading"
         >
-Review your past quiz attempts, scores, and progress.
+          Review your past quiz attempts, scores, and progress.
         </p>
-</div>
+      </div>
 
-{/* Filter bar */}
-<QuizHistoryFilterBar
-filters={filters}
-onFilterChange={setFilter}
-onReset={resetFilters}
-className="mb-6"
+      {/* Filter bar */}
+      <QuizHistoryFilterBar
+        filters={filters}
+        onFilterChange={setFilter}
+        onReset={resetFilters}
+        className="mb-6"
       />
 
-{/* Paginated list */}
-<QuizHistoryList filters={filters} />
-</div>
+      {/* Paginated list */}
+      <QuizHistoryList filters={filters} />
+    </div>
   );
 }

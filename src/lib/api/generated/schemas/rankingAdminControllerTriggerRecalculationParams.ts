@@ -1,8 +1,5 @@
-
-
-import type { RankingAdminControllerTriggerRecalculationPeriod } from './rankingAdminControllerTriggerRecalculationPeriod';
+import type { RankingAdminControllerTriggerRecalculationPeriod } from "./rankingAdminControllerTriggerRecalculationPeriod";
 
 export type RankingAdminControllerTriggerRecalculationParams = {
-
-period?: RankingAdminControllerTriggerRecalculationPeriod;
+  period?: RankingAdminControllerTriggerRecalculationPeriod;
 };

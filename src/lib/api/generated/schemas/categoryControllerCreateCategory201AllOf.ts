@@ -1,7 +1,5 @@
-
-
-import type { CategoryResponseDto } from './categoryResponseDto';
+import type { CategoryResponseDto } from "./categoryResponseDto";
 
 export type CategoryControllerCreateCategory201AllOf = {
-data?: CategoryResponseDto;
+  data?: CategoryResponseDto;
 };

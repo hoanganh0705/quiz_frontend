@@ -1,12 +1,9 @@
-
-
 export const COIN_SPEND_AMOUNTS = {
+  TIP_STANDARD: 25,
 
-TIP_STANDARD: 25,
+  FLAIR_7_DAY: 100,
 
-FLAIR_7_DAY: 100,
-
-SUPPRESS_RECOMMENDED_14_DAY: 50,
+  SUPPRESS_RECOMMENDED_14_DAY: 50,
 } as const;
 
 export type CoinSpendAmountKey = keyof typeof COIN_SPEND_AMOUNTS;

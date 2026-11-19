@@ -1,15 +1,12 @@
-
-
-import type { AuthorDtoDisplayName } from './authorDtoDisplayName';
-import type { AuthorDtoAvatarUrl } from './authorDtoAvatarUrl';
+import type { AuthorDtoDisplayName } from "./authorDtoDisplayName";
+import type { AuthorDtoAvatarUrl } from "./authorDtoAvatarUrl";
 
 export interface AuthorDto {
+  userId: string;
 
-userId: string;
+  username: string;
 
-username: string;
+  displayName: AuthorDtoDisplayName;
 
-displayName: AuthorDtoDisplayName;
-
-avatarUrl: AuthorDtoAvatarUrl;
+  avatarUrl: AuthorDtoAvatarUrl;
 }

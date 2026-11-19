@@ -1,11 +1,9 @@
-
-
 export {
-createBroadcastChannel,
-__resetBroadcastAvailabilityForTest,
-} from './create-channel';
+  createBroadcastChannel,
+  __resetBroadcastAvailabilityForTest,
+} from "./create-channel";
 export type {
-BroadcastChannelApi,
-ChannelSubscriber,
-ChannelValidator,
-} from './create-channel';
+  BroadcastChannelApi,
+  ChannelSubscriber,
+  ChannelValidator,
+} from "./create-channel";

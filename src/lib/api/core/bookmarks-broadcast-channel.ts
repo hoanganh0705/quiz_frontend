@@ -1,68 +1,66 @@
+import { createBroadcastChannel } from "@/lib/broadcast";
 
+export const BOOKMARKS_CHANNEL_NAME = "bookmarks";
 
-import { createBroadcastChannel } from '@/lib/broadcast';
-
-export const BOOKMARKS_CHANNEL_NAME = 'bookmarks';
-
-export type BookmarkEventType = 'bookmarks/invalidated';
+export type BookmarkEventType = "bookmarks/invalidated";
 
 export interface BaseBookmarkEvent {
-type: BookmarkEventType;
+  type: BookmarkEventType;
 
-tabId: string;
+  tabId: string;
 
-timestamp: number;
+  timestamp: number;
 }
 
 export interface BookmarksInvalidatedEvent extends BaseBookmarkEvent {
-type: 'bookmarks/invalidated';
+  type: "bookmarks/invalidated";
 
-userId: string;
+  userId: string;
 }
 
 export type BookmarkEvent = BookmarksInvalidatedEvent;
 
-const bookmarksChannel = createBroadcastChannel<BookmarkEvent>(BOOKMARKS_CHANNEL_NAME, {
-validate: (data): BookmarkEvent | null => {
-if (typeof data !== 'object' || data === null) return null;
-const d = data as Partial<BookmarksInvalidatedEvent>;
-if (d.type !== 'bookmarks/invalidated') return null;
-if (typeof d.tabId !== 'string' || d.tabId.length === 0) return null;
-if (typeof d.userId !== 'string' || d.userId.length === 0) return null;
-return d as BookmarkEvent;
+const bookmarksChannel = createBroadcastChannel<BookmarkEvent>(
+  BOOKMARKS_CHANNEL_NAME,
+  {
+    validate: (data): BookmarkEvent | null => {
+      if (typeof data !== "object" || data === null) return null;
+      const d = data as Partial<BookmarksInvalidatedEvent>;
+      if (d.type !== "bookmarks/invalidated") return null;
+      if (typeof d.tabId !== "string" || d.tabId.length === 0) return null;
+      if (typeof d.userId !== "string" || d.userId.length === 0) return null;
+      return d as BookmarkEvent;
+    },
   },
-});
+);
 
 export function closeBookmarksChannel(): void {
-bookmarksChannel.closeChannel();
+  bookmarksChannel.closeChannel();
 }
 
 export function getBookmarksChannel(): BroadcastChannel | null {
-return bookmarksChannel.getChannel();
+  return bookmarksChannel.getChannel();
 }
 
 export function initBookmarksChannel(): boolean {
-
-return bookmarksChannel.isAvailable();
+  return bookmarksChannel.isAvailable();
 }
 
 export function subscribeToBookmarkEvents(
-handler: (event: BookmarkEvent) => void,
+  handler: (event: BookmarkEvent) => void,
 ): () => void {
-return bookmarksChannel.subscribe(handler);
+  return bookmarksChannel.subscribe(handler);
 }
 
 export function broadcastBookmarksInvalidated(params: {
-userId: string;
+  userId: string;
 }): void {
-
-bookmarksChannel.ensureChannel();
-if (!params.userId || typeof params.userId !== 'string') {
-
-return;
+  bookmarksChannel.ensureChannel();
+  if (!params.userId || typeof params.userId !== "string") {
+    return;
   }
-bookmarksChannel.publish({
-type: 'bookmarks/invalidated',
-userId: params.userId,
+  bookmarksChannel.publish({
+    type: "bookmarks/invalidated",
+    userId: params.userId,
   });
 }

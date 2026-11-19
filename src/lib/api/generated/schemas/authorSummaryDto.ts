@@ -1,12 +1,9 @@
-
-
 export interface AuthorSummaryDto {
+  userId: string;
 
-userId: string;
+  username: string;
 
-username: string;
+  displayName?: string | null;
 
-displayName?: string | null;
-
-avatarUrl?: string | null;
+  avatarUrl?: string | null;
 }

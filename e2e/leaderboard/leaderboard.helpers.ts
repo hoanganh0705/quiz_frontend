@@ -1,14 +1,11 @@
 /**
  * `leaderboard.helpers.ts` — shared stubbing + fixture helpers for the
- * leaderboard acceptance suite (Story 3.11 / TKT-3.11.F2).
+ * leaderboard acceptance suite.
  *
- * Source epic:   Story 3.11 — `/leaderboard` read-only render.
- * Source ticket: TKT-3.11.F2.
  *
  * The helpers centralise the leaderboard endpoint so the acceptance
  * spec stays focused on assertions instead of boilerplate. All
- * shapes mirror the orval-generated wire output (TKT-3.11.A1 §1 +
- * §2). The endpoint stubbed here is the one Story 3.11 actually
+ * shapes mirror the orval-generated wire output. The endpoint stubbed here is the one feature actually
  * hits — `GET /api/v1/leaderboard`. The endpoint is offset-paginated
  * (drift A1 #1) — the SWR key includes the period, the hook
  * advances the offset on load-more.
@@ -27,35 +24,35 @@
  * `userPosition` is always `null` on the public variant).
  */
 
-import type { Page } from '@playwright/test';
+import type { Page } from "@playwright/test";
 
 // ──────────────────────────────────────────────────────────────────────
 // Seed fixtures
 // ──────────────────────────────────────────────────────────────────────
 
-export const SELF_USER_ID = '0192f4d8-cccc-7000-8000-000000000001';
+export const SELF_USER_ID = "0192f4d8-cccc-7000-8000-000000000001";
 
 const RAW_USER_IDS = [
-  '0192f4d8-aaaa-7000-8000-000000000001',
-  '0192f4d8-aaaa-7000-8000-000000000002',
-  '0192f4d8-aaaa-7000-8000-000000000003',
-  '0192f4d8-aaaa-7000-8000-000000000004',
-  '0192f4d8-aaaa-7000-8000-000000000005',
-  '0192f4d8-aaaa-7000-8000-000000000006',
-  '0192f4d8-aaaa-7000-8000-000000000007',
-  '0192f4d8-aaaa-7000-8000-000000000008',
+  "0192f4d8-aaaa-7000-8000-000000000001",
+  "0192f4d8-aaaa-7000-8000-000000000002",
+  "0192f4d8-aaaa-7000-8000-000000000003",
+  "0192f4d8-aaaa-7000-8000-000000000004",
+  "0192f4d8-aaaa-7000-8000-000000000005",
+  "0192f4d8-aaaa-7000-8000-000000000006",
+  "0192f4d8-aaaa-7000-8000-000000000007",
+  "0192f4d8-aaaa-7000-8000-000000000008",
 ];
 
 export const RAW_TOP_USER_IDS = RAW_USER_IDS.slice(0, 8);
 export const RAW_NEXT_PAGE_USER_IDS = [
-  '0192f4d8-aaaa-7000-8000-000000000009',
-  '0192f4d8-aaaa-7000-8000-000000000010',
-  '0192f4d8-aaaa-7000-8000-000000000011',
-  '0192f4d8-aaaa-7000-8000-000000000012',
+  "0192f4d8-aaaa-7000-8000-000000000009",
+  "0192f4d8-aaaa-7000-8000-000000000010",
+  "0192f4d8-aaaa-7000-8000-000000000011",
+  "0192f4d8-aaaa-7000-8000-000000000012",
 ];
 
 // ──────────────────────────────────────────────────────────────────────
-// DTO factories — wire-shape parity per TKT-3.11.A1 §6
+// DTO factories — wire-shape parity per  §6
 // ──────────────────────────────────────────────────────────────────────
 
 export interface LeaderboardEntryDto {
@@ -70,7 +67,7 @@ export interface LeaderboardEntryDto {
 }
 
 export interface PeriodInfoDto {
-  type: 'weekly' | 'monthly' | 'all_time';
+  type: "weekly" | "monthly" | "all_time";
   start: string;
   end: string | null;
   resetInSeconds: number;
@@ -93,7 +90,7 @@ export interface LeaderboardResponseDto {
 export interface StubLeaderboardOptions {
   /**
    * Default page size the stub returns. Matches the LEADERBOARD_PAGE_LIMIT
-   * in `useLeaderboard` (TKT-3.11.B1).
+   * in `useLeaderboard`.
    */
   pageLimit?: number;
   /**
@@ -117,7 +114,7 @@ export function makeEntry(
     rank,
     denseRank: rank,
     userId,
-    displayName: isSelf ? 'You' : `Player ${rank}`,
+    displayName: isSelf ? "You" : `Player ${rank}`,
     avatarUrl: null,
     xp: 10_000 - rank * 50,
     isTied: false,
@@ -132,7 +129,7 @@ export function makeEntry(
  */
 export function makeResponse(
   entries: LeaderboardEntryDto[],
-  period: PeriodInfoDto['type'],
+  period: PeriodInfoDto["type"],
   options: { hasMore: boolean; offset: number; limit: number },
 ): LeaderboardResponseDto {
   return {
@@ -141,9 +138,9 @@ export function makeResponse(
     userPosition: null,
     period: {
       type: period,
-      start: '2026-07-27T00:00:00.000Z',
-      end: period === 'all_time' ? null : '2026-08-03T00:00:00.000Z',
-      resetInSeconds: period === 'all_time' ? 0 : 86400,
+      start: "2026-07-27T00:00:00.000Z",
+      end: period === "all_time" ? null : "2026-08-03T00:00:00.000Z",
+      resetInSeconds: period === "all_time" ? 0 : 86400,
     },
     pagination: {
       limit: options.limit,
@@ -172,45 +169,37 @@ export async function stubLeaderboard(
   page: Page,
   options: StubLeaderboardOptions & { authenticate?: boolean } = {},
 ): Promise<void> {
-  const {
-    pageLimit = 20,
-    authenticate = true,
-  } = options;
+  const { pageLimit = 20, authenticate = true } = options;
 
   // The mutable in-memory state — the stub holds the seed list so
   // pagination is reproducible without re-stubbing.
   const allUserIds = [...RAW_TOP_USER_IDS, ...RAW_NEXT_PAGE_USER_IDS];
 
-  await page.route('**/api/v1/leaderboard**', async (route) => {
+  await page.route("**/api/v1/leaderboard**", async (route) => {
     const url = new URL(route.request().url());
 
-    if (url.pathname !== '/api/v1/leaderboard') {
+    if (url.pathname !== "/api/v1/leaderboard") {
       // Any sibling path (`/me`, `/me/rank`, `/me/movement`,
       // etc.) returns 404 — the production surface never reads
-      // them in Story 3.11.
+      // them in feature.
       await route.fulfill({
         status: 404,
-        contentType: 'application/json',
+        contentType: "application/json",
         body: JSON.stringify({
-          type: 'about:blank',
-          title: 'Not Found',
+          type: "about:blank",
+          title: "Not Found",
           status: 404,
-          extensions: { code: 'GLOBAL_NOT_FOUND' },
+          extensions: { code: "GLOBAL_NOT_FOUND" },
         }),
       });
       return;
     }
 
-    const period = (url.searchParams.get('period') ?? 'weekly') as
-      | 'weekly'
-      | 'monthly'
-      | 'all_time';
-    const offset = Number.parseInt(
-      url.searchParams.get('offset') ?? '0',
-      10,
-    );
+    const period = (url.searchParams.get("period") ?? "weekly") as
+      "weekly" | "monthly" | "all_time";
+    const offset = Number.parseInt(url.searchParams.get("offset") ?? "0", 10);
     const limit = Number.parseInt(
-      url.searchParams.get('limit') ?? `${pageLimit}`,
+      url.searchParams.get("limit") ?? `${pageLimit}`,
       10,
     );
 
@@ -235,12 +224,14 @@ export async function stubLeaderboard(
     // open decision #3 from `PHASE_3_EPICS.md` line 1325.
     await route.fulfill({
       status: 200,
-      contentType: 'application/json',
-      body: JSON.stringify({ data: makeResponse(entries, period, {
-        hasMore,
-        offset,
-        limit,
-      }) }),
+      contentType: "application/json",
+      body: JSON.stringify({
+        data: makeResponse(entries, period, {
+          hasMore,
+          offset,
+          limit,
+        }),
+      }),
     });
   });
 }

@@ -1,46 +1,43 @@
-
-
-import type { QuizResponseDtoCreator } from './quizResponseDtoCreator';
-import type { QuizResponseDtoPublishedVersion } from './quizResponseDtoPublishedVersion';
-import type { QuizTagDto } from './quizTagDto';
+import type { QuizResponseDtoCreator } from "./quizResponseDtoCreator";
+import type { QuizResponseDtoPublishedVersion } from "./quizResponseDtoPublishedVersion";
+import type { QuizTagDto } from "./quizTagDto";
 
 export interface QuizResponseDto {
+  quizId: string;
 
-quizId: string;
+  creatorId?: string | null;
 
-creatorId?: string | null;
+  creator: QuizResponseDtoCreator;
 
-creator: QuizResponseDtoCreator;
+  title: string;
 
-title: string;
+  description?: string | null;
 
-description?: string | null;
+  slug: string;
 
-slug: string;
+  requirements?: string | null;
 
-requirements?: string | null;
+  imageUrl?: string | null;
 
-imageUrl?: string | null;
+  categoryId?: string | null;
 
-categoryId?: string | null;
+  categoryName?: string | null;
 
-categoryName?: string | null;
+  categorySlug?: string | null;
 
-categorySlug?: string | null;
+  isFeatured: boolean;
 
-isFeatured: boolean;
+  isHidden: boolean;
 
-isHidden: boolean;
+  isVerified: boolean;
 
-isVerified: boolean;
+  publishedVersionId?: string | null;
 
-publishedVersionId?: string | null;
+  createdAt: string;
 
-createdAt: string;
+  updatedAt: string;
 
-updatedAt: string;
+  publishedVersion?: QuizResponseDtoPublishedVersion;
 
-publishedVersion?: QuizResponseDtoPublishedVersion;
-
-tags: QuizTagDto[];
+  tags: QuizTagDto[];
 }

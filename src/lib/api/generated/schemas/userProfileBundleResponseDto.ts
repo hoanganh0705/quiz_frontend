@@ -1,17 +1,14 @@
-
-
-import type { UserSummaryResponseDto } from './userSummaryResponseDto';
-import type { UserAnalyticsResponseDto } from './userAnalyticsResponseDto';
-import type { TimeSeriesDto } from './timeSeriesDto';
-import type { UserActivityItemDto } from './userActivityItemDto';
+import type { UserSummaryResponseDto } from "./userSummaryResponseDto";
+import type { UserAnalyticsResponseDto } from "./userAnalyticsResponseDto";
+import type { TimeSeriesDto } from "./timeSeriesDto";
+import type { UserActivityItemDto } from "./userActivityItemDto";
 
 export interface UserProfileBundleResponseDto {
+  summary: UserSummaryResponseDto;
 
-summary: UserSummaryResponseDto;
+  analytics: UserAnalyticsResponseDto;
 
-analytics: UserAnalyticsResponseDto;
+  xpHistory: TimeSeriesDto;
 
-xpHistory: TimeSeriesDto;
-
-recentActivity: UserActivityItemDto[];
+  recentActivity: UserActivityItemDto[];
 }

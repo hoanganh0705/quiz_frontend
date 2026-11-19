@@ -21,7 +21,14 @@
  * coin economy is gated off.
  */
 
-import { Coins, Loader2, Receipt, Sparkles, TrendingUp, Wallet } from "lucide-react";
+import {
+  Coins,
+  Loader2,
+  Receipt,
+  Sparkles,
+  TrendingUp,
+  Wallet,
+} from "lucide-react";
 
 import { useCoinWallet } from "@/features/coins/hooks/useCoinWallet";
 import { useCoinTransactions } from "@/features/coins/hooks/useCoinTransactions";
@@ -39,8 +46,12 @@ export interface CoinsLandingPageProps {
 export function CoinsLandingPage({
   className,
 }: CoinsLandingPageProps): React.ReactElement {
-  const { balance, isLoading: isWalletLoading, isPlaceholder, error: walletError } =
-    useCoinWallet();
+  const {
+    balance,
+    isLoading: isWalletLoading,
+    isPlaceholder,
+    error: walletError,
+  } = useCoinWallet();
   const {
     items,
     isLoading: isTransactionsLoading,

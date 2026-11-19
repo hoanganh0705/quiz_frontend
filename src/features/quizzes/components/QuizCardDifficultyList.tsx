@@ -16,52 +16,52 @@ import { LoadingSpinner } from "@/components/ui/loading-states/LoadingSpinner";
 const DIFFICULTIES: QuizDifficulty[] = ["easy", "medium", "hard"];
 
 const QuizCardDifficultyList = () => {
-const [selectedDifficulty, setSelectedDifficulty] =
-useState<QuizDifficulty>("easy");
-const [isBeginning, setIsBeginning] = useState(true);
-const [isEnd, setIsEnd] = useState(false);
+  const [selectedDifficulty, setSelectedDifficulty] =
+    useState<QuizDifficulty>("easy");
+  const [isBeginning, setIsBeginning] = useState(true);
+  const [isEnd, setIsEnd] = useState(false);
 
-const { items: quizzes, isLoading } = useQuizzesList({ filters: {} });
+  const { items: quizzes, isLoading } = useQuizzesList({ filters: {} });
 
-const filteredQuizzes = useMemo(() => {
-return quizzes.filter((quiz) => {
-const difficulty = quiz.publishedVersion?.difficulty;
-return difficulty === selectedDifficulty;
+  const filteredQuizzes = useMemo(() => {
+    return quizzes.filter((quiz) => {
+      const difficulty = quiz.publishedVersion?.difficulty;
+      return difficulty === selectedDifficulty;
     });
   }, [quizzes, selectedDifficulty]);
 
-const swiperRef = useRef<SwiperType | null>(null);
+  const swiperRef = useRef<SwiperType | null>(null);
 
-const handlePrevClick = () => {
-swiperRef.current?.slidePrev();
+  const handlePrevClick = () => {
+    swiperRef.current?.slidePrev();
   };
 
-const handleNextClick = () => {
-swiperRef.current?.slideNext();
+  const handleNextClick = () => {
+    swiperRef.current?.slideNext();
   };
 
-if (isLoading) {
-return (
-<div className="mt-20 flex items-center justify-center min-h-100">
-<LoadingSpinner size="lg" />
-</div>
+  if (isLoading) {
+    return (
+      <div className="mt-20 flex items-center justify-center min-h-100">
+        <LoadingSpinner size="lg" />
+      </div>
     );
   }
 
-if (filteredQuizzes.length === 0) {
-return (
-<div className="mt-20 text-center min-h-100 flex flex-col items-center justify-center">
-<p className="text-muted-foreground text-lg">
-No {selectedDifficulty} quizzes available yet.
+  if (filteredQuizzes.length === 0) {
+    return (
+      <div className="mt-20 text-center min-h-100 flex flex-col items-center justify-center">
+        <p className="text-muted-foreground text-lg">
+          No {selectedDifficulty} quizzes available yet.
         </p>
-<p className="text-muted-foreground text-sm mt-2">
-Check back soon for new content.
+        <p className="text-muted-foreground text-sm mt-2">
+          Check back soon for new content.
         </p>
-</div>
+      </div>
     );
   }
 
-return (
+  return (
     <div className="w-full">
       <div className="mb-6 flex flex-col gap-4">
         <div className="flex flex-col gap-1">
@@ -113,76 +113,76 @@ return (
         </div>
       </div>
 
-<div>
-<Swiper
-spaceBetween={30}
-slidesPerView={4}
-pagination={{ clickable: true }}
-modules={[Autoplay]}
-autoplay={{
-delay: 3000,
-disableOnInteraction: true,
+      <div>
+        <Swiper
+          spaceBetween={30}
+          slidesPerView={4}
+          pagination={{ clickable: true }}
+          modules={[Autoplay]}
+          autoplay={{
+            delay: 3000,
+            disableOnInteraction: true,
           }}
-onBeforeInit={(swiper) => {
-swiperRef.current = swiper;
+          onBeforeInit={(swiper) => {
+            swiperRef.current = swiper;
           }}
-onInit={(swiper) => {
-setIsBeginning(swiper.isBeginning);
-setIsEnd(swiper.isEnd);
+          onInit={(swiper) => {
+            setIsBeginning(swiper.isBeginning);
+            setIsEnd(swiper.isEnd);
           }}
-onSlideChange={(swiper) => {
-setIsBeginning(swiper.isBeginning);
-setIsEnd(swiper.isEnd);
+          onSlideChange={(swiper) => {
+            setIsBeginning(swiper.isBeginning);
+            setIsEnd(swiper.isEnd);
           }}
-breakpoints={{
-0: {
-slidesPerView: 1,
-spaceBetween: 10,
+          breakpoints={{
+            0: {
+              slidesPerView: 1,
+              spaceBetween: 10,
             },
-640: {
-slidesPerView: 2,
-spaceBetween: 15,
+            640: {
+              slidesPerView: 2,
+              spaceBetween: 15,
             },
-768: {
-slidesPerView: 3,
-spaceBetween: 20,
+            768: {
+              slidesPerView: 3,
+              spaceBetween: 20,
             },
-1024: {
-slidesPerView: 4,
-spaceBetween: 25,
+            1024: {
+              slidesPerView: 4,
+              spaceBetween: 25,
             },
           }}
         >
-{filteredQuizzes.map((quiz) => (
-<SwiperSlide key={quiz.quizId} className="w-full">
-<QuizCardDifficulty
-id={quiz.quizId}
-imageSrc={quiz.imageUrl ?? "/placeholder.svg"}
-difficulty={
-(quiz.publishedVersion?.difficulty as QuizDifficulty) ??
-"medium"
+          {filteredQuizzes.map((quiz) => (
+            <SwiperSlide key={quiz.quizId} className="w-full">
+              <QuizCardDifficulty
+                id={quiz.quizId}
+                imageSrc={quiz.imageUrl ?? "/placeholder.svg"}
+                difficulty={
+                  (quiz.publishedVersion?.difficulty as QuizDifficulty) ??
+                  "medium"
                 }
-creatorImageURL={quiz.creator?.avatarUrl ?? ""}
-creatorName={
-quiz.creator?.displayName ??
-quiz.creator?.username ??
-"Unknown"
+                creatorImageURL={quiz.creator?.avatarUrl ?? ""}
+                creatorName={
+                  quiz.creator?.displayName ??
+                  quiz.creator?.username ??
+                  "Unknown"
                 }
-reward={0}
-category={quiz.categoryName ?? "General"}
-duration={Math.round(
-(quiz.publishedVersion?.durationMs ?? 600000) / 60000,
+                reward={0}
+                category={quiz.categoryName ?? "General"}
+                duration={Math.round(
+                  (quiz.publishedVersion?.durationMs ?? 600000) / 60000,
                 )}
-title={quiz.title}
-currentPlayers={0}
-spotsAvailable={100}
-maxPlayers={100}
+                title={quiz.title}
+                currentPlayers={0}
+                spotsAvailable={100}
+                maxPlayers={100}
               />
-</SwiperSlide>
+            </SwiperSlide>
           ))}
-</Swiper>
-</div>
-</div>
+        </Swiper>
+      </div>
+    </div>
   );
 };
 

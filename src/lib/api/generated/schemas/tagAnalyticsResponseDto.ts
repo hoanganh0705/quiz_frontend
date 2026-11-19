@@ -1,17 +1,14 @@
-
-
-import type { TagAnalyticsSummaryDto } from './tagAnalyticsSummaryDto';
-import type { TagAnalyticsTopQuizDto } from './tagAnalyticsTopQuizDto';
+import type { TagAnalyticsSummaryDto } from "./tagAnalyticsSummaryDto";
+import type { TagAnalyticsTopQuizDto } from "./tagAnalyticsTopQuizDto";
 
 export interface TagAnalyticsResponseDto {
+  tagId: string;
 
-tagId: string;
+  tagName: string;
 
-tagName: string;
+  summary: TagAnalyticsSummaryDto;
 
-summary: TagAnalyticsSummaryDto;
+  topQuizzes: TagAnalyticsTopQuizDto[];
 
-topQuizzes: TagAnalyticsTopQuizDto[];
-
-lastUpdated: string;
+  lastUpdated: string;
 }

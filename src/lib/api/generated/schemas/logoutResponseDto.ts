@@ -1,6 +1,3 @@
-
-
 export interface LogoutResponseDto {
-
-message: string;
+  message: string;
 }

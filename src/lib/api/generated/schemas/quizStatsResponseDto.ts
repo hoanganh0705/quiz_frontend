@@ -1,28 +1,25 @@
-
-
-import type { QuizStatsHistoryPointDto } from './quizStatsHistoryPointDto';
+import type { QuizStatsHistoryPointDto } from "./quizStatsHistoryPointDto";
 
 export interface QuizStatsResponseDto {
+  quizId: string;
 
-quizId: string;
+  totalAttempts: number;
 
-totalAttempts: number;
+  uniquePlayers: number;
 
-uniquePlayers: number;
+  averageScore: number;
 
-averageScore: number;
+  averageRating: number;
 
-averageRating: number;
+  bookmarkCount: number;
 
-bookmarkCount: number;
+  completionRate: number;
 
-completionRate: number;
+  popularityScore: number;
 
-popularityScore: number;
+  trendingScore: number;
 
-trendingScore: number;
+  commentsCount: number;
 
-commentsCount: number;
-
-recentActivity: QuizStatsHistoryPointDto[];
+  recentActivity: QuizStatsHistoryPointDto[];
 }

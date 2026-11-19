@@ -1,6 +1,3 @@
-
-
 export type CategoryControllerGetRelatedCategoriesParams = {
-
-limit?: number;
+  limit?: number;
 };

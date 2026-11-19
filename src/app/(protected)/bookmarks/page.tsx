@@ -14,15 +14,17 @@
  * only the leaf component is hydrated.
  */
 
-import { BookmarksDashboardPage } from '@/features/bookmarks'
+import { BookmarksDashboardPage } from "@/features/bookmarks";
 
 export default function BookmarksPage() {
   return (
-    <div className='min-h-screen text-foreground p-4 md:p-8 lg:p-12'>
+    <div className="min-h-screen text-foreground p-4 md:p-8 lg:p-12">
       {/* Page Header */}
-      <div className='mb-8'>
-        <h1 className='text-3xl font-bold text-foreground mb-2'>Saved Quizzes</h1>
-        <p className='text-muted-foreground text-base'>
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-foreground mb-2">
+          Saved Quizzes
+        </h1>
+        <p className="text-muted-foreground text-base">
           Manage your bookmarked quizzes and collections
         </p>
       </div>
@@ -30,5 +32,5 @@ export default function BookmarksPage() {
       {/* Collections Dashboard */}
       <BookmarksDashboardPage />
     </div>
-  )
+  );
 }

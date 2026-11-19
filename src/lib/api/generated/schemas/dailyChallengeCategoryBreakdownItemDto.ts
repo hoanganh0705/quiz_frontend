@@ -1,14 +1,11 @@
-
-
 export interface DailyChallengeCategoryBreakdownItemDto {
+  categoryId: string;
 
-categoryId: string;
+  categoryName: string;
 
-categoryName: string;
+  categorySlug: string;
 
-categorySlug: string;
+  attemptCount: number;
 
-attemptCount: number;
-
-averageScorePercent: number;
+  averageScorePercent: number;
 }

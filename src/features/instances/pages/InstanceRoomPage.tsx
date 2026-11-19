@@ -69,8 +69,7 @@ export function InstanceRoomPage({
       ? null
       : selectInstanceRealtimeStatus(state, instanceId),
   );
-  const effectiveStatus =
-    realtimeStatus ?? (instance?.status ?? null);
+  const effectiveStatus = realtimeStatus ?? instance?.status ?? null;
 
   useEffect(() => {
     if (effectiveStatus === "running" && instanceId) {
@@ -85,7 +84,11 @@ export function InstanceRoomPage({
 
   if (isPlaceholder) {
     return (
-      <div className={className} data-testid="instance-room-page" data-state="placeholder">
+      <div
+        className={className}
+        data-testid="instance-room-page"
+        data-state="placeholder"
+      >
         <InstancePlaceholder />
       </div>
     );
@@ -154,7 +157,10 @@ export function InstanceRoomPage({
               </p>
             </div>
           )}
-          <InstanceClosedState status={instance.status} closedAt={instance.closedAt} />
+          <InstanceClosedState
+            status={instance.status}
+            closedAt={instance.closedAt}
+          />
           <ConnectionBanner instanceId={instanceId} />
         </div>
       </div>
@@ -167,10 +173,7 @@ export function InstanceRoomPage({
       data-testid="instance-room-page"
       data-state="live"
     >
-      <InstanceLobby
-        instanceId={instanceId}
-        currentUserId={currentUserId}
-      />
+      <InstanceLobby instanceId={instanceId} currentUserId={currentUserId} />
     </div>
   );
 }

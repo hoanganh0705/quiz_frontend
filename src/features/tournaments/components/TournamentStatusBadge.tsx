@@ -9,7 +9,6 @@ import type { TournamentStatus } from "@/features/tournaments/types";
 import { TOURNAMENT_STATUS_TOKENS } from "@/features/tournaments/lib/tournament-tokens";
 
 export interface TournamentStatusBadgeProps {
-
   status: TournamentStatus | undefined;
 
   className?: string;

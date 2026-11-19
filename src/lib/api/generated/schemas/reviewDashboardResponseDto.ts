@@ -1,18 +1,15 @@
-
-
-import type { ReviewDashboardResponseDtoFavoriteCategory } from './reviewDashboardResponseDtoFavoriteCategory';
-import type { ReviewDashboardResponseDtoFavoriteTag } from './reviewDashboardResponseDtoFavoriteTag';
-import type { ReviewDashboardResponseDtoLastUpdated } from './reviewDashboardResponseDtoLastUpdated';
+import type { ReviewDashboardResponseDtoFavoriteCategory } from "./reviewDashboardResponseDtoFavoriteCategory";
+import type { ReviewDashboardResponseDtoFavoriteTag } from "./reviewDashboardResponseDtoFavoriteTag";
+import type { ReviewDashboardResponseDtoLastUpdated } from "./reviewDashboardResponseDtoLastUpdated";
 
 export interface ReviewDashboardResponseDto {
+  totalReviews: number;
 
-totalReviews: number;
+  averageRatingGiven: number;
 
-averageRatingGiven: number;
+  favoriteCategory?: ReviewDashboardResponseDtoFavoriteCategory;
 
-favoriteCategory?: ReviewDashboardResponseDtoFavoriteCategory;
+  favoriteTag?: ReviewDashboardResponseDtoFavoriteTag;
 
-favoriteTag?: ReviewDashboardResponseDtoFavoriteTag;
-
-lastUpdated?: ReviewDashboardResponseDtoLastUpdated;
+  lastUpdated?: ReviewDashboardResponseDtoLastUpdated;
 }

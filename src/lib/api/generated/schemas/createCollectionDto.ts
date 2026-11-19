@@ -1,8 +1,5 @@
-
-
 export interface CreateCollectionDto {
+  name: string;
 
-name: string;
-
-description?: string | null;
+  description?: string | null;
 }

@@ -1,20 +1,17 @@
-
-
 export interface LeaderboardEntryDto {
+  rank: number;
 
-rank: number;
+  denseRank: number;
 
-denseRank: number;
+  userId: string;
 
-userId: string;
+  displayName: string;
 
-displayName: string;
+  avatarUrl?: string | null;
 
-avatarUrl?: string | null;
+  xp: number;
 
-xp: number;
+  isTied: boolean;
 
-isTied: boolean;
-
-isCurrentUser?: boolean | null;
+  isCurrentUser?: boolean | null;
 }

@@ -1,25 +1,24 @@
-'use client';
+"use client";
 
-import { useFollowedLookup } from '@/features/tags';
+import { useFollowedLookup } from "@/features/tags";
 
 export interface UseIsFollowingCategoryResult {
+  isFollowing: boolean;
 
-isFollowing: boolean;
-
-isLoading: boolean;
+  isLoading: boolean;
 }
 
 export function useIsFollowingCategory(
-id: string | null,
+  id: string | null,
 ): UseIsFollowingCategoryResult {
-const lookup = useFollowedLookup();
+  const lookup = useFollowedLookup();
 
-if (id === null) {
-return { isFollowing: false, isLoading: false };
+  if (id === null) {
+    return { isFollowing: false, isLoading: false };
   }
 
-return {
-isFollowing: lookup.categories.has(id),
-isLoading: lookup.isLoading,
+  return {
+    isFollowing: lookup.categories.has(id),
+    isLoading: lookup.isLoading,
   };
 }

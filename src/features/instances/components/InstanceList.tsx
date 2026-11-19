@@ -37,11 +37,17 @@ export function InstanceList({
         <div className="flex h-16 w-16 items-center justify-center rounded-full bg-brand/10 text-brand mb-4">
           <Gamepad2 className="h-8 w-8" />
         </div>
-        <h3 className="text-xl font-bold tracking-tight">No Active Live Battles</h3>
+        <h3 className="text-xl font-bold tracking-tight">
+          No Active Live Battles
+        </h3>
         <p className="mt-2 max-w-md text-sm text-muted-foreground">
-          There are no open multiplayer rooms right now. Pick any quiz and host your own live battle to compete with friends!
+          There are no open multiplayer rooms right now. Pick any quiz and host
+          your own live battle to compete with friends!
         </p>
-        <Button asChild className="mt-6 bg-brand text-white hover:bg-brand-hover shadow-sm">
+        <Button
+          asChild
+          className="mt-6 bg-brand text-white hover:bg-brand-hover shadow-sm"
+        >
           <Link href="/quizzes">
             <Compass className="mr-2 h-4 w-4" />
             Explore Quizzes to Host

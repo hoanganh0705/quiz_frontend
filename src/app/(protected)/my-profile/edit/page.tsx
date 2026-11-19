@@ -1,10 +1,7 @@
-'use client';
+"use client";
 
 /**
  * `my-profile/edit/page.tsx` — standalone route for profile editing.
- *
- * Source epic:   Epic 4.3 — Edit profile + user settings.
- * Source ticket: TKT-4.3.D2.
  *
  * ## What this page owns
  *
@@ -13,9 +10,9 @@
  * The form itself lives in `features/users/components/my-profile/EditProfileForm.tsx`.
  */
 
-import { memo } from 'react';
-import { useMyProfile } from '@/features/users/hooks/useMyProfile';
-import { EditProfileForm } from '@/features/users/components/my-profile/EditProfileForm';
+import { memo } from "react";
+import { useMyProfile } from "@/features/users/hooks/useMyProfile";
+import { EditProfileForm } from "@/features/users/components/my-profile/EditProfileForm";
 
 const EditProfilePage = memo(function EditProfilePage() {
   const { profile, isHydrated } = useMyProfile();

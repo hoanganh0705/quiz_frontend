@@ -1,17 +1,14 @@
-
-
-import type { GlobalRankingDto } from './globalRankingDto';
-import type { PeakRanksResponseDto } from './peakRanksResponseDto';
-import type { UserRankResponseDtoLastActivityAt } from './userRankResponseDtoLastActivityAt';
-import type { UserBadgesDto } from './userBadgesDto';
+import type { GlobalRankingDto } from "./globalRankingDto";
+import type { PeakRanksResponseDto } from "./peakRanksResponseDto";
+import type { UserRankResponseDtoLastActivityAt } from "./userRankResponseDtoLastActivityAt";
+import type { UserBadgesDto } from "./userBadgesDto";
 
 export interface UserRankResponseDto {
+  global: GlobalRankingDto;
 
-global: GlobalRankingDto;
+  peakRanks: PeakRanksResponseDto;
 
-peakRanks: PeakRanksResponseDto;
+  lastActivityAt?: UserRankResponseDtoLastActivityAt;
 
-lastActivityAt?: UserRankResponseDtoLastActivityAt;
-
-badges: UserBadgesDto;
+  badges: UserBadgesDto;
 }

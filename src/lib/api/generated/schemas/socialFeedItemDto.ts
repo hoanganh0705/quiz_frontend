@@ -1,21 +1,18 @@
-
-
-import type { SocialFeedItemDtoType } from './socialFeedItemDtoType';
-import type { SocialFeedUserDto } from './socialFeedUserDto';
-import type { SocialFeedItemDtoActor } from './socialFeedItemDtoActor';
-import type { SocialFeedItemDtoPayload } from './socialFeedItemDtoPayload';
+import type { SocialFeedItemDtoType } from "./socialFeedItemDtoType";
+import type { SocialFeedUserDto } from "./socialFeedUserDto";
+import type { SocialFeedItemDtoActor } from "./socialFeedItemDtoActor";
+import type { SocialFeedItemDtoPayload } from "./socialFeedItemDtoPayload";
 
 export interface SocialFeedItemDto {
+  id: string;
 
-id: string;
+  type: SocialFeedItemDtoType;
 
-type: SocialFeedItemDtoType;
+  at: string;
 
-at: string;
+  user: SocialFeedUserDto;
 
-user: SocialFeedUserDto;
+  actor: SocialFeedItemDtoActor;
 
-actor: SocialFeedItemDtoActor;
-
-payload: SocialFeedItemDtoPayload;
+  payload: SocialFeedItemDtoPayload;
 }

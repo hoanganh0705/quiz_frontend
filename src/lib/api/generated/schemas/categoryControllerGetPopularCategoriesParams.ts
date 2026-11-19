@@ -1,6 +1,3 @@
-
-
 export type CategoryControllerGetPopularCategoriesParams = {
-
-limit?: number;
+  limit?: number;
 };

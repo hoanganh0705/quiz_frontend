@@ -1,20 +1,17 @@
-
-
-import type { GetNotificationsType } from './getNotificationsType';
+import type { GetNotificationsType } from "./getNotificationsType";
 
 export type GetNotificationsParams = {
+  limit?: number;
 
-limit?: number;
+  cursor?: string;
 
-cursor?: string;
+  unreadOnly?: boolean;
 
-unreadOnly?: boolean;
+  includeArchived?: boolean;
 
-includeArchived?: boolean;
+  type?: GetNotificationsType;
 
-type?: GetNotificationsType;
+  fromDate?: string | null;
 
-fromDate?: string | null;
-
-toDate?: string | null;
+  toDate?: string | null;
 };

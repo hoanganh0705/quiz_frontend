@@ -1,12 +1,9 @@
-
-
-import type { RankingControllerGetGlobalLeaderboardPeriod } from './rankingControllerGetGlobalLeaderboardPeriod';
+import type { RankingControllerGetGlobalLeaderboardPeriod } from "./rankingControllerGetGlobalLeaderboardPeriod";
 
 export type RankingControllerGetGlobalLeaderboardParams = {
+  period?: RankingControllerGetGlobalLeaderboardPeriod;
 
-period?: RankingControllerGetGlobalLeaderboardPeriod;
+  limit?: number;
 
-limit?: number;
-
-offset?: number;
+  offset?: number;
 };

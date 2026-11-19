@@ -1,8 +1,6 @@
 /**
  * F2 — Playwright anti-enumeration and error-handling E2E specs.
  *
- * Source epic: Epic 2.1 — Registration form and availability guidance.
- * Source ticket: TKT-2.1.F2.
  *
  * ## Anti-enumeration contract
  *
@@ -31,43 +29,40 @@
  * deterministic and does not require a real throttle override.
  */
 
-import { test, expect, type Page, type Route } from '@playwright/test';
+import { test, expect, type Page, type Route } from "@playwright/test";
 
 const uniqueSuffix = (): string => {
   return `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
 };
 
-async function fillForm(
-  page: Page,
-  opts: { email: string; username: string }
-) {
-  await page.goto('/signup');
-  await page.getByTestId('registration-form').waitFor();
-  await page.getByLabel('Username').fill(opts.username);
-  await page.getByLabel('Email').fill(opts.email);
-  await page.getByLabel('Password', { exact: true }).fill('Abcdef1!');
-  await page.getByLabel('Confirm password').fill('Abcdef1!');
+async function fillForm(page: Page, opts: { email: string; username: string }) {
+  await page.goto("/signup");
+  await page.getByTestId("registration-form").waitFor();
+  await page.getByLabel("Username").fill(opts.username);
+  await page.getByLabel("Email").fill(opts.email);
+  await page.getByLabel("Password", { exact: true }).fill("Abcdef1!");
+  await page.getByLabel("Confirm password").fill("Abcdef1!");
   await page.getByText(/I agree to the/).click();
   await expect(
     page
-      .getByTestId('signup-availability-strip')
-      .getByText('Available', { exact: true })
+      .getByTestId("signup-availability-strip")
+      .getByText("Available", { exact: true }),
   ).toHaveCount(2, { timeout: 10_000 });
 }
 
 async function snapshotCheckInboxBody(page: Page): Promise<string> {
-  await page.getByTestId('check-inbox-page').waitFor({ timeout: 10_000 });
+  await page.getByTestId("check-inbox-page").waitFor({ timeout: 10_000 });
   // `innerText` collapses whitespace deterministically; `textContent`
   // returns the raw text including hidden elements, which would
   // surface data attributes not visible to the user.
-  return page.getByTestId('check-inbox-page').evaluate((el) => {
+  return page.getByTestId("check-inbox-page").evaluate((el) => {
     const node = el as HTMLElement;
-    return node.innerText.replace(/\s+/g, ' ').trim();
+    return node.innerText.replace(/\s+/g, " ").trim();
   });
 }
 
-test.describe('Anti-enumeration', () => {
-  test('renders the same acknowledgement page for new and existing emails', async ({
+test.describe("Anti-enumeration", () => {
+  test("renders the same acknowledgement page for new and existing emails", async ({
     page,
   }) => {
     const suffix = uniqueSuffix();
@@ -87,7 +82,7 @@ test.describe('Anti-enumeration', () => {
     await fillForm(page, { email: freshEmail, username: usernameA });
     await Promise.all([
       page.waitForURL(/\/register\/check-inbox$/),
-      page.getByTestId('registration-submit').click(),
+      page.getByTestId("registration-submit").click(),
     ]);
     const freshSnapshot = await snapshotCheckInboxBody(page);
 
@@ -100,7 +95,7 @@ test.describe('Anti-enumeration', () => {
     await fillForm(page, { email: existingEmail, username: usernameB });
     await Promise.all([
       page.waitForURL(/\/register\/check-inbox$/),
-      page.getByTestId('registration-submit').click(),
+      page.getByTestId("registration-submit").click(),
     ]);
     const existingSnapshot = await snapshotCheckInboxBody(page);
 
@@ -108,20 +103,17 @@ test.describe('Anti-enumeration', () => {
   });
 });
 
-test.describe('Error handling', () => {
+test.describe("Error handling", () => {
   function interceptRegister(
     page: Page,
-    responder: (route: Route) => Promise<void> | void
+    responder: (route: Route) => Promise<void> | void,
   ) {
-    return page.route(
-      '**/api/v1/auth/register',
-      async (route) => {
-        await responder(route);
-      }
-    );
+    return page.route("**/api/v1/auth/register", async (route) => {
+      await responder(route);
+    });
   }
 
-  test('renders rate_limited copy on 429 and re-enables the submit button', async ({
+  test("renders rate_limited copy on 429 and re-enables the submit button", async ({
     page,
   }) => {
     const suffix = uniqueSuffix();
@@ -131,33 +123,33 @@ test.describe('Error handling', () => {
     await interceptRegister(page, async (route) => {
       await route.fulfill({
         status: 429,
-        contentType: 'application/json',
+        contentType: "application/json",
         body: JSON.stringify({
-          code: 'GLOBAL_RATE_LIMITED',
-          message: 'Too many requests',
+          code: "GLOBAL_RATE_LIMITED",
+          message: "Too many requests",
         }),
       });
     });
 
     await fillForm(page, { email, username });
-    await page.getByTestId('registration-submit').click();
+    await page.getByTestId("registration-submit").click();
 
     // The mapper should have reduced 429 → `rate_limited`.
-    await expect(page.getByTestId('registration-error')).toContainText(
+    await expect(page.getByTestId("registration-error")).toContainText(
       /wait a moment/i,
-      { timeout: 5_000 }
+      { timeout: 5_000 },
     );
 
     // The submit button is re-enabled — the user can retry.
-    await expect(page.getByTestId('registration-submit')).toBeEnabled();
+    await expect(page.getByTestId("registration-submit")).toBeEnabled();
 
     // Form values are preserved across error paths (acceptance
     // criterion: "Form stays editable after every error kind.").
-    await expect(page.getByLabel('Email')).toHaveValue(email);
-    await expect(page.getByLabel('Username')).toHaveValue(username);
+    await expect(page.getByLabel("Email")).toHaveValue(email);
+    await expect(page.getByLabel("Username")).toHaveValue(username);
   });
 
-  test('renders server copy on 5xx and re-enables the submit button', async ({
+  test("renders server copy on 5xx and re-enables the submit button", async ({
     page,
   }) => {
     const suffix = uniqueSuffix();
@@ -167,23 +159,23 @@ test.describe('Error handling', () => {
     await interceptRegister(page, async (route) => {
       await route.fulfill({
         status: 503,
-        contentType: 'application/json',
+        contentType: "application/json",
         body: JSON.stringify({
-          code: 'GLOBAL_INTERNAL_ERROR',
-          message: 'Service unavailable',
+          code: "GLOBAL_INTERNAL_ERROR",
+          message: "Service unavailable",
         }),
       });
     });
 
     await fillForm(page, { email, username });
-    await page.getByTestId('registration-submit').click();
+    await page.getByTestId("registration-submit").click();
 
-    await expect(page.getByTestId('registration-error')).toContainText(
+    await expect(page.getByTestId("registration-error")).toContainText(
       /try again/i,
-      { timeout: 5_000 }
+      { timeout: 5_000 },
     );
-    await expect(page.getByTestId('registration-submit')).toBeEnabled();
-    await expect(page.getByLabel('Email')).toHaveValue(email);
-    await expect(page.getByLabel('Username')).toHaveValue(username);
+    await expect(page.getByTestId("registration-submit")).toBeEnabled();
+    await expect(page.getByLabel("Email")).toHaveValue(email);
+    await expect(page.getByLabel("Username")).toHaveValue(username);
   });
 });

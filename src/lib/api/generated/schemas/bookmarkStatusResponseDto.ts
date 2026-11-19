@@ -1,10 +1,7 @@
-
-
-import type { BookmarkStatusCollectionDto } from './bookmarkStatusCollectionDto';
+import type { BookmarkStatusCollectionDto } from "./bookmarkStatusCollectionDto";
 
 export interface BookmarkStatusResponseDto {
+  bookmarked: boolean;
 
-bookmarked: boolean;
-
-collections: BookmarkStatusCollectionDto[];
+  collections: BookmarkStatusCollectionDto[];
 }

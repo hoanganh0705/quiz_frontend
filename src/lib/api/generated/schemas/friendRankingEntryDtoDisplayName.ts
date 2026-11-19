@@ -1,3 +1,3 @@
-
-
-export type FriendRankingEntryDtoDisplayName = { [key: string]: unknown } | null;
+export type FriendRankingEntryDtoDisplayName = {
+  [key: string]: unknown;
+} | null;

@@ -1,3 +1,3 @@
-
-
-export type DailyChallengeLeaderboardEntryDtoDisplayName = { [key: string]: unknown } | null;
+export type DailyChallengeLeaderboardEntryDtoDisplayName = {
+  [key: string]: unknown;
+} | null;

@@ -1,8 +1,5 @@
-
-
 export interface MoveBookmarkDto {
+  quizId: string;
 
-quizId: string;
-
-targetCollectionId: string;
+  targetCollectionId: string;
 }

@@ -1,12 +1,9 @@
-
-
-import type { AdminReviewControllerListPlatformReportsStatus } from './adminReviewControllerListPlatformReportsStatus';
+import type { AdminReviewControllerListPlatformReportsStatus } from "./adminReviewControllerListPlatformReportsStatus";
 
 export type AdminReviewControllerListPlatformReportsParams = {
+  cursor?: string;
 
-cursor?: string;
+  limit?: number;
 
-limit?: number;
-
-status?: AdminReviewControllerListPlatformReportsStatus;
+  status?: AdminReviewControllerListPlatformReportsStatus;
 };

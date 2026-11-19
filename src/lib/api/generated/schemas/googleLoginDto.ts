@@ -1,6 +1,3 @@
-
-
 export interface GoogleLoginDto {
-
-idToken: string;
+  idToken: string;
 }

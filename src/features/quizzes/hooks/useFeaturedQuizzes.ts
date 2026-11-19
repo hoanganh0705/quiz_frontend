@@ -1,42 +1,42 @@
-'use client'
+"use client";
 
-import useSWR from 'swr'
+import { useQuery } from "@tanstack/react-query";
+import { getQueryClient } from "@/providers/QueryProvider";
 
-import { ApiError } from '@/lib/api'
-import type { QuizListItemDto } from '@/lib/api/generated/schemas'
+import { ApiError } from "@/lib/api";
+import type { QuizListItemDto } from "@/lib/api/generated/schemas";
 
-import { getQuizzesFeatured } from '@/features/quizzes/services/quizzes.service'
+import { getQuizzesFeatured } from "@/features/quizzes/services/quizzes.service";
 
 export interface UseFeaturedQuizzesParams {
-limit?: number
+  limit?: number;
 }
 
 export interface UseFeaturedQuizzesResult {
-quizzes: readonly QuizListItemDto[]
-isLoading: boolean
-error: ApiError | null
+  quizzes: readonly QuizListItemDto[];
+  isLoading: boolean;
+  error: ApiError | null;
 }
 
 export function useFeaturedQuizzes(
-params: UseFeaturedQuizzesParams = {},
+  params: UseFeaturedQuizzesParams = {},
 ): UseFeaturedQuizzesResult {
-const key = ['quizzes', 'featured', params] as const
+  const key = ["quizzes", "featured", params] as const;
 
-const { data, error, isLoading } = useSWR(
-key,
-async () => {
-const result = await getQuizzesFeatured(params)
-return result.data ?? []
+  const { data, error, isLoading } = useQuery(
+    {
+      queryKey: key,
+      queryFn: async () => {
+        const result = await getQuizzesFeatured(params);
+        return result.data ?? [];
+      },
     },
-{
-      // Inherit the global SwrProvider defaults (`revalidateOnFocus: false`,
-      // `dedupingInterval: 2_000`, `errorRetryCount: 3`). No per-call overrides.
-    },
-  )
+    getQueryClient(),
+  );
 
-return {
-quizzes: data ?? [],
-isLoading,
-error: error instanceof ApiError ? error : null,
-  }
+  return {
+    quizzes: data ?? [],
+    isLoading,
+    error: error instanceof ApiError ? error : null,
+  };
 }

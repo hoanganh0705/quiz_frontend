@@ -1,21 +1,18 @@
-
-
-import type { FriendRankingEntryDtoDisplayName } from './friendRankingEntryDtoDisplayName';
-import type { FriendRankingEntryDtoAvatarUrl } from './friendRankingEntryDtoAvatarUrl';
+import type { FriendRankingEntryDtoDisplayName } from "./friendRankingEntryDtoDisplayName";
+import type { FriendRankingEntryDtoAvatarUrl } from "./friendRankingEntryDtoAvatarUrl";
 
 export interface FriendRankingEntryDto {
+  rank: number;
 
-rank: number;
+  userId: string;
 
-userId: string;
+  username: string;
 
-username: string;
+  displayName?: FriendRankingEntryDtoDisplayName;
 
-displayName?: FriendRankingEntryDtoDisplayName;
+  avatarUrl?: FriendRankingEntryDtoAvatarUrl;
 
-avatarUrl?: FriendRankingEntryDtoAvatarUrl;
+  xp: number;
 
-xp: number;
-
-friendSince: string;
+  friendSince: string;
 }

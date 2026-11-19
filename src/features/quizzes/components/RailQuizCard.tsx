@@ -1,6 +1,9 @@
 "use client";
 
-import { EntityCard, type EntityCardProps } from "@/components/primitives/EntityCard/EntityCard";
+import {
+  EntityCard,
+  type EntityCardProps,
+} from "@/components/primitives/EntityCard/EntityCard";
 
 import { initialsFromQuizId } from "@/features/quizzes/utils/quiz-card-decoration";
 
@@ -59,10 +62,18 @@ export function RailQuizCard({
         "data-quiz-id": quiz.quizId,
         "data-quiz-slug": quiz.slug,
       }}
-      badges={badge ? <span className="rounded-full border bg-background px-2 py-0.5 text-xs">{badge}</span> : null}
+      badges={
+        badge ? (
+          <span className="rounded-full border bg-background px-2 py-0.5 text-xs">
+            {badge}
+          </span>
+        ) : null
+      }
       meta={
         metric ? (
-          <span className="tabular-nums text-xs text-muted-foreground">{metric}</span>
+          <span className="tabular-nums text-xs text-muted-foreground">
+            {metric}
+          </span>
         ) : null
       }
       titleHeadingLevel={titleHeadingLevel}

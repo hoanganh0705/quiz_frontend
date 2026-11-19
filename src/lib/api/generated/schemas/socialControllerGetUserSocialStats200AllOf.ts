@@ -1,7 +1,5 @@
-
-
-import type { UserSocialStatsResponseDto } from './userSocialStatsResponseDto';
+import type { UserSocialStatsResponseDto } from "./userSocialStatsResponseDto";
 
 export type SocialControllerGetUserSocialStats200AllOf = {
-data?: UserSocialStatsResponseDto;
+  data?: UserSocialStatsResponseDto;
 };

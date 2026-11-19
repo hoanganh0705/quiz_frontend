@@ -1,11 +1,8 @@
-
-
-import type { InstanceLeaderboardEntryDto } from './instanceLeaderboardEntryDto';
-import type { InstanceLeaderboardPaginationDto } from './instanceLeaderboardPaginationDto';
+import type { InstanceLeaderboardEntryDto } from "./instanceLeaderboardEntryDto";
+import type { InstanceLeaderboardPaginationDto } from "./instanceLeaderboardPaginationDto";
 
 export interface InstanceLeaderboardResponseDto {
+  items: InstanceLeaderboardEntryDto[];
 
-items: InstanceLeaderboardEntryDto[];
-
-pagination: InstanceLeaderboardPaginationDto;
+  pagination: InstanceLeaderboardPaginationDto;
 }

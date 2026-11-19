@@ -1,5 +1,5 @@
 /**
- * `uploads.helpers.ts` — Phase 8 Playwright stubbing for the §14 e2e
+ * `uploads.helpers.ts` — feature Playwright stubbing for the §14 e2e
  * matrix.
  *
  * Stubs:
@@ -16,15 +16,19 @@
  *      ASSET_NOT_OWNED when the user PATCHes another user's publicId.
  */
 
-import type { Page, Request } from '@playwright/test';
+import type { Page, Request } from "@playwright/test";
 
-export const USER_A_ID = '0192f4d8-4444-7000-8000-000000000001';
-export const USER_B_ID = '0192f4d8-4444-7000-8000-000000000002';
+export const USER_A_ID = "0192f4d8-4444-7000-8000-000000000001";
+export const USER_B_ID = "0192f4d8-4444-7000-8000-000000000002";
 
 export const USER_A_PUBLIC_ID = `quiz-app/avatars/${USER_A_ID}/0192f4d8-4444-7000-8000-000000aaaaaa`;
 export const USER_B_PUBLIC_ID = `quiz-app/avatars/${USER_B_ID}/0192f4d8-4444-7000-8000-000000bbbbbb`;
 
-function authMeBody(userId: string, username: string, email: string): { data: { userId: string; username: string; email: string } } {
+function authMeBody(
+  userId: string,
+  username: string,
+  email: string,
+): { data: { userId: string; username: string; email: string } } {
   return { data: { userId, username, email } };
 }
 
@@ -54,25 +58,27 @@ export async function stubUploadSuccess(
     uploadRequests: [],
   };
 
-  await page.route('**/api/v1/auth/me', async (route) => {
+  await page.route("**/api/v1/auth/me", async (route) => {
     await route.fulfill({
       status: 200,
-      contentType: 'application/json',
-      body: JSON.stringify(authMeBody(USER_A_ID, 'e2e-uploader', 'e2e@quizhub.test')),
+      contentType: "application/json",
+      body: JSON.stringify(
+        authMeBody(USER_A_ID, "e2e-uploader", "e2e@quizhub.test"),
+      ),
     });
   });
 
-  await page.route('**/api/v1/uploads', async (route) => {
+  await page.route("**/api/v1/uploads", async (route) => {
     handle.uploadRequests.push(route.request());
     if (options.uploadFails) {
       await route.fulfill({
         status: 502,
-        contentType: 'application/json',
+        contentType: "application/json",
         body: JSON.stringify({
-          type: 'about:blank',
-          title: 'Bad Gateway',
+          type: "about:blank",
+          title: "Bad Gateway",
           status: 502,
-          extensions: { code: 'UPLOAD_PROVIDER_UNAVAILABLE' },
+          extensions: { code: "UPLOAD_PROVIDER_UNAVAILABLE" },
         }),
       });
       return;
@@ -80,16 +86,16 @@ export async function stubUploadSuccess(
     if (options.uploadReturnsForgedPublicId) {
       await route.fulfill({
         status: 201,
-        contentType: 'application/json',
+        contentType: "application/json",
         body: JSON.stringify({
           data: {
-            publicId: 'forged/evil/no-uuid-here',
-            url: 'https://evil.example/forged.png',
+            publicId: "forged/evil/no-uuid-here",
+            url: "https://evil.example/forged.png",
             bytes: 1024,
-            format: 'png',
+            format: "png",
             width: 256,
             height: 256,
-            purpose: 'avatar',
+            purpose: "avatar",
           },
         }),
       });
@@ -97,27 +103,27 @@ export async function stubUploadSuccess(
     }
     await route.fulfill({
       status: 201,
-      contentType: 'application/json',
+      contentType: "application/json",
       body: JSON.stringify({
         data: {
           publicId: USER_A_PUBLIC_ID,
           url: `https://images.example.com/${USER_A_PUBLIC_ID}`,
           bytes: 1024,
-          format: 'webp',
+          format: "webp",
           width: 512,
           height: 512,
-          purpose: 'avatar',
+          purpose: "avatar",
         },
       }),
     });
   });
 
-  await page.route('**/api/v1/users/me', async (route) => {
-    if (route.request().method() === 'PATCH') {
+  await page.route("**/api/v1/users/me", async (route) => {
+    if (route.request().method() === "PATCH") {
       handle.patchRequests.push(route.request());
       await route.fulfill({
         status: 200,
-        contentType: 'application/json',
+        contentType: "application/json",
         body: JSON.stringify({
           data: { userId: USER_A_ID, avatarPublicId: USER_A_PUBLIC_ID },
         }),

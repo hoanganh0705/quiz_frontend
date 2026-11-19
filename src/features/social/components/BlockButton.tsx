@@ -17,125 +17,129 @@ import { useRelationship } from "@/features/social/hooks/useRelationship";
 import { useSocialPermissions } from "@/features/social/hooks/useSocialPermissions";
 
 export interface BlockButtonProps {
+  targetUserId: string;
 
-targetUserId: string;
-
-className?: string;
+  className?: string;
 }
 
 const BUTTON_BASE =
-"h-9 min-w-28 px-4 text-sm font-medium transition focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2";
+  "h-9 min-w-28 px-4 text-sm font-medium transition focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2";
 
 export function BlockButton({
-targetUserId,
-className,
+  targetUserId,
+  className,
 }: BlockButtonProps): ReactNode {
+  const { relationship, isLoading } = useRelationship(targetUserId);
+  const { canBlock, canUnblock } = useSocialPermissions(targetUserId);
+  const {
+    block,
+    isPending: isBlockPending,
+    error: blockError,
+  } = useBlock(targetUserId);
+  const {
+    unblock,
+    isPending: isUnblockPending,
+    error: unblockError,
+  } = useUnblock(targetUserId);
 
-const { relationship, isLoading } = useRelationship(targetUserId);
-const { canBlock, canUnblock } = useSocialPermissions(targetUserId);
-const { block, isPending: isBlockPending, error: blockError } =
-useBlock(targetUserId);
-const { unblock, isPending: isUnblockPending, error: unblockError } =
-useUnblock(targetUserId);
+  const [blockDialogOpen, setBlockDialogOpen] = useState(false);
+  const [unblockDialogOpen, setUnblockDialogOpen] = useState(false);
 
-const [blockDialogOpen, setBlockDialogOpen] = useState(false);
-const [unblockDialogOpen, setUnblockDialogOpen] = useState(false);
+  const isPending = isBlockPending || isUnblockPending;
+  const error: BlockErrorCode | null = blockError ?? unblockError ?? null;
 
-const isPending = isBlockPending || isUnblockPending;
-const error: BlockErrorCode | null = (blockError ?? unblockError) ?? null;
+  if (isLoading) return null;
+  if (!canBlock && !canUnblock) return null;
 
-if (isLoading) return null;
-if (!canBlock && !canUnblock) return null;
+  const isBlocked = relationship === "blocked";
 
-const isBlocked = relationship === "blocked";
-
-return (
-<SelfActionGate targetUserId={targetUserId} fallback={null}>
-<div className={className} data-testid="block-button-root">
-{isPending ? (
-<FollowPendingIndicator
-text={isBlocked ? "Unblocking..." : "Blocking..."}
-size="md"
+  return (
+    <SelfActionGate targetUserId={targetUserId} fallback={null}>
+      <div className={className} data-testid="block-button-root">
+        {isPending ? (
+          <FollowPendingIndicator
+            text={isBlocked ? "Unblocking..." : "Blocking..."}
+            size="md"
           />
         ) : (
-<>
-{isBlocked && canUnblock ? (
-<Button
-type="button"
-variant="secondary"
-className={BUTTON_BASE}
-data-testid="block-button-unblock"
-aria-label="Unblock this user"
-aria-pressed="true"
-onClick={() => {
-setUnblockDialogOpen(true);
+          <>
+            {isBlocked && canUnblock ? (
+              <Button
+                type="button"
+                variant="secondary"
+                className={BUTTON_BASE}
+                data-testid="block-button-unblock"
+                aria-label="Unblock this user"
+                aria-pressed="true"
+                onClick={() => {
+                  setUnblockDialogOpen(true);
                 }}
               >
-<ShieldCheck
-className="mr-1.5 inline-block h-4 w-4"
-aria-hidden="true"
+                <ShieldCheck
+                  className="mr-1.5 inline-block h-4 w-4"
+                  aria-hidden="true"
                 />
-Unblock
+                Unblock
               </Button>
             ) : null}
 
-{!isBlocked && canBlock ? (
-<Button
-type="button"
-variant="destructive"
-className={BUTTON_BASE}
-data-testid="block-button-block"
-aria-label="Block this user"
-onClick={() => {
-setBlockDialogOpen(true);
+            {!isBlocked && canBlock ? (
+              <Button
+                type="button"
+                variant="destructive"
+                className={BUTTON_BASE}
+                data-testid="block-button-block"
+                aria-label="Block this user"
+                onClick={() => {
+                  setBlockDialogOpen(true);
                 }}
               >
-<Ban
-className="mr-1.5 inline-block h-4 w-4"
-aria-hidden="true"
+                <Ban
+                  className="mr-1.5 inline-block h-4 w-4"
+                  aria-hidden="true"
                 />
-Block
+                Block
               </Button>
             ) : null}
-</>
+          </>
         )}
 
-{error !== null && !isPending && (
-<BlockErrorBanner
-error={error}
-onRetry={
-isBlocked
-? () => {
-void unblock();
+        {error !== null && !isPending && (
+          <BlockErrorBanner
+            error={error}
+            onRetry={
+              isBlocked
+                ? () => {
+                    void unblock();
                   }
-: () => {
-void block();
+                : () => {
+                    void block();
                   }
             }
           />
         )}
-</div>
+      </div>
 
-{/* ── Confirm dialogs ────────────────────────────────────────── */}
-<BlockConfirmDialog
-open={blockDialogOpen}
-onOpenChange={setBlockDialogOpen}
-onConfirm={() => {
-setBlockDialogOpen(false);
-void block();
+      {/* ── Confirm dialogs ────────────────────────────────────────── */}
+      <BlockConfirmDialog
+        open={blockDialogOpen}
+        onOpenChange={setBlockDialogOpen}
+        onConfirm={() => {
+          setBlockDialogOpen(false);
+          void block();
         }}
-isPending={isBlockPending}
+        isPending={isBlockPending}
       />
 
-<UnblockConfirmDialog
-open={unblockDialogOpen}
-onOpenChange={setUnblockDialogOpen}
-onConfirm={() => {
-setUnblockDialogOpen(false);
-void unblock();
+      <UnblockConfirmDialog
+        open={unblockDialogOpen}
+        onOpenChange={setUnblockDialogOpen}
+        onConfirm={() => {
+          setUnblockDialogOpen(false);
+          void unblock();
         }}
-isPending={isUnblockPending}
+        isPending={isUnblockPending}
       />
-</SelfActionGate>
+    </SelfActionGate>
   );
 }

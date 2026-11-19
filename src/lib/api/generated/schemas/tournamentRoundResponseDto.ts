@@ -1,34 +1,31 @@
-
-
-import type { TournamentRoundResponseDtoStatus } from './tournamentRoundResponseDtoStatus';
+import type { TournamentRoundResponseDtoStatus } from "./tournamentRoundResponseDtoStatus";
 
 export interface TournamentRoundResponseDto {
+  roundId: string;
 
-roundId: string;
+  tournamentId: string;
 
-tournamentId: string;
+  roundNumber: number;
 
-roundNumber: number;
+  name: string;
 
-name: string;
+  description?: string | null;
 
-description?: string | null;
+  quizVersionId: string;
 
-quizVersionId: string;
+  startAt?: string | null;
 
-startAt?: string | null;
+  endAt?: string | null;
 
-endAt?: string | null;
+  durationMs?: number | null;
 
-durationMs?: number | null;
+  status: TournamentRoundResponseDtoStatus;
 
-status: TournamentRoundResponseDtoStatus;
+  isElimination: boolean;
 
-isElimination: boolean;
+  participantLimit?: number | null;
 
-participantLimit?: number | null;
+  createdAt: string;
 
-createdAt: string;
-
-updatedAt: string;
+  updatedAt: string;
 }

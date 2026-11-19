@@ -1,12 +1,9 @@
-
-
-import type { ListReportsStatus } from './listReportsStatus';
+import type { ListReportsStatus } from "./listReportsStatus";
 
 export type ListReportsParams = {
+  cursor?: string;
 
-cursor?: string;
+  limit?: number;
 
-limit?: number;
-
-status?: ListReportsStatus;
+  status?: ListReportsStatus;
 };

@@ -1,3 +1,3 @@
-
-
-export type TrendingUserResponseDtoAvatarUrl = { [key: string]: unknown } | null;
+export type TrendingUserResponseDtoAvatarUrl = {
+  [key: string]: unknown;
+} | null;

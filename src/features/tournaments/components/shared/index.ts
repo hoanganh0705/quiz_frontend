@@ -1,6 +1,7 @@
-
-
-export { TournamentCardSkeleton, TournamentDetailSkeleton } from "./TournamentSkeleton";
+export {
+  TournamentCardSkeleton,
+  TournamentDetailSkeleton,
+} from "./TournamentSkeleton";
 export { TournamentEmptyState } from "./TournamentEmptyState";
 export type { TournamentEmptyStateVariant } from "./TournamentEmptyState";
 export { TournamentErrorState } from "./TournamentErrorState";

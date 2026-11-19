@@ -1,22 +1,19 @@
-
-
-import type { SocialSuggestionItemDtoAvatarUrl } from './socialSuggestionItemDtoAvatarUrl';
-import type { SocialSuggestionItemDtoReason } from './socialSuggestionItemDtoReason';
-import type { SocialSuggestionItemDtoReasonLabel } from './socialSuggestionItemDtoReasonLabel';
+import type { SocialSuggestionItemDtoAvatarUrl } from "./socialSuggestionItemDtoAvatarUrl";
+import type { SocialSuggestionItemDtoReason } from "./socialSuggestionItemDtoReason";
+import type { SocialSuggestionItemDtoReasonLabel } from "./socialSuggestionItemDtoReasonLabel";
 
 export interface SocialSuggestionItemDto {
+  userId: string;
 
-userId: string;
+  username: string;
 
-username: string;
+  avatarUrl: SocialSuggestionItemDtoAvatarUrl;
 
-avatarUrl: SocialSuggestionItemDtoAvatarUrl;
+  mutualFriends: number;
 
-mutualFriends: number;
+  mutualFollowers: number;
 
-mutualFollowers: number;
+  reason: SocialSuggestionItemDtoReason;
 
-reason: SocialSuggestionItemDtoReason;
-
-reasonLabel?: SocialSuggestionItemDtoReasonLabel;
+  reasonLabel?: SocialSuggestionItemDtoReasonLabel;
 }

@@ -3,7 +3,9 @@ import { getOrCreateSocket } from "./connection-registry";
 
 const WS_URL =
   process.env.NEXT_PUBLIC_WS_URL ??
-  (typeof window !== "undefined" ? `${window.location.protocol}//${window.location.host}` : "");
+  (typeof window !== "undefined"
+    ? `${window.location.protocol}//${window.location.host}`
+    : "");
 
 export type { Socket };
 
@@ -23,11 +25,11 @@ export function createSocket(
   options?: { auth?: Record<string, unknown>; transports?: string[] },
 ): Socket {
   try {
-    const fullUrl = url.startsWith("/")
-      ? `${WS_URL}${url}`
-      : url;
+    const fullUrl = url.startsWith("/") ? `${WS_URL}${url}` : url;
 
-    return getOrCreateSocket(fullUrl, () => io(fullUrl, options as Parameters<typeof io>[1])) as Socket;
+    return getOrCreateSocket(fullUrl, () =>
+      io(fullUrl, options as Parameters<typeof io>[1]),
+    ) as Socket;
   } catch {
     return createNoopSocket();
   }

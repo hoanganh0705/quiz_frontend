@@ -5,10 +5,14 @@ import { InstanceGameView } from "../components/InstanceGameView";
 
 describe("InstanceGamePage debug render", () => {
   it("renders without exploding", () => {
-    render(<InstanceGamePage instanceId="01a1e4ac-2d0a-72be-8222-70efc68173ce" />);
+    render(
+      <InstanceGamePage instanceId="01a1e4ac-2d0a-72be-8222-70efc68173ce" />,
+    );
   });
 
   it("renders InstanceGameView without exploding", () => {
-    render(<InstanceGameView instanceId="01a1e4ac-2d0a-72be-8222-70efc68173ce" />);
+    render(
+      <InstanceGameView instanceId="01a1e4ac-2d0a-72be-8222-70efc68173ce" />,
+    );
   });
 });

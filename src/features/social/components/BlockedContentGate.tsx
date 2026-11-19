@@ -7,49 +7,47 @@ import { useRelationship } from "@/features/social/hooks/useRelationship";
 import type { Relationship } from "@/features/social/types";
 
 interface BlockedContentGateProps {
+  targetUserId: string;
 
-targetUserId: string;
+  children: ReactNode;
 
-children: ReactNode;
+  fallback?: ReactNode;
 
-fallback?: ReactNode;
-
-relationshipOverride?: Relationship | null;
+  relationshipOverride?: Relationship | null;
 }
 
 const BLOCKING_RELATIONSHIPS = new Set<Relationship>(["blocked", "blocked_by"]);
 
 const DEFAULT_FALLBACK: ReactNode = (
-<div
-data-testid="blocked-content-gate-fallback"
-aria-label="This content is hidden"
-className="flex flex-col gap-1 p-4 text-sm text-muted-foreground"
+  <div
+    data-testid="blocked-content-gate-fallback"
+    aria-label="This content is hidden"
+    className="flex flex-col gap-1 p-4 text-sm text-muted-foreground"
   >
-<p className="font-medium">This content is hidden</p>
-<p>
-You cannot view this content because of a block between you and this
-      user.
+    <p className="font-medium">This content is hidden</p>
+    <p>
+      You cannot view this content because of a block between you and this user.
     </p>
-</div>
+  </div>
 );
 
 export function BlockedContentGate(props: BlockedContentGateProps): ReactNode {
-const { targetUserId, children, fallback, relationshipOverride } = props;
-const live = useRelationship(targetUserId);
+  const { targetUserId, children, fallback, relationshipOverride } = props;
+  const live = useRelationship(targetUserId);
 
-const relationship: Relationship | null | undefined =
-relationshipOverride !== undefined
-? relationshipOverride
-: live.relationship;
+  const relationship: Relationship | null | undefined =
+    relationshipOverride !== undefined
+      ? relationshipOverride
+      : live.relationship;
 
-const isBlocked =
-relationship !== null &&
-relationship !== undefined &&
-BLOCKING_RELATIONSHIPS.has(relationship);
+  const isBlocked =
+    relationship !== null &&
+    relationship !== undefined &&
+    BLOCKING_RELATIONSHIPS.has(relationship);
 
-if (isBlocked) {
-return fallback ?? DEFAULT_FALLBACK;
+  if (isBlocked) {
+    return fallback ?? DEFAULT_FALLBACK;
   }
 
-return children;
+  return children;
 }

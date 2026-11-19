@@ -1,7 +1,5 @@
-
-
-import type { AttemptAnswersResponseDto } from './attemptAnswersResponseDto';
+import type { AttemptAnswersResponseDto } from "./attemptAnswersResponseDto";
 
 export type AttemptControllerGetAttemptAnswers200AllOf = {
-data?: AttemptAnswersResponseDto;
+  data?: AttemptAnswersResponseDto;
 };

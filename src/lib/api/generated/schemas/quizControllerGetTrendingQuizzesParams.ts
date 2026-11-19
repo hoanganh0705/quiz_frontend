@@ -1,8 +1,5 @@
-
-
 export type QuizControllerGetTrendingQuizzesParams = {
+  limit?: number;
 
-limit?: number;
-
-categoryId?: string;
+  categoryId?: string;
 };

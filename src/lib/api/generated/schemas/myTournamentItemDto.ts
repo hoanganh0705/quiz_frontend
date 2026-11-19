@@ -1,18 +1,15 @@
-
-
-import type { MyTournamentItemDtoStatus } from './myTournamentItemDtoStatus';
+import type { MyTournamentItemDtoStatus } from "./myTournamentItemDtoStatus";
 
 export interface MyTournamentItemDto {
+  tournamentId: string;
 
-tournamentId: string;
+  name: string;
 
-name: string;
+  status: MyTournamentItemDtoStatus;
 
-status: MyTournamentItemDtoStatus;
+  registeredAt: string;
 
-registeredAt: string;
+  startAt: string;
 
-startAt: string;
-
-endAt: string;
+  endAt: string;
 }

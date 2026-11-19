@@ -1,12 +1,9 @@
-
-
 export interface QuizAnswerOptionPlayerDto {
+  optionId: string;
 
-optionId: string;
+  position: number;
 
-position: number;
+  value: string;
 
-value: string;
-
-createdAt: string;
+  createdAt: string;
 }

@@ -1,8 +1,5 @@
-
-
 export type UserControllerListMyBadgesParams = {
+  cursor?: string;
 
-cursor?: string;
-
-limit?: number;
+  limit?: number;
 };

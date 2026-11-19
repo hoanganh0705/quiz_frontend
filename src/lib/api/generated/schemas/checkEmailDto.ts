@@ -1,6 +1,3 @@
-
-
 export interface CheckEmailDto {
-
-email: string;
+  email: string;
 }

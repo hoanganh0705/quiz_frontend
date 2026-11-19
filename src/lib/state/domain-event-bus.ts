@@ -1,65 +1,58 @@
-import { logger } from '@/shared/log';
+import { logger } from "@/shared/log";
 
 export type DomainEventKind =
-  | 'USER_PROFILE_UPDATED'
-  | 'QUIZ_ATTEMPT_STARTED'
-  | 'QUIZ_ATTEMPT_COMPLETED'
-  | 'FOLLOW_CHANGED'
-  | 'BLOCKLIST_CHANGED'
-  | 'NOTIFICATION_RECEIVED'
-  | 'COIN_BALANCE_CHANGED'
-  | 'AUTH_STATE_CHANGED';
+  | "USER_PROFILE_UPDATED"
+  | "QUIZ_ATTEMPT_STARTED"
+  | "QUIZ_ATTEMPT_COMPLETED"
+  | "FOLLOW_CHANGED"
+  | "BLOCKLIST_CHANGED"
+  | "NOTIFICATION_RECEIVED"
+  | "COIN_BALANCE_CHANGED"
+  | "AUTH_STATE_CHANGED";
 
 interface BaseDomainEvent<K extends DomainEventKind> {
   kind: K;
   emittedAt: number;
 }
 
-export interface UserProfileUpdatedEvent
-  extends BaseDomainEvent<'USER_PROFILE_UPDATED'> {
+export interface UserProfileUpdatedEvent extends BaseDomainEvent<"USER_PROFILE_UPDATED"> {
   userId: string;
-  updateKind: 'me' | 'settings' | 'avatar' | 'preferences';
+  updateKind: "me" | "settings" | "avatar" | "preferences";
 }
 
-export interface QuizAttemptStartedEvent
-  extends BaseDomainEvent<'QUIZ_ATTEMPT_STARTED'> {
+export interface QuizAttemptStartedEvent extends BaseDomainEvent<"QUIZ_ATTEMPT_STARTED"> {
   attemptId: string;
   quizId: string;
 }
 
-export interface QuizAttemptCompletedEvent
-  extends BaseDomainEvent<'QUIZ_ATTEMPT_COMPLETED'> {
+export interface QuizAttemptCompletedEvent extends BaseDomainEvent<"QUIZ_ATTEMPT_COMPLETED"> {
   attemptId: string;
   quizId: string;
 }
 
-export interface FollowChangedEvent extends BaseDomainEvent<'FOLLOW_CHANGED'> {
+export interface FollowChangedEvent extends BaseDomainEvent<"FOLLOW_CHANGED"> {
   targetUserId: string;
   actorUserId: string;
   isFollowing: boolean;
 }
 
-export interface BlocklistChangedEvent
-  extends BaseDomainEvent<'BLOCKLIST_CHANGED'> {
+export interface BlocklistChangedEvent extends BaseDomainEvent<"BLOCKLIST_CHANGED"> {
   targetUserId: string;
   actorUserId: string;
   isBlocked: boolean;
 }
 
-export interface NotificationReceivedEvent
-  extends BaseDomainEvent<'NOTIFICATION_RECEIVED'> {
+export interface NotificationReceivedEvent extends BaseDomainEvent<"NOTIFICATION_RECEIVED"> {
   notificationId: string;
 }
 
-export interface CoinBalanceChangedEvent
-  extends BaseDomainEvent<'COIN_BALANCE_CHANGED'> {
+export interface CoinBalanceChangedEvent extends BaseDomainEvent<"COIN_BALANCE_CHANGED"> {
   balance: number;
   delta: number;
   reason: string;
 }
 
-export interface AuthStateChangedEvent
-  extends BaseDomainEvent<'AUTH_STATE_CHANGED'> {
+export interface AuthStateChangedEvent extends BaseDomainEvent<"AUTH_STATE_CHANGED"> {
   isAuthenticated: boolean;
 }
 
@@ -80,23 +73,23 @@ export type DomainEventListener<E extends DomainEvent = DomainEvent> = (
 type AnyListener = DomainEventListener<DomainEvent>;
 
 interface DomainEventBus {
-  on<K extends DomainEvent['kind']>(
+  on<K extends DomainEvent["kind"]>(
     kind: K,
     listener: DomainEventListener<Extract<DomainEvent, { kind: K }>>,
   ): () => void;
-  off<K extends DomainEvent['kind']>(
+  off<K extends DomainEvent["kind"]>(
     kind: K,
     listener: DomainEventListener<Extract<DomainEvent, { kind: K }>>,
   ): void;
   emit(event: DomainEvent): void;
   clear(): void;
-  listenerCount(kind: DomainEvent['kind']): number;
+  listenerCount(kind: DomainEvent["kind"]): number;
 }
 
 function createDomainEventBus(): DomainEventBus {
-  const listeners = new Map<DomainEvent['kind'], Set<AnyListener>>();
+  const listeners = new Map<DomainEvent["kind"], Set<AnyListener>>();
 
-  function ensureSet(kind: DomainEvent['kind']): Set<AnyListener> {
+  function ensureSet(kind: DomainEvent["kind"]): Set<AnyListener> {
     let set = listeners.get(kind);
     if (set === undefined) {
       set = new Set<AnyListener>();
@@ -113,7 +106,7 @@ function createDomainEventBus(): DomainEventBus {
         listener(event);
       } catch (err) {
         logger.error(
-          'domain-event-bus',
+          "domain-event-bus",
           `listener for "${event.kind}" threw`,
           err,
         );
@@ -164,18 +157,18 @@ export function resetDomainEventBusForTesting(): void {
 
 export function dispatchDomainEvent<E extends DomainEvent>(event: E): void {
   if (
-    typeof event !== 'object' ||
+    typeof event !== "object" ||
     event === null ||
-    typeof event.kind !== 'string'
+    typeof event.kind !== "string"
   ) {
     logger.warn(
-      'domain-event-bus',
-      'dispatchDomainEvent: dropped malformed event',
+      "domain-event-bus",
+      "dispatchDomainEvent: dropped malformed event",
     );
     return;
   }
   const stamped: E =
-    typeof event.emittedAt === 'number'
+    typeof event.emittedAt === "number"
       ? event
       : ({ ...event, emittedAt: Date.now() } as E);
   getDomainEventBus().emit(stamped);

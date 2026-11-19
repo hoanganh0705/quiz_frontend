@@ -1,9 +1,7 @@
-
-
-import type { InstancePlayerResponseDto } from './instancePlayerResponseDto';
-import type { ListInstancePlayers200AllOfMeta } from './listInstancePlayers200AllOfMeta';
+import type { InstancePlayerResponseDto } from "./instancePlayerResponseDto";
+import type { ListInstancePlayers200AllOfMeta } from "./listInstancePlayers200AllOfMeta";
 
 export type ListInstancePlayers200AllOf = {
-data?: InstancePlayerResponseDto[];
-meta?: ListInstancePlayers200AllOfMeta;
+  data?: InstancePlayerResponseDto[];
+  meta?: ListInstancePlayers200AllOfMeta;
 };

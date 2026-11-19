@@ -1,8 +1,5 @@
-
-
 export type TournamentControllerGetCompletedTournamentsParams = {
+  page?: number;
 
-page?: number;
-
-limit?: number;
+  limit?: number;
 };

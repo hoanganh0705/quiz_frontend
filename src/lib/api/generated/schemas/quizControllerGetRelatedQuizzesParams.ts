@@ -1,6 +1,3 @@
-
-
 export type QuizControllerGetRelatedQuizzesParams = {
-
-limit?: number;
+  limit?: number;
 };

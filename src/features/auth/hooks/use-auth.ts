@@ -1,29 +1,29 @@
-'use client';
+"use client";
 
-import { useCallback, useEffect, useRef, useSyncExternalStore } from 'react';
-import { getAuth } from '@/lib/api';
-import type { CurrentUserResponseDto } from '@/features/auth/types';
+import { useCallback, useEffect, useRef, useSyncExternalStore } from "react";
+import { getAuth } from "@/lib/api";
+import type { CurrentUserResponseDto } from "@/features/auth/types";
 import {
-getAuthToken,
-subscribeToAuthChanges,
-} from '@/features/auth/utils/auth-cookies';
+  getAuthToken,
+  subscribeToAuthChanges,
+} from "@/features/auth/utils/auth-cookies";
 
 export interface UseAuthState {
-currentUser: CurrentUserResponseDto | null;
-isLoading: boolean;
-error: Error | null;
+  currentUser: CurrentUserResponseDto | null;
+  isLoading: boolean;
+  error: Error | null;
 }
 
 export interface UseAuthActions {
-refetch: () => Promise<void>;
+  refetch: () => Promise<void>;
 }
 
 export type UseAuth = UseAuthState & UseAuthActions;
 
 let singletonState: UseAuthState = {
-currentUser: null,
-isLoading: true,
-error: null,
+  currentUser: null,
+  isLoading: true,
+  error: null,
 };
 
 const listeners = new Set<() => void>();
@@ -32,129 +32,128 @@ let inFlightFetch: Promise<void> | null = null;
 let lastFetchedToken: string | null = null;
 
 function subscribeToStoreChanges(callback: () => void) {
-listeners.add(callback);
+  listeners.add(callback);
 
-const unsubscribeCookies = subscribeToAuthChanges(callback);
+  const unsubscribeCookies = subscribeToAuthChanges(callback);
 
-return () => {
-listeners.delete(callback);
-unsubscribeCookies();
+  return () => {
+    listeners.delete(callback);
+    unsubscribeCookies();
   };
 }
 
 function notifyListeners() {
-listeners.forEach((listener) => listener());
+  listeners.forEach((listener) => listener());
 }
 
 async function fetchCurrentUserIdentity(): Promise<CurrentUserResponseDto> {
-const result = await getAuth().authControllerGetCurrentUser();
-if (!result || (result as { data?: unknown }).data === undefined) {
-throw new Error('No data returned from /auth/me');
+  const result = await getAuth().authControllerGetCurrentUser();
+  if (!result || (result as { data?: unknown }).data === undefined) {
+    throw new Error("No data returned from /auth/me");
   }
-return (result as { data: CurrentUserResponseDto }).data;
+  return (result as { data: CurrentUserResponseDto }).data;
 }
 
 async function doFetch(): Promise<void> {
-const token = getAuthToken();
+  const token = getAuthToken();
 
-if (inFlightFetch) {
-return inFlightFetch;
+  if (inFlightFetch) {
+    return inFlightFetch;
   }
 
-if (!token) {
-if (singletonState.currentUser !== null || singletonState.isLoading) {
-singletonState = {
-currentUser: null,
-isLoading: false,
-error: null,
+  if (!token) {
+    if (singletonState.currentUser !== null || singletonState.isLoading) {
+      singletonState = {
+        currentUser: null,
+        isLoading: false,
+        error: null,
       };
-notifyListeners();
+      notifyListeners();
     }
-return;
+    return;
   }
 
-if (
-singletonState.currentUser !== null &&
-lastFetchedToken === token &&
-!singletonState.isLoading
+  if (
+    singletonState.currentUser !== null &&
+    lastFetchedToken === token &&
+    !singletonState.isLoading
   ) {
-return;
+    return;
   }
 
-inFlightFetch = (async () => {
-singletonState = {
-...singletonState,
-isLoading: true,
-error: null,
+  inFlightFetch = (async () => {
+    singletonState = {
+      ...singletonState,
+      isLoading: true,
+      error: null,
     };
-notifyListeners();
+    notifyListeners();
 
-try {
-const currentUser = await fetchCurrentUserIdentity();
-lastFetchedToken = token;
-singletonState = {
-currentUser,
-isLoading: false,
-error: null,
+    try {
+      const currentUser = await fetchCurrentUserIdentity();
+      lastFetchedToken = token;
+      singletonState = {
+        currentUser,
+        isLoading: false,
+        error: null,
       };
-notifyListeners();
+      notifyListeners();
     } catch (err) {
-const error =
-err instanceof Error ? err : new Error('Failed to fetch current user');
-singletonState = {
-...singletonState,
-isLoading: false,
-error,
+      const error =
+        err instanceof Error ? err : new Error("Failed to fetch current user");
+      singletonState = {
+        ...singletonState,
+        isLoading: false,
+        error,
       };
-notifyListeners();
+      notifyListeners();
     } finally {
-inFlightFetch = null;
+      inFlightFetch = null;
     }
   })();
 
-return inFlightFetch;
+  return inFlightFetch;
 }
 
 const SERVER_AUTH_SNAPSHOT: UseAuthState = Object.freeze({
-currentUser: null,
-isLoading: true,
-error: null,
+  currentUser: null,
+  isLoading: true,
+  error: null,
 }) as UseAuthState;
 
 function getServerSnapshot(): UseAuthState {
-return SERVER_AUTH_SNAPSHOT;
+  return SERVER_AUTH_SNAPSHOT;
 }
 
 function getSnapshot(): UseAuthState {
-return singletonState;
+  return singletonState;
 }
 
 export function useAuth(): UseAuth {
-const state = useSyncExternalStore(
-subscribeToStoreChanges,
-getSnapshot,
-getServerSnapshot,
+  const state = useSyncExternalStore(
+    subscribeToStoreChanges,
+    getSnapshot,
+    getServerSnapshot,
   );
 
-const refetch = useCallback(async () => {
-
-lastFetchedToken = null;
-await doFetch();
+  const refetch = useCallback(async () => {
+    lastFetchedToken = null;
+    await doFetch();
   }, []);
 
-const token = getAuthToken();
-const hasFetchedRef = useRef(false);
+  const token = getAuthToken();
+  const hasFetchedRef = useRef(false);
 
-useEffect(() => {
-if (hasFetchedRef.current && singletonState.currentUser !== null) {
-return;
+  useEffect(() => {
+    if (hasFetchedRef.current && singletonState.currentUser !== null) {
+      return;
     }
-hasFetchedRef.current = true;
-void doFetch();
+    hasFetchedRef.current = true;
+    void doFetch();
   }, [token]);
 
-return {
-...state,
-refetch,
+  return {
+    ...state,
+    refetch,
   };
 }

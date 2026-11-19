@@ -1,29 +1,24 @@
+import { ScrollText } from "lucide-react";
 
+import type { AdminPermission } from "../permissions";
 
-import { ScrollText } from 'lucide-react';
+export const AUDIT_LOG_ROUTE_PATH = "/admin/audit" as const;
 
-import type { AdminPermission } from '../permissions';
-
-export const AUDIT_LOG_ROUTE_PATH = '/admin/audit' as const;
-
-export const AUDIT_LOG_FEATURE_FLAG = 'admin_audit_live' as const;
+export const AUDIT_LOG_FEATURE_FLAG = "admin_audit_live" as const;
 
 export const AUDIT_LOG_METADATA = {
+  routePath: AUDIT_LOG_ROUTE_PATH,
 
-routePath: AUDIT_LOG_ROUTE_PATH,
+  label: "Audit log",
 
-label: 'Audit log',
+  icon: ScrollText,
 
-icon: ScrollText,
+  description:
+    "Browse admin actions: who did what, when, and against which resource.",
 
-description:
-'Browse admin actions: who did what, when, and against which resource.',
+  requiredPermissions: ["audit_log_read"] as readonly AdminPermission[],
 
-requiredPermissions: [
-'audit_log_read',
-  ] as readonly AdminPermission[],
-
-featureFlag: AUDIT_LOG_FEATURE_FLAG,
+  featureFlag: AUDIT_LOG_FEATURE_FLAG,
 } as const;
 
 export type AuditLogMetadata = typeof AUDIT_LOG_METADATA;

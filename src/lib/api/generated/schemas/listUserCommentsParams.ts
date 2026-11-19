@@ -1,8 +1,5 @@
-
-
 export type ListUserCommentsParams = {
+  cursor?: string;
 
-cursor?: string;
-
-limit?: number;
+  limit?: number;
 };

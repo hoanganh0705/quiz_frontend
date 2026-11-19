@@ -1,3 +1,3 @@
-
-
-export type PublicAuthorSummaryDtoDisplayName = { [key: string]: unknown } | null;
+export type PublicAuthorSummaryDtoDisplayName = {
+  [key: string]: unknown;
+} | null;

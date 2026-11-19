@@ -1,3 +1,3 @@
-
-
-export type CategoryAnalyticsTopQuizDtoImageUrl = { [key: string]: unknown } | null;
+export type CategoryAnalyticsTopQuizDtoImageUrl = {
+  [key: string]: unknown;
+} | null;

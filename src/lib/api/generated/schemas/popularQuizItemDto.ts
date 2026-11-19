@@ -1,26 +1,23 @@
-
-
-import type { PopularQuizItemDtoCreatorId } from './popularQuizItemDtoCreatorId';
+import type { PopularQuizItemDtoCreatorId } from "./popularQuizItemDtoCreatorId";
 
 export interface PopularQuizItemDto {
+  rank: number;
 
-rank: number;
+  quizId: string;
 
-quizId: string;
+  creatorId?: PopularQuizItemDtoCreatorId;
 
-creatorId?: PopularQuizItemDtoCreatorId;
+  title: string;
 
-title: string;
+  slug: string;
 
-slug: string;
+  imageUrl?: string | null;
 
-imageUrl?: string | null;
+  popularityScore: number;
 
-popularityScore: number;
+  totalAttempts: number;
 
-totalAttempts: number;
+  averageRating: number;
 
-averageRating: number;
-
-bookmarkCount: number;
+  bookmarkCount: number;
 }

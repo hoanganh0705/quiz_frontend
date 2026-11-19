@@ -1,7 +1,5 @@
-
-
-import type { RecentWinnersResponseDto } from './recentWinnersResponseDto';
+import type { RecentWinnersResponseDto } from "./recentWinnersResponseDto";
 
 export type RankingControllerGetRecentWinners200AllOf = {
-data?: RecentWinnersResponseDto;
+  data?: RecentWinnersResponseDto;
 };

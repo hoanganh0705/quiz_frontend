@@ -1,88 +1,84 @@
-
-
 import type {
-BookmarkCollectionResponseDto,
-BookmarkedQuizResponseDto,
-BulkAddBookmarksDto,
-BulkRemoveBookmarksDto,
-BookmarkCollectionAnalyticsResponseDto,
-BookmarkCollectionAnalyticsSummaryDto,
-} from '@/lib/api/generated/schemas';
+  BookmarkCollectionResponseDto,
+  BookmarkedQuizResponseDto,
+  BulkAddBookmarksDto,
+  BulkRemoveBookmarksDto,
+  BookmarkCollectionAnalyticsResponseDto,
+  BookmarkCollectionAnalyticsSummaryDto,
+} from "@/lib/api/generated/schemas";
 
 export type {
-BookmarkCollectionResponseDto,
-BookmarkedQuizResponseDto,
-BulkAddBookmarksDto,
-BulkRemoveBookmarksDto,
-BookmarkCollectionAnalyticsResponseDto,
-BookmarkCollectionAnalyticsSummaryDto,
-} from '@/lib/api/generated/schemas';
+  BookmarkCollectionResponseDto,
+  BookmarkedQuizResponseDto,
+  BulkAddBookmarksDto,
+  BulkRemoveBookmarksDto,
+  BookmarkCollectionAnalyticsResponseDto,
+  BookmarkCollectionAnalyticsSummaryDto,
+} from "@/lib/api/generated/schemas";
 
 export interface CollectionQuiz {
+  bookmarkId: string;
 
-bookmarkId: string;
+  id: string;
 
-id: string;
+  quizId: string;
 
-quizId: string;
+  quizTitle: string;
 
-quizTitle: string;
+  quizSlug: string;
 
-quizSlug: string;
+  quizImageUrl: string | null;
 
-quizImageUrl: string | null;
+  quizIsFeatured: boolean;
 
-quizIsFeatured: boolean;
+  notes: string | null;
 
-notes: string | null;
+  addedAt: string;
 
-addedAt: string;
-
-bookmarkedAt: string;
+  bookmarkedAt: string;
 }
 
-export function toCollectionQuiz(dto: BookmarkedQuizResponseDto): CollectionQuiz {
-return {
-bookmarkId: dto.bookmarkId,
-id: dto.bookmarkId,
-quizId: dto.quizId,
-quizTitle: dto.quizTitle,
-quizSlug: dto.quizSlug,
-quizImageUrl: dto.quizImageUrl ?? null,
-quizIsFeatured: dto.quizIsFeatured,
-notes: dto.notes ?? null,
-addedAt: dto.bookmarkedAt,
-bookmarkedAt: dto.bookmarkedAt,
+export function toCollectionQuiz(
+  dto: BookmarkedQuizResponseDto,
+): CollectionQuiz {
+  return {
+    bookmarkId: dto.bookmarkId,
+    id: dto.bookmarkId,
+    quizId: dto.quizId,
+    quizTitle: dto.quizTitle,
+    quizSlug: dto.quizSlug,
+    quizImageUrl: dto.quizImageUrl ?? null,
+    quizIsFeatured: dto.quizIsFeatured,
+    notes: dto.notes ?? null,
+    addedAt: dto.bookmarkedAt,
+    bookmarkedAt: dto.bookmarkedAt,
   };
 }
 
-export type BulkOperationStatus = 'success' | 'error';
+export type BulkOperationStatus = "success" | "error";
 
 export interface BulkOperationResult {
+  index: number;
 
-index: number;
+  quizId: string;
 
-quizId: string;
+  status: BulkOperationStatus;
 
-status: BulkOperationStatus;
+  code: number;
 
-code: number;
-
-message: string;
+  message: string;
 }
 
 export interface BulkAddResult {
+  addedCount: number;
 
-addedCount: number;
-
-totalRequested: number;
+  totalRequested: number;
 }
 
 export interface BulkRemoveResult {
+  removedCount: number;
 
-removedCount: number;
-
-totalRequested: number;
+  totalRequested: number;
 }
 
 export type BulkAddQuizzesPayload = BulkAddBookmarksDto;
@@ -90,45 +86,44 @@ export type BulkAddQuizzesPayload = BulkAddBookmarksDto;
 export type BulkRemoveQuizzesPayload = BulkRemoveBookmarksDto;
 
 export interface CollectionAnalytics {
+  collectionId: string;
 
-collectionId: string;
+  collectionName: string;
 
-collectionName: string;
+  totalBookmarks: number;
 
-totalBookmarks: number;
+  totalQuizzes: number;
 
-totalQuizzes: number;
+  averageQuizRating: number;
 
-averageQuizRating: number;
+  uniqueCategories: number;
 
-uniqueCategories: number;
+  uniqueTags: number;
 
-uniqueTags: number;
-
-lastUpdated: string;
+  lastUpdated: string;
 }
 
 export function toCollectionAnalytics(
-dto: BookmarkCollectionAnalyticsResponseDto,
+  dto: BookmarkCollectionAnalyticsResponseDto,
 ): CollectionAnalytics {
-return {
-collectionId: dto.collectionId,
-collectionName: dto.collectionName,
-totalBookmarks: dto.summary.totalBookmarks,
-totalQuizzes: dto.summary.totalQuizzes,
-averageQuizRating: dto.summary.averageQuizRating,
-uniqueCategories: dto.summary.uniqueCategories,
-uniqueTags: dto.summary.uniqueTags,
-lastUpdated: dto.lastUpdated,
+  return {
+    collectionId: dto.collectionId,
+    collectionName: dto.collectionName,
+    totalBookmarks: dto.summary.totalBookmarks,
+    totalQuizzes: dto.summary.totalQuizzes,
+    averageQuizRating: dto.summary.averageQuizRating,
+    uniqueCategories: dto.summary.uniqueCategories,
+    uniqueTags: dto.summary.uniqueTags,
+    lastUpdated: dto.lastUpdated,
   };
 }
 
 export function collectionQuizzesKey(collectionId: string) {
-return ['bookmark-collections', 'detail', collectionId, 'quizzes'] as const;
+  return ["bookmark-collections", "detail", collectionId, "quizzes"] as const;
 }
 
 export function collectionAnalyticsKey(collectionId: string) {
-return ['bookmark-collections', 'detail', collectionId, 'analytics'] as const;
+  return ["bookmark-collections", "detail", collectionId, "analytics"] as const;
 }
 
 export const BULK_OPERATION_MAX_ITEMS = 100;

@@ -107,7 +107,9 @@ const ProfileHeader = memo(function ProfileHeader({
                   Joined{" "}
                   {(joinedAt ?? summary?.createdAt ?? null)
                     ? new Date(
-                        joinedAt ?? summary?.createdAt ?? new Date().toISOString()
+                        joinedAt ??
+                          summary?.createdAt ??
+                          new Date().toISOString(),
                       ).toLocaleDateString("en-US", {
                         month: "long",
                         day: "numeric",
@@ -118,7 +120,9 @@ const ProfileHeader = memo(function ProfileHeader({
               </div>
 
               {summary?.bio && (
-                <p className="text-muted-foreground mb-4 text-sm">{summary.bio}</p>
+                <p className="text-muted-foreground mb-4 text-sm">
+                  {summary.bio}
+                </p>
               )}
 
               <div
@@ -151,7 +155,9 @@ const ProfileHeader = memo(function ProfileHeader({
                     <span className="text-foreground font-bold text-sm">
                       {summary.followers}
                     </span>
-                    <span className="text-muted-foreground ml-2">Followers</span>
+                    <span className="text-muted-foreground ml-2">
+                      Followers
+                    </span>
                   </div>
                 )}
                 {summary?.following !== undefined && (
@@ -159,7 +165,9 @@ const ProfileHeader = memo(function ProfileHeader({
                     <span className="text-foreground font-bold text-sm">
                       {summary.following}
                     </span>
-                    <span className="text-muted-foreground ml-2">Following</span>
+                    <span className="text-muted-foreground ml-2">
+                      Following
+                    </span>
                   </div>
                 )}
               </div>
@@ -280,7 +288,9 @@ export interface PublicProfilePageProps {
   routeName: string;
 }
 
-const PublicProfilePage = ({ routeName }: PublicProfilePageProps): React.ReactElement => {
+const PublicProfilePage = ({
+  routeName,
+}: PublicProfilePageProps): React.ReactElement => {
   const {
     activeTab,
     handleTabChange,

@@ -1,30 +1,27 @@
-
-
-import type { UserMeResponseDtoSettings } from './userMeResponseDtoSettings';
+import type { UserMeResponseDtoSettings } from "./userMeResponseDtoSettings";
 
 export interface UserMeResponseDto {
+  userId: string;
 
-userId: string;
+  username: string;
 
-username: string;
+  email: string;
 
-email: string;
+  displayName?: string | null;
 
-displayName?: string | null;
+  avatarUrl?: string | null;
 
-avatarUrl?: string | null;
+  bio?: string | null;
 
-bio?: string | null;
+  xpTotal: number;
 
-xpTotal: number;
+  currentStreak: number;
 
-currentStreak: number;
+  longestStreak: number;
 
-longestStreak: number;
+  settings: UserMeResponseDtoSettings;
 
-settings: UserMeResponseDtoSettings;
+  createdAt: string;
 
-createdAt: string;
-
-updatedAt: string;
+  updatedAt: string;
 }

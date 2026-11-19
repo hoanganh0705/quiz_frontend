@@ -1,17 +1,14 @@
-
-
-import type { CategoryAnalyticsSummaryDto } from './categoryAnalyticsSummaryDto';
-import type { CategoryAnalyticsTopQuizDto } from './categoryAnalyticsTopQuizDto';
+import type { CategoryAnalyticsSummaryDto } from "./categoryAnalyticsSummaryDto";
+import type { CategoryAnalyticsTopQuizDto } from "./categoryAnalyticsTopQuizDto";
 
 export interface CategoryAnalyticsResponseDto {
+  categoryId: string;
 
-categoryId: string;
+  categoryName: string;
 
-categoryName: string;
+  summary: CategoryAnalyticsSummaryDto;
 
-summary: CategoryAnalyticsSummaryDto;
+  topQuizzes: CategoryAnalyticsTopQuizDto[];
 
-topQuizzes: CategoryAnalyticsTopQuizDto[];
-
-lastUpdated: string;
+  lastUpdated: string;
 }

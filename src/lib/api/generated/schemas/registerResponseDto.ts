@@ -1,6 +1,3 @@
-
-
 export interface RegisterResponseDto {
-
-message: string;
+  message: string;
 }

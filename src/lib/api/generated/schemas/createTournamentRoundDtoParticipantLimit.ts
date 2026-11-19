@@ -1,3 +1,3 @@
-
-
-export type CreateTournamentRoundDtoParticipantLimit = { [key: string]: unknown } | null;
+export type CreateTournamentRoundDtoParticipantLimit = {
+  [key: string]: unknown;
+} | null;

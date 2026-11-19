@@ -1,12 +1,9 @@
-
-
 export interface BookmarkCollectionAnalyticsTopTagDto {
+  tagId: string;
 
-tagId: string;
+  name: string;
 
-name: string;
+  slug: string;
 
-slug: string;
-
-bookmarkCount: number;
+  bookmarkCount: number;
 }

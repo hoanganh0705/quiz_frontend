@@ -7,36 +7,35 @@ import { useTournamentFilters } from "@/features/tournaments/hooks";
 import { useTournaments } from "@/features/tournaments/hooks";
 
 import {
-TournamentPlaceholder,
-TournamentFilters,
-TournamentList,
+  TournamentPlaceholder,
+  TournamentFilters,
+  TournamentList,
 } from "@/features/tournaments/components";
 
 export interface TournamentsPageProps {
-
-className?: string;
+  className?: string;
 }
 
 export function TournamentsPage({ className }: TournamentsPageProps) {
-const { isPlaceholder } = useTournamentFeatureFlag();
+  const { isPlaceholder } = useTournamentFeatureFlag();
 
-const { filters, setFilter, resetFilters } = useTournamentFilters();
-const tournamentsResult = useTournaments(filters);
+  const { filters, setFilter, resetFilters } = useTournamentFilters();
+  const tournamentsResult = useTournaments(filters);
 
-if (isPlaceholder) {
-return <TournamentPlaceholder />;
+  if (isPlaceholder) {
+    return <TournamentPlaceholder />;
   }
 
-return (
-<div className={className}>
-<div className="space-y-6">
-<TournamentFilters
-filters={filters}
-onFilterChange={setFilter}
-onReset={resetFilters}
+  return (
+    <div className={className}>
+      <div className="space-y-6">
+        <TournamentFilters
+          filters={filters}
+          onFilterChange={setFilter}
+          onReset={resetFilters}
         />
-<TournamentList tournamentsResult={tournamentsResult} />
-</div>
-</div>
+        <TournamentList tournamentsResult={tournamentsResult} />
+      </div>
+    </div>
   );
 }

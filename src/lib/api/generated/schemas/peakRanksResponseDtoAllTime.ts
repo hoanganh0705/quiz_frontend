@@ -1,5 +1,3 @@
-
-
-import type { PeakRankDto } from './peakRankDto';
+import type { PeakRankDto } from "./peakRankDto";
 
 export type PeakRanksResponseDtoAllTime = PeakRankDto | null;

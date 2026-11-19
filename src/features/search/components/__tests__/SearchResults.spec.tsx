@@ -1,5 +1,3 @@
-
-
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 
@@ -11,213 +9,223 @@ const mockGetFeatureFlagValue = vi.fn();
 const mockUseSearch = vi.fn();
 
 vi.mock("@/lib/feature-flags", () => ({
-getFeatureFlagValue: (...args: unknown[]) => mockGetFeatureFlagValue(...args),
+  getFeatureFlagValue: (...args: unknown[]) => mockGetFeatureFlagValue(...args),
 }));
 
 vi.mock("@/features/search/hooks/useSearch", () => ({
-useSearch: (...args: unknown[]) => mockUseSearch(...args),
+  useSearch: (...args: unknown[]) => mockUseSearch(...args),
 }));
 
 vi.mock("@/features/auth/hooks/use-auth-session", () => ({
-useAuthSession: () => ({ bootstrapState: "authenticated" }),
+  useAuthSession: () => ({ bootstrapState: "authenticated" }),
 }));
 
 function makeParams(q: string = ""): SearchQueryParams {
-return { q };
+  return { q };
 }
 
 function makeRateLimitError(): ApiError {
-return {
-message: "Rate limited",
-status: 429,
-code: "SEARCH_RATE_LIMITED",
-data: {
-type: "https://api.quizmania.com/errors/search/rate-limited",
-title: "Too Many Requests",
-status: 429,
-extensions: {
-code: "SEARCH_RATE_LIMITED",
-retryAfterMs: 30000,
+  return {
+    message: "Rate limited",
+    status: 429,
+    code: "SEARCH_RATE_LIMITED",
+    data: {
+      type: "https://api.quizmania.com/errors/search/rate-limited",
+      title: "Too Many Requests",
+      status: 429,
+      extensions: {
+        code: "SEARCH_RATE_LIMITED",
+        retryAfterMs: 30000,
       },
     },
   } as unknown as ApiError;
 }
 
 function makeGenericError(): ApiError {
-return {
-message: "Server error",
-status: 500,
-code: "GLOBAL_INTERNAL_ERROR",
-data: {
-type: "https://api.quizmania.com/errors/global/internal-error",
-title: "Internal Server Error",
-status: 500,
-extensions: {
-code: "GLOBAL_INTERNAL_ERROR",
+  return {
+    message: "Server error",
+    status: 500,
+    code: "GLOBAL_INTERNAL_ERROR",
+    data: {
+      type: "https://api.quizmania.com/errors/global/internal-error",
+      title: "Internal Server Error",
+      status: 500,
+      extensions: {
+        code: "GLOBAL_INTERNAL_ERROR",
       },
     },
   } as unknown as ApiError;
 }
 
 describe("SearchResults", () => {
-beforeEach(() => {
-vi.clearAllMocks();
-mockGetFeatureFlagValue.mockReturnValue("live");
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockGetFeatureFlagValue.mockReturnValue("live");
   });
 
-describe("loading state (TKT-5.6.G2 AC #2)", () => {
-it("shows skeleton when loading without cached groups", () => {
-mockUseSearch.mockReturnValue({
-groups: null,
-state: "loading",
-isLoading: true,
-isStale: false,
-error: null,
-hasResults: false,
-query: "test",
-retry: vi.fn(),
-cancel: vi.fn(),
+  describe("loading state (TKT-5.6.G2 AC #2)", () => {
+    it("shows skeleton when loading without cached groups", () => {
+      mockUseSearch.mockReturnValue({
+        groups: null,
+        state: "loading",
+        isLoading: true,
+        isStale: false,
+        error: null,
+        hasResults: false,
+        query: "test",
+        retry: vi.fn(),
+        cancel: vi.fn(),
       });
 
-render(<SearchResults params={makeParams("test")} renderItem={() => null} />);
-
-expect(
-document.querySelector('[aria-busy="true"]'),
-      ).toBeInTheDocument();
-    });
-  });
-
-describe("empty state (TKT-5.6.G2 AC #2)", () => {
-it("shows 'no results' empty state when query returns empty", () => {
-mockUseSearch.mockReturnValue({
-groups: {},
-state: "empty",
-isLoading: false,
-isStale: false,
-error: null,
-hasResults: false,
-query: "nonexistent",
-retry: vi.fn(),
-cancel: vi.fn(),
-      });
-
-render(<SearchResults params={makeParams("nonexistent")} renderItem={() => null} />);
-
-expect(screen.getByText(/no results found/i)).toBeInTheDocument();
-    });
-  });
-
-describe("error state (TKT-5.6.G2 AC #2)", () => {
-it("shows error state on generic error", () => {
-mockUseSearch.mockReturnValue({
-groups: null,
-state: "error",
-isLoading: false,
-isStale: false,
-error: makeGenericError(),
-hasResults: false,
-query: "test",
-retry: vi.fn(),
-cancel: vi.fn(),
-      });
-
-const { container } = render(
-<SearchResults params={makeParams("test")} renderItem={() => null} />,
+      render(
+        <SearchResults params={makeParams("test")} renderItem={() => null} />,
       );
 
-const wrapper = container.querySelector('[data-testid="search-error-state"]');
-expect(wrapper).toBeInTheDocument();
+      expect(document.querySelector('[aria-busy="true"]')).toBeInTheDocument();
     });
   });
 
-describe("rate-limit state (TKT-5.6.G2 AC #2)", () => {
-it("shows rate-limit state when rate limited", () => {
-mockUseSearch.mockReturnValue({
-groups: null,
-state: "error",
-isLoading: false,
-isStale: false,
-error: makeRateLimitError(),
-hasResults: false,
-query: "test",
-retry: vi.fn(),
-cancel: vi.fn(),
+  describe("empty state (TKT-5.6.G2 AC #2)", () => {
+    it("shows 'no results' empty state when query returns empty", () => {
+      mockUseSearch.mockReturnValue({
+        groups: {},
+        state: "empty",
+        isLoading: false,
+        isStale: false,
+        error: null,
+        hasResults: false,
+        query: "nonexistent",
+        retry: vi.fn(),
+        cancel: vi.fn(),
       });
 
-render(<SearchResults params={makeParams("test")} renderItem={() => null} />);
+      render(
+        <SearchResults
+          params={makeParams("nonexistent")}
+          renderItem={() => null}
+        />,
+      );
 
-expect(screen.getByRole("alert")).toBeInTheDocument();
+      expect(screen.getByText(/no results found/i)).toBeInTheDocument();
     });
   });
 
-describe("stale data banner (TKT-5.6.G2 AC #2)", () => {
-it("shows stale banner when isStale is true", () => {
-mockUseSearch.mockReturnValue({
-groups: { user: { kind: "user", items: [], visibility: "public" } },
-state: "loading",
-isLoading: true,
-isStale: true,
-error: null,
-hasResults: false,
-query: "test",
-retry: vi.fn(),
-cancel: vi.fn(),
+  describe("error state (TKT-5.6.G2 AC #2)", () => {
+    it("shows error state on generic error", () => {
+      mockUseSearch.mockReturnValue({
+        groups: null,
+        state: "error",
+        isLoading: false,
+        isStale: false,
+        error: makeGenericError(),
+        hasResults: false,
+        query: "test",
+        retry: vi.fn(),
+        cancel: vi.fn(),
       });
 
-render(<SearchResults params={makeParams("test")} renderItem={() => null} />);
+      const { container } = render(
+        <SearchResults params={makeParams("test")} renderItem={() => null} />,
+      );
 
-expect(
-document.querySelector('[role="status"][aria-live="polite"]'),
+      const wrapper = container.querySelector(
+        '[data-testid="search-error-state"]',
+      );
+      expect(wrapper).toBeInTheDocument();
+    });
+  });
+
+  describe("rate-limit state (TKT-5.6.G2 AC #2)", () => {
+    it("shows rate-limit state when rate limited", () => {
+      mockUseSearch.mockReturnValue({
+        groups: null,
+        state: "error",
+        isLoading: false,
+        isStale: false,
+        error: makeRateLimitError(),
+        hasResults: false,
+        query: "test",
+        retry: vi.fn(),
+        cancel: vi.fn(),
+      });
+
+      render(
+        <SearchResults params={makeParams("test")} renderItem={() => null} />,
+      );
+
+      expect(screen.getByRole("alert")).toBeInTheDocument();
+    });
+  });
+
+  describe("stale data banner (TKT-5.6.G2 AC #2)", () => {
+    it("shows stale banner when isStale is true", () => {
+      mockUseSearch.mockReturnValue({
+        groups: { user: { kind: "user", items: [], visibility: "public" } },
+        state: "loading",
+        isLoading: true,
+        isStale: true,
+        error: null,
+        hasResults: false,
+        query: "test",
+        retry: vi.fn(),
+        cancel: vi.fn(),
+      });
+
+      render(
+        <SearchResults params={makeParams("test")} renderItem={() => null} />,
+      );
+
+      expect(
+        document.querySelector('[role="status"][aria-live="polite"]'),
       ).toBeInTheDocument();
     });
   });
 
-describe("no unstable social IDs (TKT-5.6.G2 AC #2)", () => {
-it("does not render followId or friendshipId in any href", () => {
-mockUseSearch.mockReturnValue({
-groups: {
-user: {
-kind: "user",
-items: [
-{
-id: "u1",
-userId: "u1",
-username: "testuser",
-displayName: "Test User",
-subtitle: "",
-href: "/profile/testuser",
-visibility: "public",
+  describe("no unstable social IDs (TKT-5.6.G2 AC #2)", () => {
+    it("does not render followId or friendshipId in any href", () => {
+      mockUseSearch.mockReturnValue({
+        groups: {
+          user: {
+            kind: "user",
+            items: [
+              {
+                id: "u1",
+                userId: "u1",
+                username: "testuser",
+                displayName: "Test User",
+                subtitle: "",
+                href: "/profile/testuser",
+                visibility: "public",
               },
             ],
-visibility: "public",
+            visibility: "public",
           },
         },
-state: "success",
-isLoading: false,
-isStale: false,
-error: null,
-hasResults: true,
-query: "test",
-retry: vi.fn(),
-cancel: vi.fn(),
+        state: "success",
+        isLoading: false,
+        isStale: false,
+        error: null,
+        hasResults: true,
+        query: "test",
+        retry: vi.fn(),
+        cancel: vi.fn(),
       });
 
-const { container } = render(
-<SearchResults
-params={makeParams("test")}
-renderItem={(item) => (
-
-<a key={(item as any).id} href={(item as any).href}>
-{/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-{(item as any).displayName}
-</a>
+      const { container } = render(
+        <SearchResults
+          params={makeParams("test")}
+          renderItem={(item) => (
+            <a key={(item as any).id} href={(item as any).href}>
+              {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+              {(item as any).displayName}
+            </a>
           )}
         />,
       );
 
-const html = container.innerHTML;
-expect(html).not.toContain("followId");
-expect(html).not.toContain("friendshipId");
+      const html = container.innerHTML;
+      expect(html).not.toContain("followId");
+      expect(html).not.toContain("friendshipId");
     });
   });
 });

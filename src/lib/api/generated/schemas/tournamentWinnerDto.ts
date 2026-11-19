@@ -1,14 +1,11 @@
-
-
 export interface TournamentWinnerDto {
+  rank: number;
 
-rank: number;
+  userId: string;
 
-userId: string;
+  username: string;
 
-username: string;
+  score: number;
 
-score: number;
-
-avatarUrl?: string | null;
+  avatarUrl?: string | null;
 }

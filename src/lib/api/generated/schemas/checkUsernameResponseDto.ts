@@ -1,6 +1,3 @@
-
-
 export interface CheckUsernameResponseDto {
-
-available: boolean;
+  available: boolean;
 }

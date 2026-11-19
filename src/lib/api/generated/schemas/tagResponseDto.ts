@@ -1,14 +1,11 @@
-
-
 export interface TagResponseDto {
+  tagId: string;
 
-tagId: string;
+  name: string;
 
-name: string;
+  slug: string;
 
-slug: string;
+  createdAt: string;
 
-createdAt: string;
-
-updatedAt: string;
+  updatedAt: string;
 }

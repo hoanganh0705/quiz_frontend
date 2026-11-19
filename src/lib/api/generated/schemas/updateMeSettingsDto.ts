@@ -1,11 +1,8 @@
-
-
-import type { UpdateMeSettingsDtoPreferences } from './updateMeSettingsDtoPreferences';
-import type { UpdateMeSettingsDtoPrivacy } from './updateMeSettingsDtoPrivacy';
+import type { UpdateMeSettingsDtoPreferences } from "./updateMeSettingsDtoPreferences";
+import type { UpdateMeSettingsDtoPrivacy } from "./updateMeSettingsDtoPrivacy";
 
 export interface UpdateMeSettingsDto {
+  preferences?: UpdateMeSettingsDtoPreferences;
 
-preferences?: UpdateMeSettingsDtoPreferences;
-
-privacy?: UpdateMeSettingsDtoPrivacy;
+  privacy?: UpdateMeSettingsDtoPrivacy;
 }

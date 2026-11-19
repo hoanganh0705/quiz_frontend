@@ -1,7 +1,5 @@
-
-
-import type { UnregisterTournamentResponseDto } from './unregisterTournamentResponseDto';
+import type { UnregisterTournamentResponseDto } from "./unregisterTournamentResponseDto";
 
 export type TournamentControllerUnregisterFromTournament200AllOf = {
-data?: UnregisterTournamentResponseDto;
+  data?: UnregisterTournamentResponseDto;
 };

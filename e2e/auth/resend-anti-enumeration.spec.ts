@@ -3,8 +3,6 @@
  * is identical for a brand-new email, a known-unverified email, and a
  * known-verified email.
  *
- * Source epic: Epic 2.2 — Email verification and resend.
- * Source ticket: TKT-2.2.F2.
  *
  * ## What this spec proves
  *
@@ -30,23 +28,25 @@
  * assertion.)
  */
 
-import { test, expect } from '@playwright/test';
+import { test, expect } from "@playwright/test";
 
-const EMAIL_NEW = 'resend_f2_new@example.test';
-const EMAIL_UNVERIFIED = 'resend_f2_unverified@example.test';
-const EMAIL_VERIFIED = 'resend_f2_verified@example.test';
+const EMAIL_NEW = "resend_f2_new@example.test";
+const EMAIL_UNVERIFIED = "resend_f2_unverified@example.test";
+const EMAIL_VERIFIED = "resend_f2_verified@example.test";
 
 const captureBody = async (
-  page: import('@playwright/test').Page,
-  email: string
+  page: import("@playwright/test").Page,
+  email: string,
 ): Promise<string> => {
   await page.goto(`/resend-verification?email=${encodeURIComponent(email)}`);
-  const emailInput = page.getByTestId('resend-form').locator('input[type="email"]');
+  const emailInput = page
+    .getByTestId("resend-form")
+    .locator('input[type="email"]');
   await emailInput.fill(email);
-  const submit = page.getByTestId('resend-submit');
+  const submit = page.getByTestId("resend-submit");
   await submit.click();
   // The body appears once the cooldown kicks in.
-  const body = page.getByTestId('resend-acknowledgement-body');
+  const body = page.getByTestId("resend-acknowledgement-body");
   await expect(body).toBeVisible({ timeout: 10_000 });
   const text = await body.textContent();
   if (text === null) {
@@ -55,7 +55,7 @@ const captureBody = async (
   return text;
 };
 
-test('resend-verification renders the same body for three different emails', async ({
+test("resend-verification renders the same body for three different emails", async ({
   page,
 }) => {
   const bodyNew = await captureBody(page, EMAIL_NEW);
@@ -67,11 +67,11 @@ test('resend-verification renders the same body for three different emails', asy
   expect(bodyUnverified).toBe(bodyVerified);
 });
 
-test('resend-verification body never contains the user-supplied email', async ({
+test("resend-verification body never contains the user-supplied email", async ({
   page,
 }) => {
   const email = EMAIL_NEW;
   const body = await captureBody(page, email);
   expect(body).not.toContain(email);
-  expect(body).not.toContain('example.test');
+  expect(body).not.toContain("example.test");
 });

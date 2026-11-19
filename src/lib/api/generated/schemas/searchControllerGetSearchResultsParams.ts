@@ -1,8 +1,5 @@
-
-
 export type SearchControllerGetSearchResultsParams = {
+  q: string;
 
-q: string;
-
-limit?: number;
+  limit?: number;
 };
