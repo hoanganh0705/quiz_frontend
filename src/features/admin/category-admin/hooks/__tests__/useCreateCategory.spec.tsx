@@ -5,11 +5,15 @@ import { ApiError } from "@/lib/api";
 
 import { useCreateCategory } from "../useCreateCategory";
 
-const mockMutate = vi.hoisted(() => vi.fn());
+const mockInvalidateQueries = vi.hoisted(() => vi.fn().mockResolvedValue(undefined));
 const mockCreateCategory = vi.hoisted(() => vi.fn());
 const mockBroadcastCategoryAdminInvalidate = vi.hoisted(() => vi.fn());
 
-vi.mock("swr", () => ({ mutate: mockMutate }));
+vi.mock("@/providers/QueryProvider", () => ({
+  getQueryClient: () => ({
+    invalidateQueries: mockInvalidateQueries,
+  }),
+}));
 
 vi.mock("@/features/admin/services/category-admin.service", () => ({
   createCategory: mockCreateCategory,
@@ -21,7 +25,7 @@ vi.mock("@/features/admin/category-admin/cache/category-cross-tab", () => ({
 
 afterEach(() => {
   vi.restoreAllMocks();
-  mockMutate.mockClear();
+  mockInvalidateQueries.mockClear();
   mockBroadcastCategoryAdminInvalidate.mockClear();
 });
 
@@ -93,7 +97,7 @@ describe("useCreateCategory", () => {
     expect(result.current.error).toBeNull();
   });
 
-  it("invalidates admin and public SWR caches on success", async () => {
+  it("invalidates admin and public caches on success", async () => {
     mockCreateCategory.mockResolvedValue({
       categoryId: "cat-1",
       name: "Rust",
@@ -108,8 +112,12 @@ describe("useCreateCategory", () => {
 
     await result.current.create({ name: "Rust" });
 
-    expect(mockMutate).toHaveBeenCalledWith("category-admin:list");
-    expect(mockMutate).toHaveBeenCalledWith(publicMatcher);
+    expect(mockInvalidateQueries).toHaveBeenCalledWith({
+      queryKey: ["category-admin:list"],
+    });
+    expect(mockInvalidateQueries).toHaveBeenCalledWith({
+      predicate: publicMatcher,
+    });
   });
 
   it("broadcasts category admin invalidation on success", async () => {

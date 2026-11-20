@@ -2,7 +2,6 @@
 
 import { useCallback, useRef, useState } from "react";
 
-import { mutate as globalMutate } from "swr";
 import { getQueryClient } from "@/providers/QueryProvider";
 
 import { ApiError } from "@/lib/api";
@@ -70,21 +69,13 @@ function nowMs(): number {
 async function revalidateAfterVisibilityFlip(commentId: string): Promise<void> {
   try {
     const qc = getQueryClient();
-    void qc.invalidateQueries({
+    await qc.invalidateQueries({
       predicate: (query) =>
         commentReportsKeyMatcher(query.queryKey) ||
         commentIdKeyMatcher(query.queryKey, commentId) ||
         arrayStartsWith(query.queryKey, "comments"),
     });
   } catch {}
-  await globalMutate(
-    (key: readonly unknown[]) =>
-      commentReportsKeyMatcher(key) ||
-      commentIdKeyMatcher(key, commentId) ||
-      arrayStartsWith(key, "comments"),
-    undefined,
-    { revalidate: true },
-  );
 }
 
 function arrayStartsWith(key: readonly unknown[], prefix: string): boolean {

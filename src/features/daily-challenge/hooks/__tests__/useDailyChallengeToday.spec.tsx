@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { cleanup, renderHook, waitFor } from "@testing-library/react";
-import { SWRConfig } from "swr";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 import { ApiError } from "@/lib/api";
 
@@ -47,19 +47,18 @@ function makeApiError(status: number, code = `CODE_${status}`): ApiError {
   } as unknown as Parameters<typeof ApiError.fromAxios>[0]);
 }
 
-function TestSwrProvider({ children }: { children: React.ReactNode }) {
+function TestQueryProvider({ children }: { children: React.ReactNode }) {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: {
+        retry: false,
+      },
+    },
+  });
   return (
-    <SWRConfig
-      value={{
-        provider: () => new Map(),
-        revalidateOnFocus: false,
-        revalidateIfStale: false,
-        dedupingInterval: 0,
-        errorRetryCount: 0,
-      }}
-    >
+    <QueryClientProvider client={queryClient}>
       {children}
-    </SWRConfig>
+    </QueryClientProvider>
   );
 }
 
@@ -76,7 +75,7 @@ describe("useDailyChallengeToday — missing-endpoint branch", () => {
     getDailyChallengeTodayMock.mockResolvedValue({ kind: "missing-endpoint" });
 
     const { result } = renderHook(() => useDailyChallengeToday(), {
-      wrapper: TestSwrProvider,
+      wrapper: TestQueryProvider,
     });
 
     await waitFor(() => {
@@ -93,7 +92,7 @@ describe("useDailyChallengeToday — missing-endpoint branch", () => {
 
     const before = Date.now();
     const { result } = renderHook(() => useDailyChallengeToday(), {
-      wrapper: TestSwrProvider,
+      wrapper: TestQueryProvider,
     });
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false);
@@ -113,7 +112,7 @@ describe("useDailyChallengeToday — error branch", () => {
     });
 
     const { result } = renderHook(() => useDailyChallengeToday(), {
-      wrapper: TestSwrProvider,
+      wrapper: TestQueryProvider,
     });
 
     await waitFor(() => {
@@ -141,7 +140,7 @@ describe("useDailyChallengeToday — ok branch", () => {
     });
 
     const { result } = renderHook(() => useDailyChallengeToday(), {
-      wrapper: TestSwrProvider,
+      wrapper: TestQueryProvider,
     });
 
     await waitFor(() => {
@@ -168,7 +167,7 @@ describe("useDailyChallengeToday — ok branch", () => {
     });
 
     const { result } = renderHook(() => useDailyChallengeToday(), {
-      wrapper: TestSwrProvider,
+      wrapper: TestQueryProvider,
     });
 
     await waitFor(() => {

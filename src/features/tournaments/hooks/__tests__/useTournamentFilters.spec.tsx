@@ -83,7 +83,7 @@ describe("useTournamentFilters — setFilter", () => {
 
     expect(result.current.filters.status).toBe("ongoing");
     expect(replaceMock).toHaveBeenCalled();
-    const target = replaceMock.mock.calls[0]?.[0] as string;
+    const target = replaceMock.mock.calls.at(-1)?.[0] as string;
     expect(target).toContain("status=ongoing");
   });
 

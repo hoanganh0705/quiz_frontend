@@ -6,15 +6,17 @@ import { TournamentRegistrationCta } from "@/features/tournaments/components/Tou
 import type { UseTournamentRegistrationResult } from "@/features/tournaments/hooks";
 import { ApiError } from "@/lib/api";
 
+const mockGetFeatureFlagValue = vi.fn(() => "live");
 vi.mock("@/lib/feature-flags", () => ({
-  getFeatureFlagValue: vi.fn(() => "live"),
+  getFeatureFlagValue: (...args: unknown[]) => mockGetFeatureFlagValue(...args),
 }));
 
+const mockUseAuthSession = vi.fn(() => ({
+  bootstrapState: "authenticated",
+  currentUser: { userId: "user-123", id: "user-123" },
+}));
 vi.mock("@/features/auth/hooks/use-auth-session", () => ({
-  useAuthSession: vi.fn(() => ({
-    bootstrapState: "authenticated",
-    currentUser: { userId: "user-123", id: "user-123" },
-  })),
+  useAuthSession: (...args: unknown[]) => mockUseAuthSession(...args),
 }));
 
 const mockUseTournamentRegistration = vi.fn();
@@ -108,7 +110,13 @@ function makeApiError(code: string) {
     request: undefined,
     response: {
       status: 409,
-      data: { type: "about:blank", title: `Error ${code}`, status: 409, code },
+      data: {
+        type: "about:blank",
+        title: `Error ${code}`,
+        status: 409,
+        code,
+        extensions: { code },
+      },
     },
     toJSON: () => ({}),
   } as unknown as Parameters<typeof ApiError.fromAxios>[0]);
@@ -117,13 +125,16 @@ function makeApiError(code: string) {
 describe("TournamentRegistrationCta", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockGetFeatureFlagValue.mockReturnValue("live");
+    mockUseAuthSession.mockReturnValue({
+      bootstrapState: "authenticated",
+      currentUser: { userId: "user-123", id: "user-123" },
+    });
   });
 
   describe("feature flag", () => {
     it("renders nothing when flag is placeholder", () => {
-      vi.mocked(
-        require("@/lib/feature-flags").getFeatureFlagValue,
-      ).mockReturnValueOnce("placeholder");
+      mockGetFeatureFlagValue.mockReturnValueOnce("placeholder");
       mockUseTournamentRegistration.mockReturnValue(makeMockResult());
 
       render(<TournamentRegistrationCta tournamentId="tournament-1" />);
@@ -142,14 +153,12 @@ describe("TournamentRegistrationCta", () => {
 
   describe("unauthenticated state", () => {
     it('renders "Sign in to register" button', () => {
-      vi.mocked(
-        require("@/features/auth/hooks/use-auth-session").useAuthSession,
-      ).mockReturnValueOnce({
+      mockUseAuthSession.mockReturnValueOnce({
         bootstrapState: "unauthenticated",
         currentUser: null,
       });
       mockUseTournamentRegistration.mockReturnValue(
-        makeMockResult({ isLoading: true }),
+        makeMockResult({ isLoading: false }),
       );
 
       render(<TournamentRegistrationCta tournamentId="tournament-1" />);

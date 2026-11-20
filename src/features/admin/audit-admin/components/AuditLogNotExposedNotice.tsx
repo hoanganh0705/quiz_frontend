@@ -34,7 +34,7 @@ export function AuditLogNotExposedNotice(): React.ReactElement {
               className="mt-1 text-sm text-muted-foreground"
               data-testid="audit-log-not-exposed-body"
             >
-              The Phase 7 admin audit log surface requires{" "}
+              The admin audit log surface requires{" "}
               <code className="rounded bg-muted px-1 py-0.5 font-mono text-xs">
                 GET /admin/audit
               </code>{" "}

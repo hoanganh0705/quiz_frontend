@@ -2,7 +2,7 @@
 
 import { useCallback, useRef, useState } from "react";
 
-import { mutate as globalMutate } from "swr";
+import { getQueryClient } from "@/providers/QueryProvider";
 
 import { ApiError } from "@/lib/api";
 
@@ -38,19 +38,21 @@ export function useUpdateCategory(): UseUpdateCategory {
       try {
         const result = await updateCategory(id, input);
 
-        const keysToRevalidate: Array<string | ((key: unknown) => boolean)> = [
-          CATEGORY_ADMIN_LIST_KEY,
-          publicCategoriesKeyMatcher,
-          ...(newSlug ? [categorySlugKey(newSlug)] : []),
+        const qc = getQueryClient();
+        const invalidations: Promise<void>[] = [
+          qc.invalidateQueries({ queryKey: [CATEGORY_ADMIN_LIST_KEY] }),
+          qc.invalidateQueries({
+            predicate: (query) => publicCategoriesKeyMatcher(query.queryKey),
+          }),
         ];
-
-        await Promise.all(
-          keysToRevalidate.map((key) =>
-            typeof key === "string"
-              ? globalMutate(key)
-              : globalMutate(key as (k: unknown) => boolean),
-          ),
-        );
+        if (newSlug) {
+          invalidations.push(
+            qc.invalidateQueries({
+              queryKey: [categorySlugKey(newSlug)],
+            }),
+          );
+        }
+        await Promise.all(invalidations);
 
         broadcastCategoryAdminInvalidate("update", id);
         setIsPending(false);

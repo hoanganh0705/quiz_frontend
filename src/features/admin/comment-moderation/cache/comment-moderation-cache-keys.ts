@@ -1,4 +1,3 @@
-import { mutate as globalMutate, type ScopedMutator } from "swr";
 import { getQueryClient } from "@/providers/QueryProvider";
 
 import { commentIdKeyMatcher } from "../hooks/commentIdKeys";
@@ -22,24 +21,26 @@ export function commentThreadKeyMatcher(key: unknown): boolean {
   return key[0] === "comments" && key[1] === "thread";
 }
 
-export function invalidateCommentReportsList(
-  mutate: ScopedMutator = globalMutate,
-): Promise<unknown[]> {
+export async function invalidateCommentReportsList(
+  mutate?: (matcher: (key: unknown) => boolean) => unknown,
+): Promise<unknown> {
   try {
     const qc = getQueryClient();
     void qc.invalidateQueries({
       predicate: (query) => commentReportsKeyMatcher(query.queryKey),
     });
   } catch {}
-  return mutate(commentReportsKeyMatcher) as unknown as Promise<unknown[]>;
+  if (mutate) {
+    return mutate(commentReportsKeyMatcher);
+  }
 }
 
-export function invalidateCommentById(
+export async function invalidateCommentById(
   commentId: string,
-  mutate: ScopedMutator = globalMutate,
+  mutate?: (key: unknown) => unknown,
 ): Promise<unknown[]> {
   if (typeof commentId !== "string" || commentId.trim().length === 0) {
-    return Promise.resolve([]);
+    return [];
   }
   try {
     const qc = getQueryClient();
@@ -51,15 +52,16 @@ export function invalidateCommentById(
       predicate: (query) => publicCommentsKeyMatcher(query.queryKey),
     });
   } catch {}
-  const promises: unknown[] = [];
-  promises.push(mutate(commentKey(commentId) as unknown as string));
-  promises.push(
-    (mutate as unknown as (key: unknown) => Promise<unknown[]>)(
-      (candidate: unknown) => commentIdKeyMatcher(candidate, commentId),
-    ) as unknown as Promise<unknown[]>,
-  );
-  promises.push(
-    mutate(publicCommentsKeyMatcher) as unknown as Promise<unknown[]>,
-  );
-  return Promise.all(promises) as Promise<unknown[]>;
+  if (mutate) {
+    const promises: unknown[] = [];
+    promises.push(mutate(commentKey(commentId)));
+    promises.push(
+      (mutate as (fn: unknown) => unknown)(
+        (candidate: unknown) => commentIdKeyMatcher(candidate, commentId),
+      ),
+    );
+    promises.push(mutate(publicCommentsKeyMatcher));
+    return Promise.all(promises);
+  }
+  return [];
 }

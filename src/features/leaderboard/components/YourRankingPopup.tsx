@@ -4,14 +4,7 @@
  * `YourRankingPopup` — live modal showing the viewer's ranking
  * profile.
  *
- * Source epic:   Phase 6 — leaderboard mock-data cleanup.
- * Source ticket: W-04 / cleanup of `YourRankingPopup`.
- *
- * The previous version embedded `mockUserRanking` (a hardcoded
- * `UserRankingData` with rank=42, points=3250, etc.) and rendered
- * achievements + recent activity purely from synthetic data.
- *
- * All of the mock fields have been removed. The popup now reads:
+ * Reads:
  *   - `rank`, `xp`, `denseRank`, `percentile`, `xpToNextRank`,
  *     `nextRankXp`, `trend`, `trendAmount` from
  *     `useMyRanking().global.weekly`.

@@ -1,6 +1,6 @@
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { SWRConfig } from "swr";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 import { ApiError } from "@/lib/api";
 
@@ -55,16 +55,19 @@ beforeEach(() => {
 });
 
 function renderUseComment(params: { commentId: string; enabled?: boolean }) {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
   return renderHook(() => useComment(params), {
     wrapper: ({ children }) => (
-      <SWRConfig value={{ provider: () => new Map() }}>{children}</SWRConfig>
+      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
     ),
   });
 }
 
 import { useComment } from "../useComment";
 
-describe("TKT-7.6.C4 — useComment: happy path", () => {
+describe("useComment: happy path", () => {
   it("fetches the comment via the SDK and exposes the payload", async () => {
     const fixture = {
       commentId: "00000000-0000-4000-8000-000000000001",
@@ -106,7 +109,7 @@ describe("TKT-7.6.C4 — useComment: happy path", () => {
   });
 });
 
-describe("TKT-7.6.C4 — useComment: short-circuits", () => {
+describe("useComment: short-circuits", () => {
   it("invalid id shortcuts to COMMENT_NOT_FOUND without a network call", async () => {
     const { result } = renderUseComment({ commentId: "not-a-uuid" });
 
@@ -132,7 +135,7 @@ describe("TKT-7.6.C4 — useComment: short-circuits", () => {
   });
 });
 
-describe("TKT-7.6.C4 — useComment: error classification", () => {
+describe("useComment: error classification", () => {
   it("COMMENT_NOT_FOUND outcome is preserved when the SDK rejects", async () => {
     mockGetComment.mockRejectedValueOnce(
       makeApiError("COMMENT_NOT_FOUND", 404),
@@ -176,8 +179,8 @@ describe("TKT-7.6.C4 — useComment: error classification", () => {
   });
 });
 
-describe("TKT-7.6.C4 — useComment: refresh & mutate", () => {
-  it("refresh() re-fetches via the SDK into the SWR cache", async () => {
+describe("useComment: refresh & mutate", () => {
+  it("refresh() re-fetches via the SDK into the cache", async () => {
     mockGetComment
       .mockResolvedValueOnce({
         commentId: "00000000-0000-4000-8000-000000000001",
@@ -215,7 +218,7 @@ describe("TKT-7.6.C4 — useComment: refresh & mutate", () => {
     expect(mockGetComment.mock.calls.length).toBeGreaterThanOrEqual(2);
   });
 
-  it("mutate(updater) writes the new value to the SWR cache", async () => {
+  it("mutate(updater) writes the new value to the cache", async () => {
     mockGetComment.mockResolvedValueOnce({
       commentId: "00000000-0000-4000-8000-000000000001",
       hidden: false,

@@ -1,17 +1,11 @@
 "use client";
 
 /**
- * `DailyChallengePlaceholder` — the locked Phase 3 default surface.
- *
- * Source epic:   Epic 3.12 — `/daily-challenge` read-only render.
- * Source story:  `projectDocs/Epics/PHASE_3_EPICS.md` → Story 3.12.
- * Source ticket: TKT-3.12.B3.
+ * `DailyChallengePlaceholder` — the placeholder surface.
  *
  * Rendered when the regenerated SDK does not expose a daily-challenge
- * operation (the A1-locked default at this commit — `EPIC_3_12_A1.md`
- * §1.1) OR when the env-var override
- * `NEXT_PUBLIC_DAILY_CHALLENGE_PAGE=placeholder` is set. The placeholder
- * is the only surface the public sees at this commit.
+ * operation OR when the env-var override
+ * `NEXT_PUBLIC_DAILY_CHALLENGE_PAGE=placeholder` is set.
  *
  * The surface is a single, static "Coming soon" card with a spinner
  * icon and a short copy block. It is intentionally empty of

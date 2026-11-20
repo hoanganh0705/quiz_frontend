@@ -9,11 +9,6 @@ import { useDailyChallengeHistory } from "./useDailyChallengeHistory";
  * `useDailyChallengePerformance` — derives per-day-of-week aggregate
  * performance metrics from the viewer's daily-challenge history.
  *
- * Source epic:   Phase 1 (F-2 in the remaining-gaps plan) — `<ChallengeChart />`
- *                must consume real history instead of the hardcoded
- *                `performanceData` constant.
- * Source ticket: F-2.
- *
  * ## Output shape
  *
  * ```ts

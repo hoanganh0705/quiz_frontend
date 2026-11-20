@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { renderHook, waitFor } from "@testing-library/react";
-import { SWRConfig } from "swr";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 import { ApiError } from "@/lib/api";
 
@@ -62,13 +62,16 @@ function makeReview(
   };
 }
 
-function withFreshSWRCache({
+function withFreshCache({
   children,
 }: {
   children: React.ReactNode;
 }): React.ReactElement {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
   return (
-    <SWRConfig value={{ provider: () => new Map() }}>{children}</SWRConfig>
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
   );
 }
 
@@ -80,12 +83,12 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-describe("TKT-7.5.C3 — useReview", () => {
+describe("useReview", () => {
   it("returns the disabled snapshot when reviewId is null (no fetch)", async () => {
     getReviewByIdMock.mockResolvedValue({ data: makeReview() });
 
     const { result } = renderHook(() => useReview(null), {
-      wrapper: withFreshSWRCache,
+      wrapper: withFreshCache,
     });
 
     expect(result.current.isLoading).toBe(false);
@@ -99,7 +102,7 @@ describe("TKT-7.5.C3 — useReview", () => {
     getReviewByIdMock.mockResolvedValue({ data: review });
 
     const { result } = renderHook(() => useReview("rv-42"), {
-      wrapper: withFreshSWRCache,
+      wrapper: withFreshCache,
     });
 
     await waitFor(() => expect(result.current.isLoading).toBe(false));
@@ -117,7 +120,7 @@ describe("TKT-7.5.C3 — useReview", () => {
     getReviewByIdMock.mockResolvedValue({});
 
     const { result } = renderHook(() => useReview("rv-ghost"), {
-      wrapper: withFreshSWRCache,
+      wrapper: withFreshCache,
     });
 
     await waitFor(() => expect(result.current.isLoading).toBe(false));
@@ -130,7 +133,7 @@ describe("TKT-7.5.C3 — useReview", () => {
     getReviewByIdMock.mockRejectedValue(makeApiError(404, "REVIEW_NOT_FOUND"));
 
     const { result } = renderHook(() => useReview("rv-missing"), {
-      wrapper: withFreshSWRCache,
+      wrapper: withFreshCache,
     });
 
     await waitFor(() => expect(result.current.error).not.toBeNull());
@@ -146,7 +149,7 @@ describe("TKT-7.5.C3 — useReview", () => {
     );
 
     renderHook(() => useReview("rv-err"), {
-      wrapper: withFreshSWRCache,
+      wrapper: withFreshCache,
     });
 
     await waitFor(() => expect(getReviewByIdMock).toHaveBeenCalledTimes(1));
@@ -164,7 +167,7 @@ describe("TKT-7.5.C3 — useReview", () => {
     const { result, rerender } = renderHook(
       ({ id }: { id: string | null }) => useReview(id),
       {
-        wrapper: withFreshSWRCache,
+        wrapper: withFreshCache,
         initialProps: { id: "rv-a" as string | null },
       },
     );
@@ -192,7 +195,7 @@ describe("TKT-7.5.C3 — useReview", () => {
     const { result, rerender } = renderHook(
       ({ id }: { id: string | null }) => useReview(id),
       {
-        wrapper: withFreshSWRCache,
+        wrapper: withFreshCache,
         initialProps: { id: "rv-x" as string | null },
       },
     );
@@ -206,7 +209,7 @@ describe("TKT-7.5.C3 — useReview", () => {
     expect(result.current.error).toBeNull();
   });
 
-  it("does not fetch the same id twice without a state change (SWR dedupe)", async () => {
+  it("does not fetch the same id twice without a state change (dedupe)", async () => {
     let resolve: ((value: unknown) => void) | null = null;
     getReviewByIdMock.mockImplementationOnce(
       () =>
@@ -216,7 +219,7 @@ describe("TKT-7.5.C3 — useReview", () => {
     );
 
     const { result } = renderHook(() => useReview("rv-dedupe"), {
-      wrapper: withFreshSWRCache,
+      wrapper: withFreshCache,
     });
 
     expect(result.current.isLoading).toBe(true);
@@ -237,7 +240,7 @@ describe("TKT-7.5.C3 — useReview", () => {
   });
 });
 
-describe("TKT-7.5.C3 — REVIEW_READ_KEY", () => {
+describe("REVIEW_READ_KEY", () => {
   it("encodes the id in a stable, namespaced tuple", () => {
     expect(REVIEW_READ_KEY("rv-1")).toEqual([
       "admin",

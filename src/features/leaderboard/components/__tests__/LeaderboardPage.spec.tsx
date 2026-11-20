@@ -7,7 +7,7 @@ import {
   fireEvent,
   within,
 } from "@testing-library/react";
-import { SWRConfig } from "swr";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 import { ApiError } from "@/lib/api";
 
@@ -103,19 +103,18 @@ function setHookReturn(overrides: Partial<ReturnType<typeof useLeaderboard>>) {
   useLeaderboardMock.mockImplementation(() => stable);
 }
 
-function TestSwrProvider({ children }: { children: React.ReactNode }) {
+function TestQueryProvider({ children }: { children: React.ReactNode }) {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: {
+        retry: false,
+      },
+    },
+  });
   return (
-    <SWRConfig
-      value={{
-        provider: () => new Map(),
-        revalidateOnFocus: false,
-        revalidateIfStale: false,
-        dedupingInterval: 0,
-        errorRetryCount: 0,
-      }}
-    >
+    <QueryClientProvider client={queryClient}>
       {children}
-    </SWRConfig>
+    </QueryClientProvider>
   );
 }
 
@@ -138,9 +137,9 @@ describe("LeaderboardPage — default period", () => {
   it("calls `useLeaderboard` with `weekly` on first paint", () => {
     setHookReturn({ entries: [] });
     render(
-      <TestSwrProvider>
+      <TestQueryProvider>
         <LeaderboardPage />
-      </TestSwrProvider>,
+      </TestQueryProvider>,
     );
 
     expect(useLeaderboardMock).toHaveBeenCalledWith("weekly");
@@ -151,9 +150,9 @@ describe("LeaderboardPage — period switch", () => {
   it("changing the period passes the new period to `useLeaderboard`", async () => {
     setHookReturn({ entries: [] });
     const { rerender } = render(
-      <TestSwrProvider>
+      <TestQueryProvider>
         <LeaderboardPage />
-      </TestSwrProvider>,
+      </TestQueryProvider>,
     );
 
     expect(useLeaderboardMock).toHaveBeenLastCalledWith("weekly");
@@ -171,9 +170,9 @@ describe("LeaderboardPage — period switch", () => {
     });
 
     rerender(
-      <TestSwrProvider>
+      <TestQueryProvider>
         <LeaderboardPage />
-      </TestSwrProvider>,
+      </TestQueryProvider>,
     );
 
     expect(useLeaderboardMock.mock.calls.length).toBeGreaterThanOrEqual(3);
@@ -200,9 +199,9 @@ describe("LeaderboardPage — podium", () => {
       ],
     });
     render(
-      <TestSwrProvider>
+      <TestQueryProvider>
         <LeaderboardPage />
-      </TestSwrProvider>,
+      </TestQueryProvider>,
     );
 
     const podium = screen.getByTestId("leaderboard-podium");
@@ -219,9 +218,9 @@ describe("LeaderboardPage — podium", () => {
       entries: [],
     });
     render(
-      <TestSwrProvider>
+      <TestQueryProvider>
         <LeaderboardPage />
-      </TestSwrProvider>,
+      </TestQueryProvider>,
     );
 
     expect(screen.queryByTestId("leaderboard-podium")).toBeNull();
@@ -232,9 +231,9 @@ describe("LeaderboardPage — podium", () => {
       entries: [makeEntry({ userId: "u-1", rank: 1, displayName: "Solo" })],
     });
     render(
-      <TestSwrProvider>
+      <TestQueryProvider>
         <LeaderboardPage />
-      </TestSwrProvider>,
+      </TestQueryProvider>,
     );
 
     expect(screen.getByTestId("leaderboard-podium")).toBeInTheDocument();
@@ -253,9 +252,9 @@ describe("LeaderboardPage — entries 4+", () => {
       ],
     });
     render(
-      <TestSwrProvider>
+      <TestQueryProvider>
         <LeaderboardPage />
-      </TestSwrProvider>,
+      </TestQueryProvider>,
     );
 
     const rows = screen.getByTestId("leaderboard-rows");
@@ -274,9 +273,9 @@ describe("LeaderboardPage — load more", () => {
       hasMore: true,
     });
     render(
-      <TestSwrProvider>
+      <TestQueryProvider>
         <LeaderboardPage />
-      </TestSwrProvider>,
+      </TestQueryProvider>,
     );
 
     const button = screen.getByTestId("leaderboard-load-more");
@@ -290,9 +289,9 @@ describe("LeaderboardPage — load more", () => {
       hasMore: false,
     });
     render(
-      <TestSwrProvider>
+      <TestQueryProvider>
         <LeaderboardPage />
-      </TestSwrProvider>,
+      </TestQueryProvider>,
     );
 
     expect(screen.queryByTestId("leaderboard-load-more")).toBeNull();
@@ -306,9 +305,9 @@ describe("LeaderboardPage — load more", () => {
       loadMore,
     });
     render(
-      <TestSwrProvider>
+      <TestQueryProvider>
         <LeaderboardPage />
-      </TestSwrProvider>,
+      </TestQueryProvider>,
     );
 
     const button = screen.getByTestId("leaderboard-load-more");
@@ -331,9 +330,9 @@ describe("LeaderboardPage — load more", () => {
       isLoadingMore: true,
     });
     render(
-      <TestSwrProvider>
+      <TestQueryProvider>
         <LeaderboardPage />
-      </TestSwrProvider>,
+      </TestQueryProvider>,
     );
 
     const button = screen.getByTestId("leaderboard-load-more");
@@ -350,9 +349,9 @@ describe("LeaderboardPage — empty state", () => {
       isLoading: false,
     });
     render(
-      <TestSwrProvider>
+      <TestQueryProvider>
         <LeaderboardPage />
-      </TestSwrProvider>,
+      </TestQueryProvider>,
     );
 
     expect(screen.getByTestId("leaderboard-empty-state")).toBeInTheDocument();
@@ -368,9 +367,9 @@ describe("LeaderboardPage — skeleton", () => {
   it("renders the skeleton when `isLoading === true`", () => {
     setHookReturn({ isLoading: true, entries: [] });
     render(
-      <TestSwrProvider>
+      <TestQueryProvider>
         <LeaderboardPage />
-      </TestSwrProvider>,
+      </TestQueryProvider>,
     );
 
     expect(screen.getByTestId("leaderboard-skeleton")).toBeInTheDocument();
@@ -385,9 +384,9 @@ describe("LeaderboardPage — errors", () => {
       error: makeApiError(404),
     });
     render(
-      <TestSwrProvider>
+      <TestQueryProvider>
         <LeaderboardPage />
-      </TestSwrProvider>,
+      </TestQueryProvider>,
     );
 
     expect(screen.getByTestId("leaderboard-404")).toBeInTheDocument();
@@ -404,9 +403,9 @@ describe("LeaderboardPage — errors", () => {
       refresh,
     });
     render(
-      <TestSwrProvider>
+      <TestQueryProvider>
         <LeaderboardPage />
-      </TestSwrProvider>,
+      </TestQueryProvider>,
     );
 
     const banner = screen.getByTestId("leaderboard-5xx-banner");
@@ -424,9 +423,9 @@ describe("LeaderboardPage — errors", () => {
       retryBannerVisible: true,
     });
     render(
-      <TestSwrProvider>
+      <TestQueryProvider>
         <LeaderboardPage />
-      </TestSwrProvider>,
+      </TestQueryProvider>,
     );
 
     expect(screen.getByTestId("leaderboard-5xx-banner")).toBeInTheDocument();
@@ -450,9 +449,9 @@ describe("LeaderboardPage — self-entry highlight", () => {
       ],
     });
     render(
-      <TestSwrProvider>
+      <TestQueryProvider>
         <LeaderboardPage />
-      </TestSwrProvider>,
+      </TestQueryProvider>,
     );
 
     const selfRow = document.querySelector('[data-leaderboard-row="me"]');
@@ -472,9 +471,9 @@ describe("LeaderboardPage — self-entry highlight", () => {
       ],
     });
     render(
-      <TestSwrProvider>
+      <TestQueryProvider>
         <LeaderboardPage />
-      </TestSwrProvider>,
+      </TestQueryProvider>,
     );
 
     const selfRow = document.querySelector('[data-leaderboard-row="me"]');

@@ -4,11 +4,8 @@
  * `<CategoriesDirectoryPage />` — the `/categories` route's main
  * composition.
  *
- * Source epic: Epic 3.3 — Category browse + detail (read-only).
- * Source tickets: TKT-3.3.D2, TKT-3.3.E1.
- *
  * Wires:
- *   - The search input (E1) — a 250 ms-debounced
+ *   - The search input — a 250 ms-debounced
  *     `<Input>` element that filters the ranked grid by name.
  *   - `<TrendingCategoriesStrip />` above the grid.
  *   - The ranked grid of `<CategoryCard />` items.
@@ -17,17 +14,15 @@
  *   - The search-specific empty state when the user has typed a
  *     query that produces zero matches.
  *
- * ## Ranked endpoint is non-paginated (Epic 3.3 A1 §1)
+ * ## Ranked endpoint is non-paginated
  *
- * The planning doc said "first page = 20, subsequent pages via
- * `loadMore`". That contradicts the wire shape: `/categories/popular`
- * has no `meta.pagination` (it's a `WrappedDto`, not a
- * `WrappedPaginatedDto` per A1 §3). The grid therefore renders the
+ * `/categories/popular` has no `meta.pagination` (it's a `WrappedDto`,
+ * not a `WrappedPaginatedDto`). The grid therefore renders the
  * up-to-100 items the wrapper returns and does NOT expose a load-more
  * button. If a future endpoint exposes cursor pagination for the
- * ranked list, this ticket's grid is the only call site to update.
+ * ranked list, this grid is the only call site to update.
  *
- * ## Search semantics (E1)
+ * ## Search semantics
  *
  * The search is client-side. The filter is case-insensitive and
  * matches `category.name.toLowerCase().includes(query.toLowerCase())`

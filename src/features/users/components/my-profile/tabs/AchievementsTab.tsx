@@ -16,7 +16,7 @@ export const AchievementsTab = memo(function AchievementsTab({
 }) {
   return (
     <div className="mt-6 space-y-6">
-      {/* Active Flair (Epic 7.12) */}
+      {/* Active Flair */}
       <FlairManagementCard />
 
       {/* Ranking Section */}

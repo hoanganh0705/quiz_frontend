@@ -83,7 +83,7 @@ export function useReportComment(
             details: description,
           });
           setReported(true);
-          emitBreadcrumb("phase4:4.12:report-comment", {
+          emitBreadcrumb("comments:report-comment", {
             status: "success",
             durationMs: Date.now() - startedAt,
           });
@@ -93,7 +93,7 @@ export function useReportComment(
           if (isApiError(err)) {
             if (err.code === "COMMENT_DUPLICATE_REPORT") {
               setIsAlreadyReported(true);
-              emitBreadcrumb("phase4:4.12:report-comment", {
+              emitBreadcrumb("comments:report-comment", {
                 status: "success",
                 durationMs: Date.now() - startedAt,
                 code: err.code,
@@ -104,7 +104,7 @@ export function useReportComment(
             setError(err);
             onError?.(err);
 
-            emitBreadcrumb("phase4:4.12:report-comment", {
+            emitBreadcrumb("comments:report-comment", {
               status: "error",
               durationMs: Date.now() - startedAt,
               code: err.code,
@@ -112,7 +112,7 @@ export function useReportComment(
             return false;
           }
 
-          emitBreadcrumb("phase4:4.12:report-comment", {
+          emitBreadcrumb("comments:report-comment", {
             status: "error",
             durationMs: Date.now() - startedAt,
             code: "GLOBAL_UNKNOWN",

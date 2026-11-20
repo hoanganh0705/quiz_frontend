@@ -6,7 +6,7 @@ import {
   screen,
   waitFor,
 } from "@testing-library/react";
-import { SWRConfig } from "swr";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 import { CommentReportsList } from "@/features/admin/comment-moderation/components/CommentReportsList";
 import type { CommentReportConsumerAction } from "@/features/admin/comment-moderation/action-enum";
@@ -148,10 +148,13 @@ function makeReport(
 }
 
 function renderList() {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
   return render(
-    <SWRConfig value={{ provider: () => new Map() }}>
+    <QueryClientProvider client={queryClient}>
       <CommentReportsList />
-    </SWRConfig>,
+    </QueryClientProvider>,
   );
 }
 
@@ -189,7 +192,7 @@ beforeEach(() => {
   });
 });
 
-describe("TKT-7.6.E3 — CommentReportsList: tab / filter wiring", () => {
+describe("CommentReportsList: tab / filter wiring", () => {
   it("renders the show toggle with the pending tab active by default", () => {
     renderList();
     const tab = screen.getByTestId("comment-reports-list-tab-pending");
@@ -239,7 +242,7 @@ describe("TKT-7.6.E3 — CommentReportsList: tab / filter wiring", () => {
   });
 });
 
-describe("TKT-7.6.E3 — CommentReportsList: row rendering", () => {
+describe("CommentReportsList: row rendering", () => {
   it("renders pending rows when items are present and show=pending", () => {
     useCommentReportsMock.mockReturnValue({
       items: [
@@ -353,7 +356,7 @@ describe("TKT-7.6.E3 — CommentReportsList: row rendering", () => {
   });
 });
 
-describe("TKT-7.6.E3 — CommentReportsList: row selection", () => {
+describe("CommentReportsList: row selection", () => {
   it("selecting a row opens the side panel", () => {
     useCommentReportsMock.mockReturnValue({
       items: [makeReport({ reportId: "r-1", status: "open" })],
@@ -400,7 +403,7 @@ describe("TKT-7.6.E3 — CommentReportsList: row selection", () => {
   });
 });
 
-describe("TKT-7.6.E3 — CommentReportsList: action selection", () => {
+describe("CommentReportsList: action selection", () => {
   it("action selection mounts the confirm dialog with the chosen action", () => {
     useCommentReportsMock.mockReturnValue({
       items: [makeReport({ reportId: "r-1", status: "open" })],
@@ -425,7 +428,7 @@ describe("TKT-7.6.E3 — CommentReportsList: action selection", () => {
   });
 });
 
-describe("TKT-7.6.E3 — CommentReportsList: pagination", () => {
+describe("CommentReportsList: pagination", () => {
   it('renders the "load more" button when hasMore=true', () => {
     useCommentReportsMock.mockReturnValue({
       items: [makeReport({ reportId: "r-1", status: "open" })],
@@ -493,7 +496,7 @@ describe("TKT-7.6.E3 — CommentReportsList: pagination", () => {
   });
 });
 
-describe("TKT-7.6.E3 — CommentReportsList: filter switch clears selection", () => {
+describe("CommentReportsList: filter switch clears selection", () => {
   it("switching to the resolved tab clears the selected row", () => {
     useCommentReportsMock.mockReturnValue({
       items: [makeReport({ reportId: "r-1", status: "open" })],
@@ -508,10 +511,13 @@ describe("TKT-7.6.E3 — CommentReportsList: filter switch clears selection", ()
       setShow: vi.fn(),
     });
 
+    const queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    });
     const { rerender } = render(
-      <SWRConfig value={{ provider: () => new Map() }}>
+      <QueryClientProvider client={queryClient}>
         <CommentReportsList />
-      </SWRConfig>,
+      </QueryClientProvider>,
     );
     fireEvent.click(screen.getByTestId("comment-report-row-r-1"));
     expect(
@@ -531,9 +537,9 @@ describe("TKT-7.6.E3 — CommentReportsList: filter switch clears selection", ()
       setShow: vi.fn(),
     });
     rerender(
-      <SWRConfig value={{ provider: () => new Map() }}>
+      <QueryClientProvider client={queryClient}>
         <CommentReportsList />
-      </SWRConfig>,
+      </QueryClientProvider>,
     );
     expect(
       screen.queryByTestId("comment-reports-side-panel-r-1"),
@@ -541,7 +547,7 @@ describe("TKT-7.6.E3 — CommentReportsList: filter switch clears selection", ()
   });
 });
 
-describe("TKT-7.6.E3 — CommentReportsList: no service imports", () => {
+describe("CommentReportsList: no service imports", () => {
   it("the component source contains no axios or fetch() calls", async () => {
     const { readFileSync } = await import("node:fs");
     const { resolve } = await import("node:path");

@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useMemo } from "react";
-import { mutate as globalMutate } from "swr";
 import { getQueryClient } from "@/providers/QueryProvider";
 
 import {
@@ -126,21 +125,13 @@ export function useReviewGate(params: UseReviewGateParams): ReviewGateResult {
     if (quizId === null || sessionId === null) return;
     try {
       const qc = getQueryClient();
-      void qc.invalidateQueries({
+      await qc.invalidateQueries({
         queryKey: myQuizReviewKey(quizId, sessionId),
       });
-      void qc.invalidateQueries({
+      await qc.invalidateQueries({
         queryKey: reviewQuizAttemptKey(quizId, sessionId),
       });
     } catch {}
-    await Promise.all([
-      globalMutate(myQuizReviewKey(quizId, sessionId), undefined, {
-        revalidate: true,
-      }),
-      globalMutate(reviewQuizAttemptKey(quizId, sessionId), undefined, {
-        revalidate: true,
-      }),
-    ]);
   }, [quizId, sessionId]);
 
   return { state, isLoading, revalidate };

@@ -5,12 +5,16 @@ import { ApiError } from "@/lib/api";
 
 import { useRestoreCategory } from "../useRestoreCategory";
 
-const mockMutate = vi.hoisted(() => vi.fn());
+const mockInvalidateQueries = vi.hoisted(() => vi.fn().mockResolvedValue(undefined));
 const mockRestoreCategory = vi.hoisted(() => vi.fn());
 const mockAddCategoryAdminBreadcrumb = vi.hoisted(() => vi.fn());
 const mockBroadcastCategoryAdminInvalidate = vi.hoisted(() => vi.fn());
 
-vi.mock("swr", () => ({ mutate: mockMutate }));
+vi.mock("@/providers/QueryProvider", () => ({
+  getQueryClient: () => ({
+    invalidateQueries: mockInvalidateQueries,
+  }),
+}));
 
 vi.mock("@/features/admin/services/category-admin.service", () => ({
   restoreCategory: mockRestoreCategory,
@@ -26,7 +30,7 @@ vi.mock("@/features/admin/category-admin/cache/category-cross-tab", () => ({
 
 afterEach(() => {
   vi.restoreAllMocks();
-  mockMutate.mockClear();
+  mockInvalidateQueries.mockClear();
   mockAddCategoryAdminBreadcrumb.mockClear();
   mockBroadcastCategoryAdminInvalidate.mockClear();
 });
@@ -138,9 +142,15 @@ describe("useRestoreCategory", () => {
 
     expect(mockRestoreCategory).toHaveBeenCalledTimes(1);
     expect(mockRestoreCategory).toHaveBeenCalledWith("cat-1");
-    expect(mockMutate).toHaveBeenCalledWith("category-admin:list");
-    expect(mockMutate).toHaveBeenCalledWith(publicMatcher);
-    expect(mockMutate).toHaveBeenCalledWith("categories:slug:math-renamed");
+    expect(mockInvalidateQueries).toHaveBeenCalledWith({
+      queryKey: ["category-admin:list"],
+    });
+    expect(mockInvalidateQueries).toHaveBeenCalledWith({
+      predicate: publicMatcher,
+    });
+    expect(mockInvalidateQueries).toHaveBeenCalledWith({
+      queryKey: ["categories:slug:math-renamed"],
+    });
   });
 
   it("invalidates admin and public caches on success", async () => {
@@ -159,8 +169,12 @@ describe("useRestoreCategory", () => {
 
     await result.current.restore("cat-1");
 
-    expect(mockMutate).toHaveBeenCalledWith("category-admin:list");
-    expect(mockMutate).toHaveBeenCalledWith(publicMatcher);
+    expect(mockInvalidateQueries).toHaveBeenCalledWith({
+      queryKey: ["category-admin:list"],
+    });
+    expect(mockInvalidateQueries).toHaveBeenCalledWith({
+      predicate: publicMatcher,
+    });
   });
 
   it("broadcasts category admin invalidation on success", async () => {

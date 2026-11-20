@@ -2,7 +2,6 @@
 
 import { useCallback, useRef, useState } from "react";
 
-import { mutate as globalMutate } from "swr";
 import { getQueryClient } from "@/providers/QueryProvider";
 
 import { ApiError, coerceToApiError } from "@/lib/api";
@@ -103,21 +102,13 @@ export function useUpdateTournament(): UseUpdateTournamentResult {
 
           try {
             const qc = getQueryClient();
-            void qc.invalidateQueries({
+            await qc.invalidateQueries({
               predicate: (query) =>
                 adminTournamentsKeyMatcher(query.queryKey) ||
                 publicTournamentsKeyMatcher(query.queryKey) ||
                 publicTournamentDetailKeyMatcher(query.queryKey, id),
             });
           } catch {}
-          await globalMutate(
-            (key: readonly unknown[]) =>
-              adminTournamentsKeyMatcher(key) ||
-              publicTournamentsKeyMatcher(key) ||
-              publicTournamentDetailKeyMatcher(key, id),
-            undefined,
-            { revalidate: true },
-          );
 
           return updated;
         } catch (caught: unknown) {
@@ -139,16 +130,14 @@ export function useUpdateTournament(): UseUpdateTournamentResult {
           });
 
           if (apiError.code === "TOURNAMENT_NOT_FOUND") {
-            await globalMutate(
-              (key: readonly unknown[]) =>
-                adminTournamentsKeyMatcher(key) ||
-                publicTournamentDetailKeyMatcher(key, id),
-              undefined,
-              { revalidate: true },
-            ).catch(() => {
-              // Best-effort — failure here is surfaced via the
-              // original `apiError` and is not bubbled.
-            });
+            try {
+              const qc = getQueryClient();
+              await qc.invalidateQueries({
+                predicate: (query) =>
+                  adminTournamentsKeyMatcher(query.queryKey) ||
+                  publicTournamentDetailKeyMatcher(query.queryKey, id),
+              });
+            } catch {}
           }
 
           throw apiError;

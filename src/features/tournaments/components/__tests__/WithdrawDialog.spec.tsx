@@ -34,12 +34,23 @@ vi.mock("@/components/ui/AlertDialog", () => ({
   AlertDialogContent: ({
     children,
     onOpenChange,
+    "data-testid": testId = "alert-dialog-content",
     ...props
   }: {
     children: React.ReactNode;
     onOpenChange?: (open: boolean) => void;
+    "data-testid"?: string;
   }) => (
-    <div data-testid="alert-dialog-content" role="dialog" {...props}>
+    <div
+      data-testid={testId}
+      role="dialog"
+      aria-labelledby="alert-dialog-title"
+      aria-describedby="alert-dialog-description"
+      onKeyDown={(e) => {
+        if (e.key === "Escape") onOpenChange?.(false);
+      }}
+      {...props}
+    >
       {React.Children.map(children, (child) => {
         if (React.isValidElement(child)) {
           return React.cloneElement(
@@ -57,27 +68,54 @@ vi.mock("@/components/ui/AlertDialog", () => ({
     <div data-testid="alert-dialog-header">{children}</div>
   ),
   AlertDialogTitle: ({ children }: { children: React.ReactNode }) => (
-    <h2 data-testid="alert-dialog-title">{children}</h2>
+    <h2 data-testid="alert-dialog-title" id="alert-dialog-title">
+      {children}
+    </h2>
   ),
   AlertDialogDescription: ({ children }: { children: React.ReactNode }) => (
-    <p data-testid="alert-dialog-description">{children}</p>
+    <p data-testid="alert-dialog-description" id="alert-dialog-description">
+      {children}
+    </p>
   ),
-  AlertDialogFooter: ({ children }: { children: React.ReactNode }) => (
-    <div data-testid="alert-dialog-footer">{children}</div>
+  AlertDialogFooter: ({
+    children,
+    onOpenChange,
+  }: {
+    children: React.ReactNode;
+    onOpenChange?: (open: boolean) => void;
+  }) => (
+    <div data-testid="alert-dialog-footer">
+      {React.Children.map(children, (child) => {
+        if (React.isValidElement(child)) {
+          return React.cloneElement(
+            child as React.ReactElement<{
+              onOpenChange?: (open: boolean) => void;
+            }>,
+            { onOpenChange },
+          );
+        }
+        return child;
+      })}
+    </div>
   ),
   AlertDialogCancel: ({
     children,
     onClick,
     disabled,
+    onOpenChange,
     ...props
   }: {
     children: React.ReactNode;
     onClick?: () => void;
     disabled?: boolean;
+    onOpenChange?: (open: boolean) => void;
   }) => (
     <button
       data-testid="withdraw-dialog-cancel"
-      onClick={onClick}
+      onClick={(e) => {
+        onClick?.();
+        onOpenChange?.(false);
+      }}
       disabled={disabled}
       type="button"
       {...props}
@@ -128,7 +166,7 @@ describe("WithdrawDialog", () => {
       render(<WithdrawDialog {...defaultProps} />);
 
       const description = screen.getByTestId("alert-dialog-description");
-      expect(description).toHaveTextContent(/irreversible/i);
+      expect(description).toHaveTextContent(/cannot be undone/i);
       expect(description).toHaveTextContent(/permanent/i);
     });
 
@@ -191,14 +229,14 @@ describe("WithdrawDialog", () => {
     it('has role="dialog" on content', () => {
       render(<WithdrawDialog {...defaultProps} />);
 
-      const content = screen.getByTestId("alert-dialog-content");
+      const content = screen.getByTestId("withdraw-dialog");
       expect(content).toHaveAttribute("role", "dialog");
     });
 
     it("calls onCancel when Escape key is pressed", () => {
       render(<WithdrawDialog {...defaultProps} />);
 
-      const content = screen.getByTestId("alert-dialog-content");
+      const content = screen.getByTestId("withdraw-dialog");
       fireEvent.keyDown(content, { key: "Escape" });
 
       expect(defaultProps.onCancel).toHaveBeenCalledTimes(1);
@@ -209,7 +247,7 @@ describe("WithdrawDialog", () => {
     it("has aria-labelledby pointing to title", () => {
       render(<WithdrawDialog {...defaultProps} />);
 
-      const content = screen.getByTestId("alert-dialog-content");
+      const content = screen.getByTestId("withdraw-dialog");
       const title = screen.getByTestId("alert-dialog-title");
 
       expect(content).toHaveAttribute("aria-labelledby", title.id);
@@ -218,7 +256,7 @@ describe("WithdrawDialog", () => {
     it("has aria-describedby pointing to description", () => {
       render(<WithdrawDialog {...defaultProps} />);
 
-      const content = screen.getByTestId("alert-dialog-content");
+      const content = screen.getByTestId("withdraw-dialog");
       const description = screen.getByTestId("alert-dialog-description");
 
       expect(content).toHaveAttribute("aria-describedby", description.id);

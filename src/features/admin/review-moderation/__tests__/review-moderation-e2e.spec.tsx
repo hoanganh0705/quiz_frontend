@@ -6,7 +6,7 @@ import {
   waitFor,
 } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { SWRConfig, mutate as globalMutate } from "swr";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 import { ApiError } from "@/lib/api";
 
@@ -249,10 +249,13 @@ function makeApiError(
 }
 
 function renderPage() {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
   return render(
-    <SWRConfig value={{ provider: () => new Map() }}>
+    <QueryClientProvider client={queryClient}>
       <ReviewReportsPage />
-    </SWRConfig>,
+    </QueryClientProvider>,
   );
 }
 
@@ -354,7 +357,7 @@ afterEach(() => {
   }
 });
 
-describe("TKT-7.5.H1 — e2e: pending queue renders", () => {
+describe("e2e: pending queue renders", () => {
   it("admin opens /admin/reviews/reports and sees the pending report row", async () => {
     renderPage();
 
@@ -366,7 +369,7 @@ describe("TKT-7.5.H1 — e2e: pending queue renders", () => {
   });
 });
 
-describe("TKT-7.5.H1 — e2e: side panel renders the snapshot", () => {
+describe("e2e: side panel renders the snapshot", () => {
   it("selecting a row opens the side panel with the snapshot (no live fetch)", async () => {
     renderPage();
 
@@ -386,7 +389,7 @@ describe("TKT-7.5.H1 — e2e: side panel renders the snapshot", () => {
   });
 });
 
-describe("TKT-7.5.H1 — e2e: dismiss flow broadcasts on success", () => {
+describe("e2e: dismiss flow broadcasts on success", () => {
   it("dismissing the report fires PATCH (status=dismissed), invalidates, and broadcasts", async () => {
     renderPage();
 
@@ -437,7 +440,7 @@ describe("TKT-7.5.H1 — e2e: dismiss flow broadcasts on success", () => {
   });
 });
 
-describe("TKT-7.5.H1 — e2e: REVIEW_NOT_FOUND surfaces the failure branch", () => {
+describe("e2e: REVIEW_NOT_FOUND surfaces the failure branch", () => {
   it("a concurrent resolution propagates REVIEW_NOT_FOUND and does NOT broadcast", async () => {
     renderPage();
 
@@ -477,7 +480,7 @@ describe("TKT-7.5.H1 — e2e: REVIEW_NOT_FOUND surfaces the failure branch", () 
   });
 });
 
-describe("TKT-7.5.H1 — e2e: GLOBAL_FORBIDDEN surfaces the stable notice", () => {
+describe("e2e: GLOBAL_FORBIDDEN surfaces the stable notice", () => {
   it("a non-admin attempt surfaces the typed code without retry", async () => {
     renderPage();
 
@@ -516,7 +519,7 @@ describe("TKT-7.5.H1 — e2e: GLOBAL_FORBIDDEN surfaces the stable notice", () =
   });
 });
 
-describe("TKT-7.5.H1 — e2e: self-moderation gate disables every action", () => {
+describe("e2e: self-moderation gate disables every action", () => {
   it("a self-authored report renders the self-moderation notice with no menu items", async () => {
     e2eState.listResponse = [SEED_PENDING_SELF_REPORT];
     useReviewReportsMock.mockImplementation(
@@ -559,7 +562,7 @@ describe("TKT-7.5.H1 — e2e: self-moderation gate disables every action", () =>
   });
 });
 
-describe("TKT-7.5.H1 — e2e: snapshot fallback to live review", () => {
+describe("e2e: snapshot fallback to live review", () => {
   it("when the snapshot is absent the panel calls useReview and renders the live review", async () => {
     e2eState.listResponse = [SEED_PENDING_NO_SNAPSHOT_REPORT];
     useReviewReportsMock.mockImplementation(
@@ -611,7 +614,7 @@ describe("TKT-7.5.H1 — e2e: snapshot fallback to live review", () => {
   });
 });
 
-describe("TKT-7.5.H1 — e2e: hide_review mounts the typed-confirm dialog", () => {
+describe("e2e: hide_review mounts the typed-confirm dialog", () => {
   it("hide_review opens the irreversible TypedConfirmDialog", async () => {
     renderPage();
 
@@ -635,7 +638,7 @@ describe("TKT-7.5.H1 — e2e: hide_review mounts the typed-confirm dialog", () =
   });
 });
 
-describe("TKT-7.5.H1 — e2e: cross-tab broadcast fires on success", () => {
+describe("e2e: cross-tab broadcast fires on success", () => {
   it("a successful resolve emits exactly one cross-tab broadcast event", async () => {
     renderPage();
 
@@ -658,8 +661,6 @@ describe("TKT-7.5.H1 — e2e: cross-tab broadcast fires on success", () => {
     await act(async () => {
       fireEvent.click(confirmButton);
     });
-
-    expect(globalMutate).toBeDefined();
 
     expect(mockBroadcastReviewModerationInvalidate).toHaveBeenCalledTimes(1);
     expect(mockBroadcastReviewModerationInvalidate).toHaveBeenCalledWith(

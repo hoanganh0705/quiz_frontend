@@ -9,7 +9,6 @@ import { Button } from "@/components/ui/Button";
 import { useAdminFeatureFlag } from "@/features/admin/hooks";
 import { usePermission } from "@/features/admin/hooks";
 import { useToast, DEFAULT_TOAST_DURATION_MS } from "@/lib/forms/useToast";
-import { mutate as globalMutate } from "swr";
 import { getQueryClient } from "@/providers/QueryProvider";
 import { addCategoryAdminBreadcrumb } from "@/lib/admin/admin_live_sentry";
 
@@ -74,8 +73,6 @@ export function CategoryAdminPage(_props: CategoryAdminPageProps) {
           predicate: (query) => publicCategoriesKeyMatcher(query.queryKey),
         });
       } catch {}
-      void globalMutate(CATEGORY_ADMIN_LIST_KEY);
-      void globalMutate(publicCategoriesKeyMatcher);
     });
     return unsubscribe;
   }, [isLive]);

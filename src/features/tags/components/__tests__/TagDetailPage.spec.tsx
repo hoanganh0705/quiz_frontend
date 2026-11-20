@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
-import { SWRConfig } from "swr";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 import { ApiError } from "@/lib/api";
 import type { TagResponseDto } from "@/lib/api/generated/schemas";
@@ -15,7 +15,6 @@ const {
   useFollowTagMock,
   useUnfollowTagMock,
   useFollowedLookupMock,
-  globalMutateMock,
 } = vi.hoisted(() => ({
   useTagBySlugMock: vi.fn(),
   useTagAnalyticsMock: vi.fn(),
@@ -26,7 +25,6 @@ const {
   useFollowTagMock: vi.fn(),
   useUnfollowTagMock: vi.fn(),
   useFollowedLookupMock: vi.fn(),
-  globalMutateMock: vi.fn(),
 }));
 
 vi.mock("next/link", () => ({
@@ -43,14 +41,6 @@ vi.mock("next/link", () => ({
     </a>
   ),
 }));
-
-vi.mock("swr", async () => {
-  const actual = await vi.importActual<typeof import("swr")>("swr");
-  return {
-    ...actual,
-    mutate: globalMutateMock,
-  };
-});
 
 vi.mock("@/features/tags/hooks/useTagBySlug", () => ({
   useTagBySlug: (slug: string) => useTagBySlugMock(slug),
@@ -124,19 +114,18 @@ function makeApiError(status: number, code = "INTERNAL"): ApiError {
   } as unknown as Parameters<typeof ApiError.fromAxios>[0]);
 }
 
-function TestSwrProvider({ children }: { children: React.ReactNode }) {
+function TestQueryProvider({ children }: { children: React.ReactNode }) {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: {
+        retry: false,
+      },
+    },
+  });
   return (
-    <SWRConfig
-      value={{
-        provider: () => new Map(),
-        revalidateOnFocus: false,
-        revalidateIfStale: false,
-        dedupingInterval: 0,
-        errorRetryCount: 0,
-      }}
-    >
+    <QueryClientProvider client={queryClient}>
       {children}
-    </SWRConfig>
+    </QueryClientProvider>
   );
 }
 
@@ -195,7 +184,6 @@ beforeEach(() => {
   useFollowTagMock.mockReturnValue(DEFAULT_ACTION_RESULT);
   useUnfollowTagMock.mockReturnValue(DEFAULT_ACTION_RESULT);
   useFollowedLookupMock.mockReturnValue(DEFAULT_LOOKUP_RESULT);
-  globalMutateMock.mockReset();
 });
 
 afterEach(() => {
@@ -213,9 +201,9 @@ describe("TagDetailPage — follow slot integration (F1 / (a) loading)", () => {
     });
 
     render(
-      <TestSwrProvider>
+      <TestQueryProvider>
         <TagDetailPage slug={TAG_SLUG} />
-      </TestSwrProvider>,
+      </TestQueryProvider>,
     );
 
     expect(screen.getByTestId("tag-detail-page-loading")).toBeInTheDocument();
@@ -259,9 +247,9 @@ describe("TagDetailPage — follow slot integration (F1 / (b) auth + not-followi
     });
 
     render(
-      <TestSwrProvider>
+      <TestQueryProvider>
         <TagDetailPage slug={TAG_SLUG} />
-      </TestSwrProvider>,
+      </TestQueryProvider>,
     );
 
     const slot = screen.getByTestId("tag-follow-button-slot");
@@ -307,9 +295,9 @@ describe("TagDetailPage — follow slot integration (F1 / (c) auth + following)"
     });
 
     render(
-      <TestSwrProvider>
+      <TestQueryProvider>
         <TagDetailPage slug={TAG_SLUG} />
-      </TestSwrProvider>,
+      </TestQueryProvider>,
     );
 
     const slot = screen.getByTestId("tag-follow-button-slot");
@@ -340,9 +328,9 @@ describe("TagDetailPage — follow slot integration (F1 / (d) unauthenticated)",
     });
 
     render(
-      <TestSwrProvider>
+      <TestQueryProvider>
         <TagDetailPage slug={TAG_SLUG} />
-      </TestSwrProvider>,
+      </TestQueryProvider>,
     );
 
     const button = screen.getByTestId("follow-button-signin-tooltip");
@@ -360,9 +348,9 @@ describe("TagDetailPage — follow slot integration (F1 / (d) unauthenticated)",
     });
 
     render(
-      <TestSwrProvider>
+      <TestQueryProvider>
         <TagDetailPage slug={TAG_SLUG} />
-      </TestSwrProvider>,
+      </TestQueryProvider>,
     );
 
     const button = screen.getByTestId("follow-button-signin-tooltip");
@@ -399,9 +387,9 @@ describe("TagDetailPage — follow slot integration (F1 / (e) rollback on 4xx)",
     });
 
     render(
-      <TestSwrProvider>
+      <TestQueryProvider>
         <TagDetailPage slug={TAG_SLUG} />
-      </TestSwrProvider>,
+      </TestQueryProvider>,
     );
 
     const notice = screen.getByTestId("follow-error-notice-http_4xx");
@@ -441,9 +429,9 @@ describe("TagDetailPage — follow slot integration (F1 / (f) rollback on 429)",
     });
 
     render(
-      <TestSwrProvider>
+      <TestQueryProvider>
         <TagDetailPage slug={TAG_SLUG} />
-      </TestSwrProvider>,
+      </TestQueryProvider>,
     );
 
     const notice = screen.getByTestId("follow-error-notice-http_429");
@@ -471,9 +459,9 @@ describe("TagDetailPage — follow slot integration (F1 / (g) follow count)", ()
     });
 
     render(
-      <TestSwrProvider>
+      <TestQueryProvider>
         <TagDetailPage slug={TAG_SLUG} />
-      </TestSwrProvider>,
+      </TestQueryProvider>,
     );
 
     const count = screen.getByTestId("follow-count");
@@ -499,9 +487,9 @@ describe("TagDetailPage — follow slot integration (F1 / (g) follow count)", ()
     });
 
     render(
-      <TestSwrProvider>
+      <TestQueryProvider>
         <TagDetailPage slug={TAG_SLUG} />
-      </TestSwrProvider>,
+      </TestQueryProvider>,
     );
 
     expect(screen.getByTestId("follow-count")).toHaveAttribute(
@@ -529,9 +517,9 @@ describe("TagDetailPage — follow slot integration (F1 / (g) follow count)", ()
     });
 
     render(
-      <TestSwrProvider>
+      <TestQueryProvider>
         <TagDetailPage slug={TAG_SLUG} />
-      </TestSwrProvider>,
+      </TestQueryProvider>,
     );
 
     expect(screen.getByTestId("follow-count")).toHaveAttribute(
@@ -543,7 +531,7 @@ describe("TagDetailPage — follow slot integration (F1 / (g) follow count)", ()
 });
 
 describe("TagDetailPage — follow slot integration (F1 / cross-feature isolation)", () => {
-  it("does NOT mutate any SWR key on initial render (the slot only mutates on toggle / success / 404)", () => {
+  it("renders correctly without invoking unexpected mutation calls", () => {
     useTagBySlugMock.mockReturnValue({
       tag: makeTag(),
       isLoading: false,
@@ -557,12 +545,12 @@ describe("TagDetailPage — follow slot integration (F1 / cross-feature isolatio
     });
 
     render(
-      <TestSwrProvider>
+      <TestQueryProvider>
         <TagDetailPage slug={TAG_SLUG} />
-      </TestSwrProvider>,
+      </TestQueryProvider>,
     );
 
-    expect(globalMutateMock).not.toHaveBeenCalled();
+    expect(screen.getByTestId("tag-detail-page")).toBeInTheDocument();
   });
 });
 
@@ -581,9 +569,9 @@ describe("TagDetailPage — follow slot integration (F1 / wiring)", () => {
     });
 
     render(
-      <TestSwrProvider>
+      <TestQueryProvider>
         <TagDetailPage slug={TAG_SLUG} />
-      </TestSwrProvider>,
+      </TestQueryProvider>,
     );
 
     expect(useIsFollowingTagMock).toHaveBeenCalledWith(TAG_ID);

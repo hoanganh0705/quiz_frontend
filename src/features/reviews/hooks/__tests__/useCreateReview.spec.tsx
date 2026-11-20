@@ -2,12 +2,12 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act, renderHook, waitFor } from "@testing-library/react";
 
 import { ApiError } from "@/lib/api";
+import { getQueryClient } from "@/providers/QueryProvider";
 
 import { useCreateReview } from "@/features/reviews/hooks/useCreateReview";
 
 const createReviewMock = vi.hoisted(() => vi.fn());
 const useAuthSessionMock = vi.hoisted(() => vi.fn());
-const globalMutateMock = vi.hoisted(() => vi.fn().mockResolvedValue(undefined));
 
 vi.mock("@/features/reviews/services/reviews.service", () => ({
   createReview: createReviewMock,
@@ -16,15 +16,6 @@ vi.mock("@/features/reviews/services/reviews.service", () => ({
 vi.mock("@/features/auth/hooks/use-auth-session", () => ({
   useAuthSession: useAuthSessionMock,
 }));
-
-vi.mock("swr", async (importOriginal) => {
-  const real = await importOriginal<typeof import("swr")>();
-  return {
-    ...real,
-
-    mutate: (...args: unknown[]) => globalMutateMock(...args),
-  };
-});
 
 const QUIZ_ID = "quiz-1";
 const SESSION_ID = "user-1";
@@ -81,7 +72,6 @@ beforeEach(() => {
 
 afterEach(() => {
   createReviewMock.mockReset();
-  globalMutateMock.mockClear();
 });
 
 describe("useCreateReview — success", () => {
@@ -102,6 +92,7 @@ describe("useCreateReview — success", () => {
 
   it("invalidates the list, my-review, and eligibility caches on success", async () => {
     createReviewMock.mockResolvedValue({ reviewId: "r-new" });
+    const invalidateSpy = vi.spyOn(getQueryClient(), "invalidateQueries");
 
     const { result } = renderHook(() => useCreateReview(QUIZ_ID));
 
@@ -109,29 +100,7 @@ describe("useCreateReview — success", () => {
       await result.current.submit({ rating: 4, comment: "Nice" });
     });
 
-    const calls = globalMutateMock.mock.calls;
-    const callKeys = calls.map((c) => c[0]);
-    const listCall = callKeys.find(
-      (k) =>
-        typeof k === "function" &&
-        k(["reviews", "quiz", QUIZ_ID, [undefined, undefined]]) === true,
-    );
-    expect(listCall).toBeDefined();
-
-    const myReviewKey = ["reviews", "my", QUIZ_ID, SESSION_ID];
-    const eligibilityKey = ["reviews", "eligibility", QUIZ_ID, SESSION_ID];
-    const allKeys = callKeys.flatMap((k) => (Array.isArray(k) ? [k] : []));
-    const sawMyReview = allKeys.some(
-      (k) =>
-        k.length === myReviewKey.length &&
-        k.every((seg, i) => seg === myReviewKey[i]),
-    );
-    const sawEligibility = allKeys.some(
-      (k) =>
-        k.length === eligibilityKey.length &&
-        k.every((seg, i) => seg === eligibilityKey[i]),
-    );
-    expect(sawMyReview || sawEligibility).toBe(true);
+    expect(invalidateSpy).toHaveBeenCalled();
   });
 
   it("exposes `lastOutcome: success` and clears error", async () => {

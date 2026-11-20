@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useRef, useState } from "react";
-import { mutate as globalMutate } from "swr";
 import { getQueryClient } from "@/providers/QueryProvider";
 
 import { isApiError, type ApiError } from "@/lib/api";
@@ -65,20 +64,14 @@ export function useEditComment(
 
           try {
             const qc = getQueryClient();
-            void qc.invalidateQueries({
+            await qc.invalidateQueries({
               predicate: (query) =>
                 Array.isArray(query.queryKey) &&
                 query.queryKey[0] === "comments",
             });
           } catch {}
-          await globalMutate(
-            (key: readonly unknown[]) =>
-              Array.isArray(key) && key[0] === "comments",
-            undefined,
-            { revalidate: true },
-          );
 
-          emitBreadcrumb("phase4:4.12:edit-comment", {
+          emitBreadcrumb("comments:edit-comment", {
             status: "success",
             durationMs: Date.now() - startedAt,
           });
@@ -90,7 +83,7 @@ export function useEditComment(
             setError(err);
             onError?.(err);
 
-            emitBreadcrumb("phase4:4.12:edit-comment", {
+            emitBreadcrumb("comments:edit-comment", {
               status: "error",
               durationMs: Date.now() - startedAt,
               code: err.code,
@@ -98,7 +91,7 @@ export function useEditComment(
             return false;
           }
 
-          emitBreadcrumb("phase4:4.12:edit-comment", {
+          emitBreadcrumb("comments:edit-comment", {
             status: "error",
             durationMs: Date.now() - startedAt,
             code: "GLOBAL_UNKNOWN",

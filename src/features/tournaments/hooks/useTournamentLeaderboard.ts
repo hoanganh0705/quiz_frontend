@@ -136,6 +136,6 @@ export function useTournamentLeaderboard(
     loadMore: result.loadMore,
     error: result.error,
     refresh: result.refresh,
-    isStale: false, // TODO: wire stale-data tracking when Epic 5.1 SWR stale hook lands
+    isStale: false,
   };
 }

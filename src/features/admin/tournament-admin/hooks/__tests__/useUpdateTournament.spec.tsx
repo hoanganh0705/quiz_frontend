@@ -4,20 +4,18 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ApiError } from "@/lib/api";
 
 const mockUpdateTournament = vi.hoisted(() => vi.fn());
-const mockGlobalMutate = vi.hoisted(() => vi.fn());
+const mockInvalidateQueries = vi.hoisted(() => vi.fn().mockResolvedValue(undefined));
 const mockAddTournamentAdminBreadcrumb = vi.hoisted(() => vi.fn());
 
 vi.mock("@/features/admin/services/tournament-admin.service", () => ({
   updateTournament: (...args: unknown[]) => mockUpdateTournament(...args),
 }));
 
-vi.mock("swr", async () => {
-  const actual = await vi.importActual<typeof import("swr")>("swr");
-  return {
-    ...actual,
-    mutate: (...args: unknown[]) => mockGlobalMutate(...args),
-  };
-});
+vi.mock("@/providers/QueryProvider", () => ({
+  getQueryClient: () => ({
+    invalidateQueries: mockInvalidateQueries,
+  }),
+}));
 
 vi.mock("@/lib/admin/admin_live_sentry", async () => {
   const actual = await vi.importActual<
@@ -34,13 +32,15 @@ const TOURNAMENT_ID = "00000000-0000-4000-8000-000000000001";
 
 function makeInput(): {
   title: string;
+  difficulty: "easy" | "medium" | "hard";
   startAt: string;
   endAt: string;
 } {
   return {
-    title: "Spring Cup (Updated)",
-    startAt: "2026-09-01T10:00:00.000Z",
-    endAt: "2026-09-01T18:00:00.000Z",
+    title: "Updated Spring Cup",
+    difficulty: "hard",
+    startAt: "2026-09-02T10:00:00.000Z",
+    endAt: "2026-09-02T18:00:00.000Z",
   };
 }
 
@@ -51,7 +51,7 @@ function makeUpdatedTournament(): {
 } {
   return {
     tournamentId: TOURNAMENT_ID,
-    title: "Spring Cup (Updated)",
+    title: "Updated Spring Cup",
     status: "upcoming",
   };
 }
@@ -83,13 +83,13 @@ function makeApiError(
 afterEach(() => {
   vi.clearAllMocks();
   mockUpdateTournament.mockReset();
-  mockGlobalMutate.mockReset();
+  mockInvalidateQueries.mockReset();
   mockAddTournamentAdminBreadcrumb.mockReset();
 });
 
 beforeEach(() => {
   mockUpdateTournament.mockReset();
-  mockGlobalMutate.mockReset();
+  mockInvalidateQueries.mockReset();
   mockAddTournamentAdminBreadcrumb.mockReset();
 });
 
@@ -99,10 +99,9 @@ function renderUseUpdateTournament() {
   return renderHook(() => useUpdateTournament());
 }
 
-describe("TKT-7.7.C3 — useUpdateTournament: success path", () => {
-  it("AC #1: success invalidates admin + public list + public detail keys", async () => {
+describe("useUpdateTournament: success path", () => {
+  it("success invalidates admin + public list + public detail keys", async () => {
     mockUpdateTournament.mockResolvedValueOnce(makeUpdatedTournament());
-    mockGlobalMutate.mockResolvedValueOnce(undefined);
 
     const { result } = renderUseUpdateTournament();
 
@@ -113,29 +112,31 @@ describe("TKT-7.7.C3 — useUpdateTournament: success path", () => {
 
     expect(returned).toEqual(makeUpdatedTournament());
 
-    expect(mockGlobalMutate).toHaveBeenCalledTimes(1);
-    const matcher = mockGlobalMutate.mock.calls[0]?.[0] as (
-      key: unknown,
-    ) => boolean;
-    expect(matcher(["admin", "tournaments", "list", ""])).toBe(true);
-    expect(matcher(["admin", "tournaments", "detail", "x"])).toBe(true);
-    expect(matcher(["tournaments", "list", "q=cup"])).toBe(true);
-    expect(matcher(["tournaments", "detail", TOURNAMENT_ID])).toBe(true);
+    expect(mockInvalidateQueries).toHaveBeenCalledTimes(1);
+    const callArgs = mockInvalidateQueries.mock.calls[0];
+    const predicate = callArgs?.[0]?.predicate as (query: { queryKey: unknown }) => boolean;
+    expect(typeof predicate).toBe("function");
+
+    expect(predicate({ queryKey: ["admin", "tournaments", "list", ""] })).toBe(true);
+    expect(predicate({ queryKey: ["admin", "tournaments", "detail", "x"] })).toBe(true);
+    expect(predicate({ queryKey: ["tournaments", "list", "q=cup"] })).toBe(true);
+    expect(predicate({ queryKey: ["tournaments", "detail", TOURNAMENT_ID] })).toBe(true);
 
     expect(
-      matcher([
-        "tournaments",
-        "detail",
-        "00000000-0000-4000-8000-000000000002",
-      ]),
+      predicate({
+        queryKey: [
+          "tournaments",
+          "detail",
+          "00000000-0000-4000-8000-000000000002",
+        ],
+      }),
     ).toBe(false);
 
-    expect(matcher(["reviews", "list"])).toBe(false);
+    expect(predicate({ queryKey: ["reviews", "list"] })).toBe(false);
   });
 
-  it("AC #6: emits started/success breadcrumbs on success", async () => {
+  it("emits started/success breadcrumbs on success", async () => {
     mockUpdateTournament.mockResolvedValueOnce(makeUpdatedTournament());
-    mockGlobalMutate.mockResolvedValueOnce(undefined);
 
     const { result } = renderUseUpdateTournament();
 
@@ -159,7 +160,7 @@ describe("TKT-7.7.C3 — useUpdateTournament: success path", () => {
     expect(successPayload.targetId).toBe(TOURNAMENT_ID);
   });
 
-  it("AC #8: isPending reflects the in-flight state", async () => {
+  it("isPending reflects the in-flight state", async () => {
     let resolveUpdate: ((value: unknown) => void) | null = null;
     mockUpdateTournament.mockImplementationOnce(
       () =>
@@ -188,8 +189,8 @@ describe("TKT-7.7.C3 — useUpdateTournament: success path", () => {
   });
 });
 
-describe("TKT-7.7.C3 — useUpdateTournament: error paths", () => {
-  it("AC #2: TOURNAMENT_ALREADY_STARTED surfaces without retry", async () => {
+describe("useUpdateTournament: error paths", () => {
+  it("TOURNAMENT_ALREADY_STARTED surfaces without retry", async () => {
     const apiError = makeApiError(
       "TOURNAMENT_ALREADY_STARTED",
       409,
@@ -208,17 +209,16 @@ describe("TKT-7.7.C3 — useUpdateTournament: error paths", () => {
     expect(result.current.error?.code).toBe("TOURNAMENT_ALREADY_STARTED");
     expect(result.current.error?.requestId).toBe("req-already-1");
 
-    expect(mockGlobalMutate).not.toHaveBeenCalled();
+    expect(mockInvalidateQueries).not.toHaveBeenCalled();
   });
 
-  it("AC #3: TOURNAMENT_NOT_FOUND surfaces without retry, and revalidates admin + detail keys", async () => {
+  it("TOURNAMENT_NOT_FOUND surfaces without retry, and revalidates admin + detail keys", async () => {
     const apiError = makeApiError(
       "TOURNAMENT_NOT_FOUND",
       404,
       "req-notfound-1",
     );
     mockUpdateTournament.mockRejectedValueOnce(apiError);
-    mockGlobalMutate.mockResolvedValueOnce(undefined);
 
     const { result } = renderUseUpdateTournament();
 
@@ -229,10 +229,10 @@ describe("TKT-7.7.C3 — useUpdateTournament: error paths", () => {
     });
 
     expect(result.current.error?.code).toBe("TOURNAMENT_NOT_FOUND");
-    expect(mockGlobalMutate).toHaveBeenCalledTimes(1);
+    expect(mockInvalidateQueries).toHaveBeenCalledTimes(1);
   });
 
-  it("AC #4: TOURNAMENT_VALIDATION surfaces without retry", async () => {
+  it("TOURNAMENT_VALIDATION surfaces without retry", async () => {
     const apiError = makeApiError("TOURNAMENT_VALIDATION", 400, "req-val-1");
     mockUpdateTournament.mockRejectedValueOnce(apiError);
 
@@ -245,10 +245,10 @@ describe("TKT-7.7.C3 — useUpdateTournament: error paths", () => {
     });
 
     expect(result.current.error?.code).toBe("TOURNAMENT_VALIDATION");
-    expect(mockGlobalMutate).not.toHaveBeenCalled();
+    expect(mockInvalidateQueries).not.toHaveBeenCalled();
   });
 
-  it("AC #5: ADMIN_FORBIDDEN surfaces without retry", async () => {
+  it("ADMIN_FORBIDDEN surfaces without retry", async () => {
     const apiError = makeApiError("ADMIN_FORBIDDEN", 403, "req-forbid-1");
     mockUpdateTournament.mockRejectedValueOnce(apiError);
 
@@ -261,10 +261,10 @@ describe("TKT-7.7.C3 — useUpdateTournament: error paths", () => {
     });
 
     expect(result.current.error?.code).toBe("ADMIN_FORBIDDEN");
-    expect(mockGlobalMutate).not.toHaveBeenCalled();
+    expect(mockInvalidateQueries).not.toHaveBeenCalled();
   });
 
-  it("AC #6: emits a failure breadcrumb with typed code + requestId", async () => {
+  it("emits a failure breadcrumb with typed code + requestId", async () => {
     const apiError = makeApiError(
       "TOURNAMENT_ALREADY_STARTED",
       409,
@@ -295,8 +295,8 @@ describe("TKT-7.7.C3 — useUpdateTournament: error paths", () => {
   });
 });
 
-describe("TKT-7.7.C3 — useUpdateTournament: reset + audit snapshot", () => {
-  it("AC #9: reset() clears error without firing another fetch", async () => {
+describe("useUpdateTournament: reset + audit snapshot", () => {
+  it("reset() clears error without firing another fetch", async () => {
     const apiError = makeApiError("TOURNAMENT_VALIDATION", 400, "req-val-2");
     mockUpdateTournament.mockRejectedValueOnce(apiError);
 
@@ -324,7 +324,6 @@ describe("TKT-7.7.C3 — useUpdateTournament: reset + audit snapshot", () => {
   it("audit snapshot captures before / after tournament on success", async () => {
     const updated = makeUpdatedTournament();
     mockUpdateTournament.mockResolvedValueOnce(updated);
-    mockGlobalMutate.mockResolvedValueOnce(undefined);
 
     const { result } = renderUseUpdateTournament();
 

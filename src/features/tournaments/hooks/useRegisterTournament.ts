@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useRef, useState } from "react";
-import { mutate as globalMutate } from "swr";
 import { getQueryClient } from "@/providers/QueryProvider";
 
 import { ApiError, isApiError } from "@/lib/api";
@@ -59,11 +58,6 @@ export function useRegisterTournament(
         void qc.invalidateQueries({ queryKey: keys.leaderboard });
         void qc.invalidateQueries({ queryKey: ["tournaments"] });
       } catch {}
-      await Promise.all([
-        globalMutate(keys.detail, undefined, { revalidate: true }),
-        globalMutate(keys.participants, undefined, { revalidate: true }),
-        globalMutate(keys.leaderboard, undefined, { revalidate: true }),
-      ]);
 
       setState("success");
       setError(null);

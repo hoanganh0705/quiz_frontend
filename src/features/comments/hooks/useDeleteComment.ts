@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useRef, useState } from "react";
-import { mutate as globalMutate } from "swr";
 import { getQueryClient } from "@/providers/QueryProvider";
 
 import { isApiError, type ApiError } from "@/lib/api";
@@ -65,56 +64,18 @@ export function useDeleteComment(
         await deleteComment(commentId);
 
         if (parentId) {
-          try {
-            const qc = getQueryClient();
-            void qc.invalidateQueries({
-              predicate: (query) =>
-                Array.isArray(query.queryKey) &&
-                query.queryKey[0] === "comments",
-            });
-          } catch {}
-          await globalMutate(
-            (key: readonly unknown[]) =>
-              Array.isArray(key) &&
-              key[0] === "comments" &&
-              key[1] === "thread",
-            (
-              current:
-                Readonly<Record<string, { repliesCount: number }>> | undefined,
-            ) => {
-              const map = (current ?? {}) as Record<
-                string,
-                { repliesCount: number }
-              >;
-              const entry = map[parentId];
-              if (!entry) return current ?? {};
-              return {
-                ...map,
-                [parentId]: {
-                  ...entry,
-                  repliesCount: Math.max(0, entry.repliesCount - 1),
-                },
-              };
-            },
-            { revalidate: false },
-          );
+          lookup.decrementRepliesCount(parentId);
         }
 
         try {
           const qc = getQueryClient();
-          void qc.invalidateQueries({
+          await qc.invalidateQueries({
             predicate: (query) =>
               Array.isArray(query.queryKey) && query.queryKey[0] === "comments",
           });
         } catch {}
-        await globalMutate(
-          (key: readonly unknown[]) =>
-            Array.isArray(key) && key[0] === "comments",
-          undefined,
-          { revalidate: true },
-        );
 
-        emitBreadcrumb("phase4:4.12:delete-comment", {
+        emitBreadcrumb("comments:delete-comment", {
           status: "success",
           durationMs: Date.now() - startedAt,
         });
@@ -126,7 +87,7 @@ export function useDeleteComment(
           setError(err);
           onError?.(err);
 
-          emitBreadcrumb("phase4:4.12:delete-comment", {
+          emitBreadcrumb("comments:delete-comment", {
             status: "error",
             durationMs: Date.now() - startedAt,
             code: err.code,
@@ -134,7 +95,7 @@ export function useDeleteComment(
           return false;
         }
 
-        emitBreadcrumb("phase4:4.12:delete-comment", {
+        emitBreadcrumb("comments:delete-comment", {
           status: "error",
           durationMs: Date.now() - startedAt,
           code: "GLOBAL_UNKNOWN",

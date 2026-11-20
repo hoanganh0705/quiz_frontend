@@ -3,9 +3,6 @@
 /**
  * `TrendingTab` — top-movers list from the live wire shape.
  *
- * Source epic:   Phase 6 — leaderboard mock-data cleanup.
- * Source ticket: W-04 / cleanup of `LeaderboardHighlights` → Trending tab.
- *
  * Renders `TopMoverDto[]` from `rankingControllerGetTopMovers()`. The
  * wire shape carries:
  *   - `userId`

@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useRef, useState } from "react";
-import { mutate as globalMutate } from "swr";
 import { getQueryClient } from "@/providers/QueryProvider";
 
 import { isApiError, type ApiError } from "@/lib/api";
@@ -112,88 +111,22 @@ export function useCreateComment(
 
           try {
             const qc = getQueryClient();
-            void qc.invalidateQueries({
+            await qc.invalidateQueries({
               predicate: (query) =>
                 Array.isArray(query.queryKey) &&
                 query.queryKey[0] === "comments" &&
                 query.queryKey[1] === quizId,
             });
-            void qc.invalidateQueries({ queryKey: commentThreadKey(quizId) });
-            void qc.invalidateQueries({ queryKey: commentsKey(quizId) });
+            await qc.invalidateQueries({ queryKey: commentThreadKey(quizId) });
+            await qc.invalidateQueries({ queryKey: commentsKey(quizId) });
             if (parentId) {
-              void qc.invalidateQueries({
+              await qc.invalidateQueries({
                 queryKey: commentsKey(quizId, { parentId }),
               });
             }
           } catch {}
-          await globalMutate(
-            (key: readonly unknown[]) =>
-              Array.isArray(key) && key[0] === "comments" && key[1] === quizId,
-            undefined,
-            { revalidate: true },
-          );
-          try {
-            const qc = getQueryClient();
-            void qc.invalidateQueries({
-              predicate: (query) =>
-                Array.isArray(query.queryKey) &&
-                query.queryKey[0] === "comments" &&
-                query.queryKey[1] === quizId,
-            });
-            void qc.invalidateQueries({ queryKey: commentThreadKey(quizId) });
-            void qc.invalidateQueries({ queryKey: commentsKey(quizId) });
-            if (parentId) {
-              void qc.invalidateQueries({
-                queryKey: commentsKey(quizId, { parentId }),
-              });
-            }
-          } catch {}
-          await globalMutate(commentThreadKey(quizId), undefined, {
-            revalidate: true,
-          });
 
-          try {
-            const qc = getQueryClient();
-            void qc.invalidateQueries({
-              predicate: (query) =>
-                Array.isArray(query.queryKey) &&
-                query.queryKey[0] === "comments" &&
-                query.queryKey[1] === quizId,
-            });
-            void qc.invalidateQueries({ queryKey: commentThreadKey(quizId) });
-            void qc.invalidateQueries({ queryKey: commentsKey(quizId) });
-            if (parentId) {
-              void qc.invalidateQueries({
-                queryKey: commentsKey(quizId, { parentId }),
-              });
-            }
-          } catch {}
-          await globalMutate(commentsKey(quizId), undefined, {
-            revalidate: true,
-          });
-          if (parentId) {
-            try {
-              const qc = getQueryClient();
-              void qc.invalidateQueries({
-                predicate: (query) =>
-                  Array.isArray(query.queryKey) &&
-                  query.queryKey[0] === "comments" &&
-                  query.queryKey[1] === quizId,
-              });
-              void qc.invalidateQueries({ queryKey: commentThreadKey(quizId) });
-              void qc.invalidateQueries({ queryKey: commentsKey(quizId) });
-              if (parentId) {
-                void qc.invalidateQueries({
-                  queryKey: commentsKey(quizId, { parentId }),
-                });
-              }
-            } catch {}
-            await globalMutate(commentsKey(quizId, { parentId }), undefined, {
-              revalidate: true,
-            });
-          }
-
-          emitBreadcrumb("phase4:4.12:create-comment", {
+          emitBreadcrumb("comments:create-comment", {
             status: "success",
             durationMs: Date.now() - startedAt,
           });
@@ -216,7 +149,7 @@ export function useCreateComment(
               }, 1000);
               onRateLimit?.(seconds);
 
-              emitBreadcrumb("phase4:4.12:create-comment", {
+              emitBreadcrumb("comments:create-comment", {
                 status: "cooldown",
                 durationMs: Date.now() - startedAt,
                 code: err.code,
@@ -227,7 +160,7 @@ export function useCreateComment(
             setError(err);
             onError?.(err);
 
-            emitBreadcrumb("phase4:4.12:create-comment", {
+            emitBreadcrumb("comments:create-comment", {
               status: "error",
               durationMs: Date.now() - startedAt,
               code: err.code,
@@ -236,7 +169,7 @@ export function useCreateComment(
           }
 
           const wrapped = new Error(String(err));
-          emitBreadcrumb("phase4:4.12:create-comment", {
+          emitBreadcrumb("comments:create-comment", {
             status: "error",
             durationMs: Date.now() - startedAt,
             code: "GLOBAL_UNKNOWN",

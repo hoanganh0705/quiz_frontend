@@ -4,20 +4,13 @@
  * `FindFriendsPopup` — live modal showing the viewer's friend
  * suggestions.
  *
- * Source epic:   Phase 6 — leaderboard mock-data cleanup.
- * Source ticket: W-04 / cleanup of `FindFriendsPopup`.
- *
- * The previous version embedded `mockFriends` (a hardcoded `Friend[]`
- * with Emma Wilson, David Park, Lisa Chen, James Rodriguez). The
- * popup now reads from `useSuggestions('me')` (Story 6.5 / TKT-6.5.C2)
- * which calls the social suggestions endpoint.
+ * Reads from `useSuggestions('me')` which calls the social suggestions endpoint.
  *
  * ## Auth gating
  *
  * The suggestions endpoint is auth-only. Anonymous viewers see a
  * "Sign in to see friend suggestions" message instead of an empty
- * list (which used to be the failure mode of the mock-driven
- * version).
+ * list.
  *
  * ## Privacy
  *
@@ -61,7 +54,7 @@ export function FindFriendsPopup({ isOpen, onClose }: FindFriendsPopupProps) {
   // suggestions endpoint in the background — and, more importantly,
   // to avoid hammering it during the brief Strict-Mode double-mount
   // window — only call `useSuggestions` while the popup is open.
-  // The hook's SWR cache key still survives re-opens, so a single
+  // The hook's cache key still survives re-opens, so a single
   // open-then-close cycle is enough to populate the list.
   const suggestionsTarget = isOpen && isAuthenticated ? "me" : null;
   const { items, isLoading, visibility, error, retry } =

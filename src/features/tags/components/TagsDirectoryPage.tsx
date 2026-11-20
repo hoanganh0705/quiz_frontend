@@ -3,22 +3,19 @@
 /**
  * `<TagsDirectoryPage>` — the `/tags` route's main composition.
  *
- * Source epic: Epic 3.4 — Tag browse + detail (read-only).
- * Source ticket: TKT-3.4.D2.
- *
  * Wires:
- *   - `<PopularTagsStrip />` (C2) above the grid.
- *   - `<TrendingTagsStrip />` (C3) below the popular strip.
- *   - `<TagFilterInput />` (C1) below the trending strip.
- *   - The cursor-paginated directory grid (`useTagsDirectory` from E1) — debounced filter + cursor pagination.
+ *   - `<PopularTagsStrip />` above the grid.
+ *   - `<TrendingTagsStrip />` below the popular strip.
+ *   - `<TagFilterInput />` below the trending strip.
+ *   - The cursor-paginated directory grid (`useTagsDirectory`) — debounced filter + cursor pagination.
  *   - `<TagEmptyState variant="directory" />` when the underlying list is empty AND the filter is empty.
  *   - `<TagEmptyState variant="filter-no-match" query={query} onClearFilter={...} />` when the filter has no matches.
  *
- * ## Search semantics (E1)
+ * ## Search semantics
  *
  * The search is client-side. The filter is applied to the current
  * page's items (the cursor primitive does NOT load additional
- * pages to satisfy the filter — Story 3.4 line 472). The 250 ms
+ * pages to satisfy the filter). The 250 ms
  * debounce is implemented inside `useTagsDirectory` (the hook owns
  * the debounce, mirroring `useDebouncedValue`); the filter input
  * is fully controlled by the page.
@@ -33,13 +30,12 @@
  *
  * ## Layout
  *
- * The grid renders 30 pills per page (matching Story 3.4 AC #6 —
- * "Lighthouse on `/tags` with 30 items"). The cursor pagination
+ * The grid renders 30 pills per page. The cursor pagination
  * for the directory increments via the Load-more button. The grid
- * uses the Story 3.1 `TagPillSkeleton` for first-load + load-more.
+ * uses the `TagPillSkeleton` for first-load + load-more.
  *
- * The component is a client component because it consumes the SWR
- * hook and holds the local filter state.
+ * The component is a client component because it consumes query
+ * hooks and holds the local filter state.
  */
 
 import { useCallback, useState } from "react";

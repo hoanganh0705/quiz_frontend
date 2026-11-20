@@ -1,6 +1,5 @@
 import { render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { SWRConfig } from "swr";
 
 import type { TagListItem } from "../../tag-types";
 import { TagDeleteConfirmDialog } from "../TagDeleteConfirmDialog";
@@ -54,14 +53,12 @@ describe("TagDeleteConfirmDialog", () => {
     } = {},
   ) {
     return render(
-      <SWRConfig value={{ provider: () => new Map() }}>
-        <TagDeleteConfirmDialog
-          open={props.open ?? true}
-          onOpenChange={props.onOpenChange ?? vi.fn()}
-          tag={props.tag ?? MOCK_TAG}
-          onDeleted={props.onDeleted ?? vi.fn()}
-        />
-      </SWRConfig>,
+      <TagDeleteConfirmDialog
+        open={props.open ?? true}
+        onOpenChange={props.onOpenChange ?? vi.fn()}
+        tag={props.tag ?? MOCK_TAG}
+        onDeleted={props.onDeleted ?? vi.fn()}
+      />,
     );
   }
 

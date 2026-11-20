@@ -2,7 +2,6 @@
 
 import { useCallback, useRef, useState } from "react";
 
-import { mutate as globalMutate } from "swr";
 import { getQueryClient } from "@/providers/QueryProvider";
 
 import { ApiError, coerceToApiError } from "@/lib/api";
@@ -84,19 +83,12 @@ export function useCreateTournament(): UseCreateTournamentResult {
 
           try {
             const qc = getQueryClient();
-            void qc.invalidateQueries({
+            await qc.invalidateQueries({
               predicate: (query) =>
                 tournamentAdminListKeyMatcher(query.queryKey) ||
                 publicTournamentsKeyMatcher(query.queryKey),
             });
           } catch {}
-          await globalMutate(
-            (key: readonly unknown[]) =>
-              tournamentAdminListKeyMatcher(key) ||
-              publicTournamentsKeyMatcher(key),
-            undefined,
-            { revalidate: true },
-          );
 
           return created;
         } catch (caught: unknown) {

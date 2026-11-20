@@ -101,7 +101,7 @@ export function useQuizComments(
             throw err;
           }
 
-          emitBreadcrumb("phase4:4.12:comments-list", {
+          emitBreadcrumb("comments:comments-list", {
             status: "error",
             durationMs: Date.now() - startedAt,
             code: err instanceof ApiError ? err.code : "GLOBAL_UNKNOWN",

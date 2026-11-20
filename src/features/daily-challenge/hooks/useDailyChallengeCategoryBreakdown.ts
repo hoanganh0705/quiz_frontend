@@ -15,11 +15,6 @@ import {
  * `useDailyChallengeCategoryBreakdown` — surfaces the viewer's
  * per-category rollup of completed daily-challenge attempts.
  *
- * Source epic:   Phase 4 (F-2 in the remaining-gaps plan) — replace
- *                the hardcoded `data` array in `<ChallengePieChart />`
- *                with a real, server-computed distribution.
- * Source ticket: F-2.
- *
  * ## Output shape
  *
  * The hook exposes a `readonly` array of

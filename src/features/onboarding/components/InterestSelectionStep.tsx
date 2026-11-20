@@ -4,13 +4,6 @@
  * `<InterestSelectionStep />` — onboarding step that lets the
  * viewer pick the categories they care about.
  *
- * Source epic:   Phase 4 (F-2 in the remaining-gaps plan) — replace
- *                the hardcoded `categories` constant in
- *                `features/categories/constants/categories.ts` with
- *                the real `/categories/popular` endpoint, surfaced
- *                through `useCategoriesRanked`.
- * Source ticket: F-2.
- *
  * ## Honest-data contract
  *
  * Per the plan: "If the API call fails, show an explicit error message
@@ -189,18 +182,6 @@ export const InterestSelectionStep = memo(function InterestSelectionStep({
   onBack,
   onSkip,
 }: InterestSelectionStepProps) {
-  // `useSWR`'s default `mutate` is exposed through the hook return in
-  // some variants; for `useCategoriesRanked` it isn't surfaced yet, so
-  // we trigger a re-render via SWR's global cache by remounting the
-  // hook via a `retryKey` state in the parent? No — simpler: use
-  // `useCategoriesRanked`'s `error` to decide between rendering and
-  // retrying. The parent does NOT need to remount; we just re-call the
-  // SWR-cached fetcher through `mutate` exported via `useSWRConfig`.
-  //
-  // For simplicity (and to avoid adding `useSWRConfig` plumbing), the
-  // retry button calls `onRetry={() => window.location.reload()}` as
-  // a last-ditch fallback in this preview. A more elegant pattern is
-  // to expose `refresh` from `useCategoriesRanked` in a follow-up.
   void onSkip;
 
   const { categories, isLoading, error } = useCategoriesRanked({
@@ -249,9 +230,6 @@ export const InterestSelectionStep = memo(function InterestSelectionStep({
         <CategoryErrorState
           error={error}
           onRetry={() => {
-            // Lightweight retry: full reload to re-run the SWR fetcher.
-            // (Avoids adding `mutate` plumbing to `useCategoriesRanked` for
-            //  this one-shot onboarding step.)
             if (typeof window !== "undefined") {
               window.location.reload();
             }

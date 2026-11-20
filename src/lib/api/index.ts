@@ -64,6 +64,7 @@ export type {
   OptimisticToggleError,
   OptimisticToggleErrorKind,
   OptimisticToggleStatus,
+  OptimisticToggleKey,
   OptimisticToggleSWRKey,
   UseOptimisticToggleParams,
   UseOptimisticToggleResult,

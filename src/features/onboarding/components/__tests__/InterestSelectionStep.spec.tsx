@@ -1,16 +1,10 @@
 /**
  * Component tests for `<InterestSelectionStep />`.
  *
- * Source epic:   Phase 4 (F-2 in the remaining-gaps plan) — the
- *                onboarding step must consume `useCategoriesRanked`
- *                (real `/categories/popular`) instead of the
- *                hardcoded `categories` constant.
- * Source ticket: F-2.
- *
  * These tests:
  *   - assert the loading skeleton renders while `isLoading`,
  *   - assert the error state renders an explicit `role="alert"`
- *     with retry (NOT a silent fallback to the hardcoded list),
+ *     with retry,
  *   - assert the empty state renders a friendly "No categories yet"
  *     panel,
  *   - assert the populated state renders one button per category with
@@ -27,7 +21,7 @@ import {
   screen,
   waitFor,
 } from "@testing-library/react";
-import { SWRConfig } from "swr";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import * as React from "react";
 
 import { ApiError } from "@/lib/api";
@@ -81,19 +75,18 @@ function makeApiError(status: number, code = "INTERNAL"): ApiError {
   } as unknown as Parameters<typeof ApiError.fromAxios>[0]);
 }
 
-function TestSwrProvider({ children }: { children: React.ReactNode }) {
+function TestQueryProvider({ children }: { children: React.ReactNode }) {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: {
+        retry: false,
+      },
+    },
+  });
   return (
-    <SWRConfig
-      value={{
-        provider: () => new Map(),
-        revalidateOnFocus: false,
-        revalidateIfStale: false,
-        dedupingInterval: 0,
-        errorRetryCount: 0,
-      }}
-    >
+    <QueryClientProvider client={queryClient}>
       {children}
-    </SWRConfig>
+    </QueryClientProvider>
   );
 }
 
@@ -105,7 +98,7 @@ interface RenderProps {
 function renderStep(props: RenderProps = {}) {
   const onUpdateInterests = props.onUpdateInterests ?? vi.fn();
   return render(
-    <TestSwrProvider>
+    <TestQueryProvider>
       <InterestSelectionStep
         selectedInterests={props.selectedInterests ?? []}
         onUpdateInterests={onUpdateInterests}
@@ -113,7 +106,7 @@ function renderStep(props: RenderProps = {}) {
         onBack={vi.fn()}
         onSkip={vi.fn()}
       />
-    </TestSwrProvider>,
+    </TestQueryProvider>,
   );
 }
 
@@ -266,7 +259,7 @@ describe("InterestSelectionStep — selection semantics", () => {
     function StatefulHarness() {
       const [selected, setSelected] = React.useState<string[]>([]);
       return (
-        <TestSwrProvider>
+        <TestQueryProvider>
           <InterestSelectionStep
             selectedInterests={selected}
             onUpdateInterests={setSelected}
@@ -274,7 +267,7 @@ describe("InterestSelectionStep — selection semantics", () => {
             onBack={vi.fn()}
             onSkip={vi.fn()}
           />
-        </TestSwrProvider>
+        </TestQueryProvider>
       );
     }
 

@@ -17,7 +17,7 @@ const INTEGER_FORMAT = new Intl.NumberFormat("en-US");
 /**
  * Top-of-page summary card showing the current coin balance.
  *
- * - `balance: null` while SWR is fetching → skeleton.
+ * - `balance: null` while data is fetching → skeleton.
  * - `isPlaceholder: true` → shows "—" (placeholder wallet, no network).
  * - `error` set → renders an inline alert with the message; we do NOT
  *   fall back to a fake number — the error is honest.

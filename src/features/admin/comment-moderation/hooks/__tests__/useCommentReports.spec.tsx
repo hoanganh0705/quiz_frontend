@@ -1,6 +1,6 @@
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { SWRConfig } from "swr";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 import { ApiError } from "@/lib/api";
 
@@ -84,16 +84,12 @@ function renderUseCommentReports(
     onError?: (err: unknown) => void;
   } = {},
 ) {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
   return renderHook(() => useCommentReports(), {
     wrapper: ({ children }) => (
-      <SWRConfig
-        value={{
-          provider: () => new Map(),
-          onError: (err) => opts.onError?.(err),
-        }}
-      >
-        {children}
-      </SWRConfig>
+      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
     ),
   });
 }
@@ -106,7 +102,7 @@ import {
   normalizeCommentReportsShow,
 } from "../useCommentReports";
 
-describe("TKT-7.6.C1 — useCommentReports: key & matcher helpers", () => {
+describe("useCommentReports: key & matcher helpers", () => {
   it("commentReportsKey() returns the documented tuple shape", () => {
     expect(commentReportsKey("pending")).toEqual([
       "admin",
@@ -164,7 +160,7 @@ describe("TKT-7.6.C1 — useCommentReports: key & matcher helpers", () => {
   });
 });
 
-describe("TKT-7.6.C1 — useCommentReports: happy path & pagination", () => {
+describe("useCommentReports: happy path & pagination", () => {
   it("initial render surfaces loading then success: items populated, hasMore follows metadata", async () => {
     mockListCommentReports.mockResolvedValueOnce(
       makeWireResponse([makeRow("r-1"), makeRow("r-2")], {
@@ -251,7 +247,7 @@ function makeApiError(
   } as unknown as Parameters<(typeof ApiError)["fromAxios"]>[0]);
 }
 
-describe("TKT-7.6.C1 — useCommentReports: error surfaces", () => {
+describe("useCommentReports: error surfaces", () => {
   it("error surfaces typed ApiError with .code", async () => {
     const apiError = makeApiError("GLOBAL_INTERNAL", 500, "req-err-1");
 
@@ -309,7 +305,7 @@ describe("TKT-7.6.C1 — useCommentReports: error surfaces", () => {
   });
 });
 
-describe("TKT-7.6.C1 — useCommentReports: cursor pagination contract", () => {
+describe("useCommentReports: cursor pagination contract", () => {
   it("never assembles an offset or invents a `page` parameter", async () => {
     mockListCommentReports.mockResolvedValueOnce(
       makeWireResponse([makeRow("r-1")], {
@@ -340,7 +336,7 @@ describe("TKT-7.6.C1 — useCommentReports: cursor pagination contract", () => {
   });
 });
 
-describe("TKT-7.6.C1 — useCommentReports: URL-owned filter", () => {
+describe("useCommentReports: URL-owned filter", () => {
   it('setShow("resolved") calls router.replace with ?show=resolved', () => {
     const { result } = renderUseCommentReports();
 

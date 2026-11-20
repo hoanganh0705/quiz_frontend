@@ -1,14 +1,13 @@
 "use client";
 
 import { useCallback, useEffect, useMemo } from "react";
-import { mutate as globalMutate } from "swr";
 import { getQueryClient } from "@/providers/QueryProvider";
 
 import {
   COINS_NAMESPACE,
   COIN_BALANCE_CHANGED,
   COIN_TRANSACTION_RECORDED,
-  emitPhase5Invalidation,
+  emitRealtimeCrossTabInvalidation,
   useSocket,
   useRealtimeEvent,
 } from "@/lib/realtime";
@@ -65,11 +64,6 @@ export function useCoinSocket(): UseCoinSocketResult {
           query.queryKey[1] === "wallet",
       });
     } catch {}
-    void globalMutate(
-      (key) => Array.isArray(key) && key[0] === "coins" && key[1] === "wallet",
-      undefined,
-      { revalidate: true },
-    );
   }, []);
 
   const invalidateTransactions = useCallback(() => {
@@ -82,12 +76,6 @@ export function useCoinSocket(): UseCoinSocketResult {
           query.queryKey[1] === "transactions",
       });
     } catch {}
-    void globalMutate(
-      (key) =>
-        Array.isArray(key) && key[0] === "coins" && key[1] === "transactions",
-      undefined,
-      { revalidate: true },
-    );
   }, []);
 
   const handleBalanceChanged = useCallback(
@@ -122,7 +110,7 @@ export function useCoinSocket(): UseCoinSocketResult {
       });
 
       invalidateWallet();
-      emitPhase5Invalidation({ type: "coin" });
+      emitRealtimeCrossTabInvalidation({ type: "coin" });
     },
     [invalidateWallet],
   );
@@ -168,7 +156,7 @@ export function useCoinSocket(): UseCoinSocketResult {
       });
 
       invalidateTransactions();
-      emitPhase5Invalidation({ type: "coin" });
+      emitRealtimeCrossTabInvalidation({ type: "coin" });
     },
     [invalidateTransactions],
   );

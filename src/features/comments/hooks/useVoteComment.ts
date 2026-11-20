@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useRef, useState } from "react";
-import { mutate as globalMutate } from "swr";
 import { getQueryClient } from "@/providers/QueryProvider";
 
 import { isApiError, type ApiError } from "@/lib/api";
@@ -98,63 +97,20 @@ export function useVoteComment(
 
       const startedAt = Date.now();
 
-      try {
-        const qc = getQueryClient();
-        void qc.invalidateQueries({
-          predicate: (query) =>
-            Array.isArray(query.queryKey) && query.queryKey[0] === "comments",
-        });
-      } catch {}
-      const allCommentsKeys = await globalMutate(
-        (key: readonly unknown[]) =>
-          Array.isArray(key) && key[0] === "comments",
-      );
-      const snapshotMap = (allCommentsKeys ?? {}) as Record<string, unknown>;
-
-      const apply = async () => {
-        try {
-          const qc = getQueryClient();
-          void qc.invalidateQueries({
-            predicate: (query) =>
-              Array.isArray(query.queryKey) && query.queryKey[0] === "comments",
-          });
-        } catch {}
-        await globalMutate(
-          (key: readonly unknown[]) =>
-            Array.isArray(key) && key[0] === "comments",
-          (current: unknown) => {
-            const entry = current as { items?: unknown[] } | undefined;
-            if (!entry?.items) return current;
-            return {
-              ...entry,
-              items: entry.items.map((it) => patcher(it)),
-            };
-          },
-          { revalidate: false },
-        );
-      };
-      void apply;
-
       const core = (async (): Promise<CommentUserVote | null> => {
         try {
           await run();
 
           try {
             const qc = getQueryClient();
-            void qc.invalidateQueries({
+            await qc.invalidateQueries({
               predicate: (query) =>
                 Array.isArray(query.queryKey) &&
                 query.queryKey[0] === "comments",
             });
           } catch {}
-          await globalMutate(
-            (key: readonly unknown[]) =>
-              Array.isArray(key) && key[0] === "comments",
-            undefined,
-            { revalidate: true },
-          );
 
-          emitBreadcrumb("phase4:4.12:vote-comment", {
+          emitBreadcrumb("comments:vote-comment", {
             status: "success",
             durationMs: Date.now() - startedAt,
           });
@@ -164,35 +120,18 @@ export function useVoteComment(
         } catch (err) {
           try {
             const qc = getQueryClient();
-            void qc.invalidateQueries({
+            await qc.invalidateQueries({
               predicate: (query) =>
                 Array.isArray(query.queryKey) &&
                 query.queryKey[0] === "comments",
             });
           } catch {}
-          await globalMutate(
-            (key: readonly unknown[]) =>
-              Array.isArray(key) && key[0] === "comments",
-            (current: unknown) => {
-              if (
-                typeof current === "object" &&
-                current !== null &&
-                "id" in current &&
-                typeof (current as { id: unknown }).id === "string" &&
-                snapshotMap[(current as { id: string }).id] !== undefined
-              ) {
-                return snapshotMap[(current as { id: string }).id];
-              }
-              return current;
-            },
-            { revalidate: false },
-          );
 
           if (isApiError(err)) {
             setError(err);
             onError?.(err);
 
-            emitBreadcrumb("phase4:4.12:vote-comment", {
+            emitBreadcrumb("comments:vote-comment", {
               status: "error",
               durationMs: Date.now() - startedAt,
               code: err.code,
@@ -200,7 +139,7 @@ export function useVoteComment(
             return null;
           }
 
-          emitBreadcrumb("phase4:4.12:vote-comment", {
+          emitBreadcrumb("comments:vote-comment", {
             status: "error",
             durationMs: Date.now() - startedAt,
             code: "GLOBAL_UNKNOWN",

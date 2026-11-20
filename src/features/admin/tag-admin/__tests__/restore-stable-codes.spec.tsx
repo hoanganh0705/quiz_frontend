@@ -6,7 +6,6 @@ import {
   within,
 } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { SWRConfig } from "swr";
 
 import { ApiError } from "@/lib/api";
 import type { DeletedTagListItem, TagDto } from "../tag-types";
@@ -106,14 +105,12 @@ function renderDialog(
     onOpenChange,
     onRestored,
     ...render(
-      <SWRConfig value={{ provider: () => new Map() }}>
-        <TagRestoreDialog
-          open={overrides.open ?? true}
-          onOpenChange={onOpenChange}
-          tag={overrides.tag ?? MOCK_DELETED_TAG}
-          onRestored={onRestored}
-        />
-      </SWRConfig>,
+      <TagRestoreDialog
+        open={overrides.open ?? true}
+        onOpenChange={onOpenChange}
+        tag={overrides.tag ?? MOCK_DELETED_TAG}
+        onRestored={onRestored}
+      />,
     ),
   };
 }

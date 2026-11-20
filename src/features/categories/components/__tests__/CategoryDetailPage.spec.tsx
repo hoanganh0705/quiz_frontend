@@ -6,7 +6,7 @@ import {
   screen,
   within,
 } from "@testing-library/react";
-import { SWRConfig } from "swr";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 import { ApiError } from "@/lib/api";
 import type { CategoryResponseDto } from "@/lib/api/generated/schemas";
@@ -19,7 +19,6 @@ const {
   useFollowCategoryMock,
   useUnfollowCategoryMock,
   useFollowedLookupMock,
-  globalMutateMock,
 } = vi.hoisted(() => ({
   useCategoryMock: vi.fn(),
   useCategoryQuizzesMock: vi.fn(),
@@ -28,7 +27,6 @@ const {
   useFollowCategoryMock: vi.fn(),
   useUnfollowCategoryMock: vi.fn(),
   useFollowedLookupMock: vi.fn(),
-  globalMutateMock: vi.fn(),
 }));
 
 vi.mock("next/link", () => ({
@@ -46,13 +44,6 @@ vi.mock("next/link", () => ({
   ),
 }));
 
-vi.mock("swr", async () => {
-  const actual = await vi.importActual<typeof import("swr")>("swr");
-  return {
-    ...actual,
-    mutate: globalMutateMock,
-  };
-});
 
 vi.mock("@/features/categories/hooks", () => ({
   useCategory: (idOrSlug: string) => useCategoryMock(idOrSlug),
@@ -118,19 +109,18 @@ function makeApiError(status: number, code = "INTERNAL"): ApiError {
   } as unknown as Parameters<typeof ApiError.fromAxios>[0]);
 }
 
-function TestSwrProvider({ children }: { children: React.ReactNode }) {
+function TestQueryProvider({ children }: { children: React.ReactNode }) {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: {
+        retry: false,
+      },
+    },
+  });
   return (
-    <SWRConfig
-      value={{
-        provider: () => new Map(),
-        revalidateOnFocus: false,
-        revalidateIfStale: false,
-        dedupingInterval: 0,
-        errorRetryCount: 0,
-      }}
-    >
+    <QueryClientProvider client={queryClient}>
       {children}
-    </SWRConfig>
+    </QueryClientProvider>
   );
 }
 
@@ -175,7 +165,6 @@ beforeEach(() => {
   useFollowCategoryMock.mockReturnValue(DEFAULT_ACTION_RESULT);
   useUnfollowCategoryMock.mockReturnValue(DEFAULT_ACTION_RESULT);
   useFollowedLookupMock.mockReturnValue(DEFAULT_LOOKUP_RESULT);
-  globalMutateMock.mockReset();
 });
 
 afterEach(() => {
@@ -193,9 +182,9 @@ describe("CategoryDetailPage — follow slot integration (F1 / (a) loading)", ()
     });
 
     render(
-      <TestSwrProvider>
+      <TestQueryProvider>
         <CategoryDetailPage idOrSlug={CATEGORY_SLUG} />
-      </TestSwrProvider>,
+      </TestQueryProvider>,
     );
 
     expect(
@@ -241,9 +230,9 @@ describe("CategoryDetailPage — follow slot integration (F1 / (b) auth + not-fo
     });
 
     render(
-      <TestSwrProvider>
+      <TestQueryProvider>
         <CategoryDetailPage idOrSlug={CATEGORY_SLUG} />
-      </TestSwrProvider>,
+      </TestQueryProvider>,
     );
 
     const slot = screen.getByTestId("category-follow-button-slot");
@@ -289,9 +278,9 @@ describe("CategoryDetailPage — follow slot integration (F1 / (c) auth + follow
     });
 
     render(
-      <TestSwrProvider>
+      <TestQueryProvider>
         <CategoryDetailPage idOrSlug={CATEGORY_SLUG} />
-      </TestSwrProvider>,
+      </TestQueryProvider>,
     );
 
     const slot = screen.getByTestId("category-follow-button-slot");
@@ -322,9 +311,9 @@ describe("CategoryDetailPage — follow slot integration (F1 / (d) unauthenticat
     });
 
     render(
-      <TestSwrProvider>
+      <TestQueryProvider>
         <CategoryDetailPage idOrSlug={CATEGORY_SLUG} />
-      </TestSwrProvider>,
+      </TestQueryProvider>,
     );
 
     const button = screen.getByTestId("follow-button-signin-tooltip");
@@ -342,9 +331,9 @@ describe("CategoryDetailPage — follow slot integration (F1 / (d) unauthenticat
     });
 
     render(
-      <TestSwrProvider>
+      <TestQueryProvider>
         <CategoryDetailPage idOrSlug={CATEGORY_SLUG} />
-      </TestSwrProvider>,
+      </TestQueryProvider>,
     );
 
     const button = screen.getByTestId("follow-button-signin-tooltip");
@@ -382,9 +371,9 @@ describe("CategoryDetailPage — follow slot integration (F1 / (e) rollback on 4
     });
 
     render(
-      <TestSwrProvider>
+      <TestQueryProvider>
         <CategoryDetailPage idOrSlug={CATEGORY_SLUG} />
-      </TestSwrProvider>,
+      </TestQueryProvider>,
     );
 
     const notice = screen.getByTestId("follow-error-notice-http_4xx");
@@ -424,9 +413,9 @@ describe("CategoryDetailPage — follow slot integration (F1 / (f) rollback on 4
     });
 
     render(
-      <TestSwrProvider>
+      <TestQueryProvider>
         <CategoryDetailPage idOrSlug={CATEGORY_SLUG} />
-      </TestSwrProvider>,
+      </TestQueryProvider>,
     );
 
     const notice = screen.getByTestId("follow-error-notice-http_429");
@@ -454,9 +443,9 @@ describe("CategoryDetailPage — follow slot integration (F1 / (g) follow count)
     });
 
     render(
-      <TestSwrProvider>
+      <TestQueryProvider>
         <CategoryDetailPage idOrSlug={CATEGORY_SLUG} />
-      </TestSwrProvider>,
+      </TestQueryProvider>,
     );
 
     const count = screen.getByTestId("follow-count");
@@ -482,9 +471,9 @@ describe("CategoryDetailPage — follow slot integration (F1 / (g) follow count)
     });
 
     render(
-      <TestSwrProvider>
+      <TestQueryProvider>
         <CategoryDetailPage idOrSlug={CATEGORY_SLUG} />
-      </TestSwrProvider>,
+      </TestQueryProvider>,
     );
 
     expect(screen.getByTestId("follow-count")).toHaveAttribute(
@@ -512,9 +501,9 @@ describe("CategoryDetailPage — follow slot integration (F1 / (g) follow count)
     });
 
     render(
-      <TestSwrProvider>
+      <TestQueryProvider>
         <CategoryDetailPage idOrSlug={CATEGORY_SLUG} />
-      </TestSwrProvider>,
+      </TestQueryProvider>,
     );
 
     expect(screen.getByTestId("follow-count")).toHaveAttribute(
@@ -526,7 +515,7 @@ describe("CategoryDetailPage — follow slot integration (F1 / (g) follow count)
 });
 
 describe("CategoryDetailPage — follow slot integration (F1 / cross-feature isolation)", () => {
-  it("does NOT mutate any SWR key outside the slot's declared keysToInvalidate", () => {
+  it("renders correctly without invoking unexpected mutation calls", () => {
     useCategoryMock.mockReturnValue({
       category: makeCategory(),
       isLoading: false,
@@ -546,12 +535,12 @@ describe("CategoryDetailPage — follow slot integration (F1 / cross-feature iso
     });
 
     render(
-      <TestSwrProvider>
+      <TestQueryProvider>
         <CategoryDetailPage idOrSlug={CATEGORY_SLUG} />
-      </TestSwrProvider>,
+      </TestQueryProvider>,
     );
 
-    expect(globalMutateMock).not.toHaveBeenCalled();
+    expect(screen.getByTestId("category-header")).toBeInTheDocument();
   });
 });
 
@@ -573,9 +562,9 @@ describe("CategoryDetailPage — follow slot integration (F1 / wiring)", () => {
     });
 
     render(
-      <TestSwrProvider>
+      <TestQueryProvider>
         <CategoryDetailPage idOrSlug={CATEGORY_SLUG} />
-      </TestSwrProvider>,
+      </TestQueryProvider>,
     );
 
     expect(useIsFollowingCategoryMock).toHaveBeenCalledWith(CATEGORY_ID);

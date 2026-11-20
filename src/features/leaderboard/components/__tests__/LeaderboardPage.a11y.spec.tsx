@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { cleanup, render } from "@testing-library/react";
 import axe from "axe-core";
-import { SWRConfig } from "swr";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 import { ApiError } from "@/lib/api";
 
@@ -84,19 +84,18 @@ function setHookReturn(overrides: Partial<ReturnType<typeof useLeaderboard>>) {
   useLeaderboardMock.mockImplementation(() => stable);
 }
 
-function TestSwrProvider({ children }: { children: React.ReactNode }) {
+function TestQueryProvider({ children }: { children: React.ReactNode }) {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: {
+        retry: false,
+      },
+    },
+  });
   return (
-    <SWRConfig
-      value={{
-        provider: () => new Map(),
-        revalidateOnFocus: false,
-        revalidateIfStale: false,
-        dedupingInterval: 0,
-        errorRetryCount: 0,
-      }}
-    >
+    <QueryClientProvider client={queryClient}>
       {children}
-    </SWRConfig>
+    </QueryClientProvider>
   );
 }
 
@@ -169,9 +168,9 @@ describe("LeaderboardPage — axe a11y audit (resolved live, authenticated)", ()
     });
 
     const { container } = render(
-      <TestSwrProvider>
+      <TestQueryProvider>
         <LeaderboardPage />
-      </TestSwrProvider>,
+      </TestQueryProvider>,
     );
     document.body.appendChild(container);
 
@@ -190,9 +189,9 @@ describe("LeaderboardPage — axe a11y audit (resolved live, authenticated)", ()
     setHookReturn({ entries: [] });
 
     const { container } = render(
-      <TestSwrProvider>
+      <TestQueryProvider>
         <LeaderboardPage />
-      </TestSwrProvider>,
+      </TestQueryProvider>,
     );
     document.body.appendChild(container);
 
@@ -222,9 +221,9 @@ describe("LeaderboardPage — axe a11y audit (resolved live, authenticated)", ()
     });
 
     const { container } = render(
-      <TestSwrProvider>
+      <TestQueryProvider>
         <LeaderboardPage />
-      </TestSwrProvider>,
+      </TestQueryProvider>,
     );
     document.body.appendChild(container);
 
@@ -248,9 +247,9 @@ describe("LeaderboardPage — axe a11y audit (unauthenticated)", () => {
     });
 
     const { container } = render(
-      <TestSwrProvider>
+      <TestQueryProvider>
         <LeaderboardPage />
-      </TestSwrProvider>,
+      </TestQueryProvider>,
     );
     document.body.appendChild(container);
 
@@ -267,9 +266,9 @@ describe("LeaderboardPage — axe a11y audit (unauthenticated)", () => {
     setHookReturn({ entries: [] });
 
     const { container } = render(
-      <TestSwrProvider>
+      <TestQueryProvider>
         <LeaderboardPage />
-      </TestSwrProvider>,
+      </TestQueryProvider>,
     );
     document.body.appendChild(container);
 
@@ -286,9 +285,9 @@ describe("LeaderboardPage — axe a11y audit (loading)", () => {
     setHookReturn({ isLoading: true, entries: [] });
 
     const { container } = render(
-      <TestSwrProvider>
+      <TestQueryProvider>
         <LeaderboardPage />
-      </TestSwrProvider>,
+      </TestQueryProvider>,
     );
     document.body.appendChild(container);
 
@@ -304,9 +303,9 @@ describe("LeaderboardPage — axe a11y audit (loading)", () => {
     setHookReturn({ isLoading: true, entries: [] });
 
     const { container } = render(
-      <TestSwrProvider>
+      <TestQueryProvider>
         <LeaderboardPage />
-      </TestSwrProvider>,
+      </TestQueryProvider>,
     );
     document.body.appendChild(container);
 
@@ -323,9 +322,9 @@ describe("LeaderboardPage — axe a11y audit (empty state)", () => {
     setHookReturn({ entries: [] });
 
     const { container } = render(
-      <TestSwrProvider>
+      <TestQueryProvider>
         <LeaderboardPage />
-      </TestSwrProvider>,
+      </TestQueryProvider>,
     );
     document.body.appendChild(container);
 
@@ -345,9 +344,9 @@ describe("LeaderboardPage — axe a11y audit (error state)", () => {
     });
 
     const { container } = render(
-      <TestSwrProvider>
+      <TestQueryProvider>
         <LeaderboardPage />
-      </TestSwrProvider>,
+      </TestQueryProvider>,
     );
     document.body.appendChild(container);
 
@@ -367,9 +366,9 @@ describe("LeaderboardPage — axe a11y audit (error state)", () => {
     });
 
     const { container } = render(
-      <TestSwrProvider>
+      <TestQueryProvider>
         <LeaderboardPage />
-      </TestSwrProvider>,
+      </TestQueryProvider>,
     );
     document.body.appendChild(container);
 

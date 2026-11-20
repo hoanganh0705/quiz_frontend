@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
-import { SWRConfig } from "swr";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 import { CommentReportsPage } from "@/features/admin/comment-moderation/components/CommentReportsPage";
 
@@ -80,10 +80,13 @@ vi.mock("@/features/admin/hooks", () => ({
 }));
 
 function renderPage() {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
   return render(
-    <SWRConfig value={{ provider: () => new Map() }}>
+    <QueryClientProvider client={queryClient}>
       <CommentReportsPage />
-    </SWRConfig>,
+    </QueryClientProvider>,
   );
 }
 
@@ -126,7 +129,7 @@ beforeEach(() => {
   });
 });
 
-describe("TKT-7.6.F1 — CommentReportsPage: flag gate", () => {
+describe("CommentReportsPage: flag gate", () => {
   it('renders the documented "coming soon" notice when the flag is "placeholder"', () => {
     useAdminFeatureFlagMock.mockReturnValue({
       isLive: false,
@@ -189,7 +192,7 @@ describe("TKT-7.6.F1 — CommentReportsPage: flag gate", () => {
   });
 });
 
-describe("TKT-7.6.F1 — CommentReportsPage: no service imports", () => {
+describe("CommentReportsPage: no service imports", () => {
   it("the component source contains no axios or fetch() calls", async () => {
     const { readFileSync } = await import("node:fs");
     const { resolve } = await import("node:path");

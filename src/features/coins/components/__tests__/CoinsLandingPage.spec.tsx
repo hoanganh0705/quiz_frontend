@@ -1,9 +1,9 @@
 /**
- * Integration tests for `<CoinsLandingPage />` (Phase 5.2).
+ * Integration tests for `<CoinsLandingPage />`.
  *
  * Approach: mock all of the coin hooks (`useCoinWallet`,
  * `useCoinTransactions`, `useTipAuthor`, `usePurchaseFlair`) at the
- * module boundary so we don't pull in SWR or any other heavy runtime.
+ * module boundary.
  *
  * Coverage:
  *   - Loading / populated / placeholder balance states.
@@ -101,7 +101,7 @@ function mockApiError(message: string): ApiError {
   } as ApiError;
 }
 
-describe("CoinsLandingPage (Phase 5.2)", () => {
+describe("CoinsLandingPage", () => {
   beforeEach(() => {
     mockTip.mockReset();
     mockPurchaseFlair.mockReset();

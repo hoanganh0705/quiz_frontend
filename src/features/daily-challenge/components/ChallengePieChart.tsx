@@ -4,11 +4,6 @@
  * `<ChallengePieChart />` — Categories tab content for the Daily
  * Challenge page.
  *
- * Source epic:   Phase 4 (F-2 in the remaining-gaps plan) — replace
- *                the hardcoded `data` array with the real
- *                `/daily-challenge/history/categories` endpoint.
- * Source ticket: F-2.
- *
  * Renders a pie chart of the viewer's per-category performance
  * rollup. Each slice is one category from
  * `useDailyChallengeCategoryBreakdown()`; the slice's "value" is
