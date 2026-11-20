@@ -5,12 +5,16 @@ import { ApiError } from "@/lib/api";
 
 import { useDeleteCategory } from "../useDeleteCategory";
 
-const mockMutate = vi.hoisted(() => vi.fn());
+const mockInvalidateQueries = vi.hoisted(() => vi.fn().mockResolvedValue(undefined));
 const mockDeleteCategory = vi.hoisted(() => vi.fn());
 const mockAddCategoryAdminBreadcrumb = vi.hoisted(() => vi.fn());
 const mockBroadcastCategoryAdminInvalidate = vi.hoisted(() => vi.fn());
 
-vi.mock("swr", () => ({ mutate: mockMutate }));
+vi.mock("@/providers/QueryProvider", () => ({
+  getQueryClient: () => ({
+    invalidateQueries: mockInvalidateQueries,
+  }),
+}));
 
 vi.mock("@/features/admin/services/category-admin.service", () => ({
   deleteCategory: mockDeleteCategory,
@@ -26,7 +30,7 @@ vi.mock("@/features/admin/category-admin/cache/category-cross-tab", () => ({
 
 afterEach(() => {
   vi.restoreAllMocks();
-  mockMutate.mockClear();
+  mockInvalidateQueries.mockClear();
   mockAddCategoryAdminBreadcrumb.mockClear();
   mockBroadcastCategoryAdminInvalidate.mockClear();
 });
@@ -121,8 +125,12 @@ describe("useDeleteCategory", () => {
 
     await result.current.remove("cat-1");
 
-    expect(mockMutate).toHaveBeenCalledWith("category-admin:list");
-    expect(mockMutate).toHaveBeenCalledWith(publicMatcher);
+    expect(mockInvalidateQueries).toHaveBeenCalledWith({
+      queryKey: ["category-admin:list"],
+    });
+    expect(mockInvalidateQueries).toHaveBeenCalledWith({
+      predicate: publicMatcher,
+    });
   });
 
   it("broadcasts category admin invalidation on success", async () => {

@@ -194,8 +194,8 @@ export const DangerZone = memo(function DangerZone({
         </CardContent>
       </Card>
 
-      {/* Delete Account — T18: thin trigger. The real modal lives in
-          `DeleteAccountModal` (Epic 2.10) and is wired by the parent
+      {/* Delete Account: thin trigger. The real modal lives in
+          `DeleteAccountModal` and is wired by the parent
           (settings/page.tsx). The trigger does NOT submit; it only
           opens the parent-owned modal. */}
       <Card className="border-destructive/50 py-5">

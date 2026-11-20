@@ -2,7 +2,7 @@
 
 import { useCallback, useRef, useState } from "react";
 
-import { mutate as globalMutate } from "swr";
+import { getQueryClient } from "@/providers/QueryProvider";
 
 import { ApiError } from "@/lib/api";
 
@@ -32,9 +32,10 @@ export function useCreateTag(): UseCreateTag {
 
     try {
       const result = await createTag(input);
+      const qc = getQueryClient();
       await Promise.all([
-        globalMutate(TAG_ADMIN_LIST_KEY),
-        globalMutate(PUBLIC_TAGS_KEY),
+        qc.invalidateQueries({ queryKey: [TAG_ADMIN_LIST_KEY] }),
+        qc.invalidateQueries({ queryKey: [PUBLIC_TAGS_KEY] }),
       ]);
       broadcastTagAdminInvalidate("create", result.tagId);
       setIsPending(false);

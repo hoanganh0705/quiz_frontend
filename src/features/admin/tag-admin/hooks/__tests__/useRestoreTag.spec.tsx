@@ -5,13 +5,15 @@ import { ApiError } from "@/lib/api";
 
 import { useRestoreTag } from "../useRestoreTag";
 
-const mockMutate = vi.hoisted(() => vi.fn());
+const mockInvalidateQueries = vi.hoisted(() => vi.fn().mockResolvedValue(undefined));
 const mockRestoreTag = vi.hoisted(() => vi.fn());
 const mockAddTagAdminBreadcrumb = vi.hoisted(() => vi.fn());
 const mockBroadcastTagAdminInvalidate = vi.hoisted(() => vi.fn());
 
-vi.mock("swr", () => ({
-  mutate: mockMutate,
+vi.mock("@/providers/QueryProvider", () => ({
+  getQueryClient: () => ({
+    invalidateQueries: mockInvalidateQueries,
+  }),
 }));
 
 vi.mock("@/features/admin/services/tag-admin.service", () => ({
@@ -28,7 +30,7 @@ vi.mock("@/features/admin/tag-admin/cache/tag-cross-tab", () => ({
 
 afterEach(() => {
   vi.restoreAllMocks();
-  mockMutate.mockClear();
+  mockInvalidateQueries.mockClear();
   mockAddTagAdminBreadcrumb.mockClear();
   mockBroadcastTagAdminInvalidate.mockClear();
 });
@@ -152,8 +154,12 @@ describe("useRestoreTag", () => {
 
     await result.current.restore("tag-deleted");
 
-    expect(mockMutate).toHaveBeenCalledWith("tag-admin:list");
-    expect(mockMutate).toHaveBeenCalledWith("tags:directory");
+    expect(mockInvalidateQueries).toHaveBeenCalledWith({
+      queryKey: ["tag-admin:list"],
+    });
+    expect(mockInvalidateQueries).toHaveBeenCalledWith({
+      queryKey: ["tags:directory"],
+    });
   });
 
   it("broadcasts tag admin invalidation on success", async () => {

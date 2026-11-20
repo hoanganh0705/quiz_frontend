@@ -72,7 +72,7 @@ async function callCoins<T>(config: AxiosRequestConfig): Promise<T> {
 
 export async function getCoinWallet(): Promise<CoinWallet> {
   Sentry.addBreadcrumb({
-    category: "phase7:service",
+    category: "coins:service",
     message: "coins.getCoinWallet",
   });
   const envelope = await callCoins<{ data?: CoinWallet; meta?: unknown }>({
@@ -94,7 +94,7 @@ export async function listCoinTransactions(params: {
   limit?: number;
 }): Promise<CoinTransactionPage> {
   Sentry.addBreadcrumb({
-    category: "phase7:service",
+    category: "coins:service",
     message: "coins.listCoinTransactions",
   });
 
@@ -131,7 +131,7 @@ export async function tipUser(
   idempotencyKey?: string,
 ): Promise<CoinSpendResponse> {
   Sentry.addBreadcrumb({
-    category: "phase7:service",
+    category: "coins:service",
     message: "coins.tipUser",
     data: {
       recipientUserId: body.recipientUserId,
@@ -163,7 +163,7 @@ export async function purchaseFlair(
   idempotencyKey?: string,
 ): Promise<CoinSpendResponse> {
   Sentry.addBreadcrumb({
-    category: "phase7:service",
+    category: "coins:service",
     message: "coins.purchaseFlair",
     data: { userBadgeId: body.userBadgeId },
   });
@@ -191,7 +191,7 @@ export async function suppressRecommendedQuiz(
   idempotencyKey?: string,
 ): Promise<CoinSpendResponse> {
   Sentry.addBreadcrumb({
-    category: "phase7:service",
+    category: "coins:service",
     message: "coins.suppressRecommendedQuiz",
     data: { quizId: body.quizId },
   });
@@ -219,7 +219,7 @@ export async function adminAdjustCoins(
   idempotencyKey?: string,
 ): Promise<CoinSpendResponse> {
   Sentry.addBreadcrumb({
-    category: "phase7:service",
+    category: "coins:service",
     message: "coins.adminAdjustCoins",
     data: { userId: body.userId, amount: body.amount },
   });

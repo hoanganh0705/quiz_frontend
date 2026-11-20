@@ -1,6 +1,7 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { SWRConfig, mutate as globalMutate } from "swr";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { getQueryClient } from "@/providers/QueryProvider";
 
 import type { ApiError } from "@/lib/api";
 import type { DeletedTagListItem, TagDto, TagListItem } from "../tag-types";
@@ -154,8 +155,11 @@ beforeEach(() => {
           } as unknown as TagListItem)
         : tag,
     );
-    await globalMutate("tag-admin:list");
-    await globalMutate("tags:directory");
+    const qc = getQueryClient();
+    await Promise.all([
+      qc.invalidateQueries({ queryKey: ["tag-admin:list"] }),
+      qc.invalidateQueries({ queryKey: ["tags:directory"] }),
+    ]);
   });
 
   mockRestoreTag.mockImplementation(async (id: string) => {
@@ -179,10 +183,13 @@ afterEach(() => {
 });
 
 function renderPage() {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
   return render(
-    <SWRConfig value={{ provider: () => new Map() }}>
+    <QueryClientProvider client={queryClient}>
       <TagAdminPage />
-    </SWRConfig>,
+    </QueryClientProvider>,
   );
 }
 

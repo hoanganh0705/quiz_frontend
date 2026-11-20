@@ -2,7 +2,7 @@
 
 import { useCallback, useRef, useState } from "react";
 
-import { mutate as globalMutate } from "swr";
+import { getQueryClient } from "@/providers/QueryProvider";
 
 import { ApiError } from "@/lib/api";
 import { addTagAdminBreadcrumb } from "@/lib/admin/admin_live_sentry";
@@ -64,9 +64,10 @@ export function useDeleteTag(): UseDeleteTag {
         targetId: id,
       });
 
+      const qc = getQueryClient();
       await Promise.all([
-        globalMutate(TAG_ADMIN_LIST_KEY),
-        globalMutate(PUBLIC_TAGS_KEY),
+        qc.invalidateQueries({ queryKey: [TAG_ADMIN_LIST_KEY] }),
+        qc.invalidateQueries({ queryKey: [PUBLIC_TAGS_KEY] }),
       ]);
 
       broadcastTagAdminInvalidate("delete", id);

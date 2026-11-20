@@ -1,7 +1,24 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 import { renderHook, waitFor } from "@testing-library/react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import type { ReactNode } from "react";
 
 import { useTournaments } from "@/features/tournaments/hooks/useTournaments";
+
+import { ApiError } from "@/lib/api";
+
+function createWrapper() {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: {
+        retry: false,
+      },
+    },
+  });
+  return ({ children }: { children: ReactNode }) => (
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+  );
+}
 
 const mockGetFeatureFlagValue = vi.fn();
 vi.mock("@/lib/feature-flags", () => ({
@@ -29,7 +46,9 @@ describe("useTournaments", () => {
     it("returns empty items when flag is placeholder", async () => {
       mockGetFeatureFlagValue.mockReturnValueOnce("placeholder");
 
-      const { result } = renderHook(() => useTournaments());
+      const { result } = renderHook(() => useTournaments(), {
+        wrapper: createWrapper(),
+      });
 
       expect(result.current.items).toEqual([]);
     });
@@ -42,7 +61,9 @@ describe("useTournaments", () => {
         },
       });
 
-      const { result } = renderHook(() => useTournaments());
+      const { result } = renderHook(() => useTournaments(), {
+        wrapper: createWrapper(),
+      });
 
       await waitFor(() => {
         expect(result.current.items).toBeDefined();
@@ -80,7 +101,9 @@ describe("useTournaments", () => {
         },
       });
 
-      const { result } = renderHook(() => useTournaments());
+      const { result } = renderHook(() => useTournaments(), {
+        wrapper: createWrapper(),
+      });
 
       await waitFor(() => {
         expect(result.current.items.length).toBe(2);
@@ -109,8 +132,9 @@ describe("useTournaments", () => {
         },
       });
 
-      const { result } = renderHook(() =>
-        useTournaments({ search: "", cursor: "cursor-1" }),
+      const { result } = renderHook(
+        () => useTournaments({ search: "", cursor: "cursor-1" }),
+        { wrapper: createWrapper() },
       );
 
       await waitFor(() => {
@@ -121,14 +145,29 @@ describe("useTournaments", () => {
 
   describe("error handling", () => {
     it("returns error from service", async () => {
-      const error = {
-        code: "TOURNAMENT_NOT_FOUND",
+      const error = new ApiError({
+        isAxiosError: true,
+        name: "AxiosError",
         message: "Not found",
-        status: 404,
-      };
+        code: "TOURNAMENT_NOT_FOUND",
+        config: undefined,
+        request: undefined,
+        response: {
+          status: 404,
+          data: {
+            type: "about:blank",
+            title: "Not found",
+            status: 404,
+            extensions: { code: "TOURNAMENT_NOT_FOUND" },
+          },
+        },
+        toJSON: () => ({}),
+      } as unknown as Parameters<typeof ApiError.fromAxios>[0]);
       mockListTournaments.mockRejectedValueOnce(error);
 
-      const { result } = renderHook(() => useTournaments());
+      const { result } = renderHook(() => useTournaments(), {
+        wrapper: createWrapper(),
+      });
 
       await waitFor(() => {
         expect(result.current.error).toBeTruthy();

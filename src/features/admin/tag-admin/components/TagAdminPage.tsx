@@ -9,7 +9,6 @@ import { Button } from "@/components/ui/Button";
 import { useAdminFeatureFlag } from "@/features/admin/hooks";
 import { usePermission } from "@/features/admin/hooks";
 import { useToast, DEFAULT_TOAST_DURATION_MS } from "@/lib/forms/useToast";
-import { mutate as globalMutate } from "swr";
 import { getQueryClient } from "@/providers/QueryProvider";
 import { addTagAdminBreadcrumb } from "@/lib/admin/admin_live_sentry";
 
@@ -71,7 +70,6 @@ export function TagAdminPage(_props: TagAdminPageProps) {
         const qc = getQueryClient();
         void qc.invalidateQueries({ queryKey: [TAG_ADMIN_LIST_KEY] });
       } catch {}
-      void globalMutate(TAG_ADMIN_LIST_KEY);
       void invalidatePublicTagCaches();
     });
     return unsubscribe;

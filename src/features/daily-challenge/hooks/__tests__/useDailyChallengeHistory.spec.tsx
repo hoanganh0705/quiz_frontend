@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { cleanup, renderHook, waitFor } from "@testing-library/react";
-import { SWRConfig } from "swr";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 import { ApiError } from "@/lib/api";
 
@@ -60,19 +60,18 @@ function makeItem(id: string) {
   };
 }
 
-function TestSwrProvider({ children }: { children: React.ReactNode }) {
+function TestQueryProvider({ children }: { children: React.ReactNode }) {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: {
+        retry: false,
+      },
+    },
+  });
   return (
-    <SWRConfig
-      value={{
-        provider: () => new Map(),
-        revalidateOnFocus: false,
-        revalidateIfStale: false,
-        dedupingInterval: 0,
-        errorRetryCount: 0,
-      }}
-    >
+    <QueryClientProvider client={queryClient}>
       {children}
-    </SWRConfig>
+    </QueryClientProvider>
   );
 }
 
@@ -97,7 +96,7 @@ describe("useDailyChallengeHistory — empty-history branch", () => {
     });
 
     const { result } = renderHook(() => useDailyChallengeHistory(), {
-      wrapper: TestSwrProvider,
+      wrapper: TestQueryProvider,
     });
 
     await waitFor(() => {
@@ -122,7 +121,7 @@ describe("useDailyChallengeHistory — empty-history branch", () => {
     });
 
     const { result } = renderHook(() => useDailyChallengeHistory(), {
-      wrapper: TestSwrProvider,
+      wrapper: TestQueryProvider,
     });
 
     await waitFor(() => {
@@ -141,7 +140,7 @@ describe("useDailyChallengeHistory — error branch", () => {
     });
 
     const { result } = renderHook(() => useDailyChallengeHistory(), {
-      wrapper: TestSwrProvider,
+      wrapper: TestQueryProvider,
     });
 
     await waitFor(() => {
@@ -177,7 +176,7 @@ describe("useDailyChallengeHistory — loadMore", () => {
       });
 
     const { result } = renderHook(() => useDailyChallengeHistory(), {
-      wrapper: TestSwrProvider,
+      wrapper: TestQueryProvider,
     });
 
     await waitFor(() => {
@@ -220,7 +219,7 @@ describe("useDailyChallengeHistory — cursor vs. offset", () => {
       });
 
     const { result } = renderHook(() => useDailyChallengeHistory(), {
-      wrapper: TestSwrProvider,
+      wrapper: TestQueryProvider,
     });
 
     await waitFor(() => {
@@ -259,7 +258,7 @@ describe("useDailyChallengeHistory — cursor vs. offset", () => {
     });
 
     const { result } = renderHook(() => useDailyChallengeHistory(), {
-      wrapper: TestSwrProvider,
+      wrapper: TestQueryProvider,
     });
 
     await waitFor(() => {

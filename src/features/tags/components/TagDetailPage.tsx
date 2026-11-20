@@ -3,16 +3,13 @@
 /**
  * `<TagDetailPage>` — the `/tags/[slug]` route's main composition.
  *
- * Source epic: Epic 3.4 — Tag browse + detail (read-only).
- * Source ticket: TKT-3.4.D3.
- *
  * Wires:
- *   - `useTagBySlug(slug)` (B3) for the header data (including the 404 signal).
- *   - `<TagBreadcrumb />` (F2) above the header.
- *   - `<TagHeader />` (C5) below the breadcrumb.
- *   - `<TagAnalyticsPanel />` (C6) below the header.
- *   - `<TagQuizGrid />` (D1) below the analytics panel.
- *   - `<RelatedTagsStrip />` (C4) below the quiz grid.
+ *   - `useTagBySlug(slug)` for the header data (including the 404 signal).
+ *   - `<TagBreadcrumb />` above the header.
+ *   - `<TagHeader />` below the breadcrumb.
+ *   - `<TagAnalyticsPanel />` below the header.
+ *   - `<TagQuizGrid />` below the analytics panel.
+ *   - `<RelatedTagsStrip />` below the quiz grid.
  *
  * State contract:
  *
@@ -27,7 +24,7 @@
  *
  * The page renders an inline 404 block (matching the existing
  * `app/not-found.tsx` visual) instead of calling `next/navigation`'s
- * `notFound()`. The page is a client component (it consumes the SWR
+ * `notFound()`. The page is a client component (it consumes query
  * hooks), so the file-based 404 mechanism (intended for server
  * components) is not appropriate here. The visual matches the app's
  * existing 404 surface so the user experience is consistent.
@@ -194,9 +191,8 @@ export function TagDetailPage({
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <TagHeader tag={tag} />
         {/*
-         * Story 3.9 / TKT-3.9.C2 — the follow slot lives beside the
-         * header. The slot receives the resolved `tag.tagId` (NOT
-         * the route `slug` — A1 §7 records the drift). When the tag
+         * The follow slot lives beside the header. The slot receives the
+         * resolved `tag.tagId` (NOT the route `slug`). When the tag
          * is loading, `tagId` is `null` and the slot renders `null`
          * (no CLS during the hydration window).
          */}

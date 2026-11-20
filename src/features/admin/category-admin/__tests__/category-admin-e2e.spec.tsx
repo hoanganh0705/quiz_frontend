@@ -1,6 +1,7 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { SWRConfig, mutate as globalMutate } from "swr";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { getQueryClient } from "@/providers/QueryProvider";
 
 import type { ApiError } from "@/lib/api";
 import type {
@@ -173,11 +174,8 @@ beforeEach(() => {
           } as unknown as CategoryListItem)
         : category,
     );
-    await globalMutate("category-admin:list");
-    await globalMutate(
-      (key: unknown) =>
-        typeof key === "string" && key.startsWith("categories:"),
-    );
+    const qc = getQueryClient();
+    await qc.invalidateQueries({ queryKey: ["category-admin:list"] });
   });
 
   mockRestoreCategory.mockImplementation(async (id: string) => {
@@ -204,10 +202,13 @@ afterEach(() => {
 });
 
 function renderPage() {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
   return render(
-    <SWRConfig value={{ provider: () => new Map() }}>
+    <QueryClientProvider client={queryClient}>
       <CategoryAdminPage />
-    </SWRConfig>,
+    </QueryClientProvider>,
   );
 }
 

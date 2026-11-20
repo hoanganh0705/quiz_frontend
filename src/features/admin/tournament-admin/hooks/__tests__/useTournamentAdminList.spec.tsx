@@ -1,6 +1,6 @@
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { SWRConfig } from "swr";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 import { ApiError } from "@/lib/api";
 
@@ -69,9 +69,12 @@ beforeEach(() => {
 });
 
 function renderUseTournamentAdminList() {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
   return renderHook(() => useTournamentAdminList(), {
     wrapper: ({ children }) => (
-      <SWRConfig value={{ provider: () => new Map() }}>{children}</SWRConfig>
+      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
     ),
   });
 }
@@ -217,7 +220,7 @@ describe("TKT-7.7.C1 — useTournamentAdminList: happy path & pagination", () =>
     expect(ids).toEqual(["t-1", "t-2", "t-3"]);
   });
 
-  it("mutate() delegates to the SWR primitive refresh", async () => {
+  it("mutate() delegates to the query refresh", async () => {
     mockListTournaments
       .mockResolvedValueOnce(
         makeWireResponse([makeTournament("t-1")], {

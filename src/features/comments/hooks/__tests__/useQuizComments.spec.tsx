@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { renderHook, waitFor } from "@testing-library/react";
-import { SWRConfig } from "swr";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 import { ApiError } from "@/lib/api";
 
@@ -98,8 +98,15 @@ function mockPageResponse(
 }
 
 function makeWrapper() {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: {
+        retry: false,
+      },
+    },
+  });
   return ({ children }: { children: React.ReactNode }) => (
-    <SWRConfig value={{ provider: () => new Map() }}>{children}</SWRConfig>
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
   );
 }
 
@@ -275,7 +282,7 @@ describe("useQuizComments — cursor pass-through", () => {
   });
 });
 
-describe("commentsKey — SWR key factory", () => {
+describe("commentsKey — cache key factory", () => {
   it("starts with 'comments' and embeds the quiz id", () => {
     const key = commentsKey("quiz-1");
     expect(key[0]).toBe("comments");

@@ -1,4 +1,3 @@
-import { mutate as globalMutate, type ScopedMutator } from "swr";
 import { getQueryClient } from "@/providers/QueryProvider";
 
 export const TAG_ADMIN_LIST_KEY = "tag-admin:list" as const;
@@ -11,14 +10,14 @@ export function tagSlugKey(slug: string): string {
   return `tags:slug:${slug}`;
 }
 
-export function invalidateTagAdminList(
-  mutate: ScopedMutator = globalMutate,
+export async function invalidateTagAdminList(
+  mutate?: (key: unknown) => unknown,
 ): Promise<unknown> {
-  try {
-    const qc = getQueryClient();
-    void qc.invalidateQueries({ queryKey: [TAG_ADMIN_LIST_KEY] });
-  } catch {}
-  return mutate(TAG_ADMIN_LIST_KEY) as Promise<unknown>;
+  const qc = getQueryClient();
+  await qc.invalidateQueries({ queryKey: [TAG_ADMIN_LIST_KEY] });
+  if (mutate) {
+    return mutate(TAG_ADMIN_LIST_KEY);
+  }
 }
 
 export function publicTagsKeyMatcher(key: unknown): boolean {
@@ -38,14 +37,14 @@ export function publicTagsKeyMatcher(key: unknown): boolean {
   return false;
 }
 
-export function invalidatePublicTagCaches(
-  mutate: ScopedMutator = globalMutate,
-): Promise<unknown[]> {
-  try {
-    const qc = getQueryClient();
-    void qc.invalidateQueries({
-      predicate: (query) => publicTagsKeyMatcher(query.queryKey),
-    });
-  } catch {}
-  return mutate(publicTagsKeyMatcher) as unknown as Promise<unknown[]>;
+export async function invalidatePublicTagCaches(
+  mutate?: (matcher: (key: unknown) => boolean) => unknown,
+): Promise<unknown> {
+  const qc = getQueryClient();
+  await qc.invalidateQueries({
+    predicate: (query) => publicTagsKeyMatcher(query.queryKey),
+  });
+  if (mutate) {
+    return mutate(publicTagsKeyMatcher);
+  }
 }

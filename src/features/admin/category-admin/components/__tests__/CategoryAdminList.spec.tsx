@@ -1,7 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { useSearchParams } from "next/navigation";
-import { SWRConfig } from "swr";
 
 import { CategoryAdminList } from "../CategoryAdminList";
 
@@ -38,11 +37,7 @@ vi.mock("next/navigation", () => ({
 }));
 
 function renderList() {
-  return render(
-    <SWRConfig value={{ provider: () => new Map() }}>
-      <CategoryAdminList />
-    </SWRConfig>,
-  );
+  return render(<CategoryAdminList />);
 }
 
 function setTab(value: "active" | "deleted") {

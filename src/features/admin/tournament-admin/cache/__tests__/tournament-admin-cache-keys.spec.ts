@@ -83,7 +83,7 @@ describe("TournamentAdminCacheKeys", () => {
   });
 
   describe("tournamentKey", () => {
-    it("returns the Phase 5 detail key format", () => {
+    it("returns the tournament detail key format", () => {
       const id = "00000000-0000-4000-8000-000000000001";
       expect(tournamentKey(id)).toEqual(["tournaments", "detail", id]);
     });

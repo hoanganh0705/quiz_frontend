@@ -1,4 +1,3 @@
-import { mutate as globalMutate, type ScopedMutator } from "swr";
 import { getQueryClient } from "@/providers/QueryProvider";
 
 import {
@@ -68,60 +67,68 @@ export function adminListKeyMatcher(key: unknown): boolean {
   return false;
 }
 
-export function invalidateTournamentAdminList(
-  mutate: ScopedMutator = globalMutate,
-): Promise<unknown[]> {
+export async function invalidateTournamentAdminList(
+  mutate?: (matcher: (key: unknown) => boolean) => unknown,
+): Promise<unknown> {
   try {
     const qc = getQueryClient();
     void qc.invalidateQueries({
       predicate: (query) => adminListKeyMatcher(query.queryKey[0]),
     });
   } catch {}
-  return mutate(adminListKeyMatcher) as unknown as Promise<unknown[]>;
+  if (mutate) {
+    return mutate(adminListKeyMatcher);
+  }
 }
 
-export function invalidateTournamentAdminListByParams(
+export async function invalidateTournamentAdminListByParams(
   params: TournamentListFilters,
-  mutate: ScopedMutator = globalMutate,
+  mutate?: (key: unknown) => unknown,
 ): Promise<unknown> {
   try {
     const qc = getQueryClient();
     void qc.invalidateQueries({ queryKey: [tournamentAdminListKey(params)] });
   } catch {}
-  return mutate(tournamentAdminListKey(params)) as Promise<unknown>;
+  if (mutate) {
+    return mutate(tournamentAdminListKey(params));
+  }
 }
 
-export function invalidateTournamentById(
+export async function invalidateTournamentById(
   tournamentId: string,
-  mutate: ScopedMutator = globalMutate,
+  mutate?: (key: unknown) => unknown,
 ): Promise<unknown> {
+  const detailKey = tournamentKey(tournamentId);
   try {
     const qc = getQueryClient();
-    void qc.invalidateQueries({ queryKey: tournamentKey(tournamentId) });
+    void qc.invalidateQueries({ queryKey: detailKey });
   } catch {}
-  const detailKey = tournamentKey(tournamentId);
-  return mutate(detailKey) as Promise<unknown>;
+  if (mutate) {
+    return mutate(detailKey);
+  }
 }
 
-export function invalidatePublicTournamentCaches(
-  mutate: ScopedMutator = globalMutate,
-): Promise<unknown[]> {
+export async function invalidatePublicTournamentCaches(
+  mutate?: (matcher: (key: unknown) => boolean) => unknown,
+): Promise<unknown> {
   try {
     const qc = getQueryClient();
     void qc.invalidateQueries({
       predicate: (query) => publicTournamentKeyMatcher(query.queryKey),
     });
   } catch {}
-  return mutate(publicTournamentKeyMatcher) as unknown as Promise<unknown[]>;
+  if (mutate) {
+    return mutate(publicTournamentKeyMatcher);
+  }
 }
 
-export function invalidateAllTournamentCaches(
+export async function invalidateAllTournamentCaches(
   tournamentId: string,
-  mutate: ScopedMutator = globalMutate,
+  mutate?: (keyOrMatcher: any) => unknown,
 ): Promise<unknown[]> {
-  void invalidateTournamentAdminList(mutate);
-  void invalidateTournamentById(tournamentId, mutate);
-  void invalidatePublicTournamentCaches(mutate);
+  await invalidateTournamentAdminList(mutate);
+  await invalidateTournamentById(tournamentId, mutate);
+  await invalidatePublicTournamentCaches(mutate);
 
-  return Promise.resolve([]);
+  return [];
 }

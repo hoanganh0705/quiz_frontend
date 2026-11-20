@@ -81,7 +81,7 @@ export function AchievementAdminUserPage({
   }, [isValid, userId]);
 
   const handleReevaluateCompleted = useCallback(() => {
-    // The lifecycle hook handles SWR invalidation internally.
+    // The lifecycle hook handles query invalidation internally.
     // This callback exists so the page can extend behaviour (e.g. analytics)
     // without coupling the button to the list.
   }, []);

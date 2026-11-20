@@ -2,7 +2,7 @@
 
 import { useCallback, useRef, useState } from "react";
 
-import { mutate as globalMutate } from "swr";
+import { getQueryClient } from "@/providers/QueryProvider";
 
 import { ApiError } from "@/lib/api";
 import { addCategoryAdminBreadcrumb } from "@/lib/admin/admin_live_sentry";
@@ -72,18 +72,21 @@ export function useRestoreCategory(): UseRestoreCategory {
           targetId: id,
         });
 
-        const keysToRevalidate: Array<string | ((key: unknown) => boolean)> = [
-          CATEGORY_ADMIN_LIST_KEY,
-          publicCategoriesKeyMatcher,
-          ...(renamedSlug ? [categorySlugKey(renamedSlug)] : []),
+        const qc = getQueryClient();
+        const invalidations: Promise<void>[] = [
+          qc.invalidateQueries({ queryKey: [CATEGORY_ADMIN_LIST_KEY] }),
+          qc.invalidateQueries({
+            predicate: (query) => publicCategoriesKeyMatcher(query.queryKey),
+          }),
         ];
-        await Promise.all(
-          keysToRevalidate.map((key) =>
-            typeof key === "string"
-              ? globalMutate(key)
-              : globalMutate(key as (k: unknown) => boolean),
-          ),
-        );
+        if (renamedSlug) {
+          invalidations.push(
+            qc.invalidateQueries({
+              queryKey: [categorySlugKey(renamedSlug)],
+            }),
+          );
+        }
+        await Promise.all(invalidations);
 
         broadcastCategoryAdminInvalidate("restore", id);
         setIsPending(false);

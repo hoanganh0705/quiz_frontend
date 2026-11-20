@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
-import type { ScopedMutator } from "swr";
+type ScopedMutator = (arg: any) => any;
 
 import {
   commentKey,

@@ -6,7 +6,7 @@ import {
   screen,
   within,
 } from "@testing-library/react";
-import { SWRConfig } from "swr";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 import { ApiError } from "@/lib/api";
 
@@ -271,18 +271,16 @@ function setList(
 }
 
 function renderWidget() {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: { retry: false },
+      mutations: { retry: false },
+    },
+  });
   return render(
-    <SWRConfig
-      value={{
-        provider: () => new Map(),
-        revalidateOnFocus: false,
-        revalidateIfStale: false,
-        dedupingInterval: 0,
-        errorRetryCount: 0,
-      }}
-    >
+    <QueryClientProvider client={queryClient}>
       <ReviewsWidget quizId={QUIZ_ID} />
-    </SWRConfig>,
+    </QueryClientProvider>,
   );
 }
 

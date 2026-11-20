@@ -1,6 +1,5 @@
 import { render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { SWRConfig } from "swr";
 
 import type { TagDto, DeletedTagListItem } from "../../tag-types";
 import { TagRestoreDialog } from "../TagRestoreDialog";
@@ -59,14 +58,12 @@ describe("TagRestoreDialog", () => {
     } = {},
   ) {
     return render(
-      <SWRConfig value={{ provider: () => new Map() }}>
-        <TagRestoreDialog
-          open={props.open ?? true}
-          onOpenChange={props.onOpenChange ?? vi.fn()}
-          tag={props.tag ?? MOCK_DELETED_TAG}
-          onRestored={props.onRestored ?? vi.fn()}
-        />
-      </SWRConfig>,
+      <TagRestoreDialog
+        open={props.open ?? true}
+        onOpenChange={props.onOpenChange ?? vi.fn()}
+        tag={props.tag ?? MOCK_DELETED_TAG}
+        onRestored={props.onRestored ?? vi.fn()}
+      />,
     );
   }
 

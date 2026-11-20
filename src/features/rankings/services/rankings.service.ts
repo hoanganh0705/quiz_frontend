@@ -37,7 +37,7 @@ export async function getMyRanking(): Promise<
   RankingControllerGetMyRankResult["data"]
 > {
   Sentry.addBreadcrumb({
-    category: "phase5:service",
+    category: "rankings:service",
     message: "rankings.getMyRanking",
   });
   const data = await getLeaderboards().rankingControllerGetMyRank();
@@ -48,7 +48,7 @@ export async function getMyRankForPeriod(
   params: RankingControllerGetMyRankForPeriodParams,
 ): Promise<RankingControllerGetMyRankForPeriodResult["data"]> {
   Sentry.addBreadcrumb({
-    category: "phase5:service",
+    category: "rankings:service",
     message: "rankings.getMyRankForPeriod",
   });
   const data =
@@ -60,7 +60,7 @@ export async function getMyPercentile(
   params?: RankingControllerGetMyPercentileParams,
 ): Promise<RankingControllerGetMyPercentileResult["data"]> {
   Sentry.addBreadcrumb({
-    category: "phase5:service",
+    category: "rankings:service",
     message: "rankings.getMyPercentile",
   });
   const data = await getLeaderboards().rankingControllerGetMyPercentile(params);
@@ -71,7 +71,7 @@ export async function getMyRankingMilestones(): Promise<
   RankingControllerGetMyRankingMilestonesResult["data"]
 > {
   Sentry.addBreadcrumb({
-    category: "phase5:service",
+    category: "rankings:service",
     message: "rankings.getMyRankingMilestones",
   });
   const data =
@@ -90,7 +90,7 @@ export async function getMyRankingHistory(): Promise<
   RankingControllerGetMyRankingHistoryResult["data"]
 > {
   Sentry.addBreadcrumb({
-    category: "phase5:service",
+    category: "rankings:service",
     message: "rankings.getMyRankingHistory",
   });
   const data = await getLeaderboards().rankingControllerGetMyRankingHistory();
@@ -108,7 +108,7 @@ export async function getMyPeakRanks(): Promise<
   RankingControllerGetMyPeakRanksResult["data"]
 > {
   Sentry.addBreadcrumb({
-    category: "phase5:service",
+    category: "rankings:service",
     message: "rankings.getMyPeakRanks",
   });
   const data = await getLeaderboards().rankingControllerGetMyPeakRanks();
@@ -126,7 +126,7 @@ export async function getNearbyRanks(
   params?: RankingControllerGetNearbyRanksParams,
 ): Promise<RankingControllerGetNearbyRanksResult["data"]> {
   Sentry.addBreadcrumb({
-    category: "phase5:service",
+    category: "rankings:service",
     message: "rankings.getNearbyRanks",
   });
   const data = await getLeaderboards().rankingControllerGetNearbyRanks(params);
@@ -144,7 +144,7 @@ export async function getMyRankMovement(
   params?: RankingControllerGetMyRankMovementParams,
 ): Promise<RankingControllerGetMyRankMovementResult["data"]> {
   Sentry.addBreadcrumb({
-    category: "phase5:service",
+    category: "rankings:service",
     message: "rankings.getMyRankMovement",
   });
   const data =
@@ -163,7 +163,7 @@ export async function getRankingLeaderboard(
   params?: RankingControllerGetGlobalLeaderboardParams,
 ): Promise<RankingControllerGetGlobalLeaderboardResult["data"]> {
   Sentry.addBreadcrumb({
-    category: "phase5:service",
+    category: "rankings:service",
     message: "rankings.getRankingLeaderboard",
   });
   const data =
@@ -182,7 +182,7 @@ export async function getRankingDistribution(
   params?: RankingControllerGetLeaderboardDistributionParams,
 ): Promise<RankingControllerGetLeaderboardDistributionResult["data"]> {
   Sentry.addBreadcrumb({
-    category: "phase5:service",
+    category: "rankings:service",
     message: "rankings.getRankingDistribution",
   });
   const data =
@@ -201,7 +201,7 @@ export async function getTopMovers(
   params?: RankingControllerGetTopMoversParams,
 ): Promise<RankingControllerGetTopMoversResult["data"]> {
   Sentry.addBreadcrumb({
-    category: "phase5:service",
+    category: "rankings:service",
     message: "rankings.getTopMovers",
   });
   const data = await getLeaderboards().rankingControllerGetTopMovers(params);
@@ -219,7 +219,7 @@ export async function getUserRanking(
   userId: string,
 ): Promise<RankingControllerGetUserRankResult["data"]> {
   Sentry.addBreadcrumb({
-    category: "phase5:service",
+    category: "rankings:service",
     message: `rankings.getUserRanking(${userId})`,
   });
   const data = await getLeaderboards().rankingControllerGetUserRank(userId);
@@ -231,7 +231,7 @@ export async function getUserRankingHistory(
   params?: RankingControllerGetUserRankingHistoryParams,
 ): Promise<RankingControllerGetUserRankingHistoryResult["data"]> {
   Sentry.addBreadcrumb({
-    category: "phase5:service",
+    category: "rankings:service",
     message: `rankings.getUserRankingHistory(${userId})`,
   });
   const data = await getLeaderboards().rankingControllerGetUserRankingHistory(
@@ -253,7 +253,7 @@ export async function getUserRankForPeriod(
   params: RankingControllerGetUserRankForPeriodParams,
 ): Promise<RankingControllerGetUserRankForPeriodResult["data"]> {
   Sentry.addBreadcrumb({
-    category: "phase5:service",
+    category: "rankings:service",
     message: `rankings.getUserRankForPeriod(${userId})`,
   });
   const data = await getLeaderboards().rankingControllerGetUserRankForPeriod(

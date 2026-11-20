@@ -63,7 +63,12 @@ function useScrollPreserveBoundary(
 
 function readCommentAuthorId(value: unknown): string | null {
   if (value === null || typeof value !== "object") return null;
-  const candidate = value as Partial<CommentDto>;
+  const unwrapped =
+    "data" in value && (value as { data: unknown }).data !== undefined
+      ? (value as { data: unknown }).data
+      : value;
+  if (unwrapped === null || typeof unwrapped !== "object") return null;
+  const candidate = unwrapped as Partial<CommentDto>;
   return typeof candidate.authorId === "string" && candidate.authorId.length > 0
     ? candidate.authorId
     : null;
@@ -106,16 +111,6 @@ export function CommentReportsList({
     show,
     setShow,
   } = useCommentReports({ enabled });
-
-  let swrCache: { get?: (k: unknown) => unknown } | null = null;
-  try {
-    const swrConfig = useSWRConfig();
-    if (swrConfig && typeof swrConfig === "object" && "cache" in swrConfig) {
-      swrCache =
-        (swrConfig as { cache?: { get?: (k: unknown) => unknown } }).cache ??
-        null;
-    }
-  } catch {}
 
   const [selectedReportId, setSelectedReportId] = useState<string | null>(null);
   const [pendingAction, setPendingAction] =
@@ -186,20 +181,10 @@ export function CommentReportsList({
       const qcData = qc
         ? (qc.getQueryData(rawKey) as { authorId?: string | null } | undefined)
         : undefined;
-      let cached: unknown = undefined;
-      try {
-        if (swrCache && typeof swrCache.get === "function") {
-          cached =
-            swrCache.get(rawKey) ??
-            swrCache.get(unstable_serialize(rawKey as never));
-        }
-      } catch {}
-      const data =
-        qcData ?? (cached as { data?: unknown } | undefined)?.data ?? cached;
-      map.set(item.reportId, readCommentAuthorId(data));
+      map.set(item.reportId, readCommentAuthorId(qcData));
     }
     return map;
-  }, [items, swrCache]);
+  }, [items]);
 
   const renderRows = () => {
     if (isLoading) {
@@ -376,7 +361,7 @@ export function CommentReportsList({
         ) : null}
       </div>
 
-      {/* Hidden warmers: keep the SWR cache populated for every
+      {/* Hidden warmers: keep the cache populated for every
           comment id in the active page so each row's action menu
           can read the author id without an explicit click on the
           row. The warmers run alongside the visible rows; the

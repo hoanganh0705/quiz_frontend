@@ -73,45 +73,27 @@ export interface InvalidateReviewCachesArgs {
 }
 
 export async function invalidateReviewCaches(
-  mutate: (
-    key: readonly unknown[] | ((k: readonly unknown[]) => boolean),
-    data: unknown,
-    opts?: { revalidate?: boolean },
-  ) => Promise<unknown>,
-  args: InvalidateReviewCachesArgs,
+  first: unknown,
+  second?: InvalidateReviewCachesArgs,
 ): Promise<void> {
+  const args = (
+    second !== undefined ? second : first
+  ) as InvalidateReviewCachesArgs;
   const { quizId, sessionId } = args;
 
   try {
     const qc = getQueryClient();
-    void qc.invalidateQueries({
+    await qc.invalidateQueries({
       predicate: (query) =>
         Array.isArray(query.queryKey) &&
         query.queryKey[0] === "reviews" &&
         query.queryKey[1] === "quiz" &&
         query.queryKey[2] === quizId,
     });
-    void qc.invalidateQueries({ queryKey: myQuizReviewKey(quizId, sessionId) });
-    void qc.invalidateQueries({
+    await qc.invalidateQueries({ queryKey: myQuizReviewKey(quizId, sessionId) });
+    await qc.invalidateQueries({
       queryKey: reviewQuizAttemptKey(quizId, sessionId),
     });
-    void qc.invalidateQueries({ queryKey: ["reviews"] });
+    await qc.invalidateQueries({ queryKey: ["reviews"] });
   } catch {}
-
-  await mutate(
-    (k) =>
-      Array.isArray(k) &&
-      k[0] === "reviews" &&
-      k[1] === "quiz" &&
-      k[2] === quizId,
-    undefined,
-    { revalidate: true },
-  );
-
-  await mutate(myQuizReviewKey(quizId, sessionId), undefined, {
-    revalidate: true,
-  });
-  await mutate(reviewQuizAttemptKey(quizId, sessionId), undefined, {
-    revalidate: true,
-  });
 }

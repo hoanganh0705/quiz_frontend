@@ -1,15 +1,6 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 import { renderHook } from "@testing-library/react";
 
-const mutateMock = vi.fn();
-vi.mock("swr", async () => {
-  const actual = await vi.importActual<typeof import("swr")>("swr");
-  return {
-    ...actual,
-    mutate: (...args: unknown[]) => mutateMock(...args),
-  };
-});
-
 const mockGetFeatureFlagValue = vi.fn();
 vi.mock("@/lib/feature-flags", () => ({
   getFeatureFlagValue: (...args: unknown[]) => mockGetFeatureFlagValue(...args),
@@ -65,7 +56,6 @@ function makeMockParticipant(userId: string) {
 describe("useTournamentRegistration", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mutateMock.mockResolvedValue(undefined);
     mockGetFeatureFlagValue.mockReturnValue("live");
     mockUseAuthBootstrap.mockReturnValue({
       bootstrapState: "authenticated",
@@ -98,7 +88,6 @@ describe("useTournamentRegistration", () => {
 
   afterEach(() => {
     vi.restoreAllMocks();
-    mutateMock.mockReset();
   });
 
   describe("initialization", () => {

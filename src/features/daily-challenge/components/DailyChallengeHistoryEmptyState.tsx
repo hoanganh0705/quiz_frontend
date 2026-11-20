@@ -4,10 +4,6 @@
  * `DailyChallengeHistoryEmptyState` — empty-state surface for the
  * history list.
  *
- * Source epic:   Epic 3.12 — `/daily-challenge` read-only render.
- * Source story:  `projectDocs/Epics/PHASE_3_EPICS.md` → Story 3.12.
- * Source ticket: TKT-3.12.B3.
- *
  * Rendered when the history list has no items. The component is also
  * rendered (transparently) by the list when `items.length === 0`. The
  * composition does NOT render the empty state alongside the list — the
@@ -15,7 +11,7 @@
  *
  * The surface is intentionally minimal: a single line of copy plus a
  * calendar icon. The empty state also covers the "missing-endpoint"
- * case via the page composition (TKT-3.12.C1) — the placeholder
+ * case via the page composition — the placeholder
  * renders instead of the empty state in that case; this empty state is
  * for a live, empty response.
  */

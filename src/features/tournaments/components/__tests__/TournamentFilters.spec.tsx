@@ -38,15 +38,15 @@ describe("TournamentFilters", () => {
         />,
       );
 
-      expect(screen.getByRole("button", { name: /all/i })).toBeInTheDocument();
+      expect(screen.getByRole("tab", { name: /all/i })).toBeInTheDocument();
       expect(
-        screen.getByRole("button", { name: /upcoming/i }),
+        screen.getByRole("tab", { name: /upcoming/i }),
       ).toBeInTheDocument();
       expect(
-        screen.getByRole("button", { name: /active/i }),
+        screen.getByRole("tab", { name: /active/i }),
       ).toBeInTheDocument();
       expect(
-        screen.getByRole("button", { name: /completed/i }),
+        screen.getByRole("tab", { name: /completed/i }),
       ).toBeInTheDocument();
     });
 
@@ -59,7 +59,7 @@ describe("TournamentFilters", () => {
         />,
       );
 
-      fireEvent.click(screen.getByRole("button", { name: /upcoming/i }));
+      fireEvent.click(screen.getByRole("tab", { name: /upcoming/i }));
 
       expect(onFilterChangeMock).toHaveBeenCalledWith("status", "upcoming");
     });
@@ -73,7 +73,7 @@ describe("TournamentFilters", () => {
         />,
       );
 
-      fireEvent.click(screen.getByRole("button", { name: /all/i }));
+      fireEvent.click(screen.getByRole("tab", { name: /all/i }));
 
       expect(onFilterChangeMock).toHaveBeenCalledWith("status", undefined);
     });

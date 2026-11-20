@@ -1,28 +1,13 @@
 /**
- * Feature-specific placeholder primitives for Story 5.5 ranking and
+ * Feature-specific placeholder primitives for ranking and
  * achievement surfaces.
  *
- * Source epic:   Epic 5.1 — SDK coverage & realtime contract foundation.
- * Source story:  5.5 — Ranking, leaderboards, milestones, and achievement surfaces.
- * Source ticket: TKT-5.5.F1 / TKT-5.5.F2.
- *
- * Each placeholder mirrors the locked Phase 3 pattern from
- * `daily-challenge/components/DailyChallengePlaceholder.tsx`: a static
- * card with a "Coming soon" affordance and feature-specific copy.
+ * Each placeholder presents a static card with a "Coming soon"
+ * affordance and feature-specific copy.
  *
  * The primitive lives under `features/rankings/components/shared/`
- * because it is consumed by both the rankings page (TKT-5.5.F1) and
- * the achievements page (TKT-5.5.F2) — F2's `AchievementsPage`
- * imports it from here so feature internals stay co-located with the
- * ranking surface that owns the page-level composition.
- *
- * Why a feature-internal primitive (and not `lib/ui/`):
- *
- *   - The copy, the icon choice, and the testid are all feature-
- *     specific. Promoting to `lib/ui/` would force every consumer to
- *     bring their own copy, defeating the point.
- *   - The Phase 3 convention (TKT-3.12.B3) established a per-feature
- *     placeholder. We honour that.
+ * because it is consumed by both the rankings page and the achievements
+ * page.
  */
 
 import { Sparkles } from "lucide-react";
@@ -89,7 +74,7 @@ function Placeholder({ title, description, className }: PlaceholderProps) {
 }
 
 /**
- * Placeholder card for the rankings page (TKT-5.5.F1 AC #1).
+ * Placeholder card for the rankings page.
  */
 export function RankingsPlaceholder({ className }: { className?: string }) {
   return (
@@ -104,7 +89,7 @@ export function RankingsPlaceholder({ className }: { className?: string }) {
 }
 
 /**
- * Placeholder card for the achievements page (TKT-5.5.F2 AC #1).
+ * Placeholder card for the achievements page.
  */
 export function AchievementsPlaceholder({ className }: { className?: string }) {
   return (

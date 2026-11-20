@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useMemo } from "react";
-import { useSWRConfig } from "swr";
 import { getQueryClient } from "@/providers/QueryProvider";
 
 import { ApiError, useOptimisticMutation } from "@/lib/api";
@@ -33,13 +32,12 @@ export function usePurchaseFlair(): UsePurchaseFlairResult {
   const flagValue = getFeatureFlagValue("coin_spend_live");
   const isPlaceholder = flagValue === "placeholder";
 
-  const { mutate } = useSWRConfig();
   const { mutate: dispatch, isInFlight, lastResult } = useOptimisticMutation();
 
   const revalidate = useCallback(async (): Promise<void> => {
     try {
       const qc = getQueryClient();
-      void qc.invalidateQueries({
+      await qc.invalidateQueries({
         predicate: (query) =>
           Array.isArray(query.queryKey) &&
           query.queryKey[0] === "coins" &&
@@ -47,15 +45,7 @@ export function usePurchaseFlair(): UsePurchaseFlairResult {
             query.queryKey[1] === "transactions"),
       });
     } catch {}
-    await mutate(
-      (key) =>
-        Array.isArray(key) &&
-        key[0] === "coins" &&
-        (key[1] === "wallet" || key[1] === "transactions"),
-      undefined,
-      { revalidate: true },
-    );
-  }, [mutate]);
+  }, []);
 
   const error: CoinErrorCode | null =
     lastResult && lastResult.status === "reverted"

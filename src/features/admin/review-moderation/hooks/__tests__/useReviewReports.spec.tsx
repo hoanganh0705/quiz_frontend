@@ -1,6 +1,6 @@
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { SWRConfig } from "swr";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 import { ApiError } from "@/lib/api";
 
@@ -84,16 +84,12 @@ function renderUseReviewReports(
     onError?: (err: unknown) => void;
   } = {},
 ) {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
   return renderHook(() => useReviewReports(), {
     wrapper: ({ children }) => (
-      <SWRConfig
-        value={{
-          provider: () => new Map(),
-          onError: (err) => opts.onError?.(err),
-        }}
-      >
-        {children}
-      </SWRConfig>
+      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
     ),
   });
 }
@@ -106,7 +102,7 @@ import {
   normalizeReviewReportsShow,
 } from "../useReviewReports";
 
-describe("TKT-7.5.C1 — useReviewReports: key & matcher helpers", () => {
+describe("useReviewReports: key & matcher helpers", () => {
   it("reviewReportsKey() returns the documented tuple shape", () => {
     expect(reviewReportsKey("pending")).toEqual([
       "admin",
@@ -159,7 +155,7 @@ describe("TKT-7.5.C1 — useReviewReports: key & matcher helpers", () => {
   });
 });
 
-describe("TKT-7.5.C1 — useReviewReports: happy path & pagination", () => {
+describe("useReviewReports: happy path & pagination", () => {
   it("initial render surfaces loading then success: items populated, hasMore follows metadata", async () => {
     mockListReviewReports.mockResolvedValueOnce(
       makeWireResponse([makeRow("r-1"), makeRow("r-2")], {
@@ -246,7 +242,7 @@ function makeApiError(
   } as unknown as Parameters<(typeof ApiError)["fromAxios"]>[0]);
 }
 
-describe("TKT-7.5.C1 — useReviewReports: error surfaces", () => {
+describe("useReviewReports: error surfaces", () => {
   it("error surfaces typed ApiError with .code", async () => {
     const apiError = makeApiError("GLOBAL_INTERNAL", 500, "req-err-1");
 
@@ -304,7 +300,7 @@ describe("TKT-7.5.C1 — useReviewReports: error surfaces", () => {
   });
 });
 
-describe("TKT-7.5.C1 — useReviewReports: URL-owned filter", () => {
+describe("useReviewReports: URL-owned filter", () => {
   it('setShow("resolved") calls router.replace with ?show=resolved', () => {
     const { result } = renderUseReviewReports();
 

@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { ScopedMutator } from "swr";
+
+type ScopedMutator = (key: unknown) => unknown;
 
 import {
   TAG_ADMIN_LIST_KEY,

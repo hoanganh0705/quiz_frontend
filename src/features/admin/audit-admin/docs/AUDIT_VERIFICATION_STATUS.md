@@ -12,7 +12,7 @@
 | ------------------------------------- | ---------- | -------------------------------------------- |
 | Endpoint exists                       | ⏳ PENDING | To be verified with backend team             |
 | DTO contract documented               | ⏳ PENDING | Awaiting backend confirmation                |
-| Pagination strategy confirmed         | ⏳ PENDING | Expected: offset-based per story             |
+| Pagination strategy confirmed         | ⏳ PENDING | Expected: offset-based per specification             |
 | `AUDIT_LOG_READ` permission confirmed | ⏳ PENDING | To be verified                               |
 | Sensitive payload redaction confirmed | ⏳ PENDING | To be verified                               |
 | Error codes documented                | ⏳ PENDING | Expected: `PERMISSION_DENIED`, `NOT_EXPOSED` |

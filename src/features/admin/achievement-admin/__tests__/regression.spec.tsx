@@ -37,7 +37,6 @@ function makeApiError(
 
 const mockReevaluateUserAchievements = vi.fn();
 const mockRevokeUserBadge = vi.fn();
-const mockGlobalMutate = vi.fn().mockResolvedValue(undefined);
 const mockAddAchievementAdminBreadcrumb = vi.fn();
 const mockGetFeatureFlagValue = vi.fn().mockReturnValue("live");
 
@@ -46,14 +45,6 @@ vi.mock("@/features/admin/services/achievement-admin.service", () => ({
     mockReevaluateUserAchievements(...args),
   revokeUserBadge: (...args: unknown[]) => mockRevokeUserBadge(...args),
 }));
-
-vi.mock("swr", async () => {
-  const actual = await vi.importActual<typeof import("swr")>("swr");
-  return {
-    ...actual,
-    mutate: (...args: unknown[]) => mockGlobalMutate(...args),
-  };
-});
 
 vi.mock("@/lib/admin/admin_live_sentry", async () => {
   const actual = await vi.importActual<
@@ -73,7 +64,6 @@ vi.mock("@/lib/feature-flags", () => ({
 beforeEach(() => {
   vi.clearAllMocks();
   mockGetFeatureFlagValue.mockReturnValue("live");
-  mockGlobalMutate.mockResolvedValue(undefined);
 });
 
 afterEach(() => {

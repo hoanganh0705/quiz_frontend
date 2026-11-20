@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback } from "react";
-import { mutate as globalMutate } from "swr";
 import { getQueryClient } from "@/providers/QueryProvider";
 
 import type {
@@ -93,32 +92,27 @@ export function applyCommentCreated(
     clearPending("create", commentId, currentUserId ?? undefined);
   }
 
-  globalMutate(
-    (key: readonly unknown[]): boolean => {
-      if (!Array.isArray(key) || key[0] !== "comments") return false;
-      const keyQuizId = key[1];
-      return keyQuizId === payload.quizId;
-    },
-    (current: CommentCacheEntry | undefined) => {
-      if (!current?.items) return current;
-      return {
-        ...current,
-        items: [...current.items],
-      };
-    },
-    { revalidate: false },
-  );
-
-  if (!isReply) {
-    globalMutate(
-      (key: readonly unknown[]): boolean => {
-        if (!Array.isArray(key) || key[0] !== "comments") return false;
-        const keyQuizId = key[1];
-        return keyQuizId === payload.quizId;
+  try {
+    const qc = getQueryClient();
+    qc.setQueriesData<CommentCacheEntry>(
+      {
+        predicate: (query) => {
+          const key = query.queryKey;
+          return (
+            Array.isArray(key) &&
+            key[0] === "comments" &&
+            key[1] === payload.quizId
+          );
+        },
       },
-      (current: CommentCacheEntry | undefined) => {
+      (current) => {
         if (!current?.items) return current;
-
+        if (isReply) {
+          return {
+            ...current,
+            items: [...current.items],
+          };
+        }
         if (current.items.some((c) => c.id === commentId)) return current;
         const newThread = createThreadFromSnapshot(snapshot);
         return {
@@ -126,9 +120,8 @@ export function applyCommentCreated(
           items: [newThread, ...current.items],
         };
       },
-      { revalidate: false },
     );
-  }
+  } catch {}
 }
 
 export function applyCommentEdited(
@@ -142,22 +135,26 @@ export function applyCommentEdited(
     clearPending("edit", commentId, currentUserId ?? undefined);
   }
 
-  globalMutate(
-    (key: readonly unknown[]): boolean => {
-      if (!Array.isArray(key) || key[0] !== "comments") return false;
-      return true; // Match all comment caches
-    },
-    (current: CommentCacheEntry | undefined) => {
-      if (!current?.items) return current;
-      return {
-        ...current,
-        items: current.items.map((thread) =>
-          applyEditToThread(thread, commentId, snapshot),
-        ),
-      };
-    },
-    { revalidate: false },
-  );
+  try {
+    const qc = getQueryClient();
+    qc.setQueriesData<CommentCacheEntry>(
+      {
+        predicate: (query) => {
+          const key = query.queryKey;
+          return Array.isArray(key) && key[0] === "comments";
+        },
+      },
+      (current) => {
+        if (!current?.items) return current;
+        return {
+          ...current,
+          items: current.items.map((thread) =>
+            applyEditToThread(thread, commentId, snapshot),
+          ),
+        };
+      },
+    );
+  } catch {}
 }
 
 export function applyCommentDeleted(
@@ -170,48 +167,55 @@ export function applyCommentDeleted(
     clearPending("delete", commentId, currentUserId ?? undefined);
   }
 
-  globalMutate(
-    (key: readonly unknown[]): boolean => {
-      if (!Array.isArray(key) || key[0] !== "comments") return false;
-      const keyQuizId = key[1];
-      return keyQuizId === quizId;
-    },
-    (current: CommentCacheEntry | undefined) => {
-      if (!current?.items) return current;
-
-      const updatedItems = current.items.map((thread) => {
-        if (thread.id === commentId) {
-          return {
-            ...thread,
-            deletedAt: payload.timestamp,
-          };
-        }
-
-        if (thread.replies) {
-          const updatedReplies = thread.replies.map((reply) =>
-            reply.id === commentId
-              ? { ...reply, deletedAt: payload.timestamp }
-              : reply,
+  try {
+    const qc = getQueryClient();
+    qc.setQueriesData<CommentCacheEntry>(
+      {
+        predicate: (query) => {
+          const key = query.queryKey;
+          return (
+            Array.isArray(key) &&
+            key[0] === "comments" &&
+            key[1] === quizId
           );
-          const hasUpdatedReplies = updatedReplies !== thread.replies;
-          if (hasUpdatedReplies) {
+        },
+      },
+      (current) => {
+        if (!current?.items) return current;
+
+        const updatedItems = current.items.map((thread) => {
+          if (thread.id === commentId) {
             return {
               ...thread,
-              replies: updatedReplies,
-              repliesCount: Math.max(0, thread.repliesCount - 1),
+              deletedAt: payload.timestamp,
             };
           }
-        }
-        return thread;
-      });
 
-      return {
-        ...current,
-        items: updatedItems,
-      };
-    },
-    { revalidate: false },
-  );
+          if (thread.replies) {
+            const updatedReplies = thread.replies.map((reply) =>
+              reply.id === commentId
+                ? { ...reply, deletedAt: payload.timestamp }
+                : reply,
+            );
+            const hasUpdatedReplies = updatedReplies !== thread.replies;
+            if (hasUpdatedReplies) {
+              return {
+                ...thread,
+                replies: updatedReplies,
+                repliesCount: Math.max(0, thread.repliesCount - 1),
+              };
+            }
+          }
+          return thread;
+        });
+
+        return {
+          ...current,
+          items: updatedItems,
+        };
+      },
+    );
+  } catch {}
 }
 
 export function applyCommentHidden(
@@ -225,22 +229,26 @@ export function applyCommentHidden(
     clearPending("hide", commentId, currentUserId ?? undefined);
   }
 
-  globalMutate(
-    (key: readonly unknown[]): boolean => {
-      if (!Array.isArray(key) || key[0] !== "comments") return false;
-      return true;
-    },
-    (current: CommentCacheEntry | undefined) => {
-      if (!current?.items) return current;
-      return {
-        ...current,
-        items: current.items.map((thread) =>
-          applyEditToThread(thread, commentId, snapshot),
-        ),
-      };
-    },
-    { revalidate: false },
-  );
+  try {
+    const qc = getQueryClient();
+    qc.setQueriesData<CommentCacheEntry>(
+      {
+        predicate: (query) => {
+          const key = query.queryKey;
+          return Array.isArray(key) && key[0] === "comments";
+        },
+      },
+      (current) => {
+        if (!current?.items) return current;
+        return {
+          ...current,
+          items: current.items.map((thread) =>
+            applyEditToThread(thread, commentId, snapshot),
+          ),
+        };
+      },
+    );
+  } catch {}
 }
 
 export function applyCommentRestored(
@@ -254,22 +262,26 @@ export function applyCommentRestored(
     clearPending("restore", commentId, currentUserId ?? undefined);
   }
 
-  globalMutate(
-    (key: readonly unknown[]): boolean => {
-      if (!Array.isArray(key) || key[0] !== "comments") return false;
-      return true;
-    },
-    (current: CommentCacheEntry | undefined) => {
-      if (!current?.items) return current;
-      return {
-        ...current,
-        items: current.items.map((thread) =>
-          applyEditToThread(thread, commentId, snapshot),
-        ),
-      };
-    },
-    { revalidate: false },
-  );
+  try {
+    const qc = getQueryClient();
+    qc.setQueriesData<CommentCacheEntry>(
+      {
+        predicate: (query) => {
+          const key = query.queryKey;
+          return Array.isArray(key) && key[0] === "comments";
+        },
+      },
+      (current) => {
+        if (!current?.items) return current;
+        return {
+          ...current,
+          items: current.items.map((thread) =>
+            applyEditToThread(thread, commentId, snapshot),
+          ),
+        };
+      },
+    );
+  } catch {}
 }
 
 export function applyVoteCast(
@@ -291,31 +303,35 @@ export function applyVoteCast(
     }
   }
 
-  globalMutate(
-    (key: readonly unknown[]): boolean => {
-      if (!Array.isArray(key) || key[0] !== "comments") return false;
-      return true;
-    },
-    (current: CommentCacheEntry | undefined) => {
-      if (!current?.items) return current;
-      return {
-        ...current,
-        items: current.items.map((thread) =>
-          applyVoteToThread(
-            thread,
-            commentId,
-            voterId,
-            value,
-            votesCount,
-            upvotesCount,
-            downvotesCount,
-            currentUserId,
+  try {
+    const qc = getQueryClient();
+    qc.setQueriesData<CommentCacheEntry>(
+      {
+        predicate: (query) => {
+          const key = query.queryKey;
+          return Array.isArray(key) && key[0] === "comments";
+        },
+      },
+      (current) => {
+        if (!current?.items) return current;
+        return {
+          ...current,
+          items: current.items.map((thread) =>
+            applyVoteToThread(
+              thread,
+              commentId,
+              voterId,
+              value,
+              votesCount,
+              upvotesCount,
+              downvotesCount,
+              currentUserId,
+            ),
           ),
-        ),
-      };
-    },
-    { revalidate: false },
-  );
+        };
+      },
+    );
+  } catch {}
 }
 
 export function applyVoteRemoved(
@@ -331,31 +347,35 @@ export function applyVoteRemoved(
     }
   }
 
-  globalMutate(
-    (key: readonly unknown[]): boolean => {
-      if (!Array.isArray(key) || key[0] !== "comments") return false;
-      return true;
-    },
-    (current: CommentCacheEntry | undefined) => {
-      if (!current?.items) return current;
-      return {
-        ...current,
-        items: current.items.map((thread) =>
-          applyVoteToThread(
-            thread,
-            commentId,
-            voterId,
-            null,
-            votesCount,
-            upvotesCount,
-            downvotesCount,
-            currentUserId,
+  try {
+    const qc = getQueryClient();
+    qc.setQueriesData<CommentCacheEntry>(
+      {
+        predicate: (query) => {
+          const key = query.queryKey;
+          return Array.isArray(key) && key[0] === "comments";
+        },
+      },
+      (current) => {
+        if (!current?.items) return current;
+        return {
+          ...current,
+          items: current.items.map((thread) =>
+            applyVoteToThread(
+              thread,
+              commentId,
+              voterId,
+              null,
+              votesCount,
+              upvotesCount,
+              downvotesCount,
+              currentUserId,
+            ),
           ),
-        ),
-      };
-    },
-    { revalidate: false },
-  );
+        };
+      },
+    );
+  } catch {}
 }
 
 function createThreadFromSnapshot(

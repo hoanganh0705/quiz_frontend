@@ -1,14 +1,7 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 import { act, renderHook } from "@testing-library/react";
 
-const mutateMock = vi.fn();
-vi.mock("swr", async () => {
-  const actual = await vi.importActual<typeof import("swr")>("swr");
-  return {
-    ...actual,
-    mutate: (...args: unknown[]) => mutateMock(...args),
-  };
-});
+import { getQueryClient } from "@/providers/QueryProvider";
 
 const mockGetFeatureFlagValue = vi.fn();
 vi.mock("@/lib/feature-flags", () => ({
@@ -39,6 +32,7 @@ function makeApiError(status: number, code: string) {
         title: `Error ${status}`,
         status,
         code,
+        extensions: { code },
       },
     },
     toJSON: () => ({}),
@@ -50,15 +44,16 @@ function flushMicrotasks(): Promise<void> {
 }
 
 describe("useRegisterTournament", () => {
+  let invalidateQueriesSpy: ReturnType<typeof vi.spyOn>;
+
   beforeEach(() => {
     vi.clearAllMocks();
-    mutateMock.mockResolvedValue(undefined);
+    invalidateQueriesSpy = vi.spyOn(getQueryClient(), "invalidateQueries").mockResolvedValue(undefined as never);
     mockGetFeatureFlagValue.mockReturnValue("live");
   });
 
   afterEach(() => {
     vi.restoreAllMocks();
-    mutateMock.mockReset();
   });
 
   describe("initialization", () => {
@@ -98,7 +93,7 @@ describe("useRegisterTournament", () => {
   });
 
   describe("success path", () => {
-    it("transitions to success state and invalidates SWR keys", async () => {
+    it("transitions to success state and invalidates queries", async () => {
       mockRegisterForTournament.mockResolvedValueOnce({
         data: {
           tournamentId: "tournament-1",
@@ -118,7 +113,7 @@ describe("useRegisterTournament", () => {
       expect(result.current.state).toBe("success");
       expect(result.current.error).toBeNull();
 
-      expect(mutateMock).toHaveBeenCalled();
+      expect(invalidateQueriesSpy).toHaveBeenCalled();
     });
 
     it("resets to idle after 2 seconds on success", async () => {
@@ -168,7 +163,7 @@ describe("useRegisterTournament", () => {
         await result.current.register();
       });
 
-      expect(mutateMock).toHaveBeenCalledTimes(3);
+      expect(invalidateQueriesSpy).toHaveBeenCalledTimes(4);
     });
   });
 
@@ -282,10 +277,14 @@ describe("useRegisterTournament", () => {
         useRegisterTournament("tournament-1"),
       );
 
-      await act(async () => {
-        const promise = result.current.register();
+      let promise: Promise<void>;
+      act(() => {
+        promise = result.current.register();
+      });
 
-        expect(result.current.state).toBe("pending");
+      expect(result.current.state).toBe("pending");
+
+      await act(async () => {
         resolveRegistration!({
           data: {
             tournamentId: "tournament-1",

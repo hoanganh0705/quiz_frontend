@@ -3,17 +3,13 @@
 /**
  * `<PlayerRanking />` — top-players carousel on the home page.
  *
- * Source epic:   Phase 1 (F-07) — home page quick-win.
- * Source ticket: F-07.
- *
- * Replaces the historic hardcoded `players` constant (F-24) with a
- * live `useLeaderboard('all-time')` cursor. The carousel preserves
- * the previous Swiper aesthetic (5 cards desktop / 1 mobile), the
+ * Uses a live `useLeaderboard('all-time')` query. The carousel preserves
+ * the Swiper aesthetic (5 cards desktop / 1 mobile), the
  * "Top Players" badge, and the "View Full Leaderboard" CTA.
  *
  * ## Loading / empty / error states
  *
- * While the SWR fetch is in flight, the carousel renders a
+ * While the fetch is in flight, the carousel renders a
  * skeleton-grid of 5 placeholder cards (matches the desktop
  * breakpoint). On a non-empty server response, the cards render
  * with data from the `LeaderboardEntryDto` shape projected by the

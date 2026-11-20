@@ -1,6 +1,6 @@
 import { renderHook, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { SWRConfig } from "swr";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 import { useCategoryAdminList } from "../useCategoryAdminList";
 
@@ -35,11 +35,17 @@ function makeCategory(
 }
 
 describe("useCategoryAdminList", () => {
+  const createWrapper = () => {
+    const queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    });
+    return ({ children }: { children: React.ReactNode }) => (
+      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    );
+  };
   const render = () =>
     renderHook(() => useCategoryAdminList(), {
-      wrapper: ({ children }) => (
-        <SWRConfig value={{ provider: () => new Map() }}>{children}</SWRConfig>
-      ),
+      wrapper: createWrapper(),
     });
 
   it("exposes empty arrays while loading", () => {

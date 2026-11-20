@@ -80,17 +80,22 @@ export function useUserProfileBundle(
     [userId],
   );
 
-  const swr = useSingleWithRetry<UserProfileBundleResponseDto>({
+  const bundleQuery = useSingleWithRetry<UserProfileBundleResponseDto>({
     key,
     fetcher,
   });
 
   const notFound =
-    !swr.isLoading && swr.error !== null && isNotFoundError(swr.error);
+    !bundleQuery.isLoading &&
+    bundleQuery.error !== null &&
+    isNotFoundError(bundleQuery.error);
 
-  const error = swr.error && !isNotFoundError(swr.error) ? swr.error : null;
+  const error =
+    bundleQuery.error && !isNotFoundError(bundleQuery.error)
+      ? bundleQuery.error
+      : null;
 
-  const data = swr.data ?? null;
+  const data = bundleQuery.data ?? null;
 
   return {
     summary: data?.summary ?? null,
@@ -98,9 +103,9 @@ export function useUserProfileBundle(
     xpHistory: data?.xpHistory ?? null,
     recentActivity: data?.recentActivity ?? [],
     notFound,
-    isLoading: swr.isLoading,
+    isLoading: bundleQuery.isLoading,
     error,
-    retry: swr.retry,
-    isRetrying: swr.isRetrying,
+    retry: bundleQuery.retry,
+    isRetrying: bundleQuery.isRetrying,
   };
 }

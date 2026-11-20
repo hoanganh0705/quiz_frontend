@@ -2,7 +2,6 @@
 
 import { useCallback, useRef, useState } from "react";
 
-import { mutate as globalMutate } from "swr";
 import { getQueryClient } from "@/providers/QueryProvider";
 
 import { ApiError, getReviews } from "@/lib/api";
@@ -215,18 +214,12 @@ export function useResolveReviewReport(): UseResolveReviewReportResult {
 
           try {
             const qc = getQueryClient();
-            void qc.invalidateQueries({
+            await qc.invalidateQueries({
               predicate: (query) =>
                 reviewReportsKeyMatcher(query.queryKey) ||
                 reviewsKeyMatcher(query.queryKey),
             });
           } catch {}
-          await globalMutate(
-            (key: readonly unknown[]) =>
-              reviewReportsKeyMatcher(key) || reviewsKeyMatcher(key),
-            undefined,
-            { revalidate: true },
-          );
 
           const updatedReviewId = (updated as { reviewId?: unknown }).reviewId;
           broadcastReviewModerationInvalidate(
@@ -271,19 +264,10 @@ export function useResolveReviewReport(): UseResolveReviewReportResult {
           if (outcome.kind === "not-found") {
             try {
               const qc = getQueryClient();
-              void qc.invalidateQueries({
+              await qc.invalidateQueries({
                 predicate: (query) => reviewReportsKeyMatcher(query.queryKey),
               });
             } catch {}
-            await globalMutate(
-              (key: readonly unknown[]) => reviewReportsKeyMatcher(key),
-              undefined,
-              { revalidate: true },
-            ).catch(() => {
-              // The revalidation is best-effort; failure here is
-              // surfaced via the original `apiError` and is not
-              // bubbled.
-            });
           }
 
           throw apiError;

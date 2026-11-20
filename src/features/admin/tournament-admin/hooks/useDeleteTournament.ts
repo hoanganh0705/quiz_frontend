@@ -2,7 +2,6 @@
 
 import { useCallback, useRef, useState } from "react";
 
-import { mutate as globalMutate } from "swr";
 import { getQueryClient } from "@/providers/QueryProvider";
 
 import { addTournamentAdminBreadcrumb } from "@/lib/admin/admin_live_sentry";
@@ -102,21 +101,13 @@ export function useDeleteTournament(): UseDeleteTournamentResult {
 
           try {
             const qc = getQueryClient();
-            void qc.invalidateQueries({
+            await qc.invalidateQueries({
               predicate: (query) =>
                 adminTournamentsKeyMatcher(query.queryKey) ||
                 publicTournamentsKeyMatcher(query.queryKey) ||
                 publicTournamentDetailKeyMatcher(query.queryKey, id),
             });
           } catch {}
-          await globalMutate(
-            (key: readonly unknown[]) =>
-              adminTournamentsKeyMatcher(key) ||
-              publicTournamentsKeyMatcher(key) ||
-              publicTournamentDetailKeyMatcher(key, id),
-            undefined,
-            { revalidate: true },
-          );
         } catch (caught: unknown) {
           const apiError = coerceToApiError(caught);
           setError(apiError);
@@ -136,15 +127,14 @@ export function useDeleteTournament(): UseDeleteTournamentResult {
           });
 
           if (apiError.code === "TOURNAMENT_NOT_FOUND") {
-            await globalMutate(
-              (key: readonly unknown[]) =>
-                adminTournamentsKeyMatcher(key) ||
-                publicTournamentDetailKeyMatcher(key, id),
-              undefined,
-              { revalidate: true },
-            ).catch(() => {
-              // Best-effort.
-            });
+            try {
+              const qc = getQueryClient();
+              await qc.invalidateQueries({
+                predicate: (query) =>
+                  adminTournamentsKeyMatcher(query.queryKey) ||
+                  publicTournamentDetailKeyMatcher(query.queryKey, id),
+              });
+            } catch {}
           }
 
           throw apiError;

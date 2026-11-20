@@ -1,6 +1,5 @@
 import { render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { SWRConfig } from "swr";
 
 import { TagAdminPage } from "../TagAdminPage";
 
@@ -125,11 +124,7 @@ describe("TagAdminPage", () => {
   });
 
   function renderPage() {
-    return render(
-      <SWRConfig value={{ provider: () => new Map() }}>
-        <TagAdminPage />
-      </SWRConfig>,
-    );
+    return render(<TagAdminPage />);
   }
 
   it("renders the page title and description", () => {

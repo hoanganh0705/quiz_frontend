@@ -1,6 +1,6 @@
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { SWRConfig } from "swr";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 import { ApiError } from "@/lib/api";
 
@@ -36,17 +36,15 @@ vi.mock("@/lib/api", async () => {
   };
 });
 
-const mockGlobalMutate = vi.hoisted(() =>
+const mockInvalidateQueries = vi.hoisted(() =>
   vi.fn((...args: unknown[]) => Promise.resolve(undefined)),
 );
 
-vi.mock("swr", async () => {
-  const actual = await vi.importActual<typeof import("swr")>("swr");
-  return {
-    ...actual,
-    mutate: (...args: unknown[]) => mockGlobalMutate(...args),
-  };
-});
+vi.mock("@/providers/QueryProvider", () => ({
+  getQueryClient: () => ({
+    invalidateQueries: mockInvalidateQueries,
+  }),
+}));
 
 function makeApiError(
   code: string,
@@ -78,8 +76,8 @@ afterEach(() => {
   mockHideComment.mockReset();
   mockAddCommentModerationBreadcrumb.mockReset();
   mockBroadcastCommentModerationInvalidate.mockReset();
-  mockGlobalMutate.mockReset();
-  mockGlobalMutate.mockResolvedValue(undefined);
+  mockInvalidateQueries.mockReset();
+  mockInvalidateQueries.mockResolvedValue(undefined);
 });
 
 beforeEach(() => {
@@ -87,14 +85,17 @@ beforeEach(() => {
   mockHideComment.mockReset();
   mockAddCommentModerationBreadcrumb.mockReset();
   mockBroadcastCommentModerationInvalidate.mockReset();
-  mockGlobalMutate.mockReset();
-  mockGlobalMutate.mockResolvedValue(undefined);
+  mockInvalidateQueries.mockReset();
+  mockInvalidateQueries.mockResolvedValue(undefined);
 });
 
 function renderHookHook() {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
   return renderHook(() => useResolveCommentReport(), {
     wrapper: ({ children }) => (
-      <SWRConfig value={{ provider: () => new Map() }}>{children}</SWRConfig>
+      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
     ),
   });
 }
@@ -102,7 +103,7 @@ function renderHookHook() {
 import { useResolveCommentReport } from "../useResolveCommentReport";
 import { COMMENT_REPORT_ACTIONS } from "../../action-enum";
 
-describe("TKT-7.6.C2 — useResolveCommentReport: happy path", () => {
+describe("useResolveCommentReport: happy path", () => {
   it("dispatches patchCommentReport with the SDK status mapped from the consumer action", async () => {
     mockPatchCommentReport.mockResolvedValueOnce({
       reportId: "r-1",
@@ -167,7 +168,7 @@ describe("TKT-7.6.C2 — useResolveCommentReport: happy path", () => {
     );
   });
 
-  it("invalidates the comment-reports queue SWR cache on success", async () => {
+  it("invalidates the comment-reports queue cache on success", async () => {
     mockPatchCommentReport.mockResolvedValueOnce({
       reportId: "r-1",
       status: "reviewed",
@@ -179,12 +180,14 @@ describe("TKT-7.6.C2 — useResolveCommentReport: happy path", () => {
       await result.current.resolve("r-1", "acknowledge");
     });
 
-    expect(mockGlobalMutate).toHaveBeenCalledTimes(1);
-    const [predicate] = mockGlobalMutate.mock.calls[0] ?? [];
+    expect(mockInvalidateQueries).toHaveBeenCalledTimes(1);
+    const [call] = mockInvalidateQueries.mock.calls[0] ?? [];
+    const predicate = call?.predicate;
     expect(typeof predicate).toBe("function");
 
+    const fn = (key: readonly unknown[]) => predicate({ queryKey: key });
     expect(
-      (predicate as (key: readonly unknown[]) => boolean)([
+      fn([
         "admin",
         "comment-reports",
         "list",
@@ -192,7 +195,7 @@ describe("TKT-7.6.C2 — useResolveCommentReport: happy path", () => {
       ]),
     ).toBe(true);
     expect(
-      (predicate as (key: readonly unknown[]) => boolean)([
+      fn([
         "admin",
         "comment-reports",
         "list",
@@ -201,7 +204,7 @@ describe("TKT-7.6.C2 — useResolveCommentReport: happy path", () => {
     ).toBe(true);
 
     expect(
-      (predicate as (key: readonly unknown[]) => boolean)([
+      fn([
         "admin",
         "review-reports",
         "list",
@@ -210,7 +213,7 @@ describe("TKT-7.6.C2 — useResolveCommentReport: happy path", () => {
   });
 });
 
-describe("TKT-7.6.C2 — useResolveCommentReport: error classification", () => {
+describe("useResolveCommentReport: error classification", () => {
   it("not-found outcome preserves the error and revalidates the queue", async () => {
     const apiError = makeApiError("COMMENT_REPORT_NOT_FOUND", 404);
     mockPatchCommentReport.mockRejectedValue(apiError);
@@ -227,7 +230,7 @@ describe("TKT-7.6.C2 — useResolveCommentReport: error classification", () => {
 
     expect(result.current.lastOutcome?.kind).toBe("not-found");
     expect(result.current.error?.code).toBe("COMMENT_REPORT_NOT_FOUND");
-    expect(mockGlobalMutate).toHaveBeenCalledTimes(1);
+    expect(mockInvalidateQueries).toHaveBeenCalledTimes(1);
   });
 
   it("already-resolved outcome preserves the error and revalidates the queue", async () => {
@@ -246,7 +249,7 @@ describe("TKT-7.6.C2 — useResolveCommentReport: error classification", () => {
 
     expect(result.current.lastOutcome?.kind).toBe("already-resolved");
     expect(result.current.error?.code).toBe("COMMENT_REPORT_ALREADY_RESOLVED");
-    expect(mockGlobalMutate).toHaveBeenCalledTimes(1);
+    expect(mockInvalidateQueries).toHaveBeenCalledTimes(1);
   });
 
   it("forbidden outcome preserves the error", async () => {
@@ -317,7 +320,7 @@ describe("TKT-7.6.C2 — useResolveCommentReport: error classification", () => {
   });
 });
 
-describe("TKT-7.6.C2 — useResolveCommentReport: hide_comment companion", () => {
+describe("useResolveCommentReport: hide_comment companion", () => {
   it("hide_comment action calls hideComment(commentId) AFTER the PATCH succeeds", async () => {
     mockPatchCommentReport.mockResolvedValueOnce({
       reportId: "r-1",
@@ -387,7 +390,7 @@ describe("TKT-7.6.C2 — useResolveCommentReport: hide_comment companion", () =>
   });
 });
 
-describe("TKT-7.6.C2 — useResolveCommentReport: input validation & concurrency", () => {
+describe("useResolveCommentReport: input validation & concurrency", () => {
   it("non-typed consumer action throws a synthetic GLOBAL_VALIDATION ApiError", async () => {
     const { result } = renderHookHook();
 
@@ -471,7 +474,7 @@ describe("TKT-7.6.C2 — useResolveCommentReport: input validation & concurrency
   });
 });
 
-describe("TKT-7.6.G2 — useResolveCommentReport: cross-tab broadcast", () => {
+describe("useResolveCommentReport: cross-tab broadcast", () => {
   it("broadcasts the documented event on success (with commentId from the payload)", async () => {
     mockPatchCommentReport.mockResolvedValueOnce({
       reportId: "r-1",

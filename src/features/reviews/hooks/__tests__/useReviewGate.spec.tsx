@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act, renderHook } from "@testing-library/react";
+import { getQueryClient } from "@/providers/QueryProvider";
 
 import { useReviewGate } from "@/features/reviews/hooks/useReviewGate";
 import {
@@ -10,8 +11,6 @@ import {
 const useAuthSessionMock = vi.fn();
 const useMyQuizReviewMock = vi.fn();
 const useCompletedQuizAttemptMock = vi.fn();
-
-const globalMutateMock = vi.hoisted(() => vi.fn().mockResolvedValue(undefined));
 
 vi.mock("@/features/auth/hooks/use-auth-session", () => ({
   useAuthSession: () => useAuthSessionMock(),
@@ -25,14 +24,6 @@ vi.mock("@/features/reviews/hooks/useCompletedQuizAttempt", () => ({
   useCompletedQuizAttempt: (params: unknown) =>
     useCompletedQuizAttemptMock(params),
 }));
-
-vi.mock("swr", async (importOriginal) => {
-  const real = await importOriginal<typeof import("swr")>();
-  return {
-    ...real,
-    mutate: (...args: unknown[]) => globalMutateMock(...args),
-  };
-});
 
 const QUIZ_ID = "quiz-1";
 const SESSION_ID = "user-1";
@@ -82,7 +73,6 @@ function setAttempt(opts: {
 
 beforeEach(() => {
   vi.clearAllMocks();
-  globalMutateMock.mockClear();
 });
 
 afterEach(() => {
@@ -304,6 +294,7 @@ describe("useReviewGate — revalidate()", () => {
       hasResolved: true,
       error: null,
     });
+    const invalidateSpy = vi.spyOn(getQueryClient(), "invalidateQueries");
 
     const { result } = renderHook(() => useReviewGate({ quizId: QUIZ_ID }));
 
@@ -312,11 +303,7 @@ describe("useReviewGate — revalidate()", () => {
     });
 
     const myKey = myQuizReviewKey(QUIZ_ID, SESSION_ID);
-    expect(globalMutateMock).toHaveBeenCalledWith(
-      myKey,
-      undefined,
-      expect.objectContaining({ revalidate: true }),
-    );
+    expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: myKey });
   });
 
   it("invalidates the session-scoped eligibility key", async () => {
@@ -327,6 +314,7 @@ describe("useReviewGate — revalidate()", () => {
       hasResolved: true,
       error: null,
     });
+    const invalidateSpy = vi.spyOn(getQueryClient(), "invalidateQueries");
 
     const { result } = renderHook(() => useReviewGate({ quizId: QUIZ_ID }));
 
@@ -335,11 +323,7 @@ describe("useReviewGate — revalidate()", () => {
     });
 
     const eligibilityKey = reviewQuizAttemptKey(QUIZ_ID, SESSION_ID);
-    expect(globalMutateMock).toHaveBeenCalledWith(
-      eligibilityKey,
-      undefined,
-      expect.objectContaining({ revalidate: true }),
-    );
+    expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: eligibilityKey });
   });
 
   it("does not invalidate when quizId is null", async () => {
@@ -350,6 +334,7 @@ describe("useReviewGate — revalidate()", () => {
       hasResolved: true,
       error: null,
     });
+    const invalidateSpy = vi.spyOn(getQueryClient(), "invalidateQueries");
 
     const { result } = renderHook(() => useReviewGate({ quizId: null }));
 
@@ -357,6 +342,6 @@ describe("useReviewGate — revalidate()", () => {
       await result.current.revalidate();
     });
 
-    expect(globalMutateMock).not.toHaveBeenCalled();
+    expect(invalidateSpy).not.toHaveBeenCalled();
   });
 });

@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { cleanup, render, renderHook, waitFor } from "@testing-library/react";
-import { SWRConfig } from "swr";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 import { ApiError } from "@/lib/api";
 
@@ -48,19 +48,18 @@ function makeApiError(status: number, code = `CODE_${status}`): ApiError {
   } as unknown as Parameters<typeof ApiError.fromAxios>[0]);
 }
 
-function TestSwrProvider({ children }: { children: React.ReactNode }) {
+function TestQueryProvider({ children }: { children: React.ReactNode }) {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: {
+        retry: false,
+      },
+    },
+  });
   return (
-    <SWRConfig
-      value={{
-        provider: () => new Map(),
-        revalidateOnFocus: false,
-        revalidateIfStale: false,
-        dedupingInterval: 0,
-        errorRetryCount: 0,
-      }}
-    >
+    <QueryClientProvider client={queryClient}>
       {children}
-    </SWRConfig>
+    </QueryClientProvider>
   );
 }
 
@@ -120,9 +119,9 @@ describe("useLeaderboard — period switch", () => {
     }
 
     const { rerender } = render(
-      <TestSwrProvider>
+      <TestQueryProvider>
         <PeriodProbe period="weekly" />
-      </TestSwrProvider>,
+      </TestQueryProvider>,
     );
 
     await waitFor(() => {
@@ -133,9 +132,9 @@ describe("useLeaderboard — period switch", () => {
     });
 
     rerender(
-      <TestSwrProvider>
+      <TestQueryProvider>
         <PeriodProbe period="monthly" />
-      </TestSwrProvider>,
+      </TestQueryProvider>,
     );
 
     await waitFor(() => {
@@ -177,7 +176,7 @@ describe("useLeaderboard — empty state", () => {
     });
 
     const { result } = renderHook(() => useLeaderboard("weekly"), {
-      wrapper: TestSwrProvider,
+      wrapper: TestQueryProvider,
     });
 
     await waitFor(() => {
@@ -195,7 +194,7 @@ describe("useLeaderboard — 5xx error", () => {
     getLeaderboardWithPaginationMock.mockRejectedValue(makeApiError(500));
 
     const { result } = renderHook(() => useLeaderboard("weekly"), {
-      wrapper: TestSwrProvider,
+      wrapper: TestQueryProvider,
     });
 
     await waitFor(() => {
@@ -237,9 +236,9 @@ describe("useLeaderboard — key stability", () => {
     }
 
     const { rerender } = render(
-      <TestSwrProvider>
+      <TestQueryProvider>
         <StableProbe period="weekly" />
-      </TestSwrProvider>,
+      </TestQueryProvider>,
     );
 
     await waitFor(() => {
@@ -248,9 +247,9 @@ describe("useLeaderboard — key stability", () => {
     });
 
     rerender(
-      <TestSwrProvider>
+      <TestQueryProvider>
         <StableProbe period="weekly" />
-      </TestSwrProvider>,
+      </TestQueryProvider>,
     );
 
     await waitFor(() => {
@@ -297,7 +296,7 @@ describe("useLeaderboard — offset-only payload", () => {
       });
 
     const { result } = renderHook(() => useLeaderboard("weekly"), {
-      wrapper: TestSwrProvider,
+      wrapper: TestQueryProvider,
     });
 
     await waitFor(() => {

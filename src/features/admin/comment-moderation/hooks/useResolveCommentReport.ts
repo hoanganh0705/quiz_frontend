@@ -2,7 +2,6 @@
 
 import { useCallback, useRef, useState } from "react";
 
-import { mutate as globalMutate } from "swr";
 import { getQueryClient } from "@/providers/QueryProvider";
 
 import { ApiError, getComments } from "@/lib/api";
@@ -222,18 +221,12 @@ export function useResolveCommentReport(): UseResolveCommentReportResult {
 
           try {
             const qc = getQueryClient();
-            void qc.invalidateQueries({
+            await qc.invalidateQueries({
               predicate: (query) =>
                 commentReportsKeyMatcher(query.queryKey) ||
                 commentsKeyMatcher(query.queryKey),
             });
           } catch {}
-          await globalMutate(
-            (key: readonly unknown[]) =>
-              commentReportsKeyMatcher(key) || commentsKeyMatcher(key),
-            undefined,
-            { revalidate: true },
-          );
 
           const updatedCommentId = (updated as { commentId?: unknown })
             .commentId;
@@ -291,19 +284,10 @@ export function useResolveCommentReport(): UseResolveCommentReportResult {
           ) {
             try {
               const qc = getQueryClient();
-              void qc.invalidateQueries({
+              await qc.invalidateQueries({
                 predicate: (query) => commentReportsKeyMatcher(query.queryKey),
               });
             } catch {}
-            await globalMutate(
-              (key: readonly unknown[]) => commentReportsKeyMatcher(key),
-              undefined,
-              { revalidate: true },
-            ).catch(() => {
-              // The revalidation is best-effort; failure here is
-              // surfaced via the original `apiError` and is not
-              // bubbled.
-            });
           }
 
           throw apiError;

@@ -28,6 +28,7 @@ function makeApiError(code: string) {
         title: `Error ${code}`,
         status: 409,
         code,
+        extensions: { code },
       },
     },
     toJSON: () => ({}),

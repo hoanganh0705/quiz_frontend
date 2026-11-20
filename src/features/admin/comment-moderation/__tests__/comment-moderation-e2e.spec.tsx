@@ -7,7 +7,15 @@ import {
 } from "@testing-library/react";
 import { useState } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { unstable_serialize, SWRConfig } from "swr";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+
+const sharedQueryClient = new QueryClient({
+  defaultOptions: { queries: { retry: false } },
+});
+
+vi.mock("@/providers/QueryProvider", () => ({
+  getQueryClient: () => sharedQueryClient,
+}));
 
 import type {
   CommentReportDto,
@@ -241,45 +249,11 @@ function makeResolvedReport(
   };
 }
 
-function createSharedSwrCache() {
-  const store = new Map<string, unknown>();
-  return {
-    get(key: string): unknown {
-      if (store.has(key)) return store.get(key);
-      if (Array.isArray(key)) {
-        const serialized = unstable_serialize(key);
-        return store.get(serialized);
-      }
-      return undefined;
-    },
-    set(key: string | unknown[], value: unknown): void {
-      const normalisedKey = Array.isArray(key)
-        ? (key as unknown as string)
-        : key;
-      store.set(normalisedKey, value);
-      if (Array.isArray(key)) {
-        store.set(unstable_serialize(key), value);
-      }
-    },
-    delete(key: string): void {
-      store.delete(key);
-    },
-    keys(): IterableIterator<string> {
-      return store.keys();
-    },
-    clear(): void {
-      store.clear();
-    },
-  };
-}
-
-const sharedSwrCache = createSharedSwrCache();
-
 function renderE2E() {
   return render(
-    <SWRConfig value={{ provider: (() => sharedSwrCache) as never }}>
+    <QueryClientProvider client={sharedQueryClient}>
       <CommentReportsPage />
-    </SWRConfig>,
+    </QueryClientProvider>,
   );
 }
 
@@ -291,7 +265,7 @@ beforeEach(() => {
   e2eState.patchCallCount = 0;
   e2eState.patchShouldSucceed = true;
 
-  sharedSwrCache.clear();
+  sharedQueryClient.clear();
 
   mockPatchCommentReport.mockImplementation(
     async (
@@ -493,7 +467,7 @@ beforeEach(() => {
   });
 
   useCommentMock.mockImplementation(({ commentId }: { commentId: string }) => {
-    sharedSwrCache.set(["comments", "byId", commentId], {
+    sharedQueryClient.setQueryData(["comments", "byId", commentId], {
       data: { commentId, authorId: SEED_COMMENT.authorId },
     });
     return {
@@ -508,7 +482,7 @@ beforeEach(() => {
   });
 
   for (const item of e2eState.listResponse) {
-    sharedSwrCache.set(["comments", "byId", item.commentId], {
+    sharedQueryClient.setQueryData(["comments", "byId", item.commentId], {
       data: { commentId: item.commentId, authorId: SEED_COMMENT.authorId },
     });
   }
@@ -540,7 +514,7 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-describe("comment-moderation-e2e — pending queue (TKT-7.6.H1 step 1)", () => {
+describe("comment-moderation-e2e — pending queue", () => {
   it("renders the documented header + list when the flag is live", () => {
     e2eState.listResponse = [];
     renderE2E();
@@ -562,7 +536,7 @@ describe("comment-moderation-e2e — pending queue (TKT-7.6.H1 step 1)", () => {
   });
 });
 
-describe("comment-moderation-e2e — side panel (TKT-7.6.H1 step 2)", () => {
+describe("comment-moderation-e2e — side panel", () => {
   it("renders the offending comment via the live-comment fallback", async () => {
     e2eState.listResponse = [SEED_PENDING_REPORT];
     renderE2E();
@@ -582,7 +556,7 @@ describe("comment-moderation-e2e — side panel (TKT-7.6.H1 step 2)", () => {
   });
 });
 
-describe("comment-moderation-e2e — dismiss resolves the report (TKT-7.6.H1 step 3)", () => {
+describe("comment-moderation-e2e — dismiss resolves the report", () => {
   it("calls patchCommentReport with the documented SDK status", async () => {
     e2eState.listResponse = [SEED_PENDING_REPORT];
     renderE2E();
@@ -614,7 +588,7 @@ describe("comment-moderation-e2e — dismiss resolves the report (TKT-7.6.H1 ste
   });
 });
 
-describe("comment-moderation-e2e — hide_comment (TKT-7.6.H1 step 4)", () => {
+describe("comment-moderation-e2e — hide_comment", () => {
   it("hide_comment issues the companion hideComment call after the PATCH succeeds", async () => {
     e2eState.listResponse = [SEED_PENDING_REPORT];
     renderE2E();
@@ -645,7 +619,7 @@ describe("comment-moderation-e2e — hide_comment (TKT-7.6.H1 step 4)", () => {
   });
 });
 
-describe("comment-moderation-e2e — already-resolved (TKT-7.6.H1 step 5)", () => {
+describe("comment-moderation-e2e — already-resolved", () => {
   it("a second admin attempts the same action surfaces the typed-code notice", async () => {
     e2eState.listResponse = [SEED_PENDING_REPORT];
     e2eState.patchError = makeApiError("COMMENT_REPORT_ALREADY_RESOLVED", 409);
@@ -681,7 +655,7 @@ describe("comment-moderation-e2e — already-resolved (TKT-7.6.H1 step 5)", () =
   });
 });
 
-describe("comment-moderation-e2e — non-admin viewer (TKT-7.6.H1 step 6)", () => {
+describe("comment-moderation-e2e — non-admin viewer", () => {
   it("renders the documented permission denied notice when the role lacks COMMENT_MODERATE", () => {
     e2eState.listResponse = [SEED_PENDING_REPORT];
     usePermissionMock.mockReturnValue({
@@ -697,7 +671,7 @@ describe("comment-moderation-e2e — non-admin viewer (TKT-7.6.H1 step 6)", () =
   });
 });
 
-describe("comment-moderation-e2e — self-moderation (TKT-7.6.H1 step 7)", () => {
+describe("comment-moderation-e2e — self-moderation", () => {
   it("renders the self-moderation notice and disables every action when admin === author", () => {
     e2eState.listResponse = [SEED_PENDING_REPORT];
     useAuthSessionMock.mockReturnValue({
@@ -711,7 +685,7 @@ describe("comment-moderation-e2e — self-moderation (TKT-7.6.H1 step 7)", () =>
         const stored = {
           data: { commentId, authorId: "admin-1" },
         };
-        sharedSwrCache.set(["comments", "byId", commentId], stored);
+        sharedQueryClient.setQueryData(["comments", "byId", commentId], stored);
         return {
           comment: { ...SEED_COMMENT, authorId: "admin-1", commentId },
           isLoading: false,
@@ -725,7 +699,7 @@ describe("comment-moderation-e2e — self-moderation (TKT-7.6.H1 step 7)", () =>
     );
 
     for (const item of e2eState.listResponse) {
-      sharedSwrCache.set(["comments", "byId", item.commentId], {
+      sharedQueryClient.setQueryData(["comments", "byId", item.commentId], {
         data: { commentId: item.commentId, authorId: "admin-1" },
       });
     }
@@ -741,7 +715,7 @@ describe("comment-moderation-e2e — self-moderation (TKT-7.6.H1 step 7)", () =>
   });
 });
 
-describe("comment-moderation-e2e — audit breadcrumb (TKT-7.6.H1 step 8)", () => {
+describe("comment-moderation-e2e — audit breadcrumb", () => {
   it('emits a "started" breadcrumb pair on enter and "success" on resolve', async () => {
     e2eState.listResponse = [SEED_PENDING_REPORT];
     renderE2E();
@@ -778,7 +752,7 @@ describe("comment-moderation-e2e — audit breadcrumb (TKT-7.6.H1 step 8)", () =
   });
 });
 
-describe("comment-moderation-e2e — cross-tab broadcast (TKT-7.6.H1 step 9)", () => {
+describe("comment-moderation-e2e — cross-tab broadcast", () => {
   it("broadcasts the documented event on success and never on failure", async () => {
     e2eState.listResponse = [SEED_PENDING_REPORT];
     renderE2E();
@@ -835,7 +809,7 @@ describe("comment-moderation-e2e — cross-tab broadcast (TKT-7.6.H1 step 9)", (
   });
 });
 
-describe("comment-moderation-e2e — direct hide/restore (TKT-7.6.H1 step 10)", () => {
+describe("comment-moderation-e2e — direct hide/restore", () => {
   it("hideComment and restoreComment helpers are wired through the documented surface", () => {
     renderE2E();
 
@@ -844,7 +818,7 @@ describe("comment-moderation-e2e — direct hide/restore (TKT-7.6.H1 step 10)", 
   });
 });
 
-describe("comment-moderation-e2e — idempotency (TKT-7.6.H1 step 11)", () => {
+describe("comment-moderation-e2e — idempotency", () => {
   it("stable code branches are surfaced via the dialog outcome", () => {
     renderE2E();
 
@@ -852,8 +826,8 @@ describe("comment-moderation-e2e — idempotency (TKT-7.6.H1 step 11)", () => {
   });
 });
 
-describe("comment-moderation-e2e — Phase 4 cache convergence (TKT-7.6.H1 step 12)", () => {
-  it("the cache invalidation helpers from TKT-7.6.G1 are wired into the page surface", () => {
+describe("comment-moderation-e2e — cache convergence", () => {
+  it("the cache invalidation helpers are wired into the page surface", () => {
     renderE2E();
 
     expect(mockInvalidateCommentReportsList).toBeDefined();

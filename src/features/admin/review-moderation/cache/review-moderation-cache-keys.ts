@@ -1,4 +1,3 @@
-import { mutate as globalMutate, type ScopedMutator } from "swr";
 import { getQueryClient } from "@/providers/QueryProvider";
 
 import { reviewReportsKeyMatcher } from "../hooks/useReviewReports";
@@ -24,24 +23,26 @@ export function publicReviewsKeyMatcher(key: unknown): boolean {
   return segment === "quiz" || segment === "my" || segment === "eligibility";
 }
 
-export function invalidateReviewReportsList(
-  mutate: ScopedMutator = globalMutate,
-): Promise<unknown[]> {
+export async function invalidateReviewReportsList(
+  mutate?: (matcher: (key: unknown) => boolean) => unknown,
+): Promise<unknown> {
   try {
     const qc = getQueryClient();
     void qc.invalidateQueries({
       predicate: (query) => reviewReportsKeyMatcher(query.queryKey),
     });
   } catch {}
-  return mutate(reviewReportsKeyMatcher) as unknown as Promise<unknown[]>;
+  if (mutate) {
+    return mutate(reviewReportsKeyMatcher);
+  }
 }
 
-export function invalidateReviewById(
+export async function invalidateReviewById(
   reviewId: string,
-  mutate: ScopedMutator = globalMutate,
+  mutate?: (key: unknown) => unknown,
 ): Promise<unknown[]> {
   if (!reviewId || typeof reviewId !== "string") {
-    return Promise.resolve([]);
+    return [];
   }
   try {
     const qc = getQueryClient();
@@ -50,10 +51,11 @@ export function invalidateReviewById(
       predicate: (query) => publicReviewsKeyMatcher(query.queryKey),
     });
   } catch {}
-  const promises: unknown[] = [];
-  promises.push(mutate(reviewKey(reviewId)));
-  promises.push(
-    mutate(publicReviewsKeyMatcher) as unknown as Promise<unknown[]>,
-  );
-  return Promise.all(promises) as Promise<unknown[]>;
+  if (mutate) {
+    const promises: unknown[] = [];
+    promises.push(mutate(reviewKey(reviewId)));
+    promises.push(mutate(publicReviewsKeyMatcher));
+    return Promise.all(promises);
+  }
+  return [];
 }

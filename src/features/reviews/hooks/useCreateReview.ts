@@ -1,8 +1,7 @@
 "use client";
 
 import { useCallback, useMemo, useRef, useState } from "react";
-
-import { mutate as globalMutate } from "swr";
+import { getQueryClient } from "@/providers/QueryProvider";
 
 import { isApiError, ApiError } from "@/lib/api";
 
@@ -68,16 +67,16 @@ function makeSyntheticApiError(
   } as unknown as Parameters<typeof ApiError.fromAxios>[0]);
 }
 
-async function invalidateAllReviewKeysForQuiz(
-  mutate: typeof globalMutate,
-  quizId: string,
-): Promise<void> {
-  await mutate(
-    (key: readonly unknown[]) =>
-      Array.isArray(key) && key[0] === "reviews" && key[2] === quizId,
-    undefined,
-    { revalidate: true },
-  );
+async function invalidateAllReviewKeysForQuiz(quizId: string): Promise<void> {
+  try {
+    const qc = getQueryClient();
+    await qc.invalidateQueries({
+      predicate: (query) =>
+        Array.isArray(query.queryKey) &&
+        query.queryKey[0] === "reviews" &&
+        query.queryKey[2] === quizId,
+    });
+  } catch {}
 }
 
 export function useCreateReview(
@@ -128,12 +127,12 @@ export function useCreateReview(
           await createReview(quizId, payload);
 
           if (sessionId) {
-            await invalidateReviewCaches(globalMutate as never, {
+            await invalidateReviewCaches({
               quizId,
               sessionId,
             });
           } else {
-            await invalidateAllReviewKeysForQuiz(globalMutate, quizId);
+            await invalidateAllReviewKeysForQuiz(quizId);
           }
 
           setLastOutcome({ kind: "success", cause: null });
@@ -159,12 +158,12 @@ export function useCreateReview(
           switch (cause.code) {
             case "REVIEW_ATTEMPT_REQUIRED": {
               if (sessionId) {
-                await invalidateReviewCaches(globalMutate as never, {
+                await invalidateReviewCaches({
                   quizId,
                   sessionId,
                 });
               } else {
-                await invalidateAllReviewKeysForQuiz(globalMutate, quizId);
+                await invalidateAllReviewKeysForQuiz(quizId);
               }
               setError(cause);
               const outcome: CreateReviewOutcome = {
@@ -177,12 +176,12 @@ export function useCreateReview(
             }
             case "REVIEW_CONFLICT": {
               if (sessionId) {
-                await invalidateReviewCaches(globalMutate as never, {
+                await invalidateReviewCaches({
                   quizId,
                   sessionId,
                 });
               } else {
-                await invalidateAllReviewKeysForQuiz(globalMutate, quizId);
+                await invalidateAllReviewKeysForQuiz(quizId);
               }
               setError(cause);
               const outcome: CreateReviewOutcome = { kind: "conflict", cause };

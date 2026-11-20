@@ -5,12 +5,14 @@ import { ApiError } from "@/lib/api";
 
 import { useUpdateTag } from "../useUpdateTag";
 
-const mockMutate = vi.hoisted(() => vi.fn());
+const mockInvalidateQueries = vi.hoisted(() => vi.fn().mockResolvedValue(undefined));
 const mockUpdateTag = vi.hoisted(() => vi.fn());
 const mockBroadcastTagAdminInvalidate = vi.hoisted(() => vi.fn());
 
-vi.mock("swr", () => ({
-  mutate: mockMutate,
+vi.mock("@/providers/QueryProvider", () => ({
+  getQueryClient: () => ({
+    invalidateQueries: mockInvalidateQueries,
+  }),
 }));
 
 vi.mock("@/features/admin/services/tag-admin.service", () => ({
@@ -23,7 +25,7 @@ vi.mock("@/features/admin/tag-admin/cache/tag-cross-tab", () => ({
 
 afterEach(() => {
   vi.restoreAllMocks();
-  mockMutate.mockClear();
+  mockInvalidateQueries.mockClear();
   mockBroadcastTagAdminInvalidate.mockClear();
 });
 
@@ -119,8 +121,12 @@ describe("useUpdateTag", () => {
 
     await result.current.update("tag-1", { slug: "ts-new" });
 
-    expect(mockMutate).toHaveBeenCalledWith("tag-admin:list");
-    expect(mockMutate).toHaveBeenCalledWith("tags:slug:ts-new");
+    expect(mockInvalidateQueries).toHaveBeenCalledWith({
+      queryKey: ["tag-admin:list"],
+    });
+    expect(mockInvalidateQueries).toHaveBeenCalledWith({
+      queryKey: ["tags:slug:ts-new"],
+    });
   });
 
   it("broadcasts tag admin invalidation on success", async () => {

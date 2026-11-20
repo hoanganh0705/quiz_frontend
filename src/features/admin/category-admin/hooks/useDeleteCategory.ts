@@ -2,7 +2,7 @@
 
 import { useCallback, useRef, useState } from "react";
 
-import { mutate as globalMutate } from "swr";
+import { getQueryClient } from "@/providers/QueryProvider";
 
 import { ApiError } from "@/lib/api";
 import { addCategoryAdminBreadcrumb } from "@/lib/admin/admin_live_sentry";
@@ -65,9 +65,12 @@ export function useDeleteCategory(): UseDeleteCategory {
         targetId: id,
       });
 
+      const qc = getQueryClient();
       await Promise.all([
-        globalMutate(CATEGORY_ADMIN_LIST_KEY),
-        globalMutate(publicCategoriesKeyMatcher),
+        qc.invalidateQueries({ queryKey: [CATEGORY_ADMIN_LIST_KEY] }),
+        qc.invalidateQueries({
+          predicate: (query) => publicCategoriesKeyMatcher(query.queryKey),
+        }),
       ]);
 
       broadcastCategoryAdminInvalidate("delete", id);

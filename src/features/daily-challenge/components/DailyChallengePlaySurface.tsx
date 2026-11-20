@@ -4,10 +4,7 @@
  * `DailyChallengePlaySurface` — in-page question player for the day's
  * daily-challenge.
  *
- * Source epic:   Daily-challenge full backend integration.
- * Source ticket: step4-play.
- *
- * The surface is mounted inside the live branch (Branch 4) of
+ * The surface is mounted inside the live branch of
  * `DailyChallengePage` only when `challenge.status === 'pending'` and
  * the viewer is authenticated. The card above provides the meta
  * surface (title / difficulty / reward XP / status-aware CTA); the

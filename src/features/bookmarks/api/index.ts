@@ -6,6 +6,7 @@ export {
   deleteCollection,
   addBookmark,
   removeBookmark,
+  removeBookmark as removeBookmarkFromCollection,
   listBookmarksInCollection,
   getBookmarkStatus,
   addBookmarksBulk,

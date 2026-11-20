@@ -1,8 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act, renderHook, waitFor } from "@testing-library/react";
-import { unstable_serialize } from "swr";
-
-import { cache as swrDefaultCache } from "swr/_internal";
+import { getQueryClient } from "@/providers/QueryProvider";
 
 import { ApiError } from "@/lib/api";
 
@@ -91,30 +89,18 @@ async function seedCachedPages(): Promise<void> {
     QUIZ_ID,
     ["cursor-2", undefined],
   ] as unknown as readonly unknown[];
-  (swrDefaultCache as Map<string, unknown>).set(unstable_serialize(key1), {
-    data: page1,
-    _k: key1,
-  });
-  (swrDefaultCache as Map<string, unknown>).set(unstable_serialize(key2), {
-    data: page2,
-    _k: key2,
-  });
+  const qc = getQueryClient();
+  qc.setQueryData(key1, page1);
+  qc.setQueryData(key2, page2);
 }
 
 function readCachedPage<T>(cacheKey: readonly unknown[]): T | undefined {
-  const serialized = unstable_serialize(cacheKey);
-  const entry = (swrDefaultCache as Map<string, unknown>).get(serialized) as
-    { data?: T } | undefined;
-  if (entry && typeof entry === "object" && "data" in entry) {
-    return entry.data;
-  }
-  return entry as T | undefined;
+  return getQueryClient().getQueryData<T>(cacheKey);
 }
 
 beforeEach(() => {
   vi.clearAllMocks();
-
-  (swrDefaultCache as Map<string, unknown>).clear();
+  getQueryClient().clear();
 });
 
 afterEach(() => {
@@ -210,10 +196,7 @@ describe("useHelpfulReview — unmark path", () => {
       QUIZ_ID,
       [undefined, undefined],
     ] as unknown as readonly unknown[];
-    (swrDefaultCache as Map<string, unknown>).set(unstable_serialize(key1), {
-      data: zeroPage,
-      _k: key1,
-    });
+    getQueryClient().setQueryData(key1, zeroPage);
 
     const { result } = renderHook(() =>
       useHelpfulReview({

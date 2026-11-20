@@ -4,11 +4,6 @@
  * `<ChallengeChart />` — Performance + Categories tabs for the
  * Daily Challenge page.
  *
- * Source epic:   Phase 1 (F-2 in the remaining-gaps plan) — replace
- *                hardcoded `performanceData` with real
- *                `/daily-challenge/history` aggregates.
- * Source ticket: F-2.
- *
  * Renders the **Performance** tab from the rollup produced by
  * `useDailyChallengePerformance()` (7 entries, Mon→Sun). "Average
  * Score" is the mean of every history attempt on that weekday (not

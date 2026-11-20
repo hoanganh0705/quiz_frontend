@@ -1,8 +1,6 @@
 "use client";
 
 import { useCallback, useRef, useState } from "react";
-
-import { mutate as globalMutate } from "swr";
 import { getQueryClient } from "@/providers/QueryProvider";
 
 import { isApiError, ApiError } from "@/lib/api";
@@ -98,30 +96,15 @@ async function applyOptimisticCountDelta(
       },
     );
   } catch {}
-  await globalMutate(
-    (key: readonly unknown[]) => isReviewListPageForQuiz(key, quizId),
-    (current: unknown): unknown => {
-      if (!current) return current;
-      const page = current as CursorPage<ReviewDto> | undefined;
-      if (!page || !Array.isArray(page.items)) return current;
-      return applyCountDeltaToPage(page, reviewId, delta);
-    },
-    { revalidate: false, populateCache: true },
-  );
 }
 
 async function revalidateReviewListPages(quizId: string): Promise<void> {
   try {
     const qc = getQueryClient();
-    void qc.invalidateQueries({
+    await qc.invalidateQueries({
       predicate: (query) => isReviewListPageForQuiz(query.queryKey, quizId),
     });
   } catch {}
-  await globalMutate(
-    (key: readonly unknown[]) => isReviewListPageForQuiz(key, quizId),
-    undefined,
-    { revalidate: true },
-  );
 }
 
 export function useHelpfulReview(

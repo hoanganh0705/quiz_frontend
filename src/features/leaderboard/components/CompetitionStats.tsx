@@ -4,17 +4,7 @@
  * `CompetitionStats` — live card showing the current viewer's
  * ranking profile.
  *
- * Source epic:   Phase 6 — leaderboard mock-data cleanup.
- * Source ticket: W-04 / cleanup of `CompetitionStats`.
- *
- * The previous version hardcoded:
- *   - Active participants: `1,248`
- *   - Top Badge: `Diamond (5 users)`
- *   - Your Rank: `#42`
- *   - Next Level: `3,250 / 4,000 points`
- *   - "750 points to Gold"
- *
- * All of those numbers are now derived from the live API:
+ * All metrics are derived from the live API:
  *
  *   - Active participants: `useLeaderboardSummary().totalParticipants`
  *   - Your Rank: `useMyRanking().global.weekly.rank`

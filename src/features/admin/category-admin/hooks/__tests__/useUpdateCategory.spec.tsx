@@ -5,11 +5,15 @@ import { ApiError } from "@/lib/api";
 
 import { useUpdateCategory } from "../useUpdateCategory";
 
-const mockMutate = vi.hoisted(() => vi.fn());
+const mockInvalidateQueries = vi.hoisted(() => vi.fn().mockResolvedValue(undefined));
 const mockUpdateCategory = vi.hoisted(() => vi.fn());
 const mockBroadcastCategoryAdminInvalidate = vi.hoisted(() => vi.fn());
 
-vi.mock("swr", () => ({ mutate: mockMutate }));
+vi.mock("@/providers/QueryProvider", () => ({
+  getQueryClient: () => ({
+    invalidateQueries: mockInvalidateQueries,
+  }),
+}));
 
 vi.mock("@/features/admin/services/category-admin.service", () => ({
   updateCategory: mockUpdateCategory,
@@ -21,7 +25,7 @@ vi.mock("@/features/admin/category-admin/cache/category-cross-tab", () => ({
 
 afterEach(() => {
   vi.restoreAllMocks();
-  mockMutate.mockClear();
+  mockInvalidateQueries.mockClear();
   mockBroadcastCategoryAdminInvalidate.mockClear();
 });
 
@@ -107,9 +111,15 @@ describe("useUpdateCategory", () => {
 
     await result.current.update("cat-1", { slug: "math-renamed" });
 
-    expect(mockMutate).toHaveBeenCalledWith("category-admin:list");
-    expect(mockMutate).toHaveBeenCalledWith(publicMatcher);
-    expect(mockMutate).toHaveBeenCalledWith("categories:slug:math-renamed");
+    expect(mockInvalidateQueries).toHaveBeenCalledWith({
+      queryKey: ["category-admin:list"],
+    });
+    expect(mockInvalidateQueries).toHaveBeenCalledWith({
+      predicate: publicMatcher,
+    });
+    expect(mockInvalidateQueries).toHaveBeenCalledWith({
+      queryKey: ["categories:slug:math-renamed"],
+    });
   });
 
   it("does not invalidate per-slug when slug is not supplied", async () => {
@@ -127,9 +137,15 @@ describe("useUpdateCategory", () => {
 
     await result.current.update("cat-1", { name: "Math" });
 
-    expect(mockMutate).toHaveBeenCalledWith("category-admin:list");
-    expect(mockMutate).toHaveBeenCalledWith(publicMatcher);
-    expect(mockMutate).not.toHaveBeenCalledWith("categories:slug:math");
+    expect(mockInvalidateQueries).toHaveBeenCalledWith({
+      queryKey: ["category-admin:list"],
+    });
+    expect(mockInvalidateQueries).toHaveBeenCalledWith({
+      predicate: publicMatcher,
+    });
+    expect(mockInvalidateQueries).not.toHaveBeenCalledWith({
+      queryKey: ["categories:slug:math"],
+    });
   });
 
   it("broadcasts category admin invalidation on success", async () => {

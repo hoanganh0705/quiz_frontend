@@ -4,20 +4,18 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ApiError } from "@/lib/api";
 
 const mockDeleteTournament = vi.hoisted(() => vi.fn());
-const mockGlobalMutate = vi.hoisted(() => vi.fn());
+const mockInvalidateQueries = vi.hoisted(() => vi.fn().mockResolvedValue(undefined));
 const mockAddTournamentAdminBreadcrumb = vi.hoisted(() => vi.fn());
 
 vi.mock("@/features/admin/services/tournament-admin.service", () => ({
   deleteTournament: (...args: unknown[]) => mockDeleteTournament(...args),
 }));
 
-vi.mock("swr", async () => {
-  const actual = await vi.importActual<typeof import("swr")>("swr");
-  return {
-    ...actual,
-    mutate: (...args: unknown[]) => mockGlobalMutate(...args),
-  };
-});
+vi.mock("@/providers/QueryProvider", () => ({
+  getQueryClient: () => ({
+    invalidateQueries: mockInvalidateQueries,
+  }),
+}));
 
 vi.mock("@/lib/admin/admin_live_sentry", async () => {
   const actual = await vi.importActual<
@@ -59,13 +57,13 @@ function makeApiError(
 afterEach(() => {
   vi.clearAllMocks();
   mockDeleteTournament.mockReset();
-  mockGlobalMutate.mockReset();
+  mockInvalidateQueries.mockReset();
   mockAddTournamentAdminBreadcrumb.mockReset();
 });
 
 beforeEach(() => {
   mockDeleteTournament.mockReset();
-  mockGlobalMutate.mockReset();
+  mockInvalidateQueries.mockReset();
   mockAddTournamentAdminBreadcrumb.mockReset();
 });
 
@@ -75,10 +73,9 @@ function renderUseDeleteTournament() {
   return renderHook(() => useDeleteTournament());
 }
 
-describe("TKT-7.7.C4 — useDeleteTournament: success path", () => {
-  it("AC #1: success invalidates admin + public list + public detail keys", async () => {
+describe("useDeleteTournament: success path", () => {
+  it("success invalidates admin + public list + public detail keys", async () => {
     mockDeleteTournament.mockResolvedValueOnce(undefined);
-    mockGlobalMutate.mockResolvedValueOnce(undefined);
 
     const { result } = renderUseDeleteTournament();
 
@@ -87,19 +84,19 @@ describe("TKT-7.7.C4 — useDeleteTournament: success path", () => {
     });
 
     expect(mockDeleteTournament).toHaveBeenCalledWith(TOURNAMENT_ID);
-    expect(mockGlobalMutate).toHaveBeenCalledTimes(1);
-    const matcher = mockGlobalMutate.mock.calls[0]?.[0] as (
-      key: unknown,
-    ) => boolean;
-    expect(matcher(["admin", "tournaments", "list", ""])).toBe(true);
-    expect(matcher(["tournaments", "list", "q=cup"])).toBe(true);
-    expect(matcher(["tournaments", "detail", TOURNAMENT_ID])).toBe(true);
-    expect(matcher(["reviews", "list"])).toBe(false);
+    expect(mockInvalidateQueries).toHaveBeenCalledTimes(1);
+    const callArgs = mockInvalidateQueries.mock.calls[0];
+    const predicate = callArgs?.[0]?.predicate as (query: { queryKey: unknown }) => boolean;
+    expect(typeof predicate).toBe("function");
+
+    expect(predicate({ queryKey: ["admin", "tournaments", "list", ""] })).toBe(true);
+    expect(predicate({ queryKey: ["tournaments", "list", "q=cup"] })).toBe(true);
+    expect(predicate({ queryKey: ["tournaments", "detail", TOURNAMENT_ID] })).toBe(true);
+    expect(predicate({ queryKey: ["reviews", "list"] })).toBe(false);
   });
 
-  it("AC #7: success breadcrumb carries the action + targetId", async () => {
+  it("success breadcrumb carries the action + targetId", async () => {
     mockDeleteTournament.mockResolvedValueOnce(undefined);
-    mockGlobalMutate.mockResolvedValueOnce(undefined);
 
     const { result } = renderUseDeleteTournament();
 
@@ -121,9 +118,8 @@ describe("TKT-7.7.C4 — useDeleteTournament: success path", () => {
     expect(payload.targetId).toBe(TOURNAMENT_ID);
   });
 
-  it("AC #7: typed-confirm string is captured as length only (never in payload)", async () => {
+  it("typed-confirm string is captured as length only (never in payload)", async () => {
     mockDeleteTournament.mockResolvedValueOnce(undefined);
-    mockGlobalMutate.mockResolvedValueOnce(undefined);
 
     const { result } = renderUseDeleteTournament();
 
@@ -144,7 +140,7 @@ describe("TKT-7.7.C4 — useDeleteTournament: success path", () => {
     );
   });
 
-  it("AC #9: isPending reflects the in-flight state", async () => {
+  it("isPending reflects the in-flight state", async () => {
     let resolveDelete: ((value: unknown) => void) | null = null;
     mockDeleteTournament.mockImplementationOnce(
       () =>
@@ -174,7 +170,6 @@ describe("TKT-7.7.C4 — useDeleteTournament: success path", () => {
 
   it("`delete` ergonomic alias points to the same remove function", async () => {
     mockDeleteTournament.mockResolvedValueOnce(undefined);
-    mockGlobalMutate.mockResolvedValueOnce(undefined);
 
     const { result } = renderUseDeleteTournament();
 
@@ -188,8 +183,8 @@ describe("TKT-7.7.C4 — useDeleteTournament: success path", () => {
   });
 });
 
-describe("TKT-7.7.C4 — useDeleteTournament: error paths", () => {
-  it("AC #2: TOURNAMENT_HAS_PARTICIPANTS surfaces without retry", async () => {
+describe("useDeleteTournament: error paths", () => {
+  it("TOURNAMENT_HAS_PARTICIPANTS surfaces without retry", async () => {
     const apiError = makeApiError(
       "TOURNAMENT_HAS_PARTICIPANTS",
       409,
@@ -204,10 +199,10 @@ describe("TKT-7.7.C4 — useDeleteTournament: error paths", () => {
     });
 
     expect(result.current.error?.code).toBe("TOURNAMENT_HAS_PARTICIPANTS");
-    expect(mockGlobalMutate).not.toHaveBeenCalled();
+    expect(mockInvalidateQueries).not.toHaveBeenCalled();
   });
 
-  it("AC #3: TOURNAMENT_ALREADY_STARTED surfaces without retry", async () => {
+  it("TOURNAMENT_ALREADY_STARTED surfaces without retry", async () => {
     const apiError = makeApiError(
       "TOURNAMENT_ALREADY_STARTED",
       409,
@@ -224,14 +219,13 @@ describe("TKT-7.7.C4 — useDeleteTournament: error paths", () => {
     expect(result.current.error?.code).toBe("TOURNAMENT_ALREADY_STARTED");
   });
 
-  it("AC #4: TOURNAMENT_NOT_FOUND surfaces without retry and revalidates admin + detail keys", async () => {
+  it("TOURNAMENT_NOT_FOUND surfaces without retry and revalidates admin + detail keys", async () => {
     const apiError = makeApiError(
       "TOURNAMENT_NOT_FOUND",
       404,
       "req-notfound-1",
     );
     mockDeleteTournament.mockRejectedValueOnce(apiError);
-    mockGlobalMutate.mockResolvedValueOnce(undefined);
 
     const { result } = renderUseDeleteTournament();
 
@@ -240,10 +234,10 @@ describe("TKT-7.7.C4 — useDeleteTournament: error paths", () => {
     });
 
     expect(result.current.error?.code).toBe("TOURNAMENT_NOT_FOUND");
-    expect(mockGlobalMutate).toHaveBeenCalledTimes(1);
+    expect(mockInvalidateQueries).toHaveBeenCalledTimes(1);
   });
 
-  it("AC #5: IRREVERSIBLE_CONFIRM_REQUIRED surfaces without retry", async () => {
+  it("IRREVERSIBLE_CONFIRM_REQUIRED surfaces without retry", async () => {
     const apiError = makeApiError(
       "IRREVERSIBLE_CONFIRM_REQUIRED",
       412,
@@ -262,7 +256,7 @@ describe("TKT-7.7.C4 — useDeleteTournament: error paths", () => {
     expect(result.current.error?.code).toBe("IRREVERSIBLE_CONFIRM_REQUIRED");
   });
 
-  it("AC #6: ADMIN_FORBIDDEN surfaces without retry", async () => {
+  it("ADMIN_FORBIDDEN surfaces without retry", async () => {
     const apiError = makeApiError("ADMIN_FORBIDDEN", 403, "req-forbid-1");
     mockDeleteTournament.mockRejectedValueOnce(apiError);
 
@@ -275,7 +269,7 @@ describe("TKT-7.7.C4 — useDeleteTournament: error paths", () => {
     expect(result.current.error?.code).toBe("ADMIN_FORBIDDEN");
   });
 
-  it("AC #7/AC #8: emits failure breadcrumb with typed code + requestId", async () => {
+  it("emits failure breadcrumb with typed code + requestId", async () => {
     const apiError = makeApiError(
       "TOURNAMENT_HAS_PARTICIPANTS",
       409,
@@ -311,8 +305,8 @@ describe("TKT-7.7.C4 — useDeleteTournament: error paths", () => {
   });
 });
 
-describe("TKT-7.7.C4 — useDeleteTournament: reset + audit snapshot", () => {
-  it("AC #10: reset() clears error without firing another fetch", async () => {
+describe("useDeleteTournament: reset + audit snapshot", () => {
+  it("reset() clears error without firing another fetch", async () => {
     const apiError = makeApiError(
       "TOURNAMENT_HAS_PARTICIPANTS",
       409,

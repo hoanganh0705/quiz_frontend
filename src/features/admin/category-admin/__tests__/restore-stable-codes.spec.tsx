@@ -6,7 +6,6 @@ import {
   within,
 } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { SWRConfig } from "swr";
 
 import { ApiError } from "@/lib/api";
 import type { CategoryDto, DeletedCategoryListItem } from "../category-types";
@@ -111,14 +110,12 @@ function renderDialog(
     onOpenChange,
     onRestored,
     ...render(
-      <SWRConfig value={{ provider: () => new Map() }}>
-        <CategoryRestoreDialog
-          open={overrides.open ?? true}
-          onOpenChange={onOpenChange}
-          category={overrides.category ?? MOCK_DELETED_CATEGORY}
-          onRestored={onRestored}
-        />
-      </SWRConfig>,
+      <CategoryRestoreDialog
+        open={overrides.open ?? true}
+        onOpenChange={onOpenChange}
+        category={overrides.category ?? MOCK_DELETED_CATEGORY}
+        onRestored={onRestored}
+      />,
     ),
   };
 }

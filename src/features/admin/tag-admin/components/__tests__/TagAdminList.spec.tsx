@@ -1,7 +1,6 @@
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { SWRConfig } from "swr";
 import { useSearchParams } from "next/navigation";
 
 import type { DeletedTagListItem, TagListItem } from "../../tag-types";
@@ -71,11 +70,7 @@ describe("TagAdminList", () => {
   });
 
   function renderList(props?: { onAddTag?: () => void }) {
-    return render(
-      <SWRConfig value={{ provider: () => new Map() }}>
-        <TagAdminList onAddTag={props?.onAddTag} />
-      </SWRConfig>,
-    );
+    return render(<TagAdminList onAddTag={props?.onAddTag} />);
   }
 
   it("renders both tabs", () => {

@@ -6,7 +6,7 @@ import {
   waitFor,
   fireEvent,
 } from "@testing-library/react";
-import { SWRConfig } from "swr";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 import {
   useLeaderboard,
@@ -71,19 +71,18 @@ function setHookReturn(overrides: Partial<ReturnType<typeof useLeaderboard>>) {
   useLeaderboardMock.mockImplementation(() => stable);
 }
 
-function TestSwrProvider({ children }: { children: React.ReactNode }) {
+function TestQueryProvider({ children }: { children: React.ReactNode }) {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: {
+        retry: false,
+      },
+    },
+  });
   return (
-    <SWRConfig
-      value={{
-        provider: () => new Map(),
-        revalidateOnFocus: false,
-        revalidateIfStale: false,
-        dedupingInterval: 0,
-        errorRetryCount: 0,
-      }}
-    >
+    <QueryClientProvider client={queryClient}>
       {children}
-    </SWRConfig>
+    </QueryClientProvider>
   );
 }
 
@@ -100,14 +99,14 @@ afterEach(() => {
   cleanup();
 });
 
-describe("LeaderboardPage — AC #1 (default period + period switching)", () => {
+describe("LeaderboardPage — period selection (default period + period switching)", () => {
   it("uses the default period `weekly` on first paint", () => {
     setHookReturn({ entries: [] });
 
     render(
-      <TestSwrProvider>
+      <TestQueryProvider>
         <LeaderboardPage />
-      </TestSwrProvider>,
+      </TestQueryProvider>,
     );
 
     expect(useLeaderboardMock).toHaveBeenCalledWith("weekly");
@@ -117,9 +116,9 @@ describe("LeaderboardPage — AC #1 (default period + period switching)", () => 
     setHookReturn({ entries: [] });
 
     render(
-      <TestSwrProvider>
+      <TestQueryProvider>
         <LeaderboardPage />
-      </TestSwrProvider>,
+      </TestQueryProvider>,
     );
 
     expect(useLeaderboardMock).toHaveBeenLastCalledWith("weekly");
@@ -141,7 +140,7 @@ describe("LeaderboardPage — AC #1 (default period + period switching)", () => 
   });
 });
 
-describe("LeaderboardPage — AC #2 (load-more appends entries)", () => {
+describe("LeaderboardPage — pagination (load-more appends entries)", () => {
   it("exposes the load-more button when `hasMore === true`", () => {
     setHookReturn({
       entries: [makeEntry({ userId: "u-1", rank: 1 })],
@@ -149,9 +148,9 @@ describe("LeaderboardPage — AC #2 (load-more appends entries)", () => {
     });
 
     render(
-      <TestSwrProvider>
+      <TestQueryProvider>
         <LeaderboardPage />
-      </TestSwrProvider>,
+      </TestQueryProvider>,
     );
 
     expect(screen.getByTestId("leaderboard-load-more")).toBeInTheDocument();
@@ -166,9 +165,9 @@ describe("LeaderboardPage — AC #2 (load-more appends entries)", () => {
     });
 
     render(
-      <TestSwrProvider>
+      <TestQueryProvider>
         <LeaderboardPage />
-      </TestSwrProvider>,
+      </TestQueryProvider>,
     );
 
     const button = screen.getByTestId("leaderboard-load-more");
@@ -193,9 +192,9 @@ describe("LeaderboardPage — AC #2 (load-more appends entries)", () => {
     });
 
     render(
-      <TestSwrProvider>
+      <TestQueryProvider>
         <LeaderboardPage />
-      </TestSwrProvider>,
+      </TestQueryProvider>,
     );
 
     expect(screen.getByText("Alice")).toBeInTheDocument();
@@ -215,9 +214,9 @@ describe("LeaderboardPage — empty state", () => {
     setHookReturn({ entries: [] });
 
     render(
-      <TestSwrProvider>
+      <TestQueryProvider>
         <LeaderboardPage />
-      </TestSwrProvider>,
+      </TestQueryProvider>,
     );
 
     expect(screen.getByTestId("leaderboard-empty-state")).toBeInTheDocument();
@@ -232,9 +231,9 @@ describe("LeaderboardPage — empty state", () => {
     setHookReturn({ isLoading: true, entries: [] });
 
     render(
-      <TestSwrProvider>
+      <TestQueryProvider>
         <LeaderboardPage />
-      </TestSwrProvider>,
+      </TestQueryProvider>,
     );
 
     expect(screen.getByTestId("leaderboard-skeleton")).toBeInTheDocument();
@@ -247,9 +246,9 @@ describe("LeaderboardPage — skeleton on first paint and on period switch", () 
     setHookReturn({ isLoading: true, entries: [] });
 
     render(
-      <TestSwrProvider>
+      <TestQueryProvider>
         <LeaderboardPage />
-      </TestSwrProvider>,
+      </TestQueryProvider>,
     );
 
     expect(screen.getByTestId("leaderboard-skeleton")).toBeInTheDocument();
@@ -259,9 +258,9 @@ describe("LeaderboardPage — skeleton on first paint and on period switch", () 
     setHookReturn({ isLoading: false, entries: [makeEntry()] });
 
     render(
-      <TestSwrProvider>
+      <TestQueryProvider>
         <LeaderboardPage />
-      </TestSwrProvider>,
+      </TestQueryProvider>,
     );
 
     expect(screen.queryByTestId("leaderboard-skeleton")).toBeNull();
@@ -292,9 +291,9 @@ describe("LeaderboardPage — self-entry highlight (auth gate + isCurrentUser)",
     });
 
     render(
-      <TestSwrProvider>
+      <TestQueryProvider>
         <LeaderboardPage />
-      </TestSwrProvider>,
+      </TestQueryProvider>,
     );
 
     const selfRow = document.querySelector('[data-leaderboard-row="me"]');
@@ -319,9 +318,9 @@ describe("LeaderboardPage — self-entry highlight (auth gate + isCurrentUser)",
     });
 
     render(
-      <TestSwrProvider>
+      <TestQueryProvider>
         <LeaderboardPage />
-      </TestSwrProvider>,
+      </TestQueryProvider>,
     );
 
     const selfRow = document.querySelector('[data-leaderboard-row="me"]');
@@ -348,9 +347,9 @@ describe("LeaderboardPage — self-entry highlight (auth gate + isCurrentUser)",
     });
 
     render(
-      <TestSwrProvider>
+      <TestQueryProvider>
         <LeaderboardPage />
-      </TestSwrProvider>,
+      </TestQueryProvider>,
     );
 
     const selfRow = document.querySelector('[data-leaderboard-row="me"]');

@@ -1,22 +1,21 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 import { renderHook, waitFor } from "@testing-library/react";
-import { SWRConfig } from "swr";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 import { useEventuallyConsistentQuery } from "@/features/rankings/hooks/useEventuallyConsistentQuery";
 
-function TestSwrProvider({ children }: { children: React.ReactNode }) {
+function TestQueryProvider({ children }: { children: React.ReactNode }) {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: {
+        retry: false,
+      },
+    },
+  });
   return (
-    <SWRConfig
-      value={{
-        provider: () => new Map(),
-        revalidateOnFocus: false,
-        revalidateIfStale: false,
-        dedupingInterval: 0,
-        errorRetryCount: 0,
-      }}
-    >
+    <QueryClientProvider client={queryClient}>
       {children}
-    </SWRConfig>
+    </QueryClientProvider>
   );
 }
 
@@ -38,7 +37,7 @@ describe("useEventuallyConsistentQuery", () => {
           key: null,
           fetcher,
         }),
-      { wrapper: TestSwrProvider },
+      { wrapper: TestQueryProvider },
     );
 
     expect(result.current.data).toBeNull();
@@ -63,7 +62,7 @@ describe("useEventuallyConsistentQuery", () => {
           fetcher,
           fallbackData: { id: "seed" },
         }),
-      { wrapper: TestSwrProvider },
+      { wrapper: TestQueryProvider },
     );
 
     expect(result.current.data).toEqual({ id: "seed" });
@@ -79,7 +78,7 @@ describe("useEventuallyConsistentQuery", () => {
           key: ["test-key"] as const,
           fetcher,
         }),
-      { wrapper: TestSwrProvider },
+      { wrapper: TestQueryProvider },
     );
 
     await waitFor(() => {
@@ -115,7 +114,7 @@ describe("useEventuallyConsistentQuery", () => {
             revalidateOnMount: true,
           },
         }),
-      { wrapper: TestSwrProvider },
+      { wrapper: TestQueryProvider },
     );
 
     await waitFor(() => {

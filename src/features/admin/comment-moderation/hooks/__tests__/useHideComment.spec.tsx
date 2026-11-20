@@ -1,6 +1,6 @@
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { SWRConfig } from "swr";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 import { ApiError } from "@/lib/api";
 
@@ -27,17 +27,15 @@ vi.mock("@/features/admin/services/comment-moderation.service", () => ({
   restoreComment: (...args: unknown[]) => mockRestoreComment(...args),
 }));
 
-const mockGlobalMutate = vi.hoisted(() =>
+const mockInvalidateQueries = vi.hoisted(() =>
   vi.fn((...args: unknown[]) => Promise.resolve(undefined)),
 );
 
-vi.mock("swr", async () => {
-  const actual = await vi.importActual<typeof import("swr")>("swr");
-  return {
-    ...actual,
-    mutate: (...args: unknown[]) => mockGlobalMutate(...args),
-  };
-});
+vi.mock("@/providers/QueryProvider", () => ({
+  getQueryClient: () => ({
+    invalidateQueries: mockInvalidateQueries,
+  }),
+}));
 
 function makeApiError(
   code: string,
@@ -69,8 +67,8 @@ afterEach(() => {
   mockRestoreComment.mockReset();
   mockAddCommentModerationBreadcrumb.mockReset();
   mockBroadcastCommentModerationInvalidate.mockReset();
-  mockGlobalMutate.mockReset();
-  mockGlobalMutate.mockResolvedValue(undefined);
+  mockInvalidateQueries.mockReset();
+  mockInvalidateQueries.mockResolvedValue(undefined);
 });
 
 beforeEach(() => {
@@ -78,29 +76,35 @@ beforeEach(() => {
   mockRestoreComment.mockReset();
   mockAddCommentModerationBreadcrumb.mockReset();
   mockBroadcastCommentModerationInvalidate.mockReset();
-  mockGlobalMutate.mockReset();
-  mockGlobalMutate.mockResolvedValue(undefined);
+  mockInvalidateQueries.mockReset();
+  mockInvalidateQueries.mockResolvedValue(undefined);
 });
 
 function renderUseHideComment() {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
   return renderHook(() => useHideComment(), {
     wrapper: ({ children }) => (
-      <SWRConfig value={{ provider: () => new Map() }}>{children}</SWRConfig>
+      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
     ),
   });
 }
 
 function renderUseRestoreComment() {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
   return renderHook(() => useRestoreComment(), {
     wrapper: ({ children }) => (
-      <SWRConfig value={{ provider: () => new Map() }}>{children}</SWRConfig>
+      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
     ),
   });
 }
 
 import { useHideComment, useRestoreComment } from "../useHideComment";
 
-describe("TKT-7.6.C3 — useHideComment: happy path", () => {
+describe("useHideComment: happy path", () => {
   it("dispatches hideComment with the comment id", async () => {
     mockHideComment.mockResolvedValueOnce({ commentId: "c-1", hidden: true });
 
@@ -152,11 +156,12 @@ describe("TKT-7.6.C3 — useHideComment: happy path", () => {
       await result.current.hide("c-1");
     });
 
-    expect(mockGlobalMutate).toHaveBeenCalledTimes(1);
-    const [predicate] = mockGlobalMutate.mock.calls[0] ?? [];
+    expect(mockInvalidateQueries).toHaveBeenCalledTimes(1);
+    const [call] = mockInvalidateQueries.mock.calls[0] ?? [];
+    const predicate = call?.predicate;
     expect(typeof predicate).toBe("function");
 
-    const fn = predicate as (key: readonly unknown[]) => boolean;
+    const fn = (key: readonly unknown[]) => predicate({ queryKey: key });
     expect(fn(["admin", "comment-reports", "list", "pending"])).toBe(true);
     expect(fn(["admin", "comment-reports", "list", "resolved"])).toBe(true);
     expect(fn(["comments", "byId", "c-1"])).toBe(true);
@@ -195,7 +200,7 @@ describe("TKT-7.6.C3 — useHideComment: happy path", () => {
   });
 });
 
-describe("TKT-7.6.C3 — useHideComment: error classification", () => {
+describe("useHideComment: error classification", () => {
   it("COMMENT_ALREADY_HIDDEN surfaces as already-hidden and revalidates the cache", async () => {
     const apiError = makeApiError("COMMENT_ALREADY_HIDDEN", 409, "req-h");
     mockHideComment.mockRejectedValue(apiError);
@@ -212,7 +217,7 @@ describe("TKT-7.6.C3 — useHideComment: error classification", () => {
 
     expect(result.current.lastOutcome?.kind).toBe("already-hidden");
     expect(result.current.error?.code).toBe("COMMENT_ALREADY_HIDDEN");
-    expect(mockGlobalMutate).toHaveBeenCalledTimes(1);
+    expect(mockInvalidateQueries).toHaveBeenCalledTimes(1);
   });
 
   it("COMMENT_NOT_FOUND surfaces as not-found", async () => {
@@ -295,7 +300,7 @@ describe("TKT-7.6.C3 — useHideComment: error classification", () => {
   });
 });
 
-describe("TKT-7.6.C3 — useHideComment: housekeeping", () => {
+describe("useHideComment: housekeeping", () => {
   it("reset() clears state", async () => {
     mockHideComment.mockRejectedValueOnce(
       makeApiError("GLOBAL_FORBIDDEN", 403),
@@ -323,7 +328,7 @@ describe("TKT-7.6.C3 — useHideComment: housekeeping", () => {
   });
 });
 
-describe("TKT-7.6.C3 — useRestoreComment: happy path", () => {
+describe("useRestoreComment: happy path", () => {
   it("dispatches restoreComment with the comment id", async () => {
     mockRestoreComment.mockResolvedValueOnce({
       commentId: "c-1",
@@ -383,18 +388,19 @@ describe("TKT-7.6.C3 — useRestoreComment: happy path", () => {
       await result.current.restore("c-1");
     });
 
-    expect(mockGlobalMutate).toHaveBeenCalledTimes(1);
-    const [predicate] = mockGlobalMutate.mock.calls[0] ?? [];
+    expect(mockInvalidateQueries).toHaveBeenCalledTimes(1);
+    const [call] = mockInvalidateQueries.mock.calls[0] ?? [];
+    const predicate = call?.predicate;
     expect(typeof predicate).toBe("function");
 
-    const fn = predicate as (key: readonly unknown[]) => boolean;
+    const fn = (key: readonly unknown[]) => predicate({ queryKey: key });
     expect(fn(["admin", "comment-reports", "list", "pending"])).toBe(true);
     expect(fn(["comments", "byId", "c-1"])).toBe(true);
     expect(fn(["comments", "thread", "t-1"])).toBe(true);
   });
 });
 
-describe("TKT-7.6.C3 — useRestoreComment: error classification", () => {
+describe("useRestoreComment: error classification", () => {
   it("COMMENT_NOT_HIDDEN surfaces as not-hidden and revalidates the cache", async () => {
     const apiError = makeApiError("COMMENT_NOT_HIDDEN", 409, "req-nh");
     mockRestoreComment.mockRejectedValue(apiError);
@@ -411,7 +417,7 @@ describe("TKT-7.6.C3 — useRestoreComment: error classification", () => {
 
     expect(result.current.lastOutcome?.kind).toBe("not-hidden");
     expect(result.current.error?.code).toBe("COMMENT_NOT_HIDDEN");
-    expect(mockGlobalMutate).toHaveBeenCalledTimes(1);
+    expect(mockInvalidateQueries).toHaveBeenCalledTimes(1);
   });
 
   it("COMMENT_NOT_FOUND surfaces as not-found", async () => {
@@ -467,7 +473,7 @@ describe("TKT-7.6.C3 — useRestoreComment: error classification", () => {
   });
 });
 
-describe("TKT-7.6.C3 — useHideComment: isPending flag", () => {
+describe("useHideComment: isPending flag", () => {
   it("flips true during the call and false after success", async () => {
     let resolveHide: (value: unknown) => void = () => {
       // Replaced below.
@@ -500,7 +506,7 @@ describe("TKT-7.6.C3 — useHideComment: isPending flag", () => {
   });
 });
 
-describe("TKT-7.6.G2 — useHideComment / useRestoreComment: cross-tab broadcast", () => {
+describe("useHideComment / useRestoreComment: cross-tab broadcast", () => {
   it('useHideComment broadcasts ("hide", undefined, commentId) on success', async () => {
     mockHideComment.mockResolvedValueOnce({ commentId: "c-1", hidden: true });
 

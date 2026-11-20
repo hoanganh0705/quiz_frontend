@@ -1,6 +1,6 @@
 import { type ReactNode } from "react";
 import { renderHook, waitFor } from "@testing-library/react";
-import { SWRConfig } from "swr";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { useAdminAuditLogEntry } from "../useAdminAuditLogEntry";
@@ -20,8 +20,11 @@ vi.mock("@/features/admin/audit-admin/services/auditLogService", () => ({
 }));
 
 function createWrapper() {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
   return ({ children }: { children: ReactNode }) => (
-    <SWRConfig value={{ provider: () => new Map() }}>{children}</SWRConfig>
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
   );
 }
 

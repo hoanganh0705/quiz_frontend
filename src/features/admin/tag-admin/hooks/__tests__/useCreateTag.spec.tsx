@@ -5,12 +5,14 @@ import { ApiError } from "@/lib/api";
 
 import { useCreateTag } from "../useCreateTag";
 
-const mockMutate = vi.hoisted(() => vi.fn());
+const mockInvalidateQueries = vi.hoisted(() => vi.fn().mockResolvedValue(undefined));
 const mockCreateTag = vi.hoisted(() => vi.fn());
 const mockBroadcastTagAdminInvalidate = vi.hoisted(() => vi.fn());
 
-vi.mock("swr", () => ({
-  mutate: mockMutate,
+vi.mock("@/providers/QueryProvider", () => ({
+  getQueryClient: () => ({
+    invalidateQueries: mockInvalidateQueries,
+  }),
 }));
 
 vi.mock("@/features/admin/services/tag-admin.service", () => ({
@@ -23,7 +25,7 @@ vi.mock("@/features/admin/tag-admin/cache/tag-cross-tab", () => ({
 
 afterEach(() => {
   vi.restoreAllMocks();
-  mockMutate.mockClear();
+  mockInvalidateQueries.mockClear();
   mockBroadcastTagAdminInvalidate.mockClear();
 });
 
@@ -88,7 +90,7 @@ describe("useCreateTag", () => {
     expect(result.current.error).toBeNull();
   });
 
-  it("invalidates admin and public SWR caches on success", async () => {
+  it("invalidates admin and public caches on success", async () => {
     mockCreateTag.mockResolvedValue({
       tagId: "tag-1",
       name: "Rust",
@@ -101,8 +103,12 @@ describe("useCreateTag", () => {
 
     await result.current.create({ name: "Rust" });
 
-    expect(mockMutate).toHaveBeenCalledWith("tag-admin:list");
-    expect(mockMutate).toHaveBeenCalledWith("tags:directory");
+    expect(mockInvalidateQueries).toHaveBeenCalledWith({
+      queryKey: ["tag-admin:list"],
+    });
+    expect(mockInvalidateQueries).toHaveBeenCalledWith({
+      queryKey: ["tags:directory"],
+    });
   });
 
   it("broadcasts tag admin invalidation on success", async () => {

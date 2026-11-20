@@ -85,7 +85,8 @@ export function useTournamentParticipation(
   const { items: participants, isLoading: isParticipantsLoading } =
     useTournamentParticipants(tournamentId, { limit: 100 });
 
-  const isLoading = isDetailLoading || isParticipantsLoading;
+  const isLoading =
+    isDetailLoading || isParticipantsLoading || bootstrapState === "loading";
 
   const result = useMemo((): UseTournamentParticipationResult => {
     if (isFlagPlaceholder || tournamentId === null) {

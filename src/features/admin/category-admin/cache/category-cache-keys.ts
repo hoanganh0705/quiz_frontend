@@ -1,4 +1,3 @@
-import { mutate as globalMutate, type ScopedMutator } from "swr";
 import { getQueryClient } from "@/providers/QueryProvider";
 
 export const CATEGORY_ADMIN_LIST_KEY = "category-admin:list" as const;
@@ -11,14 +10,14 @@ export function categorySlugKey(slug: string): string {
   return `categories:slug:${slug}`;
 }
 
-export function invalidateCategoryAdminList(
-  mutate: ScopedMutator = globalMutate,
-): Promise<unknown> {
-  try {
-    const qc = getQueryClient();
-    void qc.invalidateQueries({ queryKey: [CATEGORY_ADMIN_LIST_KEY] });
-  } catch {}
-  return mutate(CATEGORY_ADMIN_LIST_KEY) as Promise<unknown>;
+export async function invalidateCategoryAdminList(
+  mutate?: (key: unknown) => unknown,
+): Promise<void> {
+  const qc = getQueryClient();
+  await qc.invalidateQueries({ queryKey: [CATEGORY_ADMIN_LIST_KEY] });
+  if (mutate) {
+    await mutate(CATEGORY_ADMIN_LIST_KEY);
+  }
 }
 
 export function publicCategoriesKeyMatcher(key: unknown): boolean {
@@ -42,14 +41,14 @@ export function publicCategoriesKeyMatcher(key: unknown): boolean {
   return false;
 }
 
-export function invalidatePublicCategoryCaches(
-  mutate: ScopedMutator = globalMutate,
-): Promise<unknown[]> {
-  try {
-    const qc = getQueryClient();
-    void qc.invalidateQueries({
-      predicate: (query) => publicCategoriesKeyMatcher(query.queryKey),
-    });
-  } catch {}
-  return mutate(publicCategoriesKeyMatcher) as unknown as Promise<unknown[]>;
+export async function invalidatePublicCategoryCaches(
+  mutate?: (matcher: (key: unknown) => boolean) => unknown,
+): Promise<void> {
+  const qc = getQueryClient();
+  await qc.invalidateQueries({
+    predicate: (query) => publicCategoriesKeyMatcher(query.queryKey),
+  });
+  if (mutate) {
+    await mutate(publicCategoriesKeyMatcher);
+  }
 }

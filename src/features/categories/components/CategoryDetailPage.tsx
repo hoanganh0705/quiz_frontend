@@ -4,14 +4,11 @@
  * `<CategoryDetailPage />` — the `/categories/[idOrSlug]` route's
  * main composition.
  *
- * Source epic: Epic 3.3 — Category browse + detail (read-only).
- * Source ticket: TKT-3.3.D3.
- *
  * Wires:
- *   - `useCategory(idOrSlug)` (B3) for the header data
- *   - `useCategoryQuizzes(idOrSlug, params)` (B4) for the quiz grid
- *   - `<CategoryHeader />` (C3) above the grid
- *   - `<CategoryQuizGrid />` (D1) below the header
+ *   - `useCategory(idOrSlug)` for the header data
+ *   - `useCategoryQuizzes(idOrSlug, params)` for the quiz grid
+ *   - `<CategoryHeader />` above the grid
+ *   - `<CategoryQuizGrid />` below the header
  *
  * State contract:
  *
@@ -26,7 +23,7 @@
  *
  * The page renders an inline 404 block (matching the existing
  * `app/not-found.tsx` visual) instead of calling `next/navigation`'s
- * `notFound()`. The page is a client component (it consumes the SWR
+ * `notFound()`. The page is a client component (it consumes query
  * hooks), so the file-based 404 mechanism (intended for server
  * components) is not appropriate here. The visual matches the app's
  * existing 404 surface so the user experience is consistent.
@@ -196,11 +193,10 @@ export function CategoryDetailPage({
           description={category.description}
         />
         {/*
-         * Story 3.9 / TKT-3.9.C1 — the follow slot lives beside the
-         * header. The slot receives the resolved `category.categoryId`
-         * (NOT the route `idOrSlug` — A1 §7 records the drift). When
-         * the category is loading, `categoryId` is `null` and the slot
-         * renders `null` (no CLS during the hydration window).
+         * Follow slot lives beside the header. The slot receives the
+         * resolved `category.categoryId` (NOT the route `idOrSlug`).
+         * When the category is loading, `categoryId` is `null` and the
+         * slot renders `null` (no CLS during the hydration window).
          */}
         <CategoryFollowButtonSlot categoryId={category.categoryId} />
       </div>

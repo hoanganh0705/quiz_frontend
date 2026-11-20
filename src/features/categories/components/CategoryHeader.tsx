@@ -1,16 +1,11 @@
 /**
  * `<CategoryHeader />` — the detail page's header.
  *
- * Source epic: Epic 3.3 — Category browse + detail (read-only).
- * Source ticket: TKT-3.3.C3.
- *
  * Renders the category's title, description, and optional quizCount
  * (formatted via `formatQuizCount`).
  *
- * ## Wire-shape drift (Epic 3.3 A1 §3)
- *
  * The `CategoryResponseDto` does NOT carry `quizCount` at the top level.
- * The component accepts it as an optional prop so the caller (D3) can
+ * The component accepts it as an optional prop so the caller can
  * supply it when the analytics endpoint
  * (`categoryControllerGetCategoryAnalytics`) is consulted. If the prop
  * is absent, the header simply omits the quiz-count row — the title
@@ -19,8 +14,8 @@
  * ## Server-renderable
  *
  * The component is a pure prop-driven renderer. No `'use client'`
- * directive; the parent page (D3) is the client component because
- * it consumes the SWR hooks.
+ * directive; the parent page is the client component because
+ * it consumes query hooks.
  */
 
 import { formatQuizCount } from "@/features/categories/utils/format-quiz-count";

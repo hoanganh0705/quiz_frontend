@@ -3,18 +3,13 @@
 /**
  * `DailyChallengeCard` — the day's featured challenge card.
  *
- * Source epic:   Epic 3.12 — `/daily-challenge` read-only render.
- * Source story:  `projectDocs/Epics/PHASE_3_EPICS.md` → Story 3.12.
- * Source ticket: TKT-3.12.B3 (card) + step3-card (status-aware CTAs).
- *
- * Renders the day's quiz title, date (verbatim per
- * `EPIC_3_12_A1.md` §5), question count, difficulty pill, and the
+ * Renders the day's quiz title, date, question count, difficulty pill, and the
  * reward XP. The card is the live surface — it is rendered when the
  * wrapper reports `kind: 'ok'`. The placeholder surface
  * (`<DailyChallengePlaceholder />`) is rendered when the wrapper
  * reports `kind: 'missing-endpoint'`; the skeleton is rendered
  * during the initial loading phase. The live composition
- * (TKT-3.12.C1) switches between them.
+ * switches between them.
  *
  * ## Status-aware CTAs
  *

@@ -1,6 +1,5 @@
 import { render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { SWRConfig } from "swr";
 
 import { CategoryAdminPage } from "../CategoryAdminPage";
 
@@ -50,11 +49,7 @@ vi.mock(
 );
 
 function renderPage() {
-  return render(
-    <SWRConfig value={{ provider: () => new Map() }}>
-      <CategoryAdminPage />
-    </SWRConfig>,
-  );
+  return render(<CategoryAdminPage />);
 }
 
 describe("CategoryAdminPage", () => {

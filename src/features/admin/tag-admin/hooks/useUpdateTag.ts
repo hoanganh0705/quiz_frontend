@@ -2,7 +2,7 @@
 
 import { useCallback, useRef, useState } from "react";
 
-import { mutate as globalMutate } from "swr";
+import { getQueryClient } from "@/providers/QueryProvider";
 
 import { ApiError } from "@/lib/api";
 
@@ -40,13 +40,19 @@ export function useUpdateTag(): UseUpdateTag {
       try {
         const result = await updateTag(id, input);
 
-        const keysToRevalidate: string[] = [
-          TAG_ADMIN_LIST_KEY,
-          PUBLIC_TAGS_KEY,
-          ...(newSlug ? [tagBySlugKey(newSlug)] : []),
+        const qc = getQueryClient();
+        const invalidations: Promise<void>[] = [
+          qc.invalidateQueries({ queryKey: [TAG_ADMIN_LIST_KEY] }),
+          qc.invalidateQueries({ queryKey: [PUBLIC_TAGS_KEY] }),
         ];
-
-        await Promise.all(keysToRevalidate.map((key) => globalMutate(key)));
+        if (newSlug) {
+          invalidations.push(
+            qc.invalidateQueries({
+              queryKey: [tagBySlugKey(newSlug)],
+            }),
+          );
+        }
+        await Promise.all(invalidations);
 
         broadcastTagAdminInvalidate("update", id);
         setIsPending(false);

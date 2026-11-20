@@ -1,18 +1,19 @@
 "use client";
 
 import { useCallback, useRef, useState } from "react";
-import { mutate as globalMutate } from "swr";
 import { getQueryClient } from "@/providers/QueryProvider";
 
 import { ApiError, isApiError } from "@/lib/api";
 
-export type OptimisticToggleSWRKey =
+export type OptimisticToggleKey =
   | string
-  | readonly [unknown, ...unknown[]]
+  | readonly unknown[]
   | Record<PropertyKey, unknown>
   | null
   | undefined
   | false;
+
+export type OptimisticToggleSWRKey = OptimisticToggleKey;
 
 export type OptimisticToggleErrorKind =
   "http_429" | "http_404" | "http_4xx" | "http_5xx" | "unknown";
@@ -33,7 +34,7 @@ export interface UseOptimisticToggleParams<ToggleArgs extends unknown[]> {
 
   cooldownMs?: number;
 
-  keysToInvalidate: readonly OptimisticToggleSWRKey[];
+  keysToInvalidate: readonly OptimisticToggleKey[];
 }
 
 export interface UseOptimisticToggleResult<ToggleArgs extends unknown[]> {
@@ -55,25 +56,28 @@ export function classifyOptimisticToggleError(
     if (status === 404) {
       return { kind: "http_404", cause };
     }
-    if (status >= 500) {
+    if (typeof status === "number" && status >= 400 && status < 500) {
+      return { kind: "http_4xx", cause };
+    }
+    if (typeof status === "number" && status >= 500 && status < 600) {
       return { kind: "http_5xx", cause };
     }
-    return { kind: "http_4xx", cause };
+    return { kind: "unknown", cause };
   }
+
   return { kind: "unknown", cause };
 }
 
-export function useOptimisticToggle<ToggleArgs extends unknown[]>(
-  params: UseOptimisticToggleParams<ToggleArgs>,
-): UseOptimisticToggleResult<ToggleArgs> {
-  const { toggle, cooldownMs = 500, keysToInvalidate } = params;
-
+export function useOptimisticToggle<ToggleArgs extends unknown[]>({
+  currentValue: _currentValue,
+  toggle,
+  cooldownMs = 0,
+  keysToInvalidate,
+}: UseOptimisticToggleParams<ToggleArgs>): UseOptimisticToggleResult<ToggleArgs> {
   const [status, setStatus] = useState<OptimisticToggleStatus>("idle");
-  const [lastError, setLastError] = useState<OptimisticToggleError | null>(
-    null,
-  );
+  const [lastError, setLastError] = useState<OptimisticToggleError | null>(null);
 
-  const lastInvocationRef = useRef<number>(0);
+  const lastInvocationRef = useRef<number>(-Infinity);
 
   const run = useCallback(
     async (...args: ToggleArgs): Promise<void> => {
@@ -103,11 +107,6 @@ export function useOptimisticToggle<ToggleArgs extends unknown[]>(
           // ignore
         }
 
-        await Promise.all(
-          keysToInvalidate.map((key) =>
-            globalMutate(key, undefined, { revalidate: true }),
-          ),
-        );
         setStatus("success");
         setLastError(null);
       } catch (cause: unknown) {
@@ -126,19 +125,10 @@ export function useOptimisticToggle<ToggleArgs extends unknown[]>(
           } catch {
             // ignore
           }
-
-          await Promise.all(
-            keysToInvalidate.map((key) =>
-              globalMutate(key, undefined, { revalidate: true }),
-            ),
-          );
         }
 
         setStatus("reverted");
         setLastError(classification);
-        // The cooldown is NOT lifted on rejection (B1 AC #5) —
-        // lastInvocationRef.current stays at `now`, so the user must
-        // wait the full window before retrying.
       }
     },
     [toggle, cooldownMs, keysToInvalidate],

@@ -1,6 +1,6 @@
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { SWRConfig } from "swr";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 import { ApiError } from "@/lib/api";
 
@@ -8,7 +8,7 @@ import { useResolveReviewReport } from "../useResolveReviewReport";
 
 const mockPatchReviewReport = vi.hoisted(() => vi.fn());
 const mockAdminDeleteReview = vi.hoisted(() => vi.fn());
-const mockMutate = vi.hoisted(() => vi.fn());
+const mockInvalidateQueries = vi.hoisted(() => vi.fn().mockResolvedValue(undefined));
 const mockAddReviewModerationBreadcrumb = vi.hoisted(() => vi.fn());
 const mockBroadcastReviewModerationInvalidate = vi.hoisted(() => vi.fn());
 
@@ -28,13 +28,11 @@ vi.mock("@/lib/api", async () => {
   };
 });
 
-vi.mock("swr", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("swr")>();
-  return {
-    ...actual,
-    mutate: (...args: unknown[]) => mockMutate(...args),
-  };
-});
+vi.mock("@/providers/QueryProvider", () => ({
+  getQueryClient: () => ({
+    invalidateQueries: mockInvalidateQueries,
+  }),
+}));
 
 vi.mock("@/lib/admin/admin_live_sentry", () => ({
   addReviewModerationBreadcrumb: (...args: unknown[]) =>
@@ -98,9 +96,12 @@ function makeUpdatedReport(
 }
 
 function renderUseResolveReviewReport() {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
   return renderHook(() => useResolveReviewReport(), {
     wrapper: ({ children }) => (
-      <SWRConfig value={{ provider: () => new Map() }}>{children}</SWRConfig>
+      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
     ),
   });
 }
@@ -109,7 +110,7 @@ afterEach(() => {
   vi.clearAllMocks();
   mockPatchReviewReport.mockReset();
   mockAdminDeleteReview.mockReset();
-  mockMutate.mockReset();
+  mockInvalidateQueries.mockReset();
   mockAddReviewModerationBreadcrumb.mockReset();
   mockBroadcastReviewModerationInvalidate.mockReset();
 });
@@ -117,12 +118,12 @@ afterEach(() => {
 beforeEach(() => {
   mockPatchReviewReport.mockReset();
   mockAdminDeleteReview.mockReset();
-  mockMutate.mockReset();
+  mockInvalidateQueries.mockReset();
   mockAddReviewModerationBreadcrumb.mockReset();
   mockBroadcastReviewModerationInvalidate.mockReset();
 });
 
-describe("TKT-7.5.C2 — useResolveReviewReport: success paths", () => {
+describe("useResolveReviewReport: success paths", () => {
   it('resolve("dismiss") sends status="dismissed" and invalidates the queue', async () => {
     mockPatchReviewReport.mockResolvedValueOnce(
       makeUpdatedReport({ status: "dismissed" }),
@@ -141,7 +142,7 @@ describe("TKT-7.5.C2 — useResolveReviewReport: success paths", () => {
 
     expect(mockAdminDeleteReview).not.toHaveBeenCalled();
 
-    expect(mockMutate).toHaveBeenCalled();
+    expect(mockInvalidateQueries).toHaveBeenCalled();
   });
 
   it('resolve("acknowledge") sends status="reviewed"', async () => {
@@ -254,7 +255,7 @@ describe("TKT-7.5.C2 — useResolveReviewReport: success paths", () => {
   });
 });
 
-describe("TKT-7.5.C2 — useResolveReviewReport: error classification", () => {
+describe("useResolveReviewReport: error classification", () => {
   it('classifies REVIEW_NOT_FOUND as lastOutcome.kind="not-found"', async () => {
     mockPatchReviewReport.mockRejectedValueOnce(
       makeApiError("REVIEW_NOT_FOUND", 404, "req-404"),
@@ -371,7 +372,7 @@ describe("TKT-7.5.C2 — useResolveReviewReport: error classification", () => {
   });
 });
 
-describe("TKT-7.5.C2 — useResolveReviewReport: state management", () => {
+describe("useResolveReviewReport: state management", () => {
   it("reset() clears error, lastOutcome, audit snapshot, and isPending", async () => {
     mockPatchReviewReport.mockRejectedValueOnce(
       makeApiError("GLOBAL_INTERNAL", 500, "req-reset"),
@@ -466,7 +467,7 @@ describe("TKT-7.5.C2 — useResolveReviewReport: state management", () => {
   });
 });
 
-describe("TKT-7.5.G2 — useResolveReviewReport cross-tab broadcast", () => {
+describe("useResolveReviewReport: cross-tab broadcast", () => {
   it("broadcasts on success with the resolved reviewId", async () => {
     mockPatchReviewReport.mockResolvedValueOnce(
       makeUpdatedReport({

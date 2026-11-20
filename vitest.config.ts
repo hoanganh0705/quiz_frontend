@@ -182,6 +182,7 @@ export default defineConfig({
             "src/features/reviews/components/__tests__/ReviewsList.spec.tsx",
             "src/features/reviews/components/__tests__/ReviewsWidget.spec.tsx",
             "src/features/reviews/components/__tests__/ReviewsWidget.integration.spec.tsx",
+            "src/features/tournaments/**/*.spec.tsx",
             "src/features/quizzes/components/__tests__/QuizDetailPage.reviews.spec.tsx",
             "src/features/attempts/hooks/__tests__/*.spec.tsx",
             "src/features/attempts/components/__tests__/**/*.spec.tsx",

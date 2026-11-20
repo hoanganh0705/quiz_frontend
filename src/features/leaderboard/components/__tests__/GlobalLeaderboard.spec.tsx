@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
-import { SWRConfig } from "swr";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 import { useLeaderboard } from "@/features/leaderboard/hooks/useLeaderboard";
 
@@ -31,19 +31,18 @@ vi.mock("@/features/auth/hooks/use-auth-state", async () => {
 
 const useLeaderboardMock = vi.mocked(useLeaderboard);
 
-function TestSwrProvider({ children }: { children: React.ReactNode }) {
+function TestQueryProvider({ children }: { children: React.ReactNode }) {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: {
+        retry: false,
+      },
+    },
+  });
   return (
-    <SWRConfig
-      value={{
-        provider: () => new Map(),
-        revalidateOnFocus: false,
-        revalidateIfStale: false,
-        dedupingInterval: 0,
-        errorRetryCount: 0,
-      }}
-    >
+    <QueryClientProvider client={queryClient}>
       {children}
-    </SWRConfig>
+    </QueryClientProvider>
   );
 }
 
@@ -61,9 +60,9 @@ describe("GlobalLeaderboard — delegation", () => {
     });
 
     render(
-      <TestSwrProvider>
+      <TestQueryProvider>
         <GlobalLeaderboard />
-      </TestSwrProvider>,
+      </TestQueryProvider>,
     );
 
     await waitFor(() => {
@@ -89,9 +88,9 @@ describe("GlobalLeaderboard — delegation", () => {
     });
 
     render(
-      <TestSwrProvider>
+      <TestQueryProvider>
         <GlobalLeaderboard />
-      </TestSwrProvider>,
+      </TestQueryProvider>,
     );
 
     await waitFor(() => {

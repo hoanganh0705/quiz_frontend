@@ -6,7 +6,7 @@ import {
   screen,
   waitFor,
 } from "@testing-library/react";
-import { SWRConfig } from "swr";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 import { ReviewReportsList } from "@/features/admin/review-moderation/components/ReviewReportsList";
 import type {
@@ -168,10 +168,13 @@ function makeReport(
 }
 
 function renderList() {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
   return render(
-    <SWRConfig value={{ provider: () => new Map() }}>
+    <QueryClientProvider client={queryClient}>
       <ReviewReportsList />
-    </SWRConfig>,
+    </QueryClientProvider>,
   );
 }
 
@@ -219,7 +222,7 @@ beforeEach(() => {
   });
 });
 
-describe("TKT-7.5.E3 — ReviewReportsList: tab / filter wiring", () => {
+describe("ReviewReportsList: tab / filter wiring", () => {
   it("renders the show toggle with the pending tab active by default", () => {
     renderList();
     const tab = screen.getByTestId("review-reports-list-tab-pending");
@@ -269,7 +272,7 @@ describe("TKT-7.5.E3 — ReviewReportsList: tab / filter wiring", () => {
   });
 });
 
-describe("TKT-7.5.E3 — ReviewReportsList: row rendering", () => {
+describe("ReviewReportsList: row rendering", () => {
   it("renders pending rows when items are present and show=pending", () => {
     useReviewReportsMock.mockReturnValue({
       items: [
@@ -381,7 +384,7 @@ describe("TKT-7.5.E3 — ReviewReportsList: row rendering", () => {
   });
 });
 
-describe("TKT-7.5.E3 — ReviewReportsList: row selection", () => {
+describe("ReviewReportsList: row selection", () => {
   it("selecting a row opens the side panel", () => {
     useReviewReportsMock.mockReturnValue({
       items: [makeReport({ reportId: "r-1", status: "open" })],
@@ -430,7 +433,7 @@ describe("TKT-7.5.E3 — ReviewReportsList: row selection", () => {
   });
 });
 
-describe("TKT-7.5.E3 — ReviewReportsList: action selection", () => {
+describe("ReviewReportsList: action selection", () => {
   it("action selection mounts the confirm dialog with the chosen action", () => {
     useReviewReportsMock.mockReturnValue({
       items: [makeReport({ reportId: "r-1", status: "open" })],
@@ -455,7 +458,7 @@ describe("TKT-7.5.E3 — ReviewReportsList: action selection", () => {
   });
 });
 
-describe("TKT-7.5.E3 — ReviewReportsList: pagination", () => {
+describe("ReviewReportsList: pagination", () => {
   it('renders the "load more" button when hasMore=true', () => {
     useReviewReportsMock.mockReturnValue({
       items: [makeReport({ reportId: "r-1", status: "open" })],
@@ -523,7 +526,7 @@ describe("TKT-7.5.E3 — ReviewReportsList: pagination", () => {
   });
 });
 
-describe("TKT-7.5.E3 — ReviewReportsList: filter switch clears selection", () => {
+describe("ReviewReportsList: filter switch clears selection", () => {
   it("switching to the resolved tab clears the selected row", () => {
     useReviewReportsMock.mockReturnValue({
       items: [makeReport({ reportId: "r-1", status: "open" })],
@@ -538,10 +541,13 @@ describe("TKT-7.5.E3 — ReviewReportsList: filter switch clears selection", () 
       setShow: vi.fn(),
     });
 
+    const queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    });
     const { rerender } = render(
-      <SWRConfig value={{ provider: () => new Map() }}>
+      <QueryClientProvider client={queryClient}>
         <ReviewReportsList />
-      </SWRConfig>,
+      </QueryClientProvider>,
     );
     fireEvent.click(screen.getByTestId("review-report-row-r-1"));
     expect(
@@ -561,9 +567,9 @@ describe("TKT-7.5.E3 — ReviewReportsList: filter switch clears selection", () 
       setShow: vi.fn(),
     });
     rerender(
-      <SWRConfig value={{ provider: () => new Map() }}>
+      <QueryClientProvider client={queryClient}>
         <ReviewReportsList />
-      </SWRConfig>,
+      </QueryClientProvider>,
     );
     expect(
       screen.queryByTestId("review-reports-side-panel-r-1"),
@@ -571,7 +577,7 @@ describe("TKT-7.5.E3 — ReviewReportsList: filter switch clears selection", () 
   });
 });
 
-describe("TKT-7.5.E3 — ReviewReportsList: no service imports", () => {
+describe("ReviewReportsList: no service imports", () => {
   it("the component source contains no axios or fetch() calls", async () => {
     const { readFileSync } = await import("node:fs");
     const { resolve } = await import("node:path");

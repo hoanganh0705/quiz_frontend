@@ -86,14 +86,14 @@ describe("useRevokeUserBadge", () => {
     expect(result.current.error).toBe(null);
   });
 
-  it("success invalidates SWR keys", async () => {
+  it("success invalidates query keys", async () => {
     mockRevokeUserBadge.mockResolvedValue(REVOKE_RESPONSE_FIXTURE);
     const { result } = renderHook(() => useRevokeUserBadge());
     await result.current.revoke(VALID_USER_ID, VALID_BADGE_ID);
     await waitFor(() => {
       expect(result.current.audit.after).not.toBeNull();
     });
-    expect(mockGlobalMutate).toHaveBeenCalledTimes(2);
+    expect(mockInvalidateQueries).toHaveBeenCalledTimes(2);
     expect(result.current.isPending).toBe(false);
     expect(result.current.audit.after).toEqual(REVOKE_RESPONSE_FIXTURE);
   });
