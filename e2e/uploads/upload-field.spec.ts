@@ -37,7 +37,7 @@ test.describe("ImageUploadField", () => {
     // chrome.
     await page.goto("/");
 
-    // Wait for SWR bootstrap.
+    // Wait for network bootstrap.
     await page.waitForLoadState("networkidle");
 
     // Inject a file via the hidden input. The ImageUploadField

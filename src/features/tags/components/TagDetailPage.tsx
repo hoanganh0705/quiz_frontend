@@ -39,7 +39,7 @@
  * ## Analytics zero-state
  *
  * When `useTagAnalytics(id)` returns `analytics: null` (the 404 → no-data
- * path — Story 3.4 line 461), the `<TagAnalyticsPanel />` renders its
+ * path), the `<TagAnalyticsPanel />` renders its
  * zero-state ("Analytics will populate after activity") — the rest of
  * the page is unaffected.
  */
@@ -57,7 +57,7 @@ import { RelatedTagsStrip } from "./RelatedTagsStrip";
 import { useTagBySlug } from "@/features/tags/hooks/useTagBySlug";
 import { Button } from "@/components/ui/Button";
 
-const HEADER_SWR_KEY_FACTORY = (slug: string) => ["tag", slug] as const;
+const HEADER_QUERY_KEY_FACTORY = (slug: string) => ["tag", slug] as const;
 
 const PAGE_LOADING_TESTID = "tag-detail-page-loading";
 const PAGE_NOT_FOUND_TESTID = "tag-detail-page-not-found";
@@ -136,7 +136,7 @@ export function TagDetailPage({
             variant="outline"
             onClick={() =>
               void getQueryClient().invalidateQueries({
-                queryKey: HEADER_SWR_KEY_FACTORY(slug),
+                queryKey: HEADER_QUERY_KEY_FACTORY(slug),
               })
             }
             data-testid="tag-detail-page-retry"

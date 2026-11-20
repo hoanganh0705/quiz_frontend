@@ -1,9 +1,10 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 import { act, cleanup, renderHook } from "@testing-library/react";
-import { SWRConfig } from "swr";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 import { useDeleteNotification } from "@/features/notifications/hooks/useDeleteNotification";
 import { ApiError, isApiError } from "@/lib/api";
+import { getQueryClient } from "@/providers/QueryProvider";
 
 const mockGetFeatureFlagValue = vi.fn();
 vi.mock("@/lib/feature-flags", () => ({
@@ -14,15 +15,6 @@ const mockDeleteNotification = vi.fn();
 vi.mock("@/features/notifications/services/notifications.service", () => ({
   deleteNotification: (...args: unknown[]) => mockDeleteNotification(...args),
 }));
-
-const mutateMock = vi.fn();
-vi.mock("swr", async () => {
-  const actual = await vi.importActual<typeof import("swr")>("swr");
-  return {
-    ...actual,
-    mutate: (...args: unknown[]) => mutateMock(...args),
-  };
-});
 
 function makeApiError(status: number, code: string) {
   return new ApiError({
@@ -48,37 +40,40 @@ function makeApiError(status: number, code: string) {
   } as unknown as Parameters<typeof ApiError.fromAxios>[0]);
 }
 
-function TestSwrProvider({ children }: { children: React.ReactNode }) {
+function TestProvider({ children }: { children: React.ReactNode }) {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: { retry: false },
+      mutations: { retry: false },
+    },
+  });
   return (
-    <SWRConfig
-      value={{
-        provider: () => new Map(),
-        revalidateOnFocus: false,
-        revalidateIfStale: false,
-        dedupingInterval: 0,
-        errorRetryCount: 0,
-      }}
-    >
-      {children}
-    </SWRConfig>
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
   );
 }
 
 describe("useDeleteNotification", () => {
+  let invalidateQueriesSpy: ReturnType<typeof vi.spyOn>;
+  let setQueriesDataSpy: ReturnType<typeof vi.spyOn>;
+
   beforeEach(() => {
     vi.clearAllMocks();
-    mutateMock.mockResolvedValue(undefined);
+    invalidateQueriesSpy = vi
+      .spyOn(getQueryClient(), "invalidateQueries")
+      .mockResolvedValue(undefined as never);
+    setQueriesDataSpy = vi.spyOn(getQueryClient(), "setQueriesData");
     mockGetFeatureFlagValue.mockReturnValue("live");
   });
 
   afterEach(() => {
     cleanup();
+    vi.restoreAllMocks();
   });
 
   describe("initialization", () => {
     it("starts in idle state", () => {
       const { result } = renderHook(() => useDeleteNotification("n1"), {
-        wrapper: TestSwrProvider,
+        wrapper: TestProvider,
       });
       expect(result.current.state).toBe("idle");
       expect(result.current.error).toBeNull();
@@ -88,7 +83,7 @@ describe("useDeleteNotification", () => {
       mockGetFeatureFlagValue.mockReturnValue("placeholder");
 
       const { result } = renderHook(() => useDeleteNotification("n1"), {
-        wrapper: TestSwrProvider,
+        wrapper: TestProvider,
       });
 
       await act(async () => {
@@ -100,7 +95,7 @@ describe("useDeleteNotification", () => {
 
     it("delete is a no-op when notificationId is null", async () => {
       const { result } = renderHook(() => useDeleteNotification(null), {
-        wrapper: TestSwrProvider,
+        wrapper: TestProvider,
       });
 
       await act(async () => {
@@ -112,11 +107,11 @@ describe("useDeleteNotification", () => {
   });
 
   describe("success path", () => {
-    it("transitions to success state and invalidates SWR keys", async () => {
+    it("transitions to success state and invalidates queries", async () => {
       mockDeleteNotification.mockResolvedValue(undefined);
 
       const { result } = renderHook(() => useDeleteNotification("n1"), {
-        wrapper: TestSwrProvider,
+        wrapper: TestProvider,
       });
 
       await act(async () => {
@@ -124,7 +119,7 @@ describe("useDeleteNotification", () => {
       });
 
       expect(result.current.state).toBe("success");
-      expect(mutateMock).toHaveBeenCalled();
+      expect(invalidateQueriesSpy).toHaveBeenCalled();
     });
 
     it("applies an optimistic removal before the service call resolves", async () => {
@@ -137,7 +132,7 @@ describe("useDeleteNotification", () => {
       );
 
       const { result } = renderHook(() => useDeleteNotification("n1"), {
-        wrapper: TestSwrProvider,
+        wrapper: TestProvider,
       });
 
       const p = result.current.deleteNotification();
@@ -145,14 +140,14 @@ describe("useDeleteNotification", () => {
       resolveDelete!(undefined);
       await p;
 
-      expect(mutateMock.mock.calls.length).toBeGreaterThanOrEqual(1);
+      expect(setQueriesDataSpy).toHaveBeenCalled();
     });
 
     it("forwards the notification id to the service", async () => {
       mockDeleteNotification.mockResolvedValue(undefined);
 
       const { result } = renderHook(() => useDeleteNotification("n-7"), {
-        wrapper: TestSwrProvider,
+        wrapper: TestProvider,
       });
 
       await act(async () => {
@@ -170,7 +165,7 @@ describe("useDeleteNotification", () => {
       );
 
       const { result } = renderHook(() => useDeleteNotification("n1"), {
-        wrapper: TestSwrProvider,
+        wrapper: TestProvider,
       });
 
       await act(async () => {
@@ -188,7 +183,7 @@ describe("useDeleteNotification", () => {
       );
 
       const { result } = renderHook(() => useDeleteNotification("n1"), {
-        wrapper: TestSwrProvider,
+        wrapper: TestProvider,
       });
 
       await act(async () => {
@@ -206,7 +201,7 @@ describe("useDeleteNotification", () => {
       );
 
       const { result } = renderHook(() => useDeleteNotification("n1"), {
-        wrapper: TestSwrProvider,
+        wrapper: TestProvider,
       });
 
       await act(async () => {
@@ -220,7 +215,7 @@ describe("useDeleteNotification", () => {
       mockDeleteNotification.mockRejectedValue(new Error("network"));
 
       const { result } = renderHook(() => useDeleteNotification("n1"), {
-        wrapper: TestSwrProvider,
+        wrapper: TestProvider,
       });
 
       await act(async () => {
@@ -242,7 +237,7 @@ describe("useDeleteNotification", () => {
       );
 
       const { result } = renderHook(() => useDeleteNotification("n1"), {
-        wrapper: TestSwrProvider,
+        wrapper: TestProvider,
       });
 
       const firstPromise = result.current.deleteNotification();
@@ -265,7 +260,7 @@ describe("useDeleteNotification", () => {
       );
 
       const { result } = renderHook(() => useDeleteNotification("n1"), {
-        wrapper: TestSwrProvider,
+        wrapper: TestProvider,
       });
 
       await act(async () => {

@@ -266,7 +266,7 @@ export interface StubBookmarksOptions {
  *
  * The stub maintains an in-memory `bookmarked` state per collection so
  * a click in the test produces the same observable behavior the
- * production backend would: the membership SWR cache (B3) and the
+ * production backend would: the membership query cache and the
  * per-quiz status (C2) reflect the new state on the next revalidation.
  */
 export interface StubHandle {

@@ -81,7 +81,7 @@ describe("AttemptRunner — terminal branches", () => {
     expect(screen.getByTestId("attempt-runner-abandoned")).toBeInTheDocument();
   });
 
-  it("renders the completed placeholder for the Story 4.15 handoff", () => {
+  it("renders the completed placeholder when status is completed", () => {
     Object.assign(runnerOutcomes, { status: "completed", activeAttempt: null });
     render(<AttemptRunner {...baseProps} />);
     expect(screen.getByTestId("attempt-runner-completed")).toBeInTheDocument();

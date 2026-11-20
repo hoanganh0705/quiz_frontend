@@ -9,7 +9,7 @@ import { useCategoriesTrending } from "@/features/categories/hooks";
 import { rankedCategoryToCategoryResponse } from "@/features/categories/utils/ranked-category-to-category-response";
 import { Button } from "@/components/ui/Button";
 
-const SWR_KEY = ["categories", "trending", { limit: 10 }] as const;
+const QUERY_KEY = ["categories", "trending", { limit: 10 }] as const;
 
 const STRIP_CONTAINER =
   "flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory scroll-mt-16";
@@ -67,7 +67,7 @@ export function TrendingCategoriesStrip(): React.ReactElement | null {
             variant="outline"
             size="sm"
             onClick={() =>
-              void getQueryClient().invalidateQueries({ queryKey: SWR_KEY })
+              void getQueryClient().invalidateQueries({ queryKey: QUERY_KEY })
             }
             data-testid="trending-strip-retry"
           >

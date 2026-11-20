@@ -1,6 +1,7 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 import { act, cleanup, renderHook } from "@testing-library/react";
-import { SWRConfig } from "swr";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { getQueryClient } from "@/providers/QueryProvider";
 
 import { useJoinInstance } from "@/features/instances/hooks/useJoinInstance";
 import { ApiError, isApiError } from "@/lib/api";
@@ -14,15 +15,6 @@ const mockJoinInstance = vi.fn();
 vi.mock("@/features/instances/services/instances.service", () => ({
   joinInstance: (...args: unknown[]) => mockJoinInstance(...args),
 }));
-
-const mutateMock = vi.fn();
-vi.mock("swr", async () => {
-  const actual = await vi.importActual<typeof import("swr")>("swr");
-  return {
-    ...actual,
-    mutate: (...args: unknown[]) => mutateMock(...args),
-  };
-});
 
 function makeApiError(status: number, code: string) {
   const wireBody = {
@@ -50,37 +42,38 @@ function makeApiError(status: number, code: string) {
   return new ApiError(err as unknown as Parameters<typeof ApiError>[0]);
 }
 
-function TestSwrProvider({ children }: { children: React.ReactNode }) {
+function TestProvider({ children }: { children: React.ReactNode }) {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: { retry: false },
+      mutations: { retry: false },
+    },
+  });
   return (
-    <SWRConfig
-      value={{
-        provider: () => new Map(),
-        revalidateOnFocus: false,
-        revalidateIfStale: false,
-        dedupingInterval: 0,
-        errorRetryCount: 0,
-      }}
-    >
-      {children}
-    </SWRConfig>
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
   );
 }
 
 describe("useJoinInstance", () => {
+  let invalidateQueriesSpy: ReturnType<typeof vi.spyOn>;
+
   beforeEach(() => {
     vi.clearAllMocks();
-    mutateMock.mockResolvedValue(undefined);
+    invalidateQueriesSpy = vi
+      .spyOn(getQueryClient(), "invalidateQueries")
+      .mockResolvedValue(undefined as never);
     mockGetFeatureFlagValue.mockReturnValue("live");
   });
 
   afterEach(() => {
     cleanup();
+    vi.restoreAllMocks();
   });
 
   describe("initialization", () => {
     it("starts in idle state", () => {
       const { result } = renderHook(() => useJoinInstance("inst-1"), {
-        wrapper: TestSwrProvider,
+        wrapper: TestProvider,
       });
       expect(result.current.state).toBe("idle");
       expect(result.current.error).toBeNull();
@@ -90,7 +83,7 @@ describe("useJoinInstance", () => {
       mockGetFeatureFlagValue.mockReturnValue("placeholder");
 
       const { result } = renderHook(() => useJoinInstance("inst-1"), {
-        wrapper: TestSwrProvider,
+        wrapper: TestProvider,
       });
 
       await act(async () => {
@@ -102,7 +95,7 @@ describe("useJoinInstance", () => {
 
     it("join is a no-op when instanceId is null", async () => {
       const { result } = renderHook(() => useJoinInstance(null), {
-        wrapper: TestSwrProvider,
+        wrapper: TestProvider,
       });
 
       await act(async () => {
@@ -114,7 +107,7 @@ describe("useJoinInstance", () => {
   });
 
   describe("success path", () => {
-    it("transitions to success state and invalidates SWR keys", async () => {
+    it("transitions to success state and invalidates queries", async () => {
       mockJoinInstance.mockResolvedValue({
         instanceId: "inst-1",
         currentUserRole: "player",
@@ -122,7 +115,7 @@ describe("useJoinInstance", () => {
       });
 
       const { result } = renderHook(() => useJoinInstance("inst-1"), {
-        wrapper: TestSwrProvider,
+        wrapper: TestProvider,
       });
 
       await act(async () => {
@@ -130,7 +123,7 @@ describe("useJoinInstance", () => {
       });
 
       expect(result.current.state).toBe("success");
-      expect(mutateMock).toHaveBeenCalled();
+      expect(invalidateQueriesSpy).toHaveBeenCalled();
     });
 
     it("forwards id to joinInstance", async () => {
@@ -141,7 +134,7 @@ describe("useJoinInstance", () => {
       });
 
       const { result } = renderHook(() => useJoinInstance("inst-42"), {
-        wrapper: TestSwrProvider,
+        wrapper: TestProvider,
       });
 
       await act(async () => {
@@ -159,7 +152,7 @@ describe("useJoinInstance", () => {
       );
 
       const { result } = renderHook(() => useJoinInstance("inst-1"), {
-        wrapper: TestSwrProvider,
+        wrapper: TestProvider,
       });
 
       await act(async () => {
@@ -174,7 +167,7 @@ describe("useJoinInstance", () => {
       mockJoinInstance.mockRejectedValue(makeApiError(409, "INSTANCE_CLOSED"));
 
       const { result } = renderHook(() => useJoinInstance("inst-1"), {
-        wrapper: TestSwrProvider,
+        wrapper: TestProvider,
       });
 
       await act(async () => {
@@ -188,7 +181,7 @@ describe("useJoinInstance", () => {
       mockJoinInstance.mockRejectedValue(makeApiError(409, "INSTANCE_FULL"));
 
       const { result } = renderHook(() => useJoinInstance("inst-1"), {
-        wrapper: TestSwrProvider,
+        wrapper: TestProvider,
       });
 
       await act(async () => {
@@ -204,7 +197,7 @@ describe("useJoinInstance", () => {
       );
 
       const { result } = renderHook(() => useJoinInstance("inst-1"), {
-        wrapper: TestSwrProvider,
+        wrapper: TestProvider,
       });
 
       await act(async () => {
@@ -220,7 +213,7 @@ describe("useJoinInstance", () => {
       );
 
       const { result } = renderHook(() => useJoinInstance("inst-1"), {
-        wrapper: TestSwrProvider,
+        wrapper: TestProvider,
       });
 
       await act(async () => {
@@ -236,7 +229,7 @@ describe("useJoinInstance", () => {
       );
 
       const { result } = renderHook(() => useJoinInstance("inst-1"), {
-        wrapper: TestSwrProvider,
+        wrapper: TestProvider,
       });
 
       await act(async () => {
@@ -250,7 +243,7 @@ describe("useJoinInstance", () => {
       mockJoinInstance.mockRejectedValue(new Error("Network failure"));
 
       const { result } = renderHook(() => useJoinInstance("inst-1"), {
-        wrapper: TestSwrProvider,
+        wrapper: TestProvider,
       });
 
       await act(async () => {
@@ -273,7 +266,7 @@ describe("useJoinInstance", () => {
       );
 
       const { result } = renderHook(() => useJoinInstance("inst-1"), {
-        wrapper: TestSwrProvider,
+        wrapper: TestProvider,
       });
 
       const firstPromise = result.current.join();
@@ -300,7 +293,7 @@ describe("useJoinInstance", () => {
       );
 
       const { result } = renderHook(() => useJoinInstance("inst-1"), {
-        wrapper: TestSwrProvider,
+        wrapper: TestProvider,
       });
 
       await act(async () => {
@@ -319,7 +312,7 @@ describe("useJoinInstance", () => {
       );
 
       const { result } = renderHook(() => useJoinInstance("inst-1"), {
-        wrapper: TestSwrProvider,
+        wrapper: TestProvider,
       });
 
       await act(async () => {

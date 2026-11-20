@@ -93,7 +93,7 @@ describe("SearchInput", () => {
     });
   });
 
-  describe("keyboard navigation (TKT-5.6.G2 AC #4)", () => {
+  describe("keyboard navigation", () => {
     it("ArrowDown moves highlight down in suggestions", () => {
       render(<SearchInput onSubmit={mockOnSubmit} />);
 
@@ -158,7 +158,7 @@ describe("SearchInput", () => {
     });
   });
 
-  describe("debounced submit (TKT-5.6.G2 AC #4)", () => {
+  describe("debounced submit", () => {
     it("does not submit before the debounce delay", () => {
       render(<SearchInput onSubmit={mockOnSubmit} />);
 

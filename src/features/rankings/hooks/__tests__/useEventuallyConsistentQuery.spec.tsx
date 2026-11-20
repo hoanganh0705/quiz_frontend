@@ -110,9 +110,6 @@ describe("useEventuallyConsistentQuery", () => {
           key: ["stale-test"] as const,
           fetcher,
           fallbackData: fetchResult,
-          swrConfig: {
-            revalidateOnMount: true,
-          },
         }),
       { wrapper: TestQueryProvider },
     );

@@ -36,10 +36,10 @@ export interface UseDailyChallengePlayResult {
   reset: () => void;
 }
 
-const SWR_KEY_PREFIX = "daily-challenge-play";
+const QUERY_KEY_PREFIX = "daily-challenge-play";
 
 function submitKey(quizId: string, currentIndex: number): readonly unknown[] {
-  return [SWR_KEY_PREFIX, quizId, currentIndex];
+  return [QUERY_KEY_PREFIX, quizId, currentIndex];
 }
 
 export function useDailyChallengePlay(

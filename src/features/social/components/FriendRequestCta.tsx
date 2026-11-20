@@ -179,7 +179,7 @@ export function FriendRequestCta({
             {ctaState.label}
           </Button>
 
-          {/* Outgoing-request cancel dialog (TKT-6.8.E3) */}
+          {/* Outgoing-request cancel dialog */}
           {outgoingFriendshipId !== null && (
             <FriendRequestCancelDialog
               open={cancelDialogOpen}
@@ -189,14 +189,14 @@ export function FriendRequestCta({
             />
           )}
 
-          {/* Unfriend confirm dialog (TKT-6.8.E4) */}
+          {/* Unfriend confirm dialog */}
           <UnfriendConfirmDialog
             open={unfriendDialogOpen}
             onOpenChange={setUnfriendDialogOpen}
             targetUserId={targetUserId}
           />
 
-          {/* Inline respond popover (TKT-6.8.E3) */}
+          {/* Inline respond popover */}
           {incomingFriendshipId !== null && (
             <FriendRequestRespondActions
               targetUserId={targetUserId}

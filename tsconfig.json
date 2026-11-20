@@ -20,8 +20,7 @@
     ],
     "paths": {
       "@/*": ["./src/*"],
-      "@/lib/api": ["./src/lib/api/index.ts"],
-      "swr": ["./src/testing/swr-compat.ts"]
+      "@/lib/api": ["./src/lib/api/index.ts"]
     }
   },
   "include": [

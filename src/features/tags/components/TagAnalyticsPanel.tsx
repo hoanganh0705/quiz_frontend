@@ -6,7 +6,7 @@ import { Sparkline } from "@/components/primitives/Sparkline";
 import { Button } from "@/components/ui/Button";
 import { useTagAnalytics } from "@/features/tags/hooks/useTagAnalytics";
 
-const ANALYTICS_SWR_KEY_FACTORY = (id: string) =>
+const ANALYTICS_QUERY_KEY_FACTORY = (id: string) =>
   ["tag", id, "analytics"] as const;
 
 export interface TagAnalyticsPanelProps {
@@ -62,7 +62,7 @@ export function TagAnalyticsPanel({
             variant="outline"
             onClick={() =>
               void getQueryClient().invalidateQueries({
-                queryKey: ANALYTICS_SWR_KEY_FACTORY(id),
+                queryKey: ANALYTICS_QUERY_KEY_FACTORY(id),
               })
             }
             data-testid="tag-analytics-panel-retry"

@@ -53,6 +53,16 @@ export function useSocket(
   const contextRef = useRef<ConnectionStateContext>({
     ...INITIAL_CONNECTION_CONTEXT,
   });
+  const isMountedRef = useRef(true);
+
+  const safeSetState = useCallback((fn: () => void) => {
+    if (!isMountedRef.current || typeof window === "undefined") return;
+    try {
+      fn();
+    } catch {
+      // Ignore if unmounted during transition
+    }
+  }, []);
 
   useEffect(() => {
     contextRef.current = context;
@@ -67,8 +77,10 @@ export function useSocket(
       type: "CONNECT",
     });
     contextRef.current = next;
-    setContext(next);
-    setError(null);
+    safeSetState(() => {
+      setContext(next);
+      setError(null);
+    });
 
     if (retryTimerRef.current !== null) {
       clearTimeout(retryTimerRef.current);
@@ -80,15 +92,17 @@ export function useSocket(
       transports: ["websocket", "polling"],
     });
 
-    setSocket(io);
+    safeSetState(() => setSocket(io));
 
     io.on("connect", () => {
       const nextCtx = ConnectionStateReducer(contextRef.current, {
         type: "OPEN",
       });
       contextRef.current = nextCtx;
-      setContext(nextCtx);
-      setError(null);
+      safeSetState(() => {
+        setContext(nextCtx);
+        setError(null);
+      });
     });
 
     io.on("disconnect", () => {
@@ -96,26 +110,27 @@ export function useSocket(
         type: "DISCONNECT",
       });
       contextRef.current = nextCtx;
-      setContext(nextCtx);
+      safeSetState(() => setContext(nextCtx));
     });
 
     io.on("connect_error", (err: any) => {
       const wsError = decodeWsError(err);
-      setError(wsError);
-
       const nextCtx = ConnectionStateReducer(contextRef.current, {
         type: "ERROR",
         error: wsError,
       });
       contextRef.current = nextCtx;
-      setContext(nextCtx);
+      safeSetState(() => {
+        setError(wsError);
+        setContext(nextCtx);
+      });
 
       if (wsError.authRequired) {
         const authCtx = ConnectionStateReducer(nextCtx, {
           type: "AUTH_REQUIRED",
         });
         contextRef.current = authCtx;
-        setContext(authCtx);
+        safeSetState(() => setContext(authCtx));
         return;
       }
 
@@ -129,12 +144,12 @@ export function useSocket(
             type: "RETRY",
           });
           contextRef.current = retryCtx;
-          setContext(retryCtx);
+          safeSetState(() => setContext(retryCtx));
           io.connect();
         }, delay);
       }
     });
-  }, [enabled, namespace]);
+  }, [enabled, namespace, safeSetState]);
 
   const reconnect = useCallback(() => {
     if (retryTimerRef.current !== null) {
@@ -168,7 +183,9 @@ export function useSocket(
   }, [enabled, autoConnect]);
 
   useEffect(() => {
+    isMountedRef.current = true;
     return () => {
+      isMountedRef.current = false;
       if (retryTimerRef.current !== null) {
         clearTimeout(retryTimerRef.current);
         retryTimerRef.current = null;

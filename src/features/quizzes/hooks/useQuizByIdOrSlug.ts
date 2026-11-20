@@ -69,19 +69,20 @@ export function useQuizByIdOrSlug(
     [idOrSlug],
   );
 
-  const swr = useSingleWithRetry<PlayerQuizDetail>({ key, fetcher });
+  const query = useSingleWithRetry<PlayerQuizDetail>({ key, fetcher });
 
   const notFound =
-    !swr.isLoading && swr.error !== null && isNotFoundError(swr.error);
+    !query.isLoading && query.error !== null && isNotFoundError(query.error);
 
-  const error = swr.error && !isNotFoundError(swr.error) ? swr.error : null;
+  const error =
+    query.error && !isNotFoundError(query.error) ? query.error : null;
 
   return {
-    quiz: swr.data ?? null,
+    quiz: query.data ?? null,
     notFound,
-    isLoading: swr.isLoading,
+    isLoading: query.isLoading,
     error,
-    retry: swr.retry,
-    isRetrying: swr.isRetrying,
+    retry: query.retry,
+    isRetrying: query.isRetrying,
   };
 }

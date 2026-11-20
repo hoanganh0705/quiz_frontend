@@ -56,7 +56,7 @@ export function useActivityRateLimit(
     onCooldownComplete();
     return () => {
       // Cleanup hook (no-op — the cooldown-complete callback is
-      // idempotent and the SWR refresh is fire-and-forget).
+      // idempotent and the cache refresh is fire-and-forget).
     };
   }, [rateLimitedUntil, cooldownSeconds, onCooldownComplete]);
 

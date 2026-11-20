@@ -1,7 +1,6 @@
 "use client";
 
 import { useMemo, useRef, useState } from "react";
-import { useSWRConfig } from "swr";
 
 import { ApiError } from "@/lib/api";
 import { getFeatureFlagValue } from "@/lib/feature-flags";
@@ -40,8 +39,6 @@ export function useCancelFriendRequest(
   const permissions = useSocialPermissions(targetUserId, {
     currentUserId: options.currentUserId ?? null,
   });
-
-  const { mutate: swrMutate } = useSWRConfig();
 
   const isPendingRef = useRef(false);
 
@@ -106,9 +103,6 @@ export function useCancelFriendRequest(
           void qc.invalidateQueries({
             queryKey: SOCIAL_CACHE_KEYS.makeSocialCountsKey(targetUserId),
           });
-          void swrMutate?.(SOCIAL_CACHE_KEYS.makeRelationshipKey(targetUserId));
-          void swrMutate?.(SOCIAL_CACHE_KEYS.makeOutgoingRequestsKey());
-          void swrMutate?.(SOCIAL_CACHE_KEYS.makeSocialCountsKey(targetUserId));
         })
         .catch((err: unknown) => {
           const apiErr =
@@ -127,13 +121,6 @@ export function useCancelFriendRequest(
             void qc.invalidateQueries({
               queryKey: SOCIAL_CACHE_KEYS.makeSocialCountsKey(targetUserId),
             });
-            void swrMutate?.(
-              SOCIAL_CACHE_KEYS.makeRelationshipKey(targetUserId),
-            );
-            void swrMutate?.(SOCIAL_CACHE_KEYS.makeOutgoingRequestsKey());
-            void swrMutate?.(
-              SOCIAL_CACHE_KEYS.makeSocialCountsKey(targetUserId),
-            );
             return;
           }
 
@@ -160,7 +147,6 @@ export function useCancelFriendRequest(
     targetUserId,
     assumeCanCancel,
     permissions.canCancelRequest,
-    swrMutate,
     error,
     alreadyCancelled,
   ]);

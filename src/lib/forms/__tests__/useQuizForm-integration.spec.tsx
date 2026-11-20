@@ -166,7 +166,7 @@ afterEach(() => {
   vi.clearAllMocks();
 });
 
-describe("useQuizForm — integration smoke (TKT-4.2.E3)", () => {
+describe("useQuizForm — integration smoke", () => {
   it("(1) useQuizForm is importable from @/lib/forms and exposes the documented shape", () => {
     expect(typeof useQuizForm).toBe("function");
   });

@@ -1,7 +1,7 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 import { renderHook, waitFor, cleanup } from "@testing-library/react";
 import { act } from "@testing-library/react";
-import { SWRConfig } from "swr";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 import { useNotifications } from "@/features/notifications/hooks/useNotifications";
 
@@ -24,19 +24,15 @@ const DEFAULT_FILTERS = {
   limit: undefined,
 };
 
-function TestSwrProvider({ children }: { children: React.ReactNode }) {
+function TestProvider({ children }: { children: React.ReactNode }) {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: { retry: false },
+      mutations: { retry: false },
+    },
+  });
   return (
-    <SWRConfig
-      value={{
-        provider: () => new Map(),
-        revalidateOnFocus: false,
-        revalidateIfStale: false,
-        dedupingInterval: 0,
-        errorRetryCount: 0,
-      }}
-    >
-      {children}
-    </SWRConfig>
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
   );
 }
 
@@ -55,7 +51,7 @@ describe("useNotifications", () => {
       mockGetFeatureFlagValue.mockReturnValue("placeholder");
 
       const { result } = renderHook(() => useNotifications(), {
-        wrapper: TestSwrProvider,
+        wrapper: TestProvider,
       });
 
       await waitFor(() => {
@@ -67,7 +63,7 @@ describe("useNotifications", () => {
     it("does not call listNotifications when flag is placeholder", async () => {
       mockGetFeatureFlagValue.mockReturnValue("placeholder");
 
-      renderHook(() => useNotifications(), { wrapper: TestSwrProvider });
+      renderHook(() => useNotifications(), { wrapper: TestProvider });
 
       await new Promise((resolve) => setTimeout(resolve, 10));
       expect(mockListNotifications).not.toHaveBeenCalled();
@@ -84,7 +80,7 @@ describe("useNotifications", () => {
       });
 
       const { result } = renderHook(() => useNotifications(), {
-        wrapper: TestSwrProvider,
+        wrapper: TestProvider,
       });
 
       await waitFor(() => {
@@ -104,7 +100,7 @@ describe("useNotifications", () => {
 
       renderHook(
         () => useNotifications({ ...DEFAULT_FILTERS, unreadOnly: true }),
-        { wrapper: TestSwrProvider },
+        { wrapper: TestProvider },
       );
 
       await waitFor(() => {
@@ -129,7 +125,7 @@ describe("useNotifications", () => {
             ...DEFAULT_FILTERS,
             type: "achievement" as never,
           }),
-        { wrapper: TestSwrProvider },
+        { wrapper: TestProvider },
       );
 
       await waitFor(() => {
@@ -161,7 +157,7 @@ describe("useNotifications", () => {
       });
 
       const { result } = renderHook(() => useNotifications(), {
-        wrapper: TestSwrProvider,
+        wrapper: TestProvider,
       });
 
       await waitFor(() => {
@@ -192,7 +188,7 @@ describe("useNotifications", () => {
       mockListNotifications.mockResolvedValue(wrapped);
 
       const { result } = renderHook(() => useNotifications(), {
-        wrapper: TestSwrProvider,
+        wrapper: TestProvider,
       });
 
       await waitFor(() => {
@@ -239,7 +235,7 @@ describe("useNotifications", () => {
       });
 
       const { result } = renderHook(() => useNotifications(), {
-        wrapper: TestSwrProvider,
+        wrapper: TestProvider,
       });
 
       await waitFor(() => {
@@ -269,7 +265,7 @@ describe("useNotifications", () => {
       });
 
       const { result } = renderHook(() => useNotifications(), {
-        wrapper: TestSwrProvider,
+        wrapper: TestProvider,
       });
 
       await waitFor(() => {
@@ -291,7 +287,7 @@ describe("useNotifications", () => {
       });
 
       const { result } = renderHook(() => useNotifications(), {
-        wrapper: TestSwrProvider,
+        wrapper: TestProvider,
       });
 
       await waitFor(() => {
@@ -310,7 +306,7 @@ describe("useNotifications", () => {
       });
 
       const { result } = renderHook(() => useNotifications(), {
-        wrapper: TestSwrProvider,
+        wrapper: TestProvider,
       });
       await waitFor(() => {
         expect(mockListNotifications).toHaveBeenCalled();
@@ -336,7 +332,7 @@ describe("useNotifications", () => {
       });
 
       const { result } = renderHook(() => useNotifications(), {
-        wrapper: TestSwrProvider,
+        wrapper: TestProvider,
       });
 
       await waitFor(() => {
@@ -357,7 +353,7 @@ describe("useNotifications", () => {
       });
 
       const { result } = renderHook(() => useNotifications(), {
-        wrapper: TestSwrProvider,
+        wrapper: TestProvider,
       });
       await waitFor(() => {
         expect(result.current.items).toBeDefined();

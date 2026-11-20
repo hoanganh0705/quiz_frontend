@@ -24,7 +24,7 @@ const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 /**
- * `<TipAuthorForm />` — Phase 5.2 spend form.
+ * `<TipAuthorForm />` — spend form.
  *
  * Wraps the existing `useTipAuthor` mutation in a small UX so users can
  * tip without leaving `/coins`. We do NOT do a recipient-username

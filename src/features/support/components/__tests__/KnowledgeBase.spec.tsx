@@ -1,5 +1,5 @@
 /**
- * Unit tests for `KnowledgeBase` — Phase 4.2 regression guard.
+ * Unit tests for `KnowledgeBase`.
  *
  * Specifically asserts that:
  *   - On a successful fetch, the article grid renders the API data.

@@ -11,7 +11,7 @@ describe("QuizRelatedQuizzesEmpty — never-render invariant", () => {
     );
   });
 
-  it("the error message references `Story 3.8 line 880` so the failure mode is grep-able from logs", () => {
+  it("the error message references domain design specifications so the failure mode is grep-able from logs", () => {
     let captured: unknown = null;
     try {
       QuizRelatedQuizzesEmpty();
@@ -21,7 +21,7 @@ describe("QuizRelatedQuizzesEmpty — never-render invariant", () => {
     expect(captured).toBeInstanceOf(Error);
     const message = (captured as Error).message;
     expect(message).toContain("[QuizRelatedQuizzesEmpty]");
-    expect(message).toContain("Story 3.8 line 880");
+    expect(message).toContain("domain design specifications");
   });
 });
 

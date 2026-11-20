@@ -13,7 +13,6 @@ export interface UseEventuallyConsistentQueryParams<T> {
   key: readonly unknown[] | null;
   fetcher: EventuallyConsistentFetcher<T>;
   fallbackData?: T;
-  swrConfig?: Record<string, unknown>;
 }
 
 export interface UseEventuallyConsistentQueryResult<T> {

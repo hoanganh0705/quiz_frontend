@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useRef, useState } from "react";
-import { mutate as globalMutate, useSWRConfig } from "swr";
 import { getQueryClient } from "@/providers/QueryProvider";
 
 import { ApiError, isApiError } from "@/lib/api";
@@ -12,10 +11,6 @@ import {
   type NotificationMutationState,
 } from "@/features/notifications/types/notification.types";
 import { getFeatureFlagValue } from "@/lib/feature-flags";
-import {
-  buildNotificationListRevalidations,
-  findNotificationInfiniteKeys,
-} from "@/features/notifications/utils/swr-infinite-cache";
 
 export interface UseMarkNotificationReadResult {
   markRead: () => Promise<void>;
@@ -33,8 +28,6 @@ export function useMarkNotificationRead(
   const [state, setState] = useState<NotificationMutationState>("idle");
   const [error, setError] = useState<ApiError | null>(null);
   const inFlightRef = useRef(false);
-
-  const swrConfig = useSWRConfig();
 
   const markRead = useCallback(async (): Promise<void> => {
     if (isFlagPlaceholder) {
@@ -57,8 +50,6 @@ export function useMarkNotificationRead(
       await markNotificationRead(notificationId);
 
       const qc = getQueryClient();
-      const infiniteKeys = findNotificationInfiniteKeys(swrConfig.cache);
-
       await Promise.all([
         qc.invalidateQueries({ queryKey: ["notifications", "list"] }),
         qc.invalidateQueries({
@@ -67,23 +58,6 @@ export function useMarkNotificationRead(
         qc.invalidateQueries({
           queryKey: NOTIFICATION_CACHE_KEYS.detail(notificationId),
         }),
-        ...buildNotificationListRevalidations(swrConfig, infiniteKeys),
-        globalMutate(
-          (key) =>
-            Array.isArray(key) &&
-            key[0] === "notifications" &&
-            key[1] === "list",
-          undefined,
-          { revalidate: true },
-        ),
-        globalMutate(NOTIFICATION_CACHE_KEYS.unreadCount(), undefined, {
-          revalidate: true,
-        }),
-        globalMutate(
-          NOTIFICATION_CACHE_KEYS.detail(notificationId),
-          undefined,
-          { revalidate: true },
-        ),
       ]);
 
       setState("success");
@@ -112,7 +86,7 @@ export function useMarkNotificationRead(
     } finally {
       inFlightRef.current = false;
     }
-  }, [isFlagPlaceholder, notificationId, state, swrConfig]);
+  }, [isFlagPlaceholder, notificationId, state]);
 
   const reset = useCallback(() => {
     setState("idle");

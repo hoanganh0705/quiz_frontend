@@ -24,10 +24,6 @@ vi.mock("@/features/quizzes/hooks/usePublishVersion", () => ({
   usePublishVersion: (...args: unknown[]) => mockUsePublishVersion(...args),
 }));
 
-vi.mock("swr", () => ({
-  useSWRConfig: () => ({ mutate: vi.fn() }),
-}));
-
 import { PublishCta } from "@/features/quizzes/components/PublishCta";
 import { PublishConfirmDialog } from "@/features/quizzes/components/PublishConfirmDialog";
 

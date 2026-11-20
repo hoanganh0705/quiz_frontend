@@ -1,7 +1,7 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 import { cleanup, renderHook, waitFor } from "@testing-library/react";
 import * as React from "react";
-import { SWRConfig } from "swr";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 import {
   useListInstances,
@@ -18,19 +18,15 @@ vi.mock("@/features/instances/services/instances.service", () => ({
   listInstances: (...args: unknown[]) => mockListInstances(...args),
 }));
 
-function TestSwrProvider({ children }: { children: React.ReactNode }) {
+function TestProvider({ children }: { children: React.ReactNode }) {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: { retry: false },
+      mutations: { retry: false },
+    },
+  });
   return (
-    <SWRConfig
-      value={{
-        provider: () => new Map(),
-        revalidateOnFocus: false,
-        revalidateIfStale: false,
-        dedupingInterval: 0,
-        errorRetryCount: 0,
-      }}
-    >
-      {children}
-    </SWRConfig>
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
   );
 }
 
@@ -70,7 +66,7 @@ describe("useListInstances", () => {
   it("returns empty instances when flag is placeholder", async () => {
     mockGetFeatureFlagValue.mockReturnValue("placeholder");
     const { result } = renderHook(() => useListInstances(), {
-      wrapper: TestSwrProvider,
+      wrapper: TestProvider,
     });
 
     expect(result.current.instances).toEqual([]);
@@ -96,7 +92,7 @@ describe("useListInstances", () => {
     mockListInstances.mockResolvedValueOnce(mockData);
 
     const { result } = renderHook(() => useListInstances(), {
-      wrapper: TestSwrProvider,
+      wrapper: TestProvider,
     });
 
     await waitFor(() => {

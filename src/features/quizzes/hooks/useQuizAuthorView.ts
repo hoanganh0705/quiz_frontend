@@ -74,25 +74,25 @@ export function useQuizAuthorView(
     [quizId],
   );
 
-  const swr = useSingleWithRetry<QuizAuthorView>({
+  const query = useSingleWithRetry<QuizAuthorView>({
     key,
     fetcher,
   });
 
   const retry = useCallback(async () => {
-    await swr.retry();
-  }, [swr]);
+    await query.retry();
+  }, [query]);
 
-  const isNotFoundError = swr.error !== null && swr.error.status === 404;
+  const isNotFoundError = query.error !== null && query.error.status === 404;
 
-  const isForbiddenError = swr.error !== null && swr.error.status === 403;
+  const isForbiddenError = query.error !== null && query.error.status === 403;
 
   return {
-    data: swr.data ?? null,
-    isLoading: swr.isLoading,
+    data: query.data ?? null,
+    isLoading: query.isLoading,
     error:
-      isForbiddenError || (swr.error !== null && !isNotFoundError)
-        ? swr.error
+      isForbiddenError || (query.error !== null && !isNotFoundError)
+        ? query.error
         : null,
     notFound: isNotFoundError,
     retry,

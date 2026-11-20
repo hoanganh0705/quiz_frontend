@@ -176,7 +176,7 @@ export function CategoryDetailPage({
              * links to `/categories/<category.slug>` (the canonical
              * slug).
              *
-             * Source: Story 3.3 line 349 edge case.
+             * Ensures canonical URL slug resolution.
              */}
             <Link
               href={`/categories/${category.slug}`}

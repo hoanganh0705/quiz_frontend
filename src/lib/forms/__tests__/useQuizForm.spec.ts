@@ -456,7 +456,7 @@ describe("useQuizForm — bulkSubmit() orchestration", () => {
   });
 });
 
-describe("useQuizForm — readonly mode (TKT-4.2.E1)", () => {
+describe("useQuizForm — readonly mode", () => {
   it("(15) does not invoke the injected handler in readonly mode", async () => {
     const handler = vi.fn(async () => undefined);
     const { result } = renderHook(() =>
@@ -523,7 +523,7 @@ describe("useQuizForm — readonly mode (TKT-4.2.E1)", () => {
   });
 });
 
-describe("useQuizForm — isHydrating / markHydrated (TKT-4.2.E2)", () => {
+describe("useQuizForm — isHydrating / markHydrated", () => {
   it("(18) isHydrating is true on the first render and markHydrated() flips it to false", () => {
     const { result } = renderHook(() =>
       useQuizForm({

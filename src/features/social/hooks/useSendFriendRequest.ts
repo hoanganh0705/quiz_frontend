@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useMemo } from "react";
-import { useSWRConfig } from "swr";
 import { getQueryClient } from "@/providers/QueryProvider";
 
 import { ApiError, useOptimisticMutation } from "@/lib/api";
@@ -51,8 +50,6 @@ export function useSendFriendRequest(
     currentUserId: options.currentUserId ?? null,
   });
 
-  const { mutate: swrMutate } = useSWRConfig();
-
   const {
     mutate: dispatchMutation,
     isInFlight,
@@ -72,18 +69,9 @@ export function useSendFriendRequest(
         qc.invalidateQueries({
           queryKey: SOCIAL_CACHE_KEYS.makeSocialCountsKey(userId),
         }),
-        swrMutate?.(SOCIAL_CACHE_KEYS.makeRelationshipKey(userId), undefined, {
-          revalidate: true,
-        }),
-        swrMutate?.(SOCIAL_CACHE_KEYS.makeOutgoingRequestsKey(), undefined, {
-          revalidate: true,
-        }),
-        swrMutate?.(SOCIAL_CACHE_KEYS.makeSocialCountsKey(userId), undefined, {
-          revalidate: true,
-        }),
       ]);
     },
-    [swrMutate],
+    [],
   );
 
   const error: SendFriendRequestErrorCode | null =

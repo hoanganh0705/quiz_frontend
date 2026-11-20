@@ -22,7 +22,7 @@ const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 /**
- * `<FlairEquipForm />` — Phase 5.2 spend form.
+ * `<FlairEquipForm />` — spend form.
  *
  * Lets a user spend coins to equip a badge as profile flair for 7 days.
  * The user supplies the `userBadgeId` (visible on badge-detail pages);

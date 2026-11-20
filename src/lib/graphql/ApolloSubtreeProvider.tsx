@@ -3,7 +3,7 @@
  *
  * The GraphQL pilot is opt-in per page, so each pilot page wraps its subtree
  * with this provider. A fresh client is created per provider instance so two
- * pilot pages do not share caches (the plan's hard rule: Apollo and SWR
+ * pilot pages do not share caches (the plan's hard rule: Apollo and TanStack Query
  * never share a cache key space).
  *
  * Note: this file is intentionally a client component because Apollo Client is

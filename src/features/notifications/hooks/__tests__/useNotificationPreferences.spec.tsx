@@ -1,6 +1,6 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 import { act, cleanup, renderHook, waitFor } from "@testing-library/react";
-import { SWRConfig } from "swr";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 import { useNotificationPreferences } from "@/features/notifications/hooks/useNotificationPreferences";
 import { ApiError, isApiError } from "@/lib/api";
@@ -43,19 +43,15 @@ function makeApiError(status: number, code: string) {
   } as unknown as Parameters<typeof ApiError.fromAxios>[0]);
 }
 
-function TestSwrProvider({ children }: { children: React.ReactNode }) {
+function TestProvider({ children }: { children: React.ReactNode }) {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: { retry: false },
+      mutations: { retry: false },
+    },
+  });
   return (
-    <SWRConfig
-      value={{
-        provider: () => new Map(),
-        revalidateOnFocus: false,
-        revalidateIfStale: false,
-        dedupingInterval: 0,
-        errorRetryCount: 0,
-      }}
-    >
-      {children}
-    </SWRConfig>
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
   );
 }
 
@@ -88,7 +84,7 @@ describe("useNotificationPreferences", () => {
   describe("read path", () => {
     it("returns preferences from service", async () => {
       const { result } = renderHook(() => useNotificationPreferences(), {
-        wrapper: TestSwrProvider,
+        wrapper: TestProvider,
       });
 
       await waitFor(() => {
@@ -106,7 +102,7 @@ describe("useNotificationPreferences", () => {
       mockGetNotificationPreferences.mockReturnValue(new Promise(() => {}));
 
       const { result } = renderHook(() => useNotificationPreferences(), {
-        wrapper: TestSwrProvider,
+        wrapper: TestProvider,
       });
 
       await waitFor(() => {
@@ -121,7 +117,7 @@ describe("useNotificationPreferences", () => {
       mockGetFeatureFlagValue.mockReturnValue("placeholder");
 
       renderHook(() => useNotificationPreferences(), {
-        wrapper: TestSwrProvider,
+        wrapper: TestProvider,
       });
 
       await new Promise((resolve) => setTimeout(resolve, 10));
@@ -132,7 +128,7 @@ describe("useNotificationPreferences", () => {
       mockGetFeatureFlagValue.mockReturnValue("placeholder");
 
       const { result } = renderHook(() => useNotificationPreferences(), {
-        wrapper: TestSwrProvider,
+        wrapper: TestProvider,
       });
 
       await act(async () => {
@@ -146,7 +142,7 @@ describe("useNotificationPreferences", () => {
   describe("update path", () => {
     it("forwards the patch to the service", async () => {
       const { result } = renderHook(() => useNotificationPreferences(), {
-        wrapper: TestSwrProvider,
+        wrapper: TestProvider,
       });
 
       await waitFor(() => {
@@ -164,7 +160,7 @@ describe("useNotificationPreferences", () => {
 
     it("transitions to isUpdated after a successful update", async () => {
       const { result } = renderHook(() => useNotificationPreferences(), {
-        wrapper: TestSwrProvider,
+        wrapper: TestProvider,
       });
 
       await waitFor(() => {
@@ -184,7 +180,7 @@ describe("useNotificationPreferences", () => {
   describe("error handling", () => {
     it("transitions to error with GLOBAL_VALIDATION_FAILED", async () => {
       const { result } = renderHook(() => useNotificationPreferences(), {
-        wrapper: TestSwrProvider,
+        wrapper: TestProvider,
       });
       await waitFor(() => {
         expect(result.current.preferences).not.toBeNull();
@@ -204,7 +200,7 @@ describe("useNotificationPreferences", () => {
 
     it("transitions to error with INVALID_PREFERENCE_VALUE", async () => {
       const { result } = renderHook(() => useNotificationPreferences(), {
-        wrapper: TestSwrProvider,
+        wrapper: TestProvider,
       });
       await waitFor(() => {
         expect(result.current.preferences).not.toBeNull();
@@ -223,7 +219,7 @@ describe("useNotificationPreferences", () => {
 
     it("transitions to error with GLOBAL_UNAUTHENTICATED", async () => {
       const { result } = renderHook(() => useNotificationPreferences(), {
-        wrapper: TestSwrProvider,
+        wrapper: TestProvider,
       });
       await waitFor(() => {
         expect(result.current.preferences).not.toBeNull();
@@ -252,7 +248,7 @@ describe("useNotificationPreferences", () => {
       );
 
       const { result } = renderHook(() => useNotificationPreferences(), {
-        wrapper: TestSwrProvider,
+        wrapper: TestProvider,
       });
 
       await waitFor(() => {
@@ -275,7 +271,7 @@ describe("useNotificationPreferences", () => {
   describe("reset", () => {
     it("clears the updateError", async () => {
       const { result } = renderHook(() => useNotificationPreferences(), {
-        wrapper: TestSwrProvider,
+        wrapper: TestProvider,
       });
       await waitFor(() => {
         expect(result.current.preferences).not.toBeNull();

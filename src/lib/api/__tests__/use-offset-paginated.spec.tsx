@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { act, renderHook, waitFor } from "@testing-library/react";
 
-import { SwrProvider } from "@/providers";
+import { QueryProvider } from "@/providers";
 
 import {
   FEED_DEFAULT_LIMIT,
@@ -60,7 +60,7 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-describe("TKT-6.9.D1 / useOffsetPaginated — offset mode", () => {
+describe("offset mode", () => {
   it("(a) first-page fetch: returns items; offset equals items.length; hasMore mirrors server", async () => {
     const firstPage: Item[] = [
       makeItem({ id: "q-1" }),
@@ -80,7 +80,7 @@ describe("TKT-6.9.D1 / useOffsetPaginated — offset mode", () => {
           params: {},
           limit: 3,
         }),
-      { wrapper: SwrProvider },
+      { wrapper: QueryProvider },
     );
 
     await waitFor(() => {
@@ -119,7 +119,7 @@ describe("TKT-6.9.D1 / useOffsetPaginated — offset mode", () => {
           params: {},
           limit: 2,
         }),
-      { wrapper: SwrProvider },
+      { wrapper: QueryProvider },
     );
 
     await waitFor(() => {
@@ -155,7 +155,7 @@ describe("TKT-6.9.D1 / useOffsetPaginated — offset mode", () => {
           params: {},
           limit: 1,
         }),
-      { wrapper: SwrProvider },
+      { wrapper: QueryProvider },
     );
 
     await waitFor(() => {
@@ -184,7 +184,7 @@ describe("TKT-6.9.D1 / useOffsetPaginated — offset mode", () => {
           params: {},
           limit: 1_000,
         }),
-      { wrapper: SwrProvider },
+      { wrapper: QueryProvider },
     );
 
     await waitFor(() => {
@@ -210,7 +210,7 @@ describe("TKT-6.9.D1 / useOffsetPaginated — offset mode", () => {
           params: {},
           limit: -3,
         }),
-      { wrapper: SwrProvider },
+      { wrapper: QueryProvider },
     );
 
     await waitFor(() => {
@@ -246,7 +246,7 @@ describe("TKT-6.9.D1 / useOffsetPaginated — offset mode", () => {
           params: {},
           limit: 2,
         }),
-      { wrapper: SwrProvider },
+      { wrapper: QueryProvider },
     );
 
     await waitFor(() => {
@@ -265,7 +265,7 @@ describe("TKT-6.9.D1 / useOffsetPaginated — offset mode", () => {
     expect(calls[1]!.offset).toBe(firstPage.length);
   });
 
-  it("(g) the SWR key is the caller's key (no offset / cursor / page appended)", async () => {
+  it("(g) the query key is the caller's key (no offset / cursor / page appended)", async () => {
     const firstPage: Item[] = [makeItem({ id: "q-1" })];
     const { fetcher } = buildQueuedFetcher(
       [{ items: firstPage, hasMore: false }],
@@ -280,7 +280,7 @@ describe("TKT-6.9.D1 / useOffsetPaginated — offset mode", () => {
           params: {},
           limit: 1,
         }),
-      { wrapper: SwrProvider },
+      { wrapper: QueryProvider },
     );
 
     await waitFor(() => {
@@ -305,7 +305,7 @@ describe("TKT-6.9.D1 / useOffsetPaginated — offset mode", () => {
           params: {},
           limit: 1,
         }),
-      { wrapper: SwrProvider },
+      { wrapper: QueryProvider },
     );
 
     await waitFor(() => {

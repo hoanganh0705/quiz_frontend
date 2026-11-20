@@ -46,7 +46,7 @@ export function useEventDeduplicator(): EventDeduplicatorInterface {
     throw new Error(
       "useEventDeduplicator must be called inside a <RealtimeSocialShell> provider. " +
         "Wrap your tree in <RealtimeSocialShell> from " +
-        "'@/features/social/realtime/realtime-social-shell' (TKT-6.10.G1).",
+        "'@/features/social/realtime/realtime-social-shell'.",
     );
   }
   return dedup;

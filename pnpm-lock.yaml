@@ -2147,12 +2147,6 @@ packages:
         integrity: sha512-4An6IcqRMRReSurHVw2izLHOAX4ZkHPlaK9LubkOH1Nxzymm2ihw4eamt2XKuZ1eF83R3rzYcKwMPK3t+GzeVg==,
       }
 
-  "@orval/swr@7.21.0":
-    resolution:
-      {
-        integrity: sha512-aHa6WFldrpN8gQYuXfl51ogC+QpFtVzL/u9DQa+hEUAf9MXieMVVDV5w9fR9XJ4nMpV1fSCbeRd7xxqNVtd/Nw==,
-      }
-
   "@orval/zod@7.21.0":
     resolution:
       {
@@ -11488,16 +11482,6 @@ snapshots:
       - supports-color
       - typescript
 
-  "@orval/swr@7.21.0(openapi-types@12.1.3)(typescript@5.9.3)":
-    dependencies:
-      "@orval/core": 7.21.0(openapi-types@12.1.3)(typescript@5.9.3)
-      "@orval/fetch": 7.21.0(openapi-types@12.1.3)(typescript@5.9.3)
-    transitivePeerDependencies:
-      - encoding
-      - openapi-types
-      - supports-color
-      - typescript
-
   "@orval/zod@7.21.0(openapi-types@12.1.3)(typescript@5.9.3)":
     dependencies:
       "@orval/core": 7.21.0(openapi-types@12.1.3)(typescript@5.9.3)
@@ -15379,7 +15363,6 @@ snapshots:
       "@orval/mcp": 7.21.0(openapi-types@12.1.3)(typescript@5.9.3)
       "@orval/mock": 7.21.0(openapi-types@12.1.3)(typescript@5.9.3)
       "@orval/query": 7.21.0(openapi-types@12.1.3)(typescript@5.9.3)
-      "@orval/swr": 7.21.0(openapi-types@12.1.3)(typescript@5.9.3)
       "@orval/zod": 7.21.0(openapi-types@12.1.3)(typescript@5.9.3)
       chalk: 4.1.2
       chokidar: 4.0.3

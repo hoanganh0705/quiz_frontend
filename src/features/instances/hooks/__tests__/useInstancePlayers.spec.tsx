@@ -1,6 +1,6 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 import { cleanup, renderHook, waitFor } from "@testing-library/react";
-import { SWRConfig } from "swr";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 import { useInstancePlayers } from "@/features/instances/hooks/useInstancePlayers";
 import { ApiError, isApiError } from "@/lib/api";
@@ -41,19 +41,15 @@ function makeApiError(status: number, code: string) {
   return new ApiError(err as unknown as Parameters<typeof ApiError>[0]);
 }
 
-function TestSwrProvider({ children }: { children: React.ReactNode }) {
+function TestProvider({ children }: { children: React.ReactNode }) {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: { retry: false },
+      mutations: { retry: false },
+    },
+  });
   return (
-    <SWRConfig
-      value={{
-        provider: () => new Map(),
-        revalidateOnFocus: false,
-        revalidateIfStale: false,
-        dedupingInterval: 0,
-        errorRetryCount: 0,
-      }}
-    >
-      {children}
-    </SWRConfig>
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
   );
 }
 
@@ -72,7 +68,7 @@ describe("useInstancePlayers", () => {
       mockGetFeatureFlagValue.mockReturnValue("placeholder");
 
       const { result } = renderHook(() => useInstancePlayers("inst-1"), {
-        wrapper: TestSwrProvider,
+        wrapper: TestProvider,
       });
 
       await waitFor(() => {
@@ -86,7 +82,7 @@ describe("useInstancePlayers", () => {
       mockGetFeatureFlagValue.mockReturnValue("placeholder");
 
       renderHook(() => useInstancePlayers("inst-1"), {
-        wrapper: TestSwrProvider,
+        wrapper: TestProvider,
       });
 
       await new Promise((r) => setTimeout(r, 10));
@@ -113,7 +109,7 @@ describe("useInstancePlayers", () => {
       });
 
       const { result } = renderHook(() => useInstancePlayers("inst-1"), {
-        wrapper: TestSwrProvider,
+        wrapper: TestProvider,
       });
 
       await waitFor(() => {
@@ -136,7 +132,7 @@ describe("useInstancePlayers", () => {
       ]);
 
       const { result } = renderHook(() => useInstancePlayers("inst-1"), {
-        wrapper: TestSwrProvider,
+        wrapper: TestProvider,
       });
 
       await waitFor(() => {
@@ -165,7 +161,7 @@ describe("useInstancePlayers", () => {
       });
 
       const { result } = renderHook(() => useInstancePlayers("inst-1"), {
-        wrapper: TestSwrProvider,
+        wrapper: TestProvider,
       });
 
       await waitFor(() => {
@@ -185,7 +181,7 @@ describe("useInstancePlayers", () => {
       );
 
       const { result } = renderHook(() => useInstancePlayers("inst-1"), {
-        wrapper: TestSwrProvider,
+        wrapper: TestProvider,
       });
 
       await waitFor(() => {
@@ -200,7 +196,7 @@ describe("useInstancePlayers", () => {
       );
 
       const { result } = renderHook(() => useInstancePlayers("inst-1"), {
-        wrapper: TestSwrProvider,
+        wrapper: TestProvider,
       });
 
       await waitFor(() => {
@@ -215,7 +211,7 @@ describe("useInstancePlayers", () => {
       );
 
       const { result } = renderHook(() => useInstancePlayers("inst-1"), {
-        wrapper: TestSwrProvider,
+        wrapper: TestProvider,
       });
 
       await waitFor(() => {
@@ -244,7 +240,7 @@ describe("useInstancePlayers", () => {
       });
 
       const { result } = renderHook(() => useInstancePlayers("inst-1"), {
-        wrapper: TestSwrProvider,
+        wrapper: TestProvider,
       });
 
       await waitFor(() => {
@@ -270,7 +266,7 @@ describe("useInstancePlayers", () => {
       });
 
       const { result } = renderHook(() => useInstancePlayers("inst-1"), {
-        wrapper: TestSwrProvider,
+        wrapper: TestProvider,
       });
 
       await waitFor(() => {
@@ -283,7 +279,7 @@ describe("useInstancePlayers", () => {
   describe("null id short-circuit", () => {
     it("does not call service when id is null", async () => {
       const { result } = renderHook(() => useInstancePlayers(null), {
-        wrapper: TestSwrProvider,
+        wrapper: TestProvider,
       });
       void result;
 

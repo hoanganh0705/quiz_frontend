@@ -1,6 +1,7 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 import { act, cleanup, renderHook } from "@testing-library/react";
-import { SWRConfig } from "swr";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { getQueryClient } from "@/providers/QueryProvider";
 
 import { useCloseInstance } from "@/features/instances/hooks/useCloseInstance";
 import { ApiError, isApiError } from "@/lib/api";
@@ -14,15 +15,6 @@ const mockCloseInstance = vi.fn();
 vi.mock("@/features/instances/services/instances.service", () => ({
   closeInstance: (...args: unknown[]) => mockCloseInstance(...args),
 }));
-
-const mutateMock = vi.fn();
-vi.mock("swr", async () => {
-  const actual = await vi.importActual<typeof import("swr")>("swr");
-  return {
-    ...actual,
-    mutate: (...args: unknown[]) => mutateMock(...args),
-  };
-});
 
 function makeApiError(status: number, code: string) {
   const wireBody = {
@@ -50,19 +42,15 @@ function makeApiError(status: number, code: string) {
   return new ApiError(err as unknown as Parameters<typeof ApiError>[0]);
 }
 
-function TestSwrProvider({ children }: { children: React.ReactNode }) {
+function TestProvider({ children }: { children: React.ReactNode }) {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: { retry: false },
+      mutations: { retry: false },
+    },
+  });
   return (
-    <SWRConfig
-      value={{
-        provider: () => new Map(),
-        revalidateOnFocus: false,
-        revalidateIfStale: false,
-        dedupingInterval: 0,
-        errorRetryCount: 0,
-      }}
-    >
-      {children}
-    </SWRConfig>
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
   );
 }
 
@@ -87,21 +75,26 @@ const playerPermissions = {
 };
 
 describe("useCloseInstance", () => {
+  let invalidateQueriesSpy: ReturnType<typeof vi.spyOn>;
+
   beforeEach(() => {
     vi.clearAllMocks();
-    mutateMock.mockResolvedValue(undefined);
+    invalidateQueriesSpy = vi
+      .spyOn(getQueryClient(), "invalidateQueries")
+      .mockResolvedValue(undefined as never);
     mockGetFeatureFlagValue.mockReturnValue("live");
   });
 
   afterEach(() => {
     cleanup();
+    vi.restoreAllMocks();
   });
 
   describe("initialization", () => {
     it("closes in idle state", () => {
       const { result } = renderHook(
         () => useCloseInstance("inst-1", hostPermissions),
-        { wrapper: TestSwrProvider },
+        { wrapper: TestProvider },
       );
       expect(result.current.state).toBe("idle");
       expect(result.current.error).toBeNull();
@@ -112,7 +105,7 @@ describe("useCloseInstance", () => {
 
       const { result } = renderHook(
         () => useCloseInstance("inst-1", hostPermissions),
-        { wrapper: TestSwrProvider },
+        { wrapper: TestProvider },
       );
 
       await act(async () => {
@@ -125,7 +118,7 @@ describe("useCloseInstance", () => {
     it("close is a no-op when instanceId is null", async () => {
       const { result } = renderHook(
         () => useCloseInstance(null, hostPermissions),
-        { wrapper: TestSwrProvider },
+        { wrapper: TestProvider },
       );
 
       await act(async () => {
@@ -138,7 +131,7 @@ describe("useCloseInstance", () => {
     it("close is a no-op when permissions.canClose is false", async () => {
       const { result } = renderHook(
         () => useCloseInstance("inst-1", playerPermissions),
-        { wrapper: TestSwrProvider },
+        { wrapper: TestProvider },
       );
 
       await act(async () => {
@@ -151,7 +144,7 @@ describe("useCloseInstance", () => {
     it("surfaces INSTANCE_HOST_REQUIRED locally when canClose is false", async () => {
       const { result } = renderHook(
         () => useCloseInstance("inst-1", playerPermissions),
-        { wrapper: TestSwrProvider },
+        { wrapper: TestProvider },
       );
 
       await act(async () => {
@@ -164,7 +157,7 @@ describe("useCloseInstance", () => {
   });
 
   describe("success path", () => {
-    it("transitions to success state and invalidates SWR keys", async () => {
+    it("transitions to success state and invalidates queries", async () => {
       mockCloseInstance.mockResolvedValue({
         instanceId: "inst-1",
         status: "closed",
@@ -173,7 +166,7 @@ describe("useCloseInstance", () => {
 
       const { result } = renderHook(
         () => useCloseInstance("inst-1", hostPermissions),
-        { wrapper: TestSwrProvider },
+        { wrapper: TestProvider },
       );
 
       await act(async () => {
@@ -181,7 +174,7 @@ describe("useCloseInstance", () => {
       });
 
       expect(result.current.state).toBe("success");
-      expect(mutateMock).toHaveBeenCalled();
+      expect(invalidateQueriesSpy).toHaveBeenCalled();
     });
 
     it("forwards id to closeInstance", async () => {
@@ -193,7 +186,7 @@ describe("useCloseInstance", () => {
 
       const { result } = renderHook(
         () => useCloseInstance("inst-42", hostPermissions),
-        { wrapper: TestSwrProvider },
+        { wrapper: TestProvider },
       );
 
       await act(async () => {
@@ -212,7 +205,7 @@ describe("useCloseInstance", () => {
 
       const { result } = renderHook(
         () => useCloseInstance("inst-1", hostPermissions),
-        { wrapper: TestSwrProvider },
+        { wrapper: TestProvider },
       );
 
       await act(async () => {
@@ -231,7 +224,7 @@ describe("useCloseInstance", () => {
 
       const { result } = renderHook(
         () => useCloseInstance("inst-1", hostPermissions),
-        { wrapper: TestSwrProvider },
+        { wrapper: TestProvider },
       );
 
       await act(async () => {
@@ -249,7 +242,7 @@ describe("useCloseInstance", () => {
 
       const { result } = renderHook(
         () => useCloseInstance("inst-1", hostPermissions),
-        { wrapper: TestSwrProvider },
+        { wrapper: TestProvider },
       );
 
       await act(async () => {
@@ -267,7 +260,7 @@ describe("useCloseInstance", () => {
 
       const { result } = renderHook(
         () => useCloseInstance("inst-1", hostPermissions),
-        { wrapper: TestSwrProvider },
+        { wrapper: TestProvider },
       );
 
       await act(async () => {
@@ -285,7 +278,7 @@ describe("useCloseInstance", () => {
 
       const { result } = renderHook(
         () => useCloseInstance("inst-1", hostPermissions),
-        { wrapper: TestSwrProvider },
+        { wrapper: TestProvider },
       );
 
       await act(async () => {
@@ -301,7 +294,7 @@ describe("useCloseInstance", () => {
 
       const { result } = renderHook(
         () => useCloseInstance("inst-1", hostPermissions),
-        { wrapper: TestSwrProvider },
+        { wrapper: TestProvider },
       );
 
       await act(async () => {
@@ -325,7 +318,7 @@ describe("useCloseInstance", () => {
 
       const { result } = renderHook(
         () => useCloseInstance("inst-1", hostPermissions),
-        { wrapper: TestSwrProvider },
+        { wrapper: TestProvider },
       );
 
       const firstPromise = result.current.close();
@@ -353,7 +346,7 @@ describe("useCloseInstance", () => {
 
       const { result } = renderHook(
         () => useCloseInstance("inst-1", hostPermissions),
-        { wrapper: TestSwrProvider },
+        { wrapper: TestProvider },
       );
 
       await act(async () => {

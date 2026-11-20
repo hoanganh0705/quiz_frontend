@@ -1,6 +1,6 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 import { cleanup, renderHook, waitFor } from "@testing-library/react";
-import { SWRConfig } from "swr";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 import { useUnreadNotificationCount } from "@/features/notifications/hooks/useUnreadNotificationCount";
 
@@ -63,19 +63,15 @@ function setupSocketMocks() {
   clearCapturedHandlers();
 }
 
-function TestSwrProvider({ children }: { children: React.ReactNode }) {
+function TestProvider({ children }: { children: React.ReactNode }) {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: { retry: false },
+      mutations: { retry: false },
+    },
+  });
   return (
-    <SWRConfig
-      value={{
-        provider: () => new Map(),
-        revalidateOnFocus: false,
-        revalidateIfStale: false,
-        dedupingInterval: 0,
-        errorRetryCount: 0,
-      }}
-    >
-      {children}
-    </SWRConfig>
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
   );
 }
 
@@ -95,7 +91,7 @@ describe("useUnreadNotificationCount", () => {
       mockGetFeatureFlagValue.mockReturnValue("placeholder");
 
       const { result } = renderHook(() => useUnreadNotificationCount(), {
-        wrapper: TestSwrProvider,
+        wrapper: TestProvider,
       });
 
       expect(result.current.unreadCount).toBe(0);
@@ -105,7 +101,7 @@ describe("useUnreadNotificationCount", () => {
       mockGetFeatureFlagValue.mockReturnValue("placeholder");
 
       renderHook(() => useUnreadNotificationCount(), {
-        wrapper: TestSwrProvider,
+        wrapper: TestProvider,
       });
 
       await new Promise((resolve) => setTimeout(resolve, 10));
@@ -118,7 +114,7 @@ describe("useUnreadNotificationCount", () => {
       mockGetUnreadCount.mockResolvedValue({ count: 7 });
 
       const { result } = renderHook(() => useUnreadNotificationCount(), {
-        wrapper: TestSwrProvider,
+        wrapper: TestProvider,
       });
 
       await waitFor(() => {
@@ -136,7 +132,7 @@ describe("useUnreadNotificationCount", () => {
       });
 
       const { result } = renderHook(() => useUnreadNotificationCount(), {
-        wrapper: TestSwrProvider,
+        wrapper: TestProvider,
       });
 
       await waitFor(() => {
@@ -152,7 +148,7 @@ describe("useUnreadNotificationCount", () => {
       mockGetUnreadCount.mockResolvedValue({ count: -5 });
 
       const { result } = renderHook(() => useUnreadNotificationCount(), {
-        wrapper: TestSwrProvider,
+        wrapper: TestProvider,
       });
 
       await waitFor(() => {
@@ -164,7 +160,7 @@ describe("useUnreadNotificationCount", () => {
       mockGetUnreadCount.mockResolvedValue({});
 
       const { result } = renderHook(() => useUnreadNotificationCount(), {
-        wrapper: TestSwrProvider,
+        wrapper: TestProvider,
       });
 
       await waitFor(() => {
@@ -176,7 +172,7 @@ describe("useUnreadNotificationCount", () => {
       mockGetUnreadCount.mockResolvedValue(null as never);
 
       const { result } = renderHook(() => useUnreadNotificationCount(), {
-        wrapper: TestSwrProvider,
+        wrapper: TestProvider,
       });
 
       await waitFor(() => {
@@ -190,7 +186,7 @@ describe("useUnreadNotificationCount", () => {
       mockGetFeatureFlagValue.mockReturnValue("live");
 
       renderHook(() => useUnreadNotificationCount(), {
-        wrapper: TestSwrProvider,
+        wrapper: TestProvider,
       });
 
       expect(mockUseSocket).toHaveBeenCalledWith(
@@ -203,7 +199,7 @@ describe("useUnreadNotificationCount", () => {
       mockGetFeatureFlagValue.mockReturnValue("placeholder");
 
       renderHook(() => useUnreadNotificationCount(), {
-        wrapper: TestSwrProvider,
+        wrapper: TestProvider,
       });
 
       expect(mockUseSocket).toHaveBeenCalledWith(
@@ -222,7 +218,7 @@ describe("useUnreadNotificationCount", () => {
       });
 
       renderHook(() => useUnreadNotificationCount(), {
-        wrapper: TestSwrProvider,
+        wrapper: TestProvider,
       });
 
       expect(mockUseRealtimeEvent).toHaveBeenCalledTimes(3);
@@ -234,7 +230,7 @@ describe("useUnreadNotificationCount", () => {
       mockGetUnreadCount.mockReturnValue(new Promise(() => {}));
 
       const { result } = renderHook(() => useUnreadNotificationCount(), {
-        wrapper: TestSwrProvider,
+        wrapper: TestProvider,
       });
 
       await waitFor(() => {
@@ -256,7 +252,7 @@ describe("useUnreadNotificationCount", () => {
         disconnect: vi.fn(),
       });
       return renderHook(() => useUnreadNotificationCount(), {
-        wrapper: TestSwrProvider,
+        wrapper: TestProvider,
       });
     }
 

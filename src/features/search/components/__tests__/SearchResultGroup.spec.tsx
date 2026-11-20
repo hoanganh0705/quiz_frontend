@@ -47,7 +47,7 @@ describe("SearchResultGroup", () => {
       expect(screen.getByText("Quiz Two")).toBeInTheDocument();
     });
 
-    it("renders the footer when provided (TKT-5.6.G2 AC #3)", () => {
+    it("renders the footer when provided", () => {
       const group: SearchGroup<QuizResultDto> = {
         kind: "quiz",
         items: [
@@ -78,7 +78,7 @@ describe("SearchResultGroup", () => {
     });
   });
 
-  describe("privacy filtering (TKT-5.6.G2 AC #2)", () => {
+  describe("privacy filtering", () => {
     it("renders public items", () => {
       const group: SearchGroup<UserResultDto> = {
         kind: "user",
@@ -105,7 +105,7 @@ describe("SearchResultGroup", () => {
       expect(screen.getByText("Alice")).toBeInTheDocument();
     });
 
-    it("filters out private items for anonymous users (TKT-5.6.G2 AC #2)", () => {
+    it("filters out private items for anonymous users", () => {
       const group: SearchGroup<UserResultDto> = {
         kind: "user",
         items: [
@@ -140,7 +140,7 @@ describe("SearchResultGroup", () => {
       expect(screen.queryByText("Private User")).not.toBeInTheDocument();
     });
 
-    it("shows authenticated-only hint when authenticated items are filtered for anonymous viewers (TKT-5.6.G2 AC #2)", () => {
+    it("shows authenticated-only hint when authenticated items are filtered for anonymous viewers", () => {
       const group: SearchGroup<UserResultDto> = {
         kind: "user",
         items: [
@@ -199,7 +199,7 @@ describe("SearchResultGroup", () => {
     });
   });
 
-  describe("stable-ID navigation invariant (TKT-5.6.G2 AC #2)", () => {
+  describe("stable-ID navigation invariant", () => {
     it("renders links with stable public IDs", () => {
       const group: SearchGroup<UserResultDto> = {
         kind: "user",

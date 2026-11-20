@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { renderHook, waitFor } from "@testing-library/react";
-import { SWRConfig } from "swr";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 import { ApiError } from "@/lib/api";
 
@@ -14,6 +14,18 @@ const getMyQuizzesDraftsMock = vi.hoisted(() => vi.fn());
 vi.mock("@/features/quizzes/services/quizzes.service", () => ({
   getMyQuizzesDrafts: getMyQuizzesDraftsMock,
 }));
+
+function TestProvider({ children }: { children: React.ReactNode }) {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: { retry: false },
+      mutations: { retry: false },
+    },
+  });
+  return (
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+  );
+}
 
 function makeApiError(status: number, code = `CODE_${status}`): ApiError {
   return new ApiError({
@@ -52,13 +64,11 @@ afterEach(() => {
 });
 
 describe("useMyQuizzesDrafts — shape on first render", () => {
-  it("isLoading is true before SWR resolves", async () => {
+  it("isLoading is true before query resolves", async () => {
     getMyQuizzesDraftsMock.mockImplementation(() => new Promise(() => {}));
 
     const { result } = renderHook(() => useMyQuizzesDrafts(), {
-      wrapper: ({ children }) => (
-        <SWRConfig value={{ provider: () => new Map() }}>{children}</SWRConfig>
-      ),
+      wrapper: TestProvider,
     });
 
     expect(result.current.isLoading).toBe(true);
@@ -78,9 +88,7 @@ describe("useMyQuizzesDrafts — shape on first render", () => {
     });
 
     const { result } = renderHook(() => useMyQuizzesDrafts(), {
-      wrapper: ({ children }) => (
-        <SWRConfig value={{ provider: () => new Map() }}>{children}</SWRConfig>
-      ),
+      wrapper: TestProvider,
     });
 
     await waitFor(() => {
@@ -110,9 +118,7 @@ describe("useMyQuizzesDrafts — 404 → empty items", () => {
     getMyQuizzesDraftsMock.mockRejectedValue(makeApiError(404, "NOT_FOUND"));
 
     const { result } = renderHook(() => useMyQuizzesDrafts(), {
-      wrapper: ({ children }) => (
-        <SWRConfig value={{ provider: () => new Map() }}>{children}</SWRConfig>
-      ),
+      wrapper: TestProvider,
     });
 
     await waitFor(() => {
@@ -131,9 +137,7 @@ describe("useMyQuizzesDrafts — 5xx propagates", () => {
     );
 
     const { result } = renderHook(() => useMyQuizzesDrafts(), {
-      wrapper: ({ children }) => (
-        <SWRConfig value={{ provider: () => new Map() }}>{children}</SWRConfig>
-      ),
+      wrapper: TestProvider,
     });
 
     await waitFor(() => {
@@ -145,8 +149,8 @@ describe("useMyQuizzesDrafts — 5xx propagates", () => {
   });
 });
 
-describe("useMyQuizzesDrafts — SWR key", () => {
-  it("SWR key includes the 'drafts' discriminator", () => {
+describe("useMyQuizzesDrafts — query key", () => {
+  it("query key includes the 'drafts' discriminator", () => {
     const key = ["quizzes", "me", "drafts"] as const;
     expect(key[0]).toBe("quizzes");
     expect(key[1]).toBe("me");

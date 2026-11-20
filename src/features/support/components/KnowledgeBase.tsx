@@ -45,9 +45,7 @@ type FetchState =
  * Data source is exclusively `getSupportArticles()`. If the backend
  * fails (network error, 5xx, etc.) the component surfaces an error
  * state with a retry button. There is **no** silent fallback to a
- * static fixture — that pattern was the same anti-pattern retired
- * in Phase 1 for the admin landing stats. If the backend isn't
- * reachable we say so.
+ * static fixture. If the backend isn't reachable we say so.
  *
  * State management is intentionally a discriminated union rather
  * than the shared `useAsyncAction` helper so that the success / error

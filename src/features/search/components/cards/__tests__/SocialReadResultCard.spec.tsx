@@ -38,7 +38,7 @@ describe("SocialReadResultCard", () => {
     });
   });
 
-  describe("no social write CTAs invariant (TKT-5.6.G2 AC #3)", () => {
+  describe("no social write CTAs invariant", () => {
     it("does not render a follow button", () => {
       render(<SocialReadResultCard item={baseItem} />);
 
@@ -72,7 +72,7 @@ describe("SocialReadResultCard", () => {
     });
   });
 
-  describe("stable-ID navigation invariant (TKT-5.6.G2 AC #2)", () => {
+  describe("stable-ID navigation invariant", () => {
     it("uses the stable public ID in the href", () => {
       render(<SocialReadResultCard item={baseItem} />);
 

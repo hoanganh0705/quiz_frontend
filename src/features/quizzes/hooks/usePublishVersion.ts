@@ -70,7 +70,7 @@ export function usePublishVersion(
             );
           }
 
-          emitBreadcrumb("phase4:4.11:publish-version", {
+          emitBreadcrumb("quizzes:publish-version", {
             status: "success",
             durationMs: Date.now() - startedAt,
           });
@@ -90,7 +90,7 @@ export function usePublishVersion(
             setError(err);
             onError?.(err);
 
-            emitBreadcrumb("phase4:4.11:publish-version", {
+            emitBreadcrumb("quizzes:publish-version", {
               status: "error",
               durationMs: Date.now() - startedAt,
               code: err.code,
@@ -99,7 +99,7 @@ export function usePublishVersion(
             throw err;
           }
 
-          emitBreadcrumb("phase4:4.11:publish-version", {
+          emitBreadcrumb("quizzes:publish-version", {
             status: "error",
             durationMs: Date.now() - startedAt,
             code: "GLOBAL_UNKNOWN",

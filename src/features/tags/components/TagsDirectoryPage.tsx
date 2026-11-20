@@ -52,7 +52,7 @@ import { TagFilterInput } from "./TagFilterInput";
 import { TagEmptyState } from "./TagEmptyState";
 
 const PAGE_LIMIT = 30;
-const DIRECTORY_SWR_KEY_FACTORY = (filter: string) =>
+const DIRECTORY_QUERY_KEY_FACTORY = (filter: string) =>
   ["tags", "directory", filter, { limit: PAGE_LIMIT }] as const;
 
 const GRID_LAYOUT = "flex flex-wrap gap-3";
@@ -116,7 +116,7 @@ export function TagsDirectoryPage(): React.ReactElement {
             variant="outline"
             onClick={() =>
               void getQueryClient().invalidateQueries({
-                queryKey: DIRECTORY_SWR_KEY_FACTORY(filter),
+                queryKey: DIRECTORY_QUERY_KEY_FACTORY(filter),
               })
             }
             data-testid="tags-directory-page-retry"

@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { renderHook, waitFor } from "@testing-library/react";
-import { SWRConfig } from "swr";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 import { ApiError } from "@/lib/api";
 
@@ -14,6 +14,18 @@ const getMyQuizzesPublishedMock = vi.hoisted(() => vi.fn());
 vi.mock("@/features/quizzes/services/quizzes.service", () => ({
   getMyQuizzesPublished: getMyQuizzesPublishedMock,
 }));
+
+function TestProvider({ children }: { children: React.ReactNode }) {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: { retry: false },
+      mutations: { retry: false },
+    },
+  });
+  return (
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+  );
+}
 
 function makeApiError(status: number, code = `CODE_${status}`): ApiError {
   return new ApiError({
@@ -52,13 +64,11 @@ afterEach(() => {
 });
 
 describe("useMyQuizzesPublished — shape on first render", () => {
-  it("isLoading is true before SWR resolves", async () => {
+  it("isLoading is true before query resolves", async () => {
     getMyQuizzesPublishedMock.mockImplementation(() => new Promise(() => {}));
 
     const { result } = renderHook(() => useMyQuizzesPublished(), {
-      wrapper: ({ children }) => (
-        <SWRConfig value={{ provider: () => new Map() }}>{children}</SWRConfig>
-      ),
+      wrapper: TestProvider,
     });
 
     expect(result.current.isLoading).toBe(true);
@@ -78,9 +88,7 @@ describe("useMyQuizzesPublished — shape on first render", () => {
     });
 
     const { result } = renderHook(() => useMyQuizzesPublished(), {
-      wrapper: ({ children }) => (
-        <SWRConfig value={{ provider: () => new Map() }}>{children}</SWRConfig>
-      ),
+      wrapper: TestProvider,
     });
 
     await waitFor(() => {
@@ -113,9 +121,7 @@ describe("useMyQuizzesPublished — 404 → empty items", () => {
     getMyQuizzesPublishedMock.mockRejectedValue(makeApiError(404, "NOT_FOUND"));
 
     const { result } = renderHook(() => useMyQuizzesPublished(), {
-      wrapper: ({ children }) => (
-        <SWRConfig value={{ provider: () => new Map() }}>{children}</SWRConfig>
-      ),
+      wrapper: TestProvider,
     });
 
     await waitFor(() => {
@@ -134,9 +140,7 @@ describe("useMyQuizzesPublished — 5xx propagates", () => {
     );
 
     const { result } = renderHook(() => useMyQuizzesPublished(), {
-      wrapper: ({ children }) => (
-        <SWRConfig value={{ provider: () => new Map() }}>{children}</SWRConfig>
-      ),
+      wrapper: TestProvider,
     });
 
     await waitFor(() => {
@@ -148,8 +152,8 @@ describe("useMyQuizzesPublished — 5xx propagates", () => {
   });
 });
 
-describe("useMyQuizzesPublished — SWR key", () => {
-  it("SWR key includes the 'published' discriminator", () => {
+describe("useMyQuizzesPublished — query key", () => {
+  it("query key includes the 'published' discriminator", () => {
     const key = ["quizzes", "me", "published"] as const;
     expect(key[0]).toBe("quizzes");
     expect(key[1]).toBe("me");

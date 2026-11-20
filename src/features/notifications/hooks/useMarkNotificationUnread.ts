@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useRef, useState } from "react";
-import { mutate as globalMutate, useSWRConfig } from "swr";
 import { getQueryClient } from "@/providers/QueryProvider";
 
 import { ApiError, isApiError } from "@/lib/api";
@@ -12,10 +11,6 @@ import {
   type NotificationMutationState,
 } from "@/features/notifications/types/notification.types";
 import { getFeatureFlagValue } from "@/lib/feature-flags";
-import {
-  buildNotificationListRevalidations,
-  findNotificationInfiniteKeys,
-} from "@/features/notifications/utils/swr-infinite-cache";
 
 export interface UseMarkNotificationUnreadResult {
   markUnread: () => Promise<void>;
@@ -35,8 +30,6 @@ export function useMarkNotificationUnread(
 
   const inFlightRef = useRef(false);
 
-  const swrConfig = useSWRConfig();
-
   const markUnread = useCallback(async (): Promise<void> => {
     if (isFlagPlaceholder || notificationId === null) {
       return;
@@ -54,8 +47,6 @@ export function useMarkNotificationUnread(
       await markNotificationUnread(notificationId);
 
       const qc = getQueryClient();
-      const infiniteKeys = findNotificationInfiniteKeys(swrConfig.cache);
-
       await Promise.all([
         qc.invalidateQueries({ queryKey: ["notifications", "list"] }),
         qc.invalidateQueries({
@@ -64,23 +55,6 @@ export function useMarkNotificationUnread(
         qc.invalidateQueries({
           queryKey: NOTIFICATION_CACHE_KEYS.detail(notificationId),
         }),
-        ...buildNotificationListRevalidations(swrConfig, infiniteKeys),
-        globalMutate(
-          (key) =>
-            Array.isArray(key) &&
-            key[0] === "notifications" &&
-            key[1] === "list",
-          undefined,
-          { revalidate: true },
-        ),
-        globalMutate(NOTIFICATION_CACHE_KEYS.unreadCount(), undefined, {
-          revalidate: true,
-        }),
-        globalMutate(
-          NOTIFICATION_CACHE_KEYS.detail(notificationId),
-          undefined,
-          { revalidate: true },
-        ),
       ]);
 
       setState("success");
@@ -109,7 +83,7 @@ export function useMarkNotificationUnread(
     } finally {
       inFlightRef.current = false;
     }
-  }, [isFlagPlaceholder, notificationId, state, swrConfig]);
+  }, [isFlagPlaceholder, notificationId, state]);
 
   const reset = useCallback(() => {
     setState("idle");

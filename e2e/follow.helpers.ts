@@ -127,7 +127,7 @@ export function makeTagResponse(
  *      membership lookup
  *   4. `POST|DELETE /api/v1/categories/{id}/follow` — the action
  *      surface. The action endpoints return 204 No
- *      Content; the membership lookup invalidates via SWR.
+ *      Content; the membership lookup invalidates via query cache invalidation.
  *
  * Unauthenticated traffic to `/users/me/followed-*` returns 401
  * (the slot short-circuits to the empty-set default).
@@ -157,10 +157,9 @@ export async function stubCategoryFollow(
   options: StubCategoryFollowOptions = {},
 ): Promise<void> {
   // The mutable in-memory state — the stub tracks the membership set
-  // + the total follow count so subsequent SWR fetches see the new
-  // value (the production slot triggers SWR invalidation via
-  // `globalMutate(key)`; here we just flip the state and let SWR
-  // re-fetch).
+  // + the total follow count so subsequent fetches see the new
+  // value (the production slot triggers query invalidation;
+  // here we just flip the state and let queries re-fetch).
   const followed = new Set<string>(options.initialFollowedIds ?? []);
   const followCount = options.initialFollowCount ?? followed.size;
 

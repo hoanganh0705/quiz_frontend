@@ -17,7 +17,6 @@ export type StalenessSource = "stale_at" | "is_stale_flag" | "none";
 
 export interface UseEventuallyConsistentQueryOptions {
   staleAfterMs?: number;
-  swrConfig?: Record<string, unknown>;
 }
 
 export interface UseEventuallyConsistentQueryResult<T> {

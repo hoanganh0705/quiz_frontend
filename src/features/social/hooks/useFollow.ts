@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useMemo } from "react";
-import { useSWRConfig } from "swr";
 import { getQueryClient } from "@/providers/QueryProvider";
 
 import { ApiError, useOptimisticMutation } from "@/lib/api";
@@ -47,8 +46,6 @@ export function useFollow(
     currentUserId: options.currentUserId ?? null,
   });
 
-  const { mutate: swrMutate } = useSWRConfig();
-
   const {
     mutate: dispatchMutation,
     isInFlight,
@@ -63,11 +60,9 @@ export function useFollow(
       await Promise.all([
         qc.invalidateQueries({ queryKey: relKey }),
         qc.invalidateQueries({ queryKey: countsKey }),
-        swrMutate?.(relKey, undefined, { revalidate: true }),
-        swrMutate?.(countsKey, undefined, { revalidate: true }),
       ]);
     },
-    [swrMutate],
+    [],
   );
 
   const error: FollowErrorCode | null =

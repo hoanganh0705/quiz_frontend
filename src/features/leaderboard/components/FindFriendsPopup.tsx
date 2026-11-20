@@ -20,7 +20,7 @@
  *   - `visible` → render the list.
  *
  * The hook is the single source of truth for the privacy mapping
- * (the documented Story 6.5 contract);
+ * (the documented contract);
  * `resolveSuggestionsVisibility` is the canonical resolver.
  */
 

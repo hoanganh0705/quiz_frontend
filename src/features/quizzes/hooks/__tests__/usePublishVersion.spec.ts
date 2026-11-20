@@ -2,17 +2,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ApiError } from "@/lib/api";
 
-import { usePublishVersion } from "@/features/quizzes/hooks/usePublishVersion";
-
 const mockPublishQuizVersion = vi.fn();
 vi.mock("@/features/quizzes/services/quizzes.service", () => ({
   publishQuizVersion: (...args: unknown[]) => mockPublishQuizVersion(...args),
-}));
-
-vi.mock("swr", () => ({
-  useSWRConfig: vi.fn(() => ({
-    mutate: vi.fn(),
-  })),
 }));
 
 function makeVersionSummary(

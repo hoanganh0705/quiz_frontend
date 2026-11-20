@@ -1,7 +1,6 @@
 "use client";
 
 import { useMemo, useRef, useState } from "react";
-import { useSWRConfig } from "swr";
 
 import { ApiError } from "@/lib/api";
 import { getFeatureFlagValue } from "@/lib/feature-flags";
@@ -39,8 +38,6 @@ export function useUnfriend(
   const permissions = useSocialPermissions(targetUserId, {
     currentUserId: options.currentUserId ?? null,
   });
-
-  const { mutate: swrMutate } = useSWRConfig();
 
   const isPendingRef = useRef(false);
 
@@ -98,8 +95,6 @@ export function useUnfriend(
           void qc.invalidateQueries({
             queryKey: SOCIAL_CACHE_KEYS.makeSocialCountsKey(targetUserId),
           });
-          void swrMutate?.(SOCIAL_CACHE_KEYS.makeRelationshipKey(targetUserId));
-          void swrMutate?.(SOCIAL_CACHE_KEYS.makeSocialCountsKey(targetUserId));
         })
         .catch((err: unknown) => {
           const apiErr =
@@ -115,12 +110,6 @@ export function useUnfriend(
             void qc.invalidateQueries({
               queryKey: SOCIAL_CACHE_KEYS.makeSocialCountsKey(targetUserId),
             });
-            void swrMutate?.(
-              SOCIAL_CACHE_KEYS.makeRelationshipKey(targetUserId),
-            );
-            void swrMutate?.(
-              SOCIAL_CACHE_KEYS.makeSocialCountsKey(targetUserId),
-            );
             return;
           }
 
@@ -146,7 +135,6 @@ export function useUnfriend(
     targetUserId,
     permissions.canUnfriend,
     options.assumeCanUnfriend,
-    swrMutate,
     error,
     alreadyNotFriends,
   ]);

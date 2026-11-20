@@ -11,7 +11,7 @@ export type FeaturedRefreshHandle = (data: HomeBundleData | null) => void;
 
 /**
  * Re-fetch the home bundle. Used by the Featured rail's explicit Refresh
- * action; the result is fed into the SWR cache so any rail that reads
+ * action; the result is fed into the query cache so any rail that reads
  * `["home", "bundle"]` resyncs.
  */
 export async function refreshHomeBundle(): Promise<HomeBundleData | null> {

@@ -100,11 +100,6 @@ export function LayoutShell({ children }: { children: React.ReactNode }) {
 
     lastSeenUserIdRef.current = currentUserId;
     try {
-      void globalMutate(() => true, undefined, { revalidate: true });
-    } catch {
-      // Fail-open: SWR may not be initialized yet.
-    }
-    try {
       void getQueryClient().invalidateQueries();
     } catch {
       // Fail-open

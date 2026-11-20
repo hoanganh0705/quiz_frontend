@@ -30,11 +30,11 @@ export const ANALYTICS_ZERO_WIDGET_REASON: Record<AnalyticsWidgetId, string> = {
   achievements_earned:
     "Returned by backend with zero in initial rollout — the achievement module is not yet connected to the social domain.",
   ranking_xp_week:
-    "Returned by backend with zero in initial rollout — ranking XP is not yet shipped for the social module (master plan Phase 6 Out-of-Scope line 48).",
+    "Returned by backend with zero in initial rollout — ranking XP is not yet shipped for the social module.",
   ranking_xp_month:
-    "Returned by backend with zero in initial rollout — ranking XP is not yet shipped for the social module (master plan Phase 6 Out-of-Scope line 48).",
+    "Returned by backend with zero in initial rollout — ranking XP is not yet shipped for the social module.",
   ranking_xp_all:
-    "Returned by backend with zero in initial rollout — ranking XP is not yet shipped for the social module (master plan Phase 6 Out-of-Scope line 48).",
+    "Returned by backend with zero in initial rollout — ranking XP is not yet shipped for the social module.",
   friend_count: "",
   follower_count: "",
   following_count: "",

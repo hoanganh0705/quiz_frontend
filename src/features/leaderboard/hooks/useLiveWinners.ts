@@ -32,7 +32,7 @@ interface UseLiveWinnersResult {
   isRetrying: boolean;
 }
 
-const SWR_KEY = ["leaderboard", "recent-winners"] as const;
+const QUERY_KEY = ["leaderboard", "recent-winners"] as const;
 
 export function useLiveWinners(): UseLiveWinnersResult {
   const fetcher = useMemo<SingleFetcher<RecentWinnersResponse | null>>(
@@ -51,7 +51,7 @@ export function useLiveWinners(): UseLiveWinnersResult {
 
   const { data, isLoading, error, retry, isRetrying } =
     useSingleWithRetry<RecentWinnersResponse | null>({
-      key: SWR_KEY,
+      key: QUERY_KEY,
       fetcher,
     });
 

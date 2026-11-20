@@ -1,10 +1,10 @@
 # GraphQL pilot (frontend)
 
 This directory hosts the Apollo Client scaffolding used by the GraphQL
-pilot. The pilot is opt-in per page: every page keeps using SWR + the
+pilot. The pilot is opt-in per page: every page keeps using TanStack Query + the
 orval-generated REST client, so this client is instantiated per page
 subtree by `ApolloSubtreeProvider` rather than mounted globally. That
-keeps the Apollo and SWR cache spaces disjoint, which is the boundary
+keeps the Apollo and TanStack Query cache spaces disjoint, which is the boundary
 rule documented in the implementation plan.
 
 ## Layout
@@ -29,8 +29,8 @@ src/features/
 
 ## One-page, one-transport
 
-Apollo and SWR never share a cache key space. A page that uses Apollo does
-not also use SWR for the same data. Mount Apollo with
+Apollo and TanStack Query never share a cache key space. A page that uses Apollo does
+not also use TanStack Query for the same data. Mount Apollo with
 `<ApolloSubtreeProvider>` so each pilot page owns its own client instance.
 
 ```tsx
@@ -123,10 +123,10 @@ schema change cannot land without the regenerated types.
    wrapper that calls `useQuery(TYPED_DOCUMENT, options)` so the rest of
    the app stays decoupled from `@apollo/client` import paths.
 
-## When to use SWR vs Apollo
+## When to use TanStack Query vs Apollo
 
 Apollo is for pages that fan out to four or more parallel REST calls from
-one domain. Everything else stays on SWR. The first two pages that
+one domain. Everything else stays on TanStack Query. The first two pages that
 qualify are `/quizzes` (five parallel REST reads, server-side tag-slug
 resolution) and `/profile/[name]` (auth-gated bundle with three
 paginated rails).

@@ -47,7 +47,7 @@ type ActiveTab = "global" | "category" | "trending";
 /**
  * `LeaderboardHighlights` — top-level leaderboard preview on the home page.
  *
- * Phase 4.5 (F-9): the per-category tab now includes a visible,
+ * The per-category tab now includes a visible,
  * **disabled** category `<Select>` wrapped in a `<Tooltip>` with the
  * message "Per-category leaderboard is on the roadmap". This makes
  * the roadmap intent explicit to users rather than silently functional.

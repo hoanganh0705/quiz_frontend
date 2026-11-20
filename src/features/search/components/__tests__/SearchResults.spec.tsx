@@ -63,7 +63,7 @@ describe("SearchResults", () => {
     mockGetFeatureFlagValue.mockReturnValue("live");
   });
 
-  describe("loading state (TKT-5.6.G2 AC #2)", () => {
+  describe("loading state", () => {
     it("shows skeleton when loading without cached groups", () => {
       mockUseSearch.mockReturnValue({
         groups: null,
@@ -85,7 +85,7 @@ describe("SearchResults", () => {
     });
   });
 
-  describe("empty state (TKT-5.6.G2 AC #2)", () => {
+  describe("empty state", () => {
     it("shows 'no results' empty state when query returns empty", () => {
       mockUseSearch.mockReturnValue({
         groups: {},
@@ -110,7 +110,7 @@ describe("SearchResults", () => {
     });
   });
 
-  describe("error state (TKT-5.6.G2 AC #2)", () => {
+  describe("error state", () => {
     it("shows error state on generic error", () => {
       mockUseSearch.mockReturnValue({
         groups: null,
@@ -135,7 +135,7 @@ describe("SearchResults", () => {
     });
   });
 
-  describe("rate-limit state (TKT-5.6.G2 AC #2)", () => {
+  describe("rate-limit state", () => {
     it("shows rate-limit state when rate limited", () => {
       mockUseSearch.mockReturnValue({
         groups: null,
@@ -157,7 +157,7 @@ describe("SearchResults", () => {
     });
   });
 
-  describe("stale data banner (TKT-5.6.G2 AC #2)", () => {
+  describe("stale data banner", () => {
     it("shows stale banner when isStale is true", () => {
       mockUseSearch.mockReturnValue({
         groups: { user: { kind: "user", items: [], visibility: "public" } },
@@ -181,7 +181,7 @@ describe("SearchResults", () => {
     });
   });
 
-  describe("no unstable social IDs (TKT-5.6.G2 AC #2)", () => {
+  describe("no unstable social IDs", () => {
     it("does not render followId or friendshipId in any href", () => {
       mockUseSearch.mockReturnValue({
         groups: {

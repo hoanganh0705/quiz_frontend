@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useRef, useState } from "react";
-import { mutate as globalMutate } from "swr";
 import { getQueryClient } from "@/providers/QueryProvider";
 
 import { ApiError, coerceToApiError, isApiError } from "@/lib/api";
@@ -65,7 +64,6 @@ export function useCreateInstance(): UseCreateInstanceResult {
         } catch {
           // ignore
         }
-        void globalMutate(INSTANCE_CACHE_KEYS.list());
         return wire as CreateInstanceResponseDto;
       } catch (err: unknown) {
         setState("error");

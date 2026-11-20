@@ -112,7 +112,7 @@ describe("cross-tab-invalidation — existing four envelopes (regression baselin
   });
 });
 
-describe("cross-tab-invalidation — 'relationship' envelope (TKT-6.10.D3)", () => {
+describe("cross-tab-invalidation — 'relationship' envelope", () => {
   it("emits a 'relationship' envelope with targetUserId + auto-stamped tabId/timestamp", () => {
     const before = Date.now();
     emitPhase5Invalidation({ type: "relationship", targetUserId: "user-1" });
@@ -133,7 +133,7 @@ describe("cross-tab-invalidation — 'relationship' envelope (TKT-6.10.D3)", () 
   });
 });
 
-describe("cross-tab-invalidation — 'friend-request' envelope (TKT-6.10.D3)", () => {
+describe("cross-tab-invalidation — 'friend-request' envelope", () => {
   it("emits a 'friend-request' envelope with no detail", () => {
     emitPhase5Invalidation({ type: "friend-request" });
     const posted = lastPost();

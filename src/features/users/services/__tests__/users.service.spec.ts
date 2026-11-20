@@ -61,7 +61,7 @@ describe("users.service — pass-through (write paths)", () => {
 });
 
 describe("users.service — scope guard (no read duplication)", () => {
-  it("does NOT export read functions (Phase 2 owns them)", () => {
+  it("does NOT export read functions", () => {
     const serviceExports = Object.keys(usersService);
     expect(serviceExports).toContain("updateMyProfile");
     expect(serviceExports).toContain("updateMySettings");

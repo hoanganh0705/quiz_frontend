@@ -1,9 +1,10 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 import { act, cleanup, renderHook } from "@testing-library/react";
-import { SWRConfig } from "swr";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 import { useMarkNotificationUnread } from "@/features/notifications/hooks/useMarkNotificationUnread";
 import { ApiError, isApiError } from "@/lib/api";
+import { getQueryClient } from "@/providers/QueryProvider";
 
 const mockGetFeatureFlagValue = vi.fn();
 vi.mock("@/lib/feature-flags", () => ({
@@ -15,15 +16,6 @@ vi.mock("@/features/notifications/services/notifications.service", () => ({
   markNotificationUnread: (...args: unknown[]) =>
     mockMarkNotificationUnread(...args),
 }));
-
-const mutateMock = vi.fn();
-vi.mock("swr", async () => {
-  const actual = await vi.importActual<typeof import("swr")>("swr");
-  return {
-    ...actual,
-    mutate: (...args: unknown[]) => mutateMock(...args),
-  };
-});
 
 function makeApiError(status: number, code: string) {
   return new ApiError({
@@ -49,37 +41,38 @@ function makeApiError(status: number, code: string) {
   } as unknown as Parameters<typeof ApiError.fromAxios>[0]);
 }
 
-function TestSwrProvider({ children }: { children: React.ReactNode }) {
+function TestProvider({ children }: { children: React.ReactNode }) {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: { retry: false },
+      mutations: { retry: false },
+    },
+  });
   return (
-    <SWRConfig
-      value={{
-        provider: () => new Map(),
-        revalidateOnFocus: false,
-        revalidateIfStale: false,
-        dedupingInterval: 0,
-        errorRetryCount: 0,
-      }}
-    >
-      {children}
-    </SWRConfig>
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
   );
 }
 
 describe("useMarkNotificationUnread", () => {
+  let invalidateQueriesSpy: ReturnType<typeof vi.spyOn>;
+
   beforeEach(() => {
     vi.clearAllMocks();
-    mutateMock.mockResolvedValue(undefined);
+    invalidateQueriesSpy = vi
+      .spyOn(getQueryClient(), "invalidateQueries")
+      .mockResolvedValue(undefined as never);
     mockGetFeatureFlagValue.mockReturnValue("live");
   });
 
   afterEach(() => {
     cleanup();
+    vi.restoreAllMocks();
   });
 
   describe("initialization", () => {
     it("starts in idle state", () => {
       const { result } = renderHook(() => useMarkNotificationUnread("n1"), {
-        wrapper: TestSwrProvider,
+        wrapper: TestProvider,
       });
       expect(result.current.state).toBe("idle");
       expect(result.current.error).toBeNull();
@@ -89,7 +82,7 @@ describe("useMarkNotificationUnread", () => {
       mockGetFeatureFlagValue.mockReturnValue("placeholder");
 
       const { result } = renderHook(() => useMarkNotificationUnread("n1"), {
-        wrapper: TestSwrProvider,
+        wrapper: TestProvider,
       });
 
       await act(async () => {
@@ -101,7 +94,7 @@ describe("useMarkNotificationUnread", () => {
 
     it("marks unread is a no-op when notificationId is null", async () => {
       const { result } = renderHook(() => useMarkNotificationUnread(null), {
-        wrapper: TestSwrProvider,
+        wrapper: TestProvider,
       });
 
       await act(async () => {
@@ -113,11 +106,11 @@ describe("useMarkNotificationUnread", () => {
   });
 
   describe("success path", () => {
-    it("transitions to success state and invalidates SWR keys", async () => {
+    it("transitions to success state and invalidates queries", async () => {
       mockMarkNotificationUnread.mockResolvedValue(undefined);
 
       const { result } = renderHook(() => useMarkNotificationUnread("n1"), {
-        wrapper: TestSwrProvider,
+        wrapper: TestProvider,
       });
 
       await act(async () => {
@@ -125,7 +118,7 @@ describe("useMarkNotificationUnread", () => {
       });
 
       expect(result.current.state).toBe("success");
-      expect(mutateMock).toHaveBeenCalled();
+      expect(invalidateQueriesSpy).toHaveBeenCalled();
     });
 
     it("forwards the notification id to the service", async () => {
@@ -134,7 +127,7 @@ describe("useMarkNotificationUnread", () => {
       const { result } = renderHook(
         () => useMarkNotificationUnread("notification-99"),
         {
-          wrapper: TestSwrProvider,
+          wrapper: TestProvider,
         },
       );
 
@@ -155,7 +148,7 @@ describe("useMarkNotificationUnread", () => {
       );
 
       const { result } = renderHook(() => useMarkNotificationUnread("n1"), {
-        wrapper: TestSwrProvider,
+        wrapper: TestProvider,
       });
 
       await act(async () => {
@@ -173,7 +166,7 @@ describe("useMarkNotificationUnread", () => {
       );
 
       const { result } = renderHook(() => useMarkNotificationUnread("n1"), {
-        wrapper: TestSwrProvider,
+        wrapper: TestProvider,
       });
 
       await act(async () => {
@@ -187,7 +180,7 @@ describe("useMarkNotificationUnread", () => {
       mockMarkNotificationUnread.mockRejectedValue(new Error("Network error"));
 
       const { result } = renderHook(() => useMarkNotificationUnread("n1"), {
-        wrapper: TestSwrProvider,
+        wrapper: TestProvider,
       });
 
       await act(async () => {
@@ -209,7 +202,7 @@ describe("useMarkNotificationUnread", () => {
       );
 
       const { result } = renderHook(() => useMarkNotificationUnread("n1"), {
-        wrapper: TestSwrProvider,
+        wrapper: TestProvider,
       });
 
       const firstPromise = result.current.markUnread();
@@ -232,7 +225,7 @@ describe("useMarkNotificationUnread", () => {
       );
 
       const { result } = renderHook(() => useMarkNotificationUnread("n1"), {
-        wrapper: TestSwrProvider,
+        wrapper: TestProvider,
       });
 
       await act(async () => {

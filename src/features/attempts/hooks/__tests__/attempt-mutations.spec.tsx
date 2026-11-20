@@ -16,7 +16,7 @@ const HOOK_FILES = {
   abandon: "useAbandonAttempt.ts",
 } as const;
 
-describe("attempt-mutations — no Story 4.15 surface leaked", () => {
+describe("attempt-mutations — completion isolation", () => {
   it.each(Object.entries(HOOK_FILES))(
     "%s hook source never calls the completeAttempt service function",
     (_name, file) => {

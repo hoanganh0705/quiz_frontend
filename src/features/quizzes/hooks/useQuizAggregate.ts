@@ -83,14 +83,15 @@ export function useQuizAggregate(
     [idOrSlug],
   );
 
-  const swr = useSingleWithRetry<QuizAggregateResponseDto>({ key, fetcher });
+  const query = useSingleWithRetry<QuizAggregateResponseDto>({ key, fetcher });
 
   const notFound =
-    !swr.isLoading && swr.error !== null && isNotFoundError(swr.error);
+    !query.isLoading && query.error !== null && isNotFoundError(query.error);
 
-  const error = swr.error && !isNotFoundError(swr.error) ? swr.error : null;
+  const error =
+    query.error && !isNotFoundError(query.error) ? query.error : null;
 
-  const data = swr.data ?? null;
+  const data = query.data ?? null;
 
   return {
     quiz: data?.quiz ?? null,
@@ -99,9 +100,9 @@ export function useQuizAggregate(
     statsHistory: data?.statsHistory?.points ?? [],
     previewQuestions: data?.previewQuestions ?? [],
     notFound,
-    isLoading: swr.isLoading,
+    isLoading: query.isLoading,
     error,
-    retry: swr.retry,
-    isRetrying: swr.isRetrying,
+    retry: query.retry,
+    isRetrying: query.isRetrying,
   };
 }

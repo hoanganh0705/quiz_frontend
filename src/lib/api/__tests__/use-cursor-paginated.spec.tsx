@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { renderHook, waitFor } from "@testing-library/react";
 
-import { SwrProvider } from "@/providers";
+import { QueryProvider } from "@/providers";
 
 import { useCursorPaginated } from "@/lib/api/use-cursor-paginated";
 
@@ -43,7 +43,7 @@ describe("useCursorPaginated — enabled flag", () => {
           paginationKind: "cursor",
           enabled: false,
         }),
-      { wrapper: SwrProvider },
+      { wrapper: QueryProvider },
     );
 
     await new Promise((r) => setTimeout(r, 50));
@@ -62,7 +62,7 @@ describe("useCursorPaginated — enabled flag", () => {
           params: {},
           paginationKind: "cursor",
         }),
-      { wrapper: SwrProvider },
+      { wrapper: QueryProvider },
     );
 
     await waitFor(() => {
@@ -81,7 +81,7 @@ describe("useCursorPaginated — enabled flag", () => {
           paginationKind: "offset",
           enabled: false,
         }),
-      { wrapper: SwrProvider },
+      { wrapper: QueryProvider },
     );
 
     await new Promise((r) => setTimeout(r, 50));

@@ -105,7 +105,7 @@ const baseDto: QuizListItemDto = {
   tags: [],
 };
 
-describe("QuizListItemDto — Phase 6 contract test", () => {
+describe("QuizListItemDto — contract test", () => {
   it("passes toMatchSchema for a wire-shape payload with all optional fields populated", () => {
     expect(() => toMatchSchema(baseDto)).not.toThrow();
     expect(toMatchSchema(baseDto)).toBe(baseDto);
