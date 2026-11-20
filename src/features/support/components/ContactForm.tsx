@@ -254,9 +254,7 @@ export function ContactForm() {
           )}
         </div>
 
-        {/* File upload — removed in Phase 5/6. ContactForm does not
-            submit attachments; the input here was dead UI. Re-enable
-            when the backend adds an attachment-upload endpoint. */}
+        {/* File upload — contactForm does not submit attachments */}
 
         {/* Submit button */}
         {submitSuccess && (

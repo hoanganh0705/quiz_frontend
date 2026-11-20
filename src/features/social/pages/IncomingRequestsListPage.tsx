@@ -77,10 +77,10 @@ export function IncomingRequestsListPage({}: IncomingRequestsListPageProps): Rea
               {/* The action slot for incoming rows is a no-op markup
                   placeholder — the actual inline Accept / Decline
                   buttons are rendered by the per-row
-                  `FriendRequestCta` (TKT-6.8.E2) on the requester's
+                  `FriendRequestCta` on the requester's
                   profile page, NOT in this list view. The list
                   view does not show per-row respond actions
-                  because Epic 6.8 keeps the list read-only for
+                  because this list view is kept read-only for
                   navigation simplicity; mutation entry points
                   live on the per-user profile CTA. The render-prop
                   is preserved for symmetry with `FriendRequestItem`

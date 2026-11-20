@@ -31,7 +31,7 @@
  *
  * The search affects ONLY the ranked grid. The trending strip above
  * the grid is supplementary and is NOT filtered — the strip is what
- * other surfaces (home rails in Story 3.7) consume, and filtering it
+ * other surfaces (e.g. home rails) consume, and filtering it
  * would defeat its purpose.
  *
  * When the user has typed a non-empty query and the filter produces
@@ -56,7 +56,7 @@ import { getQueryClient } from "@/providers/QueryProvider";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 
-const SWR_KEY = ["categories", "ranked", { limit: 100 }] as const;
+const QUERY_KEY = ["categories", "ranked", { limit: 100 }] as const;
 const SEARCH_DEBOUNCE_MS = 250;
 
 const GRID_LAYOUT =
@@ -184,7 +184,7 @@ export function CategoriesDirectoryPage(): React.ReactElement {
             <Button
               variant="outline"
               onClick={() =>
-                void getQueryClient().invalidateQueries({ queryKey: SWR_KEY })
+                void getQueryClient().invalidateQueries({ queryKey: QUERY_KEY })
               }
               data-testid="categories-directory-retry"
             >

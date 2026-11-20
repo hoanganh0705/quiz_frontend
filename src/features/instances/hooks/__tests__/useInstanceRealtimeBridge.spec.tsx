@@ -10,6 +10,8 @@ import {
 } from "@/features/instances/stores/useInstanceRealtimeStore";
 import type { InstanceSocketEvent } from "@/features/instances/types/instance.types";
 
+import { getQueryClient } from "@/providers/QueryProvider";
+
 const mockGetFeatureFlagValue = vi.fn();
 vi.mock("@/lib/feature-flags", () => ({
   getFeatureFlagValue: (...args: unknown[]) => mockGetFeatureFlagValue(...args),
@@ -27,23 +29,14 @@ vi.mock("@/features/instances/hooks/useInstanceSocket", () => ({
   useInstanceSocket: (...args: unknown[]) => mockUseInstanceSocket(...args),
 }));
 
-const mockEmitPhase5Invalidation = vi.fn();
+const mockEmitRealtimeCrossTabInvalidation = vi.fn();
 vi.mock("@/lib/realtime", async () => {
   const actual =
     await vi.importActual<typeof import("@/lib/realtime")>("@/lib/realtime");
   return {
     ...actual,
-    emitPhase5Invalidation: (...args: unknown[]) =>
-      mockEmitPhase5Invalidation(...args),
-  };
-});
-
-const mockGlobalMutate = vi.fn();
-vi.mock("swr", async () => {
-  const actual = await vi.importActual<typeof import("swr")>("swr");
-  return {
-    ...actual,
-    mutate: (...args: unknown[]) => mockGlobalMutate(...args),
+    emitRealtimeCrossTabInvalidation: (...args: unknown[]) =>
+      mockEmitRealtimeCrossTabInvalidation(...args),
   };
 });
 
@@ -73,8 +66,13 @@ function setAuthState(isAuthenticated: boolean) {
   });
 }
 
+let invalidateQueriesSpy: ReturnType<typeof vi.spyOn>;
+
 beforeEach(() => {
   vi.clearAllMocks();
+  invalidateQueriesSpy = vi
+    .spyOn(getQueryClient(), "invalidateQueries")
+    .mockResolvedValue(undefined as never);
   subscribeHandler = null;
   useInstanceRealtimeStore.getState().resetAll();
   setFeatureFlags("live", "live");
@@ -333,7 +331,7 @@ describe("useInstanceRealtimeBridge", () => {
   });
 
   describe("invalidation side-effects", () => {
-    it("invokes globalMutate for the detail key on lifecycle events", () => {
+    it("invalidates the detail query on lifecycle events", () => {
       renderHook(() => useInstanceRealtimeBridge("inst-1"));
 
       act(() => {
@@ -346,10 +344,10 @@ describe("useInstanceRealtimeBridge", () => {
         } as never);
       });
 
-      expect(mockGlobalMutate).toHaveBeenCalled();
+      expect(invalidateQueriesSpy).toHaveBeenCalled();
     });
 
-    it("broadcasts phase5 invalidation on lifecycle events", () => {
+    it("broadcasts realtime cross-tab invalidation on lifecycle events", () => {
       renderHook(() => useInstanceRealtimeBridge("inst-1"));
 
       act(() => {
@@ -362,7 +360,7 @@ describe("useInstanceRealtimeBridge", () => {
         } as never);
       });
 
-      expect(mockEmitPhase5Invalidation).toHaveBeenCalledWith({
+      expect(mockEmitRealtimeCrossTabInvalidation).toHaveBeenCalledWith({
         type: "instance",
         instanceId: "inst-1",
       });
@@ -375,8 +373,8 @@ describe("useInstanceRealtimeBridge", () => {
         subscribeHandler?.(makePlayerJoinEvent({ userId: "u-1" }));
       });
 
-      expect(mockGlobalMutate).not.toHaveBeenCalled();
-      expect(mockEmitPhase5Invalidation).not.toHaveBeenCalled();
+      expect(invalidateQueriesSpy).not.toHaveBeenCalled();
+      expect(mockEmitRealtimeCrossTabInvalidation).not.toHaveBeenCalled();
     });
   });
 

@@ -43,7 +43,7 @@ afterEach(() => {
 });
 
 describe("useOptimisticMutation — happy path", () => {
-  it("revalidates the SWR cache, runs onSuccess, returns success with result", async () => {
+  it("revalidates the query cache, runs onSuccess, returns success with result", async () => {
     const run = vi.fn().mockResolvedValue({ id: "created" });
     const onSuccess = vi.fn();
     const onError = vi.fn();
@@ -79,7 +79,7 @@ describe("useOptimisticMutation — happy path", () => {
 });
 
 describe("useOptimisticMutation — 4xx revert", () => {
-  it("reverts the SWR cache to the snapshot, sets lastError, returns reverted", async () => {
+  it("reverts the query cache to the snapshot, sets lastError, returns reverted", async () => {
     const apiError = makeApiError(409, "COLLECTION_CONFLICT", "Already in use");
     const run = vi.fn().mockRejectedValue(apiError);
     const onSuccess = vi.fn();
@@ -109,7 +109,7 @@ describe("useOptimisticMutation — 4xx revert", () => {
 });
 
 describe("useOptimisticMutation — non-ApiError revert", () => {
-  it("reverts the SWR cache when run rejects with a non-ApiError", async () => {
+  it("reverts the query cache when run rejects with a non-ApiError", async () => {
     const networkError = new TypeError("network down");
     const run = vi.fn().mockRejectedValue(networkError);
     const onError = vi.fn();

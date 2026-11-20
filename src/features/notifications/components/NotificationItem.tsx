@@ -183,7 +183,7 @@ export function NotificationItem({
       try {
         await markRead();
       } catch {
-        // Silent — SWR revalidation will reconcile.
+        // Silent — query revalidation will reconcile.
       }
     }
     if (target) {

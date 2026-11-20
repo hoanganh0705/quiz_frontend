@@ -65,7 +65,7 @@ function Placeholder({ title, description, className }: PlaceholderProps) {
       </CardHeader>
       <CardContent>
         <p className="text-sm text-foreground-secondary">
-          We&apos;re laying the realtime foundation in Phase 5; this surface
+          We&apos;re laying the realtime foundation; this surface
           lights up once the relevant feature flag flips to live.
         </p>
       </CardContent>

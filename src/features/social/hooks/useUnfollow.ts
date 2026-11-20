@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useSWRConfig } from "swr";
 import { getQueryClient } from "@/providers/QueryProvider";
 
 import { ApiError, useOptimisticMutation } from "@/lib/api";
@@ -50,7 +49,6 @@ export function useUnfollow(
     currentUserId: options.currentUserId ?? null,
   });
 
-  const { mutate: swrMutate } = useSWRConfig();
   const {
     mutate: dispatchMutation,
     isInFlight,
@@ -67,11 +65,9 @@ export function useUnfollow(
       await Promise.all([
         qc.invalidateQueries({ queryKey: relKey }),
         qc.invalidateQueries({ queryKey: countsKey }),
-        swrMutate?.(relKey, undefined, { revalidate: true }),
-        swrMutate?.(countsKey, undefined, { revalidate: true }),
       ]);
     },
-    [swrMutate],
+    [],
   );
 
   useEffect(() => {

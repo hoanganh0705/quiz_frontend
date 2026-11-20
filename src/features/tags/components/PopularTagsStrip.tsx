@@ -7,7 +7,7 @@ import { TagPillSkeleton } from "@/components/primitives";
 import { Button } from "@/components/ui/Button";
 import { useTagsPopular } from "@/features/tags/hooks/useTagsPopular";
 
-const SWR_KEY = ["tags", "popular", { limit: 10 }] as const;
+const QUERY_KEY = ["tags", "popular", { limit: 10 }] as const;
 
 const STRIP_CONTAINER =
   "flex gap-3 overflow-x-auto pb-4 snap-x snap-mandatory scroll-mt-16";
@@ -56,7 +56,7 @@ export function PopularTagsStrip(): React.ReactElement | null {
             variant="outline"
             size="sm"
             onClick={() =>
-              void getQueryClient().invalidateQueries({ queryKey: SWR_KEY })
+              void getQueryClient().invalidateQueries({ queryKey: QUERY_KEY })
             }
             data-testid="popular-tags-strip-retry"
           >

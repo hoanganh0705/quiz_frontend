@@ -1,11 +1,7 @@
 /**
  * `howItWorksData` — three-step explainer for the marketing home page.
  *
- * Phase 4.4 (F-8): the per-step `imageSrc` and `altText` fields were
- * removed because the referenced `/step1.jpg`, `/step2.jpg`, `/step3.jpg`
- * assets never existed and `next/image` rendered broken placeholders.
- * The data now contains only the title + description, and the consumer
- * (`HowItWorks.tsx`) renders a clean text panel.
+ * Contains title and description for each step.
  */
 export const howItWorksData = [
   {

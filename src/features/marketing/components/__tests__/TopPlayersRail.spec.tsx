@@ -1,6 +1,5 @@
 /**
- * Unit tests for `TopPlayersRail` (Phase 4.3 — F-7 replacement for
- * `SuccessStoriesCarousel`).
+ * Unit tests for `TopPlayersRail`.
  *
  * Coverage:
  *   - Renders a skeleton while loading.

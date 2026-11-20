@@ -46,7 +46,7 @@ export interface DailyChallengeAnswerResponseView {
 }
 
 /**
- * Phase 4 (F-2): one row in the per-category distribution surfaced
+ * One row in the per-category distribution surfaced
  * by `<ChallengePieChart />`.
  *
  * `attemptCount` is the number of completed daily-challenge attempts

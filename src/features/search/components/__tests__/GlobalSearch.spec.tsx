@@ -27,7 +27,7 @@ describe("GlobalSearch", () => {
     vi.clearAllMocks();
   });
 
-  describe("feature flag gating (TKT-5.6.G2 AC #5)", () => {
+  describe("feature flag gating", () => {
     it("renders SearchInput when flag is 'live'", () => {
       mockGetFeatureFlagValue.mockReturnValue("live");
 
@@ -36,7 +36,7 @@ describe("GlobalSearch", () => {
       expect(screen.queryByRole("combobox")).toBeInTheDocument();
     });
 
-    it("renders null when flag is 'placeholder' (TKT-5.6.G2 AC #5)", () => {
+    it("renders null when flag is 'placeholder'", () => {
       mockGetFeatureFlagValue.mockReturnValue("placeholder");
 
       const { container } = render(<GlobalSearch />);
@@ -46,7 +46,7 @@ describe("GlobalSearch", () => {
     });
   });
 
-  describe("no social write DTO imports invariant (TKT-5.6.G2 AC #5)", () => {
+  describe("no social write DTO imports invariant", () => {
     it("does not render follow or friend-request related elements", () => {
       mockGetFeatureFlagValue.mockReturnValue("live");
 

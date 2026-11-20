@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useRef, useState } from "react";
-import { mutate as globalMutate } from "swr";
 import { getQueryClient } from "@/providers/QueryProvider";
 
 import { ApiError, coerceToApiError, isApiError } from "@/lib/api";
@@ -106,10 +105,6 @@ export function useJoinInstance(
       } catch {
         // ignore
       }
-      await Promise.all([
-        globalMutate(keys.detail, undefined, { revalidate: true }),
-        globalMutate(keys.players, undefined, { revalidate: true }),
-      ]);
 
       void result;
       setState("success");

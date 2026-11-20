@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { renderHook, waitFor } from "@testing-library/react";
-import { SWRConfig } from "swr";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 import { ApiError } from "@/lib/api";
 
@@ -11,6 +11,18 @@ const getMyQuizAnalyticsMock = vi.hoisted(() => vi.fn());
 vi.mock("@/features/quizzes/services/quizzes.service", () => ({
   getMyQuizAnalytics: getMyQuizAnalyticsMock,
 }));
+
+function TestProvider({ children }: { children: React.ReactNode }) {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: { retry: false },
+      mutations: { retry: false },
+    },
+  });
+  return (
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+  );
+}
 
 function makeApiError(status: number, code = `CODE_${status}`): ApiError {
   return new ApiError({
@@ -59,13 +71,11 @@ afterEach(() => {
 });
 
 describe("useMyQuizzesAnalytics — analytics null while loading", () => {
-  it("analytics is null before SWR resolves", async () => {
+  it("analytics is null before query resolves", async () => {
     getMyQuizAnalyticsMock.mockImplementation(() => new Promise(() => {}));
 
     const { result } = renderHook(() => useMyQuizzesAnalytics(), {
-      wrapper: ({ children }) => (
-        <SWRConfig value={{ provider: () => new Map() }}>{children}</SWRConfig>
-      ),
+      wrapper: TestProvider,
     });
 
     expect(result.current.analytics).toBeNull();
@@ -78,9 +88,7 @@ describe("useMyQuizzesAnalytics — analytics populated on success", () => {
     getMyQuizAnalyticsMock.mockResolvedValue({ data: fixture });
 
     const { result } = renderHook(() => useMyQuizzesAnalytics(), {
-      wrapper: ({ children }) => (
-        <SWRConfig value={{ provider: () => new Map() }}>{children}</SWRConfig>
-      ),
+      wrapper: TestProvider,
     });
 
     await waitFor(() => {
@@ -99,9 +107,7 @@ describe("useMyQuizzesAnalytics — 404 → analytics null", () => {
     getMyQuizAnalyticsMock.mockRejectedValue(makeApiError(404, "NOT_FOUND"));
 
     const { result } = renderHook(() => useMyQuizzesAnalytics(), {
-      wrapper: ({ children }) => (
-        <SWRConfig value={{ provider: () => new Map() }}>{children}</SWRConfig>
-      ),
+      wrapper: TestProvider,
     });
 
     await waitFor(() => {
@@ -121,9 +127,7 @@ describe("useMyQuizzesAnalytics — 5xx propagates", () => {
     );
 
     const { result } = renderHook(() => useMyQuizzesAnalytics(), {
-      wrapper: ({ children }) => (
-        <SWRConfig value={{ provider: () => new Map() }}>{children}</SWRConfig>
-      ),
+      wrapper: TestProvider,
     });
 
     await waitFor(() => {

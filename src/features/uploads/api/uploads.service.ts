@@ -48,7 +48,7 @@ export async function uploadFile(
 }
 
 /**
- * Phase 3.1 — thin wrapper around the generated
+ * Thin wrapper around the generated
  * `uploadControllerBindUpload` SDK. Re-validates the supplied
  * `publicId` shape before the network round-trip so a malformed value
  * is caught client-side and the user gets a structured error instead

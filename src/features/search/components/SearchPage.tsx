@@ -88,7 +88,7 @@ function SearchPageInner() {
             }}
           />
 
-          {/* TKT-6.5.G4 — Social search group (conditionally rendered) */}
+          {/* Social search group (conditionally rendered) */}
           {socialSearchFlag === "placeholder" && <SocialSearchPlaceholder />}
           {socialSearchFlag === "live" && (
             <section

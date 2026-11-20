@@ -1,6 +1,7 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 import { act, cleanup, renderHook } from "@testing-library/react";
-import { SWRConfig } from "swr";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { getQueryClient } from "@/providers/QueryProvider";
 
 import { useStartInstance } from "@/features/instances/hooks/useStartInstance";
 import { ApiError, isApiError } from "@/lib/api";
@@ -16,15 +17,6 @@ vi.mock("@/features/instances/services/instances.service", () => ({
   startInstance: (...args: unknown[]) => mockStartInstance(...args),
   startCountdown: (...args: unknown[]) => mockStartCountdown(...args),
 }));
-
-const mutateMock = vi.fn();
-vi.mock("swr", async () => {
-  const actual = await vi.importActual<typeof import("swr")>("swr");
-  return {
-    ...actual,
-    mutate: (...args: unknown[]) => mutateMock(...args),
-  };
-});
 
 function makeApiError(status: number, code: string) {
   const wireBody = {
@@ -52,19 +44,15 @@ function makeApiError(status: number, code: string) {
   return new ApiError(err as unknown as Parameters<typeof ApiError>[0]);
 }
 
-function TestSwrProvider({ children }: { children: React.ReactNode }) {
+function TestProvider({ children }: { children: React.ReactNode }) {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: { retry: false },
+      mutations: { retry: false },
+    },
+  });
   return (
-    <SWRConfig
-      value={{
-        provider: () => new Map(),
-        revalidateOnFocus: false,
-        revalidateIfStale: false,
-        dedupingInterval: 0,
-        errorRetryCount: 0,
-      }}
-    >
-      {children}
-    </SWRConfig>
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
   );
 }
 
@@ -89,21 +77,26 @@ const playerPermissions = {
 };
 
 describe("useStartInstance", () => {
+  let invalidateQueriesSpy: ReturnType<typeof vi.spyOn>;
+
   beforeEach(() => {
     vi.clearAllMocks();
-    mutateMock.mockResolvedValue(undefined);
+    invalidateQueriesSpy = vi
+      .spyOn(getQueryClient(), "invalidateQueries")
+      .mockResolvedValue(undefined as never);
     mockGetFeatureFlagValue.mockReturnValue("live");
   });
 
   afterEach(() => {
     cleanup();
+    vi.restoreAllMocks();
   });
 
   describe("initialization", () => {
     it("starts in idle state", () => {
       const { result } = renderHook(
         () => useStartInstance("inst-1", hostPermissions),
-        { wrapper: TestSwrProvider },
+        { wrapper: TestProvider },
       );
       expect(result.current.state).toBe("idle");
       expect(result.current.error).toBeNull();
@@ -114,7 +107,7 @@ describe("useStartInstance", () => {
 
       const { result } = renderHook(
         () => useStartInstance("inst-1", hostPermissions),
-        { wrapper: TestSwrProvider },
+        { wrapper: TestProvider },
       );
 
       await act(async () => {
@@ -127,7 +120,7 @@ describe("useStartInstance", () => {
     it("start is a no-op when instanceId is null", async () => {
       const { result } = renderHook(
         () => useStartInstance(null, hostPermissions),
-        { wrapper: TestSwrProvider },
+        { wrapper: TestProvider },
       );
 
       await act(async () => {
@@ -140,7 +133,7 @@ describe("useStartInstance", () => {
     it("start is a no-op when permissions.canStart is false", async () => {
       const { result } = renderHook(
         () => useStartInstance("inst-1", playerPermissions),
-        { wrapper: TestSwrProvider },
+        { wrapper: TestProvider },
       );
 
       await act(async () => {
@@ -153,7 +146,7 @@ describe("useStartInstance", () => {
     it("surfaces INSTANCE_HOST_REQUIRED locally when canStart is false", async () => {
       const { result } = renderHook(
         () => useStartInstance("inst-1", playerPermissions),
-        { wrapper: TestSwrProvider },
+        { wrapper: TestProvider },
       );
 
       await act(async () => {
@@ -166,7 +159,7 @@ describe("useStartInstance", () => {
   });
 
   describe("success path", () => {
-    it("transitions to success state and invalidates SWR keys", async () => {
+    it("transitions to success state and invalidates queries", async () => {
       mockStartInstance.mockResolvedValue({
         instanceId: "inst-1",
         status: "running",
@@ -175,7 +168,7 @@ describe("useStartInstance", () => {
 
       const { result } = renderHook(
         () => useStartInstance("inst-1", hostPermissions),
-        { wrapper: TestSwrProvider },
+        { wrapper: TestProvider },
       );
 
       await act(async () => {
@@ -183,7 +176,7 @@ describe("useStartInstance", () => {
       });
 
       expect(result.current.state).toBe("success");
-      expect(mutateMock).toHaveBeenCalled();
+      expect(invalidateQueriesSpy).toHaveBeenCalled();
     });
 
     it("forwards id to startInstance", async () => {
@@ -195,7 +188,7 @@ describe("useStartInstance", () => {
 
       const { result } = renderHook(
         () => useStartInstance("inst-42", hostPermissions),
-        { wrapper: TestSwrProvider },
+        { wrapper: TestProvider },
       );
 
       await act(async () => {
@@ -214,7 +207,7 @@ describe("useStartInstance", () => {
 
       const { result } = renderHook(
         () => useStartInstance("inst-1", hostPermissions),
-        { wrapper: TestSwrProvider },
+        { wrapper: TestProvider },
       );
 
       await act(async () => {
@@ -233,7 +226,7 @@ describe("useStartInstance", () => {
 
       const { result } = renderHook(
         () => useStartInstance("inst-1", hostPermissions),
-        { wrapper: TestSwrProvider },
+        { wrapper: TestProvider },
       );
 
       await act(async () => {
@@ -251,7 +244,7 @@ describe("useStartInstance", () => {
 
       const { result } = renderHook(
         () => useStartInstance("inst-1", hostPermissions),
-        { wrapper: TestSwrProvider },
+        { wrapper: TestProvider },
       );
 
       await act(async () => {
@@ -269,7 +262,7 @@ describe("useStartInstance", () => {
 
       const { result } = renderHook(
         () => useStartInstance("inst-1", hostPermissions),
-        { wrapper: TestSwrProvider },
+        { wrapper: TestProvider },
       );
 
       await act(async () => {
@@ -287,7 +280,7 @@ describe("useStartInstance", () => {
 
       const { result } = renderHook(
         () => useStartInstance("inst-1", hostPermissions),
-        { wrapper: TestSwrProvider },
+        { wrapper: TestProvider },
       );
 
       await act(async () => {
@@ -303,7 +296,7 @@ describe("useStartInstance", () => {
 
       const { result } = renderHook(
         () => useStartInstance("inst-1", hostPermissions),
-        { wrapper: TestSwrProvider },
+        { wrapper: TestProvider },
       );
 
       await act(async () => {
@@ -327,7 +320,7 @@ describe("useStartInstance", () => {
 
       const { result } = renderHook(
         () => useStartInstance("inst-1", hostPermissions),
-        { wrapper: TestSwrProvider },
+        { wrapper: TestProvider },
       );
 
       const firstPromise = result.current.start();
@@ -355,7 +348,7 @@ describe("useStartInstance", () => {
 
       const { result } = renderHook(
         () => useStartInstance("inst-1", hostPermissions),
-        { wrapper: TestSwrProvider },
+        { wrapper: TestProvider },
       );
 
       await act(async () => {
@@ -384,7 +377,7 @@ describe("useStartInstance", () => {
 
       const { result } = renderHook(
         () => useStartInstance("inst-1", hostPermissions, { status: "open" }),
-        { wrapper: TestSwrProvider },
+        { wrapper: TestProvider },
       );
 
       await act(async () => {
@@ -409,7 +402,7 @@ describe("useStartInstance", () => {
 
       const { result } = renderHook(
         () => useStartInstance("inst-1", hostPermissions),
-        { wrapper: TestSwrProvider },
+        { wrapper: TestProvider },
       );
 
       await act(async () => {

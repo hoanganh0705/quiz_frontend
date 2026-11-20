@@ -13,8 +13,6 @@ export type OptimisticToggleKey =
   | undefined
   | false;
 
-export type OptimisticToggleSWRKey = OptimisticToggleKey;
-
 export type OptimisticToggleErrorKind =
   "http_429" | "http_404" | "http_4xx" | "http_5xx" | "unknown";
 

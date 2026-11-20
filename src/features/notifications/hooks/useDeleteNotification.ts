@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useRef, useState } from "react";
-import { mutate as globalMutate, useSWRConfig } from "swr";
 import { getQueryClient } from "@/providers/QueryProvider";
 
 import { ApiError, isApiError } from "@/lib/api";
@@ -33,8 +32,6 @@ export function useDeleteNotification(
 
   const inFlightRef = useRef(false);
 
-  const swrConfig = useSWRConfig();
-
   const deleteNotificationAction = useCallback(async (): Promise<void> => {
     if (isFlagPlaceholder || notificationId === null) {
       return;
@@ -48,39 +45,30 @@ export function useDeleteNotification(
     setState("pending");
     setError(null);
 
-    const matchedInfiniteKeys: string[] = [];
-    try {
-      const cache = swrConfig.cache as {
-        keys?: () => IterableIterator<string>;
-        get: (k: string) => { _k?: unknown; data?: unknown } | undefined;
-      };
-      const iter = cache.keys?.bind(cache);
-      if (iter) {
-        for (const cacheKey of iter()) {
-          if (!cacheKey.startsWith("$inf$")) continue;
-          const entry = cache.get(cacheKey);
-          const data = entry?.data;
-          if (!Array.isArray(data) || data.length === 0) continue;
-
-          const firstPage = data[0] as { items?: unknown } | null;
-          if (
-            firstPage &&
-            typeof firstPage === "object" &&
-            "items" in firstPage
-          ) {
-            matchedInfiniteKeys.push(cacheKey);
-          }
-        }
-      }
-    } catch {
-      // Fail-open
-    }
-
-    await globalMutate(
-      (key) =>
-        Array.isArray(key) && key[0] === "notifications" && key[1] === "list",
+    const qc = getQueryClient();
+    qc.setQueriesData(
+      { queryKey: ["notifications", "list"] },
       (current: unknown) => {
         if (!current) return current;
+        if (
+          typeof current === "object" &&
+          current !== null &&
+          "pages" in current
+        ) {
+          const inf = current as {
+            pages: NotificationListPage[];
+            pageParams: unknown[];
+          };
+          return {
+            ...inf,
+            pages: inf.pages.map((page) => ({
+              ...page,
+              items: (page.items ?? []).filter(
+                (n: Notification) => n.id !== notificationId,
+              ),
+            })),
+          };
+        }
         const page = current as NotificationListPage;
         if (!page.items) return current;
         const filtered = page.items.filter(
@@ -92,13 +80,11 @@ export function useDeleteNotification(
           items: filtered,
         };
       },
-      { revalidate: false },
     );
 
     try {
       await deleteNotification(notificationId);
 
-      const qc = getQueryClient();
       await Promise.all([
         qc.invalidateQueries({ queryKey: ["notifications", "list"] }),
         qc.invalidateQueries({
@@ -107,25 +93,6 @@ export function useDeleteNotification(
         qc.invalidateQueries({
           queryKey: NOTIFICATION_CACHE_KEYS.detail(notificationId),
         }),
-        ...matchedInfiniteKeys.map((cacheKey) =>
-          swrConfig.mutate(cacheKey, undefined, { revalidate: true }),
-        ),
-        globalMutate(
-          (key) =>
-            Array.isArray(key) &&
-            key[0] === "notifications" &&
-            key[1] === "list",
-          undefined,
-          { revalidate: true },
-        ),
-        globalMutate(NOTIFICATION_CACHE_KEYS.unreadCount(), undefined, {
-          revalidate: true,
-        }),
-        globalMutate(
-          NOTIFICATION_CACHE_KEYS.detail(notificationId),
-          undefined,
-          { revalidate: true },
-        ),
       ]);
 
       setState("success");
@@ -135,14 +102,7 @@ export function useDeleteNotification(
         setState("idle");
       }, 1_000);
     } catch (cause: unknown) {
-      const qc = getQueryClient();
       void qc.invalidateQueries({ queryKey: ["notifications", "list"] });
-      await globalMutate(
-        (key) =>
-          Array.isArray(key) && key[0] === "notifications" && key[1] === "list",
-        undefined,
-        { revalidate: true },
-      );
 
       if (isApiError(cause)) {
         setState("error");
@@ -163,7 +123,7 @@ export function useDeleteNotification(
     } finally {
       inFlightRef.current = false;
     }
-  }, [isFlagPlaceholder, notificationId, state, swrConfig]);
+  }, [isFlagPlaceholder, notificationId, state]);
 
   const reset = useCallback(() => {
     setState("idle");

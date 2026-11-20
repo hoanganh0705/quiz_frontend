@@ -3,9 +3,6 @@
 /**
  * `<QuizzesDirectoryPage />` — the `/quizzes` route's main composition.
  *
- * Source epic: Epic 3.5 — Global quizzes list + filters.
- * Source ticket: TKT-3.5.D1.
- *
  * Wires:
  *
  *   - `useQuizFiltersUrlSync()` — seeds the store from the URL on
@@ -23,8 +20,7 @@
  *     The variant only changes the rail label; everything else is
  *     shared so loading / error / empty states stay consistent.
  *   - The `useQuizzesList(state, { limit: 20 })` cursor-paginated
- *     directory below the filter bar (limit matches Story 3.5 AC #5
- *     Lighthouse target — "20 items").
+ *     directory below the filter bar (limit matches pagination target — "20 items").
  *   - `<QuizGridEmpty />` — the filter-aware empty state.
  *   - `<QuizGridLoadMore />` — the load-more button.
  *
@@ -34,7 +30,7 @@
  *     to the H1.
  *   - On the initial mount the grid renders 20 `<QuizCardSkeleton />`
  *     items of the same outer dimensions as the resolved cards —
- *     CLS = 0 once the items arrive (Story 3.5 AC #4).
+ *     CLS = 0 once the items arrive.
  *   - The strip empty / loading / error states are independent of
  *     the grid's state (an error in the popular strip does NOT block
  *     the directory below it).
@@ -42,14 +38,14 @@
  *     `<EntityCard />` primitive so middle-click / right-click /
  *     keyboard navigation all behave like a normal link.
  *
- * ## `initialState` prop (TKT-3.5.D2 forwarder)
+ * ## `initialState` prop
  *
  * The optional `initialState` prop seeds the filter store on mount
- * via `setFilter`. The URL sync hook (C2) reads the URL on mount and
+ * via `setFilter`. The URL sync hook reads the URL on mount and
  * ALSO seeds the store — the URL wins. `initialState` is preserved
  * for callers that want to compose `QuizzesDirectoryPage` from a
  * route that passes a category slug through props (the legacy
- * `QuizCatalogMainContent` does this — D2).
+ * `QuizCatalogMainContent` does this).
  */
 
 import { useEffect, useMemo } from "react";
@@ -276,7 +272,7 @@ function hasActiveFilters(state: QuizFilterUrlState): boolean {
 
 /**
  * Seeds the store with `initialState` on mount (a single-shot effect,
- * not gated by a ref — see TKT-3.5.D2).
+ * not gated by a ref).
  */
 function useInitialState(initialState?: Partial<QuizFilterUrlState>): void {
   useEffect(() => {

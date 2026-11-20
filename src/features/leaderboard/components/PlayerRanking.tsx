@@ -26,7 +26,7 @@
  * ## Period choice
  *
  * The "all_time" period is the documented default for the top-
- * players carousel (Story 3.11 line 1161, period selector defaults
+ * players carousel (period selector defaults
  * to `"all_time"`). The home page does not surface a period
  * switcher — for any non-default period, the user navigates to
  * `/leaderboard`.
@@ -48,11 +48,7 @@ const SKELETON_COUNT = 5;
  * Project a `LeaderboardEntryDto` (the wire shape) into the slice of
  * the `Player` projection that `<PlayerCard />` consumes.
  *
- * Phase 6 (W-17): the projection was previously defensive — it
- * surfaced `country`, `flag`, `streak`, `level`, `quizzes`,
- * `qpsCreated`, `wins`, `bgImageUrl`, `bio` as `undefined` so the
- * card could render `N/A` placeholders. The trimmed projection
- * only carries the fields the wire actually fills.
+ * The trimmed projection only carries the fields the wire actually fills.
  */
 function projectEntryToPlayer(entry: {
   userId: string;

@@ -3,7 +3,6 @@ import axios, {
   AxiosRequestConfig,
   InternalAxiosRequestConfig,
 } from "axios";
-import { mutate as globalMutate } from "swr";
 import { getQueryClient } from "@/providers/QueryProvider";
 
 import { ApiError } from "./ApiError";
@@ -318,8 +317,6 @@ if (typeof window !== "undefined") {
           // ignore in non-browser or uninitialized environments
         }
 
-        void globalMutate(() => true, undefined, { revalidate: true });
-
         clearAuthToken();
         if (typeof window !== "undefined") {
           window.location.href = "/login";
@@ -339,8 +336,6 @@ if (typeof window !== "undefined") {
         } catch {
           // ignore in non-browser or uninitialized environments
         }
-
-        void globalMutate(() => true, undefined, { revalidate: true });
 
         setAuthToken(event.accessToken);
         break;

@@ -270,16 +270,6 @@ function useSearchInner(args: UseSearchInnerArgs): UseSearchResult {
   const epochRef = useRef(0);
   const abortRef = useRef<AbortController | null>(null);
 
-  const swrKey = useMemo(
-    () =>
-      SEARCH_CACHE_KEYS.results({
-        q: debouncedQuery,
-        limit: clampedLimit,
-        kinds,
-      }),
-    [debouncedQuery, clampedLimit, kinds],
-  );
-
   const [groups, setGroups] = useState<SearchResponseDto["groups"] | null>(
     null,
   );
@@ -416,8 +406,6 @@ function useSearchInner(args: UseSearchInnerArgs): UseSearchResult {
   }, []);
 
   const isStale = isLoading && groups !== null;
-
-  void swrKey;
 
   return {
     groups,

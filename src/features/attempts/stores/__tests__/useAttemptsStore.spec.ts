@@ -308,7 +308,7 @@ describe("useAttemptsStore — selector stability", () => {
   });
 });
 
-describe("useAttemptsStore — legal Story 4.14 transitions", () => {
+describe("useAttemptsStore — legal lifecycle transitions", () => {
   it("idle → starting → in_progress (start success)", () => {
     setAttemptStatus(ATTEMPT_1, QV_1, SESSION_A, "starting");
     expect(useAttemptsStore.getState().attemptsById[ATTEMPT_1]?.status).toBe(
@@ -426,7 +426,7 @@ describe("useAttemptsStore — reserved completion state behaviour (T-4.14.29)",
     expect(Object.keys(entry)).not.toContain("isCorrect");
   });
 
-  it("setAttemptStatus still refuses to write completing/completed (Story 4.15 gate)", () => {
+  it("setAttemptStatus still refuses to write completing/completed directly", () => {
     setAttemptStatus(ATTEMPT_1, QV_1, SESSION_A, "in_progress");
     setAttemptStatus(ATTEMPT_1, QV_1, SESSION_A, "completing");
     setAttemptStatus(ATTEMPT_1, QV_1, SESSION_A, "completed");
@@ -451,7 +451,7 @@ describe("useAttemptsStore — backend `started` → frontend `in_progress`", ()
   });
 });
 
-describe("useAttemptsStore — Story 4.15 completion actions (T-4.15.15)", () => {
+describe("useAttemptsStore — completion actions", () => {
   it("beginCompletion writes the reserved `completing` state with a cooldown", () => {
     beginCompletion(ATTEMPT_1, QV_1, SESSION_A, 500);
     const entry = useAttemptsStore.getState().attemptsById[ATTEMPT_1]!;

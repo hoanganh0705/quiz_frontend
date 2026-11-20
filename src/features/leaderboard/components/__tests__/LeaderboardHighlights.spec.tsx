@@ -1,5 +1,5 @@
 /**
- * Unit tests for `LeaderboardHighlights` — Phase 4.5 (F-9).
+ * Unit tests for `LeaderboardHighlights`.
  *
  * Asserts:
  *   - The category Select in the 'category' tab is disabled.

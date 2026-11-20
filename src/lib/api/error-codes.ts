@@ -131,8 +131,8 @@ export type ErrorCode =
   | "TOURNAMENT_ATTEMPT_ALREADY_EXISTS"
   | "TOURNAMENT_PARTICIPANT_STATE"
   | "TOURNAMENT_ALREADY_WITHDRAWN"
-  | "TOURNAMENT_ALREADY_STARTED" // Phase 7 — Story 7.7 (TKT-7.7.B2)
-  | "TOURNAMENT_HAS_PARTICIPANTS" // Phase 7 — Story 7.7 (TKT-7.7.B2)
+  | "TOURNAMENT_ALREADY_STARTED" // Phase 7 — Story 7.7
+  | "TOURNAMENT_HAS_PARTICIPANTS" // Phase 7 — Story 7.7
   | "TOURNAMENT_VALIDATION"
   | "TOURNAMENT_REGISTRATION_CLOSED"
   | "TOURNAMENT_FULL" // Phase 5 — from KNOWN_ERROR_CODES but missing from union
@@ -160,16 +160,16 @@ export type ErrorCode =
   | "BADGE_NOT_GRANTED" /** badge revoke when user does not hold the badge */
   | "ACHIEVEMENT_NOT_FOUND" /** achievement entity not found */
   | "SELF_ACTION_FORBIDDEN" /** self-action on a destructive admin endpoint */
-  /** RANKING_ADMIN module — Epic 7.9 ranking admin (TKT-7.9.B1) */
+  /** RANKING_ADMIN module — Epic 7.9 ranking admin */
   | "OPERATION_RUNNING" /** another ranking operation is already in flight */
   | "OPERATION_COOLDOWN" /** ranking operation is in cooldown */
   | "INVALID_PERIOD" /** requested period identifier is not valid */
-  /** USER_ROLE_ADMIN module — Epic 7.10 user role admin (TKT-7.10.B1) */
+  /** USER_ROLE_ADMIN module — Epic 7.10 user role admin */
   | "ROLE_NOT_FOUND" /** role does not exist */
   | "ALREADY_GRANTED" /** user already has the role */
   | "NOT_GRANTED" /** user does not have the role */
   | "SELF_ROLE_REVOKE_FORBIDDEN" /** cannot revoke own role */
-  /** AUDIT_LOG module — Epic 7.11 audit log (TKT-7.11.A1) */
+  /** AUDIT_LOG module — Epic 7.11 audit log */
   | "AUDIT_LOG_NOT_EXPOSED" /** audit log endpoint not exposed by backend */
   /** Synthesized GLOBAL_* codes for native HttpException paths (RFC 7807 §8.5) */
   | "GLOBAL_BAD_REQUEST" /** 400 */
@@ -604,7 +604,7 @@ function deriveCopyFor(code: string): UserCopyEntry {
   return Object.freeze({ title, body, toast: "inline" as const });
 }
 
-const PHASE4_PRIORITY_COPY: Partial<Record<ErrorCode, UserCopyEntry>> = {
+const INTERACTION_PRIORITY_COPY: Partial<Record<ErrorCode, UserCopyEntry>> = {
   ATTEMPT_ALREADY_STARTED: {
     title: "Attempt already in progress",
     body: "You already have an in-progress attempt for this quiz. Resume it or abandon the existing one first.",
@@ -883,7 +883,7 @@ const PHASE4_PRIORITY_COPY: Partial<Record<ErrorCode, UserCopyEntry>> = {
   },
 };
 
-const STORY_4_15_PRIORITY_COPY: Partial<Record<ErrorCode, UserCopyEntry>> = {
+const ATTEMPT_COMPLETION_PRIORITY_COPY: Partial<Record<ErrorCode, UserCopyEntry>> = {
   ATTEMPT_VALIDATION_FAILED: {
     title: "Submit at least one answer",
     body: "You need to answer at least one question before completing the attempt.",
@@ -891,7 +891,7 @@ const STORY_4_15_PRIORITY_COPY: Partial<Record<ErrorCode, UserCopyEntry>> = {
   },
 };
 
-const STORY_7_7_PRIORITY_COPY: Partial<Record<ErrorCode, UserCopyEntry>> = {
+const TOURNAMENT_ADMIN_PRIORITY_COPY: Partial<Record<ErrorCode, UserCopyEntry>> = {
   TOURNAMENT_ALREADY_STARTED: {
     title: "Tournament already started",
     body: "This tournament has already started. You cannot edit or delete it. To stop it, cancel the tournament from the host controls.",
@@ -904,7 +904,7 @@ const STORY_7_7_PRIORITY_COPY: Partial<Record<ErrorCode, UserCopyEntry>> = {
   },
 };
 
-const STORY_7_8_PRIORITY_COPY: Partial<Record<ErrorCode, UserCopyEntry>> = {
+const ACHIEVEMENT_ADMIN_PRIORITY_COPY: Partial<Record<ErrorCode, UserCopyEntry>> = {
   REVAL_RUNNING: {
     title: "Re-evaluation already running",
     body: "A re-evaluation is already in progress for this user. We will refresh the badge list when it completes.",
@@ -927,7 +927,7 @@ const STORY_7_8_PRIORITY_COPY: Partial<Record<ErrorCode, UserCopyEntry>> = {
   },
 };
 
-const STORY_7_9_PRIORITY_COPY: Partial<Record<ErrorCode, UserCopyEntry>> = {
+const RANKING_ADMIN_PRIORITY_COPY: Partial<Record<ErrorCode, UserCopyEntry>> = {
   OPERATION_RUNNING: {
     title: "Operation already running",
     body: "A ranking operation is already in progress. Please wait for it to complete before starting another.",
@@ -945,7 +945,7 @@ const STORY_7_9_PRIORITY_COPY: Partial<Record<ErrorCode, UserCopyEntry>> = {
   },
 };
 
-const STORY_7_11_PRIORITY_COPY: Partial<Record<ErrorCode, UserCopyEntry>> = {
+const AUDIT_LOG_PRIORITY_COPY: Partial<Record<ErrorCode, UserCopyEntry>> = {
   AUDIT_LOG_NOT_EXPOSED: {
     title: "Audit log not available",
     body: "The audit log endpoint is not exposed by the backend. Admin actions are still recorded in Sentry breadcrumbs for triage.",
@@ -956,18 +956,18 @@ const STORY_7_11_PRIORITY_COPY: Partial<Record<ErrorCode, UserCopyEntry>> = {
 function buildUserCopy(): Record<ErrorCode, UserCopyEntry> {
   const out = {} as Record<ErrorCode, UserCopyEntry>;
   for (const code of KNOWN_ERROR_CODES) {
-    if (code in STORY_7_11_PRIORITY_COPY) {
-      out[code] = Object.freeze({ ...STORY_7_11_PRIORITY_COPY[code]! });
-    } else if (code in STORY_7_9_PRIORITY_COPY) {
-      out[code] = Object.freeze({ ...STORY_7_9_PRIORITY_COPY[code]! });
-    } else if (code in STORY_7_8_PRIORITY_COPY) {
-      out[code] = Object.freeze({ ...STORY_7_8_PRIORITY_COPY[code]! });
-    } else if (code in STORY_7_7_PRIORITY_COPY) {
-      out[code] = Object.freeze({ ...STORY_7_7_PRIORITY_COPY[code]! });
-    } else if (code in STORY_4_15_PRIORITY_COPY) {
-      out[code] = Object.freeze({ ...STORY_4_15_PRIORITY_COPY[code]! });
-    } else if (code in PHASE4_PRIORITY_COPY) {
-      out[code] = Object.freeze({ ...PHASE4_PRIORITY_COPY[code]! });
+    if (code in AUDIT_LOG_PRIORITY_COPY) {
+      out[code] = Object.freeze({ ...AUDIT_LOG_PRIORITY_COPY[code]! });
+    } else if (code in RANKING_ADMIN_PRIORITY_COPY) {
+      out[code] = Object.freeze({ ...RANKING_ADMIN_PRIORITY_COPY[code]! });
+    } else if (code in ACHIEVEMENT_ADMIN_PRIORITY_COPY) {
+      out[code] = Object.freeze({ ...ACHIEVEMENT_ADMIN_PRIORITY_COPY[code]! });
+    } else if (code in TOURNAMENT_ADMIN_PRIORITY_COPY) {
+      out[code] = Object.freeze({ ...TOURNAMENT_ADMIN_PRIORITY_COPY[code]! });
+    } else if (code in ATTEMPT_COMPLETION_PRIORITY_COPY) {
+      out[code] = Object.freeze({ ...ATTEMPT_COMPLETION_PRIORITY_COPY[code]! });
+    } else if (code in INTERACTION_PRIORITY_COPY) {
+      out[code] = Object.freeze({ ...INTERACTION_PRIORITY_COPY[code]! });
     } else {
       out[code] = deriveCopyFor(code);
     }

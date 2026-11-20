@@ -7,7 +7,7 @@
  * spec stays focused on assertions instead of boilerplate. All
  * shapes mirror the orval-generated wire output. The endpoint stubbed here is the one feature actually
  * hits — `GET /api/v1/leaderboard`. The endpoint is offset-paginated
- * (drift A1 #1) — the SWR key includes the period, the hook
+ * — the query key includes the period, the hook
  * advances the offset on load-more.
  *
  * ## Endpoints stubbed

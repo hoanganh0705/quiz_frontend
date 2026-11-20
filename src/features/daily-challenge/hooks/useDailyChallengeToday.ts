@@ -19,7 +19,7 @@ export interface UseDailyChallengeTodayResult {
   isRetrying: boolean;
 }
 
-const SWR_KEY = ["daily-challenge", "today"] as const;
+const QUERY_KEY = ["daily-challenge", "today"] as const;
 
 export function useDailyChallengeToday(): UseDailyChallengeTodayResult {
   const fetcher = useMemo<SingleFetcher<DailyChallengeView | null>>(
@@ -39,7 +39,7 @@ export function useDailyChallengeToday(): UseDailyChallengeTodayResult {
 
   const { data, isLoading, error, retry, isRetrying } =
     useSingleWithRetry<DailyChallengeView | null>({
-      key: SWR_KEY,
+      key: QUERY_KEY,
       fetcher,
     });
 

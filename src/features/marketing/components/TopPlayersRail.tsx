@@ -9,10 +9,7 @@ import type { LeaderboardEntryDto } from "@/lib/api/generated/schemas";
 import { TextSkeleton } from "@/components/ui/loading-states/Skeletons";
 
 /**
- * `TopPlayersRail` — Phase 4.3 (F-7) replacement for the deleted
- * `SuccessStoriesCarousel`. The carousel previously rendered fictional
- * testimonials hardcoded in `marketing/constants/testimonialData.ts`;
- * the rail renders the real `topPlayers` payload from the home bundle
+ * `TopPlayersRail` — renders the real `topPlayers` payload from the home bundle
  * endpoint (`/api/v1/home/bundle`) — top 5 weekly leaderboard entries,
  * ordered by rank.
  *

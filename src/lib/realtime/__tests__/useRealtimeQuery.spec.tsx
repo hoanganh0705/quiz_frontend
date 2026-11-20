@@ -17,7 +17,7 @@ afterEach(() => {
 });
 
 describe("useRealtimeQuery", () => {
-  it("returns SWR response when swrKey is non-null", async () => {
+  it("returns query response when key is non-null", async () => {
     const mockSocket = {
       on: vi.fn(),
       off: vi.fn(),

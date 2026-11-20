@@ -36,7 +36,7 @@ export function SocialFeedPage(): ReactElement {
   } = useFeed(viewerUserId);
 
   const noopReset = useCallback((): void => {
-    // Intentionally empty — the feed SWR cache is cleared by
+    // Intentionally empty — the feed cache is cleared by
     // `useFeed` itself on the `auth-state-change` event.
   }, []);
   useSocialListLifecycleReset({

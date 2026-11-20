@@ -1,10 +1,9 @@
 /**
- * Unit tests for `HowItWorks` — Phase 4.4 (F-8) regression guard.
+ * Unit tests for `HowItWorks`.
  *
  * Asserts:
  *   - All 3 steps render title and description.
- *   - No `<img>` elements are rendered (the broken `/step1-3.jpg`
- *     images were removed in Phase 4.4).
+ *   - No `<img>` elements are rendered.
  *   - No `next/image` div wrappers exist.
  */
 
@@ -26,7 +25,7 @@ describe("HowItWorks", () => {
     expect(screen.getByText(/collect points, badges/i)).toBeInTheDocument();
   });
 
-  it("does not render any <img> elements (broken /step1-3.jpg removed in Phase 4.4)", () => {
+  it("does not render any <img> elements", () => {
     render(<HowItWorks />);
     const imgs = document.querySelectorAll("img");
     expect(imgs).toHaveLength(0);

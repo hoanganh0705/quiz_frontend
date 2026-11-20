@@ -1,11 +1,10 @@
 "use client";
 
 import { useEffect } from "react";
-import { mutate as globalMutate } from "swr";
 import { getQueryClient } from "@/providers/QueryProvider";
 
 import { getFeatureFlagValue } from "@/lib/feature-flags";
-import { emitPhase5Invalidation } from "@/lib/realtime";
+import { emitRealtimeCrossTabInvalidation } from "@/lib/realtime";
 
 import { useInstanceSocket } from "@/features/instances/hooks/useInstanceSocket";
 import {
@@ -55,7 +54,7 @@ export function useInstanceRealtimeBridge(instanceId: string | null): void {
         case "countdown_cancelled":
           applyLifecycleEvent(event);
 
-          emitPhase5Invalidation({
+          emitRealtimeCrossTabInvalidation({
             type: "instance",
             instanceId: instanceId ?? "",
           });
@@ -67,11 +66,6 @@ export function useInstanceRealtimeBridge(instanceId: string | null): void {
             } catch {
               // ignore
             }
-            void globalMutate(
-              INSTANCE_CACHE_KEYS.detail(instanceId),
-              undefined,
-              { revalidate: true },
-            );
           }
           break;
         default:

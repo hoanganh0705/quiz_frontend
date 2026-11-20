@@ -65,7 +65,6 @@ export type {
   OptimisticToggleErrorKind,
   OptimisticToggleStatus,
   OptimisticToggleKey,
-  OptimisticToggleSWRKey,
   UseOptimisticToggleParams,
   UseOptimisticToggleResult,
 } from "./useOptimisticToggle";
@@ -84,7 +83,6 @@ export type {
   OptimisticMutationRun,
   OptimisticMutationStatus,
   OptimisticMutationKey,
-  OptimisticMutationSWRKey,
   UseOptimisticMutationResult,
 } from "./useOptimisticMutation";
 

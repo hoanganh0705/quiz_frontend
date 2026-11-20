@@ -3,6 +3,7 @@ import { act, cleanup, renderHook } from "@testing-library/react";
 
 import { useCreateInstance } from "@/features/instances/hooks/useCreateInstance";
 import { ApiError } from "@/lib/api";
+import { getQueryClient } from "@/providers/QueryProvider";
 
 const mockGetFeatureFlagValue = vi.fn();
 vi.mock("@/lib/feature-flags", () => ({
@@ -14,25 +15,21 @@ vi.mock("@/features/instances/services/instances.service", () => ({
   createInstance: (...args: unknown[]) => mockCreateInstance(...args),
 }));
 
-const mutateMock = vi.fn();
-vi.mock("swr", async () => {
-  const actual = await vi.importActual<typeof import("swr")>("swr");
-  return {
-    ...actual,
-    mutate: (...args: unknown[]) => mutateMock(...args),
-  };
-});
-
 describe("useCreateInstance", () => {
+  let invalidateQueriesSpy: ReturnType<typeof vi.spyOn>;
+
   beforeEach(() => {
+    vi.clearAllMocks();
+    invalidateQueriesSpy = vi
+      .spyOn(getQueryClient(), "invalidateQueries")
+      .mockResolvedValue(undefined as never);
     mockGetFeatureFlagValue.mockReturnValue("live");
     mockCreateInstance.mockReset();
-    mutateMock.mockReset();
   });
 
   afterEach(() => {
     cleanup();
-    vi.clearAllMocks();
+    vi.restoreAllMocks();
   });
 
   it("initializes with idle state and no error", () => {
@@ -79,7 +76,7 @@ describe("useCreateInstance", () => {
     expect(result.current.state).toBe("success");
     expect(result.current.isCreating).toBe(false);
     expect(result.current.error).toBeNull();
-    expect(mutateMock).toHaveBeenCalled();
+    expect(invalidateQueriesSpy).toHaveBeenCalled();
   });
 
   it("handles creation errors and sets error state", async () => {

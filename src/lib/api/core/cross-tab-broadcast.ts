@@ -15,15 +15,21 @@ import {
   PROFILE_CHANNEL_NAME,
 } from "./profile-broadcast-channel";
 
-export type Phase4BroadcastMessage = AttemptsChangedEvent | ProfileUpdatedEvent;
+export type CrossTabBroadcastMessage = AttemptsChangedEvent | ProfileUpdatedEvent;
 
-export type Phase4BroadcastBareMessage = Phase4BroadcastMessage;
+export type CrossTabBroadcastBareMessage = CrossTabBroadcastMessage;
 
-export type Phase4BroadcastEnvelope = {
-  [K in Phase4BroadcastMessage as K["type"]]: K;
+export type CrossTabBroadcastEnvelope = {
+  [K in CrossTabBroadcastMessage as K["type"]]: K;
 };
 
-export type Phase4BroadcastPayload = Phase4BroadcastMessage;
+export type CrossTabBroadcastPayload = CrossTabBroadcastMessage;
+
+// Backward compatibility aliases
+export type Phase4BroadcastMessage = CrossTabBroadcastMessage;
+export type Phase4BroadcastBareMessage = CrossTabBroadcastBareMessage;
+export type Phase4BroadcastEnvelope = CrossTabBroadcastEnvelope;
+export type Phase4BroadcastPayload = CrossTabBroadcastPayload;
 
 export type { AttemptChangeKind };
 export type { ProfileUpdateKind };
@@ -44,7 +50,7 @@ export type {
   ProfileUpdatedEvent,
 };
 
-export function emitPhase4Broadcast(env: Phase4BroadcastMessage): void {
+export function emitCrossTabBroadcast(env: CrossTabBroadcastMessage): void {
   switch (env.type) {
     case "attempts/changed":
       broadcastAttemptsChanged({
@@ -67,3 +73,5 @@ export function emitPhase4Broadcast(env: Phase4BroadcastMessage): void {
     }
   }
 }
+
+export const emitPhase4Broadcast = emitCrossTabBroadcast;

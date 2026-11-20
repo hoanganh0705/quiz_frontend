@@ -85,21 +85,21 @@ export function useQuizVersion(
     [quizId, versionId],
   );
 
-  const swr = useSingleWithRetry<QuizVersionDetail>({
+  const query = useSingleWithRetry<QuizVersionDetail>({
     key,
     fetcher,
   });
 
-  const isNotFoundError = swr.error !== null && swr.error.status === 404;
+  const isNotFoundError = query.error !== null && query.error.status === 404;
 
   return {
-    data: swr.data ?? null,
-    isLoading: swr.isLoading,
-    error: swr.error !== null && !isNotFoundError ? swr.error : null,
+    data: query.data ?? null,
+    isLoading: query.isLoading,
+    error: query.error !== null && !isNotFoundError ? query.error : null,
     notFound: isNotFoundError,
-    isDraft: swr.data?.status === "draft",
-    isPublished: swr.data?.status === "published",
-    retry: swr.retry,
+    isDraft: query.data?.status === "draft",
+    isPublished: query.data?.status === "published",
+    retry: query.retry,
   };
 }
 

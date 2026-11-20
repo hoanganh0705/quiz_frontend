@@ -50,12 +50,6 @@ export type { UsePeriodFilterResult } from "./usePeriodFilter";
 export { useSocialLifecycleReset } from "./useSocialLifecycleReset";
 export type { UseSocialLifecycleResetOptions } from "./useSocialLifecycleReset";
 
-export {
-  makeSocialListSWRKey,
-  useSocialListSWRKey,
-  SOCIAL_LIST_SWR_DEFAULTS,
-} from "./useSocialListSWRKey";
-export type { SocialListSWRKey } from "./useSocialListSWRKey";
 
 export {
   useSocialListVisibility,

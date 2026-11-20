@@ -16,7 +16,7 @@
  *     in order; the fetched page is appended to the end of the items array.
  *   - The hook never throws — the fetch promise is consumed internally and
  *     surfaced as `error` so the page can show the existing items + a
- *     retry surface, matching the SWR `useCursorPaginated` error contract.
+ *     retry surface, matching the `useCursorPaginated` error contract.
  */
 "use client";
 

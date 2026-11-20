@@ -13,7 +13,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/AlertDialog";
 import { Button } from "@/components/ui/Button";
-import { getConfirmKind } from "@/features/shared/phase4ConfirmCopyMap";
+import { getConfirmKind } from "@/features/shared/confirmActionCopyMap";
 
 export interface PublishConfirmDialogProps {
   open: boolean;

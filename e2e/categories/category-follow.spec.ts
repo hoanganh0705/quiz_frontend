@@ -38,7 +38,7 @@
  * without depending on the backend's mutable state. The
  * `/users/me/followed-categories` endpoint is the canonical source
  * for both the button text and the follow-count span (D1) — toggling
- * the in-memory set on follow / unfollow POSTs lets the SWR
+ * the in-memory set on follow / unfollow POSTs lets the
  * `useFollowedLookup` hook refetch and surface the new size.
  */
 
@@ -181,7 +181,7 @@ test.describe("Category follow surface", () => {
       });
     });
     // The membership lookup fires only when authenticated; for the
-    // unauthenticated test we make it 401 too so the SWR fetch
+    // unauthenticated test we make it 401 too so the fetch
     // fails fast (the hook short-circuits to the empty-set default
     // regardless).
     await page.route("**/api/v1/users/me/**", async (route) => {

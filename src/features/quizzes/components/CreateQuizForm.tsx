@@ -225,7 +225,7 @@ export const CreateQuizForm = memo(function CreateQuizForm({
               placeholder="Add tags…"
               testId="tag-multi-select"
             />
-            {/* Suggested tags (TKT-4.8-E2) */}
+            {/* Suggested tags */}
             {suggestedTags.length > 0 && (
               <div className="space-y-1">
                 <p className="text-xs text-muted-foreground">Suggestions:</p>

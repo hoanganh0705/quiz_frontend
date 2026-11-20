@@ -1,18 +1,16 @@
 "use client";
 
 import { useCallback, useRef, useState } from "react";
-import { mutate as globalMutate } from "swr";
 import { getQueryClient } from "@/providers/QueryProvider";
 
 import { isApiError } from "@/lib/api";
 import type { ApiError } from "@/lib/api";
 import {
-  emitPhase4Broadcast,
-  type Phase4BroadcastBareMessage,
+  emitCrossTabBroadcast,
+  type CrossTabBroadcastBareMessage,
 } from "@/lib/api/core/cross-tab-broadcast";
 
 export type OptimisticMutationKey = readonly unknown[];
-export type OptimisticMutationSWRKey = OptimisticMutationKey;
 
 export type OptimisticMutationPatcher<TData> = (
   current: TData | undefined,
@@ -30,9 +28,9 @@ export type OptimisticMutationConfirm = {
 };
 
 export type OptimisticMutationBroadcast =
-  | import("@/lib/api/core/cross-tab-broadcast").Phase4BroadcastBareMessage
+  | import("@/lib/api/core/cross-tab-broadcast").CrossTabBroadcastBareMessage
   | (() =>
-      | import("@/lib/api/core/cross-tab-broadcast").Phase4BroadcastBareMessage
+      | import("@/lib/api/core/cross-tab-broadcast").CrossTabBroadcastBareMessage
       | null
       | undefined);
 
@@ -119,17 +117,18 @@ export function useOptimisticMutation(): UseOptimisticMutationResult<unknown> {
         return pending;
       }
 
-      const snapshot = (await globalMutate(call.key)) as TData | undefined;
+      let snapshot: TData | undefined;
+      try {
+        snapshot = getQueryClient().getQueryData<TData>(call.key);
+      } catch {
+        // ignore
+      }
 
       try {
         getQueryClient().setQueryData(call.key, call.optimisticData(snapshot));
       } catch {
         // ignore
       }
-
-      await globalMutate(call.key, call.optimisticData(snapshot), {
-        revalidate: false,
-      });
 
       setLastResult({ status: "pending" });
       setLastError(null);
@@ -144,20 +143,18 @@ export function useOptimisticMutation(): UseOptimisticMutationResult<unknown> {
           // ignore
         }
 
-        await globalMutate(call.key, undefined, { revalidate: true });
-
         if (call.broadcasts) {
           const list = Array.isArray(call.broadcasts)
             ? call.broadcasts
             : [call.broadcasts];
           for (const entry of list) {
-            const env: Phase4BroadcastBareMessage | null | undefined =
+            const env: CrossTabBroadcastBareMessage | null | undefined =
               typeof entry === "function"
                 ? (
-                    entry as () => Phase4BroadcastBareMessage | null | undefined
+                    entry as () => CrossTabBroadcastBareMessage | null | undefined
                   )()
                 : entry;
-            if (env) emitPhase4Broadcast(env);
+            if (env) emitCrossTabBroadcast(env);
           }
         }
 
@@ -175,8 +172,6 @@ export function useOptimisticMutation(): UseOptimisticMutationResult<unknown> {
         } catch {
           // ignore
         }
-
-        await globalMutate(call.key, snapshot, { revalidate: false });
 
         const reverted: OptimisticMutationResult<TResult2> = {
           status: "reverted",

@@ -7,7 +7,7 @@ import {
   waitFor,
   act,
 } from "@testing-library/react";
-import { SWRConfig } from "swr";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 import { MyQuizzesTabs } from "@/features/quizzes/components/MyQuizzesTabs";
 import { MyQuizzesTable } from "@/features/quizzes/components/MyQuizzesTable";
@@ -77,25 +77,23 @@ function makeItems(items: Array<{ quizId: string; title: string }>): Array<{
   }));
 }
 
-function renderWithSwr(children: React.ReactNode) {
+function renderWithQueryClient(children: React.ReactNode) {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: { retry: false },
+      mutations: { retry: false },
+    },
+  });
   return render(
-    <SWRConfig
-      value={{
-        provider: () => new Map(),
-        revalidateOnFocus: false,
-        revalidateIfStale: false,
-        dedupingInterval: 0,
-        errorRetryCount: 0,
-      }}
-    >
+    <QueryClientProvider client={queryClient}>
       {children}
-    </SWRConfig>,
+    </QueryClientProvider>,
   );
 }
 
-describe("MyQuizzesTabs — tab switching (AC #2, #3, #4)", () => {
+describe("MyQuizzesTabs — tab switching", () => {
   it('clicking "Drafts" tab updates the store to "drafts"', async () => {
-    renderWithSwr(
+    renderWithQueryClient(
       <MyQuizzesTabs analyticsContent={<MyQuizzesSkeleton />}>
         {() => <div>list content</div>}
       </MyQuizzesTabs>,
@@ -109,7 +107,7 @@ describe("MyQuizzesTabs — tab switching (AC #2, #3, #4)", () => {
   });
 
   it('clicking "Published" tab updates the store to "published"', async () => {
-    renderWithSwr(
+    renderWithQueryClient(
       <MyQuizzesTabs analyticsContent={<MyQuizzesSkeleton />}>
         {() => <div>list content</div>}
       </MyQuizzesTabs>,
@@ -123,7 +121,7 @@ describe("MyQuizzesTabs — tab switching (AC #2, #3, #4)", () => {
   });
 
   it('clicking "Analytics" tab updates the store to "analytics"', async () => {
-    renderWithSwr(
+    renderWithQueryClient(
       <MyQuizzesTabs analyticsContent={<MyQuizzesSkeleton />}>
         {() => <div>list content</div>}
       </MyQuizzesTabs>,
@@ -141,9 +139,9 @@ describe("MyQuizzesTabs — tab switching (AC #2, #3, #4)", () => {
   });
 });
 
-describe("MyQuizzesTable — load more (AC #5)", () => {
+describe("MyQuizzesTable — load more", () => {
   it("load-more button is absent when hasMore is false", async () => {
-    renderWithSwr(
+    renderWithQueryClient(
       <MyQuizzesTable
         items={makeItems([{ quizId: "quiz-1", title: "Only Quiz" }])}
         isLoading={false}
@@ -162,7 +160,7 @@ describe("MyQuizzesTable — load more (AC #5)", () => {
   });
 
   it("load-more button is present when hasMore is true", async () => {
-    renderWithSwr(
+    renderWithQueryClient(
       <MyQuizzesTable
         items={makeItems([{ quizId: "quiz-1", title: "Quiz 1" }])}
         isLoading={false}
@@ -183,9 +181,9 @@ describe("MyQuizzesTable — load more (AC #5)", () => {
   });
 });
 
-describe("MyQuizzesTable — retry banner (AC #6)", () => {
+describe("MyQuizzesTable — retry banner", () => {
   it("retry banner renders when retryBannerVisible is true", async () => {
-    renderWithSwr(
+    renderWithQueryClient(
       <MyQuizzesTable
         items={[]}
         isLoading={false}
@@ -220,7 +218,7 @@ describe("MyQuizzesAnalyticsTab — renders stat cards", () => {
       lastUpdated: "2025-01-15T00:00:00.000Z",
     };
 
-    renderWithSwr(
+    renderWithQueryClient(
       <MyQuizzesAnalyticsTab analytics={analytics} isLoading={false} />,
     );
 

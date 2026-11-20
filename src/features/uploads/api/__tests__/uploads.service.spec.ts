@@ -34,7 +34,7 @@ const mockBindUpload = uploadControllerBindUpload as unknown as ReturnType<
   typeof vi.fn
 >;
 
-describe("uploads.service — bindUploadedAsset (Phase 3.1)", () => {
+describe("uploads.service — bindUploadedAsset", () => {
   beforeEach(() => {
     mockBindUpload.mockReset();
   });

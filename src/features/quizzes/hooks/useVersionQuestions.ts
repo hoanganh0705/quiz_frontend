@@ -45,11 +45,6 @@ export function useVersionQuestions(
 
   const mountedRef = useRef(true);
 
-  const swrKey = useMemo<readonly unknown[] | null>(() => {
-    if (!quizId || !versionId) return null;
-    return ["quiz", "version", quizId, versionId, "questions"];
-  }, [quizId, versionId]);
-
   const fetchQuestions = useCallback(async () => {
     if (!quizId || !versionId) return;
 

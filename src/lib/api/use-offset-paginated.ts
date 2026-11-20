@@ -94,7 +94,7 @@ export function useOffsetPaginated<T extends { id: string }, P>(
     [fetcher, limit, passthroughParams],
   );
 
-  const swr = useCursorPaginated<T, P>({
+  const paginated = useCursorPaginated<T, P>({
     key,
     fetcher: adapter,
     params: passthroughParams,
@@ -102,22 +102,22 @@ export function useOffsetPaginated<T extends { id: string }, P>(
     ...(revalidateOnFocus === true ? { revalidateOnFocus: true } : {}),
   });
 
-  const offset = useMemo(() => swr.items.length, [swr.items.length]);
+  const offset = useMemo(() => paginated.items.length, [paginated.items.length]);
 
   const stableLoadMore = useCallback(() => {
-    if (!swr.hasMore) return;
-    swr.loadMore();
-  }, [swr]);
+    if (!paginated.hasMore) return;
+    paginated.loadMore();
+  }, [paginated]);
 
   return {
-    items: swr.items,
-    isLoading: swr.isLoading,
-    isLoadingMore: swr.isLoadingMore,
-    hasMore: swr.hasMore,
+    items: paginated.items,
+    isLoading: paginated.isLoading,
+    isLoadingMore: paginated.isLoadingMore,
+    hasMore: paginated.hasMore,
     offset,
     limit,
-    error: swr.error,
+    error: paginated.error,
     loadMore: stableLoadMore,
-    refresh: swr.refresh,
+    refresh: paginated.refresh,
   };
 }

@@ -3,8 +3,6 @@
 /**
  * `CoinsLandingPage` — the route component for `/coins`.
  *
- * Phase 5.2 — Coins landing page.
- *
  * Layout (top → bottom):
  *   1. `<CoinsBalanceCard />`           — live balance, lifetime earned/spent
  *   2. `<CoinEarningsSummary />`        — quick read on income vs. spend

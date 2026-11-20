@@ -7,7 +7,7 @@ import { TagPillSkeleton } from "@/components/primitives";
 import { Button } from "@/components/ui/Button";
 import { useTagRelated } from "@/features/tags/hooks/useTagRelated";
 
-const SWR_KEY_FACTORY = (slug: string, params: { limit: number }) =>
+const QUERY_KEY_FACTORY = (slug: string, params: { limit: number }) =>
   ["tag", slug, "related", params] as const;
 
 const STRIP_CONTAINER =
@@ -23,7 +23,7 @@ export function RelatedTagsStrip({
   slug,
 }: RelatedTagsStripProps): React.ReactElement | null {
   const { tags, isLoading, error } = useTagRelated(slug, { limit: 10 });
-  const swrKey = SWR_KEY_FACTORY(slug, { limit: 10 });
+  const queryKey = QUERY_KEY_FACTORY(slug, { limit: 10 });
 
   if (isLoading) {
     return (
@@ -64,7 +64,7 @@ export function RelatedTagsStrip({
             variant="outline"
             size="sm"
             onClick={() =>
-              void getQueryClient().invalidateQueries({ queryKey: swrKey })
+              void getQueryClient().invalidateQueries({ queryKey })
             }
             data-testid="related-tags-strip-retry"
           >

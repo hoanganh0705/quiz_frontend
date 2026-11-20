@@ -1,6 +1,6 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 import { cleanup, renderHook, waitFor } from "@testing-library/react";
-import { SWRConfig } from "swr";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 import { useInstancePermissions } from "@/features/instances/hooks/useInstancePermissions";
 
@@ -19,19 +19,15 @@ vi.mock("@/features/auth/hooks/use-auth-session", () => ({
   useAuthSession: () => mockUseAuthBootstrap(),
 }));
 
-function TestSwrProvider({ children }: { children: React.ReactNode }) {
+function TestProvider({ children }: { children: React.ReactNode }) {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: { retry: false },
+      mutations: { retry: false },
+    },
+  });
   return (
-    <SWRConfig
-      value={{
-        provider: () => new Map(),
-        revalidateOnFocus: false,
-        revalidateIfStale: false,
-        dedupingInterval: 0,
-        errorRetryCount: 0,
-      }}
-    >
-      {children}
-    </SWRConfig>
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
   );
 }
 
@@ -83,7 +79,7 @@ describe("useInstancePermissions", () => {
 
       const { result } = renderHook(
         () => useInstancePermissions("inst-1", { currentUserId: "user-123" }),
-        { wrapper: TestSwrProvider },
+        { wrapper: TestProvider },
       );
 
       expect(result.current.canJoin).toBe(false);
@@ -97,7 +93,7 @@ describe("useInstancePermissions", () => {
 
       renderHook(
         () => useInstancePermissions("inst-1", { currentUserId: "user-123" }),
-        { wrapper: TestSwrProvider },
+        { wrapper: TestProvider },
       );
 
       await new Promise((r) => setTimeout(r, 10));
@@ -117,7 +113,7 @@ describe("useInstancePermissions", () => {
 
       const { result } = renderHook(
         () => useInstancePermissions("inst-1", { currentUserId: "user-123" }),
-        { wrapper: TestSwrProvider },
+        { wrapper: TestProvider },
       );
 
       await waitFor(() => {
@@ -138,7 +134,7 @@ describe("useInstancePermissions", () => {
 
       const { result } = renderHook(
         () => useInstancePermissions("inst-1", { currentUserId: "user-123" }),
-        { wrapper: TestSwrProvider },
+        { wrapper: TestProvider },
       );
 
       await waitFor(() => {
@@ -163,7 +159,7 @@ describe("useInstancePermissions", () => {
             currentUserId: "user-123",
             isInRoster: true,
           }),
-        { wrapper: TestSwrProvider },
+        { wrapper: TestProvider },
       );
 
       await waitFor(() => {
@@ -187,7 +183,7 @@ describe("useInstancePermissions", () => {
             currentUserId: "user-123",
             isInRoster: true,
           }),
-        { wrapper: TestSwrProvider },
+        { wrapper: TestProvider },
       );
 
       await waitFor(() => {
@@ -208,7 +204,7 @@ describe("useInstancePermissions", () => {
 
       const { result } = renderHook(
         () => useInstancePermissions("inst-1", { currentUserId: "user-123" }),
-        { wrapper: TestSwrProvider },
+        { wrapper: TestProvider },
       );
 
       await waitFor(() => {
@@ -230,7 +226,7 @@ describe("useInstancePermissions", () => {
 
       const { result } = renderHook(
         () => useInstancePermissions("inst-1", { currentUserId: "user-123" }),
-        { wrapper: TestSwrProvider },
+        { wrapper: TestProvider },
       );
 
       await waitFor(() => {
@@ -251,7 +247,7 @@ describe("useInstancePermissions", () => {
 
       const { result } = renderHook(
         () => useInstancePermissions("inst-1", { currentUserId: "user-123" }),
-        { wrapper: TestSwrProvider },
+        { wrapper: TestProvider },
       );
 
       await waitFor(() => {
@@ -271,7 +267,7 @@ describe("useInstancePermissions", () => {
       );
 
       const { result } = renderHook(() => useInstancePermissions("inst-1"), {
-        wrapper: TestSwrProvider,
+        wrapper: TestProvider,
       });
 
       await waitFor(() => {
@@ -293,7 +289,7 @@ describe("useInstancePermissions", () => {
 
       const { result } = renderHook(
         () => useInstancePermissions("inst-1", { currentUserId: "user-123" }),
-        { wrapper: TestSwrProvider },
+        { wrapper: TestProvider },
       );
 
       await waitFor(() => {
@@ -305,7 +301,7 @@ describe("useInstancePermissions", () => {
   describe("null id", () => {
     it("returns no permissions when instanceId is null", () => {
       const { result } = renderHook(() => useInstancePermissions(null), {
-        wrapper: TestSwrProvider,
+        wrapper: TestProvider,
       });
 
       expect(result.current.canJoin).toBe(false);
