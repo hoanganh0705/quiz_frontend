@@ -93,7 +93,7 @@ the minimum-viable query (`query { __typename }`) so a developer can
 confirm the browser can reach the GraphQL endpoint before touching any
 pilot page.
 
-The route is gated by `getFeatureFlagValue('graphql_pilot_sandbox')`.
+The route provides a GraphQL sandbox for testing.
 Set `NEXT_PUBLIC_GRAPHQL_PILOT_SANDBOX=live` to enable it; the default
 value is `placeholder`, which causes the route to render nothing.
 

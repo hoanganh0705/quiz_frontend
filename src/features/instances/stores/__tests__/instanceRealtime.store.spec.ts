@@ -6,6 +6,7 @@ import {
   selectInstanceRealtimePlayers,
   selectInstanceRealtimeStatus,
   selectInstanceRealtimeLastSequence,
+  selectInstanceRemovedUserIds,
   type InstanceRealtimeEntry,
 } from "@/features/instances/stores/useInstanceRealtimeStore";
 import type {
@@ -509,6 +510,38 @@ describe("instanceRealtime.store", () => {
       expect(entry?.lastEventSequence).toBe(1);
       expect(entry?.instanceStatus).toBeNull();
       expect(entry?.closedAt).toBeNull();
+    });
+
+    it("tracks removed user IDs on applyPlayerLeft and clears them on re-join", () => {
+      useInstanceRealtimeStore
+        .getState()
+        .applyPlayerJoined(
+          makePlayerJoinEvent({ player: makePlayer({ id: "u-1", userId: "u-1" }), eventSequence: 1 }),
+        );
+
+      useInstanceRealtimeStore
+        .getState()
+        .applyPlayerLeft(
+          makePlayerLeftEvent({ playerId: "u-1", eventSequence: 2 }),
+        );
+
+      let removed = selectInstanceRemovedUserIds(
+        useInstanceRealtimeStore.getState(),
+        "inst-1",
+      );
+      expect(removed?.has("u-1")).toBe(true);
+
+      useInstanceRealtimeStore
+        .getState()
+        .applyPlayerJoined(
+          makePlayerJoinEvent({ player: makePlayer({ id: "u-1", userId: "u-1" }), eventSequence: 3 }),
+        );
+
+      removed = selectInstanceRemovedUserIds(
+        useInstanceRealtimeStore.getState(),
+        "inst-1",
+      );
+      expect(removed?.has("u-1")).toBe(false);
     });
   });
 });

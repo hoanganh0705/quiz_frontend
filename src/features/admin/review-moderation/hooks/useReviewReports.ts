@@ -125,26 +125,44 @@ export function useReviewReports(
       }: CursorFetcherArgs<UseReviewReportsFetcherParams>): Promise<
         CursorPage<AdminReportDto & { id: string }>
       > => {
-        const wire = (await listReviewReports({
+        const pageResult = await listReviewReports({
           ...buildServiceFilter(show),
           limit: REVIEW_REPORTS_PAGE_SIZE,
           ...(cursor !== null ? { cursor } : {}),
-        })) as unknown as ListReviewReportsWireResponse | undefined;
+        });
 
-        const rawItems = Array.isArray(wire?.data)
-          ? (wire!.data as AdminReportDto[])
-          : [];
+        const wire = pageResult as unknown as
+          | { items?: AdminReportDto[]; hasNextPage?: boolean; nextCursor?: string | null }
+          | ListReviewReportsWireResponse
+          | undefined;
+
+        const rawItems = Array.isArray((wire as { items?: AdminReportDto[] })?.items)
+          ? ((wire as { items: AdminReportDto[] }).items)
+          : Array.isArray((wire as ListReviewReportsWireResponse)?.data)
+            ? ((wire as { data: AdminReportDto[] }).data)
+            : [];
+
         const items = rawItems.map((item) => ({
           ...item,
           id: item.reportId,
         }));
 
-        const pagination = wire?.meta?.pagination;
+        const metaPagination = (wire as ListReviewReportsWireResponse)?.meta?.pagination;
+        const nextCursor =
+          (wire as { nextCursor?: string | null })?.nextCursor ??
+          metaPagination?.nextCursor ??
+          null;
+        const hasNextPage =
+          (wire as { hasNextPage?: boolean })?.hasNextPage ??
+          metaPagination?.hasNextPage ??
+          false;
+        const limit = metaPagination?.limit ?? items.length;
+
         const page: CursorPage<AdminReportDto & { id: string }> = {
           items,
-          nextCursor: pagination?.nextCursor ?? null,
-          hasNextPage: pagination?.hasNextPage ?? false,
-          limit: pagination?.limit ?? items.length,
+          nextCursor,
+          hasNextPage,
+          limit,
         };
         return page;
       },

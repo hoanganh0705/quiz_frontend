@@ -1,4 +1,8 @@
+import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
+
+import { mockCategoryResponseDto } from "../../__tests__/render-helpers";
+import { CategoryCard } from "../CategoryCard";
 
 vi.mock("next/link", () => ({
   default: ({
@@ -15,10 +19,7 @@ vi.mock("next/link", () => ({
   ),
 }));
 
-import { render, screen } from "@testing-library/react";
 
-import { CategoryCard } from "../CategoryCard";
-import { mockCategoryResponseDto } from "../../__tests__/render-helpers";
 
 describe("CategoryCard", () => {
   it("renders the happy path with name, image, and description", () => {

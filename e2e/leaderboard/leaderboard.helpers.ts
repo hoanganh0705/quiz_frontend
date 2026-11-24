@@ -196,7 +196,9 @@ export async function stubLeaderboard(
     }
 
     const period = (url.searchParams.get("period") ?? "weekly") as
-      "weekly" | "monthly" | "all_time";
+      | "weekly"
+      | "monthly"
+      | "all_time";
     const offset = Number.parseInt(url.searchParams.get("offset") ?? "0", 10);
     const limit = Number.parseInt(
       url.searchParams.get("limit") ?? `${pageLimit}`,
@@ -219,9 +221,6 @@ export async function stubLeaderboard(
 
     const hasMore = offset + limit < allUserIds.length;
 
-    // Mimic the current backend so the period enum is wire-side
-    // (snake_case). The default period is `weekly` per master plan
-    // open decision #3 from `PHASE_3_EPICS.md` line 1325.
     await route.fulfill({
       status: 200,
       contentType: "application/json",

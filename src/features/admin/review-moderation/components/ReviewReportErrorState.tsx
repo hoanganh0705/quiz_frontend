@@ -2,8 +2,10 @@
 
 import { AlertCircle } from "lucide-react";
 
+import { Button } from "@/components/ui/Button";
 import { ApiError } from "@/lib/api/core/ApiError";
 import { RequestIdBanner } from "@/features/admin/components/RequestIdBanner";
+import { cn } from "@/shared/utils/merge-class-names";
 
 export interface ReviewReportErrorStateProps {
   error: ApiError;
@@ -88,31 +90,31 @@ export function ReviewReportErrorState({
   return (
     <div
       role="alert"
-      className={[
-        "flex flex-col items-start gap-3 rounded-md border border-red-300 bg-red-50 p-4 text-sm text-red-900",
-        className ?? "",
-      ]
-        .filter(Boolean)
-        .join(" ")}
+      className={cn(
+        "flex flex-col items-start gap-3 rounded-xl border border-destructive/35 bg-destructive/10 p-5 text-sm text-destructive dark:bg-destructive/20",
+        className,
+      )}
       data-testid="review-report-error-state"
     >
       <div className="flex items-center gap-2">
-        <AlertCircle className="h-5 w-5" aria-hidden="true" />
-        <p className="font-semibold">{copy.title}</p>
+        <AlertCircle className="size-5 shrink-0" aria-hidden="true" />
+        <p className="font-semibold text-foreground">{copy.title}</p>
       </div>
-      <p>{copy.description}</p>
-      <p className="font-mono text-xs text-red-700">
+      <p className="text-muted-foreground">{copy.description}</p>
+      <p className="font-mono text-xs text-destructive/90">
         Error code: <span className="font-semibold">{code}</span>
       </p>
       <RequestIdBanner error={error} />
-      <button
+      <Button
         type="button"
+        variant="outline"
+        size="sm"
         onClick={onRetry}
-        className="rounded-md border border-red-400 bg-background px-3 py-1.5 text-sm font-medium text-destructive dark:text-red-400 transition-colors hover:bg-red-100 dark:hover:bg-red-950/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2"
+        className="mt-1"
         data-testid="review-report-error-state-retry"
       >
         Try again
-      </button>
+      </Button>
     </div>
   );
 }

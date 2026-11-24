@@ -20,15 +20,34 @@ export interface AttemptBreakdownProps {
 export type AttemptBreakdownMarker =
   "correct" | "incorrect" | "skipped" | "pending";
 
+function extractIsCorrect(raw: unknown): boolean | null {
+  if (raw === null || raw === undefined) return null;
+  if (typeof raw === "boolean") return raw;
+  if (typeof raw === "object") {
+    if (
+      "value" in raw &&
+      typeof (raw as { value: unknown }).value === "boolean"
+    ) {
+      return (raw as { value: boolean }).value;
+    }
+    if (
+      "correct" in raw &&
+      typeof (raw as { correct: unknown }).correct === "boolean"
+    ) {
+      return (raw as { correct: boolean }).correct;
+    }
+  }
+  return null;
+}
+
 export function markerForQuestion(
   q: AttemptQuestionScoreDto,
 ): AttemptBreakdownMarker {
-  if (q.isCorrect === null) return "pending";
   if (q.selectedOptionId === null) return "skipped";
 
-  const indicator = (q.isCorrect as { value?: unknown }).value;
-  if (indicator === true) return "correct";
-  if (indicator === false) return "incorrect";
+  const isCorrect = extractIsCorrect(q.isCorrect);
+  if (isCorrect === true) return "correct";
+  if (isCorrect === false) return "incorrect";
   return "pending";
 }
 
@@ -168,7 +187,7 @@ function BreakdownMarkerBadge(props: {
           variant="secondary"
           data-testid="attempt-breakdown-marker-skipped"
         >
-          Skipped
+          Undone
         </Badge>
       );
     case "pending":

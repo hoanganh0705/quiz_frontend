@@ -4,7 +4,6 @@ import { useCallback, useMemo } from "react";
 
 import { useSocket } from "@/lib/realtime/useSocket";
 import { NOTIFICATIONS_NAMESPACE } from "@/lib/realtime";
-import { getFeatureFlagValue } from "@/lib/feature-flags";
 import { mutateCarefully } from "@/lib/api/mutate-carefully";
 import { addSocialRealtimeBreadcrumb } from "@/lib/social/social-realtime-sentry";
 import { postFriendRequestInvalidation } from "@/lib/realtime/cross-tab-invalidation";
@@ -24,8 +23,7 @@ function keyToString(key: readonly string[]): string {
 }
 
 export function useFriendRequestInvalidation(): void {
-  const flagValue = getFeatureFlagValue("social_realtime_notifications_live");
-  const realtimeEnabled = flagValue !== "placeholder";
+  const realtimeEnabled = true;
 
   const { socket } = useSocket(NOTIFICATIONS_NAMESPACE, {
     autoConnect: realtimeEnabled,

@@ -46,11 +46,27 @@ const DIFFICULTY_OPTIONS: Array<{
   value: QuizDifficultyFilter;
   label: string;
   id: string;
+  dotColor?: string;
 }> = [
   { value: "all", label: "All levels", id: "difficulty-all" },
-  { value: "easy", label: "Easy", id: "difficulty-easy" },
-  { value: "medium", label: "Medium", id: "difficulty-medium" },
-  { value: "hard", label: "Hard", id: "difficulty-hard" },
+  {
+    value: "easy",
+    label: "Easy",
+    id: "difficulty-easy",
+    dotColor: "bg-emerald-500",
+  },
+  {
+    value: "medium",
+    label: "Medium",
+    id: "difficulty-medium",
+    dotColor: "bg-amber-500",
+  },
+  {
+    value: "hard",
+    label: "Hard",
+    id: "difficulty-hard",
+    dotColor: "bg-rose-500",
+  },
 ];
 
 const SORT_LABELS: Record<QuizSort, string> = {
@@ -238,8 +254,18 @@ function FilterBarContent({
                         ? "filter-bar-difficulty-medium"
                         : "filter-bar-difficulty-hard"
                 }
+                className="flex items-center gap-1.5 cursor-pointer text-sm font-normal"
               >
-                {option.label}
+                {option.dotColor ? (
+                  <span
+                    aria-hidden="true"
+                    className={cn(
+                      "inline-block h-2 w-2 rounded-full shrink-0",
+                      option.dotColor,
+                    )}
+                  />
+                ) : null}
+                <span>{option.label}</span>
               </Label>
             </div>
           ))}
@@ -250,7 +276,9 @@ function FilterBarContent({
       <div className="flex flex-col gap-1.5 sm:col-span-2 lg:col-span-1">
         <Label>Tags</Label>
         <div
-          className="flex flex-wrap items-center gap-2 rounded-md border border-input bg-background p-2"
+          role="group"
+          aria-label="Filter by tags"
+          className="flex flex-wrap items-center gap-1.5 rounded-md border border-input bg-background p-2 max-h-48 overflow-y-auto"
           data-testid="filter-bar-tags"
         >
           {visibleTags.length === 0 ? (
@@ -265,10 +293,10 @@ function FilterBarContent({
                   onClick={() => toggleTag(tag.slug)}
                   aria-pressed={isSelected}
                   className={cn(
-                    "inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-xs transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+                    "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
                     isSelected
-                      ? "border-primary bg-primary text-primary-foreground"
-                      : "bg-background hover:bg-accent",
+                      ? "border-brand bg-brand text-brand-foreground shadow-xs"
+                      : "border-input bg-background hover:bg-accent hover:text-accent-foreground",
                   )}
                   data-testid="filter-bar-tag-pill"
                   data-tag-slug={tag.slug}
@@ -277,7 +305,7 @@ function FilterBarContent({
                   <span
                     aria-hidden="true"
                     className={cn(
-                      "inline-block h-2 w-2 rounded-full",
+                      "inline-block h-2 w-2 rounded-full shrink-0",
                       swatchClassFromTagId(tag.tagId),
                     )}
                   />
@@ -290,7 +318,7 @@ function FilterBarContent({
             <button
               type="button"
               onClick={() => setShowAllTags(true)}
-              className="rounded text-xs text-muted-foreground underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              className="rounded px-1.5 py-0.5 text-xs font-medium text-muted-foreground underline-offset-2 hover:text-foreground hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               data-testid="filter-bar-tags-show-more"
             >
               +{hiddenTagCount} more
@@ -327,7 +355,7 @@ function FilterBarMobileSheet({
           {hasFilters ? (
             <span
               aria-hidden="true"
-              className="ml-2 inline-flex h-2 w-2 rounded-full bg-primary"
+              className="ml-2 inline-flex h-2 w-2 rounded-full bg-brand"
             />
           ) : null}
         </Button>

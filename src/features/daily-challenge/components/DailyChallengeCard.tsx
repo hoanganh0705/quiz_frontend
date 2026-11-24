@@ -80,11 +80,11 @@ function StatusCta({
     const rank = challenge.rank ?? 0;
     return (
       <p
-        className="text-sm text-foreground/80"
+        className="text-sm text-foreground/80 font-mono tabular-nums"
         data-testid="daily-challenge-card-completed"
       >
-        You scored <span className="font-semibold">{Math.round(score)}%</span> —
-        Rank <span className="font-semibold">#{rank.toLocaleString()}</span> —
+        You scored <span className="font-semibold text-foreground">{Math.round(score)}%</span> —
+        Rank <span className="font-semibold text-foreground">#{rank.toLocaleString()}</span> —
         see you tomorrow.
       </p>
     );
@@ -108,7 +108,7 @@ function StatusCta({
       <Link
         href="/login?next=/daily-challenge"
         data-testid="daily-challenge-card-signin"
-        className="inline-flex items-center gap-1.5 text-sm font-medium text-primary underline-offset-4 hover:underline"
+        className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand rounded-xs"
       >
         <LogIn className="h-3.5 w-3.5" aria-hidden="true" />
         <span>Sign in to play</span>
@@ -118,7 +118,7 @@ function StatusCta({
 
   return (
     <p
-      className="inline-flex items-center gap-1.5 text-sm font-medium text-primary"
+      className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand"
       data-testid="daily-challenge-card-cta"
     >
       <Play className="h-3.5 w-3.5" aria-hidden="true" />
@@ -150,7 +150,7 @@ export function DailyChallengeCard({
       data-testid="daily-challenge-card"
       data-status={challenge.status}
       className={cn(
-        "min-h-40 border bg-background text-foreground py-6",
+        "min-h-40 rounded-xl border border-border/70 bg-card text-foreground shadow-xs hover:border-brand/30 transition-all duration-200 py-6",
         className,
       )}
     >
@@ -178,22 +178,22 @@ export function DailyChallengeCard({
               {DIFFICULTY_LABEL[challenge.difficulty]}
             </Badge>
             <div
-              className="inline-flex items-center space-x-1 text-muted-foreground text-sm"
+              className="inline-flex items-center space-x-1 text-muted-foreground text-sm font-mono tabular-nums"
               aria-label={`Reward: ${challenge.rewardXp} XP`}
             >
-              <Sparkles className="h-4 w-4" aria-hidden="true" />
-              <span className="font-medium">+{challenge.rewardXp} XP</span>
+              <Sparkles className="h-4 w-4 text-brand" aria-hidden="true" />
+              <span className="font-semibold text-foreground">+{challenge.rewardXp} XP</span>
             </div>
           </div>
         </div>
-        <div className="flex items-center gap-4 pt-2 text-xs text-foreground-secondary">
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 pt-2 text-xs text-foreground-secondary">
           <span className="inline-flex items-center gap-1">
             <Calendar className="h-3.5 w-3.5" aria-hidden="true" />
             <time dateTime={challenge.date}>
               {formatChallengeDate(challenge.date)}
             </time>
           </span>
-          <span className="inline-flex items-center gap-1">
+          <span className="inline-flex items-center gap-1 font-mono tabular-nums">
             <Clock className="h-3.5 w-3.5" aria-hidden="true" />
             <span>{challenge.totalQuestions} questions</span>
           </span>

@@ -4,7 +4,6 @@ import { useCallback, useState } from "react";
 import { Sparkles } from "lucide-react";
 
 import { Button } from "@/components/ui/Button";
-import { getFeatureFlagValue } from "@/lib/feature-flags";
 
 import { usePurchaseFlair } from "@/features/coins/hooks/usePurchaseFlair";
 import { useCoinWallet } from "@/features/coins/hooks/useCoinWallet";
@@ -25,9 +24,6 @@ export function FlairPurchaseControl({
   owned,
   className,
 }: FlairPurchaseControlProps) {
-  const spendFlag = getFeatureFlagValue("coin_spend_live");
-  const isPlaceholder = spendFlag === "placeholder";
-
   const { purchaseFlair, isPending, error } = usePurchaseFlair();
   const { balance } = useCoinWallet();
 
@@ -38,7 +34,7 @@ export function FlairPurchaseControl({
     setOpen(false);
   }, [purchaseFlair, userBadgeId]);
 
-  if (isPlaceholder || !owned) {
+  if (!owned) {
     return null;
   }
 

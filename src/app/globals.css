@@ -41,12 +41,12 @@
   --sidebar-foreground: oklch(0.145 0 0);
   --sidebar-primary: oklch(0.205 0 0);
   --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-accent: oklch(0.94 0.035 270);
+  --sidebar-accent-foreground: oklch(0.40 0.22 270);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
-  --brand: oklch(0.65 0.15 270);
-  --brand-hover: oklch(0.72 0.15 270);
+  --brand: oklch(0.52 0.20 270);
+  --brand-hover: oklch(0.46 0.20 270);
   --brand-foreground: oklch(0.985 0 0);
   --white-primary: oklch(0.98 0 0);
   --default: var(--brand);
@@ -116,12 +116,12 @@
   --sidebar-foreground: oklch(0.985 0 0);
   --sidebar-primary: oklch(0.488 0.243 264.376);
   --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.24 0.06 270);
+  --sidebar-accent-foreground: oklch(0.92 0.05 270);
   --sidebar-border: oklch(0.4 0 0);
   --sidebar-ring: oklch(0.7 0 0);
-  --brand: oklch(0.65 0.15 270);
-  --brand-hover: oklch(0.72 0.15 270);
+  --brand: oklch(0.52 0.20 270);
+  --brand-hover: oklch(0.46 0.20 270);
   --brand-foreground: oklch(0.985 0 0);
   --white-primary: oklch(0.98 0 0);
   --default: var(--brand);
@@ -208,6 +208,15 @@
   --color-tag-swatch-4: var(--tag-swatch-4);
   --color-tag-swatch-5: var(--tag-swatch-5);
 
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
   --radius: var(--radius);
 
   --font-sans:
@@ -244,6 +253,34 @@
     overflow-x: hidden;
     max-width: 100vw;
   }
+}
+
+/* Scrollbar hiding utilities for touch/swipe rails */
+@utility scrollbar-none {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@utility no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.scrollbar-none,
+.no-scrollbar {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+
+.scrollbar-none::-webkit-scrollbar,
+.no-scrollbar::-webkit-scrollbar {
+  display: none !important;
 }
 
 /* Swiper category slider - fix for slidesPerView auto */

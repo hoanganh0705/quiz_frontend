@@ -21,9 +21,6 @@ export type { InstanceLobbyProps } from "./InstanceLobby";
 export { ConnectionBanner } from "./ConnectionBanner";
 export type { ConnectionBannerProps } from "./ConnectionBanner";
 
-export { InstancePlaceholder } from "./InstancePlaceholder";
-export type { InstancePlaceholderProps } from "./InstancePlaceholder";
-
 export { HostLiveRoomCta } from "./HostLiveRoomCta";
 export type { HostLiveRoomCtaProps } from "./HostLiveRoomCta";
 

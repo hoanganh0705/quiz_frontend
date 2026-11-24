@@ -139,7 +139,6 @@ export { FeedLoadMore } from "./FeedLoadMore";
 export type { FeedLoadMoreProps } from "./FeedLoadMore";
 
 export { SocialFeedRouteGate } from "./SocialFeedRouteGate";
-export { SocialFeedPlaceholder } from "./SocialFeedPlaceholder";
 export { SocialFeedPage } from "./../pages/SocialFeedPage";
 
 export { BadgeSyncLayer } from "./BadgeSyncLayer";

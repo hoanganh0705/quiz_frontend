@@ -202,6 +202,7 @@ export function useCursorPaginated<T extends { id: string }, P>(
       },
       enabled,
       retry: false,
+      staleTime: params.staleTime ?? 0,
       refetchOnWindowFocus:
         params.revalidateOnFocus ?? DEFAULT_REVALIDATE_ON_FOCUS,
       initialData: firstPage

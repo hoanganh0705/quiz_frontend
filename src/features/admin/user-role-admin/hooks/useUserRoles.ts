@@ -5,7 +5,6 @@ import { useQuery } from "@tanstack/react-query";
 import { getQueryClient } from "@/providers/QueryProvider";
 
 import { ApiError } from "@/lib/api/core/ApiError";
-import { getFeatureFlagValue } from "@/lib/feature-flags";
 
 import { getUserRoles } from "@/features/admin/services/user-role-admin.service";
 import type { UserRoleDto } from "../user-role-admin-types";
@@ -19,11 +18,7 @@ export interface UseUserRolesResult {
 }
 
 export function useUserRoles(userId: string | null): UseUserRolesResult {
-  const flagValue = getFeatureFlagValue("admin_user_role_live");
-  const isFlagPlaceholder = flagValue === "placeholder";
-
   const isDisabled =
-    isFlagPlaceholder ||
     userId === null ||
     userId === undefined ||
     userId.trim() === "";

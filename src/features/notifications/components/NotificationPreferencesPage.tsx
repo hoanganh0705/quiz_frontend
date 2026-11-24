@@ -6,11 +6,7 @@ import { ArrowLeft, Bell } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/shared/utils/merge-class-names";
 
-import { useNotificationFeatureFlag } from "@/features/notifications/hooks";
-import {
-  NotificationPreferencesForm,
-  NotificationPlaceholder,
-} from "@/features/notifications/components";
+import { NotificationPreferencesForm } from "@/features/notifications/components";
 
 export interface NotificationPreferencesPageProps {
   className?: string;
@@ -19,7 +15,6 @@ export interface NotificationPreferencesPageProps {
 export function NotificationPreferencesPage({
   className,
 }: NotificationPreferencesPageProps) {
-  const { isPlaceholder } = useNotificationFeatureFlag();
 
   return (
     <div
@@ -57,11 +52,7 @@ export function NotificationPreferencesPage({
       </header>
 
       <main className="px-4 sm:px-6 lg:px-8 pb-12 max-w-4xl mx-auto">
-        {isPlaceholder ? (
-          <NotificationPlaceholder className="py-12" />
-        ) : (
-          <NotificationPreferencesForm />
-        )}
+        <NotificationPreferencesForm />
       </main>
     </div>
   );

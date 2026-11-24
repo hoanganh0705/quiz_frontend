@@ -48,18 +48,18 @@ export const CompetitionStats = memo(function CompetitionStats() {
 
   if (!isAuthenticated) {
     return (
-      <Card className="col-span-1 py-4 sm:py-6 bg-background border border-border rounded-xl">
-        <CardHeader>
+      <Card className="col-span-1 p-5 sm:p-6 bg-card/80 border-border/70 rounded-2xl shadow-xs backdrop-blur-xs">
+        <CardHeader className="p-0 pb-4">
           <CardTitle className="text-foreground text-lg sm:text-xl font-bold">
-            Competition Stats
+            <h2>Competition Stats</h2>
           </CardTitle>
-          <CardDescription className="text-foreground/80 text-sm">
+          <CardDescription className="text-muted-foreground text-sm">
             Sign in to see your ranking and progress
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center gap-2 text-sm text-foreground-secondary">
-            <Users className="w-4 h-4" aria-hidden="true" />
+        <CardContent className="p-0 pt-2 space-y-4">
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Users className="w-4 h-4 text-primary shrink-0" aria-hidden="true" />
             <span>
               {totalParticipants !== null
                 ? `${totalParticipants.toLocaleString()} active participants this week`
@@ -94,22 +94,22 @@ export const CompetitionStats = memo(function CompetitionStats() {
         : "Inactive";
 
   return (
-    <Card className="col-span-1 py-4 sm:py-6 bg-background border border-border rounded-xl">
-      <CardHeader>
+    <Card className="col-span-1 p-5 sm:p-6 bg-card/80 border-border/70 rounded-2xl shadow-xs backdrop-blur-xs flex flex-col justify-between">
+      <CardHeader className="p-0 pb-4">
         <CardTitle className="text-foreground text-lg sm:text-xl font-bold">
-          Competition Stats
+          <h2>Competition Stats</h2>
         </CardTitle>
-        <CardDescription className="text-foreground/80 text-sm">
+        <CardDescription className="text-muted-foreground text-sm">
           Current season statistics and your ranking
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4 sm:space-y-6">
+      <CardContent className="p-0 pt-2 space-y-4 sm:space-y-5">
         {/* Active Participants */}
-        <div className="flex items-center justify-between text-sm sm:text-base">
-          <span className="text-foreground/80 text-sm">
+        <div className="flex items-center justify-between text-sm">
+          <span className="text-muted-foreground">
             Active Participants
           </span>
-          <span className="text-foreground font-bold text-sm">
+          <span className="text-foreground font-bold font-mono tabular-nums">
             {totalParticipants !== null
               ? totalParticipants.toLocaleString()
               : "—"}
@@ -117,15 +117,15 @@ export const CompetitionStats = memo(function CompetitionStats() {
         </div>
 
         {/* Top Badge */}
-        <div className="flex items-center justify-between text-sm sm:text-base">
-          <span className="text-foreground/80 text-sm">Status</span>
-          <div className="flex items-center gap-2">
+        <div className="flex items-center justify-between text-sm">
+          <span className="text-muted-foreground">Status</span>
+          <div className="flex items-center gap-1.5">
             <Medal
-              size={14}
-              className="text-yellow-400 sm:w-5 sm:h-5"
+              size={15}
+              className="text-amber-500"
               aria-hidden="true"
             />
-            <span className="text-foreground font-medium text-sm">
+            <span className="text-foreground font-medium text-xs sm:text-sm">
               {activeUserLabel}
             </span>
           </div>
@@ -133,32 +133,32 @@ export const CompetitionStats = memo(function CompetitionStats() {
 
         <div className="space-y-3 sm:space-y-4">
           {/* Your Rank */}
-          <div className="flex items-center bg-main border border-border flex-col w-full p-3 sm:p-4 rounded-xl gap-1 sm:gap-2">
+          <div className="flex items-center bg-muted/40 border border-border/60 flex-col w-full p-4 rounded-xl gap-2.5">
             <div className="flex items-center justify-between w-full">
-              <div className="flex items-center gap-1 sm:gap-2">
-                <Users className="w-4 h-4 text-foreground" aria-hidden="true" />
-                <span className="text-foreground/80 text-xs">Your Rank</span>
+              <div className="flex items-center gap-2">
+                <Users className="w-4 h-4 text-primary" aria-hidden="true" />
+                <span className="text-muted-foreground text-xs font-medium">Your Rank</span>
               </div>
               <Badge
-                className={`bg-default hover:bg-default-hover text-white text-xs ${rank !== null ? getRankColor(rank) : ""}`}
+                className={`text-xs font-mono font-bold tabular-nums px-2.5 py-0.5 ${rank !== null ? getRankColor(rank) : ""}`}
               >
                 {rank !== null ? `#${rank}` : "—"}
               </Badge>
             </div>
 
             {/* Progress Info */}
-            <div className="flex flex-row justify-between text-xs sm:text-sm text-foreground/80 w-full">
-              <span className="text-foreground/80 text-xs">Next Level</span>
-              <span className="text-foreground text-xs">
+            <div className="flex flex-row justify-between text-xs text-muted-foreground w-full font-mono tabular-nums">
+              <span>Next Level</span>
+              <span className="text-foreground">
                 {xpToNext !== null
-                  ? `${xp.toLocaleString()} / ${(xp + xpToNext).toLocaleString()} points`
+                  ? `${xp.toLocaleString()} / ${(xp + xpToNext).toLocaleString()} XP`
                   : `${xp.toLocaleString()} XP`}
               </span>
             </div>
 
             {/* Progress Bar */}
             <div
-              className="w-full bg-muted rounded-full h-1.5 sm:h-2 border border-border"
+              className="w-full bg-muted-foreground/15 rounded-full h-2 overflow-hidden"
               role="progressbar"
               aria-valuenow={progressPercent}
               aria-valuemin={0}
@@ -166,34 +166,34 @@ export const CompetitionStats = memo(function CompetitionStats() {
               aria-label="Progress to next rank"
             >
               <div
-                className="bg-foreground h-1 sm:h-1.5 rounded-full"
+                className="bg-primary h-full rounded-full transition-all duration-300"
                 style={{ width: `${progressPercent}%` }}
                 aria-hidden="true"
               />
             </div>
 
             {/* Next Level Info */}
-            <div className="flex items-center justify-between w-full text-xs sm:text-sm">
-              <div className="flex items-center gap-1 sm:gap-2 text-foreground/80">
+            <div className="flex items-center justify-between w-full text-xs">
+              <div className="flex items-center gap-1.5 text-muted-foreground">
                 <Trophy
-                  className="w-3 h-3 sm:w-4 sm:h-4 text-foreground/80"
+                  className="w-3.5 h-3.5 text-amber-500"
                   aria-hidden="true"
                 />
-                <span className="text-foreground/80 text-xs">
+                <span className="text-muted-foreground text-xs font-medium">
                   {weekly?.percentileLabel ?? "Top —"}
                 </span>
               </div>
-              <span className="text-foreground text-xs">
+              <span className="text-foreground text-xs font-mono tabular-nums">
                 {xpToNext !== null
-                  ? `${xpToNext.toLocaleString()} points to next rank`
-                  : "No next rank"}
+                  ? `${xpToNext.toLocaleString()} XP to next rank`
+                  : "Max rank"}
               </span>
             </div>
 
             {/* Trend */}
             {weekly?.trend && weekly.trend !== "same" ? (
-              <div className="flex items-center gap-2 text-xs text-foreground-secondary w-full pt-1 border-t border-border/40">
-                <Link2 className="w-3 h-3" aria-hidden="true" />
+              <div className="flex items-center gap-2 text-xs text-muted-foreground w-full pt-2 border-t border-border/40 font-mono tabular-nums">
+                <Link2 className="w-3.5 h-3.5 text-primary" aria-hidden="true" />
                 <span>
                   Trend: {weekly.trend}
                   {weekly.trendAmount !== null &&

@@ -1,7 +1,9 @@
 "use client";
 
 import { useCallback, useState } from "react";
+import { Loader2, RefreshCw } from "lucide-react";
 
+import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import {
   Card,
@@ -53,9 +55,21 @@ export function RecalculateRankingPanel({
   const isButtonDisabled = isRunning || cooldownRemaining !== null;
 
   return (
-    <Card data-testid="recalculate-ranking-panel">
+    <Card data-testid="recalculate-ranking-panel" className="border-border">
       <CardHeader>
-        <CardTitle>{RANKING_RECALCULATE_LABEL}</CardTitle>
+        <div className="flex items-center justify-between gap-2">
+          <CardTitle
+            role="heading"
+            aria-level={2}
+            className="text-base font-semibold flex items-center gap-2"
+          >
+            <RefreshCw className="size-4 shrink-0 text-brand" aria-hidden="true" />
+            {RANKING_RECALCULATE_LABEL}
+          </CardTitle>
+          <Badge variant="outline" className="text-xs shrink-0">
+            Maintenance
+          </Badge>
+        </div>
         <CardDescription>
           Recompute all ranking scores based on the latest quiz attempts.
         </CardDescription>
@@ -67,13 +81,19 @@ export function RecalculateRankingPanel({
           <Label htmlFor="recalculate-scope-filter">Scope filter</Label>
           <Input
             id="recalculate-scope-filter"
+            aria-describedby="recalculate-scope-filter-desc"
             data-testid="recalculate-scope-filter-input"
             value={scopeFilter}
             onChange={(event) => setScopeFilter(event.target.value)}
             placeholder="Optional period identifier (e.g. current_period)"
+            autoComplete="off"
+            spellCheck={false}
             disabled={isRunning}
           />
-          <p className="text-xs text-muted-foreground">
+          <p
+            id="recalculate-scope-filter-desc"
+            className="text-xs text-muted-foreground"
+          >
             Leave empty to recalculate all rankings. Invalid values are rejected
             with <code>INVALID_PERIOD</code>.
           </p>
@@ -87,8 +107,16 @@ export function RecalculateRankingPanel({
           data-testid="recalculate-ranking-trigger-button"
           onClick={() => setConfirmOpen(true)}
           disabled={isButtonDisabled}
+          className="self-start gap-2"
         >
-          {isRunning ? "Working…" : "Recalculate"}
+          {isRunning ? (
+            <>
+              <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+              <span>Recalculating…</span>
+            </>
+          ) : (
+            "Recalculate Rankings"
+          )}
         </Button>
 
         {/* Job status */}
@@ -115,7 +143,7 @@ export function RecalculateRankingPanel({
       >
         <p
           data-testid="recalculate-ranking-irreversibility-notice"
-          className="rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-800 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-200"
+          className="rounded-md border border-warning/30 bg-warning/10 dark:bg-warning/15 p-3 text-sm text-foreground"
         >
           {RANKING_RECALCULATE_IRREVERSIBILITY_NOTICE}
         </p>

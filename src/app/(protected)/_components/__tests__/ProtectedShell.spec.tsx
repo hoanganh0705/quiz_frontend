@@ -1,7 +1,14 @@
 "use client";
 
-import { describe, expect, it, vi } from "vitest";
+import { useRouter } from "next/navigation";
+
 import { render, screen, waitFor } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
+
+import { useAuth } from "@/features/auth/hooks/use-auth";
+import { getAuthToken } from "@/features/auth/utils/auth-cookies";
+
+import { ProtectedShell } from "@/app/(protected)/_components/ProtectedShell";
 
 vi.mock("@/features/auth/hooks/use-auth", () => ({
   useAuth: vi.fn(),
@@ -16,10 +23,6 @@ vi.mock("next/navigation", () => ({
   useRouter: vi.fn(),
 }));
 
-import { useAuth } from "@/features/auth/hooks/use-auth";
-import { getAuthToken } from "@/features/auth/utils/auth-cookies";
-import { useRouter } from "next/navigation";
-import { ProtectedShell } from "@/app/(protected)/_components/ProtectedShell";
 
 const mockedUseAuth = vi.mocked(useAuth);
 const mockedGetAuthToken = vi.mocked(getAuthToken);

@@ -11,7 +11,6 @@ import {
   type UseCursorPaginatedResult,
 } from "@/lib/api";
 
-import { getFeatureFlagValue } from "@/lib/feature-flags";
 
 import { getFeed } from "@/features/social/services/feed.service";
 import type { SocialFeedItemDto } from "@/features/social/types";
@@ -84,27 +83,22 @@ const UNAUTHENTICATED_RESULT: UseFeedResult = Object.freeze({
 const AUTH_STATE_EVENT = "auth-state-change";
 
 export function useFeed(viewerUserId: string | null): UseFeedResult {
-  const parentFlagValue = getFeatureFlagValue("social_live");
-  const subFlagValue = getFeatureFlagValue("social_feed_live");
-  const isFlagPlaceholder =
-    parentFlagValue === "placeholder" || subFlagValue === "placeholder";
-
-  const auth = useAuthSession();
+    const auth = useAuthSession();
   const isAuthenticated = auth.isAuthenticated;
 
   const key = useMemo<readonly unknown[] | null>(() => {
-    if (isFlagPlaceholder) return null;
+    if (false) return null;
     if (!isAuthenticated) return null;
     if (viewerUserId === null) return null;
     return SOCIAL_CACHE_KEYS.makeFeedKey(viewerUserId);
-  }, [isFlagPlaceholder, isAuthenticated, viewerUserId]);
+  }, [isAuthenticated, viewerUserId]);
 
   const fetcher = useMemo<
     CursorFetcher<SocialFeedItemDto, { readonly limit: number }>
   >(
     () =>
       async ({ cursor, params, signal }) => {
-        if (isFlagPlaceholder || !isAuthenticated || viewerUserId === null) {
+        if (!isAuthenticated || viewerUserId === null) {
           return {
             items: [] as readonly SocialFeedItemDto[],
             nextCursor: null,
@@ -123,7 +117,7 @@ export function useFeed(viewerUserId: string | null): UseFeedResult {
           limit: params.limit,
         };
       },
-    [isFlagPlaceholder, isAuthenticated, viewerUserId],
+    [isAuthenticated, viewerUserId],
   );
 
   const paginated: UseCursorPaginatedResult<SocialFeedItemDto> =
@@ -185,7 +179,7 @@ export function useFeed(viewerUserId: string | null): UseFeedResult {
     await paginated.refresh();
   }, [paginated]);
 
-  if (isFlagPlaceholder) return PLACEHOLDER_RESULT;
+  if (false) return PLACEHOLDER_RESULT;
   if (!isAuthenticated) return UNAUTHENTICATED_RESULT;
   if (viewerUserId === null) return UNAUTHENTICATED_RESULT;
 

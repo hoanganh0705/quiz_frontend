@@ -12,7 +12,6 @@ import {
   useRealtimeEvent,
 } from "@/lib/realtime";
 import type { UseSocketReturn } from "@/lib/realtime";
-import { getFeatureFlagValue } from "@/lib/feature-flags";
 
 import {
   applyBalanceChanged,
@@ -41,11 +40,7 @@ const POSITIVE_DELTA_REASONS: ReadonlySet<string> = new Set([
 ]);
 
 export function useCoinSocket(): UseCoinSocketResult {
-  const coinFlag = getFeatureFlagValue("coin_economy_live");
-  const realtimeFlag = getFeatureFlagValue("realtime_infrastructure_live");
-  const coinLive = coinFlag === "live";
-  const realtimeLive = realtimeFlag === "live";
-  const enabled = coinLive && realtimeLive;
+      const enabled = true;
 
   const { socket, connectionState, error, reconnect, disconnect } = useSocket(
     COINS_NAMESPACE,

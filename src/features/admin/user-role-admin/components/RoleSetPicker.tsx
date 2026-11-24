@@ -33,12 +33,14 @@ const RoleOption = memo(function RoleOption({
   return (
     <button
       type="button"
+      role="radio"
+      aria-checked={isSelected}
       onClick={onSelect}
       disabled={disabled}
       className={`
-        flex w-full items-start gap-3 rounded-md border p-3 text-left transition-colors
+        flex w-full items-start gap-3 rounded-lg border p-3 text-left transition-colors
         focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring
-        ${isSelected ? "border-primary bg-primary/5" : "border-border hover:bg-muted/40"}
+        ${isSelected ? "border-brand bg-brand/10 text-foreground" : "border-border hover:bg-muted/40 text-foreground"}
         ${disabled ? "cursor-not-allowed opacity-50" : "cursor-pointer"}
       `}
       data-testid="role-picker-option"
@@ -48,19 +50,19 @@ const RoleOption = memo(function RoleOption({
       {/* Radio indicator */}
       <div
         className={`
-          mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full border
-          ${isSelected ? "border-primary bg-primary" : "border-muted-foreground"}
+          mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full border transition-colors
+          ${isSelected ? "border-brand bg-brand text-primary-foreground" : "border-muted-foreground/60"}
         `}
         aria-hidden="true"
       >
-        {isSelected && <div className="h-2 w-2 rounded-full bg-background" />}
+        {isSelected && <div className="h-1.5 w-1.5 rounded-full bg-white dark:bg-black" />}
       </div>
 
       {/* Role info */}
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
           <span
-            className="text-sm font-medium"
+            className="text-sm font-semibold"
             data-testid="role-picker-option-name"
           >
             {role.name}
@@ -102,7 +104,7 @@ export const RoleSetPicker = memo(function RoleSetPicker({
       className="flex flex-col gap-2"
       data-testid="role-set-picker"
       role="radiogroup"
-      aria-label="Select a role"
+      aria-label="Select a role to grant"
     >
       {DOCUMENTED_ROLES.map((role) => (
         <RoleOption

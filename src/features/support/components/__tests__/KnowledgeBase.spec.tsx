@@ -13,8 +13,10 @@
  * a running backend.
  */
 
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+import { getSupportArticles } from "@/features/support/api";
 
 import { KnowledgeBase } from "../KnowledgeBase";
 
@@ -22,7 +24,6 @@ vi.mock("@/features/support/api", () => ({
   getSupportArticles: vi.fn(),
 }));
 
-import { getSupportArticles } from "@/features/support/api";
 
 const mockFetch = getSupportArticles as unknown as ReturnType<typeof vi.fn>;
 
@@ -122,6 +123,32 @@ describe("KnowledgeBase", () => {
     await waitFor(() => {
       expect(
         screen.getByText("No articles found matching your search."),
+      ).toBeInTheDocument();
+    });
+  });
+
+  it("opens article reader dialog when an article is clicked or activated", async () => {
+    mockFetch.mockResolvedValue([
+      {
+        ...SAMPLE_ARTICLES[0],
+        content: "Detailed password reset guide instructions.",
+      },
+    ]);
+    render(<KnowledgeBase />);
+    await waitFor(() => {
+      expect(
+        screen.getByText("How to reset your password"),
+      ).toBeInTheDocument();
+    });
+
+    const card = screen.getByRole("button", {
+      name: /how to reset your password/i,
+    });
+    fireEvent.click(card);
+
+    await waitFor(() => {
+      expect(
+        screen.getByText("Detailed password reset guide instructions."),
       ).toBeInTheDocument();
     });
   });

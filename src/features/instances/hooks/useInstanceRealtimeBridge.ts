@@ -3,7 +3,6 @@
 import { useEffect } from "react";
 import { getQueryClient } from "@/providers/QueryProvider";
 
-import { getFeatureFlagValue } from "@/lib/feature-flags";
 import { emitRealtimeCrossTabInvalidation } from "@/lib/realtime";
 
 import { useInstanceSocket } from "@/features/instances/hooks/useInstanceSocket";
@@ -15,9 +14,7 @@ import {
 import { useInstanceRealtimeStore } from "../stores/useInstanceRealtimeStore";
 
 export function useInstanceRealtimeBridge(instanceId: string | null): void {
-  const featuresFlag = getFeatureFlagValue("multiplayer_instances_live");
-  const realtimeFlag = getFeatureFlagValue("realtime_infrastructure_live");
-  const enabled = featuresFlag === "live" && realtimeFlag === "live";
+  const enabled = true;
 
   const { subscribe } = useInstanceSocket(instanceId);
 

@@ -3,7 +3,6 @@
 import { Crown } from "lucide-react";
 
 import { Button } from "@/components/ui/Button";
-import { getFeatureFlagValue } from "@/lib/feature-flags";
 
 import { useRankingLeaderboard } from "@/features/rankings/hooks";
 import type {
@@ -28,9 +27,6 @@ export function LeaderboardTable({
   limit,
   className,
 }: LeaderboardTableProps) {
-  const flagValue = getFeatureFlagValue("rankings_live");
-  const isFlagPlaceholder = flagValue === "placeholder";
-
   const {
     items,
     isLoading,
@@ -42,7 +38,7 @@ export function LeaderboardTable({
     isStale,
   } = useRankingLeaderboard({ period, limit });
 
-  if (isFlagPlaceholder) return null;
+  if (false) return null;
 
   if (isLoading && items.length === 0) {
     return <LeaderboardTableSkeleton className={className} />;

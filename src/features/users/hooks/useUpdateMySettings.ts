@@ -49,7 +49,7 @@ export interface UseUpdateMySettingsReturn {
   resetError: () => void;
 }
 
-const SENTRY_CATEGORY = "phase4:4.3:settings";
+const SENTRY_CATEGORY = "users:settings";
 
 function emitBreadcrumb(
   _category: string,
@@ -117,7 +117,7 @@ export function useUpdateMySettings(
         broadcasts: undefined,
       });
 
-      emitBreadcrumb("phase4:4.3:settings", {
+      emitBreadcrumb("users:settings", {
         status: result.status,
         durationMs: Date.now() - startMs,
         ...(result.status === "reverted" && isApiError(result.apiError)

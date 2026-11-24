@@ -21,9 +21,6 @@ vi.mock("@/features/instances/hooks/useInstance", () => ({
   useInstance: () => instanceMocks.useInstance(),
 }));
 
-vi.mock("@/features/instances/hooks/useInstancesFeatureFlag", () => ({
-  useInstancesFeatureFlag: () => instanceMocks.useInstancesFeatureFlag(),
-}));
 
 vi.mock("@/features/instances/hooks/useInstanceSocket", () => ({
   useInstanceSocket: () => instanceMocks.useInstanceSocket(),
@@ -37,7 +34,6 @@ vi.mock("@/features/instances/components", () => ({
   ),
   InstanceLobby: () => <div data-testid="instance-lobby" />,
   InstanceLobbySkeleton: () => <div data-testid="instance-lobby-skeleton" />,
-  InstancePlaceholder: () => <div data-testid="instance-placeholder" />,
 }));
 
 describe("InstanceRoomPage", () => {
@@ -55,11 +51,7 @@ describe("InstanceRoomPage", () => {
       refetch: vi.fn(),
       clearBootstrap: vi.fn(),
     });
-    instanceMocks.useInstancesFeatureFlag.mockReturnValue({
-      isPlaceholder: false,
-      flagValue: "live",
-    });
-    instanceMocks.useInstance.mockReturnValue({
+        instanceMocks.useInstance.mockReturnValue({
       instance: makeInstanceDetail(),
       isLoading: false,
       error: null,
@@ -77,19 +69,6 @@ describe("InstanceRoomPage", () => {
 
   afterEach(() => {
     cleanup();
-  });
-
-  it("renders the placeholder when the feature flag is placeholder", () => {
-    instanceMocks.useInstancesFeatureFlag.mockReturnValue({
-      isPlaceholder: true,
-      flagValue: "placeholder",
-    });
-
-    const { getByTestId } = render(<InstanceRoomPage instanceId="inst-1" />);
-    expect(getByTestId("instance-room-page").getAttribute("data-state")).toBe(
-      "placeholder",
-    );
-    expect(getByTestId("instance-placeholder")).toBeDefined();
   });
 
   it("renders the skeleton during the initial REST fetch", () => {
@@ -116,7 +95,7 @@ describe("InstanceRoomPage", () => {
     expect(getByTestId("instance-lobby")).toBeDefined();
   });
 
-  it("renders the closed state for status closed", () => {
+  it("renders the closed state for status closed and redirects to /instances", () => {
     instanceMocks.useInstance.mockReturnValue({
       instance: makeInstanceDetail({ status: "closed" }),
       isLoading: false,
@@ -130,6 +109,7 @@ describe("InstanceRoomPage", () => {
       "closed",
     );
     expect(getByTestId("instance-closed-state-stub")).toBeDefined();
+    expect(mockPush).toHaveBeenCalledWith("/instances");
   });
 
   it("renders the error state for typed page-level error codes", () => {

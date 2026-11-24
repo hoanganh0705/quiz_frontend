@@ -1,7 +1,6 @@
 "use client";
 
 import { useAuthSession } from "@/features/auth/hooks/use-auth-session";
-import { getFeatureFlagValue } from "@/lib/feature-flags";
 
 import { useMyRanking } from "@/features/rankings/hooks";
 import { ConsistencyNotice } from "@/features/rankings/components/shared/ConsistencyNotice";
@@ -16,15 +15,12 @@ interface RankingSummaryCardProps {
 }
 
 export function RankingSummaryCard({ className }: RankingSummaryCardProps) {
-  const flagValue = getFeatureFlagValue("rankings_live");
-  const isFlagPlaceholder = flagValue === "placeholder";
-
   const { bootstrapState, isAuthenticated } = useAuthSession();
 
   const { summary, isLoading, error, retry, isStale, lastValidatedAt } =
     useMyRanking();
 
-  if (isFlagPlaceholder) return null;
+  if (false) return null;
   if (!isAuthenticated && bootstrapState !== "bootstrapping") return null;
 
   if (isLoading && !summary) {

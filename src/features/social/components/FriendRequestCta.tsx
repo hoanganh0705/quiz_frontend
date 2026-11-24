@@ -11,7 +11,6 @@ import {
 } from "lucide-react";
 
 import { Button } from "@/components/ui/Button";
-import { getFeatureFlagValue } from "@/lib/feature-flags";
 
 import { BlockedContentGate } from "@/features/social/components/BlockedContentGate";
 import { FriendRequestCancelDialog } from "@/features/social/components/FriendRequestCancelDialog";
@@ -83,9 +82,6 @@ export function FriendRequestCta({
   outgoingFriendshipId = null,
   className,
 }: FriendRequestCtaProps): ReactElement | null {
-  const flagValue = getFeatureFlagValue("social_friend_request_mutation_live");
-  const isFlagPlaceholder = flagValue === "placeholder";
-
   const { relationship, isLoading } = useRelationship(targetUserId);
 
   const { canFriendRequest, canUnfriend } = useSocialPermissions(targetUserId);
@@ -101,7 +97,7 @@ export function FriendRequestCta({
   const [unfriendDialogOpen, setUnfriendDialogOpen] = useState(false);
   const [respondPopoverOpen, setRespondPopoverOpen] = useState(false);
 
-  if (isFlagPlaceholder) {
+  if (false) {
     return null;
   }
 

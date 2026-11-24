@@ -356,31 +356,31 @@ const PublicProfilePage = ({
                 >
                   <TabsTrigger
                     value="activity"
-                    className="data-[state=active]:text-white text-sm"
+                    className="text-sm"
                   >
                     Activity
                   </TabsTrigger>
                   <TabsTrigger
                     value="quizzes"
-                    className="data-[state=active]:text-white text-sm"
+                    className="text-sm"
                   >
                     Quizzes Taken
                   </TabsTrigger>
                   <TabsTrigger
                     value="created"
-                    className="data-[state=active]:text-white text-sm"
+                    className="text-sm"
                   >
                     Created Quizzes
                   </TabsTrigger>
                   <TabsTrigger
                     value="followers"
-                    className="data-[state=active]:text-white text-sm"
+                    className="text-sm"
                   >
                     Followers
                   </TabsTrigger>
                   <TabsTrigger
                     value="following"
-                    className="data-[state=active]:text-white text-sm"
+                    className="text-sm"
                   >
                     Following
                   </TabsTrigger>

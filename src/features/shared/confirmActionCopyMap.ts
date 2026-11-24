@@ -17,8 +17,6 @@ export type ConfirmAction =
   // Account
   | "account.delete";
 
-export type Phase4Action = ConfirmAction;
-
 export const CONFIRM_ACTION_NAMES: readonly ConfirmAction[] = [
   "bookmark.collection.delete",
   "collection.bulk-remove",
@@ -33,7 +31,6 @@ export const CONFIRM_ACTION_NAMES: readonly ConfirmAction[] = [
   "account.delete",
 ] as const;
 
-export const PHASE4_ACTION_NAMES = CONFIRM_ACTION_NAMES;
 
 export const CONFIRM_ACTION_KIND: Record<ConfirmAction, ConfirmKind> =
   Object.freeze({
@@ -55,7 +52,6 @@ export const CONFIRM_ACTION_KIND: Record<ConfirmAction, ConfirmKind> =
     "account.delete": "typed-confirm",
   });
 
-export const PHASE4_CONFIRM_KIND = CONFIRM_ACTION_KIND;
 
 export function getConfirmKind(action: string): ConfirmKind {
   if ((CONFIRM_ACTION_NAMES as readonly string[]).includes(action)) {

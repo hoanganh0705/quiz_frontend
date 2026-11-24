@@ -121,7 +121,7 @@ export function DailyChallengePlaySurface({
       data-testid="daily-challenge-play-surface"
       data-status={status}
       className={cn(
-        "border bg-card text-foreground py-6 sm:py-8 shadow-sm",
+        "rounded-xl border border-border/70 bg-card text-foreground py-6 sm:py-8 shadow-xs",
         className,
       )}
     >
@@ -131,13 +131,16 @@ export function DailyChallengePlaySurface({
             id="daily-challenge-play-title"
             className="text-xl font-bold tracking-tight"
           >
-            <span data-testid="daily-challenge-play-step">
+            <span
+              data-testid="daily-challenge-play-step"
+              className="font-mono tabular-nums"
+            >
               Question {stepForDisplay} of {totalForDisplay}
             </span>
           </CardTitle>
           <span className="text-sm text-foreground-secondary">
             Reward:{" "}
-            <span className="font-semibold text-foreground">
+            <span className="font-semibold font-mono tabular-nums text-foreground">
               +{rewardXp} XP
             </span>
           </span>
@@ -169,6 +172,11 @@ export function DailyChallengePlaySurface({
             onSelect={setSelectedOptionId}
             isSubmitting={status === "submitting"}
             revealCorrect={lastRevealCorrect}
+            isReveal={status === "reveal"}
+            onAdvance={() => {
+              advance();
+              setSelectedOptionId(null);
+            }}
             onSubmit={() => {
               void submitAnswer(selectedOptionId);
             }}
@@ -194,6 +202,8 @@ function QuestionPanel({
   onSelect,
   isSubmitting,
   revealCorrect,
+  isReveal = false,
+  onAdvance,
   onSubmit,
 }: {
   question: import("@/features/quizzes/lib/quiz-player-view").PlayerQuestion;
@@ -201,8 +211,39 @@ function QuestionPanel({
   onSelect: (optionId: string | null) => void;
   isSubmitting: boolean;
   revealCorrect: boolean | null;
+  isReveal?: boolean;
+  onAdvance?: () => void;
   onSubmit: () => void;
 }) {
+  const options = question.answerOptions;
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (isSubmitting || isReveal || options.length === 0) return;
+    const currentIndex = options.findIndex(
+      (opt) => opt.optionId === selectedOptionId,
+    );
+
+    if (e.key === "ArrowDown" || e.key === "ArrowRight") {
+      e.preventDefault();
+      const nextIndex =
+        currentIndex < options.length - 1 ? currentIndex + 1 : 0;
+      onSelect(options[nextIndex].optionId);
+      const nextButton = document.querySelector<HTMLButtonElement>(
+        `[data-option-id="${options[nextIndex].optionId}"]`,
+      );
+      nextButton?.focus();
+    } else if (e.key === "ArrowUp" || e.key === "ArrowLeft") {
+      e.preventDefault();
+      const prevIndex =
+        currentIndex > 0 ? currentIndex - 1 : options.length - 1;
+      onSelect(options[prevIndex].optionId);
+      const prevButton = document.querySelector<HTMLButtonElement>(
+        `[data-option-id="${options[prevIndex].optionId}"]`,
+      );
+      prevButton?.focus();
+    }
+  };
+
   return (
     <div className="space-y-6 py-2" data-testid="daily-challenge-play-question">
       <p
@@ -214,33 +255,38 @@ function QuestionPanel({
       <div
         role="radiogroup"
         aria-labelledby={`daily-challenge-question-${question.questionId}`}
+        onKeyDown={handleKeyDown}
         className="grid gap-3 pt-1"
       >
-        {question.answerOptions.map((option) => {
+        {options.map((option, index) => {
           const isSelected = selectedOptionId === option.optionId;
+          const isRovingTabStop =
+            isSelected || (!selectedOptionId && index === 0);
+
           return (
             <button
               key={option.optionId}
               type="button"
               role="radio"
+              tabIndex={isRovingTabStop ? 0 : -1}
               aria-checked={isSelected}
-              disabled={isSubmitting}
+              disabled={isSubmitting || isReveal}
               data-testid="daily-challenge-play-option"
               data-option-id={option.optionId}
               data-selected={isSelected}
               onClick={() => onSelect(option.optionId)}
               className={cn(
-                "flex items-center justify-between rounded-lg border bg-background px-4 py-3.5 text-left text-sm font-medium transition-all duration-200",
-                "hover:border-primary/50 hover:bg-muted/30 focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] focus-visible:outline-none",
+                "flex items-center justify-between rounded-lg border bg-background px-4 py-3.5 text-left text-sm font-medium transition-all duration-200 cursor-pointer",
+                "hover:border-brand/50 hover:bg-muted/30 focus-visible:border-brand focus-visible:ring-brand/40 focus-visible:ring-[3px] focus-visible:outline-none",
                 isSelected &&
-                  "border-primary bg-primary/10 shadow-sm ring-1 ring-primary/30",
-                isSubmitting && "cursor-not-allowed opacity-60",
+                  "border-brand bg-brand/10 text-brand shadow-xs ring-1 ring-brand/30 font-semibold",
+                (isSubmitting || isReveal) && "cursor-not-allowed opacity-60",
               )}
             >
               <span className="text-foreground">{option.value}</span>
               {isSelected ? (
                 <ChevronRight
-                  className="h-4 w-4 text-primary shrink-0"
+                  className="h-4 w-4 text-brand shrink-0"
                   aria-hidden="true"
                 />
               ) : null}
@@ -255,12 +301,12 @@ function QuestionPanel({
           data-testid="daily-challenge-play-reveal"
         >
           {revealCorrect === true ? (
-            <span className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
+            <span className="inline-flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 font-semibold">
               <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" />
               Correct — moving on
             </span>
           ) : revealCorrect === false ? (
-            <span className="inline-flex items-center gap-1 text-amber-600 dark:text-amber-400">
+            <span className="inline-flex items-center gap-1.5 text-amber-600 dark:text-amber-400 font-semibold">
               <XCircle className="h-3.5 w-3.5" aria-hidden="true" />
               Not quite — moving on
             </span>
@@ -268,15 +314,28 @@ function QuestionPanel({
             "Select an option and submit."
           )}
         </p>
-        <Button
-          type="button"
-          onClick={onSubmit}
-          disabled={!selectedOptionId || isSubmitting}
-          data-testid="daily-challenge-play-submit"
-          aria-label="Submit answer"
-        >
-          {isSubmitting ? "Submitting…" : "Submit"}
-        </Button>
+        {isReveal && onAdvance ? (
+          <Button
+            type="button"
+            onClick={onAdvance}
+            data-testid="daily-challenge-play-submit"
+            aria-label="Next question"
+            className="bg-brand hover:bg-brand-hover text-brand-foreground font-semibold"
+          >
+            Continue
+          </Button>
+        ) : (
+          <Button
+            type="button"
+            onClick={onSubmit}
+            disabled={!selectedOptionId || isSubmitting}
+            data-testid="daily-challenge-play-submit"
+            aria-label="Submit answer"
+            className="bg-brand hover:bg-brand-hover text-brand-foreground font-semibold"
+          >
+            {isSubmitting ? "Submitting…" : "Submit"}
+          </Button>
+        )}
       </div>
     </div>
   );
@@ -291,22 +350,32 @@ function CompletionPanel({
 }) {
   return (
     <div
-      className="space-y-3 text-center"
+      className="space-y-4 text-center py-4"
       data-testid="daily-challenge-play-completion"
     >
-      <Sparkles className="mx-auto h-8 w-8 text-primary" aria-hidden="true" />
-      <p className="text-2xl font-bold">You scored {Math.round(finalScore)}%</p>
-      <p className="text-sm text-foreground-secondary">
-        Reward earned:{" "}
-        <span className="font-medium text-foreground">+{rewardXp} XP</span>
-      </p>
-      <Link
-        href="/daily-challenge"
-        className="inline-flex items-center gap-1.5 text-sm font-medium text-primary underline-offset-4 hover:underline"
-        data-testid="daily-challenge-play-back"
-      >
-        Back to challenges
-      </Link>
+      <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-brand/10 border border-brand/20 text-brand">
+        <Sparkles className="h-7 w-7 text-brand" aria-hidden="true" />
+      </div>
+      <div className="space-y-1">
+        <p className="text-2xl font-bold font-mono tabular-nums text-foreground">
+          You scored {Math.round(finalScore)}%
+        </p>
+        <p className="text-sm text-foreground-secondary">
+          Reward earned:{" "}
+          <span className="font-semibold font-mono tabular-nums text-foreground">
+            +{rewardXp} XP
+          </span>
+        </p>
+      </div>
+      <div className="pt-2">
+        <Link
+          href="/daily-challenge"
+          className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand rounded-xs"
+          data-testid="daily-challenge-play-back"
+        >
+          Back to challenges
+        </Link>
+      </div>
     </div>
   );
 }
@@ -320,7 +389,7 @@ function ErrorPanel({
 }) {
   return (
     <div
-      className="space-y-3 rounded-md border border-destructive/40 bg-destructive/5 p-4 text-sm"
+      className="space-y-3 rounded-xl border border-destructive/30 bg-destructive/10 p-4 text-sm"
       role="alert"
       data-testid="daily-challenge-play-error"
     >
@@ -339,6 +408,7 @@ function ErrorPanel({
           size="sm"
           onClick={() => void onRetry()}
           data-testid="daily-challenge-play-retry"
+          className="rounded-lg border-border/80 bg-background hover:bg-muted font-medium cursor-pointer"
         >
           <RefreshCcw className="mr-1.5 h-3.5 w-3.5" aria-hidden="true" />
           Refresh today&apos;s challenge

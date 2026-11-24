@@ -9,10 +9,9 @@ import {
   NOTIFICATION_READ,
   NOTIFICATION_DELETED,
   useRealtimeEvent,
-  emitPhase5Invalidation,
+  emitRealtimeInvalidation,
 } from "@/lib/realtime";
 import type { UseSocketReturn } from "@/lib/realtime";
-import { getFeatureFlagValue } from "@/lib/feature-flags";
 
 import { NOTIFICATION_CACHE_KEYS } from "@/features/notifications/types/notification.types";
 
@@ -26,10 +25,8 @@ export interface UseNotificationSocketResult {
 }
 
 export function useNotificationSocket(): UseNotificationSocketResult {
-  const notificationsFlag = getFeatureFlagValue("notifications_live");
-  const realtimeFlag = getFeatureFlagValue("realtime_infrastructure_live");
-  const notificationsLive = notificationsFlag === "live";
-  const realtimeLive = realtimeFlag === "live";
+  const notificationsLive = true;
+  const realtimeLive = true;
   const enabled = notificationsLive && realtimeLive;
 
   const { socket, connectionState, error, reconnect, disconnect } = useSocket(
@@ -45,7 +42,7 @@ export function useNotificationSocket(): UseNotificationSocketResult {
       queryKey: NOTIFICATION_CACHE_KEYS.unreadCount(),
     });
     void qc.invalidateQueries({ queryKey: ["notifications", "list"] });
-    emitPhase5Invalidation({ type: "notification" });
+    emitRealtimeInvalidation({ type: "notification" });
   }, []);
 
   const handleRead = useCallback(() => {
@@ -54,7 +51,7 @@ export function useNotificationSocket(): UseNotificationSocketResult {
       queryKey: NOTIFICATION_CACHE_KEYS.unreadCount(),
     });
     void qc.invalidateQueries({ queryKey: ["notifications", "list"] });
-    emitPhase5Invalidation({ type: "notification" });
+    emitRealtimeInvalidation({ type: "notification" });
   }, []);
 
   const handleDeleted = useCallback(() => {
@@ -63,7 +60,7 @@ export function useNotificationSocket(): UseNotificationSocketResult {
       queryKey: NOTIFICATION_CACHE_KEYS.unreadCount(),
     });
     void qc.invalidateQueries({ queryKey: ["notifications", "list"] });
-    emitPhase5Invalidation({ type: "notification" });
+    emitRealtimeInvalidation({ type: "notification" });
   }, []);
 
   useRealtimeEvent(socket, enabled ? NOTIFICATION_SENT : null, handleSent, {

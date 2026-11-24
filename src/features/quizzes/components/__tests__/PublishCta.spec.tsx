@@ -1,8 +1,11 @@
+import * as nextNavigation from "next/navigation";
 import { useState } from "react";
 
-import { beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import * as nextNavigation from "next/navigation";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+import { PublishConfirmDialog } from "@/features/quizzes/components/PublishConfirmDialog";
+import { PublishCta } from "@/features/quizzes/components/PublishCta";
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({
@@ -24,8 +27,6 @@ vi.mock("@/features/quizzes/hooks/usePublishVersion", () => ({
   usePublishVersion: (...args: unknown[]) => mockUsePublishVersion(...args),
 }));
 
-import { PublishCta } from "@/features/quizzes/components/PublishCta";
-import { PublishConfirmDialog } from "@/features/quizzes/components/PublishConfirmDialog";
 
 function makeProps(
   overrides: {

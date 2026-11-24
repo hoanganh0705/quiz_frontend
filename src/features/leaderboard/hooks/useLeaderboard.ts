@@ -47,7 +47,13 @@ export function useLeaderboard(
 
         const data = (result as { data?: { entries?: LeaderboardEntryDto[] } })
           .data;
-        const entries = (data?.entries ?? []) as Array<LeaderboardEntryWithId>;
+        const rawEntries = (data?.entries ?? []) as Array<LeaderboardEntryWithId>;
+        const entries = rawEntries.map((entry) => ({
+          ...entry,
+          rank: Number(entry.rank),
+          denseRank: Number(entry.denseRank),
+          xp: Number(entry.xp),
+        }));
 
         const itemsWithId = projectWithId(
           entries as unknown as readonly Record<string, unknown>[],

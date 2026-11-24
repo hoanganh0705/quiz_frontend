@@ -19,6 +19,8 @@ export interface UseAbandonAttemptParams {
   attemptId: string | null;
 
   quizVersionId: string | null;
+
+  quizId?: string | null;
 }
 
 export type AbandonAttemptOutcome =
@@ -51,7 +53,7 @@ const DEFAULT_COOLDOWN_MS = 500;
 export function useAbandonAttempt(
   params: UseAbandonAttemptParams,
 ): UseAbandonAttemptResult {
-  const { attemptId, quizVersionId } = params;
+  const { attemptId, quizVersionId, quizId } = params;
 
   const { bootstrapState, currentUser } = useAuthSession();
 
@@ -104,16 +106,12 @@ export function useAbandonAttempt(
 
       try {
         const qc = getQueryClient();
-        void qc.invalidateQueries({
-          queryKey: ATTEMPT_CACHE_KEYS.active(quizVersionId, sessionId),
-        });
-        void qc.invalidateQueries({
-          queryKey: ATTEMPT_CACHE_KEYS.detail(attemptId, sessionId),
-        });
-        void qc.invalidateQueries({ queryKey: ["attempts"] });
-      } catch {}
-      try {
-        const qc = getQueryClient();
+        if (quizId && sessionId) {
+          void qc.invalidateQueries({
+            queryKey: ATTEMPT_CACHE_KEYS.active(quizId, sessionId),
+          });
+          qc.setQueryData(ATTEMPT_CACHE_KEYS.active(quizId, sessionId), null);
+        }
         void qc.invalidateQueries({
           queryKey: ATTEMPT_CACHE_KEYS.active(quizVersionId, sessionId),
         });
@@ -148,9 +146,16 @@ export function useAbandonAttempt(
       ) {
         try {
           const qc = getQueryClient();
+          if (quizId && sessionId) {
+            void qc.invalidateQueries({
+              queryKey: ATTEMPT_CACHE_KEYS.active(quizId, sessionId),
+            });
+            qc.setQueryData(ATTEMPT_CACHE_KEYS.active(quizId, sessionId), null);
+          }
           void qc.invalidateQueries({
             queryKey: ATTEMPT_CACHE_KEYS.detail(attemptId, sessionId),
           });
+          void qc.invalidateQueries({ queryKey: ["attempts"] });
         } catch {}
         recordAbandonSuccess(attemptId, quizVersionId, sessionId);
 

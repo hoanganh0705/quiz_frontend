@@ -4,7 +4,6 @@ import { useCallback, useMemo } from "react";
 import { getQueryClient } from "@/providers/QueryProvider";
 
 import { ApiError, useOptimisticMutation } from "@/lib/api";
-import { getFeatureFlagValue } from "@/lib/feature-flags";
 
 import { sendFriendRequest } from "@/features/social/services";
 import {
@@ -43,9 +42,6 @@ export function useSendFriendRequest(
   targetUserId: string | null,
   options: UseSendFriendRequestOptions = {},
 ): UseSendFriendRequestResult {
-  const flagValue = getFeatureFlagValue("social_friend_request_mutation_live");
-  const isFlagPlaceholder = flagValue === "placeholder";
-
   const permissions = useSocialPermissions(targetUserId, {
     currentUserId: options.currentUserId ?? null,
   });
@@ -69,6 +65,12 @@ export function useSendFriendRequest(
         qc.invalidateQueries({
           queryKey: SOCIAL_CACHE_KEYS.makeSocialCountsKey(userId),
         }),
+        qc.invalidateQueries({
+          queryKey: ["social", "user-search"],
+        }),
+        qc.invalidateQueries({
+          queryKey: ["social", "v1", "user-search"],
+        }),
       ]);
     },
     [],
@@ -80,7 +82,7 @@ export function useSendFriendRequest(
       : null;
 
   const result = useMemo<UseSendFriendRequestResult>(() => {
-    if (isFlagPlaceholder) {
+    if (false) {
       return Object.freeze({
         send: () => {
           // no-op — feature is gated off
@@ -117,7 +119,26 @@ export function useSendFriendRequest(
           current: TData | undefined,
         ): TData | undefined => current,
         run: async () => {
-          await sendFriendRequest(targetUserId);
+          try {
+            await sendFriendRequest(targetUserId);
+          } catch (err: unknown) {
+            const apiErr =
+              err instanceof ApiError
+                ? err
+                : (err as { status?: number; code?: string; message?: string });
+            const status = apiErr?.status;
+            const code = apiErr?.code;
+            const message = apiErr?.message ?? "";
+            if (
+              status === 409 ||
+              code === "SOCIAL_PENDING_REQUEST_EXISTS" ||
+              message.includes("already pending")
+            ) {
+              await revalidate(targetUserId);
+              return;
+            }
+            throw err;
+          }
           await revalidate(targetUserId);
         },
         cooldownMs: COOLDOWN_MS,
@@ -129,9 +150,7 @@ export function useSendFriendRequest(
       isPending: isInFlight,
       error,
     });
-  }, [
-    isFlagPlaceholder,
-    targetUserId,
+  }, [targetUserId,
     permissions.canFriendRequest,
     dispatchMutation,
     isInFlight,

@@ -238,6 +238,39 @@ describe("LeaderboardPage — podium", () => {
 
     expect(screen.getByTestId("leaderboard-podium")).toBeInTheDocument();
   });
+
+  it("renders the podium even when rank is returned as a string from the backend", () => {
+    setHookReturn({
+      entries: [
+        makeEntry({
+          userId: "u-1",
+          rank: "1" as unknown as number,
+          displayName: "Alice",
+        }),
+        makeEntry({
+          userId: "u-2",
+          rank: "2" as unknown as number,
+          displayName: "Bob",
+        }),
+        makeEntry({
+          userId: "u-3",
+          rank: "3" as unknown as number,
+          displayName: "Carol",
+        }),
+      ],
+    });
+    render(
+      <TestQueryProvider>
+        <LeaderboardPage />
+      </TestQueryProvider>,
+    );
+
+    const podium = screen.getByTestId("leaderboard-podium");
+    expect(podium).toBeInTheDocument();
+    expect(screen.getByText("Alice")).toBeInTheDocument();
+    expect(screen.getByText("Bob")).toBeInTheDocument();
+    expect(screen.getByText("Carol")).toBeInTheDocument();
+  });
 });
 
 describe("LeaderboardPage — entries 4+", () => {

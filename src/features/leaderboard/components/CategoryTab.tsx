@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { Crown } from "lucide-react";
 
 import type { LeaderboardEntryDto } from "@/lib/api/generated/schemas";
 
@@ -23,121 +24,119 @@ export default function CategoryTab({
   const third = top[2];
 
   return (
-    <div className="space-y-4 mb-20">
+    <div className="space-y-6 pb-2">
       <div className="flex justify-center">
-        <span className="inline-flex items-center rounded-full bg-muted px-3 py-1 text-xs text-foreground/80">
+        <span className="inline-flex items-center rounded-full bg-muted/60 border border-border/50 px-3 py-1 text-xs font-medium text-muted-foreground">
           {category === "all" ? "All categories" : category}
         </span>
       </div>
-      <div className="relative">
-        <div className="flex items-end justify-center gap-4 mb-8">
+      <div className="relative pt-2">
+        <div className="flex items-end justify-center gap-2.5 sm:gap-4 mb-4">
           {/* Second Place */}
           {second ? (
-            <div className="flex flex-col items-center">
-              <div className="relative mb-3">
-                <div className="w-20 h-20 rounded-full overflow-hidden ring-2 ring-[#d1d5db] ring-offset-2 ring-offset-main">
+            <div className="flex-1 max-w-[130px] sm:max-w-[160px] flex flex-col items-center p-3 sm:p-4 rounded-2xl bg-gradient-to-b from-slate-400/10 via-slate-400/5 to-transparent border border-slate-400/20 shadow-xs">
+              <div className="relative mb-2">
+                <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full overflow-hidden ring-2 ring-slate-400/60 ring-offset-2 ring-offset-card">
                   <Image
                     src={second.avatarUrl || "/placeholder.svg"}
                     alt={second.displayName}
-                    width={80}
-                    height={80}
+                    width={64}
+                    height={64}
                     className="w-full h-full object-cover"
                   />
                 </div>
-                <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1/2 w-6 h-6 bg-[#d1d5db] rounded-full flex items-center justify-center">
-                  <span className="font-bold text-xs text-white">2</span>
+                <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 bg-slate-400 text-slate-950 font-mono font-bold text-xs px-2 py-0.5 rounded-full shadow-xs">
+                  #2
                 </div>
               </div>
-              <h3 className="text-foreground font-bold text-base mb-1">
+              <h3 className="text-foreground font-semibold text-xs sm:text-sm text-center truncate w-full mt-1">
                 {second.displayName}
               </h3>
-              <p className="text-foreground/80 text-sm mb-2">
+              <p className="text-muted-foreground text-xs font-mono tabular-nums mt-0.5">
                 {second.xp.toLocaleString()} XP
               </p>
-              <div className="bg-muted rounded-lg p-4 w-32 h-24"></div>
             </div>
           ) : null}
 
           {/* First Place */}
           {first ? (
-            <div className="flex flex-col items-center -mt-8">
-              <div className="relative mb-3">
-                <div className="w-24 h-24 rounded-full overflow-hidden ring-2 ring-yellow-400 dark:ring-yellow-500 ring-offset-2 ring-offset-main">
+            <div className="flex-1 max-w-[140px] sm:max-w-[180px] flex flex-col items-center p-3.5 sm:p-5 rounded-2xl bg-gradient-to-b from-amber-500/15 via-amber-500/5 to-transparent border border-amber-500/30 shadow-md -mt-4 sm:-mt-6 relative">
+              <Crown
+                className="w-6 h-6 sm:w-7 sm:h-7 text-amber-500 fill-amber-500/30 mb-1 filter drop-shadow-xs"
+                aria-hidden="true"
+              />
+              <div className="relative mb-2">
+                <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full overflow-hidden ring-2 ring-amber-500 ring-offset-2 ring-offset-card shadow-sm">
                   <Image
                     src={first.avatarUrl || "/placeholder.svg"}
                     alt={first.displayName}
-                    width={96}
-                    height={96}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-                <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1/2 w-6 h-6 bg-yellow-400 dark:bg-yellow-500 rounded-full flex items-center justify-center">
-                  <span className="font-bold text-xs text-white">1</span>
-                </div>
-                <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                  <div className="text-2xl">👑</div>
-                </div>
-              </div>
-              <h3 className="text-foreground font-bold text-lg mb-1">
-                {first.displayName}
-              </h3>
-              <p className="text-foreground/80 text-base mb-2">
-                {first.xp.toLocaleString()} XP
-              </p>
-              <div className="bg-muted rounded-lg p-4 w-36 h-32"></div>
-            </div>
-          ) : null}
-
-          {/* Third Place */}
-          {third ? (
-            <div className="flex flex-col items-center">
-              <div className="relative mb-3">
-                <div className="w-20 h-20 rounded-full overflow-hidden ring-2 ring-orange-500 dark:ring-orange-600 ring-offset-2 ring-offset-main">
-                  <Image
-                    src={third.avatarUrl || "/placeholder.svg"}
-                    alt={third.displayName}
                     width={80}
                     height={80}
                     className="w-full h-full object-cover"
                   />
                 </div>
-                <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1/2 w-6 h-6 bg-orange-500 dark:bg-orange-600 rounded-full flex items-center justify-center">
-                  <span className="font-bold text-xs text-white">3</span>
+                <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 bg-amber-500 text-amber-950 font-mono font-bold text-xs px-2.5 py-0.5 rounded-full shadow-xs">
+                  #1
                 </div>
               </div>
-              <h3 className="text-foreground font-bold text-base mb-1">
+              <h3 className="text-foreground font-bold text-sm sm:text-base text-center truncate w-full mt-1">
+                {first.displayName}
+              </h3>
+              <p className="text-amber-500 dark:text-amber-400 text-xs sm:text-sm font-mono font-semibold tabular-nums mt-0.5">
+                {first.xp.toLocaleString()} XP
+              </p>
+            </div>
+          ) : null}
+
+          {/* Third Place */}
+          {third ? (
+            <div className="flex-1 max-w-[130px] sm:max-w-[160px] flex flex-col items-center p-3 sm:p-4 rounded-2xl bg-gradient-to-b from-amber-700/10 via-amber-700/5 to-transparent border border-amber-700/20 shadow-xs mt-2 sm:mt-4">
+              <div className="relative mb-2">
+                <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full overflow-hidden ring-2 ring-amber-700/60 ring-offset-2 ring-offset-card">
+                  <Image
+                    src={third.avatarUrl || "/placeholder.svg"}
+                    alt={third.displayName}
+                    width={64}
+                    height={64}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 bg-amber-700 text-white font-mono font-bold text-xs px-2 py-0.5 rounded-full shadow-xs">
+                  #3
+                </div>
+              </div>
+              <h3 className="text-foreground font-semibold text-xs sm:text-sm text-center truncate w-full mt-1">
                 {third.displayName}
               </h3>
-              <p className="text-foreground/80 text-sm mb-2">
+              <p className="text-muted-foreground text-xs font-mono tabular-nums mt-0.5">
                 {third.xp.toLocaleString()} XP
               </p>
-              <div className="bg-muted rounded-lg p-4 w-32 h-20 text-white"></div>
             </div>
           ) : null}
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
-          <div className="bg-muted p-3 rounded-lg text-center">
-            <p className="text-lg font-bold text-foreground">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3 mt-6">
+          <div className="bg-card/60 border border-border/60 p-3 rounded-xl text-center shadow-2xs">
+            <p className="text-base sm:text-lg font-bold font-mono tabular-nums text-foreground">
               {first?.xp.toLocaleString() ?? "0"}
             </p>
-            <p className="text-xs text-foreground/80">Top XP</p>
+            <p className="text-xs text-muted-foreground mt-0.5">Top XP</p>
           </div>
-          <div className="bg-muted p-3 rounded-lg text-center">
-            <p className="text-lg font-bold text-foreground">{top.length}</p>
-            <p className="text-xs text-foreground/80">On the podium</p>
+          <div className="bg-card/60 border border-border/60 p-3 rounded-xl text-center shadow-2xs">
+            <p className="text-base sm:text-lg font-bold font-mono tabular-nums text-foreground">{top.length}</p>
+            <p className="text-xs text-muted-foreground mt-0.5">On the podium</p>
           </div>
-          <div className="bg-muted p-3 rounded-lg text-center">
-            <p className="text-lg font-bold text-foreground">
+          <div className="bg-card/60 border border-border/60 p-3 rounded-xl text-center shadow-2xs">
+            <p className="text-base sm:text-lg font-bold font-mono tabular-nums text-foreground">
               {second?.xp.toLocaleString() ?? "0"}
             </p>
-            <p className="text-xs text-foreground/80">2nd XP</p>
+            <p className="text-xs text-muted-foreground mt-0.5">2nd XP</p>
           </div>
-          <div className="bg-muted p-3 rounded-lg text-center">
-            <p className="text-lg font-bold text-foreground">
+          <div className="bg-card/60 border border-border/60 p-3 rounded-xl text-center shadow-2xs">
+            <p className="text-base sm:text-lg font-bold font-mono tabular-nums text-foreground">
               {third?.xp.toLocaleString() ?? "0"}
             </p>
-            <p className="text-xs text-foreground/80">3rd XP</p>
+            <p className="text-xs text-muted-foreground mt-0.5">3rd XP</p>
           </div>
         </div>
       </div>

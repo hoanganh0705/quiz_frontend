@@ -1,5 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import * as authCookies from "@/features/auth/utils/auth-cookies";
+
 vi.mock("@/features/auth/utils/auth-cookies", () => ({
   getAuthToken: vi.fn(() => null),
   setAuthToken: vi.fn(),
@@ -20,7 +22,6 @@ vi.mock("@/lib/api", () => ({
   })),
 }));
 
-import * as authCookies from "@/features/auth/utils/auth-cookies";
 
 interface CapturedMessage {
   type: string;

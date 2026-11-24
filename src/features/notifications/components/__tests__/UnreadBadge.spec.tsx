@@ -1,5 +1,9 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+import { UnreadBadge } from "@/features/notifications/components/UnreadBadge";
+
+import { notificationMocks } from "./test-helpers";
 
 vi.mock("@/features/notifications/hooks/useNotifications", async () => {
   const installed = (await import("./test-helpers")).installNotificationMocks();
@@ -50,19 +54,6 @@ vi.mock(
     return { useNotificationPreferences: installed.useNotificationPreferences };
   },
 );
-
-vi.mock(
-  "@/features/notifications/hooks/useNotificationFeatureFlag",
-  async () => {
-    const installed = (
-      await import("./test-helpers")
-    ).installNotificationMocks();
-    return { useNotificationFeatureFlag: installed.useNotificationFeatureFlag };
-  },
-);
-
-import { notificationMocks } from "./test-helpers";
-import { UnreadBadge } from "@/features/notifications/components/UnreadBadge";
 
 describe("UnreadBadge", () => {
   beforeEach(() => {

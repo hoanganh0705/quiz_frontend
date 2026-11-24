@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
+import { cn } from "@/shared/utils/merge-class-names";
 import {
   Card,
   CardContent,
@@ -52,10 +53,43 @@ type ActiveTab = "global" | "category" | "trending";
  * message "Per-category leaderboard is on the roadmap". This makes
  * the roadmap intent explicit to users rather than silently functional.
  */
+const HIGHLIGHT_TABS = [
+  { value: "global", label: "Global" },
+  { value: "category", label: "By Category" },
+  { value: "trending", label: "Trending" },
+] as const;
+
 export function LeaderboardHighlights() {
   const [activeTab, setActiveTab] = useState<ActiveTab>("global");
   const [timePeriod, setTimePeriod] = useState<LeaderboardPeriod>("weekly");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
+
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLButtonElement>, index: number) => {
+      if (e.key === "ArrowRight") {
+        e.preventDefault();
+        const nextIndex = (index + 1) % HIGHLIGHT_TABS.length;
+        setActiveTab(HIGHLIGHT_TABS[nextIndex].value);
+        tabRefs.current[nextIndex]?.focus();
+      } else if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        const prevIndex =
+          (index - 1 + HIGHLIGHT_TABS.length) % HIGHLIGHT_TABS.length;
+        setActiveTab(HIGHLIGHT_TABS[prevIndex].value);
+        tabRefs.current[prevIndex]?.focus();
+      } else if (e.key === "Home") {
+        e.preventDefault();
+        setActiveTab(HIGHLIGHT_TABS[0].value);
+        tabRefs.current[0]?.focus();
+      } else if (e.key === "End") {
+        e.preventDefault();
+        setActiveTab(HIGHLIGHT_TABS[HIGHLIGHT_TABS.length - 1].value);
+        tabRefs.current[HIGHLIGHT_TABS.length - 1]?.focus();
+      }
+    },
+    [],
+  );
 
   const { entries: topEntries, isLoading: isLeaderboardLoading } =
     useLeaderboard(timePeriod);
@@ -89,49 +123,57 @@ export function LeaderboardHighlights() {
   }, []);
 
   return (
-    <Card className=" bg-background border border-border col-span-2 lg:col-span-2 py-4 sm:py-6">
-      <CardHeader>
+    <Card className="bg-card/80 border-border/70 col-span-1 lg:col-span-2 p-5 sm:p-6 rounded-2xl shadow-xs backdrop-blur-xs flex flex-col justify-between">
+      <CardHeader className="p-0 pb-4">
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle className="text-foreground text-lg sm:text-xl md:text-2xl font-bold flex items-center gap-2">
-              <Trophy
-                className="w-5 h-5 sm:w-6 sm:h-6 text-yellow-400"
-                aria-hidden="true"
-              />
-              Leaderboard Highlights
+            <CardTitle className="text-foreground text-lg sm:text-xl font-bold">
+              <h2 className="flex items-center gap-2">
+                <Trophy
+                  className="w-5 h-5 sm:w-6 sm:h-6 text-amber-500"
+                  aria-hidden="true"
+                />
+                Leaderboard Highlights
+              </h2>
             </CardTitle>
-            <CardDescription className="text-foreground/80 text-sm sm:text-base">
+            <CardDescription className="text-muted-foreground text-sm">
               Top performers across different categories and time periods
             </CardDescription>
           </div>
         </div>
       </CardHeader>
 
-      <CardContent className="space-y-4 sm:space-y-6">
+      <CardContent className="p-0 pt-2 space-y-5">
         {/* Tab strip */}
         <div
-          className="grid grid-cols-3 bg-muted rounded-md p-1 w-full max-w-md"
+          className="inline-flex items-center rounded-xl bg-muted/60 p-1 border border-border/60 backdrop-blur-xs w-full max-w-sm"
           role="tablist"
           aria-label="Leaderboard views"
         >
-          {(
-            [
-              { value: "global", label: "Global" },
-              { value: "category", label: "By Category" },
-              { value: "trending", label: "Trending" },
-            ] as ReadonlyArray<{ value: ActiveTab; label: string }>
-          ).map(({ value, label }) => (
-            <Button
+          {HIGHLIGHT_TABS.map(({ value, label }, index) => (
+            <button
               key={value}
+              ref={(el) => {
+                tabRefs.current[index] = el;
+              }}
+              type="button"
               role="tab"
+              id={`highlights-tab-${value}`}
               aria-selected={activeTab === value}
+              aria-controls={`highlights-panel-${value}`}
+              tabIndex={activeTab === value ? 0 : -1}
               onClick={() => handleTabChange(value)}
-              variant={activeTab === value ? "default" : "ghost"}
-              size="sm"
-              className="text-xs sm:text-sm"
+              onKeyDown={(e) => handleKeyDown(e, index)}
+              className={cn(
+                "flex-1 text-xs sm:text-sm font-medium rounded-lg px-3 py-1.5 transition-all duration-150 text-center",
+                "focus:outline-none focus-visible:ring-2 focus-visible:ring-primary",
+                activeTab === value
+                  ? "bg-background text-foreground shadow-xs font-semibold"
+                  : "text-muted-foreground hover:bg-background/60 hover:text-foreground",
+              )}
             >
               {label}
-            </Button>
+            </button>
           ))}
         </div>
 
@@ -144,15 +186,17 @@ export function LeaderboardHighlights() {
           {TIME_PERIODS.map(({ value, label, disabled }) => (
             <Button
               key={value}
-              variant={timePeriod === value ? "default" : "outline"}
+              variant="ghost"
               size="sm"
               disabled={disabled}
+              aria-pressed={timePeriod === value}
               onClick={() => handleTimePeriodChange(value)}
-              className={
+              className={cn(
+                "text-xs sm:text-sm rounded-lg px-3 py-1.5 transition-all font-medium border",
                 timePeriod === value
-                  ? "text-xs sm:text-sm bg-brand/20 hover:bg-brand/30 text-brand border border-brand/30"
-                  : "text-xs sm:text-sm border-border text-foreground/80 hover:bg-accent"
-              }
+                  ? "bg-primary/20 text-primary border-primary/40 shadow-xs font-semibold"
+                  : "border-border/60 text-muted-foreground hover:text-foreground hover:bg-muted/50",
+              )}
             >
               {label}
             </Button>
@@ -210,20 +254,28 @@ export function LeaderboardHighlights() {
           </div>
         )}
 
-        {/* Tab content */}
-        {activeTab === "global" && (
-          <GlobalTab users={topFive} isLoading={isLoading} />
-        )}
-        {activeTab === "category" && (
-          <CategoryTab
-            users={topFive}
-            isLoading={isLoading}
-            category={selectedCategory}
-          />
-        )}
-        {activeTab === "trending" && (
-          <TrendingTab users={topMovers} isLoading={isLoading} />
-        )}
+        {/* Tab content panels */}
+        <div
+          role="tabpanel"
+          id={`highlights-panel-${activeTab}`}
+          aria-labelledby={`highlights-tab-${activeTab}`}
+          tabIndex={0}
+          className="focus:outline-none"
+        >
+          {activeTab === "global" && (
+            <GlobalTab users={topFive} isLoading={isLoading} />
+          )}
+          {activeTab === "category" && (
+            <CategoryTab
+              users={topFive}
+              isLoading={isLoading}
+              category={selectedCategory}
+            />
+          )}
+          {activeTab === "trending" && (
+            <TrendingTab users={topMovers} isLoading={isLoading} />
+          )}
+        </div>
       </CardContent>
     </Card>
   );

@@ -171,14 +171,18 @@ describe("loginSchema", () => {
     expect(result.success).toBe(true);
   });
 
-  it("toLoginDto strips rememberMe", () => {
+  it("toLoginDto preserves rememberMe", () => {
     const dto = toLoginDto({
       email: "a@b.co",
       password: "Abcdef1!",
       rememberMe: true,
     });
-    expect(dto).toEqual({ email: "a@b.co", password: "Abcdef1!" });
-    expect(dto).not.toHaveProperty("rememberMe");
+    expect(dto).toEqual({
+      email: "a@b.co",
+      password: "Abcdef1!",
+      rememberMe: true,
+    });
+    expect(dto).toHaveProperty("rememberMe", true);
   });
 });
 
@@ -506,6 +510,7 @@ describe("submitLogin", () => {
     expect(login).toHaveBeenCalledWith({
       email: "a@b.co",
       password: "Abcdef1!",
+      rememberMe: false,
     });
   });
 
@@ -625,7 +630,7 @@ describe("submitLogin", () => {
     expect(clearAuthToken).toHaveBeenCalledTimes(1);
   });
 
-  it("strips rememberMe from the wire call", async () => {
+  it("passes rememberMe to the wire call", async () => {
     const login = vi
       .fn()
       .mockResolvedValue(mockUser as unknown as AuthControllerLoginResult);
@@ -639,10 +644,8 @@ describe("submitLogin", () => {
     expect(login).toHaveBeenCalledWith({
       email: "a@b.co",
       password: "Abcdef1!",
+      rememberMe: true,
     });
-    expect(login).not.toHaveBeenCalledWith(
-      expect.objectContaining({ rememberMe: true }),
-    );
   });
 });
 

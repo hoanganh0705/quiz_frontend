@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { ApiError, isApiError } from "@/lib/api";
-import { getFeatureFlagValue } from "@/lib/feature-flags";
 
 import {
   type AnswerSubmissionDto,
@@ -34,9 +33,6 @@ export function useSubmitInstanceAnswer(
   instanceId: string | null,
   currentQuestionId: string | null,
 ): UseSubmitInstanceAnswerResult {
-  const flagValue = getFeatureFlagValue("multiplayer_play_live");
-  const isPlaceholder = flagValue === "placeholder";
-
   const { emitAnswer } = useInstanceGameSocket(instanceId);
 
   const timing = useInstanceGameplayStore((s) =>
@@ -69,7 +65,6 @@ export function useSubmitInstanceAnswer(
   }, [currentQuestionId]);
 
   const canSubmit =
-    !isPlaceholder &&
     currentQuestionId !== null &&
     windowOpen &&
     submittedQuestionRef.current !== currentQuestionId &&
@@ -77,7 +72,7 @@ export function useSubmitInstanceAnswer(
 
   const submit = useCallback(
     async (optionId: string): Promise<void> => {
-      if (isPlaceholder || currentQuestionId === null) return;
+      if (currentQuestionId === null) return;
       if (pendingRef.current) return;
       if (submittedQuestionRef.current === currentQuestionId) return;
 
@@ -107,7 +102,7 @@ export function useSubmitInstanceAnswer(
 
         useInstanceGameplayStore
           .getState()
-          .applySubmission(ack.questionId, ack.submittedAt);
+          .applySubmission(ack.questionId, ack.submittedAt, optionId);
       } catch (cause: unknown) {
         pendingRef.current = false;
         setState("rejected");
@@ -127,7 +122,7 @@ export function useSubmitInstanceAnswer(
         pendingRef.current = false;
       }
     },
-    [isPlaceholder, currentQuestionId, emitAnswer],
+    [currentQuestionId, emitAnswer],
   );
 
   const reset = useCallback((): void => {
@@ -138,18 +133,6 @@ export function useSubmitInstanceAnswer(
     setAcceptedAck(null);
     setSelectedOptionId(null);
   }, [currentQuestionId]);
-
-  if (isPlaceholder) {
-    return {
-      submit: async () => {},
-      state: "idle",
-      lastError: null,
-      submission: null,
-      selectedOptionId: null,
-      canSubmit: false,
-      reset: () => {},
-    };
-  }
 
   return {
     submit,

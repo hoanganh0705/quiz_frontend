@@ -5,11 +5,6 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useInstance } from "@/features/instances/hooks/useInstance";
 import { ApiError, isApiError } from "@/lib/api";
 
-const mockGetFeatureFlagValue = vi.fn();
-vi.mock("@/lib/feature-flags", () => ({
-  getFeatureFlagValue: (...args: unknown[]) => mockGetFeatureFlagValue(...args),
-}));
-
 const mockGetInstance = vi.fn();
 vi.mock("@/features/instances/services/instances.service", () => ({
   getInstance: (...args: unknown[]) => mockGetInstance(...args),
@@ -56,40 +51,13 @@ function TestProvider({ children }: { children: React.ReactNode }) {
 describe("useInstance", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockGetFeatureFlagValue.mockReturnValue("live");
   });
 
   afterEach(() => {
     cleanup();
   });
 
-  describe("feature flag gating", () => {
-    it("returns safe fallback when flag is placeholder", async () => {
-      mockGetFeatureFlagValue.mockReturnValue("placeholder");
 
-      const { result } = renderHook(() => useInstance("inst-1", null), {
-        wrapper: TestProvider,
-      });
-
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-      });
-      expect(result.current.instance).toBeNull();
-      expect(result.current.error).toBeNull();
-      expect(result.current.isStale).toBe(false);
-    });
-
-    it("does not call getInstance when flag is placeholder", async () => {
-      mockGetFeatureFlagValue.mockReturnValue("placeholder");
-
-      renderHook(() => useInstance("inst-1", null), {
-        wrapper: TestProvider,
-      });
-
-      await new Promise((r) => setTimeout(r, 10));
-      expect(mockGetInstance).not.toHaveBeenCalled();
-    });
-  });
 
   describe("null id short-circuit", () => {
     it("does not call service when id is null", async () => {

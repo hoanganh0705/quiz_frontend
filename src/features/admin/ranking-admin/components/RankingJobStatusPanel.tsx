@@ -36,18 +36,20 @@ function RunningState() {
   return (
     <div
       data-testid="ranking-job-status-running"
-      className="flex flex-col items-center justify-center gap-3 rounded-md border border-blue-200 bg-blue-50 p-6 dark:border-blue-800 dark:bg-blue-950"
+      role="status"
+      aria-live="polite"
+      className="flex flex-col items-center justify-center gap-3 rounded-md border border-brand/25 bg-brand/10 dark:bg-brand/15 p-6"
     >
       <div className="flex items-center gap-2">
         <Loader2
-          className="h-5 w-5 animate-spin text-blue-600"
+          className="h-5 w-5 animate-spin text-brand"
           aria-hidden="true"
         />
-        <span className="text-sm font-medium text-blue-700 dark:text-blue-300">
+        <span className="text-sm font-medium text-foreground">
           Processing…
         </span>
       </div>
-      <Skeleton className="h-2 w-full max-w-xs rounded-full bg-blue-200 dark:bg-blue-800" />
+      <Skeleton className="h-2 w-full max-w-xs rounded-full bg-brand/20 dark:bg-brand/30" />
     </div>
   );
 }
@@ -60,18 +62,20 @@ function CompletedState({
   return (
     <div
       data-testid="ranking-job-status-completed"
-      className="flex flex-col items-start gap-2 rounded-md border border-green-200 bg-green-50 p-4 dark:border-green-800 dark:bg-green-950"
+      role="status"
+      aria-live="polite"
+      className="flex flex-col items-start gap-2 rounded-md border border-success/30 bg-success/10 dark:bg-success/15 p-4"
     >
       <div className="flex items-center gap-2">
         <CheckCircle2
-          className="h-5 w-5 text-success dark:text-green-400"
+          className="h-5 w-5 text-success"
           aria-hidden="true"
         />
-        <Badge variant="default" className="bg-green-600 text-white">
+        <Badge variant="outline" className="border-success/30 bg-success/15 text-success font-medium">
           Completed
         </Badge>
       </div>
-      <p className="text-sm text-green-700 dark:text-green-300">
+      <p className="text-sm text-foreground/80">
         {affectedUserCount !== null
           ? `Affected ${affectedUserCount.toLocaleString()} user${affectedUserCount === 1 ? "" : "s"}.`
           : "All eligible users processed."}
@@ -90,16 +94,18 @@ function FailedState({
   return (
     <div
       data-testid="ranking-job-status-failed"
-      className="flex flex-col items-start gap-2 rounded-md border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-950"
+      role="alert"
+      aria-live="assertive"
+      className="flex flex-col items-start gap-2 rounded-md border border-destructive/30 bg-destructive/10 dark:bg-destructive/15 p-4"
     >
       <div className="flex items-center gap-2">
         <XCircle
-          className="h-5 w-5 text-destructive dark:text-red-400"
+          className="h-5 w-5 text-destructive"
           aria-hidden="true"
         />
         <Badge variant="destructive">Failed</Badge>
       </div>
-      <p className="text-sm text-red-700 dark:text-red-300">
+      <p className="text-sm text-destructive">
         {error?.detail ?? error?.message ?? "An unexpected error occurred."}
       </p>
       {requestId && error ? <RequestIdBanner error={error} /> : null}

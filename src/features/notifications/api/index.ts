@@ -15,4 +15,5 @@ export {
   markAsRead,
   markAllAsRead,
   deleteNotification,
+  deleteAllNotifications,
 } from "./notifications";

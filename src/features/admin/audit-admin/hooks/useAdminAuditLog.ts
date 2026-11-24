@@ -5,7 +5,6 @@ import { useQuery } from "@tanstack/react-query";
 import { getQueryClient } from "@/providers/QueryProvider";
 
 import { ApiError } from "@/lib/api";
-import { getFeatureFlagValue } from "@/lib/feature-flags";
 
 import {
   listAuditLog,
@@ -39,27 +38,18 @@ export function useAdminAuditLog(
   filters: AuditLogFilters = {},
   pagination: AuditLogPagination = { offset: 0, limit: 20 },
 ): UseAdminAuditLogResult {
-  const flagValue = getFeatureFlagValue("admin_audit_live");
-  const isFlagPlaceholder = flagValue === "placeholder";
-
   const key = useMemo(
     () =>
-      isFlagPlaceholder
-        ? ([AUDIT_LOG_CACHE_KEY, "disabled"] as const)
-        : ([
+      ([
             AUDIT_LOG_CACHE_KEY,
             filters,
             pagination.offset,
             pagination.limit,
           ] as const),
-    [isFlagPlaceholder, filters, pagination.offset, pagination.limit],
+    [filters, pagination.offset, pagination.limit],
   );
 
   const fetcher = useCallback(async (): Promise<AuditLogListDto | null> => {
-    if (isFlagPlaceholder) {
-      return null;
-    }
-
     try {
       const result = await listAuditLog({ filters, pagination });
       return result;
@@ -71,7 +61,7 @@ export function useAdminAuditLog(
       }
       throw err;
     }
-  }, [isFlagPlaceholder, filters, pagination]);
+  }, [filters, pagination]);
 
   const { data, error, isLoading, isFetching, refetch } = useQuery<
     AuditLogListDto | null,
@@ -80,7 +70,6 @@ export function useAdminAuditLog(
     {
       queryKey: key,
       queryFn: fetcher,
-      enabled: !isFlagPlaceholder,
       refetchOnWindowFocus: false,
       refetchOnReconnect: true,
     },
@@ -112,7 +101,7 @@ export function useAdminAuditLog(
     entries,
     total,
     hasMore,
-    isLoading: !isFlagPlaceholder && isLoading && data === undefined,
+    isLoading: isLoading && data === undefined,
     isValidating: isFetching,
     error: error ?? null,
     isNotExposed,

@@ -294,7 +294,11 @@ const QuestionsTab = memo(function QuestionsTab({
           const questionErrors = errors[question.id];
 
           return (
-            <AccordionItem key={question.id} value={question.id}>
+            <AccordionItem
+              key={question.id}
+              value={question.id}
+              className="last:border-b-0"
+            >
               <AccordionTrigger>
                 <div className="flex items-center justify-between w-full mr-4">
                   <div className="flex items-center gap-3">

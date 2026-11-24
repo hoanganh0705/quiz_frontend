@@ -11,7 +11,6 @@ import {
   type InstanceLifecycleErrorCode,
   type InstancePlayer,
 } from "@/features/instances/types/instance.types";
-import { getFeatureFlagValue } from "@/lib/feature-flags";
 
 import type { InstancePlayerResponseDto } from "@/lib/api/generated/schemas";
 
@@ -115,25 +114,30 @@ export function useInstancePlayers(
   instanceId: string | null,
   filters: InstancePlayersFilters = {},
 ): UseInstancePlayersResult {
-  const flagValue = getFeatureFlagValue("multiplayer_instances_live");
-  const isFlagPlaceholder = flagValue === "placeholder";
-
-  const { hostUserId = null, currentUserId = null } = filters;
+  const { hostUserId = null, currentUserId = null, limit, cursor } = filters;
 
   const key = useMemo(
     () =>
-      isFlagPlaceholder || instanceId === null
+      instanceId === null
         ? (["instances", "players", "disabled"] as const)
         : INSTANCE_CACHE_KEYS.players(instanceId),
-    [isFlagPlaceholder, instanceId],
+    [instanceId],
+  );
+
+  const serverParams = useMemo(
+    () => ({
+      ...(typeof limit === "number" ? { limit } : {}),
+      ...(cursor ? { cursor } : {}),
+    }),
+    [limit, cursor],
   );
 
   const fetcher = useMemo(
     () =>
       async ({
-        cursor,
-      }: CursorFetcherArgs<InstancePlayersFilters>): Promise<InstancePlayersPage> => {
-        if (isFlagPlaceholder || instanceId === null) {
+        cursor: pageCursor,
+      }: CursorFetcherArgs<Record<string, unknown>>): Promise<InstancePlayersPage> => {
+        if (instanceId === null) {
           return {
             items: [],
             nextCursor: null,
@@ -142,7 +146,7 @@ export function useInstancePlayers(
           };
         }
 
-        const effectiveCursor = cursor ?? filters.cursor ?? undefined;
+        const effectiveCursor = pageCursor ?? cursor ?? undefined;
 
         const listWithParams = listInstancePlayers as unknown as (
           id: string,
@@ -151,9 +155,7 @@ export function useInstancePlayers(
 
         const wire = await listWithParams(instanceId, {
           ...(effectiveCursor ? { cursor: effectiveCursor } : {}),
-          ...(typeof filters.limit === "number"
-            ? { limit: filters.limit }
-            : {}),
+          ...(typeof limit === "number" ? { limit } : {}),
         });
 
         const rawItems: InstancePlayerResponseDto[] = Array.isArray(wire)
@@ -163,30 +165,41 @@ export function useInstancePlayers(
             : [];
 
         const items: InstancePlayer[] = rawItems.map((raw) =>
-          projectPlayer(raw, hostUserId, currentUserId),
+          projectPlayer(raw, null, null),
         );
 
         const pagination = !Array.isArray(wire)
           ? wire.meta?.pagination
           : undefined;
-        const limit = pagination?.limit ?? items.length;
+        const pageLimit = pagination?.limit ?? items.length;
         return {
           items,
           nextCursor: pagination?.nextCursor ?? null,
           hasNextPage: pagination?.hasNextPage ?? false,
-          limit,
+          limit: pageLimit,
         };
       },
-    [isFlagPlaceholder, instanceId, filters, hostUserId, currentUserId],
+    [instanceId, cursor, limit],
   );
 
-  const result = useCursorPaginated<InstancePlayer, InstancePlayersFilters>({
+  const result = useCursorPaginated<InstancePlayer, Record<string, unknown>>({
     key,
     fetcher,
-    params: filters,
+    params: serverParams,
     paginationKind: "cursor",
-    enabled: !isFlagPlaceholder && instanceId !== null,
+    enabled: instanceId !== null,
+    staleTime: 30_000,
   });
+
+  const projectedItems = useMemo(() => {
+    return result.items.map((raw) =>
+      projectPlayer(
+        raw as unknown as InstancePlayerResponseDto,
+        hostUserId,
+        currentUserId,
+      ),
+    );
+  }, [result.items, hostUserId, currentUserId]);
 
   const mappedError = useMemo<ApiError | null>(() => {
     if (result.error === null) return null;
@@ -198,7 +211,7 @@ export function useInstancePlayers(
   }, [result.error]);
 
   return {
-    items: result.items,
+    items: projectedItems,
     isLoading: result.isLoading,
     isStale: false,
     isLoadingMore: result.isLoadingMore,

@@ -54,6 +54,10 @@ export function TextField<T extends z.ZodType<FieldValues, any, any>>(
 
   const errorMessage = fieldState.error?.message;
   const inputId = React.useId();
+  const descriptionId = description ? `${inputId}-desc` : undefined;
+  const errorId = errorMessage ? `${inputId}-err` : undefined;
+  const describedBy =
+    [descriptionId, errorId].filter(Boolean).join(" ") || undefined;
 
   return (
     <div
@@ -69,7 +73,9 @@ export function TextField<T extends z.ZodType<FieldValues, any, any>>(
         ) : null}
       </Label>
       {description ? (
-        <p className="text-xs text-muted-foreground">{description}</p>
+        <p id={descriptionId} className="text-xs text-muted-foreground">
+          {description}
+        </p>
       ) : null}
       <Input
         id={inputId}
@@ -83,10 +89,11 @@ export function TextField<T extends z.ZodType<FieldValues, any, any>>(
         onBlur={field.onBlur}
         ref={field.ref}
         aria-invalid={!!errorMessage}
+        aria-describedby={describedBy}
         data-testid={testId}
       />
       {errorMessage ? (
-        <p className="text-xs text-destructive" role="alert">
+        <p id={errorId} className="text-xs text-destructive" role="alert">
           {errorMessage}
         </p>
       ) : null}

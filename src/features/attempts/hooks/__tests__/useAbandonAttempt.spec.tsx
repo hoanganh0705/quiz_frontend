@@ -1,12 +1,14 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act, renderHook } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ApiError } from "@/lib/api";
-import { ATTEMPT_CACHE_KEYS } from "@/features/attempts/types/attempt-runner.types";
+
+import { useAbandonAttempt } from "@/features/attempts/hooks/useAbandonAttempt";
 import {
   useAttemptsStore,
   hydrateAttemptEntry,
 } from "@/features/attempts/stores/useAttemptsStore";
+import { ATTEMPT_CACHE_KEYS } from "@/features/attempts/types/attempt-runner.types";
 
 const abandonAttemptMock = vi.hoisted(() => vi.fn());
 const completeAttemptMock = vi.hoisted(() => vi.fn());
@@ -39,7 +41,6 @@ vi.mock("@/lib/api/core/attempts-broadcast-channel", async () => {
   return { ...actual, broadcastAttemptsChanged: broadcastAttemptsChangedMock };
 });
 
-import { useAbandonAttempt } from "@/features/attempts/hooks/useAbandonAttempt";
 
 const SESSION_ID = "user-1";
 const ATTEMPT_ID = "attempt-1";

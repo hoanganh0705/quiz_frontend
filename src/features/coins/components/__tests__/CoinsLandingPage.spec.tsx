@@ -1,34 +1,28 @@
 /**
  * Integration tests for `<CoinsLandingPage />`.
  *
- * Approach: mock all of the coin hooks (`useCoinWallet`,
- * `useCoinTransactions`, `useTipAuthor`, `usePurchaseFlair`) at the
- * module boundary.
+ * Approach: mock coin hooks (`useCoinWallet`, `useCoinTransactions`) at the module boundary.
  *
  * Coverage:
  *   - Loading / populated / placeholder balance states.
  *   - Earnings summary reflects `lifetimeEarned` / `lifetimeSpent`.
  *   - Transaction list renders populated + empty + error states.
  *   - "Load more" paginates.
- *   - TipAuthorForm calls `useTipAuthor().tip()` with the right payload.
- *   - TipAuthorForm rejects non-UUID recipients (validation guard).
- *   - FlairEquipForm calls `usePurchaseFlair().purchaseFlair()`.
- *   - Insufficient balance disables both spend buttons.
  */
 
+import { fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 
-import type { ApiError } from "@/lib/api";
+import { CoinsLandingPage } from "../CoinsLandingPage";
+
 import type {
   CoinTransaction,
   CoinWallet,
 } from "@/features/coins/types/coin.types";
+import type { ApiError } from "@/lib/api";
 
 const mockWallet = vi.fn();
 const mockTransactions = vi.fn();
-const mockTip = vi.fn();
-const mockPurchaseFlair = vi.fn();
 
 vi.mock("@/features/coins/hooks/useCoinWallet", () => ({
   useCoinWallet: () => mockWallet(),
@@ -37,32 +31,6 @@ vi.mock("@/features/coins/hooks/useCoinWallet", () => ({
 vi.mock("@/features/coins/hooks/useCoinTransactions", () => ({
   useCoinTransactions: () => mockTransactions(),
 }));
-
-vi.mock("@/features/coins/hooks/useTipAuthor", () => ({
-  useTipAuthor: () => ({
-    tip: (...args: unknown[]) => mockTip(...args),
-    isPending: false,
-    error: null,
-  }),
-}));
-
-vi.mock("@/features/coins/hooks/usePurchaseFlair", () => ({
-  usePurchaseFlair: () => ({
-    purchaseFlair: (...args: unknown[]) => mockPurchaseFlair(...args),
-    isPending: false,
-    error: null,
-  }),
-}));
-
-vi.mock("@/features/auth/hooks/use-auth", () => ({
-  useAuth: () => ({
-    currentUser: { userId: "0d8e3a45-7d7a-71f0-9e2a-9b0d9e2c7f3b" },
-    isLoading: false,
-    error: null,
-  }),
-}));
-
-import { CoinsLandingPage } from "../CoinsLandingPage";
 
 function makeWallet(overrides: Partial<CoinWallet> = {}): CoinWallet {
   return {
@@ -103,8 +71,6 @@ function mockApiError(message: string): ApiError {
 
 describe("CoinsLandingPage", () => {
   beforeEach(() => {
-    mockTip.mockReset();
-    mockPurchaseFlair.mockReset();
     mockWallet.mockReset();
     mockTransactions.mockReset();
   });
@@ -342,216 +308,5 @@ describe("CoinsLandingPage", () => {
     render(<CoinsLandingPage />);
     fireEvent.click(screen.getByTestId("coins-transactions-load-more"));
     expect(loadMore).toHaveBeenCalledTimes(1);
-  });
-
-  it("disables both spend buttons when balance is insufficient", () => {
-    mockWallet.mockReturnValue({
-      wallet: makeWallet({ balance: 5 }),
-      balance: 5,
-      isLoading: false,
-      isStale: false,
-      isPlaceholder: false,
-      error: null,
-      refresh: vi.fn(),
-    });
-    mockTransactions.mockReturnValue({
-      items: [],
-      isLoading: false,
-      hasMore: false,
-      loadMore: vi.fn(),
-      error: null,
-      refresh: vi.fn(),
-      isPlaceholder: false,
-    });
-
-    render(<CoinsLandingPage />);
-    expect(screen.getByTestId("tip-submit-button")).toBeDisabled();
-    expect(screen.getByTestId("flair-submit-button")).toBeDisabled();
-    expect(screen.getByTestId("tip-disabled-reason")).toHaveTextContent(
-      /at least 25 coins/i,
-    );
-    expect(screen.getByTestId("flair-disabled-reason")).toHaveTextContent(
-      /at least 100 coins/i,
-    );
-  });
-
-  it("submits a tip with the recipient UUID, quiz UUID, and idempotency key", async () => {
-    mockWallet.mockReturnValue({
-      wallet: makeWallet({ balance: 250 }),
-      balance: 250,
-      isLoading: false,
-      isStale: false,
-      isPlaceholder: false,
-      error: null,
-      refresh: vi.fn(),
-    });
-    mockTransactions.mockReturnValue({
-      items: [],
-      isLoading: false,
-      hasMore: false,
-      loadMore: vi.fn(),
-      error: null,
-      refresh: vi.fn(),
-      isPlaceholder: false,
-    });
-
-    render(<CoinsLandingPage />);
-    // The mocked useAuth returns userId 0d8e3a45-7d7a-71f0-9e2a-9b0d9e2c7f3b,
-    // so we tip a DIFFERENT user.
-    fireEvent.input(screen.getByTestId("tip-recipient-input"), {
-      target: { value: "11111111-2222-3333-4444-555555555555" },
-    });
-    fireEvent.input(screen.getByTestId("tip-quiz-input"), {
-      target: { value: "0190f6a5-d2c4-7b3e-a8e9-2b9f7e2b8b1a" },
-    });
-    fireEvent.input(screen.getByTestId("tip-message-input"), {
-      target: { value: "thanks!" },
-    });
-    // Open the confirm dialog first.
-    fireEvent.click(screen.getByTestId("tip-submit-button"));
-    // Confirm inside the dialog. Radix Dialog renders into a Portal
-    // outside the React test container, so query the document body.
-    const confirmButton = await waitFor(() => {
-      const btn = document.querySelector(
-        '[data-testid="purchase-confirm-submit"]',
-      ) as HTMLButtonElement | null;
-      if (!btn) throw new Error("purchase-confirm-submit not yet in document");
-      return btn;
-    });
-    fireEvent.click(confirmButton);
-
-    await waitFor(() => {
-      expect(mockTip).toHaveBeenCalledTimes(1);
-    });
-    const [payload, idempotencyKey] = mockTip.mock.calls[0] as [
-      {
-        recipientUserId: string;
-        quizId?: string;
-        message?: string;
-      },
-      string,
-    ];
-    expect(payload).toEqual({
-      recipientUserId: "11111111-2222-3333-4444-555555555555",
-      quizId: "0190f6a5-d2c4-7b3e-a8e9-2b9f7e2b8b1a",
-      message: "thanks!",
-    });
-    expect(idempotencyKey).toMatch(
-      /^tip:0d8e3a45-7d7a-71f0-9e2a-9b0d9e2c7f3b:11111111-2222-3333-4444-555555555555:/,
-    );
-  });
-
-  it("rejects a non-UUID recipient before opening the confirm dialog", () => {
-    mockWallet.mockReturnValue({
-      wallet: makeWallet({ balance: 250 }),
-      balance: 250,
-      isLoading: false,
-      isStale: false,
-      isPlaceholder: false,
-      error: null,
-      refresh: vi.fn(),
-    });
-    mockTransactions.mockReturnValue({
-      items: [],
-      isLoading: false,
-      hasMore: false,
-      loadMore: vi.fn(),
-      error: null,
-      refresh: vi.fn(),
-      isPlaceholder: false,
-    });
-
-    render(<CoinsLandingPage />);
-    fireEvent.input(screen.getByTestId("tip-recipient-input"), {
-      target: { value: "not-a-uuid" },
-    });
-    // The submit button stays enabled; validation runs inside the
-    // confirm handler and surfaces the inline alert.
-    fireEvent.click(screen.getByTestId("tip-submit-button"));
-    fireEvent.click(screen.getByTestId("purchase-confirm-submit"));
-    expect(mockTip).not.toHaveBeenCalled();
-    expect(screen.getByTestId("tip-validation-error")).toHaveTextContent(
-      /Recipient must be a UUID/i,
-    );
-  });
-
-  it("rejects a self-tip", () => {
-    mockWallet.mockReturnValue({
-      wallet: makeWallet({ balance: 250 }),
-      balance: 250,
-      isLoading: false,
-      isStale: false,
-      isPlaceholder: false,
-      error: null,
-      refresh: vi.fn(),
-    });
-    mockTransactions.mockReturnValue({
-      items: [],
-      isLoading: false,
-      hasMore: false,
-      loadMore: vi.fn(),
-      error: null,
-      refresh: vi.fn(),
-      isPlaceholder: false,
-    });
-
-    render(<CoinsLandingPage />);
-    // The mocked useAuth returns userId 0d8e3a45-7d7a-71f0-9e2a-9b0d9e2c7f3b.
-    fireEvent.input(screen.getByTestId("tip-recipient-input"), {
-      target: { value: "0d8e3a45-7d7a-71f0-9e2a-9b0d9e2c7f3b" },
-    });
-    // Submit button must be disabled because disabledReason !== null.
-    expect(screen.getByTestId("tip-submit-button")).toBeDisabled();
-    expect(screen.getByTestId("tip-disabled-reason")).toHaveTextContent(
-      /can't tip yourself/i,
-    );
-  });
-
-  it("submits a flair purchase with the badge UUID", async () => {
-    mockWallet.mockReturnValue({
-      wallet: makeWallet({ balance: 500 }),
-      balance: 500,
-      isLoading: false,
-      isStale: false,
-      isPlaceholder: false,
-      error: null,
-      refresh: vi.fn(),
-    });
-    mockTransactions.mockReturnValue({
-      items: [],
-      isLoading: false,
-      hasMore: false,
-      loadMore: vi.fn(),
-      error: null,
-      refresh: vi.fn(),
-      isPlaceholder: false,
-    });
-
-    render(<CoinsLandingPage />);
-    fireEvent.input(screen.getByTestId("flair-badge-input"), {
-      target: { value: "0190f6a5-d2c4-7b3e-a8e9-2b9f7e2b8b1a" },
-    });
-    fireEvent.click(screen.getByTestId("flair-submit-button"));
-    // Radix Dialog portal — query the document body directly.
-    const confirmButton = await waitFor(() => {
-      const btn = document.querySelector(
-        '[data-testid="purchase-confirm-submit"]',
-      ) as HTMLButtonElement | null;
-      if (!btn) throw new Error("purchase-confirm-submit not yet in document");
-      return btn;
-    });
-    fireEvent.click(confirmButton);
-
-    await waitFor(() => {
-      expect(mockPurchaseFlair).toHaveBeenCalledTimes(1);
-    });
-    const [payload, idempotencyKey] = mockPurchaseFlair.mock.calls[0] as [
-      { userBadgeId: string },
-      string,
-    ];
-    expect(payload).toEqual({
-      userBadgeId: "0190f6a5-d2c4-7b3e-a8e9-2b9f7e2b8b1a",
-    });
-    expect(idempotencyKey).toMatch(/^flair:0190f6a5-/);
   });
 });

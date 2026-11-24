@@ -16,7 +16,13 @@ export interface UseMyQuizzesAnalyticsResult {
   error: ApiError | null;
 }
 
-export function useMyQuizzesAnalytics(): UseMyQuizzesAnalyticsResult {
+export interface UseMyQuizzesAnalyticsOptions {
+  enabled?: boolean;
+}
+
+export function useMyQuizzesAnalytics(
+  options?: UseMyQuizzesAnalyticsOptions,
+): UseMyQuizzesAnalyticsResult {
   const { data, error, isLoading, isFetching } = useQuery<
     MyQuizzesAnalytics,
     ApiError
@@ -27,6 +33,7 @@ export function useMyQuizzesAnalytics(): UseMyQuizzesAnalyticsResult {
         const result = await getMyQuizAnalytics();
         return result.data as MyQuizzesAnalytics;
       },
+      enabled: options?.enabled ?? true,
     },
     getQueryClient(),
   );

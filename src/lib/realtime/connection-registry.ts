@@ -101,6 +101,11 @@ export function hasSocket(namespace: string): boolean {
   return registry.has(namespace);
 }
 
+export function getExistingSocket(namespace: string): SocketLike | null {
+  if (!isBrowser()) return null;
+  return registry.get(namespace)?.socket ?? null;
+}
+
 export function __resetRegistryForTest(): void {
   registry.clear();
 }

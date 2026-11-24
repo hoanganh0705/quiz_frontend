@@ -1,3 +1,5 @@
+import { logger } from "@/shared/log";
+
 const STORAGE_PREFIX = "auth_sync_";
 const STORAGE_KEY_LOGIN = `${STORAGE_PREFIX}LOGGED_IN`;
 const STORAGE_KEY_LOGOUT = `${STORAGE_PREFIX}LOGGED_OUT`;
@@ -5,7 +7,6 @@ const STORAGE_KEY_TOKEN_REFRESHED = `${STORAGE_PREFIX}TOKEN_REFRESHED`;
 
 const DEFAULT_TAB_ID = "storage";
 
-import { logger } from "@/shared/log";
 
 export interface SyncPayload {
   type: "LOGGED_IN" | "LOGGED_OUT" | "TOKEN_REFRESHED";

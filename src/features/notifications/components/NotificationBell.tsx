@@ -6,7 +6,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/DropdownMenu";
 
-import { getFeatureFlagValue } from "@/lib/feature-flags";
 
 import { UnreadBadge } from "./UnreadBadge";
 import { NotificationPopover } from "./NotificationPopover";
@@ -16,10 +15,7 @@ export interface NotificationBellProps {
 }
 
 export function NotificationBell({ className }: NotificationBellProps) {
-  const flagValue = getFeatureFlagValue("notifications_live");
-  const isFlagPlaceholder = flagValue === "placeholder";
-
-  const suppressBadge = isFlagPlaceholder;
+  const suppressBadge = false;
 
   return (
     <div

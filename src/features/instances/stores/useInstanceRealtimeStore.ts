@@ -11,6 +11,8 @@ import type {
 export interface InstanceRealtimeEntry {
   playersByUserId: Record<string, InstancePlayer>;
 
+  removedUserIds: Set<string>;
+
   lastEventSequence: number;
 
   instanceStatus: InstanceStatus | null;
@@ -51,6 +53,7 @@ function ensureEntry(
   if (existing !== undefined) return existing;
   return {
     playersByUserId: {},
+    removedUserIds: new Set<string>(),
     lastEventSequence: 0,
     instanceStatus: null,
     countdownStartedAt: null,
@@ -79,12 +82,17 @@ export const useInstanceRealtimeStore = create<InstanceRealtimeStore>(
           [event.player.id]: event.player,
         };
 
+        const nextRemoved = new Set(entry.removedUserIds);
+        if (event.player?.id) nextRemoved.delete(event.player.id);
+        if (event.player?.userId) nextRemoved.delete(event.player.userId);
+
         return {
           entries: {
             ...state.entries,
             [event.instanceId]: {
               ...entry,
               playersByUserId: nextPlayersByUserId,
+              removedUserIds: nextRemoved,
               lastEventSequence: event.eventSequence,
             },
           },
@@ -100,12 +108,17 @@ export const useInstanceRealtimeStore = create<InstanceRealtimeStore>(
         const nextPlayersByUserId = { ...entry.playersByUserId };
         delete nextPlayersByUserId[event.playerId];
 
+        const nextRemoved = new Set(entry.removedUserIds);
+        if (event.playerId) nextRemoved.add(event.playerId);
+        if ((event as any).userId) nextRemoved.add((event as any).userId);
+
         return {
           entries: {
             ...state.entries,
             [event.instanceId]: {
               ...entry,
               playersByUserId: nextPlayersByUserId,
+              removedUserIds: nextRemoved,
               lastEventSequence: event.eventSequence,
             },
           },
@@ -197,4 +210,11 @@ export function selectInstanceRealtimeCountdownStartedAt(
   instanceId: string,
 ): string | null {
   return state.entries[instanceId]?.countdownStartedAt ?? null;
+}
+
+export function selectInstanceRemovedUserIds(
+  state: InstanceRealtimeStore,
+  instanceId: string,
+): Set<string> | null {
+  return state.entries[instanceId]?.removedUserIds ?? null;
 }

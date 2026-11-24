@@ -16,7 +16,6 @@ import {
   type TournamentListPage,
   type TournamentSummary,
 } from "@/features/tournaments/types/tournament.types";
-import { getFeatureFlagValue } from "@/lib/feature-flags";
 
 import type { TournamentControllerListTournaments200AllOf } from "@/lib/api/generated/schemas";
 
@@ -37,15 +36,10 @@ type ListTournamentsWireResponse = TournamentControllerListTournaments200AllOf;
 export function useTournaments(
   filters: TournamentListFilters = DEFAULT_TOURNAMENT_LIST_FILTERS,
 ): UseTournamentsResult {
-  const flagValue = getFeatureFlagValue("tournaments_live");
-  const isFlagPlaceholder = flagValue === "placeholder";
-
   const key = useMemo(
     () =>
-      isFlagPlaceholder
-        ? (["tournaments", "list", "disabled"] as const)
-        : TOURNAMENT_CACHE_KEYS.list(filters),
-    [isFlagPlaceholder, filters],
+      TOURNAMENT_CACHE_KEYS.list(filters),
+    [filters],
   );
 
   const fetcher = useMemo(
@@ -53,7 +47,7 @@ export function useTournaments(
       async ({
         cursor,
       }: CursorFetcherArgs<TournamentListFilters>): Promise<TournamentListPage> => {
-        if (isFlagPlaceholder) {
+        if (false) {
           return {
             items: [],
             nextCursor: null,
@@ -85,7 +79,7 @@ export function useTournaments(
           limit,
         };
       },
-    [isFlagPlaceholder, filters],
+    [filters],
   );
 
   const result = useCursorPaginated<TournamentSummary, TournamentListFilters>({

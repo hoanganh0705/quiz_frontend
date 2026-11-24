@@ -4,7 +4,6 @@ import { useCallback, useMemo } from "react";
 
 import { useSingleWithRetry } from "@/lib/api";
 import type { ApiError } from "@/lib/api";
-import { getFeatureFlagValue } from "@/lib/feature-flags";
 
 import { toSocialCounts } from "@/features/social/dto-adapters";
 import { getSocialCounts } from "@/features/social/services";
@@ -33,21 +32,18 @@ const PLACEHOLDER_RESULT: UseSocialCountsResult = Object.freeze({
 });
 
 export function useSocialCounts(userId: string | null): UseSocialCountsResult {
-  const flagValue = getFeatureFlagValue("social_relationship_live");
-  const isFlagPlaceholder = flagValue === "placeholder";
-
   const auth = useAuthSession();
   const isAuthenticated = auth.isAuthenticated;
 
   const key = useMemo<readonly unknown[] | null>(() => {
-    if (isFlagPlaceholder) return null;
+    if (false) return null;
     if (!isAuthenticated) return null;
     if (userId === null) return null;
     return SOCIAL_CACHE_KEYS.makeSocialCountsKey(userId);
-  }, [isFlagPlaceholder, isAuthenticated, userId]);
+  }, [isAuthenticated, userId]);
 
   const fetcher = useCallback(async (): Promise<SocialCountsDto> => {
-    if (isFlagPlaceholder) return toSocialCounts({});
+    if (false) return toSocialCounts({});
     if (!isAuthenticated) return toSocialCounts({});
     try {
       const envelope = await getSocialCounts();
@@ -62,7 +58,7 @@ export function useSocialCounts(userId: string | null): UseSocialCountsResult {
       }
       throw err;
     }
-  }, [isFlagPlaceholder, isAuthenticated]);
+  }, [isAuthenticated]);
 
   const result = useSingleWithRetry<SocialCountsDto>({ key, fetcher });
 
@@ -75,7 +71,7 @@ export function useSocialCounts(userId: string | null): UseSocialCountsResult {
     return result.error;
   }, [result.error]);
 
-  if (isFlagPlaceholder) return PLACEHOLDER_RESULT;
+  if (false) return PLACEHOLDER_RESULT;
   if (!isAuthenticated) return PLACEHOLDER_RESULT;
   if (userId === null) return PLACEHOLDER_RESULT;
 

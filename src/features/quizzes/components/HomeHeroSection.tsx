@@ -11,7 +11,7 @@ export function HomeHeroSection() {
         aria-hidden="true"
       />
       <div
-        className="pointer-events-none absolute -bottom-24 -left-24 h-80 w-80 rounded-full bg-purple-500/10 blur-3xl"
+        className="pointer-events-none absolute -bottom-24 -left-24 h-80 w-80 rounded-full bg-brand/10 blur-3xl"
         aria-hidden="true"
       />
 
@@ -30,30 +30,32 @@ export function HomeHeroSection() {
           </p>
 
           <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
-            <Link href="/quizzes" className="w-full sm:w-auto">
-              <Button
-                size="lg"
-                className="h-10 px-6 rounded-full bg-brand text-brand-foreground hover:bg-brand-hover shadow-sm hover:shadow-brand/20 transition-all font-semibold flex items-center justify-center gap-2 group w-full sm:w-auto cursor-pointer"
-              >
+            <Button
+              asChild
+              size="lg"
+              className="h-10 px-6 rounded-full bg-brand text-brand-foreground hover:bg-brand-hover shadow-sm hover:shadow-brand/20 transition-all font-semibold flex items-center justify-center gap-2 group w-full sm:w-auto cursor-pointer"
+            >
+              <Link href="/quizzes">
                 <Play className="h-4 w-4 fill-current transition-transform group-hover:translate-x-0.5" />
                 <span>Explore Quizzes</span>
-              </Button>
-            </Link>
-            <Link href="/create-quiz" className="w-full sm:w-auto">
-              <Button
-                variant="outline"
-                size="lg"
-                className="h-10 px-5 rounded-full border-border/80 bg-background/60 hover:bg-main-hover backdrop-blur-sm transition-all font-medium flex items-center justify-center gap-2 w-full sm:w-auto cursor-pointer"
-              >
+              </Link>
+            </Button>
+            <Button
+              asChild
+              variant="outline"
+              size="lg"
+              className="h-10 px-5 rounded-full border-border/80 bg-background/60 hover:bg-main-hover backdrop-blur-sm transition-all font-medium flex items-center justify-center gap-2 w-full sm:w-auto cursor-pointer"
+            >
+              <Link href="/create-quiz">
                 <Sparkles className="h-4 w-4 text-brand" />
                 <span>Create a Quiz</span>
-              </Button>
-            </Link>
+              </Link>
+            </Button>
           </div>
         </div>
 
         {/* Right Column: Live Interactive Quiz Card Visual */}
-        <div className="lg:col-span-5 hidden lg:block">
+        <div className="lg:col-span-5 hidden lg:block" aria-hidden="true">
           <div className="relative mx-auto max-w-sm rounded-2xl border border-border/80 bg-background/90 p-4 sm:p-5 shadow-xl backdrop-blur-md transition-transform hover:-translate-y-1 duration-300">
             {/* Card Header */}
             <div className="flex items-center justify-between pb-3 border-b border-border/60">

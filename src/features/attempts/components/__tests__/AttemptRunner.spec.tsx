@@ -220,4 +220,46 @@ describe("AttemptRunner — question navigator & single question view", () => {
     expect(submitBtn).not.toBeDisabled();
     expect(screen.queryByText(/remaining/)).not.toBeInTheDocument();
   });
+
+  it("allows submitting with remaining questions via confirmation alert dialog", async () => {
+    const { fireEvent } = await import("@testing-library/react");
+    const completeQuizMock = vi.fn().mockResolvedValue(undefined);
+    Object.assign(runnerOutcomes, {
+      status: "in_progress",
+      activeAttempt: { attemptId: "att-1" },
+      totalQuestions: 2,
+      questions: dummyQuestions,
+      drafts: {
+        "q-1": {
+          kind: "multiple_choice",
+          questionId: "q-1",
+          selectedOptionIds: ["opt-1a"],
+        },
+      },
+      submittedAnswers: {},
+      completeQuiz: completeQuizMock,
+    });
+
+    render(
+      <AttemptRunner {...baseProps} questions={dummyQuestions as never} />,
+    );
+
+    const submitBtn = screen.getByTestId("attempt-runner-submit-quiz");
+    expect(submitBtn).not.toBeDisabled();
+    expect(screen.getByText("1 question remaining")).toBeInTheDocument();
+
+    // Clicking submit opens the incomplete dialog
+    fireEvent.click(submitBtn);
+    expect(
+      screen.getByTestId("attempt-incomplete-submit-dialog"),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/If you submit now, unanswered questions will be marked as/i),
+    ).toBeInTheDocument();
+
+    // Clicking "Submit anyway" calls completeQuiz
+    const confirmBtn = screen.getByTestId("attempt-incomplete-submit-confirm");
+    fireEvent.click(confirmBtn);
+    expect(completeQuizMock).toHaveBeenCalledTimes(1);
+  });
 });

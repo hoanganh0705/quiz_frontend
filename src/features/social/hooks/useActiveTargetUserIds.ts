@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 
 const ACTIVE_TARGET_USER_IDS_KEY = Symbol.for(
-  "phase6_6_10_activeTargetUserIds",
+  "social:activeTargetUserIds",
 );
 
 interface ActiveTargetUserIdsGlobal {

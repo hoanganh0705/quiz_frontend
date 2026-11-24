@@ -43,10 +43,6 @@ export {
   useInstanceRealtimeRoster,
 } from "./useInstanceRealtimeBridge";
 
-export {
-  useInstancesFeatureFlag,
-  type UseInstancesFeatureFlagResult,
-} from "./useInstancesFeatureFlag";
 
 export {
   useCreateInstance,

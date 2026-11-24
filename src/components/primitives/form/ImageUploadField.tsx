@@ -84,6 +84,10 @@ export function ImageUploadField<T extends z.ZodTypeAny>(
   const value = typeof field.value === "string" ? field.value : "";
   const errorMessage = fieldState.error?.message;
   const inputId = React.useId();
+  const descriptionId = description ? `${inputId}-desc` : undefined;
+  const errorId = errorMessage ? `${inputId}-err` : undefined;
+  const describedBy =
+    [descriptionId, errorId].filter(Boolean).join(" ") || undefined;
 
   const handleFile = React.useCallback(
     async (file: File | undefined): Promise<void> => {
@@ -129,7 +133,9 @@ export function ImageUploadField<T extends z.ZodTypeAny>(
     >
       <Label htmlFor={inputId}>{label}</Label>
       {description ? (
-        <p className="text-xs text-muted-foreground">{description}</p>
+        <p id={descriptionId} className="text-xs text-muted-foreground">
+          {description}
+        </p>
       ) : null}
 
       {previewUrl ? (
@@ -160,7 +166,8 @@ export function ImageUploadField<T extends z.ZodTypeAny>(
           accept="image/*"
           disabled={inputDisabled || isUploading}
           onChange={handleChange}
-          className="block w-full text-sm text-foreground file:mr-4 file:rounded-md file:border-0 file:bg-secondary file:px-3 file:py-1.5 file:text-sm file:font-medium hover:file:bg-secondary/80 disabled:opacity-50"
+          aria-describedby={describedBy}
+          className="block w-full text-sm text-foreground file:mr-4 file:rounded-md file:border-0 file:bg-secondary file:px-3 file:py-1.5 file:text-sm file:font-medium hover:file:bg-secondary/80 disabled:opacity-50 cursor-pointer"
           data-testid={`image-upload-field-input-${name}`}
         />
       )}
@@ -172,7 +179,7 @@ export function ImageUploadField<T extends z.ZodTypeAny>(
           aria-live="polite"
           data-testid={`image-upload-field-progress-${name}`}
         >
-          <Loader2 className="h-3 w-3 animate-spin" aria-hidden="true" />
+          <Loader2 className="h-3 w-3 animate-spin motion-reduce:animate-none" aria-hidden="true" />
           <span>Uploading… {progress === null ? "" : `${progress}%`}</span>
         </div>
       ) : null}

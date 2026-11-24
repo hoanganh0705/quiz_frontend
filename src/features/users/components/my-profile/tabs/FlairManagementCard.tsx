@@ -13,14 +13,8 @@ import { Skeleton } from "@/components/ui/Skeleton";
 import { BadgeFlairPickerDialog } from "./BadgeFlairPickerDialog";
 
 import { useMyBadges } from "@/features/users/hooks";
-import { getFeatureFlagValue } from "@/lib/feature-flags";
 
 export const FlairManagementCard = memo(function FlairManagementCard() {
-  const coinFlag = getFeatureFlagValue("coin_economy_live");
-  const spendFlag = getFeatureFlagValue("coin_spend_live");
-  const isPlaceholder =
-    coinFlag === "placeholder" || spendFlag === "placeholder";
-
   const { badges, isLoading } = useMyBadges();
   const [open, setOpen] = useState(false);
 
@@ -28,8 +22,6 @@ export const FlairManagementCard = memo(function FlairManagementCard() {
   const activeBadgeName = showActiveBadge && badges.items[0]?.name;
   const activeBadgeDescription =
     showActiveBadge && badges.items[0]?.description;
-
-  if (isPlaceholder) return null;
 
   return (
     <Card data-testid="flair-management-card">

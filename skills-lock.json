@@ -1,29 +1,85 @@
 {
-  "version": 1,
+  "version": 2,
   "skills": {
+    "banner-design": {
+      "source": "nextlevelbuilder/ui-ux-pro-max-skill",
+      "commit": "f76d1653d7467fc11fb9d9d79295a421c92ab958",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/banner-design/SKILL.md",
+      "computedHash": "4b22f6f48afc6fcd72e6f3ae106a4dca11b33b88221efded1f5c62d8f9afb50d"
+    },
+    "brand": {
+      "source": "nextlevelbuilder/ui-ux-pro-max-skill",
+      "commit": "f76d1653d7467fc11fb9d9d79295a421c92ab958",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/brand/SKILL.md",
+      "computedHash": "d5619310b76bd204efd2f8b3832f72b5a2899712be0ab94d1b4b671271419c54"
+    },
+    "design": {
+      "source": "nextlevelbuilder/ui-ux-pro-max-skill",
+      "commit": "f76d1653d7467fc11fb9d9d79295a421c92ab958",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/design/SKILL.md",
+      "computedHash": "b0500382bb6aa23e200d20f4aa7e8ffc4bc0831b56615e174ab0a54b3f3d3e46"
+    },
+    "design-system": {
+      "source": "nextlevelbuilder/ui-ux-pro-max-skill",
+      "commit": "f76d1653d7467fc11fb9d9d79295a421c92ab958",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/design-system/SKILL.md",
+      "computedHash": "9efdc106c73d8d298b5a90d55c56995840a37f754fb9d498d14e6562bdaadc23"
+    },
+    "impeccable": {
+      "source": "pbakaus/impeccable",
+      "commit": "b49177d32788f2dc585c42831d845dacf1ebed2c",
+      "sourceType": "github",
+      "skillPath": ".agents/skills/impeccable/SKILL.md",
+      "computedHash": "08bd5bf141cb507f46bd8347890cd985865606f15adf88295ed3a73bc9ad5d96"
+    },
     "next-cache-components-adoption": {
       "source": "vercel/next.js",
       "sourceType": "github",
       "skillPath": "skills/next-cache-components-adoption/SKILL.md",
-      "computedHash": "15dcef9cfce611ba5a9ca467ed0d4eeae8de16fadb91b66df892a5ca63c57829"
+      "computedHash": ""
     },
     "next-cache-components-optimizer": {
       "source": "vercel/next.js",
       "sourceType": "github",
       "skillPath": "skills/next-cache-components-optimizer/SKILL.md",
-      "computedHash": "d029b9387f3792b03fcce0217e79f096fd9cfa6d4d8771d397bf3efb72cf7333"
+      "computedHash": ""
     },
     "next-dev-loop": {
       "source": "vercel/next.js",
       "sourceType": "github",
       "skillPath": "skills/next-dev-loop/SKILL.md",
-      "computedHash": "d6c10996c5c31b32faa269715852006922fa4357d1151403bb3a49dfa121bcfd"
+      "computedHash": "919042e5215ed670210c9e21efb029c4110a6b398c8ac5434b94043f0d43b3a7"
     },
     "next-partial-prefetching-adoption": {
       "source": "vercel/next.js",
       "sourceType": "github",
       "skillPath": "skills/next-partial-prefetching-adoption/SKILL.md",
-      "computedHash": "6c94969d634f91dd14806fb836a89e653db4f0d4f084127eb9f5ffcb1416045e"
+      "computedHash": ""
+    },
+    "slides": {
+      "source": "nextlevelbuilder/ui-ux-pro-max-skill",
+      "commit": "f76d1653d7467fc11fb9d9d79295a421c92ab958",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/slides/SKILL.md",
+      "computedHash": "059825b15a508a5f1533ab646f968ffcbcdbb8eadd76c2d122151bfbcf19d287"
+    },
+    "ui-styling": {
+      "source": "nextlevelbuilder/ui-ux-pro-max-skill",
+      "commit": "f76d1653d7467fc11fb9d9d79295a421c92ab958",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/ui-styling/SKILL.md",
+      "computedHash": "a598d8ad69832a394d4040e4c94e4b9c7b8daf2b1fdca050929058f7b70bc816"
+    },
+    "ui-ux-pro-max": {
+      "source": "nextlevelbuilder/ui-ux-pro-max-skill",
+      "commit": "f76d1653d7467fc11fb9d9d79295a421c92ab958",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/ui-ux-pro-max/SKILL.md",
+      "computedHash": "e521187cf7538619acb336c79ba3dc12f7b2670e6a8f03db59167b5f1c603906"
     }
   }
 }

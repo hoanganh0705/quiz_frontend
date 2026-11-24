@@ -186,11 +186,6 @@ export const instanceMocks = {
   }),
   useInstanceRealtimeBridge: vi.fn(),
   useInstanceRealtimeRoster: vi.fn().mockReturnValue([]),
-  useInstancesFeatureFlag: vi.fn().mockReturnValue({
-    isPlaceholder: false,
-    isLive: true,
-    flagValue: "live",
-  }),
   useAuthBootstrap: vi.fn(() => ({
     bootstrapState: "authenticated",
     isAuthenticated: true,

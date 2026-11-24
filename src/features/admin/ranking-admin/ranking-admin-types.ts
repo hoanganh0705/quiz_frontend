@@ -46,15 +46,16 @@ export interface NormalisedConsistencyResponse {
 }
 
 export interface RankingInconsistencyDto {
-  userId: string;
+  type: string;
+  severity: "low" | "medium" | "high" | "critical" | string;
+  description: string;
+  userId?: string | null;
 
-  field: string;
-
-  expected: string | number;
-
-  actual: string | number;
-
-  period: string;
+  /** Legacy compatibility fields */
+  field?: string;
+  expected?: string | number;
+  actual?: string | number;
+  period?: string;
 }
 
 export type RankingAdminErrorCode =

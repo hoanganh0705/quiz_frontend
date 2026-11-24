@@ -1,12 +1,14 @@
-import { describe, expect, it, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
 import * as React from "react";
+
+import { render, screen } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
+
+import InstancesRoute, { metadata } from "@/app/(protected)/instances/page";
 
 vi.mock("@/features/instances/pages/InstancesPage", () => ({
   InstancesPage: () => <div data-testid="instances-page-stub" />,
 }));
 
-import InstancesRoute, { metadata } from "@/app/(protected)/instances/page";
 
 describe("/instances route", () => {
   it("exports SEO metadata", () => {

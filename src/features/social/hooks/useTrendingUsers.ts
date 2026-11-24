@@ -5,7 +5,6 @@ import { useMemo } from "react";
 import { ApiError, useCursorPaginated } from "@/lib/api";
 import type { OffsetFetcherArgs } from "@/lib/api/use-cursor-paginated.types";
 
-import { getFeatureFlagValue } from "@/lib/feature-flags";
 
 import {
   getTrendingUsers,
@@ -64,17 +63,14 @@ const FALLBACK_RESULT: UseTrendingUsersResult = Object.freeze({
 });
 
 export function useTrendingUsers(): UseTrendingUsersResult {
-  const flagValue = getFeatureFlagValue("social_discovery_live");
-  const isFlagPlaceholder = flagValue === "placeholder";
-
   const auth = useAuthSession();
   const isAuthenticated = auth.isAuthenticated;
 
   const key = useMemo<readonly unknown[] | null>(() => {
-    if (isFlagPlaceholder) return null;
+    if (false) return null;
     if (!isAuthenticated) return null;
     return ["social", "trending"] as const;
-  }, [isFlagPlaceholder, isAuthenticated]);
+  }, [isAuthenticated]);
 
   const fetcher = useMemo(
     () =>
@@ -85,7 +81,7 @@ export function useTrendingUsers(): UseTrendingUsersResult {
         hasMore: boolean;
         limit: number;
       }> => {
-        if (isFlagPlaceholder || !isAuthenticated) {
+        if (!isAuthenticated) {
           return EMPTY_PAGE;
         }
         try {
@@ -111,7 +107,7 @@ export function useTrendingUsers(): UseTrendingUsersResult {
           throw err;
         }
       },
-    [isFlagPlaceholder, isAuthenticated],
+    [isAuthenticated],
   );
 
   const result = useCursorPaginated<TrendingUserWithId, Record<string, never>>({
@@ -121,7 +117,7 @@ export function useTrendingUsers(): UseTrendingUsersResult {
     paginationKind: "offset",
   });
 
-  if (isFlagPlaceholder) return FALLBACK_RESULT;
+  if (false) return FALLBACK_RESULT;
   if (!isAuthenticated) return FALLBACK_RESULT;
 
   const code = result.error?.code;

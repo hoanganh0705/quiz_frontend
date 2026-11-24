@@ -3,7 +3,6 @@
 import * as React from "react";
 
 import {
-  useTournamentFeatureFlag,
   useTournament,
   useTournamentParticipants,
   useTournamentLeaderboard,
@@ -11,7 +10,6 @@ import {
 } from "@/features/tournaments/hooks";
 
 import {
-  TournamentPlaceholder,
   TournamentDetailSkeleton,
   TournamentErrorState,
   TournamentHeader,
@@ -31,16 +29,11 @@ export function TournamentDetailPage({
   tournamentId,
   className,
 }: TournamentDetailPageProps) {
-  const { isPlaceholder } = useTournamentFeatureFlag();
 
   const tournamentResult = useTournament(tournamentId);
   const participantsResult = useTournamentParticipants(tournamentId);
   const leaderboardResult = useTournamentLeaderboard(tournamentId);
   const participationResult = useTournamentParticipation(tournamentId);
-
-  if (isPlaceholder) {
-    return <TournamentPlaceholder />;
-  }
 
   if (tournamentResult.isLoading) {
     return (

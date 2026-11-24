@@ -54,6 +54,10 @@ export function RichTextArea<T extends z.ZodType<FieldValues, any, any>>(
   const errorMessage = fieldState.error?.message;
   const currentLength = String(field.value ?? "").length;
   const inputId = React.useId();
+  const descriptionId = description ? `${inputId}-desc` : undefined;
+  const errorId = errorMessage ? `${inputId}-err` : undefined;
+  const describedBy =
+    [descriptionId, errorId].filter(Boolean).join(" ") || undefined;
 
   return (
     <div
@@ -83,7 +87,9 @@ export function RichTextArea<T extends z.ZodType<FieldValues, any, any>>(
         ) : null}
       </div>
       {description ? (
-        <p className="text-xs text-muted-foreground">{description}</p>
+        <p id={descriptionId} className="text-xs text-muted-foreground">
+          {description}
+        </p>
       ) : null}
       {showPreview ? (
         <div
@@ -103,12 +109,13 @@ export function RichTextArea<T extends z.ZodType<FieldValues, any, any>>(
           onBlur={field.onBlur}
           ref={field.ref}
           aria-invalid={!!errorMessage}
+          aria-describedby={describedBy}
           data-testid={testId}
         />
       )}
       <div className="flex items-center justify-between">
         {errorMessage ? (
-          <p className="text-xs text-destructive" role="alert">
+          <p id={errorId} className="text-xs text-destructive" role="alert">
             {errorMessage}
           </p>
         ) : (

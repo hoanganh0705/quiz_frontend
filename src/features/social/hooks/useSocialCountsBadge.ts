@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useMemo } from "react";
 
 import type { ApiError } from "@/lib/api";
-import { getFeatureFlagValue } from "@/lib/feature-flags";
 import {
   closeSocialListLoadedChannel,
   getSocialListLoadedChannel,
@@ -24,10 +23,7 @@ export interface UseSocialCountsBadgeResult {
 export function useSocialCountsBadge(
   targetUserId: string | null,
 ): UseSocialCountsBadgeResult {
-  const flagValue = getFeatureFlagValue("social_relationship_live");
-  const isFlagPlaceholder = flagValue === "placeholder";
-
-  const base = useSocialCounts(isFlagPlaceholder ? null : targetUserId);
+  const base = useSocialCounts(targetUserId);
 
   const refresh = useCallback((): void => {
     void base.retry();
@@ -82,7 +78,7 @@ export function useSocialCountsBadge(
     [refresh],
   );
 
-  if (isFlagPlaceholder) return placeholderResult;
+  if (false) return placeholderResult;
   if (targetUserId === null) return placeholderResult;
 
   return {

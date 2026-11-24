@@ -57,7 +57,7 @@ export function resolveInstancePermissions(args: {
 }): InstancePermissions {
   const { status, role, isAuthenticated } = args;
 
-  if (!isAuthenticated || role === null || status === null) {
+  if (!isAuthenticated || status === null) {
     return STRICTEST_PERMISSIONS;
   }
 
@@ -77,7 +77,8 @@ export function resolveInstancePermissions(args: {
   const isPlayer = role === "player";
 
   return {
-    canJoin: isPlayer && (status === "open" || status === "countdown"),
+    canJoin:
+      !isHost && !isPlayer && (status === "open" || status === "countdown"),
     canLeave: isPlayer,
     canStart: isHost && (status === "countdown" || status === "open"),
     canCancel: isHost && status === "countdown",

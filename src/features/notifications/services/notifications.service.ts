@@ -1,6 +1,6 @@
 import * as Sentry from "@sentry/nextjs";
 
-import { getNotifications } from "@/lib/api";
+import { customInstance, getNotifications } from "@/lib/api";
 
 import { ApiError } from "@/lib/api/core/ApiError";
 
@@ -13,11 +13,6 @@ import type {
   GetNotificationPreferencesResult,
   UpdateNotificationPreferencesResult,
   GetNotificationDetailResult,
-  NotificationControllerDeleteNotificationResult,
-  NotificationControllerMarkAsReadResult,
-  NotificationControllerMarkAsUnreadResult,
-  NotificationControllerMarkAllAsReadResult,
-  NotificationControllerDeleteReadNotificationsResult,
 } from "@/lib/api/generated/notifications/notifications";
 
 import type { GetNotificationsParams } from "@/lib/api/generated/schemas";
@@ -26,7 +21,7 @@ export async function listNotifications(
   params?: GetNotificationsParams,
 ): Promise<GetNotificationsResult["data"]> {
   Sentry.addBreadcrumb({
-    category: "phase5:service",
+    category: "notifications:service",
     message: "notifications.listNotifications",
   });
   const data = await getNotifications().getNotifications(params);
@@ -37,12 +32,12 @@ export async function listNotifications(
       message: "List notifications response missing data envelope",
     } as unknown as ConstructorParameters<typeof ApiError>[0]);
   }
-  return (data.data ?? data) as unknown as GetNotificationsResult["data"];
+  return data as unknown as GetNotificationsResult["data"];
 }
 
 export async function getUnreadCount(): Promise<GetUnreadCountResult["data"]> {
   Sentry.addBreadcrumb({
-    category: "phase5:service",
+    category: "notifications:service",
     message: "notifications.getUnreadCount",
   });
   const data = await getNotifications().getUnreadCount();
@@ -60,7 +55,7 @@ export async function getNotificationAnalytics(): Promise<
   GetNotificationAnalyticsResult["data"]
 > {
   Sentry.addBreadcrumb({
-    category: "phase5:service",
+    category: "notifications:service",
     message: "notifications.getNotificationAnalytics",
   });
   const data = await getNotifications().getNotificationAnalytics();
@@ -78,7 +73,7 @@ export async function getNotificationPreferences(): Promise<
   GetNotificationPreferencesResult["data"]
 > {
   Sentry.addBreadcrumb({
-    category: "phase5:service",
+    category: "notifications:service",
     message: "notifications.getNotificationPreferences",
   });
   const data = await getNotifications().getNotificationPreferences();
@@ -96,7 +91,7 @@ export async function getNotificationDetail(
   id: string,
 ): Promise<GetNotificationDetailResult["data"]> {
   Sentry.addBreadcrumb({
-    category: "phase5:service",
+    category: "notifications:service",
     message: `notifications.getNotificationDetail(${id})`,
   });
   const data = await getNotifications().getNotificationDetail(id);
@@ -114,7 +109,7 @@ export async function updateNotificationPreferences(
   params: UpdatePreferencesDto,
 ): Promise<UpdateNotificationPreferencesResult["data"]> {
   Sentry.addBreadcrumb({
-    category: "phase5:service",
+    category: "notifications:service",
     message: "notifications.updateNotificationPreferences",
   });
   const data = await getNotifications().updateNotificationPreferences(params);
@@ -130,7 +125,7 @@ export async function updateNotificationPreferences(
 
 export async function deleteNotification(id: string): Promise<void> {
   Sentry.addBreadcrumb({
-    category: "phase5:service",
+    category: "notifications:service",
     message: `notifications.deleteNotification(${id})`,
   });
   const _data =
@@ -140,7 +135,7 @@ export async function deleteNotification(id: string): Promise<void> {
 
 export async function markNotificationRead(id: string): Promise<void> {
   Sentry.addBreadcrumb({
-    category: "phase5:service",
+    category: "notifications:service",
     message: `notifications.markNotificationRead(${id})`,
   });
   await getNotifications().notificationControllerMarkAsRead(id);
@@ -148,7 +143,7 @@ export async function markNotificationRead(id: string): Promise<void> {
 
 export async function markNotificationUnread(id: string): Promise<void> {
   Sentry.addBreadcrumb({
-    category: "phase5:service",
+    category: "notifications:service",
     message: `notifications.markNotificationUnread(${id})`,
   });
   await getNotifications().notificationControllerMarkAsUnread(id);
@@ -156,7 +151,7 @@ export async function markNotificationUnread(id: string): Promise<void> {
 
 export async function markAllNotificationsRead(): Promise<void> {
   Sentry.addBreadcrumb({
-    category: "phase5:service",
+    category: "notifications:service",
     message: "notifications.markAllNotificationsRead",
   });
   await getNotifications().notificationControllerMarkAllAsRead();
@@ -164,8 +159,19 @@ export async function markAllNotificationsRead(): Promise<void> {
 
 export async function deleteReadNotifications(): Promise<void> {
   Sentry.addBreadcrumb({
-    category: "phase5:service",
+    category: "notifications:service",
     message: "notifications.deleteReadNotifications",
   });
   await getNotifications().notificationControllerDeleteReadNotifications();
+}
+
+export async function deleteAllNotifications(): Promise<void> {
+  Sentry.addBreadcrumb({
+    category: "notifications:service",
+    message: "notifications.deleteAllNotifications",
+  });
+  await customInstance.request<void>({
+    url: "/api/v1/notifications",
+    method: "DELETE",
+  });
 }

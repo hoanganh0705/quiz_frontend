@@ -8,9 +8,6 @@ import type { ApiError } from "@/lib/api/core/ApiError";
 const mockGetFeatureFlagValue = vi.fn();
 const mockUseSearch = vi.fn();
 
-vi.mock("@/lib/feature-flags", () => ({
-  getFeatureFlagValue: (...args: unknown[]) => mockGetFeatureFlagValue(...args),
-}));
 
 vi.mock("@/features/search/hooks/useSearch", () => ({
   useSearch: (...args: unknown[]) => mockUseSearch(...args),

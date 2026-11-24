@@ -11,7 +11,6 @@ import {
   type AchievementErrorCode,
   type BadgeDetail,
 } from "@/features/achievements/types";
-import { getFeatureFlagValue } from "@/lib/feature-flags";
 
 import type { BadgeDetailsResponseDto } from "@/lib/api/generated/schemas";
 
@@ -27,24 +26,21 @@ export interface UseBadgeResult {
 }
 
 export function useBadge(code: string | null): UseBadgeResult {
-  const flagValue = getFeatureFlagValue("achievements_live");
-  const isFlagPlaceholder = flagValue === "placeholder";
-
   const key = useMemo(
     () =>
-      isFlagPlaceholder || code === null
+      code === null
         ? null
         : ACHIEVEMENT_CACHE_KEYS.detail(code),
-    [isFlagPlaceholder, code],
+    [code],
   );
 
   const fetcher = useCallback(async () => {
-    if (isFlagPlaceholder || code === null) {
+    if (code === null) {
       return null;
     }
     const wire = (await getBadgeByCode(code)) as BadgeDetailsResponseDto | null;
     return toBadgeDetail(wire);
-  }, [isFlagPlaceholder, code]);
+  }, [code]);
 
   const result = useSingleWithRetry<BadgeDetail | null>({
     key,
@@ -55,7 +51,7 @@ export function useBadge(code: string | null): UseBadgeResult {
 
   const isPrivate = String(result.error?.code ?? "") === "BADGE_HIDDEN";
 
-  if (isFlagPlaceholder || code === null) {
+  if (code === null) {
     return {
       badge: null,
       isLoading: false,

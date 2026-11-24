@@ -42,7 +42,7 @@ export function useTagAdminList(): UseTagAdminList {
         const rawItems = result.data ?? [];
 
         return rawItems.map((item) => {
-          const raw = item as any;
+          const raw = item as unknown as { deletedAt?: string | null };
           if (raw.deletedAt && raw.deletedAt !== null) {
             return {
               tagId: item.tagId as string,

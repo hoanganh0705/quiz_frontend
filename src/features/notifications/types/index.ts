@@ -6,6 +6,7 @@ export {
 
 export type {
   DeleteNotificationMutationResult,
+  DeleteAllNotificationsMutationResult,
   MarkAllReadMutationResult,
   Notification,
   NotificationChannel,

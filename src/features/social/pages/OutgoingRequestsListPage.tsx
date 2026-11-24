@@ -3,7 +3,6 @@
 import { type ReactElement, useState } from "react";
 
 import { Button } from "@/components/ui/Button";
-import { getFeatureFlagValue } from "@/lib/feature-flags";
 
 import { FriendRequestCancelDialog } from "@/features/social/components/FriendRequestCancelDialog";
 import { FriendRequestEmptyState } from "@/features/social/components/FriendRequestEmptyState";
@@ -17,14 +16,11 @@ export interface OutgoingRequestsListPageProps {
 }
 
 export function OutgoingRequestsListPage({}: OutgoingRequestsListPageProps): ReactElement {
-  const readFlag = getFeatureFlagValue("social_relationship_live");
-  const isFlagPlaceholder = readFlag === "placeholder";
-
   const { requests, isLoading, error, retry } = useOutgoingRequests();
 
   const [openCancelForId, setOpenCancelForId] = useState<string | null>(null);
 
-  if (isFlagPlaceholder) {
+  if (false) {
     return (
       <div data-testid="outgoing-requests-page-placeholder" className="p-6">
         <FriendRequestEmptyState kind="outgoing" />

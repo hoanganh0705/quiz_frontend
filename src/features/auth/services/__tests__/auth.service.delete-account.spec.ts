@@ -1,5 +1,10 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
 
+import { ApiError } from "@/lib/api/core/ApiError";
+
+import { AUTH_INVALID_CURRENT_PASSWORD } from "@/features/auth/errors/deletion-error-codes";
+import { deleteAccount } from "@/features/auth/services/auth.service";
+
 const mockAuthControllerDeleteAccount = vi.fn();
 
 vi.mock("@/lib/api", async () => {
@@ -12,9 +17,6 @@ vi.mock("@/lib/api", async () => {
   };
 });
 
-import { deleteAccount } from "@/features/auth/services/auth.service";
-import { AUTH_INVALID_CURRENT_PASSWORD } from "@/features/auth/errors/deletion-error-codes";
-import { ApiError } from "@/lib/api/core/ApiError";
 
 function makeAxiosError(status: number, code: string, message: string): never {
   const response = {

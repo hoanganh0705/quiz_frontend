@@ -44,6 +44,7 @@ interface BaseParams<T extends { id: string }> {
   enabled?: boolean;
   revalidateOnFocus?: boolean;
   fallbackData?: CursorPageFallbackData<T> | OffsetPageFallbackData<T>;
+  staleTime?: number;
 }
 
 export interface CursorParams<

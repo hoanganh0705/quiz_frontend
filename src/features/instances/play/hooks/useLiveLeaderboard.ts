@@ -10,7 +10,6 @@ import type {
 } from "@/lib/api/generated/schemas";
 
 import { ApiError } from "@/lib/api";
-import { getFeatureFlagValue } from "@/lib/feature-flags";
 import { getInstanceLeaderboard } from "@/features/instances/services";
 
 import {
@@ -65,9 +64,6 @@ function orderLeaderboard(
 export function useLiveLeaderboard(
   instanceId: string | null,
 ): UseLiveLeaderboardResult {
-  const flagValue = getFeatureFlagValue("multiplayer_play_live");
-  const isPlaceholder = flagValue === "placeholder";
-
   const { subscribe } = useInstanceGameSocket(instanceId);
   const { shouldAccept, markAccepted } = useSocketEventSequence(instanceId);
   const { applyLeaderboardUpdated } = useInstanceGameplayStore.getState();
@@ -87,7 +83,7 @@ export function useLiveLeaderboard(
         )) as unknown as InstanceLeaderboardResponseDto;
         return (rest.items ?? []).map(mapRestEntryToLeaderboardEntry);
       },
-      enabled: !isPlaceholder && instanceId !== null,
+      enabled: instanceId !== null,
       refetchOnWindowFocus: false,
       refetchOnReconnect: false,
       retry: false,
@@ -170,17 +166,6 @@ export function useLiveLeaderboard(
   const retry = useCallback(async (): Promise<void> => {
     await refetch();
   }, [refetch]);
-
-  if (isPlaceholder) {
-    return {
-      entries: EMPTY_LEADERBOARD,
-      final: null,
-      isLoading: false,
-      isStale: false,
-      error: null,
-      retry: async () => {},
-    };
-  }
 
   return {
     entries: liveEntries,

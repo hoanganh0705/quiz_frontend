@@ -64,7 +64,7 @@ export function useQuizVersions(
             limit: params.limit,
           })) as unknown as GetQuizVersionsResponse;
 
-          emitBreadcrumb("phase4:4.9:versions-list", {
+          emitBreadcrumb("quizzes:versions-list", {
             status: "success",
             durationMs: Date.now() - startedAt,
           });
@@ -94,7 +94,7 @@ export function useQuizVersions(
           if (err instanceof Error && err.name === "AbortError") {
             throw err;
           }
-          emitBreadcrumb("phase4:4.9:versions-list", {
+          emitBreadcrumb("quizzes:versions-list", {
             status: "error",
             durationMs: Date.now() - startedAt,
             code: err instanceof ApiError ? err.code : "GLOBAL_UNKNOWN",

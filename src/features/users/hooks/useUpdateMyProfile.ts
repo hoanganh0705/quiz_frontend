@@ -112,7 +112,7 @@ export function useUpdateMyProfile(
         broadcasts: undefined,
       });
 
-      emitBreadcrumb("phase4:4.3:profile", {
+      emitBreadcrumb("users:profile", {
         status: result.status,
         durationMs: Date.now() - startMs,
         ...(result.status === "reverted" && isApiError(result.apiError)

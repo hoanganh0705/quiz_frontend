@@ -7,8 +7,6 @@ export type { UseUnreadNotificationCountResult } from "./useUnreadNotificationCo
 export { useNotificationSocket } from "./useNotificationSocket";
 export type { UseNotificationSocketResult } from "./useNotificationSocket";
 
-export { useNotificationFeatureFlag } from "./useNotificationFeatureFlag";
-export type { UseNotificationFeatureFlagResult } from "./useNotificationFeatureFlag";
 
 export { useMarkNotificationRead } from "./useMarkNotificationRead";
 export type { UseMarkNotificationReadResult } from "./useMarkNotificationRead";
@@ -18,6 +16,9 @@ export type { UseMarkNotificationUnreadResult } from "./useMarkNotificationUnrea
 
 export { useDeleteNotification } from "./useDeleteNotification";
 export type { UseDeleteNotificationResult } from "./useDeleteNotification";
+
+export { useDeleteAllNotifications } from "./useDeleteAllNotifications";
+export type { UseDeleteAllNotificationsResult } from "./useDeleteAllNotifications";
 
 export { useMarkAllNotificationsRead } from "./useMarkAllNotificationsRead";
 export type { UseMarkAllNotificationsReadResult } from "./useMarkAllNotificationsRead";

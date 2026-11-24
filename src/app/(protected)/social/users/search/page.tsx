@@ -7,7 +7,6 @@ import { useAuthSession } from "@/features/auth/hooks/use-auth-session";
 import { useMemo } from "react";
 
 import { RouteGateSkeleton } from "@/components/ui/loading-states";
-import { getFeatureFlagValue } from "@/lib/feature-flags";
 
 import { SocialSearchPlaceholder } from "@/features/social/components/SocialSearchPlaceholder";
 import { UserSearchResults } from "@/features/social/lists/UserSearchResults";
@@ -19,10 +18,7 @@ function SearchRouteGate(): React.ReactElement {
 
   const { isAuthenticated, isBootstrapping } = useAuthSession();
 
-  const flagValue = useMemo(
-    () => getFeatureFlagValue("social_user_search_live"),
-    [],
-  );
+
 
   const query = useMemo(() => searchParams.get("q") ?? "", [searchParams]);
 
@@ -47,7 +43,7 @@ function SearchRouteGate(): React.ReactElement {
     );
   }
 
-  if (flagValue === "placeholder") {
+  if (false) {
     return <SocialSearchPlaceholder />;
   }
 

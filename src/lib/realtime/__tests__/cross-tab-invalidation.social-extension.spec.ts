@@ -1,5 +1,13 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import {
+  emitRealtimeInvalidation,
+  postFriendRequestInvalidation,
+  postRelationshipInvalidation,
+  subscribeToRealtimeInvalidation,
+  CROSS_TAB_INVALIDATION_CHANNEL,
+} from "../cross-tab-invalidation";
+
 const SELF_TAB_ID = "self-tab";
 const OTHER_TAB_ID = "other-tab";
 
@@ -64,13 +72,6 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-import {
-  emitPhase5Invalidation,
-  postFriendRequestInvalidation,
-  postRelationshipInvalidation,
-  subscribeToPhase5Invalidation,
-  CROSS_TAB_INVALIDATION_CHANNEL,
-} from "../cross-tab-invalidation";
 
 function lastPost(): Record<string, unknown> {
   const entry = recordedPosts[recordedPosts.length - 1];
@@ -80,7 +81,7 @@ function lastPost(): Record<string, unknown> {
 
 describe("cross-tab-invalidation — existing four envelopes (regression baseline)", () => {
   it("emits a 'notification' envelope with the documented payload shape", () => {
-    emitPhase5Invalidation({ type: "notification", notificationId: "n1" });
+    emitRealtimeInvalidation({ type: "notification", notificationId: "n1" });
     expect(recordedPosts).toHaveLength(1);
     expect(recordedPosts[0]!.channelName).toBe("realtime/invalidation");
     const posted = recordedPosts[0]!.payload as Record<string, unknown>;
@@ -91,21 +92,21 @@ describe("cross-tab-invalidation — existing four envelopes (regression baselin
   });
 
   it("emits an 'instance' envelope with the documented payload shape", () => {
-    emitPhase5Invalidation({ type: "instance", instanceId: "i1" });
+    emitRealtimeInvalidation({ type: "instance", instanceId: "i1" });
     const posted = lastPost();
     expect(posted.type).toBe("instance");
     expect(posted.instanceId).toBe("i1");
   });
 
   it("emits a 'tournament' envelope with the documented payload shape", () => {
-    emitPhase5Invalidation({ type: "tournament", tournamentId: "t1" });
+    emitRealtimeInvalidation({ type: "tournament", tournamentId: "t1" });
     const posted = lastPost();
     expect(posted.type).toBe("tournament");
     expect(posted.tournamentId).toBe("t1");
   });
 
   it("emits an 'achievement' envelope with the documented payload shape", () => {
-    emitPhase5Invalidation({ type: "achievement", badgeId: "b1" });
+    emitRealtimeInvalidation({ type: "achievement", badgeId: "b1" });
     const posted = lastPost();
     expect(posted.type).toBe("achievement");
     expect(posted.badgeId).toBe("b1");
@@ -115,7 +116,7 @@ describe("cross-tab-invalidation — existing four envelopes (regression baselin
 describe("cross-tab-invalidation — 'relationship' envelope", () => {
   it("emits a 'relationship' envelope with targetUserId + auto-stamped tabId/timestamp", () => {
     const before = Date.now();
-    emitPhase5Invalidation({ type: "relationship", targetUserId: "user-1" });
+    emitRealtimeInvalidation({ type: "relationship", targetUserId: "user-1" });
     const after = Date.now();
     const posted = lastPost();
     expect(posted.type).toBe("relationship");
@@ -135,13 +136,13 @@ describe("cross-tab-invalidation — 'relationship' envelope", () => {
 
 describe("cross-tab-invalidation — 'friend-request' envelope", () => {
   it("emits a 'friend-request' envelope with no detail", () => {
-    emitPhase5Invalidation({ type: "friend-request" });
+    emitRealtimeInvalidation({ type: "friend-request" });
     const posted = lastPost();
     expect(posted.type).toBe("friend-request");
   });
 
   it("emits a 'friend-request' envelope with decision='accept' + userIds", () => {
-    emitPhase5Invalidation({
+    emitRealtimeInvalidation({
       type: "friend-request",
       decision: "accept",
       requesterUserId: "user-a",
@@ -155,12 +156,12 @@ describe("cross-tab-invalidation — 'friend-request' envelope", () => {
   });
 
   it("emits a 'friend-request' envelope with decision='decline'", () => {
-    emitPhase5Invalidation({ type: "friend-request", decision: "decline" });
+    emitRealtimeInvalidation({ type: "friend-request", decision: "decline" });
     expect(lastPost().decision).toBe("decline");
   });
 
   it("emits a 'friend-request' envelope with decision='cancel'", () => {
-    emitPhase5Invalidation({ type: "friend-request", decision: "cancel" });
+    emitRealtimeInvalidation({ type: "friend-request", decision: "cancel" });
     expect(lastPost().decision).toBe("cancel");
   });
 
@@ -181,7 +182,7 @@ describe("cross-tab-invalidation — 'friend-request' envelope", () => {
 describe("cross-tab-invalidation — subscribe + same-tab filter", () => {
   it("invokes the subscriber for a cross-tab (different-tabId) message", () => {
     const handler = vi.fn();
-    const unsubscribe = subscribeToPhase5Invalidation(handler);
+    const unsubscribe = subscribeToRealtimeInvalidation(handler);
 
     const peer = new MockBroadcastChannel(CROSS_TAB_INVALIDATION_CHANNEL);
     peer.postMessage({
@@ -198,7 +199,7 @@ describe("cross-tab-invalidation — subscribe + same-tab filter", () => {
 
   it("filters out same-tab messages (tabId matches the current tab)", () => {
     const handler = vi.fn();
-    const unsubscribe = subscribeToPhase5Invalidation(handler);
+    const unsubscribe = subscribeToRealtimeInvalidation(handler);
 
     const peer = new MockBroadcastChannel(CROSS_TAB_INVALIDATION_CHANNEL);
     peer.postMessage({
@@ -213,7 +214,7 @@ describe("cross-tab-invalidation — subscribe + same-tab filter", () => {
 
   it("does not echo to the same instance (no self-loop)", () => {
     const handler = vi.fn();
-    const unsubscribe = subscribeToPhase5Invalidation(handler);
+    const unsubscribe = subscribeToRealtimeInvalidation(handler);
 
     const subscriberChannel = [...liveChannels][0]!;
     subscriberChannel.postMessage({
@@ -229,7 +230,7 @@ describe("cross-tab-invalidation — subscribe + same-tab filter", () => {
 
   it("unsubscribe detaches the handler so subsequent cross-tab messages are not delivered", () => {
     const handler = vi.fn();
-    const unsubscribe = subscribeToPhase5Invalidation(handler);
+    const unsubscribe = subscribeToRealtimeInvalidation(handler);
 
     const peer = new MockBroadcastChannel(CROSS_TAB_INVALIDATION_CHANNEL);
     peer.postMessage({
@@ -258,10 +259,10 @@ describe("cross-tab-invalidation — channel constant", () => {
   });
 
   it("uses the same channel name for all six envelope types (no separate channel per type)", () => {
-    emitPhase5Invalidation({ type: "relationship", targetUserId: "u" });
-    emitPhase5Invalidation({ type: "friend-request" });
-    emitPhase5Invalidation({ type: "notification" });
-    emitPhase5Invalidation({ type: "achievement" });
+    emitRealtimeInvalidation({ type: "relationship", targetUserId: "u" });
+    emitRealtimeInvalidation({ type: "friend-request" });
+    emitRealtimeInvalidation({ type: "notification" });
+    emitRealtimeInvalidation({ type: "achievement" });
     expect(recordedPosts).toHaveLength(4);
     for (const entry of recordedPosts) {
       expect(entry.channelName).toBe("realtime/invalidation");

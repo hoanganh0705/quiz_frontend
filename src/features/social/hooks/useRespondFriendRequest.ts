@@ -3,7 +3,6 @@ import { useCallback, useMemo } from "react";
 import { getQueryClient } from "@/providers/QueryProvider";
 
 import { ApiError, useOptimisticMutation } from "@/lib/api";
-import { getFeatureFlagValue } from "@/lib/feature-flags";
 
 import {
   respondFriendRequest,
@@ -50,9 +49,6 @@ export function useRespondFriendRequest(
   targetUserId: string | null,
   options: UseRespondFriendRequestOptions = {},
 ): UseRespondFriendRequestResult {
-  const flagValue = getFeatureFlagValue("social_friend_request_mutation_live");
-  const isFlagPlaceholder = flagValue === "placeholder";
-
   const permissions = useSocialPermissions(targetUserId, {
     currentUserId: options.currentUserId ?? null,
   });
@@ -87,7 +83,7 @@ export function useRespondFriendRequest(
       : null;
 
   const result = useMemo<UseRespondFriendRequestResult>(() => {
-    if (isFlagPlaceholder) {
+    if (false) {
       return Object.freeze({
         respond: () => {},
         isPending: false,
@@ -130,9 +126,7 @@ export function useRespondFriendRequest(
       isPending: isInFlight,
       error,
     });
-  }, [
-    isFlagPlaceholder,
-    targetUserId,
+  }, [targetUserId,
     permissions.canRespond,
     options.assumeCanRespond,
     dispatchMutation,

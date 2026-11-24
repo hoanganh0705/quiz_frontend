@@ -23,7 +23,7 @@ export default async function InstanceRoomRoute({
   const { id } = await params;
 
   return (
-    <main className="min-h-screen p-4 md:p-8 lg:p-12">
+    <main className="min-h-screen py-6 px-4 sm:py-8 sm:px-6 md:py-10 md:px-8 max-w-4xl mx-auto w-full">
       <Suspense fallback={<RouteGateSkeleton />}>
         <InstanceRoomPage instanceId={id} />
       </Suspense>

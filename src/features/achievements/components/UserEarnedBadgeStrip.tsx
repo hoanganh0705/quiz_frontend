@@ -2,40 +2,33 @@
 
 import { Award, EyeOff } from "lucide-react";
 
-import { ApiError } from "@/lib/api";
-
-import { isAchievementSurfaceEnabled } from "@/features/achievements/flags";
+import {
+  TIER_CONFIG,
+  getBadgeIconComponent,
+} from "@/features/achievements/components/shared/AchievementShared";
 import { useUserBadges } from "@/features/achievements/hooks";
 import type { EarnedBadge, BadgeTier } from "@/features/achievements/types";
+import { ApiError } from "@/lib/api";
 
 interface UserEarnedBadgeStripProps {
   userId: string | null;
   className?: string;
 }
 
-const TIER_COLOR: Record<BadgeTier, string> = {
-  BRONZE: "text-amber-700",
-  SILVER: "text-slate-500",
-  GOLD: "text-yellow-500",
-  PLATINUM: "text-cyan-500",
-  DIAMOND: "text-violet-500",
-};
-
 function BadgesHidden({ className }: { className?: string }) {
   return (
     <section
       data-testid="user-badges-hidden"
       aria-label="Badges hidden"
-      className={`rounded-lg border bg-card p-4 ${className ?? ""}`}
+      className={`rounded-xl border border-border bg-card/80 p-5 backdrop-blur-xs shadow-xs ${className ?? ""}`}
     >
-      <div className="flex items-start gap-3">
-        <EyeOff
-          aria-hidden="true"
-          className="mt-0.5 h-5 w-5 text-muted-foreground"
-        />
+      <div className="flex items-start gap-3.5">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-muted text-muted-foreground">
+          <EyeOff aria-hidden="true" className="h-5 w-5" />
+        </div>
         <div>
-          <p className="text-sm font-medium">Badges hidden</p>
-          <p className="mt-0.5 text-xs text-muted-foreground">
+          <p className="text-sm font-bold tracking-tight">Badges hidden</p>
+          <p className="mt-1 text-xs text-muted-foreground">
             This user has chosen to keep their badge collection private.
           </p>
         </div>
@@ -49,16 +42,15 @@ function BadgesNoData({ className }: { className?: string }) {
     <section
       data-testid="user-badges-no-data"
       aria-label="No badges yet"
-      className={`rounded-lg border bg-card p-4 ${className ?? ""}`}
+      className={`rounded-xl border border-border bg-card/80 p-5 backdrop-blur-xs shadow-xs ${className ?? ""}`}
     >
-      <div className="flex items-start gap-3">
-        <Award
-          aria-hidden="true"
-          className="mt-0.5 h-5 w-5 text-muted-foreground"
-        />
+      <div className="flex items-start gap-3.5">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-muted text-muted-foreground">
+          <Award aria-hidden="true" className="h-5 w-5" />
+        </div>
         <div>
-          <p className="text-sm font-medium">No badges yet</p>
-          <p className="mt-0.5 text-xs text-muted-foreground">
+          <p className="text-sm font-bold tracking-tight">No badges yet</p>
+          <p className="mt-1 text-xs text-muted-foreground">
             Once they earn a badge, the top featured ones will show up here.
           </p>
         </div>
@@ -72,14 +64,14 @@ function UserEarnedBadgeStripSkeleton({ className }: { className?: string }) {
     <div
       data-testid="user-earned-badge-strip-skeleton"
       aria-busy="true"
-      className={`rounded-lg border bg-card p-4 space-y-3 ${className ?? ""}`}
+      className={`rounded-xl border border-border bg-card/80 p-5 space-y-3.5 backdrop-blur-xs shadow-xs ${className ?? ""}`}
     >
-      <div className="h-3 w-32 animate-pulse rounded bg-muted" />
+      <div className="h-3.5 w-32 animate-pulse rounded bg-muted" />
       <div className="flex gap-3">
         {Array.from({ length: 4 }).map((_, idx) => (
           <div
             key={idx}
-            className="h-12 w-12 animate-pulse rounded-full bg-muted"
+            className="h-12 w-12 animate-pulse rounded-2xl bg-muted"
           />
         ))}
       </div>
@@ -100,16 +92,16 @@ function UserEarnedBadgeErrorState({
     <section
       data-testid="user-earned-badge-strip-error"
       role="alert"
-      className={`rounded-lg border border-destructive/40 bg-destructive/5 p-4 ${className ?? ""}`}
+      className={`rounded-xl border border-destructive/40 bg-destructive/5 p-4 ${className ?? ""}`}
     >
-      <p className="text-sm font-medium text-destructive">
+      <p className="text-sm font-bold text-destructive">
         Could not load badges
       </p>
-      <p className="mt-0.5 text-xs text-muted-foreground">{error.message}</p>
+      <p className="mt-1 text-xs text-muted-foreground">{error.message}</p>
       <button
         type="button"
         onClick={onRetry}
-        className="mt-2 text-xs font-medium text-primary underline-offset-2 hover:underline"
+        className="mt-2 text-xs font-semibold text-primary underline-offset-2 hover:underline"
       >
         Retry
       </button>
@@ -118,15 +110,19 @@ function UserEarnedBadgeErrorState({
 }
 
 function BadgeChip({ badge }: { badge: EarnedBadge }) {
+  const tierCfg = TIER_CONFIG[badge.tier as BadgeTier] ?? TIER_CONFIG.BRONZE;
+  const BadgeIcon = getBadgeIconComponent(badge.code || badge.name);
+
   return (
     <li
       data-testid={`user-badge-chip-${badge.id}`}
       aria-label={badge.name}
-      className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-muted"
+      title={`${badge.name} (${badge.tier})`}
+      className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl shadow-xs transition-transform hover:scale-105 ${tierCfg.iconBg}`}
     >
-      <Award
+      <BadgeIcon
         aria-hidden="true"
-        className={`h-5 w-5 ${TIER_COLOR[badge.tier]}`}
+        className="h-6 w-6"
       />
     </li>
   );
@@ -136,13 +132,13 @@ export function UserEarnedBadgeStrip({
   userId,
   className,
 }: UserEarnedBadgeStripProps) {
-  const isLive = isAchievementSurfaceEnabled();
+  const isEnabled = true;
 
   const { profile, isLoading, error, retry, isPrivate } = useUserBadges(
-    isLive ? userId : null,
+    isEnabled ? userId : null,
   );
 
-  if (!isLive) return null;
+  if (!isEnabled) return null;
   if (userId === null) return null;
 
   if (isPrivate) {
@@ -171,11 +167,13 @@ export function UserEarnedBadgeStrip({
     <section
       data-testid="user-earned-badge-strip"
       aria-label="Public featured badges"
-      className={`rounded-lg border bg-card p-4 space-y-3 ${className ?? ""}`}
+      className={`rounded-xl border border-border bg-card/80 p-5 space-y-3.5 backdrop-blur-xs shadow-xs ${className ?? ""}`}
     >
       <header>
-        <h2 className="text-sm font-semibold">Featured badges</h2>
-        <p className="mt-0.5 text-xs text-muted-foreground">
+        <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">
+          Featured badges
+        </h2>
+        <p className="mt-1 font-mono text-xs text-muted-foreground">
           {profile.totalBadges} total &middot; {profile.rareBadges} rare
           {profile.highestRank !== null
             ? ` · Highest rank #${profile.highestRank}`

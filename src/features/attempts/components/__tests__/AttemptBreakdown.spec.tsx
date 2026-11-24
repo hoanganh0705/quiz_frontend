@@ -67,7 +67,7 @@ describe("AttemptBreakdown — projection", () => {
     ).toHaveTextContent("Incorrect");
     expect(
       screen.getByTestId("attempt-breakdown-marker-skipped"),
-    ).toHaveTextContent("Skipped");
+    ).toHaveTextContent("Undone");
     expect(
       screen.getByTestId("attempt-breakdown-marker-pending"),
     ).toHaveTextContent("Pending");
@@ -122,5 +122,16 @@ describe("markerForQuestion — pure derivation", () => {
     expect(
       markerForQuestion(makeQuestion({ isCorrect: { value: false } })),
     ).toBe("incorrect");
+    expect(
+      markerForQuestion(makeQuestion({ isCorrect: true as unknown as null })),
+    ).toBe("correct");
+    expect(
+      markerForQuestion(makeQuestion({ isCorrect: false as unknown as null })),
+    ).toBe("incorrect");
+    expect(
+      markerForQuestion(
+        makeQuestion({ isCorrect: { correct: true } as unknown as null }),
+      ),
+    ).toBe("correct");
   });
 });

@@ -32,18 +32,6 @@ export const COMMENT_REPORTS_SHOW_VALUES: readonly CommentReportsShow[] =
 export const DEFAULT_COMMENT_REPORTS_SHOW: CommentReportsShow =
   DEFAULT_COMMENT_REPORT_SHOW_FILTER;
 
-type ListCommentReportsWireResponse = {
-  data?: unknown;
-  meta?: {
-    pagination?: {
-      kind?: string;
-      limit?: number;
-      nextCursor?: string | null;
-      hasNextPage?: boolean;
-    };
-  };
-};
-
 export interface UseCommentReportsFetcherParams {
   show: CommentReportsShow;
 }
@@ -137,26 +125,29 @@ export function useCommentReports(
       }: CursorFetcherArgs<UseCommentReportsFetcherParams>): Promise<
         CursorPage<CommentReportDto & { id: string }>
       > => {
-        const wire = (await listCommentReports({
+        const res = await listCommentReports({
           ...buildServiceFilter(show),
           limit: COMMENT_REPORTS_PAGE_SIZE,
           ...(cursor !== null ? { cursor } : {}),
-        })) as unknown as ListCommentReportsWireResponse | undefined;
+        });
 
-        const rawItems = Array.isArray(wire?.data)
-          ? (wire!.data as CommentReportDto[])
-          : [];
-        const items = rawItems.map((item) => ({
-          ...item,
-          id: item.reportId,
-        }));
+        const rawItems = Array.isArray(res?.items) ? res.items : [];
+        const items = rawItems
+          .filter((item) =>
+            show === "pending"
+              ? item.status === "open"
+              : item.status !== "open",
+          )
+          .map((item) => ({
+            ...item,
+            id: item.reportId,
+          }));
 
-        const pagination = wire?.meta?.pagination;
         const page: CursorPage<CommentReportDto & { id: string }> = {
           items,
-          nextCursor: pagination?.nextCursor ?? null,
-          hasNextPage: pagination?.hasNextPage ?? false,
-          limit: pagination?.limit ?? items.length,
+          nextCursor: res?.nextCursor ?? null,
+          hasNextPage: res?.hasNextPage ?? false,
+          limit: COMMENT_REPORTS_PAGE_SIZE,
         };
         return page;
       },

@@ -28,7 +28,12 @@ const CATEGORY_EMOJIS: Record<string, string> = {
   sports: "⚽",
 };
 
-function CategoryCard({ name, slug, imageUrl }: CategoryCardProps) {
+function CategoryCard({
+  name,
+  slug,
+  imageUrl,
+  isPriority = false,
+}: CategoryCardProps & { isPriority?: boolean }) {
   const emoji = CATEGORY_EMOJIS[slug.toLowerCase()] ?? "✨";
 
   return (
@@ -43,7 +48,7 @@ function CategoryCard({ name, slug, imageUrl }: CategoryCardProps) {
           fill
           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, (max-width: 1280px) 40vw, 25vw"
           className="object-cover transition-transform duration-500 ease-out group-hover:scale-110"
-          priority
+          priority={isPriority}
         />
         {/* Subtle dark gradient overlay */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/25 to-black/30 pointer-events-none transition-opacity group-hover:opacity-90" />
@@ -106,7 +111,7 @@ export default function QuizCategories({
           <Button
             size="icon"
             variant="outline"
-            className="h-9 w-9 rounded-full border-border/80 bg-background/80 hover:bg-main-hover transition-all"
+            className="h-9 w-9 sm:h-10 sm:w-10 rounded-full border-border/80 bg-background/80 hover:bg-main-hover transition-all cursor-pointer"
             onClick={() => {
               if (!swiperRef.current) return;
               if (isPlaying) {
@@ -132,7 +137,7 @@ export default function QuizCategories({
           <Button
             size="icon"
             variant="outline"
-            className="h-9 w-9 rounded-full border-border/80 bg-background/80 hover:bg-main-hover transition-all"
+            className="h-9 w-9 sm:h-10 sm:w-10 rounded-full border-border/80 bg-background/80 hover:bg-main-hover transition-all cursor-pointer"
             disabled={isBeginning}
             onClick={() => swiperRef.current?.slidePrev()}
             aria-label="Previous category"
@@ -142,7 +147,7 @@ export default function QuizCategories({
           <Button
             size="icon"
             variant="outline"
-            className="h-9 w-9 rounded-full border-border/80 bg-background/80 hover:bg-main-hover transition-all"
+            className="h-9 w-9 sm:h-10 sm:w-10 rounded-full border-border/80 bg-background/80 hover:bg-main-hover transition-all cursor-pointer"
             disabled={isEnd}
             onClick={() => swiperRef.current?.slideNext()}
             aria-label="Next category"
@@ -170,7 +175,6 @@ export default function QuizCategories({
             disableOnInteraction: false,
             pauseOnMouseEnter: true,
           }}
-          pagination={{ clickable: true }}
           modules={[Navigation, Autoplay]}
           watchOverflow={true}
           centerInsufficientSlides={true}
@@ -194,7 +198,7 @@ export default function QuizCategories({
           }}
           className="w-full max-w-full pb-4!"
         >
-          {(categories ?? []).map((category) => (
+          {(categories ?? []).map((category, index) => (
             <SwiperSlide
               key={category.categoryId}
               className="min-w-0 max-w-full"
@@ -204,6 +208,7 @@ export default function QuizCategories({
                 name={category.name}
                 slug={category.slug}
                 imageUrl={category.imageUrl}
+                isPriority={index < 2}
               />
             </SwiperSlide>
           ))}

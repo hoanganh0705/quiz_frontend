@@ -88,11 +88,26 @@ export function useCheckRankingConsistency(): UseCheckRankingConsistencyResult {
           setAudit((prev) => ({ ...prev, after: result }));
           setCheckedAt(new Date());
 
-          setInconsistencies([]);
-          setTotalCount(result.issueCount ?? null);
+          const rawIssues = result.issues ?? [];
+          const mappedInconsistencies: RankingInconsistencyDto[] = rawIssues.map(
+            (issue) => ({
+              type: issue.type,
+              severity: issue.severity,
+              description: issue.description,
+              userId: issue.userId ?? null,
+              field: issue.type,
+              expected: issue.severity,
+              actual: issue.description,
+              period: "-",
+            }),
+          );
 
-          const hasIssues = (result.issueCount ?? 0) > 0;
-          const hasInconsistencyList = false;
+          setInconsistencies(mappedInconsistencies);
+          const issuesCount = result.totalIssues ?? result.issueCount ?? 0;
+          setTotalCount(issuesCount);
+
+          const hasIssues = issuesCount > 0;
+          const hasInconsistencyList = mappedInconsistencies.length > 0;
           setIsPartialResult(hasIssues && !hasInconsistencyList);
 
           setIsRunning(false);

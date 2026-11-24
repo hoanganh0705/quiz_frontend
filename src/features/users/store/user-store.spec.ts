@@ -1,5 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { ApiError } from "@/lib/api/core/ApiError";
+
+import { getCurrentUser } from "@/features/users/services/users.reads.service";
+import { useUserStore } from "@/features/users/store/user-store";
+
 vi.mock("@/features/users/services/users.reads.service", () => ({
   getCurrentUser: vi.fn(),
 }));
@@ -10,9 +15,6 @@ vi.mock("@/features/auth/utils/auth-cookies", () => ({
   getAuthToken: vi.fn(() => "mock-auth-token"),
 }));
 
-import { getCurrentUser } from "@/features/users/services/users.reads.service";
-import { ApiError } from "@/lib/api/core/ApiError";
-import { useUserStore } from "@/features/users/store/user-store";
 
 const mockedGetCurrentUser = vi.mocked(getCurrentUser);
 

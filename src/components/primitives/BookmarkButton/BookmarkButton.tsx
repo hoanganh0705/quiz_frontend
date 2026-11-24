@@ -191,6 +191,7 @@ export function BookmarkButton({
       ) : null}
       <Button
         type="button"
+        variant={variant === "iconWithLabel" ? (isBookmarked ? "secondary" : "outline") : (isBookmarked ? "secondary" : "ghost")}
         size={variant === "iconWithLabel" ? "default" : "icon"}
         disabled={visual.disabled}
         aria-busy={visual.ariaBusy ? "true" : undefined}

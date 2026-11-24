@@ -1,3 +1,5 @@
+import type { ErrorCode } from "@/lib/api/error-codes";
+
 export type ActivityItemType =
   | "badge_earned"
   | "badge_revoked"
@@ -38,7 +40,6 @@ export function isActivityItemType(value: unknown): value is ActivityItemType {
 
 export const DEFENSIVE_FALLBACK_TESTID = "activity-item-unsupported" as const;
 
-import type { ErrorCode } from "@/lib/api/error-codes";
 
 export const ACTIVITY_RATE_LIMIT_ERROR_CODES: readonly ErrorCode[] = [
   "GLOBAL_RATE_LIMITED",

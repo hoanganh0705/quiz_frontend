@@ -102,18 +102,21 @@ const quickLinks = [
 
 export default function AdminDashboardPage() {
   return (
-    <div className="px-4 sm:px-6 pb-8 space-y-6">
+    <div className="mx-auto max-w-7xl px-4 sm:px-6 pb-8 space-y-6">
+      {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pt-6">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+            Dashboard
+          </h1>
           <p className="text-sm text-muted-foreground mt-1">
             Welcome back. Manage your platform from here.
           </p>
         </div>
-        <Button asChild className="gap-2">
+        <Button asChild className="gap-2 shrink-0 self-start sm:self-auto shadow-xs transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0">
           <Link href="/" aria-label="View the public site">
             <Eye className="h-4 w-4" aria-hidden="true" />
-            View Site
+            <span>View Site</span>
           </Link>
         </Button>
       </div>
@@ -128,7 +131,7 @@ export default function AdminDashboardPage() {
       <Card
         role="status"
         data-testid="admin-dashboard-placeholder-banner"
-        className="rounded-2xl border-border/70 bg-muted/30 backdrop-blur-xs shadow-xs"
+        className="rounded-2xl border-border/70 bg-muted/30 backdrop-blur-sm shadow-xs"
       >
         <CardContent className="flex items-start gap-3 p-4 sm:p-5">
           <AlertCircle
@@ -145,7 +148,7 @@ export default function AdminDashboardPage() {
               ships. For now, use the{" "}
               <Link
                 href="/admin/audit"
-                className="font-medium text-brand underline-offset-4 hover:underline"
+                className="font-medium text-brand underline-offset-4 hover:underline hover:text-brand-hover transition-colors"
               >
                 audit log
               </Link>{" "}
@@ -155,62 +158,73 @@ export default function AdminDashboardPage() {
         </CardContent>
       </Card>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card
-          className="rounded-2xl border-border/70 bg-card/75 shadow-xs backdrop-blur-sm sm:col-span-2 lg:col-span-4"
-          data-testid="admin-dashboard-quick-actions"
-        >
-          <CardHeader>
-            <CardTitle>Quick Actions</CardTitle>
-            <CardDescription>Common management tasks</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {quickLinks.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className="flex items-center justify-between p-3.5 rounded-xl border border-border/60 bg-muted/20 hover:bg-muted/40 hover:border-brand/40 transition-all duration-150 group"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-lg bg-muted/60 border border-border/40">
-                      <link.icon
-                        className="h-4 w-4 text-muted-foreground group-hover:text-brand transition-colors"
-                        aria-hidden="true"
-                      />
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-foreground group-hover:text-brand transition-colors">
-                        {link.label}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {link.description}
-                      </p>
-                    </div>
-                  </div>
-                  <ArrowUpRight
-                    className="h-4 w-4 text-muted-foreground group-hover:text-brand group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all"
-                    aria-hidden="true"
-                  />
-                </Link>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      <Card className="rounded-2xl border-border/70 bg-card/75 shadow-xs backdrop-blur-sm">
-        <CardHeader>
-          <CardTitle>Platform Activity</CardTitle>
-          <CardDescription>
-            See the live audit log for moderation and administrative events
-          </CardDescription>
+      {/* Quick Actions Card */}
+      <Card
+        className="rounded-2xl border-border/70 bg-card/75 shadow-xs backdrop-blur-sm py-6 sm:py-8"
+        data-testid="admin-dashboard-quick-actions"
+      >
+        <CardHeader className="px-6 sm:px-8">
+          <CardTitle>Quick Actions</CardTitle>
+          <CardDescription>Common management tasks</CardDescription>
         </CardHeader>
-        <CardContent>
-          <Button asChild variant="outline" className="gap-2 rounded-lg">
+        <CardContent className="px-6 sm:px-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+            {quickLinks.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className="group flex items-center justify-between rounded-xl border border-border/60 bg-muted/20 px-4 py-4 sm:py-4.5 shadow-2xs transition-all duration-150 hover:-translate-y-0.5 hover:border-primary/40 hover:bg-muted/40 hover:shadow-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
+              >
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="rounded-lg border border-border/40 bg-muted/60 p-2 shrink-0 transition-colors group-hover:border-primary/30 group-hover:bg-primary/10">
+                    <link.icon
+                      className="h-4 w-4 text-muted-foreground transition-colors group-hover:text-primary"
+                      aria-hidden="true"
+                    />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-foreground transition-colors group-hover:text-primary truncate">
+                      {link.label}
+                    </p>
+                    <p className="text-xs text-muted-foreground line-clamp-1">
+                      {link.description}
+                    </p>
+                  </div>
+                </div>
+                <ArrowUpRight
+                  className="h-4 w-4 text-muted-foreground/60 transition-all duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-primary shrink-0 ml-2"
+                  aria-hidden="true"
+                />
+              </Link>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Platform Activity Strip */}
+      <Card className="rounded-2xl border-border/70 bg-card/75 shadow-xs backdrop-blur-sm">
+        <CardContent className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 sm:p-6">
+          <div className="flex items-start sm:items-center gap-3.5">
+            <div className="rounded-xl bg-primary/10 p-2.5 text-primary shrink-0">
+              <Activity className="h-5 w-5" aria-hidden="true" />
+            </div>
+            <div className="space-y-0.5">
+              <h2 className="text-base font-semibold text-foreground">
+                Platform Activity & Audit Log
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                Inspect live administrative actions, role modifications, and moderation decisions.
+              </p>
+            </div>
+          </div>
+          <Button
+            asChild
+            variant="outline"
+            className="shrink-0 gap-2 rounded-lg self-start sm:self-auto transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xs active:translate-y-0"
+          >
             <Link href="/admin/audit" aria-label="Open the audit log">
-              <Activity className="h-4 w-4" aria-hidden="true" />
-              Open Audit Log
+              <span>Open Audit Log</span>
+              <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
             </Link>
           </Button>
         </CardContent>

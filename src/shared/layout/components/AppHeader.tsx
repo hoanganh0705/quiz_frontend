@@ -8,6 +8,8 @@ import {
   Settings,
   User as UserIcon,
   Shield,
+  Bookmark,
+  History,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/Avatar";
 import {
@@ -32,7 +34,6 @@ import { logout } from "@/features/auth/services/auth.service";
 import { useRouter } from "next/navigation";
 import { useUser, useClearUser } from "@/features/users/store/user-store";
 import { useAdminRole } from "@/features/admin/hooks/useAdminRole";
-import { useAdminFeatureFlag } from "@/features/admin/hooks/useAdminFeatureFlag";
 
 function useIsMac() {
   return useSyncExternalStore(
@@ -53,9 +54,8 @@ export function AppHeader() {
   const isMac = useIsMac();
 
   const { isLoading: isAdminLoading, role } = useAdminRole();
-  const { isLive } = useAdminFeatureFlag("admin_live");
   const canSeeAdmin =
-    isLive && !isAdminLoading && (role === "admin" || role === "moderator");
+    !isAdminLoading && (role === "admin" || role === "moderator");
   const isAdmin = role === "admin";
   const isModerator = role === "moderator";
 
@@ -233,6 +233,20 @@ export function AppHeader() {
                   <Link href="/my-profile" className="flex items-center gap-2">
                     <UserIcon className="h-4 w-4" />
                     <span>My profile</span>
+                  </Link>
+                </DropdownMenuItem>
+
+                <DropdownMenuItem asChild>
+                  <Link href="/bookmarks" className="flex items-center gap-2">
+                    <Bookmark className="h-4 w-4" />
+                    <span>Saved Quizzes</span>
+                  </Link>
+                </DropdownMenuItem>
+
+                <DropdownMenuItem asChild>
+                  <Link href="/quiz-history" className="flex items-center gap-2">
+                    <History className="h-4 w-4" />
+                    <span>Quiz History</span>
                   </Link>
                 </DropdownMenuItem>
 

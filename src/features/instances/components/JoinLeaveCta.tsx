@@ -158,18 +158,19 @@ export function JoinLeaveCta({
         <Button
           type="button"
           variant="default"
+          size="lg"
           onClick={handleJoin}
           disabled={joinPending || leavePending}
           aria-busy={joinPending}
           data-testid="join-cta"
-          className="gap-2 bg-default hover:bg-default-hover text-white"
+          className="h-12 w-full gap-2 text-base font-bold bg-brand hover:bg-brand-hover text-white shadow-xs active:scale-[0.99] transition-all rounded-xl"
         >
           {joinPending ? (
-            <LoaderCircle className="h-4 w-4 animate-spin" aria-hidden />
+            <LoaderCircle className="h-5 w-5 animate-spin" aria-hidden />
           ) : (
-            <LogIn className="h-4 w-4" aria-hidden />
+            <LogIn className="h-5 w-5" aria-hidden />
           )}
-          {joinPending ? "Joining…" : "Join"}
+          {joinPending ? "Joining…" : "Join Match"}
         </Button>
       )}
 
@@ -177,18 +178,19 @@ export function JoinLeaveCta({
         <Button
           type="button"
           variant="outline"
+          size="default"
           onClick={handleLeave}
           disabled={joinPending || leavePending}
           aria-busy={leavePending}
           data-testid="leave-cta"
-          className="gap-2"
+          className="h-10 w-full gap-2 text-sm font-semibold rounded-xl text-muted-foreground hover:text-destructive hover:border-destructive/40 hover:bg-destructive/5 active:scale-[0.99] transition-all"
         >
           {leavePending ? (
             <LoaderCircle className="h-4 w-4 animate-spin" aria-hidden />
           ) : (
             <LogOut className="h-4 w-4" aria-hidden />
           )}
-          {leavePending ? "Leaving…" : "Leave"}
+          {leavePending ? "Leaving…" : "Leave Room"}
         </Button>
       )}
 

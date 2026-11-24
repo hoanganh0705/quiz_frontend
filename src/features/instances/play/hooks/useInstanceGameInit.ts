@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import { getInstance } from "@/features/instances/services";
+import { getInstance, getInstanceLeaderboard } from "@/features/instances/services";
 import { getQuizByIdOrSlug } from "@/features/quizzes/services/quizzes.service";
 import { useInstanceGameplayStore } from "../stores/instanceGameplay.store";
 import type { ApiError } from "@/lib/api";
+import type { FinalLeaderboardDto } from "../types/gameplay.types";
 
 export interface UseInstanceGameInitResult {
   isLoading: boolean;
@@ -59,7 +60,7 @@ export function useInstanceGameInit(
                 playerId: p.userId,
                 displayName: p.displayName || p.username,
                 avatarUrl: p.avatarUrl ?? undefined,
-                score: p.score ?? 0,
+                score: (p as unknown as { score?: number }).score ?? 0,
                 rank: idx + 1,
                 answeredCount: 0,
                 lastAwardedAt: null,
@@ -73,6 +74,57 @@ export function useInstanceGameInit(
 
         // If instance is closed or finished
         if (instance.status === "closed" || instance.status === "finished") {
+          let finalLeaderboard: FinalLeaderboardDto | null = null;
+          try {
+            const lbData = await getInstanceLeaderboard(instanceId!);
+            const rawItems = (lbData as unknown as { items?: Array<{ userId: string; displayName?: string; username?: string; avatarUrl?: string; scorePercent?: number; rank: number; correctCount?: number }> }).items ?? [];
+            if (rawItems.length > 0) {
+              const entries = rawItems.map((r) => ({
+                playerId: r.userId,
+                displayName: r.displayName || r.username || "Player",
+                avatarUrl: r.avatarUrl,
+                score: r.scorePercent ?? 0,
+                rank: r.rank,
+                answeredCount: r.correctCount ?? 0,
+                lastAwardedAt: null,
+                eventSequence: nowSeq,
+              }));
+              finalLeaderboard = {
+                instanceId: instanceId!,
+                entries,
+                winnerPlayerId: entries[0]?.playerId ?? "",
+                closedAt: instance.closedAt ?? nowIso,
+                totalQuestions: 0,
+              };
+            }
+          } catch {
+            // Leaderboard fetch fallback
+          }
+
+          if (
+            !finalLeaderboard &&
+            Array.isArray(instance.players) &&
+            instance.players.length > 0
+          ) {
+            const entries = instance.players.map((p, idx) => ({
+              playerId: p.userId,
+              displayName: p.displayName || p.username,
+              avatarUrl: p.avatarUrl ?? undefined,
+              score: (p as unknown as { score?: number }).score ?? 0,
+              rank: idx + 1,
+              answeredCount: 0,
+              lastAwardedAt: null,
+              eventSequence: nowSeq,
+            }));
+            finalLeaderboard = {
+              instanceId: instanceId!,
+              entries,
+              winnerPlayerId: entries[0]?.playerId ?? "",
+              closedAt: instance.closedAt ?? nowIso,
+              totalQuestions: 0,
+            };
+          }
+
           applyInstanceClosed({
             event: "instance_closed",
             instanceId: instanceId!,
@@ -81,10 +133,10 @@ export function useInstanceGameInit(
             payloadVersion: 1,
             data: {
               instanceId: instanceId!,
-              status: "closed",
+              status: instance.status as "closed" | "finished",
               closedAt: instance.closedAt ?? nowIso,
               reason: "normal",
-              finalLeaderboard: null,
+              finalLeaderboard,
               eventSequence: nowSeq,
             },
           });

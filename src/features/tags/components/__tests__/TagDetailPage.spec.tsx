@@ -1,8 +1,11 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ApiError } from "@/lib/api";
+
+import { TagDetailPage } from "@/features/tags/components/TagDetailPage";
+
 import type { TagResponseDto } from "@/lib/api/generated/schemas";
 
 const {
@@ -85,7 +88,6 @@ vi.mock("@/features/tags", async () => {
   };
 });
 
-import { TagDetailPage } from "@/features/tags/components/TagDetailPage";
 
 const TAG_ID = "0192f4d8-0000-7000-8000-000000000010";
 const TAG_SLUG = "science";

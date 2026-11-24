@@ -14,9 +14,6 @@ import { InstanceGamePage } from "../pages/InstanceGamePage";
 import * as instancesService from "@/features/instances/services";
 import * as quizzesService from "@/features/quizzes/services/quizzes.service";
 
-vi.mock("@/lib/feature-flags", () => ({
-  getFeatureFlagValue: vi.fn().mockReturnValue("live"),
-}));
 
 vi.mock("@/features/auth/hooks/use-auth-session", () => ({
   useAuthSession: vi.fn().mockReturnValue({

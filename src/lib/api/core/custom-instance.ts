@@ -3,19 +3,27 @@ import axios, {
   AxiosRequestConfig,
   InternalAxiosRequestConfig,
 } from "axios";
+
+import { getAuth } from "@/lib/api";
 import { getQueryClient } from "@/providers/QueryProvider";
 
-import { ApiError } from "./ApiError";
-import { getAuth } from "@/lib/api";
-
-import {
-  isInCooldown,
-  startCooldown,
-  clearCooldown,
-  _resetCooldownForTesting,
-} from "./refresh-cooldown";
 import { isRefreshTerminalError } from "@/features/auth/errors/refresh-error-codes";
+import { handleRemoteAccountDeleted } from "@/features/auth/lifecycle/deletion-cross-tab";
+import {
+  isDeletionTerminal,
+  clearDeletionTerminal,
+} from "@/features/auth/lifecycle/deletion-terminal";
+import {
+  getAuthToken,
+  clearAuthToken,
+  setAuthToken,
+} from "@/features/auth/utils/auth-cookies";
+import { clearAllAuthCache } from "@/features/auth/utils/user-scoped-cache";
 import { clearVerificationFlags } from "@/features/auth/utils/verification-flag";
+
+import { logger } from "@/shared/log";
+
+import { ApiError } from "./ApiError";
 import {
   initAuthChannel,
   subscribeToAuthEvents,
@@ -24,21 +32,15 @@ import {
   type AuthEvent,
 } from "./broadcast-channel";
 import {
-  isDeletionTerminal,
-  clearDeletionTerminal,
-} from "@/features/auth/lifecycle/deletion-terminal";
-import { handleRemoteAccountDeleted } from "@/features/auth/lifecycle/deletion-cross-tab";
+  isInCooldown,
+  startCooldown,
+  clearCooldown,
+  _resetCooldownForTesting,
+} from "./refresh-cooldown";
 
 const fromAxios = ApiError.fromAxios.bind(ApiError);
 
-import {
-  getAuthToken,
-  clearAuthToken,
-  setAuthToken,
-} from "@/features/auth/utils/auth-cookies";
 
-import { clearAllAuthCache } from "@/features/auth/utils/user-scoped-cache";
-import { logger } from "@/shared/log";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
 
@@ -134,6 +136,16 @@ customInstance.interceptors.request.use((config) => {
   if (token && config.headers) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+
+  if (config.params && typeof config.params === "object" && "signal" in config.params) {
+    if (!config.signal && config.params.signal) {
+      config.signal = config.params.signal as AbortSignal;
+    }
+    const sanitizedParams = { ...(config.params as Record<string, unknown>) };
+    delete sanitizedParams.signal;
+    config.params = sanitizedParams;
+  }
+
   return config;
 });
 
@@ -363,6 +375,14 @@ export type { CustomConfig };
 export const orvalCustomInstance = async <T>(
   config: AxiosRequestConfig,
 ): Promise<T> => {
+  if (config.params && typeof config.params === "object" && "signal" in config.params) {
+    if (!config.signal && config.params.signal) {
+      config.signal = config.params.signal as AbortSignal;
+    }
+    const sanitizedParams = { ...(config.params as Record<string, unknown>) };
+    delete sanitizedParams.signal;
+    config.params = sanitizedParams;
+  }
   const response = await customInstance.request<T>(config);
   return response.data;
 };

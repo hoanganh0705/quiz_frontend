@@ -5,7 +5,6 @@ import { useMemo } from "react";
 import { ApiError, useCursorPaginated } from "@/lib/api";
 import type { OffsetFetcherArgs } from "@/lib/api/use-cursor-paginated.types";
 
-import { getFeatureFlagValue } from "@/lib/feature-flags";
 
 import {
   getSuggestions,
@@ -64,18 +63,15 @@ const FALLBACK_RESULT: UseSuggestionsResult = Object.freeze({
 export function useSuggestions(
   targetUserId: string | null,
 ): UseSuggestionsResult {
-  const flagValue = getFeatureFlagValue("social_discovery_live");
-  const isFlagPlaceholder = flagValue === "placeholder";
-
   const auth = useAuthSession();
   const isAuthenticated = auth.isAuthenticated;
 
   const key = useMemo<readonly unknown[] | null>(() => {
-    if (isFlagPlaceholder) return null;
+    if (false) return null;
     if (!isAuthenticated) return null;
 
     return ["social", "suggestions", targetUserId ?? "me"] as const;
-  }, [isFlagPlaceholder, isAuthenticated, targetUserId]);
+  }, [isAuthenticated, targetUserId]);
 
   const fetcher = useMemo(
     () =>
@@ -88,7 +84,7 @@ export function useSuggestions(
         hasMore: boolean;
         limit: number;
       }> => {
-        if (isFlagPlaceholder || !isAuthenticated || targetUserId === null) {
+        if (!isAuthenticated || targetUserId === null) {
           return EMPTY_PAGE;
         }
         try {
@@ -106,7 +102,7 @@ export function useSuggestions(
           throw err;
         }
       },
-    [isFlagPlaceholder, isAuthenticated, targetUserId],
+    [isAuthenticated, targetUserId],
   );
 
   const result = useCursorPaginated<
@@ -119,7 +115,7 @@ export function useSuggestions(
     paginationKind: "offset",
   });
 
-  if (isFlagPlaceholder) return FALLBACK_RESULT;
+  if (false) return FALLBACK_RESULT;
   if (!isAuthenticated) return FALLBACK_RESULT;
   if (targetUserId === null) return FALLBACK_RESULT;
 

@@ -5,7 +5,6 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/features/auth/hooks/use-auth";
 import { ApiError } from "@/lib/api/core/ApiError";
 
-import { useAdminFeatureFlag } from "./useAdminFeatureFlag";
 
 export interface UseAdminIdentityResult {
   role: "admin" | null;
@@ -45,7 +44,6 @@ async function fetchAdminIdentityPath(): Promise<AdminIdentityResponse> {
 
 export function useAdminIdentity(): UseAdminIdentityResult {
   const { currentUser } = useAuth();
-  const flag = useAdminFeatureFlag("admin_live");
   const [state, setState] = useState<{
     role: "admin" | null;
     isLoading: boolean;
@@ -56,8 +54,7 @@ export function useAdminIdentity(): UseAdminIdentityResult {
   const isAdminFastPath = slimRole === "admin";
 
   useEffect(() => {
-    if (!flag.isLive) return;
-    if (currentUser === null) return;
+        if (currentUser === null) return;
     if (slimRole !== undefined) return;
     let cancelled = false;
     setState({ role: null, isLoading: true, error: null });
@@ -93,7 +90,7 @@ export function useAdminIdentity(): UseAdminIdentityResult {
     return () => {
       cancelled = true;
     };
-  }, [flag.isLive, slimRole, currentUser]);
+  }, [slimRole, currentUser]);
 
   if (isAdminFastPath) {
     return { role: "admin", isLoading: false, error: null };

@@ -4,7 +4,6 @@ import { useCallback, useMemo } from "react";
 import { getQueryClient } from "@/providers/QueryProvider";
 
 import { ApiError, useOptimisticMutation } from "@/lib/api";
-import { getFeatureFlagValue } from "@/lib/feature-flags";
 
 import { purchaseFlair } from "@/features/coins/services/coins.service";
 import type {
@@ -29,9 +28,7 @@ function classifyCoinError(cause: unknown): CoinErrorCode {
 const COOLDOWN_MS = 750;
 
 export function usePurchaseFlair(): UsePurchaseFlairResult {
-  const flagValue = getFeatureFlagValue("coin_spend_live");
-  const isPlaceholder = flagValue === "placeholder";
-
+  const isPlaceholder = false;
   const { mutate: dispatch, isInFlight, lastResult } = useOptimisticMutation();
 
   const revalidate = useCallback(async (): Promise<void> => {

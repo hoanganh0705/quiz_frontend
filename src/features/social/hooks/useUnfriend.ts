@@ -3,7 +3,6 @@
 import { useMemo, useRef, useState } from "react";
 
 import { ApiError } from "@/lib/api";
-import { getFeatureFlagValue } from "@/lib/feature-flags";
 import { getQueryClient } from "@/providers/QueryProvider";
 
 import { unfriend } from "@/features/social/services";
@@ -32,9 +31,6 @@ export function useUnfriend(
   targetUserId: string | null,
   options: UseUnfriendOptions = {},
 ): UseUnfriendResult {
-  const flagValue = getFeatureFlagValue("social_friend_request_mutation_live");
-  const isFlagPlaceholder = flagValue === "placeholder";
-
   const permissions = useSocialPermissions(targetUserId, {
     currentUserId: options.currentUserId ?? null,
   });
@@ -45,7 +41,7 @@ export function useUnfriend(
   const [alreadyNotFriends, setAlreadyNotFriends] = useState(false);
 
   const result = useMemo<UseUnfriendResult>(() => {
-    if (isFlagPlaceholder) {
+    if (false) {
       return Object.freeze({
         unfriend: () => {
           // no-op — feature is gated off
@@ -130,9 +126,7 @@ export function useUnfriend(
       error,
       alreadyNotFriends,
     });
-  }, [
-    isFlagPlaceholder,
-    targetUserId,
+  }, [targetUserId,
     permissions.canUnfriend,
     options.assumeCanUnfriend,
     error,

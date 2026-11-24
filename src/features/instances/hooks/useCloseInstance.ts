@@ -12,7 +12,6 @@ import {
   type InstanceLifecycleMutationState,
   type InstancePermissions,
 } from "@/features/instances/types/instance.types";
-import { getFeatureFlagValue } from "@/lib/feature-flags";
 
 export interface UseCloseInstanceResult {
   close: () => Promise<void>;
@@ -63,16 +62,13 @@ export function useCloseInstance(
   instanceId: string | null,
   permissions: InstancePermissions | null = null,
 ): UseCloseInstanceResult {
-  const flagValue = getFeatureFlagValue("multiplayer_instances_live");
-  const isFlagPlaceholder = flagValue === "placeholder";
-
   const [state, setState] = useState<InstanceLifecycleMutationState>("idle");
   const [error, setError] = useState<ApiError | null>(null);
 
   const inFlightRef = useRef(false);
 
   const close = useCallback(async (): Promise<void> => {
-    if (isFlagPlaceholder || instanceId === null) {
+    if (instanceId === null) {
       return;
     }
 
@@ -132,7 +128,7 @@ export function useCloseInstance(
     } finally {
       inFlightRef.current = false;
     }
-  }, [isFlagPlaceholder, instanceId, permissions, state]);
+  }, [instanceId, permissions, state]);
 
   const reset = useCallback(() => {
     setState("idle");

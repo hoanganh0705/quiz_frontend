@@ -14,7 +14,6 @@ import {
   type RankingLeaderboardFilters,
   type RankingUserPosition,
 } from "@/features/rankings/types";
-import { getFeatureFlagValue } from "@/lib/feature-flags";
 
 import type { LeaderboardResponseDto } from "@/lib/api/generated/schemas";
 
@@ -58,25 +57,20 @@ function toLeaderboardEntry(
 export function useRankingLeaderboard(
   filters: Partial<RankingLeaderboardFilters> = DEFAULT_RANKING_LEADERBOARD_FILTERS,
 ): UseRankingLeaderboardResult {
-  const flagValue = getFeatureFlagValue("rankings_live");
-  const isFlagPlaceholder = flagValue === "placeholder";
-
   const key = useMemo(
     () =>
-      isFlagPlaceholder
-        ? (["rankings", "leaderboard", "disabled"] as const)
-        : RANKING_CACHE_KEYS.leaderboard({
+      RANKING_CACHE_KEYS.leaderboard({
             period: filters.period,
             cursor: filters.cursor,
             limit: filters.limit,
           }),
-    [isFlagPlaceholder, filters.period, filters.cursor, filters.limit],
+    [filters.period, filters.cursor, filters.limit],
   );
 
   const fetcher = useMemo(
     () =>
       async ({ page }: OffsetFetcherArgs<RankingLeaderboardFilters>) => {
-        if (isFlagPlaceholder) {
+        if (false) {
           return {
             items: [] as readonly RankingLeaderboardEntry[],
             page,
@@ -110,7 +104,7 @@ export function useRankingLeaderboard(
           limit: pagination?.limit ?? limit,
         };
       },
-    [isFlagPlaceholder, filters.period, filters.limit],
+    [filters.period, filters.limit],
   );
 
   const result = useCursorPaginated<

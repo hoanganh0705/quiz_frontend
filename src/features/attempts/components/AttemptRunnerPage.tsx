@@ -75,16 +75,32 @@ function AttemptRunnerInner({
   const attemptsByQuizVersionId = useAttemptsStore(
     (s) => s.attemptsByQuizVersionId,
   );
+  const attemptsById = useAttemptsStore((s) => s.attemptsById);
 
   const publicQuizHref = `/quizzes/${encodeURIComponent(idOrSlug)}`;
   const detailQuizId = detail.quiz?.quizId ?? null;
   const publishedQuizVersionId =
     detail.quiz?.publishedVersion?.quizVersionId ?? null;
+
+  const relevantAttemptId =
+    (publishedQuizVersionId !== null
+      ? attemptsByQuizVersionId[publishedQuizVersionId]
+      : undefined) ??
+    (detailQuizId !== null
+      ? attemptsByQuizVersionId[detailQuizId]
+      : undefined);
+
+  const relevantAttempt = relevantAttemptId
+    ? attemptsById[relevantAttemptId]
+    : undefined;
+
+  const isCompleted = relevantAttempt?.status === "completed";
+
   const hasFreshStart =
-    (publishedQuizVersionId !== null &&
-      attemptsByQuizVersionId[publishedQuizVersionId] !== undefined) ||
-    (detailQuizId !== null &&
-      attemptsByQuizVersionId[detailQuizId] !== undefined);
+    Boolean(relevantAttemptId) &&
+    relevantAttempt?.status !== "completed" &&
+    relevantAttempt?.status !== "abandoned";
+
   const shouldRedirectToQuiz =
     !detail.isLoading &&
     !detail.error &&
@@ -92,13 +108,28 @@ function AttemptRunnerInner({
     detail.quiz !== null &&
     !isActiveLoading &&
     activeAttempt === null &&
-    !hasFreshStart;
+    !hasFreshStart &&
+    !isCompleted;
 
   React.useEffect(() => {
     if (shouldRedirectToQuiz) {
       router.replace(publicQuizHref);
     }
   }, [shouldRedirectToQuiz, router, publicQuizHref]);
+
+  const resultsHref = relevantAttemptId
+    ? `/quizzes/${encodeURIComponent(idOrSlug)}/results?attemptId=${encodeURIComponent(relevantAttemptId)}`
+    : `/quizzes/${encodeURIComponent(idOrSlug)}/results`;
+
+  React.useEffect(() => {
+    if (isCompleted) {
+      router.replace(resultsHref);
+    }
+  }, [isCompleted, router, resultsHref]);
+
+  if (isCompleted) {
+    return <NavigateTo href={resultsHref} />;
+  }
 
   if (detail.isLoading || (isActiveLoading && !detail.error)) {
     return (

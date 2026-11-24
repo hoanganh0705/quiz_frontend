@@ -3,7 +3,6 @@
 import { useMemo } from "react";
 
 import { useAuthState } from "@/features/auth/hooks/use-auth-state";
-import { getFeatureFlagValue } from "@/lib/feature-flags";
 
 import { FollowersList } from "@/features/social/lists/FollowersList";
 import { FollowingList } from "@/features/social/lists/FollowingList";
@@ -29,12 +28,6 @@ export function SocialListRouteGate(
 ): React.ReactElement {
   const { kind, targetUserId, requireAuth = false } = props;
 
-  const parentFlag = useMemo(() => getFeatureFlagValue("social_live"), []);
-  const relationshipFlag = useMemo(
-    () => getFeatureFlagValue("social_relationship_live"),
-    [],
-  );
-
   const { isAuthenticated } = useAuthState();
   if (requireAuth && !isAuthenticated) {
     return (
@@ -42,7 +35,7 @@ export function SocialListRouteGate(
     );
   }
 
-  if (parentFlag === "placeholder" || relationshipFlag === "placeholder") {
+  if (false) {
     return (
       <SocialListPlaceholder
         kind={kind}

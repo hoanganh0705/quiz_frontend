@@ -1,8 +1,5 @@
 "use client";
 
-import { ArrowLeft } from "lucide-react";
-
-import { Button } from "@/components/ui/Button";
 import { cn } from "@/shared/utils/merge-class-names";
 
 import {
@@ -12,14 +9,13 @@ import {
 import {
   useInstanceGameplayStore,
   selectGameplayProgress,
+  selectGameplayFinalLeaderboard,
 } from "@/features/instances/play/stores/instanceGameplay.store";
 
-import { GameClosedSummary } from "./shared/GameClosedSummary";
 import { GameResultSummary as SharedGameResultSummary } from "./shared/GameResultSummary";
 
 interface GameResultProps {
   instanceId: string;
-
   currentPlayerId?: string | null;
   className?: string;
 }
@@ -31,40 +27,29 @@ export function GameResult({
 }: GameResultProps) {
   const { closure } = useInstanceLifecycle(instanceId);
   const { final } = useLiveLeaderboard(instanceId);
+  const storeFinal = useInstanceGameplayStore((s) =>
+    selectGameplayFinalLeaderboard(s, instanceId),
+  );
   const playerProgress = useInstanceGameplayStore((s) =>
     selectGameplayProgress(s, instanceId),
   );
 
-  if (!closure || !final) {
+  const finalLeaderboard =
+    final ?? storeFinal ?? closure?.finalLeaderboard ?? null;
+
+  if (!closure && !finalLeaderboard) {
     return null;
   }
 
   return (
     <div className={cn("space-y-4", className)} data-testid="game-result">
-      {/* Closed-state chrome */}
-      <GameClosedSummary closure={closure} />
-
-      {/* Final leaderboard */}
+      {/* Final leaderboard and victory summary */}
       <SharedGameResultSummary
-        finalLeaderboard={final}
+        instanceId={instanceId}
+        finalLeaderboard={finalLeaderboard}
         playerProgress={playerProgress}
         currentPlayerId={currentPlayerId}
       />
-
-      {/* Return-to-instance CTA */}
-      <div className="pt-4 border-t">
-        <Button
-          variant="outline"
-          asChild
-          className="w-full gap-2"
-          data-testid="return-to-instance"
-        >
-          <a href={`/instances/${instanceId}`}>
-            <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-            Return to instance lobby
-          </a>
-        </Button>
-      </div>
     </div>
   );
 }

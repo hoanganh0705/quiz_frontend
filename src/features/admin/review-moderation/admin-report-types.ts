@@ -29,6 +29,7 @@ export type AdminReportDto = PlatformReportItemDto;
 export interface AdminReportListDto {
   items: AdminReportDto[];
   hasNextPage: boolean;
+  // eslint-disable-next-line no-restricted-syntax
   nextCursor: string | null;
 }
 

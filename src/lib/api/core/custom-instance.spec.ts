@@ -1,18 +1,23 @@
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import type { AxiosResponse, InternalAxiosRequestConfig } from "axios";
 import axios from "axios";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
+import fixture401 from "./__fixtures__/problem-detail/401-unauthorized.json?raw";
+import fixture404 from "./__fixtures__/problem-detail/404-not-found.json?raw";
 import refreshSuccessFixture from "./__fixtures__/refresh-success.json?raw";
+import { ApiError } from "./ApiError";
+import { authOnlyInstance } from "./auth-only-instance";
+import {
+  customInstance,
+  _resetRefreshStateForTesting,
+} from "./custom-instance";
+
+import type { AxiosResponse, InternalAxiosRequestConfig } from "axios";
 
 const refreshBody = JSON.parse(refreshSuccessFixture) as {
   data: { accessToken: string };
 };
 const NEW_ACCESS_TOKEN = refreshBody.data.accessToken;
 
-import {
-  customInstance,
-  _resetRefreshStateForTesting,
-} from "./custom-instance";
 
 describe("custom-instance — refresh flow", () => {
   let originalAdapter: unknown;
@@ -374,11 +379,7 @@ describe("custom-instance — refresh flow", () => {
   });
 });
 
-import { ApiError } from "./ApiError";
-import { authOnlyInstance } from "./auth-only-instance";
 
-import fixture401 from "./__fixtures__/problem-detail/401-unauthorized.json?raw";
-import fixture404 from "./__fixtures__/problem-detail/404-not-found.json?raw";
 
 describe("custom-instance — ApiError wiring", () => {
   it("rejects with an ApiError carrying AUTH_INVALID_CREDENTIALS on 401", async () => {

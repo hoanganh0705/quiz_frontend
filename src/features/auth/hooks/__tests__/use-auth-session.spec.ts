@@ -1,8 +1,17 @@
-// @vitest-environment jsdom
 "use client";
 
-import { describe, expect, it, vi } from "vitest";
 import { renderHook } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
+
+import { useAuthSession } from "@/features/auth/hooks/use-auth-session";
+import { useAuthState } from "@/features/auth/hooks/use-auth-state";
+import {
+  useUser,
+  useIsUserLoading,
+  useUserError,
+} from "@/features/users/store/user-store";
+
+// @vitest-environment jsdom
 
 vi.mock("@/features/users/store/user-store", () => {
   const state = { error: null };
@@ -25,13 +34,6 @@ vi.mock("@/features/auth/hooks/use-auth-state", () => ({
   useAuthState: vi.fn(),
 }));
 
-import {
-  useUser,
-  useIsUserLoading,
-  useUserError,
-} from "@/features/users/store/user-store";
-import { useAuthState } from "@/features/auth/hooks/use-auth-state";
-import { useAuthSession } from "@/features/auth/hooks/use-auth-session";
 
 const mockedUseUser = vi.mocked(useUser);
 const mockedUseIsUserLoading = vi.mocked(useIsUserLoading);

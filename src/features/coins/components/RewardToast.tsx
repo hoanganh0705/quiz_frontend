@@ -4,7 +4,6 @@ import { useEffect } from "react";
 import { Coins } from "lucide-react";
 
 import { useToast, DEFAULT_TOAST_DURATION_MS } from "@/lib/forms/useToast";
-import { getFeatureFlagValue } from "@/lib/feature-flags";
 
 import {
   usePendingReward,
@@ -59,14 +58,11 @@ export interface RewardToastProps {
 export function RewardToast({
   durationMs = DEFAULT_TOAST_DURATION_MS,
 }: RewardToastProps) {
-  const flagValue = getFeatureFlagValue("coin_economy_live");
-  const isPlaceholder = flagValue === "placeholder";
   const pendingReward = usePendingReward();
   const consume = useConsumePendingReward();
   const { push } = useToast();
 
   useEffect(() => {
-    if (isPlaceholder) return;
     if (pendingReward === null) return;
     const reward = consume();
     if (reward === null) return;
@@ -78,7 +74,7 @@ export function RewardToast({
     });
     // consume is a stable zustand selector — not in deps to avoid loops
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pendingReward, isPlaceholder, push, durationMs]);
+  }, [pendingReward, push, durationMs]);
 
   return null;
 }

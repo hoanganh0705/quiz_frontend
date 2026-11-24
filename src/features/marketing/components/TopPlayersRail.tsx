@@ -123,7 +123,7 @@ export function TopPlayersRail(): React.ReactElement {
 
         {!error && isLoading && (
           <div
-            className="mt-10 grid grid-flow-col auto-cols-[260px] gap-4 overflow-x-auto pb-2"
+            className="mt-10 grid grid-flow-col auto-cols-[260px] gap-4 overflow-x-auto pb-2 scrollbar-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
             data-testid="top-players-rail-skeleton"
           >
             {Array.from({ length: TOP_N }).map((_, i) => (
@@ -143,7 +143,7 @@ export function TopPlayersRail(): React.ReactElement {
 
         {!error && !isLoading && topN.length > 0 && (
           <div
-            className="mt-10 grid grid-flow-col auto-cols-[260px] gap-4 overflow-x-auto pb-2"
+            className="mt-10 grid grid-flow-col auto-cols-[260px] gap-4 overflow-x-auto pb-2 scrollbar-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
             data-testid="top-players-rail-grid"
           >
             {topN.map((entry, idx) => (

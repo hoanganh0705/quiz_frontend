@@ -1,12 +1,12 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { useRouter } from "next/navigation";
 
+import { useToast } from "@/lib/forms/useToast";
 import { useAuthSession } from "@/features/auth/hooks/use-auth-session";
 import { useInstance } from "@/features/instances/hooks/useInstance";
 import { useInstanceRealtimeBridge } from "@/features/instances/hooks/useInstanceRealtimeBridge";
-import { useInstancesFeatureFlag } from "@/features/instances/hooks/useInstancesFeatureFlag";
 import { useInstanceSocket } from "@/features/instances/hooks/useInstanceSocket";
 import {
   selectInstanceRealtimeStatus,
@@ -20,7 +20,6 @@ import {
   InstanceErrorState,
   InstanceLobby,
   InstanceLobbySkeleton,
-  InstancePlaceholder,
 } from "../components";
 
 export interface InstanceRoomPageProps {
@@ -52,7 +51,6 @@ export function InstanceRoomPage({
   className,
 }: InstanceRoomPageProps) {
   const router = useRouter();
-  const { isPlaceholder } = useInstancesFeatureFlag();
   const { currentUser } = useAuthSession();
   const currentUserId = currentUser?.userId ?? null;
 
@@ -70,6 +68,8 @@ export function InstanceRoomPage({
       : selectInstanceRealtimeStatus(state, instanceId),
   );
   const effectiveStatus = realtimeStatus ?? instance?.status ?? null;
+  const toast = useToast();
+  const redirectedRef = useRef(false);
 
   useEffect(() => {
     if (effectiveStatus === "running" && instanceId) {
@@ -77,22 +77,26 @@ export function InstanceRoomPage({
     }
   }, [effectiveStatus, instanceId, router]);
 
+  useEffect(() => {
+    if (effectiveStatus === "closed" && !redirectedRef.current) {
+      redirectedRef.current = true;
+      try {
+        toast.push({
+          title: "Room Closed",
+          body: "The host has left the room. You have been redirected to active matches.",
+          durationMs: 4000,
+        });
+      } catch {
+        // ignore
+      }
+      router.push("/instances");
+    }
+  }, [effectiveStatus, router, toast]);
+
   const pageErrorCode: InstanceLifecycleErrorCode | null = useMemo(() => {
     if (error === null) return null;
     return error.code as InstanceLifecycleErrorCode;
   }, [error]);
-
-  if (isPlaceholder) {
-    return (
-      <div
-        className={className}
-        data-testid="instance-room-page"
-        data-state="placeholder"
-      >
-        <InstancePlaceholder />
-      </div>
-    );
-  }
 
   if (instanceId === null) {
     return (

@@ -5,7 +5,6 @@ import { useMemo } from "react";
 import { ApiError } from "@/lib/api";
 import { useCursorPaginated } from "@/lib/api/use-cursor-paginated";
 import type { CursorFetcherArgs } from "@/lib/api/use-cursor-paginated.types";
-import { getFeatureFlagValue } from "@/lib/feature-flags";
 
 import {
   COIN_CACHE_KEYS,
@@ -35,9 +34,7 @@ const DEFAULT_LIMIT = 25;
 export function useCoinTransactions(
   filters: CoinTransactionFilters = DEFAULT_COIN_TRANSACTION_FILTERS,
 ): UseCoinTransactionsResult {
-  const flagValue = getFeatureFlagValue("coin_economy_live");
-  const isPlaceholder = flagValue === "placeholder";
-
+  const isPlaceholder = false;
   const key = useMemo(
     () =>
       isPlaceholder

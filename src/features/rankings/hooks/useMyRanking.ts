@@ -13,7 +13,6 @@ import {
   type RankingSummary,
 } from "@/features/rankings/types";
 import { useAuthSession } from "@/features/auth/hooks/use-auth-session";
-import { getFeatureFlagValue } from "@/lib/feature-flags";
 
 import type { UserRankResponseDto } from "@/lib/api/generated/schemas";
 
@@ -30,9 +29,6 @@ export interface UseMyRankingResult {
 }
 
 export function useMyRanking(): UseMyRankingResult {
-  const flagValue = getFeatureFlagValue("rankings_live");
-  const isFlagPlaceholder = flagValue === "placeholder";
-
   const { bootstrapState, currentUser } = useAuthSession();
   const isAuthenticated = bootstrapState === "authenticated";
   const userId =
@@ -40,16 +36,16 @@ export function useMyRanking(): UseMyRankingResult {
 
   const key = useMemo(
     () =>
-      isFlagPlaceholder || !isAuthenticated
+      !isAuthenticated
         ? null
         : RANKING_CACHE_KEYS.mySummary(),
-    [isFlagPlaceholder, isAuthenticated],
+    [isAuthenticated],
   );
 
   const [lastValidatedAt, setLastValidatedAt] = useState<string | null>(null);
 
   const fetcher = useCallback(async () => {
-    if (isFlagPlaceholder || !isAuthenticated) {
+    if (!isAuthenticated) {
       return null;
     }
     const wire = (await getMyRanking()) as UserRankResponseDto | null;
@@ -58,7 +54,7 @@ export function useMyRanking(): UseMyRankingResult {
       setLastValidatedAt(new Date().toISOString());
     }
     return summary;
-  }, [isFlagPlaceholder, isAuthenticated, userId]);
+  }, [isAuthenticated, userId]);
 
   const result = useSingleWithRetry<RankingSummary | null>({
     key,
@@ -67,7 +63,7 @@ export function useMyRanking(): UseMyRankingResult {
 
   const isStale = result.data !== undefined && result.isRetrying;
 
-  if (isFlagPlaceholder || !isAuthenticated) {
+  if (!isAuthenticated) {
     return {
       summary: null,
       isLoading: false,

@@ -1,12 +1,13 @@
 export { ConnectionRegistry } from "./connection-registry";
 export {
   emitRealtimeCrossTabInvalidation,
-  emitPhase5Invalidation,
+  emitRealtimeInvalidation,
+  subscribeToRealtimeInvalidation,
   CROSS_TAB_INVALIDATION_CHANNEL,
 } from "./cross-tab-invalidation";
 export type {
-  Phase5InvalidationPayload,
-  Phase5InvalidationSource,
+  RealtimeInvalidationPayload,
+  RealtimeInvalidationSource,
 } from "./cross-tab-invalidation";
 
 export {

@@ -3,4 +3,4 @@ export { FAQSection } from "./FAQSection";
 export { HelpCategories } from "./HelpCategories";
 export { KnowledgeBase } from "./KnowledgeBase";
 export { SupportCenter } from "./SupportCenter";
-export { SupportTabs } from "./SupportTabs";
+export { SupportContactInfo } from "./SupportContactInfo";

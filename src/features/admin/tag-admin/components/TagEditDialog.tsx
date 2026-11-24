@@ -67,6 +67,15 @@ export function TagEditDialog({
     slug.trim().length > 0 &&
     !isSlugConflict;
 
+  const handleClose = useCallback(() => {
+    reset();
+    setName("");
+    setSlug("");
+    setRenamedSlug("");
+    prevTagIdRef.current = null;
+    onOpenChange(false);
+  }, [reset, onOpenChange]);
+
   const handleSubmit = useCallback(
     async (e: React.FormEvent) => {
       e.preventDefault();
@@ -80,7 +89,7 @@ export function TagEditDialog({
       }
     },
 
-    [canSubmit, update, tag, name, slug, onUpdated],
+    [canSubmit, update, tag, name, slug, onUpdated, handleClose],
   );
 
   const handleConflictRename = useCallback(
@@ -96,17 +105,8 @@ export function TagEditDialog({
       }
     },
 
-    [renamedSlug, isPending, update, tag, name, onUpdated],
+    [renamedSlug, isPending, update, tag, name, onUpdated, handleClose],
   );
-
-  const handleClose = useCallback(() => {
-    reset();
-    setName("");
-    setSlug("");
-    setRenamedSlug("");
-    prevTagIdRef.current = null;
-    onOpenChange(false);
-  }, [reset, onOpenChange]);
 
   if (!hasPermission) {
     return (
@@ -166,7 +166,7 @@ export function TagEditDialog({
             />
           )}
 
-          <DialogFooter className="gap-2 sm:gap-0">
+          <DialogFooter className="gap-2 sm:gap-2">
             <Button
               type="button"
               variant="outline"

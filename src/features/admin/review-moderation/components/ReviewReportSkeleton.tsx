@@ -7,7 +7,7 @@ export interface ReviewReportSkeletonProps {
 }
 
 export function ReviewReportSkeleton({
-  rows = 3,
+  rows = 4,
 }: ReviewReportSkeletonProps): React.ReactElement {
   const count = Math.max(1, Math.floor(rows));
 
@@ -16,29 +16,34 @@ export function ReviewReportSkeleton({
       role="status"
       aria-busy="true"
       aria-label="Loading review reports"
-      className="flex flex-col gap-2"
+      className="flex flex-col gap-2.5"
       data-testid="review-report-skeleton-list"
     >
       {Array.from({ length: count }, (_, index) => (
         <li
           key={index}
-          className="flex items-center gap-4 rounded-md border border-border bg-background px-4 py-3"
+          className="flex w-full items-center justify-between gap-4 rounded-xl border border-border bg-card p-4 shadow-sm"
           data-testid={`review-report-skeleton-row-${index}`}
         >
-          {/* Avatar placeholder */}
-          <Skeleton className="h-9 w-9 rounded-full" />
-
-          {/* Reason + status text placeholder */}
+          {/* Main content placeholders */}
           <div className="flex flex-1 flex-col gap-2">
-            <Skeleton className="h-4 w-1/3" />
-            <Skeleton className="h-3 w-1/2" />
+            <div className="flex items-center gap-2">
+              <Skeleton className="h-4 w-28 rounded" />
+              <Skeleton className="h-3 w-12 rounded" />
+              <Skeleton className="h-3.5 w-36 rounded" />
+            </div>
+            <div className="flex items-center gap-2">
+              <Skeleton className="h-3.5 w-16 rounded" />
+              <Skeleton className="h-3.5 w-24 rounded" />
+            </div>
           </div>
 
-          {/* Status pill placeholder */}
-          <Skeleton className="h-5 w-20 rounded-full" />
-
-          {/* Action trigger placeholder */}
-          <Skeleton className="h-8 w-8 rounded-md" />
+          {/* Meta + Action placeholders */}
+          <div className="flex items-center gap-3 shrink-0">
+            <Skeleton className="h-5 w-16 rounded-full" />
+            <Skeleton className="hidden xl:block h-3.5 w-20 rounded font-mono" />
+            <Skeleton className="size-9 rounded-lg" />
+          </div>
         </li>
       ))}
     </ul>

@@ -4,7 +4,6 @@ import { Lock, TrendingUp } from "lucide-react";
 
 import { ApiError } from "@/lib/api";
 
-import { isRankingSurfaceEnabled } from "@/features/rankings/flags";
 import { useUserRanking } from "@/features/rankings/hooks";
 import { ConsistencyNotice } from "@/features/rankings/components/shared/ConsistencyNotice";
 
@@ -118,7 +117,7 @@ export function UserRankingSummary({
   displayName,
   className,
 }: UserRankingSummaryProps) {
-  const isLive = isRankingSurfaceEnabled();
+  const isLive = true;
 
   const { ranking, isLoading, isStale, error, retry, isPrivate } =
     useUserRanking(isLive ? userId : null);

@@ -120,19 +120,15 @@ export function InstanceLobby({
       <PlayerRoster instanceId={instanceId} currentUserId={currentUserId} />
 
       {!isClosed && (
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
-          <div className="flex-1 min-w-0">
-            <JoinLeaveCta
-              instanceId={instanceId}
-              currentUserId={currentUserId}
-            />
-          </div>
-          <div className="flex-1 min-w-0">
-            <HostControls
-              instanceId={instanceId}
-              currentUserId={currentUserId}
-            />
-          </div>
+        <div className="flex flex-col gap-3">
+          <JoinLeaveCta
+            instanceId={instanceId}
+            currentUserId={currentUserId}
+          />
+          <HostControls
+            instanceId={instanceId}
+            currentUserId={currentUserId}
+          />
         </div>
       )}
     </div>

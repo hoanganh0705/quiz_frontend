@@ -4,7 +4,6 @@ import { AlertTriangle, Inbox, EyeOff } from "lucide-react";
 
 import { Skeleton } from "@/components/ui/Skeleton";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { Button } from "@/components/ui/Button";
 import { RequestIdBanner } from "@/features/admin/components/RequestIdBanner";
 
 import type { ApiError } from "@/lib/api/core/ApiError";
@@ -23,29 +22,30 @@ export function CommentReportSkeleton({
       role="status"
       aria-busy="true"
       aria-label="Loading comment reports"
-      className="flex flex-col gap-2"
+      className="flex flex-col gap-2.5"
       data-testid="comment-report-skeleton-list"
     >
       {Array.from({ length: count }, (_, index) => (
         <li
           key={index}
-          className="flex items-center gap-4 rounded-md border border-border bg-background px-4 py-3"
+          className="flex items-start gap-3 rounded-lg border border-border bg-card p-3.5 shadow-2xs"
           data-testid={`comment-report-skeleton-row-${index}`}
         >
-          {/* Avatar placeholder */}
-          <Skeleton className="h-9 w-9 rounded-full" />
-
-          {/* Reason + status text placeholder */}
+          {/* Main content placeholders */}
           <div className="flex flex-1 flex-col gap-2">
-            <Skeleton className="h-4 w-1/3" />
-            <Skeleton className="h-3 w-1/2" />
+            <div className="flex items-center justify-between gap-2">
+              <Skeleton className="h-4 w-28" />
+              <Skeleton className="h-3 w-16" />
+            </div>
+            <Skeleton className="h-3.5 w-3/4" />
+            <Skeleton className="h-3 w-40" />
           </div>
 
-          {/* Status pill placeholder */}
-          <Skeleton className="h-5 w-20 rounded-full" />
-
-          {/* Action trigger placeholder */}
-          <Skeleton className="h-8 w-8 rounded-md" />
+          {/* Status pill & action trigger placeholders */}
+          <div className="flex items-center gap-2 shrink-0 pt-0.5">
+            <Skeleton className="h-5 w-14 rounded-full" />
+            <Skeleton className="h-8 w-8 rounded-md" />
+          </div>
         </li>
       ))}
     </ul>
@@ -185,5 +185,3 @@ export function CommentHiddenState({
     </div>
   );
 }
-
-void Button;

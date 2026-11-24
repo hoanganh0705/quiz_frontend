@@ -1,4 +1,4 @@
-import { describe, expect, it, beforeEach } from "vitest";
+import { describe, expect, it, beforeEach, vi } from "vitest";
 
 describe("Epic 2.7 Batch 8 edge-case handling", () => {
   let mod: typeof import("../custom-instance");
@@ -116,6 +116,33 @@ describe("Epic 2.7 Batch 8 edge-case handling", () => {
       expect(isInAuthPaths("/quizzes/featured")).toBe(false);
       expect(isInAuthPaths("/leaderboard/global")).toBe(false);
       expect(isInAuthPaths("/friends")).toBe(false);
+    });
+  });
+
+  describe("signal in params sanitization", () => {
+    it("extracts signal from params to config.signal and removes it from params", async () => {
+      const controller = new AbortController();
+      const config: Record<string, any> = {
+        url: "/api/v1/quizzes",
+        method: "GET",
+        params: {
+          limit: 20,
+          signal: controller.signal,
+        },
+      };
+
+      // Mock request
+      const requestSpy = vi.spyOn(mod.customInstance, "request").mockResolvedValue({
+        data: { items: [] },
+      } as any);
+
+      await mod.orvalCustomInstance(config);
+
+      expect(config.params).toEqual({ limit: 20 });
+      expect(config.params).not.toHaveProperty("signal");
+      expect(config.signal).toBe(controller.signal);
+
+      requestSpy.mockRestore();
     });
   });
 });

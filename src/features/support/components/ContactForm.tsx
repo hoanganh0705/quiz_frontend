@@ -13,8 +13,8 @@ import {
   SelectValue,
 } from "@/components/ui/Select";
 import { Textarea } from "@/components/ui/Textarea";
-import { Loader2 } from "lucide-react";
-import { useState } from "react";
+import { Loader2, Send } from "lucide-react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -42,7 +42,7 @@ const contactFormSchema = z.object({
 
 type ContactFormData = z.infer<typeof contactFormSchema>;
 
-export function ContactForm() {
+export function ContactForm({ category }: { category?: string } = {}) {
   const [submitSuccess, setSubmitSuccess] = useState(false);
 
   const {
@@ -50,6 +50,7 @@ export function ContactForm() {
     handleSubmit,
     setValue,
     reset,
+    watch,
     formState: { errors },
   } = useForm<ContactFormData>({
     resolver: zodResolver(contactFormSchema),
@@ -61,6 +62,15 @@ export function ContactForm() {
       message: "",
     },
   });
+
+  const selectedCategory = watch("category");
+  const messageText = watch("message") || "";
+
+  useEffect(() => {
+    if (category && category !== "all") {
+      setValue("category", category, { shouldValidate: true });
+    }
+  }, [category, setValue]);
 
   const {
     execute: onSubmit,
@@ -82,8 +92,8 @@ export function ContactForm() {
   });
 
   return (
-    <div className="space-y-8 bg-transparent border border-border rounded-lg p-8">
-      <div className="flex items-center justify-between mb-8 ">
+    <div className="space-y-8 rounded-xl border border-border/80 bg-card p-6 shadow-xs sm:p-8">
+      <div className="flex items-center justify-between mb-8">
         <h2 className="text-2xl font-bold text-foreground">Contact Support</h2>
       </div>
 
@@ -97,15 +107,17 @@ export function ContactForm() {
             <Input
               id="name"
               placeholder="Your name"
+              aria-invalid={Boolean(errors.name)}
+              aria-describedby={errors.name ? "name-error" : undefined}
               {...register("name")}
-              className={`bg-transparent border text-foreground placeholder:text-muted-foreground focus:border-brand ${
+              className={`bg-transparent text-foreground placeholder:text-muted-foreground ${
                 errors.name
-                  ? "border-destructive focus:border-destructive"
+                  ? "border-destructive focus-visible:border-destructive"
                   : "border-border"
               }`}
             />
             {errors.name && (
-              <p className="text-destructive text-sm" role="alert">
+              <p id="name-error" className="text-destructive text-sm" role="alert">
                 {errors.name.message}
               </p>
             )}
@@ -118,15 +130,17 @@ export function ContactForm() {
               id="email"
               type="email"
               placeholder="your.email@example.com"
+              aria-invalid={Boolean(errors.email)}
+              aria-describedby={errors.email ? "email-error" : undefined}
               {...register("email")}
-              className={`bg-transparent border text-foreground placeholder:text-muted-foreground focus:border-brand ${
+              className={`bg-transparent text-foreground placeholder:text-muted-foreground ${
                 errors.email
-                  ? "border-destructive focus:border-destructive"
+                  ? "border-destructive focus-visible:border-destructive"
                   : "border-border"
               }`}
             />
             {errors.email && (
-              <p className="text-destructive text-sm" role="alert">
+              <p id="email-error" className="text-destructive text-sm" role="alert">
                 {errors.email.message}
               </p>
             )}
@@ -142,15 +156,17 @@ export function ContactForm() {
             <Input
               id="subject"
               placeholder="Brief description of your issue"
+              aria-invalid={Boolean(errors.subject)}
+              aria-describedby={errors.subject ? "subject-error" : undefined}
               {...register("subject")}
-              className={`bg-transparent border text-foreground placeholder:text-muted-foreground focus:border-brand ${
+              className={`bg-transparent text-foreground placeholder:text-muted-foreground ${
                 errors.subject
-                  ? "border-destructive focus:border-destructive"
+                  ? "border-destructive focus-visible:border-destructive"
                   : "border-border"
               }`}
             />
             {errors.subject && (
-              <p className="text-destructive text-sm" role="alert">
+              <p id="subject-error" className="text-destructive text-sm" role="alert">
                 {errors.subject.message}
               </p>
             )}
@@ -160,63 +176,31 @@ export function ContactForm() {
               Category <span className="text-destructive">*</span>
             </Label>
             <Select
+              value={selectedCategory || undefined}
               onValueChange={(value) =>
                 setValue("category", value, { shouldValidate: true })
               }
             >
               <SelectTrigger
                 id="category"
-                className={`bg-transparent text-foreground focus:border-brand ${
+                aria-invalid={Boolean(errors.category)}
+                aria-describedby={errors.category ? "category-error" : undefined}
+                className={`w-full bg-transparent text-foreground ${
                   errors.category
-                    ? "border-destructive focus:border-destructive"
+                    ? "border-destructive focus-visible:border-destructive"
                     : "border-border"
                 }`}
               >
                 <SelectValue placeholder="Select a category" />
               </SelectTrigger>
-              <SelectContent className="bg-muted border-border">
-                <SelectItem
-                  value="general"
-                  className="text-foreground hover:bg-brand"
-                >
-                  General
-                </SelectItem>
-                <SelectItem
-                  value="account"
-                  className="text-foreground hover:bg-brand"
-                >
-                  Account
-                </SelectItem>
-                <SelectItem
-                  value="billing"
-                  className="text-foreground hover:bg-brand"
-                >
-                  Billing
-                </SelectItem>
-                <SelectItem
-                  value="quiz-creation"
-                  className="text-foreground hover:bg-brand"
-                >
-                  Quiz Creation
-                </SelectItem>
-                <SelectItem
-                  value="tournaments"
-                  className="text-foreground hover:bg-brand"
-                >
-                  Tournaments
-                </SelectItem>
-                <SelectItem
-                  value="privacy"
-                  className="text-foreground hover:bg-brand"
-                >
-                  Privacy
-                </SelectItem>
-                <SelectItem
-                  value="technical"
-                  className="text-foreground hover:bg-brand"
-                >
-                  Technical Issues
-                </SelectItem>
+              <SelectContent className="bg-popover border-border">
+                <SelectItem value="general">General</SelectItem>
+                <SelectItem value="account">Account</SelectItem>
+                <SelectItem value="billing">Billing</SelectItem>
+                <SelectItem value="quiz-creation">Quiz Creation</SelectItem>
+                <SelectItem value="tournaments">Tournaments</SelectItem>
+                <SelectItem value="privacy">Privacy</SelectItem>
+                <SelectItem value="technical">Technical Issues</SelectItem>
               </SelectContent>
             </Select>
             {errors.category && (
@@ -233,28 +217,35 @@ export function ContactForm() {
 
         {/* Message field */}
         <div className="space-y-2">
-          <Label htmlFor="message" className="text-foreground font-medium">
-            Message <span className="text-destructive">*</span>
-          </Label>
+          <div className="flex items-center justify-between">
+            <Label htmlFor="message" className="text-foreground font-medium">
+              Message <span className="text-destructive">*</span>
+            </Label>
+            <span id="message-help" className="font-mono text-xs text-muted-foreground">
+              {messageText.length} / 2000 (min. 20)
+            </span>
+          </div>
           <Textarea
             id="message"
             placeholder="Please describe your issue in detail (minimum 20 characters)"
             rows={8}
+            aria-invalid={Boolean(errors.message)}
+            aria-describedby={
+              errors.message ? "message-error message-help" : "message-help"
+            }
             {...register("message")}
-            className={`bg-transparent border text-foreground placeholder:text-muted-foreground focus:border-brand resize-none ${
+            className={`resize-none bg-transparent text-foreground placeholder:text-muted-foreground ${
               errors.message
-                ? "border-destructive focus:border-destructive"
+                ? "border-destructive focus-visible:border-destructive"
                 : "border-border"
             }`}
           />
           {errors.message && (
-            <p className="text-destructive text-sm" role="alert">
+            <p id="message-error" className="text-destructive text-sm" role="alert">
               {errors.message.message}
             </p>
           )}
         </div>
-
-        {/* File upload — contactForm does not submit attachments */}
 
         {/* Submit button */}
         {submitSuccess && (
@@ -286,7 +277,7 @@ export function ContactForm() {
         <Button
           type="submit"
           disabled={isSubmitting}
-          className="bg-brand hover:bg-brand-hover text-brand-foreground px-8 py-2 disabled:opacity-50"
+          className="px-8 shadow-xs transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0"
         >
           {isSubmitting ? (
             <>
@@ -297,7 +288,10 @@ export function ContactForm() {
               Submitting...
             </>
           ) : (
-            "Submit Request"
+            <>
+              <Send className="w-4 h-4 mr-2" aria-hidden="true" />
+              Submit Request
+            </>
           )}
         </Button>
       </form>

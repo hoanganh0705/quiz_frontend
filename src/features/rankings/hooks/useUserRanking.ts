@@ -11,7 +11,6 @@ import {
   type RankingErrorCode,
   type UserRanking,
 } from "@/features/rankings/types";
-import { getFeatureFlagValue } from "@/lib/feature-flags";
 
 import type { UserRankResponseDto } from "@/lib/api/generated/schemas";
 
@@ -27,24 +26,21 @@ export interface UseUserRankingResult {
 }
 
 export function useUserRanking(userId: string | null): UseUserRankingResult {
-  const flagValue = getFeatureFlagValue("rankings_live");
-  const isFlagPlaceholder = flagValue === "placeholder";
-
   const key = useMemo(
     () =>
-      isFlagPlaceholder || userId === null
+      userId === null
         ? null
         : RANKING_CACHE_KEYS.user(userId),
-    [isFlagPlaceholder, userId],
+    [userId],
   );
 
   const fetcher = useCallback(async () => {
-    if (isFlagPlaceholder || userId === null) {
+    if (userId === null) {
       return null;
     }
     const wire = (await getUserRanking(userId)) as UserRankResponseDto | null;
     return toUserRanking(wire, userId);
-  }, [isFlagPlaceholder, userId]);
+  }, [userId]);
 
   const result = useSingleWithRetry<UserRanking | null>({
     key,
@@ -57,7 +53,7 @@ export function useUserRanking(userId: string | null): UseUserRankingResult {
   const isPrivate =
     errorCode === "RANKING_FORBIDDEN" || errorCode === "RANKING_NOT_FOUND";
 
-  if (isFlagPlaceholder || userId === null) {
+  if (userId === null) {
     return {
       ranking: null,
       isLoading: false,

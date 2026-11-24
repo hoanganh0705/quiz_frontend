@@ -2,7 +2,6 @@
 
 import { type ReactElement } from "react";
 
-import { getFeatureFlagValue } from "@/lib/feature-flags";
 
 import { FriendRequestEmptyState } from "@/features/social/components/FriendRequestEmptyState";
 import { FriendRequestItem } from "@/features/social/components/FriendRequestItem";
@@ -15,12 +14,9 @@ export interface IncomingRequestsListPageProps {
 }
 
 export function IncomingRequestsListPage({}: IncomingRequestsListPageProps): ReactElement {
-  const readFlag = getFeatureFlagValue("social_relationship_live");
-  const isFlagPlaceholder = readFlag === "placeholder";
-
   const { requests, isLoading, error, retry } = useIncomingRequests();
 
-  if (isFlagPlaceholder) {
+  if (false) {
     return (
       <div data-testid="incoming-requests-page-placeholder" className="p-6">
         <FriendRequestEmptyState kind="incoming" />

@@ -8,7 +8,7 @@ export default function DailyChallengeLoading() {
   return (
     <div className="min-h-screen text-foreground p-4 md:p-8 lg:p-12">
       {/* Header skeleton — mirrors `app/(public)/daily-challenge/page.tsx`'s `<header>`. */}
-      <header className="space-y-2" role="banner">
+      <header className="space-y-2">
         <Skeleton className="h-8 w-64" />
         <Skeleton className="h-5 w-96 max-w-full" />
       </header>

@@ -1,4 +1,7 @@
 import type { AdminPermission } from "@/features/admin/permissions";
+import type { AdminRoleOrPermission } from "@/features/admin/services/user-role-admin.service";
+
+export type { AdminPermission, AdminRoleOrPermission };
 
 export type UserRoleAdminErrorCode =
   | "ROLE_NOT_FOUND"
@@ -11,17 +14,17 @@ export type UserRoleAdminErrorCode =
 export type UserRoleGrantAction = "grant" | "revoke";
 
 export interface UserRoleGrantDto {
-  role: AdminPermission;
+  role: AdminRoleOrPermission;
 }
 
 export interface UserRoleGrantResponseDto {
   userId: string;
-  role: AdminPermission;
+  role: AdminRoleOrPermission;
   grantedAt: string;
 }
 
 export interface UserRoleDto {
-  role: AdminPermission;
+  role: AdminRoleOrPermission;
   grantedAt: string;
 }
 
@@ -32,16 +35,26 @@ export interface UserSearchResultDto {
   username: string;
   email: string;
   avatar: string | null;
-  currentRoles: AdminPermission[];
+  currentRoles: (AdminRoleOrPermission | string)[];
 }
 
 export interface DocumentedRole {
-  name: AdminPermission;
+  name: AdminRoleOrPermission;
   description: string;
   isHighestPrivilege: boolean;
 }
 
 export const DOCUMENTED_ROLES: readonly DocumentedRole[] = [
+  {
+    name: "moderator",
+    description: "Moderator role: review reports, moderate comments, manage content",
+    isHighestPrivilege: false,
+  },
+  {
+    name: "admin",
+    description: "Full administrator privileges across the platform",
+    isHighestPrivilege: true,
+  },
   {
     name: "user_grant_role",
     description: "Grant roles to users",

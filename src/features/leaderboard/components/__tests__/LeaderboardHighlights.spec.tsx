@@ -8,17 +8,19 @@
  *   - The disabled Select has the placeholder "All categories (coming soon)".
  */
 
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+import { useLeaderboard, useTopMovers } from "@/features/leaderboard/hooks";
+
+import { LeaderboardHighlights } from "../LeaderboardHighlights";
 
 vi.mock("@/features/leaderboard/hooks", () => ({
   useLeaderboard: vi.fn(),
   useTopMovers: vi.fn(),
 }));
 
-import { useLeaderboard, useTopMovers } from "@/features/leaderboard/hooks";
 
-import { LeaderboardHighlights } from "../LeaderboardHighlights";
 
 const mockUseLeaderboard = useLeaderboard as unknown as ReturnType<
   typeof vi.fn

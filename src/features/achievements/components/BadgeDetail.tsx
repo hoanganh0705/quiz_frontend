@@ -1,41 +1,29 @@
 "use client";
 
-import { Award, Lock } from "lucide-react";
+import { Award, Lock, Sparkles, Users } from "lucide-react";
 
-import { getFeatureFlagValue } from "@/lib/feature-flags";
-
-import { useBadge } from "@/features/achievements/hooks";
-import type { BadgeTier } from "@/features/achievements/types";
 import {
   BadgeDetailSkeleton,
   AchievementErrorState,
+  TIER_CONFIG,
+  getBadgeIconComponent,
 } from "@/features/achievements/components/shared/AchievementShared";
+import { useBadge } from "@/features/achievements/hooks";
+import type { BadgeTier } from "@/features/achievements/types";
 
 interface BadgeDetailProps {
   code: string;
   className?: string;
 }
 
-const TIER_COLOR: Record<BadgeTier, string> = {
-  BRONZE: "text-amber-700",
-  SILVER: "text-slate-500",
-  GOLD: "text-yellow-500",
-  PLATINUM: "text-cyan-500",
-  DIAMOND: "text-violet-500",
-};
-
 export function BadgeDetail({ code, className }: BadgeDetailProps) {
-  const flagValue = getFeatureFlagValue("achievements_live");
-  const isFlagPlaceholder = flagValue === "placeholder";
   const isCodeEmpty = typeof code !== "string" || code.length === 0;
-
-  const effectiveCode = isFlagPlaceholder || isCodeEmpty ? null : code;
+  const effectiveCode = isCodeEmpty ? null : code;
   const { badge, isLoading, error, retry, isPrivate } = useBadge(effectiveCode);
 
   const errorCode = String(error?.code ?? "");
   const isDeferred = errorCode === "BADGE_DEFERRED";
 
-  if (isFlagPlaceholder) return null;
   if (isCodeEmpty) return null;
 
   if (isLoading && !badge) {
@@ -48,16 +36,14 @@ export function BadgeDetail({ code, className }: BadgeDetailProps) {
         <section
           data-testid="badge-detail-hidden"
           aria-label="Badge hidden"
-          className={`rounded-lg border bg-card p-6 text-center ${className ?? ""}`}
+          className={`rounded-xl border border-border bg-card/80 p-8 text-center backdrop-blur-xs shadow-xs ${className ?? ""}`}
         >
-          <Lock
-            aria-hidden="true"
-            className="mx-auto mb-3 h-8 w-8 text-muted-foreground"
-          />
-          <h2 className="text-base font-semibold">Badge hidden</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            This badge is no longer available. It may have been retired or
-            removed from the catalog.
+          <div className="mx-auto mb-3.5 flex h-12 w-12 items-center justify-center rounded-2xl bg-muted text-muted-foreground">
+            <Lock aria-hidden="true" className="h-6 w-6" />
+          </div>
+          <h2 className="text-base font-bold tracking-tight">Badge hidden</h2>
+          <p className="mt-1.5 text-sm text-muted-foreground">
+            This badge is no longer available. It may have been retired or removed from the catalog.
           </p>
         </section>
       );
@@ -80,14 +66,13 @@ export function BadgeDetail({ code, className }: BadgeDetailProps) {
       <section
         data-testid="badge-detail-tombstone"
         aria-label="Deprecated badge"
-        className={`rounded-lg border border-dashed bg-muted/30 p-6 text-center ${className ?? ""}`}
+        className={`rounded-xl border border-dashed border-border/80 bg-muted/20 p-8 text-center ${className ?? ""}`}
       >
-        <Award
-          aria-hidden="true"
-          className="mx-auto mb-3 h-10 w-10 text-muted-foreground"
-        />
-        <h2 className="text-base font-semibold">This badge has been retired</h2>
-        <p className="mt-1 text-sm text-muted-foreground">
+        <div className="mx-auto mb-3.5 flex h-14 w-14 items-center justify-center rounded-2xl bg-muted text-muted-foreground">
+          <Award aria-hidden="true" className="h-7 w-7" />
+        </div>
+        <h2 className="text-base font-bold tracking-tight">This badge has been retired</h2>
+        <p className="mt-1.5 text-sm text-muted-foreground">
           The &ldquo;{badge.name}&rdquo; badge is no longer awarded. Existing
           earners retain their achievement.
         </p>
@@ -95,44 +80,57 @@ export function BadgeDetail({ code, className }: BadgeDetailProps) {
     );
   }
 
+  const tierCfg = TIER_CONFIG[badge.tier as BadgeTier] ?? TIER_CONFIG.BRONZE;
+  const BadgeIcon = getBadgeIconComponent(badge.name, badge.description, badge.code);
+
   return (
     <article
       data-testid="badge-detail"
       aria-label={`Badge detail: ${badge.name}`}
-      className={`space-y-4 ${className ?? ""}`}
+      className={`space-y-5 ${className ?? ""}`}
     >
       <header className="flex items-center gap-4">
         <div
-          className={`flex h-20 w-20 items-center justify-center rounded-full bg-muted ${TIER_COLOR[badge.tier]}`}
+          className={`flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl shadow-sm transition-transform ${tierCfg.iconBg}`}
         >
-          <Award aria-hidden="true" className="h-10 w-10" />
+          <BadgeIcon aria-hidden="true" className="h-10 w-10" />
         </div>
-        <div className="min-w-0 flex-1">
-          <h2 className="truncate text-xl font-semibold">{badge.name}</h2>
-          <p
-            className={`text-xs uppercase tracking-wide ${TIER_COLOR[badge.tier]}`}
+        <div className="min-w-0 flex-1 space-y-1.5">
+          <div className="flex flex-wrap items-center gap-2">
+            <h2 className="truncate font-display text-xl sm:text-2xl font-bold tracking-tight">
+              {badge.name}
+            </h2>
+          </div>
+          <span
+            className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-semibold uppercase tracking-wider ${tierCfg.badgeBg} ${tierCfg.textColor} border ${tierCfg.badgeBorder}`}
           >
+            <Sparkles className="h-3 w-3" aria-hidden="true" />
             {badge.tier}
-          </p>
+          </span>
         </div>
-        <div className="text-right">
-          <p className="text-xs uppercase tracking-wide text-muted-foreground">
+        <div className="shrink-0 text-right">
+          <p className="text-xs uppercase tracking-wide text-muted-foreground flex items-center justify-end gap-1">
+            <Users className="h-3.5 w-3.5" aria-hidden="true" />
             Earned by
           </p>
-          <p className="text-base font-semibold tabular-nums">
+          <p className="font-mono text-base sm:text-lg font-bold tabular-nums">
             {badge.totalEarned.toLocaleString()}
           </p>
         </div>
       </header>
 
       {badge.description ? (
-        <p className="text-sm text-foreground/80">{badge.description}</p>
+        <div className="rounded-xl border border-border/60 bg-muted/30 p-4">
+          <p className="text-sm leading-relaxed text-foreground/90">
+            {badge.description}
+          </p>
+        </div>
       ) : null}
 
       {isDeferred ? (
         <p
           role="note"
-          className="rounded-md border border-dashed bg-muted/30 p-3 text-xs text-muted-foreground"
+          className="rounded-xl border border-dashed border-amber-500/30 bg-amber-500/5 p-4 text-xs text-amber-700 dark:text-amber-400"
         >
           This badge is not yet available. Earn conditions are coming soon.
         </p>

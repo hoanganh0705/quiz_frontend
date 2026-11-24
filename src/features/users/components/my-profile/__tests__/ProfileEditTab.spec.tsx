@@ -1,8 +1,12 @@
-import { describe, expect, it, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
 import React from "react";
 
+import { render, screen } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
+
+import * as useMyProfileModule from "@/features/users/hooks/useMyProfile";
+
 import { ProfileEditTab } from "../ProfileEditTab";
+
 import type { UserMeResponseDto } from "@/features/users/types/user-backend";
 
 const mockProfile: UserMeResponseDto = {
@@ -58,7 +62,6 @@ vi.mock("@/lib/forms/useUnsavedChangesGuard", () => ({
   })),
 }));
 
-import * as useMyProfileModule from "@/features/users/hooks/useMyProfile";
 
 describe("ProfileEditTab", () => {
   it("renders skeleton while isHydrated is false", () => {

@@ -94,7 +94,7 @@ export function InstanceShareCard({
     <>
       <Card
         className={cn(
-          "border border-border/80 bg-card/60 shadow-xs backdrop-blur-xs overflow-hidden",
+          "rounded-2xl border border-border/80 bg-card/70 shadow-xs backdrop-blur-xs overflow-hidden",
           className,
         )}
         data-testid="instance-share-card"

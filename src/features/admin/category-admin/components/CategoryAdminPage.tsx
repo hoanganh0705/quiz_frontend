@@ -2,11 +2,9 @@
 
 import { useCallback, useEffect, useState } from "react";
 
-import { Plus, Shield } from "lucide-react";
+import { Plus } from "lucide-react";
 
-import { EmptyState } from "@/components/ui/EmptyState";
 import { Button } from "@/components/ui/Button";
-import { useAdminFeatureFlag } from "@/features/admin/hooks";
 import { usePermission } from "@/features/admin/hooks";
 import { useToast, DEFAULT_TOAST_DURATION_MS } from "@/lib/forms/useToast";
 import { getQueryClient } from "@/providers/QueryProvider";
@@ -19,17 +17,6 @@ import { CATEGORY_ADMIN_LIST_KEY } from "../hooks/useCategoryAdminList";
 import { publicCategoriesKeyMatcher } from "../cache/category-cache-keys";
 import { subscribeCategoryAdminInvalidate } from "../cache/category-cross-tab";
 
-function CategoryAdminComingSoon() {
-  return (
-    <EmptyState
-      icon={Shield}
-      title="Category management coming soon"
-      description="Category admin surfaces are not yet enabled. Set NEXT_PUBLIC_ADMIN_CATEGORY_LIVE=live to preview the feature."
-      size="md"
-    />
-  );
-}
-
 const PERMISSION_CREATE = "category_create";
 
 export interface CategoryAdminPageProps {
@@ -37,7 +24,6 @@ export interface CategoryAdminPageProps {
 }
 
 export function CategoryAdminPage(_props: CategoryAdminPageProps) {
-  const { isLive } = useAdminFeatureFlag("admin_category_live");
   const { hasPermission } = usePermission(PERMISSION_CREATE);
   const { push } = useToast();
 
@@ -64,7 +50,6 @@ export function CategoryAdminPage(_props: CategoryAdminPageProps) {
   );
 
   useEffect(() => {
-    if (!isLive) return;
     const unsubscribe = subscribeCategoryAdminInvalidate(() => {
       try {
         const qc = getQueryClient();
@@ -75,23 +60,24 @@ export function CategoryAdminPage(_props: CategoryAdminPageProps) {
       } catch {}
     });
     return unsubscribe;
-  }, [isLive]);
-
-  if (!isLive) {
-    return <CategoryAdminComingSoon />;
-  }
+  }, []);
 
   return (
-    <div className="px-4 sm:px-6 pb-8">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-6">
+    <div className="mx-auto max-w-7xl px-4 sm:px-6 pb-8 space-y-6 pt-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Categories</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+            Categories
+          </h1>
           <p className="text-sm text-muted-foreground mt-1">
             Organize and manage quiz categories for better discoverability.
           </p>
         </div>
         {hasPermission && (
-          <Button onClick={() => setCreateOpen(true)} className="gap-2">
+          <Button
+            onClick={() => setCreateOpen(true)}
+            className="gap-2 shrink-0 self-start sm:self-auto shadow-xs transition-all duration-150 hover:-translate-y-0.5 active:translate-y-0"
+          >
             <Plus className="h-4 w-4" />
             Add Category
           </Button>

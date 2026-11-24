@@ -22,40 +22,45 @@ function formatCountdown(seconds: number): string {
 export function RankingCooldownNotice({
   cooldownRemaining,
 }: RankingCooldownNoticeProps) {
-  const [tickCount, setTickCount] = useState(0);
+  const [prevCooldown, setPrevCooldown] = useState(cooldownRemaining);
+  const [secondsRemaining, setSecondsRemaining] = useState(cooldownRemaining);
+
+  if (cooldownRemaining !== prevCooldown) {
+    setPrevCooldown(cooldownRemaining);
+    setSecondsRemaining(cooldownRemaining);
+  }
 
   useEffect(() => {
-    if (cooldownRemaining === null) return;
+    if (cooldownRemaining === null || cooldownRemaining <= 0) return;
 
     const interval = setInterval(() => {
-      setTickCount((prev) => prev + 1);
+      setSecondsRemaining((prev) =>
+        prev !== null && prev > 0 ? prev - 1 : 0,
+      );
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [cooldownRemaining]);
-
-  useEffect(() => {
-    setTickCount(0);
   }, [cooldownRemaining]);
 
   if (cooldownRemaining === null) {
     return null;
   }
 
-  const displaySeconds = Math.max(0, cooldownRemaining - tickCount);
+  const displaySeconds = Math.max(0, secondsRemaining ?? cooldownRemaining);
 
   return (
     <div
       data-testid="ranking-cooldown-notice"
-      role="alert"
-      className="flex items-center gap-2 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-300"
+      role="status"
+      aria-live="polite"
+      className="flex items-center gap-2 rounded-md border border-warning/30 bg-warning/10 dark:bg-warning/15 px-3 py-2 text-sm text-foreground"
     >
-      <Clock className="h-4 w-4 shrink-0" aria-hidden="true" />
+      <Clock className="h-4 w-4 shrink-0 text-warning" aria-hidden="true" />
       <span>
         Cooldown active. You can retry in{" "}
         <span
           data-testid="ranking-cooldown-countdown"
-          className="font-mono font-semibold"
+          className="font-mono font-semibold tabular-nums text-warning"
         >
           {formatCountdown(displaySeconds)}
         </span>

@@ -92,13 +92,13 @@ describe("MyQuizzesTableRow — no edit button when deleted", () => {
 });
 
 describe("MyQuizzesTableRow — edit button present when not deleted", () => {
-  it("non-deleted quiz renders Edit link to /my-quizzes/[id]", () => {
+  it("non-deleted quiz renders Edit link to /my-quizzes/[id]/edit", () => {
     const quiz = makeQuiz({ quizId: "quiz-xyz", isHidden: false });
 
     render(<MyQuizzesTableRow quiz={quiz} />);
 
     const editLink = screen.getByRole("link", { name: /edit/i });
     expect(editLink).toBeInTheDocument();
-    expect(editLink).toHaveAttribute("href", "/my-quizzes/quiz-xyz");
+    expect(editLink).toHaveAttribute("href", "/my-quizzes/quiz-xyz/edit");
   });
 });

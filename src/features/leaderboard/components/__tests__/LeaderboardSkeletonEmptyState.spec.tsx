@@ -44,7 +44,7 @@ const LEADERBOARD_EMPTY_COPY =
   "No leaderboard data yet — play some quizzes to populate the ranks.";
 
 describe("LeaderboardEmptyState — copy", () => {
-  it("renders the canonical empty-state copy from PHASE_3_EPICS.md line 1198", () => {
+  it("", () => {
     render(<LeaderboardEmptyState />);
     expect(screen.getByText(LEADERBOARD_EMPTY_COPY)).toBeInTheDocument();
   });

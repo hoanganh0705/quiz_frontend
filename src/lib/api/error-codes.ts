@@ -52,6 +52,7 @@ export type ErrorCode =
   | "COMMENT_FORBIDDEN"
   | "COMMENT_SELF_VOTE"
   | "COMMENT_SELF_REPORT"
+  | "COMMENT_SELF_PARENT"
   | "COMMENT_MODERATOR_REQUIRED"
   | "COMMENT_REPLY_LIMIT_EXCEEDED"
   | "COMMENT_DUPLICATE_REPORT"
@@ -93,7 +94,7 @@ export type ErrorCode =
   | "RANKING_INVALID_XP_EVENT"
   | "RANKING_RANK_CALCULATION_ERROR"
   | "RANKING_PERIOD_RESET_ERROR"
-  | "RANKING_NOT_AVAILABLE" // Phase 5 — rankings not yet available for user
+  | "RANKING_NOT_AVAILABLE" // rankings not yet available for user
   /** REVIEW module — 6 codes */
   | "REVIEW_NOT_FOUND"
   | "REVIEW_FORBIDDEN"
@@ -113,7 +114,7 @@ export type ErrorCode =
   | "SOCIAL_FRIENDSHIP_NOT_FOUND"
   | "SOCIAL_USER_NOT_BLOCKED"
   | "SOCIAL_FOLLOW_NOT_FOUND"
-  /** ACTIVITY module — Epic 6.4 user activity stream (Story 6.4) */
+  /** ACTIVITY module — user activity stream */
   | "ACTIVITY_RATE_LIMITED" /** 429 specific to the activity endpoint */
   /** TAG module — 5 codes */
   | "TAG_NOT_FOUND"
@@ -131,31 +132,31 @@ export type ErrorCode =
   | "TOURNAMENT_ATTEMPT_ALREADY_EXISTS"
   | "TOURNAMENT_PARTICIPANT_STATE"
   | "TOURNAMENT_ALREADY_WITHDRAWN"
-  | "TOURNAMENT_ALREADY_STARTED" // Phase 7 — Story 7.7
-  | "TOURNAMENT_HAS_PARTICIPANTS" // Phase 7 — Story 7.7
+  | "TOURNAMENT_ALREADY_STARTED"
+  | "TOURNAMENT_HAS_PARTICIPANTS"
   | "TOURNAMENT_VALIDATION"
   | "TOURNAMENT_REGISTRATION_CLOSED"
-  | "TOURNAMENT_FULL" // Phase 5 — from KNOWN_ERROR_CODES but missing from union
+  | "TOURNAMENT_FULL"
   | "TOURNAMENT_ROUND_NOT_OPEN"
   | "TOURNAMENT_UNREGISTER_CLOSED"
   | "TOURNAMENT_WITHDRAW_CLOSED"
-  /** INSTANCE module — Phase 5 additions */
-  | "HOST_REQUIRED" // Phase 5 — only host can perform this action
+  /** INSTANCE module */
+  | "HOST_REQUIRED" // only host can perform this action
   /** USER module — 4 codes */
   | "USER_NOT_FOUND"
   | "USER_ANALYTICS_NOT_FOUND"
   | "USER_PROFILE_PRIVATE"
   | "USER_BADGE_OWNERSHIP_NOT_FOUND"
-  /** ADMIN module — Phase 7 admin surfaces (Epic 7.1) */
+  /** ADMIN module — admin surfaces */
   | "ADMIN_FORBIDDEN" /** target is not an admin */
   | "ADMIN_ROLE_NOT_FOUND" /** role grant references a missing role */
   | "ADMIN_ROLE_ALREADY_GRANTED" /** idempotent guard */
   | "ADMIN_USER_NOT_FOUND" /** the admin's user record was deleted */
   | "IRREVERSIBLE_CONFIRM_REQUIRED" /** destructive op without matching confirm string */
-  | "RANKING_RECALCULATION_FAILED" /** Phase 7 ranking admin */
-  | "RANKING_PERIOD_RESET_FAILED" /** Phase 7 ranking admin */
-  | "RANKING_CONSISTENCY_FAILED" /** Phase 7 ranking admin */
-  /** ACHIEVEMENT_ADMIN module — Epic 7.8 achievement admin */
+  | "RANKING_RECALCULATION_FAILED" /** ranking admin */
+  | "RANKING_PERIOD_RESET_FAILED" /** ranking admin */
+  | "RANKING_CONSISTENCY_FAILED" /** ranking admin */
+  /** ACHIEVEMENT_ADMIN module — achievement admin */
   | "REVAL_RUNNING" /** concurrent re-evaluation for the same user */
   | "BADGE_NOT_GRANTED" /** badge revoke when user does not hold the badge */
   | "ACHIEVEMENT_NOT_FOUND" /** achievement entity not found */
@@ -237,6 +238,7 @@ export const KNOWN_ERROR_CODES = [
   "COMMENT_FORBIDDEN",
   "COMMENT_SELF_VOTE",
   "COMMENT_SELF_REPORT",
+  "COMMENT_SELF_PARENT",
   "COMMENT_MODERATOR_REQUIRED",
   "COMMENT_REPLY_LIMIT_EXCEEDED",
   "COMMENT_DUPLICATE_REPORT",
@@ -525,6 +527,7 @@ const TOKEN_PHRASE: Readonly<Record<string, string>> = {
   COLLECTION_FORBIDDEN: "is not allowed",
   COMMENT_SELF_VOTE: "cannot be voted on by the author",
   COMMENT_SELF_REPORT: "cannot be reported by the author",
+  COMMENT_SELF_PARENT: "cannot be replied to by the author",
   COMMENT_QUIZ_NOT_FOUND: "was not found",
   COMMENT_FORBIDDEN: "is not allowed",
   COMMENT_REPLY_LIMIT_EXCEEDED: "exceeds the reply limit",
@@ -698,6 +701,11 @@ const INTERACTION_PRIORITY_COPY: Partial<Record<ErrorCode, UserCopyEntry>> = {
   COMMENT_SELF_REPORT: {
     title: "Cannot report your own comment",
     body: "You cannot report your own comment.",
+    toast: "inline",
+  },
+  COMMENT_SELF_PARENT: {
+    title: "Cannot reply to your own comment",
+    body: "You cannot reply to your own comment. You can edit your comment instead.",
     toast: "inline",
   },
   COMMENT_DUPLICATE_REPORT: {

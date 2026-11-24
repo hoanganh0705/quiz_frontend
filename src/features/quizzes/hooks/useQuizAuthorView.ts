@@ -48,7 +48,7 @@ export function useQuizAuthorView(
             throw new Error("Unexpected response shape");
           }
 
-          emitBreadcrumb("phase4:4.9:author-view", {
+          emitBreadcrumb("quizzes:author-view", {
             status: "success",
             durationMs: Date.now() - startedAt,
           });
@@ -56,14 +56,14 @@ export function useQuizAuthorView(
           return quiz as unknown as QuizAuthorView;
         } catch (err) {
           if (isApiError(err)) {
-            emitBreadcrumb("phase4:4.9:author-view", {
+            emitBreadcrumb("quizzes:author-view", {
               status: "error",
               durationMs: Date.now() - startedAt,
               code: err.code,
             });
             throw err;
           }
-          emitBreadcrumb("phase4:4.9:author-view", {
+          emitBreadcrumb("quizzes:author-view", {
             status: "error",
             durationMs: Date.now() - startedAt,
             code: "GLOBAL_UNKNOWN",

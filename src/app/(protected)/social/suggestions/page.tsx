@@ -6,7 +6,6 @@ import { useAuthSession } from "@/features/auth/hooks/use-auth-session";
 import { useMemo } from "react";
 
 import { RouteGateSkeleton } from "@/components/ui/loading-states";
-import { getFeatureFlagValue } from "@/lib/feature-flags";
 
 import { SocialDiscoveryPlaceholder } from "@/features/social/components/SocialDiscoveryPlaceholder";
 import { SuggestionsPanel } from "@/features/social/lists/SuggestionsPanel";
@@ -14,10 +13,7 @@ import { SuggestionsPanel } from "@/features/social/lists/SuggestionsPanel";
 function SuggestionsRouteGate(): React.ReactElement {
   const { isAuthenticated, isBootstrapping } = useAuthSession();
 
-  const flagValue = useMemo(
-    () => getFeatureFlagValue("social_discovery_live"),
-    [],
-  );
+
 
   if (isBootstrapping) {
     return (
@@ -27,7 +23,7 @@ function SuggestionsRouteGate(): React.ReactElement {
     );
   }
 
-  if (flagValue === "placeholder") {
+  if (false) {
     return <SocialDiscoveryPlaceholder surface="suggestions" />;
   }
 

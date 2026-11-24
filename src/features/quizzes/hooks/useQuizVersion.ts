@@ -54,7 +54,7 @@ export function useQuizVersion(
         try {
           const response = await getQuizVersionDetail(quizId, versionId);
 
-          emitBreadcrumb("phase4:4.9:version-detail", {
+          emitBreadcrumb("quizzes:version-detail", {
             status: "success",
             durationMs: Date.now() - startedAt,
           });
@@ -67,14 +67,14 @@ export function useQuizVersion(
           return data;
         } catch (err) {
           if (isApiError(err)) {
-            emitBreadcrumb("phase4:4.9:version-detail", {
+            emitBreadcrumb("quizzes:version-detail", {
               status: "error",
               durationMs: Date.now() - startedAt,
               code: err.code,
             });
             throw err;
           }
-          emitBreadcrumb("phase4:4.9:version-detail", {
+          emitBreadcrumb("quizzes:version-detail", {
             status: "error",
             durationMs: Date.now() - startedAt,
             code: "GLOBAL_UNKNOWN",

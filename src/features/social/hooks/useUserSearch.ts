@@ -5,7 +5,6 @@ import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { ApiError, useCursorPaginated } from "@/lib/api";
 import type { OffsetFetcherArgs } from "@/lib/api/use-cursor-paginated.types";
 
-import { getFeatureFlagValue } from "@/lib/feature-flags";
 import { getAuthToken } from "@/features/auth/utils/auth-cookies";
 
 import { searchUsers } from "@/features/social/services/search.service";
@@ -69,8 +68,6 @@ export interface UseUserSearchResult {
 }
 
 export function useUserSearch(query: string): UseUserSearchResult {
-  const flagValue = getFeatureFlagValue("social_user_search_live");
-  const isFlagPlaceholder = flagValue === "placeholder";
   const isAuthenticated = !!getAuthToken();
 
   const normalisedQuery = useMemo(() => {
@@ -87,7 +84,6 @@ export function useUserSearch(query: string): UseUserSearchResult {
   const lastQueryRef = useRef("");
 
   const shouldDebounce =
-    !isFlagPlaceholder &&
     isAuthenticated &&
     !isQueryTooShort &&
     !isQueryTooLong;
@@ -185,7 +181,6 @@ export function useUserSearch(query: string): UseUserSearchResult {
   );
 
   const shouldFetch =
-    !isFlagPlaceholder &&
     isAuthenticated &&
     !isQueryTooShort &&
     !isQueryTooLong &&
@@ -212,7 +207,6 @@ export function useUserSearch(query: string): UseUserSearchResult {
   const items = paginated.items as unknown as readonly SearchableUserDto[];
 
   if (
-    isFlagPlaceholder ||
     !isAuthenticated ||
     isQueryTooShort ||
     isQueryTooLong ||

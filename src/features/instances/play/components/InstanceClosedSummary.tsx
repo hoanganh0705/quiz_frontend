@@ -1,9 +1,13 @@
 "use client";
 
-import { useInstanceLifecycle } from "@/features/instances/play/hooks";
+import {
+  useInstanceLifecycle,
+  useLiveLeaderboard,
+} from "@/features/instances/play/hooks";
 import {
   useInstanceGameplayStore,
   selectGameplayProgress,
+  selectGameplayFinalLeaderboard,
 } from "@/features/instances/play/stores/instanceGameplay.store";
 
 import { GameClosedSummary } from "./shared/GameClosedSummary";
@@ -21,11 +25,24 @@ export function InstanceClosedSummary({
   className,
 }: InstanceClosedSummaryProps) {
   const { closure } = useInstanceLifecycle(instanceId);
+  const { final: hookFinalLeaderboard } = useLiveLeaderboard(instanceId);
+  const storeFinalLeaderboard = useInstanceGameplayStore((s) =>
+    selectGameplayFinalLeaderboard(s, instanceId),
+  );
   const playerProgress = useInstanceGameplayStore((s) =>
     selectGameplayProgress(s, instanceId),
   );
 
   if (!closure) return null;
+
+  const finalLeaderboard =
+    closure.finalLeaderboard ?? storeFinalLeaderboard ?? hookFinalLeaderboard;
+
+  const isCompletedGame =
+    closure.status === "finished" ||
+    closure.reason === "normal" ||
+    closure.reason === "completed" ||
+    finalLeaderboard !== null;
 
   return (
     <div
@@ -34,18 +51,15 @@ export function InstanceClosedSummary({
       role="region"
       aria-label="Instance closed"
     >
-      {/* Generic closed/cancelled chrome */}
-      <GameClosedSummary closure={closure} />
-
-      {/* Final leaderboard + player result overlay */}
-      {closure.finalLeaderboard && (
-        <div className="mt-6">
-          <GameResultSummary
-            finalLeaderboard={closure.finalLeaderboard}
-            playerProgress={playerProgress}
-            currentPlayerId={currentPlayerId}
-          />
-        </div>
+      {isCompletedGame ? (
+        <GameResultSummary
+          instanceId={instanceId}
+          finalLeaderboard={finalLeaderboard}
+          playerProgress={playerProgress}
+          currentPlayerId={currentPlayerId}
+        />
+      ) : (
+        <GameClosedSummary closure={closure} instanceId={instanceId} />
       )}
     </div>
   );

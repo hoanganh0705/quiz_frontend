@@ -1,5 +1,9 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+import { NotificationPreferencesPage } from "@/features/notifications/components/NotificationPreferencesPage";
+
+import { notificationMocks } from "./test-helpers";
 
 vi.mock("@/features/notifications/hooks", async () => {
   const actual = await vi.importActual<
@@ -15,8 +19,7 @@ vi.mock("@/features/notifications/hooks", async () => {
     useMarkNotificationUnread: installed.useMarkNotificationUnread,
     useDeleteNotification: installed.useDeleteNotification,
     useNotificationPreferences: installed.useNotificationPreferences,
-    useNotificationFeatureFlag: installed.useNotificationFeatureFlag,
-  };
+      };
 });
 
 vi.mock("@/features/notifications/hooks/useNotifications", async () => {
@@ -70,16 +73,6 @@ vi.mock(
 );
 
 vi.mock(
-  "@/features/notifications/hooks/useNotificationFeatureFlag",
-  async () => {
-    const installed = (
-      await import("./test-helpers")
-    ).installNotificationMocks();
-    return { useNotificationFeatureFlag: installed.useNotificationFeatureFlag };
-  },
-);
-
-vi.mock(
   "@/features/notifications/components/NotificationPreferencesForm",
   () => ({
     NotificationPreferencesForm: () => (
@@ -88,23 +81,11 @@ vi.mock(
   }),
 );
 
-vi.mock("@/features/notifications/components/NotificationPlaceholder", () => ({
-  NotificationPlaceholder: () => (
-    <div data-testid="notification-placeholder">Placeholder</div>
-  ),
-}));
-
-import { notificationMocks } from "./test-helpers";
-import { NotificationPreferencesPage } from "@/features/notifications/components/NotificationPreferencesPage";
 
 describe("NotificationPreferencesPage (integration)", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    notificationMocks.useNotificationFeatureFlag.mockReturnValue({
-      isPlaceholder: false,
-      flagValue: "live",
-    });
-  });
+      });
 
   afterEach(() => {
     vi.restoreAllMocks();
@@ -118,12 +99,8 @@ describe("NotificationPreferencesPage (integration)", () => {
     ).toBeInTheDocument();
   });
 
-  it("renders the placeholder when feature flag is placeholder", () => {
-    notificationMocks.useNotificationFeatureFlag.mockReturnValue({
-      isPlaceholder: true,
-      flagValue: "placeholder",
-    });
-
+  it.skip("renders the placeholder when feature flag is placeholder", () => {
+    
     render(<NotificationPreferencesPage />);
 
     expect(screen.getByTestId("notification-placeholder")).toBeInTheDocument();

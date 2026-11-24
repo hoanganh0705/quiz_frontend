@@ -144,22 +144,34 @@ export function useSubmitAnswer(
           attemptId,
           validation.payload,
         )) as unknown as {
-          data?: { questionId?: string; submittedAt?: string };
+          data?: {
+            questionId?: string;
+            selectedOptionId?: string | null;
+            answeredAt?: string;
+            submittedAt?: string;
+          };
         };
-        const submittedAt = wire?.data?.submittedAt ?? new Date().toISOString();
+        const submittedAt =
+          wire?.data?.answeredAt ??
+          wire?.data?.submittedAt ??
+          new Date().toISOString();
         const questionId = wire?.data?.questionId ?? selection.questionId;
+        const selectedOptionId =
+          wire?.data?.selectedOptionId ??
+          validation.payload.selectedOptionId ??
+          null;
 
         recordSubmitSuccess(attemptId, quizVersionId, sessionId, {
           questionId,
+          selectedOptionId,
           submittedAt,
-        } as never);
+        });
 
         try {
           const qc = getQueryClient();
           void qc.invalidateQueries({
             queryKey: ATTEMPT_CACHE_KEYS.answers(attemptId, sessionId),
           });
-          void qc.invalidateQueries({ queryKey: ["attempts"] });
         } catch {}
 
         broadcastAttemptsChanged({

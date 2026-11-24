@@ -1,7 +1,9 @@
 "use client";
 
 import { useCallback, useState } from "react";
+import { AlertTriangle, Loader2 } from "lucide-react";
 
+import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import {
   Card,
@@ -42,6 +44,7 @@ export function PeriodResetPanel({
   const {
     trigger,
     jobStatus,
+    affectedUserCount,
     error,
     isRunning,
     cooldownRemaining,
@@ -66,9 +69,24 @@ export function PeriodResetPanel({
   const isButtonDisabled = isRunning || cooldownRemaining !== null;
 
   return (
-    <Card data-testid="period-reset-panel">
+    <Card
+      data-testid="period-reset-panel"
+      className="border-destructive/25 dark:border-destructive/30"
+    >
       <CardHeader>
-        <CardTitle>{RANKING_RESET_LABEL}</CardTitle>
+        <div className="flex items-center justify-between gap-2">
+          <CardTitle
+            role="heading"
+            aria-level={2}
+            className="text-base font-semibold text-destructive flex items-center gap-2"
+          >
+            <AlertTriangle className="size-4 shrink-0" aria-hidden="true" />
+            {RANKING_RESET_LABEL}
+          </CardTitle>
+          <Badge variant="destructive" className="text-xs shrink-0">
+            Destructive
+          </Badge>
+        </div>
         <CardDescription>
           Clear all rankings for a period. This is irreversible and affects
           every user.
@@ -81,13 +99,19 @@ export function PeriodResetPanel({
           <Label htmlFor="period-reset-period-input">Period identifier</Label>
           <Input
             id="period-reset-period-input"
+            aria-describedby="period-reset-period-desc"
             data-testid="period-reset-period-input"
             value={periodIdentifier}
             onChange={(event) => setPeriodIdentifier(event.target.value)}
             placeholder="Period identifier (e.g. current, last, all)"
+            autoComplete="off"
+            spellCheck={false}
             disabled={isRunning}
           />
-          <p className="text-xs text-muted-foreground">
+          <p
+            id="period-reset-period-desc"
+            className="text-xs text-muted-foreground"
+          >
             Valid values: <code>current</code>, <code>last</code>,{" "}
             <code>all</code>. Invalid values are rejected with{" "}
             <code>INVALID_PERIOD</code>.
@@ -95,7 +119,9 @@ export function PeriodResetPanel({
         </div>
 
         {/* Cross-user impact warning */}
-        {showCrossUserWarning ? <RankingCrossUserImpactWarning /> : null}
+        {showCrossUserWarning ? (
+          <RankingCrossUserImpactWarning affectedUserCount={affectedUserCount} />
+        ) : null}
 
         {/* Cooldown notice */}
         <RankingCooldownNotice cooldownRemaining={cooldownRemaining} />
@@ -106,14 +132,22 @@ export function PeriodResetPanel({
           data-testid="period-reset-trigger-button"
           onClick={() => setConfirmOpen(true)}
           disabled={isButtonDisabled}
+          className="self-start gap-2"
         >
-          {isRunning ? "Working…" : "Reset Period"}
+          {isRunning ? (
+            <>
+              <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+              <span>Resetting…</span>
+            </>
+          ) : (
+            "Reset Period"
+          )}
         </Button>
 
         {/* Job status */}
         <RankingJobStatusPanel
           jobStatus={jobStatus}
-          affectedUserCount={null}
+          affectedUserCount={affectedUserCount}
           error={error}
           requestId={error?.requestId}
         />
@@ -134,7 +168,7 @@ export function PeriodResetPanel({
       >
         <p
           data-testid="period-reset-irreversibility-notice"
-          className="rounded-md border border-red-300 bg-red-50 p-3 text-sm text-red-800 dark:border-red-800 dark:bg-red-950 dark:text-red-200"
+          className="rounded-md border border-destructive/30 bg-destructive/10 dark:bg-destructive/15 p-3 text-sm text-foreground"
         >
           {RANKING_RESET_IRREVERSIBILITY_NOTICE}
         </p>

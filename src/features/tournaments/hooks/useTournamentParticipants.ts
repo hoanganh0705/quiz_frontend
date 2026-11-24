@@ -12,7 +12,6 @@ import {
   type TournamentParticipantsPage,
   type TournamentParticipant,
 } from "@/features/tournaments/types/tournament.types";
-import { getFeatureFlagValue } from "@/lib/feature-flags";
 
 export interface UseTournamentParticipantsResult {
   items: readonly TournamentParticipant[];
@@ -42,15 +41,12 @@ export function useTournamentParticipants(
   tournamentId: string | null,
   filters: TournamentParticipantsFilters = {},
 ): UseTournamentParticipantsResult {
-  const flagValue = getFeatureFlagValue("tournaments_live");
-  const isFlagPlaceholder = flagValue === "placeholder";
-
   const key = useMemo(
     () =>
-      isFlagPlaceholder || tournamentId === null
+      tournamentId === null
         ? (["tournaments", "participants", "disabled"] as const)
         : TOURNAMENT_CACHE_KEYS.participants(tournamentId, filters),
-    [isFlagPlaceholder, tournamentId, filters],
+    [tournamentId, filters],
   );
 
   const fetcher = useMemo(
@@ -58,7 +54,7 @@ export function useTournamentParticipants(
       async ({
         page,
       }: OffsetFetcherArgs<TournamentParticipantsFilters>): Promise<TournamentParticipantsPage> => {
-        if (isFlagPlaceholder || tournamentId === null) {
+        if (tournamentId === null) {
           return {
             items: [],
             page: 1,
@@ -102,7 +98,7 @@ export function useTournamentParticipants(
           limit,
         };
       },
-    [isFlagPlaceholder, tournamentId, filters],
+    [tournamentId, filters],
   );
 
   const result = useCursorPaginated<

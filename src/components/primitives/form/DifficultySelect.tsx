@@ -73,6 +73,10 @@ export function DifficultySelect<T extends z.ZodType<FieldValues, any, any>>(
 
   const errorMessage = fieldState.error?.message;
   const inputId = React.useId();
+  const descriptionId = description ? `${inputId}-desc` : undefined;
+  const errorId = errorMessage ? `${inputId}-err` : undefined;
+  const describedBy =
+    [descriptionId, errorId].filter(Boolean).join(" ") || undefined;
 
   return (
     <div
@@ -81,7 +85,9 @@ export function DifficultySelect<T extends z.ZodType<FieldValues, any, any>>(
     >
       <Label htmlFor={inputId}>{label}</Label>
       {description ? (
-        <p className="text-xs text-muted-foreground">{description}</p>
+        <p id={descriptionId} className="text-xs text-muted-foreground">
+          {description}
+        </p>
       ) : null}
       <Select
         value={
@@ -97,6 +103,8 @@ export function DifficultySelect<T extends z.ZodType<FieldValues, any, any>>(
       >
         <SelectTrigger
           id={inputId}
+          aria-invalid={!!errorMessage}
+          aria-describedby={describedBy}
           data-testid={`difficulty-select-trigger-${name}`}
         >
           <SelectValue placeholder="Select difficulty" />
@@ -120,7 +128,7 @@ export function DifficultySelect<T extends z.ZodType<FieldValues, any, any>>(
         </p>
       ) : null}
       {errorMessage ? (
-        <p className="text-xs text-destructive" role="alert">
+        <p id={errorId} className="text-xs text-destructive" role="alert">
           {errorMessage}
         </p>
       ) : null}

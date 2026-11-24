@@ -4,7 +4,7 @@ import { TagPillSkeleton } from "@/components/primitives";
 const HEADER_HEIGHT = "h-9 w-48";
 const FILTER_HEIGHT = "h-9 w-full max-w-md rounded-md";
 const STRIP_CONTAINER =
-  "flex gap-3 overflow-x-auto pb-4 snap-x snap-mandatory scroll-mt-16";
+  "flex gap-3 overflow-x-auto pb-4 snap-x snap-mandatory scroll-mt-16 scrollbar-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden";
 const GRID_LAYOUT = "flex flex-wrap gap-3";
 
 export default function TagsLoading() {

@@ -2,16 +2,17 @@
 
 import { Suspense, useCallback, useEffect, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { Award, History, Sparkles } from "lucide-react";
+import { Award, History, Sparkles, Trophy } from "lucide-react";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/Tabs";
-import { AchievementsPlaceholder } from "@/features/rankings/components/shared/Placeholder";
-import { isAchievementSurfaceEnabled } from "@/features/achievements/flags";
+import { AchievementHistory } from "@/features/achievements/components/AchievementHistory";
 import { BadgeGallery } from "@/features/achievements/components/BadgeGallery";
 import { EarnedBadgeList } from "@/features/achievements/components/EarnedBadgeList";
-import { AchievementHistory } from "@/features/achievements/components/AchievementHistory";
-import { useAchievementNotificationRevalidation } from "@/features/achievements/hooks/useAchievementNotificationRevalidation";
+import { UnauthenticatedAchievementsCta } from "@/features/achievements/components/shared/AchievementShared";
 import { useAchievementFocusRevalidation } from "@/features/achievements/hooks/useAchievementFocusRevalidation";
+import { useAchievementNotificationRevalidation } from "@/features/achievements/hooks/useAchievementNotificationRevalidation";
+import { useAuthSession } from "@/features/auth/hooks/use-auth-session";
+import { AchievementsPlaceholder } from "@/features/rankings/components/shared/Placeholder";
 
 interface AchievementsPageProps {
   className?: string;
@@ -31,6 +32,22 @@ function AchievementsTabs() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+
+  let isAuthenticated = false;
+  let bootstrapState: "unauthenticated" | "bootstrapping" | "authenticated" =
+    "unauthenticated";
+
+  try {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    const auth = useAuthSession();
+    isAuthenticated = auth.isAuthenticated;
+    bootstrapState = auth.bootstrapState;
+  } catch {
+    // Graceful fallback for test or mock environments
+  }
+
+  const showUnauthenticatedCta =
+    bootstrapState !== "bootstrapping" && !isAuthenticated;
 
   const tabParam = searchParams?.get(QUERY_TAB) ?? null;
   const currentTab = parseTab(tabParam);
@@ -70,20 +87,22 @@ function AchievementsTabs() {
       onValueChange={handleTabChange}
       className="space-y-6"
     >
-      <TabsList className="bg-muted p-1 inline-flex w-auto gap-1">
-        <TabsTrigger value="catalog" className="gap-2">
-          <Sparkles className="h-4 w-4" aria-hidden="true" />
-          <span>Badge Catalog</span>
-        </TabsTrigger>
-        <TabsTrigger value="earned" className="gap-2">
-          <Award className="h-4 w-4" aria-hidden="true" />
-          <span>My Badges</span>
-        </TabsTrigger>
-        <TabsTrigger value="history" className="gap-2">
-          <History className="h-4 w-4" aria-hidden="true" />
-          <span>History</span>
-        </TabsTrigger>
-      </TabsList>
+      <div className="flex items-center justify-between">
+        <TabsList className="bg-muted/80 p-1 inline-flex w-full sm:w-auto rounded-xl gap-1 border border-border/40 backdrop-blur-xs">
+          <TabsTrigger value="catalog" className="gap-2 rounded-lg font-medium">
+            <Sparkles className="h-4 w-4" aria-hidden="true" />
+            <span>Badge Catalog</span>
+          </TabsTrigger>
+          <TabsTrigger value="earned" className="gap-2 rounded-lg font-medium">
+            <Award className="h-4 w-4" aria-hidden="true" />
+            <span>My Badges</span>
+          </TabsTrigger>
+          <TabsTrigger value="history" className="gap-2 rounded-lg font-medium">
+            <History className="h-4 w-4" aria-hidden="true" />
+            <span>History</span>
+          </TabsTrigger>
+        </TabsList>
+      </div>
 
       <TabsContent
         value="catalog"
@@ -101,6 +120,9 @@ function AchievementsTabs() {
         className={activeTab === "earned" ? "block space-y-4" : "hidden"}
       >
         <EarnedBadgeList />
+        {showUnauthenticatedCta ? (
+          <UnauthenticatedAchievementsCta tab="earned" />
+        ) : null}
       </TabsContent>
 
       <TabsContent
@@ -111,19 +133,22 @@ function AchievementsTabs() {
         <Suspense fallback={null}>
           <AchievementHistory />
         </Suspense>
+        {showUnauthenticatedCta ? (
+          <UnauthenticatedAchievementsCta tab="history" />
+        ) : null}
       </TabsContent>
     </Tabs>
   );
 }
 
 export function AchievementsPage({ className }: AchievementsPageProps) {
-  const isLive = isAchievementSurfaceEnabled();
+  const isEnabled = true;
 
-  if (!isLive) {
+  if (!isEnabled) {
     return (
       <main
         data-testid="achievements-page-placeholder"
-        className={`mx-auto max-w-4xl p-4 sm:p-6 lg:p-8 ${className ?? ""}`}
+        className={`mx-auto max-w-7xl min-h-screen text-foreground px-4 sm:px-6 lg:px-8 py-8 sm:py-10 space-y-8 ${className ?? ""}`}
       >
         <AchievementsPlaceholder />
       </main>
@@ -140,14 +165,23 @@ function AchievementsPageLive({ className }: AchievementsPageProps) {
   return (
     <main
       data-testid="achievements-page"
-      className={`mx-auto max-w-4xl space-y-6 p-4 sm:p-6 lg:p-8 ${className ?? ""}`}
+      className={`mx-auto max-w-7xl min-h-screen text-foreground px-4 sm:px-6 lg:px-8 py-8 sm:py-10 space-y-8 ${className ?? ""}`}
     >
-      <header className="space-y-1">
-        <h1 className="text-2xl font-bold tracking-tight">Achievements</h1>
-        <p className="text-sm text-muted-foreground">
-          Browse the badge catalog, your earned badges, and your full
-          achievement history.
-        </p>
+      <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between pb-2 border-b border-border/40">
+        <div className="flex items-start gap-3.5">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-brand/10 text-brand ring-1 ring-brand/20 shadow-xs">
+            <Trophy className="h-6 w-6" aria-hidden="true" />
+          </div>
+          <div className="space-y-1">
+            <h1 className="font-display text-2xl sm:text-3xl font-extrabold tracking-tight">
+              Achievements
+            </h1>
+            <p className="text-sm text-muted-foreground">
+              Browse the badge catalog, your earned badges, and your full
+              achievement history.
+            </p>
+          </div>
+        </div>
       </header>
 
       <Suspense fallback={null}>

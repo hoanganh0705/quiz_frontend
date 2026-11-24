@@ -24,7 +24,7 @@ export function InstanceListSkeleton({
     >
       {Array.from({ length: count }).map((_, index) => (
         <Card key={index} className="overflow-hidden bg-card">
-          <CardContent className="p-5 flex flex-col justify-between gap-4 h-52">
+          <CardContent className="p-5 flex flex-col justify-between gap-4 min-h-[224px]">
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <Skeleton className="h-5 w-24 rounded-full" />
@@ -36,7 +36,7 @@ export function InstanceListSkeleton({
                 <Skeleton className="h-4 w-20" />
               </div>
             </div>
-            <Skeleton className="h-10 w-full rounded-md" />
+            <Skeleton className="h-9 w-full rounded-md" />
           </CardContent>
         </Card>
       ))}

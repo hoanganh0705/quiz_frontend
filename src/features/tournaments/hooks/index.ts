@@ -16,8 +16,6 @@ export type { UseTournamentLeaderboardResult } from "./useTournamentLeaderboard"
 export { useTournamentFilters } from "./useTournamentFilters";
 export type { UseTournamentFiltersResult } from "./useTournamentFilters";
 
-export { useTournamentFeatureFlag } from "./useTournamentFeatureFlag";
-export type { UseTournamentFeatureFlagResult } from "./useTournamentFeatureFlag";
 
 export { useTournamentParticipation } from "./useTournamentParticipation";
 export type { UseTournamentParticipationResult } from "./useTournamentParticipation";

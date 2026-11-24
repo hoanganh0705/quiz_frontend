@@ -1,4 +1,3 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   cleanup,
   fireEvent,
@@ -6,6 +5,9 @@ import {
   screen,
   waitFor,
 } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+import PublicProfilePage from "@/features/users/components/profile/PublicProfilePage";
 
 const mockUseUserProfileQuery = vi.fn();
 const mockUseAuthSession = vi.fn();
@@ -26,7 +28,6 @@ vi.mock("@/features/social/hooks/useFollow", () => ({
   useFollow: (...args: unknown[]) => mockUseFollow(...args),
 }));
 
-import PublicProfilePage from "@/features/users/components/profile/PublicProfilePage";
 
 interface ProfileMockPayload {
   summary: {

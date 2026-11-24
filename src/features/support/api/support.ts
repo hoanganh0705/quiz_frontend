@@ -59,7 +59,7 @@ export async function submitContactForm(
   payload: ContactFormRequest,
 ): Promise<ContactFormResponse> {
   Sentry.addBreadcrumb({
-    category: "phase1:service",
+    category: "support:service",
     message: "support.submitContactForm",
   });
   const wire = await requestEnveloped<ContactFormResponse>({
@@ -72,7 +72,7 @@ export async function submitContactForm(
 
 export async function getFAQs(): Promise<FAQCategory[]> {
   Sentry.addBreadcrumb({
-    category: "phase1:service",
+    category: "support:service",
     message: "support.getFAQs",
   });
   const wire = await requestEnveloped<FAQCategory[]>({
@@ -84,7 +84,7 @@ export async function getFAQs(): Promise<FAQCategory[]> {
 
 export async function getSupportArticles(): Promise<SupportArticle[]> {
   Sentry.addBreadcrumb({
-    category: "phase1:service",
+    category: "support:service",
     message: "support.getSupportArticles",
   });
   const wire = await requestEnveloped<SupportArticle[]>({
@@ -96,7 +96,7 @@ export async function getSupportArticles(): Promise<SupportArticle[]> {
 
 export async function getSupportArticle(slug: string): Promise<SupportArticle> {
   Sentry.addBreadcrumb({
-    category: "phase1:service",
+    category: "support:service",
     message: `support.getSupportArticle(${slug})`,
   });
   const wire = await requestEnveloped<SupportArticle>({

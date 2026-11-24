@@ -15,6 +15,7 @@ import { myQuizzesKey } from "@/features/quizzes/types/my-quizzes";
 
 export interface UseMyQuizzesDraftsParams {
   limit?: number;
+  enabled?: boolean;
 }
 
 type GetMyQuizzesDraftsResponse = {
@@ -78,5 +79,6 @@ export function useMyQuizzesDrafts(
     fetcher,
     params: params ?? {},
     paginationKind: "cursor",
+    enabled: params?.enabled ?? true,
   });
 }

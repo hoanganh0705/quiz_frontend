@@ -1,5 +1,6 @@
 import { getReviews } from "@/lib/api";
 import type {
+  AdminReviewControllerListPlatformReportsStatus,
   PlatformReportItemDto,
   UpdateReportStatusDto,
 } from "@/lib/api/generated/schemas";
@@ -16,6 +17,7 @@ export type ReportActionDto = UpdateReportStatusDto;
 export interface ListReviewReportsParams {
   cursor?: string;
   limit?: number;
+  status?: AdminReviewControllerListPlatformReportsStatus;
 }
 
 export interface ReviewReportsPage {

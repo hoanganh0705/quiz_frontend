@@ -78,11 +78,11 @@ function OutcomeNotice({
   return (
     <div
       role="alert"
-      className="rounded-md border border-red-300 bg-red-50 px-3 py-2 text-xs text-red-900"
+      className="rounded-md border border-destructive/30 bg-destructive/10 dark:bg-destructive/15 px-3 py-2 text-xs text-foreground"
       data-testid={`comment-report-confirm-outcome-${reportId}`}
     >
-      <p className="font-semibold">{title}</p>
-      <p className="mt-1">{description}</p>
+      <p className="font-semibold text-destructive">{title}</p>
+      <p className="mt-1 text-muted-foreground">{description}</p>
       <RequestIdBanner error={error} />
     </div>
   );
@@ -181,8 +181,8 @@ export function CommentReportActionConfirmDialog({
           <p className="mt-1">
             Comment id: <span className="font-mono">{report.commentId}</span>
           </p>
-          <p className="mt-2 text-slate-700">
-            Reason: <span className="font-medium">{report.reason}</span>
+          <p className="mt-2 text-foreground/80">
+            Reason: <span className="font-medium text-foreground">{report.reason}</span>
           </p>
         </div>
 
@@ -230,6 +230,11 @@ export function CommentReportActionConfirmDialog({
             {(shell) => (
               <Button
                 type="button"
+                variant={
+                  metadata.auditActionType === "destructive"
+                    ? "destructive"
+                    : "default"
+                }
                 disabled={confirmDisabled || shell.isPending}
                 onClick={() => {
                   mutate().catch(() => undefined);

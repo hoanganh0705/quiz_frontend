@@ -5,6 +5,16 @@ import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/Button";
 import { Skeleton } from "@/components/ui/Skeleton";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/AlertDialog";
 import { useToast } from "@/lib/forms/useToast";
 import { ApiError } from "@/lib/api";
 import { getUserCopy } from "@/lib/api/error-codes";
@@ -48,6 +58,7 @@ export function AttemptRunner(props: AttemptRunnerProps): React.ReactElement {
         target &&
         (target.tagName === "INPUT" ||
           target.tagName === "TEXTAREA" ||
+          target.tagName === "BUTTON" ||
           target.isContentEditable)
       ) {
         return;
@@ -401,13 +412,10 @@ function CompleteQuizButton({
 }): React.ReactElement {
   const { completeQuiz } = runner;
   const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [showIncompleteDialog, setShowIncompleteDialog] = React.useState(false);
   const { push } = useToast();
 
-  const handleSubmit = async () => {
-    if (!allAnswered) {
-      onNavigateToUnanswered?.();
-      return;
-    }
+  const performSubmit = async () => {
     setIsSubmitting(true);
     try {
       await completeQuiz();
@@ -424,25 +432,77 @@ function CompleteQuizButton({
     }
   };
 
+  const handleSubmit = () => {
+    if (isSubmitting) return;
+    if (!allAnswered) {
+      setShowIncompleteDialog(true);
+      return;
+    }
+    void performSubmit();
+  };
+
   return (
-    <div className="sticky bottom-3 z-20 bg-card/95 backdrop-blur-md p-4 border border-border/80 rounded-2xl shadow-lg mt-2">
-      <Button
-        type="button"
-        variant="default"
-        size="lg"
-        className="w-full bg-brand text-white hover:bg-brand-hover rounded-xl font-semibold py-3 shadow-sm hover:shadow-brand/20 transition-all cursor-pointer"
-        disabled={isSubmitting || !allAnswered}
-        onClick={handleSubmit}
-        data-testid="attempt-runner-submit-quiz"
+    <>
+      <div className="sticky bottom-3 z-20 bg-card/95 backdrop-blur-md p-4 border border-border/80 rounded-2xl shadow-lg mt-2">
+        <Button
+          type="button"
+          variant="default"
+          size="lg"
+          className="w-full bg-brand text-white hover:bg-brand-hover rounded-xl font-semibold py-3 shadow-sm hover:shadow-brand/20 transition-all cursor-pointer"
+          disabled={isSubmitting}
+          onClick={handleSubmit}
+          data-testid="attempt-runner-submit-quiz"
+        >
+          {isSubmitting ? "Submitting..." : "Submit Quiz"}
+        </Button>
+        {remainingCount > 0 && (
+          <p className="text-xs text-muted-foreground text-center mt-2 font-mono">
+            {remainingCount} question{remainingCount !== 1 ? "s" : ""} remaining
+          </p>
+        )}
+      </div>
+
+      <AlertDialog
+        open={showIncompleteDialog}
+        onOpenChange={setShowIncompleteDialog}
       >
-        {isSubmitting ? "Submitting..." : "Submit Quiz"}
-      </Button>
-      {remainingCount > 0 && (
-        <p className="text-xs text-muted-foreground text-center mt-2 font-mono">
-          {remainingCount} question{remainingCount !== 1 ? "s" : ""} remaining
-        </p>
-      )}
-    </div>
+        <AlertDialogContent data-testid="attempt-incomplete-submit-dialog">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Submit incomplete quiz?</AlertDialogTitle>
+            <AlertDialogDescription>
+              You still have{" "}
+              <span className="font-semibold text-foreground">
+                {remainingCount} unanswered question{remainingCount !== 1 ? "s" : ""}
+              </span>
+              . If you submit now, unanswered questions will be marked as{" "}
+              <span className="font-semibold text-foreground">undone</span> and
+              will not be scored. Are you sure you want to submit?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel
+              onClick={() => {
+                setShowIncompleteDialog(false);
+                onNavigateToUnanswered?.();
+              }}
+              data-testid="attempt-incomplete-submit-cancel"
+            >
+              Continue quiz
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                setShowIncompleteDialog(false);
+                void performSubmit();
+              }}
+              className="bg-brand text-white hover:bg-brand-hover cursor-pointer"
+              data-testid="attempt-incomplete-submit-confirm"
+            >
+              Submit anyway
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }
 

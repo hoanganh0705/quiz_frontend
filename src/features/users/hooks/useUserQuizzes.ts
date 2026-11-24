@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
+import { useAuthSession } from "@/features/auth/hooks/use-auth-session";
 
 import {
   ApiError,
@@ -94,6 +95,9 @@ export function useUserQuizzes(
     [userId, params?.limit, params?.status],
   );
 
+  const auth = useAuthSession();
+  const isAuthenticated = auth.isAuthenticated;
+
   return useCursorPaginated<QuizListItemWithId, UseUserQuizzesParams>({
     key: userId
       ? ([
@@ -107,5 +111,6 @@ export function useUserQuizzes(
     fetcher,
     params: params ?? {},
     paginationKind: "cursor",
+    enabled: Boolean(userId && isAuthenticated),
   });
 }

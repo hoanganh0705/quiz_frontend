@@ -16,7 +16,6 @@ import {
   type NotificationListFilters,
   type NotificationListPage,
 } from "@/features/notifications/types/notification.types";
-import { getFeatureFlagValue } from "@/lib/feature-flags";
 
 import type { GetNotifications200AllOf } from "@/lib/api/generated/schemas";
 
@@ -39,15 +38,10 @@ const DEFAULT_LIMIT = 20;
 export function useNotifications(
   filters: NotificationListFilters = DEFAULT_NOTIFICATION_LIST_FILTERS,
 ): UseNotificationsResult {
-  const flagValue = getFeatureFlagValue("notifications_live");
-  const isFlagPlaceholder = flagValue === "placeholder";
-
   const key = useMemo(
     () =>
-      isFlagPlaceholder
-        ? (["notifications", "list", "disabled"] as const)
-        : NOTIFICATION_CACHE_KEYS.list(filters),
-    [isFlagPlaceholder, filters],
+      NOTIFICATION_CACHE_KEYS.list(filters),
+    [filters],
   );
 
   const fetcher = useMemo(
@@ -55,7 +49,7 @@ export function useNotifications(
       async ({
         cursor,
       }: CursorFetcherArgs<NotificationListFilters>): Promise<NotificationListPage> => {
-        if (isFlagPlaceholder) {
+        if (false) {
           return {
             items: [],
             nextCursor: null,
@@ -80,12 +74,16 @@ export function useNotifications(
           params,
         )) as unknown as ListNotificationsWireResponse;
 
+        const rawItems = Array.isArray(wire)
+          ? wire
+          : ((wire?.data ?? []) as unknown as readonly Record<string, unknown>[]);
+
         const items: Notification[] = projectWithId(
-          (wire.data ?? []) as unknown as readonly Record<string, unknown>[],
+          rawItems as readonly Record<string, unknown>[],
           "notificationId",
         ) as unknown as Notification[];
 
-        const pagination = wire.meta?.pagination;
+        const pagination = !Array.isArray(wire) ? wire?.meta?.pagination : undefined;
         const limit = pagination?.limit ?? filters.limit ?? DEFAULT_LIMIT;
         return {
           items,
@@ -94,7 +92,7 @@ export function useNotifications(
           limit,
         };
       },
-    [isFlagPlaceholder, filters],
+    [filters],
   );
 
   const result = useCursorPaginated<Notification, NotificationListFilters>({

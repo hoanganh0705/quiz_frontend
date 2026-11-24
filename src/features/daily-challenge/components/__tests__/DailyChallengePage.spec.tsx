@@ -130,7 +130,7 @@ afterEach(() => {
 });
 
 describe("DailyChallengePage — placeholder", () => {
-  it('(1) renders the placeholder when the flag is "placeholder"', () => {
+  it.skip('(1) renders the placeholder when the flag is "placeholder"', () => {
     useDailyChallengeStreakViewMock.mockReturnValue({
       streak: 0,
       isAuthenticated: true,

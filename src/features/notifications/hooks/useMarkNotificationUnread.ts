@@ -10,7 +10,6 @@ import {
   NOTIFICATION_CACHE_KEYS,
   type NotificationMutationState,
 } from "@/features/notifications/types/notification.types";
-import { getFeatureFlagValue } from "@/lib/feature-flags";
 
 export interface UseMarkNotificationUnreadResult {
   markUnread: () => Promise<void>;
@@ -22,16 +21,13 @@ export interface UseMarkNotificationUnreadResult {
 export function useMarkNotificationUnread(
   notificationId: string | null,
 ): UseMarkNotificationUnreadResult {
-  const flagValue = getFeatureFlagValue("notifications_live");
-  const isFlagPlaceholder = flagValue === "placeholder";
-
   const [state, setState] = useState<NotificationMutationState>("idle");
   const [error, setError] = useState<ApiError | null>(null);
 
   const inFlightRef = useRef(false);
 
   const markUnread = useCallback(async (): Promise<void> => {
-    if (isFlagPlaceholder || notificationId === null) {
+    if (notificationId === null) {
       return;
     }
 
@@ -83,7 +79,7 @@ export function useMarkNotificationUnread(
     } finally {
       inFlightRef.current = false;
     }
-  }, [isFlagPlaceholder, notificationId, state]);
+  }, [notificationId, state]);
 
   const reset = useCallback(() => {
     setState("idle");

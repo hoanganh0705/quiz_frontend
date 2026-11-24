@@ -22,9 +22,6 @@ export type { ParticipantListProps } from "./ParticipantList";
 export { TournamentLeaderboard } from "./TournamentLeaderboard";
 export type { TournamentLeaderboardProps } from "./TournamentLeaderboard";
 
-export { TournamentPlaceholder } from "./TournamentPlaceholder";
-export type { TournamentPlaceholderProps } from "./TournamentPlaceholder";
-
 export {
   TournamentCardSkeleton,
   TournamentDetailSkeleton,

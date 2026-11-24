@@ -72,7 +72,7 @@ export function useUpdateVersion(
             );
           }
 
-          emitBreadcrumb("phase4:4.9:update-version", {
+          emitBreadcrumb("quizzes:update-version", {
             status: "success",
             durationMs: Date.now() - startedAt,
           });
@@ -84,7 +84,7 @@ export function useUpdateVersion(
             setError(err);
             onError?.(err);
 
-            emitBreadcrumb("phase4:4.9:update-version", {
+            emitBreadcrumb("quizzes:update-version", {
               status: "error",
               durationMs: Date.now() - startedAt,
               code: err.code,
@@ -93,7 +93,7 @@ export function useUpdateVersion(
             throw err;
           }
 
-          emitBreadcrumb("phase4:4.9:update-version", {
+          emitBreadcrumb("quizzes:update-version", {
             status: "error",
             durationMs: Date.now() - startedAt,
             code: "GLOBAL_UNKNOWN",

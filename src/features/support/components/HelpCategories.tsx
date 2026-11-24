@@ -31,9 +31,15 @@ export function HelpCategories({
   onCategoryChange,
 }: HelpCategoriesProps) {
   return (
-    <div className="bg-transparent border border-border rounded-lg p-6">
-      <h3 className="text-xl font-semibold mb-6">Help Categories</h3>
-      <nav className="space-y-2" role="navigation" aria-label="Help categories">
+    <div className="rounded-xl border border-border/80 bg-card p-4 shadow-xs sm:p-5">
+      <h3 className="mb-3 text-xs font-mono font-semibold uppercase tracking-wider text-muted-foreground lg:mb-4">
+        Help Categories
+      </h3>
+      <nav
+        className="flex gap-2 overflow-x-auto pb-1 scrollbar-none lg:flex-col lg:space-y-1.5 lg:overflow-visible lg:pb-0"
+        role="navigation"
+        aria-label="Help categories"
+      >
         {categories.map((category) => {
           const Icon = category.icon;
           const isActive = activeCategory === category.id;
@@ -41,15 +47,15 @@ export function HelpCategories({
             <button
               key={category.id}
               onClick={() => onCategoryChange(category.id)}
-              aria-current={isActive ? "page" : undefined}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-colors cursor-pointer ${
+              aria-pressed={isActive}
+              className={`inline-flex shrink-0 items-center gap-2 px-3 py-2 rounded-lg text-left transition-all duration-150 cursor-pointer text-sm whitespace-nowrap active:scale-95 lg:active:scale-100 lg:hover:translate-x-0.5 lg:w-full lg:gap-3 lg:px-3.5 lg:py-2.5 ${
                 isActive
-                  ? "bg-default text-foreground font-medium"
-                  : "text-foreground hover:bg-default-hover hover:text-foreground"
+                  ? "bg-primary text-primary-foreground font-medium shadow-xs"
+                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
               }`}
             >
-              <Icon className="w-5 h-5" aria-hidden="true" />
-              <span className="text-sm">{category.label}</span>
+              <Icon className="w-4 h-4 shrink-0" aria-hidden="true" />
+              <span>{category.label}</span>
             </button>
           );
         })}

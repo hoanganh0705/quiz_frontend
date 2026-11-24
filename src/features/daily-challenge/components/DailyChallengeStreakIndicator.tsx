@@ -16,11 +16,11 @@ export function DailyChallengeStreakIndicator({
       data-testid="daily-challenge-streak-indicator"
       aria-label={`Current streak: ${streak} ${streak === 1 ? "day" : "days"}`}
       className={cn(
-        "inline-flex items-center gap-1 text-sm font-medium text-foreground/90",
+        "inline-flex items-center gap-1.5 rounded-full border border-warning/30 bg-warning/10 px-3 py-1 text-xs font-semibold text-warning shadow-2xs font-mono tabular-nums",
         className,
       )}
     >
-      <Flame className="h-4 w-4 text-warning" aria-hidden="true" />
+      <Flame className="h-3.5 w-3.5 text-warning fill-warning" aria-hidden="true" />
       <span aria-hidden="true">
         {streak} {streak === 1 ? "day" : "days"} streak
       </span>

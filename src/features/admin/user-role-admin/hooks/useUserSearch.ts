@@ -1,11 +1,14 @@
 "use client";
 
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { getQueryClient } from "@/providers/QueryProvider";
 
+import {
+  listAdminUsers,
+  type AdminUserDto,
+} from "@/features/admin/services/user-admin.service";
 import { ApiError } from "@/lib/api/core/ApiError";
-import { getFeatureFlagValue } from "@/lib/feature-flags";
 
 import type { UserSearchResultDto } from "../user-role-admin-types";
 import { userRoleAdminSearchKey } from "../user-role-admin-cache";
@@ -19,36 +22,20 @@ interface SearchUsersResponse {
   total: number;
 }
 
-interface SocialUserSearchResult {
-  userId: string;
-  username: string;
-  email: string;
-  avatarUrl: string | null;
-}
-
-function useDebouncedValue(
-  value: string,
-  delay: number,
-): { debouncedValue: string } {
+function useDebouncedValue(value: string, delay: number): string {
   const [debouncedValue, setDebouncedValue] = useState(value);
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  useMemo(() => {
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-    }
-    timeoutRef.current = setTimeout(() => {
+  useEffect(() => {
+    const handler = setTimeout(() => {
       setDebouncedValue(value);
     }, delay);
 
     return () => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
+      clearTimeout(handler);
     };
   }, [value, delay]);
 
-  return { debouncedValue };
+  return debouncedValue;
 }
 
 export interface UseUserSearchResult {
@@ -59,6 +46,7 @@ export interface UseUserSearchResult {
   readonly error: ApiError | null;
   readonly loadMore: () => void;
   readonly hasMore: boolean;
+  readonly refetch: () => void;
 }
 
 const FALLBACK_RESULT: UseUserSearchResult = Object.freeze({
@@ -69,105 +57,87 @@ const FALLBACK_RESULT: UseUserSearchResult = Object.freeze({
   error: null,
   loadMore: () => undefined,
   hasMore: false,
+  refetch: () => undefined,
 });
 
 export function useUserSearch(query: string): UseUserSearchResult {
-  const flagValue = getFeatureFlagValue("admin_user_role_live");
-  const isFlagPlaceholder = flagValue === "placeholder";
-
-  if (isFlagPlaceholder) {
-    return FALLBACK_RESULT;
-  }
-
   const normalizedQuery = query.trim().toLowerCase();
 
-  if (normalizedQuery.length < USER_SEARCH_MIN_QUERY_LENGTH) {
-    return FALLBACK_RESULT;
-  }
-
-  const { debouncedValue: debouncedQuery } = useDebouncedValue(
+  const debouncedQuery = useDebouncedValue(
     normalizedQuery,
     USER_SEARCH_DEBOUNCE_MS,
   );
 
-  const key = useMemo<readonly [string, string] | null>(
+  const isQueryValid = debouncedQuery.length >= USER_SEARCH_MIN_QUERY_LENGTH;
+
+  const key = useMemo<readonly [string, string] | readonly ["disabled"]>(
     () =>
-      debouncedQuery.length >= USER_SEARCH_MIN_QUERY_LENGTH
+      isQueryValid
         ? ([userRoleAdminSearchKey(debouncedQuery), debouncedQuery] as const)
-        : null,
-    [debouncedQuery],
+        : (["disabled"] as const),
+    [debouncedQuery, isQueryValid],
   );
 
   const fetcher = useCallback(async (): Promise<SearchUsersResponse> => {
-    const response = await fetch(
-      `/api/v1/social/users/search?query=${encodeURIComponent(debouncedQuery)}`,
-      {
-        credentials: "same-origin",
-        headers: { Accept: "application/json" },
-      },
-    );
-
-    if (!response.ok) {
-      throw new ApiError({
-        isAxiosError: true,
-        name: "FetchError",
-        message: "User search failed",
-        config: undefined,
-        request: undefined,
-        response: {
-          status: response.status,
-          data: {
-            status: response.status,
-            detail: "User search failed",
-            title: "SearchError",
-          },
-        },
-        toJSON: () => ({}),
-      } as unknown as Parameters<typeof ApiError.fromAxios>[0]);
+    if (!isQueryValid) {
+      return { users: [], total: 0 };
     }
 
-    const data = (await response.json()) as {
-      items?: SocialUserSearchResult[];
-      users?: SocialUserSearchResult[];
-      total?: number;
-    };
+    const response = await listAdminUsers({
+      search: debouncedQuery,
+      limit: 20,
+    });
 
-    const items = (data.items ?? data.users ?? []) as SocialUserSearchResult[];
+    const items = response.data ?? [];
 
     return {
-      users: items.map((item): UserSearchResultDto => ({
+      users: items.map((item: AdminUserDto): UserSearchResultDto => ({
         userId: item.userId,
         username: item.username,
         email: item.email,
         avatar: item.avatarUrl,
-        currentRoles: [],
+        currentRoles: item.role ? [item.role] : [],
       })),
-      total: data.total ?? items.length,
+      total: response.meta?.pagination?.total ?? items.length,
     };
-  }, [debouncedQuery]);
+  }, [debouncedQuery, isQueryValid]);
 
-  const { data, error, isLoading } = useQuery<SearchUsersResponse, ApiError>(
+  const { data, error, isLoading, refetch } = useQuery<SearchUsersResponse, ApiError>(
     {
-      queryKey: key ?? ["disabled"],
+      queryKey: key,
       queryFn: fetcher,
-      enabled: key !== null,
+      enabled: isQueryValid,
       refetchOnWindowFocus: false,
       refetchOnReconnect: true,
     },
     getQueryClient(),
   );
 
+  const handleRefetch = useCallback(() => {
+    if (isQueryValid) {
+      void refetch();
+    }
+  }, [isQueryValid, refetch]);
+
   const loadMore = useCallback(() => {
-    // Pagination not implemented
+    // Pagination placeholder
   }, []);
+
+  if (normalizedQuery.length < USER_SEARCH_MIN_QUERY_LENGTH) {
+    return {
+      ...FALLBACK_RESULT,
+      refetch: handleRefetch,
+    };
+  }
 
   return {
     users: data?.users ?? [],
     total: data?.total ?? 0,
-    isLoading: key !== null && isLoading && data === undefined,
+    isLoading: isQueryValid && isLoading && data === undefined,
     isStale: isLoading,
-    error: error ?? null,
+    error: isQueryValid ? (error ?? null) : null,
     loadMore,
     hasMore: false,
+    refetch: handleRefetch,
   };
 }

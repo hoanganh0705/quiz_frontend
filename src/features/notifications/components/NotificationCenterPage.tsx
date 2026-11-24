@@ -2,16 +2,26 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { Check, Loader2, Settings } from "lucide-react";
+import { Check, Loader2, Settings, Trash2 } from "lucide-react";
 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/AlertDialog";
 import { Button } from "@/components/ui/Button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/Tabs";
 import { cn } from "@/shared/utils/merge-class-names";
 
 import {
   useNotifications,
-  useNotificationFeatureFlag,
   useMarkAllNotificationsRead,
+  useDeleteAllNotifications,
 } from "@/features/notifications/hooks";
 
 import {
@@ -19,7 +29,6 @@ import {
   NotificationListSkeleton,
   NotificationEmptyState,
   NotificationErrorState,
-  NotificationPlaceholder,
 } from "@/features/notifications/components";
 
 type FilterTab = "all" | "unread" | "read";
@@ -33,11 +42,6 @@ export interface NotificationCenterPageProps {
 export function NotificationCenterPage({
   className,
 }: NotificationCenterPageProps) {
-  const { isPlaceholder } = useNotificationFeatureFlag();
-
-  if (isPlaceholder) {
-    return <NotificationPlaceholder className={className} />;
-  }
 
   return <NotificationCenterPageLive className={className} />;
 }
@@ -71,11 +75,24 @@ function NotificationCenterPageLive({
 
   const hasUnread = useMemo(() => items.some((n) => !n.isRead), [items]);
 
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+
   const {
     markAllRead,
     state: markAllState,
     error: markAllError,
   } = useMarkAllNotificationsRead();
+
+  const {
+    deleteAll,
+    state: deleteAllState,
+    error: deleteAllError,
+  } = useDeleteAllNotifications();
+
+  const handleDeleteAll = async () => {
+    setIsConfirmOpen(false);
+    await deleteAll();
+  };
 
   const markAllCopy = markAllError
     ? "Retry mark all as read"
@@ -111,6 +128,7 @@ function NotificationCenterPageLive({
                 onClick={() => void markAllRead()}
                 disabled={markAllState === "pending" || isLoading}
                 aria-label="Mark all notifications as read"
+                data-testid="notification-mark-all-button"
               >
                 {markAllState === "pending" ? (
                   <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" />
@@ -120,8 +138,49 @@ function NotificationCenterPageLive({
                 {markAllCopy}
               </Button>
             )}
+            {visibleItems.length > 0 && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="text-destructive hover:text-destructive hover:bg-destructive/10 border-destructive/30"
+                onClick={() => setIsConfirmOpen(true)}
+                disabled={deleteAllState === "pending" || isLoading}
+                aria-label="Delete all notifications"
+                data-testid="notification-delete-all-button"
+              >
+                {deleteAllState === "pending" ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" />
+                ) : (
+                  <Trash2 className="h-3.5 w-3.5 mr-1.5" />
+                )}
+                Delete all
+              </Button>
+            )}
           </div>
         </div>
+
+        <AlertDialog open={isConfirmOpen} onOpenChange={setIsConfirmOpen}>
+          <AlertDialogContent data-testid="notification-delete-all-dialog">
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete all notifications?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to delete all notifications? This action cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel data-testid="notification-delete-all-cancel">
+                Cancel
+              </AlertDialogCancel>
+              <AlertDialogAction
+                onClick={() => void handleDeleteAll()}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                data-testid="notification-delete-all-confirm"
+              >
+                Delete all
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
 
         <Tabs
           value={tab}
@@ -142,6 +201,16 @@ function NotificationCenterPageLive({
             data-testid="notification-mark-all-error"
           >
             {markAllError.message}
+          </div>
+        )}
+
+        {deleteAllError && (
+          <div
+            className="mt-3 rounded-lg border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950/30 px-3 py-2 text-xs text-red-700 dark:text-red-300"
+            role="alert"
+            data-testid="notification-delete-all-error"
+          >
+            {deleteAllError.message}
           </div>
         )}
       </header>

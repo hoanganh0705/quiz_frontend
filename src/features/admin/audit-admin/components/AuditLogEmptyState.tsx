@@ -1,5 +1,8 @@
 "use client";
 
+import { SearchX, ShieldCheck } from "lucide-react";
+import { Button } from "@/components/ui/Button";
+
 export interface AuditLogEmptyStateProps {
   hasActiveFilters: boolean;
 
@@ -13,44 +16,35 @@ export function AuditLogEmptyState({
   if (hasActiveFilters) {
     return (
       <div
-        className="flex flex-col items-center justify-center rounded-md border border-dashed border-border bg-muted/20 p-8 text-center"
+        className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border/80 bg-card/50 py-12 px-6 text-center"
         data-testid="audit-log-empty-state-filtered"
       >
-        <svg
-          className="mb-3 h-10 w-10 text-muted-foreground/50"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-          strokeWidth={1.5}
-          aria-hidden="true"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
-          />
-        </svg>
+        <div className="mb-3 flex size-12 items-center justify-center rounded-full bg-muted/60 text-muted-foreground">
+          <SearchX className="h-6 w-6" aria-hidden="true" />
+        </div>
         <p
-          className="text-sm font-medium text-muted-foreground"
+          className="text-sm font-semibold text-foreground"
           data-testid="audit-log-empty-state-filtered-title"
         >
           No entries match your filters
         </p>
         <p
-          className="mt-1 text-xs text-muted-foreground/70"
+          className="mt-1 text-xs text-muted-foreground max-w-sm"
           data-testid="audit-log-empty-state-filtered-description"
         >
           Try adjusting your filters or clearing them to see all entries.
         </p>
         {onClearFilters && (
-          <button
+          <Button
             type="button"
-            className="mt-4 inline-flex items-center justify-center rounded-md border border-border bg-background px-3 py-1.5 text-xs font-medium text-foreground hover:bg-muted focus:outline-none focus:ring-2 focus:ring-primary"
+            variant="outline"
+            size="sm"
+            className="mt-4 text-xs h-8 px-3"
             onClick={onClearFilters}
             data-testid="audit-log-empty-state-clear-filters"
           >
             Clear filters
-          </button>
+          </Button>
         )}
       </div>
     );
@@ -58,31 +52,20 @@ export function AuditLogEmptyState({
 
   return (
     <div
-      className="flex flex-col items-center justify-center rounded-md border border-dashed border-border bg-muted/20 p-8 text-center"
+      className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border/80 bg-card/50 py-12 px-6 text-center"
       data-testid="audit-log-empty-state"
     >
-      <svg
-        className="mb-3 h-10 w-10 text-muted-foreground/50"
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke="currentColor"
-        strokeWidth={1.5}
-        aria-hidden="true"
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
-        />
-      </svg>
+      <div className="mb-3 flex size-12 items-center justify-center rounded-full bg-muted/60 text-muted-foreground">
+        <ShieldCheck className="h-6 w-6" aria-hidden="true" />
+      </div>
       <p
-        className="text-sm font-medium text-muted-foreground"
+        className="text-sm font-semibold text-foreground"
         data-testid="audit-log-empty-state-title"
       >
         No audit entries yet
       </p>
       <p
-        className="mt-1 text-xs text-muted-foreground/70"
+        className="mt-1 text-xs text-muted-foreground max-w-sm"
         data-testid="audit-log-empty-state-description"
       >
         Admin actions will appear here as they are performed.

@@ -15,6 +15,7 @@ import { myQuizzesKey } from "@/features/quizzes/types/my-quizzes";
 
 export interface UseMyQuizzesPublishedParams {
   limit?: number;
+  enabled?: boolean;
 }
 
 type GetMyQuizzesPublishedResponse = {
@@ -79,5 +80,6 @@ export function useMyQuizzesPublished(
     fetcher,
     params: params ?? {},
     paginationKind: "cursor",
+    enabled: params?.enabled ?? true,
   });
 }

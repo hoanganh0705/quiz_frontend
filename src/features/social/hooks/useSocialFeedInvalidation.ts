@@ -4,7 +4,6 @@ import { useCallback } from "react";
 
 import { useSocket } from "@/lib/realtime/useSocket";
 import { NOTIFICATIONS_NAMESPACE } from "@/lib/realtime";
-import { getFeatureFlagValue } from "@/lib/feature-flags";
 import { mutateCarefully } from "@/lib/api/mutate-carefully";
 import { addSocialRealtimeBreadcrumb } from "@/lib/social/social-realtime-sentry";
 
@@ -13,8 +12,7 @@ import { SOCIAL_CACHE_KEYS } from "@/features/social/types/relationship";
 import type { FeedItemAddedPayload } from "@/features/social/realtime";
 
 export function useSocialFeedInvalidation(viewerUserId: string | null): void {
-  const flagValue = getFeatureFlagValue("social_realtime_notifications_live");
-  const realtimeEnabled = flagValue !== "placeholder" && viewerUserId !== null;
+  const realtimeEnabled = viewerUserId !== null;
 
   const { socket } = useSocket(NOTIFICATIONS_NAMESPACE, {
     autoConnect: realtimeEnabled,

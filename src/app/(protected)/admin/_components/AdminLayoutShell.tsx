@@ -4,7 +4,6 @@ import type React from "react";
 import { SidebarProvider, SidebarInset } from "@/components/ui/Sidebar";
 import { AdminSidebar } from "./AdminSidebar";
 import { AdminHeader } from "./AdminHeader";
-import { AdminFeatureFlagBoundary } from "@/features/admin/components/AdminFeatureFlagBoundary";
 import { AdminRoleGuard } from "@/features/admin/components/AdminRoleGuard";
 
 interface AdminLayoutShellProps {
@@ -13,18 +12,16 @@ interface AdminLayoutShellProps {
 
 export function AdminLayoutShell({ children }: AdminLayoutShellProps) {
   return (
-    <AdminFeatureFlagBoundary>
-      <AdminRoleGuard>
-        <SidebarProvider>
-          <AdminSidebar />
-          <SidebarInset>
-            <AdminHeader />
-            <main className="pt-14 min-h-screen">
-              <div className="app-page-transition">{children}</div>
-            </main>
-          </SidebarInset>
-        </SidebarProvider>
-      </AdminRoleGuard>
-    </AdminFeatureFlagBoundary>
+    <AdminRoleGuard>
+      <SidebarProvider>
+        <AdminSidebar />
+        <SidebarInset id="main-content" tabIndex={-1} className="outline-none">
+          <AdminHeader />
+          <div className="flex-1 min-h-[calc(100vh-3.5rem)]">
+            <div className="app-page-transition">{children}</div>
+          </div>
+        </SidebarInset>
+      </SidebarProvider>
+    </AdminRoleGuard>
   );
 }

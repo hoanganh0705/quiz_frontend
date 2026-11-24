@@ -24,6 +24,7 @@ import {
 } from "@/features/admin/review-moderation/action-enum";
 import { isSelfModerationAttempt } from "@/features/admin/review-moderation/report-id-validation";
 import type { AdminReportDto } from "@/features/admin/review-moderation/admin-report-types";
+import { cn } from "@/shared/utils/merge-class-names";
 
 export interface ReviewReportActionMenuProps {
   report: AdminReportDto;
@@ -57,18 +58,15 @@ export const ReviewReportActionMenu = memo(function ReviewReportActionMenu({
     return (
       <button
         type="button"
-        className={[
-          "flex h-8 w-8 cursor-progress items-center justify-center",
-          "rounded-md text-muted-foreground",
-          className ?? "",
-        ]
-          .filter(Boolean)
-          .join(" ")}
+        className={cn(
+          "flex size-9 cursor-progress items-center justify-center rounded-lg border border-border/50 text-muted-foreground",
+          className,
+        )}
         aria-label="Loading actions"
         data-testid={`review-report-action-trigger-${report.reportId}`}
         disabled
       >
-        <MoreHorizontal className="h-4 w-4" aria-hidden="true" />
+        <MoreHorizontal className="size-4" aria-hidden="true" />
       </button>
     );
   }
@@ -85,10 +83,10 @@ export const ReviewReportActionMenu = memo(function ReviewReportActionMenu({
     return (
       <div
         role="note"
-        className="rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-900"
+        className="rounded-md border border-warning/35 bg-warning/10 px-3 py-1.5 text-xs text-warning dark:bg-warning/20"
         data-testid={`review-report-self-moderation-notice-${report.reportId}`}
       >
-        You can&apos;t moderate a report about a review you wrote.
+        You can&apos;t moderate your own review.
       </div>
     );
   }
@@ -98,20 +96,16 @@ export const ReviewReportActionMenu = memo(function ReviewReportActionMenu({
       <DropdownMenuTrigger asChild>
         <button
           type="button"
-          className={[
-            "flex h-8 w-8 items-center justify-center rounded-md",
-            "text-muted-foreground transition-colors",
-            "hover:bg-muted hover:text-foreground",
-            "focus-visible:outline-none focus-visible:ring-2",
-            "focus-visible:ring-ring focus-visible:ring-offset-2",
-            className ?? "",
-          ]
-            .filter(Boolean)
-            .join(" ")}
+          className={cn(
+            "flex size-9 items-center justify-center rounded-lg border border-border/60 bg-background",
+            "text-muted-foreground transition-all hover:bg-muted hover:text-foreground hover:border-input",
+            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+            className,
+          )}
           aria-label="Report actions"
           data-testid={`review-report-action-trigger-${report.reportId}`}
         >
-          <MoreHorizontal className="h-4 w-4" aria-hidden="true" />
+          <MoreHorizontal className="size-4" aria-hidden="true" />
         </button>
       </DropdownMenuTrigger>
 
@@ -136,11 +130,12 @@ export const ReviewReportActionMenu = memo(function ReviewReportActionMenu({
               <DropdownMenuItem
                 onClick={handleSelect(action)}
                 data-testid={`review-report-action-${action}-${report.reportId}`}
+                className={isIrreversible ? "text-destructive focus:text-destructive focus:bg-destructive/10" : undefined}
               >
                 <span className="flex flex-col gap-0.5">
-                  <span className="text-sm">{metadata.label}</span>
+                  <span className="text-sm font-medium">{metadata.label}</span>
                   {isIrreversible ? (
-                    <span className="text-xs text-muted-foreground">
+                    <span className="text-xs text-destructive/80">
                       This cannot be undone.
                     </span>
                   ) : null}

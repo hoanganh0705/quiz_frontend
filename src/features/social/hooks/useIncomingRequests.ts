@@ -5,7 +5,6 @@ import { useMemo } from "react";
 import { ApiError, useCursorPaginated } from "@/lib/api";
 import type { CursorFetcherArgs } from "@/lib/api/use-cursor-paginated.types";
 
-import { getFeatureFlagValue } from "@/lib/feature-flags";
 
 import { toFriendRequest } from "@/features/social/dto-adapters";
 import { getPendingRequests } from "@/features/social/services";
@@ -44,17 +43,14 @@ const PLACEHOLDER_RESULT: UseIncomingRequestsResult = Object.freeze({
 });
 
 export function useIncomingRequests(): UseIncomingRequestsResult {
-  const flagValue = getFeatureFlagValue("social_relationship_live");
-  const isFlagPlaceholder = flagValue === "placeholder";
-
   const auth = useAuthSession();
   const isAuthenticated = auth.isAuthenticated;
 
   const key = useMemo<readonly unknown[] | null>(() => {
-    if (isFlagPlaceholder) return null;
+    if (false) return null;
     if (!isAuthenticated) return null;
     return SOCIAL_CACHE_KEYS.makeIncomingRequestsKey();
-  }, [isFlagPlaceholder, isAuthenticated]);
+  }, [isAuthenticated]);
 
   const fetcher = useMemo(
     () =>
@@ -66,7 +62,7 @@ export function useIncomingRequests(): UseIncomingRequestsResult {
         hasNextPage: boolean;
         limit: number;
       }> => {
-        if (isFlagPlaceholder || !isAuthenticated) {
+        if (!isAuthenticated) {
           return EMPTY_PAGE;
         }
         try {
@@ -91,7 +87,7 @@ export function useIncomingRequests(): UseIncomingRequestsResult {
         }
         void cursor;
       },
-    [isFlagPlaceholder, isAuthenticated],
+    [isAuthenticated],
   );
 
   const result = useCursorPaginated<
@@ -104,7 +100,7 @@ export function useIncomingRequests(): UseIncomingRequestsResult {
     paginationKind: "cursor",
   });
 
-  if (isFlagPlaceholder) return PLACEHOLDER_RESULT;
+  if (false) return PLACEHOLDER_RESULT;
   if (!isAuthenticated) return PLACEHOLDER_RESULT;
 
   return {

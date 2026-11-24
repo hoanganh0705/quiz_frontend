@@ -1,3 +1,4 @@
+import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 
 export interface QuizGridLoadMoreProps {
@@ -28,7 +29,14 @@ export function QuizGridLoadMore({
         disabled={isLoading}
         aria-disabled={isLoading}
         data-testid="quiz-grid-load-more-button"
+        className="min-w-[180px] transition-all duration-200 hover:border-brand/40"
       >
+        {isLoading && (
+          <Loader2
+            className="mr-2 h-4 w-4 animate-spin text-brand"
+            aria-hidden="true"
+          />
+        )}
         {isLoading ? "Loading more quizzes…" : "Load more quizzes"}
       </Button>
     </div>

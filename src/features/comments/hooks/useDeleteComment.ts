@@ -63,10 +63,6 @@ export function useDeleteComment(
       try {
         await deleteComment(commentId);
 
-        if (parentId) {
-          lookup.decrementRepliesCount(parentId);
-        }
-
         try {
           const qc = getQueryClient();
           await qc.invalidateQueries({

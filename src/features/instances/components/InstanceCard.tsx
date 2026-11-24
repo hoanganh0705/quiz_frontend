@@ -49,7 +49,7 @@ export function InstanceCard({ instance, className }: InstanceCardProps) {
         return (
           <Badge
             variant="outline"
-            className="border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-400 font-medium text-xs px-2.5 py-0.5 animate-pulse"
+            className="border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-400 font-semibold text-xs px-2.5 py-0.5 animate-pulse motion-reduce:animate-none"
           >
             Starting Soon
           </Badge>
@@ -92,6 +92,7 @@ export function InstanceCard({ instance, className }: InstanceCardProps) {
         isClosed && "opacity-80 bg-muted/20 border-muted/60",
         className,
       )}
+      role="listitem"
       data-testid={`instance-card-${instanceId}`}
     >
       <CardContent className="p-5 flex flex-col flex-1 justify-between gap-4">
@@ -111,7 +112,7 @@ export function InstanceCard({ instance, className }: InstanceCardProps) {
             <h3 className="font-semibold text-lg line-clamp-2 leading-snug group-hover:text-brand transition-colors">
               <Link
                 href={roomUrl}
-                className="focus:outline-none focus:underline"
+                className="rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 hover:underline"
               >
                 {quizTitle || "Untitled Quiz"}
               </Link>
@@ -124,22 +125,16 @@ export function InstanceCard({ instance, className }: InstanceCardProps) {
               className="inline-flex items-center gap-1.5"
               title={`Host: ${hostName}`}
             >
-              <Crown className="h-3.5 w-3.5 text-amber-500" />
+              <Crown className="h-3.5 w-3.5 text-amber-500 shrink-0" aria-hidden="true" />
               <span className="truncate max-w-32">{hostName}</span>
             </span>
 
-            <span className="inline-flex items-center gap-1.5">
-              <Users className="h-3.5 w-3.5 text-muted-foreground" />
+            <span className="inline-flex items-center gap-1.5 font-mono tabular-nums">
+              <Users className="h-3.5 w-3.5 text-muted-foreground shrink-0" aria-hidden="true" />
               <span>
-                {playerCount === 0 ? (
-                  "No players"
-                ) : (
-                  <>
-                    {playerCount}
-                    {maxPlayers ? ` / ${maxPlayers}` : ""}{" "}
-                    {playerCount === 1 ? "player" : "players"}
-                  </>
-                )}
+                {playerCount === 0
+                  ? "No players"
+                  : `${playerCount}${maxPlayers ? ` / ${maxPlayers}` : ""} ${playerCount === 1 ? "player" : "players"}`}
               </span>
             </span>
           </div>
@@ -150,7 +145,7 @@ export function InstanceCard({ instance, className }: InstanceCardProps) {
           {isJoinable ? (
             <Button
               asChild
-              className="w-full bg-brand text-white hover:bg-brand-hover shadow-sm font-medium"
+              className="w-full bg-brand text-brand-foreground hover:bg-brand-hover shadow-sm font-medium"
               size="default"
               data-testid={`join-instance-button-${instanceId}`}
             >

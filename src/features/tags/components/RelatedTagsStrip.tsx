@@ -11,7 +11,7 @@ const QUERY_KEY_FACTORY = (slug: string, params: { limit: number }) =>
   ["tag", slug, "related", params] as const;
 
 const STRIP_CONTAINER =
-  "flex gap-3 overflow-x-auto pb-4 snap-x snap-mandatory scroll-mt-16";
+  "flex gap-3 overflow-x-auto pb-4 snap-x snap-mandatory scroll-mt-16 scrollbar-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden";
 const STRIP_HEADER =
   "mb-3 flex items-center justify-between gap-2 text-sm text-muted-foreground";
 

@@ -4,7 +4,6 @@ import { useCallback, useRef } from "react";
 
 import * as Sentry from "@sentry/nextjs";
 
-import { getFeatureFlagValue } from "@/lib/feature-flags";
 
 import type {
   GameplayEventEnvelope,
@@ -35,9 +34,6 @@ export interface UseSocketEventSequenceResult {
 export function useSocketEventSequence(
   instanceId: string | null,
 ): UseSocketEventSequenceResult {
-  const flagValue = getFeatureFlagValue("multiplayer_play_live");
-  const isPlaceholder = flagValue === "placeholder";
-
   const registry = useRef<Map<string, SequenceMap>>(new Map());
 
   function getMap(id: string): SequenceMap {
@@ -51,20 +47,18 @@ export function useSocketEventSequence(
   const shouldAccept = useCallback(
     (event: GameplayEventName, sequence: number): boolean => {
       if (instanceId === null) return false;
-      if (isPlaceholder) return false;
       if (!Number.isFinite(sequence) || sequence < 0) return false;
 
       const map = getMap(instanceId);
       const last = map[event];
       return compareSeq(sequence, last) > 0;
     },
-    [instanceId, isPlaceholder],
+    [instanceId],
   );
 
   const markAccepted = useCallback(
     (event: GameplayEventName, sequence: number): void => {
       if (instanceId === null) return;
-      if (isPlaceholder) return;
       if (!Number.isFinite(sequence) || sequence < 0) return;
 
       const map = getMap(instanceId);
@@ -86,7 +80,7 @@ export function useSocketEventSequence(
         });
       }
     },
-    [instanceId, isPlaceholder],
+    [instanceId],
   );
 
   const lastAcceptedSequence = useCallback(

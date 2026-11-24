@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useState } from "react";
 
 import {
   Dialog,
@@ -50,6 +50,14 @@ export function TagCreateDialog({
     slug.trim().length > 0 &&
     !isSlugConflict;
 
+  const handleClose = useCallback(() => {
+    reset();
+    setName("");
+    setSlug("");
+    setRenamedSlug("");
+    onOpenChange(false);
+  }, [reset, onOpenChange]);
+
   const handleSubmit = useCallback(
     async (e: React.FormEvent) => {
       e.preventDefault();
@@ -63,7 +71,7 @@ export function TagCreateDialog({
       }
     },
 
-    [canSubmit, create, name, slug, onCreated],
+    [canSubmit, create, name, slug, onCreated, handleClose],
   );
 
   const handleConflictRename = useCallback(
@@ -79,16 +87,8 @@ export function TagCreateDialog({
       }
     },
 
-    [renamedSlug, isPending, create, name, onCreated],
+    [renamedSlug, isPending, create, name, onCreated, handleClose],
   );
-
-  const handleClose = useCallback(() => {
-    reset();
-    setName("");
-    setSlug("");
-    setRenamedSlug("");
-    onOpenChange(false);
-  }, [reset, onOpenChange]);
 
   if (!hasPermission) {
     return (
@@ -137,7 +137,7 @@ export function TagCreateDialog({
             />
           )}
 
-          <DialogFooter className="gap-2 sm:gap-0">
+          <DialogFooter className="gap-2 sm:gap-2">
             <Button
               type="button"
               variant="outline"

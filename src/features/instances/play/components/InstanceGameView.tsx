@@ -1,12 +1,10 @@
 "use client";
 
 import { useAuthSession } from "@/features/auth/hooks/use-auth-session";
-import { getFeatureFlagValue } from "@/lib/feature-flags";
 
 import { useInstanceLifecycle } from "@/features/instances/play/hooks";
 
 import { GameConnectionStatus } from "./shared/GameConnectionStatus";
-import { GameEmptyState } from "./shared/GameEmptyState";
 
 import { QuestionCard } from "./QuestionCard";
 import { AnswerOptions } from "./AnswerOptions";
@@ -23,40 +21,17 @@ interface InstanceGameViewProps {
   className?: string;
 }
 
-function PlaceholderView({ className }: { className?: string }) {
-  return (
-    <div className={className} data-testid="game-placeholder" role="status">
-      <GameEmptyState />
-      <p className="text-xs text-muted-foreground text-center mt-4">
-        Gameplay features are currently under development.
-      </p>
-    </div>
-  );
-}
-
 export function InstanceGameView({
   instanceId,
   className,
 }: InstanceGameViewProps) {
   const { currentUser } = useAuthSession();
   const currentPlayerId = currentUser?.userId ?? null;
-
-  const flagValue = getFeatureFlagValue("multiplayer_play_live");
-  const isPlaceholder = flagValue === "placeholder";
-
   const { closure } = useInstanceLifecycle(instanceId);
 
   const isClosed =
     closure !== null &&
     (closure.status === "closed" || closure.status === "cancelled");
-
-  if (isPlaceholder) {
-    return (
-      <div className={className}>
-        <PlaceholderView />
-      </div>
-    );
-  }
 
   if (isClosed) {
     return (

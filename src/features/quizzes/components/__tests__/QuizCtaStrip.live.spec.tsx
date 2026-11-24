@@ -1,6 +1,10 @@
-import { describe, expect, it, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
 import * as React from "react";
+
+import { render, screen } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
+
+import { useActiveAttempt } from "@/features/attempts/hooks/useActiveAttempt";
+import { QuizCtaStrip } from "@/features/quizzes/components/QuizCtaStrip";
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: vi.fn(), replace: vi.fn() }),
@@ -9,7 +13,6 @@ vi.mock("next/navigation", () => ({
 vi.mock("@/features/attempts/hooks/useActiveAttempt", () => ({
   useActiveAttempt: vi.fn(),
 }));
-import { useActiveAttempt } from "@/features/attempts/hooks/useActiveAttempt";
 
 vi.mock("@/features/attempts/components/AttemptStartCta", () => ({
   AttemptStartCta: () => (
@@ -50,12 +53,7 @@ vi.mock("@/features/auth/hooks/use-auth-session", () => ({
     children,
 }));
 
-vi.mock("@/lib/feature-flags", () => ({
-  isFeatureEnabled: (_flag: string, expected: string) => expected === "live",
-  getFeatureFlagValue: () => "live" as const,
-}));
 
-import { QuizCtaStrip } from "@/features/quizzes/components/QuizCtaStrip";
 
 const useActiveAttemptMock = vi.mocked(useActiveAttempt);
 

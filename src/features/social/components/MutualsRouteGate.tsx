@@ -7,9 +7,7 @@ import type { MutualPreviewKind } from "@/features/social/components/MutualPrevi
 import { MutualFollowersList } from "@/features/social/lists/MutualFollowersList";
 import { MutualFriendsList } from "@/features/social/lists/MutualFriendsList";
 import { PrivacyRestrictedNotice } from "@/features/social/components/PrivacyRestrictedNotice";
-import { SocialMutualsPlaceholder } from "@/features/social/components/SocialMutualsPlaceholder";
 import type { SocialListKind } from "@/features/social/components/SocialListKind";
-import { getFeatureFlagValue } from "@/lib/feature-flags";
 
 export type MutualsRouteKind = Extract<
   MutualPreviewKind,
@@ -27,12 +25,6 @@ export function MutualsRouteGate(
 ): React.ReactElement {
   const { kind, targetUserId } = props;
 
-  const parentFlag = useMemo(() => getFeatureFlagValue("social_live"), []);
-  const mutualsFlag = useMemo(
-    () => getFeatureFlagValue("social_mutuals_live"),
-    [],
-  );
-
   const { isAuthenticated } = useAuthState();
 
   if (!isAuthenticated) {
@@ -44,10 +36,6 @@ export function MutualsRouteGate(
         resourceKind={resourceKind}
       />
     );
-  }
-
-  if (parentFlag === "placeholder" || mutualsFlag === "placeholder") {
-    return <SocialMutualsPlaceholder kind={kind} targetUserId={targetUserId} />;
   }
 
   if (kind === "friends") {

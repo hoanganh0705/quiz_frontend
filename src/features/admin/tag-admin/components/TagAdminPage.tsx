@@ -2,11 +2,9 @@
 
 import { useCallback, useEffect, useState } from "react";
 
-import { Plus, Shield } from "lucide-react";
+import { Plus } from "lucide-react";
 
-import { EmptyState } from "@/components/ui/EmptyState";
 import { Button } from "@/components/ui/Button";
-import { useAdminFeatureFlag } from "@/features/admin/hooks";
 import { usePermission } from "@/features/admin/hooks";
 import { useToast, DEFAULT_TOAST_DURATION_MS } from "@/lib/forms/useToast";
 import { getQueryClient } from "@/providers/QueryProvider";
@@ -19,17 +17,6 @@ import { TAG_ADMIN_LIST_KEY } from "../hooks/useTagAdminList";
 import { invalidatePublicTagCaches } from "../cache/tag-cache-keys";
 import { subscribeTagAdminInvalidate } from "../cache/tag-cross-tab";
 
-function TagAdminComingSoon() {
-  return (
-    <EmptyState
-      icon={Shield}
-      title="Tag management coming soon"
-      description="Tag admin surfaces are not yet enabled. Set NEXT_PUBLIC_ADMIN_TAG_LIVE=live to preview the feature."
-      size="md"
-    />
-  );
-}
-
 const PERMISSION_CREATE = "tag_create";
 
 export interface TagAdminPageProps {
@@ -37,7 +24,6 @@ export interface TagAdminPageProps {
 }
 
 export function TagAdminPage(_props: TagAdminPageProps) {
-  const { isLive } = useAdminFeatureFlag("admin_tag_live");
   const { hasPermission } = usePermission(PERMISSION_CREATE);
   const { push } = useToast();
 
@@ -64,7 +50,6 @@ export function TagAdminPage(_props: TagAdminPageProps) {
   );
 
   useEffect(() => {
-    if (!isLive) return;
     const unsubscribe = subscribeTagAdminInvalidate(() => {
       try {
         const qc = getQueryClient();
@@ -73,30 +58,33 @@ export function TagAdminPage(_props: TagAdminPageProps) {
       void invalidatePublicTagCaches();
     });
     return unsubscribe;
-  }, [isLive]);
-
-  if (!isLive) {
-    return <TagAdminComingSoon />;
-  }
+  }, []);
 
   return (
-    <div className="px-4 sm:px-6 pb-8">
+    <div className="mx-auto max-w-7xl px-4 sm:px-6 pb-8 space-y-6 pt-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-6">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Tags</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+            Tags
+          </h1>
           <p className="text-sm text-muted-foreground mt-1">
             Organize and manage quiz tags for better discoverability.
           </p>
         </div>
         {hasPermission && (
-          <Button onClick={() => setCreateOpen(true)} className="gap-2">
+          <Button
+            onClick={() => setCreateOpen(true)}
+            className="gap-2 shrink-0 self-start sm:self-auto shadow-xs transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0"
+          >
             <Plus className="h-4 w-4" />
-            Add Tag
+            <span>Add Tag</span>
           </Button>
         )}
       </div>
 
-      <TagAdminList />
+      <TagAdminList
+        onAddTag={hasPermission ? () => setCreateOpen(true) : undefined}
+      />
 
       <TagCreateDialog
         open={createOpen}

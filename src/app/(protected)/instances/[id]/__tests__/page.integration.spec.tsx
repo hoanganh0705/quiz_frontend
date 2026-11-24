@@ -1,7 +1,9 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { cleanup, render, screen } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-const mockUseInstancesFeatureFlag = vi.fn();
+import InstanceRoomRoute, {
+  metadata,
+} from "@/app/(protected)/instances/[id]/page";
 const mockUseInstance = vi.fn();
 const mockUseAuthBootstrap = vi.fn();
 
@@ -13,9 +15,6 @@ vi.mock("@/features/instances/hooks/useInstance", () => ({
   useInstance: () => mockUseInstance(),
 }));
 
-vi.mock("@/features/instances/hooks/useInstancesFeatureFlag", () => ({
-  useInstancesFeatureFlag: () => mockUseInstancesFeatureFlag(),
-}));
 
 vi.mock("@/features/instances/hooks/useInstanceSocket", () => ({
   useInstanceSocket: () => ({
@@ -38,17 +37,10 @@ vi.mock("@/features/instances/pages/InstanceRoomPage", async () => {
   };
 });
 
-import InstanceRoomRoute, {
-  metadata,
-} from "@/app/(protected)/instances/[id]/page";
 
 describe("/instances/[id] route", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockUseInstancesFeatureFlag.mockReturnValue({
-      isPlaceholder: false,
-      flagValue: "live",
-    });
     mockUseInstance.mockReturnValue({
       instance: null,
       isLoading: false,
