@@ -10,10 +10,8 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/AlertDialog";
 import { Button } from "@/components/ui/Button";
-import { LoadingSpinner } from "@/components/ui/loading-states/LoadingSpinner";
-import { ShieldAlert } from "lucide-react";
+import { Loader2, ShieldAlert } from "lucide-react";
 
-import { ApiError } from "@/lib/api/core/ApiError";
 import { getUserCopy } from "@/lib/api/error-codes";
 import { RequestIdBanner } from "@/features/admin/components/RequestIdBanner";
 import { TypedConfirmDialog } from "@/features/admin/components/TypedConfirmDialog";
@@ -140,14 +138,14 @@ export function GrantRoleDialog({
           {/* Privilege escalation warning */}
           {selectedRole !== null && (
             <div
-              className="mt-2 flex items-start gap-2 rounded-md border border-amber-300 bg-amber-50 p-3"
+              className="mt-2 flex items-start gap-2.5 rounded-lg border border-warning/30 bg-warning/10 p-3"
               data-testid="grant-privilege-escalation-warning"
             >
               <ShieldAlert
                 aria-hidden="true"
-                className="mt-0.5 h-4 w-4 shrink-0 text-amber-700"
+                className="mt-0.5 size-4 shrink-0 text-warning"
               />
-              <p className="text-xs text-amber-900">
+              <p className="text-xs text-muted-foreground leading-relaxed">
                 {metadata?.irreversibilityNotice}
               </p>
             </div>
@@ -155,6 +153,7 @@ export function GrantRoleDialog({
 
           <AlertDialogFooter>
             <Button
+              type="button"
               variant="ghost"
               onClick={handleCancel}
               disabled={isPending}
@@ -163,12 +162,18 @@ export function GrantRoleDialog({
               Cancel
             </Button>
             <Button
+              type="button"
               variant="default"
               disabled={selectedRole === null || isPending}
+              aria-busy={isPending}
               onClick={handleGrantClick}
               data-testid="grant-confirm-button"
+              className="gap-2"
             >
-              Grant Role
+              {isPending && (
+                <Loader2 className="size-3.5 animate-spin" aria-hidden="true" />
+              )}
+              <span>{isPending ? "Granting…" : "Grant Role"}</span>
             </Button>
           </AlertDialogFooter>
         </AlertDialogContent>

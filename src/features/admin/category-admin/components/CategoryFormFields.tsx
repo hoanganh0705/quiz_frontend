@@ -62,7 +62,7 @@ function AvailabilityIcon({ status }: { status: SlugAvailabilityStatus }) {
   if (status === "taken") {
     return (
       <AlertCircle
-        className="h-4 w-4 text-yellow-500 shrink-0"
+        className="h-4 w-4 text-warning shrink-0"
         aria-label="Slug is taken"
       />
     );
@@ -84,7 +84,7 @@ function AvailabilityLabel({
 }) {
   if (status === "available") {
     return (
-      <span className="text-xs text-success dark:text-green-400">
+      <span className="text-xs text-success">
         Slug is available
       </span>
     );
@@ -94,7 +94,7 @@ function AvailabilityLabel({
       ? ` (taken by "${conflictingCategoryName}")`
       : "";
     return (
-      <span className="text-xs text-yellow-600 dark:text-yellow-400">
+      <span className="text-xs text-warning">
         Slug is taken{name}
       </span>
     );
@@ -288,7 +288,7 @@ export function CategoryFormFields({
             className={cn(
               slugInvalid &&
                 "border-destructive focus-visible:border-destructive",
-              "pr-10",
+              "pr-10 font-mono text-xs",
             )}
           />
           <div className="absolute right-3 top-1/2 -translate-y-1/2">

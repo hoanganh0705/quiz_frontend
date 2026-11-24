@@ -15,6 +15,7 @@ import { myQuizzesKey } from "@/features/quizzes/types/my-quizzes";
 
 export interface UseMyQuizzesParams {
   limit?: number;
+  enabled?: boolean;
 }
 
 type GetMyQuizzesResponse = {
@@ -77,5 +78,6 @@ export function useMyQuizzes(params?: UseMyQuizzesParams): UseMyQuizzesResult {
     fetcher,
     params: params ?? {},
     paginationKind: "cursor",
+    enabled: params?.enabled ?? true,
   });
 }

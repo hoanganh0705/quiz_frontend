@@ -3,6 +3,7 @@
 import { useCallback, useState } from "react";
 
 import { Download } from "lucide-react";
+import { Button } from "@/components/ui/Button";
 
 import type { AuditLogFilters } from "../types";
 import { logger } from "@/shared/log";
@@ -45,11 +46,15 @@ export function AuditLogExportButton({
   );
 
   return (
-    <div className="relative" data-testid="audit-log-export-button">
-      <button
-        type="button"
+    <div
+      className="flex flex-col items-start sm:items-end"
+      data-testid="audit-log-export-button"
+    >
+      <Button
+        variant="outline"
+        size="sm"
         disabled={!exportSupported || isExporting}
-        className="inline-flex items-center gap-2 rounded-md border border-border bg-background px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-muted focus:outline-none focus:ring-2 focus:ring-primary disabled:cursor-not-allowed disabled:opacity-50"
+        className="gap-2 h-9 text-xs"
         data-testid="audit-log-export-trigger"
         title={
           exportSupported
@@ -59,11 +64,11 @@ export function AuditLogExportButton({
       >
         <Download className="h-4 w-4" aria-hidden="true" />
         {isExporting ? "Exporting…" : "Export"}
-      </button>
+      </Button>
 
       {!exportSupported && (
         <p
-          className="mt-1 text-xs text-muted-foreground/70"
+          className="mt-1 text-xs text-muted-foreground text-left sm:text-right"
           data-testid="audit-log-export-unsupported"
         >
           Export not yet supported by backend.
@@ -73,16 +78,17 @@ export function AuditLogExportButton({
       {exportSupported && (
         <div className="mt-2 flex gap-2">
           {EXPORT_FORMATS.map((format) => (
-            <button
+            <Button
               key={format}
-              type="button"
+              variant="outline"
+              size="sm"
               disabled={isExporting}
               onClick={() => handleExport(format)}
-              className="rounded-md border border-border bg-background px-2 py-1 text-xs uppercase text-foreground hover:bg-muted focus:outline-none focus:ring-2 focus:ring-primary disabled:cursor-not-allowed disabled:opacity-50"
+              className="h-7 px-2.5 text-xs uppercase"
               data-testid={`audit-log-export-${format}`}
             >
               {format}
-            </button>
+            </Button>
           ))}
         </div>
       )}

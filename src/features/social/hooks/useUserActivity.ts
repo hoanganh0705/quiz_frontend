@@ -5,7 +5,6 @@ import { useEffect, useMemo, useState } from "react";
 import { ApiError, useCursorPaginated } from "@/lib/api";
 import type { CursorFetcherArgs } from "@/lib/api/use-cursor-paginated.types";
 
-import { getFeatureFlagValue } from "@/lib/feature-flags";
 
 import type { ConsistencyStaleness } from "@/features/social/components/ConsistencyNotice";
 import { getUserActivity } from "@/features/social/services/activity.service";
@@ -75,18 +74,15 @@ const FALLBACK_RESULT: UseUserActivityResult = Object.freeze({
 export function useUserActivity(
   targetUserId: string | null,
 ): UseUserActivityResult {
-  const flagValue = getFeatureFlagValue("social_activity_live");
-  const isFlagPlaceholder = flagValue === "placeholder";
-
   const auth = useAuthSession();
   const isAuthenticated = auth.isAuthenticated;
 
   const key = useMemo<readonly unknown[] | null>(() => {
-    if (isFlagPlaceholder) return null;
+    if (false) return null;
     if (!isAuthenticated) return null;
     if (targetUserId === null) return null;
     return ["social", "user-activity", targetUserId] as const;
-  }, [isFlagPlaceholder, isAuthenticated, targetUserId]);
+  }, [isAuthenticated, targetUserId]);
 
   const fetcher = useMemo(
     () =>
@@ -98,7 +94,7 @@ export function useUserActivity(
         hasNextPage: boolean;
         limit: number;
       }> => {
-        if (isFlagPlaceholder || !isAuthenticated || targetUserId === null) {
+        if (!isAuthenticated || targetUserId === null) {
           return EMPTY_PAGE;
         }
         try {
@@ -116,7 +112,7 @@ export function useUserActivity(
           throw err;
         }
       },
-    [isFlagPlaceholder, isAuthenticated, targetUserId],
+    [isAuthenticated, targetUserId],
   );
 
   const result = useCursorPaginated<
@@ -127,6 +123,7 @@ export function useUserActivity(
     fetcher,
     params: {},
     paginationKind: "cursor",
+    enabled: Boolean(isAuthenticated && targetUserId),
   });
 
   const code = result.error?.code;
@@ -155,7 +152,7 @@ export function useUserActivity(
   const staleness: ConsistencyStaleness =
     result.isLoading && result.items.length > 0 ? "stale" : "fresh";
 
-  if (isFlagPlaceholder) return PLACEHOLDER_RESULT;
+  if (false) return PLACEHOLDER_RESULT;
   if (!isAuthenticated) return FALLBACK_RESULT;
   if (targetUserId === null) return FALLBACK_RESULT;
 

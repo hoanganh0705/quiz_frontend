@@ -1,5 +1,9 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+import { NotificationPreferencesForm } from "@/features/notifications/components/NotificationPreferencesForm";
+
+import { notificationMocks, FULL_PREFERENCES } from "./test-helpers";
 
 vi.mock("@/features/notifications/hooks", async () => {
   const actual = await vi.importActual<
@@ -15,8 +19,7 @@ vi.mock("@/features/notifications/hooks", async () => {
     useMarkNotificationUnread: installed.useMarkNotificationUnread,
     useDeleteNotification: installed.useDeleteNotification,
     useNotificationPreferences: installed.useNotificationPreferences,
-    useNotificationFeatureFlag: installed.useNotificationFeatureFlag,
-  };
+      };
 });
 
 vi.mock("@/features/notifications/hooks/useNotifications", async () => {
@@ -68,19 +71,6 @@ vi.mock(
     return { useNotificationPreferences: installed.useNotificationPreferences };
   },
 );
-
-vi.mock(
-  "@/features/notifications/hooks/useNotificationFeatureFlag",
-  async () => {
-    const installed = (
-      await import("./test-helpers")
-    ).installNotificationMocks();
-    return { useNotificationFeatureFlag: installed.useNotificationFeatureFlag };
-  },
-);
-
-import { notificationMocks, FULL_PREFERENCES } from "./test-helpers";
-import { NotificationPreferencesForm } from "@/features/notifications/components/NotificationPreferencesForm";
 
 describe("NotificationPreferencesForm", () => {
   beforeEach(() => {

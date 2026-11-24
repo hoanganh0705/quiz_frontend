@@ -94,3 +94,13 @@ export async function deleteNotification(notificationId: string) {
   });
   return response.data.data;
 }
+
+export async function deleteAllNotifications() {
+  const response = await customInstance.request<{
+    data: { success: boolean };
+  }>({
+    url: "/api/v1/notifications",
+    method: "DELETE",
+  });
+  return response.data.data;
+}

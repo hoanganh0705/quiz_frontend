@@ -1,7 +1,5 @@
 "use client";
 
-import * as React from "react";
-
 import { Button } from "@/components/ui/Button";
 import {
   Dialog,
@@ -19,20 +17,13 @@ export interface PurchaseConfirmDialogProps {
   onOpenChange: (open: boolean) => void;
   onConfirm: () => void;
   title: string;
-
   body: string;
-
   confirmLabel?: string;
-
   cancelLabel?: string;
-
   cost: number;
-
   detail?: string | null;
   isPending?: boolean;
-
   error?: string | null;
-
   currentBalance?: number | null;
 }
 
@@ -57,25 +48,32 @@ export function PurchaseConfirmDialog({
       <DialogContent
         showCloseButton={!isPending}
         data-testid="purchase-confirm-dialog"
+        className="max-w-md rounded-2xl"
       >
         <DialogHeader>
-          <DialogTitle>{title}</DialogTitle>
-          <DialogDescription>{body}</DialogDescription>
+          <DialogTitle className="text-xl font-bold tracking-tight">{title}</DialogTitle>
+          <DialogDescription className="text-sm leading-relaxed">{body}</DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-3">
-          <dl className="grid grid-cols-[max-content_1fr] gap-x-3 gap-y-1 text-sm">
-            <dt className="text-muted-foreground">Cost</dt>
+        <div className="space-y-3.5 pt-1">
+          <dl className="grid grid-cols-[max-content_1fr] gap-x-3 gap-y-1.5 rounded-xl border border-border/80 bg-muted/30 p-3.5 text-sm">
+            <dt className="text-xs uppercase font-semibold tracking-wider text-muted-foreground self-center">
+              Cost
+            </dt>
             <dd
-              className="font-semibold tabular-nums"
+              className="font-mono text-base font-bold tabular-nums text-foreground"
               data-testid="purchase-confirm-cost"
             >
               {cost.toLocaleString("en-US")} coins
             </dd>
             {detail ? (
               <>
-                <dt className="text-muted-foreground">Detail</dt>
-                <dd className="font-medium">{detail}</dd>
+                <dt className="text-xs uppercase font-semibold tracking-wider text-muted-foreground self-center">
+                  Target
+                </dt>
+                <dd className="font-mono text-xs text-muted-foreground truncate self-center">
+                  {detail}
+                </dd>
               </>
             ) : null}
           </dl>
@@ -88,7 +86,7 @@ export function PurchaseConfirmDialog({
           ) : null}
         </div>
 
-        <DialogFooter>
+        <DialogFooter className="gap-2 sm:gap-2">
           <Button
             type="button"
             variant="outline"

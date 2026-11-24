@@ -5,7 +5,6 @@ import { useQuery } from "@tanstack/react-query";
 import { getQueryClient } from "@/providers/QueryProvider";
 
 import { ApiError } from "@/lib/api";
-import { getFeatureFlagValue } from "@/lib/feature-flags";
 
 import {
   COIN_CACHE_KEYS,
@@ -34,9 +33,7 @@ const PLACEHOLDER_WALLET: CoinWallet = {
 };
 
 export function useCoinWallet(): UseCoinWalletResult {
-  const flagValue = getFeatureFlagValue("coin_economy_live");
-  const isPlaceholder = flagValue === "placeholder";
-
+  const isPlaceholder = false;
   const key = useMemo(
     () =>
       isPlaceholder

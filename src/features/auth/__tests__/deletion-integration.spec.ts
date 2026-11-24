@@ -1,5 +1,11 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 
+import { handleRemoteAccountDeleted } from "@/features/auth/lifecycle/deletion-cross-tab";
+import { runDeletionFinalization } from "@/features/auth/lifecycle/deletion-finalization";
+import { resetDeletionFinalizationForTesting } from "@/features/auth/lifecycle/deletion-finalization";
+
+import { ACCOUNT_DELETED_EVENT } from "./__fixtures__/deletion-event-fixture";
+
 const mocks = vi.hoisted(() => {
   return {
     capturedBroadcastListener: {
@@ -145,10 +151,6 @@ vi.mock("@/features/auth/lifecycle/deletion-history", async () => {
   };
 });
 
-import { runDeletionFinalization } from "@/features/auth/lifecycle/deletion-finalization";
-import { handleRemoteAccountDeleted } from "@/features/auth/lifecycle/deletion-cross-tab";
-import { resetDeletionFinalizationForTesting } from "@/features/auth/lifecycle/deletion-finalization";
-import { ACCOUNT_DELETED_EVENT } from "./__fixtures__/deletion-event-fixture";
 
 beforeEach(() => {
   vi.resetAllMocks();

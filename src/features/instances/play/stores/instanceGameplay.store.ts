@@ -22,6 +22,7 @@ export interface InstanceGameplayEntry {
     questionId: string;
     submittedAt: string;
     accepted: boolean;
+    selectedOptionId?: string;
   } | null;
   result: AnswerResultDto | null;
   progress: PlayerProgressDto | null;
@@ -57,7 +58,11 @@ export interface InstanceGameplayActions {
   applyFinalLeaderboard: (
     envelope: GameplayEventEnvelope<FinalLeaderboardDto>,
   ) => void;
-  applySubmission: (questionId: string, submittedAt: string) => void;
+  applySubmission: (
+    questionId: string,
+    submittedAt: string,
+    selectedOptionId?: string,
+  ) => void;
   clearSubmission: (questionId: string) => void;
   initializeQuestions: (
     instanceId: string,
@@ -256,14 +261,19 @@ export const useInstanceGameplayStore = create<InstanceGameplayStore>(
       });
     },
 
-    applySubmission: (questionId, submittedAt) => {
+    applySubmission: (questionId, submittedAt, selectedOptionId) => {
       set((state) => {
         const next = { ...state.entries };
         for (const [id, entry] of Object.entries(next)) {
           if (entry.bundle?.question.id === questionId) {
             next[id] = {
               ...entry,
-              submission: { questionId, submittedAt, accepted: true },
+              submission: {
+                questionId,
+                submittedAt,
+                accepted: true,
+                selectedOptionId,
+              },
             };
           }
         }
@@ -313,12 +323,23 @@ export const useInstanceGameplayStore = create<InstanceGameplayStore>(
               serverNow: new Date().toISOString(),
             },
           },
-          options: (firstQ.answerOptions ?? []).map((opt) => ({
-            id: opt.answerOptionId,
-            index: opt.position,
-            text: opt.optionText,
-            mediaUrl: opt.imageUrl ?? undefined,
-          })),
+          options: (firstQ.answerOptions ?? []).map((opt) => {
+            const rawOpt = opt as unknown as {
+              answerOptionId?: string;
+              optionId?: string;
+              position?: number;
+              optionText?: string;
+              value?: string;
+              imageUrl?: string;
+              mediaUrl?: string;
+            };
+            return {
+              id: rawOpt.answerOptionId ?? rawOpt.optionId ?? "",
+              index: rawOpt.position ?? 0,
+              text: rawOpt.optionText ?? rawOpt.value ?? "",
+              mediaUrl: rawOpt.imageUrl ?? rawOpt.mediaUrl ?? undefined,
+            };
+          }),
         };
 
         return {
@@ -357,20 +378,33 @@ export const useInstanceGameplayStore = create<InstanceGameplayStore>(
 
         const nextIndex = entry.currentQuestionIndex + 1;
         if (nextIndex >= entry.allQuestions.length) {
-          const finalEntries =
+          let finalEntries =
             entry.leaderboard.length > 0
-              ? entry.leaderboard
+              ? entry.leaderboard.map((item) =>
+                  item.playerId === entry.progress?.playerId
+                    ? {
+                        ...item,
+                        score: entry.progress.currentScore,
+                        answeredCount: entry.allQuestions.length,
+                      }
+                    : item,
+                )
               : [
                   {
                     playerId: entry.progress?.playerId ?? "player",
                     displayName: "Player",
-                    score: entry.progress?.currentScore ?? 100,
+                    score: entry.progress?.currentScore ?? 0,
                     rank: 1,
                     answeredCount: entry.allQuestions.length,
                     lastAwardedAt: new Date().toISOString(),
                     eventSequence: Date.now(),
                   },
                 ];
+
+          // Sort descending by score and assign sequential ranks
+          finalEntries = [...finalEntries]
+            .sort((a, b) => b.score - a.score)
+            .map((e, idx) => ({ ...e, rank: idx + 1 }));
 
           const finalLeaderboard: FinalLeaderboardDto = {
             instanceId,
@@ -422,13 +456,47 @@ export const useInstanceGameplayStore = create<InstanceGameplayStore>(
               serverNow: new Date().toISOString(),
             },
           },
-          options: (nextQ.answerOptions ?? []).map((opt) => ({
-            id: opt.answerOptionId,
-            index: opt.position,
-            text: opt.optionText,
-            mediaUrl: opt.imageUrl ?? undefined,
-          })),
+          options: (nextQ.answerOptions ?? []).map((opt) => {
+            const rawOpt = opt as unknown as {
+              answerOptionId?: string;
+              optionId?: string;
+              position?: number;
+              optionText?: string;
+              value?: string;
+              imageUrl?: string;
+              mediaUrl?: string;
+            };
+            return {
+              id: rawOpt.answerOptionId ?? rawOpt.optionId ?? "",
+              index: rawOpt.position ?? 0,
+              text: rawOpt.optionText ?? rawOpt.value ?? "",
+              mediaUrl: rawOpt.imageUrl ?? rawOpt.mediaUrl ?? undefined,
+            };
+          }),
         };
+
+        const currentQ = entry.allQuestions[entry.currentQuestionIndex];
+        const selectedId = entry.submission?.selectedOptionId;
+
+        const chosenOption = currentQ?.answerOptions?.find(
+          (opt: unknown) => {
+            const raw = opt as {
+              answerOptionId?: string;
+              optionId?: string;
+              isCorrect?: boolean;
+            };
+            return (
+              (raw.answerOptionId && raw.answerOptionId === selectedId) ||
+              (raw.optionId && raw.optionId === selectedId)
+            );
+          },
+        ) as { isCorrect?: boolean } | undefined;
+
+        // Points are only awarded if confirmed correct. If incorrect or unknown, award 0.
+        const pointsToAdd =
+          chosenOption?.isCorrect === true
+            ? (entry.bundle?.question.basePoints ?? 100)
+            : 0;
 
         return {
           entries: {
@@ -444,7 +512,7 @@ export const useInstanceGameplayStore = create<InstanceGameplayStore>(
                 ? {
                     ...entry.progress,
                     answeredCount: nextIndex,
-                    currentScore: entry.progress.currentScore + 100,
+                    currentScore: entry.progress.currentScore + pointsToAdd,
                   }
                 : null,
             },

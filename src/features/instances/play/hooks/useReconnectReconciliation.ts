@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { getFeatureFlagValue } from "@/lib/feature-flags";
 import { getInstance } from "@/features/instances/services";
 import { getInstanceLeaderboard } from "@/features/instances/services";
 import { getQueryClient } from "@/providers/QueryProvider";
@@ -21,9 +20,6 @@ export interface UseReconnectReconciliationResult {
 export function useReconnectReconciliation(
   instanceId: string | null,
 ): UseReconnectReconciliationResult {
-  const flagValue = getFeatureFlagValue("multiplayer_play_live");
-  const isPlaceholder = flagValue === "placeholder";
-
   const { connectionState } = useInstanceGameSocket(instanceId);
   const { setReconciling } = useInstanceGameplayStore.getState();
 
@@ -68,7 +64,6 @@ export function useReconnectReconciliation(
 
   useEffect(() => {
     if (instanceId === null) return;
-    if (isPlaceholder) return;
 
     const wasReconnecting = lastConnectionStateRef.current === "reconnecting";
     const isNowConnected = connectionState === "connected";
@@ -78,15 +73,7 @@ export function useReconnectReconciliation(
     if (wasReconnecting && isNowConnected) {
       void reconcile();
     }
-  }, [connectionState, instanceId, isPlaceholder, reconcile]);
-
-  if (isPlaceholder) {
-    return {
-      isReconciling: false,
-      lastReconciledAt: null,
-      reconcile: async () => {},
-    };
-  }
+  }, [connectionState, instanceId, reconcile]);
 
   return {
     isReconciling,

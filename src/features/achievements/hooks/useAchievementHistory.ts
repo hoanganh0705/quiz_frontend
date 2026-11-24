@@ -15,7 +15,6 @@ import {
   type AchievementHistoryFilters,
 } from "@/features/achievements/types";
 import { useAuthSession } from "@/features/auth/hooks/use-auth-session";
-import { getFeatureFlagValue } from "@/lib/feature-flags";
 
 import type {
   AchievementHistoryItemResponseDto,
@@ -44,24 +43,19 @@ const DEFAULT_LIMIT = 20;
 export function useAchievementHistory(
   filters: Partial<AchievementHistoryFilters> = DEFAULT_ACHIEVEMENT_HISTORY_FILTERS,
 ): UseAchievementHistoryResult {
-  const flagValue = getFeatureFlagValue("achievements_live");
-  const isFlagPlaceholder = flagValue === "placeholder";
-
   const { bootstrapState } = useAuthSession();
   const isAuthenticated = bootstrapState === "authenticated";
 
   const key = useMemo(
     () =>
-      isFlagPlaceholder || !isAuthenticated
+      !isAuthenticated
         ? (["achievements", "me", "history", "disabled"] as const)
         : ACHIEVEMENT_CACHE_KEYS.history({
             page: filters.page,
             limit: filters.limit,
             category: filters.category,
           }),
-    [
-      isFlagPlaceholder,
-      isAuthenticated,
+    [isAuthenticated,
       filters.page,
       filters.limit,
       filters.category,
@@ -71,7 +65,7 @@ export function useAchievementHistory(
   const fetcher = useMemo(
     () =>
       async ({ page }: OffsetFetcherArgs<AchievementHistoryFilters>) => {
-        if (isFlagPlaceholder || !isAuthenticated) {
+        if (!isAuthenticated) {
           return {
             items: [] as readonly AchievementHistoryEntry[],
             page,
@@ -100,7 +94,7 @@ export function useAchievementHistory(
           limit: pagination?.limit ?? limit,
         };
       },
-    [isFlagPlaceholder, isAuthenticated, filters.limit],
+    [isAuthenticated, filters.limit],
   );
 
   const result = useCursorPaginated<
@@ -119,7 +113,7 @@ export function useAchievementHistory(
 
   const isStale = result.items.length > 0 && result.isLoading;
 
-  if (isFlagPlaceholder || !isAuthenticated) {
+  if (!isAuthenticated) {
     return {
       items: [],
       isLoading: false,

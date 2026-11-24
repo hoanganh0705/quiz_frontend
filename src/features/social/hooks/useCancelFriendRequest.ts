@@ -3,7 +3,6 @@
 import { useMemo, useRef, useState } from "react";
 
 import { ApiError } from "@/lib/api";
-import { getFeatureFlagValue } from "@/lib/feature-flags";
 import { getQueryClient } from "@/providers/QueryProvider";
 
 import { cancelFriendRequest } from "@/features/social/services";
@@ -33,9 +32,6 @@ export function useCancelFriendRequest(
   targetUserId: string | null,
   options: UseCancelFriendRequestOptions = {},
 ): UseCancelFriendRequestResult {
-  const flagValue = getFeatureFlagValue("social_friend_request_mutation_live");
-  const isFlagPlaceholder = flagValue === "placeholder";
-
   const permissions = useSocialPermissions(targetUserId, {
     currentUserId: options.currentUserId ?? null,
   });
@@ -47,7 +43,7 @@ export function useCancelFriendRequest(
 
   const assumeCanCancel = options.assumeCanCancel === true;
   const result = useMemo<UseCancelFriendRequestResult>(() => {
-    if (isFlagPlaceholder) {
+    if (false) {
       return Object.freeze({
         cancel: () => {
           // no-op — feature is gated off
@@ -103,6 +99,12 @@ export function useCancelFriendRequest(
           void qc.invalidateQueries({
             queryKey: SOCIAL_CACHE_KEYS.makeSocialCountsKey(targetUserId),
           });
+          void qc.invalidateQueries({
+            queryKey: ["social", "user-search"],
+          });
+          void qc.invalidateQueries({
+            queryKey: ["social", "v1", "user-search"],
+          });
         })
         .catch((err: unknown) => {
           const apiErr =
@@ -120,6 +122,12 @@ export function useCancelFriendRequest(
             });
             void qc.invalidateQueries({
               queryKey: SOCIAL_CACHE_KEYS.makeSocialCountsKey(targetUserId),
+            });
+            void qc.invalidateQueries({
+              queryKey: ["social", "user-search"],
+            });
+            void qc.invalidateQueries({
+              queryKey: ["social", "v1", "user-search"],
             });
             return;
           }
@@ -142,9 +150,7 @@ export function useCancelFriendRequest(
       error,
       alreadyCancelled,
     });
-  }, [
-    isFlagPlaceholder,
-    targetUserId,
+  }, [targetUserId,
     assumeCanCancel,
     permissions.canCancelRequest,
     error,

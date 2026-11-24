@@ -4,6 +4,7 @@ import * as React from "react";
 import {
   Controller,
   useFormContext,
+  useWatch,
   type FieldPath,
   type FieldValues,
 } from "react-hook-form";
@@ -31,7 +32,7 @@ export interface QuizSlugFieldProps<
 
   label?: string;
 
-  titleValue: string;
+  titleValue?: string;
 
   description?: string;
 
@@ -58,7 +59,7 @@ function AvailabilityIndicator({
         role="status"
         aria-live="polite"
       >
-        <Loader2 className="h-3 w-3 animate-spin" aria-hidden="true" />
+        <Loader2 className="h-3 w-3 animate-spin motion-reduce:animate-none" aria-hidden="true" />
         Checking…
       </span>
     );
@@ -67,7 +68,7 @@ function AvailabilityIndicator({
   if (available === true) {
     return (
       <span
-        className="inline-flex items-center gap-1 text-xs text-success dark:text-green-400"
+        className="inline-flex items-center gap-1 text-xs text-success"
         role="status"
         aria-live="polite"
       >
@@ -103,6 +104,8 @@ export function QuizSlugField<T extends z.ZodType<FieldValues, any, any>>({
 }: QuizSlugFieldProps<T>): React.ReactElement {
   const { control, formState } = useFormContext<z.infer<T>>();
   const { available, isChecking, error, check, reset } = useCheckQuizSlug();
+  const watchedTitle = (useWatch({ control, name: "title" as any }) as string) ?? "";
+  const resolvedTitle = titleValue !== undefined ? titleValue : watchedTitle;
 
   const inputDisabled =
     disabled === true
@@ -116,7 +119,10 @@ export function QuizSlugField<T extends z.ZodType<FieldValues, any, any>>({
   return (
     <div className={cn("space-y-2", className)}>
       {label ? (
-        <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+        <label
+          htmlFor={`slug-${name}`}
+          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+        >
           {label}
         </label>
       ) : null}
@@ -178,11 +184,11 @@ export function QuizSlugField<T extends z.ZodType<FieldValues, any, any>>({
       </div>
 
       {/* Auto-derivation preview — shown when slug is blank and title is non-empty */}
-      {deriveSlug(titleValue).length > 0 && slugValue.current.trim() === "" && (
+      {deriveSlug(resolvedTitle).length > 0 && slugValue.current.trim() === "" && (
         <p className="text-xs text-muted-foreground" aria-live="polite">
           Auto-generated:{" "}
-          <span className="font-mono text-muted-foreground/70">
-            {deriveSlug(titleValue)}
+          <span className="font-mono font-medium text-foreground/80">
+            {deriveSlug(resolvedTitle)}
           </span>
         </p>
       )}

@@ -1,8 +1,9 @@
 import { getCurrentTabId } from "@/lib/api/core/broadcast-channel";
 
+import { logger } from "@/shared/log";
+
 export const TAG_ADMIN_CHANNEL_NAME = "admin-tag" as const;
 
-import { logger } from "@/shared/log";
 
 export type TagAdminEventType = "admin:tag.invalidate";
 

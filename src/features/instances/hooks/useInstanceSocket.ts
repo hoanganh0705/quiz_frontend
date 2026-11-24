@@ -10,34 +10,50 @@ import {
 } from "@/lib/realtime";
 import type { UseSocketReturn } from "@/lib/realtime";
 import { decodeWsError } from "@/lib/realtime";
-import { getFeatureFlagValue } from "@/lib/feature-flags";
 
 import { useAuthSession } from "@/features/auth/hooks/use-auth-session";
 
 import {
   type InstanceLifecycleErrorCode,
+  type InstancePlayer,
   type InstanceSocketConnectionState,
   type InstanceSocketEvent,
 } from "@/features/instances/types/instance.types";
 
 const INSTANCE_JOINED_EVENT = "instance:joined" as const;
+const INSTANCE_JOINED_ALT_EVENT = "instance_joined" as const;
 const INSTANCE_LEFT_EVENT = "instance:left" as const;
+const INSTANCE_LEFT_ALT_EVENT = "instance_left" as const;
 const INSTANCE_STARTED_EVENT = "instance:started" as const;
+const INSTANCE_STARTED_ALT_EVENT = "instance_started" as const;
 const INSTANCE_CLOSED_EVENT = "instance:closed" as const;
+const INSTANCE_CLOSED_ALT_EVENT = "instance_closed" as const;
 const PLAYER_JOINED_EVENT = "player:joined" as const;
+const PLAYER_JOINED_ALT_EVENT = "player_joined" as const;
 const PLAYER_LEFT_EVENT = "player:left" as const;
+const PLAYER_LEFT_ALT_EVENT = "player_left" as const;
 const COUNTDOWN_STARTED_EVENT = "countdown:started" as const;
+const COUNTDOWN_STARTED_ALT_EVENT = "countdown_started" as const;
 const COUNTDOWN_CANCELLED_EVENT = "countdown:cancelled" as const;
+const COUNTDOWN_CANCELLED_ALT_EVENT = "countdown_cancelled" as const;
 
 type LobbyEventName =
   | typeof INSTANCE_JOINED_EVENT
+  | typeof INSTANCE_JOINED_ALT_EVENT
   | typeof INSTANCE_LEFT_EVENT
+  | typeof INSTANCE_LEFT_ALT_EVENT
   | typeof INSTANCE_STARTED_EVENT
+  | typeof INSTANCE_STARTED_ALT_EVENT
   | typeof INSTANCE_CLOSED_EVENT
+  | typeof INSTANCE_CLOSED_ALT_EVENT
   | typeof PLAYER_JOINED_EVENT
+  | typeof PLAYER_JOINED_ALT_EVENT
   | typeof PLAYER_LEFT_EVENT
+  | typeof PLAYER_LEFT_ALT_EVENT
   | typeof COUNTDOWN_STARTED_EVENT
-  | typeof COUNTDOWN_CANCELLED_EVENT;
+  | typeof COUNTDOWN_STARTED_ALT_EVENT
+  | typeof COUNTDOWN_CANCELLED_EVENT
+  | typeof COUNTDOWN_CANCELLED_ALT_EVENT;
 
 const EMIT_JOIN_EVENT = "join_instance" as const;
 const EMIT_LEAVE_EVENT = "leave_instance" as const;
@@ -133,6 +149,7 @@ function coerceToInstanceSocketEvent(
 
   switch (eventName) {
     case INSTANCE_STARTED_EVENT:
+    case INSTANCE_STARTED_ALT_EVENT:
       return {
         type: "instance_started",
         instanceId,
@@ -141,6 +158,7 @@ function coerceToInstanceSocketEvent(
         status: "running",
       };
     case INSTANCE_CLOSED_EVENT:
+    case INSTANCE_CLOSED_ALT_EVENT:
       return {
         type: "instance_closed",
         instanceId,
@@ -148,7 +166,8 @@ function coerceToInstanceSocketEvent(
         eventSequence,
         status: "closed",
       };
-    case COUNTDOWN_STARTED_EVENT: {
+    case COUNTDOWN_STARTED_EVENT:
+    case COUNTDOWN_STARTED_ALT_EVENT: {
       const countdownStartedAt =
         typeof obj.countdownStartedAt === "string"
           ? obj.countdownStartedAt
@@ -163,6 +182,7 @@ function coerceToInstanceSocketEvent(
       };
     }
     case COUNTDOWN_CANCELLED_EVENT:
+    case COUNTDOWN_CANCELLED_ALT_EVENT:
       return {
         type: "countdown_cancelled",
         instanceId,
@@ -171,10 +191,19 @@ function coerceToInstanceSocketEvent(
         status: "open",
       };
     case INSTANCE_JOINED_EVENT:
-    case PLAYER_JOINED_EVENT: {
-      const player = obj.player as Record<string, unknown> | undefined;
-      if (!player || typeof player !== "object") return null;
-      const userId = typeof player.userId === "string" ? player.userId : "";
+    case INSTANCE_JOINED_ALT_EVENT:
+    case PLAYER_JOINED_EVENT:
+    case PLAYER_JOINED_ALT_EVENT: {
+      const playerObj =
+        obj.player && typeof obj.player === "object"
+          ? (obj.player as Record<string, unknown>)
+          : obj;
+      const userId =
+        typeof playerObj.userId === "string" && playerObj.userId
+          ? playerObj.userId
+          : typeof obj.userId === "string"
+            ? obj.userId
+            : "";
       if (userId === "") return null;
       return {
         type: "player_joined",
@@ -182,20 +211,39 @@ function coerceToInstanceSocketEvent(
         at,
         eventSequence,
         player: {
-          ...(player as object),
           id: userId,
+          userId,
+          username:
+            typeof playerObj.username === "string"
+              ? playerObj.username
+              : "Player",
+          displayName:
+            typeof playerObj.displayName === "string"
+              ? playerObj.displayName
+              : typeof playerObj.username === "string"
+                ? playerObj.username
+                : "Player",
+          avatarUrl:
+            typeof playerObj.avatarUrl === "string"
+              ? playerObj.avatarUrl
+              : null,
+          joinedAt:
+            typeof playerObj.joinedAt === "string" ? playerObj.joinedAt : at,
           isCurrentUser: false,
           isHost: false,
-        } as InstanceSocketEvent & { type: "player_joined" } extends infer T
-          ? T extends { player: infer P }
-            ? P
-            : never
-          : never,
+        } as unknown as InstancePlayer,
       };
     }
     case INSTANCE_LEFT_EVENT:
-    case PLAYER_LEFT_EVENT: {
-      const playerId = typeof obj.playerId === "string" ? obj.playerId : "";
+    case INSTANCE_LEFT_ALT_EVENT:
+    case PLAYER_LEFT_EVENT:
+    case PLAYER_LEFT_ALT_EVENT: {
+      const playerId =
+        typeof obj.playerId === "string" && obj.playerId
+          ? obj.playerId
+          : typeof obj.userId === "string"
+            ? obj.userId
+            : "";
       if (playerId === "") return null;
       return {
         type: "player_left",
@@ -210,13 +258,31 @@ function coerceToInstanceSocketEvent(
   }
 }
 
+interface SocketSubscriptionManager {
+  joinedRooms: Set<string>;
+  subscribers: Map<string, number>;
+  leaveTimers: Map<string, ReturnType<typeof setTimeout>>;
+}
+
+const socketStateMap = new WeakMap<object, SocketSubscriptionManager>();
+
+function getSocketState(socket: object): SocketSubscriptionManager {
+  let state = socketStateMap.get(socket);
+  if (!state) {
+    state = {
+      joinedRooms: new Set(),
+      subscribers: new Map(),
+      leaveTimers: new Map(),
+    };
+    socketStateMap.set(socket, state);
+  }
+  return state;
+}
+
 export function useInstanceSocket(
   instanceId: string | null,
 ): UseInstanceSocketResult {
-  const featuresFlag = getFeatureFlagValue("multiplayer_instances_live");
-  const realtimeFlag = getFeatureFlagValue("realtime_infrastructure_live");
-  const enabled = featuresFlag === "live" && realtimeFlag === "live";
-  const isFlagPlaceholder = !enabled;
+  const enabled = true;
 
   const auth = useAuthSession();
   const isAuthenticated = auth.isAuthenticated;
@@ -271,105 +337,162 @@ export function useInstanceSocket(
   const joinedInstancesRef = useRef<Set<string>>(new Set());
 
   const emitJoin = useCallback(async (): Promise<void> => {
+    if (instanceId !== null) {
+      joinedInstancesRef.current.add(instanceId);
+    }
     if (
-      isFlagPlaceholder ||
       instanceId === null ||
       !isAuthenticated ||
       socket === null
     ) {
       return;
     }
-    if (joinedInstancesRef.current.has(instanceId)) {
+    const state = getSocketState(socket);
+    const pendingTimer = state.leaveTimers.get(instanceId);
+    if (pendingTimer) {
+      clearTimeout(pendingTimer);
+      state.leaveTimers.delete(instanceId);
+    }
+    if (state.joinedRooms.has(instanceId)) {
       return;
     }
     try {
       socket.emit(EMIT_JOIN_EVENT, { instanceId });
-      joinedInstancesRef.current.add(instanceId);
+      state.joinedRooms.add(instanceId);
     } catch (cause: unknown) {
       if (isApiError(cause)) {
         throw cause;
       }
       throw coerceToApiError(cause);
     }
-  }, [isFlagPlaceholder, isAuthenticated, instanceId, socket]);
+  }, [isAuthenticated, instanceId, socket]);
 
   const emitLeave = useCallback(async (): Promise<void> => {
+    if (instanceId === null || !joinedInstancesRef.current.has(instanceId)) {
+      return;
+    }
+    joinedInstancesRef.current.delete(instanceId);
     if (
-      isFlagPlaceholder ||
+      !isAuthenticated ||
+      socket === null
+    ) {
+      return;
+    }
+    const state = getSocketState(socket);
+    const pendingTimer = state.leaveTimers.get(instanceId);
+    if (pendingTimer) {
+      clearTimeout(pendingTimer);
+      state.leaveTimers.delete(instanceId);
+    }
+    if (!state.joinedRooms.has(instanceId)) {
+      return;
+    }
+    try {
+      socket.emit(EMIT_LEAVE_EVENT, { instanceId });
+      state.joinedRooms.delete(instanceId);
+      state.subscribers.set(instanceId, 0);
+    } catch (cause: unknown) {
+      if (isApiError(cause)) {
+        throw cause;
+      }
+      throw coerceToApiError(cause);
+    }
+  }, [isAuthenticated, instanceId, socket]);
+
+  useEffect(() => {
+    if (
       instanceId === null ||
       !isAuthenticated ||
       socket === null
     ) {
       return;
     }
-    if (!joinedInstancesRef.current.has(instanceId)) {
-      return;
-    }
-    try {
-      socket.emit(EMIT_LEAVE_EVENT, { instanceId });
-      joinedInstancesRef.current.delete(instanceId);
-    } catch (cause: unknown) {
-      if (isApiError(cause)) {
-        throw cause;
-      }
-      throw coerceToApiError(cause);
-    }
-  }, [isFlagPlaceholder, isAuthenticated, instanceId, socket]);
 
-  useEffect(() => {
-    if (isFlagPlaceholder || instanceId === null || !isAuthenticated) {
-      return;
+    const state = getSocketState(socket);
+    const pendingTimer = state.leaveTimers.get(instanceId);
+    if (pendingTimer) {
+      clearTimeout(pendingTimer);
+      state.leaveTimers.delete(instanceId);
     }
-    if (connectionState !== "connected") return;
-    void emitJoin();
 
-    const joinedInstances = joinedInstancesRef.current;
+    const currentCount = state.subscribers.get(instanceId) ?? 0;
+    state.subscribers.set(instanceId, currentCount + 1);
+
+    if (connectionState === "connected") {
+      void emitJoin();
+    }
+
     return () => {
-      if (joinedInstances.has(instanceId)) {
-        void emitLeave();
+      const activeState = getSocketState(socket);
+      const remaining = Math.max(
+        0,
+        (activeState.subscribers.get(instanceId) ?? 1) - 1,
+      );
+      activeState.subscribers.set(instanceId, remaining);
+
+      if (remaining === 0) {
+        activeState.joinedRooms.delete(instanceId);
       }
     };
-  }, [
-    isFlagPlaceholder,
-    instanceId,
+  }, [instanceId,
     isAuthenticated,
     connectionState,
+    socket,
     emitJoin,
-    emitLeave,
   ]);
 
   useEffect(() => {
-    if (isFlagPlaceholder || instanceId === null || !isAuthenticated) return;
+    if (!socket) return;
 
-    const handleBeforeUnload = () => {
-      if (socket && joinedInstancesRef.current.has(instanceId)) {
-        try {
-          socket.emit(EMIT_LEAVE_EVENT, { instanceId });
-        } catch {
-          // ignore error on window close
-        }
+    const handleConnect = () => {
+      const state = getSocketState(socket);
+      state.joinedRooms.clear();
+      if (instanceId !== null && isAuthenticated) {
+        void emitJoin();
       }
     };
 
-    window.addEventListener("beforeunload", handleBeforeUnload);
-    window.addEventListener("pagehide", handleBeforeUnload);
+    const handleDisconnect = () => {
+      const state = getSocketState(socket);
+      state.joinedRooms.clear();
+    };
+
+    socket.on("connect", handleConnect);
+    socket.on("disconnect", handleDisconnect);
 
     return () => {
-      window.removeEventListener("beforeunload", handleBeforeUnload);
-      window.removeEventListener("pagehide", handleBeforeUnload);
+      socket.off("connect", handleConnect);
+      socket.off("disconnect", handleDisconnect);
     };
-  }, [isFlagPlaceholder, instanceId, isAuthenticated, socket]);
+  }, [socket, instanceId, isAuthenticated, emitJoin]);
+
+  useEffect(() => {
+    if (
+      connectionState !== "connected" &&
+      instanceId !== null &&
+      socket !== null
+    ) {
+      const state = getSocketState(socket);
+      state.joinedRooms.delete(instanceId);
+    }
+  }, [connectionState, instanceId, socket]);
 
   useEffect(() => {
     joinedInstancesRef.current.clear();
   }, [instanceId]);
 
   useEffect(() => {
-    if (!isFlagPlaceholder && !isAuthenticated) {
-      joinedInstancesRef.current.clear();
+    if (!isAuthenticated) {
+      if (socket) {
+        const state = getSocketState(socket);
+        state.joinedRooms.clear();
+        state.subscribers.clear();
+        state.leaveTimers.forEach((timer) => clearTimeout(timer));
+        state.leaveTimers.clear();
+      }
       disconnect();
     }
-  }, [isFlagPlaceholder, isAuthenticated, disconnect]);
+  }, [isAuthenticated, socket, disconnect]);
 
   const buildHandler = useCallback(
     (eventName: LobbyEventName) => {
@@ -391,8 +514,20 @@ export function useInstanceSocket(
   );
   useRealtimeEvent(
     socket,
+    enabled && connectionState === "connected" ? INSTANCE_JOINED_ALT_EVENT : null,
+    buildHandler(INSTANCE_JOINED_ALT_EVENT),
+    { enabled: enabled && connectionState === "connected" },
+  );
+  useRealtimeEvent(
+    socket,
     enabled && connectionState === "connected" ? INSTANCE_LEFT_EVENT : null,
     buildHandler(INSTANCE_LEFT_EVENT),
+    { enabled: enabled && connectionState === "connected" },
+  );
+  useRealtimeEvent(
+    socket,
+    enabled && connectionState === "connected" ? INSTANCE_LEFT_ALT_EVENT : null,
+    buildHandler(INSTANCE_LEFT_ALT_EVENT),
     { enabled: enabled && connectionState === "connected" },
   );
   useRealtimeEvent(
@@ -403,8 +538,20 @@ export function useInstanceSocket(
   );
   useRealtimeEvent(
     socket,
+    enabled && connectionState === "connected" ? INSTANCE_STARTED_ALT_EVENT : null,
+    buildHandler(INSTANCE_STARTED_ALT_EVENT),
+    { enabled: enabled && connectionState === "connected" },
+  );
+  useRealtimeEvent(
+    socket,
     enabled && connectionState === "connected" ? INSTANCE_CLOSED_EVENT : null,
     buildHandler(INSTANCE_CLOSED_EVENT),
+    { enabled: enabled && connectionState === "connected" },
+  );
+  useRealtimeEvent(
+    socket,
+    enabled && connectionState === "connected" ? INSTANCE_CLOSED_ALT_EVENT : null,
+    buildHandler(INSTANCE_CLOSED_ALT_EVENT),
     { enabled: enabled && connectionState === "connected" },
   );
   useRealtimeEvent(
@@ -415,8 +562,20 @@ export function useInstanceSocket(
   );
   useRealtimeEvent(
     socket,
+    enabled && connectionState === "connected" ? PLAYER_JOINED_ALT_EVENT : null,
+    buildHandler(PLAYER_JOINED_ALT_EVENT),
+    { enabled: enabled && connectionState === "connected" },
+  );
+  useRealtimeEvent(
+    socket,
     enabled && connectionState === "connected" ? PLAYER_LEFT_EVENT : null,
     buildHandler(PLAYER_LEFT_EVENT),
+    { enabled: enabled && connectionState === "connected" },
+  );
+  useRealtimeEvent(
+    socket,
+    enabled && connectionState === "connected" ? PLAYER_LEFT_ALT_EVENT : null,
+    buildHandler(PLAYER_LEFT_ALT_EVENT),
     { enabled: enabled && connectionState === "connected" },
   );
   useRealtimeEvent(
@@ -427,10 +586,24 @@ export function useInstanceSocket(
   );
   useRealtimeEvent(
     socket,
+    enabled && connectionState === "connected" ? COUNTDOWN_STARTED_ALT_EVENT : null,
+    buildHandler(COUNTDOWN_STARTED_ALT_EVENT),
+    { enabled: enabled && connectionState === "connected" },
+  );
+  useRealtimeEvent(
+    socket,
     enabled && connectionState === "connected"
       ? COUNTDOWN_CANCELLED_EVENT
       : null,
     buildHandler(COUNTDOWN_CANCELLED_EVENT),
+    { enabled: enabled && connectionState === "connected" },
+  );
+  useRealtimeEvent(
+    socket,
+    enabled && connectionState === "connected"
+      ? COUNTDOWN_CANCELLED_ALT_EVENT
+      : null,
+    buildHandler(COUNTDOWN_CANCELLED_ALT_EVENT),
     { enabled: enabled && connectionState === "connected" },
   );
 
@@ -454,9 +627,7 @@ export function useInstanceSocket(
   }, [socket]);
 
   return {
-    connectionState: isFlagPlaceholder
-      ? "idle"
-      : mapSocketConnectionState(connectionState),
+    connectionState: mapSocketConnectionState(connectionState),
     lastError: mappedLastError,
     subscribe,
     emitJoin,

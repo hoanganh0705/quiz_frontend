@@ -3,7 +3,6 @@
 import { Award, Trophy } from "lucide-react";
 
 import { useAuthSession } from "@/features/auth/hooks/use-auth-session";
-import { getFeatureFlagValue } from "@/lib/feature-flags";
 
 import { useRankingMilestones } from "@/features/rankings/hooks";
 import {
@@ -18,15 +17,12 @@ interface MilestonesListProps {
 const FEATURED_MILESTONES = new Set(["TOP_100", "TOP_10", "TOP_1"]);
 
 export function MilestonesList({ className }: MilestonesListProps) {
-  const flagValue = getFeatureFlagValue("rankings_live");
-  const isFlagPlaceholder = flagValue === "placeholder";
-
   const { isAuthenticated, bootstrapState } = useAuthSession();
 
   const { milestones, isLoading, error, retry, isStale } =
     useRankingMilestones();
 
-  if (isFlagPlaceholder) return null;
+  if (false) return null;
   if (!isAuthenticated && bootstrapState !== "bootstrapping") return null;
 
   if (isLoading && milestones.length === 0) {

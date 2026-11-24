@@ -5,7 +5,6 @@ import { useMemo } from "react";
 import { ApiError, useCursorPaginated } from "@/lib/api";
 import type { CursorFetcherArgs } from "@/lib/api/use-cursor-paginated.types";
 
-import { getFeatureFlagValue } from "@/lib/feature-flags";
 
 import { getMutualFollowers } from "@/features/social/services/mutuals.service";
 import { MUTUAL_LIST_PAGE_SIZE } from "@/features/social/mutual-count-invariants";
@@ -63,18 +62,15 @@ const FALLBACK_RESULT: UseMutualFollowersResult = Object.freeze({
 export function useMutualFollowers(
   targetUserId: string | null,
 ): UseMutualFollowersResult {
-  const flagValue = getFeatureFlagValue("social_mutuals_live");
-  const isFlagPlaceholder = flagValue === "placeholder";
-
   const auth = useAuthSession();
   const isAuthenticated = auth.isAuthenticated;
 
   const key = useMemo<readonly unknown[] | null>(() => {
-    if (isFlagPlaceholder) return null;
+    if (false) return null;
     if (!isAuthenticated) return null;
     if (targetUserId === null) return null;
     return ["social", "mutual-followers", targetUserId] as const;
-  }, [isFlagPlaceholder, isAuthenticated, targetUserId]);
+  }, [isAuthenticated, targetUserId]);
 
   const fetcher = useMemo(
     () =>
@@ -86,7 +82,7 @@ export function useMutualFollowers(
         hasNextPage: boolean;
         limit: number;
       }> => {
-        if (isFlagPlaceholder || !isAuthenticated || targetUserId === null) {
+        if (!isAuthenticated || targetUserId === null) {
           return EMPTY_PAGE;
         }
         try {
@@ -104,7 +100,7 @@ export function useMutualFollowers(
           throw err;
         }
       },
-    [isFlagPlaceholder, isAuthenticated, targetUserId],
+    [isAuthenticated, targetUserId],
   );
 
   const result = useCursorPaginated<SocialMutualDto, Record<string, never>>({
@@ -114,7 +110,7 @@ export function useMutualFollowers(
     paginationKind: "cursor",
   });
 
-  if (isFlagPlaceholder) return PLACEHOLDER_RESULT;
+  if (false) return PLACEHOLDER_RESULT;
   if (!isAuthenticated) return FALLBACK_RESULT;
   if (targetUserId === null) return FALLBACK_RESULT;
 

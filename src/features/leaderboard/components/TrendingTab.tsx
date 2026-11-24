@@ -38,10 +38,10 @@ export default function TrendingTab({ users, isLoading }: TrendingTabProps) {
     return (
       <div className="space-y-4">
         <div className="flex items-center gap-2 mb-4">
-          <TrendingUp className="w-5 h-5 text-green-400" />
+          <TrendingUp className="w-5 h-5 text-emerald-500" aria-hidden="true" />
           <h3 className="text-foreground font-semibold">Trending This Week</h3>
         </div>
-        <p className="text-sm text-foreground-secondary text-center py-8">
+        <p className="text-sm text-muted-foreground text-center py-8">
           No movers yet — check back after the next ranking snapshot.
         </p>
       </div>
@@ -52,45 +52,43 @@ export default function TrendingTab({ users, isLoading }: TrendingTabProps) {
   const moversCount = users.length;
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center gap-2 mb-4">
-        <TrendingUp className="w-5 h-5 text-green-400" />
+    <div className="space-y-5">
+      <div className="flex items-center gap-2">
+        <TrendingUp className="w-5 h-5 text-emerald-500" aria-hidden="true" />
         <h3 className="text-foreground font-semibold">Trending This Week</h3>
       </div>
-      <div className="space-y-3">
+      <div className="space-y-2.5">
         {users.map((user) => (
           <div
             key={user.userId}
-            className="flex items-center gap-3 p-3 bg-muted rounded-lg hover:bg-primary/20 transition-colors"
+            className="flex items-center justify-between gap-3 p-3 bg-muted/40 border border-border/60 rounded-xl hover:bg-muted/70 transition-colors shadow-2xs"
           >
-            <div className="flex-1">
-              <div className="flex items-center gap-2">
-                <h4 className="text-foreground font-semibold">
-                  {user.username}
-                </h4>
-              </div>
-              <p className="text-foreground/80 text-sm">
+            <div className="min-w-0 flex-1">
+              <h4 className="text-foreground font-semibold text-sm truncate">
+                {user.username}
+              </h4>
+              <p className="text-muted-foreground text-xs font-mono tabular-nums mt-0.5">
                 Rank #{user.currentRank} (was #{user.previousRank})
               </p>
             </div>
-            <div className="text-right">
-              <div className="flex items-center gap-1 text-xs">
+            <div className="shrink-0">
+              <div
+                className={`inline-flex items-center gap-1 text-xs px-2.5 py-0.5 rounded-full font-mono tabular-nums font-semibold border ${
+                  user.change > 0
+                    ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20"
+                    : user.change < 0
+                      ? "bg-destructive/10 text-destructive border-destructive/20"
+                      : "bg-muted text-muted-foreground border-border/60"
+                }`}
+              >
                 {user.change > 0 ? (
-                  <TrendingUp className="w-3 h-3 text-green-400" />
+                  <TrendingUp className="w-3 h-3" aria-hidden="true" />
                 ) : user.change < 0 ? (
-                  <TrendingDown className="w-3 h-3 text-red-400" />
+                  <TrendingDown className="w-3 h-3" aria-hidden="true" />
                 ) : (
-                  <Minus className="w-3 h-3 text-slate-400" />
+                  <Minus className="w-3 h-3" aria-hidden="true" />
                 )}
-                <span
-                  className={
-                    user.change > 0
-                      ? "text-green-400"
-                      : user.change < 0
-                        ? "text-red-400"
-                        : "text-slate-400"
-                  }
-                >
+                <span>
                   {user.change > 0 ? `+${user.change}` : user.change.toString()}
                 </span>
               </div>
@@ -98,23 +96,27 @@ export default function TrendingTab({ users, isLoading }: TrendingTabProps) {
           </div>
         ))}
       </div>
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-6">
-        <div className="bg-muted p-3 rounded-lg text-center">
-          <div className="flex items-center justify-center mb-2">
-            <TrendingUp className="w-4 h-4 text-green-400" />
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 mt-6">
+        <div className="bg-muted/40 border border-border/60 p-3 sm:p-3.5 rounded-xl text-center">
+          <div className="flex items-center justify-center mb-1.5">
+            <TrendingUp className="w-4 h-4 text-emerald-500" aria-hidden="true" />
           </div>
-          <p className="text-lg font-bold text-foreground">+{topChange}</p>
-          <p className="text-xs text-foreground/80">Biggest Gain</p>
+          <p className="text-base sm:text-lg font-bold font-mono tabular-nums text-foreground">
+            +{topChange}
+          </p>
+          <p className="text-xs text-muted-foreground mt-0.5">Biggest Gain</p>
         </div>
-        <div className="bg-muted p-3 rounded-lg text-center">
-          <p className="text-lg font-bold text-foreground">{moversCount}</p>
-          <p className="text-xs text-foreground/80">Movers This Week</p>
+        <div className="bg-muted/40 border border-border/60 p-3 sm:p-3.5 rounded-xl text-center">
+          <p className="text-base sm:text-lg font-bold font-mono tabular-nums text-foreground">
+            {moversCount}
+          </p>
+          <p className="text-xs text-muted-foreground mt-0.5">Movers This Week</p>
         </div>
-        <div className="bg-muted p-3 rounded-lg text-center">
-          <p className="text-lg font-bold text-foreground">
+        <div className="bg-muted/40 border border-border/60 p-3 sm:p-3.5 rounded-xl text-center">
+          <p className="text-base sm:text-lg font-bold font-mono tabular-nums text-foreground">
             {Math.round(users.reduce((sum, u) => sum + u.change, 0))}
           </p>
-          <p className="text-xs text-foreground/80">Net Movement</p>
+          <p className="text-xs text-muted-foreground mt-0.5">Net Movement</p>
         </div>
       </div>
     </div>

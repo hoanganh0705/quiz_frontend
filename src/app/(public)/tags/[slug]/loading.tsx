@@ -11,7 +11,7 @@ const HEADER_SLUG_HEIGHT = "h-4 w-32";
 const FOLLOW_SLOT_CONTAINER =
   "flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between";
 const STRIP_CONTAINER =
-  "flex gap-3 overflow-x-auto pb-4 snap-x snap-mandatory scroll-mt-16";
+  "flex gap-3 overflow-x-auto pb-4 snap-x snap-mandatory scroll-mt-16 scrollbar-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden";
 const GRID_PADDING = "mt-12";
 
 export default function TagDetailLoading() {

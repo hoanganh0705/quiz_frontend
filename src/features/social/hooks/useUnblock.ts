@@ -3,7 +3,6 @@
 import { useMemo, useRef, useState } from "react";
 
 import { ApiError } from "@/lib/api";
-import { getFeatureFlagValue } from "@/lib/feature-flags";
 import { getQueryClient } from "@/providers/QueryProvider";
 
 import { unblockUser } from "@/features/social/services";
@@ -30,9 +29,6 @@ export function useUnblock(
   targetUserId: string | null,
   options: UseUnblockOptions = {},
 ): UseUnblockResult {
-  const flagValue = getFeatureFlagValue("social_block_mutation_live");
-  const isFlagPlaceholder = flagValue === "placeholder";
-
   const permissions = useSocialPermissions(targetUserId, {
     currentUserId: options.currentUserId ?? null,
   });
@@ -43,7 +39,7 @@ export function useUnblock(
   const [alreadyNotBlocking, setAlreadyNotBlocking] = useState(false);
 
   const result = useMemo<UseUnblockResult>(() => {
-    if (isFlagPlaceholder) {
+    if (false) {
       return Object.freeze({
         unblock: () => {
           // no-op — feature is gated off
@@ -134,9 +130,7 @@ export function useUnblock(
       error,
       alreadyNotBlocking,
     });
-  }, [
-    isFlagPlaceholder,
-    targetUserId,
+  }, [targetUserId,
     permissions.canUnblock,
     error,
     alreadyNotBlocking,

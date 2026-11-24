@@ -1,6 +1,7 @@
 type CookieOptions = {
   days?: number;
   path?: string;
+  sessionOnly?: boolean;
 };
 
 export type ClearAuthTokenFn = (path?: string) => void;
@@ -10,6 +11,29 @@ const DEFAULT_PATH = "/";
 const AUTH_STATE_EVENT = "auth-state-change";
 const AUTH_TOKEN_NAME = "auth_token";
 const REFRESH_TOKEN_NAME = "refresh_token";
+const REMEMBER_ME_STORAGE_KEY = "auth_remember_me";
+
+export function isRememberMeActive(): boolean {
+  if (typeof localStorage === "undefined") return false;
+  try {
+    return localStorage.getItem(REMEMBER_ME_STORAGE_KEY) === "true";
+  } catch {
+    return false;
+  }
+}
+
+export function setRememberMeActive(active: boolean): void {
+  if (typeof localStorage === "undefined") return;
+  try {
+    if (active) {
+      localStorage.setItem(REMEMBER_ME_STORAGE_KEY, "true");
+    } else {
+      localStorage.removeItem(REMEMBER_ME_STORAGE_KEY);
+    }
+  } catch {
+    // Fail silently
+  }
+}
 
 const STORAGE_SYNC_TOKEN_REFRESHED = "auth_sync_TOKEN_REFRESHED";
 const STORAGE_SYNC_LOGGED_OUT = "auth_sync_LOGGED_OUT";
@@ -91,18 +115,22 @@ export function getAuthToken(): string | null {
 export function setAuthToken(token: string, options: CookieOptions = {}) {
   if (typeof document === "undefined") return;
 
-  const days = options.days ?? DEFAULT_COOKIE_DAYS;
+  const sessionOnly = options.sessionOnly ?? !isRememberMeActive();
   const path = options.path ?? DEFAULT_PATH;
-  const expires = new Date(Date.now() + days * 864e5).toUTCString();
 
   const isSecure = window.location.protocol === "https:";
 
   const cookieParts = [
     `${AUTH_TOKEN_NAME}=${encodeURIComponent(token)}`,
-    `expires=${expires}`,
     `path=${path}`,
     "SameSite=Lax",
   ];
+
+  if (!sessionOnly) {
+    const days = options.days ?? DEFAULT_COOKIE_DAYS;
+    const expires = new Date(Date.now() + days * 864e5).toUTCString();
+    cookieParts.push(`expires=${expires}`);
+  }
 
   if (isSecure) {
     cookieParts.push("Secure");
@@ -147,6 +175,8 @@ export function setRefreshToken(token: string, options: CookieOptions = {}) {
 
 export function clearAuthToken(path: string = DEFAULT_PATH) {
   if (typeof document === "undefined") return;
+
+  setRememberMeActive(false);
 
   document.cookie = `${AUTH_TOKEN_NAME}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=${path}`;
 

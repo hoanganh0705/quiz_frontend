@@ -1,4 +1,8 @@
+import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
+
+import { mockTagResponseDto } from "../../__tests__/render-helpers";
+import { TagPill } from "../TagPill";
 
 vi.mock("next/link", () => ({
   default: ({
@@ -15,10 +19,7 @@ vi.mock("next/link", () => ({
   ),
 }));
 
-import { render, screen } from "@testing-library/react";
 
-import { TagPill } from "../TagPill";
-import { mockTagResponseDto } from "../../__tests__/render-helpers";
 
 describe("TagPill", () => {
   it("default variant renders without a link wrapper", () => {

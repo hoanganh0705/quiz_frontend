@@ -11,7 +11,6 @@ import {
   type InstanceLifecycleErrorCode,
   type InstanceRole,
 } from "@/features/instances/types/instance.types";
-import { getFeatureFlagValue } from "@/lib/feature-flags";
 
 import type { InstanceDetailResponseDto } from "@/lib/api/generated/schemas";
 
@@ -103,19 +102,16 @@ export function useInstance(
   instanceId: string | null,
   currentUserId: string | null = null,
 ): UseInstanceResult {
-  const flagValue = getFeatureFlagValue("multiplayer_instances_live");
-  const isFlagPlaceholder = flagValue === "placeholder";
-
   const key = useMemo(
     () =>
-      isFlagPlaceholder || instanceId === null
+      instanceId === null
         ? null
         : INSTANCE_CACHE_KEYS.detail(instanceId),
-    [isFlagPlaceholder, instanceId],
+    [instanceId],
   );
 
   const fetcher = useCallback(async (): Promise<InstanceDetail | null> => {
-    if (isFlagPlaceholder || instanceId === null) {
+    if (instanceId === null) {
       return null;
     }
 
@@ -145,7 +141,7 @@ export function useInstance(
     } catch (err) {
       throw wrapAsInstanceApiError(err);
     }
-  }, [isFlagPlaceholder, instanceId, currentUserId]);
+  }, [instanceId, currentUserId]);
 
   const result = useSingleWithRetry<InstanceDetail | null>({
     key,

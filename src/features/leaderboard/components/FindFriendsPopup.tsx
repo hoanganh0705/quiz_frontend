@@ -28,12 +28,13 @@ import { useState } from "react";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/Dialog";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
-import { Search, UserPlus, Users } from "lucide-react";
+import { Search, UserPlus, Users, X } from "lucide-react";
 import Image from "next/image";
 
 import { useAuthState } from "@/features/auth/hooks/use-auth-state";
@@ -68,30 +69,52 @@ export function FindFriendsPopup({ isOpen, onClose }: FindFriendsPopupProps) {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="bg-background border-border text-foreground max-w-2xl max-h-[80vh] overflow-hidden">
+      <DialogContent className="bg-card border-border/80 text-foreground max-w-2xl max-h-[85vh] rounded-2xl overflow-hidden p-6 shadow-lg">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold flex items-center gap-2">
-            <Users className="w-5 h-5" />
+            <Users className="w-5 h-5 text-primary" />
             Find Friends
           </DialogTitle>
+          <DialogDescription className="text-sm text-muted-foreground">
+            Search and connect with friends to compare your quiz rankings and achievements.
+          </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4">
+        <div className="space-y-4 pt-2">
           {/* Search Bar */}
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Search
+              className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground"
+              aria-hidden="true"
+            />
             <input
               placeholder="Search by username..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Escape" && searchQuery) {
+                  e.preventDefault();
+                  setSearchQuery("");
+                }
+              }}
               aria-label="Search suggestions"
-              className="pl-10 w-full bg-muted border border-border text-foreground placeholder:text-muted-foreground rounded-md h-9 px-3 text-sm"
+              className="pl-10 pr-10 w-full bg-muted/50 border border-border/70 text-foreground placeholder:text-muted-foreground rounded-xl h-10 px-3.5 text-sm transition-colors focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
             />
+            {searchQuery.length > 0 && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery("")}
+                className="absolute right-3 top-1/2 -translate-y-1/2 flex h-6 w-6 items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/80 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                aria-label="Clear search"
+              >
+                <X className="h-3.5 w-3.5" aria-hidden="true" />
+              </button>
+            )}
           </div>
 
           {/* Content */}
           {!isAuthenticated ? (
-            <div className="text-center py-8 text-foreground-secondary space-y-2">
+            <div className="text-center py-8 text-muted-foreground space-y-2">
               <Users
                 className="w-12 h-12 mx-auto opacity-50"
                 aria-hidden="true"
@@ -101,11 +124,11 @@ export function FindFriendsPopup({ isOpen, onClose }: FindFriendsPopupProps) {
           ) : visibility !== "visible" ? (
             <PrivacyNotice visibility={visibility} onRetry={retry} />
           ) : isLoading && items.length === 0 ? (
-            <div className="text-center py-8 text-foreground-secondary">
+            <div className="text-center py-8 text-muted-foreground">
               <p>Loading suggestions…</p>
             </div>
           ) : error ? (
-            <div className="text-center py-8 text-foreground-secondary space-y-2">
+            <div className="text-center py-8 text-muted-foreground space-y-2">
               <p>Could not load suggestions.</p>
               <Button
                 type="button"
@@ -119,7 +142,7 @@ export function FindFriendsPopup({ isOpen, onClose }: FindFriendsPopupProps) {
               </Button>
             </div>
           ) : filtered.length === 0 ? (
-            <div className="text-center py-8 text-foreground-secondary space-y-2">
+            <div className="text-center py-8 text-muted-foreground space-y-2">
               <Users
                 className="w-12 h-12 mx-auto opacity-50"
                 aria-hidden="true"

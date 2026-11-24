@@ -26,8 +26,8 @@ export function UnreadBadge({
     unreadCount > MAX_DISPLAY ? `${MAX_DISPLAY}+` : String(unreadCount);
 
   const sizeClass = {
-    sm: "h-3 w-3 sm:h-4 sm:w-4 text-[0.6rem]",
-    md: "h-5 w-5 text-xs",
+    sm: "h-3.5 w-3.5 sm:h-4 sm:w-4 text-xs font-mono",
+    md: "h-5 w-5 text-xs font-mono",
   }[size];
 
   if (dot) {

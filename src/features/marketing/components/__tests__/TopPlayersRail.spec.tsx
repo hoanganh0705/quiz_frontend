@@ -9,16 +9,18 @@
  *   - Renders the error state when the home bundle fetch fails.
  */
 
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+import { useHomeBundle } from "@/features/quizzes/hooks/useHomeBundle";
+
+import { TopPlayersRail } from "../TopPlayersRail";
 
 vi.mock("@/features/quizzes/hooks/useHomeBundle", () => ({
   useHomeBundle: vi.fn(),
 }));
 
-import { useHomeBundle } from "@/features/quizzes/hooks/useHomeBundle";
 
-import { TopPlayersRail } from "../TopPlayersRail";
 
 const mockUseHomeBundle = useHomeBundle as unknown as ReturnType<typeof vi.fn>;
 

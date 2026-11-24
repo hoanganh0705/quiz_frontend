@@ -1,7 +1,6 @@
 "use client";
 
 import { useAuthSession } from "@/features/auth/hooks/use-auth-session";
-import { getFeatureFlagValue } from "@/lib/feature-flags";
 
 import { useRankingHistory } from "@/features/rankings/hooks";
 import {
@@ -15,14 +14,11 @@ interface RankingHistoryProps {
 }
 
 export function RankingHistory({ className }: RankingHistoryProps) {
-  const flagValue = getFeatureFlagValue("rankings_live");
-  const isFlagPlaceholder = flagValue === "placeholder";
-
   const { isAuthenticated, bootstrapState } = useAuthSession();
 
   const { items, isLoading, error, retry, isStale } = useRankingHistory();
 
-  if (isFlagPlaceholder) return null;
+  if (false) return null;
   if (!isAuthenticated && bootstrapState !== "bootstrapping") return null;
 
   if (isLoading && items.length === 0) {

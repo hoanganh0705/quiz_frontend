@@ -18,13 +18,13 @@ export type ReportRowStatus = "pending" | "resolved";
 const STATUS_PILL_VIEW: Readonly<
   Record<
     ReportState,
-    { label: string; pill: ReportRowStatus; tone: "slate" | "emerald" }
+    { label: string; pill: ReportRowStatus; tone: "warning" | "success" }
   >
 > = Object.freeze({
-  open: { label: "Pending", pill: "pending", tone: "slate" },
-  reviewed: { label: "Reviewed", pill: "resolved", tone: "emerald" },
-  dismissed: { label: "Dismissed", pill: "resolved", tone: "emerald" },
-  actioned: { label: "Actioned", pill: "resolved", tone: "emerald" },
+  open: { label: "Pending", pill: "pending", tone: "warning" },
+  reviewed: { label: "Reviewed", pill: "resolved", tone: "success" },
+  dismissed: { label: "Dismissed", pill: "resolved", tone: "success" },
+  actioned: { label: "Actioned", pill: "resolved", tone: "success" },
 });
 
 function formatRowTimestamp(value: string | null | undefined): string {
@@ -78,16 +78,6 @@ export const ReviewReportItem = memo(function ReviewReportItem({
     onSelect(report);
   }, [report, onSelect]);
 
-  const handleRowKeyDown = useCallback(
-    (event: React.KeyboardEvent<HTMLDivElement>) => {
-      if (event.key === "Enter" || event.key === " ") {
-        event.preventDefault();
-        onSelect(report);
-      }
-    },
-    [report, onSelect],
-  );
-
   const handleAction = useCallback(
     (action: ReportConsumerAction) => {
       onAction(action, report);
@@ -104,33 +94,38 @@ export const ReviewReportItem = memo(function ReviewReportItem({
 
   return (
     <div
-      role="button"
-      tabIndex={0}
-      aria-selected={selected}
+      role="listitem"
       data-testid={`review-report-row-${report.reportId}`}
       data-state={report.status}
-      onClick={handleRowClick}
-      onKeyDown={handleRowKeyDown}
       className={cn(
-        "flex w-full cursor-pointer items-center gap-4 rounded-md border border-border bg-background px-4 py-3 text-left transition-colors",
-        "border-border hover:border-input hover:bg-muted",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
-        selected ? "border-primary bg-primary/5 ring-1 ring-primary/30" : "",
+        "group relative flex w-full items-center justify-between gap-4 rounded-xl border bg-card p-4 transition-all",
+        selected
+          ? "border-primary bg-primary/5 ring-1 ring-primary/25 shadow-sm"
+          : "border-border hover:border-input hover:bg-muted/40",
         className ?? "",
       )}
     >
-      {/* Reason block */}
-      <div className="flex flex-1 flex-col gap-1 overflow-hidden">
+      {/* Accessible card selection trigger */}
+      <button
+        type="button"
+        onClick={handleRowClick}
+        aria-label={`View report for ${report.quizTitle} by ${report.reviewerUsername}`}
+        aria-pressed={selected}
+        className="absolute inset-0 z-0 cursor-pointer rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+      />
+
+      {/* Main information block */}
+      <div className="relative z-10 flex flex-1 flex-col gap-1.5 overflow-hidden pointer-events-none">
         <div className="flex items-center gap-2">
           <span
-            className="truncate font-medium text-foreground"
+            className="truncate font-semibold text-foreground text-sm"
             data-testid={`review-report-row-reporter-${report.reportId}`}
           >
             {report.reviewerUsername}
           </span>
-          <span className="text-xs text-muted-foreground">reported</span>
+          <span className="text-xs text-muted-foreground">reported on</span>
           <span
-            className="truncate text-sm text-muted-foreground"
+            className="truncate text-xs font-medium text-foreground/90 max-w-[200px] sm:max-w-[280px]"
             data-testid={`review-report-row-quiz-${report.reportId}`}
           >
             {report.quizTitle}
@@ -138,7 +133,7 @@ export const ReviewReportItem = memo(function ReviewReportItem({
         </div>
 
         <div
-          className="flex items-center gap-2 text-sm text-muted-foreground"
+          className="flex items-center gap-2.5 text-xs text-muted-foreground"
           data-testid={`review-report-row-rating-${report.reportId}`}
         >
           <span className="inline-flex items-center gap-0.5">
@@ -147,18 +142,18 @@ export const ReviewReportItem = memo(function ReviewReportItem({
                 key={index}
                 aria-hidden="true"
                 className={cn(
-                  "h-3.5 w-3.5",
+                  "size-3.5",
                   index < report.rating
-                    ? "fill-amber-400 stroke-amber-500"
-                    : "fill-transparent stroke-slate-300",
+                    ? "fill-warning text-warning"
+                    : "fill-transparent text-muted-foreground/30",
                 )}
               />
             ))}
           </span>
-          <span>{report.rating}/5</span>
+          <span className="font-mono">{report.rating}/5</span>
           <span aria-hidden="true">·</span>
           <span
-            className="capitalize"
+            className="capitalize font-medium text-foreground"
             data-testid={`review-report-row-reason-${report.reportId}`}
           >
             {report.reason.replace(/_/g, " ")}
@@ -166,36 +161,39 @@ export const ReviewReportItem = memo(function ReviewReportItem({
         </div>
       </div>
 
-      {/* Status pill */}
-      <Badge
-        variant={statusView.tone === "slate" ? "secondary" : "default"}
-        data-testid={`review-report-row-pill-${report.reportId}`}
-        data-pill={statusView.pill}
-        className={cn(
-          "shrink-0 capitalize",
-          statusView.tone === "emerald"
-            ? "border-transparent bg-emerald-100 text-emerald-800"
-            : "",
-        )}
-      >
-        {statusView.label}
-      </Badge>
+      {/* Meta + Action block */}
+      <div className="relative z-10 flex items-center gap-3 shrink-0">
+        {/* Status pill */}
+        <Badge
+          variant="outline"
+          data-testid={`review-report-row-pill-${report.reportId}`}
+          data-pill={statusView.pill}
+          className={cn(
+            "shrink-0 capitalize font-medium text-xs px-2.5 py-0.5",
+            statusView.tone === "warning"
+              ? "border-warning/35 bg-warning/10 text-warning dark:bg-warning/20"
+              : "border-success/35 bg-success/10 text-success dark:bg-success/20",
+          )}
+        >
+          {statusView.label}
+        </Badge>
 
-      {/* Timestamp */}
-      <span
-        className="hidden shrink-0 text-xs text-muted-foreground md:inline"
-        data-testid={`review-report-row-timestamp-${report.reportId}`}
-      >
-        {timestampLabel}
-      </span>
+        {/* Timestamp */}
+        <span
+          className="hidden shrink-0 text-xs text-muted-foreground xl:inline font-mono"
+          data-testid={`review-report-row-timestamp-${report.reportId}`}
+        >
+          {timestampLabel}
+        </span>
 
-      {/* Action menu (click-isolated) */}
-      <div
-        onClick={stopPropagation}
-        onKeyDown={stopPropagation}
-        data-testid={`review-report-row-actions-${report.reportId}`}
-      >
-        <ReviewReportActionMenu report={report} onAction={handleAction} />
+        {/* Action menu (click-isolated) */}
+        <div
+          onClick={stopPropagation}
+          onKeyDown={stopPropagation}
+          data-testid={`review-report-row-actions-${report.reportId}`}
+        >
+          <ReviewReportActionMenu report={report} onAction={handleAction} />
+        </div>
       </div>
     </div>
   );

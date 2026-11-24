@@ -34,22 +34,22 @@ export function InstanceList({
         )}
         data-testid="instance-list-empty"
       >
-        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-brand/10 text-brand mb-4">
-          <Gamepad2 className="h-8 w-8" />
+        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-brand/10 text-brand ring-1 ring-brand/20 mb-4">
+          <Gamepad2 className="h-8 w-8" aria-hidden="true" />
         </div>
-        <h3 className="text-xl font-bold tracking-tight">
+        <h2 className="text-xl font-bold tracking-tight text-foreground">
           No Active Live Battles
-        </h3>
-        <p className="mt-2 max-w-md text-sm text-muted-foreground">
+        </h2>
+        <p className="mt-2 max-w-md text-sm text-muted-foreground leading-relaxed">
           There are no open multiplayer rooms right now. Pick any quiz and host
           your own live battle to compete with friends!
         </p>
         <Button
           asChild
-          className="mt-6 bg-brand text-white hover:bg-brand-hover shadow-sm"
+          className="mt-6 bg-brand text-brand-foreground hover:bg-brand-hover shadow-sm"
         >
           <Link href="/quizzes">
-            <Compass className="mr-2 h-4 w-4" />
+            <Compass className="mr-2 h-4 w-4" aria-hidden="true" />
             Explore Quizzes to Host
           </Link>
         </Button>
@@ -58,16 +58,21 @@ export function InstanceList({
   }
 
   return (
-    <div
-      className={cn(
-        "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6",
-        className,
-      )}
-      data-testid="instance-list"
-    >
-      {instances.map((instance) => (
-        <InstanceCard key={instance.instanceId} instance={instance} />
-      ))}
-    </div>
+    <>
+      <h2 className="sr-only">Available Live Battles</h2>
+      <div
+        className={cn(
+          "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6",
+          className,
+        )}
+        role="list"
+        aria-label="Active live battles"
+        data-testid="instance-list"
+      >
+        {instances.map((instance) => (
+          <InstanceCard key={instance.instanceId} instance={instance} />
+        ))}
+      </div>
+    </>
   );
 }

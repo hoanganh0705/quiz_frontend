@@ -49,7 +49,7 @@ export function DailyChallengePlaceholder({
       aria-busy={false}
       data-testid="daily-challenge-placeholder"
       className={cn(
-        "min-h-40 border bg-background text-foreground py-6",
+        "min-h-40 rounded-xl border border-border/70 bg-card text-foreground shadow-xs py-6",
         className,
       )}
     >

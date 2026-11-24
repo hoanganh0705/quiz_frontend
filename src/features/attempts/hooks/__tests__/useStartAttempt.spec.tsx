@@ -1,12 +1,14 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act, renderHook } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ApiError } from "@/lib/api";
-import { ATTEMPT_CACHE_KEYS } from "@/features/attempts/types/attempt-runner.types";
+
+import { useStartAttempt } from "@/features/attempts/hooks/useStartAttempt";
 import {
   useAttemptsStore,
   hydrateAttemptEntry,
 } from "@/features/attempts/stores/useAttemptsStore";
+import { ATTEMPT_CACHE_KEYS } from "@/features/attempts/types/attempt-runner.types";
 
 const startAttemptMock = vi.hoisted(() => vi.fn());
 const useAuthSessionMock = vi.hoisted(() => vi.fn());
@@ -37,7 +39,6 @@ vi.mock("@/lib/api/core/attempts-broadcast-channel", async () => {
   return { ...actual, broadcastAttemptsChanged: broadcastAttemptsChangedMock };
 });
 
-import { useStartAttempt } from "@/features/attempts/hooks/useStartAttempt";
 
 const SESSION_ID = "user-1";
 const QUIZ_ID = "quiz-1";

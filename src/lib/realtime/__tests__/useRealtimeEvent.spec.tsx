@@ -81,6 +81,23 @@ describe("useRealtimeEvent", () => {
     expect(handler).toHaveBeenCalledWith(payload);
   });
 
+  it("calls the handler with raw payload when event is not wrapped in envelope", () => {
+    const mockSocket = makeMockSocket();
+    vi.spyOn(socketAdapterModule, "createSocket").mockReturnValue(mockSocket);
+
+    const handler = vi.fn();
+    const rawPayload = { instanceId: "inst-1", userId: "user-1", player: { id: "p1" } };
+
+    renderHook(() =>
+      useRealtimeEvent(mockSocket, "player_joined", handler),
+    );
+
+    mockSocket._emit("player_joined", rawPayload);
+
+    expect(handler).toHaveBeenCalledTimes(1);
+    expect(handler).toHaveBeenCalledWith(rawPayload);
+  });
+
   it("does NOT call the handler when event is 'error'", () => {
     const mockSocket = makeMockSocket();
     vi.spyOn(socketAdapterModule, "createSocket").mockReturnValue(mockSocket);

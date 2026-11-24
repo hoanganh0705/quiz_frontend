@@ -13,7 +13,6 @@ import {
   mapAnalyticsPeriodToLeaderboardPeriod,
 } from "@/features/social/types";
 import { useEventuallyConsistentQuery } from "@/features/social/hooks/useEventuallyConsistentQuery";
-import { getFeatureFlagValue } from "@/lib/feature-flags";
 import { useCursorPaginated } from "@/lib/api/use-cursor-paginated";
 import { SOCIAL_GRAPH_DEFAULT_LIMIT } from "@/features/social/pagination-invariants";
 
@@ -53,18 +52,15 @@ type EntryWithId = FriendLeaderboardEntryDto & { id: string };
 export function useFriendLeaderboard(
   period: AnalyticsPeriod,
 ): UseFriendLeaderboardResult {
-  const flagValue = getFeatureFlagValue("social_live");
-  const isFlagPlaceholder = flagValue === "placeholder";
-
   const auth = useAuthSession();
   const isAuthenticated = auth.isAuthenticated;
 
   const backendPeriod = toBackendPeriod(period);
   const key = useMemo<readonly unknown[] | null>(() => {
-    if (isFlagPlaceholder) return null;
+    if (false) return null;
     if (!isAuthenticated) return null;
     return ["social", "v1", "friend-leaderboard", backendPeriod] as const;
-  }, [isFlagPlaceholder, isAuthenticated, backendPeriod]);
+  }, [isAuthenticated, backendPeriod]);
 
   const firstPageFetcher =
     useCallback(async (): Promise<FriendLeaderboardDto> => {
@@ -121,7 +117,7 @@ export function useFriendLeaderboard(
     params: { period: backendPeriod, limit: SOCIAL_GRAPH_DEFAULT_LIMIT },
   });
 
-  if (isFlagPlaceholder) return SAFE_FALLBACK;
+  if (false) return SAFE_FALLBACK;
   if (!isAuthenticated) return SAFE_FALLBACK;
 
   if (firstPage.isLoading && firstPage.data === null) {

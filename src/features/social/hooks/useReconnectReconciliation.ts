@@ -4,7 +4,6 @@ import { useEffect, useRef } from "react";
 
 import { useSocket, NOTIFICATIONS_NAMESPACE } from "@/lib/realtime";
 import type { SocketConnectionState } from "@/lib/realtime";
-import { getFeatureFlagValue } from "@/lib/feature-flags";
 import { mutateCarefully } from "@/lib/api/mutate-carefully";
 import { addReconnectReconciliationBreadcrumb } from "@/lib/social/social-realtime-sentry";
 
@@ -22,8 +21,7 @@ function isActiveState(state: SocketConnectionState): boolean {
 }
 
 export function useReconnectReconciliation(): void {
-  const flagValue = getFeatureFlagValue("social_realtime_notifications_live");
-  const enabled = flagValue !== "placeholder";
+  const enabled = true;
 
   const { connectionState } = useSocket(NOTIFICATIONS_NAMESPACE, {
     autoConnect: enabled,

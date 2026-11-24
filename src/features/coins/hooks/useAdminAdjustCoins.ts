@@ -4,7 +4,6 @@ import { useCallback, useMemo } from "react";
 import { getQueryClient } from "@/providers/QueryProvider";
 
 import { ApiError, useOptimisticMutation } from "@/lib/api";
-import { getFeatureFlagValue } from "@/lib/feature-flags";
 
 import { adminAdjustCoins } from "@/features/coins/services/coins.service";
 import type {
@@ -29,11 +28,7 @@ function classifyCoinError(cause: unknown): CoinErrorCode {
 const COOLDOWN_MS = 750;
 
 export function useAdminAdjustCoins(): UseAdminAdjustCoinsResult {
-  const coinFlag = getFeatureFlagValue("coin_economy_live");
-  const adminFlag = getFeatureFlagValue("admin_live");
-  const isPlaceholder =
-    coinFlag === "placeholder" || adminFlag === "placeholder";
-
+  const isPlaceholder = false;
   const { mutate: dispatch, isInFlight, lastResult } = useOptimisticMutation();
 
   const revalidate = useCallback(async (): Promise<void> => {

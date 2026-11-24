@@ -1,13 +1,13 @@
 "use client";
 
 import { useAuthSession } from "@/features/auth/hooks/use-auth-session";
+import { cn } from "@/shared/utils/merge-class-names";
 
 import {
   useInstanceGameSocket,
   useRealtimeGameplay,
   useReconnectReconciliation,
   useInstanceLifecycle,
-  useInstancesPlayFeatureFlag,
   useInstanceGameInit,
 } from "@/features/instances/play/hooks";
 
@@ -26,7 +26,6 @@ export function InstanceGamePage({
   instanceId,
   className,
 }: InstanceGamePageProps) {
-  const { isPlaceholder } = useInstancesPlayFeatureFlag();
   const { currentUser } = useAuthSession();
   const currentPlayerId = currentUser?.userId ?? null;
 
@@ -36,18 +35,6 @@ export function InstanceGamePage({
   const { closure, isClosed } = useInstanceLifecycle(instanceId);
   const { isLoading: isInitLoading, error: initError } =
     useInstanceGameInit(instanceId);
-
-  if (isPlaceholder) {
-    return (
-      <div
-        className={className}
-        data-testid="instance-game-page"
-        data-state="placeholder"
-      >
-        <PlaceholderMessage instanceId={instanceId} />
-      </div>
-    );
-  }
 
   if (instanceId === null) {
     return (
@@ -91,7 +78,7 @@ export function InstanceGamePage({
   if (isClosed && closure !== null) {
     return (
       <div
-        className={className}
+        className={cn("max-w-4xl mx-auto w-full", className)}
         data-testid="instance-game-page"
         data-state={closure.status}
       >
@@ -113,33 +100,6 @@ export function InstanceGamePage({
       data-state="live"
     >
       <InstanceGameView instanceId={instanceId} />
-    </div>
-  );
-}
-
-function PlaceholderMessage({ instanceId }: { instanceId: string | null }) {
-  return (
-    <div
-      className="flex flex-col items-center justify-center min-h-64 text-center px-4 py-12 space-y-4"
-      data-testid="game-placeholder"
-      role="status"
-    >
-      <GameSkeleton />
-      <p className="text-sm text-muted-foreground">
-        Gameplay features are currently under development and not yet available.
-      </p>
-      {instanceId !== null && (
-        <p className="text-xs text-muted-foreground">
-          You can still view the lobby at{" "}
-          <a
-            href={`/instances/${instanceId}`}
-            className="underline hover:text-primary"
-          >
-            /instances/{instanceId}
-          </a>
-          .
-        </p>
-      )}
     </div>
   );
 }

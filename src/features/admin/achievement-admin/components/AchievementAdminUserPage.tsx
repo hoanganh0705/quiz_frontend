@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect } from "react";
 
-import { useAdminFeatureFlag } from "@/features/admin/hooks/useAdminFeatureFlag";
 import { AdminPageHeader } from "@/app/(protected)/admin/_components/AdminPageHeader";
 import { AdminRoleGuard } from "@/features/admin/components/AdminRoleGuard";
 import { addAchievementAdminBreadcrumb } from "@/lib/admin/admin_live_sentry";
@@ -46,8 +45,6 @@ export function AchievementAdminUserPage({
     isValid ? userId : "",
   );
 
-  const { value: flagValue } = useAdminFeatureFlag("admin_achievement_live");
-
   useEffect(() => {
     if (!isValid) return;
 
@@ -85,17 +82,6 @@ export function AchievementAdminUserPage({
     // This callback exists so the page can extend behaviour (e.g. analytics)
     // without coupling the button to the list.
   }, []);
-
-  if (flagValue !== "live") {
-    return (
-      <div className="mx-auto max-w-3xl py-8">
-        <AdminPageHeader
-          title={DISABLED_NOTICE_COPY.title}
-          description={DISABLED_NOTICE_COPY.description}
-        />
-      </div>
-    );
-  }
 
   if (!isValid) {
     return (

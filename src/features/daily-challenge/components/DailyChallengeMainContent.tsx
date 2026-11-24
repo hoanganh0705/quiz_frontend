@@ -5,12 +5,12 @@ import { memo } from "react";
 import { DailyChallengePage } from "./DailyChallengePage";
 
 export interface DailyChallengeMainContentProps {
-  flagValue: "v1" | "placeholder";
+  flagValue?: "v1" | "placeholder";
 }
 
 const DailyChallengeMainContent = memo(function DailyChallengeMainContent({
   flagValue,
-}: DailyChallengeMainContentProps) {
+}: DailyChallengeMainContentProps = {}) {
   return <DailyChallengePage flagValue={flagValue} />;
 });
 

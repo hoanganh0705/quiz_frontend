@@ -25,16 +25,23 @@ export interface RankingPeriodResetResponseDto {
   affectedUsers: number;
 }
 
+export interface ConsistencyReportIssueDto {
+  type: string;
+  userId?: string | null;
+  description: string;
+  severity: string;
+}
+
 export interface RankingConsistencyCheckResponseDto {
-  status: "ok" | "warning" | "error";
+  totalIssues?: number;
+  fixed?: number;
+  issues?: ConsistencyReportIssueDto[];
 
-  severity: "low" | "medium" | "high";
-
-  issueCount: number;
-
+  status?: "ok" | "warning" | "error";
+  severity?: "low" | "medium" | "high";
+  issueCount?: number;
   primaryIssue?: string;
-
-  checkedAt: string;
+  checkedAt?: string;
 }
 
 /**
@@ -76,10 +83,26 @@ export async function resetRankingPeriod(
 
 export async function checkRankingConsistency(): Promise<RankingConsistencyCheckResponseDto> {
   const wire = await orvalCustomInstance<{
-    data: RankingConsistencyCheckResponseDto;
+    data?: RankingConsistencyCheckResponseDto;
   }>({
     url: "/api/v1/admin/ranking/consistency-check",
-    method: "GET",
+    method: "POST",
   });
-  return (wire as { data: RankingConsistencyCheckResponseDto }).data;
+  const raw = wire as
+    | { data?: RankingConsistencyCheckResponseDto }
+    | RankingConsistencyCheckResponseDto;
+  const data =
+    "data" in raw && raw.data ? raw.data : (raw as RankingConsistencyCheckResponseDto);
+
+  const total = data.totalIssues ?? data.issueCount ?? 0;
+  return {
+    ...data,
+    totalIssues: total,
+    issueCount: total,
+    fixed: data.fixed ?? 0,
+    issues: data.issues ?? [],
+    status: total === 0 ? "ok" : "warning",
+    severity: (data.issues?.[0]?.severity as "low" | "medium" | "high") ?? "low",
+    checkedAt: data.checkedAt ?? new Date().toISOString(),
+  };
 }

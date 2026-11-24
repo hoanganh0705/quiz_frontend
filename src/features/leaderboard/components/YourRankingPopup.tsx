@@ -25,6 +25,7 @@ import { useState } from "react";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/Dialog";
@@ -72,22 +73,26 @@ export function YourRankingPopup({ isOpen, onClose }: YourRankingPopupProps) {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="bg-background border-border text-foreground max-w-4xl max-h-[90vh] overflow-hidden">
+      <DialogContent className="bg-card border-border/80 text-foreground max-w-4xl max-h-[90vh] rounded-2xl overflow-hidden p-6 shadow-lg">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold flex items-center gap-2">
-            <Crown className="w-5 h-5 text-yellow-400" />
+            <Crown className="w-5 h-5 text-amber-500" />
             Your Ranking Profile
           </DialogTitle>
+          <DialogDescription className="text-sm text-muted-foreground">
+            View your season rank, experience points, and competitive
+            performance across periods.
+          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6">
           {/* Anonymous viewer — graceful empty state */}
           {!isAuthenticated ? (
-            <div className="p-6 bg-muted rounded-lg text-center space-y-2">
+            <div className="p-6 bg-muted/50 border border-border/60 rounded-xl text-center space-y-2">
               <p className="text-foreground font-medium">
                 Sign in to see your ranking profile
               </p>
-              <p className="text-sm text-foreground-secondary">
+              <p className="text-sm text-muted-foreground">
                 Your weekly, monthly, and all-time rankings are available after
                 you sign in.
               </p>
@@ -97,7 +102,7 @@ export function YourRankingPopup({ isOpen, onClose }: YourRankingPopupProps) {
               {/* User Header */}
               <div className="flex items-center gap-4 p-4 bg-muted rounded-lg">
                 <div className="relative">
-                  <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary to-indigo-700 flex items-center justify-center">
+                  <div className="w-16 h-16 rounded-full bg-linear-to-br from-primary to-indigo-700 flex items-center justify-center">
                     <span className="text-2xl font-bold text-white">
                       {weekly?.rank ? `#${weekly.rank}` : "—"}
                     </span>
@@ -144,8 +149,16 @@ export function YourRankingPopup({ isOpen, onClose }: YourRankingPopupProps) {
               </div>
 
               {/* Tabs */}
-              <div className="flex gap-2 border-b border-border">
+              <div
+                role="tablist"
+                aria-label="Ranking profile tabs"
+                className="flex gap-2 border-b border-border pb-1"
+              >
                 <Button
+                  role="tab"
+                  id="ranking-tab-overview"
+                  aria-selected={selectedTab === "overview"}
+                  aria-controls="ranking-panel-overview"
                   variant={selectedTab === "overview" ? "default" : "outline"}
                   size="sm"
                   onClick={() => setSelectedTab("overview")}
@@ -158,6 +171,10 @@ export function YourRankingPopup({ isOpen, onClose }: YourRankingPopupProps) {
                   Overview
                 </Button>
                 <Button
+                  role="tab"
+                  id="ranking-tab-achievements"
+                  aria-selected={selectedTab === "achievements"}
+                  aria-controls="ranking-panel-achievements"
                   variant={
                     selectedTab === "achievements" ? "default" : "outline"
                   }
@@ -172,6 +189,10 @@ export function YourRankingPopup({ isOpen, onClose }: YourRankingPopupProps) {
                   Achievements
                 </Button>
                 <Button
+                  role="tab"
+                  id="ranking-tab-activity"
+                  aria-selected={selectedTab === "activity"}
+                  aria-controls="ranking-panel-activity"
                   variant={selectedTab === "activity" ? "default" : "outline"}
                   size="sm"
                   onClick={() => setSelectedTab("activity")}
@@ -186,7 +207,13 @@ export function YourRankingPopup({ isOpen, onClose }: YourRankingPopupProps) {
               </div>
 
               {/* Tab Content */}
-              <div className="max-h-96 overflow-y-auto">
+              <div
+                role="tabpanel"
+                id={`ranking-panel-${selectedTab}`}
+                aria-labelledby={`ranking-tab-${selectedTab}`}
+                tabIndex={0}
+                className="max-h-96 overflow-y-auto focus:outline-none"
+              >
                 {selectedTab === "overview" && (
                   <OverviewTab
                     weekly={weekly}

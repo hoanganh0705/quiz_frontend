@@ -150,10 +150,6 @@ export const instanceMocks = {
     emitJoin: vi.fn().mockResolvedValue(undefined),
     emitLeave: vi.fn().mockResolvedValue(undefined),
   }),
-  useInstancesFeatureFlag: vi.fn().mockReturnValue({
-    isPlaceholder: false,
-    flagValue: "live",
-  }),
   useInstanceRealtimeBridge: vi.fn(),
 };
 
@@ -167,7 +163,6 @@ export function installInstanceMocks() {
     useStartInstance: instanceMocks.useStartInstance,
     useCloseInstance: instanceMocks.useCloseInstance,
     useInstanceSocket: instanceMocks.useInstanceSocket,
-    useInstancesFeatureFlag: instanceMocks.useInstancesFeatureFlag,
-    useInstanceRealtimeBridge: instanceMocks.useInstanceRealtimeBridge,
+        useInstanceRealtimeBridge: instanceMocks.useInstanceRealtimeBridge,
   };
 }

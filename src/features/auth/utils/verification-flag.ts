@@ -1,8 +1,9 @@
 "use client";
 
+import { useSyncExternalStore } from "react";
+
 const DEFAULT_TTL_MS = 15_000;
 
-import { useSyncExternalStore } from "react";
 
 interface FlagEntry {
   markedAt: number;

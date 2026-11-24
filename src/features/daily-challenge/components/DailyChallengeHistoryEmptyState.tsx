@@ -34,13 +34,18 @@ export function DailyChallengeHistoryEmptyState({
       data-testid="daily-challenge-history-empty-state"
       role="region"
       aria-labelledby="daily-challenge-history-empty-title"
-      className={cn("border bg-background text-foreground py-6", className)}
+      className={cn(
+        "rounded-xl border border-border/70 bg-card text-foreground shadow-xs py-6",
+        className,
+      )}
     >
-      <CardContent className="flex items-center justify-center min-h-24 p-4 gap-3 text-foreground-secondary">
-        <Calendar className="h-5 w-5" aria-hidden="true" />
+      <CardContent className="flex items-center justify-center min-h-24 p-6 gap-3 text-muted-foreground">
+        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-muted/60 border border-border/60 text-muted-foreground">
+          <Calendar className="h-5 w-5" aria-hidden="true" />
+        </div>
         <p
           id="daily-challenge-history-empty-title"
-          className="text-sm font-medium"
+          className="text-sm font-medium text-foreground-secondary"
         >
           No past challenges yet. Take today&apos;s challenge to start your
           streak.

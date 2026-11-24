@@ -56,6 +56,15 @@ const nextConfig: NextConfig = {
     "require-in-the-middle",
     "@opentelemetry/instrumentation",
   ],
+  async redirects() {
+    return [
+      {
+        source: "/achievement",
+        destination: "/achievements",
+        permanent: true,
+      },
+    ];
+  },
   turbopack: {},
   webpack: (config) => {
     config.ignoreWarnings = [

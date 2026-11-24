@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Loader2 } from "lucide-react";
 
+import { cn } from "@/shared/utils/merge-class-names";
 import {
   SidebarMenu,
   SidebarMenuButton,
@@ -57,18 +58,25 @@ function NavItem({
       <SidebarMenuButton
         asChild
         isActive={active}
-        className={
+        className={cn(
+          "text-sm flex items-center gap-2.5 rounded-lg px-2.5 py-2 transition-all duration-150",
           active
-            ? "text-white-primary bg-brand hover:bg-brand-hover data-[active=true]:bg-brand-hover"
-            : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-        }
+            ? "bg-sidebar-accent text-sidebar-accent-foreground font-semibold shadow-xs"
+            : "text-foreground/80 hover:bg-main-hover hover:text-foreground",
+        )}
       >
         <Link
           href={entry.href}
-          className="flex items-center gap-2 min-w-0 w-full"
+          className="flex items-center gap-2.5 min-w-0 w-full"
         >
           {entry.icon && (
-            <entry.icon className="h-4 w-4 shrink-0" aria-hidden="true" />
+            <entry.icon
+              className={cn(
+                "size-4 shrink-0 transition-colors",
+                active ? "text-sidebar-accent-foreground" : "text-muted-foreground",
+              )}
+              aria-hidden="true"
+            />
           )}
           <span className="text-sm font-medium truncate">{entry.label}</span>
         </Link>

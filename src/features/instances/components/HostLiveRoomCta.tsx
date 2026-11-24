@@ -8,7 +8,6 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { useAuthSession } from "@/features/auth/hooks/use-auth-session";
 import { useCreateInstance } from "@/features/instances/hooks/useCreateInstance";
-import { useInstancesFeatureFlag } from "@/features/instances/hooks/useInstancesFeatureFlag";
 import { cn } from "@/shared/utils/merge-class-names";
 
 export interface HostLiveRoomCtaProps {
@@ -23,17 +22,11 @@ export function HostLiveRoomCta({
   className,
 }: HostLiveRoomCtaProps) {
   const router = useRouter();
-
-  const { isPlaceholder } = useInstancesFeatureFlag();
   const { bootstrapState, currentUser } = useAuthSession();
   const isAuthenticated =
     bootstrapState === "authenticated" && currentUser !== null;
 
   const { create, isCreating, error } = useCreateInstance();
-
-  if (isPlaceholder) {
-    return null;
-  }
 
   const returnPath = idOrSlug ? `/quizzes/${idOrSlug}` : `/quizzes/${quizId}`;
 
@@ -43,7 +36,7 @@ export function HostLiveRoomCta({
         asChild
         variant="outline"
         className={cn(
-          "h-10 w-full min-w-40 border-brand/40 text-brand hover:bg-brand/10 hover:text-brand sm:w-44",
+          "h-10 w-full min-w-40 border-brand/40 text-brand hover:bg-brand/10 hover:text-brand dark:border-violet-500/50 dark:text-violet-300 dark:hover:bg-violet-950/40 dark:hover:text-violet-200 sm:w-44",
           className,
         )}
         data-testid="quiz-signin-to-host"
@@ -77,7 +70,7 @@ export function HostLiveRoomCta({
         type="button"
         variant="outline"
         className={cn(
-          "h-10 w-full min-w-40 border-brand/40 text-brand hover:bg-brand/10 hover:text-brand font-medium sm:w-44",
+          "h-10 w-full min-w-40 border-brand/40 text-brand hover:bg-brand/10 hover:text-brand dark:border-violet-500/50 dark:text-violet-300 dark:hover:bg-violet-950/40 dark:hover:text-violet-200 font-medium sm:w-44",
           className,
         )}
         onClick={handleHost}

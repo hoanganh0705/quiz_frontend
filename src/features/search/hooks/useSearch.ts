@@ -17,7 +17,6 @@ import {
 import { DEFAULT_SEARCH_DEBOUNCE_MS } from "@/features/search/hooks/useDebouncedValue";
 import { useDebouncedValue } from "@/lib/utils/use-debounced-value";
 import { search } from "@/features/search/services/search.service";
-import { getFeatureFlagValue } from "@/lib/feature-flags";
 
 import type { SearchResponseDto as SearchResponseWireDto } from "@/lib/api/generated/schemas/searchResponseDto";
 
@@ -224,9 +223,6 @@ export function useSearch(
   params: SearchQueryParams = DEFAULT_SEARCH_QUERY_PARAMS,
   options: { debounceMs?: number } = {},
 ): UseSearchResult {
-  const flagValue = getFeatureFlagValue("search_live");
-  const isFlagPlaceholder = flagValue === "placeholder";
-
   const debounceMs = options.debounceMs ?? DEFAULT_SEARCH_DEBOUNCE_MS;
 
   const rawQuery = params.q ?? "";
@@ -246,7 +242,6 @@ export function useSearch(
     debouncedQuery,
     clampedLimit,
     kinds: params.kinds,
-    isFlagPlaceholder,
   });
 }
 
@@ -255,7 +250,6 @@ interface UseSearchInnerArgs {
   debouncedQuery: string;
   clampedLimit: number | undefined;
   kinds: SearchResultKind[] | undefined;
-  isFlagPlaceholder: boolean;
 }
 
 function useSearchInner(args: UseSearchInnerArgs): UseSearchResult {
@@ -264,7 +258,6 @@ function useSearchInner(args: UseSearchInnerArgs): UseSearchResult {
     debouncedQuery,
     clampedLimit,
     kinds,
-    isFlagPlaceholder,
   } = args;
 
   const epochRef = useRef(0);
@@ -326,7 +319,7 @@ function useSearchInner(args: UseSearchInnerArgs): UseSearchResult {
   );
 
   useEffect(() => {
-    if (isFlagPlaceholder) {
+    if (false) {
       abortRef.current?.abort();
       epochRef.current += 1;
       setIsLoading(false);
@@ -361,10 +354,10 @@ function useSearchInner(args: UseSearchInnerArgs): UseSearchResult {
     return () => {
       controller.abort();
     };
-  }, [debouncedQuery, fetchForQuery, isFlagPlaceholder]);
+  }, [debouncedQuery, fetchForQuery]);
 
   const state: SearchQueryState = useMemo(() => {
-    if (isFlagPlaceholder) return "idle";
+    if (false) return "idle";
     if (error) return "error";
     if (isLoading && groups !== null) return "stale";
     if (isLoading) return "fetching";
@@ -374,7 +367,7 @@ function useSearchInner(args: UseSearchInnerArgs): UseSearchResult {
     }
     if (groups !== null) return "success";
     return "idle";
-  }, [error, isLoading, groups, debouncedQuery, isFlagPlaceholder]);
+  }, [error, isLoading, groups, debouncedQuery]);
 
   const hasResults = useMemo(() => {
     if (!groups) return false;
@@ -384,7 +377,7 @@ function useSearchInner(args: UseSearchInnerArgs): UseSearchResult {
   }, [groups]);
 
   const retry = useCallback(async () => {
-    if (isFlagPlaceholder) return;
+    if (false) return;
     abortRef.current?.abort();
     epochRef.current += 1;
     const controller = new AbortController();
@@ -397,7 +390,7 @@ function useSearchInner(args: UseSearchInnerArgs): UseSearchResult {
         setIsLoading(false);
       }
     }
-  }, [fetchForQuery, isFlagPlaceholder]);
+  }, [fetchForQuery]);
 
   const cancel = useCallback(() => {
     abortRef.current?.abort();

@@ -7,11 +7,12 @@ import type React from "react";
 import { cn } from "@/shared/utils/merge-class-names";
 
 const CARD_OUTER =
-  "group relative flex h-full flex-col overflow-hidden rounded-xl border bg-card text-card-foreground shadow-sm transition focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 hover:shadow-md";
+  "group relative flex h-full flex-col overflow-hidden rounded-xl border bg-card text-card-foreground shadow-sm transition-all duration-200 focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 hover:border-border/80 hover:shadow-md";
 
 const COVER_BASE_BASE = "relative w-full overflow-hidden bg-muted";
 
-const COVER_IMG = "h-full w-full object-cover";
+const COVER_IMG =
+  "h-full w-full object-cover transition-transform duration-300 group-hover:scale-105";
 
 const BODY = "flex flex-1 flex-col gap-2 p-4";
 
@@ -71,6 +72,11 @@ export interface EntityCardProps {
    * levels breaks screen-reader heading navigation).
    */
   titleHeadingLevel?: 2 | 3 | 4;
+  /**
+   * Optional custom CSS background for the cover area when `imageUrl` is missing.
+   * Typically a brand or procedural gradient.
+   */
+  fallbackBackground?: string;
 }
 
 const COVER_SIZE_CLASSES: Record<EntityCardCoverSize, string> = {
@@ -105,6 +111,7 @@ export function EntityCard({
   className,
   linkProps,
   titleHeadingLevel = 3,
+  fallbackBackground,
 }: EntityCardProps) {
   const coverStyle: ImageProps["style"] = {
     aspectRatio,
@@ -127,7 +134,13 @@ export function EntityCard({
         ) : initials ? (
           <span
             aria-hidden="true"
-            className={cn(FALLBACK_BASE, COVER_SIZE_CLASSES[coverSize])}
+            style={fallbackBackground ? { background: fallbackBackground } : undefined}
+            className={cn(
+              FALLBACK_BASE,
+              COVER_SIZE_CLASSES[coverSize],
+              "transition-transform duration-300 group-hover:scale-105",
+              fallbackBackground && "text-white font-bold tracking-wider",
+            )}
           >
             {initials}
           </span>

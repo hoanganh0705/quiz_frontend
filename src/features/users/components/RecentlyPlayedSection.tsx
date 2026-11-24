@@ -26,7 +26,7 @@ export default function RecentlyPlayedSection() {
         <h2 className="text-xl sm:text-2xl font-bold tracking-tight mb-3">
           Recently Played
         </h2>
-        <div className="rounded-lg border border-border bg-main p-6 text-center">
+        <div className="rounded-xl border border-border/70 bg-card/60 p-6 text-center shadow-2xs">
           <p className="text-sm text-muted-foreground">
             Play a quiz and it will appear here so you can jump back in.
           </p>
@@ -68,17 +68,17 @@ export default function RecentlyPlayedSection() {
           <Card key={item.quizId}>
             <CardContent className="p-4 space-y-3">
               <div className="flex items-center justify-between">
-                <Badge variant="outline">{item.difficulty}</Badge>
-                <span className="text-xs text-foreground-secondary flex items-center gap-1">
-                  <Clock className="h-3 w-3" />
+                <Badge variant="outline" className="capitalize">{item.difficulty}</Badge>
+                <span className="text-xs text-muted-foreground font-mono tabular-nums flex items-center gap-1">
+                  <Clock className="h-3 w-3" aria-hidden="true" />
                   {new Date(item.playedAt).toLocaleDateString()}
                 </span>
               </div>
               <p className="font-semibold line-clamp-2">{item.quizTitle}</p>
-              <p className="text-sm text-foreground-secondary">
+              <p className="text-xs text-muted-foreground font-mono tabular-nums">
                 Score: {item.scorePercent}%
               </p>
-              <Button asChild size="sm" className="w-full">
+              <Button asChild size="sm" className="w-full bg-brand hover:bg-brand-hover text-brand-foreground font-semibold">
                 <Link href={`/quizzes/${item.slug || item.quizId}/start`}>
                   Play Again
                 </Link>

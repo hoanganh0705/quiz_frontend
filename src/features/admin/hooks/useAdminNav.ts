@@ -9,10 +9,12 @@ import {
   Shield,
   ScrollText,
   Trophy,
+  Swords,
+  BarChart3,
+  MessageSquare,
+  Star,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-
-import { getFeatureFlagValue } from "@/lib/feature-flags";
 
 import {
   AUDIT_LOG_METADATA,
@@ -30,8 +32,6 @@ export interface AdminNavEntry {
   icon?: LucideIcon;
 
   requiredPermissions: AdminPermission[];
-
-  featureFlag?: "admin_audit_live" | "admin_ranking_live";
 }
 
 const MAIN_ENTRIES: AdminNavEntry[] = [
@@ -40,6 +40,22 @@ const MAIN_ENTRIES: AdminNavEntry[] = [
     label: "Dashboard",
     icon: LayoutDashboard,
     requiredPermissions: [],
+  },
+  {
+    href: "/admin/quizzes",
+    label: "Quizzes",
+    icon: Swords,
+    requiredPermissions: [],
+  },
+  {
+    href: "/admin/tournaments",
+    label: "Tournaments",
+    icon: Trophy,
+    requiredPermissions: [
+      "tournament_create",
+      "tournament_update",
+      "tournament_delete",
+    ],
   },
   {
     href: "/admin/categories",
@@ -69,25 +85,38 @@ const MAIN_ENTRIES: AdminNavEntry[] = [
     icon: Users,
     requiredPermissions: ["user_grant_role", "user_revoke_role"],
   },
-
   {
     href: AUDIT_LOG_ROUTE_PATH,
     label: AUDIT_LOG_METADATA.label,
     icon: AUDIT_LOG_METADATA.icon ?? ScrollText,
     requiredPermissions: [...AUDIT_LOG_METADATA.requiredPermissions],
-    featureFlag: "admin_audit_live",
   },
-
   {
     href: "/admin/rankings",
     label: "Rankings",
-    icon: Trophy,
+    icon: BarChart3,
     requiredPermissions: [
       "ranking_recalculate",
       "ranking_reset",
       "ranking_consistency_check",
     ],
-    featureFlag: "admin_ranking_live",
+  },
+  {
+    href: "/admin/comments/reports",
+    label: "Comment Reports",
+    icon: MessageSquare,
+    requiredPermissions: [
+      "comment_report_read",
+      "comment_report_update",
+      "comment_hide",
+      "comment_restore",
+    ],
+  },
+  {
+    href: "/admin/reviews/reports",
+    label: "Review Reports",
+    icon: Star,
+    requiredPermissions: ["review_report_read", "review_report_update"],
   },
 ];
 
@@ -117,17 +146,7 @@ export interface UseAdminNavResult {
 export function useAdminNav(): UseAdminNavResult {
   const { isLoading, permissions } = useAdminRole();
 
-  const auditFlagValue = getFeatureFlagValueSafe("admin_audit_live");
-
-  const rankingFlagValue = getFeatureFlagValueSafe("admin_ranking_live");
-
   function isVisible(entry: AdminNavEntry): boolean {
-    if (entry.featureFlag && entry.featureFlag === "admin_audit_live") {
-      if (auditFlagValue !== "live") return false;
-    }
-    if (entry.featureFlag && entry.featureFlag === "admin_ranking_live") {
-      if (rankingFlagValue !== "live") return false;
-    }
     if (entry.requiredPermissions.length === 0) return true;
     return entry.requiredPermissions.some((p) => permissions.includes(p));
   }
@@ -137,11 +156,4 @@ export function useAdminNav(): UseAdminNavResult {
     mainEntries: MAIN_ENTRIES.filter(isVisible),
     bottomEntries: BOTTOM_ENTRIES.filter(isVisible),
   };
-}
-
-function getFeatureFlagValueSafe(
-  flag: "admin_audit_live" | "admin_ranking_live",
-): "live" | "placeholder" {
-  const value = getFeatureFlagValue(flag);
-  return value === "live" ? "live" : "placeholder";
 }

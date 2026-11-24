@@ -15,7 +15,6 @@ import {
   type NotificationMutationState,
   type NotificationPreferences,
 } from "@/features/notifications/types/notification.types";
-import { getFeatureFlagValue } from "@/lib/feature-flags";
 
 import type { UpdatePreferencesDto } from "@/lib/api/generated/schemas";
 
@@ -47,19 +46,14 @@ const EMPTY_PREFERENCES: NotificationPreferences = {
 };
 
 export function useNotificationPreferences(): UseNotificationPreferencesResult {
-  const flagValue = getFeatureFlagValue("notifications_live");
-  const isFlagPlaceholder = flagValue === "placeholder";
-
   const [state, setState] = useState<NotificationMutationState>("idle");
   const [error, setError] = useState<ApiError | null>(null);
   const inFlightRef = useRef(false);
 
   const queryKey = useMemo(
     () =>
-      isFlagPlaceholder
-        ? (["notifications", "preferences", "disabled"] as const)
-        : NOTIFICATION_CACHE_KEYS.preferences(),
-    [isFlagPlaceholder],
+      NOTIFICATION_CACHE_KEYS.preferences(),
+    [],
   );
 
   const {
@@ -71,9 +65,6 @@ export function useNotificationPreferences(): UseNotificationPreferencesResult {
     {
       queryKey,
       queryFn: async () => {
-        if (isFlagPlaceholder) {
-          return EMPTY_PREFERENCES;
-        }
         const wire = (await getNotificationPreferences()) as unknown as
           GetNotificationPreferencesWireResponse | undefined;
         return wire ?? EMPTY_PREFERENCES;
@@ -87,10 +78,6 @@ export function useNotificationPreferences(): UseNotificationPreferencesResult {
 
   const update = useCallback(
     async (patch: UpdatePreferencesDto): Promise<void> => {
-      if (isFlagPlaceholder) {
-        return;
-      }
-
       if (state === "pending" || inFlightRef.current) {
         return;
       }
@@ -103,7 +90,7 @@ export function useNotificationPreferences(): UseNotificationPreferencesResult {
       qc.setQueryData<NotificationPreferences>(queryKey, (current) => ({
         ...(current ?? EMPTY_PREFERENCES),
         ...patch,
-      }));
+      } as unknown as NotificationPreferences));
 
       try {
         await updateNotificationPreferences(patch);
@@ -137,7 +124,7 @@ export function useNotificationPreferences(): UseNotificationPreferencesResult {
         inFlightRef.current = false;
       }
     },
-    [isFlagPlaceholder, state, queryKey, refetch],
+    [state, queryKey, refetch],
   );
 
   const reset = useCallback(() => {

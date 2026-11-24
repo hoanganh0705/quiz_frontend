@@ -10,7 +10,6 @@ import {
 } from "@/lib/realtime";
 import type { UseSocketReturn } from "@/lib/realtime";
 import { decodeWsError } from "@/lib/realtime";
-import { getFeatureFlagValue } from "@/lib/feature-flags";
 
 import { useAuthSession } from "@/features/auth/hooks/use-auth-session";
 
@@ -202,10 +201,7 @@ function coerceToGameplayEnvelope<T>(
 export function useInstanceGameSocket(
   instanceId: string | null,
 ): UseInstanceGameSocketResult {
-  const playFlag = getFeatureFlagValue("multiplayer_play_live");
-  const realtimeFlag = getFeatureFlagValue("realtime_infrastructure_live");
-  const enabled = playFlag === "live" && realtimeFlag === "live";
-  const isFlagPlaceholder = !enabled;
+  const enabled = true;
 
   const auth = useAuthSession();
   const isAuthenticated = auth.isAuthenticated;
@@ -261,7 +257,6 @@ export function useInstanceGameSocket(
 
   const emitJoin = useCallback(async (): Promise<void> => {
     if (
-      isFlagPlaceholder ||
       instanceId === null ||
       !isAuthenticated ||
       socket === null
@@ -280,14 +275,13 @@ export function useInstanceGameSocket(
       }
       throw coerceToApiError(cause);
     }
-  }, [isFlagPlaceholder, isAuthenticated, instanceId, socket]);
+  }, [isAuthenticated, instanceId, socket]);
 
   const emitAnswer = useCallback(
     async (
       submission: AnswerSubmissionDto,
     ): Promise<AnswerSubmissionAckDto> => {
       if (
-        isFlagPlaceholder ||
         instanceId === null ||
         !isAuthenticated ||
         socket === null
@@ -379,18 +373,16 @@ export function useInstanceGameSocket(
         });
       }
     },
-    [isFlagPlaceholder, isAuthenticated, instanceId, socket, connectionState],
+    [isAuthenticated, instanceId, socket, connectionState],
   );
 
   useEffect(() => {
-    if (isFlagPlaceholder || instanceId === null || !isAuthenticated) {
+    if (instanceId === null || !isAuthenticated) {
       return;
     }
     if (connectionState !== "connected") return;
     void emitJoin();
-  }, [
-    isFlagPlaceholder,
-    instanceId,
+  }, [instanceId,
     isAuthenticated,
     connectionState,
     emitJoin,
@@ -401,11 +393,11 @@ export function useInstanceGameSocket(
   }, [instanceId]);
 
   useEffect(() => {
-    if (!isFlagPlaceholder && !isAuthenticated) {
+    if (!isAuthenticated) {
       joinedInstancesRef.current.clear();
       disconnect();
     }
-  }, [isFlagPlaceholder, isAuthenticated, disconnect]);
+  }, [isAuthenticated, disconnect]);
 
   const buildHandler = useCallback(
     <T>(eventName: GameplayEventName) => {
@@ -480,9 +472,7 @@ export function useInstanceGameSocket(
   }, [socket]);
 
   return {
-    connectionState: isFlagPlaceholder
-      ? "idle"
-      : mapSocketConnectionState(connectionState),
+    connectionState: mapSocketConnectionState(connectionState),
     lastError: mappedLastError,
     subscribe,
     emitAnswer,

@@ -12,7 +12,6 @@ import {
   type TournamentLeaderboardPage,
   type TournamentLeaderboardEntry,
 } from "@/features/tournaments/types/tournament.types";
-import { getFeatureFlagValue } from "@/lib/feature-flags";
 
 export interface UseTournamentLeaderboardResult {
   items: readonly TournamentLeaderboardEntry[];
@@ -44,15 +43,12 @@ export function useTournamentLeaderboard(
   tournamentId: string | null,
   filters: TournamentLeaderboardFilters = {},
 ): UseTournamentLeaderboardResult {
-  const flagValue = getFeatureFlagValue("tournaments_live");
-  const isFlagPlaceholder = flagValue === "placeholder";
-
   const key = useMemo(
     () =>
-      isFlagPlaceholder || tournamentId === null
+      tournamentId === null
         ? (["tournaments", "leaderboard", "disabled"] as const)
         : TOURNAMENT_CACHE_KEYS.leaderboard(tournamentId, filters),
-    [isFlagPlaceholder, tournamentId, filters],
+    [tournamentId, filters],
   );
 
   const fetcher = useMemo(
@@ -60,7 +56,7 @@ export function useTournamentLeaderboard(
       async ({
         page,
       }: OffsetFetcherArgs<TournamentLeaderboardFilters>): Promise<TournamentLeaderboardPage> => {
-        if (isFlagPlaceholder || tournamentId === null) {
+        if (tournamentId === null) {
           return {
             items: [],
             page: 1,
@@ -115,7 +111,7 @@ export function useTournamentLeaderboard(
           limit,
         };
       },
-    [isFlagPlaceholder, tournamentId, filters],
+    [tournamentId, filters],
   );
 
   const result = useCursorPaginated<

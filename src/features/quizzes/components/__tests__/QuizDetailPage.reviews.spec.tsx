@@ -1,5 +1,7 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { cleanup, render, screen, within } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+import { QuizDetailPage } from "@/features/quizzes/components/QuizDetailPage";
 
 import type { PlayerQuizDetail } from "@/features/quizzes/lib/quiz-player-view";
 import type { QuizStatsResponseDto } from "@/lib/api/generated/schemas/quizStatsResponseDto";
@@ -178,7 +180,6 @@ vi.mock("@/features/comments/stores/useCommentThreadLookup", () => ({
   }),
 }));
 
-import { QuizDetailPage } from "@/features/quizzes/components/QuizDetailPage";
 
 const QUIZ_ID = "0192f4d8-3333-7000-8000-000000000099";
 const QUIZ_SLUG = "player-safe-science";

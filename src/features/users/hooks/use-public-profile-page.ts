@@ -12,7 +12,7 @@ import { useUserProfileBundle } from "@/features/users/hooks/use-user-profile-bu
 import type { Player } from "@/features/users/types";
 import type { SocialActivityItemDto } from "@/features/social/types";
 import type { QuizListItemDto } from "@/lib/api/generated/schemas";
-import type { ApiError, ProjectWithId } from "@/lib/api";
+import { getUsers, coerceToApiError, type ApiError, type ProjectWithId } from "@/lib/api";
 
 export interface ActivityItemData {
   icon: React.ReactNode;
@@ -53,6 +53,8 @@ export interface UsePublicProfilePageResult {
   isAnalyticsLoading: boolean;
   analyticsError: Error | null;
   isSelf: boolean;
+  isLookingUp: boolean;
+  lookupError: ApiError | null;
 }
 
 function toActivityItem(activity: SocialActivityItemDto): ActivityItemData {
@@ -94,6 +96,9 @@ function toActivityItem(activity: SocialActivityItemDto): ActivityItemData {
   };
 }
 
+const UUID_REGEX =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 const EMPTY_PLAYER: Player = {
   id: "guest",
   rank: 0,
@@ -123,18 +128,69 @@ export function usePublicProfilePage(params: {
     setIsHydrated(true);
   }, []);
 
+  const isUuid = useMemo(
+    () => Boolean(params.name && UUID_REGEX.test(params.name)),
+    [params.name],
+  );
+
   const isSelf = useMemo(() => {
-    if (!isHydrated) return false;
-    if (!viewerUserId) return false;
+    if (!isHydrated || !viewerUserId || !params.name) return false;
+
+    if (isUuid) {
+      return viewerUserId.toLowerCase() === params.name.toLowerCase();
+    }
     if (!viewerUsername) return false;
-
     return viewerUsername.toLowerCase() === params.name.toLowerCase();
-  }, [isHydrated, viewerUserId, viewerUsername, params.name]);
+  }, [isHydrated, viewerUserId, viewerUsername, params.name, isUuid]);
 
-  const resolvedUserId = isSelf ? viewerUserId : null;
+  // Username lookup state if param is not a UUID and not the viewer self
+  const [lookedUpUserId, setLookedUpUserId] = useState<string | null>(null);
+  const [isLookingUp, setIsLookingUp] = useState<boolean>(false);
+  const [lookupError, setLookupError] = useState<ApiError | null>(null);
 
-  const currentPlayer: Player = viewer
-    ? ({
+  useEffect(() => {
+    if (isUuid || isSelf || !params.name) {
+      setLookedUpUserId(null);
+      setIsLookingUp(false);
+      setLookupError(null);
+      return;
+    }
+
+    let isMounted = true;
+    setIsLookingUp(true);
+    setLookupError(null);
+
+    getUsers()
+      .userControllerGetUserByUsername(params.name)
+      .then((res) => {
+        if (!isMounted) return;
+        const fetchedUserId =
+          (res?.data as { userId?: string } | undefined)?.userId ?? null;
+        setLookedUpUserId(fetchedUserId);
+        setIsLookingUp(false);
+      })
+      .catch((err) => {
+        if (!isMounted) return;
+        setLookupError(coerceToApiError(err));
+        setIsLookingUp(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [params.name, isUuid, isSelf]);
+
+  const resolvedUserId = useMemo(() => {
+    if (isUuid) return params.name;
+    if (isSelf) return viewerUserId;
+    return lookedUpUserId;
+  }, [isUuid, params.name, isSelf, viewerUserId, lookedUpUserId]);
+
+  const profileBundle = useUserProfileBundle(resolvedUserId);
+
+  const currentPlayer: Player = useMemo(() => {
+    if (isSelf && viewer) {
+      return {
         id:
           (viewer as unknown as Record<string, unknown>).userId ??
           (viewer as unknown as Record<string, unknown>).id ??
@@ -152,8 +208,37 @@ export function usePublicProfilePage(params: {
             : undefined,
         followers: (viewer as unknown as Record<string, unknown>).followers,
         following: (viewer as unknown as Record<string, unknown>).following,
-      } as Player)
-    : EMPTY_PLAYER;
+      } as Player;
+    }
+
+    if (profileBundle.summary) {
+      const summary = profileBundle.summary;
+      return {
+        id: summary.userId,
+        rank: 0,
+        avatarUrl: summary.avatarUrl ?? undefined,
+        name: summary.displayName ?? summary.username ?? "User",
+        streak: summary.currentStreak,
+        score: undefined,
+        level: summary.level,
+        levelString:
+          summary.levelTitleLocalised ??
+          (typeof summary.level === "number"
+            ? `Level ${summary.level}`
+            : undefined),
+        followers:
+          summary.followers !== undefined
+            ? summary.followers.toLocaleString()
+            : undefined,
+        following:
+          summary.following !== undefined
+            ? summary.following.toLocaleString()
+            : undefined,
+      } as Player;
+    }
+
+    return EMPTY_PLAYER;
+  }, [isSelf, viewer, profileBundle.summary]);
 
   const {
     analytics,
@@ -162,25 +247,48 @@ export function usePublicProfilePage(params: {
     isSelf: analyticsIsSelf,
   } = useUserQuizAnalytics(resolvedUserId);
 
-  const averageScore = analytics?.averageScore ?? 0;
+  const averageScore =
+    profileBundle.analytics?.summary?.averageScore ??
+    analytics?.averageScore ??
+    0;
+
   const winRate = useMemo(() => {
-    if (!analytics) return 0;
+    if (analytics) {
+      if (
+        typeof analytics.totalAttempts === "number" &&
+        analytics.totalAttempts > 0 &&
+        typeof analytics.uniquePlayers === "number"
+      ) {
+        return Math.round(
+          (analytics.uniquePlayers / analytics.totalAttempts) * 100,
+        );
+      }
+    }
+    const bundleSummary = profileBundle.analytics?.summary;
     if (
-      typeof analytics.totalAttempts === "number" &&
-      analytics.totalAttempts > 0 &&
-      typeof analytics.uniquePlayers === "number"
+      bundleSummary &&
+      typeof bundleSummary.totalAttempts === "number" &&
+      bundleSummary.totalAttempts > 0 &&
+      typeof bundleSummary.completedQuizzes === "number"
     ) {
       return Math.round(
-        (analytics.uniquePlayers / analytics.totalAttempts) * 100,
+        (bundleSummary.completedQuizzes / bundleSummary.totalAttempts) * 100,
       );
     }
     return 0;
-  }, [analytics]);
+  }, [analytics, profileBundle.analytics]);
 
   const activity = useUserActivity(resolvedUserId);
+  const rawActivities = useMemo(() => {
+    if (activity.items.length > 0) return activity.items;
+    return (
+      (profileBundle.recentActivity as unknown as SocialActivityItemDto[]) ?? []
+    );
+  }, [activity.items, profileBundle.recentActivity]);
+
   const recentActivities: ActivityItemData[] = useMemo(
-    () => activity.items.slice(0, 3).map(toActivityItem),
-    [activity.items],
+    () => rawActivities.slice(0, 3).map(toActivityItem),
+    [rawActivities],
   );
 
   const quizzesTaken = useUserQuizzes(resolvedUserId, {
@@ -193,8 +301,10 @@ export function usePublicProfilePage(params: {
   });
   const isQuizzesLoading = quizzesTaken.isLoading || quizzesCreated.isLoading;
   const quizzesError = quizzesTaken.error ?? quizzesCreated.error ?? null;
-  const quizzesTakenCount = quizzesTaken.items.length;
-  const quizzesCreatedCount = quizzesCreated.items.length;
+  const quizzesTakenCount =
+    profileBundle.summary?.quizzesTaken ?? quizzesTaken.items.length;
+  const quizzesCreatedCount =
+    profileBundle.summary?.quizzesCreated ?? quizzesCreated.items.length;
 
   const followers = useFollowers(resolvedUserId);
   const following = useFollowing(resolvedUserId);
@@ -226,8 +336,6 @@ export function usePublicProfilePage(params: {
     setActiveTab(value);
   };
 
-  const profileBundle = useUserProfileBundle(resolvedUserId);
-
   return {
     activeTab,
     handleTabChange,
@@ -252,5 +360,7 @@ export function usePublicProfilePage(params: {
     isAnalyticsLoading,
     analyticsError,
     isSelf: analyticsIsSelf,
+    isLookingUp,
+    lookupError,
   };
 }

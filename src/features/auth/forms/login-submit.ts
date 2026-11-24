@@ -23,6 +23,7 @@ export interface SubmitLoginDeps {
   login: (dto: {
     email: string;
     password: string;
+    rememberMe?: boolean;
   }) => Promise<AuthControllerLoginResult>;
 
   clearAuthToken: ClearAuthTokenFn;

@@ -111,7 +111,7 @@ export interface FinalLeaderboardDto {
 
 export interface InstanceClosedEventDto {
   instanceId: string;
-  status: "closed" | "cancelled";
+  status: "closed" | "cancelled" | "finished";
   closedAt: string;
   reason: string;
   finalLeaderboard: FinalLeaderboardDto | null;

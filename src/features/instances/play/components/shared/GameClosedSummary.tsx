@@ -1,16 +1,17 @@
 "use client";
 
-import { StopCircle } from "lucide-react";
+import { AlertCircle, ArrowLeft, Gamepad2, StopCircle, Trophy } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
-import { EmptyState } from "@/components/ui/EmptyState";
+import { EmptyState, type EmptyStateAction } from "@/components/ui/EmptyState";
 
 import type { InstanceClosedEventDto } from "@/features/instances/play/types";
 
-export type GameClosedVariant = "closed" | "cancelled";
+export type GameClosedVariant = "closed" | "cancelled" | "finished";
 
 interface GameClosedSummaryProps {
   closure: InstanceClosedEventDto | null;
+  instanceId?: string;
   className?: string;
 }
 
@@ -18,15 +19,21 @@ const VARIANT_CONFIG: Record<
   GameClosedVariant,
   { icon: LucideIcon; title: string; description: string }
 > = {
+  finished: {
+    icon: Trophy,
+    title: "Battle Complete!",
+    description:
+      "The live battle has finished. Check out the final results below.",
+  },
   closed: {
     icon: StopCircle,
-    title: "Game closed",
+    title: "Battle Concluded",
     description:
-      "The host has closed this game. It is no longer accepting answers.",
+      "This battle has concluded and is no longer accepting answers.",
   },
   cancelled: {
-    icon: StopCircle,
-    title: "Game cancelled",
+    icon: AlertCircle,
+    title: "Battle Cancelled",
     description:
       "This game was cancelled before it could finish. Please join another instance to play.",
   },
@@ -48,14 +55,39 @@ function formatTimestamp(iso: string | null | undefined): string | null {
 
 export function GameClosedSummary({
   closure,
+  instanceId,
   className,
 }: GameClosedSummaryProps) {
   if (closure === null) return null;
 
   const variant: GameClosedVariant =
-    closure.status === "cancelled" ? "cancelled" : "closed";
+    closure.status === "cancelled"
+      ? "cancelled"
+      : closure.status === "finished" || closure.reason === "normal"
+        ? "finished"
+        : "closed";
+
   const config = VARIANT_CONFIG[variant];
   const timestamp = formatTimestamp(closure.closedAt);
+
+  const actions: EmptyStateAction[] = [
+    ...(instanceId
+      ? [
+          {
+            label: "Return to Lobby",
+            href: `/instances/${instanceId}`,
+            icon: ArrowLeft,
+            variant: "default" as const,
+          },
+        ]
+      : []),
+    {
+      label: "Browse Battles",
+      href: "/instances",
+      icon: Gamepad2,
+      variant: "outline" as const,
+    },
+  ];
 
   return (
     <EmptyState
@@ -63,9 +95,10 @@ export function GameClosedSummary({
       title={config.title}
       description={
         timestamp !== null
-          ? `${config.description} Closed ${timestamp}.`
+          ? `${config.description} Concluded ${timestamp}.`
           : config.description
       }
+      actions={actions}
       size="lg"
       className={className}
       data-testid="game-closed-summary"

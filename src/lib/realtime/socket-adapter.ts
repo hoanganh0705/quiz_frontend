@@ -1,5 +1,5 @@
 import { io, type Socket } from "socket.io-client";
-import { getOrCreateSocket } from "./connection-registry";
+import { getOrCreateSocket, getExistingSocket as getExistingSocketFromRegistry } from "./connection-registry";
 
 const WS_URL =
   process.env.NEXT_PUBLIC_WS_URL ??
@@ -32,5 +32,14 @@ export function createSocket(
     ) as Socket;
   } catch {
     return createNoopSocket();
+  }
+}
+
+export function getExistingSocket(url: string): Socket | null {
+  try {
+    const fullUrl = url.startsWith("/") ? `${WS_URL}${url}` : url;
+    return (getExistingSocketFromRegistry(fullUrl) as Socket) ?? null;
+  } catch {
+    return null;
   }
 }

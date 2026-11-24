@@ -1,6 +1,8 @@
 import { renderHook, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { usePublicProfilePage } from "@/features/users/hooks/use-user-profile-page";
+
 const mockUseUserProfileQuery = vi.fn();
 const mockUseAuthSession = vi.fn();
 
@@ -15,7 +17,6 @@ vi.mock("@/features/auth/hooks/use-auth-session", () => ({
   useAuthSession: () => mockUseAuthSession(),
 }));
 
-import { usePublicProfilePage } from "@/features/users/hooks/use-user-profile-page";
 
 function setAuth({
   isAuthenticated,

@@ -1,8 +1,3 @@
-export { useAdminFeatureFlag } from "./useAdminFeatureFlag";
-export type {
-  UseAdminFeatureFlag,
-  AdminFeatureFlag,
-} from "./useAdminFeatureFlag";
 
 export { useAdminIdentity } from "./useAdminIdentity";
 export type { UseAdminIdentityResult } from "./useAdminIdentity";

@@ -4,7 +4,6 @@ import { useCallback, useMemo } from "react";
 import { getQueryClient } from "@/providers/QueryProvider";
 
 import { ApiError, useOptimisticMutation } from "@/lib/api";
-import { getFeatureFlagValue } from "@/lib/feature-flags";
 
 import { blockUser, type BlockUserInput } from "@/features/social/services";
 import {
@@ -41,9 +40,6 @@ export function useBlock(
   targetUserId: string | null,
   options: UseBlockOptions = {},
 ): UseBlockResult {
-  const flagValue = getFeatureFlagValue("social_block_mutation_live");
-  const isFlagPlaceholder = flagValue === "placeholder";
-
   const permissions = useSocialPermissions(targetUserId, {
     currentUserId: options.currentUserId ?? null,
   });
@@ -75,7 +71,7 @@ export function useBlock(
       : null;
 
   const result = useMemo<UseBlockResult>(() => {
-    if (isFlagPlaceholder) {
+    if (false) {
       return Object.freeze({
         block: () => {
           // no-op — feature is gated off
@@ -133,9 +129,7 @@ export function useBlock(
       isPending: isInFlight,
       error,
     });
-  }, [
-    isFlagPlaceholder,
-    targetUserId,
+  }, [targetUserId,
     permissions.canBlock,
     dispatchMutation,
     isInFlight,

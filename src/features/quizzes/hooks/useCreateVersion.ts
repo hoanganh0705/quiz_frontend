@@ -70,7 +70,7 @@ export function useCreateVersion(
             );
           }
 
-          emitBreadcrumb("phase4:4.9:create-version", {
+          emitBreadcrumb("quizzes:create-version", {
             status: "success",
             durationMs: Date.now() - startedAt,
           });
@@ -82,7 +82,7 @@ export function useCreateVersion(
             setError(err);
             onError?.(err);
 
-            emitBreadcrumb("phase4:4.9:create-version", {
+            emitBreadcrumb("quizzes:create-version", {
               status: "error",
               durationMs: Date.now() - startedAt,
               code: err.code,
@@ -91,7 +91,7 @@ export function useCreateVersion(
             throw err;
           }
 
-          emitBreadcrumb("phase4:4.9:create-version", {
+          emitBreadcrumb("quizzes:create-version", {
             status: "error",
             durationMs: Date.now() - startedAt,
             code: "GLOBAL_UNKNOWN",

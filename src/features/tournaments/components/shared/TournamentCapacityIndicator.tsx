@@ -52,13 +52,13 @@ export function TournamentCapacityIndicator({
 
       {hasCap ? (
         <div className="flex flex-col gap-1 min-w-0">
-          <div className="flex items-center justify-between gap-2 text-xs">
+          <div className="flex items-center justify-between gap-2 text-xs font-mono tabular-nums">
             <span className="truncate font-medium text-foreground">
               {currentParticipants} / {maxParticipants}
             </span>
             {isFull && (
               <span
-                className="shrink-0 rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground"
+                className="shrink-0 rounded-full bg-muted px-1.5 py-0.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground"
                 data-testid="tournament-capacity-indicator-full-badge"
               >
                 Full

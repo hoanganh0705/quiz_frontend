@@ -1,6 +1,9 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import * as React from "react";
+
 import { act, render, waitFor } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+import { QuizCtaStrip } from "@/features/quizzes/components/QuizCtaStrip";
 
 import type { AttemptSummaryResponseDto } from "@/lib/api/generated/schemas";
 
@@ -112,10 +115,6 @@ vi.mock("@/features/auth/hooks/use-auth-session", () => ({
     React.createElement(React.Fragment, null, children),
 }));
 
-vi.mock("@/lib/feature-flags", () => ({
-  isFeatureEnabled: (_flag: string, expected: string) => expected === "live",
-  getFeatureFlagValue: () => "live" as const,
-}));
 
 vi.mock("@/features/quizzes/hooks/useQuizByIdOrSlug", () => ({
   useQuizByIdOrSlug: () => ({
@@ -128,7 +127,6 @@ vi.mock("@/features/quizzes/hooks/useQuizByIdOrSlug", () => ({
   }),
 }));
 
-import { QuizCtaStrip } from "@/features/quizzes/components/QuizCtaStrip";
 
 beforeEach(() => {
   activeAttemptMock.mockReset();

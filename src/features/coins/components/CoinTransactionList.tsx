@@ -1,16 +1,29 @@
 "use client";
 
-import { ArrowDownLeft, ArrowUpRight, Loader2, Receipt } from "lucide-react";
+import { memo } from "react";
+import {
+  ArrowDownLeft,
+  ArrowUpRight,
+  CalendarCheck,
+  CheckCircle2,
+  Coins,
+  Flame,
+  HeartHandshake,
+  Loader2,
+  Medal,
+  Receipt,
+  Sparkles,
+  Trophy,
+} from "lucide-react";
 
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { ApiError } from "@/lib/api";
-
 import type {
   CoinReason,
   CoinTransaction,
 } from "@/features/coins/types/coin.types";
+import type { ApiError } from "@/lib/api";
 
 export interface CoinTransactionListProps {
   items: readonly CoinTransaction[];
@@ -25,9 +38,7 @@ export interface CoinTransactionListProps {
 const INTEGER_FORMAT = new Intl.NumberFormat("en-US");
 
 /**
- * Human-readable label for a `CoinReason` enum value. We keep the
- * mapping local so the transaction list does not need a translation
- * pipeline — the labels are intentionally short.
+ * Human-readable label for a `CoinReason` enum value.
  */
 const REASON_LABELS: Readonly<Record<CoinReason, string>> = {
   QUIZ_COMPLETION_REWARD: "Quiz completion",
@@ -47,12 +58,32 @@ const DATETIME_FORMAT = new Intl.DateTimeFormat("en-US", {
   timeStyle: "short",
 });
 
+function getTransactionIcon(reason: CoinReason, isPositive: boolean) {
+  switch (reason) {
+    case "QUIZ_COMPLETION_REWARD":
+      return CheckCircle2;
+    case "DAILY_CHALLENGE_REWARD":
+      return CalendarCheck;
+    case "TOURNAMENT_REWARD":
+      return Trophy;
+    case "ACHIEVEMENT_REWARD":
+      return Medal;
+    case "STREAK_BONUS":
+      return Flame;
+    case "TIP_SENT":
+      return HeartHandshake;
+    case "FLAIR_PURCHASED":
+      return Sparkles;
+    case "ADMIN_CREDIT":
+    case "ADMIN_DEBIT":
+      return Coins;
+    default:
+      return isPositive ? ArrowUpRight : ArrowDownLeft;
+  }
+}
+
 /**
  * `<CoinTransactionList />` — paginated coin ledger.
- *
- * Empty / error / loading / populated states each render a distinct
- * surface so users always know what they're looking at. We never fall
- * back to fake rows.
  */
 export function CoinTransactionList({
   items,
@@ -65,10 +96,13 @@ export function CoinTransactionList({
 }: CoinTransactionListProps): React.ReactElement {
   if (error) {
     return (
-      <Card data-testid="coins-transactions-error-card">
+      <Card
+        data-testid="coins-transactions-error-card"
+        className="rounded-xl border border-destructive/30 bg-destructive/5"
+      >
         <CardContent className="p-6">
           <div
-            className="rounded-md border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950/30 px-3 py-2 text-xs text-red-700 dark:text-red-300"
+            className="rounded-lg border border-destructive/40 bg-destructive/10 px-3.5 py-2.5 text-xs text-destructive"
             role="alert"
             data-testid="coins-transactions-error"
           >
@@ -79,7 +113,7 @@ export function CoinTransactionList({
             variant="outline"
             size="sm"
             onClick={onRetry}
-            className="mt-3"
+            className="mt-3.5"
             data-testid="coins-transactions-retry"
           >
             Retry
@@ -91,12 +125,15 @@ export function CoinTransactionList({
 
   if (isLoading && items.length === 0) {
     return (
-      <Card data-testid="coins-transactions-loading-card">
-        <CardContent className="p-6 space-y-2" aria-busy="true">
+      <Card
+        data-testid="coins-transactions-loading-card"
+        className="rounded-xl border border-border/80 bg-card/80"
+      >
+        <CardContent className="p-6 space-y-2.5" aria-busy="true">
           {Array.from({ length: 6 }).map((_, idx) => (
             <div
               key={`txn-skel-${idx}`}
-              className="h-10 rounded bg-muted/60 animate-pulse"
+              className="h-12 rounded-xl bg-muted/60 animate-pulse motion-reduce:animate-none"
             />
           ))}
         </CardContent>
@@ -106,8 +143,11 @@ export function CoinTransactionList({
 
   if (items.length === 0) {
     return (
-      <Card data-testid="coins-transactions-empty-card">
-        <CardContent className="p-2">
+      <Card
+        data-testid="coins-transactions-empty-card"
+        className="rounded-xl border border-border/80 bg-card/80"
+      >
+        <CardContent className="p-4 sm:p-6">
           <EmptyState
             icon={Receipt}
             size="md"
@@ -128,65 +168,22 @@ export function CoinTransactionList({
   }
 
   return (
-    <Card data-testid="coins-transactions-card">
+    <Card
+      data-testid="coins-transactions-card"
+      className="rounded-xl border border-border/80 bg-card/80 p-0 backdrop-blur-xs shadow-xs"
+    >
       <CardContent className="p-0">
         <ul
-          className="divide-y divide-border"
+          className="divide-y divide-border/60"
           data-testid="coins-transactions-list"
         >
           {items.map((txn) => (
-            <li
-              key={txn.transactionId}
-              className="flex items-center justify-between gap-3 px-4 py-3"
-              data-testid="coins-transaction-row"
-              data-reason={txn.reason}
-            >
-              <div className="flex items-center gap-3 min-w-0">
-                <div
-                  className={
-                    txn.amount >= 0
-                      ? "rounded-full p-1.5 bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300"
-                      : "rounded-full p-1.5 bg-rose-100 dark:bg-rose-900/40 text-rose-700 dark:text-rose-300"
-                  }
-                  aria-hidden="true"
-                >
-                  {txn.amount >= 0 ? (
-                    <ArrowUpRight className="h-3.5 w-3.5" />
-                  ) : (
-                    <ArrowDownLeft className="h-3.5 w-3.5" />
-                  )}
-                </div>
-                <div className="min-w-0">
-                  <p className="text-sm font-medium truncate">
-                    {REASON_LABELS[txn.reason as CoinReason] ?? txn.reason}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {DATETIME_FORMAT.format(new Date(txn.createdAt))}
-                  </p>
-                </div>
-              </div>
-              <div className="text-right tabular-nums">
-                <p
-                  className={
-                    txn.amount >= 0
-                      ? "text-sm font-semibold text-emerald-700 dark:text-emerald-300"
-                      : "text-sm font-semibold text-rose-700 dark:text-rose-300"
-                  }
-                  data-testid="coins-transaction-amount"
-                >
-                  {txn.amount >= 0 ? "+" : ""}
-                  {INTEGER_FORMAT.format(txn.amount)}
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  Balance: {INTEGER_FORMAT.format(txn.balanceAfter)}
-                </p>
-              </div>
-            </li>
+            <CoinTransactionRow key={txn.transactionId} txn={txn} />
           ))}
         </ul>
 
         {hasMore ? (
-          <div className="flex justify-center p-3 border-t border-border">
+          <div className="flex justify-center p-3.5 border-t border-border/60">
             <Button
               type="button"
               variant="outline"
@@ -194,13 +191,11 @@ export function CoinTransactionList({
               onClick={onLoadMore}
               disabled={isLoading}
               data-testid="coins-transactions-load-more"
+              className="gap-2 font-medium transition-all duration-200 hover:border-amber-500/40 active:scale-98 cursor-pointer"
             >
               {isLoading ? (
                 <>
-                  <Loader2
-                    className="h-3.5 w-3.5 mr-1.5 animate-spin"
-                    aria-hidden="true"
-                  />
+                  <Loader2 className="h-3.5 w-3.5 animate-spin motion-reduce:animate-none text-amber-600 dark:text-amber-400" aria-hidden="true" />
                   Loading…
                 </>
               ) : (
@@ -213,3 +208,70 @@ export function CoinTransactionList({
     </Card>
   );
 }
+
+const CoinTransactionRow = memo(function CoinTransactionRow({
+  txn,
+}: {
+  txn: CoinTransaction;
+}) {
+  const isPositive = txn.amount >= 0;
+  const TxnIcon = getTransactionIcon(txn.reason as CoinReason, isPositive);
+  const formattedAmount = INTEGER_FORMAT.format(txn.amount);
+  const formattedBalanceAfter = INTEGER_FORMAT.format(txn.balanceAfter);
+  const formattedDate = DATETIME_FORMAT.format(new Date(txn.createdAt));
+  const reasonLabel = REASON_LABELS[txn.reason as CoinReason] ?? txn.reason;
+
+  return (
+    <li
+      className="group flex items-center justify-between gap-4 px-4 sm:px-5 py-3.5 transition-colors duration-150 hover:bg-muted/40 focus-within:bg-muted/40"
+      data-testid="coins-transaction-row"
+      data-reason={txn.reason}
+    >
+      <div className="flex items-center gap-3.5 min-w-0">
+        <div
+          className={
+            isPositive
+              ? "flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 transition-transform duration-200 group-hover:scale-105"
+              : "flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-rose-500/30 bg-rose-500/10 text-rose-700 dark:text-rose-400 transition-transform duration-200 group-hover:scale-105"
+          }
+          aria-hidden="true"
+        >
+          <TxnIcon className="h-4 w-4" />
+        </div>
+        <div className="min-w-0">
+          <p className="text-sm font-semibold truncate text-foreground">
+            {reasonLabel}
+          </p>
+          <p className="font-mono text-xs text-muted-foreground mt-0.5">
+            {formattedDate}
+          </p>
+        </div>
+      </div>
+
+      <div className="text-right shrink-0">
+        <p
+          className={
+            isPositive
+              ? "font-mono text-sm sm:text-base font-bold tabular-nums text-emerald-700 dark:text-emerald-400"
+              : "font-mono text-sm sm:text-base font-bold tabular-nums text-rose-700 dark:text-rose-400"
+          }
+          data-testid="coins-transaction-amount"
+          aria-label={
+            isPositive
+              ? `+${formattedAmount} coins earned`
+              : `-${INTEGER_FORMAT.format(Math.abs(txn.amount))} coins spent`
+          }
+        >
+          {isPositive ? "+" : ""}
+          {formattedAmount}
+        </p>
+        <p
+          className="font-mono text-xs tabular-nums text-muted-foreground mt-0.5"
+          aria-label={`Balance after transaction: ${formattedBalanceAfter} coins`}
+        >
+          Balance: {formattedBalanceAfter}
+        </p>
+      </div>
+    </li>
+  );
+});

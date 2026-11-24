@@ -4,14 +4,8 @@ import * as React from "react";
 
 import { SearchInput } from "./SearchInput";
 import { useSearchUrlState } from "@/features/search/hooks/useSearchUrlState";
-import { SearchGuard } from "@/features/search/lib/guard";
-
 export function GlobalSearch() {
-  return (
-    <SearchGuard fallback={null}>
-      <GlobalSearchInner />
-    </SearchGuard>
-  );
+  return <GlobalSearchInner />;
 }
 
 function GlobalSearchInner() {

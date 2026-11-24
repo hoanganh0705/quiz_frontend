@@ -21,16 +21,28 @@ export function useRealtimeEvent(
     if (!enabled || socket === null) return;
 
     const wrappedHandler = (frame: unknown) => {
-      if (!frame || typeof frame !== "object") return;
+      if (frame !== null && typeof frame === "object") {
+        const obj = frame as Record<string, unknown>;
 
-      const obj = frame as Record<string, unknown>;
+        if (obj.event === "error") {
+          decodeWsError(obj.data);
+          return;
+        }
 
-      if (obj.event === "error") {
-        decodeWsError(obj.data);
+        if (
+          typeof obj.event === "string" &&
+          "data" in obj &&
+          obj.data !== undefined
+        ) {
+          void handler(obj.data);
+          return;
+        }
+
+        void handler(obj);
         return;
       }
 
-      void handler(obj.data);
+      void handler(frame);
     };
 
     if (event !== null) {

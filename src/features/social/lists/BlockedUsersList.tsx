@@ -7,7 +7,6 @@ import { useSocialListVisibility } from "@/features/social/hooks/useSocialListVi
 import { useUnblock } from "@/features/social/hooks/useUnblock";
 
 import type { ApiError } from "@/lib/api";
-import { getFeatureFlagValue } from "@/lib/feature-flags";
 
 import { addSocialListBreadcrumb } from "@/lib/social/social-search-sentry";
 
@@ -44,16 +43,12 @@ function BlockedUserRowWithUnblock({
 }): ReactElement {
   const [dialogOpen, setDialogOpen] = useState(false);
   const { unblock, isPending, error } = useUnblock(userId);
-
-  const flagValue = getFeatureFlagValue("social_block_mutation_live");
-  const isFlagPlaceholder = flagValue === "placeholder";
-
   return (
     <div className="flex items-center justify-between gap-3">
       <span className="text-sm text-muted-foreground">
         Unblock {displayName}
       </span>
-      {!isFlagPlaceholder && (
+      {(
         <>
           <button
             type="button"
@@ -89,10 +84,7 @@ export function BlockedUsersList(): ReactElement {
   const visibility = useSocialListVisibility(null);
 
   const { users, isLoading, isStale, error, retry } = useBlockedUsers();
-
-  const isFlagPlaceholder =
-    getFeatureFlagValue("social_block_mutation_live") === "placeholder";
-  const showUnblockAffordance = !isFlagPlaceholder;
+  const showUnblockAffordance = !false;
 
   const prevFetchStateRef = useRef<"loading" | "done" | "error">(
     isLoading ? "loading" : error !== null ? "error" : "done",

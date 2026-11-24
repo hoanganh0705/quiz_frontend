@@ -5,16 +5,13 @@
  * (`query { __typename }`) so a developer can confirm the browser can reach
  * the GraphQL endpoint without touching any production page.
  *
- * The page is gated by `getFeatureFlagValue('graphql_pilot_sandbox')`; the
- * default value is `placeholder`, which makes the route render nothing.
- * Set `NEXT_PUBLIC_GRAPHQL_PILOT_SANDBOX=live` to enable the route.
+ * The page provides a developer-only smoke test.
  *
  * Important: do not link to this route from any user-facing surface. It is
  * a developer-only smoke test and will be removed when the pilot closes.
  */
 import { useQuery } from "@apollo/client/react";
 
-import { getFeatureFlagValue } from "@/lib/feature-flags";
 import { ApolloSubtreeProvider } from "@/lib/graphql";
 import { PILOT_TYPENAME_QUERY } from "@/features/graphql-pilot/graphql/pilot-typename.graphql";
 
@@ -50,10 +47,6 @@ function PilotSmokePanel() {
 }
 
 export default function GraphqlPilotSandboxPage() {
-  if (getFeatureFlagValue("graphql_pilot_sandbox") === "placeholder") {
-    return null;
-  }
-
   return (
     <ApolloSubtreeProvider>
       <main

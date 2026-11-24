@@ -1,10 +1,12 @@
 "use client";
 
 import { useCallback } from "react";
-
+import { Filter } from "lucide-react";
 import { useAuditLogFilters } from "../hooks/useAuditLogFilters";
-
 import type { AuditLogFilterField } from "../types";
+import { Input } from "@/components/ui/Input";
+import { Label } from "@/components/ui/Label";
+import { Button } from "@/components/ui/Button";
 
 const TARGET_TYPE_OPTIONS = [
   "user",
@@ -36,115 +38,125 @@ export function AuditLogFilters({
 
   return (
     <div
-      className="rounded-md border border-border bg-background p-4"
+      className="rounded-xl border border-border/80 bg-card p-4 sm:p-5 shadow-xs"
       data-testid="audit-log-filters"
     >
       <div className="flex items-center justify-between">
-        <h2 className="text-sm font-medium text-foreground">Filters</h2>
+        <div className="flex items-center gap-2">
+          <Filter className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
+          <h2 className="text-sm font-semibold text-foreground">Filters</h2>
+        </div>
         {hasActiveFilters && (
-          <button
-            type="button"
-            className="text-xs font-medium text-primary hover:underline focus:outline-none focus:ring-2 focus:ring-primary"
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-7 text-xs font-medium text-primary hover:text-primary hover:bg-primary/10"
             onClick={resetFilters}
             data-testid="audit-log-filters-reset"
           >
-            Reset
-          </button>
+            Reset all
+          </Button>
         )}
       </div>
 
       {!collapsed && (
-        <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {/* Actor ID */}
-          <div>
-            <label
+          <div className="space-y-1.5">
+            <Label
               htmlFor="audit-log-filter-actorId"
-              className="block text-xs font-medium text-muted-foreground"
+              className="text-xs font-medium text-muted-foreground"
             >
               Actor ID
-            </label>
-            <input
+            </Label>
+            <Input
               id="audit-log-filter-actorId"
               type="text"
               value={getFilter("actorId") ?? ""}
               onChange={handleFieldChange("actorId")}
-              placeholder="UUID"
-              className="mt-1 w-full rounded-md border border-border bg-background px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+              placeholder="e.g. user-uuid"
+              className="h-9 font-mono text-xs"
               data-testid="audit-log-filter-actorId"
             />
           </div>
 
           {/* Action */}
-          <div>
-            <label
+          <div className="space-y-1.5">
+            <Label
               htmlFor="audit-log-filter-action"
-              className="block text-xs font-medium text-muted-foreground"
+              className="text-xs font-medium text-muted-foreground"
             >
               Action
-            </label>
-            <input
+            </Label>
+            <Input
               id="audit-log-filter-action"
               type="text"
               value={getFilter("action") ?? ""}
               onChange={handleFieldChange("action")}
-              placeholder="role.grant"
-              className="mt-1 w-full rounded-md border border-border bg-background px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+              placeholder="e.g. role.grant"
+              className="h-9 font-mono text-xs"
               data-testid="audit-log-filter-action"
             />
           </div>
 
           {/* Target Type */}
-          <div>
-            <label
+          <div className="space-y-1.5">
+            <Label
               htmlFor="audit-log-filter-targetType"
-              className="block text-xs font-medium text-muted-foreground"
+              className="text-xs font-medium text-muted-foreground"
             >
               Target type
-            </label>
+            </Label>
             <select
               id="audit-log-filter-targetType"
               value={getFilter("targetType") ?? ""}
               onChange={handleFieldChange("targetType")}
-              className="mt-1 w-full rounded-md border border-border bg-background px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+              className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-xs shadow-xs transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 text-foreground cursor-pointer"
               data-testid="audit-log-filter-targetType"
             >
-              <option value="">All</option>
+              <option value="" className="bg-popover text-popover-foreground">
+                All Targets
+              </option>
               {TARGET_TYPE_OPTIONS.map((opt) => (
-                <option key={opt} value={opt}>
-                  {opt}
+                <option
+                  key={opt}
+                  value={opt}
+                  className="bg-popover text-popover-foreground"
+                >
+                  {opt.charAt(0).toUpperCase() + opt.slice(1)}
                 </option>
               ))}
             </select>
           </div>
 
           {/* Target ID */}
-          <div>
-            <label
+          <div className="space-y-1.5">
+            <Label
               htmlFor="audit-log-filter-targetId"
-              className="block text-xs font-medium text-muted-foreground"
+              className="text-xs font-medium text-muted-foreground"
             >
               Target ID
-            </label>
-            <input
+            </Label>
+            <Input
               id="audit-log-filter-targetId"
               type="text"
               value={getFilter("targetId") ?? ""}
               onChange={handleFieldChange("targetId")}
               placeholder="UUID"
-              className="mt-1 w-full rounded-md border border-border bg-background px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+              className="h-9 font-mono text-xs"
               data-testid="audit-log-filter-targetId"
             />
           </div>
 
           {/* From date */}
-          <div>
-            <label
+          <div className="space-y-1.5">
+            <Label
               htmlFor="audit-log-filter-from"
-              className="block text-xs font-medium text-muted-foreground"
+              className="text-xs font-medium text-muted-foreground"
             >
-              From
-            </label>
-            <input
+              From Date
+            </Label>
+            <Input
               id="audit-log-filter-from"
               type="date"
               value={getFilter("from")?.split("T")[0] ?? ""}
@@ -156,20 +168,20 @@ export function AuditLogFilters({
                   setFilter("from", `${value}T00:00:00Z`);
                 }
               }}
-              className="mt-1 w-full rounded-md border border-border bg-background px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+              className="h-9 text-xs dark:[color-scheme:dark]"
               data-testid="audit-log-filter-from"
             />
           </div>
 
           {/* To date */}
-          <div>
-            <label
+          <div className="space-y-1.5">
+            <Label
               htmlFor="audit-log-filter-to"
-              className="block text-xs font-medium text-muted-foreground"
+              className="text-xs font-medium text-muted-foreground"
             >
-              To
-            </label>
-            <input
+              To Date
+            </Label>
+            <Input
               id="audit-log-filter-to"
               type="date"
               value={getFilter("to")?.split("T")[0] ?? ""}
@@ -181,17 +193,17 @@ export function AuditLogFilters({
                   setFilter("to", `${value}T23:59:59Z`);
                 }
               }}
-              className="mt-1 w-full rounded-md border border-border bg-background px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+              className="h-9 text-xs dark:[color-scheme:dark]"
               data-testid="audit-log-filter-to"
             />
           </div>
         </div>
       )}
 
-      {/* Hidden: surface filter presence indicator */}
+      {/* Surface filter presence indicator */}
       {hasActiveFilters && (
         <p
-          className="mt-2 text-xs text-muted-foreground"
+          className="mt-3 font-mono text-xs text-muted-foreground"
           data-testid="audit-log-filters-active-count"
         >
           {Object.values(filters).filter(Boolean).length} filter(s) active

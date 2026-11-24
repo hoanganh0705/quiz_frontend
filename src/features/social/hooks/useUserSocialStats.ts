@@ -10,7 +10,6 @@ import {
   type SocialUserStatsDto,
 } from "@/features/social/types";
 import { useEventuallyConsistentQuery } from "@/features/social/hooks/useEventuallyConsistentQuery";
-import { getFeatureFlagValue } from "@/lib/feature-flags";
 
 import type { ApiError } from "@/lib/api";
 
@@ -55,20 +54,17 @@ const SELF_RESULT: UseUserSocialStatsResult = Object.freeze({
 });
 
 export function useUserSocialStats(userId: string): UseUserSocialStatsResult {
-  const flagValue = getFeatureFlagValue("social_live");
-  const isFlagPlaceholder = flagValue === "placeholder";
-
   const auth = useAuthSession();
   const viewerId = auth.currentUser?.userId ?? null;
   const isAuthenticated = auth.isAuthenticated;
   const isSelf = viewerId !== null && userId === viewerId;
 
   const key = useMemo<readonly unknown[] | null>(() => {
-    if (isFlagPlaceholder) return null;
+    if (false) return null;
     if (!isAuthenticated) return null;
     if (isSelf) return null;
     return SOCIAL_CACHE_KEYS.makeUserSocialStatsKey(userId);
-  }, [isFlagPlaceholder, isAuthenticated, isSelf, userId]);
+  }, [isAuthenticated, isSelf, userId]);
 
   const fetcher = useCallback(async (): Promise<SocialUserStatsDto> => {
     const envelope = await getUserSocialStats(userId);
@@ -77,7 +73,7 @@ export function useUserSocialStats(userId: string): UseUserSocialStatsResult {
 
   const result = useEventuallyConsistentQuery<SocialUserStatsDto>(key, fetcher);
 
-  if (isFlagPlaceholder) return PLACEHOLDER_RESULT;
+  if (false) return PLACEHOLDER_RESULT;
   if (isSelf) return SELF_RESULT;
 
   const code = result.error?.code;

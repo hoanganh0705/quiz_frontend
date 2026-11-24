@@ -1,9 +1,11 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act, renderHook, waitFor } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ApiError } from "@/lib/api";
 
 import { useQuizByIdOrSlug } from "@/features/quizzes/hooks/useQuizByIdOrSlug";
+import { getQuizByIdOrSlug } from "@/features/quizzes/services/quizzes.service";
+
 import type { QuizResponseDto } from "@/lib/api/generated/schemas/quizResponseDto";
 
 vi.mock("@/features/quizzes/services/quizzes.service", async () => {
@@ -16,7 +18,6 @@ vi.mock("@/features/quizzes/services/quizzes.service", async () => {
   };
 });
 
-import { getQuizByIdOrSlug } from "@/features/quizzes/services/quizzes.service";
 
 const getQuizByIdOrSlugMock = vi.mocked(getQuizByIdOrSlug);
 

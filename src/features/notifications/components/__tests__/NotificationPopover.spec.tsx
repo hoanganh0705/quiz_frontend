@@ -1,5 +1,9 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+import { NotificationPopover } from "@/features/notifications/components/NotificationPopover";
+
+import { notificationMocks, makeNotification } from "./test-helpers";
 
 vi.mock("@/features/notifications/hooks/useNotifications", async () => {
   const installed = (await import("./test-helpers")).installNotificationMocks();
@@ -51,20 +55,13 @@ vi.mock(
   },
 );
 
-vi.mock(
-  "@/features/notifications/hooks/useNotificationFeatureFlag",
-  async () => {
-    const installed = (
-      await import("./test-helpers")
-    ).installNotificationMocks();
-    return { useNotificationFeatureFlag: installed.useNotificationFeatureFlag };
-  },
-);
-
 const mockMarkAllNotificationsRead = vi.fn();
+const mockDeleteAllNotifications = vi.fn();
 vi.mock("@/features/notifications/services/notifications.service", () => ({
   markAllNotificationsRead: (...args: unknown[]) =>
     mockMarkAllNotificationsRead(...args),
+  deleteAllNotifications: (...args: unknown[]) =>
+    mockDeleteAllNotifications(...args),
 }));
 
 vi.mock("@/components/ui/DropdownMenu", () => ({
@@ -119,8 +116,6 @@ vi.mock("@/features/notifications/components/shared", () => ({
   ),
 }));
 
-import { notificationMocks, makeNotification } from "./test-helpers";
-import { NotificationPopover } from "@/features/notifications/components/NotificationPopover";
 
 describe("NotificationPopover", () => {
   beforeEach(() => {
@@ -261,6 +256,30 @@ describe("NotificationPopover", () => {
       expect(
         screen.queryByRole("button", { name: /mark all as read/i }),
       ).not.toBeInTheDocument();
+    });
+
+    it("shows the delete all action when notifications exist and triggers deletion", async () => {
+      mockDeleteAllNotifications.mockResolvedValue(undefined);
+      notificationMocks.useNotifications.mockReturnValue({
+        items: [makeNotification({ id: "n1", isRead: true })],
+        isLoading: false,
+        isLoadingMore: false,
+        hasMore: false,
+        loadMore: vi.fn(),
+        error: null,
+        refresh: vi.fn().mockResolvedValue(undefined),
+        isStale: false,
+      });
+
+      render(<NotificationPopover />);
+
+      const deleteBtn = screen.getByRole("button", {
+        name: /delete all notifications/i,
+      });
+      expect(deleteBtn).toBeInTheDocument();
+
+      fireEvent.click(deleteBtn);
+      expect(mockDeleteAllNotifications).toHaveBeenCalledTimes(1);
     });
   });
 

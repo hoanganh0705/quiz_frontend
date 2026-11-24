@@ -11,7 +11,6 @@ import {
   type AchievementErrorCode,
   type UserBadgeProfile,
 } from "@/features/achievements/types";
-import { getFeatureFlagValue } from "@/lib/feature-flags";
 
 import type { PublicAchievementProfileResponseDto } from "@/lib/api/generated/schemas";
 
@@ -27,26 +26,23 @@ export interface UseUserBadgesResult {
 }
 
 export function useUserBadges(userId: string | null): UseUserBadgesResult {
-  const flagValue = getFeatureFlagValue("achievements_live");
-  const isFlagPlaceholder = flagValue === "placeholder";
-
   const key = useMemo(
     () =>
-      isFlagPlaceholder || userId === null
+      userId === null
         ? null
         : ACHIEVEMENT_CACHE_KEYS.userBadges(userId),
-    [isFlagPlaceholder, userId],
+    [userId],
   );
 
   const fetcher = useCallback(async () => {
-    if (isFlagPlaceholder || userId === null) {
+    if (userId === null) {
       return null;
     }
     const wire = (await getUserBadges(
       userId,
     )) as PublicAchievementProfileResponseDto | null;
     return toUserBadgeProfile(wire);
-  }, [isFlagPlaceholder, userId]);
+  }, [userId]);
 
   const result = useSingleWithRetry<UserBadgeProfile | null>({
     key,
@@ -58,7 +54,7 @@ export function useUserBadges(userId: string | null): UseUserBadgesResult {
   const isPrivate =
     String(result.error?.code ?? "") === "ACHIEVEMENT_FORBIDDEN";
 
-  if (isFlagPlaceholder || userId === null) {
+  if (userId === null) {
     return {
       profile: null,
       isLoading: false,

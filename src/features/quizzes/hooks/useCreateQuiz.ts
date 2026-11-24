@@ -113,7 +113,7 @@ export function useCreateQuiz(
 
           onSuccess?.(result);
 
-          emitBreadcrumb("phase4:4.8:create-quiz", {
+          emitBreadcrumb("quizzes:create-quiz", {
             status: "success",
             durationMs: Date.now() - startedAt,
           });
@@ -124,7 +124,7 @@ export function useCreateQuiz(
             setError(err);
             onError?.(err);
 
-            emitBreadcrumb("phase4:4.8:create-quiz", {
+            emitBreadcrumb("quizzes:create-quiz", {
               status: "error",
               durationMs: Date.now() - startedAt,
               code: err.code,
@@ -135,7 +135,7 @@ export function useCreateQuiz(
 
           const unknownErr =
             err instanceof Error ? err.message : "Unknown error";
-          emitBreadcrumb("phase4:4.8:create-quiz", {
+          emitBreadcrumb("quizzes:create-quiz", {
             status: "error",
             durationMs: Date.now() - startedAt,
             code: "GLOBAL_UNKNOWN",

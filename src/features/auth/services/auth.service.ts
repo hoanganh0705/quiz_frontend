@@ -6,6 +6,7 @@ import {
 import {
   setAuthToken,
   clearAuthToken,
+  setRememberMeActive,
 } from "@/features/auth/utils/auth-cookies";
 import { clearAllAuthCache } from "@/features/auth/utils/user-scoped-cache";
 import { clearAuthState } from "@/features/auth/utils/clear-auth-state";
@@ -93,8 +94,11 @@ export async function register(
 }
 
 export async function login(
-  dto: Parameters<ReturnType<typeof getAuth>["authControllerLogin"]>[0],
+  dto: Parameters<ReturnType<typeof getAuth>["authControllerLogin"]>[0] & { rememberMe?: boolean },
 ): Promise<AuthControllerLoginResult> {
+  const rememberMe = Boolean(dto?.rememberMe);
+  setRememberMeActive(rememberMe);
+
   const wire = await getAuth().authControllerLogin(dto);
   if (!wire || (wire as { data?: unknown }).data === undefined) {
     throw new Error("Login response missing data envelope");
@@ -102,7 +106,10 @@ export async function login(
   const data = (wire as { data: LoginResponseDto }).data;
   const accessToken = data.accessToken;
 
-  setAuthToken(accessToken);
+  setAuthToken(accessToken, {
+    sessionOnly: !rememberMe,
+    days: rememberMe ? 30 : undefined,
+  });
 
   const userId = data.userId ?? "";
 

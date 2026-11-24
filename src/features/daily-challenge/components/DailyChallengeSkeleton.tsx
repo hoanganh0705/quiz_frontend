@@ -18,7 +18,7 @@ export function DailyChallengeCardSkeleton({
       aria-busy={true}
       aria-label="Loading daily challenge"
       className={cn(
-        "min-h-40 border bg-background text-foreground py-6",
+        "min-h-40 rounded-xl border border-border/70 bg-card text-foreground shadow-xs py-6",
         className,
       )}
     >
@@ -58,7 +58,10 @@ export function DailyChallengeHistorySkeleton({
       role="region"
       aria-busy={true}
       aria-label="Loading challenge history"
-      className={cn("border bg-background text-foreground py-6", className)}
+      className={cn(
+        "rounded-xl border border-border/70 bg-card text-foreground shadow-xs py-6",
+        className,
+      )}
     >
       <CardHeader>
         <div className="h-5 w-44 rounded bg-muted motion-safe:animate-pulse" />

@@ -1,6 +1,7 @@
 "use client";
 
 import { AlertCircle } from "lucide-react";
+import { Button } from "@/components/ui/Button";
 
 import { ApiError } from "@/lib/api/core/ApiError";
 import { getUserCopy } from "@/lib/api/error-codes";
@@ -28,35 +29,36 @@ export function AuditLogErrorState({
       data-error-code={error.code}
     >
       <div
-        className="flex flex-col items-center justify-center rounded-md border border-destructive/40 bg-destructive/5 p-6 text-center"
+        className="flex flex-col items-center justify-center rounded-xl border border-destructive/40 bg-destructive/5 py-10 px-6 text-center"
         role="alert"
         aria-live="polite"
       >
-        <AlertCircle
-          className="mb-2 h-8 w-8 text-destructive/70"
-          aria-hidden="true"
-        />
+        <div className="mb-3 flex size-12 items-center justify-center rounded-full bg-destructive/10 text-destructive">
+          <AlertCircle className="h-6 w-6" aria-hidden="true" />
+        </div>
         <p
-          className="text-sm font-medium text-foreground"
+          className="text-sm font-semibold text-foreground"
           data-testid="audit-log-error-state-title"
         >
           {copy.title}
         </p>
         <p
-          className="mt-1 text-sm text-muted-foreground"
+          className="mt-1 text-sm text-muted-foreground max-w-sm"
           data-testid="audit-log-error-state-body"
         >
           {copy.body}
         </p>
         {onRetry && (
-          <button
+          <Button
             type="button"
-            className="mt-4 inline-flex items-center justify-center rounded-md border border-border bg-background px-3 py-1.5 text-xs font-medium text-foreground hover:bg-muted focus:outline-none focus:ring-2 focus:ring-primary"
+            variant="outline"
+            size="sm"
+            className="mt-4 text-xs h-8 px-3"
             onClick={onRetry}
             data-testid="audit-log-error-state-retry"
           >
             Try again
-          </button>
+          </Button>
         )}
       </div>
 

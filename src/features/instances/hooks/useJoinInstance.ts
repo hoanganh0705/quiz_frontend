@@ -12,7 +12,6 @@ import {
   type InstanceLifecycleErrorCode,
   type InstanceLifecycleMutationState,
 } from "@/features/instances/types/instance.types";
-import { getFeatureFlagValue } from "@/lib/feature-flags";
 
 import type { JoinInstanceResponseDto } from "@/lib/api/generated/schemas";
 
@@ -61,16 +60,13 @@ function mapToInstanceLifecycleErrorCode(
 export function useJoinInstance(
   instanceId: string | null,
 ): UseJoinInstanceResult {
-  const flagValue = getFeatureFlagValue("multiplayer_instances_live");
-  const isFlagPlaceholder = flagValue === "placeholder";
-
   const [state, setState] = useState<InstanceLifecycleMutationState>("idle");
   const [error, setError] = useState<ApiError | null>(null);
 
   const inFlightRef = useRef(false);
 
   const join = useCallback(async (): Promise<void> => {
-    if (isFlagPlaceholder || instanceId === null) {
+    if (instanceId === null) {
       return;
     }
 
@@ -132,7 +128,7 @@ export function useJoinInstance(
     } finally {
       inFlightRef.current = false;
     }
-  }, [isFlagPlaceholder, instanceId, state]);
+  }, [instanceId, state]);
 
   const reset = useCallback(() => {
     setState("idle");

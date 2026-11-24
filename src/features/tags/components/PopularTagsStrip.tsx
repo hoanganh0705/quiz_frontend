@@ -10,7 +10,7 @@ import { useTagsPopular } from "@/features/tags/hooks/useTagsPopular";
 const QUERY_KEY = ["tags", "popular", { limit: 10 }] as const;
 
 const STRIP_CONTAINER =
-  "flex gap-3 overflow-x-auto pb-4 snap-x snap-mandatory scroll-mt-16";
+  "flex gap-3 overflow-x-auto pb-4 snap-x snap-mandatory scroll-mt-16 scrollbar-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden";
 const STRIP_HEADER =
   "mb-3 flex items-center justify-between gap-2 text-sm text-muted-foreground";
 

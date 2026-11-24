@@ -5,7 +5,6 @@ import { useQuery } from "@tanstack/react-query";
 import { getQueryClient } from "@/providers/QueryProvider";
 
 import { ApiError } from "@/lib/api";
-import { getFeatureFlagValue } from "@/lib/feature-flags";
 
 import { getAuditLogEntry, type AuditLogEntryDto } from "../services";
 
@@ -24,10 +23,7 @@ export interface UseAdminAuditLogEntryResult {
 export function useAdminAuditLogEntry(
   entryId: string | null,
 ): UseAdminAuditLogEntryResult {
-  const flagValue = getFeatureFlagValue("admin_audit_live");
-  const isFlagPlaceholder = flagValue === "placeholder";
-
-  const isDisabled = isFlagPlaceholder || entryId === null;
+  const isDisabled = entryId === null;
 
   const key = useMemo(
     () =>

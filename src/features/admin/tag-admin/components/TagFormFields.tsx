@@ -45,7 +45,7 @@ function AvailabilityIcon({ status }: { status: SlugAvailabilityStatus }) {
   if (status === "taken") {
     return (
       <AlertCircle
-        className="h-4 w-4 text-yellow-500 shrink-0"
+        className="h-4 w-4 text-warning shrink-0"
         aria-label="Slug is taken"
       />
     );
@@ -67,7 +67,7 @@ function AvailabilityLabel({
 }) {
   if (status === "available") {
     return (
-      <span className="text-xs text-success dark:text-green-400">
+      <span className="text-xs text-success">
         Slug is available
       </span>
     );
@@ -77,7 +77,7 @@ function AvailabilityLabel({
       ? ` (taken by "${conflictingTagName}")`
       : "";
     return (
-      <span className="text-xs text-yellow-600 dark:text-yellow-400">
+      <span className="text-xs text-warning">
         Slug is taken{name}
       </span>
     );
@@ -235,7 +235,7 @@ export function TagFormFields({
               "pr-10",
             )}
           />
-          <div className="absolute right-3 top-1/2 -translate-y-1/2">
+          <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
             <AvailabilityIcon status={availabilityStatus} />
           </div>
         </div>

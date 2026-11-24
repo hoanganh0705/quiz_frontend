@@ -37,25 +37,35 @@ export function HomePage({
   recentWinners,
 }: HomePageProps): React.ReactElement {
   return (
-    <div className="min-h-screen px-4 sm:px-6 py-4 sm:py-6 overflow-x-hidden space-y-12">
+    <div className="min-h-screen px-4 sm:px-6 py-4 sm:py-6 overflow-x-hidden space-y-12 md:space-y-16">
+      {/* 1. Hero & Core Value Proposition */}
       <HomeHeroSection />
 
+      {/* 2. Resumption Hook (authenticated players jump back in immediately) */}
+      <RecentlyPlayedSection />
+
+      {/* 3. Category Arenas */}
       <QuizCategories categories={categories} />
 
-      <div className="flex flex-col gap-8">
-        <HomeFeaturedRail items={featured} />
+      {/* 4. Curated Spotlight */}
+      <HomeFeaturedRail items={featured} />
+
+      {/* 5. Live Momentum & Social Proof (Recent Coin & XP Winners) */}
+      <RecentWinnersRail data={recentWinners} />
+
+      {/* 6. Skill-Based Discovery (Quizzes by Difficulty) */}
+      <QuizCardDifficultyList />
+
+      {/* 7. Community Feeds (Trending & Popular Rails) */}
+      <div className="flex flex-col gap-10">
         <HomeTrendingRail items={trending} categories={categories} />
         <HomePopularRail items={popular} categories={categories} />
       </div>
 
-      <RecentWinnersRail data={recentWinners} />
-
-      <RecentlyPlayedSection />
-
-      <QuizCardDifficultyList />
-
+      {/* 8. Competitive Apex (Top Players Leaderboard) */}
       <PlayerRanking />
 
+      {/* 9. Platform Primer & Onboarding (How It Works) */}
       <HowItWorks />
     </div>
   );

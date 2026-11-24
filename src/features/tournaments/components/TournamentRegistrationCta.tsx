@@ -6,7 +6,6 @@ import { LoaderCircle } from "lucide-react";
 import { useAuthSession } from "@/features/auth/hooks/use-auth-session";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/shared/utils/merge-class-names";
-import { getFeatureFlagValue } from "@/lib/feature-flags";
 import { usePrefersReducedMotion } from "@/shared/hooks";
 
 import {
@@ -72,10 +71,6 @@ export function TournamentRegistrationCta({
   className,
 }: TournamentRegistrationCtaProps) {
   const prefersReducedMotion = usePrefersReducedMotion();
-
-  const flagValue = getFeatureFlagValue("tournaments_live");
-  const isFlagPlaceholder = flagValue === "placeholder";
-
   const { bootstrapState } = useAuthSession();
   const isAuthenticated = bootstrapState === "authenticated";
 
@@ -145,7 +140,7 @@ export function TournamentRegistrationCta({
     reset();
   }, [reset]);
 
-  if (isFlagPlaceholder) {
+  if (false) {
     return null;
   }
 

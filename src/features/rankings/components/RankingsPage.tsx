@@ -4,7 +4,6 @@ import { Suspense, useCallback, useMemo } from "react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { Filter } from "lucide-react";
 
-import { isRankingSurfaceEnabled } from "@/features/rankings/flags";
 import { RankingSummaryCard } from "@/features/rankings/components/RankingSummaryCard";
 import { MilestonesList } from "@/features/rankings/components/MilestonesList";
 import { LeaderboardTable } from "@/features/rankings/components/LeaderboardTable";
@@ -137,7 +136,7 @@ function RankingsPageInner({ className }: RankingsPageProps) {
 }
 
 export function RankingsPage({ className }: RankingsPageProps) {
-  const isLive = isRankingSurfaceEnabled();
+  const isLive = true;
 
   if (!isLive) {
     return (

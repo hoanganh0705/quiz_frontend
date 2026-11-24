@@ -65,12 +65,34 @@ export function TournamentList({
   }
 
   return (
-    <div className={cn("space-y-4", className)}>
+    <div
+      id="tournament-list-panel"
+      role="tabpanel"
+      aria-label="Tournament results"
+      className={cn("space-y-6", className)}
+    >
       {/* Stale data warning banner */}
       {isStale && <TournamentStaleState onRetry={refresh} />}
 
+      <div className="flex items-center justify-between border-b border-border/60 pb-3">
+        <h2 className="text-sm font-semibold tracking-tight text-foreground">
+          Available Tournaments
+        </h2>
+        <span
+          className="text-xs font-mono font-medium tabular-nums text-muted-foreground"
+          role="status"
+          aria-live="polite"
+        >
+          Showing {items.length} {items.length === 1 ? "tournament" : "tournaments"}
+        </span>
+      </div>
+
       {/* Cards grid */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      <div
+        className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+        role="list"
+        aria-label="Tournaments"
+      >
         {items.map((tournament) => (
           <TournamentCard key={tournament.id} tournament={tournament} />
         ))}

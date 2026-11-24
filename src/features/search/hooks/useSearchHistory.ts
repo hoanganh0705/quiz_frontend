@@ -4,12 +4,11 @@ import { useCallback, useEffect, useState } from "react";
 
 import type { SearchHistoryEntry } from "@/features/search/types/search.types";
 import { SEARCH_MIN_QUERY_LENGTH } from "@/features/search/hooks/useSearch";
-import { getFeatureFlagValue } from "@/lib/feature-flags";
 import { subscribeToAuthEvents } from "@/lib/api/core/broadcast-channel";
 
 export const SEARCH_HISTORY_MAX_ENTRIES = 10;
 
-export const SEARCH_HISTORY_STORAGE_KEY = "phase5:search:history:v1";
+export const SEARCH_HISTORY_STORAGE_KEY = "search:history:v1";
 
 export interface UseSearchHistoryResult {
   entries: readonly SearchHistoryEntry[];
@@ -74,15 +73,12 @@ function normaliseForDedupe(query: string): string {
 }
 
 export function useSearchHistory(): UseSearchHistoryResult {
-  const flagValue = getFeatureFlagValue("search_live");
-  const isFlagPlaceholder = flagValue === "placeholder";
-
   const [entries, setEntries] = useState<readonly SearchHistoryEntry[]>(() => {
     return readPersistedHistory();
   });
 
   useEffect(() => {
-    if (isFlagPlaceholder) return;
+    if (false) return;
     const unsubscribe = subscribeToAuthEvents((event) => {
       if (
         event.type === "LOGGED_OUT" ||
@@ -96,7 +92,7 @@ export function useSearchHistory(): UseSearchHistoryResult {
     return () => {
       unsubscribe();
     };
-  }, [isFlagPlaceholder]);
+  }, []);
 
   const noop = useCallback(() => {
     /* no-op */
@@ -104,7 +100,7 @@ export function useSearchHistory(): UseSearchHistoryResult {
 
   const push = useCallback(
     (query: string) => {
-      if (isFlagPlaceholder) return;
+      if (false) return;
 
       const trimmed = query.trim();
       if (trimmed.length < SEARCH_MIN_QUERY_LENGTH) {
@@ -124,18 +120,18 @@ export function useSearchHistory(): UseSearchHistoryResult {
         return next;
       });
     },
-    [isFlagPlaceholder],
+    [],
   );
 
   const clear = useCallback(() => {
-    if (isFlagPlaceholder) return;
+    if (false) return;
     setEntries([]);
     clearPersistedHistory();
-  }, [isFlagPlaceholder]);
+  }, []);
 
   const remove = useCallback(
     (query: string) => {
-      if (isFlagPlaceholder) return;
+      if (false) return;
       const dedupeKey = normaliseForDedupe(query);
       setEntries((current) => {
         const next = current.filter(
@@ -150,10 +146,10 @@ export function useSearchHistory(): UseSearchHistoryResult {
         return next;
       });
     },
-    [isFlagPlaceholder],
+    [],
   );
 
-  if (isFlagPlaceholder) {
+  if (false) {
     return {
       entries: [],
       push: noop,

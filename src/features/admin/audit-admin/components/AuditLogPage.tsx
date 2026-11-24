@@ -1,8 +1,8 @@
 "use client";
 
 import { useCallback, useMemo, useState } from "react";
+import { Button } from "@/components/ui/Button";
 
-import { useAdminFeatureFlag } from "@/features/admin/hooks/useAdminFeatureFlag";
 
 import { useAdminAuditLog } from "../hooks/useAdminAuditLog";
 import { useAuditLogFilters } from "../hooks/useAuditLogFilters";
@@ -22,35 +22,8 @@ import { AuditLogList } from "./AuditLogList";
 import { AuditLogNotExposedNotice } from "./AuditLogNotExposedNotice";
 import { AuditLogSkeleton } from "./AuditLogSkeleton";
 
-function AuditLogDisabledNotice() {
-  return (
-    <div
-      data-testid="audit-log-disabled-notice"
-      className="flex items-start gap-3 rounded-md border border-dashed border-muted-foreground/40 bg-muted/40 px-4 py-6"
-    >
-      <div className="space-y-1">
-        <p className="text-sm font-semibold text-foreground">
-          Audit log coming soon
-        </p>
-        <p className="text-sm text-muted-foreground">
-          The{" "}
-          <code className="rounded bg-muted px-1 py-0.5 font-mono text-xs">
-            admin_audit_live
-          </code>{" "}
-          flag is at its default value. Enable it to expose the audit log
-          surface.
-        </p>
-      </div>
-    </div>
-  );
-}
 
 export function AuditLogPage(): React.ReactElement {
-  const { value: flagValue } = useAdminFeatureFlag("admin_audit_live");
-
-  if (flagValue !== "live") {
-    return <AuditLogDisabledNotice />;
-  }
 
   return <AuditLogPageContent />;
 }
@@ -103,8 +76,22 @@ function AuditLogPageContent(): React.ReactElement {
 
   if (isNotExposed) {
     return (
-      <div className="space-y-4" data-testid="audit-log-page">
-        <h1 className="text-xl font-semibold text-foreground">Audit log</h1>
+      <div
+        className="mx-auto max-w-7xl px-4 sm:px-6 pb-8 space-y-6 pt-6"
+        data-testid="audit-log-page"
+      >
+        {/* Consistent Page Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+              Audit Log
+            </h1>
+            <p className="text-sm text-muted-foreground mt-1">
+              Real-time administrative operations, security events, and platform activity trail.
+            </p>
+          </div>
+          <AuditLogExportButton filters={filters} exportSupported={false} />
+        </div>
         <AuditLogNotExposedNotice />
       </div>
     );
@@ -112,14 +99,21 @@ function AuditLogPageContent(): React.ReactElement {
 
   return (
     <div
-      className="space-y-4"
+      className="mx-auto max-w-7xl px-4 sm:px-6 pb-8 space-y-6 pt-6"
       data-testid="audit-log-page"
       data-loading={isLoading}
       data-error={error ? "true" : "false"}
     >
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold text-foreground">Audit log</h1>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+            Audit Log
+          </h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            Real-time administrative operations, security events, and platform activity trail.
+          </p>
+        </div>
         <AuditLogExportButton filters={filters} exportSupported={false} />
       </div>
 
@@ -143,50 +137,60 @@ function AuditLogPageContent(): React.ReactElement {
           />
         </section>
       ) : (
-        <>
-          <section data-testid="audit-log-list">
-            <AuditLogList entries={entries} onEntryClick={handleEntryClick} />
+        <div className="space-y-3">
+          {/* Status and count bar */}
+          <div className="flex items-center justify-between text-xs text-muted-foreground px-1">
+            <span>
+              Showing <span className="font-mono font-medium text-foreground">{entries.length}</span> of{" "}
+              <span className="font-mono font-medium text-foreground">{total}</span> events
+            </span>
             {isValidating && (
-              <p
-                className="mt-2 text-xs text-muted-foreground"
+              <span
+                className="font-mono text-xs text-muted-foreground animate-pulse"
                 data-testid="audit-log-revalidating"
               >
                 Refreshing…
-              </p>
+              </span>
             )}
+          </div>
+
+          <section data-testid="audit-log-list">
+            <AuditLogList entries={entries} onEntryClick={handleEntryClick} />
           </section>
 
           {/* Pagination */}
           <nav
-            className="flex items-center justify-between gap-2"
+            className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-border/40"
             aria-label="Audit log pagination"
             data-testid="audit-log-pagination"
           >
-            <p className="text-xs text-muted-foreground">
+            <p className="font-mono text-xs text-muted-foreground">
               Page {pagination.page} of {totalPages} ({total} total)
             </p>
-            <div className="flex gap-2">
-              <button
-                type="button"
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
                 onClick={pagination.prevPage}
                 disabled={!pagination.hasPrevPage}
-                className="rounded-md border border-border bg-background px-2 py-1 text-xs text-foreground hover:bg-muted focus:outline-none focus:ring-2 focus:ring-primary disabled:cursor-not-allowed disabled:opacity-50"
+                className="h-8 px-3 text-xs"
                 data-testid="audit-log-pagination-prev"
               >
                 Previous
-              </button>
-              <button
-                type="button"
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
                 onClick={pagination.nextPage}
                 disabled={!pagination.hasNextPage}
-                className="rounded-md border border-border bg-background px-2 py-1 text-xs text-foreground hover:bg-muted focus:outline-none focus:ring-2 focus:ring-primary disabled:cursor-not-allowed disabled:opacity-50"
+                className="h-8 px-3 text-xs"
                 data-testid="audit-log-pagination-next"
               >
                 Next
-              </button>
+              </Button>
             </div>
           </nav>
-        </>
+        </div>
       )}
 
       {/* Detail panel */}

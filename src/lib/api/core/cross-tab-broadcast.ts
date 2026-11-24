@@ -25,11 +25,6 @@ export type CrossTabBroadcastEnvelope = {
 
 export type CrossTabBroadcastPayload = CrossTabBroadcastMessage;
 
-// Backward compatibility aliases
-export type Phase4BroadcastMessage = CrossTabBroadcastMessage;
-export type Phase4BroadcastBareMessage = CrossTabBroadcastBareMessage;
-export type Phase4BroadcastEnvelope = CrossTabBroadcastEnvelope;
-export type Phase4BroadcastPayload = CrossTabBroadcastPayload;
 
 export type { AttemptChangeKind };
 export type { ProfileUpdateKind };
@@ -74,4 +69,3 @@ export function emitCrossTabBroadcast(env: CrossTabBroadcastMessage): void {
   }
 }
 
-export const emitPhase4Broadcast = emitCrossTabBroadcast;

@@ -19,7 +19,6 @@ import {
   NOTIFICATION_CACHE_KEYS,
   type UnreadCount,
 } from "@/features/notifications/types/notification.types";
-import { getFeatureFlagValue } from "@/lib/feature-flags";
 
 const DEDUPE_WINDOW_MS = 10 * 60 * 1000;
 
@@ -32,23 +31,19 @@ export interface UseUnreadNotificationCountResult {
 type GetUnreadCountWireResponse = UnreadCount;
 
 export function useUnreadNotificationCount(): UseUnreadNotificationCountResult {
-  const flagValue = getFeatureFlagValue("notifications_live");
-  const isFlagPlaceholder = flagValue === "placeholder";
-  const realtimeEnabled = !isFlagPlaceholder;
+  const realtimeEnabled = !false;
 
   const queryKey = useMemo(
     () =>
-      isFlagPlaceholder
-        ? (["notifications", "unread-count", "disabled"] as const)
-        : NOTIFICATION_CACHE_KEYS.unreadCount(),
-    [isFlagPlaceholder],
+      NOTIFICATION_CACHE_KEYS.unreadCount(),
+    [],
   );
 
   const { data, error, isLoading, refetch } = useQuery<UnreadCount, unknown>(
     {
       queryKey,
       queryFn: async () => {
-        if (isFlagPlaceholder) {
+        if (false) {
           return { count: 0 };
         }
         const wire = (await getUnreadCount()) as unknown as

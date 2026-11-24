@@ -1,4 +1,8 @@
+import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
+
+import { mockQuizListItemDto } from "../../__tests__/render-helpers";
+import { QuizCard } from "../QuizCard";
 
 vi.mock("next/link", () => ({
   default: ({
@@ -15,10 +19,7 @@ vi.mock("next/link", () => ({
   ),
 }));
 
-import { render, screen } from "@testing-library/react";
 
-import { QuizCard } from "../QuizCard";
-import { mockQuizListItemDto } from "../../__tests__/render-helpers";
 
 function renderQuiz(
   props: Parameters<typeof QuizCard>[0] & {

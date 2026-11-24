@@ -1,61 +1,46 @@
 import * as Sentry from "@sentry/nextjs";
 
-export const EPIC_6_10_BREADCRUMB_CATEGORY = "social:6.10" as const;
+export const SOCIAL_REALTIME_BREADCRUMB_CATEGORY = "social:realtime" as const;
 
-export const SOCIAL_EPIC_6_10_VERSION = "1.0.0" as const;
+export const SOCIAL_REALTIME_VERSION = "1.0.0" as const;
 
-export const EPIC_6_10_RECONNECT_CATEGORY =
-  "social:6.10:reconnect-reconciliation" as const;
+export const SOCIAL_RECONNECT_CATEGORY =
+  "social:realtime:reconnect-reconciliation" as const;
 
-export const EPIC_6_10_MALFORMED_PAYLOAD_CATEGORY =
-  "social:6.10:malformed-payload" as const;
+export const SOCIAL_MALFORMED_PAYLOAD_CATEGORY =
+  "social:realtime:malformed-payload" as const;
 
-export const EPIC_6_10_SELF_ACTION_REJECTION_CATEGORY =
-  "social:6.10:self-action-rejection" as const;
+export const SOCIAL_SELF_ACTION_REJECTION_CATEGORY =
+  "social:realtime:self-action-rejection" as const;
 
-export const EPIC_6_10_SEQUENCE_GUARD_DROP_CATEGORY =
-  "social:6.10:sequence-guard-drop" as const;
+export const SOCIAL_SEQUENCE_GUARD_DROP_CATEGORY =
+  "social:realtime:sequence-guard-drop" as const;
 
 export interface SocialRealtimeBreadcrumbData {
   eventType: string;
-
   actorUserId?: string;
-
   targetUserId?: string;
-
   correlationId?: string;
-
   deduplicated?: boolean;
-
   sequenceGuard?: "allow" | "drop";
-
   invalidationKeys?: string[];
-
   activeUserIds?: string[];
-
   durationMs?: number;
-
   reason?: string;
-
-  epicVersion?: string;
+  version?: string;
 }
 
 export interface ReconnectReconciliationBreadcrumbData {
   activeUserIds: string[];
-
   invalidationKeys: string[];
-
   durationMs: number;
-
-  epicVersion?: string;
+  version?: string;
 }
 
 function sanitiseArray(values: string[]): string[] | undefined {
   const filtered = values.filter((v) => {
     if (v === "friendshipId" || v === "followId") return false;
-
     if (v.includes("friendshipId") || v.includes("followId")) return false;
-
     if (
       v.includes("token") ||
       v.includes("authorization") ||
@@ -70,15 +55,12 @@ function sanitiseArray(values: string[]): string[] | undefined {
 
 function sanitiseString(value: unknown): string | undefined {
   if (typeof value !== "string") return undefined;
-
   if (value === "friendshipId" || value === "followId") {
     return undefined;
   }
-
   if (value.includes("friendshipId=") || value.includes("followId=")) {
     return undefined;
   }
-
   if (
     value.includes("token") ||
     value.includes("authorization") ||
@@ -94,7 +76,7 @@ export function addSocialRealtimeBreadcrumb(
 ): void {
   const payload: Record<string, string | number | boolean | string[]> = {
     eventType: data.eventType,
-    epic: data.epicVersion ?? SOCIAL_EPIC_6_10_VERSION,
+    version: data.version ?? SOCIAL_REALTIME_VERSION,
   };
 
   const actor = sanitiseString(data.actorUserId);
@@ -120,7 +102,7 @@ export function addSocialRealtimeBreadcrumb(
   }
 
   Sentry.addBreadcrumb({
-    category: EPIC_6_10_BREADCRUMB_CATEGORY,
+    category: SOCIAL_REALTIME_BREADCRUMB_CATEGORY,
     data: payload,
   });
 }
@@ -135,33 +117,33 @@ export function addReconnectReconciliationBreadcrumb(
     activeUserIds: sanitisedUsers,
     invalidationKeys: sanitisedKeys,
     durationMs: data.durationMs,
-    epic: data.epicVersion ?? SOCIAL_EPIC_6_10_VERSION,
+    version: data.version ?? SOCIAL_REALTIME_VERSION,
   };
 
   Sentry.addBreadcrumb({
-    category: EPIC_6_10_RECONNECT_CATEGORY,
+    category: SOCIAL_RECONNECT_CATEGORY,
     data: payload as Record<string, string | number | string[]>,
   });
 }
 
-export function phase6Social10MalformedPayloadBreadcrumb(
+export function logMalformedSocialPayloadBreadcrumb(
   eventType: string,
   reason: string,
 ): void {
   const sanitisedReason = sanitiseString(reason);
   const payload: Record<string, string> = {
     eventType,
-    epic: SOCIAL_EPIC_6_10_VERSION,
+    version: SOCIAL_REALTIME_VERSION,
     ...(sanitisedReason !== undefined ? { reason: sanitisedReason } : {}),
   };
 
   Sentry.addBreadcrumb({
-    category: EPIC_6_10_MALFORMED_PAYLOAD_CATEGORY,
+    category: SOCIAL_MALFORMED_PAYLOAD_CATEGORY,
     data: payload,
   });
 }
 
-export function phase6Social10SelfActionRejectionBreadcrumb(
+export function logSelfActionRejectionBreadcrumb(
   eventType: string,
   userId: string,
 ): void {
@@ -171,16 +153,16 @@ export function phase6Social10SelfActionRejectionBreadcrumb(
   const payload: Record<string, string> = {
     eventType,
     userId: sanitisedUserId,
-    epic: SOCIAL_EPIC_6_10_VERSION,
+    version: SOCIAL_REALTIME_VERSION,
   };
 
   Sentry.addBreadcrumb({
-    category: EPIC_6_10_SELF_ACTION_REJECTION_CATEGORY,
+    category: SOCIAL_SELF_ACTION_REJECTION_CATEGORY,
     data: payload,
   });
 }
 
-export function phase6Social10SequenceGuardDropBreadcrumb(
+export function logSequenceGuardDropBreadcrumb(
   eventType: string,
   actorUserId: string,
   targetUserId: string,
@@ -195,16 +177,16 @@ export function phase6Social10SequenceGuardDropBreadcrumb(
     actorUserId: sanitisedActor,
     targetUserId: sanitisedTarget,
     sequence,
-    epic: SOCIAL_EPIC_6_10_VERSION,
+    version: SOCIAL_REALTIME_VERSION,
   };
 
   Sentry.addBreadcrumb({
-    category: EPIC_6_10_SEQUENCE_GUARD_DROP_CATEGORY,
+    category: SOCIAL_SEQUENCE_GUARD_DROP_CATEGORY,
     data: payload,
   });
 }
 
-export function phase6Social10Breadcrumb(
+export function logSocialRealtimeBreadcrumb(
   data: SocialRealtimeBreadcrumbData,
 ): void {
   addSocialRealtimeBreadcrumb(data);

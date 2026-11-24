@@ -194,8 +194,8 @@ export function CommentItem({
         </footer>
       )}
 
-      {/* ─── Reply composer (top-level only, authenticated only) ────── */}
-      {!isDeleted && !isHidden && depth === 0 && isAuthenticated && (
+      {/* ─── Reply composer (top-level only, authenticated only, non-owner only) ────── */}
+      {!isDeleted && !isHidden && depth === 0 && isAuthenticated && !isOwner && (
         <div
           className="pl-11"
           data-testid={`comment-item-reply-form-${comment.id}`}

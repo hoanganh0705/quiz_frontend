@@ -4,7 +4,6 @@ import { useCallback, useState } from "react";
 import { EyeOff } from "lucide-react";
 
 import { Button } from "@/components/ui/Button";
-import { getFeatureFlagValue } from "@/lib/feature-flags";
 
 import { useSuppressRecommendedQuiz } from "@/features/coins/hooks/useSuppressRecommendedQuiz";
 import { useCoinWallet } from "@/features/coins/hooks/useCoinWallet";
@@ -25,9 +24,6 @@ export function SuppressRecommendedControl({
   alreadySuppressed,
   className,
 }: SuppressRecommendedControlProps) {
-  const spendFlag = getFeatureFlagValue("coin_spend_live");
-  const isPlaceholder = spendFlag === "placeholder";
-
   const { suppress, isPending, error } = useSuppressRecommendedQuiz();
   const { balance } = useCoinWallet();
 
@@ -38,7 +34,7 @@ export function SuppressRecommendedControl({
     setOpen(false);
   }, [suppress, quizId]);
 
-  if (isPlaceholder || alreadySuppressed) {
+  if (alreadySuppressed) {
     return null;
   }
 

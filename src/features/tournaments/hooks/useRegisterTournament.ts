@@ -10,7 +10,6 @@ import {
   TOURNAMENT_REGISTRATION_CACHE_KEYS,
   type RegistrationMutationState,
 } from "@/features/tournaments/types/registration.types";
-import { getFeatureFlagValue } from "@/lib/feature-flags";
 
 import type { RegisterTournamentResponseDto } from "@/lib/api/generated/schemas";
 
@@ -24,16 +23,13 @@ export interface UseRegisterTournamentResult {
 export function useRegisterTournament(
   tournamentId: string | null,
 ): UseRegisterTournamentResult {
-  const flagValue = getFeatureFlagValue("tournaments_live");
-  const isFlagPlaceholder = flagValue === "placeholder";
-
   const [state, setState] = useState<RegistrationMutationState>("idle");
   const [error, setError] = useState<ApiError | null>(null);
 
   const inFlightRef = useRef(false);
 
   const register = useCallback(async (): Promise<void> => {
-    if (isFlagPlaceholder || tournamentId === null) {
+    if (tournamentId === null) {
       return;
     }
 
@@ -85,7 +81,7 @@ export function useRegisterTournament(
     } finally {
       inFlightRef.current = false;
     }
-  }, [isFlagPlaceholder, tournamentId, state]);
+  }, [tournamentId, state]);
 
   const reset = useCallback(() => {
     setState("idle");

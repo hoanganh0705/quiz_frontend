@@ -10,7 +10,6 @@ import {
   type SocialMyAnalyticsDto,
 } from "@/features/social/types";
 import { useEventuallyConsistentQuery } from "@/features/social/hooks/useEventuallyConsistentQuery";
-import { getFeatureFlagValue } from "@/lib/feature-flags";
 
 import type { ConsistencyStaleness } from "@/features/social/components/ConsistencyNotice";
 import type { ApiError } from "@/lib/api";
@@ -36,17 +35,14 @@ const SAFE_FALLBACK: UseMySocialAnalyticsResult = Object.freeze({
 export function useMySocialAnalytics(
   period: AnalyticsPeriod,
 ): UseMySocialAnalyticsResult {
-  const flagValue = getFeatureFlagValue("social_live");
-  const isFlagPlaceholder = flagValue === "placeholder";
-
   const auth = useAuthSession();
   const isAuthenticated = auth.isAuthenticated;
 
   const key = useMemo<readonly unknown[] | null>(() => {
-    if (isFlagPlaceholder) return null;
+    if (false) return null;
     if (!isAuthenticated) return null;
     return ["social", "v1", "my-analytics", period] as const;
-  }, [isFlagPlaceholder, isAuthenticated, period]);
+  }, [isAuthenticated, period]);
 
   const fetcher = useCallback(async (): Promise<SocialMyAnalyticsDto> => {
     const envelope = await getMySocialAnalytics();
@@ -58,7 +54,7 @@ export function useMySocialAnalytics(
     fetcher,
   );
 
-  if (isFlagPlaceholder) return SAFE_FALLBACK;
+  if (false) return SAFE_FALLBACK;
   if (!isAuthenticated) return SAFE_FALLBACK;
 
   return {

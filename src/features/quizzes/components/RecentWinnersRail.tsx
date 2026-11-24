@@ -17,7 +17,7 @@ export function RecentWinnersRail({
   return (
     <section
       aria-label="Recent winners"
-      className="rounded-2xl border border-border/70 bg-gradient-to-b from-card/80 to-card/40 p-4 sm:p-6 backdrop-blur-sm shadow-xs"
+      className="rounded-2xl border border-border/70 bg-linear-to-b from-card/80 to-card/40 p-4 sm:p-6 backdrop-blur-sm shadow-xs"
     >
       <div className="mb-5 flex items-center gap-2.5">
         <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand/10 text-brand border border-brand/20">
@@ -34,17 +34,17 @@ export function RecentWinnersRail({
         {winners.slice(0, 6).map((winner) => (
           <li
             key={winner.userId + winner.wonAt}
-            className="flex items-start gap-3 rounded-md border border-border bg-background p-3"
+            className="flex items-start gap-3 rounded-xl border border-border bg-background p-3.5 shadow-2xs"
             data-testid="recent-winners-item"
           >
             <div className="flex-1 min-w-0">
               <p className="truncate text-sm font-semibold text-foreground">
                 {winner.username}
               </p>
-              <p className="truncate text-xs text-muted-foreground">
+              <p className="truncate text-xs text-muted-foreground mt-0.5">
                 {winner.quizTitle}
               </p>
-              <p className="mt-1 text-xs text-foreground-secondary">
+              <p className="mt-1.5 text-xs text-muted-foreground font-mono tabular-nums">
                 {winner.amountWon} · {winner.timeAgo}
               </p>
             </div>

@@ -1,4 +1,5 @@
 import { useCallback } from "react";
+import { BarChart3, CheckCircle2, FileEdit, Layers } from "lucide-react";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/Tabs";
 
@@ -15,11 +16,15 @@ interface MyQuizzesTabsProps {
   analyticsContent: React.ReactNode;
 }
 
-const TABS: Array<{ value: MyQuizzesTab; label: string }> = [
-  { value: "all", label: "All" },
-  { value: "drafts", label: "Drafts" },
-  { value: "published", label: "Published" },
-  { value: "analytics", label: "Analytics" },
+const TABS: Array<{
+  value: MyQuizzesTab;
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+}> = [
+  { value: "all", label: "All", icon: Layers },
+  { value: "drafts", label: "Drafts", icon: FileEdit },
+  { value: "published", label: "Published", icon: CheckCircle2 },
+  { value: "analytics", label: "Analytics", icon: BarChart3 },
 ] as const;
 
 function emitTabSwitchBreadcrumb(tab: MyQuizzesTab): void {
@@ -38,7 +43,7 @@ function emitTabSwitchBreadcrumb(tab: MyQuizzesTab): void {
             }
           ).Sentry;
     sentry?.addBreadcrumb?.({
-      category: "phase4:4.4",
+      category: "quizzes:tabs",
       data: { tab, timestamp: Date.now() },
     });
   } catch {
@@ -64,12 +69,20 @@ export function MyQuizzesTabs({
       value={activeTab}
       onValueChange={(value) => handleTabChange(value as MyQuizzesTab)}
     >
-      <TabsList className="mb-6 w-full justify-start gap-1">
-        {TABS.map((tab) => (
-          <TabsTrigger key={tab.value} value={tab.value}>
-            {tab.label}
-          </TabsTrigger>
-        ))}
+      <TabsList className="mb-6 inline-flex w-full justify-start gap-1 rounded-lg border border-border/40 bg-muted/60 p-1 sm:w-auto sm:justify-center">
+        {TABS.map((tab) => {
+          const Icon = tab.icon;
+          return (
+            <TabsTrigger
+              key={tab.value}
+              value={tab.value}
+              className="gap-2 px-3.5 py-1.5 text-xs font-medium sm:text-sm"
+            >
+              <Icon className="h-3.5 w-3.5 shrink-0 opacity-70" />
+              <span>{tab.label}</span>
+            </TabsTrigger>
+          );
+        })}
       </TabsList>
 
       {/* List tabs */}

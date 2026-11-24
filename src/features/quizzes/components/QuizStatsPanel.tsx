@@ -25,7 +25,7 @@ const METRIC_GRID = "grid grid-cols-2 gap-3 sm:grid-cols-4";
 const METRIC = "min-w-0 rounded-lg border bg-background p-3";
 const METRIC_LABEL = "text-xs font-medium text-muted-foreground";
 const METRIC_VALUE =
-  "mt-1 block text-xl font-semibold tabular-nums text-foreground";
+  "mt-1 block font-mono text-xl font-semibold tabular-nums text-foreground";
 const TREND_PLACEHOLDER =
   "mt-4 flex h-20 items-center justify-center rounded-lg border border-dashed bg-muted/20 px-4 text-center text-xs text-muted-foreground";
 

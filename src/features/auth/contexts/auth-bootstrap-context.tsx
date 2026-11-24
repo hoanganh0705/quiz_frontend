@@ -10,16 +10,8 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { getAuth } from "@/lib/api";
 
-const singleflight = async <T,>(
-  _key: string,
-  fn: () => Promise<T>,
-): Promise<T> => fn();
-const sharedBootstrapRefresh = async (): Promise<void> => {};
-import { handleTerminal401 } from "@/features/auth/utils/auth-redirect";
-import { clearAllAuthCache } from "@/features/auth/utils/user-scoped-cache";
-import { clearVerificationFlags } from "@/features/auth/utils/verification-flag";
+import { getAuth } from "@/lib/api";
 import {
   subscribeToAuthEvents,
   type AuthEvent,
@@ -28,9 +20,20 @@ import {
   subscribeToProfileEvents,
   type ProfileUpdatedEvent,
 } from "@/lib/api/core/profile-broadcast-channel";
+
+import { handleTerminal401 } from "@/features/auth/utils/auth-redirect";
+import { clearAllAuthCache } from "@/features/auth/utils/user-scoped-cache";
+import { clearVerificationFlags } from "@/features/auth/utils/verification-flag";
+
 import type { CurrentUserResponseDto } from "@/features/auth/types";
 import type { UserMeResponseDto } from "@/features/users/types";
 import type { ApiError } from "@/lib/api";
+
+const singleflight = async <T,>(
+  _key: string,
+  fn: () => Promise<T>,
+): Promise<T> => fn();
+const sharedBootstrapRefresh = async (): Promise<void> => {};
 
 export type BootstrapState =
   "idle" | "bootstrapping" | "authenticated" | "unauthenticated" | "error";

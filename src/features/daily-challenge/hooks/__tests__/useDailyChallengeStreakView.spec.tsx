@@ -1,12 +1,13 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
 import { renderHook } from "@testing-library/react";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+import { useDailyChallengeStreakView } from "@/features/daily-challenge/hooks/useDailyChallengeStreakView";
+import { useUser } from "@/features/users/store/user-store";
 
 vi.mock("@/features/users/store/user-store", () => ({
   useUser: vi.fn(),
 }));
 
-import { useUser } from "@/features/users/store/user-store";
-import { useDailyChallengeStreakView } from "@/features/daily-challenge/hooks/useDailyChallengeStreakView";
 
 const useUserMock = vi.mocked(useUser);
 

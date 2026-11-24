@@ -107,6 +107,12 @@ export const notificationMocks = {
     error: null as unknown,
     reset: vi.fn(),
   })),
+  useDeleteAllNotifications: vi.fn(() => ({
+    deleteAll: vi.fn().mockResolvedValue(undefined),
+    state: "idle" as const,
+    error: null as unknown,
+    reset: vi.fn(),
+  })),
   useNotificationPreferences: vi.fn(() => ({
     preferences: FULL_PREFERENCES,
     isLoading: false,
@@ -116,10 +122,6 @@ export const notificationMocks = {
     updateError: null as unknown,
     update: vi.fn().mockResolvedValue(undefined),
     reset: vi.fn(),
-  })),
-  useNotificationFeatureFlag: vi.fn(() => ({
-    isPlaceholder: false,
-    flagValue: "live" as const,
   })),
 };
 
@@ -131,7 +133,7 @@ export function installNotificationMocks() {
     useMarkNotificationRead: notificationMocks.useMarkNotificationRead,
     useMarkNotificationUnread: notificationMocks.useMarkNotificationUnread,
     useDeleteNotification: notificationMocks.useDeleteNotification,
+    useDeleteAllNotifications: notificationMocks.useDeleteAllNotifications,
     useNotificationPreferences: notificationMocks.useNotificationPreferences,
-    useNotificationFeatureFlag: notificationMocks.useNotificationFeatureFlag,
-  };
+      };
 }

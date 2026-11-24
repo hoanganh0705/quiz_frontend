@@ -9,7 +9,6 @@ import {
   TOURNAMENT_CACHE_KEYS,
   type TournamentDetail,
 } from "@/features/tournaments/types/tournament.types";
-import { getFeatureFlagValue } from "@/lib/feature-flags";
 
 import type { TournamentDetailResponseDto } from "@/lib/api/generated/schemas";
 
@@ -30,19 +29,16 @@ type GetTournamentWireResponse = {
 export function useTournament(
   tournamentId: string | null,
 ): UseTournamentResult {
-  const flagValue = getFeatureFlagValue("tournaments_live");
-  const isFlagPlaceholder = flagValue === "placeholder";
-
   const key = useMemo(
     () =>
-      isFlagPlaceholder || tournamentId === null
+      tournamentId === null
         ? null
         : TOURNAMENT_CACHE_KEYS.detail(tournamentId),
-    [isFlagPlaceholder, tournamentId],
+    [tournamentId],
   );
 
   const fetcher = useCallback(async (): Promise<TournamentDetail | null> => {
-    if (isFlagPlaceholder || tournamentId === null) {
+    if (tournamentId === null) {
       return null;
     }
 
@@ -58,7 +54,7 @@ export function useTournament(
       ...wire.data,
       id: wire.data.tournamentId,
     } as TournamentDetail;
-  }, [isFlagPlaceholder, tournamentId]);
+  }, [tournamentId]);
 
   const result = useSingleWithRetry<TournamentDetail | null>({
     key,

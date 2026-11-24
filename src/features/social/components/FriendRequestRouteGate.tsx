@@ -3,7 +3,6 @@
 import { useMemo } from "react";
 
 import { useAuthState } from "@/features/auth/hooks/use-auth-state";
-import { getFeatureFlagValue } from "@/lib/feature-flags";
 
 import {
   IncomingRequestsListPage,
@@ -25,11 +24,6 @@ export function FriendRequestRouteGate(
 ): React.ReactElement {
   const { kind, requireAuth = false } = props;
 
-  const parentFlag = useMemo(() => getFeatureFlagValue("social_live"), []);
-  const readFlag = useMemo(
-    () => getFeatureFlagValue("social_relationship_live"),
-    [],
-  );
 
   const { isAuthenticated } = useAuthState();
   if (requireAuth && !isAuthenticated) {
@@ -38,7 +32,7 @@ export function FriendRequestRouteGate(
     );
   }
 
-  if (parentFlag === "placeholder" || readFlag === "placeholder") {
+  if (false) {
     return <FriendRequestEmptyState kind={kind} />;
   }
 

@@ -4,17 +4,8 @@ import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
 import * as React from "react";
 
-const { getFeatureFlagValueMock, useQueryMock } = vi.hoisted(() => ({
-  getFeatureFlagValueMock: vi.fn(
-    (_flag: "graphql_pilot_sandbox"): "live" | "placeholder" => "placeholder",
-  ),
+const { useQueryMock } = vi.hoisted(() => ({
   useQueryMock: vi.fn(),
-}));
-
-vi.mock("@/lib/feature-flags", () => ({
-  getFeatureFlagValue: getFeatureFlagValueMock,
-  isFeatureEnabled: vi.fn(),
-  FEATURE_FLAGS: ["graphql_pilot_sandbox"],
 }));
 
 vi.mock("@apollo/client/react", async () => {
@@ -46,8 +37,6 @@ async function loadPage() {
 
 beforeEach(() => {
   useQueryMock.mockReset();
-  getFeatureFlagValueMock.mockReset();
-  getFeatureFlagValueMock.mockReturnValue("placeholder");
 });
 
 afterEach(() => {
@@ -56,25 +45,7 @@ afterEach(() => {
 });
 
 describe("__graphql-pilot sandbox route", () => {
-  it("renders nothing when the sandbox flag resolves to placeholder", async () => {
-    getFeatureFlagValueMock.mockReturnValue("placeholder");
-    const Page = await loadPage();
-    const { container } = render(<Page />);
-    expect(container).toBeEmptyDOMElement();
-    expect(useQueryMock).not.toHaveBeenCalled();
-  });
-
-  it("renders nothing when the sandbox flag resolves to placeholder (live-by-env still gated)", async () => {
-    getFeatureFlagValueMock.mockReturnValue("placeholder");
-    const Page = await loadPage();
-    render(<Page />);
-    expect(screen.queryByTestId("graphql-pilot-sandbox")).toBeNull();
-    expect(screen.queryByTestId("graphql-pilot-loading")).toBeNull();
-    expect(screen.queryByTestId("graphql-pilot-result")).toBeNull();
-  });
-
   it("renders the loading branch while useQuery is still fetching", async () => {
-    getFeatureFlagValueMock.mockReturnValue("live");
     useQueryMock.mockReturnValue({
       data: undefined,
       loading: true,
@@ -90,7 +61,6 @@ describe("__graphql-pilot sandbox route", () => {
   });
 
   it("renders the resolved `__typename` once the query returns", async () => {
-    getFeatureFlagValueMock.mockReturnValue("live");
     useQueryMock.mockReturnValue({
       data: { __typename: "Query" },
       loading: false,
@@ -108,7 +78,6 @@ describe("__graphql-pilot sandbox route", () => {
   });
 
   it("renders the error branch when useQuery surfaces an Error", async () => {
-    getFeatureFlagValueMock.mockReturnValue("live");
     useQueryMock.mockReturnValue({
       data: undefined,
       loading: false,
@@ -124,7 +93,6 @@ describe("__graphql-pilot sandbox route", () => {
   });
 
   it("renders the error branch when useQuery surfaces a non-Error rejection", async () => {
-    getFeatureFlagValueMock.mockReturnValue("live");
     useQueryMock.mockReturnValue({
       data: undefined,
       loading: false,
@@ -140,7 +108,6 @@ describe("__graphql-pilot sandbox route", () => {
   });
 
   it('falls back to "unknown" when useQuery resolves with no data', async () => {
-    getFeatureFlagValueMock.mockReturnValue("live");
     useQueryMock.mockReturnValue({
       data: undefined,
       loading: false,

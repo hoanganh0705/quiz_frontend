@@ -98,7 +98,7 @@ function emitBreadcrumb(data: {
       }) => void;
     } | null;
     sentry?.addBreadcrumb?.({
-      category: "phase4:4.2",
+      category: "quizzes:form",
       data: { ...data },
     });
   } catch {

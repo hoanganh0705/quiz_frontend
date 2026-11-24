@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Loader2, AlertCircle } from "lucide-react";
 
 import { Button } from "@/components/ui/Button";
@@ -49,6 +49,29 @@ export function LeaderboardPage() {
   const showErrorInline = isPeriodUnsupportedError;
   const showRetryBanner = isServerError || retryBannerVisible;
 
+  // Infinite scroll trigger: loads more entries automatically as the user scrolls
+  const sentinelRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!hasMore || isLoadingMore || isLoading) return;
+    if (typeof IntersectionObserver === "undefined") return;
+
+    const sentinel = sentinelRef.current;
+    if (!sentinel) return;
+
+    const observer = new IntersectionObserver(
+      (observerEntries) => {
+        if (observerEntries[0]?.isIntersecting) {
+          loadMore();
+        }
+      },
+      { rootMargin: "300px" },
+    );
+
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [hasMore, isLoadingMore, isLoading, loadMore]);
+
   return (
     <section
       className="space-y-6"
@@ -56,10 +79,15 @@ export function LeaderboardPage() {
       data-testid="leaderboard-page"
     >
       {/* Period selector — controlled by the composition */}
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <h2 className="text-lg font-semibold text-foreground">
-          Global leaderboard
-        </h2>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between pb-4 border-b border-border/80">
+        <div>
+          <h2 className="text-xl font-bold tracking-tight text-foreground">
+            Global leaderboard
+          </h2>
+          <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
+            Realtime rankings based on earned experience points
+          </p>
+        </div>
         <LeaderboardPeriodSelector
           period={period}
           onChange={handlePeriodChange}
@@ -117,18 +145,20 @@ export function LeaderboardPage() {
           onRetry={showRetryBanner ? handleRetry : undefined}
         />
       ) : (
-        <>
+        <div className="space-y-2">
+          {/* Top 3 players as lines */}
           <Podium
-            entries={entries.filter((e) => e.rank <= 3)}
+            entries={entries.filter((e) => Number(e.rank) <= 3)}
             isAuthenticated={isAuthenticated}
           />
+          {/* Players 4+ as lines */}
           <ol
             className="space-y-2 list-none"
             data-testid="leaderboard-rows"
             aria-label="Leaderboard entries"
           >
             {entries
-              .filter((e) => e.rank > 3)
+              .filter((e) => Number(e.rank) > 3)
               .map((entry) => (
                 <LeaderboardEntryRow
                   key={entry.userId}
@@ -138,23 +168,26 @@ export function LeaderboardPage() {
               ))}
           </ol>
 
+          {/* Sentinel & fallback load more button for scroll pagination */}
           {hasMore ? (
-            <div className="flex justify-center pt-2">
+            <div ref={sentinelRef} className="flex justify-center pt-3 pb-1">
               <Button
                 type="button"
                 variant="outline"
+                size="sm"
                 onClick={loadMore}
                 disabled={isLoadingMore}
                 aria-busy={isLoadingMore}
                 data-testid="leaderboard-load-more"
+                className="text-xs sm:text-sm text-muted-foreground hover:text-foreground h-9 px-4 border-border/80 focus-visible:ring-2 focus-visible:ring-ring"
               >
                 {isLoadingMore ? (
                   <>
                     <Loader2
-                      className="mr-2 h-4 w-4 animate-spin"
+                      className="mr-2 h-4 w-4 animate-spin text-primary"
                       aria-hidden="true"
                     />
-                    Loading…
+                    Loading more players…
                   </>
                 ) : (
                   "Load more"
@@ -162,7 +195,7 @@ export function LeaderboardPage() {
               </Button>
             </div>
           ) : null}
-        </>
+        </div>
       )}
     </section>
   );
@@ -173,120 +206,24 @@ interface PodiumProps {
   isAuthenticated: boolean;
 }
 
-const PODIUM_ORDER: ReadonlyArray<{
-  slot: 1 | 2 | 3;
-  heightClass: string;
-  offset: string;
-}> = [
-  { slot: 1, heightClass: "h-36 sm:h-44", offset: "-mt-6 sm:-mt-6" },
-  { slot: 2, heightClass: "h-28 sm:h-36", offset: "mt-2 sm:mt-0" },
-  { slot: 3, heightClass: "h-24 sm:h-32", offset: "mt-2 sm:mt-0" },
-];
-
 function Podium({ entries, isAuthenticated }: PodiumProps) {
   if (entries.length === 0) return null;
 
-  const byRank = new Map(entries.map((entry) => [entry.rank, entry]));
-  const first = byRank.get(1);
-  const second = byRank.get(2);
-  const third = byRank.get(3);
+  const sorted = [...entries].sort((a, b) => Number(a.rank) - Number(b.rank));
 
   return (
-    <div
-      className="flex items-end justify-center gap-3 sm:gap-6"
+    <ol
+      className="space-y-2 list-none"
       data-testid="leaderboard-podium"
       aria-label="Top 3 leaderboard entries"
     >
-      {second ? (
-        <PodiumColumn
-          entry={second}
+      {sorted.map((entry) => (
+        <LeaderboardEntryRow
+          key={entry.userId}
+          entry={entry}
           isAuthenticated={isAuthenticated}
-          {...PODIUM_ORDER[1]}
         />
-      ) : null}
-      {first ? (
-        <PodiumColumn
-          entry={first}
-          isAuthenticated={isAuthenticated}
-          {...PODIUM_ORDER[0]}
-        />
-      ) : null}
-      {third ? (
-        <PodiumColumn
-          entry={third}
-          isAuthenticated={isAuthenticated}
-          {...PODIUM_ORDER[2]}
-        />
-      ) : null}
-    </div>
-  );
-}
-
-interface PodiumColumnProps {
-  entry: ReturnType<typeof useLeaderboard>["entries"][number];
-  isAuthenticated: boolean;
-  slot: 1 | 2 | 3;
-  heightClass: string;
-  offset: string;
-}
-
-function PodiumColumn({
-  entry,
-  isAuthenticated,
-  slot,
-  heightClass,
-  offset,
-}: PodiumColumnProps) {
-  const isSelf = isAuthenticated && entry.isCurrentUser === true;
-
-  return (
-    <div
-      className={cn(
-        "flex flex-col items-center gap-2 rounded-t-2xl border border-border/70 p-3 sm:p-4 backdrop-blur-xs shadow-xs",
-        slot === 1
-          ? "bg-amber-500/10 border-amber-500/30 ring-1 ring-amber-500/30"
-          : "bg-card/70",
-        isSelf ? "ring-2 ring-primary" : "",
-        offset,
-      )}
-      aria-current={isSelf ? "true" : undefined}
-    >
-      <Avatar
-        className={cn(
-          slot === 1
-            ? "h-16 w-16 border-2 border-amber-500/40"
-            : "h-12 w-12 border border-border/50",
-        )}
-      >
-        {entry.avatarUrl ? <AvatarImage src={entry.avatarUrl} alt="" /> : null}
-        <AvatarFallback>
-          {entry.displayName?.[0]?.toUpperCase() ?? "?"}
-        </AvatarFallback>
-      </Avatar>
-      <p className={cn("text-sm font-semibold", getRankColor(entry.rank))}>
-        {entry.displayName}
-        {isSelf ? (
-          <span className="ml-1 text-xs text-primary">(you)</span>
-        ) : null}
-      </p>
-      <p className="text-xs text-muted-foreground font-mono tabular-nums">
-        {entry.xp.toLocaleString()} XP
-      </p>
-      <div
-        className={cn(
-          "flex w-16 items-center justify-center rounded-lg text-lg font-bold font-mono tabular-nums shadow-xs",
-          slot === 1
-            ? "bg-amber-500 text-amber-950"
-            : slot === 2
-              ? "bg-slate-300 text-slate-900 dark:bg-slate-600 dark:text-white"
-              : "bg-amber-700 text-white",
-          heightClass,
-        )}
-        role="img"
-        aria-label={`Rank ${entry.rank}`}
-      >
-        #{entry.rank}
-      </div>
-    </div>
+      ))}
+    </ol>
   );
 }

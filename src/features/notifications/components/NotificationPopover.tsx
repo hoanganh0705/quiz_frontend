@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { Check, ChevronRight, Loader2 } from "lucide-react";
+import { Check, ChevronRight, Loader2, Trash2 } from "lucide-react";
 import { getQueryClient } from "@/providers/QueryProvider";
 
 import {
@@ -15,7 +15,10 @@ import { ScrollArea } from "@/components/ui/ScrollArea";
 import { Button } from "@/components/ui/Button";
 
 import { useNotifications } from "@/features/notifications/hooks/useNotifications";
-import { markAllNotificationsRead } from "@/features/notifications/services/notifications.service";
+import {
+  markAllNotificationsRead,
+  deleteAllNotifications,
+} from "@/features/notifications/services/notifications.service";
 import { ApiError, isApiError } from "@/lib/api";
 
 import {
@@ -52,6 +55,11 @@ export function NotificationPopover() {
     error: ApiError | null;
   }>({ pending: false, error: null });
 
+  const [deleteAllState, setDeleteAllState] = useState<{
+    pending: boolean;
+    error: ApiError | null;
+  }>({ pending: false, error: null });
+
   const handleMarkAll = useCallback(async () => {
     if (markAllState.pending) return;
     setMarkAllState({ pending: true, error: null });
@@ -78,6 +86,32 @@ export function NotificationPopover() {
     }
   }, [markAllState.pending]);
 
+  const handleDeleteAll = useCallback(async () => {
+    if (deleteAllState.pending) return;
+    setDeleteAllState({ pending: true, error: null });
+    try {
+      await deleteAllNotifications();
+
+      const qc = getQueryClient();
+      await Promise.all([
+        qc.invalidateQueries({ queryKey: ["notifications", "list"] }),
+        qc.invalidateQueries({
+          queryKey: NOTIFICATION_CACHE_KEYS.unreadCount(),
+        }),
+      ]);
+      setDeleteAllState({ pending: false, error: null });
+    } catch (cause: unknown) {
+      if (isApiError(cause)) {
+        setDeleteAllState({ pending: false, error: cause });
+      } else {
+        const mapped = new ApiError(
+          cause as unknown as ConstructorParameters<typeof ApiError>[0],
+        );
+        setDeleteAllState({ pending: false, error: mapped });
+      }
+    }
+  }, [deleteAllState.pending]);
+
   const headerSubtitle = useMemo(() => {
     if (isLoading) return "Loading…";
     if (error) return "Connection issue";
@@ -103,28 +137,53 @@ export function NotificationPopover() {
             {headerSubtitle}
           </span>
         </div>
-        {hasUnread && (
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-7 px-2 text-xs text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300"
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              void handleMarkAll();
-            }}
-            disabled={markAllState.pending || isLoading}
-            aria-label="Mark all as read"
-          >
-            {markAllState.pending ? (
-              <Loader2 className="h-3 w-3 animate-spin" />
-            ) : (
-              <Check className="h-3 w-3 sm:mr-1" />
-            )}
-            <span className="hidden xs:inline sm:inline">Mark all read</span>
-            <span className="inline xs:hidden sm:hidden">Mark read</span>
-          </Button>
-        )}
+        <div className="flex items-center gap-1">
+          {hasUnread && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-7 px-2 text-xs text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                void handleMarkAll();
+              }}
+              disabled={markAllState.pending || isLoading}
+              aria-label="Mark all as read"
+            >
+              {markAllState.pending ? (
+                <Loader2 className="h-3 w-3 animate-spin" />
+              ) : (
+                <Check className="h-3 w-3 sm:mr-1" />
+              )}
+              <span className="hidden xs:inline sm:inline">Mark all read</span>
+              <span className="inline xs:hidden sm:hidden">Mark read</span>
+            </Button>
+          )}
+          {items.length > 0 && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-7 px-2 text-xs text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                void handleDeleteAll();
+              }}
+              disabled={deleteAllState.pending || isLoading}
+              aria-label="Delete all notifications"
+              data-testid="notification-popover-delete-all"
+            >
+              {deleteAllState.pending ? (
+                <Loader2 className="h-3 w-3 animate-spin" />
+              ) : (
+                <Trash2 className="h-3 w-3 sm:mr-1" />
+              )}
+              <span className="hidden xs:inline sm:inline">Clear all</span>
+              <span className="inline xs:hidden sm:hidden">Clear</span>
+            </Button>
+          )}
+        </div>
       </div>
 
       <ScrollArea className="h-[60vh] sm:h-100 max-h-125">

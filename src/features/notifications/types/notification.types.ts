@@ -71,6 +71,10 @@ export interface DeleteNotificationMutationResult {
   unreadCount: number;
 }
 
+export interface DeleteAllNotificationsMutationResult {
+  deletedCount: number;
+}
+
 export type NotificationMutationState =
   "idle" | "pending" | "success" | "error";
 

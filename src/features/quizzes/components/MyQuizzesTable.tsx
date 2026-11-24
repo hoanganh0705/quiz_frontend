@@ -42,13 +42,12 @@ interface MyQuizzesTableProps {
 }
 
 const COLUMN_HEADERS = [
-  "",
-  "Title",
-  "Slug",
-  "Status",
-  "Questions",
-  "Last Updated",
-  "Actions",
+  { label: "Title", className: "min-w-48" },
+  { label: "Slug", className: "hidden md:table-cell" },
+  { label: "Status", className: "" },
+  { label: "Questions", className: "hidden sm:table-cell" },
+  { label: "Last Updated", className: "hidden lg:table-cell" },
+  { label: "Actions", className: "w-32 text-right" },
 ] as const;
 
 function RetryBanner({
@@ -61,10 +60,10 @@ function RetryBanner({
   return (
     <div
       role="alert"
-      className="flex items-center gap-3 rounded-md border border-amber-200 bg-amber-50 px-4 py-3 dark:border-amber-800 dark:bg-amber-950"
+      className="flex items-center gap-3 rounded-lg border border-warning/30 bg-warning/10 px-4 py-3 text-warning-foreground"
     >
-      <AlertTriangle className="h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" />
-      <p className="flex-1 text-sm text-amber-800 dark:text-amber-200">
+      <AlertTriangle className="h-4 w-4 shrink-0 text-warning" />
+      <p className="flex-1 text-sm">
         Something went wrong loading your quizzes.
       </p>
       <Button
@@ -77,7 +76,7 @@ function RetryBanner({
       </Button>
       <button
         onClick={onDismiss}
-        className="text-amber-600 hover:text-amber-800 dark:text-amber-400 dark:hover:text-amber-300"
+        className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
         aria-label="Dismiss"
       >
         ×
@@ -105,77 +104,81 @@ export function MyQuizzesTable({
         <RetryBanner onDismiss={refresh} onRetry={refresh} />
       )}
 
-      <Table aria-label={`My ${tab} quizzes`}>
-        <TableHeader>
-          <TableRow>
-            {COLUMN_HEADERS.map((label, i) => (
-              <TableHead
-                key={i}
-                className={i === 1 ? "min-w-48" : i === 6 ? "w-36" : ""}
-              >
-                {label}
-              </TableHead>
-            ))}
-          </TableRow>
-        </TableHeader>
-
-        <TableBody>
-          {isEmpty ? (
-            <tr>
-              <TableCell
-                colSpan={COLUMN_HEADERS.length}
-                className="h-48 text-center"
-              >
-                <MyQuizzesTableEmpty tab={tab} />
-              </TableCell>
-            </tr>
-          ) : (
-            items.map((quiz) => (
-              <MyQuizzesTableRow
-                key={quiz.quizId}
-                quiz={quiz}
-                onRowClick={() => router.push(`/my-quizzes/${quiz.quizId}`)}
-              />
-            ))
-          )}
-        </TableBody>
-
-        {!isEmpty && (
-          <tfoot>
-            <TableRow>
-              <TableCell
-                colSpan={COLUMN_HEADERS.length}
-                className="text-center"
-              >
-                {hasMore ? (
-                  <Button
-                    variant="outline"
-                    onClick={loadMore}
-                    disabled={isLoadingMore}
-                    className="mx-auto"
-                  >
-                    {isLoadingMore ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Loading…
-                      </>
-                    ) : (
-                      <>
-                        <ChevronsDown className="mr-2 h-4 w-4" />
-                        Load more
-                      </>
-                    )}
-                  </Button>
-                ) : (
-                  <span className="text-muted-foreground text-sm">
-                    All quizzes loaded
-                  </span>
-                )}
-              </TableCell>
+      <div className="overflow-hidden rounded-xl border border-border/80 bg-card shadow-xs">
+        <Table aria-label={`My ${tab} quizzes`}>
+          <TableHeader className="bg-muted/40">
+            <TableRow className="hover:bg-transparent">
+              {COLUMN_HEADERS.map((col, i) => (
+                <TableHead
+                  key={i}
+                  className={`px-4 py-3.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground ${col.className}`}
+                >
+                  {col.label}
+                </TableHead>
+              ))}
             </TableRow>
-          </tfoot>
-        )}
-      </Table>
+          </TableHeader>
+
+          <TableBody>
+            {isEmpty ? (
+              <tr>
+                <TableCell
+                  colSpan={COLUMN_HEADERS.length}
+                  className="h-64 text-center"
+                >
+                  <MyQuizzesTableEmpty tab={tab} />
+                </TableCell>
+              </tr>
+            ) : (
+              items.map((quiz) => (
+                <MyQuizzesTableRow
+                  key={quiz.quizId}
+                  quiz={quiz}
+                  onRowClick={() =>
+                    router.push(`/my-quizzes/${quiz.quizId}/edit`)
+                  }
+                />
+              ))
+            )}
+          </TableBody>
+
+          {!isEmpty && (
+            <tfoot className="border-t border-border bg-muted/15">
+              <TableRow className="hover:bg-transparent">
+                <TableCell
+                  colSpan={COLUMN_HEADERS.length}
+                  className="px-4 py-4 text-center"
+                >
+                  {hasMore ? (
+                    <Button
+                      variant="outline"
+                      onClick={loadMore}
+                      disabled={isLoadingMore}
+                      className="mx-auto"
+                    >
+                      {isLoadingMore ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Loading…
+                        </>
+                      ) : (
+                        <>
+                          <ChevronsDown className="mr-2 h-4 w-4" />
+                          Load more
+                        </>
+                      )}
+                    </Button>
+                  ) : (
+                    <span className="text-muted-foreground text-sm">
+                      All quizzes loaded
+                    </span>
+                  )}
+                </TableCell>
+              </TableRow>
+            </tfoot>
+          )}
+        </Table>
+      </div>
     </div>
   );
 }

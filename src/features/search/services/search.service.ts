@@ -15,7 +15,7 @@ export async function search(
   } = {},
 ): Promise<SearchControllerGetSearchResultsResult["data"]> {
   Sentry.addBreadcrumb({
-    category: "phase5:service",
+    category: "search:service",
     message: `search.search(${JSON.stringify(query)})`,
   });
 

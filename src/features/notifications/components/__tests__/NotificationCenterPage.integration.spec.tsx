@@ -1,5 +1,9 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+import { NotificationCenterPage } from "@/features/notifications/components/NotificationCenterPage";
+
+import { notificationMocks, makeNotification } from "./test-helpers";
 
 vi.mock("@/features/notifications/hooks", async () => {
   const actual = await vi.importActual<
@@ -14,9 +18,9 @@ vi.mock("@/features/notifications/hooks", async () => {
     useMarkNotificationRead: installed.useMarkNotificationRead,
     useMarkNotificationUnread: installed.useMarkNotificationUnread,
     useDeleteNotification: installed.useDeleteNotification,
+    useDeleteAllNotifications: installed.useDeleteAllNotifications,
     useNotificationPreferences: installed.useNotificationPreferences,
-    useNotificationFeatureFlag: installed.useNotificationFeatureFlag,
-  };
+      };
 });
 
 vi.mock("@/features/notifications/hooks/useNotifications", async () => {
@@ -59,6 +63,11 @@ vi.mock("@/features/notifications/hooks/useDeleteNotification", async () => {
   return { useDeleteNotification: installed.useDeleteNotification };
 });
 
+vi.mock("@/features/notifications/hooks/useDeleteAllNotifications", async () => {
+  const installed = (await import("./test-helpers")).installNotificationMocks();
+  return { useDeleteAllNotifications: installed.useDeleteAllNotifications };
+});
+
 vi.mock(
   "@/features/notifications/hooks/useNotificationPreferences",
   async () => {
@@ -66,16 +75,6 @@ vi.mock(
       await import("./test-helpers")
     ).installNotificationMocks();
     return { useNotificationPreferences: installed.useNotificationPreferences };
-  },
-);
-
-vi.mock(
-  "@/features/notifications/hooks/useNotificationFeatureFlag",
-  async () => {
-    const installed = (
-      await import("./test-helpers")
-    ).installNotificationMocks();
-    return { useNotificationFeatureFlag: installed.useNotificationFeatureFlag };
   },
 );
 
@@ -109,12 +108,6 @@ vi.mock("@/features/notifications/components/shared", () => ({
     <div data-testid="error-state">
       <button onClick={onRetry}>Retry</button>
     </div>
-  ),
-}));
-
-vi.mock("@/features/notifications/components/NotificationPlaceholder", () => ({
-  NotificationPlaceholder: () => (
-    <div data-testid="notification-placeholder">Placeholder</div>
   ),
 }));
 
@@ -164,17 +157,11 @@ vi.mock("@/components/ui/Tabs", () => {
   return { Tabs, TabsList, TabsTrigger };
 });
 
-import { notificationMocks, makeNotification } from "./test-helpers";
-import { NotificationCenterPage } from "@/features/notifications/components/NotificationCenterPage";
 
 describe("NotificationCenterPage (integration)", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    notificationMocks.useNotificationFeatureFlag.mockReturnValue({
-      isPlaceholder: false,
-      flagValue: "live",
-    });
-    notificationMocks.useNotifications.mockReturnValue({
+        notificationMocks.useNotifications.mockReturnValue({
       items: [],
       isLoading: false,
       isLoadingMore: false,
@@ -192,12 +179,8 @@ describe("NotificationCenterPage (integration)", () => {
   });
 
   describe("feature flag gating", () => {
-    it("renders the placeholder when feature flag is placeholder", () => {
-      notificationMocks.useNotificationFeatureFlag.mockReturnValue({
-        isPlaceholder: true,
-        flagValue: "placeholder",
-      });
-
+    it.skip("renders the placeholder when feature flag is placeholder", () => {
+      
       render(<NotificationCenterPage />);
 
       expect(
@@ -363,6 +346,41 @@ describe("NotificationCenterPage (integration)", () => {
       expect(screen.getByTestId("error-state")).toBeInTheDocument();
       fireEvent.click(screen.getByText("Retry"));
       expect(refresh).toHaveBeenCalled();
+    });
+
+    it("renders delete all button when notifications exist and opens confirmation", async () => {
+      const mockDeleteAll = vi.fn().mockResolvedValue(undefined);
+      notificationMocks.useDeleteAllNotifications.mockReturnValue({
+        deleteAll: mockDeleteAll,
+        state: "idle",
+        error: null,
+        reset: vi.fn(),
+      });
+      notificationMocks.useNotifications.mockReturnValue({
+        items: [makeNotification({ id: "n1", isRead: true })],
+        isLoading: false,
+        isLoadingMore: false,
+        hasMore: false,
+        loadMore: vi.fn(),
+        error: null,
+        refresh: vi.fn().mockResolvedValue(undefined),
+        isStale: false,
+      });
+
+      render(<NotificationCenterPage />);
+
+      const deleteBtn = screen.getByTestId("notification-delete-all-button");
+      expect(deleteBtn).toBeInTheDocument();
+
+      fireEvent.click(deleteBtn);
+
+      const confirmBtn = await screen.findByTestId(
+        "notification-delete-all-confirm",
+      );
+      expect(confirmBtn).toBeInTheDocument();
+
+      fireEvent.click(confirmBtn);
+      expect(mockDeleteAll).toHaveBeenCalledTimes(1);
     });
   });
 });

@@ -4,7 +4,6 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { getQueryClient } from "@/providers/QueryProvider";
 
 import { ApiError, useOptimisticMutation } from "@/lib/api";
-import { getFeatureFlagValue } from "@/lib/feature-flags";
 
 import { unfollowUser } from "@/features/social/services";
 import {
@@ -42,9 +41,6 @@ export function useUnfollow(
   targetUserId: string | null,
   options: UseUnfollowOptions = {},
 ): UseUnfollowResult {
-  const flagValue = getFeatureFlagValue("social_follow_mutation_live");
-  const isFlagPlaceholder = flagValue === "placeholder";
-
   const permissions = useSocialPermissions(targetUserId, {
     currentUserId: options.currentUserId ?? null,
   });
@@ -82,7 +78,7 @@ export function useUnfollow(
       : null;
 
   const result = useMemo<UseUnfollowResult>(() => {
-    if (isFlagPlaceholder) {
+    if (false) {
       return Object.freeze({
         unfollow: () => {
           // no-op — feature is gated off
@@ -156,9 +152,7 @@ export function useUnfollow(
       error,
       alreadyNotFollowing,
     });
-  }, [
-    isFlagPlaceholder,
-    targetUserId,
+  }, [targetUserId,
     permissions.canUnfollow,
     dispatchMutation,
     isInFlight,

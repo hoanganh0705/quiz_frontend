@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   cleanup,
   fireEvent,
@@ -6,9 +6,12 @@ import {
   screen,
   within,
 } from "@testing-library/react";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ApiError } from "@/lib/api";
+
+import { CategoryDetailPage } from "@/features/categories/components/CategoryDetailPage";
+
 import type { CategoryResponseDto } from "@/lib/api/generated/schemas";
 
 const {
@@ -76,7 +79,6 @@ vi.mock("@/features/tags", async () => {
   };
 });
 
-import { CategoryDetailPage } from "@/features/categories/components/CategoryDetailPage";
 
 const CATEGORY_ID = "0192f4d8-0000-7000-8000-000000000001";
 const CATEGORY_SLUG = "mathematics";

@@ -45,7 +45,7 @@ export async function getInstance(
   id: string,
 ): Promise<GetInstanceByIdResult["data"]> {
   Sentry.addBreadcrumb({
-    category: "phase5:service",
+    category: "instances:service",
     message: `instances.getInstance(${id})`,
   });
   const data = await getInstances().getInstanceById(id);
@@ -63,7 +63,7 @@ export async function getInstanceLeaderboard(
   id: string,
 ): Promise<GetInstanceLeaderboardResult["data"]> {
   Sentry.addBreadcrumb({
-    category: "phase5:service",
+    category: "instances:service",
     message: `instances.getInstanceLeaderboard(${id})`,
   });
   const data = await getInstances().getInstanceLeaderboard(id);
@@ -82,7 +82,7 @@ export async function listInstancePlayers(
   params?: ListInstancePlayersParams,
 ): Promise<ListInstancePlayersResult["data"]> {
   Sentry.addBreadcrumb({
-    category: "phase5:service",
+    category: "instances:service",
     message: `instances.listInstancePlayers(${id})`,
   });
   const data = await getInstances().listInstancePlayers(id, params);
@@ -102,7 +102,7 @@ export async function createInstance(
   import("@/lib/api/generated/instances/instances").CreateInstanceResult["data"]
 > {
   Sentry.addBreadcrumb({
-    category: "phase5:service",
+    category: "instances:service",
     message: "instances.createInstance",
   });
   const data = await getInstances().createInstance(params);
@@ -120,7 +120,7 @@ export async function joinInstance(
   id: string,
 ): Promise<JoinInstanceResult["data"]> {
   Sentry.addBreadcrumb({
-    category: "phase5:service",
+    category: "instances:service",
     message: `instances.joinInstance(${id})`,
   });
   const data = await getInstances().joinInstance(id);
@@ -138,7 +138,7 @@ export async function startInstance(
   id: string,
 ): Promise<StartInstanceResult["data"]> {
   Sentry.addBreadcrumb({
-    category: "phase5:service",
+    category: "instances:service",
     message: `instances.startInstance(${id})`,
   });
   const data = await getInstances().startInstance(id);
@@ -156,7 +156,7 @@ export async function closeInstance(
   id: string,
 ): Promise<CloseInstanceResult["data"]> {
   Sentry.addBreadcrumb({
-    category: "phase5:service",
+    category: "instances:service",
     message: `instances.closeInstance(${id})`,
   });
   const data = await getInstances().closeInstance(id);
@@ -175,7 +175,7 @@ export async function startCountdown(
   params: StartCountdownDto,
 ): Promise<StartCountdownResult["data"]> {
   Sentry.addBreadcrumb({
-    category: "phase5:service",
+    category: "instances:service",
     message: `instances.startCountdown(${id})`,
   });
   const data = await getInstances().startCountdown(id, params);
@@ -193,7 +193,7 @@ export async function cancelCountdown(
   id: string,
 ): Promise<CancelCountdownResult["data"]> {
   Sentry.addBreadcrumb({
-    category: "phase5:service",
+    category: "instances:service",
     message: `instances.cancelCountdown(${id})`,
   });
   const data = await getInstances().cancelCountdown(id);

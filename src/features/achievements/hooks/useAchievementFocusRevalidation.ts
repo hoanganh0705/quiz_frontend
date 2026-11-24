@@ -3,11 +3,10 @@
 import { useEffect } from "react";
 import { getQueryClient } from "@/providers/QueryProvider";
 
-import { isAchievementSurfaceEnabled } from "@/features/achievements/flags";
 import { makeAchievementInvalidationKeys } from "@/features/achievements/types";
 
 export function useAchievementFocusRevalidation(): void {
-  const isLive = isAchievementSurfaceEnabled();
+  const isLive = true;
 
   useEffect(() => {
     if (!isLive) {

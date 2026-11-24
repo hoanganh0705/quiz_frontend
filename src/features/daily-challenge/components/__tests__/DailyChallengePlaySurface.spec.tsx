@@ -1,5 +1,7 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+import { DailyChallengePlaySurface } from "@/features/daily-challenge/components/DailyChallengePlaySurface";
 
 const { useDailyChallengePlayMock } = vi.hoisted(() => ({
   useDailyChallengePlayMock: vi.fn(),
@@ -9,7 +11,6 @@ vi.mock("@/features/daily-challenge/hooks/useDailyChallengePlay", () => ({
   useDailyChallengePlay: useDailyChallengePlayMock,
 }));
 
-import { DailyChallengePlaySurface } from "@/features/daily-challenge/components/DailyChallengePlaySurface";
 
 function idleReturn() {
   return {

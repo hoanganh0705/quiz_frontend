@@ -1,13 +1,14 @@
 "use client";
 
 import { useCallback, useEffect, useRef } from "react";
-import { Star, X, AlertCircle } from "lucide-react";
+import { Star, X, AlertCircle, ShieldAlert, CheckCircle2 } from "lucide-react";
 
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/shared/utils/merge-class-names";
 
 import type { AdminReportDto } from "@/features/admin/review-moderation/admin-report-types";
+import type { ReportConsumerAction } from "@/features/admin/review-moderation/action-enum";
 import { useReview } from "@/features/admin/review-moderation/hooks/useReview";
 import { useResolveReviewReport } from "@/features/admin/review-moderation/hooks/useResolveReviewReport";
 
@@ -29,12 +30,15 @@ export interface ReviewReportDetailPanelProps {
 
   onClose: () => void;
 
+  onAction?: (action: ReportConsumerAction, report: AdminReportDto) => void;
+
   className?: string;
 }
 
 export function ReviewReportDetailPanel({
   report,
   onClose,
+  onAction,
   className,
 }: ReviewReportDetailPanelProps): React.ReactElement {
   const {
@@ -89,20 +93,20 @@ export function ReviewReportDetailPanel({
       onKeyDown={handleKeyDown}
       data-testid={`review-report-detail-panel-${report.reportId}`}
       className={cn(
-        "flex h-full w-full flex-col gap-4 overflow-hidden rounded-lg border border-border bg-background",
+        "flex h-full w-full flex-col overflow-hidden rounded-xl border border-border bg-card",
         className ?? "",
       )}
     >
       <header
-        className="flex items-start justify-between gap-2 border-b border-border px-5 py-3"
+        className="flex items-start justify-between gap-3 border-b border-border bg-muted/20 px-5 py-4"
         data-testid={`review-report-detail-header-${report.reportId}`}
       >
         <div className="flex flex-col gap-1">
           <h2 className="text-base font-semibold text-foreground">
-            Offending review
+            Offending Review
           </h2>
           <p className="text-xs text-muted-foreground">
-            Report <span className="font-mono">{report.reportId}</span>
+            Report ID: <span className="font-mono text-foreground/80">{report.reportId}</span>
           </p>
         </div>
         <Button
@@ -112,25 +116,26 @@ export function ReviewReportDetailPanel({
           aria-label="Close detail panel"
           onClick={handleClose}
           data-testid={`review-report-detail-close-${report.reportId}`}
+          className="size-8 rounded-lg text-muted-foreground hover:text-foreground"
         >
-          <X className="h-4 w-4" aria-hidden="true" />
+          <X className="size-4" aria-hidden="true" />
         </Button>
       </header>
 
       <div
         ref={scrollRef}
         data-testid={`review-report-detail-scroll-${report.reportId}`}
-        className="flex flex-1 flex-col gap-4 overflow-y-auto px-5 pb-5"
+        className="flex flex-1 flex-col gap-4 overflow-y-auto px-5 py-4"
       >
-        {/* Snapshot block — always rendered. */}
+        {/* Snapshot block — always rendered */}
         <section
-          className="rounded-md border border-border bg-muted/40 px-4 py-3"
+          className="rounded-lg border border-border bg-muted/30 p-4"
           data-testid={`review-report-detail-snapshot-${report.reportId}`}
         >
-          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
             Snapshot at report time
           </p>
-          <p className="mt-2 text-sm font-medium text-foreground">
+          <p className="mt-2 text-sm font-semibold text-foreground">
             {report.quizTitle}
           </p>
           <p className="mt-1 text-xs text-muted-foreground">
@@ -140,26 +145,28 @@ export function ReviewReportDetailPanel({
             </span>
           </p>
 
-          <div className="mt-2 flex items-center gap-2">
+          <div className="mt-2.5 flex items-center gap-2">
             <span className="inline-flex items-center gap-0.5">
               {Array.from({ length: 5 }, (_, index) => (
                 <Star
                   key={index}
                   aria-hidden="true"
                   className={cn(
-                    "h-4 w-4",
+                    "size-4",
                     index < report.rating
-                      ? "fill-amber-400 stroke-amber-500"
-                      : "fill-transparent stroke-slate-300",
+                      ? "fill-warning text-warning"
+                      : "fill-transparent text-muted-foreground/30",
                   )}
                 />
               ))}
             </span>
-            <span className="text-sm font-medium">{report.rating}/5</span>
+            <span className="font-mono text-xs font-medium text-foreground">
+              {report.rating}/5
+            </span>
           </div>
 
           {report.comment !== null && report.comment !== undefined ? (
-            <p className="mt-3 rounded-sm border border-border bg-background px-3 py-2 text-sm italic text-foreground">
+            <p className="mt-3 rounded-md border border-border/80 bg-background/80 p-3 text-sm italic text-foreground">
               &ldquo;{report.comment}&rdquo;
             </p>
           ) : (
@@ -168,29 +175,32 @@ export function ReviewReportDetailPanel({
             </p>
           )}
 
-          <p className="mt-3 text-xs text-slate-700">
-            Reason:{" "}
-            <span className="font-medium capitalize">
-              {report.reason.replace(/_/g, " ")}
-            </span>
-          </p>
-          {report.details !== null && report.details !== undefined ? (
-            <p className="mt-1 text-xs text-slate-700">{report.details}</p>
-          ) : null}
+          <div className="mt-3 space-y-1 text-xs text-foreground">
+            <p>
+              <span className="text-muted-foreground">Reported Reason: </span>
+              <span className="font-semibold capitalize">
+                {report.reason.replace(/_/g, " ")}
+              </span>
+            </p>
+            {report.details !== null && report.details !== undefined ? (
+              <p className="text-muted-foreground pt-1">
+                {report.details}
+              </p>
+            ) : null}
+          </div>
         </section>
 
-        {/* Live-fetch fallback block — only when the DTO doesn't
-            carry the live values and `useReview` can fill them in. */}
+        {/* Live-fetch fallback block */}
         <section
-          className="rounded-md border border-border px-4 py-3"
+          className="rounded-lg border border-border bg-card p-4"
           data-testid={`review-report-detail-live-${report.reportId}`}
         >
           <div className="flex items-center justify-between gap-2">
-            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-              Live review
+            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              Live Review State
             </p>
-            <Badge variant="outline" className="text-xs">
-              Live at fetch time
+            <Badge variant="outline" className="text-xs font-normal">
+              Fetched from server
             </Badge>
           </div>
 
@@ -199,30 +209,27 @@ export function ReviewReportDetailPanel({
               className="mt-2 text-xs text-muted-foreground"
               data-testid={`review-report-detail-live-loading-${report.reportId}`}
             >
-              Loading live review…
+              Loading live review status…
             </p>
           ) : review !== null ? (
-            <div className="mt-2 flex flex-col gap-1 text-xs text-slate-700">
+            <div className="mt-2.5 flex flex-col gap-1.5 text-xs text-foreground">
               <p>
-                Reviewer: <span className="font-medium">{review.username}</span>{" "}
-                <span className="text-muted-foreground">({review.userId})</span>
+                <span className="text-muted-foreground">Author: </span>
+                <span className="font-medium">{review.username}</span>{" "}
+                <span className="font-mono text-muted-foreground">({review.userId})</span>
               </p>
               <p>
-                Helpful votes:{" "}
-                <span className="font-medium">{review.helpfulCount}</span>
+                <span className="text-muted-foreground">Helpful votes: </span>
+                <span className="font-mono font-medium">{review.helpfulCount}</span>
               </p>
               <p>
-                Created:{" "}
-                <span className="font-medium">
-                  {formatTimestamp(review.createdAt)}
-                </span>
+                <span className="text-muted-foreground">Created: </span>
+                <span className="font-mono">{formatTimestamp(review.createdAt)}</span>
               </p>
               {review.updatedAt !== review.createdAt ? (
                 <p>
-                  Last updated:{" "}
-                  <span className="font-medium">
-                    {formatTimestamp(review.updatedAt)}
-                  </span>
+                  <span className="text-muted-foreground">Last updated: </span>
+                  <span className="font-mono">{formatTimestamp(review.updatedAt)}</span>
                 </p>
               ) : null}
             </div>
@@ -231,45 +238,43 @@ export function ReviewReportDetailPanel({
               className="mt-2 text-xs text-muted-foreground"
               data-testid={`review-report-detail-live-empty-${report.reportId}`}
             >
-              The live review could not be loaded. The snapshot above still
-              reflects the report time.
+              The live review is no longer accessible. The snapshot above remains authoritative.
             </p>
           )}
 
           {reviewError !== null ? (
             <p
-              className="mt-2 inline-flex items-center gap-1 text-xs text-amber-700"
+              className="mt-2.5 inline-flex items-center gap-1.5 text-xs text-warning"
               role="status"
               data-testid={`review-report-detail-live-error-${report.reportId}`}
             >
-              <AlertCircle className="h-3 w-3" aria-hidden="true" />
-              Live review is unavailable; the snapshot above is still
-              authoritative.
+              <AlertCircle className="size-3.5 shrink-0" aria-hidden="true" />
+              <span>Live review is unavailable; the snapshot above is preserved.</span>
             </p>
           ) : null}
         </section>
 
-        {/* Audit trail block — surfaced when the report is closed. */}
+        {/* Audit trail block */}
         {report.status !== "open" ? (
           <section
-            className="rounded-md border border-emerald-200 bg-emerald-50 px-4 py-3 text-xs text-emerald-900"
+            className="flex items-start gap-2.5 rounded-lg border border-success/35 bg-success/10 p-3.5 text-xs text-success dark:bg-success/20"
             data-testid={`review-report-detail-resolved-${report.reportId}`}
           >
-            <p className="font-semibold">This report is closed.</p>
-            {report.updatedAt !== null && report.updatedAt !== undefined ? (
-              <p className="mt-1">
-                Last updated:{" "}
-                <span className="font-medium">
-                  {formatTimestamp(report.updatedAt)}
-                </span>
-              </p>
-            ) : null}
+            <CheckCircle2 className="size-4 shrink-0 mt-0.5" aria-hidden="true" />
+            <div className="flex flex-col gap-0.5">
+              <p className="font-semibold">This report has been resolved.</p>
+              {report.updatedAt !== null && report.updatedAt !== undefined ? (
+                <p className="font-mono">
+                  Closed at: {formatTimestamp(report.updatedAt)}
+                </p>
+              ) : null}
+            </div>
           </section>
         ) : null}
       </div>
 
       <footer
-        className="flex items-center justify-between gap-2 border-t border-border px-5 py-3"
+        className="flex flex-wrap items-center justify-between gap-3 border-t border-border bg-muted/20 px-5 py-3"
         data-testid={`review-report-detail-footer-${report.reportId}`}
       >
         <p className="text-xs text-muted-foreground">
@@ -279,15 +284,41 @@ export function ReviewReportDetailPanel({
               ? "Awaiting moderation."
               : "Closed."}
         </p>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={handleClose}
-          data-testid={`review-report-detail-close-footer-${report.reportId}`}
-        >
-          Close
-        </Button>
+
+        <div className="flex items-center gap-2">
+          {report.status === "open" && onAction ? (
+            <>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => onAction("dismiss", report)}
+                className="text-xs"
+              >
+                Dismiss Report
+              </Button>
+              <Button
+                type="button"
+                variant="destructive"
+                size="sm"
+                onClick={() => onAction("delete_review", report)}
+                className="gap-1.5 text-xs"
+              >
+                <ShieldAlert className="size-3.5" aria-hidden="true" />
+                <span>Take Down</span>
+              </Button>
+            </>
+          ) : null}
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={handleClose}
+            data-testid={`review-report-detail-close-footer-${report.reportId}`}
+          >
+            Close
+          </Button>
+        </div>
       </footer>
     </aside>
   );

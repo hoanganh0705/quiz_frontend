@@ -7,7 +7,7 @@ import {
 
 export default function LeaderboardPage() {
   return (
-    <div className="min-h-screen p-4 md:p-8 lg:p-12">
+    <div className="mx-auto max-w-7xl min-h-screen text-foreground px-4 sm:px-6 lg:px-8 py-8 sm:py-10 space-y-8">
       <LeaderboardHeader />
 
       <section

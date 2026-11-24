@@ -13,7 +13,6 @@ import {
   type RankingHistoryFilters,
 } from "@/features/rankings/types";
 import { useAuthSession } from "@/features/auth/hooks/use-auth-session";
-import { getFeatureFlagValue } from "@/lib/feature-flags";
 
 import type { RankingHistoryItemDto } from "@/lib/api/generated/schemas";
 
@@ -29,24 +28,21 @@ export interface UseRankingHistoryResult {
 export function useRankingHistory(
   _filters: RankingHistoryFilters = {},
 ): UseRankingHistoryResult {
-  const flagValue = getFeatureFlagValue("rankings_live");
-  const isFlagPlaceholder = flagValue === "placeholder";
-
   const { bootstrapState } = useAuthSession();
   const isAuthenticated = bootstrapState === "authenticated";
 
   const key = useMemo(
     () =>
-      isFlagPlaceholder || !isAuthenticated
+      !isAuthenticated
         ? null
         : RANKING_CACHE_KEYS.myHistory(_filters),
-    [isFlagPlaceholder, isAuthenticated, _filters],
+    [isAuthenticated, _filters],
   );
 
   const lastValidatedAtRef = useRef<string | null>(null);
 
   const fetcher = useCallback(async () => {
-    if (isFlagPlaceholder || !isAuthenticated) {
+    if (!isAuthenticated) {
       return [] as RankingHistoryEntry[];
     }
     const wire = (await getMyRankingHistory()) as
@@ -56,7 +52,7 @@ export function useRankingHistory(
       lastValidatedAtRef.current = new Date().toISOString();
     }
     return items;
-  }, [isFlagPlaceholder, isAuthenticated]);
+  }, [isAuthenticated]);
 
   const result = useSingleWithRetry<RankingHistoryEntry[]>({
     key,
@@ -65,7 +61,7 @@ export function useRankingHistory(
 
   const isStale = result.data !== undefined && result.isRetrying;
 
-  if (isFlagPlaceholder || !isAuthenticated) {
+  if (!isAuthenticated) {
     return {
       items: [],
       isLoading: false,

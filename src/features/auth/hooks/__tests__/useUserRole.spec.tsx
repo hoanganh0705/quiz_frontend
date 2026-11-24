@@ -1,7 +1,12 @@
+import React from "react";
+
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { renderHook, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import React from "react";
+
+import { getAuthToken } from "@/features/auth/utils/auth-cookies";
+
+import { useUserRole } from "../useUserRole";
 
 import type { CurrentUserResponseDto } from "@/lib/api";
 
@@ -21,8 +26,6 @@ vi.mock("@/lib/api", async () => {
   };
 });
 
-import { getAuthToken } from "@/features/auth/utils/auth-cookies";
-import { useUserRole } from "../useUserRole";
 
 const render = () => {
   const queryClient = new QueryClient({

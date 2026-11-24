@@ -21,7 +21,7 @@ import {
 import { cn } from "@/shared/utils/merge-class-names";
 
 export interface DailyChallengePageProps {
-  flagValue: "v1" | "placeholder";
+  flagValue?: "v1" | "placeholder";
   className?: string;
 }
 
@@ -30,7 +30,6 @@ function isTransient5xx(error: ApiError): boolean {
 }
 
 export function DailyChallengePage({
-  flagValue,
   className,
 }: DailyChallengePageProps) {
   const {
@@ -54,7 +53,7 @@ export function DailyChallengePage({
 
   const rootClassName = cn("space-y-6", className);
   const shouldRenderPlaceholder =
-    flagValue === "placeholder" || todayIsMissingEndpoint;
+    todayIsMissingEndpoint;
 
   if (shouldRenderPlaceholder) {
     return (
@@ -88,9 +87,9 @@ export function DailyChallengePage({
     <div
       role="alert"
       data-testid="daily-challenge-history-error"
-      className="flex items-center gap-2 rounded-md border border-yellow-500/30 bg-yellow-500/10 px-4 py-3 text-sm text-yellow-900 dark:text-yellow-100"
+      className="flex items-center gap-2 rounded-lg border border-warning/30 bg-warning/10 px-4 py-3 text-sm text-foreground"
     >
-      <AlertCircle className="h-4 w-4" aria-hidden="true" />
+      <AlertCircle className="h-4 w-4 text-warning shrink-0" aria-hidden="true" />
       <span>
         History is unavailable right now. Today&apos;s challenge below is
         unaffected.
@@ -134,7 +133,7 @@ export function DailyChallengePage({
         data-testid="daily-challenge-page-empty"
         className={rootClassName}
       >
-        <div className="rounded-md border border-border bg-muted/50 px-4 py-6 text-center text-sm text-foreground/80">
+        <div className="rounded-xl border border-border/70 bg-card/60 px-4 py-8 text-center text-sm text-foreground-secondary shadow-xs">
           No daily challenge today — check back tomorrow.
         </div>
         {historyErrorRegion}
@@ -155,21 +154,28 @@ export function DailyChallengePage({
       data-testid="daily-challenge-page-live"
       className={rootClassName}
     >
-      <DailyChallengeCard
-        challenge={challenge}
-        isAuthenticated={isAuthenticated}
-      />
-      {isAuthenticated && streak !== null ? (
-        <div className="flex justify-end">
-          <DailyChallengeStreakIndicator streak={streak} />
-        </div>
-      ) : null}
+      {/* 1. Pulse Strip: 4 up-top vital status cards */}
       <InfoCard
         rewardXp={challenge.rewardXp}
         category={challenge.category}
         streak={streak}
         isAuthenticated={isAuthenticated}
       />
+
+      {/* 2. Today's Featured Challenge */}
+      <div className="space-y-3">
+        {isAuthenticated && streak !== null ? (
+          <div className="flex justify-end">
+            <DailyChallengeStreakIndicator streak={streak} />
+          </div>
+        ) : null}
+        <DailyChallengeCard
+          challenge={challenge}
+          isAuthenticated={isAuthenticated}
+        />
+      </div>
+
+      {/* 3. Interactive Play Surface (directly below the challenge card!) */}
       {challenge.status === "pending" && isAuthenticated ? (
         <DailyChallengePlaySurface
           quizId={challenge.quizId}
@@ -178,6 +184,8 @@ export function DailyChallengePage({
           onTodayRefresh={refreshToday}
         />
       ) : null}
+
+      {/* 4. History Region */}
       {historyErrorRegion}
       <DailyChallengeHistoryList
         items={items}

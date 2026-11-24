@@ -31,6 +31,7 @@ import {
   markAsRead,
   markAllAsRead,
   deleteNotification as apiDeleteNotification,
+  deleteAllNotifications as apiDeleteAllNotifications,
 } from "@/features/notifications/api";
 
 const getNotificationIcon = (type: Notification["type"]) => {
@@ -133,6 +134,18 @@ export function NotificationDropdown() {
     }
   }, [notifications]);
 
+  const handleDeleteAll = useCallback(async () => {
+    const previousNotifications = [...notifications];
+
+    setNotifications([]);
+
+    try {
+      await apiDeleteAllNotifications();
+    } catch {
+      setNotifications(previousNotifications);
+    }
+  }, [notifications]);
+
   const handleDeleteNotification = useCallback(
     async (id: string, e: React.MouseEvent) => {
       e.stopPropagation();
@@ -161,7 +174,7 @@ export function NotificationDropdown() {
             <Bell className="h-4 w-4 text-foreground" />
           </div>
           {unreadCount > 0 && (
-            <div className="absolute -top-1 -right-1 h-3 w-3 sm:h-4 sm:w-4 rounded-full dark:bg-white bg-red-600 text-[0.6rem] flex items-center justify-center text-white dark:text-black">
+            <div className="absolute -top-1 -right-1 h-3.5 w-3.5 sm:h-4 sm:w-4 rounded-full dark:bg-white bg-red-600 text-xs font-mono flex items-center justify-center text-white dark:text-black">
               <span className="text-center leading-none" aria-hidden="true">
                 {unreadCount}
               </span>
@@ -178,16 +191,31 @@ export function NotificationDropdown() {
           <DropdownMenuLabel className="p-0 text-sm sm:text-base font-semibold">
             Notifications
           </DropdownMenuLabel>
-          {unreadCount > 0 && (
-            <button
-              onClick={handleMarkAllAsRead}
-              className="text-xs text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 flex items-center gap-0.5 sm:gap-1"
-            >
-              <Check className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
-              <span className="hidden xs:inline sm:inline">Mark all read</span>
-              <span className="inline xs:hidden sm:hidden">Mark read</span>
-            </button>
-          )}
+          <div className="flex items-center gap-2">
+            {unreadCount > 0 && (
+              <button
+                onClick={handleMarkAllAsRead}
+                className="text-xs text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 flex items-center gap-0.5 sm:gap-1"
+                aria-label="Mark all read"
+              >
+                <Check className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
+                <span className="hidden xs:inline sm:inline">Mark all read</span>
+                <span className="inline xs:hidden sm:hidden">Mark read</span>
+              </button>
+            )}
+            {notifications.length > 0 && (
+              <button
+                onClick={handleDeleteAll}
+                className="text-xs text-muted-foreground hover:text-destructive flex items-center gap-0.5 sm:gap-1"
+                aria-label="Delete all notifications"
+                data-testid="notification-dropdown-delete-all"
+              >
+                <Trash2 className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
+                <span className="hidden xs:inline sm:inline">Clear all</span>
+                <span className="inline xs:hidden sm:hidden">Clear</span>
+              </button>
+            )}
+          </div>
         </div>
 
         <ScrollArea className="h-[60vh] sm:h-100 max-h-125">

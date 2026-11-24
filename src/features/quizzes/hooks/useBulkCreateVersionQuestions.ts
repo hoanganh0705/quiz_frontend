@@ -144,7 +144,7 @@ export function useBulkCreateVersionQuestions(
           setResult(bulkResult);
           onComplete?.(bulkResult);
 
-          emitBreadcrumb("phase4:4.10:bulk-create-questions", {
+          emitBreadcrumb("quizzes:bulk-create-questions", {
             status: bulkResult.ok ? "success" : "partial",
             durationMs: Date.now() - startedAt,
             itemCount: total,
@@ -184,7 +184,7 @@ export function useBulkCreateVersionQuestions(
               setResult(rateLimitResult);
               onComplete?.(rateLimitResult);
 
-              emitBreadcrumb("phase4:4.10:bulk-create-questions", {
+              emitBreadcrumb("quizzes:bulk-create-questions", {
                 status: "cooldown",
                 durationMs: Date.now() - startedAt,
                 code: err.code,
@@ -208,7 +208,7 @@ export function useBulkCreateVersionQuestions(
             onError?.(err);
             onComplete?.(errorResult);
 
-            emitBreadcrumb("phase4:4.10:bulk-create-questions", {
+            emitBreadcrumb("quizzes:bulk-create-questions", {
               status: "error",
               durationMs: Date.now() - startedAt,
               code: err.code,
@@ -232,7 +232,7 @@ export function useBulkCreateVersionQuestions(
           setResult(errorResult);
           onComplete?.(errorResult);
 
-          emitBreadcrumb("phase4:4.10:bulk-create-questions", {
+          emitBreadcrumb("quizzes:bulk-create-questions", {
             status: "error",
             durationMs: Date.now() - startedAt,
             code: "GLOBAL_UNKNOWN",

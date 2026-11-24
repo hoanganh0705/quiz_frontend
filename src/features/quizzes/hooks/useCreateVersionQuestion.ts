@@ -93,7 +93,7 @@ export function useCreateVersionQuestion(
 
           onSuccess?.(question);
 
-          emitBreadcrumb("phase4:4.10:create-question", {
+          emitBreadcrumb("quizzes:create-question", {
             status: "success",
             durationMs: Date.now() - startedAt,
           });
@@ -117,7 +117,7 @@ export function useCreateVersionQuestion(
 
               onRateLimit?.(seconds);
 
-              emitBreadcrumb("phase4:4.10:create-question", {
+              emitBreadcrumb("quizzes:create-question", {
                 status: "cooldown",
                 durationMs: Date.now() - startedAt,
                 code: err.code,
@@ -157,7 +157,7 @@ export function useCreateVersionQuestion(
             setError(err);
             onError?.(err);
 
-            emitBreadcrumb("phase4:4.10:create-question", {
+            emitBreadcrumb("quizzes:create-question", {
               status: "error",
               durationMs: Date.now() - startedAt,
               code: err.code,
@@ -177,7 +177,7 @@ export function useCreateVersionQuestion(
           setError(apiErr);
           onError?.(apiErr);
 
-          emitBreadcrumb("phase4:4.10:create-question", {
+          emitBreadcrumb("quizzes:create-question", {
             status: "error",
             durationMs: Date.now() - startedAt,
             code: "GLOBAL_UNKNOWN",

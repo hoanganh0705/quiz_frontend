@@ -14,7 +14,7 @@ const ROW_OUTER =
   "flex w-full flex-wrap items-center gap-x-6 gap-y-3 overflow-x-hidden text-sm";
 const CELL = "flex items-center gap-1.5";
 const ICON_BASE = "h-4 w-4 shrink-0 text-muted-foreground";
-const VALUE = "font-medium tabular-nums text-foreground";
+const VALUE = "font-mono font-medium tabular-nums text-foreground";
 const PLACEHOLDER = "inline-block h-4 w-6 rounded bg-muted align-middle";
 
 export interface QuizMetadataRowProps {
@@ -58,6 +58,28 @@ function formatDifficulty(
   return difficulty.charAt(0).toUpperCase() + difficulty.slice(1);
 }
 
+function difficultyBadgeClasses(difficulty?: string | null): string {
+  const norm = (difficulty ?? "").toLowerCase();
+  if (norm === "easy") {
+    return "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400";
+  }
+  if (norm === "medium") {
+    return "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-400";
+  }
+  if (norm === "hard") {
+    return "border-rose-500/30 bg-rose-500/10 text-rose-700 dark:text-rose-400";
+  }
+  return "border-border bg-muted text-muted-foreground";
+}
+
+function difficultyIconClasses(difficulty?: string | null): string {
+  const norm = (difficulty ?? "").toLowerCase();
+  if (norm === "easy") return "text-emerald-600 dark:text-emerald-400";
+  if (norm === "medium") return "text-amber-600 dark:text-amber-400";
+  if (norm === "hard") return "text-rose-600 dark:text-rose-400";
+  return "text-muted-foreground";
+}
+
 export function QuizMetadataRow({
   quiz,
   stats,
@@ -78,9 +100,22 @@ export function QuizMetadataRow({
       data-has-stats={stats === null ? "false" : "true"}
     >
       <div className={CELL} data-testid="quiz-metadata-difficulty">
-        <Zap className={ICON_BASE} aria-hidden="true" />
+        <Zap
+          className={cn(
+            "h-4 w-4 shrink-0",
+            difficultyIconClasses(publishedVersion?.difficulty),
+          )}
+          aria-hidden="true"
+        />
         <dt className="sr-only">Difficulty</dt>
-        <dd className={VALUE}>{difficulty}</dd>
+        <dd
+          className={cn(
+            "inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-semibold uppercase tracking-wider",
+            difficultyBadgeClasses(publishedVersion?.difficulty),
+          )}
+        >
+          {difficulty}
+        </dd>
       </div>
 
       <div className={CELL} data-testid="quiz-metadata-question-count">

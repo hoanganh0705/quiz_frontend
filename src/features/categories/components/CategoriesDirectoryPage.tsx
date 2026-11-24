@@ -43,7 +43,7 @@
  */
 
 import { useCallback, useId, useMemo, useState } from "react";
-import { Search, X } from "lucide-react";
+import { AlertCircle, RotateCcw, Search, SearchX, X } from "lucide-react";
 
 import { CategoryCard } from "./CategoryCard";
 import { CategoryCardSkeleton } from "@/components/primitives";
@@ -60,7 +60,7 @@ const QUERY_KEY = ["categories", "ranked", { limit: 100 }] as const;
 const SEARCH_DEBOUNCE_MS = 250;
 
 const GRID_LAYOUT =
-  "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6";
+  "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6";
 
 export function CategoriesDirectoryPage(): React.ReactElement {
   const { categories, isLoading, error } = useCategoriesRanked({
@@ -91,45 +91,21 @@ export function CategoriesDirectoryPage(): React.ReactElement {
   const resultCountId = `${searchId}-count`;
 
   return (
-    <div
-      className="min-h-screen text-foreground p-4 md:p-8 lg:p-12"
+    <main
+      className="mx-auto max-w-7xl min-h-screen text-foreground px-4 sm:px-6 lg:px-8 py-8 sm:py-10 space-y-10"
+      aria-labelledby="categories-directory-title"
       data-testid="categories-directory-page"
     >
-      <header className="mb-8">
-        <h1 className="text-3xl font-bold mb-4 text-foreground">
+      <header className="space-y-2">
+        <h1
+          id="categories-directory-title"
+          className="text-3xl sm:text-4xl font-bold tracking-tight text-foreground"
+        >
           Quiz Categories
         </h1>
-        <p className="text-foreground-secondary text-base mb-6">
+        <p className="text-muted-foreground text-base max-w-2xl leading-relaxed">
           Browse all quiz categories and find quizzes that match your interests.
         </p>
-        <div className="relative max-w-md">
-          <Search
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-foreground-secondary w-5 h-5"
-            aria-hidden="true"
-          />
-          <Input
-            type="search"
-            placeholder="Search categories…"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10 pr-10 bg-background border-border text-foreground placeholder-foreground/70 focus:border-ring"
-            aria-label="Search quiz categories"
-            aria-describedby={resultCountId}
-            autoComplete="off"
-            spellCheck={false}
-            data-testid="categories-directory-search-input"
-          />
-          {showClear && (
-            <button
-              type="button"
-              onClick={handleClear}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-foreground-secondary hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-sm"
-              aria-label="Clear search"
-            >
-              <X className="w-4 h-4" />
-            </button>
-          )}
-        </div>
       </header>
 
       <TrendingCategoriesStrip />
@@ -138,7 +114,7 @@ export function CategoriesDirectoryPage(): React.ReactElement {
         className="space-y-6 pt-6 border-t border-border/60"
         aria-label="All categories directory"
       >
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-border/80 pb-4">
           <div className="space-y-1">
             <div className="flex items-center gap-2.5">
               <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
@@ -146,18 +122,53 @@ export function CategoriesDirectoryPage(): React.ReactElement {
               </h2>
               {!isLoading && (
                 <span
-                  className="inline-flex items-center rounded-full bg-muted px-2.5 py-0.5 text-xs font-semibold text-foreground-secondary"
+                  className="inline-flex items-center rounded-full bg-muted px-2.5 py-0.5 text-xs font-mono font-medium tabular-nums text-muted-foreground border border-border/50"
                   data-testid="categories-directory-count-badge"
                 >
                   {filteredCategories.length}
                 </span>
               )}
             </div>
-            <p className="text-sm text-foreground-secondary">
+            <p className="text-sm text-muted-foreground">
               {searchTerm.trim()
                 ? `Showing categories matching "${searchTerm.trim()}"`
                 : "Explore our full directory of quiz topics and arenas"}
             </p>
+          </div>
+
+          <div className="relative w-full sm:w-72 lg:w-80">
+            <Search
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground w-4 h-4"
+              aria-hidden="true"
+            />
+            <Input
+              type="search"
+              placeholder="Search categories…"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Escape" && searchTerm) {
+                  e.preventDefault();
+                  handleClear();
+                }
+              }}
+              className="pl-9 pr-9 h-9 bg-background border-border text-foreground placeholder:text-muted-foreground focus:border-ring"
+              aria-label="Search quiz categories"
+              aria-describedby={resultCountId}
+              autoComplete="off"
+              spellCheck={false}
+              data-testid="categories-directory-search-input"
+            />
+            {showClear && (
+              <button
+                type="button"
+                onClick={handleClear}
+                className="absolute right-1.5 top-1/2 -translate-y-1/2 flex h-6 w-6 items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                aria-label="Clear search"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
           </div>
         </div>
 
@@ -168,26 +179,35 @@ export function CategoriesDirectoryPage(): React.ReactElement {
             aria-busy="true"
             data-testid="categories-directory-loading"
           >
-            {Array.from({ length: 9 }).map((_, i) => (
+            {Array.from({ length: 12 }).map((_, i) => (
               <CategoryCardSkeleton key={i} />
             ))}
           </div>
         ) : error ? (
           <div
-            className="text-center py-12"
+            className="flex flex-col items-center justify-center py-16 px-4 text-center"
             role="alert"
             data-testid="categories-directory-error"
           >
-            <p className="text-destructive text-lg mb-4">
-              Could not load categories. Please try again.
+            <div className="rounded-full bg-destructive/10 p-3.5 mb-4 ring-1 ring-destructive/20 text-destructive">
+              <AlertCircle className="h-7 w-7" aria-hidden="true" />
+            </div>
+            <h3 className="font-semibold text-lg text-foreground mb-1.5">
+              Could not load categories
+            </h3>
+            <p className="text-muted-foreground text-sm max-w-sm mb-6 leading-relaxed">
+              We encountered a network issue loading the directory. Please check your connection and try again.
             </p>
             <Button
               variant="outline"
+              size="sm"
               onClick={() =>
                 void getQueryClient().invalidateQueries({ queryKey: QUERY_KEY })
               }
+              className="gap-2"
               data-testid="categories-directory-retry"
             >
+              <RotateCcw className="h-3.5 w-3.5" aria-hidden="true" />
               Retry
             </Button>
           </div>
@@ -197,14 +217,29 @@ export function CategoriesDirectoryPage(): React.ReactElement {
           <>
             {filteredCategories.length === 0 ? (
               <div
-                className="text-center py-12"
+                className="flex flex-col items-center justify-center py-16 px-4 text-center"
                 role="status"
                 aria-live="polite"
                 data-testid="categories-directory-search-empty"
               >
-                <p className="text-foreground-secondary text-lg">
-                  No categories found matching your search.
+                <div className="rounded-full bg-muted/60 p-3.5 mb-4 ring-1 ring-border/60">
+                  <SearchX className="h-7 w-7 text-muted-foreground" aria-hidden="true" />
+                </div>
+                <h3 className="font-semibold text-lg text-foreground mb-1.5">
+                  No categories found
+                </h3>
+                <p className="text-muted-foreground text-sm max-w-sm mb-6 leading-relaxed">
+                  No categories match &ldquo;<span className="font-medium text-foreground">{searchTerm.trim()}</span>&rdquo;. Try checking for typos or searching for a broader topic.
                 </p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleClear}
+                  className="gap-2"
+                >
+                  <X className="h-3.5 w-3.5" aria-hidden="true" />
+                  Clear search
+                </Button>
               </div>
             ) : (
               <div
@@ -218,7 +253,7 @@ export function CategoriesDirectoryPage(): React.ReactElement {
                   <CategoryCard
                     key={ranked.categoryId}
                     category={rankedCategoryToCategoryResponse(ranked)}
-                    titleHeadingLevel={2 as const}
+                    titleHeadingLevel={3 as const}
                   />
                 ))}
               </div>
@@ -230,6 +265,6 @@ export function CategoriesDirectoryPage(): React.ReactElement {
           </>
         )}
       </section>
-    </div>
+    </main>
   );
 }

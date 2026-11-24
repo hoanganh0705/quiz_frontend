@@ -5,7 +5,6 @@ import { useMemo } from "react";
 import { ApiError, useCursorPaginated } from "@/lib/api";
 import type { CursorFetcherArgs } from "@/lib/api/use-cursor-paginated.types";
 
-import { getFeatureFlagValue } from "@/lib/feature-flags";
 
 import { toSocialUserSummaryFromFollowRow } from "@/features/social/dto-adapters";
 import { getUserFollowing } from "@/features/social/services";
@@ -44,18 +43,15 @@ const PLACEHOLDER_RESULT: UseFollowingResult = Object.freeze({
 });
 
 export function useFollowing(userId: string | null): UseFollowingResult {
-  const flagValue = getFeatureFlagValue("social_relationship_live");
-  const isFlagPlaceholder = flagValue === "placeholder";
-
   const auth = useAuthSession();
   const isAuthenticated = auth.isAuthenticated;
 
   const key = useMemo<readonly unknown[] | null>(() => {
-    if (isFlagPlaceholder) return null;
+    if (false) return null;
     if (!isAuthenticated) return null;
     if (userId === null) return null;
     return SOCIAL_CACHE_KEYS.makeFollowingKey(userId);
-  }, [isFlagPlaceholder, isAuthenticated, userId]);
+  }, [isAuthenticated, userId]);
 
   const fetcher = useMemo(
     () =>
@@ -67,7 +63,7 @@ export function useFollowing(userId: string | null): UseFollowingResult {
         hasNextPage: boolean;
         limit: number;
       }> => {
-        if (isFlagPlaceholder || !isAuthenticated || userId === null) {
+        if (!isAuthenticated || userId === null) {
           return EMPTY_PAGE;
         }
         try {
@@ -98,7 +94,7 @@ export function useFollowing(userId: string | null): UseFollowingResult {
           throw err;
         }
       },
-    [isFlagPlaceholder, isAuthenticated, userId],
+    [isAuthenticated, userId],
   );
 
   const result = useCursorPaginated<
@@ -109,9 +105,10 @@ export function useFollowing(userId: string | null): UseFollowingResult {
     fetcher,
     params: {},
     paginationKind: "cursor",
+    enabled: Boolean(isAuthenticated && userId),
   });
 
-  if (isFlagPlaceholder) return PLACEHOLDER_RESULT;
+  if (false) return PLACEHOLDER_RESULT;
   if (!isAuthenticated) return PLACEHOLDER_RESULT;
   if (userId === null) return PLACEHOLDER_RESULT;
 

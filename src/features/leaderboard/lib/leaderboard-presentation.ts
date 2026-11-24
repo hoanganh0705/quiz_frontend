@@ -1,8 +1,8 @@
 export function getRankColor(rank: number): string {
-  if (rank <= 3) return "text-yellow-400";
-  if (rank <= 10) return "text-blue-400";
-  if (rank <= 50) return "text-green-400";
-  return "text-slate-400";
+  if (rank <= 3) return "text-amber-600 dark:text-yellow-400";
+  if (rank <= 10) return "text-blue-600 dark:text-blue-400";
+  if (rank <= 50) return "text-emerald-600 dark:text-emerald-400";
+  return "text-muted-foreground";
 }
 
 export function getChangeIcon(change: number): "up" | "down" | "none" {

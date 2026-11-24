@@ -17,7 +17,6 @@ import {
   type InstanceStatus,
 } from "@/features/instances/types/instance.types";
 import { useInstanceRealtimeStore } from "@/features/instances/stores/useInstanceRealtimeStore";
-import { getFeatureFlagValue } from "@/lib/feature-flags";
 
 export interface UseStartInstanceOptions {
   status?: InstanceStatus | null;
@@ -76,16 +75,13 @@ export function useStartInstance(
   permissions: InstancePermissions | null = null,
   options?: UseStartInstanceOptions,
 ): UseStartInstanceResult {
-  const flagValue = getFeatureFlagValue("multiplayer_instances_live");
-  const isFlagPlaceholder = flagValue === "placeholder";
-
   const [state, setState] = useState<InstanceLifecycleMutationState>("idle");
   const [error, setError] = useState<ApiError | null>(null);
 
   const inFlightRef = useRef(false);
 
   const start = useCallback(async (): Promise<void> => {
-    if (isFlagPlaceholder || instanceId === null) {
+    if (instanceId === null) {
       return;
     }
 
@@ -191,7 +187,7 @@ export function useStartInstance(
     } finally {
       inFlightRef.current = false;
     }
-  }, [isFlagPlaceholder, instanceId, permissions, options?.status, state]);
+  }, [instanceId, permissions, options?.status, state]);
 
   const reset = useCallback(() => {
     setState("idle");

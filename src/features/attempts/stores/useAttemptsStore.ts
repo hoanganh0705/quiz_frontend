@@ -259,6 +259,12 @@ export function recordAbandonSuccess(
   ensureEntry(attemptId, quizVersionId, sessionId);
   useAttemptsStore.setState((s) => {
     const entry = s.attemptsById[attemptId]!;
+    const nextByQuizVersionId: Record<string, string> = {};
+    for (const [qvId, aId] of Object.entries(s.attemptsByQuizVersionId)) {
+      if (aId !== attemptId) {
+        nextByQuizVersionId[qvId] = aId;
+      }
+    }
     return {
       attemptsById: {
         ...s.attemptsById,
@@ -269,6 +275,7 @@ export function recordAbandonSuccess(
           error: null,
         },
       },
+      attemptsByQuizVersionId: nextByQuizVersionId,
     };
   });
 }

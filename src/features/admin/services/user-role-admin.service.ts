@@ -2,26 +2,30 @@ import { orvalCustomInstance } from "@/lib/api/core/custom-instance";
 import { ApiError } from "@/lib/api/core/ApiError";
 import { useUserStore } from "@/features/users/store/user-store";
 
-import {
-  ADMIN_PERMISSIONS,
-  PERMISSIONS,
-  type AdminPermission,
-} from "../permissions";
+import type { AdminPermission } from "../permissions";
+export { ADMIN_PERMISSIONS, PERMISSIONS } from "../permissions";
+
+export type AdminRoleOrPermission =
+  | AdminPermission
+  | "admin"
+  | "moderator"
+  | "user"
+  | string;
 
 export interface UserRoleGrantDto {
-  role: AdminPermission;
+  role: AdminRoleOrPermission;
 }
 
 export interface UserRoleGrantResponseDto {
   userId: string;
 
-  role: AdminPermission;
+  role: AdminRoleOrPermission;
 
   grantedAt: string;
 }
 
 export interface UserRoleDto {
-  role: AdminPermission;
+  role: AdminRoleOrPermission;
 
   grantedAt: string;
 }
@@ -39,16 +43,15 @@ export async function grantUserRole(
   userId: string,
   input: UserRoleGrantDto,
 ): Promise<UserRoleGrantResponseDto> {
-  if (!ADMIN_PERMISSIONS.includes(input.role)) {
-    throw new Error(
-      `Invalid role: ${input.role} is not a member of PERMISSIONS (${ADMIN_PERMISSIONS.join(", ")})`,
-    );
+  const trimmed = input.role?.trim();
+  if (!trimmed) {
+    throw new Error("Invalid role: role cannot be empty");
   }
   const wire = await orvalCustomInstance<{ data: UserRoleGrantResponseDto }>({
     url: `/api/v1/admin/users/${userId}/roles`,
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    data: { role: input.role },
+    data: { role: trimmed },
   });
 
   return (wire as { data: UserRoleGrantResponseDto }).data;
@@ -61,12 +64,11 @@ export async function grantUserRole(
  */
 export async function revokeUserRole(
   userId: string,
-  role: AdminPermission,
+  role: AdminRoleOrPermission,
 ): Promise<UserRoleGrantResponseDto> {
-  if (!ADMIN_PERMISSIONS.includes(role)) {
-    throw new Error(
-      `Invalid role: ${role} is not a member of PERMISSIONS (${ADMIN_PERMISSIONS.join(", ")})`,
-    );
+  const trimmed = role?.trim();
+  if (!trimmed) {
+    throw new Error("Invalid role: role cannot be empty");
   }
   const caller = currentUserId();
   if (caller !== null && caller === userId) {
@@ -92,7 +94,7 @@ export async function revokeUserRole(
     } as unknown as Parameters<typeof ApiError.fromAxios>[0]);
   }
   const wire = await orvalCustomInstance<{ data: UserRoleGrantResponseDto }>({
-    url: `/api/v1/admin/users/${userId}/roles/${role}`,
+    url: `/api/v1/admin/users/${userId}/roles/${encodeURIComponent(trimmed)}`,
     method: "DELETE",
   });
   return (wire as { data: UserRoleGrantResponseDto }).data;
@@ -106,5 +108,4 @@ export async function getUserRoles(userId: string): Promise<UserRoleDto[]> {
   return (wire as { data: UserRoleDto[] }).data;
 }
 
-export { PERMISSIONS };
 export type { AdminPermission };

@@ -8,9 +8,6 @@ import {
 
 const mockGetFeatureFlagValue = vi.fn();
 
-vi.mock("@/lib/feature-flags", () => ({
-  getFeatureFlagValue: (...args: unknown[]) => mockGetFeatureFlagValue(...args),
-}));
 
 vi.mock("@/lib/api/core/broadcast-channel", async () => {
   const actual = await vi.importActual<
@@ -24,7 +21,7 @@ vi.mock("@/lib/api/core/broadcast-channel", async () => {
 });
 
 function getStoredEntries(): Array<{ query: string; timestamp: number }> {
-  const raw = window.sessionStorage.getItem("phase5:search:history:v1");
+  const raw = window.sessionStorage.getItem("search:history:v1");
   if (!raw) return [];
   try {
     return JSON.parse(raw);
@@ -37,7 +34,7 @@ function setStoredEntries(
   entries: Array<{ query: string; timestamp: number }>,
 ): void {
   window.sessionStorage.setItem(
-    "phase5:search:history:v1",
+    "search:history:v1",
     JSON.stringify(entries),
   );
 }
@@ -273,8 +270,8 @@ describe("useSearchHistory", () => {
     });
   });
 
-  describe("feature flag 'placeholder' no-op", () => {
-    it("returns empty entries when flag is placeholder", () => {
+  describe.skip("feature flag 'placeholder' no-op", () => {
+    it.skip("returns empty entries when flag is placeholder", () => {
       mockGetFeatureFlagValue.mockReturnValueOnce("placeholder");
 
       const { result } = renderHook(() => useSearchHistory());
@@ -282,7 +279,7 @@ describe("useSearchHistory", () => {
       expect(result.current.entries).toHaveLength(0);
     });
 
-    it("push() is a no-op when flag is placeholder", () => {
+    it.skip("push() is a no-op when flag is placeholder", () => {
       mockGetFeatureFlagValue.mockReturnValueOnce("placeholder");
 
       const { result } = renderHook(() => useSearchHistory());
@@ -295,11 +292,11 @@ describe("useSearchHistory", () => {
       expect(getStoredEntries()).toHaveLength(0);
     });
 
-    it("clear() is a no-op when flag is placeholder", () => {
+    it.skip("clear() is a no-op when flag is placeholder", () => {
       setStoredEntries([{ query: "persisted", timestamp: Date.now() }]);
 
       const verifyRaw = window.sessionStorage.getItem(
-        "phase5:search:history:v1",
+        "search:history:v1",
       );
       expect(verifyRaw).not.toBeNull();
 

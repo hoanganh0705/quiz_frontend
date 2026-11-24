@@ -11,7 +11,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/DropdownMenu";
-import { getFeatureFlagValue } from "@/lib/feature-flags";
 
 import { useCoinBalance } from "@/features/coins/store/coin-store";
 import { useCoinWallet } from "@/features/coins/hooks/useCoinWallet";
@@ -34,26 +33,10 @@ function formatBalanceShort(value: number | null | undefined): string {
 }
 
 export function CoinBalancePill({ className }: CoinBalancePillProps) {
-  const flagValue = getFeatureFlagValue("coin_economy_live");
-  const isPlaceholder = flagValue === "placeholder";
-
   const { balance: walletBalance, isLoading, error } = useCoinWallet();
   const optimisticBalance = useCoinBalance();
 
   const balance = optimisticBalance ?? walletBalance ?? null;
-
-  if (isPlaceholder) {
-    return (
-      <div
-        className={`flex items-center gap-1.5 p-1.5 sm:p-2 border border-border rounded-lg text-xs sm:text-sm text-muted-foreground ${className ?? ""}`}
-        data-testid="coin-balance-pill-placeholder"
-        aria-label="Coins feature coming soon"
-      >
-        <Coins className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
-        <span>Coming soon</span>
-      </div>
-    );
-  }
 
   const errorMessage = error ? "—" : null;
   const displayBalance = errorMessage ?? formatBalanceShort(balance);
@@ -90,7 +73,7 @@ export function CoinBalancePill({ className }: CoinBalancePillProps) {
             Available Balance
           </span>
           <div className="flex items-center gap-1.5">
-            <Coins className="h-4 w-4 text-amber-500 fill-amber-500/20" />
+            <Coins className="h-4 w-4 text-amber-500 fill-amber-500/20" aria-hidden="true" />
             <span className="text-lg font-bold font-mono tracking-tight">
               {balance !== null ? balance.toLocaleString("en-US") : "—"}
             </span>
@@ -110,7 +93,7 @@ export function CoinBalancePill({ className }: CoinBalancePillProps) {
               <Coins className="h-4 w-4 text-amber-500" aria-hidden="true" />
               <span>Coin Wallet & Ledger</span>
             </div>
-            <ArrowUpRight className="h-3.5 w-3.5 text-muted-foreground" />
+            <ArrowUpRight className="h-3.5 w-3.5 text-muted-foreground" aria-hidden="true" />
           </Link>
         </DropdownMenuItem>
       </DropdownMenuContent>

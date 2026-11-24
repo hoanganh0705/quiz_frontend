@@ -5,7 +5,6 @@ import { getQueryClient } from "@/providers/QueryProvider";
 
 import { ApiError } from "@/lib/api";
 import { useOptimisticMutation } from "@/lib/api";
-import { getFeatureFlagValue } from "@/lib/feature-flags";
 
 import { tipUser } from "@/features/coins/services/coins.service";
 import type {
@@ -30,9 +29,7 @@ function classifyCoinError(cause: unknown): CoinErrorCode {
 const COOLDOWN_MS = 750;
 
 export function useTipAuthor(): UseTipAuthorResult {
-  const flagValue = getFeatureFlagValue("coin_spend_live");
-  const isPlaceholder = flagValue === "placeholder";
-
+  const isPlaceholder = false;
   const { mutate: dispatch, isInFlight, lastResult } = useOptimisticMutation();
 
   const revalidate = useCallback(async (): Promise<void> => {

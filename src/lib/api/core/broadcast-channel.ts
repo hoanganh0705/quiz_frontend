@@ -1,6 +1,7 @@
+import { logger } from "@/shared/log";
+
 export const AUTH_CHANNEL_NAME = "auth";
 
-import { logger } from "@/shared/log";
 
 const TAB_ID_STORAGE_KEY = "auth_tab_id";
 

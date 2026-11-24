@@ -13,18 +13,20 @@ import {
   Plus,
   LifeBuoy,
   Shield,
-  UsersRound,
-  Flag,
   Award,
-  LayoutDashboard,
-  MessageSquare,
   Coins,
-  ScrollText,
   Gamepad2,
+  ArrowUpRight,
+  Bookmark,
+  History,
+  Tag,
+  Sparkles,
+  Settings,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
+import { cn } from "@/shared/utils/merge-class-names";
 import {
   Sidebar,
   SidebarContent,
@@ -38,7 +40,13 @@ import {
   SidebarRail,
 } from "@/components/ui/Sidebar";
 import { useAdminRole } from "@/features/admin/hooks/useAdminRole";
-import { useAdminFeatureFlag } from "@/features/admin/hooks/useAdminFeatureFlag";
+
+function isItemActive(pathname: string, url: string): boolean {
+  if (url === "/") {
+    return pathname === "/";
+  }
+  return pathname === url || pathname.startsWith(`${url}/`);
+}
 
 const playItems = [
   {
@@ -62,6 +70,11 @@ const playItems = [
     icon: Grid3X3,
   },
   {
+    title: "Tags",
+    url: "/tags",
+    icon: Tag,
+  },
+  {
     title: "Live Battles",
     url: "/instances",
     icon: Gamepad2,
@@ -83,11 +96,29 @@ const playItems = [
   },
 ];
 
+const libraryItems = [
+  {
+    title: "Saved Quizzes",
+    url: "/bookmarks",
+    icon: Bookmark,
+  },
+  {
+    title: "Quiz History",
+    url: "/quiz-history",
+    icon: History,
+  },
+];
+
 const communityItems = [
   {
     title: "Friends",
     url: "/friends",
     icon: UserPlus,
+  },
+  {
+    title: "Social Feed",
+    url: "/social",
+    icon: Sparkles,
   },
   {
     title: "Coins",
@@ -112,78 +143,19 @@ const creatorItems = [
     url: "/support",
     icon: LifeBuoy,
   },
-];
-
-const adminItems = [
   {
-    title: "Dashboard",
-    url: "/admin",
-    icon: LayoutDashboard,
-    roles: ["admin"],
-  },
-  {
-    title: "Categories",
-    url: "/admin/categories",
-    icon: Grid3X3,
-    roles: ["admin"],
-  },
-  {
-    title: "Tags",
-    url: "/admin/tags",
-    icon: Award,
-    roles: ["admin"],
-  },
-  {
-    title: "Users",
-    url: "/admin/users",
-    icon: UsersRound,
-    roles: ["admin"],
-  },
-  {
-    title: "Quizzes",
-    url: "/admin/quizzes",
-    icon: BookOpen,
-    roles: ["admin"],
-  },
-  {
-    title: "Tournaments",
-    url: "/admin/tournaments",
-    icon: Users,
-    roles: ["admin"],
-  },
-  {
-    title: "Audit Logs",
-    url: "/admin/audit",
-    icon: ScrollText,
-    roles: ["admin"],
-  },
-  {
-    title: "Rankings",
-    url: "/admin/rankings",
-    icon: Trophy,
-    roles: ["admin"],
-  },
-  {
-    title: "Comment Reports",
-    url: "/admin/comments/reports",
-    icon: MessageSquare,
-    roles: ["admin", "moderator"],
-  },
-  {
-    title: "Review Reports",
-    url: "/admin/reviews/reports",
-    icon: Flag,
-    roles: ["admin", "moderator"],
+    title: "Settings",
+    url: "/settings",
+    icon: Settings,
   },
 ];
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const pathname = usePathname();
   const { isLoading: isAdminLoading, role } = useAdminRole();
-  const { isLive } = useAdminFeatureFlag("admin_live");
 
   const canSeeAdmin =
-    isLive && !isAdminLoading && (role === "admin" || role === "moderator");
+    !isAdminLoading && (role === "admin" || role === "moderator");
 
   return (
     <Sidebar
@@ -217,28 +189,85 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu className="space-y-1">
-              {playItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton
-                    asChild
-                    isActive={
-                      pathname === item.url ||
-                      (item.url !== "/" && pathname.startsWith(`${item.url}/`))
-                    }
-                    className={`${
-                      pathname === item.url ||
-                      (item.url !== "/" && pathname.startsWith(`${item.url}/`))
-                        ? "text-white hover:bg-brand-hover data-[active=true]:bg-brand"
-                        : "text-foreground hover:bg-main-hover"
-                    } text-sm flex items-center gap-2.5 rounded-md transition-colors`}
-                  >
-                    <Link href={item.url}>
-                      <item.icon className="size-4 shrink-0" />
-                      <span className="text-sm font-medium">{item.title}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
+              {playItems.map((item) => {
+                const active = isItemActive(pathname, item.url);
+                return (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton
+                      asChild
+                      isActive={active}
+                      className={cn(
+                        "text-sm flex items-center gap-2.5 rounded-lg px-2.5 py-2 transition-all duration-150",
+                        active
+                          ? "bg-sidebar-accent text-sidebar-accent-foreground font-semibold shadow-xs"
+                          : "text-foreground/80 hover:bg-main-hover hover:text-foreground",
+                      )}
+                    >
+                      <Link
+                        href={item.url}
+                        className="flex items-center gap-2.5 w-full"
+                      >
+                        <item.icon
+                          className={cn(
+                            "size-4 shrink-0 transition-colors",
+                            active
+                              ? "text-sidebar-accent-foreground"
+                              : "text-muted-foreground",
+                          )}
+                        />
+                        <span className="text-sm font-medium">
+                          {item.title}
+                        </span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        {/* My Library Group */}
+        <SidebarGroup>
+          <SidebarGroupLabel className="text-xs font-semibold uppercase tracking-wider text-muted-foreground/80 px-2">
+            My Library
+          </SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu className="space-y-1">
+              {libraryItems.map((item) => {
+                const active = isItemActive(pathname, item.url);
+                return (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton
+                      asChild
+                      isActive={active}
+                      className={cn(
+                        "text-sm flex items-center gap-2.5 rounded-lg px-2.5 py-2 transition-all duration-150",
+                        active
+                          ? "bg-sidebar-accent text-sidebar-accent-foreground font-semibold shadow-xs"
+                          : "text-foreground/80 hover:bg-main-hover hover:text-foreground",
+                      )}
+                    >
+                      <Link
+                        href={item.url}
+                        className="flex items-center gap-2.5 w-full"
+                      >
+                        <item.icon
+                          className={cn(
+                            "size-4 shrink-0 transition-colors",
+                            active
+                              ? "text-sidebar-accent-foreground"
+                              : "text-muted-foreground",
+                          )}
+                        />
+                        <span className="text-sm font-medium">
+                          {item.title}
+                        </span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
@@ -250,28 +279,40 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu className="space-y-1">
-              {communityItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton
-                    asChild
-                    isActive={
-                      pathname === item.url ||
-                      (item.url !== "/" && pathname.startsWith(`${item.url}/`))
-                    }
-                    className={`${
-                      pathname === item.url ||
-                      (item.url !== "/" && pathname.startsWith(`${item.url}/`))
-                        ? "text-white hover:bg-brand-hover data-[active=true]:bg-brand"
-                        : "text-foreground hover:bg-main-hover"
-                    } text-sm flex items-center gap-2.5 rounded-md transition-colors`}
-                  >
-                    <Link href={item.url}>
-                      <item.icon className="size-4 shrink-0" />
-                      <span className="text-sm font-medium">{item.title}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
+              {communityItems.map((item) => {
+                const active = isItemActive(pathname, item.url);
+                return (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton
+                      asChild
+                      isActive={active}
+                      className={cn(
+                        "text-sm flex items-center gap-2.5 rounded-lg px-2.5 py-2 transition-all duration-150",
+                        active
+                          ? "bg-sidebar-accent text-sidebar-accent-foreground font-semibold shadow-xs"
+                          : "text-foreground/80 hover:bg-main-hover hover:text-foreground",
+                      )}
+                    >
+                      <Link
+                        href={item.url}
+                        className="flex items-center gap-2.5 w-full"
+                      >
+                        <item.icon
+                          className={cn(
+                            "size-4 shrink-0 transition-colors",
+                            active
+                              ? "text-sidebar-accent-foreground"
+                              : "text-muted-foreground",
+                          )}
+                        />
+                        <span className="text-sm font-medium">
+                          {item.title}
+                        </span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
@@ -283,28 +324,40 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu className="space-y-1">
-              {creatorItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton
-                    asChild
-                    isActive={
-                      pathname === item.url ||
-                      (item.url !== "/" && pathname.startsWith(`${item.url}/`))
-                    }
-                    className={`${
-                      pathname === item.url ||
-                      (item.url !== "/" && pathname.startsWith(`${item.url}/`))
-                        ? "text-white hover:bg-brand-hover data-[active=true]:bg-brand"
-                        : "text-foreground hover:bg-main-hover"
-                    } text-sm flex items-center gap-2.5 rounded-md transition-colors`}
-                  >
-                    <Link href={item.url}>
-                      <item.icon className="size-4 shrink-0" />
-                      <span className="text-sm font-medium">{item.title}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
+              {creatorItems.map((item) => {
+                const active = isItemActive(pathname, item.url);
+                return (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton
+                      asChild
+                      isActive={active}
+                      className={cn(
+                        "text-sm flex items-center gap-2.5 rounded-lg px-2.5 py-2 transition-all duration-150",
+                        active
+                          ? "bg-sidebar-accent text-sidebar-accent-foreground font-semibold shadow-xs"
+                          : "text-foreground/80 hover:bg-main-hover hover:text-foreground",
+                      )}
+                    >
+                      <Link
+                        href={item.url}
+                        className="flex items-center gap-2.5 w-full"
+                      >
+                        <item.icon
+                          className={cn(
+                            "size-4 shrink-0 transition-colors",
+                            active
+                              ? "text-sidebar-accent-foreground"
+                              : "text-muted-foreground",
+                          )}
+                        />
+                        <span className="text-sm font-medium">
+                          {item.title}
+                        </span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
@@ -313,37 +366,55 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         {canSeeAdmin && (
           <SidebarGroup>
             <SidebarGroupLabel className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground px-2">
-              <Shield className="h-3.5 w-3.5" />
               <span>Administration</span>
             </SidebarGroupLabel>
             <SidebarGroupContent>
-              <SidebarMenu className="space-y-1.5">
-                {adminItems
-                  .filter((item) => role && item.roles.includes(role))
-                  .map((item) => (
-                    <SidebarMenuItem key={item.url}>
+              <SidebarMenu className="space-y-1">
+                <SidebarMenuItem>
+                  {(() => {
+                    const isAdminActive =
+                      pathname === "/admin" || pathname.startsWith("/admin/");
+                    return (
                       <SidebarMenuButton
                         asChild
-                        isActive={
-                          pathname === item.url ||
-                          pathname.startsWith(`${item.url}/`)
-                        }
-                        className={`${
-                          pathname === item.url ||
-                          pathname.startsWith(`${item.url}/`)
-                            ? "text-white hover:bg-brand-hover data-[active=true]:bg-brand"
-                            : "text-foreground hover:bg-main-hover"
-                        } text-sm flex items-center gap-2.5 rounded-md transition-colors`}
+                        isActive={isAdminActive}
+                        className={cn(
+                          "text-sm flex items-center justify-between rounded-lg px-2.5 py-2 transition-all duration-150",
+                          isAdminActive
+                            ? "bg-sidebar-accent text-sidebar-accent-foreground font-semibold shadow-xs"
+                            : "text-foreground/80 hover:bg-main-hover hover:text-foreground",
+                        )}
                       >
-                        <Link href={item.url}>
-                          <item.icon className="size-4 shrink-0" />
-                          <span className="text-sm font-medium">
-                            {item.title}
-                          </span>
+                        <Link
+                          href="/admin"
+                          className="flex items-center justify-between w-full"
+                        >
+                          <div className="flex items-center gap-2.5 min-w-0">
+                            <Shield
+                              className={cn(
+                                "size-4 shrink-0 transition-colors",
+                                isAdminActive
+                                  ? "text-sidebar-accent-foreground"
+                                  : "text-brand",
+                              )}
+                            />
+                            <span className="text-sm font-medium truncate">
+                              Admin Portal
+                            </span>
+                          </div>
+                          <ArrowUpRight
+                            className={cn(
+                              "size-3.5 shrink-0 transition-colors",
+                              isAdminActive
+                                ? "text-sidebar-accent-foreground/80"
+                                : "text-muted-foreground/60",
+                            )}
+                          />
                         </Link>
                       </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  ))}
+                    );
+                  })()}
+                </SidebarMenuItem>
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>

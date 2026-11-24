@@ -21,53 +21,7 @@ import {
   useUserStore,
 } from "@/features/users/store/user-store";
 import { useResetCoinStore } from "@/features/coins/store/coin-store";
-
-const SHELL_PREFIXES = [
-  "/achievements",
-  "/bookmarks",
-  "/categories",
-  "/coins",
-  "/create-quiz",
-  "/daily-challenge",
-  "/friends",
-  "/leaderboard",
-  "/my-profile",
-  "/my-quizzes",
-  "/notifications",
-  "/onboarding",
-  "/profile",
-  "/quiz-history",
-  "/quizzes",
-  "/rankings",
-  "/search",
-  "/settings",
-  "/social",
-  "/support",
-  "/tags",
-  "/tournament",
-  "/tournaments",
-] as const;
-
-const SHELL_EXACT_PATHS = ["/"] as const;
-
-const AUTH_PAGES = [
-  "/login",
-  "/signup",
-  "/forgot-password",
-  "/resend-verification",
-  "/verify-email",
-] as const;
-
-function isShellPage(pathname: string | undefined): boolean {
-  if (!pathname) return true;
-  if (SHELL_EXACT_PATHS.some((p) => pathname === p)) return true;
-  return SHELL_PREFIXES.some((p) => pathname.startsWith(p));
-}
-
-function isAuthPage(pathname: string | undefined): boolean {
-  if (!pathname) return false;
-  return AUTH_PAGES.some((p) => pathname === p || pathname.startsWith(p));
-}
+import { isAuthPage, isShellPage } from "@/shared/layout/constants/shell-routes";
 
 export function LayoutShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -160,6 +114,7 @@ export function LayoutShell({ children }: { children: React.ReactNode }) {
       "/my-quizzes",
       "/quiz-history",
       "/friends",
+      "/instances",
       "/notifications",
       "/social",
       "/tournament",

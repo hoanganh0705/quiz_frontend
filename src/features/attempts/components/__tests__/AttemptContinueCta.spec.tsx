@@ -1,7 +1,9 @@
-import { describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
 
 import { AttemptContinueCta } from "@/features/attempts/components/AttemptContinueCta";
+
+import type { AttemptSummaryResponseDto } from "@/lib/api/generated/schemas";
 
 const routerPush = vi.fn();
 vi.mock("next/navigation", () => ({
@@ -12,7 +14,6 @@ vi.mock("@/lib/forms/useToast", () => ({
   useToast: () => ({ push: vi.fn(), dismiss: vi.fn() }),
 }));
 
-import type { AttemptSummaryResponseDto } from "@/lib/api/generated/schemas";
 
 function makeActive(): AttemptSummaryResponseDto {
   return {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { getAuthToken } from "@/features/auth/utils/auth-cookies";
 
@@ -10,7 +10,7 @@ import {
   MAX_RETRY_COUNT,
   type ConnectionStateContext,
 } from "./connection-state";
-import { createSocket, type Socket } from "./socket-adapter";
+import { createSocket, getExistingSocket, type Socket } from "./socket-adapter";
 
 import type { SocketConnectionState, WsError } from "@/lib/realtime";
 import { decodeWsError } from "@/lib/realtime";
@@ -43,17 +43,30 @@ export function useSocket(
 ): UseSocketReturn {
   const { autoConnect = true, enabled = true } = options;
 
-  const [context, setContext] = useState<ConnectionStateContext>({
-    ...INITIAL_CONNECTION_CONTEXT,
+  const initialContext = useMemo<ConnectionStateContext>(() => {
+    if (!enabled || !autoConnect) return INITIAL_CONNECTION_CONTEXT;
+    const existing = getExistingSocket(namespace);
+    if (existing?.connected) {
+      return {
+        ...INITIAL_CONNECTION_CONTEXT,
+        state: "connected",
+        connectedAt: new Date(),
+      };
+    }
+    return INITIAL_CONNECTION_CONTEXT;
+  }, [enabled, autoConnect, namespace]);
+
+  const [context, setContext] = useState<ConnectionStateContext>(initialContext);
+  const [socket, setSocket] = useState<Socket | null>(() => {
+    if (!enabled || !autoConnect) return null;
+    return getExistingSocket(namespace);
   });
-  const [socket, setSocket] = useState<Socket | null>(null);
   const [error, setError] = useState<WsError | null>(null);
 
   const retryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const contextRef = useRef<ConnectionStateContext>({
-    ...INITIAL_CONNECTION_CONTEXT,
-  });
+  const contextRef = useRef<ConnectionStateContext>(initialContext);
   const isMountedRef = useRef(true);
+  isMountedRef.current = true;
 
   const safeSetState = useCallback((fn: () => void) => {
     if (!isMountedRef.current || typeof window === "undefined") return;
@@ -73,15 +86,6 @@ export function useSocket(
 
     const token = getAuthToken();
 
-    const next = ConnectionStateReducer(contextRef.current, {
-      type: "CONNECT",
-    });
-    contextRef.current = next;
-    safeSetState(() => {
-      setContext(next);
-      setError(null);
-    });
-
     if (retryTimerRef.current !== null) {
       clearTimeout(retryTimerRef.current);
       retryTimerRef.current = null;
@@ -92,9 +96,11 @@ export function useSocket(
       transports: ["websocket", "polling"],
     });
 
+    (io as any).auth = token ? { token } : {};
+
     safeSetState(() => setSocket(io));
 
-    io.on("connect", () => {
+    const onConnect = () => {
       const nextCtx = ConnectionStateReducer(contextRef.current, {
         type: "OPEN",
       });
@@ -103,17 +109,17 @@ export function useSocket(
         setContext(nextCtx);
         setError(null);
       });
-    });
+    };
 
-    io.on("disconnect", () => {
+    const onDisconnect = () => {
       const nextCtx = ConnectionStateReducer(contextRef.current, {
         type: "DISCONNECT",
       });
       contextRef.current = nextCtx;
       safeSetState(() => setContext(nextCtx));
-    });
+    };
 
-    io.on("connect_error", (err: any) => {
+    const onConnectError = (err: any) => {
       const wsError = decodeWsError(err);
       const nextCtx = ConnectionStateReducer(contextRef.current, {
         type: "ERROR",
@@ -148,7 +154,33 @@ export function useSocket(
           io.connect();
         }, delay);
       }
-    });
+    };
+
+    io.on("connect", onConnect);
+    io.on("disconnect", onDisconnect);
+    io.on("connect_error", onConnectError);
+
+    if (io.connected) {
+      onConnect();
+    } else {
+      const next = ConnectionStateReducer(contextRef.current, {
+        type: "CONNECT",
+      });
+      contextRef.current = next;
+      safeSetState(() => {
+        setContext(next);
+        setError(null);
+      });
+      if (autoConnect) {
+        io.connect();
+      }
+    }
+
+    return () => {
+      io.off("connect", onConnect);
+      io.off("disconnect", onDisconnect);
+      io.off("connect_error", onConnectError);
+    };
   }, [enabled, namespace, safeSetState]);
 
   const reconnect = useCallback(() => {
@@ -179,8 +211,11 @@ export function useSocket(
 
   useEffect(() => {
     if (!enabled || !autoConnect) return;
-    connect();
-  }, [enabled, autoConnect]);
+    const cleanup = connect();
+    return () => {
+      cleanup?.();
+    };
+  }, [enabled, autoConnect, connect]);
 
   useEffect(() => {
     isMountedRef.current = true;

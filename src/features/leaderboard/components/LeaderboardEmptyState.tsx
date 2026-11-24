@@ -22,7 +22,7 @@ export function LeaderboardEmptyState({
     <div
       data-testid="leaderboard-empty-state"
       className={cn(
-        "bg-card border border-border rounded-lg overflow-hidden",
+        "bg-card border border-border/70 rounded-lg overflow-hidden shadow-xs p-6",
         className,
       )}
     >

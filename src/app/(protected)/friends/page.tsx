@@ -1,5 +1,16 @@
 "use client";
-import { memo, useCallback, useMemo, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useState } from "react";
+import {
+  Users,
+  Search,
+  UserPlus,
+  Clock,
+  Swords,
+  Check,
+  X,
+  Loader2,
+  Send,
+} from "lucide-react";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
@@ -95,6 +106,16 @@ export default function FriendsPage() {
   const incomingRequests = incomingHook.requests;
   const outgoingRequests = outgoingHook.requests;
 
+  const outgoingAddresseeIds = useMemo(
+    () => new Set(outgoingRequests.map((r) => r.addresseeId).filter(Boolean)),
+    [outgoingRequests],
+  );
+
+  const friendUserIds = useMemo(
+    () => new Set(friends.map((f) => f.userId).filter(Boolean)),
+    [friends],
+  );
+
   const compareFriend = useMemo(
     () => friends.find((f) => f.userId === compareFriendId) ?? null,
     [friends, compareFriendId],
@@ -107,129 +128,227 @@ export default function FriendsPage() {
     }));
   }, []);
 
+  const handleFocusSearch = useCallback(() => {
+    document.getElementById("friends-search-input")?.focus();
+  }, []);
+
   return (
-    <main className="min-h-screen p-4 md:p-8 lg:p-12 text-foreground">
-      <header className="mb-8">
-        <h1 className="text-3xl font-bold">Friends & Social</h1>
-        <p className="text-foreground-secondary mt-2">
-          Find friends, manage requests, invite friends to quizzes, and compare
-          your stats.
-        </p>
+    <main className="mx-auto max-w-7xl min-h-screen text-foreground px-4 sm:px-6 lg:px-8 py-8 sm:py-10 space-y-8">
+      {/* Header with Title and Social Status Counter Chips */}
+      <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between pb-3 border-b border-border/40">
+        <div className="flex items-start gap-3.5">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-brand/10 text-brand ring-1 ring-brand/20 shadow-xs">
+            <Users className="h-6 w-6" aria-hidden="true" />
+          </div>
+          <div className="space-y-1">
+            <h1 className="font-display text-2xl sm:text-3xl font-extrabold tracking-tight">
+              Friends & Social
+            </h1>
+            <p className="text-sm text-muted-foreground">
+              Connect with friends, challenge them to quizzes, and track your head-to-head stats.
+            </p>
+          </div>
+        </div>
+
+        {/* Live Social Stat Pills */}
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="inline-flex items-center gap-1.5 rounded-full border border-border/80 bg-card/60 px-3 py-1 text-xs font-medium backdrop-blur-xs transition-colors hover:border-brand/30">
+            <span className="h-2 w-2 rounded-full bg-emerald-500" aria-hidden="true" />
+            <span className="text-muted-foreground">Friends:</span>
+            <span className="font-mono font-bold tabular-nums text-foreground">{friends.length}</span>
+          </div>
+
+          {incomingRequests.length > 0 && (
+            <div className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-1 text-xs font-semibold text-amber-700 dark:text-amber-400 backdrop-blur-xs">
+              <span className="relative flex h-2 w-2">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-400 opacity-75" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-amber-500" />
+              </span>
+              <span>Pending Requests:</span>
+              <span className="font-mono font-bold tabular-nums">{incomingRequests.length}</span>
+            </div>
+          )}
+
+          {outgoingRequests.length > 0 && (
+            <div className="inline-flex items-center gap-1.5 rounded-full border border-border/80 bg-card/60 px-3 py-1 text-xs font-medium text-muted-foreground backdrop-blur-xs transition-colors hover:border-border">
+              <Clock className="h-3 w-3" aria-hidden="true" />
+              <span>Sent:</span>
+              <span className="font-mono font-bold tabular-nums text-foreground">{outgoingRequests.length}</span>
+            </div>
+          )}
+        </div>
       </header>
 
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-        <Card className="xl:col-span-1 p-5">
-          <CardHeader>
-            <CardTitle>Find Friends</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <Input
-              value={searchQuery}
-              onChange={(event) => setSearchQuery(event.target.value)}
-              placeholder="Search by username"
-              aria-label="Search users to add as friends"
-            />
-
-            <SearchResultsPanel
-              isLoading={searchHook.isLoading}
-              isStale={searchHook.isStale}
-              error={searchHook.error}
-              isRateLimited={searchHook.isRateLimited}
-              remainingSeconds={searchHook.remainingSeconds}
-              hasQuery={searchQuery.trim().length > 0}
-              items={searchHook.items}
-            />
-          </CardContent>
-        </Card>
-
-        <Card className="xl:col-span-2 p-5">
-          <CardHeader>
-            <CardTitle>Friend Requests</CardTitle>
-          </CardHeader>
-          <CardContent className="grid md:grid-cols-2 gap-6">
-            <RequestsPanel
-              title="Incoming"
-              emptyLabel="No incoming requests."
-              isLoading={incomingHook.isLoading}
-              error={incomingHook.error}
-              retry={incomingHook.retry}
-              requests={incomingRequests}
-              kind="incoming"
-            />
-
-            <RequestsPanel
-              title="Sent"
-              emptyLabel="No sent requests."
-              isLoading={outgoingHook.isLoading}
-              error={outgoingHook.error}
-              retry={outgoingHook.retry}
-              requests={outgoingRequests}
-              kind="outgoing"
-            />
-          </CardContent>
-        </Card>
-
-        <Card className="xl:col-span-2 p-5">
-          <CardHeader>
-            <CardTitle>Friends List & Quiz Invites</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <FriendsListPanel
-              isLoading={friendsHook.isLoading}
-              error={friendsHook.error}
-              retry={friendsHook.retry}
-              friends={friends}
-              inviteSelections={inviteSelections}
-              onSelectQuiz={handleSelectQuiz}
-              quizOptions={quizOptions}
-            />
-          </CardContent>
-        </Card>
-
-        <Card className="xl:col-span-1 p-5">
-          <CardHeader>
-            <CardTitle>Compare Stats</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {friends.length === 0 ? (
-              <p className="text-sm text-foreground-secondary">
-                Add a friend to start comparing stats.
-              </p>
-            ) : (
-              <Select
-                value={compareFriendId}
-                onValueChange={setCompareFriendId}
-              >
-                <SelectTrigger
-                  className="w-full"
-                  aria-label="Select a friend to compare stats"
-                >
-                  <SelectValue placeholder="Select a friend" />
-                </SelectTrigger>
-                <SelectContent>
-                  {friends.map((friend) => (
-                    <SelectItem key={friend.userId} value={friend.userId}>
-                      {displayNameOf(friend)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
-
-            {compareFriend ? (
-              <CompareStatsPanel
-                friend={compareFriend}
-                myAnalytics={myAnalytics}
-                myAnalyticsLoading={!myAnalytics}
-                viewerLabel={user?.displayName ?? user?.username ?? "You"}
+      {/* Main 12-Column Responsive Layout: 8-Column Main Content + 4-Column Companion Sidebar */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        {/* Main Content Area: Friends List & Discovery */}
+        <div className="lg:col-span-8 space-y-8">
+          {/* Card 1: Friends List & Quiz Invites (Primary Surface) */}
+          <Card className="rounded-xl border bg-card/80 p-5 sm:p-6 backdrop-blur-xs shadow-xs">
+            <CardHeader className="p-0 pb-4">
+              <CardTitle className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <h2 className="font-display text-lg font-bold tracking-tight">Friends List & Quiz Invites</h2>
+                  <span className="inline-flex items-center rounded-full bg-brand/10 px-2 py-0.5 text-xs font-bold text-brand font-mono tabular-nums">
+                    {friends.length}
+                  </span>
+                </div>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-0 space-y-4">
+              <FriendsListPanel
+                isLoading={friendsHook.isLoading}
+                error={friendsHook.error}
+                retry={friendsHook.retry}
+                friends={friends}
+                inviteSelections={inviteSelections}
+                onSelectQuiz={handleSelectQuiz}
+                quizOptions={quizOptions}
+                onFindFriendsClick={handleFocusSearch}
               />
-            ) : friends.length > 0 ? (
-              <p className="text-sm text-foreground-secondary">
-                Select a friend to compare your stats.
-              </p>
-            ) : null}
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+
+          {/* Card 2: Find Friends (Discovery Surface) */}
+          <Card className="rounded-xl border bg-card/80 p-5 sm:p-6 backdrop-blur-xs shadow-xs">
+            <CardHeader className="p-0 pb-4">
+              <CardTitle className="flex items-center gap-2">
+                <UserPlus className="h-5 w-5 text-brand" aria-hidden="true" />
+                <h2 className="font-display text-lg font-bold tracking-tight">Find Friends</h2>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-0 space-y-4">
+              <div className="relative">
+                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" aria-hidden="true" />
+                <Input
+                  id="friends-search-input"
+                  className="pl-10 pr-9 transition-colors focus-visible:border-brand/40"
+                  value={searchQuery}
+                  onChange={(event) => setSearchQuery(event.target.value)}
+                  placeholder="Search by username or display name..."
+                  aria-label="Search users to add as friends"
+                />
+                {searchQuery ? (
+                  <button
+                    type="button"
+                    onClick={() => setSearchQuery("")}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-0.5 rounded-sm focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-ring transition-colors"
+                    aria-label="Clear search query"
+                  >
+                    <X className="h-4 w-4" aria-hidden="true" />
+                  </button>
+                ) : searchHook.isLoading ? (
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none">
+                    <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+                  </div>
+                ) : null}
+              </div>
+
+              <SearchResultsPanel
+                isLoading={searchHook.isLoading}
+                isStale={searchHook.isStale}
+                error={searchHook.error}
+                isRateLimited={searchHook.isRateLimited}
+                remainingSeconds={searchHook.remainingSeconds}
+                queryLength={searchQuery.trim().length}
+                items={searchHook.items}
+                outgoingAddresseeIds={outgoingAddresseeIds}
+                friendUserIds={friendUserIds}
+              />
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Companion Sidebar: Friend Requests & Compare Stats */}
+        <div className="lg:col-span-4 space-y-8">
+          {/* Card 3: Friend Requests (Action & Status Queue) */}
+          <Card className="rounded-xl border bg-card/80 p-5 sm:p-6 backdrop-blur-xs shadow-xs">
+            <CardHeader className="p-0 pb-4">
+              <CardTitle className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <h2 className="font-display text-lg font-bold tracking-tight">Friend Requests</h2>
+                  {incomingRequests.length > 0 && (
+                    <span className="inline-flex items-center rounded-full bg-amber-500/15 px-2 py-0.5 text-xs font-bold text-amber-700 dark:text-amber-400 font-mono tabular-nums">
+                      {incomingRequests.length} new
+                    </span>
+                  )}
+                </div>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-0 space-y-6">
+              <RequestsPanel
+                title="Incoming Requests"
+                emptyLabel="No incoming requests."
+                isLoading={incomingHook.isLoading}
+                error={incomingHook.error}
+                retry={incomingHook.retry}
+                requests={incomingRequests}
+                kind="incoming"
+              />
+
+              <div className="border-t border-border/40 pt-4">
+                <RequestsPanel
+                  title="Sent Requests"
+                  emptyLabel="No sent requests."
+                  isLoading={outgoingHook.isLoading}
+                  error={outgoingHook.error}
+                  retry={outgoingHook.retry}
+                  requests={outgoingRequests}
+                  kind="outgoing"
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Card 4: Compare Stats (Head-to-Head Analytics) */}
+          <Card className="rounded-xl border bg-card/80 p-5 sm:p-6 backdrop-blur-xs shadow-xs">
+            <CardHeader className="p-0 pb-4">
+              <CardTitle className="flex items-center gap-2">
+                <Swords className="h-5 w-5 text-brand" aria-hidden="true" />
+                <h2 className="font-display text-lg font-bold tracking-tight">Compare Stats</h2>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-0 space-y-4">
+              {friends.length === 0 ? (
+                <p className="text-sm text-muted-foreground">
+                  Add a friend to start comparing head-to-head stats.
+                </p>
+              ) : (
+                <Select
+                  value={compareFriendId}
+                  onValueChange={setCompareFriendId}
+                >
+                  <SelectTrigger
+                    className="w-full transition-colors focus-visible:border-brand/40"
+                    aria-label="Select a friend to compare stats"
+                  >
+                    <SelectValue placeholder="Choose friend to compare" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {friends.map((friend) => (
+                      <SelectItem key={friend.userId} value={friend.userId}>
+                        {displayNameOf(friend)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+
+              {compareFriend ? (
+                <CompareStatsPanel
+                  friend={compareFriend}
+                  myAnalytics={myAnalytics}
+                  myAnalyticsLoading={!myAnalytics}
+                  viewerLabel={user?.displayName ?? user?.username ?? "You"}
+                />
+              ) : friends.length > 0 ? (
+                <p className="text-sm text-muted-foreground">
+                  Select a friend above to see your side-by-side performance.
+                </p>
+              ) : null}
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </main>
   );
@@ -241,8 +360,10 @@ interface SearchResultsPanelProps {
   error: { code?: string; message?: string } | null;
   isRateLimited: boolean;
   remainingSeconds: number;
-  hasQuery: boolean;
+  queryLength: number;
   items: ReadonlyArray<SearchableUserDto>;
+  outgoingAddresseeIds: ReadonlySet<string>;
+  friendUserIds: ReadonlySet<string>;
 }
 
 const SearchResultsPanel = memo(function SearchResultsPanel({
@@ -251,28 +372,39 @@ const SearchResultsPanel = memo(function SearchResultsPanel({
   error,
   isRateLimited,
   remainingSeconds,
-  hasQuery,
+  queryLength,
   items,
+  outgoingAddresseeIds,
+  friendUserIds,
 }: SearchResultsPanelProps) {
-  if (!hasQuery) {
+  if (queryLength === 0) {
     return (
-      <p className="text-sm text-foreground-secondary">
-        Start typing to search for people on the platform.
+      <p className="text-sm text-muted-foreground">
+        Start typing a username or display name to search for players.
+      </p>
+    );
+  }
+
+  if (queryLength < 2) {
+    return (
+      <p className="text-sm text-muted-foreground">
+        Type at least 2 characters to search for players.
       </p>
     );
   }
 
   if (isLoading && items.length === 0) {
     return (
-      <p className="text-sm text-foreground-secondary" role="status">
-        Searching…
-      </p>
+      <div className="flex items-center gap-2 text-sm text-muted-foreground" role="status">
+        <Loader2 className="h-4 w-4 animate-spin text-brand" aria-hidden="true" />
+        <span>Searching players…</span>
+      </div>
     );
   }
 
   if (error) {
     return (
-      <p className="text-sm text-foreground-secondary" role="alert">
+      <p className="text-sm text-muted-foreground" role="alert">
         Search failed. Try again in a moment.
       </p>
     );
@@ -280,7 +412,7 @@ const SearchResultsPanel = memo(function SearchResultsPanel({
 
   if (isRateLimited) {
     return (
-      <p className="text-sm text-foreground-secondary" role="status">
+      <p className="text-sm text-muted-foreground" role="status">
         Rate limited — try again in {remainingSeconds}s.
       </p>
     );
@@ -288,8 +420,8 @@ const SearchResultsPanel = memo(function SearchResultsPanel({
 
   if (items.length === 0) {
     return (
-      <p className="text-sm text-foreground-secondary" role="status">
-        No matching users.
+      <p className="text-sm text-muted-foreground" role="status">
+        No matching players found.
       </p>
     );
   }
@@ -297,7 +429,12 @@ const SearchResultsPanel = memo(function SearchResultsPanel({
   return (
     <ul className="space-y-3" aria-busy={isStale}>
       {items.map((user) => (
-        <SearchResultRow key={user.userId} user={user} />
+        <SearchResultRow
+          key={user.userId}
+          user={user}
+          isOutgoingPending={outgoingAddresseeIds.has(user.userId)}
+          isFriendUser={friendUserIds.has(user.userId)}
+        />
       ))}
     </ul>
   );
@@ -305,50 +442,85 @@ const SearchResultsPanel = memo(function SearchResultsPanel({
 
 const SearchResultRow = memo(function SearchResultRow({
   user,
+  isOutgoingPending,
+  isFriendUser,
 }: {
   user: SearchableUserDto;
+  isOutgoingPending: boolean;
+  isFriendUser: boolean;
 }) {
+  const [isLocallySent, setIsLocallySent] = useState(false);
   const mut = useSendFriendRequest(user.userId);
   const name = displayNameOf(user);
-  const canSend = !user.isFriend && !user.hasPendingRequest && !user.isBlocked;
-  const statusLabel = user.isFriend
+
+  useEffect(() => {
+    if (isOutgoingPending) {
+      setIsLocallySent(false);
+    }
+  }, [isOutgoingPending]);
+
+  const isFriend = user.isFriend || isFriendUser;
+  const hasPending =
+    user.hasPendingRequest ||
+    isOutgoingPending ||
+    isLocallySent ||
+    mut.isPending;
+  const canSend = !isFriend && !hasPending && !user.isBlocked;
+
+  const statusLabel = isFriend
     ? "Friends"
-    : user.hasPendingRequest
-      ? "Pending"
-      : user.isBlocked
-        ? "Blocked"
-        : "Add";
+    : mut.isPending
+      ? "Sending…"
+      : hasPending
+        ? "Pending"
+        : user.isBlocked
+          ? "Blocked"
+          : "Add Friend";
+
+  const handleSend = useCallback(() => {
+    setIsLocallySent(true);
+    mut.send();
+  }, [mut]);
 
   return (
-    <li className="flex items-center justify-between border border-border rounded-md p-3">
+    <li className="flex items-center justify-between rounded-xl border border-border bg-card/60 p-3.5 backdrop-blur-xs transition-colors hover:border-brand/30">
       <div className="flex items-center gap-3 min-w-0">
-        <Avatar className="w-9 h-9">
+        <Avatar className="w-10 h-10 ring-1 ring-border/50">
           <AvatarImage src={coerceAvatarSrc(user.avatarUrl)} alt={name} />
-          <AvatarFallback>{name[0]}</AvatarFallback>
+          <AvatarFallback className="bg-brand/10 text-brand font-semibold text-xs">
+            {name[0]}
+          </AvatarFallback>
         </Avatar>
         <div className="min-w-0">
-          <p className="font-medium text-sm truncate">{name}</p>
-          <p className="text-xs text-foreground-secondary truncate">
+          <p className="font-semibold text-sm truncate">{name}</p>
+          <p className="text-xs text-muted-foreground truncate font-mono">
             @{user.username}
           </p>
         </div>
       </div>
       <Button
         size="sm"
-        variant="outline"
-        onClick={mut.send}
+        variant={canSend ? "default" : "outline"}
+        onClick={handleSend}
         disabled={!canSend || mut.isPending}
         aria-label={
-          user.isFriend
+          isFriend
             ? `Already friends with ${name}`
-            : user.hasPendingRequest
+            : hasPending
               ? `Request already pending for ${name}`
               : user.isBlocked
                 ? `${name} is blocked`
                 : `Send friend request to ${name}`
         }
       >
-        {statusLabel}
+        {mut.isPending ? (
+          <>
+            <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" aria-hidden="true" />
+            Sending…
+          </>
+        ) : (
+          statusLabel
+        )}
       </Button>
     </li>
   );
@@ -374,15 +546,24 @@ const RequestsPanel = memo(function RequestsPanel({
   kind,
 }: RequestsPanelProps) {
   return (
-    <div>
-      <h3 className="text-sm font-semibold mb-3">{title}</h3>
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{title}</h3>
+        {requests.length > 0 && (
+          <span className="font-mono text-xs font-semibold text-muted-foreground tabular-nums">
+            {requests.length}
+          </span>
+        )}
+      </div>
+
       {isLoading && requests.length === 0 ? (
-        <p className="text-sm text-foreground-secondary" role="status">
-          Loading…
-        </p>
+        <div className="flex items-center gap-2 text-xs text-muted-foreground" role="status">
+          <Loader2 className="h-3.5 w-3.5 animate-spin text-brand" aria-hidden="true" />
+          <span>Loading requests…</span>
+        </div>
       ) : error ? (
         <div className="space-y-2">
-          <p className="text-sm text-foreground-secondary" role="alert">
+          <p className="text-xs text-muted-foreground" role="alert">
             Failed to load {title.toLowerCase()}.
           </p>
           <Button size="sm" variant="outline" onClick={() => void retry()}>
@@ -390,9 +571,9 @@ const RequestsPanel = memo(function RequestsPanel({
           </Button>
         </div>
       ) : requests.length === 0 ? (
-        <p className="text-sm text-foreground-secondary">{emptyLabel}</p>
+        <p className="text-xs text-muted-foreground">{emptyLabel}</p>
       ) : (
-        <ul className="space-y-3">
+        <ul className="space-y-2.5">
           {requests.map((req) => (
             <RequestRow key={req.id} request={req} kind={kind} />
           ))}
@@ -411,18 +592,20 @@ const RequestRow = memo(function RequestRow({
 }) {
   const name = displayNameOf(request.requester);
   return (
-    <li className="border border-border rounded-md p-3 space-y-2">
-      <div className="flex items-center gap-3">
-        <Avatar className="w-9 h-9">
+    <li className="rounded-xl border border-border bg-card/60 p-3 space-y-2.5 backdrop-blur-xs transition-colors hover:border-brand/20">
+      <div className="flex items-center gap-2.5 min-w-0">
+        <Avatar className="w-8 h-8 ring-1 ring-border/50">
           <AvatarImage
             src={request.requester.avatarUrl ?? undefined}
             alt={name}
           />
-          <AvatarFallback>{name[0]}</AvatarFallback>
+          <AvatarFallback className="bg-brand/10 text-brand font-semibold text-xs">
+            {name[0]}
+          </AvatarFallback>
         </Avatar>
-        <div>
-          <p className="font-medium text-sm">{name}</p>
-          <p className="text-xs text-foreground-secondary">
+        <div className="min-w-0 flex-1">
+          <p className="font-semibold text-sm truncate">{name}</p>
+          <p className="text-xs text-muted-foreground truncate font-mono">
             @{request.requester.userName}
           </p>
         </div>
@@ -444,13 +627,6 @@ function IncomingRequestActions({
   name: string;
 }) {
   const { push } = useToast();
-  // The row came from `GET /social/friend-requests/incoming`, which is
-  // a server-authoritative source. The relationship between the
-  // viewer and the requester is by definition `incoming_request`, so
-  // the permission guard inside `useRespondFriendRequest` is redundant
-  // here — its `useRelationship` round-trip would race against the
-  // optimistic UI and leave the buttons enabled but silently no-op.
-  // `assumeCanRespond: true` opts the call out of the permission gate.
   const mut = useRespondFriendRequest(request.requesterId, {
     assumeCanRespond: true,
   });
@@ -481,19 +657,29 @@ function IncomingRequestActions({
     >
       <Button
         size="sm"
+        className="flex-1"
         onClick={handleAccept}
         disabled={mut.isPending}
         aria-label={`Accept friend request from ${name}`}
       >
-        Accept
+        {mut.isPending ? (
+          <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />
+        ) : (
+          <>
+            <Check className="h-3.5 w-3.5 mr-1 text-emerald-400" aria-hidden="true" />
+            Accept
+          </>
+        )}
       </Button>
       <Button
         size="sm"
         variant="outline"
+        className="flex-1"
         onClick={handleDecline}
         disabled={mut.isPending}
         aria-label={`Decline friend request from ${name}`}
       >
+        <X className="h-3.5 w-3.5 mr-1 text-muted-foreground" aria-hidden="true" />
         Decline
       </Button>
     </div>
@@ -508,13 +694,6 @@ function OutgoingRequestActions({
   name: string;
 }) {
   const { push } = useToast();
-  // The row came from `GET /social/friend-requests/sent`, which is a
-  // server-authoritative source. The relationship between the viewer
-  // and the addressee is by definition `outgoing_request`, so the
-  // permission guard inside `useCancelFriendRequest` is redundant
-  // here — its `useRelationship` round-trip would race against the
-  // optimistic UI and leave the button enabled but silently no-op.
-  // `assumeCanCancel: true` opts the call out of the permission gate.
   const mut = useCancelFriendRequest(request.addresseeId, {
     assumeCanCancel: true,
   });
@@ -532,11 +711,21 @@ function OutgoingRequestActions({
     <Button
       size="sm"
       variant="outline"
+      className="w-full"
       onClick={handleCancel}
       disabled={mut.isPending || mut.alreadyCancelled}
       aria-label={`Cancel friend request to ${name}`}
     >
-      {mut.alreadyCancelled ? "Already cancelled" : "Cancel Request"}
+      {mut.isPending ? (
+        <>
+          <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" aria-hidden="true" />
+          Cancelling…
+        </>
+      ) : mut.alreadyCancelled ? (
+        "Already cancelled"
+      ) : (
+        "Cancel Request"
+      )}
     </Button>
   );
 }
@@ -549,6 +738,7 @@ interface FriendsListPanelProps {
   inviteSelections: Record<string, string>;
   onSelectQuiz: (friendId: string, quizId: string) => void;
   quizOptions: ReadonlyArray<{ id: string; title: string }>;
+  onFindFriendsClick?: () => void;
 }
 
 const FriendsListPanel = memo(function FriendsListPanel({
@@ -559,18 +749,20 @@ const FriendsListPanel = memo(function FriendsListPanel({
   inviteSelections,
   onSelectQuiz,
   quizOptions,
+  onFindFriendsClick,
 }: FriendsListPanelProps) {
   if (isLoading && friends.length === 0) {
     return (
-      <p className="text-sm text-foreground-secondary" role="status">
-        Loading friends…
-      </p>
+      <div className="flex items-center gap-2 text-sm text-muted-foreground py-4" role="status">
+        <Loader2 className="h-4 w-4 animate-spin text-brand" aria-hidden="true" />
+        <span>Loading friends…</span>
+      </div>
     );
   }
   if (error) {
     return (
       <div className="space-y-2">
-        <p className="text-sm text-foreground-secondary" role="alert">
+        <p className="text-sm text-muted-foreground" role="alert">
           Failed to load friends.
         </p>
         <Button size="sm" variant="outline" onClick={() => void retry()}>
@@ -580,7 +772,7 @@ const FriendsListPanel = memo(function FriendsListPanel({
     );
   }
   if (friends.length === 0) {
-    return <EmptyFriendsState />;
+    return <EmptyFriendsState onFindFriendsClick={onFindFriendsClick} />;
   }
   return (
     <ul className="space-y-3">
@@ -624,22 +816,27 @@ const FriendRow = memo(function FriendRow({
   }, [selection, name, push]);
 
   return (
-    <li className="border border-border rounded-md p-3 space-y-3">
-      <div className="flex items-center gap-3">
-        <Avatar className="w-10 h-10">
+    <li className="flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 rounded-xl border border-border bg-card/60 p-4 backdrop-blur-xs transition-colors hover:border-brand/30">
+      <div className="flex items-center gap-3 min-w-0">
+        <Avatar className="w-10 h-10 ring-1 ring-border/50">
           <AvatarImage src={friend.avatarUrl ?? undefined} alt={name} />
-          <AvatarFallback>{name[0]}</AvatarFallback>
+          <AvatarFallback className="bg-brand/10 text-brand font-semibold text-xs">
+            {name[0]}
+          </AvatarFallback>
         </Avatar>
         <div className="min-w-0">
-          <p className="font-medium text-sm truncate">{name}</p>
-          <p className="text-xs text-foreground-secondary truncate">
+          <p className="font-semibold text-sm truncate">{name}</p>
+          <p className="text-xs text-muted-foreground truncate font-mono">
             @{friend.userName}
           </p>
         </div>
       </div>
-      <div className="flex flex-col md:flex-row gap-2 md:items-center">
+      <div className="flex flex-col sm:flex-row gap-2 sm:items-center shrink-0">
         <Select value={selection} onValueChange={onSelectQuiz}>
-          <SelectTrigger className="w-full md:w-72">
+          <SelectTrigger
+            className="w-full sm:w-60 transition-colors focus-visible:border-brand/40"
+            aria-label={`Choose quiz to invite ${name}`}
+          >
             <SelectValue placeholder="Choose quiz to invite" />
           </SelectTrigger>
           <SelectContent>
@@ -652,21 +849,46 @@ const FriendRow = memo(function FriendRow({
         </Select>
         <Button
           size="sm"
+          variant={inviteSent ? "outline" : "default"}
+          className={inviteSent ? "border-emerald-500/40 text-emerald-600 dark:text-emerald-400 font-medium" : ""}
           onClick={handleSendInvite}
           disabled={!selection || inviteSent}
           aria-label={`Send quiz invite to ${name}`}
         >
-          {inviteSent ? "Sent!" : "Send Invite"}
+          {inviteSent ? (
+            <>
+              <Check className="h-4 w-4 mr-1 text-emerald-500" aria-hidden="true" />
+              Sent!
+            </>
+          ) : (
+            <>
+              <Send className="h-3.5 w-3.5 mr-1.5" aria-hidden="true" />
+              Send Invite
+            </>
+          )}
         </Button>
       </div>
     </li>
   );
 });
 
-function EmptyFriendsState() {
+function EmptyFriendsState({ onFindFriendsClick }: { onFindFriendsClick?: () => void }) {
   return (
-    <p className="text-sm text-foreground-secondary">
-      No friends yet. Use Find Friends to add some.
-    </p>
+    <div className="flex flex-col items-center justify-center py-8 text-center space-y-3">
+      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted/60 text-muted-foreground">
+        <Users className="h-6 w-6" aria-hidden="true" />
+      </div>
+      <div className="space-y-1">
+        <p className="font-semibold text-sm">No friends added yet</p>
+        <p className="text-xs text-muted-foreground max-w-sm">
+          Connect with other players below to send quiz challenges and compare your knowledge.
+        </p>
+      </div>
+      {onFindFriendsClick && (
+        <Button size="sm" variant="outline" onClick={onFindFriendsClick}>
+          Find Players
+        </Button>
+      )}
+    </div>
   );
 }

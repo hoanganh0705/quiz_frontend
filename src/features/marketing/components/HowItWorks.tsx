@@ -9,7 +9,7 @@ const STEP_ICONS = [Layers, BrainCircuit, Trophy];
 
 export default function HowItWorks() {
   return (
-    <section className="rounded-2xl border border-border/70 bg-gradient-to-b from-card/80 to-card/40 p-5 sm:p-6 md:p-8 backdrop-blur-sm">
+    <section className="rounded-2xl border border-border/70 bg-linear-to-b from-card/80 to-card/40 p-5 sm:p-6 md:p-8 backdrop-blur-sm">
       <div className="flex flex-col items-center justify-center text-center max-w-2xl mx-auto mb-6">
         <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
           How It Works
@@ -31,10 +31,10 @@ export default function HowItWorks() {
             >
               <div className="flex items-center justify-between w-full mb-3">
                 <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand/10 text-brand border border-brand/20 group-hover:scale-105 transition-transform">
-                  <Icon className="h-5 w-5" />
+                  <Icon className="h-5 w-5" aria-hidden="true" />
                 </div>
-                <span className="text-xl font-black text-muted-foreground/30 group-hover:text-brand/40 transition-colors">
-                  0{index + 1}
+                <span className="rounded-full bg-brand/10 border border-brand/20 px-2 py-0.5 text-xs font-mono font-bold text-brand tabular-nums">
+                  Step {index + 1}
                 </span>
               </div>
               <h3 className="text-sm sm:text-base font-semibold text-foreground mb-1">
@@ -49,7 +49,7 @@ export default function HowItWorks() {
       </div>
 
       <div className="flex items-center justify-center flex-col gap-3 mt-8 pt-6 border-t border-border/50 text-center">
-        <div className="inline-flex items-center gap-2 rounded-full border border-border bg-main/60 px-4 py-1.5 text-xs text-foreground shadow-2xs">
+        <div className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-card/80 px-4 py-1.5 text-xs text-foreground shadow-2xs">
           <span className="relative flex h-2 w-2">
             <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
           </span>

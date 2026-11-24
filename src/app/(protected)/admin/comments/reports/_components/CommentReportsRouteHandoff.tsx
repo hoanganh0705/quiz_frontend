@@ -3,7 +3,6 @@
 import { useEffect } from "react";
 
 import { addCommentModerationBreadcrumb } from "@/lib/admin/admin_live_sentry";
-import { useAdminFeatureFlag } from "@/features/admin/hooks/useAdminFeatureFlag";
 
 import { CommentReportsPage } from "@/features/admin/comment-moderation/components/CommentReportsPage";
 
@@ -15,7 +14,6 @@ const COMMENT_MODERATION_CODES = Object.freeze([
 ] as const);
 
 export function CommentReportsRouteHandoff() {
-  useAdminFeatureFlag("admin_comment_moderation_live");
 
   useEffect(() => {
     addCommentModerationBreadcrumb({

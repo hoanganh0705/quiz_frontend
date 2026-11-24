@@ -4,11 +4,11 @@ import { useCallback, useMemo, useState } from "react";
 
 import { useRouter, useSearchParams } from "next/navigation";
 
-import { PencilIcon, RotateCcwIcon, Trash2Icon } from "lucide-react";
+import { PencilIcon, RotateCcwIcon, Search, Trash2Icon, X } from "lucide-react";
 
 import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/Tabs";
-import { Skeleton } from "@/components/ui/Skeleton";
 import { usePermission } from "@/features/admin/hooks";
 
 import type { DeletedTagListItem, TagListItem } from "../tag-types";
@@ -71,25 +71,29 @@ function ActiveTagCard({
   const canDelete = usePermission("tag_delete").hasPermission;
 
   return (
-    <div className="rounded-lg border border-border p-4 space-y-3">
+    <div className="flex flex-col justify-between h-full min-h-[110px] rounded-xl border border-border/80 bg-card p-4 shadow-2xs transition-all duration-150 hover:-translate-y-0.5 hover:shadow-xs hover:border-primary/40">
       <div className="flex items-center justify-between gap-2">
-        <span className="font-medium text-foreground truncate" title={tag.name}>
+        <span
+          className="font-semibold text-sm text-foreground truncate"
+          title={tag.name}
+        >
           {tag.name}
         </span>
-        <span className="text-xs text-muted-foreground font-mono shrink-0">
+        <span className="text-xs bg-muted text-muted-foreground px-2 py-0.5 rounded font-mono shrink-0">
           {tag.slug}
         </span>
       </div>
-      <div className="flex items-center justify-between gap-2">
-        <span className="text-xs text-muted-foreground">
+
+      <div className="flex items-center justify-between gap-2 pt-3 mt-3 border-t border-border/40">
+        <span className="text-xs text-muted-foreground font-mono">
           {formatDate(tag.createdAt)}
         </span>
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1.5">
           {canUpdate && (
             <Button
               variant="ghost"
               size="sm"
-              className="h-7 px-2 text-muted-foreground hover:text-foreground"
+              className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
               onClick={() => onEdit(tag)}
               aria-label={`Edit ${tag.name}`}
             >
@@ -100,7 +104,7 @@ function ActiveTagCard({
             <Button
               variant="ghost"
               size="sm"
-              className="h-7 px-2 text-muted-foreground hover:text-destructive"
+              className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive"
               onClick={() => onDelete(tag)}
               aria-label={`Delete ${tag.name}`}
             >
@@ -123,17 +127,21 @@ function SoftDeletedTagCard({
   const canRestore = usePermission("tag_restore").hasPermission;
 
   return (
-    <div className="rounded-lg border border-border p-4 space-y-3">
+    <div className="flex flex-col justify-between h-full min-h-[110px] rounded-xl border border-border/80 bg-card p-4 shadow-2xs transition-all duration-150 hover:-translate-y-0.5 hover:shadow-xs hover:border-primary/40">
       <div className="flex items-center justify-between gap-2">
-        <span className="font-medium text-foreground truncate" title={tag.name}>
+        <span
+          className="font-semibold text-sm text-foreground truncate"
+          title={tag.name}
+        >
           {tag.name}
         </span>
         <span className="text-xs bg-destructive/10 text-destructive px-2 py-0.5 rounded font-mono shrink-0">
           {tag.slug}
         </span>
       </div>
-      <div className="flex items-center justify-between gap-2">
-        <div className="text-xs text-muted-foreground space-y-0.5">
+
+      <div className="flex items-center justify-between gap-2 pt-3 mt-3 border-t border-border/40">
+        <div className="text-xs text-muted-foreground space-y-0.5 font-mono">
           <div>Deleted {formatDateTime(tag.deletedAt)}</div>
           <div>Created {formatDate(tag.createdAt)}</div>
         </div>
@@ -141,7 +149,7 @@ function SoftDeletedTagCard({
           <Button
             variant="outline"
             size="sm"
-            className="h-7 gap-1.5 text-xs"
+            className="h-8 px-3 gap-1.5 text-xs rounded-lg transition-all hover:bg-primary/10 hover:text-primary hover:border-primary/40"
             onClick={() => onRestore(tag)}
             aria-label={`Restore ${tag.name}`}
           >
@@ -166,11 +174,32 @@ export function TagAdminList({ onAddTag }: TagAdminListProps) {
   const { active, softDeleted, isLoading, isValidating, error, mutate } =
     useTagAdminList();
 
+  const [searchQuery, setSearchQuery] = useState("");
   const [editTarget, setEditTarget] = useState<TagListItem | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<TagListItem | null>(null);
   const [restoreTarget, setRestoreTarget] = useState<DeletedTagListItem | null>(
     null,
   );
+
+  const filteredActive = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return active;
+    return active.filter(
+      (tag) =>
+        tag.name.toLowerCase().includes(q) ||
+        tag.slug.toLowerCase().includes(q),
+    );
+  }, [active, searchQuery]);
+
+  const filteredSoftDeleted = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return softDeleted;
+    return softDeleted.filter(
+      (tag) =>
+        tag.name.toLowerCase().includes(q) ||
+        tag.slug.toLowerCase().includes(q),
+    );
+  }, [softDeleted, searchQuery]);
 
   const handleTabChange = useCallback(
     (value: string) => {
@@ -229,9 +258,29 @@ export function TagAdminList({ onAddTag }: TagAdminListProps) {
     if (active.length === 0) {
       return <TagAdminEmptyState tab="active" onCreate={onAddTag} />;
     }
+    if (filteredActive.length === 0) {
+      return (
+        <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border/80 bg-card/50 py-12 px-6 text-center">
+          <p className="text-sm font-semibold text-foreground">
+            No tags matching &ldquo;{searchQuery}&rdquo;
+          </p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Try adjusting your search terms or clearing the filter.
+          </p>
+          <Button
+            variant="outline"
+            size="sm"
+            className="mt-4 text-xs h-8 px-3"
+            onClick={() => setSearchQuery("")}
+          >
+            Clear search
+          </Button>
+        </div>
+      );
+    }
     return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-        {active.map((tag) => (
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        {filteredActive.map((tag) => (
           <ActiveTagCard
             key={tag.tagId}
             tag={tag}
@@ -241,7 +290,15 @@ export function TagAdminList({ onAddTag }: TagAdminListProps) {
         ))}
       </div>
     );
-  }, [isInitialLoading, error, active, mutate, onAddTag]);
+  }, [
+    isInitialLoading,
+    error,
+    active,
+    filteredActive,
+    searchQuery,
+    mutate,
+    onAddTag,
+  ]);
 
   const renderDeletedTabContent = useMemo(() => {
     if (isInitialLoading) return <TagAdminSkeleton tab="deleted" />;
@@ -249,9 +306,29 @@ export function TagAdminList({ onAddTag }: TagAdminListProps) {
     if (softDeleted.length === 0) {
       return <TagAdminEmptyState tab="deleted" />;
     }
+    if (filteredSoftDeleted.length === 0) {
+      return (
+        <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border/80 bg-card/50 py-12 px-6 text-center">
+          <p className="text-sm font-semibold text-foreground">
+            No soft-deleted tags matching &ldquo;{searchQuery}&rdquo;
+          </p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Try adjusting your search terms or clearing the filter.
+          </p>
+          <Button
+            variant="outline"
+            size="sm"
+            className="mt-4 text-xs h-8 px-3"
+            onClick={() => setSearchQuery("")}
+          >
+            Clear search
+          </Button>
+        </div>
+      );
+    }
     return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-        {softDeleted.map((tag) => (
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        {filteredSoftDeleted.map((tag) => (
           <SoftDeletedTagCard
             key={tag.tagId}
             tag={tag}
@@ -260,27 +337,64 @@ export function TagAdminList({ onAddTag }: TagAdminListProps) {
         ))}
       </div>
     );
-  }, [isInitialLoading, error, softDeleted, mutate]);
+  }, [
+    isInitialLoading,
+    error,
+    softDeleted,
+    filteredSoftDeleted,
+    searchQuery,
+    mutate,
+  ]);
 
   return (
     <>
       <Tabs value={currentTab} onValueChange={handleTabChange}>
-        <TabsList className="mb-4">
-          <TabsTrigger value={TAB_ACTIVE}>
-            Active
-            {!isDeletedTab && active.length > 0 && (
-              <span className="ml-1.5 text-xs opacity-70">{active.length}</span>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
+          <TabsList>
+            <TabsTrigger value={TAB_ACTIVE}>
+              Active
+              {!isDeletedTab && active.length > 0 && (
+                <span className="ml-2 inline-flex items-center rounded-full bg-muted px-2 py-0.5 font-mono text-xs font-medium text-muted-foreground">
+                  {active.length}
+                </span>
+              )}
+            </TabsTrigger>
+            <TabsTrigger value={TAB_DELETED}>
+              Soft-deleted
+              {isDeletedTab && softDeleted.length > 0 && (
+                <span className="ml-2 inline-flex items-center rounded-full bg-muted px-2 py-0.5 font-mono text-xs font-medium text-muted-foreground">
+                  {softDeleted.length}
+                </span>
+              )}
+            </TabsTrigger>
+          </TabsList>
+
+          {/* Search filter input */}
+          <div className="relative w-full sm:w-64">
+            <Search
+              className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none"
+              aria-hidden="true"
+            />
+            <Input
+              type="text"
+              placeholder="Search tags…"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="h-9 pl-9 pr-8 text-xs"
+              aria-label="Search tags by name or slug"
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery("")}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                aria-label="Clear search query"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
             )}
-          </TabsTrigger>
-          <TabsTrigger value={TAB_DELETED}>
-            Soft-deleted
-            {isDeletedTab && softDeleted.length > 0 && (
-              <span className="ml-1.5 text-xs opacity-70">
-                {softDeleted.length}
-              </span>
-            )}
-          </TabsTrigger>
-        </TabsList>
+          </div>
+        </div>
 
         <TabsContent value={TAB_ACTIVE}>{renderActiveTabContent}</TabsContent>
         <TabsContent value={TAB_DELETED}>{renderDeletedTabContent}</TabsContent>

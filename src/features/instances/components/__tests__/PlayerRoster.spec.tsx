@@ -1,7 +1,9 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { cleanup, render, screen } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { PlayerRoster } from "@/features/instances/components/PlayerRoster";
+import * as storeMock from "@/features/instances/stores/useInstanceRealtimeStore";
+
 import { instanceMocks, makeInstanceDetail, makePlayer } from "./test-helpers";
 
 vi.mock("@/features/instances/hooks/useInstance", () => ({
@@ -40,6 +42,7 @@ vi.mock("@/features/instances/stores/useInstanceRealtimeStore", () => {
       s.entries[id]?.instanceStatus ?? null,
     selectInstanceRealtimeLastSequence: (s: typeof state, id: string) =>
       s.entries[id]?.lastEventSequence ?? 0,
+    selectInstanceRemovedUserIds: () => null,
     selectInstanceRealtimeEntry: (s: typeof state, id: string) =>
       s.entries[id] ?? null,
     __setEntry: (id: string, players: Record<string, unknown>) => {
@@ -56,7 +59,6 @@ vi.mock("@/features/instances/stores/useInstanceRealtimeStore", () => {
   };
 });
 
-import * as storeMock from "@/features/instances/stores/useInstanceRealtimeStore";
 
 describe("PlayerRoster", () => {
   beforeEach(() => {

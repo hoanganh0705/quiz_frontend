@@ -10,7 +10,6 @@ import {
   type ParticipationState,
   type RegistrationStatus,
 } from "@/features/tournaments/types/registration.types";
-import { getFeatureFlagValue } from "@/lib/feature-flags";
 
 import type { TournamentDetail } from "@/features/tournaments/types";
 
@@ -72,9 +71,6 @@ function deriveRegistrationStatus(params: {
 export function useTournamentParticipation(
   tournamentId: string | null,
 ): UseTournamentParticipationResult {
-  const flagValue = getFeatureFlagValue("tournaments_live");
-  const isFlagPlaceholder = flagValue === "placeholder";
-
   const { bootstrapState, currentUser } = useAuthSession();
   const userId = useMemo(() => getUserId(currentUser), [currentUser]);
   const isAuthenticated = bootstrapState === "authenticated";
@@ -86,10 +82,13 @@ export function useTournamentParticipation(
     useTournamentParticipants(tournamentId, { limit: 100 });
 
   const isLoading =
-    isDetailLoading || isParticipantsLoading || bootstrapState === "loading";
+    isDetailLoading ||
+    isParticipantsLoading ||
+    (bootstrapState as string) === "loading" ||
+    bootstrapState === "bootstrapping";
 
   const result = useMemo((): UseTournamentParticipationResult => {
-    if (isFlagPlaceholder || tournamentId === null) {
+    if (tournamentId === null) {
       return {
         participation: null,
         isRegistered: false,
@@ -151,9 +150,7 @@ export function useTournamentParticipation(
       canWithdraw,
       isLoading,
     };
-  }, [
-    isFlagPlaceholder,
-    tournamentId,
+  }, [tournamentId,
     isAuthenticated,
     userId,
     tournament,

@@ -49,7 +49,16 @@
  */
 
 import { useEffect, useMemo } from "react";
+import Link from "next/link";
+import { Flame, Sparkles, TrendingUp, Users } from "lucide-react";
 
+import { ApiError } from "@/lib/api";
+import { cn } from "@/shared/utils/merge-class-names";
+
+import { useCategoriesRanked } from "@/features/categories/hooks";
+import { rankedCategoryToCategoryResponse } from "@/features/categories/utils/ranked-category-to-category-response";
+import { QuizGridEmpty } from "@/features/quizzes/components/QuizGridEmpty";
+import { QuizGridLoadMore } from "@/features/quizzes/components/QuizGridLoadMore";
 import { useQuizFiltersUrlSync } from "@/features/quizzes/hooks/useQuizFiltersUrlSync";
 import { useQuizzesList } from "@/features/quizzes/hooks/useQuizzesList";
 import { useQuizzesPopular } from "@/features/quizzes/hooks/useQuizzesPopular";
@@ -58,19 +67,20 @@ import {
   setFilter,
   useQuizFiltersStore,
 } from "@/features/quizzes/store/use-quiz-filters-store";
-import type { QuizFilterUrlState } from "@/features/quizzes/types/quiz-filter-params";
+import { initialsFromQuizId } from "@/features/quizzes/utils/quiz-card-decoration";
 import { gradientFromQuizId } from "@/features/quizzes/utils/quiz-card-gradient";
-import { useCategoriesRanked } from "@/features/categories/hooks";
-import { rankedCategoryToCategoryResponse } from "@/features/categories/utils/ranked-category-to-category-response";
 import { useTagsPopular } from "@/features/tags/hooks";
 
-import { Button } from "@/components/ui/Button";
-import { FilterBar } from "@/components/primitives/FilterBar";
 import { QuizCardSkeleton } from "@/components/primitives";
 import { EntityCard } from "@/components/primitives/EntityCard/EntityCard";
+import { FilterBar } from "@/components/primitives/FilterBar";
+import { Button } from "@/components/ui/Button";
 
-import { QuizGridEmpty } from "@/features/quizzes/components/QuizGridEmpty";
-import { QuizGridLoadMore } from "@/features/quizzes/components/QuizGridLoadMore";
+import type { QuizFilterUrlState } from "@/features/quizzes/types/quiz-filter-params";
+import type {
+  PopularQuizItemDto,
+  TrendingQuizItemDto,
+} from "@/lib/api/generated/schemas";
 
 const PAGE_LIMIT = 20;
 const SKELETON_COUNT = 20;
@@ -108,13 +118,13 @@ export function QuizzesDirectoryPage({
 
   // ─── Data: categories for the dropdown, tags for the multi-select ───
 
-  const { categories: rankedCategories } = useCategoriesRanked({ limit: 100 });
+  const { categories: rankedCategories } = useCategoriesRanked({ limit: 50 });
   const categories = useMemo(
     () => rankedCategories.map(rankedCategoryToCategoryResponse),
     [rankedCategories],
   );
 
-  const { tags: popularTags } = useTagsPopular({ limit: 100 });
+  const { tags: popularTags } = useTagsPopular({ limit: 40 });
   const tags = useMemo(
     () =>
       popularTags.map((t) => ({
@@ -150,110 +160,141 @@ export function QuizzesDirectoryPage({
 
   return (
     <main
-      className="min-h-screen text-foreground p-4 md:p-8 lg:p-12"
+      className="mx-auto max-w-7xl min-h-screen text-foreground px-4 sm:px-6 lg:px-8 py-8 sm:py-10 space-y-10 sm:space-y-12"
       aria-labelledby="quizzes-directory-title"
       data-testid="quizzes-directory-page"
     >
-      <header className="mb-8">
+      <header className="space-y-2">
         <h1
           id="quizzes-directory-title"
-          className="text-3xl font-bold mb-2 text-foreground"
+          className="text-3xl sm:text-4xl font-bold tracking-tight text-foreground"
         >
           All Quizzes
         </h1>
-        <p className="text-muted-foreground text-base">
-          Browse published quizzes. Use the filters to narrow down by category,
-          tag, sort, or difficulty.
+        <p className="text-muted-foreground text-base max-w-2xl leading-relaxed">
+          Browse published quizzes. Jump into what&apos;s trending or use the
+          filters below to narrow down by category, tag, or difficulty.
         </p>
       </header>
 
-      {/* Filter bar slot primitive */}
-      <section
-        className="mb-6 rounded-lg border border-border bg-card p-4"
-        aria-label="Quiz filters"
-      >
-        <FilterBar
-          state={state}
-          categories={categories}
-          tags={tags}
-          onChange={(next) => {
-            useQuizFiltersStore.setState(next, true);
-          }}
+      {/* Discovery Launchpad Rails */}
+      <section className="space-y-8" aria-label="Featured quiz rails">
+        <QuizListingStrip
+          variant="trending"
+          title="Trending now"
+          quizzes={trendingQuizzes}
+          isLoading={trendingLoading}
+          error={trendingError}
+        />
+
+        <QuizListingStrip
+          variant="popular"
+          title="Popular now"
+          quizzes={popularQuizzes}
+          isLoading={popularLoading}
+          error={popularError}
         />
       </section>
 
-      <QuizListingStrip
-        variant="popular"
-        title="Popular now"
-        quizzes={popularQuizzes}
-        isLoading={popularLoading}
-        error={popularError}
-      />
-
-      <QuizListingStrip
-        variant="trending"
-        title="Trending now"
-        quizzes={trendingQuizzes}
-        isLoading={trendingLoading}
-        error={trendingError}
-      />
-
-      {/* Directory grid */}
-      <section aria-label="Quiz directory">
-        {isLoading ? (
-          <div
-            className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
-            aria-busy="true"
-            aria-label="Loading quizzes"
-            data-testid="quizzes-directory-loading"
-          >
-            {Array.from({ length: SKELETON_COUNT }).map((_, i) => (
-              <QuizCardSkeleton key={i} />
-            ))}
-          </div>
-        ) : error ? (
-          <div
-            className="text-center py-12"
-            role="alert"
-            data-testid="quizzes-directory-error"
-          >
-            <p className="text-destructive text-lg mb-4">
-              Could not load quizzes. Please try again.
+      {/* Catalog & Filter Workspace */}
+      <section className="space-y-6" aria-label="Quiz directory">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-border/80 pb-4">
+          <div>
+            <div className="flex items-center gap-2">
+              <Sparkles className="h-5 w-5 text-brand shrink-0" aria-hidden="true" />
+              <h2
+                id="catalog-heading"
+                className="text-xl sm:text-2xl font-bold tracking-tight text-foreground"
+              >
+                Explore Catalog
+              </h2>
+            </div>
+            <p className="text-sm text-muted-foreground mt-0.5">
+              Filter by topic, sort by popularity or freshness, and find your
+              next challenge.
             </p>
-            <Button
-              variant="outline"
-              onClick={() => void refresh()}
-              data-testid="quizzes-directory-retry"
-            >
-              Retry
-            </Button>
           </div>
-        ) : items.length === 0 ? (
-          <QuizGridEmpty
-            hasFilters={hasActiveFilters(state)}
-            onReset={() => useQuizFiltersStore.setState({}, true)}
+          {items.length > 0 && !isLoading ? (
+            <span className="text-xs text-muted-foreground font-medium">
+              Showing <span className="text-foreground font-semibold">{items.length}</span> quizzes
+            </span>
+          ) : null}
+        </div>
+
+        {/* Filter bar slot primitive — anchored directly above the directory grid */}
+        <div
+          className="rounded-xl border border-border bg-card p-4 shadow-2xs"
+          aria-label="Quiz filters"
+        >
+          <FilterBar
+            state={state}
+            categories={categories}
+            tags={tags}
+            onChange={(next) => {
+              useQuizFiltersStore.setState(next, true);
+            }}
           />
-        ) : (
-          <>
+        </div>
+
+        {/* Directory grid */}
+        <div aria-labelledby="catalog-heading">
+          {isLoading ? (
             <div
               className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
-              role="list"
-              aria-label="Quizzes"
-              data-testid="quizzes-directory-grid"
+              aria-busy="true"
+              aria-label="Loading quizzes"
+              data-testid="quizzes-directory-loading"
             >
-              {items.map((item) => (
-                <div key={item.quizId} role="listitem">
-                  <DirectoryQuizCard item={item} />
-                </div>
+              {Array.from({ length: SKELETON_COUNT }).map((_, i) => (
+                <QuizCardSkeleton key={i} />
               ))}
             </div>
-            <QuizGridLoadMore
-              hasMore={hasMore}
-              isLoading={isLoadingMore}
-              onLoadMore={loadMore}
+          ) : error ? (
+            <div
+              className="text-center py-12 rounded-xl border border-border bg-card/40"
+              role="alert"
+              data-testid="quizzes-directory-error"
+            >
+              <p className="text-destructive text-base font-medium mb-3">
+                Could not load quizzes. Please try again.
+              </p>
+              <Button
+                variant="outline"
+                onClick={() => void refresh()}
+                data-testid="quizzes-directory-retry"
+              >
+                Retry
+              </Button>
+            </div>
+          ) : items.length === 0 ? (
+            <QuizGridEmpty
+              hasFilters={hasActiveFilters(state)}
+              onReset={() => useQuizFiltersStore.setState({}, true)}
             />
-          </>
-        )}
+          ) : (
+            <>
+              <div
+                className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+                role="list"
+                aria-label="Quizzes"
+                data-testid="quizzes-directory-grid"
+              >
+                {items.map((item) => (
+                  <div key={item.quizId} role="listitem">
+                    <DirectoryQuizCard item={item} />
+                  </div>
+                ))}
+              </div>
+              <div className="pt-2">
+                <QuizGridLoadMore
+                  hasMore={hasMore}
+                  isLoading={isLoadingMore}
+                  onLoadMore={loadMore}
+                />
+              </div>
+            </>
+          )}
+        </div>
       </section>
     </main>
   );
@@ -287,12 +328,6 @@ function useInitialState(initialState?: Partial<QuizFilterUrlState>): void {
 
 // ─── Sub-components ──────────────────────────────────────────────────────
 
-import { ApiError } from "@/lib/api";
-import { initialsFromQuizId } from "@/features/quizzes/utils/quiz-card-decoration";
-import type {
-  PopularQuizItemDto,
-  TrendingQuizItemDto,
-} from "@/lib/api/generated/schemas";
 
 interface DirectoryQuizCardItem {
   quizId: string;
@@ -301,6 +336,20 @@ interface DirectoryQuizCardItem {
   description?: string | null;
   imageUrl?: string | null;
   publishedVersion?: { difficulty?: string | null } | null;
+}
+
+function difficultyBadgeClasses(difficulty?: string | null): string {
+  const norm = (difficulty ?? "").toLowerCase();
+  if (norm === "easy") {
+    return "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400";
+  }
+  if (norm === "medium") {
+    return "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-400";
+  }
+  if (norm === "hard") {
+    return "border-rose-500/30 bg-rose-500/10 text-rose-700 dark:text-rose-400";
+  }
+  return "border-border bg-muted text-muted-foreground";
 }
 
 function DirectoryQuizCard({
@@ -314,7 +363,7 @@ function DirectoryQuizCard({
 
   return (
     <div
-      className="relative h-full"
+      className="relative h-full transition-transform duration-200 hover:-translate-y-0.5"
       data-testid="quizzes-directory-card"
       data-quiz-id={item.quizId}
     >
@@ -329,7 +378,12 @@ function DirectoryQuizCard({
         coverSize="md"
         badges={
           difficulty ? (
-            <span className="rounded-full border bg-background px-2 py-0.5">
+            <span
+              className={cn(
+                "rounded-full border px-2.5 py-0.5 text-xs font-semibold capitalize",
+                difficultyBadgeClasses(difficulty),
+              )}
+            >
               {difficulty}
             </span>
           ) : null
@@ -341,7 +395,7 @@ function DirectoryQuizCard({
           data-testid="quizzes-directory-card-fallback"
           data-quiz-id={item.quizId}
           style={{ background: fallbackGradient }}
-          className="pointer-events-none absolute inset-x-0 top-0 z-0 flex aspect-video w-full items-center justify-center text-lg font-semibold uppercase text-white"
+          className="pointer-events-none absolute inset-x-0 top-0 z-0 flex aspect-video w-full items-center justify-center rounded-t-xl text-lg font-semibold uppercase text-white"
         >
           {initialsFromQuizId(item.quizId)}
         </span>
@@ -376,51 +430,71 @@ function QuizListingStrip({
 
   return (
     <section
-      className="mb-8"
+      className="space-y-3"
       aria-label={`${variant} quizzes`}
       data-testid={testid}
     >
-      <div className="mb-4 flex items-center justify-between gap-2 text-sm text-muted-foreground">
-        <span>{title}</span>
+      <div className="flex items-center justify-between gap-2">
+        <h2 className="text-base sm:text-lg font-semibold tracking-tight text-foreground flex items-center gap-2">
+          {variant === "trending" ? (
+            <TrendingUp className="h-4 w-4 text-brand shrink-0" aria-hidden="true" />
+          ) : (
+            <Flame className="h-4 w-4 text-amber-500 shrink-0" aria-hidden="true" />
+          )}
+          <span>{title}</span>
+        </h2>
       </div>
       {showSkeleton ? (
-        <div className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory">
+        <div className="flex gap-4 overflow-x-auto pb-3 pt-1 px-0.5 snap-x snap-mandatory [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {Array.from({ length: STRIP_LIMIT }).map((_, i) => (
             <div
               key={i}
-              className="w-64 shrink-0 snap-start rounded-xl border bg-card p-4"
+              className="flex flex-col justify-between w-64 shrink-0 snap-start rounded-xl border border-border/60 bg-card p-4 min-h-[96px]"
             >
-              <div className="mb-2 h-4 w-3/4 rounded bg-muted" />
-              <div className="h-3 w-1/2 rounded bg-muted" />
+              <div className="space-y-2">
+                <div className="h-4 w-3/4 rounded bg-muted animate-pulse" />
+                <div className="h-3 w-1/2 rounded bg-muted animate-pulse" />
+              </div>
+              <div className="h-3 w-1/3 rounded bg-muted/70 mt-2 animate-pulse" />
             </div>
           ))}
         </div>
       ) : showError ? (
         <div
           role="alert"
-          className="flex flex-col items-center gap-2 rounded-md border border-destructive/40 bg-destructive/5 p-4 text-sm"
+          className="flex flex-col items-center gap-2 rounded-xl border border-destructive/30 bg-destructive/5 p-4 text-sm"
           data-testid={`${testid}-error`}
         >
-          <span>Couldn’t load {title.toLowerCase()}.</span>
+          <span className="font-medium text-foreground">
+            Couldn’t load {title.toLowerCase()}.
+          </span>
           <span className="text-xs text-muted-foreground">
-            The grid below is still usable.
+            The catalog below is still usable.
           </span>
         </div>
       ) : quizzes.length === 0 ? null : (
-        <div className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory">
+        <div className="flex gap-4 overflow-x-auto pb-3 pt-1 px-0.5 snap-x snap-mandatory [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {quizzes.map((quiz) => (
-            <a
+            <Link
               key={quiz.quizId}
               href={`/quizzes/${quiz.slug || quiz.quizId}`}
-              className="w-64 shrink-0 snap-start rounded-xl border bg-card p-4 transition hover:shadow-md"
+              className="group flex flex-col justify-between w-64 shrink-0 snap-start rounded-xl border border-border/80 bg-card p-4 transition-all duration-200 hover:border-brand/50 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               data-testid={cardTestid}
               data-quiz-id={quiz.quizId}
             >
-              <p className="font-semibold text-sm line-clamp-2">{quiz.title}</p>
-              <p className="text-xs text-muted-foreground mt-2">
-                {quiz.totalAttempts} attempts
-              </p>
-            </a>
+              <h3 className="font-semibold text-sm line-clamp-2 text-foreground group-hover:text-brand transition-colors leading-snug">
+                {quiz.title}
+              </h3>
+              <div className="mt-3 flex items-center text-xs text-muted-foreground">
+                <span className="inline-flex items-center gap-1 rounded-full bg-muted/60 px-2 py-0.5 text-xs font-medium">
+                  <Users className="h-3 w-3" aria-hidden="true" />
+                  <span>
+                    {quiz.totalAttempts}{" "}
+                    {quiz.totalAttempts === 1 ? "attempt" : "attempts"}
+                  </span>
+                </span>
+              </div>
+            </Link>
           ))}
         </div>
       )}

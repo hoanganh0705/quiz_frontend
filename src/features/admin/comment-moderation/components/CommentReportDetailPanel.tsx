@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/shared/utils/merge-class-names";
 
+import type { CommentReportConsumerAction } from "@/features/admin/comment-moderation/action-enum";
 import type { CommentReportDto } from "@/features/admin/comment-moderation/admin-comment-report-types";
 import { useComment } from "@/features/admin/comment-moderation/hooks/useComment";
 import { CommentHiddenState } from "@/features/admin/comment-moderation/components/CommentReportStates";
@@ -56,6 +57,8 @@ export interface CommentReportDetailPanelProps {
 
   onRestore: (commentId: string) => void;
 
+  onAction?: (action: CommentReportConsumerAction) => void;
+
   className?: string;
 }
 
@@ -63,6 +66,7 @@ export function CommentReportDetailPanel({
   report,
   onClose,
   onRestore,
+  onAction,
   className,
 }: CommentReportDetailPanelProps): React.ReactElement {
   const {
@@ -124,20 +128,20 @@ export function CommentReportDetailPanel({
       onKeyDown={handleKeyDown}
       data-testid={`comment-report-detail-panel-${report.reportId}`}
       className={cn(
-        "flex h-full w-full flex-col gap-4 overflow-hidden rounded-lg border border-border bg-background",
+        "flex h-full w-full flex-col overflow-hidden rounded-xl border border-border bg-card shadow-sm",
         className ?? "",
       )}
     >
       <header
-        className="flex items-start justify-between gap-2 border-b border-border px-5 py-3"
+        className="flex items-center justify-between gap-2 border-b border-border px-5 py-3.5 bg-muted/20"
         data-testid={`comment-report-detail-header-${report.reportId}`}
       >
-        <div className="flex flex-col gap-1">
+        <div className="flex flex-col gap-0.5">
           <h2 className="text-base font-semibold text-foreground">
-            Offending comment
+            Offending Comment
           </h2>
-          <p className="text-xs text-muted-foreground">
-            Report <span className="font-mono">{report.reportId}</span>
+          <p className="text-2xs text-muted-foreground">
+            Report ID <span className="font-mono">{report.reportId}</span>
           </p>
         </div>
         <Button
@@ -146,6 +150,7 @@ export function CommentReportDetailPanel({
           size="icon"
           aria-label="Close detail panel"
           onClick={handleClose}
+          className="size-8"
           data-testid={`comment-report-detail-close-${report.reportId}`}
         >
           <X className="h-4 w-4" aria-hidden="true" />
@@ -155,45 +160,9 @@ export function CommentReportDetailPanel({
       <div
         ref={scrollRef}
         data-testid={`comment-report-detail-scroll-${report.reportId}`}
-        className="flex flex-1 flex-col gap-4 overflow-y-auto px-5 pb-5"
+        className="flex flex-1 flex-col gap-4 overflow-y-auto px-5 py-4"
       >
-        {/* Snapshot block — surfaces the report metadata and the
-            reporter / reported-at fields that the DTO carries. */}
-        <section
-          className="rounded-md border border-border bg-muted/40 px-4 py-3"
-          data-testid={`comment-report-detail-snapshot-${report.reportId}`}
-        >
-          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-            Report metadata
-          </p>
-          <p className="mt-2 text-sm text-slate-700">
-            Reported by{" "}
-            <span className="font-mono font-medium text-foreground">
-              {report.reporterId}
-            </span>{" "}
-            on{" "}
-            <span className="font-medium text-foreground">
-              {formatTimestamp(report.createdAt)}
-            </span>
-          </p>
-
-          <p className="mt-2 text-xs text-slate-700">
-            Reason:{" "}
-            <span className="font-medium capitalize">
-              {report.reason.replace(/_/g, " ")}
-            </span>
-          </p>
-          {report.details !== null &&
-          report.details !== undefined &&
-          report.details.length > 0 ? (
-            <p className="mt-1 text-xs text-slate-700">{report.details}</p>
-          ) : null}
-        </section>
-
-        {/* Live-fetch block — comment body, hidden state, or empty
-            state. Rendered as a `CommentHiddenState` when the
-            offending comment is hidden, so the restore affordance
-            lights up. */}
+        {/* Live-fetch block — Prominently feature the offending comment */}
         {isHidden && commentDto !== null ? (
           <CommentHiddenState
             commentId={commentDto.id}
@@ -201,113 +170,144 @@ export function CommentReportDetailPanel({
           />
         ) : (
           <section
-            className="rounded-md border border-border px-4 py-3"
+            className="rounded-lg border border-border/80 bg-background/80 p-4 shadow-2xs"
             data-testid={`comment-report-detail-live-${report.reportId}`}
           >
-            <div className="flex items-center justify-between gap-2">
-              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                Live comment
-              </p>
-              <Badge variant="outline" className="text-xs">
-                Live at fetch time
+            <div className="flex items-center justify-between gap-2 pb-2.5 border-b border-border/60">
+              <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Comment Content
+              </span>
+              <Badge variant="outline" className="text-2xs">
+                Live Status
               </Badge>
             </div>
 
             {isCommentLoading ? (
-              <p
-                className="mt-2 text-xs text-muted-foreground"
+              <div
+                className="mt-3 flex flex-col gap-2.5"
                 data-testid={`comment-report-detail-live-loading-${report.reportId}`}
               >
-                Loading live comment…
-              </p>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="size-6 rounded-full bg-muted animate-pulse" />
+                    <span className="h-4 w-28 rounded bg-muted animate-pulse" />
+                  </div>
+                  <span className="h-3 w-16 rounded bg-muted animate-pulse" />
+                </div>
+                <div className="h-16 w-full rounded-md bg-muted/60 animate-pulse" />
+              </div>
             ) : commentDto !== null ? (
-              <div className="mt-2 flex flex-col gap-1 text-xs text-slate-700">
-                <p>
-                  Author:{" "}
-                  <span className="font-medium">
-                    {resolveCommentAuthorDisplay(commentDto)}
-                  </span>
-                  {commentDto.author?.username !== undefined ? (
-                    <span className="text-muted-foreground">
-                      {" "}
-                      (<span className="font-mono">{commentDto.authorId}</span>)
+              <div className="mt-3 flex flex-col gap-2.5">
+                <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
+                  <div className="flex items-center gap-2">
+                    <div
+                      className="flex size-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-2xs font-semibold text-primary"
+                      aria-hidden="true"
+                    >
+                      {resolveCommentAuthorDisplay(commentDto).charAt(0).toUpperCase()}
+                    </div>
+                    <span className="font-medium text-foreground">
+                      {resolveCommentAuthorDisplay(commentDto)}
                     </span>
-                  ) : null}
-                </p>
-                <p>
-                  Created:{" "}
-                  <span className="font-medium">
+                    {commentDto.author?.username !== undefined ? (
+                      <span className="text-muted-foreground">
+                        (<span className="font-mono text-2xs">{commentDto.authorId}</span>)
+                      </span>
+                    ) : null}
+                  </div>
+                  <span className="text-2xs text-muted-foreground">
                     {formatTimestamp(commentDto.createdAt)}
                   </span>
-                </p>
-                {commentDto.updatedAt !== commentDto.createdAt ? (
-                  <p>
-                    Last updated:{" "}
-                    <span className="font-medium">
-                      {formatTimestamp(commentDto.updatedAt)}
-                    </span>
-                  </p>
-                ) : null}
-                <p
-                  className="mt-2 rounded-sm border border-border bg-background px-3 py-2 text-sm text-foreground"
+                </div>
+
+                <div
+                  className="rounded-md border border-border/70 bg-muted/30 p-3.5 text-sm text-foreground leading-relaxed whitespace-pre-wrap break-words"
                   data-testid={`comment-report-detail-live-text-${report.reportId}`}
                 >
                   {commentDto.body}
-                </p>
+                </div>
               </div>
             ) : (
               <p
-                className="mt-2 text-xs text-muted-foreground"
+                className="mt-3 text-xs text-muted-foreground"
                 data-testid={`comment-report-detail-live-empty-${report.reportId}`}
               >
                 {commentOutcome === "not-found"
-                  ? "The offending comment no longer exists. The report metadata above is still authoritative."
-                  : "The live comment could not be loaded. The report metadata above is still authoritative."}
+                  ? "The offending comment no longer exists. The report metadata below is still authoritative."
+                  : "The live comment could not be loaded. The report metadata below is still authoritative."}
               </p>
             )}
 
             {commentOutcome === "forbidden" ? (
               <p
-                className="mt-2 inline-flex items-center gap-1 text-xs text-amber-700"
+                className="mt-2 inline-flex items-center gap-1.5 text-xs text-warning"
                 role="status"
                 data-testid={`comment-report-detail-live-error-${report.reportId}`}
               >
-                <AlertCircle className="h-3 w-3" aria-hidden="true" />
-                Live comment is unavailable; the report metadata above is still
-                authoritative.
+                <AlertCircle className="size-3.5 shrink-0" aria-hidden="true" />
+                Live comment is unavailable; report metadata remains authoritative.
               </p>
             ) : null}
           </section>
         )}
 
-        {/* Audit trail block — surfaced when the report is closed. */}
+        {/* Snapshot block — report metadata */}
+        <section
+          className="rounded-lg border border-border/80 bg-muted/30 p-4"
+          data-testid={`comment-report-detail-snapshot-${report.reportId}`}
+        >
+          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            Report Details
+          </p>
+
+          <div className="mt-2.5 flex flex-col gap-2 text-xs text-foreground/85">
+            <p>
+              Reason:{" "}
+              <span className="font-semibold text-foreground capitalize">
+                {report.reason.replace(/_/g, " ")}
+              </span>
+            </p>
+            {report.details ? (
+              <p className="rounded-md border border-border/50 bg-background/50 p-2.5 text-foreground/90 italic">
+                &ldquo;{report.details}&rdquo;
+              </p>
+            ) : null}
+            <div className="mt-1 flex flex-col gap-1 text-2xs text-muted-foreground">
+              <p>
+                Filed by <span className="font-mono text-foreground">{report.reporterId}</span>
+              </p>
+              <p>Filed at {formatTimestamp(report.createdAt)}</p>
+            </div>
+          </div>
+        </section>
+
+        {/* Audit trail block — surfaced when the report is closed */}
         {report.status !== "open" ? (
           <section
-            className="rounded-md border border-emerald-200 bg-emerald-50 px-4 py-3 text-xs text-emerald-900"
+            className="rounded-lg border border-success/30 bg-success/10 dark:bg-success/15 p-4 text-xs text-foreground"
             data-testid={`comment-report-detail-resolved-${report.reportId}`}
           >
-            <p className="font-semibold">This report is closed.</p>
-            {report.updatedAt !== null && report.updatedAt !== undefined ? (
-              <p className="mt-1">
+            <p className="font-semibold text-success">This report has been resolved.</p>
+            {report.updatedAt ? (
+              <p className="mt-1.5 text-2xs text-muted-foreground">
                 Last updated:{" "}
-                <span className="font-medium">
+                <span className="font-medium text-foreground">
                   {formatTimestamp(report.updatedAt)}
                 </span>
               </p>
             ) : null}
-            {report.reviewedAt !== null && report.reviewedAt !== undefined ? (
-              <p className="mt-1">
+            {report.reviewedAt ? (
+              <p className="mt-1 text-2xs text-muted-foreground">
                 Reviewed at:{" "}
-                <span className="font-medium">
+                <span className="font-medium text-foreground">
                   {formatTimestamp(report.reviewedAt)}
                 </span>
               </p>
             ) : null}
-            {report.reviewedByUserId !== null &&
-            report.reviewedByUserId !== undefined ? (
-              <p className="mt-1">
+            {report.reviewedByUserId ? (
+              <p className="mt-1 text-2xs text-muted-foreground">
                 Reviewed by:{" "}
-                <span className="font-mono">{report.reviewedByUserId}</span>
+                <span className="font-mono text-foreground">{report.reviewedByUserId}</span>
               </p>
             ) : null}
           </section>
@@ -315,21 +315,63 @@ export function CommentReportDetailPanel({
       </div>
 
       <footer
-        className="flex items-center justify-between gap-2 border-t border-border px-5 py-3"
+        className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-t border-border px-5 py-3.5 bg-muted/20"
         data-testid={`comment-report-detail-footer-${report.reportId}`}
       >
         <p className="text-xs text-muted-foreground">
-          {report.status === "open" ? "Awaiting moderation." : "Closed."}
+          {report.status === "open" ? (
+            <span className="inline-flex items-center gap-1.5 text-warning font-medium">
+              <span className="size-1.5 rounded-full bg-warning animate-pulse" />
+              Awaiting moderation action
+            </span>
+          ) : (
+            <span className="text-muted-foreground">This report is closed.</span>
+          )}
         </p>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={handleClose}
-          data-testid={`comment-report-detail-close-footer-${report.reportId}`}
-        >
-          Close
-        </Button>
+
+        <div className="flex items-center gap-2 self-end sm:self-auto">
+          {report.status === "open" && onAction ? (
+            <>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => onAction("dismiss")}
+                data-testid={`comment-report-detail-action-dismiss-${report.reportId}`}
+              >
+                Dismiss
+              </Button>
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                onClick={() => onAction("mark_resolved")}
+                data-testid={`comment-report-detail-action-resolve-${report.reportId}`}
+              >
+                Resolve
+              </Button>
+              <Button
+                type="button"
+                variant="destructive"
+                size="sm"
+                onClick={() => onAction("hide_comment")}
+                data-testid={`comment-report-detail-action-hide-${report.reportId}`}
+              >
+                Hide Comment
+              </Button>
+            </>
+          ) : (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handleClose}
+              data-testid={`comment-report-detail-close-footer-${report.reportId}`}
+            >
+              Close
+            </Button>
+          )}
+        </div>
       </footer>
     </aside>
   );

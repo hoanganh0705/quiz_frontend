@@ -4,7 +4,6 @@ import { useCallback, useState } from "react";
 import { Coins } from "lucide-react";
 
 import { Button } from "@/components/ui/Button";
-import { getFeatureFlagValue } from "@/lib/feature-flags";
 
 import { useTipAuthor } from "@/features/coins/hooks/useTipAuthor";
 import { useCoinWallet } from "@/features/coins/hooks/useCoinWallet";
@@ -29,11 +28,6 @@ export function TipAuthorButton({
   quizId,
   className,
 }: TipAuthorButtonProps) {
-  const coinFlag = getFeatureFlagValue("coin_economy_live");
-  const spendFlag = getFeatureFlagValue("coin_spend_live");
-  const isPlaceholder =
-    coinFlag === "placeholder" || spendFlag === "placeholder";
-
   const { tip, isPending, error } = useTipAuthor();
   const { balance } = useCoinWallet();
 
@@ -53,7 +47,7 @@ export function TipAuthorButton({
 
   const isSelfTip = currentUserId !== null && recipientUserId === currentUserId;
 
-  if (isPlaceholder || isSelfTip) {
+  if (isSelfTip) {
     return null;
   }
 

@@ -1,7 +1,7 @@
 "use client";
 
 import "swiper/css";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Pause, Play } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { difficultyColors } from "@/features/quizzes/constants/difficulty-color";
 import { QuizCardDifficulty } from "@/features/quizzes/components/QuizCard";
@@ -20,6 +20,7 @@ const QuizCardDifficultyList = () => {
     useState<QuizDifficulty>("easy");
   const [isBeginning, setIsBeginning] = useState(true);
   const [isEnd, setIsEnd] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(true);
 
   const { items: quizzes, isLoading } = useQuizzesList({ filters: {} });
 
@@ -40,9 +41,20 @@ const QuizCardDifficultyList = () => {
     swiperRef.current?.slideNext();
   };
 
+  const handleTogglePlay = () => {
+    if (!swiperRef.current) return;
+    if (isPlaying) {
+      swiperRef.current.autoplay?.stop();
+      setIsPlaying(false);
+    } else {
+      swiperRef.current.autoplay?.start();
+      setIsPlaying(true);
+    }
+  };
+
   if (isLoading) {
     return (
-      <div className="mt-20 flex items-center justify-center min-h-100">
+      <div className="mt-12 flex items-center justify-center min-h-72">
         <LoadingSpinner size="lg" />
       </div>
     );
@@ -50,7 +62,7 @@ const QuizCardDifficultyList = () => {
 
   if (filteredQuizzes.length === 0) {
     return (
-      <div className="mt-20 text-center min-h-100 flex flex-col items-center justify-center">
+      <div className="mt-12 text-center min-h-72 flex flex-col items-center justify-center">
         <p className="text-muted-foreground text-lg">
           No {selectedDifficulty} quizzes available yet.
         </p>
@@ -62,7 +74,12 @@ const QuizCardDifficultyList = () => {
   }
 
   return (
-    <div className="w-full">
+    <section
+      className="w-full"
+      role="region"
+      aria-roledescription="carousel"
+      aria-label="Quizzes by difficulty"
+    >
       <div className="mb-6 flex flex-col gap-4">
         <div className="flex flex-col gap-1">
           <h2 className="text-xl font-bold text-foreground sm:text-2xl tracking-tight">
@@ -92,22 +109,39 @@ const QuizCardDifficultyList = () => {
             <Button
               size="icon"
               variant="outline"
-              className="h-9 w-9 rounded-full border-border/80 bg-background/80 hover:bg-main-hover transition-all"
-              onClick={handlePrevClick}
-              disabled={isBeginning}
-              aria-label="Previous quiz"
+              className="h-9 w-9 sm:h-10 sm:w-10 rounded-full border-border/80 bg-background/80 hover:bg-main-hover transition-all cursor-pointer"
+              onClick={handleTogglePlay}
+              aria-label={
+                isPlaying
+                  ? "Pause difficulty carousel auto-play"
+                  : "Resume difficulty carousel auto-play"
+              }
             >
-              <ChevronLeft className="h-4 w-4" />
+              {isPlaying ? (
+                <Pause className="h-4 w-4" aria-hidden="true" />
+              ) : (
+                <Play className="h-4 w-4" aria-hidden="true" />
+              )}
             </Button>
             <Button
               size="icon"
               variant="outline"
-              className="h-9 w-9 rounded-full border-border/80 bg-background/80 hover:bg-main-hover transition-all"
+              className="h-9 w-9 sm:h-10 sm:w-10 rounded-full border-border/80 bg-background/80 hover:bg-main-hover transition-all cursor-pointer"
+              onClick={handlePrevClick}
+              disabled={isBeginning}
+              aria-label="Previous quiz"
+            >
+              <ChevronLeft className="h-4 w-4" aria-hidden="true" />
+            </Button>
+            <Button
+              size="icon"
+              variant="outline"
+              className="h-9 w-9 sm:h-10 sm:w-10 rounded-full border-border/80 bg-background/80 hover:bg-main-hover transition-all cursor-pointer"
               onClick={handleNextClick}
               disabled={isEnd}
               aria-label="Next quiz"
             >
-              <ChevronRight className="h-4 w-4" />
+              <ChevronRight className="h-4 w-4" aria-hidden="true" />
             </Button>
           </div>
         </div>
@@ -115,13 +149,13 @@ const QuizCardDifficultyList = () => {
 
       <div>
         <Swiper
-          spaceBetween={30}
+          spaceBetween={20}
           slidesPerView={4}
-          pagination={{ clickable: true }}
           modules={[Autoplay]}
           autoplay={{
-            delay: 3000,
-            disableOnInteraction: true,
+            delay: 4500,
+            disableOnInteraction: false,
+            pauseOnMouseEnter: true,
           }}
           onBeforeInit={(swiper) => {
             swiperRef.current = swiper;
@@ -136,20 +170,20 @@ const QuizCardDifficultyList = () => {
           }}
           breakpoints={{
             0: {
-              slidesPerView: 1,
-              spaceBetween: 10,
+              slidesPerView: 1.15,
+              spaceBetween: 12,
             },
             640: {
-              slidesPerView: 2,
-              spaceBetween: 15,
+              slidesPerView: 2.1,
+              spaceBetween: 16,
             },
             768: {
-              slidesPerView: 3,
+              slidesPerView: 3.1,
               spaceBetween: 20,
             },
             1024: {
               slidesPerView: 4,
-              spaceBetween: 25,
+              spaceBetween: 24,
             },
           }}
         >
@@ -157,6 +191,7 @@ const QuizCardDifficultyList = () => {
             <SwiperSlide key={quiz.quizId} className="w-full">
               <QuizCardDifficulty
                 id={quiz.quizId}
+                slug={quiz.slug}
                 imageSrc={quiz.imageUrl ?? "/placeholder.svg"}
                 difficulty={
                   (quiz.publishedVersion?.difficulty as QuizDifficulty) ??
@@ -166,23 +201,21 @@ const QuizCardDifficultyList = () => {
                 creatorName={
                   quiz.creator?.displayName ??
                   quiz.creator?.username ??
-                  "Unknown"
+                  "QuizHub Creator"
                 }
-                reward={0}
+                reward={quiz.publishedVersion?.rewardXp ?? 100}
                 category={quiz.categoryName ?? "General"}
                 duration={Math.round(
-                  (quiz.publishedVersion?.durationMs ?? 600000) / 60000,
+                  (quiz.publishedVersion?.durationMs ?? 60000) / 60000,
                 )}
                 title={quiz.title}
-                currentPlayers={0}
-                spotsAvailable={100}
-                maxPlayers={100}
+                currentPlayers={quiz.attemptCount ?? 0}
               />
             </SwiperSlide>
           ))}
         </Swiper>
       </div>
-    </div>
+    </section>
   );
 };
 

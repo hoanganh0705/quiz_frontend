@@ -16,16 +16,18 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { uploadControllerBindUpload } from "@/lib/api/generated/uploads";
+
+import {
+  bindUploadedAsset,
+  UploadResponseShapeError,
+} from "../uploads.service";
+
 vi.mock("@/lib/api/generated/uploads", () => ({
   uploadControllerUploadFile: vi.fn(),
   uploadControllerBindUpload: vi.fn(),
 }));
 
-import { uploadControllerBindUpload } from "@/lib/api/generated/uploads";
-import {
-  bindUploadedAsset,
-  UploadResponseShapeError,
-} from "../uploads.service";
 
 const VALID_PUBLIC_ID =
   "quiz-app/avatars/0d8e3a45-7d7a-71f0-9e2a-9b0d9e2c7f3b/0190f6a5-d2c4-7b3e-a8e9-2b9f7e2b8b1a";

@@ -68,7 +68,7 @@ export function useReview(reviewId: string | null): UseReviewResult {
         : error instanceof ApiError
           ? error
           : error
-            ? new ApiError(error as any)
+            ? new ApiError(error as unknown as ConstructorParameters<typeof ApiError>[0])
             : null,
   };
 }

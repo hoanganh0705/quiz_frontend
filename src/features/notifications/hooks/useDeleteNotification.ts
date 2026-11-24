@@ -12,7 +12,6 @@ import {
   type NotificationListPage,
   type NotificationMutationState,
 } from "@/features/notifications/types/notification.types";
-import { getFeatureFlagValue } from "@/lib/feature-flags";
 
 export interface UseDeleteNotificationResult {
   deleteNotification: () => Promise<void>;
@@ -24,16 +23,13 @@ export interface UseDeleteNotificationResult {
 export function useDeleteNotification(
   notificationId: string | null,
 ): UseDeleteNotificationResult {
-  const flagValue = getFeatureFlagValue("notifications_live");
-  const isFlagPlaceholder = flagValue === "placeholder";
-
   const [state, setState] = useState<NotificationMutationState>("idle");
   const [error, setError] = useState<ApiError | null>(null);
 
   const inFlightRef = useRef(false);
 
   const deleteNotificationAction = useCallback(async (): Promise<void> => {
-    if (isFlagPlaceholder || notificationId === null) {
+    if (notificationId === null) {
       return;
     }
 
@@ -123,7 +119,7 @@ export function useDeleteNotification(
     } finally {
       inFlightRef.current = false;
     }
-  }, [isFlagPlaceholder, notificationId, state]);
+  }, [notificationId, state]);
 
   const reset = useCallback(() => {
     setState("idle");

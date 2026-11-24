@@ -8,9 +8,6 @@ const mockPushHistory = vi.fn();
 const mockClearHistory = vi.fn();
 const mockOnSubmit = vi.fn();
 
-vi.mock("@/lib/feature-flags", () => ({
-  getFeatureFlagValue: (...args: unknown[]) => mockGetFeatureFlagValue(...args),
-}));
 
 vi.mock("@/features/search/hooks/useDebouncedValue", async () => {
   const actual = await vi.importActual<

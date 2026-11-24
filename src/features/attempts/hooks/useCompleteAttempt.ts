@@ -9,7 +9,10 @@ import { completeAttempt as completeAttemptService } from "@/features/attempts/s
 import { useAuthSession } from "@/features/auth/hooks/use-auth-session";
 import { ATTEMPT_CACHE_KEYS } from "@/features/attempts/types/attempt-runner.types";
 import { ATTEMPT_RESULT_CACHE_KEYS } from "@/features/attempts/types/attempt-result.types";
-import { hydrateAttemptEntry } from "@/features/attempts/stores/useAttemptsStore";
+import {
+  hydrateAttemptEntry,
+  recordCompletionSuccess,
+} from "@/features/attempts/stores/useAttemptsStore";
 import { broadcastAttemptsChanged } from "@/lib/api/core/attempts-broadcast-channel";
 
 import type { CompleteAttemptResponseDto } from "@/lib/api/generated/schemas";
@@ -129,6 +132,13 @@ export function useCompleteAttempt(
         cooldownUntil: null,
       });
 
+      recordCompletionSuccess(attemptId, quizVersionId, sessionId, {
+        ...(result as unknown as import("@/features/attempts/stores/useAttemptsStore").CompletedAttemptSnapshot),
+        correctCount: result.correctCount ?? null,
+        xpEarned: result.xpEarned ?? 0,
+        finishedAt: result.finishedAt ?? new Date().toISOString(),
+      });
+
       await Promise.all(
         revalidateAttemptCaches(attemptId, quizVersionId, sessionId),
       ).catch(() => {
@@ -161,6 +171,11 @@ export function useCompleteAttempt(
         cause.code === "ATTEMPT_NOT_ACTIVE" &&
         (cause.status === 403 || cause.status === 409)
       ) {
+        hydrateAttemptEntry(attemptId, quizVersionId, sessionId, {
+          status: "completed",
+          error: null,
+          cooldownUntil: null,
+        });
         await Promise.all(
           revalidateAttemptCaches(attemptId, quizVersionId, sessionId),
         );

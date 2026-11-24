@@ -1,13 +1,18 @@
 "use client";
 
-import { useEffect, useRef } from "react";
-
-import { ApiError } from "@/lib/api/core/ApiError";
-import { RequestIdBanner } from "@/features/admin/components/RequestIdBanner";
-
+import { useState } from "react";
+import { Check, Copy } from "lucide-react";
+import { Button } from "@/components/ui/Button";
 import { useAdminAuditLogEntry } from "../hooks/useAdminAuditLogEntry";
-
 import type { AuditLogEntryDto } from "../types";
+import { RequestIdBanner } from "@/features/admin/components/RequestIdBanner";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/Sheet";
 
 function formatFullTimestamp(iso: string): string {
   if (!iso) return "—";
@@ -23,11 +28,20 @@ function formatFullTimestamp(iso: string): string {
   }).format(new Date(iso));
 }
 
+function getActionBadgeStyle(action: string): string {
+  const lower = action.toLowerCase();
+  if (lower.includes("delete") || lower.includes("revoke") || lower.includes("ban")) {
+    return "bg-destructive/10 text-destructive border border-destructive/20";
+  }
+  if (lower.includes("grant") || lower.includes("create") || lower.includes("add")) {
+    return "bg-primary/10 text-primary border border-primary/20";
+  }
+  return "bg-muted text-foreground/80 border border-border/50";
+}
+
 export interface AuditLogDetailPanelProps {
   entryId: string | null;
-
   initialEntry?: AuditLogEntryDto | null;
-
   onClose: () => void;
 }
 
@@ -37,77 +51,37 @@ export function AuditLogDetailPanel({
   onClose,
 }: AuditLogDetailPanelProps): React.ReactElement | null {
   const { entry, isLoading, error } = useAdminAuditLogEntry(entryId);
-  const panelRef = useRef<HTMLDivElement>(null);
+  const [copiedField, setCopiedField] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (!entryId) return;
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        onClose();
-      }
-    };
-    document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [entryId, onClose]);
-
-  const handleBackdropClick = (event: React.MouseEvent<HTMLDivElement>) => {
-    if (event.target === event.currentTarget) {
-      onClose();
-    }
+  const handleCopy = (field: string, text: string) => {
+    void navigator.clipboard.writeText(text);
+    setCopiedField(field);
+    setTimeout(() => setCopiedField(null), 1800);
   };
-
-  if (!entryId) return null;
 
   const displayedEntry: AuditLogEntryDto | null = entry ?? initialEntry ?? null;
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-stretch justify-end bg-black/40"
-      onClick={handleBackdropClick}
-      data-testid="audit-log-detail-backdrop"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="audit-log-detail-title"
-    >
-      <div
-        ref={panelRef}
-        className="flex w-full max-w-xl flex-col overflow-hidden bg-background shadow-xl"
+    <Sheet open={Boolean(entryId)} onOpenChange={(open) => !open && onClose()}>
+      <SheetContent
+        side="right"
+        className="w-full sm:max-w-lg overflow-y-auto p-0"
         data-testid="audit-log-detail-panel"
       >
-        {/* Header */}
-        <div className="flex items-center justify-between border-b border-border px-4 py-3">
-          <h2
+        <SheetHeader className="border-b border-border px-6 py-4">
+          <SheetTitle
             id="audit-log-detail-title"
+            data-testid="audit-log-detail-title"
             className="text-base font-semibold text-foreground"
           >
-            Audit log entry
-          </h2>
-          <button
-            type="button"
-            className="rounded-md p-1 text-muted-foreground hover:bg-muted focus:outline-none focus:ring-2 focus:ring-primary"
-            onClick={onClose}
-            aria-label="Close detail panel"
-            data-testid="audit-log-detail-close"
-          >
-            <svg
-              className="h-5 w-5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2}
-              aria-hidden="true"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M6 18 18 6M6 6l12 12"
-              />
-            </svg>
-          </button>
-        </div>
+            Audit Log Entry
+          </SheetTitle>
+          <SheetDescription className="text-xs text-muted-foreground">
+            Detailed parameter inspection and security metadata.
+          </SheetDescription>
+        </SheetHeader>
 
-        {/* Body */}
-        <div className="flex-1 overflow-y-auto p-4">
+        <div className="flex-1 overflow-y-auto p-6">
           {isLoading && !displayedEntry && (
             <p
               className="text-sm text-muted-foreground"
@@ -124,89 +98,141 @@ export function AuditLogDetailPanel({
           )}
 
           {displayedEntry && (
-            <dl className="space-y-3 text-sm">
-              <div
-                className="rounded-md border border-border bg-muted/30 p-3"
-                data-testid="audit-log-detail-request-id"
-              >
-                <dt className="text-xs font-medium uppercase text-muted-foreground">
-                  Request ID
-                </dt>
-                <dd className="mt-1 break-all font-mono text-sm">
-                  {displayedEntry.requestId}
-                </dd>
-              </div>
-
-              {displayedEntry.correlationId && (
-                <div data-testid="audit-log-detail-correlation-id">
-                  <dt className="text-xs font-medium uppercase text-muted-foreground">
-                    Correlation ID
-                  </dt>
-                  <dd className="mt-1 break-all font-mono text-sm">
-                    {displayedEntry.correlationId}
-                  </dd>
-                </div>
-              )}
-
-              <div data-testid="audit-log-detail-timestamp">
-                <dt className="text-xs font-medium uppercase text-muted-foreground">
-                  Timestamp
-                </dt>
-                <dd className="mt-1">
-                  {formatFullTimestamp(displayedEntry.timestamp)}
-                </dd>
-              </div>
-
-              <div data-testid="audit-log-detail-action">
-                <dt className="text-xs font-medium uppercase text-muted-foreground">
-                  Action
-                </dt>
-                <dd className="mt-1">
-                  <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
+            <div className="space-y-5 text-sm">
+              {/* Event Summary Card */}
+              <div className="rounded-lg border border-border/80 bg-card p-4 space-y-3">
+                <div data-testid="audit-log-detail-action">
+                  <span className="text-xs font-mono font-medium uppercase tracking-wider text-muted-foreground block mb-1">
+                    Action
+                  </span>
+                  <span
+                    className={`inline-flex rounded-full px-2.5 py-0.5 font-mono text-xs font-medium ${getActionBadgeStyle(
+                      displayedEntry.action,
+                    )}`}
+                  >
                     {displayedEntry.action}
                   </span>
-                </dd>
+                </div>
+
+                <div data-testid="audit-log-detail-timestamp">
+                  <span className="text-xs font-mono font-medium uppercase tracking-wider text-muted-foreground block mb-1">
+                    Timestamp
+                  </span>
+                  <span className="font-mono text-sm text-foreground">
+                    {formatFullTimestamp(displayedEntry.timestamp)}
+                  </span>
+                </div>
               </div>
 
-              <div data-testid="audit-log-detail-actor">
-                <dt className="text-xs font-medium uppercase text-muted-foreground">
-                  Actor
-                </dt>
-                <dd className="mt-1 break-all font-mono text-sm">
-                  {displayedEntry.actorId}
-                </dd>
+              {/* Resource & Actor Card */}
+              <div className="rounded-lg border border-border/80 bg-card p-4 space-y-3.5">
+                <div data-testid="audit-log-detail-target">
+                  <span className="text-xs font-mono font-medium uppercase tracking-wider text-muted-foreground block mb-1">
+                    Target
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className="font-semibold text-foreground">
+                      {displayedEntry.targetType}
+                    </span>
+                    <span className="break-all font-mono text-xs text-muted-foreground">
+                      ({displayedEntry.targetId})
+                    </span>
+                  </div>
+                </div>
+
+                <div data-testid="audit-log-detail-actor">
+                  <span className="text-xs font-mono font-medium uppercase tracking-wider text-muted-foreground block mb-1">
+                    Actor
+                  </span>
+                  <span className="break-all font-mono text-sm text-foreground">
+                    {displayedEntry.actorId}
+                  </span>
+                </div>
               </div>
 
-              <div data-testid="audit-log-detail-target">
-                <dt className="text-xs font-medium uppercase text-muted-foreground">
-                  Target
-                </dt>
-                <dd className="mt-1 break-all font-mono text-sm">
-                  {displayedEntry.targetType}: {displayedEntry.targetId}
-                </dd>
+              {/* Identity & Traceability Card */}
+              <div className="rounded-lg border border-border/80 bg-muted/30 p-4 space-y-3">
+                <div data-testid="audit-log-detail-id">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-mono font-medium uppercase tracking-wider text-muted-foreground">
+                      Entry ID
+                    </span>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleCopy("id", displayedEntry.id)}
+                      className="h-6 px-1.5 text-xs text-muted-foreground hover:text-foreground gap-1"
+                      title="Copy Entry ID"
+                    >
+                      {copiedField === "id" ? (
+                        <>
+                          <Check className="h-3 w-3 text-emerald-500" />
+                          <span className="text-xs text-emerald-500 font-mono">Copied</span>
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="h-3 w-3" />
+                          <span className="text-xs font-mono">Copy</span>
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                  <span className="mt-1 block break-all font-mono text-xs text-foreground">
+                    {displayedEntry.id}
+                  </span>
+                </div>
+
+                <div data-testid="audit-log-detail-request-id">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-mono font-medium uppercase tracking-wider text-muted-foreground">
+                      Request ID
+                    </span>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleCopy("requestId", displayedEntry.requestId)}
+                      className="h-6 px-1.5 text-xs text-muted-foreground hover:text-foreground gap-1"
+                      title="Copy Request ID"
+                    >
+                      {copiedField === "requestId" ? (
+                        <>
+                          <Check className="h-3 w-3 text-emerald-500" />
+                          <span className="text-xs text-emerald-500 font-mono">Copied</span>
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="h-3 w-3" />
+                          <span className="text-xs font-mono">Copy</span>
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                  <span className="mt-1 block break-all font-mono text-xs text-foreground">
+                    {displayedEntry.requestId}
+                  </span>
+                </div>
+
+                {displayedEntry.correlationId && (
+                  <div data-testid="audit-log-detail-correlation-id">
+                    <span className="text-xs font-mono font-medium uppercase tracking-wider text-muted-foreground block mb-1">
+                      Correlation ID
+                    </span>
+                    <span className="break-all font-mono text-xs text-foreground">
+                      {displayedEntry.correlationId}
+                    </span>
+                  </div>
+                )}
               </div>
 
-              <div data-testid="audit-log-detail-id">
-                <dt className="text-xs font-medium uppercase text-muted-foreground">
-                  Entry ID
-                </dt>
-                <dd className="mt-1 break-all font-mono text-sm">
-                  {displayedEntry.id}
-                </dd>
-              </div>
-
-              {/*
-                Payload is intentionally NOT rendered.
-                Per `docs/AUDIT_ENDPOINT_CONTRACT.md`, payload is redacted
-                server-side and the frontend must not display it.
-              */}
-              <div className="rounded-md border border-dashed border-border bg-muted/20 p-3 text-xs text-muted-foreground">
+              <div className="rounded-lg border border-dashed border-border bg-muted/20 p-3.5 text-xs text-muted-foreground">
                 Sensitive payload fields are not displayed.
               </div>
-            </dl>
+            </div>
           )}
         </div>
-      </div>
-    </div>
+      </SheetContent>
+    </Sheet>
   );
 }

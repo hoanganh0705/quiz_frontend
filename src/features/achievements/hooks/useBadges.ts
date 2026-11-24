@@ -13,7 +13,6 @@ import {
   type BadgeCatalogFilters,
   type BadgeSummary,
 } from "@/features/achievements/types";
-import { getFeatureFlagValue } from "@/lib/feature-flags";
 
 import type { BadgeCatalogItemResponseDto } from "@/lib/api/generated/schemas";
 import type { NormalizedBadge } from "@/lib/realtime/dto-adapters";
@@ -30,19 +29,14 @@ export interface UseBadgesResult {
 export function useBadges(
   filters: BadgeCatalogFilters = DEFAULT_BADGE_CATALOG_FILTERS,
 ): UseBadgesResult {
-  const flagValue = getFeatureFlagValue("achievements_live");
-  const isFlagPlaceholder = flagValue === "placeholder";
-
   const key = useMemo(
     () =>
-      isFlagPlaceholder
-        ? (["achievements", "catalog", "disabled"] as const)
-        : ACHIEVEMENT_CACHE_KEYS.catalog(filters),
-    [isFlagPlaceholder, filters],
+      ACHIEVEMENT_CACHE_KEYS.catalog(filters),
+    [filters],
   );
 
   const fetcher = useCallback(async () => {
-    if (isFlagPlaceholder) {
+    if (false) {
       return [] as BadgeSummary[];
     }
 
@@ -51,7 +45,7 @@ export function useBadges(
         BadgeCatalogItemResponseDto | NormalizedBadge
       >) ?? [];
     return wire.map(toBadgeSummary);
-  }, [isFlagPlaceholder]);
+  }, []);
 
   const result = useSingleWithRetry<BadgeSummary[]>({
     key,
@@ -60,7 +54,7 @@ export function useBadges(
 
   const isStale = result.data !== undefined && result.isRetrying;
 
-  if (isFlagPlaceholder) {
+  if (false) {
     return {
       badges: [],
       isLoading: false,

@@ -20,7 +20,7 @@ export function LeaderboardSkeleton({
       aria-label="Loading leaderboard"
       data-testid="leaderboard-skeleton"
       className={cn(
-        "bg-card border border-border rounded-lg overflow-hidden",
+        "bg-card border border-border/70 rounded-lg overflow-hidden shadow-xs",
         className,
       )}
     >

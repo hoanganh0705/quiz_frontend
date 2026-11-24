@@ -3,7 +3,6 @@
 import { forwardRef, useCallback, useImperativeHandle, useRef } from "react";
 import { Plus } from "lucide-react";
 
-import { useAdminFeatureFlag } from "@/features/admin/hooks/useAdminFeatureFlag";
 import { usePermission } from "@/features/admin/hooks/usePermission";
 import { AdminPageHeader } from "@/app/(protected)/admin/_components/AdminPageHeader";
 
@@ -30,7 +29,6 @@ export const TournamentAdminPage = forwardRef<
   TournamentAdminPageHandle,
   TournamentAdminPageProps
 >(function TournamentAdminPage(_props, _ref): React.ReactElement {
-  const { value: flagValue } = useAdminFeatureFlag("admin_tournament_live");
 
   const canCreate = usePermission("tournament_create");
 
@@ -39,17 +37,6 @@ export const TournamentAdminPage = forwardRef<
   const handleNewTournament = useCallback(() => {
     listRef.current?.requestCreate();
   }, []);
-
-  if (flagValue !== "live") {
-    return (
-      <div className="mx-auto max-w-3xl py-8">
-        <AdminPageHeader
-          title={DISABLED_NOTICE_COPY.title}
-          description={DISABLED_NOTICE_COPY.description}
-        />
-      </div>
-    );
-  }
 
   return (
     <div className="mx-auto max-w-3xl py-8 space-y-6">

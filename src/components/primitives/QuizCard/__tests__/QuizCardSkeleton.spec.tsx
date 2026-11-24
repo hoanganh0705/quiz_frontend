@@ -1,4 +1,9 @@
+import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
+
+import { mockQuizListItemDto } from "../../__tests__/render-helpers";
+import { QuizCard } from "../QuizCard";
+import { QuizCardSkeleton } from "../QuizCardSkeleton";
 
 vi.mock("next/link", () => ({
   default: ({
@@ -15,11 +20,7 @@ vi.mock("next/link", () => ({
   ),
 }));
 
-import { render, screen } from "@testing-library/react";
 
-import { QuizCard } from "../QuizCard";
-import { QuizCardSkeleton } from "../QuizCardSkeleton";
-import { mockQuizListItemDto } from "../../__tests__/render-helpers";
 
 describe("QuizCardSkeleton", () => {
   it("has role=status and an accessible label", () => {

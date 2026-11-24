@@ -6,7 +6,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/shared/utils/merge-class-names";
 
-interface EmptyStateAction {
+export interface EmptyStateAction {
   label: string;
   href?: string;
   onClick?: () => void;

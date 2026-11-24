@@ -48,31 +48,31 @@ export function SlugConflictNotice({
     <div className="space-y-4">
       {/* Warning banner */}
       <div
-        className="flex items-start gap-3 p-3 rounded-lg border border-yellow-200 bg-yellow-50 dark:border-yellow-800 dark:bg-yellow-900/20"
+        className="flex items-start gap-3 p-3.5 rounded-xl border border-warning/30 bg-warning/10"
         role="alert"
       >
         <AlertTriangle
-          className="h-5 w-5 text-yellow-600 dark:text-yellow-400 shrink-0 mt-0.5"
+          className="h-5 w-5 text-warning shrink-0 mt-0.5"
           aria-hidden
         />
         <div className="space-y-1">
-          <p className="text-sm font-medium text-yellow-800 dark:text-yellow-200">
+          <p className="text-sm font-semibold text-foreground">
             {mode === "restore"
               ? "Slug conflict — rename before restoring"
               : "Slug is already taken"}
           </p>
           {conflictingTagName ? (
-            <p className="text-xs text-yellow-700 dark:text-yellow-300">
+            <p className="text-xs text-muted-foreground">
               The slug &ldquo;{renamedSlug || "(pending)"}&rdquo; is taken by{" "}
-              <strong>{conflictingTagName}</strong>.
+              <strong className="text-foreground">{conflictingTagName}</strong>.
             </p>
           ) : (
-            <p className="text-xs text-yellow-700 dark:text-yellow-300">
+            <p className="text-xs text-muted-foreground">
               Choose a different slug to continue.
             </p>
           )}
           {conflictingTagId && (
-            <p className="text-xs text-yellow-600 dark:text-yellow-400">
+            <p className="text-xs text-muted-foreground font-mono">
               Conflicting tag ID: {conflictingTagId}
             </p>
           )}
@@ -96,6 +96,7 @@ export function SlugConflictNotice({
             className="flex-1"
           />
           <Button
+            type="button"
             variant="outline"
             disabled={disabled || !renamedSlug.trim()}
             title="Auto-derive slug from the original tag name"

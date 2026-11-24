@@ -134,7 +134,7 @@ export function useAttemptHydration(
 
   const refresh = useCallback(async () => {
     await Promise.all([detail.retry(), answers.retry()]);
-  }, [detail.retry, answers.retry]);
+  }, [detail, answers]);
 
   return {
     detail: detail.data ?? null,

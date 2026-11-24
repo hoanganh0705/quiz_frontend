@@ -2,7 +2,6 @@
 
 import { useSyncExternalStore, useMemo } from "react";
 
-import { getFeatureFlagValue } from "@/lib/feature-flags";
 
 import { useQuestionRevealed } from "./useQuestionRevealed";
 import { useInstanceLifecycle } from "./useInstanceLifecycle";
@@ -49,9 +48,6 @@ function getClockServerSnapshot(): number {
 export function useQuestionTimer(
   instanceId: string | null,
 ): UseQuestionTimerResult {
-  const flagValue = getFeatureFlagValue("multiplayer_play_live");
-  const isPlaceholder = flagValue === "placeholder";
-
   const { timing } = useQuestionRevealed(instanceId);
   const { isClosed } = useInstanceLifecycle(instanceId);
 
@@ -62,12 +58,12 @@ export function useQuestionTimer(
   );
 
   const serverDriftMs = useMemo(() => {
-    if (!timing || clockNow === 0) return 0;
+    if (!timing) return 0;
     const serverNowMs = new Date(timing.serverNow).getTime();
-    return serverNowMs - clockNow;
-  }, [timing, clockNow]);
+    return serverNowMs - Date.now();
+  }, [timing]);
 
-  if (isPlaceholder || !timing) {
+  if (!timing) {
     return {
       remainingMs: 0,
       totalMs: 0,

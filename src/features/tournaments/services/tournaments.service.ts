@@ -23,7 +23,7 @@ export async function listTournaments(
   params?: TournamentControllerListTournamentsParams,
 ) {
   Sentry.addBreadcrumb({
-    category: "phase5:service",
+    category: "tournaments:service",
     message: "tournaments.listTournaments",
   });
   return getTournaments().tournamentControllerListTournaments(params);
@@ -31,7 +31,7 @@ export async function listTournaments(
 
 export async function getTournament(id: string) {
   Sentry.addBreadcrumb({
-    category: "phase5:service",
+    category: "tournaments:service",
     message: `tournaments.getTournament(${id})`,
   });
   return getTournaments().tournamentControllerGetTournamentById(id);
@@ -42,7 +42,7 @@ export async function getTournamentLeaderboard(
   params?: TournamentControllerGetLeaderboardParams,
 ) {
   Sentry.addBreadcrumb({
-    category: "phase5:service",
+    category: "tournaments:service",
     message: `tournaments.getTournamentLeaderboard(${id})`,
   });
   return getTournaments().tournamentControllerGetLeaderboard(id, params);
@@ -50,7 +50,7 @@ export async function getTournamentLeaderboard(
 
 export async function registerForTournament(id: string) {
   Sentry.addBreadcrumb({
-    category: "phase5:service",
+    category: "tournaments:service",
     message: `tournaments.registerForTournament(${id})`,
   });
   return getTournaments().tournamentControllerRegisterForTournament(id);
@@ -58,7 +58,7 @@ export async function registerForTournament(id: string) {
 
 export async function unregisterFromTournament(id: string) {
   Sentry.addBreadcrumb({
-    category: "phase5:service",
+    category: "tournaments:service",
     message: `tournaments.unregisterFromTournament(${id})`,
   });
   return getTournaments().tournamentControllerUnregisterFromTournament(id);
@@ -66,7 +66,7 @@ export async function unregisterFromTournament(id: string) {
 
 export async function startRoundAttempt(tournamentId: string, roundId: string) {
   Sentry.addBreadcrumb({
-    category: "phase5:service",
+    category: "tournaments:service",
     message: `tournaments.startRoundAttempt(${tournamentId}, ${roundId})`,
   });
   return getTournaments().tournamentControllerStartRoundAttempt(
@@ -77,7 +77,7 @@ export async function startRoundAttempt(tournamentId: string, roundId: string) {
 
 export async function createTournament(params: CreateTournamentDto) {
   Sentry.addBreadcrumb({
-    category: "phase5:service",
+    category: "tournaments:service",
     message: "tournaments.createTournament",
   });
   return getTournaments().tournamentControllerCreateTournament(params);
@@ -87,7 +87,7 @@ export async function getUpcomingTournaments(
   params?: TournamentControllerGetUpcomingTournamentsParams,
 ): Promise<unknown> {
   Sentry.addBreadcrumb({
-    category: "phase5:service",
+    category: "tournaments:service",
     message: "tournaments.getUpcomingTournaments",
   });
   const data =
@@ -106,7 +106,7 @@ export async function getActiveTournaments(
   params?: TournamentControllerGetActiveTournamentsParams,
 ): Promise<unknown> {
   Sentry.addBreadcrumb({
-    category: "phase5:service",
+    category: "tournaments:service",
     message: "tournaments.getActiveTournaments",
   });
   const data =
@@ -125,7 +125,7 @@ export async function getCompletedTournaments(
   params?: TournamentControllerGetCompletedTournamentsParams,
 ): Promise<unknown> {
   Sentry.addBreadcrumb({
-    category: "phase5:service",
+    category: "tournaments:service",
     message: "tournaments.getCompletedTournaments",
   });
   const data =
@@ -145,7 +145,7 @@ export async function getRelatedTournaments(
   params?: TournamentControllerGetRelatedTournamentsParams,
 ): Promise<unknown> {
   Sentry.addBreadcrumb({
-    category: "phase5:service",
+    category: "tournaments:service",
     message: `tournaments.getRelatedTournaments(${id})`,
   });
   const data = await getTournaments().tournamentControllerGetRelatedTournaments(
@@ -167,7 +167,7 @@ export async function getTournamentParticipants(
   params?: TournamentControllerGetTournamentParticipantsParams,
 ): Promise<unknown> {
   Sentry.addBreadcrumb({
-    category: "phase5:service",
+    category: "tournaments:service",
     message: `tournaments.getTournamentParticipants(${id})`,
   });
   const data =
@@ -187,7 +187,7 @@ export async function getTournamentParticipants(
 
 export async function getTournamentStats(id: string): Promise<unknown> {
   Sentry.addBreadcrumb({
-    category: "phase5:service",
+    category: "tournaments:service",
     message: `tournaments.getTournamentStats(${id})`,
   });
   const data =
@@ -204,7 +204,7 @@ export async function getTournamentStats(id: string): Promise<unknown> {
 
 export async function getTournamentWinners(id: string): Promise<unknown> {
   Sentry.addBreadcrumb({
-    category: "phase5:service",
+    category: "tournaments:service",
     message: `tournaments.getTournamentWinners(${id})`,
   });
   const data =
@@ -221,7 +221,7 @@ export async function getTournamentWinners(id: string): Promise<unknown> {
 
 export async function getMyTournamentStanding(id: string): Promise<unknown> {
   Sentry.addBreadcrumb({
-    category: "phase5:service",
+    category: "tournaments:service",
     message: `tournaments.getMyTournamentStanding(${id})`,
   });
   const data =
@@ -241,7 +241,7 @@ export async function createTournamentRound(
   params: CreateTournamentRoundDto,
 ): Promise<unknown> {
   Sentry.addBreadcrumb({
-    category: "phase5:service",
+    category: "tournaments:service",
     message: `tournaments.createTournamentRound(${id})`,
   });
   const data = await getTournaments().tournamentControllerCreateTournamentRound(
@@ -260,7 +260,7 @@ export async function createTournamentRound(
 
 export async function withdrawFromTournament(id: string): Promise<unknown> {
   Sentry.addBreadcrumb({
-    category: "phase5:service",
+    category: "tournaments:service",
     message: `tournaments.withdrawFromTournament(${id})`,
   });
   const data =
@@ -280,7 +280,7 @@ export async function updateTournament(
   params: UpdateTournamentDto,
 ): Promise<unknown> {
   Sentry.addBreadcrumb({
-    category: "phase5:service",
+    category: "tournaments:service",
     message: `tournaments.updateTournament(${id})`,
   });
   const data = await getTournaments().tournamentControllerUpdateTournament(
@@ -299,7 +299,7 @@ export async function updateTournament(
 
 export async function deleteTournament(id: string): Promise<unknown> {
   Sentry.addBreadcrumb({
-    category: "phase5:service",
+    category: "tournaments:service",
     message: `tournaments.deleteTournament(${id})`,
   });
   const data =
@@ -316,7 +316,7 @@ export async function deleteTournament(id: string): Promise<unknown> {
 
 export async function cancelTournament(id: string): Promise<unknown> {
   Sentry.addBreadcrumb({
-    category: "phase5:service",
+    category: "tournaments:service",
     message: `tournaments.cancelTournament(${id})`,
   });
   const data = await getTournaments().tournamentControllerCancelTournament(id);

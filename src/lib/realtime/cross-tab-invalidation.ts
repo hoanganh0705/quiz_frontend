@@ -2,7 +2,7 @@ import { getCurrentTabId } from "@/lib/api/core/broadcast-channel";
 
 export const CROSS_TAB_INVALIDATION_CHANNEL = "realtime/invalidation" as const;
 
-export type Phase5InvalidationSource =
+export type RealtimeInvalidationSource =
   | "notification"
   | "instance"
   | "tournament"
@@ -11,48 +11,48 @@ export type Phase5InvalidationSource =
   | "friend-request"
   | "coin";
 
-interface Phase5InvalidationBase {
+interface RealtimeInvalidationBase {
   tabId: string;
   timestamp: number;
 }
 
-export interface NotificationInvalidationEvent extends Phase5InvalidationBase {
+export interface NotificationInvalidationEvent extends RealtimeInvalidationBase {
   type: "notification";
   notificationId?: string;
 }
 
-export interface InstanceInvalidationEvent extends Phase5InvalidationBase {
+export interface InstanceInvalidationEvent extends RealtimeInvalidationBase {
   type: "instance";
   instanceId: string;
 }
 
-export interface TournamentInvalidationEvent extends Phase5InvalidationBase {
+export interface TournamentInvalidationEvent extends RealtimeInvalidationBase {
   type: "tournament";
   tournamentId: string;
 }
 
-export interface AchievementInvalidationEvent extends Phase5InvalidationBase {
+export interface AchievementInvalidationEvent extends RealtimeInvalidationBase {
   type: "achievement";
   badgeId?: string;
 }
 
-export interface RelationshipInvalidationEvent extends Phase5InvalidationBase {
+export interface RelationshipInvalidationEvent extends RealtimeInvalidationBase {
   type: "relationship";
   targetUserId: string;
 }
 
-export interface FriendRequestInvalidationEvent extends Phase5InvalidationBase {
+export interface FriendRequestInvalidationEvent extends RealtimeInvalidationBase {
   type: "friend-request";
   decision?: "accept" | "decline" | "cancel";
   requesterUserId?: string;
   recipientUserId?: string;
 }
 
-export interface CoinInvalidationEvent extends Phase5InvalidationBase {
+export interface CoinInvalidationEvent extends RealtimeInvalidationBase {
   type: "coin";
 }
 
-export type Phase5InvalidationPayload =
+export type RealtimeInvalidationPayload =
   | NotificationInvalidationEvent
   | InstanceInvalidationEvent
   | TournamentInvalidationEvent
@@ -61,19 +61,19 @@ export type Phase5InvalidationPayload =
   | FriendRequestInvalidationEvent
   | CoinInvalidationEvent;
 
-export type Phase5InvalidationEnvelope = {
-  [K in Phase5InvalidationPayload as K["type"]]: K;
+export type RealtimeInvalidationEnvelope = {
+  [K in RealtimeInvalidationPayload as K["type"]]: K;
 };
 
-export type Phase5InvalidationInput = {
-  [K in Phase5InvalidationSource]: Omit<
-    Extract<Phase5InvalidationPayload, { type: K }>,
+export type RealtimeInvalidationInput = {
+  [K in RealtimeInvalidationSource]: Omit<
+    Extract<RealtimeInvalidationPayload, { type: K }>,
     "tabId" | "timestamp"
   >;
-}[Phase5InvalidationSource];
+}[RealtimeInvalidationSource];
 
 export function emitRealtimeCrossTabInvalidation(
-  payload: Phase5InvalidationInput,
+  payload: RealtimeInvalidationInput,
 ): void {
   if (typeof window === "undefined") return;
 
@@ -83,16 +83,16 @@ export function emitRealtimeCrossTabInvalidation(
       ...payload,
       tabId: getCurrentTabId(),
       timestamp: Date.now(),
-    } satisfies Phase5InvalidationPayload);
+    } satisfies RealtimeInvalidationPayload);
   } finally {
     channel.close();
   }
 }
 
-export const emitPhase5Invalidation = emitRealtimeCrossTabInvalidation;
+export const emitRealtimeInvalidation = emitRealtimeCrossTabInvalidation;
 
 export function postRelationshipInvalidation(targetUserId: string): void {
-  emitPhase5Invalidation({ type: "relationship", targetUserId });
+  emitRealtimeInvalidation({ type: "relationship", targetUserId });
 }
 
 export function postFriendRequestInvalidation(detail?: {
@@ -100,16 +100,16 @@ export function postFriendRequestInvalidation(detail?: {
   requesterUserId?: string;
   recipientUserId?: string;
 }): void {
-  emitPhase5Invalidation({ type: "friend-request", ...detail });
+  emitRealtimeInvalidation({ type: "friend-request", ...detail });
 }
 
-export function subscribeToPhase5Invalidation(
-  handler: (event: Phase5InvalidationPayload) => void,
+export function subscribeToRealtimeInvalidation(
+  handler: (event: RealtimeInvalidationPayload) => void,
 ): () => void {
   if (typeof window === "undefined") return () => {};
 
   const channel = new BroadcastChannel(CROSS_TAB_INVALIDATION_CHANNEL);
-  const listener = (e: MessageEvent<Phase5InvalidationPayload>) => {
+  const listener = (e: MessageEvent<RealtimeInvalidationPayload>) => {
     if (e.data.tabId === getCurrentTabId()) return;
     handler(e.data);
   };

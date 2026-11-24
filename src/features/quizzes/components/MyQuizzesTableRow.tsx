@@ -52,23 +52,17 @@ export function MyQuizzesTableRow({
   return (
     <TableRow
       data-quiz-id={quiz.quizId}
-      className={onRowClick ? "cursor-pointer" : undefined}
+      className={
+        onRowClick
+          ? "group cursor-pointer transition-colors hover:bg-muted/40"
+          : undefined
+      }
       onClick={onRowClick}
     >
-      {/* Checkbox — reserved for future bulk-select */}
-      <TableCell className="w-10">
-        <input
-          type="checkbox"
-          aria-label={`Select "${quiz.title}"`}
-          className="accent-brand h-4 w-4 rounded"
-          onClick={(e) => e.stopPropagation()}
-        />
-      </TableCell>
-
       {/* Title — clamped at 2 lines; full title in aria-label */}
-      <TableCell className="min-w-48 max-w-80">
+      <TableCell className="min-w-48 max-w-80 px-4 py-4">
         <span
-          className="line-clamp-2 font-medium"
+          className="line-clamp-2 font-medium text-foreground transition-colors group-hover:text-primary"
           aria-label={quiz.title}
           title={quiz.title}
         >
@@ -77,33 +71,50 @@ export function MyQuizzesTableRow({
       </TableCell>
 
       {/* Slug */}
-      <TableCell>
-        <span className="text-muted-foreground text-sm">/{quiz.slug}</span>
+      <TableCell className="hidden px-4 py-4 md:table-cell">
+        <span className="text-muted-foreground font-mono text-xs">
+          /{quiz.slug}
+        </span>
       </TableCell>
 
       {/* Status badge */}
-      <TableCell>
-        <Badge variant={statusVariant}>{statusLabel}</Badge>
+      <TableCell className="px-4 py-4">
+        <Badge
+          variant={statusVariant}
+          className="font-mono text-xs font-medium"
+        >
+          {statusLabel}
+        </Badge>
       </TableCell>
 
       {/* Question count */}
-      <TableCell>
-        <span className="text-sm">{questionCount}</span>
+      <TableCell className="hidden px-4 py-4 sm:table-cell">
+        <span className="text-muted-foreground font-mono text-sm">
+          {questionCount}
+        </span>
       </TableCell>
 
       {/* Updated at */}
-      <TableCell>
+      <TableCell className="hidden px-4 py-4 lg:table-cell">
         <span className="text-muted-foreground text-sm">
           {formatUpdatedAt(quiz.updatedAt)}
         </span>
       </TableCell>
 
       {/* Actions — omitted when soft-deleted */}
-      <TableCell className="w-36">
+      <TableCell className="w-32 px-4 py-4 text-right">
         {!isDeleted && (
-          <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
-            <Button variant="outline" size="sm" asChild>
-              <Link href={`/my-quizzes/${quiz.quizId}`}>
+          <div
+            className="flex justify-end gap-2"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <Button
+              variant="outline"
+              size="sm"
+              asChild
+              className="transition-colors hover:border-primary/40 hover:bg-primary/5 hover:text-primary"
+            >
+              <Link href={`/my-quizzes/${quiz.quizId}/edit`}>
                 <Pencil className="mr-1 h-3.5 w-3.5" />
                 Edit
               </Link>

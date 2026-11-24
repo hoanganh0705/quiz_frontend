@@ -1,3 +1,10 @@
+import { act, renderHook } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
+
+import { useAttemptRunner } from "@/features/attempts/hooks/useAttemptRunner";
+
+import type { QuizQuestionPlayerDto } from "@/lib/api/generated/schemas";
+
 const useAuthSessionMock = vi.fn(() => ({
   bootstrapState: "authenticated" as const,
   currentUser: { id: "user-1" },
@@ -45,6 +52,19 @@ vi.mock("@/features/attempts/hooks/useCompleteAttempt", () => ({
   useCompleteAttempt: () => useCompleteAttemptMock(),
 }));
 
+const abandonConfirmMock = vi.fn().mockResolvedValue({ kind: "success" });
+const useAbandonAttemptMock = vi.fn(() => ({
+  isPending: false,
+  isCoolingDown: false,
+  outcome: null,
+  error: null,
+  confirm: abandonConfirmMock,
+  reset: vi.fn(),
+}));
+vi.mock("@/features/attempts/hooks/useAbandonAttempt", () => ({
+  useAbandonAttempt: () => useAbandonAttemptMock(),
+}));
+
 const useActiveAttemptMock = vi.fn(() => ({
   attempt: null,
   isLoading: false,
@@ -76,14 +96,11 @@ vi.mock("@/features/attempts/stores/useAttemptsStore", () => ({
   recordCompletionSuccess: vi.fn(),
   resetAttempt: vi.fn(),
   setDraftSelection: vi.fn(),
+  useAttemptSubmittedAnswers: vi.fn(() => ({})),
 }));
 
-import { describe, expect, it, vi } from "vitest";
-import { act, renderHook } from "@testing-library/react";
 
-import { useAttemptRunner } from "@/features/attempts/hooks/useAttemptRunner";
 
-import type { QuizQuestionPlayerDto } from "@/lib/api/generated/schemas";
 
 const baseQuestions: readonly QuizQuestionPlayerDto[] = [
   {
@@ -151,13 +168,20 @@ describe("useAttemptRunner — drafts", () => {
 });
 
 describe("useAttemptRunner — abandon", () => {
-  it("abandon() emits navigation intent", async () => {
+  it("abandon() calls confirm and emits navigation intent", async () => {
+    useActiveAttemptMock.mockReturnValueOnce({
+      attempt: { attemptId: "attempt-1", status: "started" } as any,
+      isLoading: false,
+      error: null,
+      retry: vi.fn(async () => undefined),
+    });
     const { result } = renderHook(() => useAttemptRunner(baseParams));
 
     await act(async () => {
       await result.current.abandon();
     });
 
+    expect(abandonConfirmMock).toHaveBeenCalledTimes(1);
     expect(result.current.navigation).toEqual({
       kind: "push_quiz",
       href: "/quizzes/my-quiz",

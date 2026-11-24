@@ -12,7 +12,6 @@ import {
 } from "@/lib/realtime";
 import type { UseSocketReturn } from "@/lib/realtime";
 import type { NotificationSentPayload } from "@/lib/realtime/events";
-import { getFeatureFlagValue } from "@/lib/feature-flags";
 
 import { makeAchievementInvalidationKeys } from "@/features/achievements/types";
 
@@ -25,18 +24,7 @@ const ACHIEVEMENT_NOTIFICATION_TYPES: ReadonlySet<string> = new Set([
 const DEDUPE_WINDOW_MS = 10 * 60 * 1000;
 
 export function useAchievementNotificationRevalidation(): void {
-  const achievementsFlag = getFeatureFlagValue("achievements_live");
-  const notificationsFlag = getFeatureFlagValue("notifications_live");
-  const realtimeFlag = getFeatureFlagValue("realtime_infrastructure_live");
-
-  const achievementsPlaceholder = achievementsFlag === "placeholder";
-  const notificationsPlaceholder = notificationsFlag === "placeholder";
-  const realtimePlaceholder = realtimeFlag === "placeholder";
-
-  const enabled =
-    !achievementsPlaceholder &&
-    !notificationsPlaceholder &&
-    !realtimePlaceholder;
+  const enabled = true;
 
   const { socket, connectionState }: UseSocketReturn = useSocket(
     NOTIFICATIONS_NAMESPACE,

@@ -22,6 +22,7 @@ export type ReportActionDto = ReviewReportDto;
 export interface ListCommentReportsParams {
   cursor?: string;
   limit?: number;
+  status?: "open" | "reviewed" | "dismissed" | "actioned";
 }
 
 export interface CommentReportsPage {

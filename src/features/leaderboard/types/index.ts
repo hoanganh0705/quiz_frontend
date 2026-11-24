@@ -1,6 +1,7 @@
+import type { BadgeType } from "./badges";
+
 export { BADGE_TYPES } from "./badges";
 export type { BadgeType } from "./badges";
-import type { BadgeType } from "./badges";
 
 export interface LeaderboardEntry {
   id: string;

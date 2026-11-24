@@ -96,17 +96,21 @@ export function useAdminUserList(initialQuery: AdminUserQuery = {}) {
   const pagination = {
     page: query.page ?? 1,
     limit: query.limit ?? 20,
-    total: data?.meta?.total ?? 0,
-    totalPages: data?.meta?.totalPages ?? 1,
-    hasMore: (query.page ?? 1) < (data?.meta?.totalPages ?? 1),
+    total: data?.meta?.pagination?.total ?? 0,
+    totalPages: data?.meta?.pagination
+      ? Math.ceil(data.meta.pagination.total / data.meta.pagination.limit)
+      : 1,
+    hasMore: data?.meta?.pagination?.hasMore ?? false,
   };
 
   return {
     users: data?.data ?? [],
-    total: data?.meta?.total ?? 0,
+    total: data?.meta?.pagination?.total ?? 0,
     page: query.page ?? 1,
     limit: query.limit ?? 20,
-    totalPages: data?.meta?.totalPages ?? 1,
+    totalPages: data?.meta?.pagination
+      ? Math.ceil(data.meta.pagination.total / data.meta.pagination.limit)
+      : 1,
     pagination,
     query,
     isLoading: isLoading && data === undefined,

@@ -88,7 +88,7 @@ export const CommentReportActionMenu = memo(function CommentReportActionMenu({
     return (
       <div
         role="note"
-        className="rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-900"
+        className="rounded-md border border-warning/30 bg-warning/10 dark:bg-warning/15 px-3 py-2 text-xs text-foreground"
         data-testid={`comment-report-self-moderation-notice-${report.reportId}`}
       >
         You can&apos;t moderate a report about a comment you wrote.
@@ -106,7 +106,7 @@ export const CommentReportActionMenu = memo(function CommentReportActionMenu({
             "text-muted-foreground transition-colors",
             "hover:bg-muted hover:text-foreground",
             "focus-visible:outline-none focus-visible:ring-2",
-            "focus-visible:ring-ring focus-visible:ring-offset-2",
+            "focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
             className ?? "",
           ]
             .filter(Boolean)
@@ -139,6 +139,11 @@ export const CommentReportActionMenu = memo(function CommentReportActionMenu({
               {showSeparator ? <DropdownMenuSeparator /> : null}
               <DropdownMenuItem
                 onClick={handleSelect(action)}
+                className={
+                  metadata.auditActionType === "destructive"
+                    ? "text-destructive focus:text-destructive focus:bg-destructive/10 cursor-pointer"
+                    : "cursor-pointer"
+                }
                 data-testid={`comment-report-action-${action}-${report.reportId}`}
               >
                 <span className="flex flex-col gap-0.5">

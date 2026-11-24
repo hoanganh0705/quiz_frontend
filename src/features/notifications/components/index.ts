@@ -17,9 +17,6 @@ export type { NotificationBellProps } from "./NotificationBell";
 
 export { NotificationPopover } from "./NotificationPopover";
 
-export { NotificationPlaceholder } from "./NotificationPlaceholder";
-export type { NotificationPlaceholderProps } from "./NotificationPlaceholder";
-
 export { NotificationCenterPage } from "./NotificationCenterPage";
 export type { NotificationCenterPageProps } from "./NotificationCenterPage";
 

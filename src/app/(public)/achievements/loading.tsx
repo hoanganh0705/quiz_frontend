@@ -1,20 +1,29 @@
 import { Skeleton } from "@/components/ui/Skeleton";
-import {
-  BadgeGallerySkeleton,
-  EarnedBadgeListSkeleton,
-  AchievementHistorySkeleton,
-} from "@/features/achievements/components";
+import { BadgeGallerySkeleton } from "@/features/achievements/components";
 
 export default function AchievementsLoading() {
   return (
-    <main className="mx-auto max-w-4xl space-y-6 p-4 sm:p-6 lg:p-8">
-      <header className="space-y-1">
-        <Skeleton className="h-7 w-44" />
-        <Skeleton className="h-4 w-80" />
+    <main className="mx-auto max-w-7xl min-h-screen text-foreground px-4 sm:px-6 lg:px-8 py-8 sm:py-10 space-y-8">
+      <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between pb-2 border-b border-border/40">
+        <div className="flex items-start gap-3.5">
+          <Skeleton className="h-12 w-12 rounded-2xl shrink-0" />
+          <div className="space-y-2">
+            <Skeleton className="h-8 w-44" />
+            <Skeleton className="h-4 w-80 max-w-full" />
+          </div>
+        </div>
       </header>
-      <BadgeGallerySkeleton />
-      <EarnedBadgeListSkeleton />
-      <AchievementHistorySkeleton />
+
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div className="inline-flex h-11 w-full sm:w-auto rounded-xl bg-muted/60 p-1 gap-1 border border-border/40">
+            <Skeleton className="h-9 w-32 rounded-lg" />
+            <Skeleton className="h-9 w-28 rounded-lg" />
+            <Skeleton className="h-9 w-24 rounded-lg" />
+          </div>
+        </div>
+        <BadgeGallerySkeleton />
+      </div>
     </main>
   );
 }

@@ -10,7 +10,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/AlertDialog";
 import { Button } from "@/components/ui/Button";
-import { ShieldAlert } from "lucide-react";
+import { Loader2, ShieldAlert } from "lucide-react";
 
 import { getUserCopy } from "@/lib/api/error-codes";
 import { RequestIdBanner } from "@/features/admin/components/RequestIdBanner";
@@ -20,7 +20,7 @@ import { useAuth } from "@/features/auth/hooks/use-auth";
 import { useRevokeUserRole } from "../hooks/useRevokeUserRole";
 import { SelfRoleRevokeForbiddenNotice } from "./SelfRoleRevokeForbiddenNotice";
 import {
-  type AdminPermission,
+  type AdminRoleOrPermission,
   type UserRoleDto,
 } from "@/features/admin/services/user-role-admin.service";
 import { getUserRoleConfirmMetadata } from "../user-role-confirm-strings";
@@ -32,7 +32,7 @@ export interface RevokeRoleDialogProps {
 
   currentRoles: readonly UserRoleDto[];
 
-  role: AdminPermission;
+  role: AdminRoleOrPermission;
 
   isOpen: boolean;
 
@@ -150,14 +150,14 @@ export function RevokeRoleDialog({
           {/* Privilege escalation warning */}
           {!isSelfRevoke && (
             <div
-              className="flex items-start gap-2 rounded-md border border-amber-300 bg-amber-50 p-3"
+              className="flex items-start gap-2.5 rounded-lg border border-warning/30 bg-warning/10 p-3"
               data-testid="revoke-privilege-escalation-warning"
             >
               <ShieldAlert
                 aria-hidden="true"
-                className="mt-0.5 h-4 w-4 shrink-0 text-amber-700"
+                className="mt-0.5 size-4 shrink-0 text-warning"
               />
-              <p className="text-xs text-amber-900">
+              <p className="text-xs text-muted-foreground leading-relaxed">
                 {metadata.irreversibilityNotice}
               </p>
             </div>
@@ -165,6 +165,7 @@ export function RevokeRoleDialog({
 
           <AlertDialogFooter>
             <Button
+              type="button"
               variant="ghost"
               onClick={handleCancel}
               disabled={isPending}
@@ -173,12 +174,18 @@ export function RevokeRoleDialog({
               Cancel
             </Button>
             <Button
+              type="button"
               variant="destructive"
               disabled={isSelfRevoke || isPending}
+              aria-busy={isPending}
               onClick={handleRevokeClick}
               data-testid="revoke-confirm-button"
+              className="gap-2"
             >
-              Revoke Role
+              {isPending && (
+                <Loader2 className="size-3.5 animate-spin" aria-hidden="true" />
+              )}
+              <span>{isPending ? "Revoking…" : "Revoke Role"}</span>
             </Button>
           </AlertDialogFooter>
         </AlertDialogContent>

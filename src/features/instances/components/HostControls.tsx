@@ -117,22 +117,23 @@ export function HostControls({
         <Button
           type="button"
           variant="default"
+          size="lg"
           onClick={handleStart}
           disabled={startPending || closePending || disabledByStaleRole}
           aria-busy={startPending}
           data-testid="host-start-cta"
-          className="gap-2 bg-default hover:bg-default-hover text-white"
+          className="h-12 w-full gap-2 text-base font-bold bg-brand hover:bg-brand-hover text-white shadow-xs active:scale-[0.99] transition-all rounded-xl"
         >
           {startPending ? (
-            <LoaderCircle className="h-4 w-4 animate-spin" aria-hidden />
+            <LoaderCircle className="h-5 w-5 animate-spin" aria-hidden />
           ) : (
-            <Play className="h-4 w-4" aria-hidden />
+            <Play className="h-5 w-5 fill-current" aria-hidden />
           )}
           {startPending
             ? "Starting…"
             : status === "countdown"
               ? "Start Now"
-              : "Start"}
+              : "Start Match"}
         </Button>
       )}
 
@@ -140,18 +141,19 @@ export function HostControls({
         <Button
           type="button"
           variant="outline"
+          size="default"
           onClick={handleClose}
           disabled={startPending || closePending || disabledByStaleRole}
           aria-busy={closePending}
           data-testid="host-close-cta"
-          className="gap-2"
+          className="h-10 w-full gap-2 text-sm font-semibold rounded-xl text-muted-foreground hover:text-destructive hover:border-destructive/40 hover:bg-destructive/5 active:scale-[0.99] transition-all"
         >
           {closePending ? (
             <LoaderCircle className="h-4 w-4 animate-spin" aria-hidden />
           ) : (
             <XCircle className="h-4 w-4" aria-hidden />
           )}
-          {closePending ? "Closing…" : "Close"}
+          {closePending ? "Closing Room…" : "Close Room"}
         </Button>
       )}
 

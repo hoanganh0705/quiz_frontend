@@ -4,7 +4,6 @@ import { useCallback, useMemo } from "react";
 
 import { ApiError, coerceToApiError, useSingleWithRetry } from "@/lib/api";
 import type { ErrorCode } from "@/lib/api/error-codes";
-import { getFeatureFlagValue } from "@/lib/feature-flags";
 
 import { stripRelationshipInternalIds } from "@/features/social/dto-adapters";
 import { getRelationshipStatus } from "@/features/social/services";
@@ -49,12 +48,10 @@ const SELF_RESULT: UseRelationshipResult = Object.freeze({
 });
 
 function resolveShortCircuit(args: {
-  isFlagPlaceholder: boolean;
   isAuthenticated: boolean;
   targetUserId: string | null;
   isSelf: boolean;
 }): UseRelationshipResult | null {
-  if (args.isFlagPlaceholder) return NO_REQUEST_RESULT;
   if (!args.isAuthenticated) return NO_REQUEST_RESULT;
   if (args.targetUserId === null) return NO_REQUEST_RESULT;
   if (args.isSelf) return SELF_RESULT;
@@ -69,9 +66,6 @@ export function useRelationship(
   targetUserId: string | null,
   options: UseRelationshipOptions = {},
 ): UseRelationshipResult {
-  const flagValue = getFeatureFlagValue("social_relationship_live");
-  const isFlagPlaceholder = flagValue === "placeholder";
-
   const auth = useAuthSession();
   const overrideUserId = options.currentUserId ?? null;
   const viewerUserId = overrideUserId ?? auth.currentUser?.userId ?? null;
@@ -84,15 +78,15 @@ export function useRelationship(
   }, [targetUserId, viewerUserId]);
 
   const key = useMemo<readonly unknown[] | null>(() => {
-    if (isFlagPlaceholder) return null;
+    if (false) return null;
     if (!isAuthenticated) return null;
     if (targetUserId === null) return null;
     if (isSelf) return null;
     return SOCIAL_CACHE_KEYS.makeRelationshipKey(targetUserId);
-  }, [isFlagPlaceholder, isAuthenticated, targetUserId, isSelf]);
+  }, [isAuthenticated, targetUserId, isSelf]);
 
   const fetcher = useCallback(async (): Promise<Relationship> => {
-    if (isFlagPlaceholder) return "none";
+    if (false) return "none";
     if (!isAuthenticated) return "none";
     if (targetUserId === null) return "none";
     if (isSelf) return "self";
@@ -114,7 +108,7 @@ export function useRelationship(
       }
       throw apiErr;
     }
-  }, [isFlagPlaceholder, isAuthenticated, targetUserId, isSelf]);
+  }, [isAuthenticated, targetUserId, isSelf]);
 
   const result = useSingleWithRetry<Relationship>({
     key,
@@ -143,7 +137,6 @@ export function useRelationship(
   }, [result.error]);
 
   const shortCircuit = resolveShortCircuit({
-    isFlagPlaceholder,
     isAuthenticated,
     targetUserId,
     isSelf,

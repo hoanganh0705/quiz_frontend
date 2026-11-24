@@ -10,7 +10,6 @@ import {
   type InstanceLifecycleErrorCode,
   type InstanceLifecycleMutationState,
 } from "@/features/instances/types/instance.types";
-import { getFeatureFlagValue } from "@/lib/feature-flags";
 
 export type EmitLeaveFn = () => Promise<void>;
 
@@ -62,9 +61,6 @@ export function useLeaveInstance(
   instanceId: string | null,
   options: UseLeaveInstanceOptions = {},
 ): UseLeaveInstanceResult {
-  const flagValue = getFeatureFlagValue("multiplayer_instances_live");
-  const isFlagPlaceholder = flagValue === "placeholder";
-
   const { emitLeave = null } = options;
 
   const [state, setState] = useState<InstanceLifecycleMutationState>("idle");
@@ -73,7 +69,7 @@ export function useLeaveInstance(
   const inFlightRef = useRef(false);
 
   const leave = useCallback(async (): Promise<void> => {
-    if (isFlagPlaceholder || instanceId === null || emitLeave === null) {
+    if (instanceId === null || emitLeave === null) {
       return;
     }
 
@@ -121,7 +117,7 @@ export function useLeaveInstance(
     } finally {
       inFlightRef.current = false;
     }
-  }, [isFlagPlaceholder, instanceId, emitLeave, state]);
+  }, [instanceId, emitLeave, state]);
 
   const reset = useCallback(() => {
     setState("idle");

@@ -1,13 +1,13 @@
 "use client";
 
-import { useCallback, useMemo } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { getQueryClient } from "@/providers/QueryProvider";
 
 import { ApiError, coerceToApiError, isApiError } from "@/lib/api";
 import { listInstances } from "@/features/instances/services/instances.service";
 import { INSTANCE_CACHE_KEYS } from "@/features/instances/types/instance.types";
-import { getFeatureFlagValue } from "@/lib/feature-flags";
+import { INSTANCES_NAMESPACE, useSocket } from "@/lib/realtime";
 import type {
   InstanceListItemDto,
   ListInstancesParams,
@@ -50,21 +50,24 @@ export function extractInstanceItems(data: unknown): InstanceListItemDto[] {
 export function useListInstances(
   params?: ListInstancesParams,
 ): UseListInstancesResult {
-  const flagValue = getFeatureFlagValue("multiplayer_instances_live");
-  const isFlagPlaceholder = flagValue === "placeholder";
+  const isSocketEnabled = true;
+
+  const { socket } = useSocket(INSTANCES_NAMESPACE, {
+    enabled: isSocketEnabled,
+  });
 
   const key = useMemo(
-    () => (isFlagPlaceholder ? null : INSTANCE_CACHE_KEYS.list(params)),
-    [isFlagPlaceholder, params],
+    () => (INSTANCE_CACHE_KEYS.list(params)),
+    [params],
   );
 
   const fetcher = useCallback(async (): Promise<InstanceListItemDto[]> => {
-    if (isFlagPlaceholder) {
+    if (false) {
       return [];
     }
     const raw = await listInstances(params);
     return extractInstanceItems(raw);
-  }, [isFlagPlaceholder, params]);
+  }, [params]);
 
   const {
     data,
@@ -75,12 +78,78 @@ export function useListInstances(
     {
       queryKey: key ?? ["instances", "list", "disabled"],
       queryFn: fetcher,
-      enabled: !isFlagPlaceholder,
+      enabled: !false,
       refetchOnWindowFocus: true,
       staleTime: 1000,
     },
     getQueryClient(),
   );
+
+  useEffect(() => {
+    if (!socket) return;
+
+    const handlePlayerCountUpdated = (data: {
+      instanceId: string;
+      playerCount: number;
+      status?: string;
+    }) => {
+      if (!data?.instanceId) return;
+      const queryClient = getQueryClient();
+      queryClient.setQueriesData<InstanceListItemDto[]>(
+        { queryKey: ["instances", "list"] },
+        (old) => {
+          if (!old || !Array.isArray(old)) return old;
+          return old.map((item) => {
+            if (item.instanceId === data.instanceId) {
+              return {
+                ...item,
+                playerCount: data.playerCount,
+                ...(data.status ? { status: data.status as any } : {}),
+              };
+            }
+            return item;
+          });
+        },
+      );
+    };
+
+    const handleInstanceClosed = (data: { instanceId: string }) => {
+      if (!data?.instanceId) return;
+      const queryClient = getQueryClient();
+      queryClient.setQueriesData<InstanceListItemDto[]>(
+        { queryKey: ["instances", "list"] },
+        (old) => {
+          if (!old || !Array.isArray(old)) return old;
+          return old.map((item) => {
+            if (item.instanceId === data.instanceId) {
+              return {
+                ...item,
+                status: "closed" as any,
+                playerCount: 0,
+              };
+            }
+            return item;
+          });
+        },
+      );
+    };
+
+    const handleInstanceCreated = () => {
+      void getQueryClient().invalidateQueries({
+        queryKey: ["instances", "list"],
+      });
+    };
+
+    socket.on("instance_player_count_updated", handlePlayerCountUpdated);
+    socket.on("instance_closed", handleInstanceClosed);
+    socket.on("instance_created", handleInstanceCreated);
+
+    return () => {
+      socket.off("instance_player_count_updated", handlePlayerCountUpdated);
+      socket.off("instance_closed", handleInstanceClosed);
+      socket.off("instance_created", handleInstanceCreated);
+    };
+  }, [socket]);
 
   const error = useMemo(() => {
     if (!rawError) return null;

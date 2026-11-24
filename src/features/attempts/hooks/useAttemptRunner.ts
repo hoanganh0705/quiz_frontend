@@ -9,6 +9,7 @@ import { useStartAttempt } from "@/features/attempts/hooks/useStartAttempt";
 import { useSubmitAnswer } from "@/features/attempts/hooks/useSubmitAnswer";
 import { useCompleteAttempt } from "@/features/attempts/hooks/useCompleteAttempt";
 import { useDeleteAnswer } from "@/features/attempts/hooks/useDeleteAnswer";
+import { useAbandonAttempt } from "@/features/attempts/hooks/useAbandonAttempt";
 import {
   type AnswerSelection,
   type AttemptRunnerStatus,
@@ -21,6 +22,7 @@ import {
   recordCompletionSuccess,
   resetAttempt,
   setDraftSelection,
+  useAttemptSubmittedAnswers,
 } from "@/features/attempts/stores/useAttemptsStore";
 
 import { useAuthSession } from "@/features/auth/hooks/use-auth-session";
@@ -122,6 +124,13 @@ export function useAttemptRunner(
   }, [activeAttempt?.attemptId, attemptId]);
 
   const hydration = useAttemptHydration({ attemptId });
+  const storeSubmittedAnswers = useAttemptSubmittedAnswers(attemptId);
+  const submittedAnswers: SubmittedAnswersMap = React.useMemo(() => {
+    return {
+      ...hydration.submittedAnswers,
+      ...storeSubmittedAnswers,
+    };
+  }, [hydration.submittedAnswers, storeSubmittedAnswers]);
 
   const wireStatus: AttemptRunnerStatus | null = React.useMemo(() => {
     if (hydration.detail) return statusFromAttempt(hydration.detail.status);
@@ -214,6 +223,7 @@ export function useAttemptRunner(
   const submitHook = useSubmitAnswer({ attemptId, quizVersionId });
   const completeHook = useCompleteAttempt({ attemptId, quizVersionId });
   const deleteHook = useDeleteAnswer({ attemptId, quizVersionId });
+  const abandonHook = useAbandonAttempt({ attemptId, quizVersionId, quizId });
 
   React.useEffect(() => {
     const outcome = startHook.outcome;
@@ -322,6 +332,29 @@ export function useAttemptRunner(
     }
   }, [completeHook.outcome, completeHook]);
 
+  React.useEffect(() => {
+    const outcome = abandonHook.outcome;
+    if (!outcome) return;
+    if (outcome.kind === "abandoning") {
+      setOverlayStatus("abandoning");
+      return;
+    }
+    if (outcome.kind === "success" || outcome.kind === "not_active") {
+      setOverlayStatus("abandoned");
+      abandonHook.reset();
+      return;
+    }
+    if (
+      outcome.kind === "forbidden" ||
+      outcome.kind === "not_found" ||
+      outcome.kind === "retryable"
+    ) {
+      setOverlayStatus("idle");
+      abandonHook.reset();
+      return;
+    }
+  }, [abandonHook.outcome, abandonHook]);
+
   const start = React.useCallback(async () => {
     const outcome = await startHook.start();
     if (outcome.kind === "already_started") {
@@ -337,7 +370,7 @@ export function useAttemptRunner(
       if (!attemptId || !quizVersionId) return;
 
       const questionId = question.questionId;
-      const wasSubmitted = Boolean(hydration.submittedAnswers[questionId]);
+      const wasSubmitted = Boolean(submittedAnswers[questionId]);
 
       if (wasSubmitted) {
         await deleteHook.withdraw(questionId);
@@ -348,7 +381,7 @@ export function useAttemptRunner(
     [
       attemptId,
       quizVersionId,
-      hydration.submittedAnswers,
+      submittedAnswers,
       deleteHook,
       submitHook,
     ],
@@ -356,70 +389,94 @@ export function useAttemptRunner(
 
   const submitAnswer = selectAnswer;
 
+  const isCompletingRef = React.useRef(false);
+
   const completeQuiz = React.useCallback(async () => {
+    if (isCompletingRef.current) return;
     if (!questions || !sessionId || !attemptId || !quizVersionId) return;
 
+    isCompletingRef.current = true;
     setOverlayStatus("submitting");
 
-    for (const question of questions) {
-      const draft = draftsRef.current[question.questionId];
-      const existing = hydration.submittedAnswers[question.questionId];
-      if (existing) {
-        const isSameSelection =
-          draft?.kind === "multiple_choice" &&
-          existing.selectedOptionId === draft.selectedOptionIds[0];
-        if (isSameSelection) {
-          continue;
+    try {
+      for (const question of questions) {
+        const draft = draftsRef.current[question.questionId];
+        const existing = submittedAnswers[question.questionId];
+        if (existing) {
+          let isSameSelection = false;
+          if (draft?.kind === "multiple_choice") {
+            isSameSelection =
+              existing.selectedOptionId === draft.selectedOptionIds[0];
+          } else if (draft?.kind === "true_false") {
+            const opts = question.answerOptions;
+            const trueOpt = opts.find(
+              (o) =>
+                typeof o.value === "string" && o.value.toLowerCase() === "true",
+            );
+            const falseOpt = opts.find(
+              (o) =>
+                typeof o.value === "string" && o.value.toLowerCase() === "false",
+            );
+            const targetOptId = draft.value
+              ? trueOpt?.optionId
+              : falseOpt?.optionId;
+            isSameSelection = existing.selectedOptionId === targetOptId;
+          }
+          if (isSameSelection) {
+            continue;
+          }
+          await deleteHook.withdraw(question.questionId);
         }
-        await deleteHook.withdraw(question.questionId);
+        if (draft) {
+          await submitHook.submit(question, draft, null);
+        }
       }
-      if (draft) {
-        await submitHook.submit(question, draft, null);
-      }
-    }
 
-    const outcome = await completeHook.complete();
-    if (outcome.kind === "success" && outcome.result) {
-      recordCompletionSuccess(attemptId, quizVersionId, sessionId, {
-        ...(outcome.result as unknown as import("@/features/attempts/stores/useAttemptsStore").CompletedAttemptSnapshot),
-        correctCount: outcome.result.correctCount ?? null,
-        xpEarned: outcome.result.xpEarned ?? 0,
-        finishedAt: outcome.result.finishedAt ?? new Date().toISOString(),
-      });
+      const outcome = await completeHook.complete();
+      if (outcome.kind === "success" && outcome.result) {
+        recordCompletionSuccess(attemptId, quizVersionId, sessionId, {
+          ...(outcome.result as unknown as import("@/features/attempts/stores/useAttemptsStore").CompletedAttemptSnapshot),
+          correctCount: outcome.result.correctCount ?? null,
+          xpEarned: outcome.result.xpEarned ?? 0,
+          finishedAt: outcome.result.finishedAt ?? new Date().toISOString(),
+        });
 
-      if (idOrSlug) {
-        const resultsHref = attemptId
-          ? `/quizzes/${encodeURIComponent(idOrSlug)}/results?attemptId=${encodeURIComponent(attemptId)}`
-          : `/quizzes/${encodeURIComponent(idOrSlug)}/results`;
-        setNavigation({
-          kind: "push_attempt",
-          href: resultsHref,
-        });
+        if (idOrSlug) {
+          const resultsHref = attemptId
+            ? `/quizzes/${encodeURIComponent(idOrSlug)}/results?attemptId=${encodeURIComponent(attemptId)}`
+            : `/quizzes/${encodeURIComponent(idOrSlug)}/results`;
+          setNavigation({
+            kind: "push_attempt",
+            href: resultsHref,
+          });
+        }
+        setOverlayStatus("completed");
+      } else if (outcome.kind === "not_active") {
+        if (idOrSlug) {
+          const resultsHref = attemptId
+            ? `/quizzes/${encodeURIComponent(idOrSlug)}/results?attemptId=${encodeURIComponent(attemptId)}`
+            : `/quizzes/${encodeURIComponent(idOrSlug)}/results`;
+          setNavigation({
+            kind: "push_attempt",
+            href: resultsHref,
+          });
+        }
+        setOverlayStatus("completed");
+      } else {
+        setOverlayStatus("idle");
+        if ("error" in outcome && outcome.error) {
+          throw outcome.error;
+        }
       }
-      setOverlayStatus("completed");
-    } else if (outcome.kind === "not_active") {
-      if (idOrSlug) {
-        const resultsHref = attemptId
-          ? `/quizzes/${encodeURIComponent(idOrSlug)}/results?attemptId=${encodeURIComponent(attemptId)}`
-          : `/quizzes/${encodeURIComponent(idOrSlug)}/results`;
-        setNavigation({
-          kind: "push_attempt",
-          href: resultsHref,
-        });
-      }
-      setOverlayStatus("completed");
-    } else {
-      setOverlayStatus("idle");
-      if ("error" in outcome && outcome.error) {
-        throw outcome.error;
-      }
+    } finally {
+      isCompletingRef.current = false;
     }
   }, [
     questions,
     sessionId,
     attemptId,
     quizVersionId,
-    hydration.submittedAnswers,
+    submittedAnswers,
     deleteHook,
     submitHook,
     completeHook,
@@ -427,13 +484,19 @@ export function useAttemptRunner(
   ]);
 
   const abandon = React.useCallback(async () => {
-    if (idOrSlug) {
-      setNavigation({
-        kind: "push_quiz",
-        href: `/quizzes/${encodeURIComponent(idOrSlug)}`,
-      });
+    try {
+      if (attemptId && quizVersionId) {
+        await abandonHook.confirm();
+      }
+    } finally {
+      if (idOrSlug) {
+        setNavigation({
+          kind: "push_quiz",
+          href: `/quizzes/${encodeURIComponent(idOrSlug)}`,
+        });
+      }
     }
-  }, [idOrSlug]);
+  }, [attemptId, quizVersionId, abandonHook, idOrSlug]);
 
   React.useEffect(() => {
     if (status === "abandoned" && attemptId) {
@@ -447,12 +510,13 @@ export function useAttemptRunner(
     attemptId,
     isActiveLoading,
     hasHydrated: hydration.hasResolved,
-    submittedAnswers: hydration.submittedAnswers,
+    submittedAnswers,
     navigation,
     error:
       startHook.error ??
       submitHook.error ??
       completeHook.error ??
+      abandonHook.error ??
       hydration.error,
     currentIndex: 0,
     totalQuestions: questions?.length ?? 0,

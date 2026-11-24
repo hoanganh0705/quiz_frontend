@@ -15,7 +15,17 @@ import {
   Trophy,
   Shield,
   Settings,
+  X,
 } from "lucide-react";
+import { Badge } from "@/components/ui/Badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/Dialog";
 import type { ArticleIconName } from "@/features/support/types/articles";
 import { getSupportArticles } from "@/features/support/api";
 import type { SupportArticle } from "@/features/support/api";
@@ -58,6 +68,9 @@ export function KnowledgeBase({
 }): React.ReactElement {
   const [searchQuery, setSearchQuery] = useState("");
   const [state, setState] = useState<FetchState>({ kind: "idle" });
+  const [selectedArticle, setSelectedArticle] = useState<SupportArticle | null>(
+    null,
+  );
 
   const fetchArticles = () => {
     setState({ kind: "loading" });
@@ -110,25 +123,41 @@ export function KnowledgeBase({
   const isLoading = state.kind === "loading" || state.kind === "idle";
   const error = state.kind === "error" ? state.error : null;
 
+  const categoryTitle =
+    category && category !== "all"
+      ? `${category
+          .split("-")
+          .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+          .join(" ")} Knowledge Base`
+      : "Knowledge Base";
+
   return (
-    <div className="space-y-6 bg-transparent border border-border rounded-lg p-8">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <h2 className="text-2xl font-bold text-foreground">
-          All Categories Knowledge Base
-        </h2>
+    <div className="space-y-6 rounded-xl border border-border/80 bg-card p-6 shadow-xs sm:p-8">
+      <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center mb-8">
+        <h2 className="text-2xl font-bold text-foreground">{categoryTitle}</h2>
         <div className="relative w-full sm:w-80">
           <label htmlFor="kb-search" className="sr-only">
             Search articles
           </label>
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-foreground-secondary h-4 w-4" />
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             id="kb-search"
             aria-label="Search articles"
             placeholder="Search articles..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10 bg-transparent border border-border text-foreground placeholder:text-muted-foreground"
+            className="border-border bg-transparent pl-10 pr-9 text-foreground placeholder:text-muted-foreground"
           />
+          {searchQuery && (
+            <button
+              type="button"
+              onClick={() => setSearchQuery("")}
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-sm p-0.5 text-muted-foreground transition-colors hover:text-foreground"
+              aria-label="Clear search"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+          )}
         </div>
       </div>
 
@@ -179,28 +208,39 @@ export function KnowledgeBase({
             return (
               <div
                 key={article.id}
-                className="group p-6 hover:bg-brand hover:border-brand transition-colors cursor-pointer border border-border rounded-lg"
+                role="button"
+                tabIndex={0}
+                onClick={() => setSelectedArticle(article)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    setSelectedArticle(article);
+                  }
+                }}
+                className="group cursor-pointer rounded-xl border border-border/80 bg-card p-6 shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-2">
-                    <IconComponent className="h-4 w-4 text-foreground" />
-                    <span className="text-xs text-foreground px-1 py-0.5 border border-border rounded-md">
+                    <div className="rounded-md bg-primary/10 p-1.5 text-primary">
+                      <IconComponent className="h-4 w-4" />
+                    </div>
+                    <Badge variant="outline" className="font-mono text-xs">
                       {article.category}
-                    </span>
+                    </Badge>
                   </div>
-                  <span className="text-sm text-foreground-secondary">
+                  <span className="text-xs font-mono text-muted-foreground">
                     {readTime}
                   </span>
                 </div>
-                <h3 className="text-lg font-semibold text-foreground mb-2">
+                <h3 className="text-lg font-semibold text-foreground mb-2 transition-colors group-hover:text-primary">
                   {article.title}
                 </h3>
-                <p className="text-foreground-secondary text-sm mb-4">
+                <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
                   {article.excerpt ?? article.content ?? ""}
                 </p>
-                <div className="flex items-center text-foreground group-hover:text-brand-hover dark:group-hover:text-foreground transition-colors">
-                  <span className="text-sm font-medium">Read article</span>
-                  <ArrowRight className="h-4 w-4 ml-1" />
+                <div className="flex items-center text-sm font-medium text-foreground transition-colors group-hover:text-primary">
+                  <span>Read article</span>
+                  <ArrowRight className="h-4 w-4 ml-1 transition-transform duration-200 group-hover:translate-x-1" />
                 </div>
               </div>
             );
@@ -210,11 +250,59 @@ export function KnowledgeBase({
 
       {state.kind === "ok" && filteredArticles.length === 0 && (
         <div className="text-center py-12">
-          <p className="text-foreground-secondary">
+          <p className="text-muted-foreground text-sm">
             No articles found matching your search.
           </p>
         </div>
       )}
+
+      {/* Article Reader Dialog */}
+      <Dialog
+        open={Boolean(selectedArticle)}
+        onOpenChange={(open) => !open && setSelectedArticle(null)}
+      >
+        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+          <DialogHeader className="space-y-3">
+            <div className="flex items-center gap-2">
+              <Badge variant="secondary" className="font-mono text-xs">
+                {selectedArticle?.category}
+              </Badge>
+              <span className="text-xs font-mono text-muted-foreground">
+                {selectedArticle?.readTime ?? "5 min read"}
+              </span>
+            </div>
+            <DialogTitle className="text-xl font-bold text-foreground">
+              {selectedArticle?.title}
+            </DialogTitle>
+            <DialogDescription className="text-sm text-muted-foreground">
+              {selectedArticle?.excerpt}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="mt-4 space-y-4 border-t border-border pt-4 text-sm leading-relaxed text-foreground/90">
+            {selectedArticle?.content ? (
+              <p className="whitespace-pre-line">{selectedArticle.content}</p>
+            ) : (
+              <p>
+                This article provides comprehensive guidance on {selectedArticle?.title.toLowerCase()}.
+                For further technical or billing questions, reach out via the Contact Support tab.
+              </p>
+            )}
+          </div>
+          <DialogFooter className="mt-6 border-t border-border pt-4 sm:flex sm:items-center sm:justify-between">
+            <span className="font-mono text-xs text-muted-foreground">
+              QuizHub Help Docs
+            </span>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setSelectedArticle(null)}
+            >
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -1,16 +1,13 @@
 "use client";
 
-import { memo } from "react";
+import { memo, useState } from "react";
 
 import { Button } from "@/components/ui/Button";
 import { Skeleton } from "@/components/ui/Skeleton";
-
+import { UnfriendConfirmDialog } from "@/features/social/components/UnfriendConfirmDialog";
 import { useUnfriend } from "@/features/social/hooks";
-
 import { useUserProfileBundle } from "@/features/users/hooks/use-user-profile-bundle";
-
 import type { SocialUserSummaryDto } from "@/features/social/types";
-
 import { displayNameOf } from "@/features/social/utils/display-name";
 
 export interface CompareStatsPanelProps {
@@ -36,19 +33,16 @@ export const CompareStatsPanel = memo(function CompareStatsPanel({
   viewerLabel,
 }: CompareStatsPanelProps) {
   const name = displayNameOf(friend);
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+
   const {
     analytics: friendAnalytics,
+    summary: friendProfileSummary,
     isLoading: friendAnalyticsLoading,
     error: friendAnalyticsError,
   } = useUserProfileBundle(friend.userId);
+
   const unfriendMut = useUnfriend(friend.userId, {
-    // The row came from `GET /social/friends/:userId`, which is a
-    // server-authoritative source. The relationship is by definition
-    // `friend`, so the permission guard inside `useUnfriend` is
-    // redundant here — its `useRelationship` round-trip would race
-    // against the optimistic UI and leave the button enabled but
-    // silently no-op. `assumeCanUnfriend: true` opts the call out of
-    // the permission gate.
     assumeCanUnfriend: true,
   });
 
@@ -60,13 +54,6 @@ export const CompareStatsPanel = memo(function CompareStatsPanel({
       ? friendAnalyticsError.message
       : null;
 
-  // The viewer side renders the personalized analytics surface
-  // (xpTotal, quizzesCompleted, ...). The friend side renders the
-  // public bundle summary (totalAttempts, completedQuizzes,
-  // averageScore). The two shape-mismatch rows on the viewer side
-  // (Win Rate, Longest Streak) are dropped because the friend
-  // surface has no equivalent fields — comparing across mismatched
-  // shapes is misleading.
   const youQuizzesPlayed = myAnalyticsLoading
     ? null
     : myAnalytics
@@ -76,6 +63,16 @@ export const CompareStatsPanel = memo(function CompareStatsPanel({
     ? null
     : myAnalytics
       ? `${myAnalytics.averageScore.toFixed(1)}%`
+      : null;
+  const youXpTotal = myAnalyticsLoading
+    ? null
+    : myAnalytics
+      ? myAnalytics.xpTotal.toLocaleString()
+      : null;
+  const youCurrentStreak = myAnalyticsLoading
+    ? null
+    : myAnalytics
+      ? `${myAnalytics.currentStreak}d`
       : null;
 
   const themQuizzesPlayed = friendAnalyticsLoading
@@ -92,18 +89,26 @@ export const CompareStatsPanel = memo(function CompareStatsPanel({
       : friendSummary
         ? `${friendSummary.averageScore.toFixed(1)}%`
         : null;
-  const themTotalAttempts = friendAnalyticsLoading
+  const themXpTotal = friendAnalyticsLoading
     ? null
     : isFriendPrivate
       ? "Private"
-      : friendSummary
-        ? friendSummary.totalAttempts.toLocaleString()
+      : friendProfileSummary
+        ? friendProfileSummary.xpTotal.toLocaleString()
+        : null;
+  const themCurrentStreak = friendAnalyticsLoading
+    ? null
+    : isFriendPrivate
+      ? "Private"
+      : friendProfileSummary
+        ? `${friendProfileSummary.currentStreak}d`
         : null;
 
   return (
     <div className="space-y-3 text-sm">
       {friendAnalyticsLoading ? (
         <>
+          <CompareRowSkeleton />
           <CompareRowSkeleton />
           <CompareRowSkeleton />
           <CompareRowSkeleton />
@@ -123,39 +128,47 @@ export const CompareStatsPanel = memo(function CompareStatsPanel({
             themValue={themAverageScore}
           />
           <CompareRow
-            label="Total Attempts"
-            youValue={
-              myAnalyticsLoading
-                ? null
-                : myAnalytics
-                  ? myAnalytics.quizzesCompleted.toLocaleString()
-                  : null
-            }
+            label="Total XP"
+            youValue={youXpTotal}
             themLabel={name}
-            themValue={themTotalAttempts}
+            themValue={themXpTotal}
+          />
+          <CompareRow
+            label="Current Streak"
+            youValue={youCurrentStreak}
+            themLabel={name}
+            themValue={themCurrentStreak}
           />
         </>
       )}
+
       {friendStatsErrorMessage && (
-        <p className="text-xs text-foreground-secondary" role="status">
+        <p className="text-xs text-muted-foreground" role="status">
           Friend stats unavailable.
         </p>
       )}
-      {unfriendMut.isPending && (
-        <p className="text-xs text-foreground-secondary">Unfriending…</p>
-      )}
-      <Button
-        size="sm"
-        variant="outline"
-        onClick={unfriendMut.unfriend}
-        disabled={unfriendMut.isPending || unfriendMut.alreadyNotFriends}
-        aria-label={`Unfriend ${name}`}
-      >
-        Unfriend
-      </Button>
-      <p className="text-xs text-foreground-secondary">
-        {viewerLabel} vs {name}
-      </p>
+
+      <div className="pt-2 flex items-center justify-between border-t border-border/40 gap-2">
+        <Button
+          size="sm"
+          variant="outline"
+          className="text-destructive hover:bg-destructive/10 hover:text-destructive shrink-0"
+          onClick={() => setIsConfirmOpen(true)}
+          disabled={unfriendMut.isPending || unfriendMut.alreadyNotFriends}
+          aria-label={`Unfriend ${name}`}
+        >
+          Unfriend
+        </Button>
+        <span className="text-xs text-muted-foreground font-medium truncate max-w-[180px] text-right">
+          {viewerLabel} vs {name}
+        </span>
+      </div>
+
+      <UnfriendConfirmDialog
+        open={isConfirmOpen}
+        onOpenChange={setIsConfirmOpen}
+        targetUserId={friend.userId}
+      />
     </div>
   );
 });
@@ -174,27 +187,44 @@ const CompareRow = memo(function CompareRow({
   themValue,
 }: CompareRowProps) {
   return (
-    <div className="border border-border rounded-md p-3">
-      <p className="font-semibold mb-2">{label}</p>
-      <p>
-        You: {youValue ?? <span aria-label={`${label} not available`}>—</span>}
+    <div className="rounded-xl border border-border/80 bg-card/60 p-3.5 backdrop-blur-xs transition-colors hover:border-brand/30">
+      <p className="font-semibold text-xs text-muted-foreground uppercase tracking-wider mb-2.5">
+        {label}
       </p>
-      <p>
-        {themLabel}:{" "}
-        {themValue ?? (
-          <span aria-label={`${themLabel} ${label} not available`}>—</span>
-        )}
-      </p>
+      <div className="grid grid-cols-2 gap-3 text-sm font-mono tabular-nums">
+        <div className="rounded-lg bg-background/50 border border-border/40 p-2.5">
+          <span className="text-xs text-muted-foreground font-sans block mb-0.5">You</span>
+          <span className="font-bold text-foreground text-base">
+            {youValue ?? <span aria-label={`${label} not available`}>—</span>}
+          </span>
+        </div>
+        <div className="rounded-lg bg-background/50 border border-border/40 p-2.5 min-w-0">
+          <span className="text-xs text-muted-foreground font-sans block truncate mb-0.5">{themLabel}</span>
+          <span className="font-bold text-foreground text-base">
+            {themValue ?? (
+              <span aria-label={`${themLabel} ${label} not available`}>—</span>
+            )}
+          </span>
+        </div>
+      </div>
     </div>
   );
 });
 
 function CompareRowSkeleton() {
   return (
-    <div className="border border-border rounded-md p-3">
-      <Skeleton className="h-4 w-28 mb-2" />
-      <Skeleton className="h-3 w-20 mb-1" />
-      <Skeleton className="h-3 w-20" />
+    <div className="rounded-xl border border-border/80 bg-card/60 p-3.5 backdrop-blur-xs">
+      <Skeleton className="h-3 w-24 mb-2.5" />
+      <div className="grid grid-cols-2 gap-3">
+        <div className="rounded-lg bg-background/50 border border-border/40 p-2.5 space-y-1.5">
+          <Skeleton className="h-2.5 w-8" />
+          <Skeleton className="h-5 w-16" />
+        </div>
+        <div className="rounded-lg bg-background/50 border border-border/40 p-2.5 space-y-1.5">
+          <Skeleton className="h-2.5 w-12" />
+          <Skeleton className="h-5 w-16" />
+        </div>
+      </div>
     </div>
   );
 }

@@ -103,12 +103,12 @@ const InfoCard = React.memo(function InfoCard({
   return (
     <section
       className={cn(
-        "grid grid-cols-1 lg:grid-cols-4 gap-4 mt-6 pb-10",
+        "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4",
         className,
       )}
       aria-label="Challenge information"
     >
-      <Card className="bg-card border-border py-6">
+      <Card className="bg-card border-border/70 py-6 shadow-xs hover:border-brand/30 transition-colors">
         <CardContent className="p-4 flex items-center space-x-3">
           <div
             className="p-2 bg-muted rounded-full text-muted-foreground"
@@ -121,7 +121,7 @@ const InfoCard = React.memo(function InfoCard({
               Time Remaining
             </p>
             <p
-              className="text-xl font-bold text-foreground"
+              className="text-xl font-bold font-mono tabular-nums text-foreground"
               aria-live={timeAriaLive}
             >
               {timeRemaining}
@@ -130,7 +130,7 @@ const InfoCard = React.memo(function InfoCard({
         </CardContent>
       </Card>
 
-      <Card className="bg-card border-border py-6">
+      <Card className="bg-card border-border/70 py-6 shadow-xs hover:border-brand/30 transition-colors">
         <CardContent className="p-4 flex items-center space-x-3">
           <div
             className="p-2 bg-muted rounded-full text-muted-foreground"
@@ -147,31 +147,31 @@ const InfoCard = React.memo(function InfoCard({
         </CardContent>
       </Card>
 
-      <Card className="bg-card border-border py-6">
+      <Card className="bg-card border-border/70 py-6 shadow-xs hover:border-brand/30 transition-colors">
         <CardContent className="p-4 flex items-center space-x-3">
           <div
             className="p-2 bg-muted rounded-full text-muted-foreground"
             aria-hidden="true"
           >
-            <Trophy className="h-5 w-5" />
+            <Trophy className="h-5 w-5 text-amber-500" />
           </div>
           <div>
             <p className="text-sm text-muted-foreground font-medium">
               Top Prize
             </p>
-            <p className="text-xl font-bold text-foreground">{prizeLabel}</p>
+            <p className="text-xl font-bold font-mono tabular-nums text-foreground">{prizeLabel}</p>
           </div>
         </CardContent>
       </Card>
 
-      <Card className="bg-card border-border py-6">
+      <Card className="bg-card border-border/70 py-6 shadow-xs hover:border-brand/30 transition-colors">
         <CardContent className="p-4 flex items-center space-x-3">
           <div
             className="p-2 bg-muted rounded-full text-muted-foreground"
             aria-hidden="true"
           >
             <Flame
-              className="h-5 w-5 text-orange-400 dark:text-orange-300"
+              className="h-5 w-5 text-warning"
               aria-hidden="true"
             />
           </div>
@@ -179,7 +179,7 @@ const InfoCard = React.memo(function InfoCard({
             <p className="text-sm text-muted-foreground font-medium">
               Your Streak
             </p>
-            <p className="text-xl font-bold text-foreground">{streakLabel}</p>
+            <p className="text-xl font-bold font-mono tabular-nums text-foreground">{streakLabel}</p>
           </div>
         </CardContent>
       </Card>

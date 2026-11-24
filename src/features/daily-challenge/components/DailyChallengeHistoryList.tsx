@@ -42,12 +42,13 @@ export function DailyChallengeHistoryList({
     >
       <CardHeader>
         <div className="flex items-center justify-between">
-          <h1 id="daily-challenge-history-title" className="text-xl font-bold">
+          <h2 id="daily-challenge-history-title" className="text-xl font-bold">
             Challenge History
-          </h1>
+          </h2>
           {hasMore && onLoadMore ? (
             <Button
-              variant="ghost"
+              variant="outline"
+              size="sm"
               onClick={onLoadMore}
               disabled={isLoadingMore}
               aria-label={
@@ -55,21 +56,22 @@ export function DailyChallengeHistoryList({
                   ? "Loading more challenge history"
                   : `Load ${remaining} more past challenges`
               }
-              className="flex items-center gap-1 bg-background text-foreground-secondary hover:text-foreground hover:bg-transparent transition-colors shadow-none"
+              className="flex items-center gap-1.5 h-9 px-3 rounded-lg border border-border/80 bg-background text-foreground-secondary hover:text-foreground hover:bg-muted/50 transition-colors shadow-2xs"
             >
-              <span className="text-xs">
+              <span className="text-xs font-medium">
                 {isLoadingMore ? "Loading…" : `Load ${remaining} more`}
               </span>
               <ChevronRight className="w-4 h-4" aria-hidden="true" />
             </Button>
           ) : showAll && items.length > 3 && onLoadMore ? (
             <Button
-              variant="ghost"
+              variant="outline"
+              size="sm"
               onClick={onLoadMore}
               aria-label="Show fewer past challenges"
-              className="flex items-center gap-1 bg-background text-foreground-secondary hover:text-foreground hover:bg-transparent transition-colors shadow-none"
+              className="flex items-center gap-1.5 h-9 px-3 rounded-lg border border-border/80 bg-background text-foreground-secondary hover:text-foreground hover:bg-muted/50 transition-colors shadow-2xs"
             >
-              <span className="text-xs">Show fewer</span>
+              <span className="text-xs font-medium">Show fewer</span>
               <ChevronLeft className="w-4 h-4" aria-hidden="true" />
             </Button>
           ) : null}
@@ -78,52 +80,48 @@ export function DailyChallengeHistoryList({
       <CardContent>
         <div className="space-y-3">
           {displayed.map((challenge) => (
-            <Card
+            <div
               key={challenge.id}
               data-testid="daily-challenge-history-item"
-              className="bg-background border-b border-border last:border-b-0"
+              className="flex items-center justify-between gap-3 p-4 rounded-xl border border-border/70 bg-card/60 hover:bg-muted/30 transition-colors shadow-2xs"
             >
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between gap-2">
-                  <div className="flex-1">
-                    <div className="text-base font-medium mb-1">
-                      <span data-testid="daily-challenge-history-item-title">
-                        {challenge.quizTitle}
-                      </span>
-                    </div>
-                    <div className="text-muted-foreground mb-3">
-                      <time dateTime={challenge.date}>{challenge.date}</time>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <Badge
-                        variant="outline"
-                        data-testid="daily-challenge-history-item-category"
-                        className="bg-background text-foreground border-border py-0.5 px-2 rounded-3xl"
-                      >
-                        {challenge.difficulty}
-                      </Badge>
-                      {challenge.isTopTen && (
-                        <Badge
-                          variant="difficulty-hard"
-                          className="py-0.5 px-2 rounded-3xl"
-                          data-testid="daily-challenge-history-item-top-ten"
-                        >
-                          Top 10
-                        </Badge>
-                      )}
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-base font-bold mb-1">
-                      {challenge.score}%
-                    </div>
-                    <div className="text-muted-foreground text-sm">
-                      Rank #{challenge.rank}
-                    </div>
-                  </div>
+              <div className="flex-1 min-w-0">
+                <div className="text-base font-semibold tracking-tight text-foreground mb-1 truncate">
+                  <span data-testid="daily-challenge-history-item-title">
+                    {challenge.quizTitle}
+                  </span>
                 </div>
-              </CardContent>
-            </Card>
+                <div className="text-muted-foreground text-xs mb-2.5 font-mono tabular-nums">
+                  <time dateTime={challenge.date}>{challenge.date}</time>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Badge
+                    variant="outline"
+                    data-testid="daily-challenge-history-item-category"
+                    className="bg-background text-foreground border-border py-0.5 px-2.5 rounded-full capitalize text-xs"
+                  >
+                    {challenge.difficulty}
+                  </Badge>
+                  {challenge.isTopTen && (
+                    <Badge
+                      variant="difficulty-hard"
+                      className="py-0.5 px-2.5 rounded-full text-xs font-semibold"
+                      data-testid="daily-challenge-history-item-top-ten"
+                    >
+                      Top 10
+                    </Badge>
+                  )}
+                </div>
+              </div>
+              <div className="text-right shrink-0">
+                <div className="text-base font-bold font-mono tabular-nums text-foreground mb-1">
+                  {challenge.score}%
+                </div>
+                <div className="text-muted-foreground text-xs font-mono tabular-nums">
+                  Rank #{challenge.rank}
+                </div>
+              </div>
+            </div>
           ))}
         </div>
       </CardContent>

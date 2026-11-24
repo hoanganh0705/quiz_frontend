@@ -9,7 +9,6 @@ import {
   INSTANCE_CACHE_KEYS,
   type InstanceLifecycleMutationState,
 } from "@/features/instances/types/instance.types";
-import { getFeatureFlagValue } from "@/lib/feature-flags";
 import type {
   CreateInstanceDto,
   CreateInstanceResponseDto,
@@ -26,9 +25,6 @@ export interface UseCreateInstanceResult {
 }
 
 export function useCreateInstance(): UseCreateInstanceResult {
-  const flagValue = getFeatureFlagValue("multiplayer_instances_live");
-  const isFlagPlaceholder = flagValue === "placeholder";
-
   const [state, setState] = useState<InstanceLifecycleMutationState>("idle");
   const [error, setError] = useState<ApiError | null>(null);
   const inFlightRef = useRef(false);
@@ -42,7 +38,7 @@ export function useCreateInstance(): UseCreateInstanceResult {
     async (
       params: CreateInstanceDto,
     ): Promise<CreateInstanceResponseDto | null> => {
-      if (isFlagPlaceholder) {
+      if (false) {
         return null;
       }
 
@@ -74,7 +70,7 @@ export function useCreateInstance(): UseCreateInstanceResult {
         inFlightRef.current = false;
       }
     },
-    [isFlagPlaceholder, state],
+    [state],
   );
 
   return {

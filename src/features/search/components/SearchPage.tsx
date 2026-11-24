@@ -5,8 +5,6 @@ import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { useMemo } from "react";
 
-import { isSearchSurfaceEnabled } from "@/features/search/flags";
-import { SearchGuard } from "@/features/search/lib/guard";
 import { SearchInput } from "@/features/search/components/SearchInput";
 import { SearchResults } from "@/features/search/components/SearchResults";
 import { SearchEmptyState } from "@/features/search/components/shared/SearchEmptyState";
@@ -16,10 +14,8 @@ import {
   URL_PARAM_KINDS,
 } from "@/features/search/hooks/useSearchUrlState";
 import type { SearchQueryParams } from "@/features/search/types/search.types";
-import { getFeatureFlagValue } from "@/lib/feature-flags";
 
 import { SocialSearchGroup } from "@/features/social/discovery/SocialSearchGroup";
-import { SocialSearchPlaceholder } from "@/features/social/components/SocialSearchPlaceholder";
 
 function SearchPageInner() {
   const searchParams = useSearchParams();
@@ -29,11 +25,6 @@ function SearchPageInner() {
     setQuery,
     setKinds,
   } = useSearchUrlState();
-
-  const socialSearchFlag = useMemo(
-    () => getFeatureFlagValue("social_user_search_live"),
-    [],
-  );
 
   const params: SearchQueryParams = React.useMemo(() => {
     const q = (searchParams.get(URL_PARAM_QUERY) ?? "").trim();
@@ -88,16 +79,13 @@ function SearchPageInner() {
             }}
           />
 
-          {/* Social search group (conditionally rendered) */}
-          {socialSearchFlag === "placeholder" && <SocialSearchPlaceholder />}
-          {socialSearchFlag === "live" && (
-            <section
-              data-testid="social-search-group"
-              aria-label="Social search suggestions"
-            >
-              <SocialSearchGroup query={urlQuery} />
-            </section>
-          )}
+          {/* Social search group */}
+          <section
+            data-testid="social-search-group"
+            aria-label="Social search suggestions"
+          >
+            <SocialSearchGroup query={urlQuery} />
+          </section>
         </div>
       ) : (
         <SearchEmptyState variant="no-query" />
@@ -107,7 +95,7 @@ function SearchPageInner() {
 }
 
 export function SearchPage() {
-  const isLive = isSearchSurfaceEnabled();
+  const isLive = true;
 
   if (!isLive) {
     return null;

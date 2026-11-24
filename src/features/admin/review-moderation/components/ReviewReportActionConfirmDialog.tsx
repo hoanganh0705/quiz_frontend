@@ -1,10 +1,10 @@
 "use client";
 
 import { useCallback, useMemo, useState } from "react";
+import { Loader2 } from "lucide-react";
 
 import {
   AlertDialog,
-  AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
@@ -25,7 +25,6 @@ import {
   type ReportConsumerAction,
 } from "@/features/admin/review-moderation/action-enum";
 import type { AdminReportDto } from "@/features/admin/review-moderation/admin-report-types";
-import type { ApiError } from "@/lib/api/core/ApiError";
 
 export interface ReviewReportActionConfirmDialogProps {
   open: boolean;
@@ -131,8 +130,8 @@ export function ReviewReportActionConfirmDialog({
           {report.comment !== null && report.comment !== undefined ? (
             <p className="mt-1 italic">&ldquo;{report.comment}&rdquo;</p>
           ) : null}
-          <p className="mt-2 text-slate-700">
-            Reason: <span className="font-medium">{report.reason}</span>
+          <p className="mt-2 text-muted-foreground">
+            Reason: <span className="font-medium text-foreground capitalize">{report.reason.replace(/_/g, " ")}</span>
           </p>
         </div>
 
@@ -180,13 +179,22 @@ export function ReviewReportActionConfirmDialog({
             {(shell) => (
               <Button
                 type="button"
+                variant={metadata.irreversible ? "destructive" : "default"}
                 disabled={confirmDisabled || shell.isPending}
                 onClick={async () => {
                   await mutate();
                 }}
                 data-testid={`review-report-confirm-action-${report.reportId}`}
+                className="gap-2"
               >
-                {isPending || shell.isPending ? "Working…" : metadata.label}
+                {isPending || shell.isPending ? (
+                  <>
+                    <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+                    <span>Working…</span>
+                  </>
+                ) : (
+                  metadata.label
+                )}
               </Button>
             )}
           </AuditActionShell>
@@ -228,7 +236,7 @@ function OutcomeNotice({
   return (
     <div
       role="alert"
-      className="rounded-md border border-red-300 bg-red-50 px-3 py-2 text-xs text-red-900"
+      className="rounded-md border border-destructive/35 bg-destructive/10 px-3 py-2 text-xs text-destructive dark:bg-destructive/20"
       data-testid={`review-report-confirm-outcome-${reportId}`}
     >
       <p className="font-semibold">{title}</p>

@@ -8,7 +8,6 @@ import {
   AttemptStartCta,
 } from "@/features/attempts/components";
 import { useActiveAttempt } from "@/features/attempts/hooks/useActiveAttempt";
-import { isFeatureEnabled } from "@/lib/feature-flags";
 import { BookmarkButtonSlot } from "@/components/primitives/BookmarkButton";
 import { Button } from "@/components/ui/Button";
 import {
@@ -52,7 +51,7 @@ export function QuizCtaStrip({
   alreadySuppressed,
   className,
 }: QuizCtaStripProps) {
-  const isAttemptsLive = isFeatureEnabled("attempts_live", "live");
+  const isAttemptsLive = true;
   const { bootstrapState, currentUser } = useAuthSession();
   const isAuthenticated =
     bootstrapState === "authenticated" && currentUser !== null;
@@ -137,36 +136,43 @@ export function QuizCtaStrip({
   return (
     <section
       className={cn(
-        "flex flex-col gap-3 rounded-xl border bg-card p-4 shadow-sm sm:flex-row sm:flex-wrap sm:items-center sm:justify-end",
+        "flex flex-col gap-3 rounded-xl border bg-card p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between",
         className,
       )}
       aria-label="Quiz actions"
       data-testid="quiz-cta-strip"
     >
-      <BookmarkButtonSlot
-        quizId={quizId}
-        variant="detail"
-        className="contents"
-      />
-      {isAuthenticated &&
-      authorUserId &&
-      authorUserId !== currentUser?.userId ? (
-        <TipAuthorButton
-          recipientUserId={authorUserId}
-          currentUserId={currentUser?.userId ?? null}
-          recipientDisplayName={authorDisplayName ?? null}
+      <div className="order-2 flex flex-wrap items-center gap-2 sm:order-1 sm:gap-3">
+        <BookmarkButtonSlot
           quizId={quizId}
+          variant="detail"
+          className="contents"
         />
-      ) : null}
-      {isAuthenticated ? (
-        <SuppressRecommendedControl
-          quizId={quizId}
-          quizTitle={quizTitle ?? "this quiz"}
-          alreadySuppressed={alreadySuppressed === true}
-        />
-      ) : null}
-      {attemptSlot}
-      <HostLiveRoomCta quizId={quizId} idOrSlug={idOrSlug} />
+        {isAuthenticated &&
+        authorUserId &&
+        authorUserId !== currentUser?.userId ? (
+          <TipAuthorButton
+            recipientUserId={authorUserId}
+            currentUserId={currentUser?.userId ?? null}
+            recipientDisplayName={authorDisplayName ?? null}
+            quizId={quizId}
+          />
+        ) : null}
+        {isAuthenticated ? (
+          <SuppressRecommendedControl
+            quizId={quizId}
+            quizTitle={quizTitle ?? "this quiz"}
+            alreadySuppressed={alreadySuppressed === true}
+          />
+        ) : null}
+      </div>
+
+      <div className="order-1 flex w-full flex-col gap-2.5 sm:order-2 sm:w-auto sm:flex-row sm:items-center sm:gap-3">
+        {quizVersionId ? (
+          <HostLiveRoomCta quizId={quizId} idOrSlug={idOrSlug} />
+        ) : null}
+        {attemptSlot}
+      </div>
     </section>
   );
 }
@@ -181,18 +187,22 @@ function PlaceholderStrip({
   return (
     <section
       className={cn(
-        "flex flex-col gap-3 rounded-xl border bg-card p-4 shadow-sm sm:flex-row sm:items-center sm:justify-end",
+        "flex flex-col gap-3 rounded-xl border bg-card p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between",
         className,
       )}
       aria-label="Quiz actions"
       data-testid="quiz-cta-strip"
     >
-      <BookmarkButtonSlot
-        quizId={quizId}
-        variant="detail"
-        className="contents"
-      />
-      <DisabledStartTooltip />
+      <div className="order-2 flex flex-wrap items-center gap-2 sm:order-1 sm:gap-3">
+        <BookmarkButtonSlot
+          quizId={quizId}
+          variant="detail"
+          className="contents"
+        />
+      </div>
+      <div className="order-1 flex w-full flex-col gap-2 sm:order-2 sm:w-auto sm:flex-row sm:items-center sm:gap-3">
+        <DisabledStartTooltip />
+      </div>
     </section>
   );
 }

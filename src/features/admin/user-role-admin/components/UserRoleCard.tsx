@@ -1,13 +1,13 @@
 "use client";
 
 import { useCallback, useMemo, useState } from "react";
-
-import { Button } from "@/components/ui/Button";
-import { LoadingSpinner } from "@/components/ui/loading-states/LoadingSpinner";
 import { User as UserIcon } from "lucide-react";
 
+import { Badge } from "@/components/ui/Badge";
+import { Button } from "@/components/ui/Button";
+import { Skeleton } from "@/components/ui/Skeleton";
 import { usePermission } from "@/features/admin/hooks/usePermission";
-import type { AdminPermission } from "@/features/admin/services/user-role-admin.service";
+import type { AdminRoleOrPermission } from "@/features/admin/services/user-role-admin.service";
 
 import { GrantRoleDialog } from "./GrantRoleDialog";
 import { RevokeRoleDialog } from "./RevokeRoleDialog";
@@ -25,14 +25,14 @@ export function UserRoleCard({
   onChanged,
 }: UserRoleCardProps): React.ReactElement {
   const [grantOpen, setGrantOpen] = useState(false);
-  const [revokeTarget, setRevokeTarget] = useState<AdminPermission | null>(
+  const [revokeTarget, setRevokeTarget] = useState<AdminRoleOrPermission | null>(
     null,
   );
 
-  const { roles, isLoading } = useUserRoles(user.userId);
+  const { roles, isLoading, refetch } = useUserRoles(user.userId);
   const { hasPermission: canGrant } = usePermission("user_grant_role");
 
-  const handleRevokeClick = useCallback((role: AdminPermission) => {
+  const handleRevokeClick = useCallback((role: AdminRoleOrPermission) => {
     setRevokeTarget(role);
   }, []);
 
@@ -45,8 +45,9 @@ export function UserRoleCard({
   }, []);
 
   const handleChanged = useCallback(() => {
+    refetch();
     onChanged?.();
-  }, [onChanged]);
+  }, [refetch, onChanged]);
 
   const truncatedId = useMemo(() => {
     if (user.userId.length <= 12) return user.userId;
@@ -55,103 +56,134 @@ export function UserRoleCard({
 
   return (
     <div
-      className="flex h-full flex-col rounded-md border bg-card p-6"
+      className="flex min-h-[440px] flex-col justify-between rounded-lg border border-border/80 bg-card p-6 shadow-xs"
       data-testid="user-role-card"
     >
-      {/* User header */}
-      <div className="flex items-start gap-4 border-b pb-4">
-        <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full bg-muted">
-          {user.avatar ? (
-            <img
-              src={user.avatar}
-              alt={user.username}
-              className="h-full w-full object-cover"
-            />
+      <div>
+        {/* User header */}
+        <div className="flex items-start justify-between gap-4 border-b border-border/80 pb-5">
+          <div className="flex items-start gap-3.5 min-w-0">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full bg-muted border border-border/60">
+              {user.avatar ? (
+                /* eslint-disable-next-line @next/next/no-img-element */
+                <img
+                  src={user.avatar}
+                  alt={user.username}
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                <UserIcon
+                  className="size-6 text-muted-foreground"
+                  aria-hidden="true"
+                />
+              )}
+            </div>
+            <div className="min-w-0 flex-1">
+              <p
+                className="truncate text-base font-bold text-foreground"
+                data-testid="user-role-card-username"
+              >
+                {user.username}
+              </p>
+              <p
+                className="truncate text-sm text-muted-foreground"
+                data-testid="user-role-card-email"
+              >
+                {user.email}
+              </p>
+              <p
+                className="mt-0.5 font-mono text-xs text-muted-foreground"
+                data-testid="user-role-card-userid"
+              >
+                ID: {truncatedId}
+              </p>
+            </div>
+          </div>
+
+          <Badge variant="outline" className="text-xs font-medium shrink-0">
+            {roles.length} {roles.length === 1 ? "Role" : "Roles"}
+          </Badge>
+        </div>
+
+        {/* Role list */}
+        <div className="mt-5 overflow-y-auto max-h-[380px] pr-1">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-sm font-bold text-foreground">
+              Current Assigned Roles
+            </h3>
+            <span className="text-xs text-muted-foreground">
+              Active capabilities
+            </span>
+          </div>
+
+          {isLoading ? (
+            <div className="space-y-2.5" data-testid="user-role-card-skeleton">
+              <Skeleton className="h-16 w-full rounded-lg" />
+              <Skeleton className="h-16 w-full rounded-lg" />
+            </div>
+          ) : roles.length === 0 ? (
+            <div
+              className="flex flex-col items-center justify-center rounded-lg border border-dashed border-border/80 bg-muted/15 p-8 text-center"
+              data-testid="user-role-card-empty"
+            >
+              <p className="text-sm font-semibold text-foreground">
+                No Administrative Roles
+              </p>
+              <p className="mt-1 text-xs text-muted-foreground max-w-xs leading-relaxed">
+                This account currently has standard member permissions. Use the button below to grant elevated administrative capabilities.
+              </p>
+            </div>
           ) : (
-            <UserIcon
-              className="h-6 w-6 text-muted-foreground"
-              aria-hidden="true"
-            />
+            <ul
+              role="list"
+              className="space-y-2.5"
+              data-testid="user-role-card-list"
+            >
+              {roles.map((role) => (
+                <li
+                  key={role.role}
+                  className="flex items-center justify-between rounded-lg border border-border/70 bg-card p-3.5 shadow-xs transition-colors hover:border-border"
+                  data-testid="user-role-card-role-row"
+                  data-role-name={role.role}
+                >
+                  <div className="min-w-0 flex-1 pr-3">
+                    <p className="truncate text-sm font-semibold text-foreground">
+                      {role.role}
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      Granted: {new Date(role.grantedAt).toLocaleString()}
+                    </p>
+                  </div>
+                  {canGrant && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleRevokeClick(role.role)}
+                      data-testid="user-role-card-revoke-button"
+                      className="h-8 px-3 text-xs text-destructive hover:bg-destructive/10 hover:text-destructive border-border/80"
+                    >
+                      Revoke
+                    </Button>
+                  )}
+                </li>
+              ))}
+            </ul>
           )}
         </div>
-        <div className="min-w-0 flex-1">
-          <p
-            className="truncate text-base font-semibold"
-            data-testid="user-role-card-username"
-          >
-            {user.username}
-          </p>
-          <p
-            className="truncate text-sm text-muted-foreground"
-            data-testid="user-role-card-email"
-          >
-            {user.email}
-          </p>
-          <p
-            className="mt-0.5 font-mono text-xs text-muted-foreground"
-            data-testid="user-role-card-userid"
-          >
-            ID: {truncatedId}
-          </p>
-        </div>
-      </div>
-
-      {/* Role list */}
-      <div className="mt-4 flex-1 overflow-y-auto">
-        <h3 className="mb-2 text-sm font-medium">Current Roles</h3>
-        {isLoading ? (
-          <div className="space-y-2" data-testid="user-role-card-skeleton">
-            <LoadingSpinner size="sm" />
-            <p className="text-xs text-muted-foreground">Loading roles…</p>
-          </div>
-        ) : roles.length === 0 ? (
-          <p
-            className="rounded-md border border-dashed bg-muted/30 p-3 text-sm text-muted-foreground"
-            data-testid="user-role-card-empty"
-          >
-            This user has no roles.
-          </p>
-        ) : (
-          <ul className="space-y-2" data-testid="user-role-card-list">
-            {roles.map((role) => (
-              <li
-                key={role.role}
-                className="flex items-center justify-between rounded-md border bg-muted/30 p-3"
-                data-testid="user-role-card-role-row"
-                data-role-name={role.role}
-              >
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium">{role.role}</p>
-                  <p className="text-xs text-muted-foreground">
-                    Granted at: {new Date(role.grantedAt).toLocaleString()}
-                  </p>
-                </div>
-                {canGrant && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleRevokeClick(role.role)}
-                    data-testid="user-role-card-revoke-button"
-                  >
-                    Revoke
-                  </Button>
-                )}
-              </li>
-            ))}
-          </ul>
-        )}
       </div>
 
       {/* Grant Role button */}
       {canGrant && (
-        <div className="mt-4 border-t pt-4">
+        <div className="mt-5 border-t border-border/80 pt-4">
           <Button
+            type="button"
             variant="default"
             onClick={() => setGrantOpen(true)}
-            className="w-full"
+            className="w-full h-10 font-medium"
             data-testid="user-role-card-grant-button"
           >
-            Grant Role
+            Grant New Role
           </Button>
         </div>
       )}

@@ -4,7 +4,6 @@ import { useCallback, useMemo } from "react";
 import { getQueryClient } from "@/providers/QueryProvider";
 
 import { ApiError, useOptimisticMutation } from "@/lib/api";
-import { getFeatureFlagValue } from "@/lib/feature-flags";
 
 import { followUser } from "@/features/social/services";
 import {
@@ -39,9 +38,6 @@ export function useFollow(
   targetUserId: string | null,
   options: UseFollowOptions = {},
 ): UseFollowResult {
-  const flagValue = getFeatureFlagValue("social_follow_mutation_live");
-  const isFlagPlaceholder = flagValue === "placeholder";
-
   const permissions = useSocialPermissions(targetUserId, {
     currentUserId: options.currentUserId ?? null,
   });
@@ -71,7 +67,7 @@ export function useFollow(
       : null;
 
   const result = useMemo<UseFollowResult>(() => {
-    if (isFlagPlaceholder) {
+    if (false) {
       return Object.freeze({
         follow: () => {
           // no-op — feature is gated off
@@ -125,9 +121,7 @@ export function useFollow(
       isPending: isInFlight,
       error,
     });
-  }, [
-    isFlagPlaceholder,
-    targetUserId,
+  }, [targetUserId,
     permissions.canFollow,
     dispatchMutation,
     isInFlight,

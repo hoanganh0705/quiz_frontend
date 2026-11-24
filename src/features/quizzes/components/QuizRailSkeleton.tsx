@@ -18,7 +18,7 @@ export interface QuizRailSkeletonProps {
 const DEFAULT_COUNT = 5;
 
 const SCROLLER_OUTER =
-  "flex flex-row gap-4 overflow-x-auto snap-x snap-mandatory scroll-mt-16 pb-2";
+  "flex flex-row gap-4 overflow-x-auto snap-x snap-mandatory scroll-mt-16 pb-2 scrollbar-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden";
 const SCROLLER_CELL = "snap-start shrink-0 basis-[260px] sm:basis-[280px]";
 
 export function QuizRailSkeleton({

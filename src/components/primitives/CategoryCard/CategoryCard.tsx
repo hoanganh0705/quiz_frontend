@@ -1,5 +1,6 @@
 "use client";
 import { EntityCard } from "@/components/primitives/EntityCard";
+import { gradientFromQuizId } from "@/features/quizzes/utils/quiz-card-gradient";
 import type { CategoryResponseDto } from "@/lib/api/generated/schemas";
 
 function initialsFromCategory(category: CategoryResponseDto): string {
@@ -34,6 +35,7 @@ export function CategoryCard({
       description={category.description}
       imageUrl={category.imageUrl}
       initials={initialsFromCategory(category)}
+      fallbackBackground={gradientFromQuizId(category.categoryId)}
       aspectRatio="4/3"
       coverSize="lg"
       className={className}
@@ -43,7 +45,11 @@ export function CategoryCard({
         "data-category-id": category.categoryId,
         "data-category-slug": category.slug,
       }}
-      meta={<span className="tabular-nums">/{category.slug}</span>}
+      meta={
+        <span className="tabular-nums font-mono text-xs text-muted-foreground/75 group-hover:text-muted-foreground transition-colors">
+          /{category.slug}
+        </span>
+      }
     />
   );
 }

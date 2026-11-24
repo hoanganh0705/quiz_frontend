@@ -12,7 +12,6 @@ import {
   type RankingMilestone,
 } from "@/features/rankings/types";
 import { useAuthSession } from "@/features/auth/hooks/use-auth-session";
-import { getFeatureFlagValue } from "@/lib/feature-flags";
 
 import type { RankingMilestoneDto } from "@/lib/api/generated/schemas";
 
@@ -26,28 +25,25 @@ export interface UseRankingMilestonesResult {
 }
 
 export function useRankingMilestones(): UseRankingMilestonesResult {
-  const flagValue = getFeatureFlagValue("rankings_live");
-  const isFlagPlaceholder = flagValue === "placeholder";
-
   const { bootstrapState } = useAuthSession();
   const isAuthenticated = bootstrapState === "authenticated";
 
   const key = useMemo(
     () =>
-      isFlagPlaceholder || !isAuthenticated
+      !isAuthenticated
         ? null
         : RANKING_CACHE_KEYS.myMilestones(),
-    [isFlagPlaceholder, isAuthenticated],
+    [isAuthenticated],
   );
 
   const fetcher = useCallback(async () => {
-    if (isFlagPlaceholder || !isAuthenticated) {
+    if (!isAuthenticated) {
       return [] as RankingMilestone[];
     }
     const wire = (await getMyRankingMilestones()) as
       RankingMilestoneDto[] | null | undefined;
     return (wire ?? []).map(toRankingMilestone);
-  }, [isFlagPlaceholder, isAuthenticated]);
+  }, [isAuthenticated]);
 
   const result = useSingleWithRetry<RankingMilestone[]>({
     key,
@@ -56,7 +52,7 @@ export function useRankingMilestones(): UseRankingMilestonesResult {
 
   const isStale = result.data !== undefined && result.isRetrying;
 
-  if (isFlagPlaceholder || !isAuthenticated) {
+  if (!isAuthenticated) {
     return {
       milestones: [],
       isLoading: false,

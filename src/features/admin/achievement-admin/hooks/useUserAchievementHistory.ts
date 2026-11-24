@@ -5,7 +5,6 @@ import { useQuery } from "@tanstack/react-query";
 import { getQueryClient } from "@/providers/QueryProvider";
 
 import { ApiError } from "@/lib/api/core/ApiError";
-import { getFeatureFlagValue } from "@/lib/feature-flags";
 
 import { getUserAchievementHistory } from "@/features/achievements/services/achievements.service";
 import type {
@@ -45,11 +44,8 @@ type AdminHistoryWireResponse = {
 export function useUserAchievementHistory(
   userId: string | null,
 ): UseUserAchievementHistoryResult {
-  const flagValue = getFeatureFlagValue("admin_achievement_live");
-  const isFlagPlaceholder = flagValue === "placeholder";
-
   const isDisabled =
-    isFlagPlaceholder || userId === null || validateUserId(userId).ok === false;
+    userId === null || validateUserId(userId).ok === false;
 
   const [page, setPage] = useState(0);
 

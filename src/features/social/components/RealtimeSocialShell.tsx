@@ -23,7 +23,6 @@ import {
   EventSequenceGuardContext,
 } from "@/features/social/realtime/event-sequence-guard";
 
-import { getFeatureFlagValue } from "@/lib/feature-flags/feature-flags";
 
 export interface RealtimeSocialShellProps {
   children: ReactNode;
@@ -52,26 +51,24 @@ function UiPrimitives(): ReactElement {
 export function RealtimeSocialShell({
   children,
 }: RealtimeSocialShellProps): ReactElement {
-  const flagValue = getFeatureFlagValue("social_realtime_notifications_live");
-
   const auth = useAuthSession();
   const isAuthenticated = auth.currentUser !== null;
 
   const dedup = useMemo(
     () =>
-      flagValue === "live" && isAuthenticated ? new EventDeduplicator() : null,
-    [flagValue, isAuthenticated],
+      isAuthenticated ? new EventDeduplicator() : null,
+    [isAuthenticated],
   );
   const sequenceGuard = useMemo(
     () =>
-      flagValue === "live" && isAuthenticated ? new EventSequenceGuard() : null,
-    [flagValue, isAuthenticated],
+      isAuthenticated ? new EventSequenceGuard() : null,
+    [isAuthenticated],
   );
 
   return (
     <EventDeduplicatorContext.Provider value={dedup}>
       <EventSequenceGuardContext.Provider value={sequenceGuard}>
-        {flagValue === "live" && isAuthenticated ? (
+        {isAuthenticated ? (
           <TabScopedListeners />
         ) : null}
         <UiPrimitives />

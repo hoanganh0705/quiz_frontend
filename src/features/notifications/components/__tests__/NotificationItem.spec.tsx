@@ -1,5 +1,9 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+import { NotificationItem } from "@/features/notifications/components/NotificationItem";
+
+import { notificationMocks, makeNotification } from "./test-helpers";
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({
@@ -25,8 +29,7 @@ vi.mock("@/features/notifications/hooks", async () => {
     useMarkNotificationUnread: installed.useMarkNotificationUnread,
     useDeleteNotification: installed.useDeleteNotification,
     useNotificationPreferences: installed.useNotificationPreferences,
-    useNotificationFeatureFlag: installed.useNotificationFeatureFlag,
-  };
+      };
 });
 
 vi.mock("@/features/notifications/hooks/useNotifications", async () => {
@@ -78,19 +81,6 @@ vi.mock(
     return { useNotificationPreferences: installed.useNotificationPreferences };
   },
 );
-
-vi.mock(
-  "@/features/notifications/hooks/useNotificationFeatureFlag",
-  async () => {
-    const installed = (
-      await import("./test-helpers")
-    ).installNotificationMocks();
-    return { useNotificationFeatureFlag: installed.useNotificationFeatureFlag };
-  },
-);
-
-import { notificationMocks, makeNotification } from "./test-helpers";
-import { NotificationItem } from "@/features/notifications/components/NotificationItem";
 
 describe("NotificationItem", () => {
   beforeEach(() => {
