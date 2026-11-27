@@ -1,104 +1,28 @@
 "use client";
 
-import { getQueryClient } from "@/providers/QueryProvider";
+import { TrendingUp } from "lucide-react";
 
-import { TagPill } from "@/components/primitives/TagPill/TagPill";
-import { TagPillSkeleton } from "@/components/primitives";
-import { Button } from "@/components/ui/Button";
 import { useTagsTrending } from "@/features/tags/hooks/useTagsTrending";
+import { TAG_KEYS } from "@/features/tags/query-keys";
 
-const QUERY_KEY = ["tags", "trending", { limit: 10 }] as const;
+import { RankedTagRail } from "./RankedTagRail";
 
-const STRIP_CONTAINER =
-  "flex gap-3 overflow-x-auto pb-4 snap-x snap-mandatory scroll-mt-16 scrollbar-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden";
-const STRIP_HEADER =
-  "mb-3 flex items-center justify-between gap-2 text-sm text-muted-foreground";
+const QUERY_KEY = TAG_KEYS.trending({ limit: 10 });
 
 export function TrendingTagsStrip(): React.ReactElement | null {
   const { tags, isLoading, error } = useTagsTrending({ limit: 10 });
 
-  if (isLoading) {
-    return (
-      <section
-        className="mb-8"
-        aria-label="Trending tags"
-        aria-busy="true"
-        data-testid="trending-tags-strip-loading"
-      >
-        <div className={STRIP_HEADER}>
-          <span>Trending now</span>
-        </div>
-        <div className={STRIP_CONTAINER}>
-          {Array.from({ length: 5 }).map((_, i) => (
-            <div
-              key={i}
-              className="shrink-0 snap-start"
-              data-testid="trending-tags-strip-skeleton"
-            >
-              <TagPillSkeleton />
-            </div>
-          ))}
-        </div>
-      </section>
-    );
-  }
-
-  if (error) {
-    return (
-      <section
-        className="mb-8"
-        aria-label="Trending tags"
-        data-testid="trending-tags-strip-error"
-      >
-        <div className={STRIP_HEADER}>
-          <span>Trending now</span>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() =>
-              void getQueryClient().invalidateQueries({ queryKey: QUERY_KEY })
-            }
-            data-testid="trending-tags-strip-retry"
-          >
-            Retry
-          </Button>
-        </div>
-        <p className="text-sm text-muted-foreground" role="status">
-          Couldn&apos;t load trending tags.
-        </p>
-      </section>
-    );
-  }
-
-  if (tags.length === 0) {
-    return null;
-  }
-
   return (
-    <section
-      className="mb-8"
-      aria-label="Trending tags"
-      data-testid="trending-tags-strip"
-    >
-      <div className={STRIP_HEADER}>
-        <span>Trending now</span>
-      </div>
-      <div className={STRIP_CONTAINER}>
-        {tags.map((tag) => (
-          <div key={tag.tagId} className="shrink-0 snap-start">
-            <TagPill
-              tag={{
-                tagId: tag.tagId,
-                name: tag.name,
-                slug: tag.slug,
-                createdAt: "",
-                updatedAt: "",
-              }}
-              variant="clickable"
-            />
-          </div>
-        ))}
-      </div>
-    </section>
+    <RankedTagRail
+      title="Trending now"
+      ariaLabel="Trending tags"
+      icon={TrendingUp}
+      tags={tags}
+      isLoading={isLoading}
+      error={error}
+      errorCopy="Couldn't load trending tags."
+      queryKey={QUERY_KEY}
+      testIdPrefix="trending-tags-strip"
+    />
   );
 }

@@ -48,33 +48,33 @@
  * `QuizCatalogMainContent` does this).
  */
 
-import { useEffect, useMemo } from "react";
+import { useMemo } from "react";
 import Link from "next/link";
+
 import { Flame, Sparkles, TrendingUp, Users } from "lucide-react";
 
+import { QuizCardSkeleton } from "@/components/primitives";
+import { EntityCard } from "@/components/primitives/EntityCard/EntityCard";
+import { FilterBar } from "@/components/primitives/FilterBar";
+import { Button } from "@/components/ui/Button";
+
 import { ApiError } from "@/lib/api";
-import { cn } from "@/shared/utils/merge-class-names";
 
 import { useCategoriesRanked } from "@/features/categories/hooks";
-import { rankedCategoryToCategoryResponse } from "@/features/categories/utils/ranked-category-to-category-response";
 import { QuizGridEmpty } from "@/features/quizzes/components/QuizGridEmpty";
 import { QuizGridLoadMore } from "@/features/quizzes/components/QuizGridLoadMore";
 import { useQuizFiltersUrlSync } from "@/features/quizzes/hooks/useQuizFiltersUrlSync";
 import { useQuizzesList } from "@/features/quizzes/hooks/useQuizzesList";
 import { useQuizzesPopular } from "@/features/quizzes/hooks/useQuizzesPopular";
 import { useQuizzesTrending } from "@/features/quizzes/hooks/useQuizzesTrending";
-import {
-  setFilter,
-  useQuizFiltersStore,
-} from "@/features/quizzes/store/use-quiz-filters-store";
-import { initialsFromQuizId } from "@/features/quizzes/utils/quiz-card-decoration";
-import { gradientFromQuizId } from "@/features/quizzes/utils/quiz-card-gradient";
 import { useTagsPopular } from "@/features/tags/hooks";
 
-import { QuizCardSkeleton } from "@/components/primitives";
-import { EntityCard } from "@/components/primitives/EntityCard/EntityCard";
-import { FilterBar } from "@/components/primitives/FilterBar";
-import { Button } from "@/components/ui/Button";
+import { PAGE_CONTAINER_CLASS } from "@/shared/layout/constants";
+import { DifficultyBadge } from "@/shared/ui/DifficultyBadge";
+import {
+  gradientFromId,
+  initialsFromId,
+} from "@/shared/utils/entity-decoration";
 
 import type { QuizFilterUrlState } from "@/features/quizzes/types/quiz-filter-params";
 import type {
@@ -87,42 +87,21 @@ const SKELETON_COUNT = 20;
 const STRIP_LIMIT = 10;
 
 export interface QuizzesDirectoryPageProps {
-  /**
-   * Optional initial filter state. Applied via `setFilter` on mount
-   * (so the values are visible to the filter bar's first render).
-   * The URL sync hook reads the URL on mount and overrides; if both
-   * are present, the URL wins (the URL is the source of truth on
-   * hard reload).
-   */
   initialState?: Partial<QuizFilterUrlState>;
-}
-
-/**
- * Subscribe to the filter state via `useQuizFiltersStore()`. We
- * intentionally subscribe to the entire state object — the FilterBar
- * primitive needs the full state to render, and React's
- * `useSyncExternalStore` (zustand's default) handles the subscription
- * efficiently.
- */
-function useQuizFiltersState(): QuizFilterUrlState {
-  return useQuizFiltersStore();
 }
 
 export function QuizzesDirectoryPage({
   initialState,
 }: QuizzesDirectoryPageProps = {}): React.ReactElement {
-  useQuizFiltersUrlSync();
-  useInitialState(initialState);
-
-  const state = useQuizFiltersState();
+  const {
+    filters: state,
+    setFilters,
+    resetFilters,
+  } = useQuizFiltersUrlSync(initialState);
 
   // ─── Data: categories for the dropdown, tags for the multi-select ───
 
   const { categories: rankedCategories } = useCategoriesRanked({ limit: 50 });
-  const categories = useMemo(
-    () => rankedCategories.map(rankedCategoryToCategoryResponse),
-    [rankedCategories],
-  );
 
   const { tags: popularTags } = useTagsPopular({ limit: 40 });
   const tags = useMemo(
@@ -131,8 +110,6 @@ export function QuizzesDirectoryPage({
         tagId: t.tagId,
         slug: t.slug,
         name: t.name,
-        createdAt: t.createdAt,
-        updatedAt: t.updatedAt,
       })),
     [popularTags],
   );
@@ -160,7 +137,7 @@ export function QuizzesDirectoryPage({
 
   return (
     <main
-      className="mx-auto max-w-7xl min-h-screen text-foreground px-4 sm:px-6 lg:px-8 py-8 sm:py-10 space-y-10 sm:space-y-12"
+      className={`${PAGE_CONTAINER_CLASS} space-y-10 sm:space-y-12`}
       aria-labelledby="quizzes-directory-title"
       data-testid="quizzes-directory-page"
     >
@@ -228,11 +205,9 @@ export function QuizzesDirectoryPage({
         >
           <FilterBar
             state={state}
-            categories={categories}
+            categories={rankedCategories}
             tags={tags}
-            onChange={(next) => {
-              useQuizFiltersStore.setState(next, true);
-            }}
+            onChange={setFilters}
           />
         </div>
 
@@ -269,7 +244,7 @@ export function QuizzesDirectoryPage({
           ) : items.length === 0 ? (
             <QuizGridEmpty
               hasFilters={hasActiveFilters(state)}
-              onReset={() => useQuizFiltersStore.setState({}, true)}
+              onReset={resetFilters}
             />
           ) : (
             <>
@@ -311,23 +286,7 @@ function hasActiveFilters(state: QuizFilterUrlState): boolean {
   );
 }
 
-/**
- * Seeds the store with `initialState` on mount (a single-shot effect,
- * not gated by a ref).
- */
-function useInitialState(initialState?: Partial<QuizFilterUrlState>): void {
-  useEffect(() => {
-    if (!initialState) return;
-    for (const [key, value] of Object.entries(initialState)) {
-      if (value !== undefined) {
-        setFilter(key as keyof QuizFilterUrlState, value as never);
-      }
-    }
-  }, [initialState]);
-}
-
 // ─── Sub-components ──────────────────────────────────────────────────────
-
 
 interface DirectoryQuizCardItem {
   quizId: string;
@@ -338,20 +297,6 @@ interface DirectoryQuizCardItem {
   publishedVersion?: { difficulty?: string | null } | null;
 }
 
-function difficultyBadgeClasses(difficulty?: string | null): string {
-  const norm = (difficulty ?? "").toLowerCase();
-  if (norm === "easy") {
-    return "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400";
-  }
-  if (norm === "medium") {
-    return "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-400";
-  }
-  if (norm === "hard") {
-    return "border-rose-500/30 bg-rose-500/10 text-rose-700 dark:text-rose-400";
-  }
-  return "border-border bg-muted text-muted-foreground";
-}
-
 function DirectoryQuizCard({
   item,
 }: {
@@ -359,7 +304,7 @@ function DirectoryQuizCard({
 }): React.ReactElement {
   const href = `/quizzes/${item.slug || item.quizId}`;
   const difficulty = item.publishedVersion?.difficulty;
-  const fallbackGradient = gradientFromQuizId(item.quizId);
+  const fallbackGradient = gradientFromId(item.quizId);
 
   return (
     <div
@@ -373,21 +318,10 @@ function DirectoryQuizCard({
         description={item.description ?? null}
         imageUrl={item.imageUrl ?? null}
         imageAlt=""
-        initials={initialsFromQuizId(item.quizId)}
+        initials={initialsFromId(item.quizId)}
         aspectRatio="16/9"
         coverSize="md"
-        badges={
-          difficulty ? (
-            <span
-              className={cn(
-                "rounded-full border px-2.5 py-0.5 text-xs font-semibold capitalize",
-                difficultyBadgeClasses(difficulty),
-              )}
-            >
-              {difficulty}
-            </span>
-          ) : null
-        }
+        badges={difficulty ? <DifficultyBadge difficulty={difficulty} /> : null}
       />
       {item.imageUrl ? null : (
         <span
@@ -397,7 +331,7 @@ function DirectoryQuizCard({
           style={{ background: fallbackGradient }}
           className="pointer-events-none absolute inset-x-0 top-0 z-0 flex aspect-video w-full items-center justify-center rounded-t-xl text-lg font-semibold uppercase text-white"
         >
-          {initialsFromQuizId(item.quizId)}
+          {initialsFromId(item.quizId)}
         </span>
       )}
     </div>

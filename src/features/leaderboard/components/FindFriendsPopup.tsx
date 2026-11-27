@@ -233,31 +233,32 @@ function SuggestionRow({ suggestion }: SuggestionRowProps) {
   const displayName =
     suggestion.user.displayName ?? `@${suggestion.user.userName}`;
   return (
-    <div className="flex items-center justify-between p-4 bg-muted rounded-lg hover:bg-accent transition-colors">
-      <div className="flex items-center gap-3">
-        <div className="w-12 h-12 rounded-full overflow-hidden">
+    <div className="flex items-center justify-between gap-3 p-3.5 bg-muted/60 rounded-lg border border-border/60 hover:bg-accent transition-colors">
+      <div className="flex min-w-0 flex-1 items-center gap-3">
+        <div className="w-11 h-11 shrink-0 rounded-full overflow-hidden">
           <Image
             src={avatarSrc}
             alt={suggestion.user.userName}
-            width={48}
-            height={48}
-            loading="eager"
-            priority
+            width={44}
+            height={44}
             className="w-full h-full object-cover"
           />
         </div>
-        <div className="flex-1">
-          <div className="flex items-center gap-2">
-            <h3 className="font-semibold text-foreground">{displayName}</h3>
-          </div>
-          <div className="flex items-center gap-3 mt-1">
+        <div className="min-w-0 flex-1">
+          <h3
+            title={displayName}
+            className="truncate text-sm font-semibold text-foreground"
+          >
+            {displayName}
+          </h3>
+          <div className="flex flex-wrap items-center gap-2 mt-1">
             {suggestion.mutualFriendsCount > 0 ? (
-              <span className="text-xs text-muted-foreground">
+              <span className="font-mono text-xs tabular-nums text-muted-foreground">
                 {suggestion.mutualFriendsCount} mutual friend
                 {suggestion.mutualFriendsCount === 1 ? "" : "s"}
               </span>
             ) : null}
-            <Badge className="bg-muted-foreground text-xs">
+            <Badge variant="secondary" className="text-xs">
               {suggestion.reason}
             </Badge>
           </div>
@@ -265,7 +266,7 @@ function SuggestionRow({ suggestion }: SuggestionRowProps) {
       </div>
       <Button
         size="sm"
-        className="bg-primary hover:bg-primary text-primary-foreground"
+        className="shrink-0 bg-default hover:bg-default-hover text-default-foreground"
         type="button"
       >
         <UserPlus className="w-4 h-4 mr-1" aria-hidden="true" />

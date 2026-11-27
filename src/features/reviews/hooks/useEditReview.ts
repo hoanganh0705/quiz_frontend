@@ -1,82 +1,38 @@
 "use client";
 
-import { useCallback, useMemo, useRef, useState } from "react";
-import { getQueryClient } from "@/providers/QueryProvider";
+import { useCallback, useRef, useState } from "react";
 
-import { isApiError, ApiError } from "@/lib/api";
+import { ApiError, isApiError } from "@/lib/api";
 
-import { useAuthSession } from "@/features/auth/hooks/use-auth-session";
+import { useAuthSessionId } from "@/features/auth/hooks/use-auth-session-id";
+import { invalidateReviewCaches } from "@/features/reviews/query-keys";
 import { updateReview } from "@/features/reviews/services/reviews.service";
-import { invalidateReviewCaches } from "@/features/reviews/types";
 
 import type { UpdateReviewDto } from "@/lib/api/generated/schemas";
 
 export type EditReviewOutcomeKind =
-  "success" | "forbidden" | "validation" | "stale" | "reverted";
+  | "success"
+  | "forbidden"
+  | "validation"
+  | "stale"
+  | "reverted";
 
 export interface EditReviewOutcome {
   kind: EditReviewOutcomeKind;
-
   cause: ApiError | null;
 }
 
 export interface UseEditReviewOptions {
   onSuccess?: () => void;
-
   onError?: (outcome: EditReviewOutcome) => void;
 }
 
 export interface UseEditReviewResult {
   update: (payload: UpdateReviewDto) => Promise<boolean>;
-
   isLoading: boolean;
-
   error: ApiError | null;
-
   lastOutcome: EditReviewOutcome | null;
-
   reset: () => void;
-}
-
-function makeSyntheticApiError(
-  status: number,
-  code: string,
-  message: string,
-): ApiError {
-  return new ApiError({
-    isAxiosError: true,
-    name: "AxiosError",
-    message,
-    code,
-    config: undefined,
-    request: undefined,
-    response: {
-      status,
-      statusText: message,
-      data: {
-        type: "https://api.quiz.local/problems/synthetic",
-        title: message,
-        status,
-        detail: message,
-        extensions: { code, requestId: "req-synthetic" },
-      },
-      headers: {},
-      config: undefined as never,
-    },
-    toJSON: () => ({}),
-  } as unknown as Parameters<typeof ApiError.fromAxios>[0]);
-}
-
-async function invalidateAllReviewKeysForQuiz(quizId: string): Promise<void> {
-  try {
-    const qc = getQueryClient();
-    await qc.invalidateQueries({
-      predicate: (query) =>
-        Array.isArray(query.queryKey) &&
-        query.queryKey[0] === "reviews" &&
-        query.queryKey[2] === quizId,
-    });
-  } catch {}
 }
 
 export function useEditReview(
@@ -92,25 +48,23 @@ export function useEditReview(
   );
 
   const inFlightRef = useRef<Promise<boolean> | null>(null);
-
-  const { currentUser } = useAuthSession();
-  const sessionId = useMemo<string | null>(() => {
-    const u = currentUser as { id?: string; userId?: string } | null;
-    if (!u) return null;
-    return u.id ?? u.userId ?? null;
-  }, [currentUser]);
+  const sessionId = useAuthSessionId();
 
   const handleUpdate = useCallback(
     async (payload: UpdateReviewDto): Promise<boolean> => {
       if (!quizId) {
-        const synthetic = makeSyntheticApiError(
-          0,
-          "REVIEW_VALIDATION",
-          "quizId is required to edit a review",
-        );
-        setError(synthetic);
-        setLastOutcome({ kind: "validation", cause: synthetic });
-        onError?.({ kind: "validation", cause: synthetic });
+        const validationError = ApiError.fromInput({
+          status: 0,
+          code: "REVIEW_VALIDATION",
+          message: "quizId is required to edit a review",
+        });
+        setError(validationError);
+        const outcome: EditReviewOutcome = {
+          kind: "validation",
+          cause: validationError,
+        };
+        setLastOutcome(outcome);
+        onError?.(outcome);
         return false;
       }
 
@@ -126,29 +80,25 @@ export function useEditReview(
         try {
           await updateReview(quizId, payload);
 
-          if (sessionId) {
-            await invalidateReviewCaches({
-              quizId,
-              sessionId,
-            });
-          } else {
-            await invalidateAllReviewKeysForQuiz(quizId);
-          }
+          await invalidateReviewCaches({
+            quizId,
+            sessionId,
+          });
 
           setLastOutcome({ kind: "success", cause: null });
           onSuccess?.();
           return true;
         } catch (cause: unknown) {
           if (!isApiError(cause)) {
-            const synthetic = makeSyntheticApiError(
-              0,
-              "GLOBAL_UNKNOWN",
-              String(cause),
-            );
-            setError(synthetic);
+            const unknownError = ApiError.fromInput({
+              status: 0,
+              code: "GLOBAL_UNKNOWN",
+              message: cause instanceof Error ? cause.message : String(cause),
+            });
+            setError(unknownError);
             const outcome: EditReviewOutcome = {
               kind: "reverted",
-              cause: synthetic,
+              cause: unknownError,
             };
             setLastOutcome(outcome);
             onError?.(outcome);
@@ -177,14 +127,10 @@ export function useEditReview(
               return false;
             }
             case "GLOBAL_NOT_FOUND": {
-              if (sessionId) {
-                await invalidateReviewCaches({
-                  quizId,
-                  sessionId,
-                });
-              } else {
-                await invalidateAllReviewKeysForQuiz(quizId);
-              }
+              await invalidateReviewCaches({
+                quizId,
+                sessionId,
+              });
               setError(cause);
               const outcome: EditReviewOutcome = {
                 kind: "stale",

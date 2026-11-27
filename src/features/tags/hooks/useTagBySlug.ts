@@ -3,9 +3,10 @@
 import { useQuery } from "@tanstack/react-query";
 import { getQueryClient } from "@/providers/QueryProvider";
 
-import { ApiError } from "@/lib/api";
+import { ApiError, coerceToApiError } from "@/lib/api";
 import type { TagResponseDto } from "@/lib/api/generated/schemas";
 
+import { TAG_KEYS } from "@/features/tags/query-keys";
 import { getTagBySlug } from "@/features/tags/services/tags.service";
 
 export interface UseTagBySlugResult {
@@ -16,20 +17,19 @@ export interface UseTagBySlugResult {
 }
 
 export function useTagBySlug(slug: string): UseTagBySlugResult {
-  const key = ["tag", slug] as const;
-
   const { data, error, isLoading } = useQuery(
     {
-      queryKey: key,
+      queryKey: TAG_KEYS.detail(slug),
       queryFn: async () => {
         const result = await getTagBySlug(slug);
         return result.data ?? null;
       },
+      enabled: Boolean(slug),
     },
     getQueryClient(),
   );
 
-  const apiError = error instanceof ApiError ? error : null;
+  const apiError = error ? coerceToApiError(error) : null;
   const notFound = apiError?.status === 404;
 
   return {

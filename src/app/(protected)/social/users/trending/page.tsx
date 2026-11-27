@@ -23,10 +23,6 @@ function TrendingRouteGate(): React.ReactElement {
     );
   }
 
-  if (false) {
-    return <SocialDiscoveryPlaceholder surface="trending" />;
-  }
-
   if (isAuthenticated) {
     return <TrendingUsersList />;
   }

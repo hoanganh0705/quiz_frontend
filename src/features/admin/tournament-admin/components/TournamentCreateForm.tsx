@@ -1,17 +1,25 @@
 "use client";
 
+import type React from "react";
 import { useCallback, useMemo, useState } from "react";
+
+import { Loader2 } from "lucide-react";
 
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
-
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/Select";
+import { Textarea } from "@/components/ui/Textarea";
 import { AuditActionShell } from "@/features/admin/components/AuditActionShell";
 import { RequestIdBanner } from "@/features/admin/components/RequestIdBanner";
-
 import { useCreateTournament } from "@/features/admin/tournament-admin/hooks/useCreateTournament";
 import { getUserCopy } from "@/lib/api/error-codes";
-import type { ApiError } from "@/lib/api/core/ApiError";
 
 import type {
   TournamentCreateDto,
@@ -21,14 +29,32 @@ import type {
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
+interface FormState {
+  title: string;
+  description: string;
+  difficulty: "easy" | "medium" | "hard";
+  prize: string;
+  startAt: string;
+  endAt: string;
+  maxParticipants: string;
+  categoryId: string;
+}
+
 interface ValidationIssue {
   readonly field: keyof FormState;
   readonly message: string;
 }
 
+function parseDateTimeLocal(value: string): Date | null {
+  if (value.length === 0) return null;
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return null;
+  return parsed;
+}
+
 function validateForm(
   state: FormState,
-  now: Date,
+  nowMs: number,
 ): ReadonlyArray<ValidationIssue> {
   const issues: ValidationIssue[] = [];
 
@@ -61,7 +87,7 @@ function validateForm(
       field: "startAt",
       message: "Start time is required.",
     });
-  } else if (startAt.getTime() <= now.getTime()) {
+  } else if (startAt.getTime() <= nowMs) {
     issues.push({
       field: "startAt",
       message: "Start time must be in the future.",
@@ -101,13 +127,6 @@ function validateForm(
   return issues;
 }
 
-function parseDateTimeLocal(value: string): Date | null {
-  if (value.length === 0) return null;
-  const parsed = new Date(value);
-  if (Number.isNaN(parsed.getTime())) return null;
-  return parsed;
-}
-
 function buildPayload(state: FormState): TournamentCreateDto | null {
   const title = state.title.trim();
   if (title.length === 0) return null;
@@ -124,10 +143,11 @@ function buildPayload(state: FormState): TournamentCreateDto | null {
   };
 
   if (state.description.length > 0) {
-    (payload as any).description = state.description;
+    payload.description =
+      state.description as unknown as TournamentCreateDto["description"];
   }
   if (state.prize.length > 0) {
-    (payload as any).prize = state.prize;
+    payload.prize = state.prize as unknown as TournamentCreateDto["prize"];
   }
   if (state.maxParticipants.length > 0) {
     const parsed = Number.parseInt(state.maxParticipants, 10);
@@ -140,17 +160,6 @@ function buildPayload(state: FormState): TournamentCreateDto | null {
   }
 
   return payload;
-}
-
-interface FormState {
-  title: string;
-  description: string;
-  difficulty: "easy" | "medium" | "hard";
-  prize: string;
-  startAt: string;
-  endAt: string;
-  maxParticipants: string;
-  categoryId: string;
 }
 
 const INITIAL_FORM_STATE: FormState = {
@@ -172,8 +181,6 @@ const DIFFICULTY_OPTIONS: ReadonlyArray<{
   { value: "medium", label: "Medium" },
   { value: "hard", label: "Hard" },
 ];
-
-const INLINE_ERROR_CODES = new Set(["TOURNAMENT_VALIDATION"]);
 
 function resolveInlineErrorMessage(code: string): string | null {
   if (code === "TOURNAMENT_VALIDATION") {
@@ -197,13 +204,14 @@ export function TournamentCreateForm({
 }: TournamentCreateFormProps): React.ReactElement {
   const { create, error, isPending } = useCreateTournament();
 
+  const [referenceNowMs] = useState<number>(() => Date.now());
   const [state, setState] = useState<FormState>(INITIAL_FORM_STATE);
   const [touched, setTouched] = useState<boolean>(false);
   const [successHandled, setSuccessHandled] = useState<boolean>(false);
 
   const issues = useMemo<ReadonlyArray<ValidationIssue>>(
-    () => validateForm(state, new Date()),
-    [state],
+    () => validateForm(state, referenceNowMs),
+    [state, referenceNowMs],
   );
   const issuesByField = useMemo(() => {
     const map: Partial<Record<keyof FormState, string>> = {};
@@ -251,280 +259,377 @@ export function TournamentCreateForm({
     error !== null && inlineErrorMessage === null && error.requestId.length > 0;
 
   return (
-    <form
-      className="space-y-5"
-      onSubmit={(event) => {
-        event.preventDefault();
-        setTouched(true);
+    <AuditActionShell
+      action="tournament.create"
+      before={state}
+      redactFields={["description", "prize"]}
+      mutate={async () => {
+        if (!isValid) {
+          setTouched(true);
+          throw new Error("Form is invalid");
+        }
+        const payload = buildPayload(state);
+        if (payload === null) {
+          setTouched(true);
+          throw new Error("Form is invalid");
+        }
+        return create(payload);
       }}
-      data-testid="tournament-create-form"
-      noValidate
+      onBreadcrumb={handleBreadcrumb}
     >
-      <div className="space-y-2">
-        <Label htmlFor="tournament-create-title">Title</Label>
-        <Input
-          id="tournament-create-title"
-          name="title"
-          value={state.title}
-          onChange={(event) => updateField("title", event.target.value)}
-          maxLength={255}
-          placeholder="Spring Cup"
-          aria-invalid={
-            touched && issuesByField.title !== undefined ? "true" : "false"
-          }
-          data-testid="tournament-create-input-title"
-        />
-        {touched && issuesByField.title !== undefined ? (
-          <p
-            className="text-xs text-destructive"
-            data-testid="tournament-create-error-title"
+      {(shell) => {
+        const submitting = shell.isPending || isPending;
+        return (
+          <form
+            className="space-y-4"
+            onSubmit={async (event) => {
+              event.preventDefault();
+              setTouched(true);
+              if (!isValid || submitting) return;
+              await shell.retry();
+            }}
+            data-testid="tournament-create-form"
+            noValidate
           >
-            {issuesByField.title}
-          </p>
-        ) : null}
-      </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="tournament-create-title">
+                Title
+                <span className="ml-0.5 text-destructive" aria-hidden="true">
+                  *
+                </span>
+              </Label>
+              <Input
+                id="tournament-create-title"
+                name="title"
+                required
+                value={state.title}
+                onChange={(event) => updateField("title", event.target.value)}
+                maxLength={255}
+                placeholder="Spring Cup"
+                aria-invalid={
+                  touched && issuesByField.title !== undefined
+                    ? "true"
+                    : "false"
+                }
+                aria-describedby={
+                  touched && issuesByField.title !== undefined
+                    ? "tournament-create-error-title"
+                    : undefined
+                }
+                data-testid="tournament-create-input-title"
+              />
+              {touched && issuesByField.title !== undefined ? (
+                <p
+                  id="tournament-create-error-title"
+                  role="alert"
+                  className="text-xs text-destructive"
+                  data-testid="tournament-create-error-title"
+                >
+                  {issuesByField.title}
+                </p>
+              ) : null}
+            </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="tournament-create-description">Description</Label>
-        <textarea
-          id="tournament-create-description"
-          name="description"
-          value={state.description}
-          onChange={(event) => updateField("description", event.target.value)}
-          maxLength={2000}
-          placeholder="Tournament description (optional)"
-          rows={3}
-          aria-invalid={
-            touched && issuesByField.description !== undefined
-              ? "true"
-              : "false"
-          }
-          data-testid="tournament-create-input-description"
-          className="flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs placeholder:text-muted-foreground focus-visible:border-default focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
-        />
-        {touched && issuesByField.description !== undefined ? (
-          <p
-            className="text-xs text-destructive"
-            data-testid="tournament-create-error-description"
-          >
-            {issuesByField.description}
-          </p>
-        ) : null}
-      </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="tournament-create-description">Description</Label>
+              <Textarea
+                id="tournament-create-description"
+                name="description"
+                value={state.description}
+                onChange={(event) =>
+                  updateField("description", event.target.value)
+                }
+                maxLength={2000}
+                placeholder="Tournament description (optional)"
+                rows={3}
+                aria-invalid={
+                  touched && issuesByField.description !== undefined
+                    ? "true"
+                    : "false"
+                }
+                aria-describedby={
+                  touched && issuesByField.description !== undefined
+                    ? "tournament-create-error-description"
+                    : undefined
+                }
+                data-testid="tournament-create-input-description"
+              />
+              {touched && issuesByField.description !== undefined ? (
+                <p
+                  id="tournament-create-error-description"
+                  role="alert"
+                  className="text-xs text-destructive"
+                  data-testid="tournament-create-error-description"
+                >
+                  {issuesByField.description}
+                </p>
+              ) : null}
+            </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="tournament-create-difficulty">Difficulty</Label>
-        <select
-          id="tournament-create-difficulty"
-          name="difficulty"
-          value={state.difficulty}
-          onChange={(event) =>
-            updateField(
-              "difficulty",
-              event.target.value as FormState["difficulty"],
-            )
-          }
-          data-testid="tournament-create-input-difficulty"
-          className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs focus-visible:border-default focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          {DIFFICULTY_OPTIONS.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </select>
-      </div>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-1.5">
+                <Label htmlFor="tournament-create-difficulty">Difficulty</Label>
+                <Select
+                  value={state.difficulty}
+                  onValueChange={(value) =>
+                    updateField("difficulty", value as FormState["difficulty"])
+                  }
+                >
+                  <SelectTrigger
+                    id="tournament-create-difficulty"
+                    className="w-full"
+                    data-testid="tournament-create-input-difficulty"
+                  >
+                    <SelectValue placeholder="Select difficulty" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {DIFFICULTY_OPTIONS.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="tournament-create-prize">Prize</Label>
-        <Input
-          id="tournament-create-prize"
-          name="prize"
-          value={state.prize}
-          onChange={(event) => updateField("prize", event.target.value)}
-          maxLength={1000}
-          placeholder="Prize description (optional)"
-          aria-invalid={
-            touched && issuesByField.prize !== undefined ? "true" : "false"
-          }
-          data-testid="tournament-create-input-prize"
-        />
-        {touched && issuesByField.prize !== undefined ? (
-          <p
-            className="text-xs text-destructive"
-            data-testid="tournament-create-error-prize"
-          >
-            {issuesByField.prize}
-          </p>
-        ) : null}
-      </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="tournament-create-prize">Prize</Label>
+                <Input
+                  id="tournament-create-prize"
+                  name="prize"
+                  value={state.prize}
+                  onChange={(event) => updateField("prize", event.target.value)}
+                  maxLength={1000}
+                  placeholder="Prize description (optional)"
+                  aria-invalid={
+                    touched && issuesByField.prize !== undefined
+                      ? "true"
+                      : "false"
+                  }
+                  aria-describedby={
+                    touched && issuesByField.prize !== undefined
+                      ? "tournament-create-error-prize"
+                      : undefined
+                  }
+                  data-testid="tournament-create-input-prize"
+                />
+                {touched && issuesByField.prize !== undefined ? (
+                  <p
+                    id="tournament-create-error-prize"
+                    role="alert"
+                    className="text-xs text-destructive"
+                    data-testid="tournament-create-error-prize"
+                  >
+                    {issuesByField.prize}
+                  </p>
+                ) : null}
+              </div>
+            </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div className="space-y-2">
-          <Label htmlFor="tournament-create-startAt">Start time</Label>
-          <Input
-            id="tournament-create-startAt"
-            name="startAt"
-            type="datetime-local"
-            value={state.startAt}
-            onChange={(event) => updateField("startAt", event.target.value)}
-            aria-invalid={
-              touched && issuesByField.startAt !== undefined ? "true" : "false"
-            }
-            data-testid="tournament-create-input-startAt"
-          />
-          {touched && issuesByField.startAt !== undefined ? (
-            <p
-              className="text-xs text-destructive"
-              data-testid="tournament-create-error-startAt"
-            >
-              {issuesByField.startAt}
-            </p>
-          ) : null}
-        </div>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-1.5">
+                <Label htmlFor="tournament-create-startAt">
+                  Start time
+                  <span className="ml-0.5 text-destructive" aria-hidden="true">
+                    *
+                  </span>
+                </Label>
+                <Input
+                  id="tournament-create-startAt"
+                  name="startAt"
+                  type="datetime-local"
+                  required
+                  value={state.startAt}
+                  onChange={(event) =>
+                    updateField("startAt", event.target.value)
+                  }
+                  aria-invalid={
+                    touched && issuesByField.startAt !== undefined
+                      ? "true"
+                      : "false"
+                  }
+                  aria-describedby={
+                    touched && issuesByField.startAt !== undefined
+                      ? "tournament-create-error-startAt"
+                      : undefined
+                  }
+                  data-testid="tournament-create-input-startAt"
+                />
+                {touched && issuesByField.startAt !== undefined ? (
+                  <p
+                    id="tournament-create-error-startAt"
+                    role="alert"
+                    className="text-xs text-destructive"
+                    data-testid="tournament-create-error-startAt"
+                  >
+                    {issuesByField.startAt}
+                  </p>
+                ) : null}
+              </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="tournament-create-endAt">End time</Label>
-          <Input
-            id="tournament-create-endAt"
-            name="endAt"
-            type="datetime-local"
-            value={state.endAt}
-            onChange={(event) => updateField("endAt", event.target.value)}
-            aria-invalid={
-              touched && issuesByField.endAt !== undefined ? "true" : "false"
-            }
-            data-testid="tournament-create-input-endAt"
-          />
-          {touched && issuesByField.endAt !== undefined ? (
-            <p
-              className="text-xs text-destructive"
-              data-testid="tournament-create-error-endAt"
-            >
-              {issuesByField.endAt}
-            </p>
-          ) : null}
-        </div>
-      </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="tournament-create-endAt">
+                  End time
+                  <span className="ml-0.5 text-destructive" aria-hidden="true">
+                    *
+                  </span>
+                </Label>
+                <Input
+                  id="tournament-create-endAt"
+                  name="endAt"
+                  type="datetime-local"
+                  required
+                  value={state.endAt}
+                  onChange={(event) => updateField("endAt", event.target.value)}
+                  aria-invalid={
+                    touched && issuesByField.endAt !== undefined
+                      ? "true"
+                      : "false"
+                  }
+                  aria-describedby={
+                    touched && issuesByField.endAt !== undefined
+                      ? "tournament-create-error-endAt"
+                      : undefined
+                  }
+                  data-testid="tournament-create-input-endAt"
+                />
+                {touched && issuesByField.endAt !== undefined ? (
+                  <p
+                    id="tournament-create-error-endAt"
+                    role="alert"
+                    className="text-xs text-destructive"
+                    data-testid="tournament-create-error-endAt"
+                  >
+                    {issuesByField.endAt}
+                  </p>
+                ) : null}
+              </div>
+            </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div className="space-y-2">
-          <Label htmlFor="tournament-create-maxParticipants">
-            Max participants
-          </Label>
-          <Input
-            id="tournament-create-maxParticipants"
-            name="maxParticipants"
-            type="number"
-            min={2}
-            value={state.maxParticipants}
-            onChange={(event) =>
-              updateField("maxParticipants", event.target.value)
-            }
-            placeholder="Unlimited"
-            aria-invalid={
-              touched && issuesByField.maxParticipants !== undefined
-                ? "true"
-                : "false"
-            }
-            data-testid="tournament-create-input-maxParticipants"
-          />
-          {touched && issuesByField.maxParticipants !== undefined ? (
-            <p
-              className="text-xs text-destructive"
-              data-testid="tournament-create-error-maxParticipants"
-            >
-              {issuesByField.maxParticipants}
-            </p>
-          ) : null}
-        </div>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-1.5">
+                <Label htmlFor="tournament-create-maxParticipants">
+                  Max participants
+                </Label>
+                <Input
+                  id="tournament-create-maxParticipants"
+                  name="maxParticipants"
+                  type="number"
+                  min={2}
+                  value={state.maxParticipants}
+                  onChange={(event) =>
+                    updateField("maxParticipants", event.target.value)
+                  }
+                  placeholder="Unlimited"
+                  aria-invalid={
+                    touched && issuesByField.maxParticipants !== undefined
+                      ? "true"
+                      : "false"
+                  }
+                  aria-describedby={
+                    touched && issuesByField.maxParticipants !== undefined
+                      ? "tournament-create-error-maxParticipants"
+                      : undefined
+                  }
+                  data-testid="tournament-create-input-maxParticipants"
+                />
+                {touched && issuesByField.maxParticipants !== undefined ? (
+                  <p
+                    id="tournament-create-error-maxParticipants"
+                    role="alert"
+                    className="text-xs text-destructive"
+                    data-testid="tournament-create-error-maxParticipants"
+                  >
+                    {issuesByField.maxParticipants}
+                  </p>
+                ) : null}
+              </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="tournament-create-categoryId">Category UUID</Label>
-          <Input
-            id="tournament-create-categoryId"
-            name="categoryId"
-            value={state.categoryId}
-            onChange={(event) => updateField("categoryId", event.target.value)}
-            placeholder="Optional"
-            aria-invalid={
-              touched && issuesByField.categoryId !== undefined
-                ? "true"
-                : "false"
-            }
-            data-testid="tournament-create-input-categoryId"
-          />
-          {touched && issuesByField.categoryId !== undefined ? (
-            <p
-              className="text-xs text-destructive"
-              data-testid="tournament-create-error-categoryId"
-            >
-              {issuesByField.categoryId}
-            </p>
-          ) : null}
-        </div>
-      </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="tournament-create-categoryId">
+                  Category UUID
+                </Label>
+                <Input
+                  id="tournament-create-categoryId"
+                  name="categoryId"
+                  value={state.categoryId}
+                  onChange={(event) =>
+                    updateField("categoryId", event.target.value)
+                  }
+                  placeholder="Optional"
+                  aria-invalid={
+                    touched && issuesByField.categoryId !== undefined
+                      ? "true"
+                      : "false"
+                  }
+                  aria-describedby={
+                    touched && issuesByField.categoryId !== undefined
+                      ? "tournament-create-error-categoryId"
+                      : undefined
+                  }
+                  data-testid="tournament-create-input-categoryId"
+                />
+                {touched && issuesByField.categoryId !== undefined ? (
+                  <p
+                    id="tournament-create-error-categoryId"
+                    role="alert"
+                    className="text-xs text-destructive"
+                    data-testid="tournament-create-error-categoryId"
+                  >
+                    {issuesByField.categoryId}
+                  </p>
+                ) : null}
+              </div>
+            </div>
 
-      {inlineErrorMessage !== null ? (
-        <div
-          role="alert"
-          className="rounded-md border border-red-300 bg-red-50 px-3 py-2 text-xs text-red-900"
-          data-testid="tournament-create-form-error"
-        >
-          <p className="font-semibold">Could not create the tournament</p>
-          <p className="mt-1">{inlineErrorMessage}</p>
-        </div>
-      ) : null}
+            {inlineErrorMessage !== null ? (
+              <div
+                role="alert"
+                className="rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-xs text-destructive"
+                data-testid="tournament-create-form-error"
+              >
+                <p className="font-semibold">Could not create the tournament</p>
+                <p className="mt-1">{inlineErrorMessage}</p>
+              </div>
+            ) : null}
 
-      {showRequestIdBanner && error !== null ? (
-        <RequestIdBanner error={error} />
-      ) : null}
+            {showRequestIdBanner && error !== null ? (
+              <RequestIdBanner error={error} />
+            ) : null}
 
-      <AuditActionShell
-        action="tournament.create"
-        before={state}
-        redactFields={["description", "prize"]}
-        mutate={async () => {
-          if (!isValid) {
-            setTouched(true);
-            throw new Error("Form is invalid");
-          }
-          const payload = buildPayload(state);
-          if (payload === null) {
-            setTouched(true);
-            throw new Error("Form is invalid");
-          }
-          return create(payload);
-        }}
-        onBreadcrumb={handleBreadcrumb}
-      >
-        {(shell) => (
-          <div className="flex items-center justify-end gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={onCancel}
-              disabled={shell.isPending}
-              data-testid="tournament-create-cancel"
-            >
-              Cancel
-            </Button>
-            <Button
-              type="button"
-              variant="default"
-              disabled={!isValid || shell.isPending}
-              onClick={async () => {
-                setTouched(true);
-                if (!isValid) return;
-                await shell.retry();
-              }}
-              data-testid="tournament-create-submit"
-            >
-              {shell.isPending || isPending ? "Creating…" : "Create tournament"}
-            </Button>
-          </div>
-        )}
-      </AuditActionShell>
-    </form>
+            <div className="flex flex-col-reverse gap-2 pt-2 sm:flex-row sm:items-center sm:justify-end">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={onCancel}
+                disabled={submitting}
+                data-testid="tournament-create-cancel"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                variant="default"
+                disabled={submitting}
+                className="gap-2"
+                data-testid="tournament-create-submit"
+              >
+                {submitting ? (
+                  <>
+                    <Loader2
+                      className="h-4 w-4 animate-spin"
+                      aria-hidden="true"
+                    />
+                    Creating…
+                  </>
+                ) : (
+                  "Create tournament"
+                )}
+              </Button>
+            </div>
+          </form>
+        );
+      }}
+    </AuditActionShell>
   );
 }

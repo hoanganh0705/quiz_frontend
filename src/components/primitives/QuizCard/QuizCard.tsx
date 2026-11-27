@@ -5,20 +5,14 @@ import {
   type BookmarkButtonSlotProps,
 } from "@/components/primitives/BookmarkButton";
 import { EntityCard } from "@/components/primitives/EntityCard";
-import { initialsFromQuizId } from "@/features/quizzes/utils/quiz-card-decoration";
+
+import { DifficultyBadge } from "@/shared/ui/DifficultyBadge";
+import { initialsFromId } from "@/shared/utils/entity-decoration";
+import { formatDurationMs } from "@/shared/utils/format-duration";
+
 import type { QuizListItemDto } from "@/lib/api/generated/schemas";
 
 const BADGE = "rounded-full border bg-background px-2 py-0.5 text-xs";
-
-function formatDuration(durationMs: number | undefined): string | null {
-  if (typeof durationMs !== "number" || durationMs <= 0) return null;
-  const totalSeconds = Math.round(durationMs / 1000);
-  const minutes = Math.floor(totalSeconds / 60);
-  const seconds = totalSeconds % 60;
-  if (minutes === 0) return `${seconds}s`;
-  if (seconds === 0) return `${minutes}m`;
-  return `${minutes}m ${seconds}s`;
-}
 
 export interface QuizCardProps {
   quiz: QuizListItemDto;
@@ -30,7 +24,11 @@ export interface QuizCardProps {
 export function QuizCard({ quiz, className, bookmarkSlot }: QuizCardProps) {
   const href = `/quizzes/${quiz.slug || quiz.quizId}`;
   const difficulty = quiz.publishedVersion?.difficulty;
-  const duration = formatDuration(quiz.publishedVersion?.durationMs);
+  const durationMs = quiz.publishedVersion?.durationMs;
+  const duration =
+    typeof durationMs === "number" && durationMs > 0
+      ? formatDurationMs(durationMs)
+      : null;
 
   const renderBookmarkSlot =
     bookmarkSlot === undefined
@@ -43,7 +41,7 @@ export function QuizCard({ quiz, className, bookmarkSlot }: QuizCardProps) {
       title={quiz.title}
       description={quiz.description}
       imageUrl={quiz.imageUrl}
-      initials={initialsFromQuizId(quiz.quizId)}
+      initials={initialsFromId(quiz.quizId)}
       aspectRatio="16/9"
       coverSize="md"
       className={className}
@@ -56,7 +54,7 @@ export function QuizCard({ quiz, className, bookmarkSlot }: QuizCardProps) {
         <>
           {quiz.isVerified ? <span className={BADGE}>Verified</span> : null}
           {quiz.isFeatured ? <span className={BADGE}>Featured</span> : null}
-          {difficulty ? <span className={BADGE}>{difficulty}</span> : null}
+          {difficulty ? <DifficultyBadge difficulty={difficulty} /> : null}
         </>
       }
       meta={duration ? <span className="tabular-nums">{duration}</span> : null}

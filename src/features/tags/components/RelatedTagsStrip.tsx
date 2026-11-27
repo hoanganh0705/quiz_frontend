@@ -1,19 +1,20 @@
 "use client";
 
+import { useId } from "react";
+
+import { RotateCcw } from "lucide-react";
+
 import { getQueryClient } from "@/providers/QueryProvider";
 
-import { TagPill } from "@/components/primitives/TagPill/TagPill";
-import { TagPillSkeleton } from "@/components/primitives";
-import { Button } from "@/components/ui/Button";
 import { useTagRelated } from "@/features/tags/hooks/useTagRelated";
+import { TAG_KEYS } from "@/features/tags/query-keys";
 
-const QUERY_KEY_FACTORY = (slug: string, params: { limit: number }) =>
-  ["tag", slug, "related", params] as const;
+import { TagPill } from "@/components/primitives/TagPill/TagPill";
+import { TagPillSkeleton } from "@/components/primitives/TagPill/TagPillSkeleton";
+import { Button } from "@/components/ui/Button";
 
 const STRIP_CONTAINER =
-  "flex gap-3 overflow-x-auto pb-4 snap-x snap-mandatory scroll-mt-16 scrollbar-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden";
-const STRIP_HEADER =
-  "mb-3 flex items-center justify-between gap-2 text-sm text-muted-foreground";
+  "-mx-1 flex gap-2.5 overflow-x-auto px-1 py-1.5 snap-x snap-proximity scroll-mt-16 scrollbar-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden";
 
 export interface RelatedTagsStripProps {
   slug: string;
@@ -22,20 +23,24 @@ export interface RelatedTagsStripProps {
 export function RelatedTagsStrip({
   slug,
 }: RelatedTagsStripProps): React.ReactElement | null {
+  const headingId = useId();
   const { tags, isLoading, error } = useTagRelated(slug, { limit: 10 });
-  const queryKey = QUERY_KEY_FACTORY(slug, { limit: 10 });
+  const queryKey = TAG_KEYS.related(slug, { limit: 10 });
 
   if (isLoading) {
     return (
       <section
-        className="mt-12"
+        className="mt-12 pt-6 border-t border-border/60 space-y-2"
         aria-label="Related tags"
         aria-busy="true"
         data-testid="related-tags-strip-loading"
       >
-        <div className={STRIP_HEADER}>
-          <span>Related tags</span>
-        </div>
+        <h2
+          id={headingId}
+          className="text-base font-semibold tracking-tight text-foreground"
+        >
+          Related tags
+        </h2>
         <div className={STRIP_CONTAINER}>
           {Array.from({ length: 5 }).map((_, i) => (
             <div
@@ -54,12 +59,17 @@ export function RelatedTagsStrip({
   if (error) {
     return (
       <section
-        className="mt-12"
-        aria-label="Related tags"
+        className="mt-12 pt-6 border-t border-border/60 space-y-2"
+        aria-labelledby={headingId}
         data-testid="related-tags-strip-error"
       >
-        <div className={STRIP_HEADER}>
-          <span>Related tags</span>
+        <div className="flex items-center justify-between gap-2">
+          <h2
+            id={headingId}
+            className="text-base font-semibold tracking-tight text-foreground"
+          >
+            Related tags
+          </h2>
           <Button
             variant="outline"
             size="sm"
@@ -68,6 +78,7 @@ export function RelatedTagsStrip({
             }
             data-testid="related-tags-strip-retry"
           >
+            <RotateCcw className="h-3.5 w-3.5" aria-hidden="true" />
             Retry
           </Button>
         </div>
@@ -84,13 +95,16 @@ export function RelatedTagsStrip({
 
   return (
     <section
-      className="mt-12"
-      aria-label="Related tags"
+      className="mt-12 pt-6 border-t border-border/60 space-y-2"
+      aria-labelledby={headingId}
       data-testid="related-tags-strip"
     >
-      <div className={STRIP_HEADER}>
-        <span>Related tags</span>
-      </div>
+      <h2
+        id={headingId}
+        className="text-base font-semibold tracking-tight text-foreground"
+      >
+        Related tags
+      </h2>
       <div className={STRIP_CONTAINER}>
         {tags.map((tag) => (
           <div key={tag.tagId} className="shrink-0 snap-start">

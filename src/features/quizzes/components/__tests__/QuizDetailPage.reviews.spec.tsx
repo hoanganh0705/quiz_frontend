@@ -64,9 +64,6 @@ vi.mock("@/features/quizzes/hooks/useQuizAggregate", () => ({
     };
   },
 }));
-vi.mock("@/features/quizzes/hooks/useQuizStatsByIdOrSlug", () => ({
-  useQuizStatsByIdOrSlug: statsHookMock,
-}));
 vi.mock("@/features/quizzes/hooks/useIsBookmarked", () => ({
   useIsBookmarked: bookmarkHookMock,
 }));
@@ -171,16 +168,6 @@ vi.mock("@/features/comments/hooks/useReportComment", () => ({
     reset: vi.fn(),
   }),
 }));
-vi.mock("@/features/comments/stores/useCommentThreadLookup", () => ({
-  useCommentThreadLookup: () => ({
-    incrementReplyCount: vi.fn(),
-    decrementReplyCount: vi.fn(),
-    reset: vi.fn(),
-    getReplyCount: () => 0,
-  }),
-}));
-
-
 const QUIZ_ID = "0192f4d8-3333-7000-8000-000000000099";
 const QUIZ_SLUG = "player-safe-science";
 

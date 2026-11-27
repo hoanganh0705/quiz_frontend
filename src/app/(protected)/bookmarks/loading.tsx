@@ -1,8 +1,10 @@
 import { Skeleton } from "@/components/ui/Skeleton";
 
+import { PAGE_CONTAINER_CLASS } from "@/shared/layout/constants";
+
 export default function BookmarksLoading() {
   return (
-    <div className="min-h-screen text-foreground p-4 md:p-8 lg:p-12">
+    <div className={`${PAGE_CONTAINER_CLASS} space-y-6`}>
       {/* Header Skeleton */}
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-2">

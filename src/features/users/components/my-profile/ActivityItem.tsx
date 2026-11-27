@@ -18,37 +18,27 @@ export interface ActivityItemProps {
   activity: UserActivityItemDto;
 }
 
-function getActivityIcon(type: UserActivityItemDto["type"]) {
-  switch (type) {
-    case "badge_earned":
-      return Award;
-    case "badge_revoked":
-      return Award;
-    case "rank_milestone":
-      return Trophy;
-    case "peak_rank_achieved":
-      return Star;
-    case "tournament_joined":
-      return Flag;
-    case "tournament_completed":
-      return Trophy;
-    case "tournament_won":
-      return Trophy;
-    case "comment_created":
-      return MessageSquare;
-    case "quiz_completed":
-      return BookOpen;
-    case "quiz_milestone":
-      return Target;
-    case "instance_created":
-      return Calendar;
-    case "instance_joined":
-      return Flag;
-    case "instance_completed":
-      return BookOpen;
-    default:
-      return Zap;
-  }
+const ACTIVITY_ICON_MAP: Record<
+  UserActivityItemDto["type"],
+  React.ComponentType<{ className?: string; "aria-hidden"?: boolean | "true" }>
+> = {
+  badge_earned: Award,
+  badge_revoked: Award,
+  rank_milestone: Trophy,
+  peak_rank_achieved: Star,
+  tournament_joined: Flag,
+  tournament_won: Trophy,
+  comment_created: MessageSquare,
+  quiz_completed: BookOpen,
+  quiz_milestone: Target,
+  instance_created: Calendar,
+  instance_joined: Flag,
+  instance_completed: BookOpen,
+};
+
+function renderActivityIcon(type: UserActivityItemDto["type"]) {
+  const IconComponent = ACTIVITY_ICON_MAP[type] ?? Zap;
+  return <IconComponent className="w-5 h-5" aria-hidden="true" />;
 }
 
 function getActivityColor(type: UserActivityItemDto["type"]): string {
@@ -63,8 +53,6 @@ function getActivityColor(type: UserActivityItemDto["type"]): string {
       return "text-yellow-500 bg-yellow-500/10";
     case "tournament_joined":
       return "text-blue-500 bg-blue-500/10";
-    case "tournament_completed":
-      return "text-success bg-green-500/10";
     case "tournament_won":
       return "text-amber-500 bg-amber-500/10";
     case "comment_created":
@@ -113,8 +101,6 @@ function getActivityTitle(activity: UserActivityItemDto): string {
       return "Achieved a new peak rank!";
     case "tournament_joined":
       return "Joined a tournament";
-    case "tournament_completed":
-      return "Completed a tournament";
     case "tournament_won":
       return "Won a tournament!";
     case "comment_created":
@@ -147,7 +133,6 @@ function getActivityDescription(activity: UserActivityItemDto): string | null {
       }
       return null;
     }
-    case "tournament_completed":
     case "tournament_won": {
       const p = payload as { tournamentName?: string; rank?: number };
       if (p.tournamentName) {
@@ -182,7 +167,6 @@ export function ActivityItemSkeleton() {
 export const ActivityItem = memo(function ActivityItem({
   activity,
 }: ActivityItemProps) {
-  const Icon = getActivityIcon(activity.type);
   const colorClass = getActivityColor(activity.type);
   const title = getActivityTitle(activity);
   const description = getActivityDescription(activity);
@@ -197,7 +181,7 @@ export const ActivityItem = memo(function ActivityItem({
     >
       {/* Icon */}
       <div className={`p-2 rounded-full shrink-0 ${colorClass}`}>
-        <Icon className="w-5 h-5" aria-hidden="true" />
+        {renderActivityIcon(activity.type)}
       </div>
 
       {/* Content */}

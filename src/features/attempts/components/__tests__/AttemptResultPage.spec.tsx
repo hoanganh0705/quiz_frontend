@@ -10,7 +10,14 @@ import {
 import { ToastProvider } from "@/lib/forms/useToast";
 import { ApiError } from "@/lib/api";
 
-import { AttemptResultPage } from "@/features/attempts/components/AttemptResultPage";
+import {
+  AttemptResultView,
+  type AttemptResultViewProps,
+} from "@/features/attempts/pages/AttemptResultView";
+
+const AttemptResultPage = (props: Omit<AttemptResultViewProps, "mode">) => (
+  <AttemptResultView mode="result" {...props} />
+);
 
 const useAttemptResultMock = vi.fn();
 const pushMock = vi.fn();

@@ -1,15 +1,15 @@
 "use client";
 
-import { useRef } from "react";
+import type React from "react";
+import { useCallback, useEffect, useRef } from "react";
 
-import { TypedConfirmDialog } from "@/features/admin/components/TypedConfirmDialog";
-import { RequestIdBanner } from "@/features/admin/components/RequestIdBanner";
 import { AuditActionShell } from "@/features/admin/components/AuditActionShell";
-
-import { useTournamentCascade } from "@/features/admin/tournament-admin/hooks/useTournamentCascade";
+import { RequestIdBanner } from "@/features/admin/components/RequestIdBanner";
+import { TypedConfirmDialog } from "@/features/admin/components/TypedConfirmDialog";
 import { useDeleteTournament } from "@/features/admin/tournament-admin/hooks/useDeleteTournament";
-import { getUserCopy } from "@/lib/api/error-codes";
+import { useTournamentCascade } from "@/features/admin/tournament-admin/hooks/useTournamentCascade";
 import type { ApiError } from "@/lib/api/core/ApiError";
+import { getUserCopy } from "@/lib/api/error-codes";
 
 import type { TournamentDto } from "../admin-tournament-types";
 import { TournamentCascadeNotice } from "./TournamentCascadeNotice";
@@ -43,20 +43,52 @@ function DeleteForm({
   onClose,
   onAlreadyStarted,
   onNotFound,
-}: DeleteFormProps): React.ReactElement {
+}: DeleteFormProps): React.ReactElement | null {
   const { cascade, isLoading: isCascadeLoading } = useTournamentCascade(
     tournament.tournamentId,
   );
 
   const fireDeleteRef = useRef(false);
+  const handledTerminalErrorRef = useRef<string | null>(null);
 
-  if (error !== null && error.code === "TOURNAMENT_ALREADY_STARTED") {
-    void onAlreadyStarted?.();
-    return <></>;
-  }
-  if (error !== null && error.code === "TOURNAMENT_NOT_FOUND") {
-    void onNotFound?.();
-    return <></>;
+  useEffect(() => {
+    if (error === null) {
+      handledTerminalErrorRef.current = null;
+      return;
+    }
+    if (handledTerminalErrorRef.current === error.code) {
+      return;
+    }
+    if (error.code === "TOURNAMENT_ALREADY_STARTED") {
+      handledTerminalErrorRef.current = error.code;
+      onAlreadyStarted?.();
+    } else if (error.code === "TOURNAMENT_NOT_FOUND") {
+      handledTerminalErrorRef.current = error.code;
+      onNotFound?.();
+    }
+  }, [error, onAlreadyStarted, onNotFound]);
+
+  const handleBreadcrumb = useCallback(
+    (breadcrumb: unknown) => {
+      if (
+        typeof breadcrumb === "object" &&
+        breadcrumb !== null &&
+        "status" in breadcrumb &&
+        (breadcrumb as { status?: string }).status === "success"
+      ) {
+        onClose();
+      }
+    },
+    [onClose],
+  );
+
+  const isTerminalError =
+    error !== null &&
+    (error.code === "TOURNAMENT_ALREADY_STARTED" ||
+      error.code === "TOURNAMENT_NOT_FOUND");
+
+  if (isTerminalError) {
+    return null;
   }
 
   const showHasParticipantsCopy =
@@ -79,9 +111,7 @@ function DeleteForm({
           confirmString: "DELETE TOURNAMENT",
         });
       }}
-      onBreadcrumb={() => {
-        /* no-op */
-      }}
+      onBreadcrumb={handleBreadcrumb}
     >
       {(shell) => (
         <TypedConfirmDialog
@@ -99,7 +129,7 @@ function DeleteForm({
             {showHasParticipantsCopy ? (
               <div
                 role="alert"
-                className="rounded-md border border-red-300 bg-red-50 px-3 py-2 text-xs text-red-900"
+                className="rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-xs text-destructive"
                 data-testid="tournament-delete-has-participants-notice"
               >
                 <p className="font-semibold">

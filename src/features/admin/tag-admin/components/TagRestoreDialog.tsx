@@ -21,7 +21,7 @@ import { RequestIdBanner } from "@/features/admin/components/RequestIdBanner";
 
 import type { TagDto, DeletedTagListItem } from "../tag-types";
 import { useRestoreTag } from "../hooks/useRestoreTag";
-import { SlugConflictNotice } from "./SlugConflictNotice";
+import { SlugConflictNotice } from "@/features/admin/components/SlugConflictNotice";
 
 export interface TagRestoreDialogProps {
   open: boolean;

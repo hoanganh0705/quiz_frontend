@@ -1,8 +1,9 @@
 "use client";
 
 import { memo, useEffect, useState } from "react";
-import { CheckCircle2, AlertCircle } from "lucide-react";
+import { AlertCircle, CheckCircle2 } from "lucide-react";
 
+import { Progress } from "@/components/ui/Progress";
 import { cn } from "@/shared/utils/merge-class-names";
 
 export interface PublishReadinessCounterProps {
@@ -29,20 +30,21 @@ const ProgressBar = memo(function ProgressBar({
     return () => clearTimeout(timeout);
   }, [progress]);
 
+  const clamped = Math.min(100, Math.max(0, animatedProgress));
+
   return (
-    <div className="h-2 w-full overflow-hidden rounded-full bg-secondary">
-      <div
-        className={cn(
-          "h-full transition-all duration-500 ease-out",
-          isReady ? "bg-green-500" : "bg-yellow-500",
-        )}
-        style={{ width: `${Math.min(100, animatedProgress)}%` }}
-        role="progressbar"
-        aria-valuenow={Math.round(progress)}
-        aria-valuemin={0}
-        aria-valuemax={100}
-      />
-    </div>
+    <Progress
+      value={clamped}
+      aria-valuenow={Math.round(progress)}
+      aria-valuemin={0}
+      aria-valuemax={100}
+      className={cn(
+        "h-2 w-full bg-secondary",
+        isReady
+          ? "[&_[data-slot=progress-indicator]]:bg-success"
+          : "[&_[data-slot=progress-indicator]]:bg-warning",
+      )}
+    />
   );
 });
 
@@ -56,10 +58,10 @@ export const PublishReadinessCounter = memo(function PublishReadinessCounter({
   return (
     <div
       className={cn(
-        "flex items-center gap-4 rounded-lg border p-4 transition-colors",
+        "flex items-center gap-4 rounded-xl border p-4 transition-colors",
         isReady
-          ? "border-green-500/50 bg-green-500/10"
-          : "border-yellow-500/50 bg-yellow-500/10",
+          ? "border-success/40 bg-success/10"
+          : "border-warning/40 bg-warning/10",
       )}
       data-testid="publish-readiness-counter"
       role="status"
@@ -67,9 +69,9 @@ export const PublishReadinessCounter = memo(function PublishReadinessCounter({
     >
       {/* Icon */}
       {isReady ? (
-        <CheckCircle2 className="h-8 w-8 flex-shrink-0 text-success" />
+        <CheckCircle2 className="h-8 w-8 shrink-0 text-success" />
       ) : (
-        <AlertCircle className="h-8 w-8 flex-shrink-0 text-yellow-600" />
+        <AlertCircle className="h-8 w-8 shrink-0 text-warning" />
       )}
 
       {/* Content */}
@@ -77,8 +79,8 @@ export const PublishReadinessCounter = memo(function PublishReadinessCounter({
         <div className="flex items-baseline justify-between">
           <span
             className={cn(
-              "text-lg font-semibold",
-              isReady ? "text-green-700" : "text-yellow-800",
+              "text-lg font-semibold font-mono tabular-nums",
+              isReady ? "text-success" : "text-foreground",
             )}
           >
             {current} / {required} questions
@@ -86,7 +88,7 @@ export const PublishReadinessCounter = memo(function PublishReadinessCounter({
           <span
             className={cn(
               "text-sm",
-              isReady ? "text-success" : "text-yellow-700",
+              isReady ? "text-success" : "text-muted-foreground",
             )}
           >
             {isReady ? "Ready to publish" : `${required - current} more needed`}

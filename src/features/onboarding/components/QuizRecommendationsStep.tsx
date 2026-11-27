@@ -3,24 +3,23 @@
 import { useEffect, useState } from "react";
 import { memo } from "react";
 import { Button } from "@/components/ui/Button";
-import { Badge } from "@/components/ui/Badge";
+
 import { listQuizzes } from "@/features/quizzes/services/quizzes.service";
-import { difficultyColors } from "@/features/quizzes/constants/difficulty-color";
-import { ArrowLeft, PartyPopper, Clock, HelpCircle, Play } from "lucide-react";
+
+import { logger } from "@/shared/log";
+import { DifficultyBadge } from "@/shared/ui/DifficultyBadge";
+import { formatDurationMs } from "@/shared/utils/format-duration";
+
+import { ArrowLeft, Clock, HelpCircle, PartyPopper, Play } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+
 import type { QuizResponseDto } from "@/lib/api/generated/schemas";
-import { logger } from "@/shared/log";
 
 interface QuizRecommendationsStepProps {
   selectedInterests: string[];
   onComplete: () => void;
   onBack: () => void;
-}
-
-function formatDuration(seconds: number) {
-  const minutes = Math.floor(seconds / 60);
-  return `${minutes} min`;
 }
 
 export const QuizRecommendationsStep = memo(function QuizRecommendationsStep({
@@ -112,24 +111,11 @@ export const QuizRecommendationsStep = memo(function QuizRecommendationsStep({
                   className="absolute inset-0 bg-linear-to-t from-black/60 to-transparent"
                   aria-hidden="true"
                 />
-                <Badge
-                  className={`absolute top-2 left-2 ${
-                    difficultyColors[
-                      ((
-                        (quiz.publishedVersion?.difficulty ??
-                          "medium") as string
-                      )
-                        .charAt(0)
-                        .toUpperCase() +
-                        (
-                          (quiz.publishedVersion?.difficulty ??
-                            "medium") as string
-                        ).slice(1)) as keyof typeof difficultyColors
-                    ]?.bg || "bg-gray-500"
-                  } text-white text-xs`}
-                >
-                  {quiz.publishedVersion?.difficulty ?? "medium"}
-                </Badge>
+                <DifficultyBadge
+                  difficulty={quiz.publishedVersion?.difficulty ?? "medium"}
+                  variant="solid"
+                  className="absolute top-2 left-2 text-xs"
+                />
               </div>
 
               {/* Quiz Info */}
@@ -143,7 +129,7 @@ export const QuizRecommendationsStep = memo(function QuizRecommendationsStep({
                   <span className="flex items-center gap-1">
                     <Clock className="w-3 h-3" aria-hidden="true" />
                     {quiz.publishedVersion?.durationMs
-                      ? formatDuration(quiz.publishedVersion.durationMs / 1000)
+                      ? formatDurationMs(quiz.publishedVersion.durationMs)
                       : "N/A"}
                   </span>
                   <span className="flex items-center gap-1">

@@ -1,12 +1,10 @@
 import { useCallback } from "react";
+
 import { BarChart3, CheckCircle2, FileEdit, Layers } from "lucide-react";
 
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/Tabs";
+import { setMyQuizzesTab, useMyQuizzesActiveTab } from "@/features/quizzes/store";
 
-import {
-  useMyQuizzesActiveTab,
-  setMyQuizzesTab,
-} from "@/features/quizzes/store";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/Tabs";
 
 import type { MyQuizzesTab } from "@/features/quizzes/types/my-quizzes";
 
@@ -27,30 +25,6 @@ const TABS: Array<{
   { value: "analytics", label: "Analytics", icon: BarChart3 },
 ] as const;
 
-function emitTabSwitchBreadcrumb(tab: MyQuizzesTab): void {
-  try {
-    const sentry =
-      typeof window === "undefined"
-        ? null
-        : (
-            window as unknown as {
-              Sentry?: {
-                addBreadcrumb?: (crumb: {
-                  category: string;
-                  data: Record<string, unknown>;
-                }) => void;
-              };
-            }
-          ).Sentry;
-    sentry?.addBreadcrumb?.({
-      category: "quizzes:tabs",
-      data: { tab, timestamp: Date.now() },
-    });
-  } catch {
-    // Sentry is optional — swallow errors so the tab switch never fails.
-  }
-}
-
 export function MyQuizzesTabs({
   children,
   analyticsContent,
@@ -59,7 +33,6 @@ export function MyQuizzesTabs({
 
   const handleTabChange = useCallback((tab: MyQuizzesTab) => {
     setMyQuizzesTab(tab);
-    emitTabSwitchBreadcrumb(tab);
   }, []);
 
   const isAnalyticsTab = activeTab === "analytics";
@@ -86,13 +59,13 @@ export function MyQuizzesTabs({
       </TabsList>
 
       {/* List tabs */}
-      {["all", "drafts", "published"].map((tab) => (
+      {(["all", "drafts", "published"] as const).map((tab) => (
         <TabsContent
           key={tab}
           value={tab}
           className={isAnalyticsTab ? "hidden" : undefined}
         >
-          {children(tab as "all" | "drafts" | "published")}
+          {children(tab)}
         </TabsContent>
       ))}
 

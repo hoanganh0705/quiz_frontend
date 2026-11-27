@@ -1,19 +1,16 @@
 "use client";
 
 import { useCallback, useRef, useState } from "react";
+import { mapPasswordError } from "@/features/auth/errors/password-error-mapper";
+import { passwordPolicySchema } from "@/features/auth/forms/schemas/password.schema";
 import {
   changePassword as defaultChangePassword,
   revalidateAfterPasswordChange as defaultRevalidateAfterPasswordChange,
 } from "@/features/auth/services/auth.service";
-import {
-  mapPasswordError,
-  type PasswordErrorClassification,
-} from "@/features/auth/errors/password-error-mapper";
-import {
-  getPasswordStrength,
-  type PasswordStrengthResult,
-} from "@/features/auth/utils/password-strength";
+import { getPasswordStrength } from "@/features/auth/utils/password-strength";
 import { ApiError } from "@/lib/api/core/ApiError";
+import type { PasswordErrorClassification } from "@/features/auth/errors/password-error-mapper";
+import type { PasswordStrengthResult } from "@/features/auth/utils/password-strength";
 import type {
   AccountSecurityDto,
   ChangePasswordResponseDto,
@@ -166,12 +163,15 @@ export function useChangePassword(
         return { strength };
       }
 
-      if (strength.score < 2) {
+      const meetsPolicy = passwordPolicySchema.safeParse(newPassword).success;
+      if (!meetsPolicy || strength.score < 2) {
         setState({
           status: "error",
           error: {
             classification: mapPasswordError({ code: "", status: 400 }),
-            fieldErrors: { newPassword: "weak" },
+            fieldErrors: {
+              newPassword: newPassword.length < 8 ? "tooShort" : "weak",
+            },
             cause: null,
           },
           result: null,
@@ -179,11 +179,8 @@ export function useChangePassword(
         return { strength };
       }
 
-      if (state.status === "pending") {
-        if (inFlightRef.current) {
-          return inFlightRef.current.then(() => null);
-        }
-        return null;
+      if (inFlightRef.current) {
+        return inFlightRef.current.then(() => null);
       }
 
       setState((prev) => ({
@@ -255,7 +252,7 @@ export function useChangePassword(
       inFlightRef.current = promise;
       return promise.then(() => ({ strength }));
     },
-    [deps, state.status],
+    [deps],
   );
 
   const reset = useCallback((): void => {

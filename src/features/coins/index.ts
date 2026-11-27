@@ -30,11 +30,6 @@ export {
   type UseSuppressRecommendedQuizResult,
 } from "./hooks/useSuppressRecommendedQuiz";
 
-export {
-  useAdminAdjustCoins,
-  type UseAdminAdjustCoinsResult,
-} from "./hooks/useAdminAdjustCoins";
-
 export { CoinBalancePill } from "./components/CoinBalancePill";
 export { RewardToast } from "./components/RewardToast";
 export { PurchaseConfirmDialog } from "./components/PurchaseConfirmDialog";

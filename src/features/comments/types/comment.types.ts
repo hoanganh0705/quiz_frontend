@@ -9,27 +9,6 @@ export const TOP_LEVEL_DEFAULT_LIMIT = 20;
 
 export const REPLY_DEFAULT_LIMIT = 50;
 
-export function commentsKey(
-  quizId: string,
-  filters?: CommentFilters,
-): ["comments", string, ReadonlyArray<string | number | undefined>] {
-  return [
-    "comments",
-    quizId,
-    [
-      filters?.parentId ?? undefined,
-      filters?.cursor ?? undefined,
-      filters?.limit ?? undefined,
-    ],
-  ];
-}
-
-export function commentThreadKey(
-  quizId: string,
-): ["comments", "thread", string] {
-  return ["comments", "thread", quizId];
-}
-
 export interface CommentFilters {
   cursor?: string;
   limit?: number;

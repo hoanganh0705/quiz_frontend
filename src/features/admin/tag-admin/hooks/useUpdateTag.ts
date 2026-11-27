@@ -7,21 +7,18 @@ import { getQueryClient } from "@/providers/QueryProvider";
 import { ApiError } from "@/lib/api";
 
 import { updateTag } from "@/features/admin/services/tag-admin.service";
-import type { TagDto, TagUpdateDto } from "../tag-types";
-import { TAG_ADMIN_LIST_KEY } from "./useTagAdminList";
-import { broadcastTagAdminInvalidate } from "../cache/tag-cross-tab";
+import { TAG_KEYS } from "@/features/tags/query-keys";
 
-const PUBLIC_TAGS_KEY = "tags:directory" as const;
+import { broadcastTagAdminInvalidate } from "../cache/tag-cross-tab";
+import { TAG_ADMIN_LIST_KEY } from "./useTagAdminList";
+
+import type { TagDto, TagUpdateDto } from "../tag-types";
 
 export interface UseUpdateTag {
   update: (id: string, input: TagUpdateDto) => Promise<TagDto>;
   isPending: boolean;
   error: ApiError | null;
   reset: () => void;
-}
-
-function tagBySlugKey(slug: string): string {
-  return `tags:slug:${slug}`;
 }
 
 export function useUpdateTag(): UseUpdateTag {
@@ -43,12 +40,12 @@ export function useUpdateTag(): UseUpdateTag {
         const qc = getQueryClient();
         const invalidations: Promise<void>[] = [
           qc.invalidateQueries({ queryKey: [TAG_ADMIN_LIST_KEY] }),
-          qc.invalidateQueries({ queryKey: [PUBLIC_TAGS_KEY] }),
+          qc.invalidateQueries({ queryKey: TAG_KEYS.all }),
         ];
         if (newSlug) {
           invalidations.push(
             qc.invalidateQueries({
-              queryKey: [tagBySlugKey(newSlug)],
+              queryKey: TAG_KEYS.detail(newSlug),
             }),
           );
         }

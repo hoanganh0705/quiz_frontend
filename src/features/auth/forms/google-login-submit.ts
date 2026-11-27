@@ -7,7 +7,7 @@ import {
   type GoogleLoginErrorKind,
 } from "@/features/auth/errors/oauth-error-mapper";
 import { googleLogin as authServiceGoogleLogin } from "@/features/auth/services/auth.service";
-import type { AuthControllerGoogleLoginResult } from "@/lib/api/generated/auth/auth";
+
 import type { LoginResponseDto } from "@/lib/api/generated/schemas/loginResponseDto";
 
 export type GoogleLoginSubmitResult =
@@ -18,7 +18,7 @@ export type GoogleLoginSubmitResult =
     };
 
 export interface GoogleLoginSubmitDeps {
-  googleLogin: (idToken: string) => Promise<AuthControllerGoogleLoginResult>;
+  googleLogin: (idToken: string) => Promise<LoginResponseDto>;
 
   clearAuthToken: ClearAuthTokenFn;
 }
@@ -33,9 +33,7 @@ export async function googleLoginSubmit(
   deps: GoogleLoginSubmitDeps = defaultGoogleLoginSubmitDeps,
 ): Promise<GoogleLoginSubmitResult> {
   try {
-    const result = (await deps.googleLogin(
-      idToken,
-    )) as unknown as LoginResponseDto;
+    const result = await deps.googleLogin(idToken);
     return { kind: "success", user: result };
   } catch (err: unknown) {
     const mapped = mapGoogleLoginError(err);

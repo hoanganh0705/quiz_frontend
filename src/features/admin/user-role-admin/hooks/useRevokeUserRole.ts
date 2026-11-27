@@ -1,7 +1,7 @@
 import { useCallback, useRef, useState } from "react";
 
 import { ApiError } from "@/lib/api/core/ApiError";
-import { useAuth } from "@/features/auth/hooks/use-auth";
+import { useAuthSession } from "@/features/auth/hooks/use-auth-session";
 import { addRoleGrantBreadcrumb } from "@/lib/admin/admin_live_sentry";
 
 import {
@@ -50,8 +50,7 @@ export function useRevokeUserRole(): UseRevokeUserRoleResult {
 
   const inFlightRef = useRef<Promise<UserRoleGrantResponseDto> | null>(null);
 
-  const auth = useAuth();
-  const currentUserId = auth?.currentUser?.userId ?? null;
+  const { currentUserId } = useAuthSession();
 
   const isSelfRevoke = isSelfRevokeAttempt;
 

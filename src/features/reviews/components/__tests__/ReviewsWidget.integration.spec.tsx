@@ -699,14 +699,12 @@ describe("ReviewsWidget — owner-only edit + delete", () => {
       within(dialog).getByTestId(
         `review-delete-confirm-${myReview.reviewId}-title`,
       ),
-    ).toHaveTextContent("Delete your review?");
+    ).toHaveTextContent(/Delete permanently\?/i);
     expect(
       within(dialog).getByTestId(
         `review-delete-confirm-${myReview.reviewId}-body`,
       ),
-    ).toHaveTextContent(
-      /remove your rating and helpful counts associated with it/,
-    );
+    ).toHaveTextContent(/cannot be undone/i);
 
     const confirm = within(dialog).getByTestId(
       `review-delete-confirm-${myReview.reviewId}-confirm`,

@@ -7,32 +7,18 @@ export type { SearchResultsProps } from "./SearchResults";
 export { SearchResultGroup } from "./SearchResultGroup";
 export type { SearchResultGroupProps } from "./SearchResultGroup";
 
+export { SearchResultRow } from "./SearchResultRow";
+export type { SearchResultRowProps } from "./SearchResultRow";
+
 export { SearchPage } from "./SearchPage";
 
-export { GlobalSearch } from "./GlobalSearch";
-
 export {
-  QuizResultCard,
-  UserResultCard,
-  TournamentResultCard,
-  AchievementResultCard,
-  RankingResultCard,
-  TagResultCard,
-  CategoryResultCard,
-  CommentResultCard,
-  SocialReadResultCard,
-} from "./cards";
-
-export {
-  SearchResultSkeleton,
-  SearchResultGroupSkeleton,
   SEARCH_RESULT_KINDS,
-} from "./shared/SearchResultSkeleton";
-
-export { SearchEmptyState } from "./shared/SearchEmptyState";
-export type { SearchEmptyStateVariant } from "./shared/SearchEmptyState";
-
-export { SearchErrorState } from "./shared/SearchErrorState";
-export type { SearchErrorCode } from "./shared/SearchErrorState";
-
-export { SearchRateLimitState } from "./shared/SearchRateLimitState";
+  SearchEmptyState,
+  SearchErrorState,
+  SearchRateLimitState,
+  SearchResultGroupSkeleton,
+  SearchResultSkeleton,
+  type SearchEmptyStateVariant,
+} from "@/shared/ui/search";
+export type { SearchErrorCode } from "@/features/search/types";

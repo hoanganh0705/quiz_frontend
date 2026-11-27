@@ -1,10 +1,27 @@
+import { createElement, type ReactNode } from "react";
+
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { renderHook as rtlRenderHook, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { renderHook, waitFor } from "@testing-library/react";
 
 import { ApiError } from "@/lib/api";
 
 import { useMyQuizReview } from "@/features/reviews/hooks/useMyQuizReview";
-import { myQuizReviewKey, type MyReviewDto } from "@/features/reviews/types";
+import { REVIEW_KEYS } from "@/features/reviews/query-keys";
+
+import type { MyReviewDto } from "@/features/reviews/types";
+
+function renderHook<Result, Props>(
+  render: (initialProps: Props) => Result,
+) {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
+  return rtlRenderHook(render, {
+    wrapper: ({ children }: { children: ReactNode }) =>
+      createElement(QueryClientProvider, { client: queryClient }, children),
+  });
+}
 
 const getMyQuizReviewMock = vi.hoisted(() => vi.fn());
 const useAuthSessionMock = vi.hoisted(() => vi.fn());
@@ -203,16 +220,16 @@ describe("useMyQuizReview — 5xx and retry", () => {
 
 describe("useMyQuizReview — cache key", () => {
   it("changes the cache key when the quiz id changes", () => {
-    const k1 = myQuizReviewKey("quiz-1", SESSION_ID);
-    const k2 = myQuizReviewKey("quiz-2", SESSION_ID);
+    const k1 = REVIEW_KEYS.mine("quiz-1", SESSION_ID);
+    const k2 = REVIEW_KEYS.mine("quiz-2", SESSION_ID);
     expect(k1).not.toEqual(k2);
     expect(k1[2]).toBe("quiz-1");
     expect(k2[2]).toBe("quiz-2");
   });
 
   it("changes the cache key when the session id changes", () => {
-    const k1 = myQuizReviewKey("quiz-1", "user-1");
-    const k2 = myQuizReviewKey("quiz-1", "user-2");
+    const k1 = REVIEW_KEYS.mine("quiz-1", "user-1");
+    const k2 = REVIEW_KEYS.mine("quiz-1", "user-2");
     expect(k1).not.toEqual(k2);
   });
 

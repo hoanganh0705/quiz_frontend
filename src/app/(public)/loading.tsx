@@ -1,16 +1,17 @@
-import { HomeHeroSection } from "@/features/quizzes";
+import { PAGE_CONTAINER_CLASS } from "@/shared/layout/constants";
 
+import { HomeHeroSection } from "@/features/quizzes";
+import { QuizRailSkeleton } from "@/features/quizzes/components/QuizRailSkeleton";
 import {
   FEATURED_RAIL_LIMIT,
-  TRENDING_RAIL_LIMIT,
   POPULAR_RAIL_LIMIT,
+  TRENDING_RAIL_LIMIT,
 } from "@/features/quizzes/types/home-rails";
-import { QuizRailSkeleton } from "@/features/quizzes/components/QuizRailSkeleton";
 
 export default function Loading() {
   return (
     <div
-      className="min-h-screen p-4 md:p-6 overflow-x-hidden max-w-full"
+      className={`${PAGE_CONTAINER_CLASS} overflow-x-hidden max-w-full`}
       data-testid="home-loading"
       aria-busy="true"
       aria-label="Loading home page"

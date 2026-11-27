@@ -1,47 +1,31 @@
-import { Skeleton } from "@/components/ui/Skeleton";
+import { PAGE_CONTAINER_CLASS } from "@/shared/layout/constants";
+
 import {
   FollowButtonSkeleton,
-  TagPillSkeleton,
   QuizCardGrid,
 } from "@/components/primitives";
+import { TagPillSkeleton } from "@/components/primitives/TagPill/TagPillSkeleton";
+import { Skeleton } from "@/components/ui/Skeleton";
 
-const BREADCRUMB_HEIGHT = "h-4 w-32";
-const HEADER_TITLE_HEIGHT = "h-7 w-48";
+const HEADER_TITLE_HEIGHT = "h-8 w-48";
 const HEADER_SLUG_HEIGHT = "h-4 w-32";
 const FOLLOW_SLOT_CONTAINER =
   "flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between";
 const STRIP_CONTAINER =
-  "flex gap-3 overflow-x-auto pb-4 snap-x snap-mandatory scroll-mt-16 scrollbar-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden";
-const GRID_PADDING = "mt-12";
+  "-mx-1 flex gap-2.5 overflow-x-auto px-1 py-1.5 snap-x snap-proximity scroll-mt-16 scrollbar-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden";
 
 export default function TagDetailLoading() {
   return (
     <div
-      className="min-h-screen text-foreground p-4 md:p-8 lg:p-12"
+      className={PAGE_CONTAINER_CLASS}
       aria-busy="true"
       aria-label="Loading tag detail page"
       data-testid="tag-detail-loading"
     >
-      {/* Breadcrumb skeleton */}
-      <nav
-        aria-label="Loading breadcrumb"
-        className="mb-3 flex items-center gap-1"
-      >
-        <Skeleton className={BREADCRUMB_HEIGHT} />
-      </nav>
-
-      {/*
-       * Flex container with header skeleton + follow-slot skeleton.
-       * The flex layout matches the live page's flex container so
-       * the CLS = 0 invariant holds: the header takes
-       * the primary row, the follow-slot placeholder takes the
-       * trailing column at `sm:` and up.
-       */}
       <div
         className={FOLLOW_SLOT_CONTAINER}
         data-testid="tag-detail-header-skeleton"
       >
-        {/* Header skeleton — title + slug + created-at */}
         <div className="flex-1">
           <header className="mb-8">
             <div className="flex items-baseline gap-3">
@@ -51,11 +35,9 @@ export default function TagDetailLoading() {
             <Skeleton className="mt-2 h-3 w-40" />
           </header>
         </div>
-        {/* Follow-slot skeleton — mirrors the resolved button's outer dimensions */}
         <FollowButtonSkeleton />
       </div>
 
-      {/* Analytics panel skeleton — three count cards + sparkline block. */}
       <div
         className="mb-8"
         aria-label="Loading tag analytics"
@@ -70,10 +52,9 @@ export default function TagDetailLoading() {
             </div>
           ))}
         </div>
-        <Skeleton className={`mt-4 h-20 w-full rounded-md`} />
+        <Skeleton className="mt-4 h-20 w-full rounded-md" />
       </div>
 
-      {/* Quiz grid skeleton — 12 cards (matches <TagQuizGrid />). */}
       <div
         className="mb-8"
         aria-label="Loading quizzes for this tag"
@@ -82,12 +63,16 @@ export default function TagDetailLoading() {
         <QuizCardGrid skeletonCount={12} />
       </div>
 
-      {/* Related strip skeleton — 5 pills, identical dimensions to the live strip. */}
-      <section className={GRID_PADDING} aria-label="Loading related tags">
-        <Skeleton className="mb-3 h-4 w-24" />
+      <section
+        className="mt-12 pt-6 border-t border-border/60 space-y-2"
+        aria-label="Loading related tags"
+      >
+        <Skeleton className="h-5 w-28" />
         <div className={STRIP_CONTAINER}>
           {Array.from({ length: 5 }).map((_, i) => (
-            <TagPillSkeleton key={`related-${i}`} />
+            <div key={`related-${i}`} className="shrink-0 snap-start">
+              <TagPillSkeleton />
+            </div>
           ))}
         </div>
       </section>

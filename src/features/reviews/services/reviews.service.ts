@@ -1,4 +1,5 @@
 import { ApiError, getQuizzes, getReviews, getUsers } from "@/lib/api";
+import { unwrapEnvelope as inspectEnvelope } from "@/lib/api/core/unwrap";
 
 import type {
   CreateReviewDto,
@@ -71,10 +72,8 @@ export async function getMyQuizReview(
   const sdk = getUsers();
   try {
     const result = await sdk.userReviewControllerGetMyReviewForQuiz(quizId);
-    const envelope = result as unknown as {
-      data?: ReviewDetailResponseDto;
-    };
-    return envelope.data ?? null;
+    const unwrapped = inspectEnvelope<ReviewDetailResponseDto>(result);
+    return unwrapped.kind === "envelope" ? (unwrapped.value ?? null) : null;
   } catch (err) {
     if (err instanceof ApiError && err.status === 404) {
       return null;

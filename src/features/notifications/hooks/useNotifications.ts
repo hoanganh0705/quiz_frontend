@@ -49,15 +49,6 @@ export function useNotifications(
       async ({
         cursor,
       }: CursorFetcherArgs<NotificationListFilters>): Promise<NotificationListPage> => {
-        if (false) {
-          return {
-            items: [],
-            nextCursor: null,
-            hasNextPage: false,
-            limit: 0,
-          };
-        }
-
         const effectiveCursor = cursor ?? filters.cursor ?? undefined;
 
         const params: Parameters<typeof listNotifications>[0] = {};

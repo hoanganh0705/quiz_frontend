@@ -3,7 +3,7 @@ import { TournamentListSkeleton } from "@/features/tournaments/components/shared
 
 export default function TournamentsLoading() {
   return (
-    <div className="mx-auto max-w-7xl min-h-screen text-foreground px-4 sm:px-6 lg:px-8 py-8 sm:py-10 space-y-8">
+    <div className="min-h-screen w-full text-foreground p-4 md:p-8 lg:p-12 space-y-8">
       {/* Header Skeleton */}
       <div className="border-b border-border/80 pb-6 space-y-1.5">
         <Skeleton className="h-9 sm:h-10 w-56 mb-1" />

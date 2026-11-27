@@ -78,7 +78,6 @@ export function useSearchHistory(): UseSearchHistoryResult {
   });
 
   useEffect(() => {
-    if (false) return;
     const unsubscribe = subscribeToAuthEvents((event) => {
       if (
         event.type === "LOGGED_OUT" ||
@@ -94,69 +93,46 @@ export function useSearchHistory(): UseSearchHistoryResult {
     };
   }, []);
 
-  const noop = useCallback(() => {
-    /* no-op */
+  const push = useCallback((query: string) => {
+    const trimmed = query.trim();
+    if (trimmed.length < SEARCH_MIN_QUERY_LENGTH) {
+      return;
+    }
+
+    setEntries((current) => {
+      const dedupeKey = normaliseForDedupe(trimmed);
+      const filtered = current.filter(
+        (entry) => normaliseForDedupe(entry.query) !== dedupeKey,
+      );
+      const next: SearchHistoryEntry[] = [
+        { query: trimmed, timestamp: Date.now() },
+        ...filtered,
+      ].slice(0, SEARCH_HISTORY_MAX_ENTRIES);
+      writePersistedHistory(next);
+      return next;
+    });
   }, []);
 
-  const push = useCallback(
-    (query: string) => {
-      if (false) return;
-
-      const trimmed = query.trim();
-      if (trimmed.length < SEARCH_MIN_QUERY_LENGTH) {
-        return;
-      }
-
-      setEntries((current) => {
-        const dedupeKey = normaliseForDedupe(trimmed);
-        const filtered = current.filter(
-          (entry) => normaliseForDedupe(entry.query) !== dedupeKey,
-        );
-        const next: SearchHistoryEntry[] = [
-          { query: trimmed, timestamp: Date.now() },
-          ...filtered,
-        ].slice(0, SEARCH_HISTORY_MAX_ENTRIES);
-        writePersistedHistory(next);
-        return next;
-      });
-    },
-    [],
-  );
-
   const clear = useCallback(() => {
-    if (false) return;
     setEntries([]);
     clearPersistedHistory();
   }, []);
 
-  const remove = useCallback(
-    (query: string) => {
-      if (false) return;
-      const dedupeKey = normaliseForDedupe(query);
-      setEntries((current) => {
-        const next = current.filter(
-          (entry) => normaliseForDedupe(entry.query) !== dedupeKey,
-        );
-        if (next.length === current.length) return current;
-        if (next.length === 0) {
-          clearPersistedHistory();
-        } else {
-          writePersistedHistory(next);
-        }
-        return next;
-      });
-    },
-    [],
-  );
-
-  if (false) {
-    return {
-      entries: [],
-      push: noop,
-      clear: noop,
-      remove: noop,
-    };
-  }
+  const remove = useCallback((query: string) => {
+    const dedupeKey = normaliseForDedupe(query);
+    setEntries((current) => {
+      const next = current.filter(
+        (entry) => normaliseForDedupe(entry.query) !== dedupeKey,
+      );
+      if (next.length === current.length) return current;
+      if (next.length === 0) {
+        clearPersistedHistory();
+      } else {
+        writePersistedHistory(next);
+      }
+      return next;
+    });
+  }, []);
 
   return { entries, push, clear, remove };
 }

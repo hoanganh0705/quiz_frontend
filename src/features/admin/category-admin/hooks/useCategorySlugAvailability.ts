@@ -2,9 +2,9 @@
 
 import { useMemo } from "react";
 
+import { isValidSlug } from "@/lib/forms/regex";
 import { useDebouncedValue } from "@/lib/utils/use-debounced-value";
 
-import { isValidCategorySlug } from "../category-slug-regex";
 import { isCategorySlugTaken } from "../category-validation";
 import type { CategoryAdminListItem } from "../category-types";
 import { useCategoryAdminList } from "./useCategoryAdminList";
@@ -55,7 +55,7 @@ export function useCategorySlugAvailability(
       };
     }
 
-    if (!isValidCategorySlug(debouncedSlug)) {
+    if (!isValidSlug(debouncedSlug)) {
       return { status: "invalid", debouncedSlug, conflictingCategory: null };
     }
 

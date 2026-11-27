@@ -1,11 +1,11 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useMemo } from "react";
 
-import { ApiError, isApiError } from "@/lib/api";
+import { useQuizVersion } from "./useQuizVersion";
 
-import { listVersionQuestions } from "@/features/quizzes/services/question-service";
 import type { QuizAuthorQuestionDto } from "@/features/quizzes/types/author-dtos";
+import type { ApiError } from "@/lib/api";
 
 export interface UseVersionQuestionsOptions {
   quizId: string | null;
@@ -33,72 +33,29 @@ export interface UseVersionQuestionsResult {
 
 const INITIAL_SKELETON_COUNT = 10;
 
+/**
+ * Derives version questions from the canonical `useQuizVersion` query cache,
+ * preventing duplicate concurrent `GET /quizzes/:id/versions/:versionId` calls.
+ */
 export function useVersionQuestions(
   options: UseVersionQuestionsOptions,
 ): UseVersionQuestionsResult {
   const { quizId, versionId } = options;
 
-  const [questions, setQuestions] = useState<QuizAuthorQuestionDto[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<ApiError | null>(null);
-  const [notFound, setNotFound] = useState(false);
+  const { data, isLoading, error, notFound, retry } = useQuizVersion(
+    quizId,
+    versionId,
+  );
 
-  const mountedRef = useRef(true);
-
-  const fetchQuestions = useCallback(async () => {
-    if (!quizId || !versionId) return;
-
-    setIsLoading(true);
-    setError(null);
-    setNotFound(false);
-
-    try {
-      const result = await listVersionQuestions(quizId, versionId);
-
-      if (mountedRef.current) {
-        setQuestions(result.questions);
-        setIsLoading(false);
-      }
-    } catch (err) {
-      if (!mountedRef.current) return;
-
-      if (isApiError(err)) {
-        if (err.status === 404 || err.code === "QUIZ_VERSION_NOT_FOUND") {
-          setNotFound(true);
-        } else {
-          setError(err);
-        }
-      } else {
-        setError(
-          new ApiError({
-            status: 0,
-            code: "GLOBAL_UNKNOWN",
-            message: err instanceof Error ? err.message : "Unknown error",
-          }),
-        );
-      }
-
-      setIsLoading(false);
-    }
-  }, [quizId, versionId]);
-
-  useEffect(() => {
-    mountedRef.current = true;
-    void fetchQuestions();
-
-    return () => {
-      mountedRef.current = false;
-    };
-  }, [fetchQuestions]);
-
-  const refresh = useCallback(async () => {
-    await fetchQuestions();
-  }, [fetchQuestions]);
+  const questions = useMemo<QuizAuthorQuestionDto[]>(
+    () => (data?.questions ?? []) as unknown as QuizAuthorQuestionDto[],
+    [data?.questions],
+  );
 
   const skeletonData = useMemo<QuizAuthorQuestionDto[]>(() => {
     return Array.from({ length: INITIAL_SKELETON_COUNT }, (_, i) => ({
       questionId: `skeleton-${i}`,
-      quizVersionId: quizId ?? "",
+      quizVersionId: versionId ?? quizId ?? "",
       position: i + 1,
       questionText: "",
       imageUrl: null,
@@ -106,7 +63,7 @@ export function useVersionQuestions(
       updatedAt: "",
       answerOptions: [],
     }));
-  }, [quizId]);
+  }, [quizId, versionId]);
 
   return {
     questions,
@@ -115,7 +72,7 @@ export function useVersionQuestions(
     isEmpty: !isLoading && questions.length === 0,
     error,
     notFound,
-    refresh,
+    refresh: retry,
     skeletonData,
   };
 }

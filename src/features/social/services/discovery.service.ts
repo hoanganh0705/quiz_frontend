@@ -10,7 +10,6 @@ import { addSocialServiceBreadcrumb } from "@/lib/social/social-sentry";
 
 import {
   isSocialSearchSuggestionKind,
-  DEFENSIVE_FALLBACK_TESTID,
   type SocialSearchSuggestionKind,
 } from "@/features/social/discovery-discriminator";
 
@@ -39,20 +38,13 @@ export interface TrendingUsersServiceResult {
 
 function requireEnvelope<T>(wire: T | null | undefined, message: string): T {
   if (wire === null || wire === undefined) {
-    throw new ApiError({
+    throw ApiError.fromInput({
       status: 500,
       code: "GLOBAL_INTERNAL_ERROR",
       message,
-    } as unknown as ConstructorParameters<typeof ApiError>[0]);
+    });
   }
   return wire;
-}
-
-function clampTotal(total: unknown): number {
-  if (typeof total !== "number" || !Number.isFinite(total) || total < 0) {
-    return 0;
-  }
-  return Math.floor(total);
 }
 
 export async function getSuggestions(pagination?: {
@@ -186,7 +178,9 @@ export async function getTrendingUsers(pagination?: {
     wire,
     "Get trending users response missing envelope",
   );
-  const rows: TrendingUserResponseDto[] = envelope?.data ?? [];
+  const rows: TrendingUserResponseDto[] = Array.isArray(envelope?.data)
+    ? envelope.data
+    : (envelope?.data?.items ?? []);
   const total = rows.length;
   addSocialServiceBreadcrumb({
     route: "social.getTrendingUsers",

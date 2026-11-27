@@ -1,6 +1,6 @@
 "use client";
 
-import { AdminPageHeader } from "@/app/(protected)/admin/_components/AdminPageHeader";
+import { AdminPageHeader } from "@/features/admin/components/AdminPageHeader";
 import { CommentReportsList } from "@/features/admin/comment-moderation/components/CommentReportsList";
 
 export type CommentReportsPageProps = Record<string, never>;
@@ -8,7 +8,7 @@ export type CommentReportsPageProps = Record<string, never>;
 export function CommentReportsPage(): React.ReactElement {
   return (
     <div
-      className="mx-auto max-w-7xl px-4 sm:px-6 pb-8 pt-6 space-y-6"
+      className="min-h-screen w-full text-foreground p-4 md:p-8 lg:p-12 space-y-6"
       data-testid="comment-reports-page"
     >
       <AdminPageHeader

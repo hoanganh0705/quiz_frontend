@@ -1,37 +1,34 @@
 import * as Sentry from "@sentry/nextjs";
 
-import { getLeaderboards } from "@/lib/api";
-
-import { ApiError } from "@/lib/api/core/ApiError";
-
-import type {
-  RankingControllerGetGlobalLeaderboardParams,
-  RankingControllerGetLeaderboardDistributionParams,
-  RankingControllerGetTopMoversParams,
-  RankingControllerGetMyRankForPeriodParams,
-  RankingControllerGetMyPercentileParams,
-  RankingControllerGetNearbyRanksParams,
-  RankingControllerGetMyRankMovementParams,
-  RankingControllerGetUserRankForPeriodParams,
-  RankingControllerGetUserRankingHistoryParams,
-} from "@/lib/api/generated/schemas";
+import { getLeaderboards, unwrapEnvelope } from "@/lib/api";
 
 import type {
   RankingControllerGetGlobalLeaderboardResult,
   RankingControllerGetLeaderboardDistributionResult,
-  RankingControllerGetTopMoversResult,
-  RankingControllerGetMyRankResult,
-  RankingControllerGetMyRankForPeriodResult,
-  RankingControllerGetMyPercentileResult,
-  RankingControllerGetMyRankingMilestonesResult,
-  RankingControllerGetNearbyRanksResult,
-  RankingControllerGetMyRankMovementResult,
   RankingControllerGetMyPeakRanksResult,
+  RankingControllerGetMyPercentileResult,
+  RankingControllerGetMyRankForPeriodResult,
   RankingControllerGetMyRankingHistoryResult,
-  RankingControllerGetUserRankResult,
-  RankingControllerGetUserRankingHistoryResult,
+  RankingControllerGetMyRankingMilestonesResult,
+  RankingControllerGetMyRankMovementResult,
+  RankingControllerGetMyRankResult,
+  RankingControllerGetNearbyRanksResult,
+  RankingControllerGetTopMoversResult,
   RankingControllerGetUserRankForPeriodResult,
+  RankingControllerGetUserRankingHistoryResult,
+  RankingControllerGetUserRankResult,
 } from "@/lib/api/generated/leaderboards/leaderboards";
+import type {
+  RankingControllerGetGlobalLeaderboardParams,
+  RankingControllerGetLeaderboardDistributionParams,
+  RankingControllerGetMyPercentileParams,
+  RankingControllerGetMyRankForPeriodParams,
+  RankingControllerGetMyRankMovementParams,
+  RankingControllerGetNearbyRanksParams,
+  RankingControllerGetTopMoversParams,
+  RankingControllerGetUserRankForPeriodParams,
+  RankingControllerGetUserRankingHistoryParams,
+} from "@/lib/api/generated/schemas";
 
 export async function getMyRanking(): Promise<
   RankingControllerGetMyRankResult["data"]
@@ -74,16 +71,12 @@ export async function getMyRankingMilestones(): Promise<
     category: "rankings:service",
     message: "rankings.getMyRankingMilestones",
   });
-  const data =
+  const response =
     await getLeaderboards().rankingControllerGetMyRankingMilestones();
-  if (!data.data) {
-    throw new ApiError({
-      status: 500,
-      code: "GLOBAL_INTERNAL_ERROR",
-      message: "Ranking milestones response missing data envelope",
-    } as unknown as ConstructorParameters<typeof ApiError>[0]);
-  }
-  return data.data;
+  return unwrapEnvelope(
+    response,
+    "Ranking milestones response missing data envelope",
+  );
 }
 
 export async function getMyRankingHistory(): Promise<
@@ -93,15 +86,12 @@ export async function getMyRankingHistory(): Promise<
     category: "rankings:service",
     message: "rankings.getMyRankingHistory",
   });
-  const data = await getLeaderboards().rankingControllerGetMyRankingHistory();
-  if (!data.data) {
-    throw new ApiError({
-      status: 500,
-      code: "GLOBAL_INTERNAL_ERROR",
-      message: "Ranking history response missing data envelope",
-    } as unknown as ConstructorParameters<typeof ApiError>[0]);
-  }
-  return data.data;
+  const response =
+    await getLeaderboards().rankingControllerGetMyRankingHistory();
+  return unwrapEnvelope(
+    response,
+    "Ranking history response missing data envelope",
+  );
 }
 
 export async function getMyPeakRanks(): Promise<
@@ -111,15 +101,8 @@ export async function getMyPeakRanks(): Promise<
     category: "rankings:service",
     message: "rankings.getMyPeakRanks",
   });
-  const data = await getLeaderboards().rankingControllerGetMyPeakRanks();
-  if (!data.data) {
-    throw new ApiError({
-      status: 500,
-      code: "GLOBAL_INTERNAL_ERROR",
-      message: "Peak ranks response missing data envelope",
-    } as unknown as ConstructorParameters<typeof ApiError>[0]);
-  }
-  return data.data;
+  const response = await getLeaderboards().rankingControllerGetMyPeakRanks();
+  return unwrapEnvelope(response, "Peak ranks response missing data envelope");
 }
 
 export async function getNearbyRanks(
@@ -129,15 +112,12 @@ export async function getNearbyRanks(
     category: "rankings:service",
     message: "rankings.getNearbyRanks",
   });
-  const data = await getLeaderboards().rankingControllerGetNearbyRanks(params);
-  if (!data.data) {
-    throw new ApiError({
-      status: 500,
-      code: "GLOBAL_INTERNAL_ERROR",
-      message: "Nearby ranks response missing data envelope",
-    } as unknown as ConstructorParameters<typeof ApiError>[0]);
-  }
-  return data.data;
+  const response =
+    await getLeaderboards().rankingControllerGetNearbyRanks(params);
+  return unwrapEnvelope(
+    response,
+    "Nearby ranks response missing data envelope",
+  );
 }
 
 export async function getMyRankMovement(
@@ -147,16 +127,12 @@ export async function getMyRankMovement(
     category: "rankings:service",
     message: "rankings.getMyRankMovement",
   });
-  const data =
+  const response =
     await getLeaderboards().rankingControllerGetMyRankMovement(params);
-  if (!data.data) {
-    throw new ApiError({
-      status: 500,
-      code: "GLOBAL_INTERNAL_ERROR",
-      message: "Rank movement response missing data envelope",
-    } as unknown as ConstructorParameters<typeof ApiError>[0]);
-  }
-  return data.data;
+  return unwrapEnvelope(
+    response,
+    "Rank movement response missing data envelope",
+  );
 }
 
 export async function getRankingLeaderboard(
@@ -166,16 +142,12 @@ export async function getRankingLeaderboard(
     category: "rankings:service",
     message: "rankings.getRankingLeaderboard",
   });
-  const data =
+  const response =
     await getLeaderboards().rankingControllerGetGlobalLeaderboard(params);
-  if (!data.data) {
-    throw new ApiError({
-      status: 500,
-      code: "GLOBAL_INTERNAL_ERROR",
-      message: "Leaderboard response missing data envelope",
-    } as unknown as ConstructorParameters<typeof ApiError>[0]);
-  }
-  return data.data;
+  return unwrapEnvelope(
+    response,
+    "Leaderboard response missing data envelope",
+  );
 }
 
 export async function getRankingDistribution(
@@ -185,16 +157,12 @@ export async function getRankingDistribution(
     category: "rankings:service",
     message: "rankings.getRankingDistribution",
   });
-  const data =
+  const response =
     await getLeaderboards().rankingControllerGetLeaderboardDistribution(params);
-  if (!data.data) {
-    throw new ApiError({
-      status: 500,
-      code: "GLOBAL_INTERNAL_ERROR",
-      message: "Leaderboard distribution response missing data envelope",
-    } as unknown as ConstructorParameters<typeof ApiError>[0]);
-  }
-  return data.data;
+  return unwrapEnvelope(
+    response,
+    "Leaderboard distribution response missing data envelope",
+  );
 }
 
 export async function getTopMovers(
@@ -204,15 +172,9 @@ export async function getTopMovers(
     category: "rankings:service",
     message: "rankings.getTopMovers",
   });
-  const data = await getLeaderboards().rankingControllerGetTopMovers(params);
-  if (!data.data) {
-    throw new ApiError({
-      status: 500,
-      code: "GLOBAL_INTERNAL_ERROR",
-      message: "Top movers response missing data envelope",
-    } as unknown as ConstructorParameters<typeof ApiError>[0]);
-  }
-  return data.data;
+  const response =
+    await getLeaderboards().rankingControllerGetTopMovers(params);
+  return unwrapEnvelope(response, "Top movers response missing data envelope");
 }
 
 export async function getUserRanking(
@@ -234,18 +196,15 @@ export async function getUserRankingHistory(
     category: "rankings:service",
     message: `rankings.getUserRankingHistory(${userId})`,
   });
-  const data = await getLeaderboards().rankingControllerGetUserRankingHistory(
-    userId,
-    params,
+  const response =
+    await getLeaderboards().rankingControllerGetUserRankingHistory(
+      userId,
+      params,
+    );
+  return unwrapEnvelope(
+    response,
+    "User ranking history response missing data envelope",
   );
-  if (!data.data) {
-    throw new ApiError({
-      status: 500,
-      code: "GLOBAL_INTERNAL_ERROR",
-      message: "User ranking history response missing data envelope",
-    } as unknown as ConstructorParameters<typeof ApiError>[0]);
-  }
-  return data.data;
 }
 
 export async function getUserRankForPeriod(

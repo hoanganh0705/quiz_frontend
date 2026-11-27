@@ -1,4 +1,5 @@
-import { formatTagDate } from "@/features/tags/utils/format-tag-date";
+import { formatShortDate } from "@/shared/utils/date-utils";
+
 import type { TagResponseDto } from "@/lib/api/generated/schemas";
 
 export interface TagHeaderProps {
@@ -32,7 +33,7 @@ export function TagHeader({
         className="mt-2 text-xs text-muted-foreground"
         data-testid="tag-header-created-at"
       >
-        Created {formatTagDate(tag.createdAt, locale)}
+        Created {formatShortDate(tag.createdAt, locale)}
       </p>
     </header>
   );

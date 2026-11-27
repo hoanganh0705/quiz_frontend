@@ -3,7 +3,7 @@ import {
   isShellPage,
   isAuthPage,
   SHELL_PREFIXES,
-} from "../../constants/shell-routes";
+} from "../../constants";
 
 describe("LayoutShell route matching", () => {
   it("includes /instances in SHELL_PREFIXES", () => {

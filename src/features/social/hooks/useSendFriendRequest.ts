@@ -82,16 +82,6 @@ export function useSendFriendRequest(
       : null;
 
   const result = useMemo<UseSendFriendRequestResult>(() => {
-    if (false) {
-      return Object.freeze({
-        send: () => {
-          // no-op — feature is gated off
-        },
-        isPending: false,
-        error: null,
-      });
-    }
-
     if (targetUserId === null) {
       return Object.freeze({
         send: () => {

@@ -1,13 +1,16 @@
 "use client";
 
-import * as React from "react";
 import Link from "next/link";
-import { Users, Crown, Swords, Play, Clock } from "lucide-react";
+import * as React from "react";
 
-import { Card, CardContent } from "@/components/ui/Card";
-import { Button } from "@/components/ui/Button";
+import { Clock, Crown, Lock, Swords, Users } from "lucide-react";
+
 import { Badge } from "@/components/ui/Badge";
+import { Button } from "@/components/ui/Button";
+import { Card, CardContent } from "@/components/ui/Card";
+
 import { cn } from "@/shared/utils/merge-class-names";
+
 import type { InstanceListItemDto } from "@/lib/api/generated/schemas";
 
 export interface InstanceCardProps {
@@ -27,7 +30,8 @@ export function InstanceCard({ instance, className }: InstanceCardProps) {
     difficulty,
   } = instance;
 
-  const isJoinable = status === "open" || status === "countdown";
+  const isJoinable = status === "open";
+  const isStartingSoon = status === "countdown";
   const isRunning = status === "running";
   const isClosed = status === "closed" || status === "finished";
 
@@ -110,12 +114,16 @@ export function InstanceCard({ instance, className }: InstanceCardProps) {
           {/* Quiz title */}
           <div>
             <h3 className="font-semibold text-lg line-clamp-2 leading-snug group-hover:text-brand transition-colors">
-              <Link
-                href={roomUrl}
-                className="rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 hover:underline"
-              >
-                {quizTitle || "Untitled Quiz"}
-              </Link>
+              {isRunning ? (
+                <span>{quizTitle || "Untitled Quiz"}</span>
+              ) : (
+                <Link
+                  href={roomUrl}
+                  className="rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 hover:underline"
+                >
+                  {quizTitle || "Untitled Quiz"}
+                </Link>
+              )}
             </h3>
           </div>
 
@@ -154,18 +162,17 @@ export function InstanceCard({ instance, className }: InstanceCardProps) {
                 Join Battle
               </Link>
             </Button>
-          ) : isRunning ? (
+          ) : isStartingSoon || isRunning ? (
             <Button
-              asChild
+              type="button"
               variant="outline"
-              className="w-full border-blue-500/30 text-blue-600 hover:bg-blue-500/10 dark:text-blue-400 font-medium"
+              disabled
+              className="w-full border-border/70 text-muted-foreground font-medium"
               size="default"
-              data-testid={`view-instance-button-${instanceId}`}
+              data-testid={`in-progress-instance-button-${instanceId}`}
             >
-              <Link href={roomUrl}>
-                <Play className="mr-2 h-4 w-4" />
-                Watch Match
-              </Link>
+              <Lock className="mr-2 h-4 w-4" aria-hidden="true" />
+              {isStartingSoon ? "Starting Soon" : "Match in Progress"}
             </Button>
           ) : (
             <Button

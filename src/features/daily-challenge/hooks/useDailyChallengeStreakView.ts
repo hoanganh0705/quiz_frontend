@@ -1,6 +1,6 @@
 "use client";
 
-import { useUser } from "@/features/users/store/user-store";
+import { useAuthSession } from "@/features/auth/hooks/use-auth-session";
 
 export interface UseDailyChallengeStreakViewResult {
   streak: number | null;
@@ -8,8 +8,8 @@ export interface UseDailyChallengeStreakViewResult {
 }
 
 export function useDailyChallengeStreakView(): UseDailyChallengeStreakViewResult {
-  const user = useUser();
-  if (user === null) {
+  const { isAuthenticated, user } = useAuthSession();
+  if (!isAuthenticated || !user) {
     return { streak: null, isAuthenticated: false };
   }
   return {

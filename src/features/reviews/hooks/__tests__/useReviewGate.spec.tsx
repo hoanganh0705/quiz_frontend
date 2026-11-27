@@ -3,10 +3,8 @@ import { act, renderHook } from "@testing-library/react";
 import { getQueryClient } from "@/providers/QueryProvider";
 
 import { useReviewGate } from "@/features/reviews/hooks/useReviewGate";
-import {
-  myQuizReviewKey,
-  reviewQuizAttemptKey,
-} from "@/features/reviews/types";
+import { ATTEMPT_KEYS } from "@/features/attempts/query-keys";
+import { REVIEW_KEYS } from "@/features/reviews/query-keys";
 
 const useAuthSessionMock = vi.fn();
 const useMyQuizReviewMock = vi.fn();
@@ -20,8 +18,8 @@ vi.mock("@/features/reviews/hooks/useMyQuizReview", () => ({
   useMyQuizReview: (params: unknown) => useMyQuizReviewMock(params),
 }));
 
-vi.mock("@/features/reviews/hooks/useCompletedQuizAttempt", () => ({
-  useCompletedQuizAttempt: (params: unknown) =>
+vi.mock("@/features/attempts/hooks/useHasCompletedQuizAttempt", () => ({
+  useHasCompletedQuizAttempt: (params: unknown) =>
     useCompletedQuizAttemptMock(params),
 }));
 
@@ -302,7 +300,7 @@ describe("useReviewGate — revalidate()", () => {
       await result.current.revalidate();
     });
 
-    const myKey = myQuizReviewKey(QUIZ_ID, SESSION_ID);
+    const myKey = REVIEW_KEYS.mine(QUIZ_ID, SESSION_ID);
     expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: myKey });
   });
 
@@ -322,7 +320,7 @@ describe("useReviewGate — revalidate()", () => {
       await result.current.revalidate();
     });
 
-    const eligibilityKey = reviewQuizAttemptKey(QUIZ_ID, SESSION_ID);
+    const eligibilityKey = ATTEMPT_KEYS.completedCheck(QUIZ_ID, SESSION_ID);
     expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: eligibilityKey });
   });
 

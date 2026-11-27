@@ -1,5 +1,5 @@
-import { redirect } from "next/navigation";
+import { permanentRedirect } from "next/navigation";
 
-export default function AdminRolesRedirectPage() {
-  redirect("/admin/users/roles");
+export default function AdminRolesRedirectPage(): never {
+  permanentRedirect("/admin/users/roles");
 }

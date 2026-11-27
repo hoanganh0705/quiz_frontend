@@ -1,37 +1,35 @@
 "use client";
 
 import * as React from "react";
+
 import { RefreshCw } from "lucide-react";
 
-import { Button } from "@/components/ui/Button";
-import { cn } from "@/shared/utils/merge-class-names";
-
 import {
-  SearchResultSkeleton,
   SearchEmptyState,
   SearchErrorState,
   SearchRateLimitState,
-} from "./shared";
+  SearchResultSkeleton,
+} from "@/shared/ui/search";
+import { cn } from "@/shared/utils/merge-class-names";
+
+import { useAuthSession } from "@/features/auth/hooks/use-auth-session";
+import { useSearch } from "@/features/search/hooks/useSearch";
+
+import { Button } from "@/components/ui/Button";
 
 import { SearchResultGroup } from "./SearchResultGroup";
-import type {
-  SearchGroup,
-  SearchResultKind,
-  SearchResultDto,
-  SearchQueryParams,
-} from "@/features/search/types/search.types";
-import { useSearch } from "@/features/search/hooks/useSearch";
-import { useAuthSession } from "@/features/auth/hooks/use-auth-session";
 
-const PAGINATABLE_KINDS: Set<SearchResultKind> = new Set([
-  "user",
-  "tournament",
-]);
+import type {
+  BaseSearchResult,
+  SearchGroup,
+  SearchQueryParams,
+  SearchResultKind,
+} from "@/features/search/types/search.types";
 
 export interface SearchResultsProps {
   params: SearchQueryParams;
 
-  renderItem: (item: SearchResultDto) => React.ReactNode;
+  renderItem: (item: BaseSearchResult) => React.ReactNode;
 
   className?: string;
 }
@@ -39,7 +37,7 @@ export interface SearchResultsProps {
 function StaleBanner({ onRefresh }: { onRefresh?: () => void }) {
   return (
     <div
-      className="flex items-center justify-between gap-3 px-4 py-2 rounded-lg bg-amber-50 border border-amber-200 text-sm text-amber-800 dark:bg-amber-950/30 dark:border-amber-800 dark:text-amber-300"
+      className="flex items-center justify-between gap-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-2 text-sm text-amber-800 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-300"
       role="status"
       aria-live="polite"
     >
@@ -51,33 +49,11 @@ function StaleBanner({ onRefresh }: { onRefresh?: () => void }) {
           className="h-7 text-xs"
           onClick={onRefresh}
         >
-          <RefreshCw className="h-3 w-3 mr-1" aria-hidden="true" />
+          <RefreshCw className="mr-1 h-3 w-3" aria-hidden="true" />
           Refresh
         </Button>
       )}
     </div>
-  );
-}
-
-function LoadMoreButton({
-  kind,
-  onClick,
-  isLoading,
-}: {
-  kind: SearchResultKind;
-  onClick?: () => void;
-  isLoading?: boolean;
-}) {
-  return (
-    <Button
-      variant="outline"
-      size="sm"
-      className="w-full"
-      onClick={onClick}
-      disabled={isLoading}
-    >
-      {isLoading ? "Loading…" : `Load more ${kind}s`}
-    </Button>
   );
 }
 
@@ -162,20 +138,12 @@ export function SearchResults({
         const group = groups[kind];
         if (!group || group.items.length === 0) return null;
 
-        const isPaginatable = PAGINATABLE_KINDS.has(kind);
-        const showLoadMore = isPaginatable;
-
         return (
-          <SearchResultGroup<any>
+          <SearchResultGroup<BaseSearchResult>
             key={kind}
-            group={group as any}
-            renderItem={renderItem as any}
+            group={group as SearchGroup<BaseSearchResult>}
+            renderItem={renderItem}
             isAuthenticated={isAuthenticated}
-            footer={
-              showLoadMore ? (
-                <LoadMoreButton kind={kind} isLoading={false} />
-              ) : undefined
-            }
           />
         );
       })}

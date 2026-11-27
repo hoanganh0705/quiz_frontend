@@ -3,7 +3,8 @@
 import { useCallback } from "react";
 
 import { type OptimisticToggleError, useOptimisticToggle } from "@/lib/api";
-import { followedTagsKey } from "@/features/tags/hooks/useFollowedLookup";
+
+import { TAG_KEYS } from "@/features/tags/query-keys";
 import { followTag } from "@/features/tags/services/tags.service";
 
 export interface UseFollowTagResult {
@@ -19,7 +20,7 @@ const NOOP = async (): Promise<void> => {
 
 export function useFollowTag(id: string | null): UseFollowTagResult {
   const keysToInvalidate = id
-    ? ([followedTagsKey(), ["tag", id]] as const)
+    ? ([TAG_KEYS.followed(), TAG_KEYS.details()] as const)
     : [];
 
   const { status, lastError, toggle } = useOptimisticToggle({

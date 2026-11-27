@@ -3,17 +3,20 @@
 import { useCallback, useMemo } from "react";
 
 import { useSingleWithRetry } from "@/lib/api";
-import type { ApiError } from "@/lib/api";
-
-import { toSocialCounts } from "@/features/social/dto-adapters";
-import { getSocialCounts } from "@/features/social/services";
-import {
-  SOCIAL_CACHE_KEYS,
-  type SocialCountsDto,
-  type SocialErrorCode,
-} from "@/features/social/types";
 
 import { useAuthSession } from "@/features/auth/hooks/use-auth-session";
+import { toSocialCounts } from "@/features/social/dto-adapters";
+import {
+  getSocialCounts,
+  getUserSocialStats,
+} from "@/features/social/services";
+import { SOCIAL_CACHE_KEYS } from "@/features/social/types";
+
+import type {
+  SocialCountsDto,
+  SocialErrorCode,
+} from "@/features/social/types";
+import type { ApiError } from "@/lib/api";
 
 export interface UseSocialCountsResult {
   counts: SocialCountsDto | null;
@@ -34,19 +37,28 @@ const PLACEHOLDER_RESULT: UseSocialCountsResult = Object.freeze({
 export function useSocialCounts(userId: string | null): UseSocialCountsResult {
   const auth = useAuthSession();
   const isAuthenticated = auth.isAuthenticated;
+  const currentUserId =
+    (auth.currentUser as { id?: string; userId?: string } | null)?.id ??
+    (auth.currentUser as { userId?: string } | null)?.userId ??
+    null;
+
+  const isSelf =
+    userId !== null && (userId === "me" || userId === currentUserId);
 
   const key = useMemo<readonly unknown[] | null>(() => {
-    if (false) return null;
     if (!isAuthenticated) return null;
     if (userId === null) return null;
     return SOCIAL_CACHE_KEYS.makeSocialCountsKey(userId);
   }, [isAuthenticated, userId]);
 
   const fetcher = useCallback(async (): Promise<SocialCountsDto> => {
-    if (false) return toSocialCounts({});
-    if (!isAuthenticated) return toSocialCounts({});
+    if (!isAuthenticated || userId === null) return toSocialCounts({});
     try {
-      const envelope = await getSocialCounts();
+      if (isSelf) {
+        const envelope = await getSocialCounts();
+        return toSocialCounts(envelope?.data);
+      }
+      const envelope = await getUserSocialStats(userId);
       return toSocialCounts(envelope?.data);
     } catch (err) {
       const apiErr = err as Partial<ApiError> | null;
@@ -58,7 +70,7 @@ export function useSocialCounts(userId: string | null): UseSocialCountsResult {
       }
       throw err;
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, isSelf, userId]);
 
   const result = useSingleWithRetry<SocialCountsDto>({ key, fetcher });
 
@@ -71,7 +83,6 @@ export function useSocialCounts(userId: string | null): UseSocialCountsResult {
     return result.error;
   }, [result.error]);
 
-  if (false) return PLACEHOLDER_RESULT;
   if (!isAuthenticated) return PLACEHOLDER_RESULT;
   if (userId === null) return PLACEHOLDER_RESULT;
 

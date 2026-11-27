@@ -5,7 +5,6 @@ import { AlertTriangle, Send } from "lucide-react";
 
 import {
   AlertDialog,
-  AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
@@ -24,7 +23,7 @@ import { useReportComment } from "@/features/comments/hooks/useReportComment";
 const REPORT_REASONS = [
   { value: "spam", label: "Spam" },
   { value: "harassment", label: "Harassment or bullying" },
-  { value: "hate_speech", label: "Hate speech" },
+  { value: "inappropriate_content", label: "Inappropriate content" },
   { value: "misinformation", label: "Misinformation" },
   { value: "other", label: "Other" },
 ] as const;
@@ -221,18 +220,16 @@ function CommentReportDialogBody({
         >
           Cancel
         </AlertDialogCancel>
-        <AlertDialogAction asChild>
-          <Button
-            type="button"
-            disabled={submitDisabled}
-            aria-busy={isLoading || undefined}
-            onClick={handleSubmit}
-            data-testid={`comment-report-submit-${commentId}`}
-          >
-            <Send className="mr-2" size={16} aria-hidden />
-            Submit Report
-          </Button>
-        </AlertDialogAction>
+        <Button
+          type="button"
+          disabled={submitDisabled}
+          aria-busy={isLoading || undefined}
+          onClick={handleSubmit}
+          data-testid={`comment-report-submit-${commentId}`}
+        >
+          <Send className="mr-2" size={16} aria-hidden />
+          Submit Report
+        </Button>
       </AlertDialogFooter>
     </AlertDialogContent>
   );

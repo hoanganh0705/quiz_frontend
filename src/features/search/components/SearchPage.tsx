@@ -3,28 +3,32 @@
 import * as React from "react";
 import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
-import { useMemo } from "react";
+
+import { PAGE_CONTAINER_CLASS } from "@/shared/layout/constants";
+import { SearchEmptyState, SearchResultSkeleton } from "@/shared/ui/search";
 
 import { SearchInput } from "@/features/search/components/SearchInput";
+import { SearchResultRow } from "@/features/search/components/SearchResultRow";
 import { SearchResults } from "@/features/search/components/SearchResults";
-import { SearchEmptyState } from "@/features/search/components/shared/SearchEmptyState";
+import { useSearchHistory } from "@/features/search/hooks/useSearchHistory";
 import {
-  useSearchUrlState,
-  URL_PARAM_QUERY,
   URL_PARAM_KINDS,
+  URL_PARAM_QUERY,
+  useSearchUrlState,
 } from "@/features/search/hooks/useSearchUrlState";
-import type { SearchQueryParams } from "@/features/search/types/search.types";
-
 import { SocialSearchGroup } from "@/features/social/discovery/SocialSearchGroup";
+
+import type { SearchQueryParams } from "@/features/search/types/search.types";
 
 function SearchPageInner() {
   const searchParams = useSearchParams();
-  const {
-    query: urlQuery,
-    kinds: urlKinds,
-    setQuery,
-    setKinds,
-  } = useSearchUrlState();
+  const { query: urlQuery, setQuery, reset } = useSearchUrlState();
+  const { push: pushSearchHistory } = useSearchHistory();
+  const [draftQuery, setDraftQuery] = React.useState<string>(urlQuery);
+
+  React.useEffect(() => {
+    setDraftQuery(urlQuery);
+  }, [urlQuery]);
 
   const params: SearchQueryParams = React.useMemo(() => {
     const q = (searchParams.get(URL_PARAM_QUERY) ?? "").trim();
@@ -41,20 +45,31 @@ function SearchPageInner() {
 
   const handleSubmit = React.useCallback(
     (q: string) => {
-      setQuery(q);
+      const trimmed = q.trim();
+      setQuery(trimmed);
+      if (trimmed.length >= 2) {
+        pushSearchHistory(trimmed);
+      }
     },
-    [setQuery],
+    [setQuery, pushSearchHistory],
   );
+
+  const handleClear = React.useCallback(() => {
+    setDraftQuery("");
+    reset();
+  }, [reset]);
 
   return (
     <main
       data-testid="search-page"
-      className="mx-auto max-w-4xl space-y-6 p-4 sm:p-6 lg:p-8"
+      className={`${PAGE_CONTAINER_CLASS} space-y-6`}
     >
       {/* Page header */}
       <header className="space-y-1">
-        <h1 className="text-2xl font-bold tracking-tight">Search</h1>
-        <p className="text-sm text-muted-foreground">
+        <h1 className="text-2xl font-bold tracking-tight md:text-3xl">
+          Search
+        </h1>
+        <p className="text-sm text-muted-foreground sm:text-base">
           Discover quizzes, users, tournaments, and more.
         </p>
       </header>
@@ -62,7 +77,10 @@ function SearchPageInner() {
       {/* Search input (for re-submission from the page) */}
       <div className="w-full max-w-2xl">
         <SearchInput
+          value={draftQuery}
+          onChange={setDraftQuery}
           onSubmit={handleSubmit}
+          onClear={handleClear}
           placeholder="Search quizzes, users, tournaments…"
           className="w-full"
         />
@@ -74,16 +92,11 @@ function SearchPageInner() {
           {/* Main search results */}
           <SearchResults
             params={params}
-            renderItem={(item) => {
-              return null;
-            }}
+            renderItem={(item) => <SearchResultRow item={item} />}
           />
 
           {/* Social search group */}
-          <section
-            data-testid="social-search-group"
-            aria-label="Social search suggestions"
-          >
+          <section aria-label="Social search suggestions">
             <SocialSearchGroup query={urlQuery} />
           </section>
         </div>
@@ -94,15 +107,21 @@ function SearchPageInner() {
   );
 }
 
-export function SearchPage() {
-  const isLive = true;
-
-  if (!isLive) {
-    return null;
-  }
-
+function SearchPageFallback() {
   return (
-    <Suspense fallback={null}>
+    <div
+      className={`${PAGE_CONTAINER_CLASS} space-y-6`}
+      aria-busy="true"
+      aria-label="Loading search"
+    >
+      <SearchResultSkeleton />
+    </div>
+  );
+}
+
+export function SearchPage() {
+  return (
+    <Suspense fallback={<SearchPageFallback />}>
       <SearchPageInner />
     </Suspense>
   );

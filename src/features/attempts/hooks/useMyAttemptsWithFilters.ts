@@ -3,37 +3,25 @@
 import { useMemo } from "react";
 
 import { ApiError, projectWithId, useCursorPaginated } from "@/lib/api";
+
+import { ATTEMPT_KEYS } from "@/features/attempts/query-keys";
+import { listMyAttempts } from "@/features/attempts/services/attempts.service";
+import { useAuthSessionId } from "@/features/auth/hooks/use-auth-session-id";
+
+import type {
+  AttemptHistoryDateRange,
+  AttemptHistoryFilters,
+  AttemptHistoryPage,
+  AttemptHistoryRow,
+} from "@/features/attempts/types/attempt-history.types";
 import type {
   CursorFetcherArgs,
-  CursorPage,
   UseCursorPaginatedResult,
 } from "@/lib/api/use-cursor-paginated.types";
-
-import { listMyAttempts } from "@/features/attempts/services/attempts.service";
-import { useAuthSession } from "@/features/auth/hooks/use-auth-session";
-import {
-  ATTEMPT_HISTORY_CACHE_KEYS,
-  type AttemptHistoryFilters,
-  type AttemptHistoryPage,
-  type AttemptHistoryRow,
-} from "@/features/attempts/types/attempt-history.types";
-import type { AttemptSummaryResponseDto } from "@/lib/api/generated/schemas";
 
 export interface UseMyAttemptsWithFiltersParams {
   filters: AttemptHistoryFilters;
 }
-
-type ListMyAttemptsWireResponse = {
-  data?: AttemptSummaryResponseDto[];
-  meta?: {
-    pagination?: {
-      kind: "cursor";
-      limit: number;
-      nextCursor: string | null;
-      hasNextPage: boolean;
-    };
-  };
-};
 
 export type UseMyAttemptsWithFiltersResult =
   UseCursorPaginatedResult<AttemptHistoryRow>;
@@ -54,30 +42,60 @@ function toServiceStatusFilter(
   }
 }
 
+export function resolveDateRangeFromIso(
+  dateRange: AttemptHistoryDateRange,
+  now: Date = new Date(),
+): string | undefined {
+  const days =
+    dateRange === "last_7_days"
+      ? 7
+      : dateRange === "last_30_days"
+        ? 30
+        : dateRange === "last_90_days"
+          ? 90
+          : null;
+
+  if (days === null) return undefined;
+
+  // Anchor to UTC start-of-day so the date window stays stable across refetches.
+  const startUtc = Date.UTC(
+    now.getUTCFullYear(),
+    now.getUTCMonth(),
+    now.getUTCDate() - days,
+  );
+  return new Date(startUtc).toISOString();
+}
+
 export function useMyAttemptsWithFilters(
   params: UseMyAttemptsWithFiltersParams,
 ): UseMyAttemptsWithFiltersResult {
   const { filters } = params;
 
-  const { bootstrapState, currentUser } = useAuthSession();
+  const sessionId = useAuthSessionId();
 
-  const sessionId = useMemo<string | null>(() => {
-    if (bootstrapState !== "authenticated") return null;
-    if (!currentUser) return null;
-    const id =
-      (currentUser as { id?: string; userId?: string }).id ??
-      (currentUser as { userId?: string }).userId;
-    return id ?? null;
-  }, [bootstrapState, currentUser]);
+  // Search is filtered client-side because `listMyAttempts` does not accept a
+  // `quizTitle` wire parameter; excluding `search` from the server key avoids
+  // redundant network calls on every keystroke.
+  const serverFilters = useMemo<AttemptHistoryFilters>(
+    () => ({
+      status: filters.status,
+      dateRange: filters.dateRange,
+      search: "",
+      cursor: filters.cursor,
+      ...(typeof filters.limit === "number" ? { limit: filters.limit } : {}),
+    }),
+    [filters.status, filters.dateRange, filters.cursor, filters.limit],
+  );
 
   const key = useMemo(
     () =>
       sessionId === null
         ? (["attempts", "history", "disabled"] as const)
-        : ATTEMPT_HISTORY_CACHE_KEYS.list(sessionId, filters),
-    [sessionId, filters],
+        : ATTEMPT_KEYS.historyList(sessionId, serverFilters),
+    [sessionId, serverFilters],
   );
 
+  /* eslint-disable no-restricted-syntax -- Fetcher adapter translating SDK envelope to CursorPage shape for useCursorPaginated */
   const fetcher = useMemo(
     () =>
       async ({
@@ -92,25 +110,25 @@ export function useMyAttemptsWithFilters(
           };
         }
 
-        const effectiveCursor = cursor ?? filters.cursor ?? undefined;
-        const statusFilter = toServiceStatusFilter(filters.status);
+        const effectiveCursor = cursor ?? serverFilters.cursor ?? undefined;
+        const statusFilter = toServiceStatusFilter(serverFilters.status);
+        const fromDate = resolveDateRangeFromIso(serverFilters.dateRange);
 
         try {
-          const wire = (await listMyAttempts({
+          const wire = await listMyAttempts({
             ...(statusFilter !== undefined ? { status: statusFilter } : {}),
-            ...(filters.search.trim().length > 0
-              ? { quizTitle: filters.search.trim() }
-              : {}),
+            ...(fromDate !== undefined ? { fromDate } : {}),
             ...(effectiveCursor ? { cursor: effectiveCursor } : {}),
-            ...(typeof filters.limit === "number"
-              ? { limit: filters.limit }
+            ...(typeof serverFilters.limit === "number"
+              ? { limit: serverFilters.limit }
               : {}),
-          })) as unknown as ListMyAttemptsWireResponse;
+          });
 
+          const rawRows = wire.data ?? [];
           const items: AttemptHistoryRow[] = projectWithId(
-            (wire.data ?? []) as unknown as readonly Record<string, unknown>[],
+            rawRows,
             "attemptId",
-          ) as unknown as AttemptHistoryRow[];
+          );
 
           const pagination = wire.meta?.pagination;
           return {
@@ -131,15 +149,44 @@ export function useMyAttemptsWithFilters(
           throw err;
         }
       },
-    [sessionId, filters],
+    [sessionId, serverFilters],
   );
+  /* eslint-enable no-restricted-syntax */
 
-  return useCursorPaginated<AttemptHistoryRow, UseMyAttemptsWithFiltersParams>({
+  const result = useCursorPaginated<
+    AttemptHistoryRow,
+    UseMyAttemptsWithFiltersParams
+  >({
     key,
     fetcher,
     params,
     paginationKind: "cursor",
   });
+
+  const normalizedSearch = filters.search.trim().toLowerCase();
+
+  const filteredItems = useMemo(() => {
+    if (!normalizedSearch) return result.items;
+    return result.items.filter((row) => {
+      const title = row.quizTitle?.toLowerCase() ?? "";
+      const slug = row.quizSlug?.toLowerCase() ?? "";
+      const difficulty = row.difficulty?.toLowerCase() ?? "";
+      return (
+        title.includes(normalizedSearch) ||
+        slug.includes(normalizedSearch) ||
+        difficulty.includes(normalizedSearch)
+      );
+    });
+  }, [result.items, normalizedSearch]);
+
+  if (!normalizedSearch) {
+    return result;
+  }
+
+  return {
+    ...result,
+    items: filteredItems,
+  };
 }
 
 export type { AttemptHistoryPage };

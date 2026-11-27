@@ -85,6 +85,8 @@ export interface UseTournamentAdminListResult {
 
   isLoadingMore: boolean;
 
+  hasNextPage: boolean;
+
   error: ApiError | null;
 
   mutate: () => Promise<void>;
@@ -232,6 +234,7 @@ export function useTournamentAdminList(): UseTournamentAdminListResult {
     items,
     isLoading: paginated.isLoading,
     isLoadingMore: paginated.isLoadingMore,
+    hasNextPage: paginated.hasMore,
     error: paginated.error,
     mutate: paginated.refresh,
     loadMore: paginated.loadMore,

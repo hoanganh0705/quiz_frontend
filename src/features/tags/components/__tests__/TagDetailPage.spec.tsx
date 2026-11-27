@@ -17,7 +17,6 @@ const {
   useIsFollowingTagMock,
   useFollowTagMock,
   useUnfollowTagMock,
-  useFollowedLookupMock,
 } = vi.hoisted(() => ({
   useTagBySlugMock: vi.fn(),
   useTagAnalyticsMock: vi.fn(),
@@ -27,7 +26,6 @@ const {
   useIsFollowingTagMock: vi.fn(),
   useFollowTagMock: vi.fn(),
   useUnfollowTagMock: vi.fn(),
-  useFollowedLookupMock: vi.fn(),
 }));
 
 vi.mock("next/link", () => ({
@@ -78,15 +76,6 @@ vi.mock("@/features/tags/hooks/useUnfollowTag", () => ({
 vi.mock("@/features/auth/hooks/use-auth-state", () => ({
   useAuthState: () => useAuthStateMock(),
 }));
-
-vi.mock("@/features/tags", async () => {
-  const actual =
-    await vi.importActual<typeof import("@/features/tags")>("@/features/tags");
-  return {
-    ...actual,
-    useFollowedLookup: () => useFollowedLookupMock(),
-  };
-});
 
 
 const TAG_ID = "0192f4d8-0000-7000-8000-000000000010";
@@ -142,14 +131,6 @@ const DEFAULT_ACTION_RESULT = {
   unfollow: NOOP_ASYNC,
 };
 
-const DEFAULT_LOOKUP_RESULT = {
-  categories: new Set<string>(),
-  tags: new Set<string>(),
-  isLoading: false,
-  error: null,
-  mutate: NOOP_ASYNC,
-};
-
 const DEFAULT_ANALYTICS_RESULT = {
   analytics: null,
   isLoading: false,
@@ -185,7 +166,6 @@ beforeEach(() => {
   });
   useFollowTagMock.mockReturnValue(DEFAULT_ACTION_RESULT);
   useUnfollowTagMock.mockReturnValue(DEFAULT_ACTION_RESULT);
-  useFollowedLookupMock.mockReturnValue(DEFAULT_LOOKUP_RESULT);
 });
 
 afterEach(() => {
@@ -455,10 +435,6 @@ describe("TagDetailPage — follow slot integration (F1 / (g) follow count)", ()
       isFollowing: false,
       isLoading: false,
     });
-    useFollowedLookupMock.mockReturnValue({
-      ...DEFAULT_LOOKUP_RESULT,
-      tags: new Set(["tag-1", "tag-2", "tag-3"]),
-    });
 
     render(
       <TestQueryProvider>
@@ -466,12 +442,10 @@ describe("TagDetailPage — follow slot integration (F1 / (g) follow count)", ()
       </TestQueryProvider>,
     );
 
-    const count = screen.getByTestId("follow-count");
-    expect(count).toHaveTextContent("3 followers");
-    expect(count).toHaveAttribute("data-count", "3");
+    expect(screen.queryByTestId("follow-count")).toBeNull();
   });
 
-  it("(g) when the lookup reports size=N+1 (post-follow), the span reflects the new size", () => {
+  it("(g) does not fabricate entity follower count from viewer lookup size on follow", () => {
     useTagBySlugMock.mockReturnValue({
       tag: makeTag(),
       isLoading: false,
@@ -483,10 +457,6 @@ describe("TagDetailPage — follow slot integration (F1 / (g) follow count)", ()
       isFollowing: true,
       isLoading: false,
     });
-    useFollowedLookupMock.mockReturnValue({
-      ...DEFAULT_LOOKUP_RESULT,
-      tags: new Set(["tag-1", "tag-2", "tag-3", "tag-4"]),
-    });
 
     render(
       <TestQueryProvider>
@@ -494,14 +464,10 @@ describe("TagDetailPage — follow slot integration (F1 / (g) follow count)", ()
       </TestQueryProvider>,
     );
 
-    expect(screen.getByTestId("follow-count")).toHaveAttribute(
-      "data-count",
-      "4",
-    );
-    expect(screen.getByTestId("follow-count")).toHaveTextContent("4 followers");
+    expect(screen.queryByTestId("follow-count")).toBeNull();
   });
 
-  it("(g) when the lookup reports size=N-1 (post-unfollow), the span reflects the new size", () => {
+  it("(g) does not fabricate entity follower count from viewer lookup size on unfollow", () => {
     useTagBySlugMock.mockReturnValue({
       tag: makeTag(),
       isLoading: false,
@@ -513,9 +479,27 @@ describe("TagDetailPage — follow slot integration (F1 / (g) follow count)", ()
       isFollowing: false,
       isLoading: false,
     });
-    useFollowedLookupMock.mockReturnValue({
-      ...DEFAULT_LOOKUP_RESULT,
-      tags: new Set(["tag-1", "tag-2"]),
+
+    render(
+      <TestQueryProvider>
+        <TagDetailPage slug={TAG_SLUG} />
+      </TestQueryProvider>,
+    );
+
+    expect(screen.queryByTestId("follow-count")).toBeNull();
+  });
+
+  it("renders authoritative followerCount when provided by the tag DTO", () => {
+    useTagBySlugMock.mockReturnValue({
+      tag: makeTag({ followerCount: 17 }),
+      isLoading: false,
+      error: null,
+      notFound: false,
+    });
+    useAuthStateMock.mockReturnValue({ isAuthenticated: true });
+    useIsFollowingTagMock.mockReturnValue({
+      isFollowing: false,
+      isLoading: false,
     });
 
     render(
@@ -524,11 +508,9 @@ describe("TagDetailPage — follow slot integration (F1 / (g) follow count)", ()
       </TestQueryProvider>,
     );
 
-    expect(screen.getByTestId("follow-count")).toHaveAttribute(
-      "data-count",
-      "2",
+    expect(screen.getByTestId("follow-count")).toHaveTextContent(
+      "17 followers",
     );
-    expect(screen.getByTestId("follow-count")).toHaveTextContent("2 followers");
   });
 });
 
@@ -579,5 +561,43 @@ describe("TagDetailPage — follow slot integration (F1 / wiring)", () => {
     expect(useIsFollowingTagMock).toHaveBeenCalledWith(TAG_ID);
     expect(useFollowTagMock).toHaveBeenCalledWith(TAG_ID);
     expect(useUnfollowTagMock).toHaveBeenCalledWith(TAG_ID);
+  });
+
+  it("forwards the resolved tag.slug to quizzes and related hooks when route param is a UUID", () => {
+    useTagBySlugMock.mockReturnValue({
+      tag: makeTag({ tagId: TAG_ID, slug: TAG_SLUG }),
+      isLoading: false,
+      error: null,
+      notFound: false,
+    });
+
+    render(
+      <TestQueryProvider>
+        <TagDetailPage slug={TAG_ID} />
+      </TestQueryProvider>,
+    );
+
+    expect(useTagQuizzesMock).toHaveBeenCalledWith(TAG_SLUG, {});
+    expect(useTagRelatedMock).toHaveBeenCalledWith(TAG_SLUG, { limit: 10 });
+  });
+
+  it("renders the error view with retry instead of an infinite skeleton on non-404 errors", () => {
+    useTagBySlugMock.mockReturnValue({
+      tag: null,
+      isLoading: false,
+      error: makeApiError(400, "GLOBAL_BAD_REQUEST"),
+      notFound: false,
+    });
+
+    render(
+      <TestQueryProvider>
+        <TagDetailPage slug={TAG_SLUG} />
+      </TestQueryProvider>,
+    );
+
+    expect(
+      screen.getByTestId("tag-detail-page-server-error"),
+    ).toBeInTheDocument();
+    expect(screen.getByTestId("tag-detail-page-retry")).toBeInTheDocument();
   });
 });

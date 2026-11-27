@@ -1,42 +1,54 @@
 "use client";
 
-import type React from "react";
-import { useEffect, useRef } from "react";
-import { getQueryClient } from "@/providers/QueryProvider";
-import { AppSidebar } from "@/shared/layout/components/AppSidebar";
-import { AppHeader } from "@/shared/layout/components/AppHeader";
-import { SidebarInset, SidebarProvider } from "@/components/ui/Sidebar";
 import { usePathname, useRouter } from "next/navigation";
-import { QuickSearch } from "@/shared/ui";
-import { ShortcutsHelpModal } from "@/shared/ui";
-import { AppBreadcrumbs } from "@/shared/layout/components/AppBreadcrumbs";
-import { useAuth } from "@/features/auth/hooks/use-auth";
+import { useEffect, useRef } from "react";
+
+import { getQueryClient } from "@/providers/QueryProvider";
+
+import { useAuthSession } from "@/features/auth/hooks/use-auth-session";
+import { getAuthToken } from "@/features/auth/utils/auth-cookies";
 import { CoinBalanceSyncLayer } from "@/features/coins/components/CoinBalanceSyncLayer";
 import { RewardToast } from "@/features/coins/components/RewardToast";
-import { getAuthToken } from "@/features/auth/utils/auth-cookies";
+import { useResetCoinStore } from "@/features/coins/store/coin-store";
 import {
-  useUser,
-  useIsUserLoading,
   useFetchCurrentUser,
+  useIsUserLoading,
+  useUser,
   useUserStore,
 } from "@/features/users/store/user-store";
-import { useResetCoinStore } from "@/features/coins/store/coin-store";
-import { isAuthPage, isShellPage } from "@/shared/layout/constants/shell-routes";
+
+import { SidebarInset, SidebarProvider } from "@/components/ui/Sidebar";
+
+import {
+  isAuthRoute,
+  isProtectedRoute,
+  isShellRoute,
+} from "@/shared/config/routes";
+import { AppBreadcrumbs } from "@/shared/layout/components/AppBreadcrumbs";
+import { AppHeader } from "@/shared/layout/components/AppHeader";
+import { AppSidebar } from "@/shared/layout/components/AppSidebar";
+import { QuickSearch, ShortcutsHelpModal } from "@/shared/ui";
+
+import type React from "react";
 
 export function LayoutShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { currentUser, isLoading: isAuthLoading } = useAuth();
+  const {
+    isAuthenticated,
+    isBootstrapping: isAuthLoading,
+    currentUser,
+  } = useAuthSession();
   const user = useUser();
   const isUserLoading = useIsUserLoading();
   const fetchCurrentUser = useFetchCurrentUser();
   const resetCoinStore = useResetCoinStore();
 
   useEffect(() => {
-    if (currentUser === null) {
+    if (!isAuthenticated) {
       resetCoinStore();
     }
-  }, [currentUser, resetCoinStore]);
+  }, [isAuthenticated, resetCoinStore]);
 
   useEffect(() => {
     useUserStore.persist.rehydrate();
@@ -48,19 +60,18 @@ export function LayoutShell({ children }: { children: React.ReactNode }) {
     const currentUserId = user?.userId ?? null;
     const lastSeen = lastSeenUserIdRef.current;
 
-    if (currentUserId === null && lastSeen === null) return;
-
     if (lastSeen === currentUserId) return;
 
     lastSeenUserIdRef.current = currentUserId;
-    try {
-      void getQueryClient().invalidateQueries();
-    } catch {
-      // Fail-open
+    // Only invalidate queries on real session transitions (logout or account switch).
+    // Initial hydration (null -> userId) MUST NOT nuke all active queries on mount.
+    if (lastSeen !== null) {
+      try {
+        void getQueryClient().invalidateQueries();
+      } catch {
+        // Fail-open
+      }
     }
-    // We intentionally do NOT depend on `user` identity — Zustand may
-    // push a new object on every internal mutation. We depend on the
-    // id string so equal ids do not retrigger.
   }, [user?.userId]);
 
   const attemptRef = useRef<{ count: number; lastErrorAt: number | null }>({
@@ -69,7 +80,7 @@ export function LayoutShell({ children }: { children: React.ReactNode }) {
   });
 
   useEffect(() => {
-    if (!currentUser) {
+    if (!isAuthenticated) {
       attemptRef.current = { count: 0, lastErrorAt: null };
       return;
     }
@@ -99,57 +110,42 @@ export function LayoutShell({ children }: { children: React.ReactNode }) {
     // profile broadcast, etc.) and could re-trigger the fetch.
     //
     // External triggers that SHOULD re-run this effect:
-    //   - `currentUser` flipping true/false (login, logout)
+    //   - `isAuthenticated` flipping true/false (login, logout)
     //   - `pathname` changing (route navigation — fresh attempt budget)
     //
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fetchCurrentUser, currentUser, isUserLoading, pathname]);
+  }, [fetchCurrentUser, isAuthenticated, isUserLoading, pathname]);
 
   useEffect(() => {
-    const protectedPrefixes = [
-      "/bookmarks",
-      "/coins",
-      "/settings",
-      "/my-profile",
-      "/my-quizzes",
-      "/quiz-history",
-      "/friends",
-      "/instances",
-      "/notifications",
-      "/social",
-      "/tournament",
-      "/tournaments",
-      "/create-quiz",
-      "/onboarding",
-    ];
-    const isProtected = protectedPrefixes.some((p) => pathname?.startsWith(p));
+    const isProtected = isProtectedRoute(pathname);
     const hasToken = !!getAuthToken();
 
-    if (isProtected && !isAuthLoading && !currentUser && !hasToken) {
+    if (isProtected && !isAuthLoading && !isAuthenticated && !currentUser && !hasToken) {
       router.replace(`/login?redirect=${encodeURIComponent(pathname ?? "/")}`);
     }
-  }, [isAuthLoading, currentUser, pathname, router]);
+  }, [isAuthLoading, isAuthenticated, currentUser, pathname, router]);
 
-  if (isAuthPage(pathname)) {
+  if (isAuthRoute(pathname)) {
     return <>{children}</>;
   }
 
-  if (!isShellPage(pathname)) {
+  if (!isShellRoute(pathname)) {
     return <>{children}</>;
   }
 
   return (
     <SidebarProvider>
       <AppSidebar />
-      <SidebarInset className="overflow-x-hidden pt-14 md:pt-16">
+      <SidebarInset className="min-w-0 overflow-x-clip pt-16">
         <AppHeader />
         <AppBreadcrumbs />
-        <main
+        <div
           id="main-content"
-          className="pt-1 md:pt-2 overflow-x-hidden max-w-full app-page-transition"
+          tabIndex={-1}
+          className="pt-1 md:pt-2 min-w-0 w-full overflow-x-clip max-w-full app-page-transition outline-none"
         >
           {children}
-        </main>
+        </div>
       </SidebarInset>
 
       <QuickSearch />

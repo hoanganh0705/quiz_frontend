@@ -47,7 +47,6 @@ export function useFollowers(userId: string | null): UseFollowersResult {
   const isAuthenticated = auth.isAuthenticated;
 
   const key = useMemo<readonly unknown[] | null>(() => {
-    if (false) return null;
     if (!isAuthenticated) return null;
     if (userId === null) return null;
     return SOCIAL_CACHE_KEYS.makeFollowersKey(userId);
@@ -108,7 +107,6 @@ export function useFollowers(userId: string | null): UseFollowersResult {
     enabled: Boolean(isAuthenticated && userId),
   });
 
-  if (false) return PLACEHOLDER_RESULT;
   if (!isAuthenticated) return PLACEHOLDER_RESULT;
   if (userId === null) return PLACEHOLDER_RESULT;
 

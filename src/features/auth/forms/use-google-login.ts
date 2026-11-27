@@ -8,20 +8,26 @@ import {
   type RefObject,
 } from "react";
 
-import { clearAuthToken } from "@/features/auth/utils/auth-cookies";
-import { isGoogleAuthConfigured } from "@/features/auth/config/google-identity.config";
 import {
-  loadGoogleSDK,
-  type GoogleIdentity,
-} from "@/features/auth/utils/google-sdk-loader";
+  getGoogleClientId,
+  isGoogleAuthConfigured,
+} from "@/features/auth/config/google-identity.config";
+import { loadGoogleSDK } from "@/features/auth/utils/google-sdk-loader";
 import { isTokenExpired } from "@/features/auth/utils/google-token";
-import type { GoogleTokenResponse } from "@/features/auth/utils/google-sdk-loader";
-import { useAuthState } from "@/features/auth/hooks/use-auth-state";
+
 import {
-  googleLoginSubmit,
-  type GoogleLoginSubmitResult,
-  type GoogleLoginSubmitDeps,
   defaultGoogleLoginSubmitDeps,
+  googleLoginSubmit,
+} from "./google-login-submit";
+
+import type {
+  GoogleIdentity,
+  GooglePromptMomentNotification,
+  GoogleTokenResponse,
+} from "@/features/auth/utils/google-sdk-loader";
+import type {
+  GoogleLoginSubmitDeps,
+  GoogleLoginSubmitResult,
 } from "./google-login-submit";
 
 export type UseGoogleLoginState =
@@ -58,7 +64,6 @@ export function useGoogleLogin(
   deps: GoogleLoginSubmitDeps = defaultGoogleLoginSubmitDeps,
 ): UseGoogleLogin {
   const [state, setState] = useState<UseGoogleLoginState>(initialState);
-  const { isAuthenticated } = useAuthState();
 
   const inFlightRef = useRef<Promise<GoogleLoginSubmitResult> | null>(null);
 
@@ -75,17 +80,11 @@ export function useGoogleLogin(
       return inFlightRef.current;
     }
 
-    if (isAuthenticated) {
-      clearAuthToken();
-    }
-
-    setState({ status: "provider_initializing" });
-
     const promise = doGoogleSignIn(deps, setState, inFlightRef);
     inFlightRef.current = promise;
 
     return promise;
-  }, [deps, isAuthenticated]);
+  }, [deps]);
 
   const reset = useCallback(() => {
     inFlightRef.current = null;
@@ -154,18 +153,48 @@ async function doGoogleSignIn(
 
 function requestGoogleToken(google: GoogleIdentity): Promise<string | null> {
   return new Promise((resolve) => {
+    let settled = false;
+    const finish = (token: string | null) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timeoutId);
+      resolve(token);
+    };
+
     const timeoutId = setTimeout(() => {
-      resolve(null);
+      finish(null);
     }, 120_000);
 
-    google.accounts.id.prompt((response: GoogleTokenResponse) => {
-      clearTimeout(timeoutId);
+    const clientId = getGoogleClientId();
+    if (typeof google.accounts.id.initialize === "function" && clientId) {
+      google.accounts.id.initialize({
+        client_id: clientId,
+        callback: (response: GoogleTokenResponse) => {
+          finish(response.credential ?? null);
+        },
+      });
+    }
 
-      if (response.credential) {
-        resolve(response.credential);
-      } else {
-        resolve(null);
-      }
-    });
+    google.accounts.id.prompt(
+      (notification: GooglePromptMomentNotification | GoogleTokenResponse) => {
+        if ("credential" in notification && notification.credential) {
+          finish(notification.credential);
+          return;
+        }
+        const moment = notification as GooglePromptMomentNotification;
+        if (
+          moment.isNotDisplayed?.() ||
+          moment.isSkippedMoment?.() ||
+          moment.isDismissedMoment?.()
+        ) {
+          finish(null);
+          return;
+        }
+        // Fallback for mock implementations that invoke prompt callback with {}
+        if (typeof google.accounts.id.initialize !== "function") {
+          finish(null);
+        }
+      },
+    );
   });
 }

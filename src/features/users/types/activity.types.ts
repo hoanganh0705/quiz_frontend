@@ -26,11 +26,6 @@ export type TournamentJoinedPayload = Extract<
   { type: "tournament_joined" }
 >;
 
-export type TournamentCompletedPayload = Extract<
-  UserActivityItemDtoPayload,
-  { type: "tournament_completed" }
->;
-
 export type TournamentWonPayload = Extract<
   UserActivityItemDtoPayload,
   { type: "tournament_won" }
@@ -66,12 +61,9 @@ export function isTournamentActivity(
   item: UserActivityItemDto,
 ): item is
   | (UserActivityItemDto & { payload: TournamentJoinedPayload })
-  | (UserActivityItemDto & { payload: TournamentCompletedPayload })
   | (UserActivityItemDto & { payload: TournamentWonPayload }) {
   return (
-    item.type === "tournament_joined" ||
-    item.type === "tournament_completed" ||
-    item.type === "tournament_won"
+    item.type === "tournament_joined" || item.type === "tournament_won"
   );
 }
 

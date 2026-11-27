@@ -75,7 +75,6 @@ describe("AttemptRunner — invariant: no score / result UI in 4.14", () => {
       `${COMPONENTS_DIR}/AttemptQuestionCard.tsx`,
       `${COMPONENTS_DIR}/AttemptAnswerPicker.tsx`,
       `${COMPONENTS_DIR}/AttemptHeader.tsx`,
-      `${COMPONENTS_DIR}/AttemptProgressBar.tsx`,
     ];
     for (const f of candidates) {
       const src = readSource(f);

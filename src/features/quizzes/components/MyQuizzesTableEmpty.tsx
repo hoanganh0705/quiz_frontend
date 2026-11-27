@@ -1,10 +1,6 @@
-import Link from "next/link";
-
-import { Inbox, PenLine, Globe } from "lucide-react";
+import { Globe, Inbox, PenLine, type LucideIcon } from "lucide-react";
 
 import { EmptyState } from "@/components/ui/EmptyState";
-
-import type { MyQuizzesTab } from "@/features/quizzes/types/my-quizzes";
 
 interface MyQuizzesTableEmptyProps {
   tab: "all" | "drafts" | "published";
@@ -30,13 +26,10 @@ const CONTENT: Record<
   },
 };
 
-const ICONS: Record<
-  MyQuizzesTableEmptyProps["tab"],
-  React.ComponentType<unknown>
-> = {
-  all: Inbox as unknown as React.ComponentType<unknown>,
-  drafts: PenLine as unknown as React.ComponentType<unknown>,
-  published: Globe as unknown as React.ComponentType<unknown>,
+const ICONS: Record<MyQuizzesTableEmptyProps["tab"], LucideIcon> = {
+  all: Inbox,
+  drafts: PenLine,
+  published: Globe,
 };
 
 export function MyQuizzesTableEmpty({

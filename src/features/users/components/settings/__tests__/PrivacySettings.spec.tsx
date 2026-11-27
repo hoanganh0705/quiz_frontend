@@ -1,8 +1,8 @@
-import { describe, expect, it, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
-import React from "react";
+import { fireEvent, render, screen } from "@testing-library/react";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { PrivacySettings } from "../PrivacySettings";
+
 import type { UserMeResponseDto } from "@/features/users/types/user-backend";
 
 function makeProfile(privacy?: Record<string, unknown>): UserMeResponseDto {
@@ -18,13 +18,12 @@ function makeProfile(privacy?: Record<string, unknown>): UserMeResponseDto {
     longestStreak: 0,
     settings: {
       privacy: {
-        profileVisibility: "public",
-        showOnlineStatus: true,
-        showQuizHistory: true,
+        isPublic: true,
+        showStatistics: true,
         showAchievements: true,
-        allowFriendRequests: true,
-        showInLeaderboard: true,
-        shareActivityWithFriends: true,
+        showActivity: true,
+        showRankImprovement: true,
+        showTournamentActivity: true,
         ...(privacy ?? {}),
       },
     },
@@ -48,46 +47,62 @@ vi.mock("@/features/users/hooks/useUpdateMySettings", () => ({
 }));
 
 describe("PrivacySettings", () => {
+  beforeEach(() => {
+    mockState.isPending = false;
+    mockState.isSuccess = false;
+    mockState.isError = false;
+    mockState.lastError = null;
+    mockState.mutate.mockClear();
+  });
+
   it("renders skeletons while profile is null", () => {
     const { container } = render(<PrivacySettings profile={null} />);
     expect(container.querySelector(".animate-pulse")).toBeTruthy();
   });
 
-  it("renders the header", () => {
+  it("renders the h2 section header", () => {
     render(<PrivacySettings profile={makeProfile()} />);
     expect(
       screen.getByRole("heading", {
-        level: 3,
+        level: 2,
         name: /Privacy Settings/i,
       }),
     ).toBeInTheDocument();
   });
 
-  it("renders the visibility select", () => {
+  it("renders all six UserPrivacySettingsDto toggles", () => {
     render(<PrivacySettings profile={makeProfile()} />);
-    expect(screen.getByRole("combobox")).toBeInTheDocument();
-  });
-
-  it("renders all six privacy toggles", () => {
-    render(<PrivacySettings profile={makeProfile()} />);
+    expect(screen.getByLabelText(/Toggle Public Profile/i)).toBeInTheDocument();
     expect(
-      screen.getByLabelText(/Toggle Show Online Status/i),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByLabelText(/Toggle Show Quiz History/i),
+      screen.getByLabelText(/Toggle Show Statistics/i),
     ).toBeInTheDocument();
     expect(
       screen.getByLabelText(/Toggle Show Achievements/i),
     ).toBeInTheDocument();
     expect(
-      screen.getByLabelText(/Toggle Allow Friend Requests/i),
+      screen.getByLabelText(/Toggle Show Recent Activity/i),
     ).toBeInTheDocument();
     expect(
-      screen.getByLabelText(/Toggle Show in Leaderboard/i),
+      screen.getByLabelText(/Toggle Show Rank Improvement/i),
     ).toBeInTheDocument();
     expect(
-      screen.getByLabelText(/Toggle Share Activity with Friends/i),
+      screen.getByLabelText(/Toggle Show Tournament Activity/i),
     ).toBeInTheDocument();
+  });
+
+  it("submits exact UserPrivacySettingsDto keys when toggling a switch", () => {
+    render(<PrivacySettings profile={makeProfile()} />);
+    fireEvent.click(screen.getByLabelText(/Toggle Public Profile/i));
+    expect(mockState.mutate).toHaveBeenCalledWith({
+      privacy: {
+        isPublic: false,
+        showStatistics: true,
+        showAchievements: true,
+        showActivity: true,
+        showRankImprovement: true,
+        showTournamentActivity: true,
+      },
+    });
   });
 
   it("disables toggles while pending", () => {

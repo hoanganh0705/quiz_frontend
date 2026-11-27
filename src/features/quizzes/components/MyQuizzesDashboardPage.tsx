@@ -1,19 +1,20 @@
 "use client";
 
 import Link from "next/link";
+
 import { Plus, Sparkles } from "lucide-react";
 
-import { Button } from "@/components/ui/Button";
-import { MyQuizzesAnalyticsTab } from "./MyQuizzesAnalyticsTab";
-import { MyQuizzesTable } from "./MyQuizzesTable";
-import { MyQuizzesTabs } from "./MyQuizzesTabs";
-
-import { useMyQuizzesActiveTab } from "@/features/quizzes/store";
+import { PAGE_CONTAINER_CLASS } from "@/shared/layout/constants";
 
 import { useMyQuizzes } from "@/features/quizzes/hooks/useMyQuizzes";
 import { useMyQuizzesAnalytics } from "@/features/quizzes/hooks/useMyQuizzesAnalytics";
-import { useMyQuizzesDrafts } from "@/features/quizzes/hooks/useMyQuizzesDrafts";
-import { useMyQuizzesPublished } from "@/features/quizzes/hooks/useMyQuizzesPublished";
+import { useMyQuizzesActiveTab } from "@/features/quizzes/store";
+
+import { Button } from "@/components/ui/Button";
+
+import { MyQuizzesAnalyticsTab } from "./MyQuizzesAnalyticsTab";
+import { MyQuizzesTable } from "./MyQuizzesTable";
+import { MyQuizzesTabs } from "./MyQuizzesTabs";
 
 export function MyQuizzesDashboardPage(): React.ReactElement {
   const activeTab = useMyQuizzesActiveTab();
@@ -23,13 +24,16 @@ export function MyQuizzesDashboardPage(): React.ReactElement {
   const isPublished = activeTab === "published";
   const isAnalytics = activeTab === "analytics";
 
-  const allResult = useMyQuizzes({ enabled: isAll });
-  const draftsResult = useMyQuizzesDrafts({ enabled: isDrafts });
-  const publishedResult = useMyQuizzesPublished({ enabled: isPublished });
+  const allResult = useMyQuizzes({ tab: "all", enabled: isAll });
+  const draftsResult = useMyQuizzes({ tab: "drafts", enabled: isDrafts });
+  const publishedResult = useMyQuizzes({
+    tab: "published",
+    enabled: isPublished,
+  });
   const analyticsResult = useMyQuizzesAnalytics({ enabled: isAnalytics });
 
   return (
-    <div className="mx-auto max-w-7xl space-y-6 p-4 sm:p-6 lg:p-8">
+    <div className={`${PAGE_CONTAINER_CLASS} space-y-6`}>
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="space-y-1.5">
           <div className="flex items-center gap-1.5 text-xs font-mono font-medium tracking-wider uppercase text-primary">

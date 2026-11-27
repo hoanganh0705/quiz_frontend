@@ -3,6 +3,7 @@
 import { useCallback, useRef, useState } from "react";
 
 import { isApiError, type ApiError } from "@/lib/api";
+import { unwrapEnvelope as inspectEnvelope } from "@/lib/api/core/unwrap";
 import type { UpdateQuizVersionDto } from "@/lib/api/generated/schemas";
 
 import { updateQuizVersion } from "@/features/quizzes/services/quizzes.service";
@@ -28,14 +29,6 @@ export interface UseUpdateVersionReturn {
   resetError: () => void;
 }
 
-function emitBreadcrumb(
-  _category: string,
-  _data: { status: string; durationMs: number; code?: string },
-): void {
-  void _category;
-  void _data;
-}
-
 export function useUpdateVersion(
   options: UseUpdateVersionOptions = {},
 ): UseUpdateVersionReturn {
@@ -58,24 +51,18 @@ export function useUpdateVersion(
 
       setIsLoading(true);
       setError(null);
-      const startedAt = Date.now();
 
       const core = (async (): Promise<QuizVersionSummary | null> => {
         try {
           const response = await updateQuizVersion(quizId, versionId, payload);
-
-          const version = (response as unknown as { data?: QuizVersionSummary })
-            .data;
+          const unwrapped = inspectEnvelope<QuizVersionSummary>(response);
+          const version =
+            unwrapped.kind === "envelope" ? unwrapped.value : null;
           if (!version) {
             throw new Error(
               "Unexpected response shape from PATCH /quizzes/:id/versions/:versionId",
             );
           }
-
-          emitBreadcrumb("quizzes:update-version", {
-            status: "success",
-            durationMs: Date.now() - startedAt,
-          });
 
           onSuccess?.(version);
           return version;
@@ -83,21 +70,8 @@ export function useUpdateVersion(
           if (isApiError(err)) {
             setError(err);
             onError?.(err);
-
-            emitBreadcrumb("quizzes:update-version", {
-              status: "error",
-              durationMs: Date.now() - startedAt,
-              code: err.code,
-            });
-
             throw err;
           }
-
-          emitBreadcrumb("quizzes:update-version", {
-            status: "error",
-            durationMs: Date.now() - startedAt,
-            code: "GLOBAL_UNKNOWN",
-          });
           throw err;
         }
       })();

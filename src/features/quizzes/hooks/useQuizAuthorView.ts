@@ -2,13 +2,12 @@
 
 import { useCallback, useMemo } from "react";
 
-import { ApiError, isApiError, useSingleWithRetry } from "@/lib/api";
+import { ApiError, useSingleWithRetry } from "@/lib/api";
 import type { SingleFetcher } from "@/lib/api/use-single-with-retry";
 
-import {
-  quizAuthorKey,
-  type QuizAuthorView,
-} from "@/features/quizzes/types/quiz-version.types";
+import { QUIZ_KEYS } from "@/features/quizzes/query-keys";
+
+import type { QuizAuthorView } from "@/features/quizzes/types/quiz-version.types";
 
 export interface UseQuizAuthorViewResult {
   data: QuizAuthorView | null;
@@ -26,51 +25,26 @@ export function useQuizAuthorView(
   quizId: string | null,
 ): UseQuizAuthorViewResult {
   const key = useMemo(
-    () => (quizId === null ? null : quizAuthorKey(quizId)),
+    () => (quizId === null ? null : QUIZ_KEYS.author(quizId)),
     [quizId],
   );
 
   const fetcher = useMemo<SingleFetcher<QuizAuthorView>>(
-    () =>
-      async ({ signal }) => {
-        if (!quizId) {
-          throw new DOMException("quizId is required", "AbortError");
-        }
+    () => async () => {
+      if (!quizId) {
+        throw new DOMException("quizId is required", "AbortError");
+      }
 
-        const startedAt = Date.now();
+      const { getQuizByIdOrSlug } =
+        await import("@/features/quizzes/services/quizzes.service");
 
-        const { getQuizByIdOrSlug } =
-          await import("@/features/quizzes/services/quizzes.service");
+      const quiz = await getQuizByIdOrSlug(quizId);
+      if (!quiz) {
+        throw new Error("Unexpected response shape");
+      }
 
-        try {
-          const quiz = await getQuizByIdOrSlug(quizId);
-          if (!quiz) {
-            throw new Error("Unexpected response shape");
-          }
-
-          emitBreadcrumb("quizzes:author-view", {
-            status: "success",
-            durationMs: Date.now() - startedAt,
-          });
-
-          return quiz as unknown as QuizAuthorView;
-        } catch (err) {
-          if (isApiError(err)) {
-            emitBreadcrumb("quizzes:author-view", {
-              status: "error",
-              durationMs: Date.now() - startedAt,
-              code: err.code,
-            });
-            throw err;
-          }
-          emitBreadcrumb("quizzes:author-view", {
-            status: "error",
-            durationMs: Date.now() - startedAt,
-            code: "GLOBAL_UNKNOWN",
-          });
-          throw err;
-        }
-      },
+      return quiz as unknown as QuizAuthorView;
+    },
     [quizId],
   );
 
@@ -97,12 +71,4 @@ export function useQuizAuthorView(
     notFound: isNotFoundError,
     retry,
   };
-}
-
-function emitBreadcrumb(
-  category: string,
-  data: { status: string; durationMs: number; code?: string },
-): void {
-  void category;
-  void data;
 }

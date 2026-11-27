@@ -43,20 +43,6 @@ const EMPTY_PAGE = Object.freeze({
   limit: 0,
 });
 
-const PLACEHOLDER_RESULT: UseUserActivityResult = Object.freeze({
-  items: [],
-  total: 0,
-  visibility: "not_found",
-  isLoading: false,
-  isStale: false,
-  staleness: "fresh",
-  error: null,
-  hasMore: false,
-  loadMore: () => undefined,
-  retry: () => Promise.resolve(),
-  rateLimitedUntil: null,
-});
-
 const FALLBACK_RESULT: UseUserActivityResult = Object.freeze({
   items: [],
   total: 0,
@@ -78,7 +64,6 @@ export function useUserActivity(
   const isAuthenticated = auth.isAuthenticated;
 
   const key = useMemo<readonly unknown[] | null>(() => {
-    if (false) return null;
     if (!isAuthenticated) return null;
     if (targetUserId === null) return null;
     return ["social", "user-activity", targetUserId] as const;
@@ -152,7 +137,6 @@ export function useUserActivity(
   const staleness: ConsistencyStaleness =
     result.isLoading && result.items.length > 0 ? "stale" : "fresh";
 
-  if (false) return PLACEHOLDER_RESULT;
   if (!isAuthenticated) return FALLBACK_RESULT;
   if (targetUserId === null) return FALLBACK_RESULT;
 

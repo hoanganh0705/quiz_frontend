@@ -3,31 +3,27 @@ import { getComments, getQuizzes } from "@/lib/api";
 import type {
   CreateCommentDto,
   EditCommentDto,
-  VoteDto,
   ReportCommentDto,
-  ReviewReportDto,
+  VoteDto,
 } from "@/lib/api/generated/schemas";
 
 export type {
-  GetCommentResult,
-  EditCommentResult,
   CastVoteResult,
+  EditCommentResult,
+  GetCommentResult,
   RemoveVoteResult,
   ReportCommentResult,
-  HideCommentResult,
-  RestoreCommentResult,
-  ListReportsResult,
-  ReviewReportResult,
 } from "@/lib/api/generated/comments/comments";
 
 export type {
-  ListQuizCommentsResult,
   CreateCommentResult,
+  ListQuizCommentsResult,
 } from "@/lib/api/generated/quizzes/quizzes";
 
 export interface ListCommentsParams {
   cursor?: string;
   limit?: number;
+  parentId?: string;
 }
 
 export async function listQuizComments(
@@ -74,24 +70,4 @@ export async function reportComment(
 ) {
   const sdk = getComments();
   return sdk.reportComment(commentId, payload);
-}
-
-export async function hideComment(commentId: string) {
-  const sdk = getComments();
-  return sdk.hideComment(commentId);
-}
-
-export async function restoreComment(commentId: string) {
-  const sdk = getComments();
-  return sdk.restoreComment(commentId);
-}
-
-export async function listReports(params?: ListCommentsParams) {
-  const sdk = getComments();
-  return sdk.listReports(params);
-}
-
-export async function reviewReport(reportId: string, payload: ReviewReportDto) {
-  const sdk = getComments();
-  return sdk.reviewReport(reportId, payload);
 }

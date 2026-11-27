@@ -1,7 +1,10 @@
 import { Suspense } from "react";
 
-import { RouteGateSkeleton } from "@/components/ui/loading-states";
 import { InstanceRoomPage } from "@/features/instances/pages/InstanceRoomPage";
+
+import { RouteGateSkeleton } from "@/components/ui/loading-states";
+
+import { PAGE_CONTAINER_CLASS } from "@/shared/layout/constants";
 import { buildMetadata } from "@/shared/lib/seo";
 
 export const metadata = buildMetadata({
@@ -9,6 +12,7 @@ export const metadata = buildMetadata({
   description:
     "Join a live multiplayer quiz instance. See the lobby, player roster, and host controls in real time.",
   path: "/instances",
+  noIndex: true,
 });
 
 interface InstanceRoomRouteProps {
@@ -23,7 +27,7 @@ export default async function InstanceRoomRoute({
   const { id } = await params;
 
   return (
-    <main className="min-h-screen py-6 px-4 sm:py-8 sm:px-6 md:py-10 md:px-8 max-w-4xl mx-auto w-full">
+    <main className={PAGE_CONTAINER_CLASS}>
       <Suspense fallback={<RouteGateSkeleton />}>
         <InstanceRoomPage instanceId={id} />
       </Suspense>

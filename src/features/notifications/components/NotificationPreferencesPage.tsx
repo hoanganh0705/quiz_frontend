@@ -21,7 +21,7 @@ export function NotificationPreferencesPage({
       className={cn("min-h-screen bg-transparent text-foreground", className)}
       data-testid="notification-preferences-page"
     >
-      <header className="px-4 sm:px-6 lg:px-8 pt-6 pb-4 max-w-4xl mx-auto">
+      <header className="w-full px-4 md:px-8 lg:px-12 pt-4 md:pt-8 lg:pt-12 pb-4">
         <div className="flex items-center gap-3">
           <Button
             asChild
@@ -51,7 +51,7 @@ export function NotificationPreferencesPage({
         </div>
       </header>
 
-      <main className="px-4 sm:px-6 lg:px-8 pb-12 max-w-4xl mx-auto">
+      <main className="w-full px-4 md:px-8 lg:px-12 pb-12">
         <NotificationPreferencesForm />
       </main>
     </div>

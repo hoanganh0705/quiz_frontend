@@ -4,12 +4,12 @@ import { useCallback, useMemo } from "react";
 
 import { ApiError, useSingleWithRetry } from "@/lib/api";
 
+import { ATTEMPT_KEYS } from "@/features/attempts/query-keys";
 import { getAttemptResult } from "@/features/attempts/services/attempts.service";
 import { useAuthSession } from "@/features/auth/hooks/use-auth-session";
-import {
-  ATTEMPT_RESULT_CACHE_KEYS,
-  type AttemptResultDto,
-} from "@/features/attempts/types/attempt-result.types";
+import { useAuthSessionId } from "@/features/auth/hooks/use-auth-session-id";
+
+import type { AttemptResultDto } from "@/features/attempts/types/attempt-result.types";
 
 export interface UseAttemptResultParams {
   attemptId: string | null;
@@ -32,22 +32,14 @@ export function useAttemptResult(
 ): AttemptResultView {
   const { attemptId } = params;
 
-  const { bootstrapState, currentUser } = useAuthSession();
-
-  const sessionId = useMemo<string | null>(() => {
-    if (bootstrapState !== "authenticated") return null;
-    if (!currentUser) return null;
-    const id =
-      (currentUser as { id?: string; userId?: string }).id ??
-      (currentUser as { userId?: string }).userId;
-    return id ?? null;
-  }, [bootstrapState, currentUser]);
+  const { bootstrapState } = useAuthSession();
+  const sessionId = useAuthSessionId();
 
   const key = useMemo(
     () =>
       attemptId === null || sessionId === null
         ? null
-        : ATTEMPT_RESULT_CACHE_KEYS.result(attemptId, sessionId),
+        : ATTEMPT_KEYS.result(attemptId, sessionId),
     [attemptId, sessionId],
   );
 
@@ -72,7 +64,8 @@ export function useAttemptResult(
   });
 
   const hasResolved =
-    !single.isLoading && (single.data !== undefined || single.error !== null);
+    (attemptId !== null && bootstrapState === "unauthenticated") ||
+    (!single.isLoading && (single.data !== undefined || single.error !== null));
 
   const refresh = useCallback(async () => {
     await single.retry();

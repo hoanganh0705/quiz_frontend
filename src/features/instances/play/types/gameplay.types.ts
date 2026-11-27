@@ -41,6 +41,7 @@ export interface AnswerSubmissionDto {
   questionId: string;
   optionId: string;
   submittedAt: string;
+  timeTakenMs?: number;
   clientToken?: string;
 }
 
@@ -89,6 +90,8 @@ export interface LeaderboardEntryDto {
   score: number;
   rank: number;
   answeredCount: number;
+  correctCount?: number | null;
+  timeTakenMs?: number | null;
 
   lastAwardedAt: string | null;
   eventSequence: number;

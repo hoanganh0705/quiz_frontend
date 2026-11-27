@@ -4,10 +4,11 @@ import { getQueryClient } from "@/providers/QueryProvider";
 
 import { Sparkline } from "@/components/primitives/Sparkline";
 import { Button } from "@/components/ui/Button";
-import { useTagAnalytics } from "@/features/tags/hooks/useTagAnalytics";
 
-const ANALYTICS_QUERY_KEY_FACTORY = (id: string) =>
-  ["tag", id, "analytics"] as const;
+import { formatTimestamp } from "@/shared/utils/date-utils";
+
+import { useTagAnalytics } from "@/features/tags/hooks/useTagAnalytics";
+import { TAG_KEYS } from "@/features/tags/query-keys";
 
 export interface TagAnalyticsPanelProps {
   id: string;
@@ -62,7 +63,7 @@ export function TagAnalyticsPanel({
             variant="outline"
             onClick={() =>
               void getQueryClient().invalidateQueries({
-                queryKey: ANALYTICS_QUERY_KEY_FACTORY(id),
+                queryKey: TAG_KEYS.analytics(id),
               })
             }
             data-testid="tag-analytics-panel-retry"
@@ -140,17 +141,19 @@ export function TagAnalyticsPanel({
           <div className="mt-1 text-sm text-foreground">
             Last updated{" "}
             <time dateTime={analytics.lastUpdated}>
-              {new Date(analytics.lastUpdated).toLocaleString("en-US")}
+              {formatTimestamp(analytics.lastUpdated)}
             </time>
           </div>
         </div>
-        <Sparkline
-          values={sparklineValues}
-          width={120}
-          height={32}
-          className="text-muted-foreground"
-          aria-label="Recent activity"
-        />
+        {sparklineValues.length >= 2 ? (
+          <Sparkline
+            values={sparklineValues}
+            width={120}
+            height={32}
+            className="text-muted-foreground"
+            aria-label="Recent activity"
+          />
+        ) : null}
       </div>
 
       {analytics.topQuizzes.length > 0 ? (

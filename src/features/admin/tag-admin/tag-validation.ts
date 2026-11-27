@@ -1,4 +1,5 @@
-import { isValidTagSlug } from "./tag-slug-regex";
+import { isValidSlug } from "@/lib/forms/regex";
+
 import type { TagAdminListItem } from "./tag-types";
 
 export const TAG_NAME_MIN_LENGTH = 1 as const;
@@ -27,7 +28,7 @@ export function validateTagSlug(slug: string): TagSlugValidationResult {
   if (slug.trim().length === 0) {
     return { ok: false, reason: "empty" };
   }
-  if (!isValidTagSlug(slug)) {
+  if (!isValidSlug(slug)) {
     return { ok: false, reason: "invalid" };
   }
   if (slug.length > TAG_SLUG_MAX_LENGTH) {

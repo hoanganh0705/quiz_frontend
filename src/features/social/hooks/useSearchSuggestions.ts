@@ -88,11 +88,11 @@ export function useSearchSuggestions(
           setError(err);
         } else {
           setError(
-            new ApiError({
+            ApiError.fromInput({
               status: 0,
               code: "GLOBAL_INTERNAL_ERROR",
               message: err instanceof Error ? err.message : "Unknown error",
-            } as unknown as ConstructorParameters<typeof ApiError>[0]),
+            }),
           );
         }
         isStaleRef.current = false;

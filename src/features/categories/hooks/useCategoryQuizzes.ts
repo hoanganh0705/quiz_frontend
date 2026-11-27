@@ -6,6 +6,7 @@ import { ApiError, projectWithId, useCursorPaginated } from "@/lib/api";
 import type { CursorPage } from "@/lib/api/use-cursor-paginated.types";
 import type { QuizListItemDto } from "@/lib/api/generated/schemas";
 
+import { CATEGORY_KEYS } from "@/features/categories/query-keys";
 import { getCategoryQuizzes } from "@/features/categories/services/categories.service";
 
 export interface UseCategoryQuizzesParams {
@@ -26,29 +27,20 @@ export function useCategoryQuizzes(
         signal?: AbortSignal;
       }): Promise<CursorPage<QuizListItemDto & { id: string }>> => {
         try {
-          const result = (await getCategoryQuizzes(idOrSlug, {
+          const result = await getCategoryQuizzes(idOrSlug, {
             cursor: cursor ?? undefined,
             limit: params.limit,
-          })) as unknown as {
-            data?: { items?: unknown[] };
-            meta?: {
-              pagination?: {
-                nextCursor?: string | null;
-                hasNextPage?: boolean;
-                limit?: number;
-              };
-            };
-          };
-          const items = (result.data?.items ??
-            []) as unknown as readonly Record<string, unknown>[];
+          });
+          const rawItems = Array.isArray(result.data) ? result.data : [];
+          const projected = projectWithId(rawItems, "quizId");
 
           const pagination = result.meta?.pagination;
 
           const ret: CursorPage<QuizListItemDto & { id: string }> = {
-            items: items as any,
+            items: projected,
             nextCursor: pagination?.nextCursor ?? null,
             hasNextPage: pagination?.hasNextPage ?? false,
-            limit: pagination?.limit ?? items.length,
+            limit: pagination?.limit ?? projected.length,
           };
           return ret;
         } catch (err) {
@@ -70,7 +62,7 @@ export function useCategoryQuizzes(
     QuizListItemDto & { id: string },
     UseCategoryQuizzesParams
   >({
-    key: ["category", idOrSlug, "quizzes", params],
+    key: CATEGORY_KEYS.quizzes(idOrSlug, params),
     fetcher,
     params,
     paginationKind: "cursor",

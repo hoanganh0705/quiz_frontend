@@ -36,7 +36,7 @@ describe("InstanceCard", () => {
     expect(joinBtn.getAttribute("href")).toBe("/instances/inst-1");
   });
 
-  it("renders in-progress card when status is running", () => {
+  it("renders locked in-progress card when status is running", () => {
     const runningInstance: InstanceListItemDto = {
       ...baseInstance,
       status: "running",
@@ -45,8 +45,9 @@ describe("InstanceCard", () => {
     render(<InstanceCard instance={runningInstance} />);
 
     expect(screen.getByText("In Progress")).toBeInTheDocument();
-    const watchBtn = screen.getByTestId("view-instance-button-inst-1");
-    expect(watchBtn).toHaveTextContent("Watch Match");
+    const statusBtn = screen.getByTestId("in-progress-instance-button-inst-1");
+    expect(statusBtn).toHaveTextContent("Match in Progress");
+    expect(statusBtn).toBeDisabled();
   });
 
   it("renders finished card when status is finished", () => {

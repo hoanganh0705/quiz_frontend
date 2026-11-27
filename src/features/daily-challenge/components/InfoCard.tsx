@@ -29,6 +29,8 @@ export interface InfoCardProps {
   /** Streak count. `null` means the viewer is not authenticated. */
   streak: number | null;
   isAuthenticated: boolean;
+  /** Optional ISO timestamp when today's challenge expires. */
+  expiresAt?: string | null;
   className?: string;
 }
 
@@ -41,17 +43,33 @@ interface RemainingTime {
   seconds: number;
 }
 
-function computeRemaining(now: Date): RemainingTime {
-  const endOfDay = new Date(
-    now.getFullYear(),
-    now.getMonth(),
-    now.getDate(),
-    23,
-    59,
-    59,
-    999,
-  );
-  const diff = Math.max(endOfDay.getTime() - now.getTime(), 0);
+function computeRemaining(now: Date, expiresAt?: string | null): RemainingTime {
+  let targetMs: number;
+  if (expiresAt) {
+    const parsed = Date.parse(expiresAt);
+    targetMs = Number.isFinite(parsed)
+      ? parsed
+      : new Date(
+          now.getFullYear(),
+          now.getMonth(),
+          now.getDate(),
+          23,
+          59,
+          59,
+          999,
+        ).getTime();
+  } else {
+    targetMs = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate(),
+      23,
+      59,
+      59,
+      999,
+    ).getTime();
+  }
+  const diff = Math.max(targetMs - now.getTime(), 0);
   return {
     hours: Math.floor(diff / (1000 * 60 * 60)),
     minutes: Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60)),
@@ -72,16 +90,15 @@ const InfoCard = React.memo(function InfoCard({
   category,
   streak,
   isAuthenticated,
+  expiresAt,
   className,
 }: InfoCardProps) {
   const prefersReducedMotion = usePrefersReducedMotion();
-  const [timeRemaining, setTimeRemaining] = React.useState<string>(() => {
-    return formatTime(computeRemaining(new Date()));
-  });
+  const [timeRemaining, setTimeRemaining] = React.useState<string>("--:--:--");
 
   React.useEffect(() => {
     const update = () => {
-      setTimeRemaining(formatTime(computeRemaining(new Date())));
+      setTimeRemaining(formatTime(computeRemaining(new Date(), expiresAt)));
     };
     update();
     const intervalMs = prefersReducedMotion
@@ -89,7 +106,7 @@ const InfoCard = React.memo(function InfoCard({
       : TICK_INTERVAL_MS;
     const interval = window.setInterval(update, intervalMs);
     return () => window.clearInterval(interval);
-  }, [prefersReducedMotion]);
+  }, [prefersReducedMotion, expiresAt]);
 
   const prizeLabel = rewardXp === null ? "—" : `+${rewardXp} XP`;
   const themeLabel = category ?? "—";

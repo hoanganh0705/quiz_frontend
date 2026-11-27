@@ -1,23 +1,42 @@
 "use client";
 
+import { useQuestionRevealed } from "@/features/instances/play/hooks";
+
+import { Badge } from "@/components/ui/Badge";
+
 import { cn } from "@/shared/utils/merge-class-names";
 
 import {
-  useQuestionRevealed,
-  type UseQuestionRevealedResult,
-} from "@/features/instances/play/hooks";
-
-import { GameSkeleton } from "./shared/GameSkeleton";
+  selectSelectedOptionForQuestion,
+  useInstanceGameplayStore,
+} from "../stores/instanceGameplay.store";
 import { GameEmptyState } from "./shared/GameEmptyState";
+import { GameSkeleton } from "./shared/GameSkeleton";
+
+import type { UseQuestionRevealedResult } from "@/features/instances/play/hooks";
 
 interface QuestionCardProps {
   instanceId: string;
   className?: string;
 }
 
+function getDifficultyVariant(
+  difficulty: string | undefined,
+): "difficulty-easy" | "difficulty-medium" | "difficulty-hard" | "secondary" {
+  const normalized = difficulty?.trim().toLowerCase();
+  if (normalized === "easy") return "difficulty-easy";
+  if (normalized === "medium") return "difficulty-medium";
+  if (normalized === "hard") return "difficulty-hard";
+  return "secondary";
+}
+
 export function QuestionCard({ instanceId, className }: QuestionCardProps) {
   const { bundle, hasRevealed, isStale }: UseQuestionRevealedResult =
     useQuestionRevealed(instanceId);
+
+  const selectedOptionId = useInstanceGameplayStore((s) =>
+    selectSelectedOptionForQuestion(s, instanceId, bundle?.question.id ?? null),
+  );
 
   if (!hasRevealed) {
     return (
@@ -36,6 +55,7 @@ export function QuestionCard({ instanceId, className }: QuestionCardProps) {
   }
 
   const { question } = bundle;
+  const isAnswered = selectedOptionId !== null;
 
   return (
     <div
@@ -45,40 +65,40 @@ export function QuestionCard({ instanceId, className }: QuestionCardProps) {
       aria-label="Current question"
       aria-live="polite"
     >
-      {/* Metadata badges */}
+      {/* Header metadata badges — matches AttemptQuestionCard */}
       <div className="flex flex-wrap items-center gap-2">
-        {/* Question index */}
         <span
-          className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary"
+          className="inline-flex items-center gap-1 rounded-full bg-brand/10 px-3 py-1 font-mono text-xs font-semibold tabular-nums text-brand"
           data-testid="question-index"
         >
-          Q{question.index} / {question.total}
+          Question {question.index}/{question.total}
         </span>
 
-        {/* Category */}
-        {question.category && (
-          <span
-            className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-50 dark:bg-blue-950/30 text-blue-700 dark:text-blue-300"
-            data-testid="question-category"
-          >
-            {question.category}
+        {isAnswered ? (
+          <span className="inline-flex items-center rounded-full bg-emerald-500/15 px-2.5 py-0.5 font-mono text-xs font-medium text-emerald-700 dark:text-emerald-300">
+            Answered
           </span>
-        )}
+        ) : null}
 
-        {/* Difficulty */}
-        {question.difficulty && (
-          <span
-            className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-50 dark:bg-purple-950/30 text-purple-700 dark:text-purple-300"
+        {question.difficulty ? (
+          <Badge
+            variant={getDifficultyVariant(question.difficulty)}
+            className="capitalize"
             data-testid="question-difficulty"
           >
             {question.difficulty}
-          </span>
-        )}
+          </Badge>
+        ) : null}
 
-        {/* Base points */}
-        {question.basePoints !== undefined && question.basePoints > 0 && (
+        {question.category ? (
+          <Badge variant="secondary" data-testid="question-category">
+            {question.category}
+          </Badge>
+        ) : null}
+
+        {question.basePoints !== undefined && question.basePoints > 0 ? (
           <span
-            className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-50 dark:bg-green-950/30 text-green-700 dark:text-green-300"
+            className="ml-auto font-mono text-xs font-medium tabular-nums text-muted-foreground"
             data-testid="question-points"
           >
             {question.basePoints} pts
@@ -87,38 +107,35 @@ export function QuestionCard({ instanceId, className }: QuestionCardProps) {
               ? ` ×${question.difficultyMultiplier}`
               : null}
           </span>
-        )}
+        ) : null}
       </div>
 
       {/* Question text */}
-      <div className="space-y-2">
-        <h2
-          className="text-lg font-semibold text-foreground leading-relaxed"
-          data-testid="question-text"
-        >
-          {question.text}
-        </h2>
-      </div>
+      <h2
+        className="text-lg sm:text-xl font-bold tracking-tight text-foreground leading-snug wrap-break-word"
+        data-testid="question-text"
+      >
+        {question.text}
+      </h2>
 
       {/* Optional media */}
-      {question.mediaUrl && (
-        <div className="rounded-lg overflow-hidden">
+      {question.mediaUrl ? (
+        <div className="relative overflow-hidden rounded-xl border border-border/80 max-h-72">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={question.mediaUrl}
-            alt="Question media"
-            className="w-full max-h-64 object-contain"
+            alt=""
+            className="w-full h-auto max-h-72 object-contain"
             data-testid="question-media"
           />
         </div>
-      )}
+      ) : null}
 
-      {/* Stale indicator (subtle, does not block content) */}
-      {isStale && (
-        <div className="text-xs text-amber-600 dark:text-amber-400">
-          A new question may be available.
-        </div>
-      )}
+      {isStale ? (
+        <p className="text-xs text-amber-600 dark:text-amber-400">
+          Syncing latest question state…
+        </p>
+      ) : null}
     </div>
   );
 }

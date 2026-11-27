@@ -85,15 +85,47 @@ export function useUpdateMySettings(
       const result = await mutate({
         key: ["user-settings", userId ?? "anonymous"],
         optimisticData: (current: UserMeResponseDto | undefined) => {
-          if (!current) return snapshot;
+          const base = current ?? snapshot;
+          if (!base) return undefined;
 
-          const mergedSettings = {
-            ...(current.settings ?? {}),
-            ...(payload.preferences ?? {}),
+          const currentSettings = (base.settings ?? {}) as Record<
+            string,
+            unknown
+          >;
+          const nextSettings: Record<string, unknown> = {
+            ...currentSettings,
           };
+
+          if (payload.preferences) {
+            const existingPrefs = (
+              typeof currentSettings.preferences === "object" &&
+              currentSettings.preferences !== null
+                ? currentSettings.preferences
+                : {}
+            ) as Record<string, unknown>;
+            nextSettings.preferences = {
+              ...existingPrefs,
+              ...payload.preferences,
+            };
+            Object.assign(nextSettings, payload.preferences);
+          }
+
+          if (payload.privacy) {
+            const existingPrivacy = (
+              typeof currentSettings.privacy === "object" &&
+              currentSettings.privacy !== null
+                ? currentSettings.privacy
+                : {}
+            ) as Record<string, unknown>;
+            nextSettings.privacy = {
+              ...existingPrivacy,
+              ...payload.privacy,
+            };
+          }
+
           return {
-            ...current,
-            settings: mergedSettings,
+            ...base,
+            settings: nextSettings as UserMeResponseDto["settings"],
             updatedAt: new Date().toISOString(),
           };
         },
@@ -102,6 +134,45 @@ export function useUpdateMySettings(
           return sdkResult;
         },
         onSuccess: () => {
+          if (storeUser) {
+            const currentSettings = (storeUser.settings ?? {}) as Record<
+              string,
+              unknown
+            >;
+            const nextSettings: Record<string, unknown> = {
+              ...currentSettings,
+            };
+            if (payload.preferences) {
+              const existingPrefs = (
+                typeof currentSettings.preferences === "object" &&
+                currentSettings.preferences !== null
+                  ? currentSettings.preferences
+                  : {}
+              ) as Record<string, unknown>;
+              nextSettings.preferences = {
+                ...existingPrefs,
+                ...payload.preferences,
+              };
+              Object.assign(nextSettings, payload.preferences);
+            }
+            if (payload.privacy) {
+              const existingPrivacy = (
+                typeof currentSettings.privacy === "object" &&
+                currentSettings.privacy !== null
+                  ? currentSettings.privacy
+                  : {}
+              ) as Record<string, unknown>;
+              nextSettings.privacy = {
+                ...existingPrivacy,
+                ...payload.privacy,
+              };
+            }
+            setUser({
+              ...storeUser,
+              settings: nextSettings as UserMeResponseDto["settings"],
+              updatedAt: new Date().toISOString(),
+            });
+          }
           if (userId) {
             broadcastProfileUpdated({
               userId,

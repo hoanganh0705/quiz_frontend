@@ -18,6 +18,8 @@ export interface FriendRequestItemActionContext {
 export interface FriendRequestItemProps {
   readonly request: SocialFriendRequestDto;
 
+  readonly direction?: "incoming" | "outgoing";
+
   readonly children: (
     actionContext: FriendRequestItemActionContext,
   ) => ReactNode;
@@ -48,39 +50,56 @@ function formatRelativeSentAt(iso: string): string {
 
 export function FriendRequestItem({
   request,
+  direction = "incoming",
   children,
   className,
 }: FriendRequestItemProps): ReactElement {
   const sentAt = formatRelativeSentAt(request.createdAt);
-  const requester = request.requester;
+  const isOutgoing = direction === "outgoing";
+  const subject = isOutgoing
+    ? request.addressee &&
+      (request.addressee.userName || request.addressee.displayName)
+      ? request.addressee
+      : {
+          id: request.addresseeId,
+          userId: request.addresseeId,
+          userName: request.addresseeId,
+          displayName: null,
+          avatarUrl: null,
+          isPrivate: false,
+          createdAt: request.createdAt,
+        }
+    : request.requester;
+  const targetUserId = isOutgoing ? request.addresseeId : request.requesterId;
+  const handleLabel = subject.userName || targetUserId;
 
   return (
     <div
       data-testid="friend-request-item"
       data-friendship-id={request.id}
-      data-target-user-id={requester.userId}
+      data-target-user-id={targetUserId}
       className={cn(
         "flex items-center gap-3 rounded-md p-2 hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
         className,
       )}
     >
       <Avatar>
-        {requester.avatarUrl !== null && (
+        {subject.avatarUrl !== null && (
           <AvatarImage
-            src={requester.avatarUrl}
-            alt={`${requester.userName}'s avatar`}
+            src={subject.avatarUrl}
+            alt={`${handleLabel}'s avatar`}
           />
         )}
         <AvatarFallback>
-          {requester.userName.slice(0, 2).toUpperCase()}
+          {handleLabel.slice(0, 2).toUpperCase()}
         </AvatarFallback>
       </Avatar>
 
       <div className="flex flex-1 flex-col">
-        <span className="font-medium leading-none">{requester.userName}</span>
-        {requester.displayName !== null && (
+        <span className="font-medium leading-none">{handleLabel}</span>
+        {subject.displayName !== null && (
           <span className="text-sm text-muted-foreground">
-            {requester.displayName}
+            {subject.displayName}
           </span>
         )}
       </div>
@@ -90,7 +109,7 @@ export function FriendRequestItem({
       <div className="ml-2 flex items-center gap-2">
         {children({
           friendshipId: request.id,
-          targetUserId: request.requesterId,
+          targetUserId,
           request,
         })}
       </div>

@@ -3,9 +3,10 @@
 import { useQuery } from "@tanstack/react-query";
 import { getQueryClient } from "@/providers/QueryProvider";
 
-import { ApiError } from "@/lib/api";
+import { ApiError, coerceToApiError } from "@/lib/api";
 import type { CategoryResponseDto } from "@/lib/api/generated/schemas";
 
+import { CATEGORY_KEYS } from "@/features/categories/query-keys";
 import { getCategoryBySlug } from "@/features/categories/services/categories.service";
 
 export interface UseCategoryResult {
@@ -16,20 +17,19 @@ export interface UseCategoryResult {
 }
 
 export function useCategory(idOrSlug: string): UseCategoryResult {
-  const key = ["category", idOrSlug] as const;
-
   const { data, error, isLoading } = useQuery(
     {
-      queryKey: key,
+      queryKey: CATEGORY_KEYS.detail(idOrSlug),
       queryFn: async () => {
         const result = await getCategoryBySlug(idOrSlug);
         return result.data ?? null;
       },
+      enabled: Boolean(idOrSlug),
     },
     getQueryClient(),
   );
 
-  const apiError = error instanceof ApiError ? error : null;
+  const apiError = error ? coerceToApiError(error) : null;
   const notFound = apiError?.status === 404;
 
   return {

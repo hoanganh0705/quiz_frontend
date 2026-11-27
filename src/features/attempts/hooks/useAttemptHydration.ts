@@ -3,16 +3,16 @@
 import { useCallback, useMemo } from "react";
 
 import { ApiError, useSingleWithRetry } from "@/lib/api";
+import { unwrapEnvelope as inspectEnvelope } from "@/lib/api/core/unwrap";
 
+import { ATTEMPT_KEYS } from "@/features/attempts/query-keys";
 import {
   getAttempt,
   getAttemptAnswers,
 } from "@/features/attempts/services/attempts.service";
-import { useAuthSession } from "@/features/auth/hooks/use-auth-session";
-import {
-  ATTEMPT_CACHE_KEYS,
-  type SubmittedAnswersMap,
-} from "@/features/attempts/types/attempt-runner.types";
+import { useAuthSessionId } from "@/features/auth/hooks/use-auth-session-id";
+
+import type { SubmittedAnswersMap } from "@/features/attempts/types/attempt-runner.types";
 
 import type {
   AttemptAnswerItemDto,
@@ -48,22 +48,13 @@ export function useAttemptHydration(
 ): AttemptHydrationView {
   const { attemptId } = params;
 
-  const { bootstrapState, currentUser } = useAuthSession();
-
-  const sessionId = useMemo<string | null>(() => {
-    if (bootstrapState !== "authenticated") return null;
-    if (!currentUser) return null;
-    const id =
-      (currentUser as { id?: string; userId?: string }).id ??
-      (currentUser as { userId?: string }).userId;
-    return id ?? null;
-  }, [bootstrapState, currentUser]);
+  const sessionId = useAuthSessionId();
 
   const detailKey = useMemo(
     () =>
       attemptId === null || sessionId === null
         ? null
-        : ATTEMPT_CACHE_KEYS.detail(attemptId, sessionId),
+        : ATTEMPT_KEYS.detail(attemptId, sessionId),
     [attemptId, sessionId],
   );
 
@@ -71,7 +62,7 @@ export function useAttemptHydration(
     () =>
       attemptId === null || sessionId === null
         ? null
-        : ATTEMPT_CACHE_KEYS.answers(attemptId, sessionId),
+        : ATTEMPT_KEYS.answers(attemptId, sessionId),
     [attemptId, sessionId],
   );
 
@@ -83,11 +74,11 @@ export function useAttemptHydration(
         signal: AbortSignal;
       }): Promise<AttemptResponseDto | null> => {
         if (attemptId === null) return null;
-        const wire = (await getAttempt(attemptId)) as unknown as {
-          data?: AttemptResponseDto;
-        } | null;
-        if (signal.aborted) return wire?.data ?? null;
-        return wire?.data ?? null;
+        const wire = await getAttempt(attemptId);
+        const unwrapped = inspectEnvelope<AttemptResponseDto>(wire);
+        const data = unwrapped.kind === "envelope" ? unwrapped.value : null;
+        if (signal.aborted) return data;
+        return data;
       },
     [attemptId],
   );
@@ -100,13 +91,16 @@ export function useAttemptHydration(
         signal: AbortSignal;
       }): Promise<SubmittedAnswersMap> => {
         if (attemptId === null) return {};
-        const wire = (await getAttemptAnswers(attemptId)) as unknown as {
-          data?: { answers?: AttemptAnswerItemDto[] };
-        } | null;
+        const wire = await getAttemptAnswers(attemptId);
+        const unwrapped = inspectEnvelope<{ answers?: AttemptAnswerItemDto[] }>(
+          wire,
+        );
+        const answers =
+          unwrapped.kind === "envelope" ? unwrapped.value?.answers : undefined;
         if (signal.aborted) {
-          return buildSubmittedAnswersMap(wire?.data?.answers);
+          return buildSubmittedAnswersMap(answers);
         }
-        return buildSubmittedAnswersMap(wire?.data?.answers);
+        return buildSubmittedAnswersMap(answers);
       },
     [attemptId],
   );

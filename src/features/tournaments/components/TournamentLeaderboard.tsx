@@ -20,6 +20,7 @@ import { LEADERBOARD_RANK_TOKENS } from "@/features/tournaments/lib/tournament-t
 
 export interface TournamentLeaderboardProps {
   leaderboardResult: UseTournamentLeaderboardResult;
+  title?: string;
   className?: string;
 }
 
@@ -43,6 +44,7 @@ function getRankStyle(rank: number): string {
 
 export function TournamentLeaderboard({
   leaderboardResult,
+  title = "Leaderboard",
   className,
 }: TournamentLeaderboardProps) {
   const prefersReducedMotion = usePrefersReducedMotion();
@@ -60,7 +62,7 @@ export function TournamentLeaderboard({
   if (isLoading) {
     return (
       <div className={cn("space-y-4", className)}>
-        <h2 className="text-lg font-semibold">Leaderboard</h2>
+        <h2 className="text-lg font-semibold">{title}</h2>
         <LeaderboardSkeleton count={10} />
       </div>
     );
@@ -69,7 +71,7 @@ export function TournamentLeaderboard({
   if (error !== null) {
     return (
       <div className={cn("space-y-4", className)}>
-        <h2 className="text-lg font-semibold">Leaderboard</h2>
+        <h2 className="text-lg font-semibold">{title}</h2>
         <TournamentErrorState error={error} onRetry={refresh} />
       </div>
     );
@@ -78,7 +80,7 @@ export function TournamentLeaderboard({
   if (items.length === 0) {
     return (
       <div className={cn("space-y-4", className)}>
-        <h2 className="text-lg font-semibold">Leaderboard</h2>
+        <h2 className="text-lg font-semibold">{title}</h2>
         <TournamentEmptyState variant="leaderboard" />
       </div>
     );
@@ -86,7 +88,7 @@ export function TournamentLeaderboard({
 
   return (
     <div className={cn("space-y-4", className)}>
-      <h2 className="text-lg font-semibold">Leaderboard</h2>
+      <h2 className="text-lg font-semibold">{title}</h2>
 
       {isStale && <TournamentStaleState onRetry={refresh} />}
 

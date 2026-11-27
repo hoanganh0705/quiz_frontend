@@ -165,7 +165,7 @@ const ProfileHero = memo(function ProfileHero({
                 asChild
                 className="gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-medium rounded-xl shadow-sm"
               >
-                <Link href="/my-profile?tab=edit">
+                <Link href="/settings?tab=account">
                   <Edit className="w-4 h-4" />
                   Edit Profile
                 </Link>
@@ -588,7 +588,7 @@ const ProfilePage = () => {
   return (
     <main
       data-testid="public-profile-page"
-      className="min-h-screen py-8 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto"
+      className="min-h-screen w-full text-foreground p-4 md:p-8 lg:p-12"
     >
       {/* Top Bar Navigation & Actions */}
       <div className="flex items-center justify-between mb-6">

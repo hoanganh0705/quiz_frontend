@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { getQueryClient } from "@/providers/QueryProvider";
 
-import { ApiError, isApiError } from "@/lib/api";
+import { ApiError, coerceToApiError } from "@/lib/api";
 import {
   NOTIFICATIONS_NAMESPACE,
   NOTIFICATION_SENT,
@@ -31,7 +31,7 @@ export interface UseUnreadNotificationCountResult {
 type GetUnreadCountWireResponse = UnreadCount;
 
 export function useUnreadNotificationCount(): UseUnreadNotificationCountResult {
-  const realtimeEnabled = !false;
+  const realtimeEnabled = true;
 
   const queryKey = useMemo(
     () =>
@@ -43,9 +43,6 @@ export function useUnreadNotificationCount(): UseUnreadNotificationCountResult {
     {
       queryKey,
       queryFn: async () => {
-        if (false) {
-          return { count: 0 };
-        }
         const wire = (await getUnreadCount()) as unknown as
           GetUnreadCountWireResponse | undefined;
         const count = wire?.count ?? 0;
@@ -134,13 +131,10 @@ export function useUnreadNotificationCount(): UseUnreadNotificationCountResult {
 
   const unreadCount = Math.max(0, data?.count ?? 0);
 
-  const coercedError: ApiError | null = useMemo(() => {
-    if (!error) return null;
-    if (isApiError(error)) return error;
-    return new ApiError(
-      error as unknown as ConstructorParameters<typeof ApiError>[0],
-    );
-  }, [error]);
+  const coercedError: ApiError | null = useMemo(
+    () => (error ? coerceToApiError(error) : null),
+    [error],
+  );
 
   return {
     unreadCount,

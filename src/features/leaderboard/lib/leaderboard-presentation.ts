@@ -5,41 +5,6 @@ export function getRankColor(rank: number): string {
   return "text-muted-foreground";
 }
 
-export function getChangeIcon(change: number): "up" | "down" | "none" {
-  if (change > 0) return "up";
-  if (change < 0) return "down";
-  return "none";
-}
-
-export function getBadgeIcon(badge: string): string {
-  switch (badge) {
-    case "Diamond":
-      return "💎";
-    case "Platinum":
-      return "🥇";
-    case "Gold":
-      return "🥈";
-    case "Silver":
-      return "🥉";
-    case "Bronze":
-      return "🏅";
-    default:
-      return "⭐";
-  }
-}
-
-export function formatSeasonEndDate(dateString: string): string {
-  const date = new Date(dateString);
-  const now = new Date();
-  const diffTime = date.getTime() - now.getTime();
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-  if (diffDays <= 0) return "Season ended";
-  if (diffDays === 1) return "1 day left";
-  if (diffDays <= 7) return `${diffDays} days left`;
-  return `${diffDays} days left`;
-}
-
 export function formatPeriodReset(resetInSeconds: number | null): string {
   if (resetInSeconds === null || Number.isNaN(resetInSeconds)) return "—";
   if (resetInSeconds <= 0) return "Resetting…";

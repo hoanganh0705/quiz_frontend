@@ -2,6 +2,8 @@
 
 import { getQueryClient } from "@/providers/QueryProvider";
 
+export const ADMIN_USERS_LIST_KEY = ["admin", "users"] as const;
+
 export const USER_ROLE_ADMIN_PREFIX = "user-role-admin";
 
 export function userRoleListKey(userId: string): string {
@@ -19,6 +21,7 @@ export async function invalidateUserRoleCache(
   const qc = getQueryClient();
   const invalidations: Promise<void>[] = [
     qc.invalidateQueries({ queryKey: [userRoleListKey(userId)] }),
+    qc.invalidateQueries({ queryKey: ADMIN_USERS_LIST_KEY }),
   ];
   if (searchQuery) {
     invalidations.push(

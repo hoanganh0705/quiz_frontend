@@ -19,17 +19,16 @@ import {
   type CommentUserVote,
 } from "@/features/comments/types";
 
-const useAuthMock = vi.fn();
+const useAuthSessionMock = vi.fn();
 const useQuizCommentsMock = vi.fn();
 const useCreateCommentMock = vi.fn();
 const useEditCommentMock = vi.fn();
 const useDeleteCommentMock = vi.fn();
 const useVoteCommentMock = vi.fn();
 const useReportCommentMock = vi.fn();
-const useCommentThreadLookupMock = vi.fn();
 
-vi.mock("@/features/auth/hooks/use-auth", () => ({
-  useAuth: () => useAuthMock(),
+vi.mock("@/features/auth/hooks/use-auth-session", () => ({
+  useAuthSession: () => useAuthSessionMock(),
 }));
 
 vi.mock("@/features/comments/hooks/useQuizComments", () => ({
@@ -54,11 +53,6 @@ vi.mock("@/features/comments/hooks/useVoteComment", () => ({
 
 vi.mock("@/features/comments/hooks/useReportComment", () => ({
   useReportComment: () => useReportCommentMock(),
-}));
-
-vi.mock("@/features/comments/stores/useCommentThreadLookup", () => ({
-  useCommentThreadLookup: (quizId: unknown) =>
-    useCommentThreadLookupMock(quizId),
 }));
 
 const useCommentRealtimeMock = vi.fn();
@@ -170,14 +164,6 @@ function makeApiError(
   } as unknown as Parameters<typeof ApiError.fromAxios>[0]);
 }
 
-const emptyLookup = {
-  getRepliesCount: vi.fn(() => 0),
-  isAtReplyCap: vi.fn(() => false),
-  setRepliesCount: vi.fn(),
-  incrementRepliesCount: vi.fn(),
-  decrementRepliesCount: vi.fn(),
-};
-
 const defaultWriteHooks = {
   create: {
     createComment: vi.fn(),
@@ -215,29 +201,35 @@ const defaultWriteHooks = {
 };
 
 function setUnauthenticated() {
-  useAuthMock.mockReturnValue({
+  useAuthSessionMock.mockReturnValue({
     currentUser: null,
-    isLoading: false,
-    error: null,
-    refetch: vi.fn(),
+    currentUserId: null,
+    isAuthenticated: false,
+    isBootstrapping: false,
+    authSessionId: "anon",
+    clearSession: vi.fn(),
   });
 }
 
 function setAuthLoading() {
-  useAuthMock.mockReturnValue({
+  useAuthSessionMock.mockReturnValue({
     currentUser: null,
-    isLoading: true,
-    error: null,
-    refetch: vi.fn(),
+    currentUserId: null,
+    isAuthenticated: false,
+    isBootstrapping: true,
+    authSessionId: "anon",
+    clearSession: vi.fn(),
   });
 }
 
 function setAuthenticated(user: CurrentUserResponseDto = SELF_USER) {
-  useAuthMock.mockReturnValue({
+  useAuthSessionMock.mockReturnValue({
     currentUser: user,
-    isLoading: false,
-    error: null,
-    refetch: vi.fn(),
+    currentUserId: user.userId,
+    isAuthenticated: true,
+    isBootstrapping: false,
+    authSessionId: user.userId,
+    clearSession: vi.fn(),
   });
 }
 
@@ -269,7 +261,6 @@ function setWriteHooks() {
   useDeleteCommentMock.mockReturnValue(defaultWriteHooks.delete);
   useVoteCommentMock.mockReturnValue(defaultWriteHooks.vote);
   useReportCommentMock.mockReturnValue(defaultWriteHooks.report);
-  useCommentThreadLookupMock.mockReturnValue(emptyLookup);
   useCommentRealtimeMock.mockReturnValue({
     isConnected: false,
     connectionState: "disconnected",
@@ -469,13 +460,6 @@ describe("CommentsWidget — reply form", () => {
 
   it("disables the reply submit when the thread is at the reply cap", () => {
     setAuthenticated();
-    useCommentThreadLookupMock.mockReturnValue({
-      getRepliesCount: vi.fn(() => 100),
-      isAtReplyCap: vi.fn(() => true),
-      setRepliesCount: vi.fn(),
-      incrementRepliesCount: vi.fn(),
-      decrementRepliesCount: vi.fn(),
-    });
     setReadHook({
       items: [makeThread("c-top", [], 100)],
     });

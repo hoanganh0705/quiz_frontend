@@ -407,7 +407,7 @@ describe("DailyChallengePage — live", () => {
     render(<DailyChallengePage flagValue="v1" />);
 
     const button = screen.getByRole("button", {
-      name: /Load 1 more past challenges/i,
+      name: /Load more past challenges/i,
     });
     fireEvent.click(button);
 

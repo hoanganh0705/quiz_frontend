@@ -108,7 +108,7 @@ export function AttemptAnswerPicker(
               >
                 <RadioGroupItem
                   id={`${groupId}-${option!.optionId}`}
-                  value={optionValue}
+                  value={optionValue.toLowerCase()}
                   data-testid={
                     testIdPrefix
                       ? `${testIdPrefix}-${option!.optionId}`

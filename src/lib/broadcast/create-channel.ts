@@ -1,5 +1,6 @@
-import { getCurrentTabId as defaultGetCurrentTabId } from "@/lib/api/core/broadcast-channel";
 import { logger } from "@/shared/log";
+
+import { getCurrentTabId as defaultGetCurrentTabId } from "./tab-id";
 
 export type ChannelValidator<TEvent> = (data: unknown) => TEvent | null;
 
@@ -32,7 +33,8 @@ function isBroadcastChannelAvailable(): boolean {
     return false;
   }
   try {
-    new BroadcastChannel("factory-probe");
+    const probe = new BroadcastChannel("factory-probe");
+    probe.close();
     cachedAvailability = true;
   } catch {
     cachedAvailability = false;

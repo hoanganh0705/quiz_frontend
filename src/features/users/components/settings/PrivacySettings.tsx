@@ -1,6 +1,22 @@
 "use client";
 
 import { memo, useCallback, useEffect, useMemo, useState } from "react";
+
+import {
+  Activity,
+  BarChart3,
+  Globe,
+  Loader2,
+  Swords,
+  TrendingUp,
+  Trophy,
+} from "lucide-react";
+
+import { useToast } from "@/lib/forms/useToast";
+
+import { useUpdateMySettings } from "@/features/users/hooks/useUpdateMySettings";
+
+import { FormErrorBanner } from "@/components/primitives/form/FormErrorBanner";
 import {
   Card,
   CardContent,
@@ -8,93 +24,73 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/Card";
-import { Switch } from "@/components/ui/Switch";
 import { Label } from "@/components/ui/Label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/Select";
-import { useToast } from "@/lib/forms/useToast";
-import { FormErrorBanner } from "@/components/primitives/form/FormErrorBanner";
-import { useUpdateMySettings } from "@/features/users/hooks/useUpdateMySettings";
+import { Switch } from "@/components/ui/Switch";
+
 import type { UserMeResponseDto } from "@/features/users/types/user-backend";
-import {
-  Shield,
-  Eye,
-  History,
-  Trophy,
-  Users,
-  BarChart3,
-  Activity,
-  Globe,
-  Lock,
-  UserCheck,
-  Check,
-  Loader2,
-} from "lucide-react";
+import type { UserPrivacySettingsDto } from "@/lib/api/generated/schemas";
 
 export interface PrivacySettingsProps {
   profile: UserMeResponseDto | null;
 }
 
-type ProfileVisibility = "public" | "friends" | "private";
+type PrivacyKey = keyof Required<UserPrivacySettingsDto>;
+
+interface PrivacyData {
+  isPublic: boolean;
+  showStatistics: boolean;
+  showAchievements: boolean;
+  showActivity: boolean;
+  showRankImprovement: boolean;
+  showTournamentActivity: boolean;
+}
 
 interface PrivacyToggle {
-  key: keyof Omit<PrivacyData, "profileVisibility">;
+  key: PrivacyKey;
   label: string;
   description: string;
   icon: React.ReactNode;
 }
 
-interface PrivacyData {
-  profileVisibility: ProfileVisibility;
-  showOnlineStatus: boolean;
-  showQuizHistory: boolean;
-  showAchievements: boolean;
-  allowFriendRequests: boolean;
-  showInLeaderboard: boolean;
-  shareActivityWithFriends: boolean;
-}
-
-const PRIVACY_TOGGLES: PrivacyToggle[] = [
+const PRIVACY_TOGGLES: ReadonlyArray<PrivacyToggle> = [
   {
-    key: "showOnlineStatus",
-    label: "Show Online Status",
-    description: "Let others see when you are online.",
-    icon: <Eye className="w-4 h-4" aria-hidden="true" />,
+    key: "isPublic",
+    label: "Public Profile",
+    description:
+      "Allow other players to discover and view your profile page.",
+    icon: <Globe className="h-4 w-4" aria-hidden="true" />,
   },
   {
-    key: "showQuizHistory",
-    label: "Show Quiz History",
-    description: "Allow others to view your quiz history.",
-    icon: <History className="w-4 h-4" aria-hidden="true" />,
+    key: "showStatistics",
+    label: "Show Statistics",
+    description: "Display your quiz stats and accuracy on your profile.",
+    icon: <BarChart3 className="h-4 w-4" aria-hidden="true" />,
   },
   {
     key: "showAchievements",
     label: "Show Achievements",
-    description: "Display your achievements on your profile.",
-    icon: <Trophy className="w-4 h-4" aria-hidden="true" />,
+    description: "Display your earned badges and achievements on your profile.",
+    icon: <Trophy className="h-4 w-4" aria-hidden="true" />,
   },
   {
-    key: "allowFriendRequests",
-    label: "Allow Friend Requests",
-    description: "Let others send you friend requests.",
-    icon: <Users className="w-4 h-4" aria-hidden="true" />,
+    key: "showActivity",
+    label: "Show Recent Activity",
+    description: "Let others see your recent quiz completions and activity.",
+    icon: <Activity className="h-4 w-4" aria-hidden="true" />,
   },
   {
-    key: "showInLeaderboard",
-    label: "Show in Leaderboard",
-    description: "Appear in public leaderboards and rankings.",
-    icon: <BarChart3 className="w-4 h-4" aria-hidden="true" />,
+    key: "showRankImprovement",
+    label: "Show Rank Improvement",
+    description:
+      "Highlight your leaderboard rank changes and progression streaks.",
+    icon: <TrendingUp className="h-4 w-4" aria-hidden="true" />,
   },
   {
-    key: "shareActivityWithFriends",
-    label: "Share Activity with Friends",
-    description: "Let friends see your recent quiz activities.",
-    icon: <Activity className="w-4 h-4" aria-hidden="true" />,
+    key: "showTournamentActivity",
+    label: "Show Tournament Activity",
+    description:
+      "Share your tournament registrations, placements, and history.",
+    icon: <Swords className="h-4 w-4" aria-hidden="true" />,
   },
 ];
 
@@ -103,7 +99,7 @@ interface PrivacyToggleItemProps {
   checked: boolean;
   disabled: boolean;
   isSaving: boolean;
-  onToggle: (key: PrivacyToggle["key"], checked: boolean) => void;
+  onToggle: (key: PrivacyKey, checked: boolean) => void;
 }
 
 const PrivacyToggleItem = memo(function PrivacyToggleItem({
@@ -113,18 +109,27 @@ const PrivacyToggleItem = memo(function PrivacyToggleItem({
   isSaving,
   onToggle,
 }: PrivacyToggleItemProps) {
+  const switchId = `privacy-toggle-${toggle.key}`;
+
   return (
-    <div className="flex items-center justify-between py-4 border-b border-border/40 last:border-0">
-      <div className="flex items-start gap-3">
-        <div className="p-2 rounded-lg bg-primary/10 text-primary">
+    <div className="flex items-center justify-between gap-4 py-3.5 first:pt-0 last:pb-0">
+      <div className="flex items-start gap-3 min-w-0">
+        <div className="p-2 rounded-lg bg-muted text-muted-foreground shrink-0">
           {toggle.icon}
         </div>
-        <div>
-          <Label className="text-base font-medium">{toggle.label}</Label>
-          <p className="text-sm text-muted-foreground">{toggle.description}</p>
+        <div className="min-w-0 space-y-0.5">
+          <Label
+            htmlFor={switchId}
+            className="text-sm font-medium text-foreground cursor-pointer"
+          >
+            {toggle.label}
+          </Label>
+          <p className="text-xs sm:text-sm text-muted-foreground">
+            {toggle.description}
+          </p>
         </div>
       </div>
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 shrink-0">
         {isSaving && (
           <Loader2
             className="h-4 w-4 animate-spin text-muted-foreground"
@@ -132,6 +137,7 @@ const PrivacyToggleItem = memo(function PrivacyToggleItem({
           />
         )}
         <Switch
+          id={switchId}
           checked={checked}
           onCheckedChange={(next) => onToggle(toggle.key, next)}
           disabled={disabled || isSaving}
@@ -142,15 +148,8 @@ const PrivacyToggleItem = memo(function PrivacyToggleItem({
   );
 });
 
-function getVisibilityIcon(visibility: ProfileVisibility) {
-  switch (visibility) {
-    case "public":
-      return <Globe className="w-4 h-4" aria-hidden="true" />;
-    case "friends":
-      return <UserCheck className="w-4 h-4" aria-hidden="true" />;
-    case "private":
-      return <Lock className="w-4 h-4" aria-hidden="true" />;
-  }
+function readBoolean(value: unknown, fallback: boolean): boolean {
+  return typeof value === "boolean" ? value : fallback;
 }
 
 export const PrivacySettings = memo(function PrivacySettings({
@@ -161,25 +160,35 @@ export const PrivacySettings = memo(function PrivacySettings({
 
   const defaultPrivacy = useMemo<PrivacyData>(() => {
     const stored = (profile?.settings as Record<string, unknown> | undefined)
-      ?.privacy as Record<string, unknown> | undefined;
+      ?.privacy as UserPrivacySettingsDto | undefined;
     return {
-      profileVisibility:
-        (stored?.profileVisibility as ProfileVisibility) ?? "public",
-      showOnlineStatus: (stored?.showOnlineStatus as boolean) ?? true,
-      showQuizHistory: (stored?.showQuizHistory as boolean) ?? true,
-      showAchievements: (stored?.showAchievements as boolean) ?? true,
-      allowFriendRequests: (stored?.allowFriendRequests as boolean) ?? true,
-      showInLeaderboard: (stored?.showInLeaderboard as boolean) ?? true,
-      shareActivityWithFriends:
-        (stored?.shareActivityWithFriends as boolean) ?? true,
+      isPublic: readBoolean(stored?.isPublic, true),
+      showStatistics: readBoolean(stored?.showStatistics, true),
+      showAchievements: readBoolean(stored?.showAchievements, true),
+      showActivity: readBoolean(stored?.showActivity, true),
+      showRankImprovement: readBoolean(stored?.showRankImprovement, true),
+      showTournamentActivity: readBoolean(stored?.showTournamentActivity, true),
     };
   }, [profile]);
 
-  const [localPrivacy, setLocalPrivacy] = useState(defaultPrivacy);
+  const [localPrivacy, setLocalPrivacy] = useState<PrivacyData>(defaultPrivacy);
+  const [savingKey, setSavingKey] = useState<PrivacyKey | null>(null);
 
   useEffect(() => {
     setLocalPrivacy(defaultPrivacy);
   }, [defaultPrivacy]);
+
+  useEffect(() => {
+    if (!updateSettings.isPending) {
+      setSavingKey(null);
+    }
+  }, [updateSettings.isPending]);
+
+  useEffect(() => {
+    if (updateSettings.isError) {
+      setLocalPrivacy(defaultPrivacy);
+    }
+  }, [updateSettings.isError, defaultPrivacy]);
 
   useEffect(() => {
     if (updateSettings.isSuccess) {
@@ -193,30 +202,13 @@ export const PrivacySettings = memo(function PrivacySettings({
   }, [updateSettings.isSuccess, toast, updateSettings]);
 
   const handleToggle = useCallback(
-    (key: PrivacyToggle["key"], checked: boolean) => {
+    (key: PrivacyKey, checked: boolean) => {
       const updated: PrivacyData = { ...localPrivacy, [key]: checked };
       setLocalPrivacy(updated);
-      updateSettings.mutate({
-        privacy: updated as unknown as Parameters<
-          typeof updateSettings.mutate
-        >[0],
-      } as Parameters<typeof updateSettings.mutate>[0]);
-    },
-    [localPrivacy, updateSettings],
-  );
-
-  const handleVisibilityChange = useCallback(
-    (value: ProfileVisibility) => {
-      const updated: PrivacyData = {
-        ...localPrivacy,
-        profileVisibility: value,
-      };
-      setLocalPrivacy(updated);
-      updateSettings.mutate({
-        privacy: updated as unknown as Parameters<
-          typeof updateSettings.mutate
-        >[0],
-      } as Parameters<typeof updateSettings.mutate>[0]);
+      setSavingKey(key);
+      void updateSettings.mutate({
+        privacy: updated,
+      });
     },
     [localPrivacy, updateSettings],
   );
@@ -226,15 +218,23 @@ export const PrivacySettings = memo(function PrivacySettings({
   if (!profile) {
     return (
       <div className="space-y-6">
-        <div className="h-16 animate-pulse rounded-lg bg-muted" />
-        <div className="h-48 animate-pulse rounded-lg bg-muted" />
+        <div className="h-16 animate-pulse rounded-xl bg-muted" />
+        <div className="h-48 animate-pulse rounded-xl bg-muted" />
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      {/* Error banner */}
+      <div className="space-y-1">
+        <h2 className="text-xl font-semibold tracking-tight text-foreground">
+          Privacy Settings
+        </h2>
+        <p className="text-sm text-muted-foreground">
+          Control who can see your profile and quiz activity.
+        </p>
+      </div>
+
       {updateSettings.lastError && (
         <FormErrorBanner
           lastError={{
@@ -245,94 +245,27 @@ export const PrivacySettings = memo(function PrivacySettings({
         />
       )}
 
-      {/* Header */}
-      <div>
-        <h3 className="text-lg font-semibold">Privacy Settings</h3>
-        <p className="text-sm text-muted-foreground">
-          Control who can see your profile and activity.
-        </p>
-      </div>
-
-      {/* Profile visibility */}
-      <Card className="border-border/40 py-4">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Shield className="w-5 h-5 text-primary" aria-hidden="true" />
-            Profile Visibility
+      <Card className="bg-card border-border rounded-xl gap-0 py-0 overflow-hidden">
+        <CardHeader className="px-6 py-4 border-b border-border/60">
+          <CardTitle>
+            <h3 className="text-base font-semibold text-foreground">
+              Visibility &amp; Activity Controls
+            </h3>
           </CardTitle>
           <CardDescription>
-            Choose who can see your profile information.
+            Choose which sections of your profile and activity are visible to
+            other players.
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="flex items-center justify-between">
-            <div className="flex items-start gap-3">
-              <div className="p-2 rounded-lg bg-primary/10 text-primary">
-                {getVisibilityIcon(localPrivacy.profileVisibility)}
-              </div>
-              <div>
-                <Label className="text-base font-medium">
-                  Who can see your profile?
-                </Label>
-                <p className="text-sm text-muted-foreground">
-                  Control the visibility of your profile page.
-                </p>
-              </div>
-            </div>
-            <Select
-              value={localPrivacy.profileVisibility}
-              onValueChange={(v) =>
-                handleVisibilityChange(v as ProfileVisibility)
-              }
-              disabled={isSaving}
-            >
-              <SelectTrigger className="w-40" aria-label="Profile visibility">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent className="bg-background">
-                <SelectItem value="public">
-                  <div className="flex items-center gap-2">
-                    <Globe className="w-4 h-4" aria-hidden="true" />
-                    Public
-                  </div>
-                </SelectItem>
-                <SelectItem value="friends">
-                  <div className="flex items-center gap-2">
-                    <UserCheck className="w-4 h-4" aria-hidden="true" />
-                    Friends Only
-                  </div>
-                </SelectItem>
-                <SelectItem value="private">
-                  <div className="flex items-center gap-2">
-                    <Lock className="w-4 h-4" aria-hidden="true" />
-                    Private
-                  </div>
-                </SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </CardContent>
-      </Card>
 
-      {/* Activity privacy toggles */}
-      <Card className="border-border/40 py-4">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Activity className="w-5 h-5 text-primary" aria-hidden="true" />
-            Activity Privacy
-          </CardTitle>
-          <CardDescription>
-            Manage what others can see about your activity.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-0">
+        <CardContent className="p-6 divide-y divide-border/60">
           {PRIVACY_TOGGLES.map((toggle) => (
             <PrivacyToggleItem
               key={toggle.key}
               toggle={toggle}
               checked={localPrivacy[toggle.key]}
-              disabled={false}
-              isSaving={isSaving}
+              disabled={isSaving}
+              isSaving={isSaving && savingKey === toggle.key}
               onToggle={handleToggle}
             />
           ))}

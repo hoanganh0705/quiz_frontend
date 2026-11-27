@@ -1,36 +1,35 @@
 "use client";
 
 import { useCallback, useMemo } from "react";
+
 import { useQuery } from "@tanstack/react-query";
-import { getQueryClient } from "@/providers/QueryProvider";
 
 import { ApiError } from "@/lib/api";
+import { getQueryClient } from "@/providers/QueryProvider";
 
-import {
-  listAuditLog,
-  type AuditLogEntryDto,
-  type AuditLogListDto,
-  type AuditLogFilters,
-  type AuditLogPagination,
+import { listAuditLog } from "../services";
+
+import type {
+  AuditLogEntryDto,
+  AuditLogFilters,
+  AuditLogListDto,
+  AuditLogPagination,
 } from "../services";
 
 const AUDIT_LOG_CACHE_KEY = "admin-audit-log" as const;
 
+type AuditLogQueryResult =
+  | { readonly kind: "exposed"; readonly payload: AuditLogListDto }
+  | { readonly kind: "not_exposed" };
+
 export interface UseAdminAuditLogResult {
   readonly entries: readonly AuditLogEntryDto[];
-
   readonly total: number;
-
   readonly hasMore: boolean;
-
   readonly isLoading: boolean;
-
   readonly isValidating: boolean;
-
   readonly error: ApiError | null;
-
   readonly isNotExposed: boolean;
-
   readonly mutate: () => void;
 }
 
@@ -40,31 +39,29 @@ export function useAdminAuditLog(
 ): UseAdminAuditLogResult {
   const key = useMemo(
     () =>
-      ([
-            AUDIT_LOG_CACHE_KEY,
-            filters,
-            pagination.offset,
-            pagination.limit,
-          ] as const),
+      [
+        AUDIT_LOG_CACHE_KEY,
+        filters,
+        pagination.offset,
+        pagination.limit,
+      ] as const,
     [filters, pagination.offset, pagination.limit],
   );
 
-  const fetcher = useCallback(async (): Promise<AuditLogListDto | null> => {
+  const fetcher = useCallback(async (): Promise<AuditLogQueryResult> => {
     try {
-      const result = await listAuditLog({ filters, pagination });
-      return result;
+      const payload = await listAuditLog({ filters, pagination });
+      return { kind: "exposed", payload };
     } catch (err) {
-      if (err instanceof ApiError) {
-        if (err.code === "AUDIT_LOG_NOT_EXPOSED") {
-          return createNotExposedMarker();
-        }
+      if (err instanceof ApiError && err.code === "AUDIT_LOG_NOT_EXPOSED") {
+        return { kind: "not_exposed" };
       }
       throw err;
     }
   }, [filters, pagination]);
 
   const { data, error, isLoading, isFetching, refetch } = useQuery<
-    AuditLogListDto | null,
+    AuditLogQueryResult,
     ApiError
   >(
     {
@@ -76,26 +73,23 @@ export function useAdminAuditLog(
     getQueryClient(),
   );
 
-  const isNotExposed = useMemo(() => {
-    if (!data) return false;
-    return isNotExposedMarker(data);
-  }, [data]);
+  const isNotExposed = data?.kind === "not_exposed";
 
   const entries = useMemo<readonly AuditLogEntryDto[]>(() => {
-    if (!data || isNotExposedMarker(data)) return [];
-    return data.data;
-  }, [data, isNotExposed]);
+    if (!data || data.kind !== "exposed") return [];
+    return data.payload.data;
+  }, [data]);
 
   const total = useMemo(() => {
-    if (!data || isNotExposedMarker(data)) return 0;
-    return data.meta.total;
-  }, [data, isNotExposed]);
+    if (!data || data.kind !== "exposed") return 0;
+    return data.payload.meta.total;
+  }, [data]);
 
   const hasMore = useMemo(() => {
-    if (!data || isNotExposedMarker(data)) return false;
-    const { offset, limit, total: totalCount } = data.meta;
+    if (!data || data.kind !== "exposed") return false;
+    const { offset, limit, total: totalCount } = data.payload.meta;
     return offset + limit < totalCount;
-  }, [data, isNotExposed]);
+  }, [data]);
 
   return {
     entries,
@@ -109,19 +103,4 @@ export function useAdminAuditLog(
       void refetch();
     },
   };
-}
-
-const NOT_EXPOSED_MARKER = Symbol("AUDIT_LOG_NOT_EXPOSED");
-
-function createNotExposedMarker(): null & { [NOT_EXPOSED_MARKER]?: true } {
-  const marker = null as unknown as null & { [NOT_EXPOSED_MARKER]?: true };
-  Object.defineProperty(marker, NOT_EXPOSED_MARKER, { value: true });
-  return marker;
-}
-
-function isNotExposedMarker(
-  data: AuditLogListDto | null,
-): data is null & { [NOT_EXPOSED_MARKER]?: true } {
-  if (!data) return false;
-  return NOT_EXPOSED_MARKER in (data as unknown as Record<string, unknown>);
 }

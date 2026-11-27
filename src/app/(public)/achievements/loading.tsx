@@ -3,7 +3,7 @@ import { BadgeGallerySkeleton } from "@/features/achievements/components";
 
 export default function AchievementsLoading() {
   return (
-    <main className="mx-auto max-w-7xl min-h-screen text-foreground px-4 sm:px-6 lg:px-8 py-8 sm:py-10 space-y-8">
+    <main className="min-h-screen w-full text-foreground p-4 md:p-8 lg:p-12 space-y-8">
       <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between pb-2 border-b border-border/40">
         <div className="flex items-start gap-3.5">
           <Skeleton className="h-12 w-12 rounded-2xl shrink-0" />

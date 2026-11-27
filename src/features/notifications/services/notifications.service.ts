@@ -1,21 +1,19 @@
 import * as Sentry from "@sentry/nextjs";
 
-import { customInstance, getNotifications } from "@/lib/api";
-
-import { ApiError } from "@/lib/api/core/ApiError";
-
-import type { UpdatePreferencesDto } from "@/lib/api/generated/schemas";
+import { ApiError, customInstance, getNotifications, unwrapEnvelope } from "@/lib/api";
 
 import type {
+  GetNotificationAnalyticsResult,
+  GetNotificationDetailResult,
+  GetNotificationPreferencesResult,
   GetNotificationsResult,
   GetUnreadCountResult,
-  GetNotificationAnalyticsResult,
-  GetNotificationPreferencesResult,
   UpdateNotificationPreferencesResult,
-  GetNotificationDetailResult,
 } from "@/lib/api/generated/notifications/notifications";
-
-import type { GetNotificationsParams } from "@/lib/api/generated/schemas";
+import type {
+  GetNotificationsParams,
+  UpdatePreferencesDto,
+} from "@/lib/api/generated/schemas";
 
 export async function listNotifications(
   params?: GetNotificationsParams,
@@ -26,11 +24,11 @@ export async function listNotifications(
   });
   const data = await getNotifications().getNotifications(params);
   if (!data || (data.data === undefined && data.meta === undefined)) {
-    throw new ApiError({
+    throw ApiError.fromInput({
       status: 500,
       code: "GLOBAL_INTERNAL_ERROR",
       message: "List notifications response missing data envelope",
-    } as unknown as ConstructorParameters<typeof ApiError>[0]);
+    });
   }
   return data as unknown as GetNotificationsResult["data"];
 }
@@ -40,15 +38,11 @@ export async function getUnreadCount(): Promise<GetUnreadCountResult["data"]> {
     category: "notifications:service",
     message: "notifications.getUnreadCount",
   });
-  const data = await getNotifications().getUnreadCount();
-  if (!data.data) {
-    throw new ApiError({
-      status: 500,
-      code: "GLOBAL_INTERNAL_ERROR",
-      message: "Unread count response missing data envelope",
-    } as unknown as ConstructorParameters<typeof ApiError>[0]);
-  }
-  return data.data;
+  const response = await getNotifications().getUnreadCount();
+  return unwrapEnvelope(
+    response,
+    "Unread count response missing data envelope",
+  );
 }
 
 export async function getNotificationAnalytics(): Promise<
@@ -58,15 +52,11 @@ export async function getNotificationAnalytics(): Promise<
     category: "notifications:service",
     message: "notifications.getNotificationAnalytics",
   });
-  const data = await getNotifications().getNotificationAnalytics();
-  if (!data.data) {
-    throw new ApiError({
-      status: 500,
-      code: "GLOBAL_INTERNAL_ERROR",
-      message: "Notification analytics response missing data envelope",
-    } as unknown as ConstructorParameters<typeof ApiError>[0]);
-  }
-  return data.data;
+  const response = await getNotifications().getNotificationAnalytics();
+  return unwrapEnvelope(
+    response,
+    "Notification analytics response missing data envelope",
+  );
 }
 
 export async function getNotificationPreferences(): Promise<
@@ -76,15 +66,11 @@ export async function getNotificationPreferences(): Promise<
     category: "notifications:service",
     message: "notifications.getNotificationPreferences",
   });
-  const data = await getNotifications().getNotificationPreferences();
-  if (!data.data) {
-    throw new ApiError({
-      status: 500,
-      code: "GLOBAL_INTERNAL_ERROR",
-      message: "Notification preferences response missing data envelope",
-    } as unknown as ConstructorParameters<typeof ApiError>[0]);
-  }
-  return data.data;
+  const response = await getNotifications().getNotificationPreferences();
+  return unwrapEnvelope(
+    response,
+    "Notification preferences response missing data envelope",
+  );
 }
 
 export async function getNotificationDetail(
@@ -94,15 +80,11 @@ export async function getNotificationDetail(
     category: "notifications:service",
     message: `notifications.getNotificationDetail(${id})`,
   });
-  const data = await getNotifications().getNotificationDetail(id);
-  if (!data.data) {
-    throw new ApiError({
-      status: 500,
-      code: "GLOBAL_INTERNAL_ERROR",
-      message: "Notification detail response missing data envelope",
-    } as unknown as ConstructorParameters<typeof ApiError>[0]);
-  }
-  return data.data;
+  const response = await getNotifications().getNotificationDetail(id);
+  return unwrapEnvelope(
+    response,
+    "Notification detail response missing data envelope",
+  );
 }
 
 export async function updateNotificationPreferences(
@@ -112,15 +94,11 @@ export async function updateNotificationPreferences(
     category: "notifications:service",
     message: "notifications.updateNotificationPreferences",
   });
-  const data = await getNotifications().updateNotificationPreferences(params);
-  if (!data.data) {
-    throw new ApiError({
-      status: 500,
-      code: "GLOBAL_INTERNAL_ERROR",
-      message: "Update notification preferences response missing data envelope",
-    } as unknown as ConstructorParameters<typeof ApiError>[0]);
-  }
-  return data.data;
+  const response = await getNotifications().updateNotificationPreferences(params);
+  return unwrapEnvelope(
+    response,
+    "Update notification preferences response missing data envelope",
+  );
 }
 
 export async function deleteNotification(id: string): Promise<void> {

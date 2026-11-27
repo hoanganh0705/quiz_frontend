@@ -52,18 +52,3 @@ export function serializeAttemptHistoryFilters(
   }
   return parts.join("|");
 }
-
-export const ATTEMPT_HISTORY_CACHE_KEYS = {
-  list(sessionId: string, filters: AttemptHistoryFilters) {
-    return [
-      "attempts",
-      "history",
-      sessionId,
-      serializeAttemptHistoryFilters(filters),
-    ] as const;
-  },
-
-  all(sessionId: string) {
-    return ["attempts", "history", sessionId, "*"] as const;
-  },
-} as const;

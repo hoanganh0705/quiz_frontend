@@ -1,17 +1,10 @@
 import { getCategories, getUsers } from "@/lib/api";
 
-import type {
-  CreateCategoryDto,
-  UpdateCategoryDto,
-  CategoryControllerGetCategoryQuizzesParams,
-} from "@/lib/api/generated/schemas";
+import type { CategoryControllerGetCategoryQuizzesParams } from "@/lib/api/generated/schemas";
 
 export type {
   CategoryControllerListCategoriesResult,
-  CategoryControllerCreateCategoryResult,
   CategoryControllerGetCategoryBySlugResult,
-  CategoryControllerUpdateCategoryResult,
-  CategoryControllerDeleteCategoryResult,
   CategoryControllerGetPopularCategoriesResult,
   CategoryControllerGetTrendingCategoriesResult,
   CategoryControllerGetCategoryQuizzesResult,
@@ -62,21 +55,6 @@ export async function followedCategories(params?: {
 }) {
   const sdk = getUsers();
   return sdk.userCategoryControllerListFollowedCategories(params);
-}
-
-export async function createCategory(params: CreateCategoryDto) {
-  const sdk = getCategories();
-  return sdk.categoryControllerCreateCategory(params);
-}
-
-export async function updateCategory(id: string, params: UpdateCategoryDto) {
-  const sdk = getCategories();
-  return sdk.categoryControllerUpdateCategory(id, params);
-}
-
-export async function deleteCategory(id: string) {
-  const sdk = getCategories();
-  return sdk.categoryControllerDeleteCategory(id);
 }
 
 export async function followCategory(id: string): Promise<void> {

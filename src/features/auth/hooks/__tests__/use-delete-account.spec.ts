@@ -12,7 +12,7 @@ import {
   AUTH_RESOURCE_CONFLICT,
   GLOBAL_VALIDATION_FAILED,
   USER_NOT_FOUND,
-} from "@/features/auth/errors/deletion-error-codes";
+} from "@/features/auth/errors/auth-error-codes";
 import type { DeletionAccountExistence } from "@/features/auth/lifecycle/deletion-revalidation";
 
 type Kind = "idle" | "pending" | "cleanup" | "completed" | "uncertain";

@@ -13,6 +13,7 @@ import { useInstancePermissions } from "@/features/instances/hooks/useInstancePe
 import { useJoinInstance } from "@/features/instances/hooks/useJoinInstance";
 import { useLeaveInstance } from "@/features/instances/hooks/useLeaveInstance";
 import { useInstanceSocket } from "@/features/instances/hooks/useInstanceSocket";
+import { leaveInstance } from "@/features/instances/services/instances.service";
 import type { InstanceLifecycleErrorCode } from "@/features/instances/types/instance.types";
 
 import { InstanceErrorState } from "./shared";
@@ -94,7 +95,7 @@ export function JoinLeaveCta({
       typeof window !== "undefined" ? window.location.pathname : "/",
     );
     if (typeof window !== "undefined") {
-      window.location.href = `/sign-in?returnUrl=${returnUrl}`;
+      window.location.href = `/login?returnUrl=${returnUrl}`;
     }
   }, []);
 
@@ -105,8 +106,11 @@ export function JoinLeaveCta({
 
   const handleLeave = useCallback(async () => {
     resetJoin();
+    if (instanceId !== null) {
+      void leaveInstance(instanceId).catch(() => undefined);
+    }
     await leave();
-  }, [leave, resetJoin]);
+  }, [instanceId, leave, resetJoin]);
 
   if (instanceId === null) return null;
 

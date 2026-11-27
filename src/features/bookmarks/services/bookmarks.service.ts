@@ -42,9 +42,31 @@ export async function listCollections() {
   return sdk.bookmarkControllerListCollections();
 }
 
+/**
+ * Resolves a single collection's metadata from `GET /bookmarks/collections`.
+ * Note: `GET /bookmarks/collections/:collectionId` on the backend returns the
+ * bookmarked quizzes inside the collection, not the collection metadata itself.
+ */
 export async function getCollection(collectionId: string) {
   const sdk = getBookmarks();
-  return sdk.bookmarkControllerListBookmarksInCollection(collectionId);
+  const response = await sdk.bookmarkControllerListCollections();
+  const items = (
+    response as unknown as {
+      data?: { items?: Array<Record<string, unknown>> };
+    }
+  )?.data?.items;
+
+  if (!Array.isArray(items)) {
+    return null;
+  }
+
+  return (
+    items.find(
+      (item) =>
+        item.collectionId === collectionId ||
+        item.id === collectionId,
+    ) ?? null
+  );
 }
 
 export async function updateCollection(

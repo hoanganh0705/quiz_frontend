@@ -1,11 +1,15 @@
 "use client";
 
-import { useMemo } from "react";
+import { useCallback } from "react";
 
-import { useCheckEmail } from "@/features/auth/hooks/use-check-email";
-import { useCheckUsername } from "@/features/auth/hooks/use-check-username";
-import { EmailAvailabilityIndicator } from "./fields/email-availability";
-import { UsernameAvailabilityIndicator } from "./fields/username-availability";
+import {
+  isWellFormedEmail,
+  isWellFormedUsername,
+  useAvailabilityCheck,
+} from "@/features/auth/hooks/use-availability-check";
+import { checkEmail, checkUsername } from "@/features/auth/services/auth.service";
+
+import { AvailabilityIndicator } from "./fields/availability-indicator";
 
 export type SignupAvailabilityStripProps = {
   email: string;
@@ -24,26 +28,33 @@ export function SignupAvailabilityStrip({
   email,
   username,
 }: SignupAvailabilityStripProps) {
-  const emailCheck = useCheckEmail({ email });
+  const checkEmailAvailable = useCallback(async (val: string) => {
+    const result = await checkEmail({ email: val });
+    return Boolean(result.data?.available);
+  }, []);
 
-  const usernameCheck = useCheckUsername({
-    username,
+  const checkUsernameAvailable = useCallback(async (val: string) => {
+    const result = await checkUsername({ username: val });
+    return Boolean(result.data?.available);
+  }, []);
+
+  const emailCheck = useAvailabilityCheck({
+    value: email,
+    isValid: isWellFormedEmail,
+    check: checkEmailAvailable,
+  });
+
+  const usernameCheck = useAvailabilityCheck({
+    value: username,
+    isValid: isWellFormedUsername,
+    check: checkUsernameAvailable,
     enabled: username.length > 0,
   });
 
-  const emailInput = useMemo(() => ({ email }), [email]);
-  const usernameInput = useMemo(
-    () => ({ username, enabled: username.length > 0 }),
-    [username],
-  );
-
-  void emailInput;
-  void usernameInput;
-
   return (
     <>
-      <EmailAvailabilityIndicator status={emailCheck.status} />
-      <UsernameAvailabilityIndicator status={usernameCheck.status} />
+      <AvailabilityIndicator status={emailCheck.status} />
+      <AvailabilityIndicator status={usernameCheck.status} />
     </>
   );
 }

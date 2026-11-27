@@ -1,5 +1,10 @@
+import { Suspense } from "react";
+
+import { UserAdminPage } from "@/features/admin/user-admin/components/UserAdminPage";
+
+import AdminLoading from "../loading";
+
 import type { Metadata } from "next";
-import { UserAdminContent } from "./_components/UserAdminContent";
 
 export const metadata: Metadata = {
   title: "Users",
@@ -7,5 +12,9 @@ export const metadata: Metadata = {
 };
 
 export default function AdminUsersPage() {
-  return <UserAdminContent />;
+  return (
+    <Suspense fallback={<AdminLoading />}>
+      <UserAdminPage />
+    </Suspense>
+  );
 }

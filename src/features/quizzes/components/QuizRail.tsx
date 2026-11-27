@@ -12,7 +12,9 @@ export interface QuizRailProps<T = QuizListItemDto> {
   title: string;
   subtitle?: string;
   filter?: React.ReactNode;
-  children: React.ReactNode;
+  children?: React.ReactNode;
+  /** Full-width loading, error, or empty state rendered outside the card grid/scroller. */
+  statusContent?: React.ReactNode;
   layout?: QuizRailLayout;
   gridItems?: readonly T[];
   toQuiz?: (item: T) => QuizListItemDto;
@@ -44,6 +46,7 @@ export function QuizRail<T = QuizListItemDto>({
   subtitle,
   filter,
   children,
+  statusContent,
   layout = "scroller",
   gridItems,
   toQuiz,
@@ -79,8 +82,18 @@ export function QuizRail<T = QuizListItemDto>({
         ) : null}
       </header>
 
-      {layout === "grid" ? (
-        <QuizCardGrid items={gridItems} toQuiz={toQuiz as never} />
+      {statusContent ? (
+        <div className="w-full" data-testid="quiz-rail-status">
+          {statusContent}
+        </div>
+      ) : layout === "grid" ? (
+        gridItems && gridItems.length > 0 ? (
+          <QuizCardGrid<T> items={gridItems} toQuiz={toQuiz} />
+        ) : (
+          <div className="w-full" data-testid="quiz-rail-empty-slot">
+            {children}
+          </div>
+        )
       ) : (
         <div className={SCROLLER_OUTER} data-testid="quiz-rail-scroller">
           {wrapChildrenInScroller(children)}

@@ -57,7 +57,6 @@ export function useFriendLeaderboard(
 
   const backendPeriod = toBackendPeriod(period);
   const key = useMemo<readonly unknown[] | null>(() => {
-    if (false) return null;
     if (!isAuthenticated) return null;
     return ["social", "v1", "friend-leaderboard", backendPeriod] as const;
   }, [isAuthenticated, backendPeriod]);
@@ -117,7 +116,6 @@ export function useFriendLeaderboard(
     params: { period: backendPeriod, limit: SOCIAL_GRAPH_DEFAULT_LIMIT },
   });
 
-  if (false) return SAFE_FALLBACK;
   if (!isAuthenticated) return SAFE_FALLBACK;
 
   if (firstPage.isLoading && firstPage.data === null) {

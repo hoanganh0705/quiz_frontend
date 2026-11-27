@@ -1,13 +1,15 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+
+import { ApiError, coerceToApiError } from "@/lib/api";
 import { getQueryClient } from "@/providers/QueryProvider";
 
-import { ApiError, isApiError } from "@/lib/api";
 import { useAuthState } from "@/features/auth/hooks/use-auth-state";
 import { getCollectionAnalyticsData } from "@/features/bookmarks/api";
-import type { CollectionAnalytics } from "@/features/bookmarks/types";
 import { collectionAnalyticsKey } from "@/features/bookmarks/types";
+
+import type { CollectionAnalytics } from "@/features/bookmarks/types";
 
 export interface UseCollectionAnalyticsResult {
   analytics: CollectionAnalytics | null;
@@ -42,18 +44,9 @@ export function useCollectionAnalytics(
 
   const isEmpty = analytics !== null && analytics.totalQuizzes === 0;
 
-  const error: ApiError | null = (() => {
-    const first = query.error;
-    if (!first) return null;
-    if (isApiError(first)) return first;
-    if (first && typeof first === "object" && "status" in first) {
-      return first as unknown as ApiError;
-    }
-    return {
-      status: 0,
-      message: first instanceof Error ? first.message : String(first),
-    } as unknown as ApiError;
-  })();
+  const error: ApiError | null = query.error
+    ? coerceToApiError(query.error)
+    : null;
 
   return {
     analytics,

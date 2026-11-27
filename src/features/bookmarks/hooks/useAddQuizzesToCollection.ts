@@ -2,22 +2,25 @@
 
 import { useCallback, useState } from "react";
 
-import { isApiError, ApiError } from "@/lib/api";
+import { ApiError, isApiError } from "@/lib/api";
 import { getUserCopy } from "@/lib/api/error-codes";
-import {
-  useOptimisticMutation,
-  type OptimisticMutationResult,
-  type OptimisticMutationKey,
-} from "@/lib/api/useOptimisticMutation";
+import { useOptimisticMutation } from "@/lib/api/useOptimisticMutation";
+
 import {
   addQuizzesToCollectionBulk,
   BulkOperationValidationError,
 } from "@/features/bookmarks/services";
-import type {
-  BulkOperationResult,
-  BulkAddResult,
-} from "@/features/bookmarks/types";
+
 import { useCollectionInvalidation } from "./useCollectionInvalidation";
+
+import type {
+  BulkAddResult,
+  BulkOperationResult,
+} from "@/features/bookmarks/types";
+import type {
+  OptimisticMutationKey,
+  OptimisticMutationResult,
+} from "@/lib/api/useOptimisticMutation";
 
 export interface UseAddQuizzesToCollectionOptions {
   onSuccess?: (result: BulkAddResult, quizIds: string[]) => void;
@@ -25,10 +28,12 @@ export interface UseAddQuizzesToCollectionOptions {
   onError?: (code: string) => void;
 }
 
+export type AddQuizzesMutationResult = OptimisticMutationResult<BulkAddResult> & {
+  results?: BulkOperationResult[];
+};
+
 export interface UseAddQuizzesToCollectionReturn {
-  addQuizzes: (
-    quizIds: string[],
-  ) => Promise<OptimisticMutationResult<BulkAddResult>>;
+  addQuizzes: (quizIds: string[]) => Promise<AddQuizzesMutationResult>;
 
   results: BulkOperationResult[];
 
@@ -54,7 +59,6 @@ export function useAddQuizzesToCollection(
   const {
     mutate,
     lastResult,
-    lastError: rawLastError,
     reset: resetOptimistic,
   } = useOptimisticMutation();
 
@@ -65,9 +69,7 @@ export function useAddQuizzesToCollection(
   const [lastApiError, setLastApiError] = useState<ApiError | null>(null);
 
   const addQuizzes = useCallback(
-    async (
-      quizIds: string[],
-    ): Promise<OptimisticMutationResult<BulkAddResult>> => {
+    async (quizIds: string[]): Promise<AddQuizzesMutationResult> => {
       setLastApiError(null);
       setResults([]);
 
@@ -93,6 +95,8 @@ export function useAddQuizzesToCollection(
         return { status: "reverted", apiError: error };
       }
 
+      let capturedResults: BulkOperationResult[] = [];
+
       try {
         const result = await mutate({
           key: null as unknown as OptimisticMutationKey,
@@ -102,16 +106,12 @@ export function useAddQuizzesToCollection(
               collectionId,
               quizIds,
             );
+            capturedResults = response.results;
             return response.summary;
           },
           onSuccess: (summary) => {
+            setResults(capturedResults);
             invalidateQuizzes();
-
-            addQuizzesToCollectionBulk(collectionId, quizIds).then(
-              (response) => {
-                setResults(response.results);
-              },
-            );
             onSuccess?.(summary, quizIds);
           },
           onError: (apiError: ApiError | unknown) => {
@@ -125,12 +125,8 @@ export function useAddQuizzesToCollection(
           },
         });
 
-        if (result.status === "success" && result.result) {
-          const response = await addQuizzesToCollectionBulk(
-            collectionId,
-            quizIds,
-          );
-          setResults(response.results);
+        if (result.status === "success") {
+          return { ...result, results: capturedResults };
         }
 
         return result;

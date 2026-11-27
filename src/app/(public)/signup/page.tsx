@@ -1,13 +1,14 @@
-"use client";
+import { buildMetadata } from "@/shared/lib/seo";
 
-import { RegistrationFormBody } from "@/features/auth/forms/registration-form-body";
-import { RedirectIfAuthed } from "@/features/auth/guards/redirect-if-authed";
+import { SignupPageView } from "@/features/auth/pages/SignupPageView";
+
+export const metadata = buildMetadata({
+  title: "Sign Up | QuizHub",
+  description: "Create your QuizHub account and start playing quizzes.",
+  path: "/signup",
+  noIndex: true,
+});
 
 export default function SignupPage() {
-  return (
-    <>
-      <RedirectIfAuthed />
-      <RegistrationFormBody />
-    </>
-  );
+  return <SignupPageView />;
 }

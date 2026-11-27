@@ -2,9 +2,19 @@ import { Suspense } from "react";
 
 import { QuestionEditorPage } from "@/features/quizzes/components/QuestionEditor";
 
+import { PAGE_CONTAINER_CLASS } from "@/shared/layout/constants";
+import { buildMetadata } from "@/shared/lib/seo";
+
+export const metadata = buildMetadata({
+  title: "Question Editor | QuizHub",
+  description: "Create, edit, and reorder questions for your quiz version.",
+  path: "/my-quizzes",
+  noIndex: true,
+});
+
 function QuestionEditorPageSkeleton(): React.ReactElement {
   return (
-    <div className="space-y-6 p-6">
+    <div className="space-y-6">
       <div className="space-y-2">
         <div className="h-4 w-48 animate-pulse rounded bg-muted" />
         <div className="h-8 w-96 animate-pulse rounded bg-muted" />
@@ -30,8 +40,10 @@ function QuestionEditorPageSkeleton(): React.ReactElement {
 
 export default function QuestionEditorRoutePage(): React.ReactElement {
   return (
-    <Suspense fallback={<QuestionEditorPageSkeleton />}>
-      <QuestionEditorPage />
-    </Suspense>
+    <main className={PAGE_CONTAINER_CLASS}>
+      <Suspense fallback={<QuestionEditorPageSkeleton />}>
+        <QuestionEditorPage />
+      </Suspense>
+    </main>
   );
 }

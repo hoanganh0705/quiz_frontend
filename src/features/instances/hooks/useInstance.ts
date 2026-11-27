@@ -2,7 +2,7 @@
 
 import { useCallback, useMemo } from "react";
 
-import { ApiError, useSingleWithRetry } from "@/lib/api";
+import { ApiError, coerceToApiError, useSingleWithRetry } from "@/lib/api";
 
 import { getInstance } from "@/features/instances/services/instances.service";
 import {
@@ -74,13 +74,7 @@ function mapToInstanceLifecycleErrorCode(
 }
 
 function wrapAsInstanceApiError(err: unknown): ApiError {
-  if (err instanceof ApiError) {
-    return err;
-  }
-
-  return new ApiError(
-    err as unknown as ConstructorParameters<typeof ApiError>[0],
-  );
+  return coerceToApiError(err);
 }
 
 function deriveRole(
@@ -110,7 +104,7 @@ export function useInstance(
     [instanceId],
   );
 
-  const fetcher = useCallback(async (): Promise<InstanceDetail | null> => {
+  const fetcher = useCallback(async (): Promise<InstanceDetailResponseDto | null> => {
     if (instanceId === null) {
       return null;
     }
@@ -131,40 +125,39 @@ export function useInstance(
         return null;
       }
 
-      const role = deriveRole(detail, currentUserId);
-
-      return {
-        ...detail,
-        id: detail.instanceId,
-        currentUserRole: role,
-      } as InstanceDetail;
+      return detail;
     } catch (err) {
       throw wrapAsInstanceApiError(err);
     }
-  }, [instanceId, currentUserId]);
+  }, [instanceId]);
 
-  const result = useSingleWithRetry<InstanceDetail | null>({
+  const result = useSingleWithRetry<InstanceDetailResponseDto | null>({
     key,
     fetcher,
   });
 
+  const instance = useMemo<InstanceDetail | null>(() => {
+    const detail = result.data ?? null;
+    if (!detail) return null;
+    return {
+      ...detail,
+      id: detail.instanceId,
+      currentUserRole: deriveRole(detail, currentUserId),
+    } as InstanceDetail;
+  }, [result.data, currentUserId]);
+
   const refresh = useCallback(async () => {
     await result.retry();
-
-    void result;
   }, [result]);
 
   const mappedError = useMemo<ApiError | null>(() => {
     if (result.error === null) return null;
     const mappedCode = mapToInstanceLifecycleErrorCode(result.error.code);
-    return new ApiError({
-      ...(result.error as unknown as object),
-      code: mappedCode,
-    } as unknown as ConstructorParameters<typeof ApiError>[0]);
+    return result.error.withCode(mappedCode);
   }, [result.error]);
 
   return {
-    instance: result.data ?? null,
+    instance,
     isLoading: result.isLoading,
     isStale: false,
     error: mappedError,

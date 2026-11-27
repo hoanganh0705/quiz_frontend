@@ -1,25 +1,25 @@
 "use client";
 
-import { useMemo, useCallback } from "react";
+import { useCallback, useMemo } from "react";
+
+import { useCursorPaginated } from "@/lib/api";
 import { getQueryClient } from "@/providers/QueryProvider";
 
-import { projectWithId, useCursorPaginated } from "@/lib/api";
+import { listCollections } from "@/features/bookmarks/api";
+import { BOOKMARK_KEYS } from "@/features/bookmarks/query-keys";
+import { toBookmarkCollection } from "@/features/bookmarks/types";
+
+import type {
+  BookmarkCollection,
+  BookmarkCollectionResponseDto,
+} from "@/features/bookmarks/types";
 import type {
   CursorFetcherArgs,
   CursorPage,
   UseCursorPaginatedResult,
 } from "@/lib/api/use-cursor-paginated.types";
-import { listCollections } from "@/features/bookmarks/api";
-import type {
-  BookmarkCollection,
-  BookmarkCollectionResponseDto,
-} from "@/features/bookmarks/types";
-import { toBookmarkCollection } from "@/features/bookmarks/types";
 
-export const BOOKMARK_COLLECTIONS_KEY = [
-  "bookmark-collections",
-  "list",
-] as const;
+export const BOOKMARK_COLLECTIONS_KEY = BOOKMARK_KEYS.list();
 
 type ListCollectionsResponse = {
   data?: { items: Array<Record<string, unknown>> };
@@ -106,5 +106,5 @@ export function useCollections(params?: {
 
 export async function invalidateCollections(): Promise<void> {
   const qc = getQueryClient();
-  await qc.invalidateQueries({ queryKey: BOOKMARK_COLLECTIONS_KEY });
+  await qc.invalidateQueries({ queryKey: BOOKMARK_KEYS.all });
 }

@@ -16,7 +16,7 @@ export type CancelFriendRequestErrorCode =
   SocialErrorCode | "GLOBAL_INTERNAL_ERROR";
 
 export interface UseCancelFriendRequestResult {
-  cancel: (friendshipId: string) => void;
+  cancel: (friendshipId: string) => Promise<boolean>;
   isPending: boolean;
   error: CancelFriendRequestErrorCode | null;
   alreadyCancelled: boolean;
@@ -37,28 +37,16 @@ export function useCancelFriendRequest(
   });
 
   const isPendingRef = useRef(false);
+  const [isPending, setIsPending] = useState(false);
 
   const [error, setError] = useState<CancelFriendRequestErrorCode | null>(null);
   const [alreadyCancelled, setAlreadyCancelled] = useState(false);
 
   const assumeCanCancel = options.assumeCanCancel === true;
   const result = useMemo<UseCancelFriendRequestResult>(() => {
-    if (false) {
-      return Object.freeze({
-        cancel: () => {
-          // no-op — feature is gated off
-        },
-        isPending: false,
-        error: null,
-        alreadyCancelled: false,
-      });
-    }
-
     if (targetUserId === null) {
       return Object.freeze({
-        cancel: () => {
-          // no-op
-        },
+        cancel: async () => false,
         isPending: false,
         error: null,
         alreadyCancelled: false,
@@ -67,28 +55,51 @@ export function useCancelFriendRequest(
 
     if (!assumeCanCancel && !permissions.canCancelRequest) {
       return Object.freeze({
-        cancel: () => {
-          // no-op — permission denied
-        },
+        cancel: async () => false,
         isPending: false,
         error: null,
         alreadyCancelled: false,
       });
     }
 
-    const cancel = (friendshipId: string): void => {
+    const cancel = async (friendshipId: string): Promise<boolean> => {
       if (typeof friendshipId !== "string" || friendshipId.length === 0) {
-        return;
+        return false;
       }
 
-      if (isPendingRef.current) return;
+      if (isPendingRef.current) return false;
 
       isPendingRef.current = true;
+      setIsPending(true);
       setError(null);
       setAlreadyCancelled(false);
 
-      cancelFriendRequest(friendshipId)
-        .then(() => {
+      try {
+        await cancelFriendRequest(friendshipId);
+        const qc = getQueryClient();
+        void qc.invalidateQueries({
+          queryKey: SOCIAL_CACHE_KEYS.makeRelationshipKey(targetUserId),
+        });
+        void qc.invalidateQueries({
+          queryKey: SOCIAL_CACHE_KEYS.makeOutgoingRequestsKey(),
+        });
+        void qc.invalidateQueries({
+          queryKey: SOCIAL_CACHE_KEYS.makeSocialCountsKey(targetUserId),
+        });
+        void qc.invalidateQueries({
+          queryKey: ["social", "user-search"],
+        });
+        void qc.invalidateQueries({
+          queryKey: ["social", "v1", "user-search"],
+        });
+        return true;
+      } catch (err: unknown) {
+        const apiErr =
+          err instanceof ApiError ? err : new ApiError(err as never);
+
+        if (apiErr.code === "SOCIAL_FRIEND_REQUEST_NOT_FOUND") {
+          setAlreadyCancelled(true);
+
           const qc = getQueryClient();
           void qc.invalidateQueries({
             queryKey: SOCIAL_CACHE_KEYS.makeRelationshipKey(targetUserId),
@@ -105,54 +116,31 @@ export function useCancelFriendRequest(
           void qc.invalidateQueries({
             queryKey: ["social", "v1", "user-search"],
           });
-        })
-        .catch((err: unknown) => {
-          const apiErr =
-            err instanceof ApiError ? err : new ApiError(err as never);
+          return true;
+        }
 
-          if (apiErr.code === "SOCIAL_FRIEND_REQUEST_NOT_FOUND") {
-            setAlreadyCancelled(true);
-
-            const qc = getQueryClient();
-            void qc.invalidateQueries({
-              queryKey: SOCIAL_CACHE_KEYS.makeRelationshipKey(targetUserId),
-            });
-            void qc.invalidateQueries({
-              queryKey: SOCIAL_CACHE_KEYS.makeOutgoingRequestsKey(),
-            });
-            void qc.invalidateQueries({
-              queryKey: SOCIAL_CACHE_KEYS.makeSocialCountsKey(targetUserId),
-            });
-            void qc.invalidateQueries({
-              queryKey: ["social", "user-search"],
-            });
-            void qc.invalidateQueries({
-              queryKey: ["social", "v1", "user-search"],
-            });
-            return;
-          }
-
-          const code: CancelFriendRequestErrorCode =
-            (apiErr.code as CancelFriendRequestErrorCode) ??
-            "GLOBAL_INTERNAL_ERROR";
-          setError(code);
-        })
-        .finally(() => {
-          isPendingRef.current = false;
-        });
+        const code: CancelFriendRequestErrorCode =
+          (apiErr.code as CancelFriendRequestErrorCode) ??
+          "GLOBAL_INTERNAL_ERROR";
+        setError(code);
+        return false;
+      } finally {
+        isPendingRef.current = false;
+        setIsPending(false);
+      }
     };
 
     return Object.freeze({
       cancel,
-      get isPending() {
-        return isPendingRef.current;
-      },
+      isPending,
       error,
       alreadyCancelled,
     });
-  }, [targetUserId,
+  }, [
+    targetUserId,
     assumeCanCancel,
     permissions.canCancelRequest,
+    isPending,
     error,
     alreadyCancelled,
   ]);

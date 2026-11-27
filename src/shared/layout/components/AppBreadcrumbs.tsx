@@ -1,9 +1,13 @@
 "use client";
 
+import { memo, useMemo } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { memo, useMemo } from "react";
+
 import { ChevronRight } from "lucide-react";
+
+import { PAGE_GUTTER_CLASS } from "@/shared/layout/constants";
+import { cn } from "@/shared/utils/merge-class-names";
 
 function titleCase(value: string) {
   return value
@@ -12,7 +16,7 @@ function titleCase(value: string) {
     .join(" ");
 }
 
-const SEGMENT_NAME_MAP: Record<string, string> = {
+const SEGMENT_NAME_MAP: Readonly<Record<string, string>> = {
   quizzes: "Quizzes",
   categories: "Categories",
   tags: "Tags",
@@ -32,16 +36,62 @@ const SEGMENT_NAME_MAP: Record<string, string> = {
   "quiz-history": "Quiz History",
   bookmarks: "Bookmarks",
   notifications: "Notifications",
+  preferences: "Preferences",
   settings: "Settings",
+  security: "Security",
   support: "Support",
+  search: "Search",
+  terms: "Terms of Service",
+  privacy: "Privacy Policy",
   attempt: "Active Quiz",
   results: "Quiz Results",
+  play: "Live Play",
+  edit: "Edit",
+  versions: "Versions",
+  questions: "Questions",
+  "friend-requests": "Friend Requests",
+  incoming: "Incoming",
+  outgoing: "Outgoing",
+  followers: "Followers",
+  following: "Following",
+  blocked: "Blocked Users",
+  suggestions: "Suggestions",
+  trending: "Trending",
+  analytics: "Analytics",
+  feed: "Feed",
   admin: "Admin",
   audit: "Audit Logs",
+  comments: "Comments",
+  reviews: "Reviews",
   reports: "Reports",
   users: "Users",
   roles: "Roles",
 };
+
+/**
+ * Intermediate path patterns that have no `page.tsx` and would 404 if linked.
+ * Breadcrumbs render these segments as non-interactive `<span>` elements.
+ */
+const NON_ROUTABLE_INTERMEDIATE_PATTERNS: readonly RegExp[] = [
+  /^\/my-quizzes\/[^/]+$/,
+  /^\/my-quizzes\/[^/]+\/versions$/,
+  /^\/my-quizzes\/[^/]+\/versions\/[^/]+$/,
+  /^\/social\/friends$/,
+  /^\/social\/friend-requests$/,
+  /^\/social\/me$/,
+  /^\/social\/users$/,
+  /^\/social\/users\/[^/]+$/,
+  /^\/admin\/comments$/,
+  /^\/admin\/reviews$/,
+  /^\/admin\/achievements$/,
+  /^\/admin\/achievements\/users$/,
+];
+
+function isRoutableBreadcrumbPath(href: string): boolean {
+  return !NON_ROUTABLE_INTERMEDIATE_PATTERNS.some((pattern) =>
+    pattern.test(href),
+  );
+}
 
 const UUID_REGEX =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -57,6 +107,8 @@ function formatSegmentLabel(segment: string, prevSegment?: string): string {
     if (prevSegment === "tournaments") return "Tournament Details";
     if (prevSegment === "instances") return "Live Match";
     if (prevSegment === "versions") return "Version Details";
+    if (prevSegment === "my-quizzes") return "Quiz";
+    if (prevSegment === "bookmarks") return "Collection";
     return `#${segment.slice(0, 8)}…`;
   }
   return titleCase(segment);
@@ -70,9 +122,11 @@ export const AppBreadcrumbs = memo(function AppBreadcrumbs() {
 
     return segments.map((segment, index) => {
       const prev = index > 0 ? segments[index - 1] : undefined;
+      const href = `/${segments.slice(0, index + 1).join("/")}`;
       return {
         label: formatSegmentLabel(segment, prev),
-        href: `/${segments.slice(0, index + 1).join("/")}`,
+        href,
+        routable: isRoutableBreadcrumbPath(href),
       };
     });
   }, [pathname]);
@@ -80,7 +134,10 @@ export const AppBreadcrumbs = memo(function AppBreadcrumbs() {
   if (crumbs.length === 0) return null;
 
   return (
-    <nav aria-label="Breadcrumb" className="px-4 md:px-6 pt-1.5 pb-0.5 md:pt-2">
+    <nav
+      aria-label="Breadcrumb"
+      className={cn(PAGE_GUTTER_CLASS, "pt-3 pb-0.5")}
+    >
       <ol className="flex items-center gap-1 text-xs text-foreground-secondary overflow-x-auto whitespace-nowrap scrollbar-none">
         <li>
           <Link href="/" className="hover:text-foreground transition-colors">
@@ -96,16 +153,18 @@ export const AppBreadcrumbs = memo(function AppBreadcrumbs() {
                 aria-hidden="true"
               />
               {isLast ? (
-                <span className="text-foreground font-medium">
+                <span className="text-foreground font-medium" aria-current="page">
                   {crumb.label}
                 </span>
-              ) : (
+              ) : crumb.routable ? (
                 <Link
                   href={crumb.href}
                   className="hover:text-foreground transition-colors"
                 >
                   {crumb.label}
                 </Link>
+              ) : (
+                <span className="text-muted-foreground">{crumb.label}</span>
               )}
             </li>
           );

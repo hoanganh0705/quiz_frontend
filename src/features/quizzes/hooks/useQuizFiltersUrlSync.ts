@@ -1,59 +1,51 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useCallback, useMemo } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 import {
-  setFromUrlSearchParams,
-  useQuizFiltersStore,
-} from "@/features/quizzes/store/use-quiz-filters-store";
-import { serializeQuizFilterUrl } from "@/features/quizzes/types/quiz-filter-params";
+  parseQuizFilterUrl,
+  serializeQuizFilterUrl,
+  type QuizFilterUrlState,
+} from "@/features/quizzes/types/quiz-filter-params";
 
-const URL_SYNC_DEBOUNCE_MS = 300;
+export interface UseQuizFiltersUrlSyncResult {
+  filters: QuizFilterUrlState;
+  setFilters: (next: QuizFilterUrlState) => void;
+  resetFilters: () => void;
+}
 
-export function useQuizFiltersUrlSync(): void {
+export function useQuizFiltersUrlSync(
+  initialState?: Partial<QuizFilterUrlState>,
+): UseQuizFiltersUrlSyncResult {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const searchKey = searchParams.toString();
 
-  // The last query string this hook wrote. When `searchParams` updates
-  // and matches this, the change came from us — skip re-seeding the
-  // store (otherwise the round-trip can clobber an in-flight edit).
-  const lastWrittenRef = useRef<string | null>(null);
+  const filters = useMemo<QuizFilterUrlState>(() => {
+    const parsed = parseQuizFilterUrl(new URLSearchParams(searchKey));
+    if (searchKey.length === 0 && initialState) {
+      return { ...initialState };
+    }
+    return parsed;
+  }, [searchKey, initialState]);
 
-  // Re-seed the store from the URL whenever the URL changes from
-  // somewhere other than this hook (back/forward navigation, a shared
-  // link, a programmatic `router.push`, …).
-  const incomingSearch = searchParams.toString();
-  useEffect(() => {
-    if (incomingSearch === lastWrittenRef.current) return;
-    setFromUrlSearchParams(new URLSearchParams(incomingSearch));
-  }, [incomingSearch]);
+  const setFilters = useCallback(
+    (next: QuizFilterUrlState) => {
+      const params = serializeQuizFilterUrl(next);
+      const queryString = params.toString();
+      const target =
+        queryString.length > 0 ? `${pathname}?${queryString}` : pathname;
+      router.replace(target);
+    },
+    [pathname, router],
+  );
 
-  useEffect(() => {
-    const unsubscribe = useQuizFiltersStore.subscribe((state) => {
-      if (timerRef.current !== null) {
-        clearTimeout(timerRef.current);
-      }
-      timerRef.current = setTimeout(() => {
-        const params = serializeQuizFilterUrl(state);
-        const queryString = params.toString();
-        const target =
-          queryString.length > 0 ? `${pathname}?${queryString}` : pathname;
-        lastWrittenRef.current = queryString;
-        router.replace(target);
-        timerRef.current = null;
-      }, URL_SYNC_DEBOUNCE_MS);
-    });
+  const resetFilters = useCallback(() => {
+    router.replace(pathname);
+  }, [pathname, router]);
 
-    return () => {
-      unsubscribe();
-      if (timerRef.current !== null) {
-        clearTimeout(timerRef.current);
-        timerRef.current = null;
-      }
-    };
-  }, [router, pathname]);
+  return { filters, setFilters, resetFilters };
 }

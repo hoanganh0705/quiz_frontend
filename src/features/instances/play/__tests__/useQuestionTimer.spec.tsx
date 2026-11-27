@@ -29,6 +29,7 @@ describe("useQuestionTimer", () => {
             serverNow: new Date(now).toISOString(),
           },
           submission: null,
+          selectedAnswers: {},
           result: null,
           progress: null,
           leaderboard: [],
@@ -40,6 +41,13 @@ describe("useQuestionTimer", () => {
           currentQuestionIndex: 0,
           quizTitle: "Test",
           durationPerQuestionMs: durationMs,
+          totalDurationMs: durationMs,
+          playerId: "",
+          quizId: null,
+          hostUserId: null,
+          attemptId: null,
+          playerSubmitted: false,
+          players: [],
         },
       },
     });
@@ -65,5 +73,40 @@ describe("useQuestionTimer", () => {
 
     expect(result.current.remainingMs).toBe(0);
     expect(result.current.isWindowOpen).toBe(false);
+  });
+
+  it("ticks down across multiple concurrent consumers and never exceeds totalMs", () => {
+    const now = Date.now();
+    const durationMs = 1200000;
+
+    useInstanceGameplayStore.getState().initializeQuestions(instanceId, [
+      {
+        questionId: "q-1",
+        quizVersionId: "qv-1",
+        position: 1,
+        questionText: "Test?",
+        imageUrl: null,
+        createdAt: new Date(now).toISOString(),
+        updatedAt: new Date(now).toISOString(),
+        answerOptions: [],
+      },
+    ], {
+      quizTitle: "Long Battle",
+      durationMs,
+      startedAt: new Date(now + 1000).toISOString(),
+    });
+
+    const first = renderHook(() => useQuestionTimer(instanceId));
+    const second = renderHook(() => useQuestionTimer(instanceId));
+
+    expect(first.result.current.remainingMs).toBeLessThanOrEqual(durationMs);
+    expect(second.result.current.remainingMs).toBeLessThanOrEqual(durationMs);
+
+    act(() => {
+      vi.advanceTimersByTime(5000);
+    });
+
+    expect(first.result.current.remainingMs).toBeLessThan(durationMs - 3000);
+    expect(second.result.current.remainingMs).toBeLessThan(durationMs - 3000);
   });
 });

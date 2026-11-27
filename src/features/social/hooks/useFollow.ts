@@ -67,16 +67,6 @@ export function useFollow(
       : null;
 
   const result = useMemo<UseFollowResult>(() => {
-    if (false) {
-      return Object.freeze({
-        follow: () => {
-          // no-op — feature is gated off
-        },
-        isPending: false,
-        error: null,
-      });
-    }
-
     if (targetUserId === null) {
       return Object.freeze({
         follow: () => {

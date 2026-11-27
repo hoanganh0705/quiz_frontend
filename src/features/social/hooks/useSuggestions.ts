@@ -67,7 +67,6 @@ export function useSuggestions(
   const isAuthenticated = auth.isAuthenticated;
 
   const key = useMemo<readonly unknown[] | null>(() => {
-    if (false) return null;
     if (!isAuthenticated) return null;
 
     return ["social", "suggestions", targetUserId ?? "me"] as const;
@@ -115,7 +114,6 @@ export function useSuggestions(
     paginationKind: "offset",
   });
 
-  if (false) return FALLBACK_RESULT;
   if (!isAuthenticated) return FALLBACK_RESULT;
   if (targetUserId === null) return FALLBACK_RESULT;
 

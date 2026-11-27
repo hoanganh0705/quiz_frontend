@@ -2,24 +2,22 @@
 
 import { useCallback } from "react";
 
-import {
-  broadcastProfileUpdated,
-  type ProfileUpdateKind,
-} from "@/lib/api/core/profile-broadcast-channel";
+import { isApiError } from "@/lib/api";
+import { broadcastProfileUpdated } from "@/lib/api/core/profile-broadcast-channel";
 import { getUserCopy } from "@/lib/api/error-codes";
-import { isApiError, type ApiError } from "@/lib/api";
-import type { UserCopyEntry } from "@/lib/api/error-codes";
-import {
-  useOptimisticMutation,
-  type OptimisticMutationResult,
-} from "@/lib/api/useOptimisticMutation";
-import type { UserMeResponseDto } from "@/features/users/types/user-backend";
-import {
-  updateMyProfile,
-  type UserControllerUpdateMeResult,
-} from "@/features/users/services/users.service";
+import { useOptimisticMutation } from "@/lib/api/useOptimisticMutation";
+import { getQueryClient } from "@/providers/QueryProvider";
+
+import { updateMyProfile } from "@/features/users/services/users.service";
 import { useUserStore } from "@/features/users/store/user-store";
+
+import type { UserControllerUpdateMeResult } from "@/features/users/services/users.service";
+import type { UserMeResponseDto } from "@/features/users/types/user-backend";
+import type { ApiError } from "@/lib/api";
+import type { ProfileUpdateKind } from "@/lib/api/core/profile-broadcast-channel";
+import type { UserCopyEntry } from "@/lib/api/error-codes";
 import type { UpdateMeDto } from "@/lib/api/generated/schemas";
+import type { OptimisticMutationResult } from "@/lib/api/useOptimisticMutation";
 
 export interface UseUpdateMyProfileOptions {
   onSuccess?: (data: UserMeResponseDto) => void;
@@ -61,12 +59,7 @@ export function useUpdateMyProfile(
   const storeUser = useUserStore((s) => s.user);
   const setUser = useUserStore((s) => s.setUser);
 
-  const {
-    mutate,
-    lastResult,
-    lastError: rawLastError,
-    reset,
-  } = useOptimisticMutation();
+  const { mutate, lastResult, reset } = useOptimisticMutation();
 
   const mutateProfile = useCallback(
     async (payload: UpdateMeDto) => {
@@ -96,6 +89,10 @@ export function useUpdateMyProfile(
           if (updated?.data) {
             setUser(updated.data as UserMeResponseDto);
           }
+
+          const qc = getQueryClient();
+          void qc.invalidateQueries({ queryKey: ["users", "me"] });
+          void qc.invalidateQueries({ queryKey: ["my-profile-bundle"] });
 
           if (userId) {
             broadcastProfileUpdated({

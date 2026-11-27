@@ -415,7 +415,7 @@ describe("mapResendVerificationError", () => {
 describe("resend-verification schema", () => {
   it("rejects a malformed email", async () => {
     const { resendVerificationSchema } =
-      await import("@/features/auth/forms/schemas/resend-verification.schema");
+      await import("@/features/auth/forms/schemas/recovery-email.schema");
     const result = resendVerificationSchema.safeParse({
       email: "not-an-email",
     });
@@ -424,14 +424,14 @@ describe("resend-verification schema", () => {
 
   it("accepts a well-formed email", async () => {
     const { resendVerificationSchema } =
-      await import("@/features/auth/forms/schemas/resend-verification.schema");
+      await import("@/features/auth/forms/schemas/recovery-email.schema");
     const result = resendVerificationSchema.safeParse({ email: "a@b.co" });
     expect(result.success).toBe(true);
   });
 
   it("rejects an email longer than 255 chars", async () => {
     const { resendVerificationSchema } =
-      await import("@/features/auth/forms/schemas/resend-verification.schema");
+      await import("@/features/auth/forms/schemas/recovery-email.schema");
     const longLocal = "a".repeat(251);
     const email = `${longLocal}@b.co`;
     const result = resendVerificationSchema.safeParse({ email });
@@ -440,7 +440,7 @@ describe("resend-verification schema", () => {
 
   it("accepts an email at exactly 255 chars (boundary)", async () => {
     const { resendVerificationSchema } =
-      await import("@/features/auth/forms/schemas/resend-verification.schema");
+      await import("@/features/auth/forms/schemas/recovery-email.schema");
     const longLocal = "a".repeat(250);
     const email = `${longLocal}@b.co`;
     const result = resendVerificationSchema.safeParse({ email });
@@ -449,7 +449,7 @@ describe("resend-verification schema", () => {
 
   it("rejects an empty email", async () => {
     const { resendVerificationSchema } =
-      await import("@/features/auth/forms/schemas/resend-verification.schema");
+      await import("@/features/auth/forms/schemas/recovery-email.schema");
     const result = resendVerificationSchema.safeParse({ email: "" });
     expect(result.success).toBe(false);
   });

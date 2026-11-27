@@ -3,7 +3,7 @@ import {
   AUTH_RESOURCE_CONFLICT,
   AUTH_SESSION_NOT_FOUND,
   isSessionRecoverableStatus,
-} from "./session-error-codes";
+} from "./auth-error-codes";
 
 export type SessionErrorTarget =
   | "self"

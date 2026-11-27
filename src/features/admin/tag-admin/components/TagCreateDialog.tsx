@@ -17,7 +17,7 @@ import { PermissionDeniedNotice } from "@/features/admin/components/PermissionDe
 
 import type { TagDto } from "../tag-types";
 import { TagFormFields } from "./TagFormFields";
-import { SlugConflictNotice } from "./SlugConflictNotice";
+import { SlugConflictNotice } from "@/features/admin/components/SlugConflictNotice";
 import { useCreateTag } from "../hooks/useCreateTag";
 
 export interface TagCreateDialogProps {

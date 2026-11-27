@@ -6,4 +6,5 @@ export * from "./use-app-language";
 export * from "./use-keyboard-shortcut";
 export * from "./use-clipboard";
 export * from "./use-async-action";
+export * from "./use-cooldown-timer";
 export * from "./use-prefers-reduced-motion";

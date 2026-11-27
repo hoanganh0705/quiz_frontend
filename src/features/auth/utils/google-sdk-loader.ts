@@ -12,10 +12,30 @@ export interface GoogleIdentity {
   accounts: GoogleAccounts;
 }
 
+export interface GoogleIdConfiguration {
+  client_id: string;
+  callback: (response: GoogleTokenResponse) => void;
+  auto_select?: boolean;
+  cancel_on_tap_outside?: boolean;
+}
+
+export interface GooglePromptMomentNotification {
+  isNotDisplayed?: () => boolean;
+  isSkippedMoment?: () => boolean;
+  isDismissedMoment?: () => boolean;
+  credential?: string;
+}
+
 export interface GoogleId {
+  initialize?(config: GoogleIdConfiguration): void;
+
   renderButton(element: HTMLElement, options: GoogleSignInButtonOptions): void;
 
-  prompt(callback?: (response: GoogleTokenResponse) => void): void;
+  prompt(
+    callback?: (
+      notification: GooglePromptMomentNotification | GoogleTokenResponse,
+    ) => void,
+  ): void;
 
   revoke(
     hint: string,
@@ -130,17 +150,20 @@ async function doLoad(): Promise<GoogleIdentity | null> {
     const available = await waitForGoogleId();
 
     if (!available) {
+      loadPromise = null;
       return null;
     }
 
     const g = (window as Window & { google?: GoogleIdentity }).google;
     if (!g?.accounts?.id) {
+      loadPromise = null;
       return null;
     }
 
     googleIdentityInstance = g;
     return googleIdentityInstance;
   } catch {
+    loadPromise = null;
     return null;
   }
 }

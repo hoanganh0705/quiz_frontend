@@ -1,5 +1,9 @@
 "use client";
 
+import type React from "react";
+
+import { Skeleton } from "@/components/ui/Skeleton";
+
 import type { TournamentCascadeDto } from "../admin-tournament-types";
 
 export interface TournamentCascadeNoticeProps {
@@ -10,7 +14,14 @@ export interface TournamentCascadeNoticeProps {
 
 function CountLabel({ value }: { value: number | null }): React.ReactElement {
   const display = value === null ? "—" : value;
-  return <span data-testid="tournament-cascade-notice-count">{display}</span>;
+  return (
+    <span
+      className="font-mono font-medium tabular-nums text-foreground"
+      data-testid="tournament-cascade-notice-count"
+    >
+      {display}
+    </span>
+  );
 }
 
 export function TournamentCascadeNotice({
@@ -21,11 +32,13 @@ export function TournamentCascadeNotice({
     return (
       <div
         className="space-y-2"
+        role="status"
         data-testid="tournament-cascade-notice-loading"
         aria-busy="true"
+        aria-label="Loading affected records"
       >
-        <div className="h-3 w-2/3 animate-pulse rounded bg-muted" />
-        <div className="h-3 w-1/2 animate-pulse rounded bg-muted" />
+        <Skeleton className="h-3.5 w-2/3" />
+        <Skeleton className="h-3.5 w-1/2" />
       </div>
     );
   }

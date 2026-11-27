@@ -5,7 +5,7 @@ import {
   AUTH_RESOURCE_CONFLICT,
   GLOBAL_VALIDATION_FAILED,
   isPasswordRecoverableStatus,
-} from "./password-error-codes";
+} from "./auth-error-codes";
 
 export type PasswordErrorClassification =
   | {

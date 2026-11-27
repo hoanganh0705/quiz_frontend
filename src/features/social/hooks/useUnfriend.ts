@@ -41,17 +41,6 @@ export function useUnfriend(
   const [alreadyNotFriends, setAlreadyNotFriends] = useState(false);
 
   const result = useMemo<UseUnfriendResult>(() => {
-    if (false) {
-      return Object.freeze({
-        unfriend: () => {
-          // no-op — feature is gated off
-        },
-        isPending: false,
-        error: null,
-        alreadyNotFriends: false,
-      });
-    }
-
     if (targetUserId === null) {
       return Object.freeze({
         unfriend: () => {

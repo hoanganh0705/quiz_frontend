@@ -6,12 +6,11 @@ import { getQueryClient } from "@/providers/QueryProvider";
 
 import { ApiError, isApiError } from "@/lib/api";
 
+import { ATTEMPT_KEYS } from "@/features/attempts/query-keys";
 import { getActiveAttempt } from "@/features/attempts/services/attempts.service";
-import { useAuthSession } from "@/features/auth/hooks/use-auth-session";
-import {
-  ATTEMPT_CACHE_KEYS,
-  type ActiveAttemptView,
-} from "@/features/attempts/types/attempt-runner.types";
+import { useAuthSessionId } from "@/features/auth/hooks/use-auth-session-id";
+
+import type { ActiveAttemptView } from "@/features/attempts/types/attempt-runner.types";
 
 import type { AttemptSummaryResponseDto } from "@/lib/api/generated/schemas";
 
@@ -24,22 +23,13 @@ export function useActiveAttempt(
 ): ActiveAttemptView {
   const { quizId } = params;
 
-  const { bootstrapState, currentUser } = useAuthSession();
-
-  const sessionId = useMemo<string | null>(() => {
-    if (bootstrapState !== "authenticated") return null;
-    if (!currentUser) return null;
-    const id =
-      (currentUser as { id?: string; userId?: string }).id ??
-      (currentUser as { userId?: string }).userId;
-    return id ?? null;
-  }, [bootstrapState, currentUser]);
+  const sessionId = useAuthSessionId();
 
   const key = useMemo(
     () =>
       quizId === null || sessionId === null
         ? null
-        : ATTEMPT_CACHE_KEYS.active(quizId, sessionId),
+        : ATTEMPT_KEYS.active(quizId, sessionId),
     [quizId, sessionId],
   );
 

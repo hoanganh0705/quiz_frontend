@@ -8,7 +8,7 @@ import {
   useAttemptsStore,
   hydrateAttemptEntry,
 } from "@/features/attempts/stores/useAttemptsStore";
-import { ATTEMPT_CACHE_KEYS } from "@/features/attempts/types/attempt-runner.types";
+import { ATTEMPT_KEYS } from "@/features/attempts/query-keys";
 
 const abandonAttemptMock = vi.hoisted(() => vi.fn());
 const completeAttemptMock = vi.hoisted(() => vi.fn());
@@ -163,12 +163,12 @@ describe("useAbandonAttempt — happy path", () => {
 
     expect(invalidateQueriesMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        queryKey: ATTEMPT_CACHE_KEYS.active(QV_ID, SESSION_ID),
+        queryKey: ATTEMPT_KEYS.active(QV_ID, SESSION_ID),
       }),
     );
     expect(invalidateQueriesMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        queryKey: ATTEMPT_CACHE_KEYS.detail(ATTEMPT_ID, SESSION_ID),
+        queryKey: ATTEMPT_KEYS.detail(ATTEMPT_ID, SESSION_ID),
       }),
     );
     expect(broadcastAttemptsChangedMock).toHaveBeenCalledTimes(1);
@@ -202,7 +202,7 @@ describe("useAbandonAttempt — 409 not_active", () => {
     expect(outcome.kind).toBe("not_active");
     expect(invalidateQueriesMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        queryKey: ATTEMPT_CACHE_KEYS.detail(ATTEMPT_ID, SESSION_ID),
+        queryKey: ATTEMPT_KEYS.detail(ATTEMPT_ID, SESSION_ID),
       }),
     );
   });

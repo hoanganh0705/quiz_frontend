@@ -1,26 +1,17 @@
 "use client";
 
+import { Fragment } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Fragment } from "react";
 
 import { ChevronRight } from "lucide-react";
 
-import { cn } from "@/shared/utils/merge-class-names";
+import {
+  ADMIN_ROUTE_LABELS,
+  isRoutableAdminBreadcrumbPath,
+} from "@/features/admin/config/admin-nav-registry";
 
-const ADMIN_ROUTE_LABELS: Readonly<Record<string, string>> = Object.freeze({
-  admin: "Admin",
-  tags: "Tags",
-  users: "Users",
-  roles: "User Roles",
-  badges: "Badges",
-  achievements: "Achievements",
-  tournaments: "Tournaments",
-  reviews: "Reviews",
-  rankings: "Rankings",
-  audit: "Audit log",
-  "review-moderation": "Review moderation",
-});
+import { cn } from "@/shared/utils/merge-class-names";
 
 function labelFor(segment: string): string {
   return ADMIN_ROUTE_LABELS[segment] ?? segment;
@@ -54,10 +45,11 @@ export function AdminBreadcrumb() {
         const href = `${prefix}/${segments.slice(0, index + 1).join("/")}`;
         const isLast = index === segments.length - 1;
         const label = labelFor(segment);
+        const routable = isRoutableAdminBreadcrumbPath(href);
         return (
           <Fragment key={href}>
             <ChevronRight
-              className="h-3 w-3 flex-shrink-0 text-muted-foreground/60"
+              className="h-3 w-3 shrink-0 text-muted-foreground/60"
               aria-hidden="true"
             />
             {isLast ? (
@@ -68,7 +60,7 @@ export function AdminBreadcrumb() {
               >
                 {label}
               </span>
-            ) : (
+            ) : routable ? (
               <Link
                 href={href}
                 className="hover:text-foreground"
@@ -76,6 +68,8 @@ export function AdminBreadcrumb() {
               >
                 {label}
               </Link>
+            ) : (
+              <span className="text-muted-foreground">{label}</span>
             )}
           </Fragment>
         );

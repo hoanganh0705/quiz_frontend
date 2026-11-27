@@ -1,4 +1,8 @@
+import { isValidTagSlug, TAG_SLUG_REGEX } from "@/lib/forms/regex";
+
 import type { QuizDifficulty } from "./quiz-backend";
+
+export { isValidTagSlug, TAG_SLUG_REGEX };
 
 export const QUIZ_SORT_VALUES = [
   "newest",
@@ -18,12 +22,6 @@ export interface QuizFilterUrlState {
   tagSlugs?: string[];
   sort?: QuizSort;
   difficulty?: QuizDifficulty | "all";
-}
-
-export const TAG_SLUG_REGEX = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
-
-export function isValidTagSlug(value: string): boolean {
-  return TAG_SLUG_REGEX.test(value);
 }
 
 const isQuizSort = (value: string): value is QuizSort =>

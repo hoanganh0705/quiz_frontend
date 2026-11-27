@@ -10,6 +10,7 @@ import {
 } from "@/lib/api";
 import type { SingleFetcher } from "@/lib/api/use-single-with-retry";
 
+import { QUIZ_KEYS } from "@/features/quizzes/query-keys";
 import { getQuizByIdOrSlug } from "@/features/quizzes/services/quizzes.service";
 import {
   projectQuizToPlayerView,
@@ -35,8 +36,7 @@ export function useQuizByIdOrSlug(
   idOrSlug: string | null,
 ): UseQuizByIdOrSlugResult {
   const key = useMemo(
-    () =>
-      idOrSlug === null ? null : (["useQuizByIdOrSlug", idOrSlug] as const),
+    () => (idOrSlug === null ? null : QUIZ_KEYS.detail(idOrSlug)),
     [idOrSlug],
   );
 

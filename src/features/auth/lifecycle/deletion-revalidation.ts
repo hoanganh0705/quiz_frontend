@@ -4,7 +4,7 @@ import { mapDeletionError } from "@/features/auth/errors/deletion-error-mapper";
 import {
   AUTH_INVALID_TOKEN,
   isUserNotFoundError,
-} from "@/features/auth/errors/deletion-error-codes";
+} from "@/features/auth/errors/auth-error-codes";
 
 export type DeletionAccountExistence =
   "exists" | "already_deleted" | "disabled" | "unknown";

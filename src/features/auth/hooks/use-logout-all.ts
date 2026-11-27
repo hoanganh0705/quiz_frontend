@@ -48,7 +48,7 @@ export function useLogoutAll(
   const clearUser = useClearUser();
   const { setAuthenticated } = useAuthState();
 
-  const [requiresConfirmation, setRequiresConfirmation] = useState(true);
+  const [requiresConfirmation, setRequiresConfirmation] = useState(false);
   const [status, setStatus] = useState<UseLogoutAllStatus>("idle");
   const [error, setError] = useState<UseLogoutAllError | null>(null);
   const inFlightRef = useRef<Promise<void> | null>(null);
@@ -113,7 +113,7 @@ export function useLogoutAll(
   }, []);
 
   const reset = useCallback((): void => {
-    setRequiresConfirmation(true);
+    setRequiresConfirmation(false);
     setStatus("idle");
     setError(null);
     inFlightRef.current = null;

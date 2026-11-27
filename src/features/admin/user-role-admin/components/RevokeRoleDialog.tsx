@@ -15,7 +15,7 @@ import { Loader2, ShieldAlert } from "lucide-react";
 import { getUserCopy } from "@/lib/api/error-codes";
 import { RequestIdBanner } from "@/features/admin/components/RequestIdBanner";
 import { TypedConfirmDialog } from "@/features/admin/components/TypedConfirmDialog";
-import { useAuth } from "@/features/auth/hooks/use-auth";
+import { useAuthSession } from "@/features/auth/hooks/use-auth-session";
 
 import { useRevokeUserRole } from "../hooks/useRevokeUserRole";
 import { SelfRoleRevokeForbiddenNotice } from "./SelfRoleRevokeForbiddenNotice";
@@ -53,8 +53,7 @@ export function RevokeRoleDialog({
   const [showTypedConfirm, setShowTypedConfirm] = useState(false);
 
   const { revoke, isPending, error, reset } = useRevokeUserRole();
-  const auth = useAuth();
-  const currentUserId = auth?.currentUser?.userId ?? null;
+  const { currentUserId } = useAuthSession();
 
   const isSelfRevoke = currentUserId !== null && userId === currentUserId;
 

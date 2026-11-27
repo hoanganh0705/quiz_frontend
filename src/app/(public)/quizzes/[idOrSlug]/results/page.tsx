@@ -1,5 +1,7 @@
-import { AttemptResultPage } from "@/features/attempts/components/AttemptResultPage";
-import { QuizResultsClientFallback } from "./_components/QuizResultsClientFallback";
+import {
+  AttemptResultView,
+  QuizResultsClientFallback,
+} from "@/features/attempts";
 
 export default async function QuizResultsPage({
   params,
@@ -16,7 +18,7 @@ export default async function QuizResultsPage({
     : rawAttemptId;
 
   if (attemptId) {
-    return <AttemptResultPage attemptId={attemptId} />;
+    return <AttemptResultView mode="result" attemptId={attemptId} />;
   }
 
   return <QuizResultsClientFallback idOrSlug={idOrSlug} />;

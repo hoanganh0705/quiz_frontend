@@ -15,7 +15,7 @@ import {
   isDeletionErrorCode,
   isDeletionRecoverableStatus,
   type DeletionErrorCode,
-} from "../deletion-error-codes";
+} from "../auth-error-codes";
 
 describe("deletion-error-codes — string identity", () => {
   it("AUTH_INVALID_CURRENT_PASSWORD matches the documented literal", () => {

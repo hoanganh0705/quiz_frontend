@@ -1,35 +1,35 @@
 "use client";
 
-import { useCallback, useEffect, useMemo } from "react";
-import Image from "next/image";
+import { useCallback, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useForm, Controller } from "react-hook-form";
+
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Eye, EyeOff } from "lucide-react";
-import { useToggle } from "@/shared/hooks";
+import { Controller, useForm } from "react-hook-form";
 
-import { Button } from "@/components/ui/Button";
-import { Input } from "@/components/ui/Input";
-import { Label } from "@/components/ui/Label";
-import { Checkbox } from "@/components/ui/Checkbox";
+import { LEGAL_ROUTES, LOGIN_ROUTE } from "@/shared/config/routes";
 
-import { getPasswordStrength } from "@/features/auth/utils/password-strength";
-import { SignupAvailabilityStrip } from "@/features/auth/forms/signup-availability-strip";
-import {
-  registerSchema,
-  type RegisterFormValues,
-} from "@/features/auth/forms/schemas/register.schema";
-import { useRegistrationSubmit } from "@/features/auth/forms/use-registration-submit";
+import { AuthSplitLayout } from "@/features/auth/components/auth-split-layout";
+import { PasswordInput } from "@/features/auth/components/password-input";
+import { PasswordStrengthMeter } from "@/features/auth/components/password-strength-meter";
 import {
   COPY_KEYS,
   registrationCopy,
   resolveCopy,
 } from "@/features/auth/copy/registration-copy";
+import {
+  registerSchema,
+  type RegisterFormValues,
+} from "@/features/auth/forms/schemas/register.schema";
+import { SignupAvailabilityStrip } from "@/features/auth/forms/signup-availability-strip";
+import { useRegistrationSubmit } from "@/features/auth/forms/use-registration-submit";
+
+import { Button } from "@/components/ui/Button";
+import { Checkbox } from "@/components/ui/Checkbox";
+import { Input } from "@/components/ui/Input";
+import { Label } from "@/components/ui/Label";
 
 export function RegistrationFormBody() {
-  const [showPassword, toggleShowPassword] = useToggle(false);
-  const [showConfirmPassword, toggleShowConfirmPassword] = useToggle(false);
   const router = useRouter();
   const { state, start, reset } = useRegistrationSubmit();
 
@@ -56,11 +56,6 @@ export function RegistrationFormBody() {
   const passwordValue = watch("password");
   const emailValue = watch("email");
   const usernameValue = watch("username");
-
-  const passwordStrength = useMemo(
-    () => getPasswordStrength(passwordValue ?? ""),
-    [passwordValue],
-  );
 
   useEffect(() => {
     if (state.status === "success") {
@@ -116,42 +111,25 @@ export function RegistrationFormBody() {
   })();
 
   return (
-    <main className="min-h-screen flex bg-background">
-      {/* Left Side - Visual */}
-      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden p-2">
-        <div className="relative w-full h-full rounded-2xl overflow-hidden">
-          <Image
-            src="/login.jpg"
-            alt="QuizHub signup - Join our community of quiz enthusiasts"
-            fill
-            className="object-cover"
-            priority
-          />
-        </div>
-      </div>
-
-      {/* Right Side - Signup Form */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center px-8 py-12">
-        <div className="w-full max-w-md space-y-10">
-          {/* Mobile Logo */}
-          <div className="lg:hidden flex items-center justify-center gap-3">
-            <h1 className="text-2xl font-bold text-foreground">QuizHub</h1>
-          </div>
-
-          {/* Header */}
-          <div className="space-y-10">
-            <h2 className="text-3xl font-bold text-foreground">
-              Create your account
-            </h2>
-            <p className="text-sm text-muted-foreground">
-              Already have an account?{" "}
-              <Link
-                href="/login"
-                className="text-foreground hover:text-muted-foreground font-semibold transition-colors underline"
-              >
-                Sign in
-              </Link>
-            </p>
+    <AuthSplitLayout
+      imageAlt="QuizHub signup - Join our community of quiz enthusiasts"
+      asideLabel="Signup background"
+      contentClassName="space-y-10"
+    >
+      {/* Header */}
+      <div className="space-y-10">
+        <h2 className="text-3xl font-bold text-foreground">
+          Create your account
+        </h2>
+        <p className="text-sm text-muted-foreground">
+          Already have an account?{" "}
+          <Link
+            href={LOGIN_ROUTE}
+            className="text-foreground hover:text-muted-foreground font-semibold transition-colors underline"
+          >
+            Sign in
+          </Link>
+        </p>
             <p className="text-xs text-muted-foreground">
               After signing up, we will email you a verification link.{" "}
               <Link
@@ -224,59 +202,20 @@ export function RegistrationFormBody() {
                 <Label htmlFor="password">
                   {resolveCopy(COPY_KEYS.form.password.label)}
                 </Label>
-                <div className="relative">
-                  <Input
-                    id="password"
-                    type={showPassword ? "text" : "password"}
-                    placeholder={resolveCopy(
-                      COPY_KEYS.form.password.placeholder,
-                    )}
-                    autoComplete="new-password"
-                    {...register("password")}
-                    className="h-12 pr-12 text-primary"
-                    aria-invalid={!!errors.password}
-                  />
-                  <button
-                    type="button"
-                    onClick={toggleShowPassword}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                    aria-label={
-                      showPassword ? "Hide password" : "Show password"
-                    }
-                  >
-                    {showPassword ? (
-                      <EyeOff className="w-5 h-5" aria-hidden="true" />
-                    ) : (
-                      <Eye className="w-5 h-5" aria-hidden="true" />
-                    )}
-                  </button>
-                </div>
-                {passwordValue && (
-                  <div className="space-y-2" aria-live="polite">
-                    <div
-                      className="grid grid-cols-4 gap-1"
-                      role="progressbar"
-                      aria-label="Password strength"
-                      aria-valuemin={0}
-                      aria-valuemax={4}
-                      aria-valuenow={passwordStrength.score}
-                    >
-                      {Array.from({ length: 4 }).map((_, index) => (
-                        <div
-                          key={index}
-                          className={`h-1.5 rounded-full ${
-                            index < passwordStrength.score
-                              ? "bg-brand"
-                              : "bg-muted"
-                          }`}
-                        />
-                      ))}
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      Strength: {passwordStrength.label}
-                    </p>
-                  </div>
-                )}
+                <PasswordInput
+                  id="password"
+                  placeholder={resolveCopy(
+                    COPY_KEYS.form.password.placeholder,
+                  )}
+                  autoComplete="new-password"
+                  {...register("password")}
+                  className="h-12 pr-12 text-primary"
+                  toggleClassName="right-4"
+                  aria-invalid={!!errors.password}
+                />
+                {passwordValue ? (
+                  <PasswordStrengthMeter password={passwordValue} />
+                ) : null}
                 {errors.password && (
                   <p className="text-xs text-destructive">
                     {errors.password.message}
@@ -289,33 +228,17 @@ export function RegistrationFormBody() {
                 <Label htmlFor="passwordConfirmation">
                   {resolveCopy(COPY_KEYS.form.passwordConfirmation.label)}
                 </Label>
-                <div className="relative">
-                  <Input
-                    id="passwordConfirmation"
-                    type={showConfirmPassword ? "text" : "password"}
-                    placeholder={resolveCopy(
-                      COPY_KEYS.form.passwordConfirmation.placeholder,
-                    )}
-                    autoComplete="new-password"
-                    {...register("passwordConfirmation")}
-                    className="h-12 pr-12 text-primary"
-                    aria-invalid={!!errors.passwordConfirmation}
-                  />
-                  <button
-                    type="button"
-                    onClick={toggleShowConfirmPassword}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                    aria-label={
-                      showConfirmPassword ? "Hide password" : "Show password"
-                    }
-                  >
-                    {showConfirmPassword ? (
-                      <EyeOff className="w-5 h-5" aria-hidden="true" />
-                    ) : (
-                      <Eye className="w-5 h-5" aria-hidden="true" />
-                    )}
-                  </button>
-                </div>
+                <PasswordInput
+                  id="passwordConfirmation"
+                  placeholder={resolveCopy(
+                    COPY_KEYS.form.passwordConfirmation.placeholder,
+                  )}
+                  autoComplete="new-password"
+                  {...register("passwordConfirmation")}
+                  className="h-12 pr-12 text-primary"
+                  toggleClassName="right-4"
+                  aria-invalid={!!errors.passwordConfirmation}
+                />
                 {errors.passwordConfirmation && (
                   <p className="text-xs text-destructive">
                     {errors.passwordConfirmation.message}
@@ -344,14 +267,14 @@ export function RegistrationFormBody() {
                   >
                     I agree to the{" "}
                     <Link
-                      href="/terms"
+                      href={LEGAL_ROUTES.terms}
                       className="text-foreground hover:text-muted-foreground transition-colors underline"
                     >
                       Terms of Service
                     </Link>{" "}
                     and{" "}
                     <Link
-                      href="/privacy"
+                      href={LEGAL_ROUTES.privacy}
                       className="text-foreground hover:text-muted-foreground transition-colors underline"
                     >
                       Privacy Policy
@@ -414,8 +337,6 @@ export function RegistrationFormBody() {
               />
             </div>
           </div>
-        </div>
-      </div>
-    </main>
+    </AuthSplitLayout>
   );
 }

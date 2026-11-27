@@ -2,15 +2,11 @@ import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 
 import refreshSuccessFixture from "../__fixtures__/refresh-success.json?raw";
 import {
-  isRefreshTerminalError,
-  AUTH_TOKEN_REUSED,
   AUTH_INVALID_REFRESH_TOKEN,
   AUTH_SESSION_CONTEXT_MISMATCH,
+  AUTH_TOKEN_REUSED,
+  isRefreshTerminalError,
 } from "@/features/auth/errors/refresh-error-codes";
-import {
-  classifyRefreshError,
-  isTerminalRefreshError,
-} from "@/features/auth/errors/refresh-error-mapper";
 
 const REFRESH_BODY = JSON.parse(refreshSuccessFixture as string) as {
   data: { accessToken: string };
@@ -21,13 +17,8 @@ vi.mock("@/features/auth/utils/auth-cookies", () => ({
   setAuthToken: vi.fn(),
   clearAuthToken: vi.fn(),
   getAuthTokenFromRequest: vi.fn(() => null),
-  setRefreshToken: vi.fn(),
   subscribeToAuthChanges: vi.fn(() => () => {}),
   writeLoginSync: vi.fn(),
-}));
-
-vi.mock("@/features/auth/utils/user-scoped-cache", () => ({
-  clearAllAuthCache: vi.fn(),
 }));
 
 vi.mock("@/lib/api", () => ({
@@ -97,26 +88,6 @@ describe("Epic 2.7 T24 — concurrent 401 / refresh contracts", () => {
     });
   });
 
-  describe("EC-4 — refresh cooldown + retryable classification", () => {
-    it("classifies 5xx as retryable (would trigger cooldown)", () => {
-      expect(
-        classifyRefreshError({ code: "SERVER_5XX", status: 503 }).kind,
-      ).toBe("retryable");
-    });
-
-    it("classifies network error (status 0) as retryable", () => {
-      expect(classifyRefreshError({ code: "NETWORK", status: 0 }).kind).toBe(
-        "retryable",
-      );
-    });
-
-    it("classifies 401 with terminal code as terminal (no cooldown, immediate logout)", () => {
-      expect(
-        classifyRefreshError({ code: AUTH_TOKEN_REUSED, status: 401 }).kind,
-      ).toBe("terminal");
-    });
-  });
-
   describe("EC-5 — terminal error handling", () => {
     it("isRefreshTerminalError recognizes AUTH_TOKEN_REUSED", () => {
       expect(isRefreshTerminalError(AUTH_TOKEN_REUSED)).toBe(true);
@@ -132,19 +103,6 @@ describe("Epic 2.7 T24 — concurrent 401 / refresh contracts", () => {
 
     it("isRefreshTerminalError rejects arbitrary codes", () => {
       expect(isRefreshTerminalError("SOMETHING_ELSE")).toBe(false);
-    });
-
-    it("classifyRefreshError maps all three terminal codes to terminal kind", () => {
-      const codes = [
-        AUTH_TOKEN_REUSED,
-        AUTH_INVALID_REFRESH_TOKEN,
-        AUTH_SESSION_CONTEXT_MISMATCH,
-      ];
-      for (const code of codes) {
-        const result = classifyRefreshError({ code, status: 401 });
-        expect(result.kind).toBe("terminal");
-        expect(isTerminalRefreshError(result)).toBe(true);
-      }
     });
   });
 

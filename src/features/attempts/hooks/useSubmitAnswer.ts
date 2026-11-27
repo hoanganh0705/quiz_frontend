@@ -1,24 +1,23 @@
 "use client";
 
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { getQueryClient } from "@/providers/QueryProvider";
 
 import { ApiError, isApiError } from "@/lib/api";
+import { unwrapEnvelope as inspectEnvelope } from "@/lib/api/core/unwrap";
 
+import { ATTEMPT_KEYS } from "@/features/attempts/query-keys";
 import { submitAnswer } from "@/features/attempts/services/attempts.service";
 import { validateAndBuildSubmitPayload } from "@/features/attempts/lib/attempt-answer-validation";
-import { useAuthSession } from "@/features/auth/hooks/use-auth-session";
-import {
-  ATTEMPT_CACHE_KEYS,
-  type AnswerSelection,
-  type AttemptRunnerStatus,
-} from "@/features/attempts/types/attempt-runner.types";
+import { useAuthSessionId } from "@/features/auth/hooks/use-auth-session-id";
 import {
   beginSubmit,
   recordMutationFailure,
   recordSubmitSuccess,
 } from "@/features/attempts/stores/useAttemptsStore";
 import { broadcastAttemptsChanged } from "@/lib/api/core/attempts-broadcast-channel";
+
+import type { AnswerSelection } from "@/features/attempts/types/attempt-runner.types";
 
 import type { QuizQuestionPlayerDto } from "@/lib/api/generated/schemas";
 
@@ -65,16 +64,7 @@ export function useSubmitAnswer(
 ): UseSubmitAnswerResult {
   const { attemptId, quizVersionId } = params;
 
-  const { bootstrapState, currentUser } = useAuthSession();
-
-  const sessionId = useMemo<string | null>(() => {
-    if (bootstrapState !== "authenticated") return null;
-    if (!currentUser) return null;
-    const id =
-      (currentUser as { id?: string; userId?: string }).id ??
-      (currentUser as { userId?: string }).userId;
-    return id ?? null;
-  }, [bootstrapState, currentUser]);
+  const sessionId = useAuthSessionId();
 
   const [outcome, setOutcome] = useState<SubmitAnswerOutcome | null>(null);
   const [error, setError] = useState<ApiError | null>(null);
@@ -83,6 +73,14 @@ export function useSubmitAnswer(
 
   const lastInvocationByQuestionRef = useRef<Record<string, number>>({});
   const cooldownTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (cooldownTimerRef.current !== null) {
+        clearTimeout(cooldownTimerRef.current);
+      }
+    };
+  }, []);
 
   const reset = useCallback(() => {
     setOutcome(null);
@@ -140,24 +138,22 @@ export function useSubmitAnswer(
       beginSubmit(attemptId, quizVersionId, sessionId, DEFAULT_COOLDOWN_MS);
 
       try {
-        const wire = (await submitAnswer(
-          attemptId,
-          validation.payload,
-        )) as unknown as {
-          data?: {
-            questionId?: string;
-            selectedOptionId?: string | null;
-            answeredAt?: string;
-            submittedAt?: string;
-          };
-        };
+        const wire = await submitAnswer(attemptId, validation.payload);
+        const unwrapped = inspectEnvelope<{
+          questionId?: string;
+          selectedOptionId?: string | null;
+          answeredAt?: string;
+          submittedAt?: string;
+        }>(wire);
+        const payloadData =
+          unwrapped.kind === "envelope" ? unwrapped.value : null;
         const submittedAt =
-          wire?.data?.answeredAt ??
-          wire?.data?.submittedAt ??
+          payloadData?.answeredAt ??
+          payloadData?.submittedAt ??
           new Date().toISOString();
-        const questionId = wire?.data?.questionId ?? selection.questionId;
+        const questionId = payloadData?.questionId ?? selection.questionId;
         const selectedOptionId =
-          wire?.data?.selectedOptionId ??
+          payloadData?.selectedOptionId ??
           validation.payload.selectedOptionId ??
           null;
 
@@ -170,7 +166,7 @@ export function useSubmitAnswer(
         try {
           const qc = getQueryClient();
           void qc.invalidateQueries({
-            queryKey: ATTEMPT_CACHE_KEYS.answers(attemptId, sessionId),
+            queryKey: ATTEMPT_KEYS.answers(attemptId, sessionId),
           });
         } catch {}
 
@@ -204,7 +200,7 @@ export function useSubmitAnswer(
           try {
             const qc = getQueryClient();
             void qc.invalidateQueries({
-              queryKey: ATTEMPT_CACHE_KEYS.answers(attemptId, sessionId),
+              queryKey: ATTEMPT_KEYS.answers(attemptId, sessionId),
             });
           } catch {}
           recordMutationFailure(
@@ -300,8 +296,6 @@ export function useSubmitAnswer(
     },
     [sessionId, attemptId, quizVersionId],
   );
-
-  void ({} as AttemptRunnerStatus);
 
   return {
     isPending,

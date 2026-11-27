@@ -4,7 +4,7 @@ import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
 import { buildHydrationLockMap } from "@/features/attempts/hooks/useAttemptHydration";
-import { ATTEMPT_CACHE_KEYS } from "@/features/attempts/types/attempt-runner.types";
+import { ATTEMPT_KEYS } from "@/features/attempts/query-keys";
 import type { AttemptAnswerItemDto } from "@/lib/api/generated/schemas";
 
 const HOOKS_DIR = resolve(process.cwd(), "src/features/attempts/hooks");
@@ -67,7 +67,7 @@ describe("attempt-reads — player-DTO invariant under the lock-map projector", 
 
 describe("attempt-reads — cache key factories", () => {
   it("active key is scoped by session and quiz", () => {
-    expect(ATTEMPT_CACHE_KEYS.active("quiz-1", "user-1")).toEqual([
+    expect(ATTEMPT_KEYS.active("quiz-1", "user-1")).toEqual([
       "attempts",
       "active",
       "user-1",
@@ -76,7 +76,7 @@ describe("attempt-reads — cache key factories", () => {
   });
 
   it("detail key is scoped by session and attempt", () => {
-    expect(ATTEMPT_CACHE_KEYS.detail("attempt-1", "user-1")).toEqual([
+    expect(ATTEMPT_KEYS.detail("attempt-1", "user-1")).toEqual([
       "attempts",
       "detail",
       "user-1",
@@ -85,7 +85,7 @@ describe("attempt-reads — cache key factories", () => {
   });
 
   it("answers key is scoped by session and attempt", () => {
-    expect(ATTEMPT_CACHE_KEYS.answers("attempt-1", "user-1")).toEqual([
+    expect(ATTEMPT_KEYS.answers("attempt-1", "user-1")).toEqual([
       "attempts",
       "answers",
       "user-1",
@@ -94,19 +94,19 @@ describe("attempt-reads — cache key factories", () => {
   });
 
   it("same inputs produce equal keys (deterministic)", () => {
-    const a = ATTEMPT_CACHE_KEYS.active("quiz-1", "user-1");
-    const b = ATTEMPT_CACHE_KEYS.active("quiz-1", "user-1");
+    const a = ATTEMPT_KEYS.active("quiz-1", "user-1");
+    const b = ATTEMPT_KEYS.active("quiz-1", "user-1");
     expect(a).toEqual(b);
 
     expect(a).not.toBe(b);
   });
 
   it("different inputs produce distinct keys", () => {
-    expect(ATTEMPT_CACHE_KEYS.active("quiz-1", "user-1")).not.toEqual(
-      ATTEMPT_CACHE_KEYS.active("quiz-2", "user-1"),
+    expect(ATTEMPT_KEYS.active("quiz-1", "user-1")).not.toEqual(
+      ATTEMPT_KEYS.active("quiz-2", "user-1"),
     );
-    expect(ATTEMPT_CACHE_KEYS.detail("attempt-1", "user-1")).not.toEqual(
-      ATTEMPT_CACHE_KEYS.detail("attempt-1", "user-2"),
+    expect(ATTEMPT_KEYS.detail("attempt-1", "user-1")).not.toEqual(
+      ATTEMPT_KEYS.detail("attempt-1", "user-2"),
     );
   });
 });

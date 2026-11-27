@@ -13,7 +13,7 @@ export const metadata = buildMetadata({
 
 export default function InstancesRoute(): React.ReactElement {
   return (
-    <main className="mx-auto max-w-7xl min-h-screen text-foreground px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
+    <main className="min-h-screen w-full text-foreground p-4 md:p-8 lg:p-12">
       <Suspense fallback={<RouteGateSkeleton />}>
         <InstancesPage />
       </Suspense>

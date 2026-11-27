@@ -20,14 +20,6 @@ export function OutgoingRequestsListPage({}: OutgoingRequestsListPageProps): Rea
 
   const [openCancelForId, setOpenCancelForId] = useState<string | null>(null);
 
-  if (false) {
-    return (
-      <div data-testid="outgoing-requests-page-placeholder" className="p-6">
-        <FriendRequestEmptyState kind="outgoing" />
-      </div>
-    );
-  }
-
   if (isLoading && requests.length === 0) {
     return (
       <div data-testid="outgoing-requests-page-loading" className="p-2">
@@ -71,34 +63,38 @@ export function OutgoingRequestsListPage({}: OutgoingRequestsListPageProps): Rea
         </p>
       </header>
       <ul role="list" className="flex flex-col gap-1">
-        {requests.map((request) => (
-          <li key={request.id}>
-            <FriendRequestItem request={request}>
-              {(ctx) => (
-                <>
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="outline"
-                    onClick={() => setOpenCancelForId(ctx.friendshipId)}
-                    data-testid="outgoing-requests-cancel"
-                    aria-label={`Cancel request to ${request.requester.userName}`}
-                  >
-                    Cancel
-                  </Button>
-                  <FriendRequestCancelDialog
-                    open={openCancelForId === ctx.friendshipId}
-                    onOpenChange={(nextOpen) => {
-                      if (!nextOpen) setOpenCancelForId(null);
-                    }}
-                    friendshipId={ctx.friendshipId}
-                    targetUserId={ctx.targetUserId}
-                  />
-                </>
-              )}
-            </FriendRequestItem>
-          </li>
-        ))}
+        {requests.map((request) => {
+          const recipientLabel =
+            request.addressee?.userName || request.addresseeId;
+          return (
+            <li key={request.id}>
+              <FriendRequestItem request={request} direction="outgoing">
+                {(ctx) => (
+                  <>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      onClick={() => setOpenCancelForId(ctx.friendshipId)}
+                      data-testid="outgoing-requests-cancel"
+                      aria-label={`Cancel request to ${recipientLabel}`}
+                    >
+                      Cancel
+                    </Button>
+                    <FriendRequestCancelDialog
+                      open={openCancelForId === ctx.friendshipId}
+                      onOpenChange={(nextOpen) => {
+                        if (!nextOpen) setOpenCancelForId(null);
+                      }}
+                      friendshipId={ctx.friendshipId}
+                      targetUserId={ctx.targetUserId}
+                    />
+                  </>
+                )}
+              </FriendRequestItem>
+            </li>
+          );
+        })}
       </ul>
     </div>
   );

@@ -64,7 +64,6 @@ describe("AttemptRunner — integration: feature barrel", () => {
       "AttemptHeader",
       "AttemptQuestionCard",
       "AttemptAnswerPicker",
-      "AttemptProgressBar",
       "AttemptAbandonDialog",
     ]) {
       expect(barrel).toContain(name);

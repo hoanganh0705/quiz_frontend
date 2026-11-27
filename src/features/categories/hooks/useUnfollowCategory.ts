@@ -3,7 +3,8 @@
 import { useCallback } from "react";
 
 import { type OptimisticToggleError, useOptimisticToggle } from "@/lib/api";
-import { followedCategoriesKey } from "@/features/tags/hooks/useFollowedLookup";
+
+import { CATEGORY_KEYS } from "@/features/categories/query-keys";
 import { unfollowCategory } from "@/features/categories/services/categories.service";
 
 export interface UseUnfollowCategoryResult {
@@ -24,7 +25,7 @@ export function useUnfollowCategory(
   id: string | null,
 ): UseUnfollowCategoryResult {
   const keysToInvalidate = id
-    ? ([followedCategoriesKey(), ["category", id]] as const)
+    ? ([CATEGORY_KEYS.followed(), CATEGORY_KEYS.details()] as const)
     : [];
 
   const { status, lastError, toggle } = useOptimisticToggle({

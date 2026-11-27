@@ -8,11 +8,6 @@ export {
   type AttemptQuestionCardProps,
 } from "./AttemptQuestionCard";
 
-export {
-  AttemptProgressBar,
-  type AttemptProgressBarProps,
-} from "./AttemptProgressBar";
-
 export { AttemptHeader, type AttemptHeaderProps } from "./AttemptHeader";
 
 export {
@@ -47,19 +42,15 @@ export {
 } from "./AttemptBreakdown";
 
 export {
-  AttemptQuestionFeedback,
-  type AttemptQuestionFeedbackProps,
-} from "./AttemptQuestionFeedback";
-
-export {
   AttemptWriteReviewCta,
   type AttemptWriteReviewCtaProps,
 } from "./AttemptWriteReviewCta";
 
 export {
-  AttemptResultPage,
-  type AttemptResultPageProps,
-} from "./AttemptResultPage";
+  AttemptResultView,
+  type AttemptResultViewMode,
+  type AttemptResultViewProps,
+} from "../pages/AttemptResultView";
 
 export { QuizHistoryRow, type QuizHistoryRowProps } from "./QuizHistoryRow";
 
@@ -71,8 +62,3 @@ export {
 export { QuizHistoryList, type QuizHistoryListProps } from "./QuizHistoryList";
 
 export { QuizHistoryPage, type QuizHistoryPageProps } from "./QuizHistoryPage";
-
-export {
-  AttemptDetailPage,
-  type AttemptDetailPageProps,
-} from "./AttemptDetailPage";

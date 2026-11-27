@@ -179,23 +179,27 @@ describe("LeaderboardPage — period switch", () => {
   });
 });
 
-describe("LeaderboardPage — podium", () => {
-  it("renders the top-3 entries in a podium layout", () => {
+describe("LeaderboardPage — unified #1–#N standings", () => {
+  it("renders all entries from #1 onward in a single sorted standings list", () => {
     setHookReturn({
       entries: [
+        makeEntry({ userId: "u-2", rank: 2, denseRank: 2, displayName: "Bob", xp: 900 }),
         makeEntry({
           userId: "u-1",
           rank: 1,
           denseRank: 1,
           displayName: "Alice",
+          xp: 1200,
         }),
-        makeEntry({ userId: "u-2", rank: 2, denseRank: 2, displayName: "Bob" }),
         makeEntry({
           userId: "u-3",
           rank: 3,
           denseRank: 3,
           displayName: "Carol",
+          xp: 750,
         }),
+        makeEntry({ userId: "u-4", rank: 4, denseRank: 4, displayName: "Dave", xp: 500 }),
+        makeEntry({ userId: "u-5", rank: 5, denseRank: 5, displayName: "Eve", xp: 400 }),
       ],
     });
     render(
@@ -204,16 +208,24 @@ describe("LeaderboardPage — podium", () => {
       </TestQueryProvider>,
     );
 
-    const podium = screen.getByTestId("leaderboard-podium");
-    expect(podium).toBeInTheDocument();
-    expect(podium).toHaveAccessibleName(/top 3 leaderboard entries/i);
+    expect(screen.queryByTestId("leaderboard-podium")).toBeNull();
+    const rows = screen.getByTestId("leaderboard-rows");
+    expect(rows).toBeInTheDocument();
 
-    expect(screen.getByText("Alice")).toBeInTheDocument();
-    expect(screen.getByText("Bob")).toBeInTheDocument();
-    expect(screen.getByText("Carol")).toBeInTheDocument();
+    const listItems = Array.from(rows.querySelectorAll("li"));
+    expect(listItems).toHaveLength(5);
+    expect(listItems[0]).toHaveAttribute("data-leaderboard-row", "u-1");
+    expect(listItems[1]).toHaveAttribute("data-leaderboard-row", "u-2");
+    expect(listItems[2]).toHaveAttribute("data-leaderboard-row", "u-3");
+    expect(listItems[3]).toHaveAttribute("data-leaderboard-row", "u-4");
+    expect(listItems[4]).toHaveAttribute("data-leaderboard-row", "u-5");
+
+    expect(screen.getByText("100% pace")).toBeInTheDocument();
+    expect(screen.getByText("-300 XP")).toBeInTheDocument();
+    expect(screen.getByText("-450 XP")).toBeInTheDocument();
   });
 
-  it("does NOT render the podium when there are zero entries", () => {
+  it("does NOT render the rows list when there are zero entries", () => {
     setHookReturn({
       entries: [],
     });
@@ -223,10 +235,10 @@ describe("LeaderboardPage — podium", () => {
       </TestQueryProvider>,
     );
 
-    expect(screen.queryByTestId("leaderboard-podium")).toBeNull();
+    expect(screen.queryByTestId("leaderboard-rows")).toBeNull();
   });
 
-  it("renders the podium with a single entry (1st place only) when only one entry is present", () => {
+  it("renders a single-entry standings table cleanly", () => {
     setHookReturn({
       entries: [makeEntry({ userId: "u-1", rank: 1, displayName: "Solo" })],
     });
@@ -236,21 +248,22 @@ describe("LeaderboardPage — podium", () => {
       </TestQueryProvider>,
     );
 
-    expect(screen.getByTestId("leaderboard-podium")).toBeInTheDocument();
+    expect(screen.getByTestId("leaderboard-rows")).toBeInTheDocument();
+    expect(screen.getByText("Solo")).toBeInTheDocument();
   });
 
-  it("renders the podium even when rank is returned as a string from the backend", () => {
+  it("sorts and renders entries even when rank is returned as a string from the backend", () => {
     setHookReturn({
       entries: [
-        makeEntry({
-          userId: "u-1",
-          rank: "1" as unknown as number,
-          displayName: "Alice",
-        }),
         makeEntry({
           userId: "u-2",
           rank: "2" as unknown as number,
           displayName: "Bob",
+        }),
+        makeEntry({
+          userId: "u-1",
+          rank: "1" as unknown as number,
+          displayName: "Alice",
         }),
         makeEntry({
           userId: "u-3",
@@ -265,37 +278,11 @@ describe("LeaderboardPage — podium", () => {
       </TestQueryProvider>,
     );
 
-    const podium = screen.getByTestId("leaderboard-podium");
-    expect(podium).toBeInTheDocument();
-    expect(screen.getByText("Alice")).toBeInTheDocument();
-    expect(screen.getByText("Bob")).toBeInTheDocument();
-    expect(screen.getByText("Carol")).toBeInTheDocument();
-  });
-});
-
-describe("LeaderboardPage — entries 4+", () => {
-  it("renders entries 4+ in the row container with `LeaderboardEntryRow`", () => {
-    setHookReturn({
-      entries: [
-        makeEntry({ userId: "u-1", rank: 1, displayName: "Alice" }),
-        makeEntry({ userId: "u-2", rank: 2, displayName: "Bob" }),
-        makeEntry({ userId: "u-3", rank: 3, displayName: "Carol" }),
-        makeEntry({ userId: "u-4", rank: 4, displayName: "Dave" }),
-        makeEntry({ userId: "u-5", rank: 5, displayName: "Eve" }),
-      ],
-    });
-    render(
-      <TestQueryProvider>
-        <LeaderboardPage />
-      </TestQueryProvider>,
-    );
-
     const rows = screen.getByTestId("leaderboard-rows");
-    expect(rows).toBeInTheDocument();
-
-    expect(rows.querySelector('[data-leaderboard-row="u-4"]')).not.toBeNull();
-    expect(rows.querySelector('[data-leaderboard-row="u-5"]')).not.toBeNull();
-    expect(rows.querySelector('[data-leaderboard-row="u-1"]')).toBeNull();
+    const listItems = Array.from(rows.querySelectorAll("li"));
+    expect(listItems[0]).toHaveAttribute("data-leaderboard-row", "u-1");
+    expect(listItems[1]).toHaveAttribute("data-leaderboard-row", "u-2");
+    expect(listItems[2]).toHaveAttribute("data-leaderboard-row", "u-3");
   });
 });
 

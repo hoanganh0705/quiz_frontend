@@ -1,9 +1,3 @@
-export {
-  useDebouncedValue,
-  DEFAULT_SEARCH_DEBOUNCE_MS,
-  SEARCH_INPUT_DEBOUNCE_MS,
-} from "./useDebouncedValue";
-
 export { useSearch } from "./useSearch";
 export type { UseSearchResult } from "./useSearch";
 

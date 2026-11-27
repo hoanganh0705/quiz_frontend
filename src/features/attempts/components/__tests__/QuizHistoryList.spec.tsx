@@ -104,8 +104,6 @@ describe("QuizHistoryList — loading skeleton", () => {
         filters={{ status: "all", dateRange: "all", search: "", cursor: null }}
       />,
     );
-    const skeletons = screen.getAllByTestId("quiz-history-list-skeleton");
-
     expect(
       screen.getByTestId("quiz-history-list-skeleton"),
     ).toBeInTheDocument();
@@ -114,11 +112,15 @@ describe("QuizHistoryList — loading skeleton", () => {
       .getByTestId("quiz-history-list-skeleton")
       .querySelectorAll('[class*="h-16"]');
     expect(items.length).toBe(10);
+    expect(
+      screen.getByTestId("quiz-history-list-skeleton").querySelectorAll("li")
+        .length,
+    ).toBe(10);
   });
 });
 
 describe("QuizHistoryList — empty state", () => {
-  it("renders the empty-state CTA when items are empty", () => {
+  it("renders the empty-state CTA with an h2 heading when items are empty", () => {
     mockEmpty();
     render(
       <QuizHistoryList
@@ -126,7 +128,30 @@ describe("QuizHistoryList — empty state", () => {
       />,
     );
     expect(screen.getByTestId("quiz-history-list-empty")).toBeInTheDocument();
-    expect(screen.getByText("No attempts yet")).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { level: 2, name: "No attempts yet" }),
+    ).toBeInTheDocument();
+  });
+
+  it("renders a filtered empty state with Reset filters CTA when filters are active", () => {
+    mockEmpty();
+    const onResetFilters = vi.fn();
+    render(
+      <QuizHistoryList
+        filters={{
+          status: "abandoned",
+          dateRange: "all",
+          search: "",
+          cursor: null,
+        }}
+        onResetFilters={onResetFilters}
+      />,
+    );
+    expect(
+      screen.getByRole("heading", { level: 2, name: "No matching attempts" }),
+    ).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Reset filters" }));
+    expect(onResetFilters).toHaveBeenCalledTimes(1);
   });
 
   it("renders a link to /quizzes in the empty state", () => {
@@ -252,6 +277,9 @@ describe("QuizHistoryList — error retry", () => {
     expect(
       screen.queryByTestId("quiz-history-list-error"),
     ).not.toBeInTheDocument();
+    expect(
+      screen.getByTestId("quiz-history-list-load-more-error"),
+    ).toHaveAttribute("role", "alert");
   });
 
   it("calls refresh when the retry button is clicked", async () => {

@@ -75,7 +75,7 @@ describe("DailyChallengeCard — render", () => {
       />,
     );
     const link = screen.getByTestId("daily-challenge-card-signin");
-    expect(link).toHaveAttribute("href", "/login?next=/daily-challenge");
+    expect(link).toHaveAttribute("href", "/login?redirect=/daily-challenge");
     expect(link).toHaveTextContent(/Sign in to play/);
   });
 

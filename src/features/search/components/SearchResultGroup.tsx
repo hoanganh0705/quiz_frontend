@@ -4,15 +4,19 @@ import * as React from "react";
 import Link from "next/link";
 
 import { Lock, LogIn } from "lucide-react";
+
 import { Button } from "@/components/ui/Button";
+
+import { LOGIN_ROUTE } from "@/shared/config/routes";
 import { cn } from "@/shared/utils/merge-class-names";
 
+import { SearchEmptyState } from "@/shared/ui/search";
+
 import type {
+  BaseSearchResult,
   SearchGroup,
   SearchResultKind,
-  BaseSearchResult,
 } from "@/features/search/types/search.types";
-import { SearchEmptyState } from "./shared/SearchEmptyState";
 
 const KIND_LABELS: Record<SearchResultKind, string> = {
   quiz: "Quizzes",
@@ -103,7 +107,7 @@ export function SearchResultGroup<T extends BaseSearchResult>({
               Sign in to see {label.toLowerCase()} results.
             </p>
             <Button asChild variant="outline" size="sm">
-              <Link href="/sign-in">
+              <Link href={LOGIN_ROUTE}>
                 <LogIn className="h-4 w-4 mr-1.5" aria-hidden="true" />
                 Sign in
               </Link>

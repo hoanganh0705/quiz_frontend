@@ -1,30 +1,24 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+
 import { Loader2, Pencil, Trash2 } from "lucide-react";
 
-import { Button } from "@/components/ui/Button";
-import { Textarea } from "@/components/ui/Textarea";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/AlertDialog";
-import { Input } from "@/components/ui/Input";
-import { cn } from "@/shared/utils/merge-class-names";
 import { isApiError } from "@/lib/api";
 import { getUserCopy } from "@/lib/api/error-codes";
+import { reviewFormSchema } from "@/lib/forms/presets";
 
 import { StarRatingInput } from "@/features/reviews/components/StarRatingInput";
-import { useEditReview } from "@/features/reviews/hooks/useEditReview";
 import { useDeleteReview } from "@/features/reviews/hooks/useDeleteReview";
+import { useEditReview } from "@/features/reviews/hooks/useEditReview";
+
+import { ConfirmDialog } from "@/components/primitives";
+import { Button } from "@/components/ui/Button";
+import { Textarea } from "@/components/ui/Textarea";
+
+import { cn } from "@/shared/utils/merge-class-names";
+
 import type { MyReviewDto } from "@/features/reviews/types";
-import { reviewFormSchema } from "@/lib/forms/presets";
 
 export interface ReviewEditInlineProps {
   review: MyReviewDto;
@@ -35,14 +29,13 @@ export interface ReviewEditInlineProps {
 
 const MAX_COMMENT_LENGTH = 2000;
 
-const DELETE_TYPED_STRING = "delete";
-
 export function ReviewEditInline({
   review,
   onDeleted,
   className,
 }: ReviewEditInlineProps): React.ReactElement | null {
   const reviewId = review.reviewId;
+  const quizId = review.quizId;
   const initialRating = review.rating;
   const initialComment = review.comment ?? "";
 
@@ -63,7 +56,7 @@ export function ReviewEditInline({
     error: editError,
     lastOutcome: editOutcome,
     reset: resetEdit,
-  } = useEditReview(reviewId);
+  } = useEditReview(quizId);
 
   const {
     remove,
@@ -71,7 +64,7 @@ export function ReviewEditInline({
     error: deleteError,
     lastOutcome: deleteOutcome,
     reset: resetDelete,
-  } = useDeleteReview(reviewId);
+  } = useDeleteReview(quizId);
 
   useEffect(() => {
     const seen = seenRef.current;
@@ -115,31 +108,6 @@ export function ReviewEditInline({
       trimmedDraft.length <= MAX_COMMENT_LENGTH &&
       (draftRating !== initialRating || trimmedDraft !== initialComment);
 
-    const handleSave = async () => {
-      const parsed = reviewFormSchema.safeParse({
-        rating: draftRating,
-        comment: trimmedDraft,
-      });
-      if (!parsed.success) {
-        const errs: { rating?: string; comment?: string } = {};
-        for (const issue of parsed.error.issues) {
-          const p = issue.path[0];
-          if (p === "rating") errs.rating = issue.message;
-          if (p === "comment") errs.comment = issue.message;
-        }
-        setFieldErrors(errs);
-        return;
-      }
-      setFieldErrors({});
-      const ok = await update({
-        rating: parsed.data.rating,
-        comment: parsed.data.comment,
-      });
-      if (ok) {
-        setEditing(false);
-      }
-    };
-
     const editErrorCopy =
       editError && isApiError(editError) ? getUserCopy(editError.code) : null;
     const deleteErrorCopy =
@@ -160,8 +128,9 @@ export function ReviewEditInline({
             <div className="flex flex-col gap-1">
               <p className="text-sm font-medium text-foreground">Your review</p>
               <StarRatingInput
-                value={draftRating}
-                onValueChange={setDraftRating}
+                value={initialRating}
+                onValueChange={() => {}}
+                disabled
                 ariaLabel="Your rating"
               />
             </div>
@@ -248,14 +217,19 @@ export function ReviewEditInline({
           )}
         </div>
 
-        <ReviewDeleteConfirmDialog
+        <ConfirmDialog
           open={confirmOpen}
-          onConfirm={async () => {
-            await remove();
+          kind="destructive-permanent"
+          entityLabel="your review"
+          typedConfirmRequired
+          typedOverride="delete"
+          confirmLabel="Delete"
+          onConfirm={() => {
+            void remove();
           }}
           onCancel={() => setConfirmOpen(false)}
           loading={isDeleting}
-          testId={`review-delete-confirm-${reviewId}`}
+          data-testid={`review-delete-confirm-${reviewId}`}
         />
         {/* Hidden helper used in tests to ensure the inline body
             row has its stable id, even though the UI shows a
@@ -415,109 +389,5 @@ export function ReviewEditInline({
         </Button>
       </div>
     </div>
-  );
-}
-
-interface ReviewDeleteConfirmDialogProps {
-  open: boolean;
-  onConfirm: () => void;
-  onCancel: () => void;
-  loading: boolean;
-  testId: string;
-}
-
-function ReviewDeleteConfirmDialog({
-  open,
-  onConfirm,
-  onCancel,
-  loading,
-  testId,
-}: ReviewDeleteConfirmDialogProps): React.ReactElement {
-  const [typed, setTyped] = useState("");
-  const confirmedRef = useRef(false);
-  const matches = typed.trim() === DELETE_TYPED_STRING;
-
-  useEffect(() => {
-    if (!open) {
-      setTyped("");
-      confirmedRef.current = false;
-    }
-  }, [open]);
-
-  const handleConfirm = () => {
-    if (!matches || loading) return;
-    confirmedRef.current = true;
-    onConfirm();
-  };
-
-  return (
-    <AlertDialog
-      open={open}
-      onOpenChange={(next) => {
-        if (next) return;
-        if (!confirmedRef.current) onCancel();
-      }}
-    >
-      <AlertDialogContent className="sm:max-w-md" data-testid={testId}>
-        <AlertDialogHeader>
-          <AlertDialogTitle data-testid={`${testId}-title`}>
-            Delete your review?
-          </AlertDialogTitle>
-          <AlertDialogDescription data-testid={`${testId}-body`}>
-            This will remove your rating and helpful counts associated with it.
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <div className="flex flex-col gap-2">
-          <label
-            htmlFor={`${testId}-typed-input`}
-            className="text-sm font-medium"
-          >
-            Type <span className="font-mono">{DELETE_TYPED_STRING}</span> to
-            confirm
-          </label>
-          <Input
-            id={`${testId}-typed-input`}
-            data-testid={`${testId}-typed-input`}
-            value={typed}
-            onChange={(e) => setTyped(e.currentTarget.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && matches && !loading) {
-                e.preventDefault();
-                handleConfirm();
-              }
-            }}
-            autoComplete="off"
-            spellCheck={false}
-            autoFocus
-            disabled={loading}
-          />
-        </div>
-        <AlertDialogFooter>
-          <AlertDialogCancel
-            data-testid={`${testId}-cancel`}
-            disabled={loading}
-          >
-            Cancel
-          </AlertDialogCancel>
-          <AlertDialogAction asChild>
-            <Button
-              type="button"
-              disabled={!matches || loading}
-              aria-busy={loading || undefined}
-              onClick={(e) => {
-                if (!matches || loading) {
-                  e.preventDefault();
-                  return;
-                }
-                handleConfirm();
-              }}
-              data-testid={`${testId}-confirm`}
-            >
-              Delete
-            </Button>
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
   );
 }

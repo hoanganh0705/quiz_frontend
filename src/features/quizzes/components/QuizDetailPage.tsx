@@ -2,10 +2,16 @@
 
 import { notFound } from "next/navigation";
 
-import { Button } from "@/components/ui/Button";
-import { useQuizAggregate } from "@/features/quizzes/hooks/useQuizAggregate";
+import {
+  PAGE_CONTAINER_CLASS,
+  PAGE_GUTTER_CLASS,
+} from "@/shared/layout/constants";
+
 import { CommentsWidget } from "@/features/comments/components/CommentsWidget";
+import { useQuizAggregate } from "@/features/quizzes/hooks/useQuizAggregate";
 import { ReviewsWidget } from "@/features/reviews/components/ReviewsWidget";
+
+import { Button } from "@/components/ui/Button";
 
 import { QuizByline, type PublicAuthorSummary } from "./QuizByline";
 import { QuizCtaStrip } from "./QuizCtaStrip";
@@ -34,7 +40,7 @@ export function QuizDetailPage({ idOrSlug }: QuizDetailPageProps) {
   if (aggregate.error || !aggregate.quiz) {
     return (
       <div
-        className="mx-auto min-h-[60vh] w-full max-w-6xl overflow-x-hidden px-4 py-6 sm:px-6 sm:py-8 lg:px-8"
+        className={`${PAGE_GUTTER_CLASS} min-h-[60vh] overflow-x-hidden py-4 md:py-8 lg:py-12`}
         data-testid="quiz-detail-page-error"
       >
         <div
@@ -78,7 +84,7 @@ export function QuizDetailPage({ idOrSlug }: QuizDetailPageProps) {
 
   return (
     <div
-      className="mx-auto min-h-screen w-full max-w-6xl overflow-x-hidden px-4 py-6 text-foreground sm:px-6 sm:py-8 lg:px-8"
+      className={`${PAGE_CONTAINER_CLASS} overflow-x-hidden`}
       data-testid="quiz-detail-page"
       data-quiz-id={quiz.quizId}
     >

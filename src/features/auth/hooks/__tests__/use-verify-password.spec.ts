@@ -6,7 +6,7 @@ import {
   AUTH_INVALID_TOKEN,
   AUTH_RESOURCE_CONFLICT,
   GLOBAL_VALIDATION_FAILED,
-} from "@/features/auth/errors/password-error-codes";
+} from "@/features/auth/errors/auth-error-codes";
 import type { VerifyPasswordResponseDto } from "@/lib/api";
 
 type Status = "idle" | "pending" | "success" | "error";

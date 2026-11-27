@@ -11,20 +11,6 @@ export {
 } from "./useDailyChallengeHistory";
 
 export {
-  useDailyChallengePerformance,
-  rollupHistoryByWeekday,
-  type DailyChallengePerformanceDay,
-  type DailyChallengePerformanceDayKey,
-  type UseDailyChallengePerformanceResult,
-} from "./useDailyChallengePerformance";
-
-export {
-  useDailyChallengeCategoryBreakdown,
-  type DailyChallengeCategoryBreakdownItemWithMeta,
-  type UseDailyChallengeCategoryBreakdownResult,
-} from "./useDailyChallengeCategoryBreakdown";
-
-export {
   useDailyChallengeStreakView,
   type UseDailyChallengeStreakViewResult,
 } from "./useDailyChallengeStreakView";

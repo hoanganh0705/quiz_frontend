@@ -1,9 +1,11 @@
-import { Skeleton } from "@/components/ui/Skeleton";
+import { PAGE_CONTAINER_CLASS } from "@/shared/layout/constants";
+
 import { CategoryCardSkeleton } from "@/components/primitives";
+import { Skeleton } from "@/components/ui/Skeleton";
 
 export default function CategoriesLoading() {
   return (
-    <div className="mx-auto max-w-7xl min-h-screen text-foreground px-4 sm:px-6 lg:px-8 py-8 sm:py-10 space-y-10">
+    <div className={`${PAGE_CONTAINER_CLASS} space-y-10`}>
       {/* Header Skeleton */}
       <div className="space-y-2">
         <Skeleton className="h-9 w-64 mb-2" />

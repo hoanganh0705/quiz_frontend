@@ -4,7 +4,7 @@ import type { SessionErrorClassification } from "@/features/auth/errors/session-
 import {
   AUTH_RESOURCE_CONFLICT,
   AUTH_INVALID_TOKEN,
-} from "@/features/auth/errors/session-error-codes";
+} from "@/features/auth/errors/auth-error-codes";
 
 type Status = "idle" | "pending" | "success" | "error";
 

@@ -1,32 +1,35 @@
 "use client";
 
 import { memo, useCallback, useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { notFound, useParams } from "next/navigation";
+import { notFound, useParams, useRouter } from "next/navigation";
 
 import { getUserCopy } from "@/lib/api/error-codes";
 import { useToast } from "@/lib/forms/useToast";
-import { Skeleton } from "@/components/ui/Skeleton";
-import { addSentryBreadcrumb } from "@/shared/sentry/add-sentry-breadcrumb";
 
 import {
-  useQuizAuthorView,
-  useQuizVersions,
-  useQuizVersion,
   useCreateVersion,
-  useUpdateVersion,
-  usePublishVersion,
   usePublishReadiness,
+  usePublishVersion,
+  useQuizAuthorView,
+  useQuizVersion,
+  useQuizVersions,
+  useUpdateVersion,
 } from "@/features/quizzes/hooks";
 
-import { QuizEditHeader } from "./QuizEditHeader";
-import { QuizVersionTabs } from "./QuizVersionTabs";
-import { QuizVersionList } from "./QuizVersionList";
-import { VersionImmutableBanner } from "./VersionImmutableBanner";
-import { QuizEditForm } from "./QuizEditForm";
-import { PublishReadinessBanner } from "./PublishReadinessBanner";
-import { PublishConfirmDialog } from "./PublishConfirmDialog";
+import { Skeleton } from "@/components/ui/Skeleton";
+
+import { addSentryBreadcrumb } from "@/shared/sentry/add-sentry-breadcrumb";
+
 import { EditPublishedQuizCTA } from "./EditPublishedQuizCTA";
+import { PublishConfirmDialog } from "./PublishConfirmDialog";
+import { PublishReadinessBanner } from "./PublishReadinessBanner";
+import { QuizEditForm } from "./QuizEditForm";
+import { QuizEditHeader } from "./QuizEditHeader";
+import { QuizVersionList } from "./QuizVersionList";
+import { QuizVersionTabs } from "./QuizVersionTabs";
+import { VersionImmutableBanner } from "./VersionImmutableBanner";
+
+import type { QuizVersionSummary } from "@/features/quizzes/types/quiz-version.types";
 
 type VersionTab = "drafts" | "published";
 
@@ -252,11 +255,7 @@ export const QuizEditPage = memo(function QuizEditPage({
       const slug = quiz?.slug ?? params.id;
       router.replace(`/quizzes/${slug}?reason=forbidden`);
     }
-  }, [quizError, quiz, params.id, router, addSentryBreadcrumb]);
-
-  if (quizNotFound || (!isLoadingQuiz && !quiz && !quizError)) {
-    notFound();
-  }
+  }, [quizError, quiz, params.id, router, quizId]);
 
   useEffect(() => {
     if (activeVersionNotFound) {
@@ -387,26 +386,6 @@ export const QuizEditPage = memo(function QuizEditPage({
     }
   }, [updateVersionError, addSentryBreadcrumb]);
 
-  if (isLoadingQuiz || !quizId) {
-    return <QuizEditPageSkeleton />;
-  }
-
-  const draftCount = versionsResult.items.filter(
-    (v) => v.status === "draft",
-  ).length;
-  const publishedCount = versionsResult.items.filter(
-    (v) => v.status === "published",
-  ).length;
-
-  const displayedVersions = versionsResult.items.filter((v) =>
-    activeTab === "drafts" ? v.status === "draft" : v.status === "published",
-  );
-
-  const isImmutableBannerShown =
-    activeVersion !== null &&
-    activeVersion.status === "published" &&
-    activeVersionError === null;
-
   const handleEdit = useCallback(
     (versionId: string) => {
       addSentryBreadcrumb(
@@ -417,7 +396,7 @@ export const QuizEditPage = memo(function QuizEditPage({
       );
       setActiveVersionId(versionId);
     },
-    [addSentryBreadcrumb],
+    [quizId],
   );
 
   const handleAddQuestions = useCallback(
@@ -431,7 +410,7 @@ export const QuizEditPage = memo(function QuizEditPage({
 
       router.push(`/my-quizzes/${quizId}/versions/${versionId}/questions`);
     },
-    [addSentryBreadcrumb, router, quizId],
+    [router, quizId],
   );
 
   const handlePublishClick = useCallback(() => {
@@ -442,7 +421,7 @@ export const QuizEditPage = memo(function QuizEditPage({
       { categoryPrefix: "quiz-edit", quizId },
     );
     setShowPublishConfirm(true);
-  }, [addSentryBreadcrumb]);
+  }, [quizId]);
 
   const handlePublishConfirm = useCallback(async () => {
     if (!quizId || !activeVersionId) return;
@@ -465,8 +444,32 @@ export const QuizEditPage = memo(function QuizEditPage({
 
       showToast("Delete", "Delete functionality is coming soon.");
     },
-    [addSentryBreadcrumb, showToast],
+    [quizId, showToast],
   );
+
+  if (isLoadingQuiz || !quizId) {
+    return <QuizEditPageSkeleton />;
+  }
+
+  if (quizNotFound || (!quiz && !quizError)) {
+    notFound();
+  }
+
+  const draftCount = versionsResult.items.filter(
+    (v) => v.status === "draft",
+  ).length;
+  const publishedCount = versionsResult.items.filter(
+    (v) => v.status === "published",
+  ).length;
+
+  const displayedVersions = versionsResult.items.filter((v) =>
+    activeTab === "drafts" ? v.status === "draft" : v.status === "published",
+  );
+
+  const isImmutableBannerShown =
+    activeVersion !== null &&
+    activeVersion.status === "published" &&
+    activeVersionError === null;
 
   return (
     <div className="space-y-8" data-testid="quiz-edit-page">
@@ -582,9 +585,7 @@ export const QuizEditPage = memo(function QuizEditPage({
                 !isImmutableBannerShown && (
                   <EditPublishedQuizCTA
                     quizId={quizId}
-                    version={
-                      activeVersion as unknown as import("@/features/quizzes/types/quiz-version.types").QuizVersionSummary
-                    }
+                    version={activeVersion as unknown as QuizVersionSummary}
                     onDraftCreated={(newVersion) => {
                       router.push(
                         `/my-quizzes/${quizId}/edit?versionId=${newVersion.quizVersionId}`,

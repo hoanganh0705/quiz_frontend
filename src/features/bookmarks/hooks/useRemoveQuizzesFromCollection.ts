@@ -1,24 +1,52 @@
 "use client";
 
 import { useCallback, useState } from "react";
+
+import { ApiError, isApiError } from "@/lib/api";
+import { getUserCopy } from "@/lib/api/error-codes";
+import { useOptimisticMutation } from "@/lib/api/useOptimisticMutation";
 import { getQueryClient } from "@/providers/QueryProvider";
 
-import { isApiError, ApiError } from "@/lib/api";
-import { getUserCopy } from "@/lib/api/error-codes";
 import {
-  useOptimisticMutation,
-  type OptimisticMutationResult,
-} from "@/lib/api/useOptimisticMutation";
-import {
-  removeQuizzesFromCollectionBulk,
   BulkOperationValidationError,
+  removeQuizzesFromCollectionBulk,
 } from "@/features/bookmarks/services";
+
+import { collectionQuizzesQueryKey } from "./useCollectionInvalidation";
+
 import type {
   BulkOperationResult,
   BulkRemoveResult,
   CollectionQuiz,
 } from "@/features/bookmarks/types";
-import { collectionQuizzesQueryKey } from "./useCollectionInvalidation";
+import type { CursorPage } from "@/lib/api/use-cursor-paginated.types";
+import type { OptimisticMutationResult } from "@/lib/api/useOptimisticMutation";
+
+function filterRemovedQuizzes(
+  current: unknown,
+  removedSet: ReadonlySet<string>,
+): unknown {
+  if (Array.isArray(current)) {
+    return (current as CollectionQuiz[]).filter(
+      (quiz) => !removedSet.has(quiz.quizId),
+    );
+  }
+
+  if (
+    current &&
+    typeof current === "object" &&
+    "items" in current &&
+    Array.isArray((current as CursorPage<CollectionQuiz>).items)
+  ) {
+    const page = current as CursorPage<CollectionQuiz>;
+    return {
+      ...page,
+      items: page.items.filter((quiz) => !removedSet.has(quiz.quizId)),
+    };
+  }
+
+  return current;
+}
 
 export interface UseRemoveQuizzesFromCollectionOptions {
   onSuccess?: (result: BulkRemoveResult, quizIds: string[]) => void;
@@ -26,10 +54,13 @@ export interface UseRemoveQuizzesFromCollectionOptions {
   onError?: (code: string) => void;
 }
 
+export type RemoveQuizzesMutationResult =
+  OptimisticMutationResult<BulkRemoveResult> & {
+    results?: BulkOperationResult[];
+  };
+
 export interface UseRemoveQuizzesFromCollectionReturn {
-  removeQuizzes: (
-    quizIds: string[],
-  ) => Promise<OptimisticMutationResult<BulkRemoveResult>>;
+  removeQuizzes: (quizIds: string[]) => Promise<RemoveQuizzesMutationResult>;
 
   results: BulkOperationResult[];
 
@@ -57,7 +88,6 @@ export function useRemoveQuizzesFromCollection(
   const {
     mutate,
     lastResult,
-    lastError: rawLastError,
     reset: resetOptimistic,
   } = useOptimisticMutation();
 
@@ -66,9 +96,7 @@ export function useRemoveQuizzesFromCollection(
   const [lastApiError, setLastApiError] = useState<ApiError | null>(null);
 
   const removeQuizzes = useCallback(
-    async (
-      quizIds: string[],
-    ): Promise<OptimisticMutationResult<BulkRemoveResult>> => {
+    async (quizIds: string[]): Promise<RemoveQuizzesMutationResult> => {
       setLastApiError(null);
       setResults([]);
 
@@ -94,29 +122,23 @@ export function useRemoveQuizzesFromCollection(
         return { status: "reverted", apiError: error };
       }
 
+      let capturedResults: BulkOperationResult[] = [];
+
       try {
         const result = await mutate({
           key: collectionQuizzesQueryKey(collectionId),
-          optimisticData: (current): CollectionQuiz[] => {
-            const quizzes = (current as CollectionQuiz[]) ?? [];
-
-            const removedSet = new Set(quizIds);
-            return quizzes.filter((quiz) => !removedSet.has(quiz.quizId));
-          },
+          optimisticData: (current) =>
+            filterRemovedQuizzes(current, new Set(quizIds)),
           run: async () => {
             const response = await removeQuizzesFromCollectionBulk(
               collectionId,
               quizIds,
             );
+            capturedResults = response.results;
             return response.summary;
           },
           onSuccess: (summary) => {
-            removeQuizzesFromCollectionBulk(collectionId, quizIds).then(
-              (response) => {
-                setResults(response.results);
-              },
-            );
-
+            setResults(capturedResults);
             void getQueryClient().invalidateQueries({
               queryKey: collectionQuizzesQueryKey(collectionId),
             });
@@ -136,12 +158,8 @@ export function useRemoveQuizzesFromCollection(
           },
         });
 
-        if (result.status === "success" && result.result) {
-          const response = await removeQuizzesFromCollectionBulk(
-            collectionId,
-            quizIds,
-          );
-          setResults(response.results);
+        if (result.status === "success") {
+          return { ...result, results: capturedResults };
         }
 
         return result;

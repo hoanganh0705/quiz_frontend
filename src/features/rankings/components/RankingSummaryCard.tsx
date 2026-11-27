@@ -20,7 +20,6 @@ export function RankingSummaryCard({ className }: RankingSummaryCardProps) {
   const { summary, isLoading, error, retry, isStale, lastValidatedAt } =
     useMyRanking();
 
-  if (false) return null;
   if (!isAuthenticated && bootstrapState !== "bootstrapping") return null;
 
   if (isLoading && !summary) {

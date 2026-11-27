@@ -78,17 +78,6 @@ export function useUnfollow(
       : null;
 
   const result = useMemo<UseUnfollowResult>(() => {
-    if (false) {
-      return Object.freeze({
-        unfollow: () => {
-          // no-op — feature is gated off
-        },
-        isPending: false,
-        error: null,
-        alreadyNotFollowing: false,
-      });
-    }
-
     if (targetUserId === null) {
       return Object.freeze({
         unfollow: () => {

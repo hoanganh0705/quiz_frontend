@@ -12,7 +12,9 @@ import type {
   DeletedCategoryListItem,
 } from "../category-types";
 
-export const CATEGORY_ADMIN_LIST_KEY = "category-admin:list" as const;
+import { CATEGORY_ADMIN_LIST_KEY } from "../cache/category-cache-keys";
+
+export { CATEGORY_ADMIN_LIST_KEY };
 
 export interface UseCategoryAdminList {
   active: CategoryListItem[];

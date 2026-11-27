@@ -99,6 +99,53 @@ describe("GameResultSummary", () => {
     expect(returnBtn).toBeInTheDocument();
     expect(returnBtn.closest("a")).toHaveAttribute("href", "/instances/inst-123");
   });
+
+  it("rounds fractional scores consistently across podium, stat card, and standings rows", () => {
+    const fractionalLeaderboard: FinalLeaderboardDto = {
+      instanceId: "inst-123",
+      closedAt: "2026-11-23T09:18:00Z",
+      totalQuestions: 6,
+      winnerPlayerId: "user-1",
+      entries: [
+        {
+          playerId: "user-1",
+          displayName: "Quiz Admin",
+          score: 33.33,
+          rank: 1,
+          answeredCount: 2,
+          correctCount: 2,
+          timeTakenMs: 39000,
+          lastAwardedAt: null,
+          eventSequence: 1,
+        },
+        {
+          playerId: "user-2",
+          displayName: "Learner User",
+          score: 0,
+          rank: 2,
+          answeredCount: 0,
+          correctCount: 0,
+          timeTakenMs: 15000,
+          lastAwardedAt: null,
+          eventSequence: 2,
+        },
+      ],
+    };
+
+    render(
+      <GameResultSummary
+        finalLeaderboard={fractionalLeaderboard}
+        playerProgress={null}
+        currentPlayerId="user-1"
+        instanceId="inst-123"
+      />,
+    );
+
+    expect(screen.queryByText(/33\.33/)).toBeNull();
+    expect(screen.getByText("33 pts")).toBeInTheDocument();
+    expect(screen.getByText("2/6")).toBeInTheDocument();
+    expect(screen.getByText(/2 correct · 2 answered · 39s/i)).toBeInTheDocument();
+  });
 });
 
 describe("GameClosedSummary", () => {

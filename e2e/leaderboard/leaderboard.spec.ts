@@ -83,10 +83,9 @@ test.describe("Leaderboard acceptance", () => {
 
     await page.goto("/leaderboard");
 
-    // The live composition is rendered. The top-3 podium is
-    // visible.
+    // The live unified standings list is rendered.
     await expect(page.getByTestId("leaderboard-page")).toBeVisible();
-    await expect(page.getByTestId("leaderboard-podium")).toBeVisible();
+    await expect(page.getByTestId("leaderboard-rows")).toBeVisible();
 
     // The Weekly button is `aria-pressed="true"` (the default).
     await expect(page.getByRole("button", { name: "Weekly" })).toHaveAttribute(

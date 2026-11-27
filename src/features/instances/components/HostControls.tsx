@@ -1,28 +1,38 @@
 "use client";
 
-import { useCallback } from "react";
-import { Play, StopCircle, XCircle, LoaderCircle } from "lucide-react";
+import { useCallback, useState } from "react";
 
-import { ApiError } from "@/lib/api";
+import {
+  LoaderCircle,
+  Play,
+  RotateCcw,
+  StopCircle,
+  XCircle,
+} from "lucide-react";
 
-import { Button } from "@/components/ui/Button";
-import { cn } from "@/shared/utils/merge-class-names";
+import { ApiError, coerceToApiError } from "@/lib/api";
 
+import { useCloseInstance } from "@/features/instances/hooks/useCloseInstance";
 import { useInstance } from "@/features/instances/hooks/useInstance";
 import { useInstancePermissions } from "@/features/instances/hooks/useInstancePermissions";
 import { useInstanceRealtimeBridge } from "@/features/instances/hooks/useInstanceRealtimeBridge";
+import { useStartInstance } from "@/features/instances/hooks/useStartInstance";
+import { cancelCountdown } from "@/features/instances/services/instances.service";
 import {
   selectInstanceRealtimeStatus,
   useInstanceRealtimeStore,
 } from "@/features/instances/stores/useInstanceRealtimeStore";
-import { useStartInstance } from "@/features/instances/hooks/useStartInstance";
-import { useCloseInstance } from "@/features/instances/hooks/useCloseInstance";
+
+import { Button } from "@/components/ui/Button";
+
+import { cn } from "@/shared/utils/merge-class-names";
+
+import { InstanceErrorState } from "./shared";
+
 import type {
   InstanceLifecycleErrorCode,
   InstanceStatus,
 } from "@/features/instances/types/instance.types";
-
-import { InstanceErrorState } from "./shared";
 
 export interface HostControlsProps {
   instanceId: string | null;
@@ -77,14 +87,42 @@ export function HostControls({
     reset: resetClose,
   } = useCloseInstance(instanceId, permissions);
 
+  const [isCancelling, setIsCancelling] = useState(false);
+  const [cancelError, setCancelError] = useState<ApiError | null>(null);
+
   const handleStart = useCallback(async () => {
     resetClose();
+    setCancelError(null);
     await start();
     void refreshInstance();
   }, [start, resetClose, refreshInstance]);
 
+  const handleCancelCountdown = useCallback(async () => {
+    if (instanceId === null || isCancelling) return;
+    resetStart();
+    resetClose();
+    setCancelError(null);
+    setIsCancelling(true);
+    try {
+      await cancelCountdown(instanceId);
+      useInstanceRealtimeStore.getState().applyLifecycleEvent({
+        type: "countdown_cancelled",
+        instanceId,
+        at: new Date().toISOString(),
+        eventSequence: Date.now(),
+        status: "open",
+      });
+      void refreshInstance();
+    } catch (cause: unknown) {
+      setCancelError(coerceToApiError(cause));
+    } finally {
+      setIsCancelling(false);
+    }
+  }, [instanceId, isCancelling, resetStart, resetClose, refreshInstance]);
+
   const handleClose = useCallback(async () => {
     resetStart();
+    setCancelError(null);
     await close();
     void refreshInstance();
   }, [close, resetStart, refreshInstance]);
@@ -93,15 +131,23 @@ export function HostControls({
   if (permissions.role !== "host") return null;
 
   const canStart = permissions.canStart === true;
+  const canCancel = permissions.canCancel === true;
   const canClose = permissions.canClose === true;
 
-  if (!canStart && !canClose) return null;
+  if (!canStart && !canCancel && !canClose) return null;
 
   const startPending = startState === "pending";
   const closePending = closeState === "pending";
+  const isBusy = startPending || closePending || isCancelling;
 
   const activeError: ApiError | null =
-    startError !== null ? startError : closeError !== null ? closeError : null;
+    startError !== null
+      ? startError
+      : cancelError !== null
+        ? cancelError
+        : closeError !== null
+          ? closeError
+          : null;
 
   const disabledByStaleRole =
     activeError !== null && isStaleRoleErrorCode(activeError.code);
@@ -119,7 +165,7 @@ export function HostControls({
           variant="default"
           size="lg"
           onClick={handleStart}
-          disabled={startPending || closePending || disabledByStaleRole}
+          disabled={isBusy || disabledByStaleRole}
           aria-busy={startPending}
           data-testid="host-start-cta"
           className="h-12 w-full gap-2 text-base font-bold bg-brand hover:bg-brand-hover text-white shadow-xs active:scale-[0.99] transition-all rounded-xl"
@@ -137,13 +183,33 @@ export function HostControls({
         </Button>
       )}
 
+      {canCancel && (
+        <Button
+          type="button"
+          variant="outline"
+          size="default"
+          onClick={handleCancelCountdown}
+          disabled={isBusy || disabledByStaleRole}
+          aria-busy={isCancelling}
+          data-testid="host-cancel-countdown-cta"
+          className="h-10 w-full gap-2 text-sm font-semibold rounded-xl text-amber-700 border-amber-500/40 hover:bg-amber-500/10 dark:text-amber-300 active:scale-[0.99] transition-all"
+        >
+          {isCancelling ? (
+            <LoaderCircle className="h-4 w-4 animate-spin" aria-hidden />
+          ) : (
+            <RotateCcw className="h-4 w-4" aria-hidden />
+          )}
+          {isCancelling ? "Cancelling…" : "Cancel Countdown"}
+        </Button>
+      )}
+
       {canClose && (
         <Button
           type="button"
           variant="outline"
           size="default"
           onClick={handleClose}
-          disabled={startPending || closePending || disabledByStaleRole}
+          disabled={isBusy || disabledByStaleRole}
           aria-busy={closePending}
           data-testid="host-close-cta"
           className="h-10 w-full gap-2 text-sm font-semibold rounded-xl text-muted-foreground hover:text-destructive hover:border-destructive/40 hover:bg-destructive/5 active:scale-[0.99] transition-all"
@@ -164,6 +230,7 @@ export function HostControls({
             onRetry={() => {
               resetStart();
               resetClose();
+              setCancelError(null);
             }}
           />
         </div>

@@ -16,6 +16,12 @@ export type { UseCategoryResult } from "./useCategory";
 export { useCategoryQuizzes } from "./useCategoryQuizzes";
 export type { UseCategoryQuizzesParams } from "./useCategoryQuizzes";
 
+export {
+  useFollowedCategories,
+  FOLLOWED_CATEGORIES_LIMIT,
+} from "./useFollowedCategories";
+export type { UseFollowedCategoriesResult } from "./useFollowedCategories";
+
 export { useIsFollowingCategory } from "./useIsFollowingCategory";
 export type { UseIsFollowingCategoryResult } from "./useIsFollowingCategory";
 

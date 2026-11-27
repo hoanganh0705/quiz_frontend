@@ -7,9 +7,12 @@ import { isApiError, type ApiError } from "@/lib/api";
 import { getUserCopy, type UserCopyEntry } from "@/lib/api/error-codes";
 import { logger } from "@/shared/log";
 
+import { COMMENT_KEYS } from "@/features/comments/query-keys";
 import { editComment } from "@/features/comments/services/comments.service";
 
 export interface UseEditCommentOptions {
+  quizId?: string;
+
   onSuccess?: () => void;
 
   onError?: (error: ApiError) => void;
@@ -27,19 +30,11 @@ export interface UseEditCommentResult {
   resetError: () => void;
 }
 
-function emitBreadcrumb(
-  category: string,
-  data: { status: string; durationMs: number; code?: string },
-): void {
-  void category;
-  void data;
-}
-
 export function useEditComment(
   commentId: string,
   options: UseEditCommentOptions = {},
 ): UseEditCommentResult {
-  const { onSuccess, onError } = options;
+  const { quizId, onSuccess, onError } = options;
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<ApiError | null>(null);
@@ -56,8 +51,6 @@ export function useEditComment(
       setIsLoading(true);
       setError(null);
 
-      const startedAt = Date.now();
-
       const core = (async (): Promise<boolean> => {
         try {
           await editComment(commentId, { body });
@@ -65,16 +58,9 @@ export function useEditComment(
           try {
             const qc = getQueryClient();
             await qc.invalidateQueries({
-              predicate: (query) =>
-                Array.isArray(query.queryKey) &&
-                query.queryKey[0] === "comments",
+              queryKey: quizId ? COMMENT_KEYS.byQuiz(quizId) : COMMENT_KEYS.all,
             });
           } catch {}
-
-          emitBreadcrumb("comments:edit-comment", {
-            status: "success",
-            durationMs: Date.now() - startedAt,
-          });
 
           onSuccess?.();
           return true;
@@ -82,20 +68,9 @@ export function useEditComment(
           if (isApiError(err)) {
             setError(err);
             onError?.(err);
-
-            emitBreadcrumb("comments:edit-comment", {
-              status: "error",
-              durationMs: Date.now() - startedAt,
-              code: err.code,
-            });
             return false;
           }
 
-          emitBreadcrumb("comments:edit-comment", {
-            status: "error",
-            durationMs: Date.now() - startedAt,
-            code: "GLOBAL_UNKNOWN",
-          });
           logger.warn("comments.edit", "unexpected rejection", err);
           return false;
         }
@@ -109,7 +84,7 @@ export function useEditComment(
         inFlightRef.current = null;
       }
     },
-    [commentId, onSuccess, onError],
+    [commentId, quizId, onSuccess, onError],
   );
 
   const resetError = useCallback(() => {

@@ -3,17 +3,25 @@
 import { useMemo } from "react";
 
 import { ApiError, projectWithId, useCursorPaginated } from "@/lib/api";
+
+import { QUIZ_KEYS } from "@/features/quizzes/query-keys";
+import {
+  getMyQuizzes,
+  getMyQuizzesDrafts,
+  getMyQuizzesPublished,
+} from "@/features/quizzes/services/quizzes.service";
+
 import type {
   CursorFetcherArgs,
   CursorPage,
   UseCursorPaginatedResult,
 } from "@/lib/api/use-cursor-paginated.types";
-
-import { getMyQuizzes } from "@/features/quizzes/services/quizzes.service";
 import type { MyQuizListItem } from "@/features/quizzes/types/my-quizzes";
-import { myQuizzesKey } from "@/features/quizzes/types/my-quizzes";
+
+export type MyQuizzesListTab = "all" | "drafts" | "published";
 
 export interface UseMyQuizzesParams {
+  tab?: MyQuizzesListTab;
   limit?: number;
   enabled?: boolean;
 }
@@ -30,26 +38,30 @@ type GetMyQuizzesResponse = {
   };
 };
 
+const TAB_SERVICE = {
+  all: getMyQuizzes,
+  drafts: getMyQuizzesDrafts,
+  published: getMyQuizzesPublished,
+} as const;
+
 export type UseMyQuizzesResult = UseCursorPaginatedResult<MyQuizListItem>;
 
 export function useMyQuizzes(params?: UseMyQuizzesParams): UseMyQuizzesResult {
+  const tab: MyQuizzesListTab = params?.tab ?? "all";
+
   const fetcher = useMemo(
     (): ((
       args: CursorFetcherArgs<UseMyQuizzesParams>,
     ) => Promise<CursorPage<MyQuizListItem>>) =>
-      async ({ cursor, signal }) => {
+      async ({ cursor }) => {
         try {
-          const result = (await getMyQuizzes({
+          const result = (await TAB_SERVICE[tab]({
             cursor: cursor ?? undefined,
             limit: params?.limit,
           })) as unknown as GetMyQuizzesResponse;
 
           const items = (result.data ?? []) as MyQuizListItem[];
-
-          const itemsWithId = projectWithId(
-            items as unknown as readonly Record<string, unknown>[],
-            "quizId",
-          ) as unknown as MyQuizListItem[];
+          const itemsWithId = projectWithId(items, "quizId");
 
           const pagination = result.meta?.pagination;
           return {
@@ -70,11 +82,11 @@ export function useMyQuizzes(params?: UseMyQuizzesParams): UseMyQuizzesResult {
           throw err;
         }
       },
-    [params?.limit],
+    [tab, params?.limit],
   );
 
   return useCursorPaginated<MyQuizListItem, UseMyQuizzesParams>({
-    key: myQuizzesKey("all"),
+    key: QUIZ_KEYS.mine(tab),
     fetcher,
     params: params ?? {},
     paginationKind: "cursor",

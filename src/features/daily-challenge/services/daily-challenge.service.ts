@@ -14,8 +14,6 @@ import type {
 import type { DailyChallengeHistoryResponseDto } from "@/lib/api/generated/schemas/dailyChallengeHistoryResponseDto";
 import type { DailyChallengeCategoryBreakdownResponseDto } from "@/lib/api/generated/schemas/dailyChallengeCategoryBreakdownResponseDto";
 
-const HAS_DAILY_CHALLENGE_SDK = true;
-
 function toErrorResult(error: unknown): { kind: "error"; error: ApiError } {
   if (isApiError(error)) {
     return { kind: "error", error };
@@ -96,9 +94,6 @@ function toHistoryItemView(
 export async function getDailyChallengeToday(): Promise<
   DailyChallengeResult<DailyChallengeView>
 > {
-  if (!HAS_DAILY_CHALLENGE_SDK) {
-    return { kind: "missing-endpoint" };
-  }
   try {
     const envelope =
       await getDailyChallenge().dailyChallengeControllerGetToday();
@@ -122,9 +117,6 @@ export async function getDailyChallengeToday(): Promise<
 export async function getDailyChallengeHistoryPage(
   params: GetDailyChallengeHistoryParams,
 ): Promise<DailyChallengeResult<DailyChallengeHistoryPage>> {
-  if (!HAS_DAILY_CHALLENGE_SDK) {
-    return { kind: "missing-endpoint" };
-  }
   try {
     const response =
       await getDailyChallenge().dailyChallengeControllerGetHistory({
@@ -155,20 +147,12 @@ export async function getDailyChallengeHistoryPage(
 export async function submitDailyChallengeAnswer(
   payload: SubmitDailyChallengeAnswerParams,
 ): Promise<DailyChallengeResult<DailyChallengeAnswerResponseView>> {
-  if (!HAS_DAILY_CHALLENGE_SDK) {
-    return { kind: "missing-endpoint" };
-  }
   try {
     const body: import("@/lib/api/generated/schemas/dailyChallengeAnswerDto").DailyChallengeAnswerDto =
       {
         questionIndex: payload.questionIndex,
         ...(payload.selectedOptionId !== null
-          ? {
-              selectedOptionId: payload.selectedOptionId as unknown as Record<
-                string,
-                unknown
-              >,
-            }
+          ? { selectedOptionId: payload.selectedOptionId }
           : {}),
       };
     const response =
@@ -200,9 +184,6 @@ export async function submitDailyChallengeAnswer(
 }
 
 export async function getDailyChallengeCategoryBreakdown(): Promise<DailyChallengeCategoryBreakdownResult> {
-  if (!HAS_DAILY_CHALLENGE_SDK) {
-    return { kind: "missing-endpoint" };
-  }
   try {
     const envelope =
       await getDailyChallenge().dailyChallengeControllerGetCategoryBreakdown();

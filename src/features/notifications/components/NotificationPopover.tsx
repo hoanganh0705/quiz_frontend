@@ -19,7 +19,7 @@ import {
   markAllNotificationsRead,
   deleteAllNotifications,
 } from "@/features/notifications/services/notifications.service";
-import { ApiError, isApiError } from "@/lib/api";
+import { ApiError, coerceToApiError } from "@/lib/api";
 
 import {
   NOTIFICATION_CACHE_KEYS,
@@ -75,14 +75,7 @@ export function NotificationPopover() {
       ]);
       setMarkAllState({ pending: false, error: null });
     } catch (cause: unknown) {
-      if (isApiError(cause)) {
-        setMarkAllState({ pending: false, error: cause });
-      } else {
-        const mapped = new ApiError(
-          cause as unknown as ConstructorParameters<typeof ApiError>[0],
-        );
-        setMarkAllState({ pending: false, error: mapped });
-      }
+      setMarkAllState({ pending: false, error: coerceToApiError(cause) });
     }
   }, [markAllState.pending]);
 
@@ -101,14 +94,7 @@ export function NotificationPopover() {
       ]);
       setDeleteAllState({ pending: false, error: null });
     } catch (cause: unknown) {
-      if (isApiError(cause)) {
-        setDeleteAllState({ pending: false, error: cause });
-      } else {
-        const mapped = new ApiError(
-          cause as unknown as ConstructorParameters<typeof ApiError>[0],
-        );
-        setDeleteAllState({ pending: false, error: mapped });
-      }
+      setDeleteAllState({ pending: false, error: coerceToApiError(cause) });
     }
   }, [deleteAllState.pending]);
 

@@ -1,4 +1,5 @@
-import { isValidCategorySlug } from "./category-slug-regex";
+import { isValidSlug } from "@/lib/forms/regex";
+
 import type { CategoryAdminListItem } from "./category-types";
 
 export const CATEGORY_NAME_MIN_LENGTH = 1 as const;
@@ -35,7 +36,7 @@ export function validateCategorySlug(
   if (slug.trim().length === 0) {
     return { ok: false, reason: "empty" };
   }
-  if (!isValidCategorySlug(slug)) {
+  if (!isValidSlug(slug)) {
     return { ok: false, reason: "invalid" };
   }
   if (slug.length > CATEGORY_SLUG_MAX_LENGTH) {

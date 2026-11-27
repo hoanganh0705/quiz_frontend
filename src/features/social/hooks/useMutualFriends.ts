@@ -42,18 +42,6 @@ const EMPTY_PAGE = Object.freeze({
   limit: 0,
 });
 
-const PLACEHOLDER_RESULT: UseMutualFriendsResult = Object.freeze({
-  items: [],
-  total: 0,
-  visibility: "not_found",
-  isLoading: false,
-  isStale: false,
-  error: null,
-  hasMore: false,
-  loadMore: () => undefined,
-  retry: () => Promise.resolve(),
-});
-
 const FALLBACK_RESULT: UseMutualFriendsResult = Object.freeze({
   items: [],
   total: 0,
@@ -73,7 +61,6 @@ export function useMutualFriends(
   const isAuthenticated = auth.isAuthenticated;
 
   const key = useMemo<readonly unknown[] | null>(() => {
-    if (false) return null;
     if (!isAuthenticated) return null;
     if (targetUserId === null) return null;
     return ["social", "mutual-friends", targetUserId] as const;
@@ -117,7 +104,6 @@ export function useMutualFriends(
     paginationKind: "cursor",
   });
 
-  if (false) return PLACEHOLDER_RESULT;
   if (!isAuthenticated) return FALLBACK_RESULT;
   if (targetUserId === null) return FALLBACK_RESULT;
 

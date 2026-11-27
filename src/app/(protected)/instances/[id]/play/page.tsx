@@ -1,8 +1,11 @@
-import { Suspense } from "react";
 import { notFound } from "next/navigation";
+import { Suspense } from "react";
+
+import { InstanceGamePage } from "@/features/instances/play";
 
 import { RouteGateSkeleton } from "@/components/ui/loading-states";
-import { InstanceGamePage } from "@/features/instances/play";
+
+import { PAGE_CONTAINER_CLASS } from "@/shared/layout/constants";
 import { buildMetadata } from "@/shared/lib/seo";
 
 export const metadata = buildMetadata({
@@ -28,7 +31,7 @@ export default async function InstanceGameRoute({
   }
 
   return (
-    <main className="min-h-screen p-4 md:p-8 lg:p-12">
+    <main className={PAGE_CONTAINER_CLASS}>
       <Suspense fallback={<RouteGateSkeleton />}>
         <InstanceGamePage instanceId={id} />
       </Suspense>

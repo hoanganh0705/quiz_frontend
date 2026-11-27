@@ -45,6 +45,46 @@ export function isWithinDateRange(
   }
 }
 
+export const FORMATTED_DATE_PLACEHOLDER = "—";
+
+export function formatShortDate(
+  value: string | null | undefined,
+  locale = "en-US",
+): string {
+  if (!value || typeof value !== "string") {
+    return FORMATTED_DATE_PLACEHOLDER;
+  }
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) {
+    return FORMATTED_DATE_PLACEHOLDER;
+  }
+  return new Intl.DateTimeFormat(locale, {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  }).format(parsed);
+}
+
+export function formatTimestamp(
+  value: string | null | undefined,
+  locale = "en-US",
+): string {
+  if (!value || typeof value !== "string") {
+    return FORMATTED_DATE_PLACEHOLDER;
+  }
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) {
+    return FORMATTED_DATE_PLACEHOLDER;
+  }
+  return new Intl.DateTimeFormat(locale, {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  }).format(parsed);
+}
+
 export function formatRelativeTime(dateString: string): string {
   const date = new Date(dateString);
   if (isNaN(date.getTime())) return dateString;

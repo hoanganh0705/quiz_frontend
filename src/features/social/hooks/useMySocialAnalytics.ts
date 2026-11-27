@@ -39,7 +39,6 @@ export function useMySocialAnalytics(
   const isAuthenticated = auth.isAuthenticated;
 
   const key = useMemo<readonly unknown[] | null>(() => {
-    if (false) return null;
     if (!isAuthenticated) return null;
     return ["social", "v1", "my-analytics", period] as const;
   }, [isAuthenticated, period]);
@@ -54,7 +53,6 @@ export function useMySocialAnalytics(
     fetcher,
   );
 
-  if (false) return SAFE_FALLBACK;
   if (!isAuthenticated) return SAFE_FALLBACK;
 
   return {

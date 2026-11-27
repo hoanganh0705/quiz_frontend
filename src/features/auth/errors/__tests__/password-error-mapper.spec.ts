@@ -16,7 +16,7 @@ import {
   AUTH_RESOURCE_CONFLICT,
   GLOBAL_VALIDATION_FAILED,
   PASSWORD_RECOVERYABLE_STATUSES,
-} from "../password-error-codes";
+} from "../auth-error-codes";
 
 describe("mapPasswordError — AUTH_INVALID_CURRENT_PASSWORD", () => {
   it('classifies AUTH_INVALID_CURRENT_PASSWORD as "invalid_current"', () => {

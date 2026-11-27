@@ -2,9 +2,13 @@
 
 import * as React from "react";
 
+import { useAttemptHistoryFilters } from "@/features/attempts/hooks/useAttemptHistoryFilters";
+
+import { PAGE_CONTAINER_CLASS } from "@/shared/layout/constants";
+import { cn } from "@/shared/utils/merge-class-names";
+
 import { QuizHistoryFilterBar } from "./QuizHistoryFilterBar";
 import { QuizHistoryList } from "./QuizHistoryList";
-import { useAttemptHistoryFilters } from "@/features/attempts/hooks/useAttemptHistoryFilters";
 
 export interface QuizHistoryPageProps {
   className?: string;
@@ -17,33 +21,34 @@ export function QuizHistoryPage(
   const { filters, setFilter, resetFilters } = useAttemptHistoryFilters();
 
   return (
-    <div className={className} data-testid="quiz-history-page">
-      {/* Page header */}
-      <div className="mb-6 space-y-1">
-        <h1
-          className="text-2xl font-bold text-foreground"
-          data-testid="quiz-history-page-heading"
-        >
-          Your quiz history
-        </h1>
-        <p
-          className="text-sm text-muted-foreground"
-          data-testid="quiz-history-page-subheading"
-        >
-          Review your past quiz attempts, scores, and progress.
-        </p>
+    <main
+      className={cn("@container", PAGE_CONTAINER_CLASS, className)}
+      data-testid="quiz-history-page"
+    >
+      <div className="space-y-6">
+        <header className="space-y-1.5 border-b border-border/70 pb-5">
+          <h1
+            className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground"
+            data-testid="quiz-history-page-heading"
+          >
+            Your quiz history
+          </h1>
+          <p
+            className="text-sm text-muted-foreground"
+            data-testid="quiz-history-page-subheading"
+          >
+            Review your past quiz attempts, scores, and progress.
+          </p>
+        </header>
+
+        <QuizHistoryFilterBar
+          filters={filters}
+          onFilterChange={setFilter}
+          onReset={resetFilters}
+        />
+
+        <QuizHistoryList filters={filters} onResetFilters={resetFilters} />
       </div>
-
-      {/* Filter bar */}
-      <QuizHistoryFilterBar
-        filters={filters}
-        onFilterChange={setFilter}
-        onReset={resetFilters}
-        className="mb-6"
-      />
-
-      {/* Paginated list */}
-      <QuizHistoryList filters={filters} />
-    </div>
+    </main>
   );
 }

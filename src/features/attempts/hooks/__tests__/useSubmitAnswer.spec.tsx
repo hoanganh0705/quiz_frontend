@@ -5,7 +5,7 @@ import { ApiError } from "@/lib/api";
 
 import { useSubmitAnswer } from "@/features/attempts/hooks/useSubmitAnswer";
 import { useAttemptsStore } from "@/features/attempts/stores/useAttemptsStore";
-import { ATTEMPT_CACHE_KEYS } from "@/features/attempts/types/attempt-runner.types";
+import { ATTEMPT_KEYS } from "@/features/attempts/query-keys";
 
 const submitAnswerMock = vi.hoisted(() => vi.fn());
 const useAuthSessionMock = vi.hoisted(() => vi.fn());
@@ -218,7 +218,7 @@ describe("useSubmitAnswer — happy path", () => {
     expect(entry?.submittedAnswers["q1"]).toBeDefined();
     expect(invalidateQueriesMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        queryKey: ATTEMPT_CACHE_KEYS.answers(ATTEMPT_ID, SESSION_ID),
+        queryKey: ATTEMPT_KEYS.answers(ATTEMPT_ID, SESSION_ID),
       }),
     );
   });
@@ -269,7 +269,7 @@ describe("useSubmitAnswer — 409 already_answered", () => {
     expect(outcome.kind).toBe("already_answered");
     expect(invalidateQueriesMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        queryKey: ATTEMPT_CACHE_KEYS.answers(ATTEMPT_ID, SESSION_ID),
+        queryKey: ATTEMPT_KEYS.answers(ATTEMPT_ID, SESSION_ID),
       }),
     );
   });

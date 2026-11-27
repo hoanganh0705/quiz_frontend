@@ -4,9 +4,11 @@ import { type ReactElement } from "react";
 import Link from "next/link";
 
 import { useSearchSuggestions } from "@/features/social/hooks/useSearchSuggestions";
-import { SearchEmptyState } from "../components/SearchEmptyState";
-import { SearchErrorState } from "../components/SearchErrorState";
-import { SearchResultSkeleton } from "../components/SearchResultSkeleton";
+import {
+  SearchEmptyState,
+  SearchErrorState,
+  SearchResultSkeleton,
+} from "@/shared/ui/search";
 import { SearchRateLimitNotice } from "../components/SearchRateLimitNotice";
 
 import {

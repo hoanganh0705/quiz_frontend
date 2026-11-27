@@ -230,6 +230,51 @@ describe("useTournamentParticipation", () => {
     });
   });
 
+  describe("closed and ended tournament states", () => {
+    it("returns status=closed and isEligible=false when tournament status is finished", async () => {
+      mockUseTournament.mockReturnValueOnce({
+        tournament: {
+          ...mockTournament,
+          status: "finished" as const,
+        },
+        isLoading: false,
+        error: null,
+      });
+
+      const { result } = renderHook(() =>
+        useTournamentParticipation("tournament-1"),
+      );
+
+      await waitFor(() => {
+        expect(result.current.participation?.registrationStatus).toBe("closed");
+      });
+      expect(result.current.isEligible).toBe(false);
+    });
+
+    it("returns status=closed when endAt is in the past even if raw status is registration", async () => {
+      mockUseTournament.mockReturnValueOnce({
+        tournament: {
+          ...mockTournament,
+          status: "registration" as const,
+          startAt: "2025-10-22T11:00:00.000Z",
+          endAt: "2025-10-27T11:00:00.000Z",
+        },
+        isLoading: false,
+        error: null,
+      });
+
+      const { result } = renderHook(() =>
+        useTournamentParticipation("tournament-1"),
+      );
+
+      await waitFor(() => {
+        expect(result.current.participation?.registrationStatus).toBe("closed");
+      });
+      expect(result.current.isEligible).toBe(false);
+      expect(result.current.canWithdraw).toBe(false);
+    });
+  });
+
   describe("loading states", () => {
     it("returns isLoading=true while tournament is loading", async () => {
       mockUseTournament.mockReturnValueOnce({

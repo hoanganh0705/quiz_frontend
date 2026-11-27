@@ -1,11 +1,18 @@
 "use client";
 
-import { HomeHeroSection } from "./HomeHeroSection";
+import { PAGE_CONTAINER_CLASS } from "@/shared/layout/constants";
+
 import QuizCategories from "@/features/categories/components/QuizCategories";
-import RecentlyPlayedSection from "@/features/users/components/RecentlyPlayedSection";
 import PlayerRanking from "@/features/leaderboard/components/PlayerRanking";
-import QuizCardDifficultyList from "@/features/quizzes/components/QuizCardDifficultyList";
 import { HowItWorks } from "@/features/marketing";
+import QuizCardDifficultyList from "@/features/quizzes/components/QuizCardDifficultyList";
+import RecentlyPlayedSection from "@/features/users/components/RecentlyPlayedSection";
+
+import { HomeFeaturedRail } from "./HomeFeaturedRail";
+import { HomeHeroSection } from "./HomeHeroSection";
+import { HomeMetricRail } from "./HomeMetricRail";
+import { RecentWinnersRail } from "./RecentWinnersRail";
+
 import type { Category } from "@/features/categories/types";
 import type {
   LeaderboardEntryDto,
@@ -14,11 +21,6 @@ import type {
   RecentWinnersResponseDto,
   TrendingQuizItemDto,
 } from "@/lib/api/generated/schemas";
-
-import { HomeFeaturedRail } from "./HomeFeaturedRail";
-import { HomeTrendingRail } from "./HomeTrendingRail";
-import { HomePopularRail } from "./HomePopularRail";
-import { RecentWinnersRail } from "./RecentWinnersRail";
 
 export interface HomePageProps {
   categories: Category[];
@@ -35,9 +37,12 @@ export function HomePage({
   trending,
   popular,
   recentWinners,
+  topPlayers,
 }: HomePageProps): React.ReactElement {
   return (
-    <div className="min-h-screen px-4 sm:px-6 py-4 sm:py-6 overflow-x-hidden space-y-12 md:space-y-16">
+    <div
+      className={`${PAGE_CONTAINER_CLASS} overflow-x-hidden space-y-12 md:space-y-16`}
+    >
       {/* 1. Hero & Core Value Proposition */}
       <HomeHeroSection />
 
@@ -58,12 +63,20 @@ export function HomePage({
 
       {/* 7. Community Feeds (Trending & Popular Rails) */}
       <div className="flex flex-col gap-10">
-        <HomeTrendingRail items={trending} categories={categories} />
-        <HomePopularRail items={popular} categories={categories} />
+        <HomeMetricRail
+          variant="trending"
+          items={trending}
+          categories={categories}
+        />
+        <HomeMetricRail
+          variant="popular"
+          items={popular}
+          categories={categories}
+        />
       </div>
 
       {/* 8. Competitive Apex (Top Players Leaderboard) */}
-      <PlayerRanking />
+      <PlayerRanking initialPlayers={topPlayers} />
 
       {/* 9. Platform Primer & Onboarding (How It Works) */}
       <HowItWorks />

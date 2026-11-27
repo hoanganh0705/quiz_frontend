@@ -9,7 +9,7 @@ import { cn } from "@/shared/utils/merge-class-names";
 import { isApiError } from "@/lib/api";
 
 import { useCreateComment } from "@/features/comments/hooks/useCreateComment";
-import { useCommentThreadLookup } from "@/features/comments/stores/useCommentThreadLookup";
+import { REPLY_CAP } from "@/features/comments/types";
 
 export interface CommentReplyFormProps {
   quizId: string;
@@ -67,10 +67,8 @@ export function CommentReplyForm({
 
   const [body, setBody] = useState("");
 
-  const lookup = useCommentThreadLookup(quizId);
-  const atCap = lookup.isAtReplyCap(parentCommentId);
-
-  const replyCount = repliesCount ?? lookup.getRepliesCount(parentCommentId);
+  const replyCount = repliesCount;
+  const atCap = replyCount >= REPLY_CAP;
 
   const { createComment, isLoading, error, errorCopy, resetError } =
     useCreateComment(quizId);
@@ -171,7 +169,7 @@ export function CommentReplyForm({
           <AlertTriangle className="mt-0.5 shrink-0" size={14} aria-hidden />
           <span>
             {REPLY_COOLDOWN_LABEL}. This thread has reached its
-            {` ${lookup.getRepliesCount(parentCommentId)} `}
+            {` ${replyCount} `}
             reply limit.
           </span>
         </div>

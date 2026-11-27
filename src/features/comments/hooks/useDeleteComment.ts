@@ -7,9 +7,12 @@ import { isApiError, type ApiError } from "@/lib/api";
 import { getUserCopy, type UserCopyEntry } from "@/lib/api/error-codes";
 import { logger } from "@/shared/log";
 
+import { COMMENT_KEYS } from "@/features/comments/query-keys";
 import { deleteComment } from "@/features/comments/services/comments.service";
 
 export interface UseDeleteCommentOptions {
+  quizId?: string;
+
   parentId?: string | null;
 
   onSuccess?: () => void;
@@ -29,19 +32,11 @@ export interface UseDeleteCommentResult {
   resetError: () => void;
 }
 
-function emitBreadcrumb(
-  category: string,
-  data: { status: string; durationMs: number; code?: string },
-): void {
-  void category;
-  void data;
-}
-
 export function useDeleteComment(
   commentId: string,
   options: UseDeleteCommentOptions = {},
 ): UseDeleteCommentResult {
-  const { parentId, onSuccess, onError } = options;
+  const { quizId, onSuccess, onError } = options;
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<ApiError | null>(null);
@@ -57,8 +52,6 @@ export function useDeleteComment(
     setIsLoading(true);
     setError(null);
 
-    const startedAt = Date.now();
-
     const core = (async (): Promise<boolean> => {
       try {
         await deleteComment(commentId);
@@ -66,15 +59,9 @@ export function useDeleteComment(
         try {
           const qc = getQueryClient();
           await qc.invalidateQueries({
-            predicate: (query) =>
-              Array.isArray(query.queryKey) && query.queryKey[0] === "comments",
+            queryKey: quizId ? COMMENT_KEYS.byQuiz(quizId) : COMMENT_KEYS.all,
           });
         } catch {}
-
-        emitBreadcrumb("comments:delete-comment", {
-          status: "success",
-          durationMs: Date.now() - startedAt,
-        });
 
         onSuccess?.();
         return true;
@@ -82,20 +69,9 @@ export function useDeleteComment(
         if (isApiError(err)) {
           setError(err);
           onError?.(err);
-
-          emitBreadcrumb("comments:delete-comment", {
-            status: "error",
-            durationMs: Date.now() - startedAt,
-            code: err.code,
-          });
           return false;
         }
 
-        emitBreadcrumb("comments:delete-comment", {
-          status: "error",
-          durationMs: Date.now() - startedAt,
-          code: "GLOBAL_UNKNOWN",
-        });
         logger.warn("comments.delete", "unexpected rejection", err);
         return false;
       }
@@ -108,7 +84,7 @@ export function useDeleteComment(
       setIsLoading(false);
       inFlightRef.current = null;
     }
-  }, [commentId, parentId, onSuccess, onError]);
+  }, [commentId, quizId, onSuccess, onError]);
 
   const resetError = useCallback(() => {
     setError(null);

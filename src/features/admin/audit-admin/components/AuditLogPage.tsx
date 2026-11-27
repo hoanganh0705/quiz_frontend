@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/Button";
 
 
@@ -30,11 +30,12 @@ export function AuditLogPage(): React.ReactElement {
 
 function AuditLogPageContent(): React.ReactElement {
   const { filters, hasActiveFilters, resetFilters } = useAuditLogFilters();
+  const [knownTotal, setKnownTotal] = useState(0);
 
   const pagination = useOffsetPaginatedAuditLogs({
     initialOffset: 0,
     initialLimit: AUDIT_LOG_DEFAULT_PAGE_SIZE,
-    total: 0, // Will be updated via setOffset logic
+    total: knownTotal,
   });
 
   const {
@@ -49,6 +50,16 @@ function AuditLogPageContent(): React.ReactElement {
     offset: pagination.offset,
     limit: pagination.limit,
   });
+
+  useEffect(() => {
+    setKnownTotal((prev) => (prev === total ? prev : total));
+  }, [total]);
+
+  const filtersSignature = JSON.stringify(filters);
+  const resetPagination = pagination.resetPagination;
+  useEffect(() => {
+    resetPagination();
+  }, [filtersSignature, resetPagination]);
 
   const [selectedEntryId, setSelectedEntryId] = useState<string | null>(null);
   const [initialEntry, setInitialEntry] = useState<AuditLogEntryDto | null>(
@@ -77,7 +88,7 @@ function AuditLogPageContent(): React.ReactElement {
   if (isNotExposed) {
     return (
       <div
-        className="mx-auto max-w-7xl px-4 sm:px-6 pb-8 space-y-6 pt-6"
+        className="min-h-screen w-full text-foreground p-4 md:p-8 lg:p-12 space-y-6"
         data-testid="audit-log-page"
       >
         {/* Consistent Page Header */}
@@ -99,7 +110,7 @@ function AuditLogPageContent(): React.ReactElement {
 
   return (
     <div
-      className="mx-auto max-w-7xl px-4 sm:px-6 pb-8 space-y-6 pt-6"
+      className="min-h-screen w-full text-foreground p-4 md:p-8 lg:p-12 space-y-6"
       data-testid="audit-log-page"
       data-loading={isLoading}
       data-error={error ? "true" : "false"}

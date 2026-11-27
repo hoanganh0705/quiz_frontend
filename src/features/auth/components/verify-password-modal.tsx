@@ -18,9 +18,9 @@ import { InlineError } from "@/components/ui/loading-states/ErrorState";
 import { cn } from "@/shared/utils/merge-class-names";
 import { useVerifyPassword } from "@/features/auth/hooks/use-verify-password";
 import {
-  PASSWORD_COPY_KEYS,
-  resolvePasswordCopy,
-} from "@/features/auth/services/auth.service";
+  COPY_KEYS as PASSWORD_COPY_KEYS,
+  resolveCopy as resolvePasswordCopy,
+} from "@/features/auth/copy/password-copy";
 
 export interface VerifyPasswordModalProps {
   open: boolean;

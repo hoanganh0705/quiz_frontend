@@ -1,6 +1,6 @@
 "use client";
 
-import { useFollowedLookup } from "@/features/tags/hooks/useFollowedLookup";
+import { useFollowedTags } from "@/features/tags/hooks/useFollowedTags";
 
 export interface UseIsFollowingTagResult {
   isFollowing: boolean;
@@ -9,7 +9,7 @@ export interface UseIsFollowingTagResult {
 }
 
 export function useIsFollowingTag(id: string | null): UseIsFollowingTagResult {
-  const lookup = useFollowedLookup();
+  const lookup = useFollowedTags();
 
   if (id === null) {
     return { isFollowing: false, isLoading: false };

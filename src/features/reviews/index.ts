@@ -4,7 +4,6 @@ export * from "./types";
 export {
   useQuizReviews,
   useMyQuizReview,
-  useCompletedQuizAttempt,
   useReviewGate,
   useCreateReview,
   useEditReview,
@@ -16,8 +15,6 @@ export type {
   UseQuizReviewsResult,
   UseMyQuizReviewParams,
   UseMyQuizReviewResult,
-  UseCompletedQuizAttemptParams,
-  UseCompletedQuizAttemptResult,
   UseReviewGateParams,
   CreateReviewOutcome,
   CreateReviewOutcomeKind,

@@ -36,10 +36,6 @@ export function useBadges(
   );
 
   const fetcher = useCallback(async () => {
-    if (false) {
-      return [] as BadgeSummary[];
-    }
-
     const wire =
       ((await listBadges()) as unknown as Array<
         BadgeCatalogItemResponseDto | NormalizedBadge
@@ -53,18 +49,6 @@ export function useBadges(
   });
 
   const isStale = result.data !== undefined && result.isRetrying;
-
-  if (false) {
-    return {
-      badges: [],
-      isLoading: false,
-      error: null,
-      retry: async () => {
-        /* no-op */
-      },
-      isStale: false,
-    };
-  }
 
   return {
     badges: result.data ?? [],

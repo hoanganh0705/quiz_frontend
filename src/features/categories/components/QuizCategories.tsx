@@ -29,6 +29,7 @@ const CATEGORY_EMOJIS: Record<string, string> = {
 };
 
 function CategoryCard({
+  categoryId,
   name,
   slug,
   imageUrl,
@@ -38,7 +39,7 @@ function CategoryCard({
 
   return (
     <Link
-      href={`/quizzes?category=${encodeURIComponent(slug)}`}
+      href={`/quizzes?categoryId=${encodeURIComponent(categoryId)}`}
       className="group block w-full h-48 sm:h-52 overflow-hidden max-w-full min-w-0 rounded-2xl border border-border/70 hover:border-brand/40 shadow-sm hover:shadow-lg transition-all duration-300"
     >
       <div className="relative w-full h-full rounded-2xl overflow-hidden bg-muted">

@@ -2,13 +2,6 @@ import type { QuizVersionResponseDto } from "@/lib/api/generated/schemas";
 
 export const PUBLISH_MIN_QUESTIONS = 5;
 
-export function publishResultKey(
-  quizId: string,
-  versionId: string,
-): ["quiz", "publish", string, string] {
-  return ["quiz", "publish", quizId, versionId];
-}
-
 export interface PublishReadiness {
   isReady: boolean;
 

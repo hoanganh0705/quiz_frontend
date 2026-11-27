@@ -4,33 +4,23 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/Button";
-import { Skeleton } from "@/components/ui/Skeleton";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/AlertDialog";
-import { useToast } from "@/lib/forms/useToast";
+import { Progress } from "@/components/ui/Progress";
 import { ApiError } from "@/lib/api";
 import { getUserCopy } from "@/lib/api/error-codes";
+import { useToast } from "@/lib/forms/useToast";
 import { cn } from "@/shared/utils/merge-class-names";
 
 import {
   useAttemptRunner,
   type UseAttemptRunnerParams,
 } from "@/features/attempts/hooks/useAttemptRunner";
-import type { AnswerSelection } from "../types";
 
-import {
-  AttemptAbandonDialog,
-  AttemptHeader,
-  AttemptQuestionCard,
-} from "@/features/attempts/components";
+import { AttemptAbandonDialog } from "./AttemptAbandonDialog";
+import { AttemptHeader } from "./AttemptHeader";
+import { AttemptQuestionCard } from "./AttemptQuestionCard";
+import { CompleteQuizButton, RunnerSkeleton } from "./AttemptRunnerFooter";
+
+import type { AnswerSelection } from "../types";
 
 export type AttemptRunnerProps = UseAttemptRunnerParams;
 
@@ -206,18 +196,14 @@ export function AttemptRunner(props: AttemptRunnerProps): React.ReactElement {
       <div className="space-y-2">
         <div className="flex items-center justify-between text-sm">
           <span className="text-muted-foreground">Progress</span>
-          <span className="font-medium">
+          <span className="font-mono font-medium tabular-nums">
             {answeredCount} / {totalQuestions} answered
           </span>
         </div>
-        <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
-          <div
-            className="h-full bg-primary transition-all duration-300"
-            style={{
-              width: `${totalQuestions > 0 ? (answeredCount / totalQuestions) * 100 : 0}%`,
-            }}
-          />
-        </div>
+        <Progress
+          value={totalQuestions > 0 ? (answeredCount / totalQuestions) * 100 : 0}
+          className="h-2 w-full bg-muted [&_[data-slot=progress-indicator]]:bg-primary"
+        />
       </div>
 
       {/* Question minimap stepper */}
@@ -395,127 +381,6 @@ function AttemptRunnerActiveQuestion({
           </Button>
         </div>
       )}
-    </div>
-  );
-}
-
-function CompleteQuizButton({
-  runner,
-  allAnswered,
-  remainingCount,
-  onNavigateToUnanswered,
-}: {
-  runner: ReturnType<typeof useAttemptRunner>;
-  allAnswered: boolean;
-  remainingCount: number;
-  onNavigateToUnanswered?: () => void;
-}): React.ReactElement {
-  const { completeQuiz } = runner;
-  const [isSubmitting, setIsSubmitting] = React.useState(false);
-  const [showIncompleteDialog, setShowIncompleteDialog] = React.useState(false);
-  const { push } = useToast();
-
-  const performSubmit = async () => {
-    setIsSubmitting(true);
-    try {
-      await completeQuiz();
-    } catch (error) {
-      const code = (error as ApiError)?.code;
-      const copy = getUserCopy(code ?? "ATTEMPT_UNKNOWN");
-      push({
-        title: copy.title,
-        body: copy.body,
-        durationMs: 5000,
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleSubmit = () => {
-    if (isSubmitting) return;
-    if (!allAnswered) {
-      setShowIncompleteDialog(true);
-      return;
-    }
-    void performSubmit();
-  };
-
-  return (
-    <>
-      <div className="sticky bottom-3 z-20 bg-card/95 backdrop-blur-md p-4 border border-border/80 rounded-2xl shadow-lg mt-2">
-        <Button
-          type="button"
-          variant="default"
-          size="lg"
-          className="w-full bg-brand text-white hover:bg-brand-hover rounded-xl font-semibold py-3 shadow-sm hover:shadow-brand/20 transition-all cursor-pointer"
-          disabled={isSubmitting}
-          onClick={handleSubmit}
-          data-testid="attempt-runner-submit-quiz"
-        >
-          {isSubmitting ? "Submitting..." : "Submit Quiz"}
-        </Button>
-        {remainingCount > 0 && (
-          <p className="text-xs text-muted-foreground text-center mt-2 font-mono">
-            {remainingCount} question{remainingCount !== 1 ? "s" : ""} remaining
-          </p>
-        )}
-      </div>
-
-      <AlertDialog
-        open={showIncompleteDialog}
-        onOpenChange={setShowIncompleteDialog}
-      >
-        <AlertDialogContent data-testid="attempt-incomplete-submit-dialog">
-          <AlertDialogHeader>
-            <AlertDialogTitle>Submit incomplete quiz?</AlertDialogTitle>
-            <AlertDialogDescription>
-              You still have{" "}
-              <span className="font-semibold text-foreground">
-                {remainingCount} unanswered question{remainingCount !== 1 ? "s" : ""}
-              </span>
-              . If you submit now, unanswered questions will be marked as{" "}
-              <span className="font-semibold text-foreground">undone</span> and
-              will not be scored. Are you sure you want to submit?
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel
-              onClick={() => {
-                setShowIncompleteDialog(false);
-                onNavigateToUnanswered?.();
-              }}
-              data-testid="attempt-incomplete-submit-cancel"
-            >
-              Continue quiz
-            </AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => {
-                setShowIncompleteDialog(false);
-                void performSubmit();
-              }}
-              className="bg-brand text-white hover:bg-brand-hover cursor-pointer"
-              data-testid="attempt-incomplete-submit-confirm"
-            >
-              Submit anyway
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </>
-  );
-}
-
-function RunnerSkeleton(): React.ReactElement {
-  return (
-    <div
-      className="mx-auto flex w-full max-w-3xl flex-col gap-4 p-4"
-      data-testid="attempt-runner-skeleton"
-    >
-      <Skeleton className="h-8 w-1/2" />
-      <Skeleton className="h-3 w-full" />
-      <Skeleton className="h-40 w-full" />
-      <Skeleton className="h-10 w-full" />
     </div>
   );
 }

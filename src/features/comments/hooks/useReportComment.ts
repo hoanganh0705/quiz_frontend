@@ -8,6 +8,8 @@ import { logger } from "@/shared/log";
 
 import { reportComment } from "@/features/comments/services/comments.service";
 
+import type { ReportCommentDtoReason } from "@/lib/api/generated/schemas";
+
 export interface UseReportCommentOptions {
   onSuccess?: () => void;
 
@@ -16,7 +18,7 @@ export interface UseReportCommentOptions {
 
 export interface UseReportCommentResult {
   report: (payload: {
-    reason: string;
+    reason: ReportCommentDtoReason;
     description?: string;
   }) => Promise<boolean>;
 
@@ -33,14 +35,6 @@ export interface UseReportCommentResult {
   clearReportSuccess: () => void;
 
   resetError: () => void;
-}
-
-function emitBreadcrumb(
-  category: string,
-  data: { status: string; durationMs: number; code?: string },
-): void {
-  void category;
-  void data;
 }
 
 export function useReportComment(
@@ -62,7 +56,7 @@ export function useReportComment(
       reason,
       description,
     }: {
-      reason: string;
+      reason: ReportCommentDtoReason;
       description?: string;
     }): Promise<boolean> => {
       if (inFlightRef.current) {
@@ -74,8 +68,6 @@ export function useReportComment(
       setIsAlreadyReported(false);
       setReported(false);
 
-      const startedAt = Date.now();
-
       const core = (async (): Promise<boolean> => {
         try {
           await reportComment(commentId, {
@@ -83,40 +75,20 @@ export function useReportComment(
             details: description,
           });
           setReported(true);
-          emitBreadcrumb("comments:report-comment", {
-            status: "success",
-            durationMs: Date.now() - startedAt,
-          });
           onSuccess?.();
           return true;
         } catch (err) {
           if (isApiError(err)) {
             if (err.code === "COMMENT_DUPLICATE_REPORT") {
               setIsAlreadyReported(true);
-              emitBreadcrumb("comments:report-comment", {
-                status: "success",
-                durationMs: Date.now() - startedAt,
-                code: err.code,
-              });
               return true;
             }
 
             setError(err);
             onError?.(err);
-
-            emitBreadcrumb("comments:report-comment", {
-              status: "error",
-              durationMs: Date.now() - startedAt,
-              code: err.code,
-            });
             return false;
           }
 
-          emitBreadcrumb("comments:report-comment", {
-            status: "error",
-            durationMs: Date.now() - startedAt,
-            code: "GLOBAL_UNKNOWN",
-          });
           logger.warn("comments.report", "unexpected rejection", err);
           return false;
         }

@@ -14,6 +14,8 @@ export interface CreateQuestionDto {
 
   imageUrl?: string | null;
 
+  questionType?: QuestionType;
+
   answerOptions: CreateAnswerOptionDto[];
 }
 

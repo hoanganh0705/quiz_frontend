@@ -1,14 +1,7 @@
 import { memo } from "react";
-import Link from "next/link";
 
-import { Card } from "@/components/ui/Card";
-import { CardContent } from "@/components/ui/Card";
-import { CardHeader } from "@/components/ui/Card";
-import { CardTitle } from "@/components/ui/Card";
-import { Button } from "@/components/ui/Button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Progress } from "@/components/ui/Progress";
-
-import { ActivityTimeline } from "../ActivityTimeline";
 
 export interface OverviewTabProps {
   level?: number;
@@ -39,7 +32,7 @@ export const OverviewTab = memo(function OverviewTab({
     <div className="space-y-6 mt-6">
       {/* Level Progress Card */}
       <Card className="p-4">
-        <CardHeader className="">
+        <CardHeader>
           <CardTitle className="text-base flex items-center">
             Level Progress
           </CardTitle>
@@ -48,7 +41,7 @@ export const OverviewTab = memo(function OverviewTab({
           <div className="space-y-2">
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">Level {level}</span>
-              <span className="text-muted-foreground">
+              <span className="font-mono tabular-nums text-muted-foreground">
                 {formatXP(currentLevelXP)} / {formatXP(nextLevelXP)} XP
               </span>
             </div>
@@ -64,12 +57,9 @@ export const OverviewTab = memo(function OverviewTab({
         </CardContent>
       </Card>
 
-      {/* Activity Timeline */}
-      <ActivityTimeline />
-
       {/* Quick Stats */}
       <Card className="p-4">
-        <CardHeader className="">
+        <CardHeader>
           <CardTitle className="text-base flex items-center justify-between">
             Quick Stats
           </CardTitle>
@@ -77,21 +67,27 @@ export const OverviewTab = memo(function OverviewTab({
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
             <div>
-              <p className="text-2xl font-bold text-foreground">
+              <p className="font-mono tabular-nums text-2xl font-bold text-foreground">
                 {formatXP(totalXP)}
               </p>
               <p className="text-xs text-muted-foreground">Total XP</p>
             </div>
             <div>
-              <p className="text-2xl font-bold text-foreground">{level}</p>
+              <p className="font-mono tabular-nums text-2xl font-bold text-foreground">
+                {level}
+              </p>
               <p className="text-xs text-muted-foreground">Level</p>
             </div>
             <div>
-              <p className="text-2xl font-bold text-foreground">-</p>
+              <p className="font-mono tabular-nums text-2xl font-bold text-foreground">
+                -
+              </p>
               <p className="text-xs text-muted-foreground">Badges</p>
             </div>
             <div>
-              <p className="text-2xl font-bold text-foreground">-</p>
+              <p className="font-mono tabular-nums text-2xl font-bold text-foreground">
+                -
+              </p>
               <p className="text-xs text-muted-foreground">Rank</p>
             </div>
           </div>

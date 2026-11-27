@@ -4,7 +4,10 @@ import { memo } from "react";
 
 import { CheckCircle2, Circle, Plus, Rocket } from "lucide-react";
 
+import { PUBLISH_MIN_QUESTIONS } from "@/features/quizzes/types/publish.types";
+
 import { Button } from "@/components/ui/Button";
+import { Progress } from "@/components/ui/Progress";
 
 export interface PublishReadinessBannerProps {
   questionCount: number;
@@ -26,11 +29,9 @@ export interface PublishReadinessBannerProps {
   className?: string;
 }
 
-const DEFAULT_MIN_QUESTIONS = 5;
-
 export const PublishReadinessBanner = memo(function PublishReadinessBanner({
   questionCount,
-  minQuestions = DEFAULT_MIN_QUESTIONS,
+  minQuestions = PUBLISH_MIN_QUESTIONS,
   isReady,
   onPublish,
   onAddQuestions,
@@ -95,15 +96,11 @@ export const PublishReadinessBanner = memo(function PublishReadinessBanner({
                 {Math.round(progressPercent)}%
               </span>
             </div>
-            <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
-              <div
-                className={`h-full transition-all ${
-                  isReady ? "bg-emerald-500" : "bg-amber-500"
-                }`}
-                style={{ width: `${progressPercent}%` }}
-                data-testid="progress-bar"
-              />
-            </div>
+            <Progress
+              value={progressPercent}
+              className="h-2 bg-muted"
+              data-testid="progress-bar"
+            />
           </div>
         </div>
 

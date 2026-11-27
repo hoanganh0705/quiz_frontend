@@ -77,11 +77,12 @@ export function useRevokeSession(
 
   const deps = options.deps ?? defaultRevokeSessionDeps;
   const removedRef = useRef<SessionListItemDto | null>(null);
+  const inFlightRef = useRef<Promise<void> | null>(null);
 
   const target: "self" | "other" = options.isCurrentSession ? "self" : "other";
 
   const revoke = useCallback(async (): Promise<void> => {
-    if (status === "pending") return;
+    if (inFlightRef.current) return inFlightRef.current;
     setStatus("pending");
     setError(null);
 
@@ -92,70 +93,79 @@ export function useRevokeSession(
       current.filter((s) => s.sessionId !== removed.sessionId),
     );
 
-    if (options.isCurrentSession) {
+    const promise = (async (): Promise<void> => {
       try {
-        const result = await deps.revokeCurrentSession(removed.sessionId);
+        if (options.isCurrentSession) {
+          try {
+            const result = await deps.revokeCurrentSession(removed.sessionId);
 
-        if (result.kind === "success") {
-          setStatus("success");
+            if (result.kind === "success") {
+              setStatus("success");
 
-          router.push("/login");
+              router.push("/login");
+              return;
+            }
+
+            options.listOps.mutate(makeRestoreUpdater(removed));
+            const classification = mapSessionError({
+              code: result.error.code,
+              status: result.error.status,
+              target,
+            });
+            setError({ classification, cause: result.error });
+            setStatus("error");
+
+            if (classification.kind === "current_revoked") {
+              router.push("/login");
+            }
+          } catch (cause: unknown) {
+            options.listOps.mutate(makeRestoreUpdater(removed));
+            const apiErr = cause instanceof ApiError ? cause : null;
+            const classification = mapSessionError({
+              code: apiErr?.code ?? "UNKNOWN",
+              status: apiErr?.status ?? 0,
+              target,
+            });
+            setError({ classification, cause });
+            setStatus("error");
+            if (classification.kind === "current_revoked") {
+              router.push("/login");
+            }
+          }
           return;
         }
 
-        options.listOps.mutate(makeRestoreUpdater(removed));
-        const classification = mapSessionError({
-          code: result.error.code,
-          status: result.error.status,
-          target,
-        });
-        setError({ classification, cause: result.error });
-        setStatus("error");
+        try {
+          await deps.revokeSession(removed.sessionId);
 
-        if (classification.kind === "current_revoked") {
-          router.push("/login");
+          await options.listOps.revalidate();
+          setStatus("success");
+        } catch (cause: unknown) {
+          options.listOps.mutate(makeRestoreUpdater(removed));
+          const apiErr = cause instanceof ApiError ? cause : null;
+          const classification = mapSessionError({
+            code: apiErr?.code ?? "UNKNOWN",
+            status: apiErr?.status ?? 0,
+            target,
+          });
+
+          if (classification.kind === "already_revoked") {
+            await options.listOps.revalidate();
+            setStatus("success");
+            return;
+          }
+
+          setError({ classification, cause });
+          setStatus("error");
         }
-      } catch (cause: unknown) {
-        options.listOps.mutate(makeRestoreUpdater(removed));
-        const apiErr = cause instanceof ApiError ? cause : null;
-        const classification = mapSessionError({
-          code: apiErr?.code ?? "UNKNOWN",
-          status: apiErr?.status ?? 0,
-          target,
-        });
-        setError({ classification, cause });
-        setStatus("error");
-        if (classification.kind === "current_revoked") {
-          router.push("/login");
-        }
+      } finally {
+        inFlightRef.current = null;
       }
-      return;
-    }
+    })();
 
-    try {
-      await deps.revokeSession(removed.sessionId);
-
-      await options.listOps.revalidate();
-      setStatus("success");
-    } catch (cause: unknown) {
-      options.listOps.mutate(makeRestoreUpdater(removed));
-      const apiErr = cause instanceof ApiError ? cause : null;
-      const classification = mapSessionError({
-        code: apiErr?.code ?? "UNKNOWN",
-        status: apiErr?.status ?? 0,
-        target,
-      });
-
-      if (classification.kind === "already_revoked") {
-        await options.listOps.revalidate();
-        setStatus("success");
-        return;
-      }
-
-      setError({ classification, cause });
-      setStatus("error");
-    }
-  }, [status, options, deps, target, router]);
+    inFlightRef.current = promise;
+    return promise;
+  }, [options, deps, target, router]);
 
   return useMemo(() => ({ status, error, revoke }), [status, error, revoke]);
 }

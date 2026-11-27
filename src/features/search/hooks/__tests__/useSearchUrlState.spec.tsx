@@ -15,10 +15,6 @@ vi.mock("next/navigation", () => ({
   usePathname: vi.fn(() => mockUsePathname()),
 }));
 
-vi.mock("@/features/search/hooks/useDebouncedValue", () => ({
-  DEFAULT_SEARCH_DEBOUNCE_MS: 250,
-}));
-
 function createMockSearchParams(entries: Array<[string, string]> = []) {
   const params = new URLSearchParams();
   for (const [key, value] of entries) {

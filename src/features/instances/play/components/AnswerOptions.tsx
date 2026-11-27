@@ -1,21 +1,17 @@
 "use client";
 
-import { Loader2, ArrowRight } from "lucide-react";
 import { useCallback } from "react";
-
-import { Button } from "@/components/ui/Button";
-import { cn } from "@/shared/utils/merge-class-names";
 
 import {
   useQuestionRevealed,
   useSubmitInstanceAnswer,
-  useQuestionTimer,
-  type UseQuestionRevealedResult,
 } from "@/features/instances/play/hooks";
-import {
-  useInstanceGameplayStore,
-  selectCanAdvanceQuestion,
-} from "../stores/instanceGameplay.store";
+
+import { cn } from "@/shared/utils/merge-class-names";
+
+import type { UseQuestionRevealedResult } from "@/features/instances/play/hooks";
+
+const OPTION_LETTERS = ["A", "B", "C", "D", "E", "F", "G", "H"];
 
 interface AnswerOptionsProps {
   instanceId: string;
@@ -26,28 +22,15 @@ export function AnswerOptions({ instanceId, className }: AnswerOptionsProps) {
   const { bundle }: UseQuestionRevealedResult = useQuestionRevealed(instanceId);
   const questionId = bundle?.question.id ?? null;
 
-  const {
-    submit,
-    state: submissionState,
-    selectedOptionId,
-    canSubmit,
-  } = useSubmitInstanceAnswer(instanceId, questionId);
-
-  const { isWindowOpen } = useQuestionTimer(instanceId);
-  const advanceQuestion = useInstanceGameplayStore((s) => s.advanceQuestion);
-  const hasNext = useInstanceGameplayStore((s) =>
-    selectCanAdvanceQuestion(s, instanceId),
-  );
-
-  const isPending = submissionState === "pending";
-  const isAccepted = submissionState === "accepted";
+  const { submit, selectedOptionId, canSubmit, lastError } =
+    useSubmitInstanceAnswer(instanceId, questionId);
 
   const handleOptionClick = useCallback(
     (optionId: string) => {
-      if (!canSubmit || isPending || isAccepted) return;
-      submit(optionId);
+      if (!canSubmit) return;
+      void submit(optionId);
     },
-    [canSubmit, isPending, isAccepted, submit],
+    [canSubmit, submit],
   );
 
   if (!bundle || bundle.options.length === 0) {
@@ -55,147 +38,91 @@ export function AnswerOptions({ instanceId, className }: AnswerOptionsProps) {
   }
 
   return (
-    <div
-      className={cn("space-y-3", className)}
-      data-testid="answer-options"
-      role="radiogroup"
-      aria-label="Answer options"
-    >
-      {bundle.options.map((option) => {
-        const isDisabled = !canSubmit || isPending;
-        const isSelected =
-          (isAccepted && selectedOptionId === option.id) ||
-          (isAccepted && selectedOptionId === null);
-
-        return (
-          <OptionRow
-            key={option.id}
-            option={option}
-            isDisabled={isDisabled}
-            isPending={isPending}
-            isSelected={isSelected}
-            onSelect={handleOptionClick}
-            optionIndex={option.index}
-          />
-        );
-      })}
-
-      {isAccepted && (
-        <div className="pt-4 flex justify-end">
-          <Button
-            type="button"
-            onClick={() => advanceQuestion(instanceId)}
-            className="gap-2"
-            data-testid="advance-question-btn"
-          >
-            {hasNext ? "Next Question" : "Finish Quiz"}
-            <ArrowRight className="h-4 w-4" />
-          </Button>
-        </div>
-      )}
-
-      {!isWindowOpen && !isAccepted && !isPending && (
-        <div className="pt-4 flex items-center justify-between">
-          <span className="text-sm text-destructive font-medium">
-            Time&apos;s up!
-          </span>
-          <Button
-            type="button"
-            onClick={() => advanceQuestion(instanceId)}
-            variant="outline"
-            className="gap-2"
-            data-testid="advance-question-btn"
-          >
-            {hasNext ? "Next Question" : "Finish Quiz"}
-            <ArrowRight className="h-4 w-4" />
-          </Button>
-        </div>
-      )}
-    </div>
-  );
-}
-
-interface OptionRowProps {
-  option: {
-    id: string;
-    index: number;
-    text: string;
-    mediaUrl?: string;
-  };
-  isDisabled: boolean;
-  isPending: boolean;
-  isSelected: boolean;
-  onSelect: (optionId: string) => void;
-  optionIndex: number;
-}
-
-function OptionRow({
-  option,
-  isDisabled,
-  isPending,
-  isSelected,
-  onSelect,
-  optionIndex,
-}: OptionRowProps) {
-  return (
-    <div
-      className={cn(
-        "flex items-start gap-3 p-4 rounded-lg border transition-colors",
-        isSelected
-          ? "border-primary bg-primary/5"
-          : "border-border hover:border-primary/50 hover:bg-muted/30",
-        isDisabled && "opacity-60 cursor-not-allowed",
-      )}
-      data-testid="option-row"
-      data-option-id={option.id}
-      data-option-index={optionIndex}
-    >
-      {/* Radio-style indicator */}
+    <div className={cn("space-y-3", className)}>
       <div
-        className={cn(
-          "flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 mt-0.5 transition-colors",
-          isSelected
-            ? "border-primary bg-primary"
-            : "border-muted-foreground/30",
-          isDisabled && "border-muted-foreground/20",
-        )}
-        aria-hidden="true"
+        className="grid grid-cols-1 gap-2.5"
+        data-testid="answer-options"
+        role="radiogroup"
+        aria-label="Answer options"
       >
-        {isPending && <Loader2 className="h-3 w-3 text-white animate-spin" />}
+        {bundle.options.map((option, idx) => {
+          const isSelected = selectedOptionId === option.id;
+          const letter = OPTION_LETTERS[idx] ?? `${idx + 1}`;
+          const isDisabled = !canSubmit;
+
+          return (
+            <button
+              key={option.id}
+              type="button"
+              role="radio"
+              aria-checked={isSelected}
+              disabled={isDisabled}
+              onClick={() => handleOptionClick(option.id)}
+              className={cn(
+                "flex w-full items-center gap-3.5 rounded-xl border p-3.5 sm:p-4 text-left transition-all select-none",
+                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                isSelected
+                  ? "border-brand bg-brand/10 shadow-xs ring-1 ring-brand/40"
+                  : "border-border/80 bg-card hover:border-brand/40 hover:bg-muted/40",
+                isDisabled ? "opacity-60 cursor-not-allowed" : "cursor-pointer",
+              )}
+              data-testid="option-row"
+              data-option-id={option.id}
+              data-option-index={option.index}
+            >
+              {/* Radio indicator */}
+              <span
+                className={cn(
+                  "flex size-4 shrink-0 items-center justify-center rounded-full border-2 transition-colors",
+                  isSelected
+                    ? "border-brand bg-brand"
+                    : "border-muted-foreground/40 bg-background",
+                )}
+                aria-hidden="true"
+              >
+                {isSelected ? (
+                  <span className="size-1.5 rounded-full bg-white" />
+                ) : null}
+              </span>
+
+              {/* Letter badge (matches AttemptAnswerPicker) */}
+              <span
+                className={cn(
+                  "flex size-7 shrink-0 items-center justify-center rounded-lg border font-mono text-xs font-semibold transition-colors",
+                  isSelected
+                    ? "border-brand bg-brand text-white"
+                    : "border-border bg-muted text-muted-foreground",
+                )}
+                aria-hidden="true"
+              >
+                {letter}
+              </span>
+
+              {/* Option content */}
+              <span className="flex-1 min-w-0">
+                <span className="block font-medium text-sm sm:text-base text-foreground leading-snug wrap-break-word">
+                  {option.text}
+                </span>
+                {option.mediaUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={option.mediaUrl}
+                    alt=""
+                    className="mt-2 w-full max-h-32 object-contain rounded-lg"
+                    data-testid="option-media"
+                  />
+                ) : null}
+              </span>
+            </button>
+          );
+        })}
       </div>
 
-      {/* Option content */}
-      <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium text-foreground leading-relaxed">
-          {option.text}
+      {lastError ? (
+        <p className="text-sm text-destructive" role="alert">
+          {lastError.message || "Could not record answer. Please try again."}
         </p>
-        {option.mediaUrl && (
-          <img
-            src={option.mediaUrl}
-            alt=""
-            className="mt-2 w-full max-h-32 object-contain rounded"
-            data-testid="option-media"
-          />
-        )}
-      </div>
-
-      {/* CTA */}
-      <Button
-        type="button"
-        variant={isSelected ? "secondary" : "outline"}
-        size="sm"
-        disabled={isDisabled}
-        onClick={() => onSelect(option.id)}
-        className="shrink-0"
-        aria-label={
-          isSelected
-            ? `Option ${optionIndex + 1} selected`
-            : `Select option ${optionIndex + 1}`
-        }
-        data-testid="option-select-button"
-      >
-        {isSelected ? "Selected" : isPending ? "Submitting…" : "Select"}
-      </Button>
+      ) : null}
     </div>
   );
 }

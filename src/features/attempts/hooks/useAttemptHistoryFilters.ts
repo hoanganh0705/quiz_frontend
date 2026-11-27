@@ -1,13 +1,17 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import {
   DEFAULT_ATTEMPT_HISTORY_FILTERS,
-  type AttemptHistoryDateRange,
-  type AttemptHistoryFilters,
-  type AttemptHistoryStatusFilter,
+  serializeAttemptHistoryFilters,
+} from "@/features/attempts/types/attempt-history.types";
+
+import type {
+  AttemptHistoryDateRange,
+  AttemptHistoryFilters,
+  AttemptHistoryStatusFilter,
 } from "@/features/attempts/types/attempt-history.types";
 
 const PARAM_STATUS = "status";
@@ -49,6 +53,19 @@ function parseCursorFilter(raw: string | null): string | null {
   return raw;
 }
 
+function readFiltersFromSearchParams(
+  searchParams: Pick<URLSearchParams, "get">,
+  limit: number | undefined = DEFAULT_ATTEMPT_HISTORY_FILTERS.limit,
+): AttemptHistoryFilters {
+  return {
+    status: parseStatusFilter(searchParams.get(PARAM_STATUS)),
+    dateRange: parseDateFilter(searchParams.get(PARAM_DATE)),
+    search: parseSearchFilter(searchParams.get(PARAM_SEARCH)),
+    cursor: parseCursorFilter(searchParams.get(PARAM_CURSOR)),
+    limit,
+  };
+}
+
 export function serializeAttemptHistoryFiltersToParams(
   filters: AttemptHistoryFilters,
 ): URLSearchParams {
@@ -84,42 +101,36 @@ export function useAttemptHistoryFilters(): UseAttemptHistoryFiltersResult {
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  const seededRef = useRef(false);
-  const [filters, setFilters] = useState<AttemptHistoryFilters>(() => {
-    const status = parseStatusFilter(searchParams.get(PARAM_STATUS));
-    const dateRange = parseDateFilter(searchParams.get(PARAM_DATE));
-    const search = parseSearchFilter(searchParams.get(PARAM_SEARCH));
-    const cursor = parseCursorFilter(searchParams.get(PARAM_CURSOR));
-    return {
-      status,
-      dateRange,
-      search,
-      cursor,
-      limit: DEFAULT_ATTEMPT_HISTORY_FILTERS.limit,
-    };
-  });
+  const [filters, setFilters] = useState<AttemptHistoryFilters>(() =>
+    readFiltersFromSearchParams(searchParams),
+  );
+  const filtersRef = useRef<AttemptHistoryFilters>(filters);
+  const lastSearchParamsRef = useRef<string>(searchParams.toString());
 
+  // Re-sync only when external navigation (back/forward) actually changes the URL.
+  const searchParamsString = searchParams.toString();
   useEffect(() => {
-    if (seededRef.current) return;
-    seededRef.current = true;
+    if (searchParamsString === lastSearchParamsRef.current) return;
+    lastSearchParamsRef.current = searchParamsString;
 
-    const status = parseStatusFilter(searchParams.get(PARAM_STATUS));
-    const dateRange = parseDateFilter(searchParams.get(PARAM_DATE));
-    const search = parseSearchFilter(searchParams.get(PARAM_SEARCH));
-    const cursor = parseCursorFilter(searchParams.get(PARAM_CURSOR));
-    setFilters({
-      status,
-      dateRange,
-      search,
-      cursor,
-      limit: DEFAULT_ATTEMPT_HISTORY_FILTERS.limit,
-    });
-  }, [searchParams]);
+    const fromUrl = readFiltersFromSearchParams(
+      searchParams,
+      filtersRef.current.limit,
+    );
+    if (
+      serializeAttemptHistoryFilters(fromUrl) !==
+      serializeAttemptHistoryFilters(filtersRef.current)
+    ) {
+      filtersRef.current = fromUrl;
+      setFilters(fromUrl);
+    }
+  }, [searchParams, searchParamsString]);
 
   const writeFiltersToUrl = useCallback(
     (next: AttemptHistoryFilters): void => {
       const params = serializeAttemptHistoryFiltersToParams(next);
       const queryString = params.toString();
+      lastSearchParamsRef.current = queryString;
       const target =
         queryString.length > 0 ? `${pathname}?${queryString}` : pathname;
       router.replace(target);
@@ -132,18 +143,19 @@ export function useAttemptHistoryFilters(): UseAttemptHistoryFiltersResult {
       key: K,
       value: AttemptHistoryFilters[K],
     ): void => {
-      setFilters((prev) => {
-        const next: AttemptHistoryFilters = {
-          ...prev,
-          [key]: value,
-        };
+      const prev = filtersRef.current;
+      const next: AttemptHistoryFilters = {
+        ...prev,
+        [key]: value,
+      };
 
-        if (key === "status" || key === "dateRange" || key === "search") {
-          next.cursor = null;
-        }
-        writeFiltersToUrl(next);
-        return next;
-      });
+      if (key === "status" || key === "dateRange" || key === "search") {
+        next.cursor = null;
+      }
+
+      filtersRef.current = next;
+      setFilters(next);
+      writeFiltersToUrl(next);
     },
     [writeFiltersToUrl],
   );
@@ -151,12 +163,12 @@ export function useAttemptHistoryFilters(): UseAttemptHistoryFiltersResult {
   const resetFilters = useCallback((): void => {
     const next: AttemptHistoryFilters = {
       ...DEFAULT_ATTEMPT_HISTORY_FILTERS,
-
-      limit: filters.limit,
+      limit: filtersRef.current.limit,
     };
+    filtersRef.current = next;
     setFilters(next);
     writeFiltersToUrl(next);
-  }, [filters.limit, writeFiltersToUrl]);
+  }, [writeFiltersToUrl]);
 
   return {
     filters,

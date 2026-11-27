@@ -8,11 +8,12 @@ import { ApiError } from "@/lib/api";
 import { addTagAdminBreadcrumb } from "@/lib/admin/admin_live_sentry";
 
 import { restoreTag } from "@/features/admin/services/tag-admin.service";
-import type { TagDto } from "../tag-types";
-import { TAG_ADMIN_LIST_KEY } from "./useTagAdminList";
-import { broadcastTagAdminInvalidate } from "../cache/tag-cross-tab";
+import { TAG_KEYS } from "@/features/tags/query-keys";
 
-const PUBLIC_TAGS_KEY = "tags:directory" as const;
+import { broadcastTagAdminInvalidate } from "../cache/tag-cross-tab";
+import { TAG_ADMIN_LIST_KEY } from "./useTagAdminList";
+
+import type { TagDto } from "../tag-types";
 
 export interface RestoreOptions {
   renamedSlug?: string;
@@ -59,7 +60,7 @@ export function useRestoreTag(): UseRestoreTag {
         const qc = getQueryClient();
         await Promise.all([
           qc.invalidateQueries({ queryKey: [TAG_ADMIN_LIST_KEY] }),
-          qc.invalidateQueries({ queryKey: [PUBLIC_TAGS_KEY] }),
+          qc.invalidateQueries({ queryKey: TAG_KEYS.all }),
         ]);
 
         broadcastTagAdminInvalidate("restore", id);

@@ -8,12 +8,23 @@ export interface GoogleTokenPayload {
   email_verified?: boolean;
 }
 
+export interface GoogleIdentityResponse {
+  credential?: string;
+  id_token?: string;
+  select_by?: string;
+  clientId?: string;
+}
+
 function base64urlDecode(str: string): Record<string, unknown> | null {
   try {
     const base64 = str.replace(/-/g, "+").replace(/_/g, "/");
     const padded = base64 + "=".repeat((4 - (base64.length % 4)) % 4);
     const decoded = atob(padded);
-    return JSON.parse(decoded) as Record<string, unknown>;
+    const parsed: unknown = JSON.parse(decoded);
+    if (!parsed || typeof parsed !== "object") {
+      return null;
+    }
+    return parsed as Record<string, unknown>;
   } catch {
     return null;
   }
@@ -24,9 +35,7 @@ export function parseGoogleResponse(
 ): string | null {
   if (!response) return null;
 
-  const token =
-    response.credential ??
-    (response as unknown as { id_token?: string }).id_token;
+  const token = response.credential ?? response.id_token;
 
   if (typeof token !== "string" || token.length === 0) {
     return null;
@@ -45,7 +54,7 @@ export function decodeGoogleToken(token: string): GoogleTokenPayload | null {
     return null;
   }
 
-  const payload = base64urlDecode(parts[1]);
+  const payload = base64urlDecode(parts[1]!);
   if (!payload) {
     return null;
   }
@@ -60,7 +69,17 @@ export function decodeGoogleToken(token: string): GoogleTokenPayload | null {
     return null;
   }
 
-  return payload as unknown as GoogleTokenPayload;
+  return {
+    iss: payload.iss,
+    aud: payload.aud,
+    exp: payload.exp,
+    iat: payload.iat,
+    sub: payload.sub,
+    ...(typeof payload.email === "string" ? { email: payload.email } : {}),
+    ...(typeof payload.email_verified === "boolean"
+      ? { email_verified: payload.email_verified }
+      : {}),
+  };
 }
 
 export function isTokenExpired(token: string): boolean {
@@ -94,10 +113,4 @@ export function getTokenEmail(token: string): string | null {
   const payload = decodeGoogleToken(token);
   if (!payload) return null;
   return payload.email ?? null;
-}
-
-export interface GoogleIdentityResponse {
-  credential?: string;
-  select_by?: string;
-  clientId?: string;
 }

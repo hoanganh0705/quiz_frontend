@@ -1,22 +1,23 @@
 "use client";
 
-import { useCallback, useMemo } from "react";
+import { useCallback } from "react";
 
-import { useSingleWithRetry } from "@/lib/api";
+import { useQuery } from "@tanstack/react-query";
 
+import { coerceToApiError } from "@/lib/api";
+
+import { useAuthSessionId } from "@/features/auth/hooks/use-auth-session-id";
+import { REVIEW_KEYS } from "@/features/reviews/query-keys";
 import { getMyQuizReview } from "@/features/reviews/services/reviews.service";
-import { useAuthSession } from "@/features/auth/hooks/use-auth-session";
-import { myQuizReviewKey, type MyReviewDto } from "@/features/reviews/types";
+
+import type { ApiError } from "@/lib/api";
+import type { MyReviewDto } from "@/features/reviews/types";
 
 export interface UseMyQuizReviewResult {
   review: MyReviewDto | null;
-
   isLoading: boolean;
-
   hasResolved: boolean;
-
-  error: import("@/lib/api").ApiError | null;
-
+  error: ApiError | null;
   retry: () => Promise<void>;
 }
 
@@ -29,58 +30,36 @@ export function useMyQuizReview(
 ): UseMyQuizReviewResult {
   const { quizId } = params;
 
-  const { bootstrapState, currentUser } = useAuthSession();
+  const sessionId = useAuthSessionId();
 
-  const sessionId = useMemo<string | null>(() => {
-    if (bootstrapState !== "authenticated") return null;
-    if (!currentUser) return null;
-    const id =
-      (currentUser as { id?: string; userId?: string }).id ??
-      (currentUser as { userId?: string }).userId;
-    return id ?? null;
-  }, [bootstrapState, currentUser]);
+  const enabled = quizId !== null && sessionId !== null;
 
-  const key = useMemo(
-    () =>
-      quizId === null || sessionId === null
-        ? null
-        : myQuizReviewKey(quizId, sessionId),
-    [quizId, sessionId],
-  );
+  const query = useQuery<MyReviewDto | null, ApiError>({
+    queryKey: enabled
+      ? REVIEW_KEYS.mine(quizId, sessionId)
+      : ["reviews", "mine", "disabled"],
+    queryFn: async () => {
+      if (!quizId) return null;
+      const result = await getMyQuizReview(quizId);
+      return result ? { ...result, id: result.reviewId } : null;
+    },
+    enabled,
+    retry: false,
+  });
 
-  const fetcher = useMemo(
-    () =>
-      async ({
-        signal,
-      }: {
-        signal: AbortSignal;
-      }): Promise<MyReviewDto | null> => {
-        if (quizId === null) {
-          return null;
-        }
-        const result = await getMyQuizReview(quizId);
-        if (signal.aborted) {
-          return result ? { ...result, id: result.reviewId } : null;
-        }
-        return result ? { ...result, id: result.reviewId } : null;
-      },
-    [quizId],
-  );
-
-  const { data, isLoading, error, retry } =
-    useSingleWithRetry<MyReviewDto | null>({
-      key,
-      fetcher,
-    });
-
-  const hasResolved = !isLoading && (data !== undefined || error !== null);
+  const isLoading = enabled ? query.isPending : false;
+  const error =
+    enabled && query.error ? coerceToApiError(query.error) : null;
+  const hasResolved =
+    enabled && !isLoading && (query.data !== undefined || error !== null);
 
   const stableRetry = useCallback(async () => {
-    await retry();
-  }, [retry]);
+    if (!enabled) return;
+    await query.refetch();
+  }, [enabled, query]);
 
   return {
-    review: data ?? null,
+    review: enabled ? (query.data ?? null) : null,
     isLoading,
     hasResolved,
     error,

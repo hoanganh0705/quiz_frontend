@@ -198,7 +198,7 @@ export const QuizVersionList = memo(function QuizVersionList({
     );
   }
 
-  if (isEmpty || (!hasDrafts && onCreateFirstDraft)) {
+  if (isEmpty) {
     return (
       <div className={className} data-testid="quiz-version-list">
         <VersionListEmptyState

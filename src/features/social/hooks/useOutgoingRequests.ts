@@ -47,7 +47,6 @@ export function useOutgoingRequests(): UseOutgoingRequestsResult {
   const isAuthenticated = auth.isAuthenticated;
 
   const key = useMemo<readonly unknown[] | null>(() => {
-    if (false) return null;
     if (!isAuthenticated) return null;
     return SOCIAL_CACHE_KEYS.makeOutgoingRequestsKey();
   }, [isAuthenticated]);
@@ -100,7 +99,6 @@ export function useOutgoingRequests(): UseOutgoingRequestsResult {
     paginationKind: "cursor",
   });
 
-  if (false) return PLACEHOLDER_RESULT;
   if (!isAuthenticated) return PLACEHOLDER_RESULT;
 
   return {

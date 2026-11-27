@@ -1,6 +1,8 @@
 "use client";
 
 import * as React from "react";
+
+import { CheckCircle2, Loader2, XCircle } from "lucide-react";
 import {
   Controller,
   useFormContext,
@@ -8,12 +10,12 @@ import {
   type FieldPath,
   type FieldValues,
 } from "react-hook-form";
-import type { z } from "zod";
-import { CheckCircle2, Loader2, XCircle } from "lucide-react";
+
+import { useCheckQuizSlug } from "@/features/quizzes/hooks/useCheckQuizSlug";
 
 import { cn } from "@/shared/utils/merge-class-names";
-import { useCheckQuizSlug } from "@/features/quizzes/hooks/useCheckQuizSlug";
-import { TAG_SLUG_INVALID_COPY } from "@/lib/forms/regex";
+
+import type { z } from "zod";
 
 function deriveSlug(title: string): string {
   return title
@@ -25,9 +27,7 @@ function deriveSlug(title: string): string {
     .replace(/^-+|-+$/g, ""); // trim ends
 }
 
-export interface QuizSlugFieldProps<
-  T extends z.ZodType<FieldValues, any, any>,
-> {
+export interface QuizSlugFieldProps<T extends z.ZodType<FieldValues>> {
   name: FieldPath<z.infer<T>>;
 
   label?: string;
@@ -93,7 +93,7 @@ function AvailabilityIndicator({
   return null;
 }
 
-export function QuizSlugField<T extends z.ZodType<FieldValues, any, any>>({
+export function QuizSlugField<T extends z.ZodType<FieldValues>>({
   name,
   label = "URL Slug",
   titleValue,
@@ -104,7 +104,14 @@ export function QuizSlugField<T extends z.ZodType<FieldValues, any, any>>({
 }: QuizSlugFieldProps<T>): React.ReactElement {
   const { control, formState } = useFormContext<z.infer<T>>();
   const { available, isChecking, error, check, reset } = useCheckQuizSlug();
-  const watchedTitle = (useWatch({ control, name: "title" as any }) as string) ?? "";
+  const watchedTitleRaw = useWatch({
+    control,
+    name: "title" as FieldPath<z.infer<T>>,
+  });
+  const watchedSlugRaw = useWatch({ control, name });
+  const watchedTitle =
+    typeof watchedTitleRaw === "string" ? watchedTitleRaw : "";
+  const watchedSlug = typeof watchedSlugRaw === "string" ? watchedSlugRaw : "";
   const resolvedTitle = titleValue !== undefined ? titleValue : watchedTitle;
 
   const inputDisabled =
@@ -114,7 +121,16 @@ export function QuizSlugField<T extends z.ZodType<FieldValues, any, any>>({
         ? false
         : formState.isSubmitting;
 
-  const slugValue = React.useRef<string>("");
+  React.useEffect(() => {
+    const trimmed = watchedSlug.trim();
+    if (trimmed !== "") {
+      check(trimmed);
+    } else {
+      reset();
+    }
+  }, [watchedSlug, check, reset]);
+
+  const derivedSlug = deriveSlug(resolvedTitle);
 
   return (
     <div className={cn("space-y-2", className)}>
@@ -131,35 +147,22 @@ export function QuizSlugField<T extends z.ZodType<FieldValues, any, any>>({
         <p className="text-xs text-muted-foreground">{description}</p>
       ) : null}
 
-      <div className="flex items-center gap-2">
-        <Controller
-          name={name}
-          control={control}
-          render={({ field, fieldState }) => {
-            const currentValue =
-              (field.value as string | null | undefined) ?? "";
-            if (currentValue !== slugValue.current) {
-              slugValue.current = currentValue;
-              if (currentValue.trim() !== "") {
-                check(currentValue.trim());
-              } else {
-                reset();
-              }
-            }
-
-            return (
+      <Controller
+        name={name}
+        control={control}
+        render={({ field, fieldState }) => (
+          <>
+            <div className="flex items-center gap-2">
               <input
                 id={`slug-${name}`}
                 type="text"
                 placeholder={placeholder}
                 disabled={inputDisabled}
-                value={field.value ?? ""}
-                onChange={(e) => {
-                  field.onChange(e);
-                }}
+                value={typeof field.value === "string" ? field.value : ""}
+                onChange={field.onChange}
                 onBlur={field.onBlur}
                 ref={field.ref}
-                aria-invalid={!!fieldState.error?.message}
+                aria-invalid={Boolean(fieldState.error?.message)}
                 className={cn(
                   "flex h-9 w-full rounded-md border bg-background px-3 py-2 text-sm",
                   "ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium",
@@ -172,50 +175,31 @@ export function QuizSlugField<T extends z.ZodType<FieldValues, any, any>>({
                     : "border-input",
                 )}
               />
-            );
-          }}
-        />
 
-        <AvailabilityIndicator
-          available={available}
-          isChecking={isChecking}
-          error={error}
-        />
-      </div>
+              <AvailabilityIndicator
+                available={available}
+                isChecking={isChecking}
+                error={error}
+              />
+            </div>
 
-      {/* Auto-derivation preview — shown when slug is blank and title is non-empty */}
-      {deriveSlug(resolvedTitle).length > 0 && slugValue.current.trim() === "" && (
-        <p className="text-xs text-muted-foreground" aria-live="polite">
-          Auto-generated:{" "}
-          <span className="font-mono font-medium text-foreground/80">
-            {deriveSlug(resolvedTitle)}
-          </span>
-        </p>
-      )}
+            {derivedSlug.length > 0 && watchedSlug.trim() === "" && (
+              <p className="text-xs text-muted-foreground" aria-live="polite">
+                Auto-generated:{" "}
+                <span className="font-mono font-medium text-foreground/80">
+                  {derivedSlug}
+                </span>
+              </p>
+            )}
 
-      {/* Zod error */}
-      {(() => {
-        const Controller2 = Controller as any;
-        return (
-          <Controller2
-            name={name}
-            control={control}
-            render={({
-              fieldState,
-            }: {
-              fieldState: { error?: { message?: string } };
-            }) =>
-              fieldState.error?.message ? (
-                <p className="text-xs text-destructive" role="alert">
-                  {fieldState.error.message === TAG_SLUG_INVALID_COPY
-                    ? TAG_SLUG_INVALID_COPY
-                    : fieldState.error.message}
-                </p>
-              ) : null
-            }
-          />
-        );
-      })()}
+            {fieldState.error?.message ? (
+              <p className="text-xs text-destructive" role="alert">
+                {fieldState.error.message}
+              </p>
+            ) : null}
+          </>
+        )}
+      />
     </div>
   );
 }

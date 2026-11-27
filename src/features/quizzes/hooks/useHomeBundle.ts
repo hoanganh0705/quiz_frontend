@@ -3,7 +3,10 @@
 import { useQuery } from "@tanstack/react-query";
 import { getQueryClient } from "@/providers/QueryProvider";
 
-import { ApiError, getHome } from "@/lib/api";
+import { ApiError, coerceToApiError, getHome } from "@/lib/api";
+
+import { QUIZ_KEYS } from "@/features/quizzes/query-keys";
+
 import type {
   CategoryResponseDto,
   HomeControllerGetBundle200,
@@ -37,11 +40,9 @@ const EMPTY: UseHomeBundleResult = {
 };
 
 export function useHomeBundle(): UseHomeBundleResult {
-  const key = ["home", "bundle"] as const;
-
   const { data, error, isLoading } = useQuery(
     {
-      queryKey: key,
+      queryKey: QUIZ_KEYS.homeBundle(),
       queryFn: async () => {
         const envelope = await getHome().homeControllerGetBundle();
         const payload =
@@ -55,11 +56,13 @@ export function useHomeBundle(): UseHomeBundleResult {
     getQueryClient(),
   );
 
+  const apiError = error ? coerceToApiError(error) : null;
+
   if (!data) {
     return {
       ...EMPTY,
       isLoading,
-      error: error instanceof ApiError ? error : null,
+      error: apiError,
     };
   }
 
@@ -71,6 +74,6 @@ export function useHomeBundle(): UseHomeBundleResult {
     recentWinners: data.recentWinners ?? null,
     topPlayers: data.topPlayers ?? [],
     isLoading,
-    error: error instanceof ApiError ? error : null,
+    error: apiError,
   };
 }

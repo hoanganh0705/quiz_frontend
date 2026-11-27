@@ -1,6 +1,6 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 import { renderHook, act } from "@testing-library/react";
-import { useDebouncedValue } from "@/features/search/hooks/useDebouncedValue";
+import { useDebouncedValue } from "@/lib/utils/use-debounced-value";
 
 beforeEach(() => {
   vi.useFakeTimers();
@@ -27,7 +27,7 @@ describe("useDebouncedValue", () => {
 
     it("returns the initial value when value is undefined", () => {
       const { result } = renderHook(() =>
-        useDebouncedValue(undefined as any, 250),
+        useDebouncedValue<string | undefined>(undefined, 250),
       );
 
       expect(result.current.debouncedValue).toBeUndefined();

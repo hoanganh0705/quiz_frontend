@@ -44,7 +44,6 @@ export function useBadgeCatalog(
   );
 
   const fetcher = useCallback(async (): Promise<BadgeSummary[]> => {
-    if (false) return [];
     const wire = await listBadges();
     return (wire ?? []).map(toBadgeSummary);
   }, []);
@@ -53,7 +52,7 @@ export function useBadgeCatalog(
     {
       queryKey: key,
       queryFn: fetcher,
-      enabled: !false,
+      enabled: true,
       refetchOnWindowFocus: false,
       refetchOnReconnect: true,
     },

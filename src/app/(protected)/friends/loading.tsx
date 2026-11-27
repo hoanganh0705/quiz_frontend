@@ -4,7 +4,7 @@ import { Skeleton } from "@/components/ui/Skeleton";
 export default function FriendsLoading() {
   return (
     <main
-      className="mx-auto max-w-7xl min-h-screen text-foreground px-4 sm:px-6 lg:px-8 py-8 sm:py-10 space-y-8"
+      className="min-h-screen w-full text-foreground p-4 md:p-8 lg:p-12 space-y-8"
       role="status"
       aria-label="Loading friends and social"
     >

@@ -5,10 +5,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ApiError } from "@/lib/api";
 
 import { useQuizReviews } from "@/features/reviews/hooks/useQuizReviews";
-import {
-  REVIEWS_DEFAULT_LIMIT,
-  quizReviewsKey,
-} from "@/features/reviews/types";
+import { REVIEW_KEYS } from "@/features/reviews/query-keys";
+import { REVIEWS_DEFAULT_LIMIT } from "@/features/reviews/types";
 
 const listQuizReviewsMock = vi.hoisted(() => vi.fn());
 
@@ -85,9 +83,15 @@ function makeWrapper() {
       },
     },
   });
-  return ({ children }: { children: React.ReactNode }) => (
-    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
-  );
+  return function ReviewsQueryWrapper({
+    children,
+  }: {
+    children: React.ReactNode;
+  }) {
+    return (
+      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    );
+  };
 }
 
 beforeEach(() => {
@@ -212,16 +216,16 @@ describe("useQuizReviews — cursor pass-through", () => {
   });
 });
 
-describe("quizReviewsKey — cache key factory", () => {
+describe("REVIEW_KEYS.list — cache key factory", () => {
   it("starts with the reviews + quiz discriminators and embeds the quiz id", () => {
-    const key = quizReviewsKey("quiz-1");
+    const key = REVIEW_KEYS.list("quiz-1");
     expect(key[0]).toBe("reviews");
     expect(key[1]).toBe("quiz");
     expect(key[2]).toBe("quiz-1");
   });
 
   it("embeds cursor + limit when filters are passed", () => {
-    const key = quizReviewsKey("quiz-1", { cursor: "p2", limit: 10 });
+    const key = REVIEW_KEYS.list("quiz-1", { cursor: "p2", limit: 10 });
     expect(key[3]).toEqual(["p2", 10]);
   });
 });

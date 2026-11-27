@@ -232,6 +232,7 @@ export interface SocialFriendRequestDto {
   readonly requesterId: string;
   readonly addresseeId: string;
   readonly requester: SocialUserSummaryDto;
+  readonly addressee?: SocialUserSummaryDto;
   readonly createdAt: string;
 }
 

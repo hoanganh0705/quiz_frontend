@@ -1,5 +1,7 @@
-import { getCurrentTabId } from "@/lib/api/core/broadcast-channel";
-import { logger } from "@/shared/log";
+import {
+  __resetBroadcastAvailabilityForTest,
+  createBroadcastChannel,
+} from "@/lib/broadcast";
 
 import { invalidateAchievementAdmin } from "./cache-keys";
 
@@ -10,157 +12,60 @@ export type AchievementAdminEventType =
 
 export type AchievementAdminMutation = "reevaluate" | "revoke";
 
+const VALID_MUTATIONS = new Set<AchievementAdminMutation>([
+  "reevaluate",
+  "revoke",
+]);
+
 export interface BaseAchievementAdminEvent {
   type: AchievementAdminEventType;
-
   tabId: string;
-
   timestamp: number;
-
   action: AchievementAdminMutation;
-
   userId: string;
-
   badgeId?: string;
-
   requestId: string;
 }
 
-export interface AchievementAdminInvalidatedEvent extends BaseAchievementAdminEvent {
+export interface AchievementAdminInvalidatedEvent
+  extends BaseAchievementAdminEvent {
   type: "admin:7.1.achievement-admin.invalidate";
 }
 
 export type AchievementAdminEvent = AchievementAdminInvalidatedEvent;
 
-let achievementAdminChannel: BroadcastChannel | null = null;
-let isAchievementAdminBroadcastChannelAvailable: boolean | null = null;
-
-function checkBroadcastChannelAvailable(): boolean {
-  if (isAchievementAdminBroadcastChannelAvailable !== null) {
-    return isAchievementAdminBroadcastChannelAvailable;
-  }
-
-  if (typeof BroadcastChannel === "undefined") {
-    isAchievementAdminBroadcastChannelAvailable = false;
-    return false;
-  }
-
-  try {
-    new BroadcastChannel("test");
-    isAchievementAdminBroadcastChannelAvailable = true;
-  } catch {
-    isAchievementAdminBroadcastChannelAvailable = false;
-  }
-
-  return isAchievementAdminBroadcastChannelAvailable;
-}
-
-function getAchievementAdminChannel(): BroadcastChannel | null {
-  if (typeof window === "undefined") {
-    return null;
-  }
-
-  if (!checkBroadcastChannelAvailable()) {
-    return null;
-  }
-
-  if (achievementAdminChannel === null) {
-    achievementAdminChannel = new BroadcastChannel(
-      ACHIEVEMENT_ADMIN_CHANNEL_NAME,
-    );
-  }
-
-  return achievementAdminChannel;
-}
+const achievementAdminChannel = createBroadcastChannel<AchievementAdminEvent>(
+  ACHIEVEMENT_ADMIN_CHANNEL_NAME,
+  {
+    validate: (data): AchievementAdminEvent | null => {
+      if (typeof data !== "object" || data === null) return null;
+      const d = data as Partial<BaseAchievementAdminEvent>;
+      if (d.type !== "admin:7.1.achievement-admin.invalidate") return null;
+      if (typeof d.tabId !== "string" || d.tabId.length === 0) return null;
+      if (
+        typeof d.action !== "string" ||
+        !VALID_MUTATIONS.has(d.action as AchievementAdminMutation)
+      ) {
+        return null;
+      }
+      if (typeof d.userId !== "string" || d.userId.length === 0) return null;
+      return d as AchievementAdminEvent;
+    },
+  },
+);
 
 export function closeAchievementAdminChannel(): void {
-  if (achievementAdminChannel !== null) {
-    achievementAdminChannel.close();
-    achievementAdminChannel = null;
-  }
+  achievementAdminChannel.closeChannel();
 }
 
 export function resetAchievementAdminBroadcastChannelAvailability(): void {
-  isAchievementAdminBroadcastChannelAvailable = null;
+  __resetBroadcastAvailabilityForTest();
 }
-
-type AchievementAdminEventHandler = (event: AchievementAdminEvent) => void;
-
-const achievementAdminSubscribers = new Set<AchievementAdminEventHandler>();
 
 export function subscribeAchievementAdminInvalidate(
-  handler: AchievementAdminEventHandler,
+  handler: (event: AchievementAdminEvent) => void,
 ): () => void {
-  achievementAdminSubscribers.add(handler);
-
-  return () => {
-    achievementAdminSubscribers.delete(handler);
-  };
-}
-
-function dispatchToAchievementAdminSubscribers(
-  event: AchievementAdminEvent,
-): void {
-  achievementAdminSubscribers.forEach((h) => {
-    try {
-      h(event);
-    } catch (err) {
-      logger.error(
-        "admin.achievement.broadcast",
-        "Error in achievement admin event subscriber",
-        err,
-      );
-    }
-  });
-}
-
-function handleAchievementAdminMessage(event: MessageEvent): void {
-  if (!event.data || typeof event.data !== "object") {
-    return;
-  }
-
-  const data = event.data as Partial<BaseAchievementAdminEvent>;
-
-  if (!data.type || data.type !== "admin:7.1.achievement-admin.invalidate") {
-    return;
-  }
-
-  if (!data.tabId || typeof data.tabId !== "string") {
-    return;
-  }
-
-  if (!data.action || !["reevaluate", "revoke"].includes(data.action)) {
-    return;
-  }
-
-  if (!data.userId || typeof data.userId !== "string") {
-    return;
-  }
-
-  const myTabId = getCurrentTabId();
-  if (data.tabId === myTabId) {
-    return;
-  }
-
-  dispatchToAchievementAdminSubscribers(
-    data as AchievementAdminInvalidatedEvent,
-  );
-}
-
-function initAchievementAdminChannel(): boolean {
-  const channel = getAchievementAdminChannel();
-
-  if (channel === null) {
-    return false;
-  }
-
-  const channelObj = channel as unknown as { _listenerAdded?: boolean };
-  if (!channelObj._listenerAdded) {
-    channel.addEventListener("message", handleAchievementAdminMessage);
-    channelObj._listenerAdded = true;
-  }
-
-  return true;
+  return achievementAdminChannel.subscribe(handler);
 }
 
 export function broadcastAchievementAdminMutation(payload: {
@@ -169,28 +74,16 @@ export function broadcastAchievementAdminMutation(payload: {
   badgeId?: string;
   requestId: string;
 }): void {
-  initAchievementAdminChannel();
-
-  const channel = getAchievementAdminChannel();
-  if (channel === null) {
-    return;
-  }
-
   if (!payload.userId || typeof payload.userId !== "string") {
     return;
   }
-
-  const fullEvent: AchievementAdminInvalidatedEvent = {
+  achievementAdminChannel.publish({
     type: "admin:7.1.achievement-admin.invalidate",
     action: payload.action,
     userId: payload.userId,
     badgeId: payload.badgeId,
     requestId: payload.requestId,
-    tabId: getCurrentTabId(),
-    timestamp: Date.now(),
-  };
-
-  channel.postMessage(fullEvent);
+  });
 }
 
 export function handleAchievementAdminInvalidation(

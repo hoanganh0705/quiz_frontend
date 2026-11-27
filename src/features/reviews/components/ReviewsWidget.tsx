@@ -1,10 +1,9 @@
 "use client";
 
-import { useMemo } from "react";
-
+import { useAuthSession } from "@/features/auth/hooks/use-auth-session";
+import { useAuthSessionId } from "@/features/auth/hooks/use-auth-session-id";
 import { ReviewForm } from "@/features/reviews/components/ReviewForm";
 import { ReviewsList } from "@/features/reviews/components/ReviewsList";
-import { useAuthSession } from "@/features/auth/hooks/use-auth-session";
 import { useMyQuizReview } from "@/features/reviews/hooks/useMyQuizReview";
 
 export interface ReviewsWidgetProps {
@@ -23,16 +22,8 @@ export function ReviewsWidget({
   startAttemptHref,
   className,
 }: ReviewsWidgetProps): React.ReactElement {
-  const { bootstrapState, currentUser } = useAuthSession();
-
-  const currentUserId = useMemo<string | null>(() => {
-    if (bootstrapState !== "authenticated") return null;
-    if (!currentUser) return null;
-    const id =
-      (currentUser as { id?: string; userId?: string }).id ??
-      (currentUser as { userId?: string }).userId;
-    return id ?? null;
-  }, [bootstrapState, currentUser]);
+  const { bootstrapState } = useAuthSession();
+  const currentUserId = useAuthSessionId();
 
   const { review: myReview } = useMyQuizReview({ quizId });
 

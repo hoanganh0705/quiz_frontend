@@ -45,9 +45,13 @@ export function MyQuizzesTableRow({
 }: MyQuizzesTableRowProps): React.ReactElement {
   const isDeleted = quiz.isHidden;
   const { label: statusLabel, variant: statusVariant } = getStatusInfo(quiz);
+  const publishedVersion = quiz.publishedVersion;
   const questionCount =
-    (quiz.publishedVersion as unknown as { questionCount?: number })
-      ?.questionCount ?? 0;
+    publishedVersion &&
+    "questionCount" in publishedVersion &&
+    typeof publishedVersion.questionCount === "number"
+      ? publishedVersion.questionCount
+      : 0;
 
   return (
     <TableRow

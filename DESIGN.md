@@ -2,8 +2,10 @@
 name: QuizHub
 description: Play, Share, Earn — gamified social quiz platform
 colors:
-  arcade-violet: "oklch(0.65 0.15 270)"
-  arcade-violet-hover: "oklch(0.72 0.15 270)"
+  arcade-violet: "oklch(0.52 0.20 270)"
+  arcade-violet-hover: "oklch(0.46 0.20 270)"
+  arcade-violet-dark: "oklch(0.50 0.20 270)"
+  arcade-violet-dark-hover: "oklch(0.54 0.20 270)"
   cosmic-slate: "oklch(0.1363 0.0364 259.2)"
   cosmic-indigo: "oklch(0.2795 0.0368 260.03)"
   canvas-white: "oklch(1 0 0)"
@@ -100,8 +102,8 @@ The palette pairs high-contrast canvas neutrals with a luminous electric violet 
 
 ### Primary
 
-- **Arcade Violet** (oklch(0.65 0.15 270)): The energetic heartbeat of QuizHub. Reserved for primary calls-to-action, key active states, interactive focuses, and celebratory highlight moments.
-- **Arcade Violet Hover** (oklch(0.72 0.15 270)): Elevated luminosity state for primary interactive elements under hover or active press.
+- **Arcade Violet** (`oklch(0.52 0.20 270)` light / `oklch(0.50 0.20 270)` dark): The energetic heartbeat of QuizHub. Reserved for primary calls-to-action, key active states, interactive focuses, and celebratory highlight moments while maintaining ≥ 4.5:1 WCAG AA contrast with white foreground text.
+- **Arcade Violet Hover** (`oklch(0.46 0.20 270)` light / `oklch(0.54 0.20 270)` dark): Deepened press state in light mode and elevated luminosity state in dark mode for primary interactive elements.
 
 ### Secondary
 
@@ -149,11 +151,17 @@ The palette pairs high-contrast canvas neutrals with a luminous electric violet 
 
 ## Layout
 
-QuizHub follows a responsive grid architecture anchored by a fixed 4rem (h-16) AppHeader offset and a collapsible application sidebar. Content spans a fluid container with max-width boundaries:
+QuizHub follows a fluid, sidebar-anchored layout architecture with a fixed 4rem (`h-16`) AppHeader offset, a collapsible application sidebar (`SidebarInset`), and a top breadcrumb bar (`AppBreadcrumbs`). All standard shell pages share the **Daily Challenge Page Shell** baseline so left and right indentation is identical across every route:
 
-- Standard page container: max-width 1280px (`max-w-7xl`) centered with responsive gutters (`px-4 sm:px-6 lg:px-8`).
-- Quiz player surface: centered focus measure max-width 768px (`max-w-3xl`) to minimize head scanning during timed trials.
-- Catalog & Discovery Rails: horizontal swipeable rails (`category-swiper`, `QuizRail`) with snapping alignment on mobile and multi-column grid wrap on desktop (`grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4`).
+- **Standard page container (`PAGE_CONTAINER_CLASS`):** Full-width fluid inside `SidebarInset` with responsive padding **`p-4 md:p-8 lg:p-12`** (`min-h-screen w-full text-foreground p-4 md:p-8 lg:p-12` — 16px mobile, 32px tablet, 48px desktop). Do not apply ad-hoc outer `max-w-4xl`/`max-w-5xl`/`max-w-6xl`/`max-w-7xl mx-auto` caps on standard shell pages.
+- **Breadcrumb bar (`PAGE_GUTTER_CLASS`):** `AppBreadcrumbs` uses the exact matching horizontal gutters (`w-full px-4 md:px-8 lg:px-12`) with no `max-w-*` centering, keeping the breadcrumb trail pixel-parallel with every page's left and right edges.
+- **Loading & skeleton parity:** Route `loading.tsx` files and `ProtectedShell` loading states must use the exact same `PAGE_CONTAINER_CLASS` outer spacing for `CLS = 0`.
+- **Intentional inner constraints:** Auth routes outside `LayoutShell` (centered `max-w-md` cards), focused quiz player trials (`max-w-3xl`), and deliberate inner visual focal blocks (such as the centered Top-3 podium stairs inside `/leaderboard` or `max-w-2xl` subtitle copy) may constrain inner width without breaking the page's outer gutter alignment.
+- **Catalog & Discovery Rails:** Horizontal swipeable rails (`category-swiper`, `QuizRail`) with snapping alignment on mobile and multi-column grid wrap on desktop (`grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4`).
+
+### Named Rules
+
+**The Unified Page Gutter Rule (Daily Challenge Base).** Every standard shell page and `AppBreadcrumbs` must share `px-4 md:px-8 lg:px-12` horizontal gutters (`p-4 md:p-8 lg:p-12` on page roots) so navigating between pages never shifts the left or right page margins.
 
 Responsive breakpoints follow Tailwind defaults: `sm: 640px`, `md: 768px`, `lg: 960px`, `xl: 1280px`, `2xl: 1536px`.
 

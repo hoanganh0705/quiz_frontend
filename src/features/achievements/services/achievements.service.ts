@@ -1,27 +1,24 @@
 import * as Sentry from "@sentry/nextjs";
 
-import { getAchievements } from "@/lib/api";
-
-import { ApiError } from "@/lib/api/core/ApiError";
+import { getAchievements, unwrapEnvelope } from "@/lib/api";
 
 import type {
-  ListBadgeCatalogParams,
-  ListMyBadgesParams,
-  GetMyAchievementHistoryParams,
-  GetUserAchievementHistoryParams,
-} from "@/lib/api/generated/schemas";
-
-import type {
-  ListBadgeCatalogResult,
-  ListMyBadgesResult,
   GetBadgeDetailsResult,
-  GetPublicAchievementProfileResult,
-  GetMyBadgeProgressResult,
   GetMyAchievementHistoryResult,
   GetMyBadgeAnalyticsResult,
+  GetMyBadgeProgressResult,
+  GetPublicAchievementProfileResult,
   GetUserAchievementHistoryResult,
+  ListBadgeCatalogResult,
+  ListMyBadgesResult,
   ReevaluateUserBadgesResult,
 } from "@/lib/api/generated/achievements/achievements";
+import type {
+  GetMyAchievementHistoryParams,
+  GetUserAchievementHistoryParams,
+  ListBadgeCatalogParams,
+  ListMyBadgesParams,
+} from "@/lib/api/generated/schemas";
 
 export async function listBadges(
   params?: ListBadgeCatalogParams,
@@ -30,15 +27,11 @@ export async function listBadges(
     category: "achievements:service",
     message: "achievements.listBadges",
   });
-  const data = await getAchievements().listBadgeCatalog(params);
-  if (!data.data) {
-    throw new ApiError({
-      status: 500,
-      code: "GLOBAL_INTERNAL_ERROR",
-      message: "Badge catalog response missing data envelope",
-    } as unknown as ConstructorParameters<typeof ApiError>[0]);
-  }
-  return data.data;
+  const response = await getAchievements().listBadgeCatalog(params);
+  return unwrapEnvelope(
+    response,
+    "Badge catalog response missing data envelope",
+  );
 }
 
 export async function getBadgeByCode(
@@ -59,15 +52,8 @@ export async function getMyBadges(
     category: "achievements:service",
     message: "achievements.getMyBadges",
   });
-  const data = await getAchievements().listMyBadges(params);
-  if (!data.data) {
-    throw new ApiError({
-      status: 500,
-      code: "GLOBAL_INTERNAL_ERROR",
-      message: "My badges response missing data envelope",
-    } as unknown as ConstructorParameters<typeof ApiError>[0]);
-  }
-  return data.data;
+  const response = await getAchievements().listMyBadges(params);
+  return unwrapEnvelope(response, "My badges response missing data envelope");
 }
 
 export async function getMyBadgeProgress(
@@ -88,15 +74,11 @@ export async function getMyAchievementHistory(
     category: "achievements:service",
     message: "achievements.getMyAchievementHistory",
   });
-  const data = await getAchievements().getMyAchievementHistory(params);
-  if (!data.data) {
-    throw new ApiError({
-      status: 500,
-      code: "GLOBAL_INTERNAL_ERROR",
-      message: "Achievement history response missing data envelope",
-    } as unknown as ConstructorParameters<typeof ApiError>[0]);
-  }
-  return data.data;
+  const response = await getAchievements().getMyAchievementHistory(params);
+  return unwrapEnvelope(
+    response,
+    "Achievement history response missing data envelope",
+  );
 }
 
 export async function getMyBadgeAnalytics(): Promise<
@@ -106,15 +88,11 @@ export async function getMyBadgeAnalytics(): Promise<
     category: "achievements:service",
     message: "achievements.getMyBadgeAnalytics",
   });
-  const data = await getAchievements().getMyBadgeAnalytics();
-  if (!data.data) {
-    throw new ApiError({
-      status: 500,
-      code: "GLOBAL_INTERNAL_ERROR",
-      message: "Badge analytics response missing data envelope",
-    } as unknown as ConstructorParameters<typeof ApiError>[0]);
-  }
-  return data.data;
+  const response = await getAchievements().getMyBadgeAnalytics();
+  return unwrapEnvelope(
+    response,
+    "Badge analytics response missing data envelope",
+  );
 }
 
 export async function getUserBadges(
@@ -124,15 +102,8 @@ export async function getUserBadges(
     category: "achievements:service",
     message: `achievements.getUserBadges(${userId})`,
   });
-  const data = await getAchievements().getPublicAchievementProfile(userId);
-  if (!data.data) {
-    throw new ApiError({
-      status: 500,
-      code: "GLOBAL_INTERNAL_ERROR",
-      message: "User badges response missing data envelope",
-    } as unknown as ConstructorParameters<typeof ApiError>[0]);
-  }
-  return data.data;
+  const response = await getAchievements().getPublicAchievementProfile(userId);
+  return unwrapEnvelope(response, "User badges response missing data envelope");
 }
 
 export async function getUserAchievementHistory(
@@ -143,30 +114,22 @@ export async function getUserAchievementHistory(
     category: "achievements:service",
     message: `achievements.getUserAchievementHistory(${userId})`,
   });
-  const data = await getAchievements().getUserAchievementHistory(
+  const response = await getAchievements().getUserAchievementHistory(
     userId,
     params,
   );
-  if (!data.data) {
-    throw new ApiError({
-      status: 500,
-      code: "GLOBAL_INTERNAL_ERROR",
-      message: "User achievement history response missing data envelope",
-    } as unknown as ConstructorParameters<typeof ApiError>[0]);
-  }
-  return data.data;
+  return unwrapEnvelope(
+    response,
+    "User achievement history response missing data envelope",
+  );
 }
 
-export async function revokeUserBadge(
-  userId: string,
-  badgeId: string,
-): Promise<unknown> {
+export async function revokeUserBadge(userId: string, badgeId: string) {
   Sentry.addBreadcrumb({
     category: "achievements:service",
     message: `achievements.revokeUserBadge(${userId}, ${badgeId})`,
   });
-  const data = await getAchievements().revokeUserBadge(userId, badgeId);
-  return data;
+  return getAchievements().revokeUserBadge(userId, badgeId);
 }
 
 export async function reevaluateUserBadges(
@@ -176,13 +139,9 @@ export async function reevaluateUserBadges(
     category: "achievements:service",
     message: `achievements.reevaluateUserBadges(${userId})`,
   });
-  const data = await getAchievements().reevaluateUserBadges(userId);
-  if (!data.data) {
-    throw new ApiError({
-      status: 500,
-      code: "GLOBAL_INTERNAL_ERROR",
-      message: "Reevaluate badges response missing data envelope",
-    } as unknown as ConstructorParameters<typeof ApiError>[0]);
-  }
-  return data.data;
+  const response = await getAchievements().reevaluateUserBadges(userId);
+  return unwrapEnvelope(
+    response,
+    "Reevaluate badges response missing data envelope",
+  );
 }

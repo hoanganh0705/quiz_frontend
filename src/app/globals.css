@@ -53,13 +53,13 @@
   --default-hover: var(--brand-hover);
   --default-foreground: var(--brand-foreground);
 
-  /* Tag-swatch palette: muted hues designed to read against the chip border
-     and remain legible against the chip's text token on both themes. */
-  --tag-swatch-1: oklch(0.7 0.12 25);
-  --tag-swatch-2: oklch(0.7 0.13 80);
-  --tag-swatch-3: oklch(0.7 0.14 145);
-  --tag-swatch-4: oklch(0.7 0.12 215);
-  --tag-swatch-5: oklch(0.7 0.13 290);
+  /* Tag-swatch palette: non-difficulty cool & mineral hues so topic chips
+     never collide with Easy/Medium/Hard semantic tokens (145 / 80 / 25). */
+  --tag-swatch-1: oklch(0.66 0.13 235);
+  --tag-swatch-2: oklch(0.64 0.15 268);
+  --tag-swatch-3: oklch(0.68 0.12 195);
+  --tag-swatch-4: oklch(0.66 0.14 302);
+  --tag-swatch-5: oklch(0.67 0.12 215);
 
   /* Card fallback gradients: paired light/dark variants keep the brand
      swappable by flipping --brand and re-deriving these stops. */
@@ -120,21 +120,21 @@
   --sidebar-accent-foreground: oklch(0.92 0.05 270);
   --sidebar-border: oklch(0.4 0 0);
   --sidebar-ring: oklch(0.7 0 0);
-  --brand: oklch(0.52 0.20 270);
-  --brand-hover: oklch(0.46 0.20 270);
+  --brand: oklch(0.50 0.20 270);
+  --brand-hover: oklch(0.54 0.20 270);
   --brand-foreground: oklch(0.985 0 0);
   --white-primary: oklch(0.98 0 0);
   --default: var(--brand);
   --default-hover: var(--brand-hover);
   --default-foreground: var(--brand-foreground);
 
-  /* Tag swatches in dark mode lean brighter to keep contrast against the
-     chip border and text on dark surfaces. */
-  --tag-swatch-1: oklch(0.78 0.13 25);
-  --tag-swatch-2: oklch(0.8 0.14 80);
-  --tag-swatch-3: oklch(0.78 0.13 145);
-  --tag-swatch-4: oklch(0.78 0.12 215);
-  --tag-swatch-5: oklch(0.78 0.13 290);
+  /* Tag swatches in dark mode lean brighter while staying distinct from
+     semantic Easy/Medium/Hard difficulty hues. */
+  --tag-swatch-1: oklch(0.76 0.12 235);
+  --tag-swatch-2: oklch(0.75 0.14 268);
+  --tag-swatch-3: oklch(0.78 0.12 195);
+  --tag-swatch-4: oklch(0.77 0.13 302);
+  --tag-swatch-5: oklch(0.77 0.11 215);
 
   --card-gradient-1-from: oklch(0.45 0.18 230);
   --card-gradient-1-to: oklch(0.5 0.18 280);
@@ -255,32 +255,13 @@
   }
 }
 
-/* Scrollbar hiding utilities for touch/swipe rails */
+/* Scrollbar hiding utility for touch/swipe rails */
 @utility scrollbar-none {
   scrollbar-width: none;
   -ms-overflow-style: none;
   &::-webkit-scrollbar {
     display: none;
   }
-}
-
-@utility no-scrollbar {
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-  &::-webkit-scrollbar {
-    display: none;
-  }
-}
-
-.scrollbar-none,
-.no-scrollbar {
-  scrollbar-width: none !important;
-  -ms-overflow-style: none !important;
-}
-
-.scrollbar-none::-webkit-scrollbar,
-.no-scrollbar::-webkit-scrollbar {
-  display: none !important;
 }
 
 /* Swiper category slider - fix for slidesPerView auto */

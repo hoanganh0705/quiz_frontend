@@ -54,24 +54,28 @@ export function useLogout(deps: UseLogoutDeps = defaultLogoutDeps): UseLogout {
     setState({ status: "pending" });
 
     const promise = (async () => {
-      let rawError: unknown;
       try {
-        await deps.logout();
-      } catch (err: unknown) {
-        rawError = err;
+        let rawError: unknown;
+        try {
+          await deps.logout();
+        } catch (err: unknown) {
+          rawError = err;
+        }
+
+        clearUser();
+        setAuthenticated(false);
+
+        const mapped = mapLogoutError(rawError);
+        if (mapped.kind === "ok") {
+          setState({ status: "success" });
+        } else {
+          setState({ status: "server_unconfirmed", errorKind: mapped.kind });
+        }
+
+        router.push("/");
+      } finally {
+        inFlightRef.current = null;
       }
-
-      clearUser();
-      setAuthenticated(false);
-
-      const mapped = mapLogoutError(rawError);
-      if (mapped.kind === "ok") {
-        setState({ status: "success" });
-      } else {
-        setState({ status: "server_unconfirmed", errorKind: mapped.kind });
-      }
-
-      router.push("/");
     })();
 
     inFlightRef.current = promise;

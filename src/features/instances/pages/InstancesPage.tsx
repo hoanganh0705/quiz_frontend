@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { Gamepad2, RotateCw, Plus, Compass } from "lucide-react";
+import { Gamepad2, Plus, RotateCw } from "lucide-react";
 
 import { Button } from "@/components/ui/Button";
 import {
@@ -33,16 +33,30 @@ export function InstancesPage({ className }: InstancesPageProps) {
   };
 
   const filteredInstances = React.useMemo(() => {
-    if (statusFilter === "all") return instances;
+    const statusPriority: Record<string, number> = {
+      open: 0,
+      countdown: 1,
+      running: 2,
+      finished: 3,
+      closed: 4,
+    };
+    const sorted = [...instances].sort((a, b) => {
+      const rankA = statusPriority[a.status] ?? 5;
+      const rankB = statusPriority[b.status] ?? 5;
+      if (rankA !== rankB) return rankA - rankB;
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    });
+
+    if (statusFilter === "all") return sorted;
     if (statusFilter === "open") {
-      return instances.filter(
+      return sorted.filter(
         (i) => i.status === "open" || i.status === "countdown",
       );
     }
     if (statusFilter === "running") {
-      return instances.filter((i) => i.status === "running");
+      return sorted.filter((i) => i.status === "running");
     }
-    return instances;
+    return sorted;
   }, [instances, statusFilter]);
 
   return (

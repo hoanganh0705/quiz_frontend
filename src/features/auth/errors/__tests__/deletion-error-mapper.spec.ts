@@ -18,7 +18,7 @@ import {
   GLOBAL_VALIDATION_FAILED,
   USER_NOT_FOUND,
   DELETION_RECOVERYABLE_STATUSES,
-} from "../deletion-error-codes";
+} from "../auth-error-codes";
 
 describe("mapDeletionError — AUTH_INVALID_CURRENT_PASSWORD", () => {
   it('classifies AUTH_INVALID_CURRENT_PASSWORD as "invalid_current"', () => {

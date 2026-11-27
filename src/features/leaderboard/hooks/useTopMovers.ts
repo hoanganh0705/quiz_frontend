@@ -37,11 +37,11 @@ export function useTopMovers(
         const wire = result as unknown as { data?: TopMoverDto[] };
         const data = wire.data ?? [];
         if (!Array.isArray(data)) {
-          throw new ApiError({
+          throw ApiError.fromInput({
             status: 502,
             code: "GLOBAL_INVALID_RESPONSE",
             message: "Invalid payload from /leaderboard/top-movers",
-          } as unknown as ConstructorParameters<typeof ApiError>[0]);
+          });
         }
         return data;
       },

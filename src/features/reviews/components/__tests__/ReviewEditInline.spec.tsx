@@ -271,7 +271,7 @@ describe("ReviewEditInline — typed delete", () => {
     expect(dialog).toBeInTheDocument();
 
     expect(dialog.textContent ?? "").toMatch(
-      /remove your rating and helpful counts/i,
+      /delete permanently|cannot be undone/i,
     );
   });
 

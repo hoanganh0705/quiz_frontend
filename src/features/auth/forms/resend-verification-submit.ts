@@ -5,8 +5,9 @@ import {
   type ResendVerificationErrorKind,
 } from "@/features/auth/errors/verify-email-error-mapper";
 
-import type { ResendVerificationFormValues } from "./schemas/resend-verification.schema";
-import { toResendVerificationDto } from "./schemas/resend-verification.schema";
+import { toResendVerificationDto } from "./schemas/recovery-email.schema";
+
+import type { ResendVerificationFormValues } from "./schemas/recovery-email.schema";
 
 export type ResendSubmitResult =
   | { kind: "cooldown"; cooldownMs: number }

@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
 import { cn } from "@/shared/utils/merge-class-names";
 
-import { deriveTagSlug } from "../tag-slug-regex";
+import { deriveSlug } from "@/lib/forms/regex";
 import {
   TAG_NAME_MAX_LENGTH,
   TAG_NAME_MIN_LENGTH,
@@ -121,7 +121,7 @@ export function TagFormFields({
 
   useEffect(() => {
     if (mode === "create" && !slugManuallyEdited && name) {
-      const derived = deriveTagSlug(name);
+      const derived = deriveSlug(name);
       setSlug(derived);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

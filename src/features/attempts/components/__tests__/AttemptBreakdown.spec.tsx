@@ -47,7 +47,7 @@ describe("AttemptBreakdown — projection", () => {
     expect(screen.getByTestId("attempt-breakdown-row-q2")).toBeInTheDocument();
     expect(
       screen.getByTestId("attempt-breakdown-row-q1-correct"),
-    ).toHaveTextContent("opt-1");
+    ).toHaveTextContent("A");
   });
 
   it("renders the Correct / Incorrect / Skipped / Pending markers", () => {
@@ -96,7 +96,7 @@ describe("AttemptBreakdown — projection", () => {
     render(<AttemptBreakdown questions={questions} total={1} />);
     expect(
       screen.getByTestId("attempt-breakdown-row-q-multi-correct"),
-    ).toHaveTextContent("opt-1, opt-2");
+    ).toHaveTextContent("A, B");
   });
 });
 

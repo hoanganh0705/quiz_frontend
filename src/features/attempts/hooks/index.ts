@@ -71,6 +71,12 @@ export {
 } from "./useAttemptHistoryFilters";
 
 export {
+  useHasCompletedQuizAttempt,
+  type UseHasCompletedQuizAttemptParams,
+  type UseHasCompletedQuizAttemptResult,
+} from "./useHasCompletedQuizAttempt";
+
+export {
   useAttemptRunner,
   type UseAttemptRunnerParams,
   type UseAttemptRunnerResult,

@@ -22,7 +22,7 @@ export interface UseRespondFriendRequestInput {
 }
 
 export interface UseRespondFriendRequestResult {
-  respond: (input: UseRespondFriendRequestInput) => void;
+  respond: (input: UseRespondFriendRequestInput) => Promise<boolean>;
   isPending: boolean;
   error: RespondFriendRequestErrorCode | null;
 }
@@ -83,17 +83,9 @@ export function useRespondFriendRequest(
       : null;
 
   const result = useMemo<UseRespondFriendRequestResult>(() => {
-    if (false) {
-      return Object.freeze({
-        respond: () => {},
-        isPending: false,
-        error: null,
-      });
-    }
-
     if (targetUserId === null) {
       return Object.freeze({
-        respond: () => {},
+        respond: async () => false,
         isPending: false,
         error: null,
       });
@@ -101,14 +93,16 @@ export function useRespondFriendRequest(
 
     if (!options.assumeCanRespond && !permissions.canRespond) {
       return Object.freeze({
-        respond: () => {},
+        respond: async () => false,
         isPending: false,
         error: null,
       });
     }
 
-    const respond = (input: UseRespondFriendRequestInput): void => {
-      void dispatchMutation({
+    const respond = async (
+      input: UseRespondFriendRequestInput,
+    ): Promise<boolean> => {
+      const outcome = await dispatchMutation({
         key: SOCIAL_CACHE_KEYS.makeRelationshipKey(targetUserId),
         optimisticData: <TData>(
           current: TData | undefined,
@@ -119,6 +113,7 @@ export function useRespondFriendRequest(
         },
         cooldownMs: COOLDOWN_MS,
       });
+      return outcome.status === "success";
     };
 
     return Object.freeze({

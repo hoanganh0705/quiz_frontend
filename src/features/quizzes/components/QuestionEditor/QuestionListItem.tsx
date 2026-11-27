@@ -62,12 +62,9 @@ export interface QuestionListItemProps {
 
 export const QuestionListItem = memo(function QuestionListItem({
   question,
-  onEdit,
-  onDelete,
 }: QuestionListItemProps): React.ReactElement {
   const typeConfig = getQuestionTypeConfig(
-    (question as unknown as { questionType?: string }).questionType ??
-      "single_choice",
+    question.questionType ?? "single_choice",
   );
   const TypeIcon = typeConfig.icon;
   const correctCount = countCorrectAnswers(question);

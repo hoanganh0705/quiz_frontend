@@ -3,6 +3,7 @@
 import { useCallback, useRef, useState } from "react";
 
 import { isApiError, type ApiError } from "@/lib/api";
+import { unwrapEnvelope as inspectEnvelope } from "@/lib/api/core/unwrap";
 import type { CreateQuizVersionDto } from "@/lib/api/generated/schemas";
 
 import { createQuizVersion } from "@/features/quizzes/services/quizzes.service";
@@ -27,14 +28,6 @@ export interface UseCreateVersionReturn {
   resetError: () => void;
 }
 
-function emitBreadcrumb(
-  _category: string,
-  _data: { status: string; durationMs: number; code?: string },
-): void {
-  void _category;
-  void _data;
-}
-
 export function useCreateVersion(
   options: UseCreateVersionOptions = {},
 ): UseCreateVersionReturn {
@@ -56,24 +49,18 @@ export function useCreateVersion(
 
       setIsLoading(true);
       setError(null);
-      const startedAt = Date.now();
 
       const core = (async (): Promise<QuizVersionSummary | null> => {
         try {
           const response = await createQuizVersion(quizId, payload);
-
-          const version = (response as unknown as { data?: QuizVersionSummary })
-            .data;
+          const unwrapped = inspectEnvelope<QuizVersionSummary>(response);
+          const version =
+            unwrapped.kind === "envelope" ? unwrapped.value : null;
           if (!version) {
             throw new Error(
               "Unexpected response shape from POST /quizzes/:id/versions",
             );
           }
-
-          emitBreadcrumb("quizzes:create-version", {
-            status: "success",
-            durationMs: Date.now() - startedAt,
-          });
 
           onSuccess?.(version);
           return version;
@@ -81,21 +68,8 @@ export function useCreateVersion(
           if (isApiError(err)) {
             setError(err);
             onError?.(err);
-
-            emitBreadcrumb("quizzes:create-version", {
-              status: "error",
-              durationMs: Date.now() - startedAt,
-              code: err.code,
-            });
-
             throw err;
           }
-
-          emitBreadcrumb("quizzes:create-version", {
-            status: "error",
-            durationMs: Date.now() - startedAt,
-            code: "GLOBAL_UNKNOWN",
-          });
           throw err;
         }
       })();

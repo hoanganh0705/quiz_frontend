@@ -45,18 +45,22 @@
 import { useCallback, useId, useMemo, useState } from "react";
 import { AlertCircle, RotateCcw, Search, SearchX, X } from "lucide-react";
 
-import { CategoryCard } from "./CategoryCard";
-import { CategoryCardSkeleton } from "@/components/primitives";
-import { CategoryEmptyState } from "./CategoryEmptyState";
-import { TrendingCategoriesStrip } from "./TrendingCategoriesStrip";
-import { useCategoriesRanked } from "@/features/categories/hooks";
-import { rankedCategoryToCategoryResponse } from "@/features/categories/utils/ranked-category-to-category-response";
-import { useDebouncedValue } from "@/lib/utils/use-debounced-value";
-import { getQueryClient } from "@/providers/QueryProvider";
+import { CategoryCard, CategoryCardSkeleton } from "@/components/primitives";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 
-const QUERY_KEY = ["categories", "ranked", { limit: 100 }] as const;
+import { useDebouncedValue } from "@/lib/utils/use-debounced-value";
+import { getQueryClient } from "@/providers/QueryProvider";
+
+import { useCategoriesRanked } from "@/features/categories/hooks";
+import { CATEGORY_KEYS } from "@/features/categories/query-keys";
+
+import { PAGE_CONTAINER_CLASS } from "@/shared/layout/constants";
+
+import { CategoryEmptyState } from "./CategoryEmptyState";
+import { TrendingCategoriesStrip } from "./TrendingCategoriesStrip";
+
+const QUERY_KEY = CATEGORY_KEYS.ranked({ limit: 100 });
 const SEARCH_DEBOUNCE_MS = 250;
 
 const GRID_LAYOUT =
@@ -92,7 +96,7 @@ export function CategoriesDirectoryPage(): React.ReactElement {
 
   return (
     <main
-      className="mx-auto max-w-7xl min-h-screen text-foreground px-4 sm:px-6 lg:px-8 py-8 sm:py-10 space-y-10"
+      className={`${PAGE_CONTAINER_CLASS} space-y-10`}
       aria-labelledby="categories-directory-title"
       data-testid="categories-directory-page"
     >
@@ -252,7 +256,7 @@ export function CategoriesDirectoryPage(): React.ReactElement {
                 {filteredCategories.map((ranked) => (
                   <CategoryCard
                     key={ranked.categoryId}
-                    category={rankedCategoryToCategoryResponse(ranked)}
+                    category={ranked}
                     titleHeadingLevel={3 as const}
                   />
                 ))}

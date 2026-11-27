@@ -1,21 +1,21 @@
 "use client";
 
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { getQueryClient } from "@/providers/QueryProvider";
 
 import { ApiError, isApiError } from "@/lib/api";
+import { unwrapEnvelope as inspectEnvelope } from "@/lib/api/core/unwrap";
 
+import { ATTEMPT_KEYS } from "@/features/attempts/query-keys";
 import { startAttempt } from "@/features/attempts/services/attempts.service";
-import { useAuthSession } from "@/features/auth/hooks/use-auth-session";
-import {
-  ATTEMPT_CACHE_KEYS,
-  type AttemptRunnerStatus,
-} from "@/features/attempts/types/attempt-runner.types";
+import { useAuthSessionId } from "@/features/auth/hooks/use-auth-session-id";
 import {
   hydrateAttemptEntry,
   setAttemptStatus,
 } from "@/features/attempts/stores/useAttemptsStore";
 import { broadcastAttemptsChanged } from "@/lib/api/core/attempts-broadcast-channel";
+
+import type { AttemptRunnerStatus } from "@/features/attempts/types/attempt-runner.types";
 
 import type { StartAttemptDto } from "@/lib/api/generated/schemas";
 
@@ -57,16 +57,7 @@ export function useStartAttempt(
 ): UseStartAttemptResult {
   const { quizId, quizVersionId, payload } = params;
 
-  const { bootstrapState, currentUser } = useAuthSession();
-
-  const sessionId = useMemo<string | null>(() => {
-    if (bootstrapState !== "authenticated") return null;
-    if (!currentUser) return null;
-    const id =
-      (currentUser as { id?: string; userId?: string }).id ??
-      (currentUser as { userId?: string }).userId;
-    return id ?? null;
-  }, [bootstrapState, currentUser]);
+  const sessionId = useAuthSessionId();
 
   const [outcome, setOutcome] = useState<StartAttemptOutcome | null>(null);
   const [error, setError] = useState<ApiError | null>(null);
@@ -75,6 +66,14 @@ export function useStartAttempt(
 
   const lastInvocationRef = useRef<number>(0);
   const cooldownTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (cooldownTimerRef.current !== null) {
+        clearTimeout(cooldownTimerRef.current);
+      }
+    };
+  }, []);
 
   const reset = useCallback(() => {
     setOutcome(null);
@@ -103,10 +102,12 @@ export function useStartAttempt(
     let resultAttemptId: string | null = null;
 
     try {
-      const wire = (await startAttempt(quizId, payload ?? {})) as unknown as {
-        data?: { attemptId?: string };
-      };
-      resultAttemptId = wire?.data?.attemptId ?? null;
+      const wire = await startAttempt(quizId, payload ?? {});
+      const unwrapped = inspectEnvelope<{ attemptId?: string }>(wire);
+      resultAttemptId =
+        unwrapped.kind === "envelope"
+          ? (unwrapped.value?.attemptId ?? null)
+          : null;
 
       if (resultAttemptId !== null) {
         const status: AttemptRunnerStatus = "in_progress";
@@ -120,9 +121,9 @@ export function useStartAttempt(
       try {
         const qc = getQueryClient();
         void qc.invalidateQueries({
-          queryKey: ATTEMPT_CACHE_KEYS.active(quizId, sessionId),
+          queryKey: ATTEMPT_KEYS.active(quizId, sessionId),
         });
-        void qc.invalidateQueries({ queryKey: ["attempts"] });
+        void qc.invalidateQueries({ queryKey: ATTEMPT_KEYS.all });
       } catch {}
 
       if (resultAttemptId !== null) {
@@ -152,9 +153,9 @@ export function useStartAttempt(
         try {
           const qc = getQueryClient();
           void qc.invalidateQueries({
-            queryKey: ATTEMPT_CACHE_KEYS.active(quizId, sessionId),
+            queryKey: ATTEMPT_KEYS.active(quizId, sessionId),
           });
-          void qc.invalidateQueries({ queryKey: ["attempts"] });
+          void qc.invalidateQueries({ queryKey: ATTEMPT_KEYS.all });
         } catch {}
         const concurrent: StartAttemptOutcome = {
           kind: "already_started",

@@ -1,33 +1,32 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
+
+import { useCooldownTimer } from "@/shared/hooks/use-cooldown-timer";
 
 import {
-  submitResendVerification,
   defaultSubmitResendDeps,
   RESEND_COOLDOWN_MS,
-  type SubmitResendVerificationDeps,
+  submitResendVerification,
   type ResendSubmitResult,
+  type SubmitResendVerificationDeps,
 } from "./resend-verification-submit";
-import type { ResendVerificationFormValues } from "./schemas/resend-verification.schema";
+
+import type { ResendVerificationFormValues } from "./schemas/recovery-email.schema";
 
 export type UseResendVerificationState =
   | { status: "idle" }
   | { status: "pending" }
   | {
       status: "cooldown";
-
       cooldownMs: number;
-
       cooldownRemainingMs: number;
     }
   | { status: "error"; errorKind: "rate_limited" | "server" };
 
 export interface UseResendVerification {
   state: UseResendVerificationState;
-
   start: (values: ResendVerificationFormValues) => Promise<ResendSubmitResult>;
-
   reset: () => void;
 }
 
@@ -36,78 +35,46 @@ const initialState: UseResendVerificationState = { status: "idle" };
 export function useResendVerification(
   deps: SubmitResendVerificationDeps = defaultSubmitResendDeps,
 ): UseResendVerification {
-  const [state, setState] = useState<UseResendVerificationState>(initialState);
+  const [rawState, setRawState] = useState<
+    | { status: "idle" }
+    | { status: "pending" }
+    | { status: "cooldown"; cooldownMs: number }
+    | { status: "error"; errorKind: "rate_limited" | "server" }
+  >(initialState);
 
   const inFlightRef = useRef<Promise<ResendSubmitResult> | null>(null);
 
-  const cooldownTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const cooldownEndsAtRef = useRef<number | null>(null);
-
-  useEffect(() => {
-    return () => {
-      if (cooldownTimerRef.current) {
-        clearInterval(cooldownTimerRef.current);
-        cooldownTimerRef.current = null;
-      }
-      cooldownEndsAtRef.current = null;
-      inFlightRef.current = null;
-    };
+  const handleExpire = useCallback(() => {
+    setRawState(initialState);
   }, []);
 
-  const exitCooldown = useCallback(() => {
-    if (cooldownTimerRef.current) {
-      clearInterval(cooldownTimerRef.current);
-      cooldownTimerRef.current = null;
-    }
-    cooldownEndsAtRef.current = null;
-    setState(initialState);
-  }, []);
+  const cooldown = useCooldownTimer({ onExpire: handleExpire });
 
   const start = useCallback(
     (values: ResendVerificationFormValues): Promise<ResendSubmitResult> => {
-      if (state.status === "cooldown" && cooldownEndsAtRef.current) {
-        if (Date.now() < cooldownEndsAtRef.current) {
-          return Promise.resolve({
-            kind: "cooldown",
-            cooldownMs: Math.max(0, cooldownEndsAtRef.current - Date.now()),
-          } as ResendSubmitResult);
-        }
-
-        exitCooldown();
+      if (rawState.status === "cooldown" && cooldown.isActive) {
+        return Promise.resolve({
+          kind: "cooldown",
+          cooldownMs: cooldown.remainingMs,
+        } as ResendSubmitResult);
       }
 
       if (inFlightRef.current) {
         return inFlightRef.current;
       }
 
-      setState({ status: "pending" });
+      setRawState({ status: "pending" });
 
       const promise = submitResendVerification(values, deps).then((result) => {
         inFlightRef.current = null;
         if (result.kind === "cooldown") {
-          const endsAt = Date.now() + result.cooldownMs;
-          cooldownEndsAtRef.current = endsAt;
-          setState({
+          setRawState({
             status: "cooldown",
             cooldownMs: result.cooldownMs,
-            cooldownRemainingMs: result.cooldownMs,
           });
-
-          cooldownTimerRef.current = setInterval(() => {
-            if (cooldownEndsAtRef.current == null) return;
-            const remaining = cooldownEndsAtRef.current - Date.now();
-            if (remaining <= 0) {
-              exitCooldown();
-              return;
-            }
-            setState((prev) =>
-              prev.status === "cooldown"
-                ? { ...prev, cooldownRemainingMs: remaining }
-                : prev,
-            );
-          }, 1000);
+          cooldown.start(result.cooldownMs);
         } else {
-          setState({ status: "error", errorKind: result.errorKind });
+          setRawState({ status: "error", errorKind: result.errorKind });
         }
         return result;
       });
@@ -115,18 +82,23 @@ export function useResendVerification(
       inFlightRef.current = promise;
       return promise;
     },
-    [deps, state, exitCooldown],
+    [deps, rawState.status, cooldown],
   );
 
   const reset = useCallback(() => {
     inFlightRef.current = null;
-    if (cooldownTimerRef.current) {
-      clearInterval(cooldownTimerRef.current);
-      cooldownTimerRef.current = null;
-    }
-    cooldownEndsAtRef.current = null;
-    setState(initialState);
-  }, []);
+    cooldown.stop();
+    setRawState(initialState);
+  }, [cooldown]);
+
+  const state: UseResendVerificationState =
+    rawState.status === "cooldown"
+      ? {
+          status: "cooldown",
+          cooldownMs: rawState.cooldownMs,
+          cooldownRemainingMs: cooldown.remainingMs,
+        }
+      : rawState;
 
   return { state, start, reset };
 }

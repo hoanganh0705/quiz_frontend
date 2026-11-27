@@ -1,23 +1,23 @@
-import { getCurrentTabId } from "@/lib/api/core/broadcast-channel";
-
-import { logger } from "@/shared/log";
+import { createBroadcastChannel } from "@/lib/broadcast";
 
 export const TAG_ADMIN_CHANNEL_NAME = "admin-tag" as const;
-
 
 export type TagAdminEventType = "admin:tag.invalidate";
 
 export type TagAdminMutation = "create" | "update" | "delete" | "restore";
 
+const VALID_MUTATIONS = new Set<TagAdminMutation>([
+  "create",
+  "update",
+  "delete",
+  "restore",
+]);
+
 export interface BaseTagAdminEvent {
   type: TagAdminEventType;
-
   tabId: string;
-
   timestamp: number;
-
   mutation: TagAdminMutation;
-
   tagId: string;
 }
 
@@ -27,152 +27,54 @@ export interface TagAdminInvalidatedEvent extends BaseTagAdminEvent {
 
 export type TagAdminEvent = TagAdminInvalidatedEvent;
 
-let tagAdminChannel: BroadcastChannel | null = null;
-
-let isTagAdminBroadcastChannelAvailable: boolean | null = null;
-
-function checkBroadcastChannelAvailable(): boolean {
-  if (isTagAdminBroadcastChannelAvailable !== null) {
-    return isTagAdminBroadcastChannelAvailable;
-  }
-
-  if (typeof BroadcastChannel === "undefined") {
-    isTagAdminBroadcastChannelAvailable = false;
-    return false;
-  }
-
-  try {
-    new BroadcastChannel("test");
-    isTagAdminBroadcastChannelAvailable = true;
-  } catch {
-    isTagAdminBroadcastChannelAvailable = false;
-  }
-
-  return isTagAdminBroadcastChannelAvailable;
-}
+const tagAdminChannel = createBroadcastChannel<TagAdminEvent>(
+  TAG_ADMIN_CHANNEL_NAME,
+  {
+    validate: (data): TagAdminEvent | null => {
+      if (typeof data !== "object" || data === null) return null;
+      const d = data as Partial<TagAdminInvalidatedEvent>;
+      if (d.type !== "admin:tag.invalidate") return null;
+      if (typeof d.tabId !== "string" || d.tabId.length === 0) return null;
+      if (
+        typeof d.mutation !== "string" ||
+        !VALID_MUTATIONS.has(d.mutation as TagAdminMutation)
+      ) {
+        return null;
+      }
+      if (typeof d.tagId !== "string" || d.tagId.length === 0) return null;
+      return d as TagAdminEvent;
+    },
+  },
+);
 
 export function getTagAdminChannel(): BroadcastChannel | null {
-  if (typeof window === "undefined") {
-    return null;
-  }
-
-  if (!checkBroadcastChannelAvailable()) {
-    return null;
-  }
-
-  if (tagAdminChannel === null) {
-    tagAdminChannel = new BroadcastChannel(TAG_ADMIN_CHANNEL_NAME);
-  }
-
-  return tagAdminChannel;
+  return tagAdminChannel.getChannel();
 }
 
 export function closeTagAdminChannel(): void {
-  if (tagAdminChannel !== null) {
-    tagAdminChannel.close();
-    tagAdminChannel = null;
-  }
+  tagAdminChannel.closeChannel();
 }
-
-type TagAdminEventHandler = (event: TagAdminEvent) => void;
-
-const tagAdminSubscribers = new Set<TagAdminEventHandler>();
 
 export function subscribeTagAdminInvalidate(
-  handler: TagAdminEventHandler,
+  handler: (event: TagAdminEvent) => void,
 ): () => void {
-  tagAdminSubscribers.add(handler);
-
-  return () => {
-    tagAdminSubscribers.delete(handler);
-  };
-}
-
-function dispatchToTagAdminSubscribers(event: TagAdminEvent): void {
-  tagAdminSubscribers.forEach((handler) => {
-    try {
-      handler(event);
-    } catch (err) {
-      logger.error(
-        "admin.tag.broadcast",
-        "Error in tag admin event subscriber",
-        err,
-      );
-    }
-  });
-}
-
-function handleTagAdminMessage(event: MessageEvent): void {
-  if (!event.data || typeof event.data !== "object") {
-    return;
-  }
-
-  const data = event.data as Partial<TagAdminInvalidatedEvent>;
-
-  if (!data.type || data.type !== "admin:tag.invalidate") {
-    return;
-  }
-
-  if (!data.tabId || typeof data.tabId !== "string") {
-    return;
-  }
-
-  if (
-    !data.mutation ||
-    !["create", "update", "delete", "restore"].includes(data.mutation)
-  ) {
-    return;
-  }
-
-  if (!data.tagId || typeof data.tagId !== "string") {
-    return;
-  }
-
-  const myTabId = getCurrentTabId();
-  if (data.tabId === myTabId) {
-    return;
-  }
-
-  dispatchToTagAdminSubscribers(data as TagAdminEvent);
+  return tagAdminChannel.subscribe(handler);
 }
 
 export function initTagAdminChannel(): boolean {
-  const channel = getTagAdminChannel();
-
-  if (channel === null) {
-    return false;
-  }
-
-  if (!(channel as unknown as { _listenerAdded?: boolean })._listenerAdded) {
-    channel.addEventListener("message", handleTagAdminMessage);
-    (channel as unknown as { _listenerAdded?: boolean })._listenerAdded = true;
-  }
-
-  return true;
+  return tagAdminChannel.ensureChannel() !== null;
 }
 
 export function broadcastTagAdminInvalidate(
   mutation: TagAdminMutation,
   tagId: string,
 ): void {
-  initTagAdminChannel();
-
-  const channel = getTagAdminChannel();
-  if (channel === null) {
-    return;
-  }
-
   if (!tagId || typeof tagId !== "string") {
     return;
   }
-
-  const fullEvent: TagAdminInvalidatedEvent = {
+  tagAdminChannel.publish({
     type: "admin:tag.invalidate",
     mutation,
     tagId,
-    tabId: getCurrentTabId(),
-    timestamp: Date.now(),
-  };
-
-  channel.postMessage(fullEvent);
+  });
 }

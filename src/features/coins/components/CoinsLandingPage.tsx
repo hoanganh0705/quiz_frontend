@@ -65,7 +65,7 @@ export function CoinsLandingPage({
       data-testid="coins-landing-page"
       data-placeholder={isPlaceholderMode ? "true" : "false"}
     >
-      <header className="px-4 sm:px-6 lg:px-8 pt-8 pb-5 max-w-7xl mx-auto border-b border-border/40 mb-6">
+      <header className="w-full px-4 md:px-8 lg:px-12 pt-4 md:pt-8 lg:pt-12 pb-5 border-b border-border/40 mb-6">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-3.5">
             <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-amber-500/10 text-amber-700 dark:text-amber-400 ring-1 ring-amber-500/20 shadow-xs">
@@ -116,7 +116,7 @@ export function CoinsLandingPage({
         </div>
       </header>
 
-      <main className="px-4 sm:px-6 lg:px-8 pb-12 max-w-7xl mx-auto space-y-8">
+      <main className="w-full px-4 md:px-8 lg:px-12 pb-12 space-y-8">
         {/* Top Financial Position Deck: Balance Hero (5-col) + Lifetime Earnings Overview (7-col) */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
           <section

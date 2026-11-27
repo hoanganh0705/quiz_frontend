@@ -35,15 +35,6 @@ export function resolveUserSocialStatsVisibility(
   return "visible";
 }
 
-const PLACEHOLDER_RESULT: UseUserSocialStatsResult = Object.freeze({
-  stats: null,
-  isLoading: false,
-  isStale: false,
-  error: null,
-  retry: () => undefined,
-  visibility: "not_found",
-});
-
 const SELF_RESULT: UseUserSocialStatsResult = Object.freeze({
   stats: null,
   isLoading: false,
@@ -60,7 +51,6 @@ export function useUserSocialStats(userId: string): UseUserSocialStatsResult {
   const isSelf = viewerId !== null && userId === viewerId;
 
   const key = useMemo<readonly unknown[] | null>(() => {
-    if (false) return null;
     if (!isAuthenticated) return null;
     if (isSelf) return null;
     return SOCIAL_CACHE_KEYS.makeUserSocialStatsKey(userId);
@@ -73,7 +63,6 @@ export function useUserSocialStats(userId: string): UseUserSocialStatsResult {
 
   const result = useEventuallyConsistentQuery<SocialUserStatsDto>(key, fetcher);
 
-  if (false) return PLACEHOLDER_RESULT;
   if (isSelf) return SELF_RESULT;
 
   const code = result.error?.code;

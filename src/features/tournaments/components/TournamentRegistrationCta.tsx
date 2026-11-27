@@ -20,10 +20,13 @@ export interface TournamentRegistrationCtaProps {
 
   tournamentName?: string;
 
+  isRegistrationOpen?: boolean;
+
   className?: string;
 }
 
 function getCtaState(params: {
+  isRegistrationOpen: boolean;
   isAuthenticated: boolean;
   isLoading: boolean;
   isRegistered: boolean;
@@ -36,6 +39,7 @@ function getCtaState(params: {
   pending: boolean;
 } {
   const {
+    isRegistrationOpen,
     isAuthenticated,
     isLoading,
     isRegistered,
@@ -43,6 +47,10 @@ function getCtaState(params: {
     registerState,
     withdrawState,
   } = params;
+
+  if (!isRegistrationOpen) {
+    return { variant: "none", disabled: true, pending: false };
+  }
 
   if (isLoading) {
     return { variant: "none", disabled: true, pending: false };
@@ -52,13 +60,13 @@ function getCtaState(params: {
     return { variant: "signIn", disabled: false, pending: false };
   }
 
-  if (!isEligible) {
-    return { variant: "none", disabled: false, pending: false };
-  }
-
   if (isRegistered) {
     const isPending = withdrawState === "pending";
     return { variant: "withdraw", disabled: isPending, pending: isPending };
+  }
+
+  if (!isEligible) {
+    return { variant: "none", disabled: false, pending: false };
   }
 
   const isPending = registerState === "pending";
@@ -68,6 +76,7 @@ function getCtaState(params: {
 export function TournamentRegistrationCta({
   tournamentId,
   tournamentName,
+  isRegistrationOpen = true,
   className,
 }: TournamentRegistrationCtaProps) {
   const prefersReducedMotion = usePrefersReducedMotion();
@@ -91,6 +100,7 @@ export function TournamentRegistrationCta({
 
   const ctaState = useMemo(() => {
     return getCtaState({
+      isRegistrationOpen,
       isAuthenticated,
       isLoading,
       isRegistered,
@@ -99,6 +109,7 @@ export function TournamentRegistrationCta({
       withdrawState,
     });
   }, [
+    isRegistrationOpen,
     isAuthenticated,
     isLoading,
     isRegistered,
@@ -139,10 +150,6 @@ export function TournamentRegistrationCta({
   const handleDismissError = useCallback(() => {
     reset();
   }, [reset]);
-
-  if (false) {
-    return null;
-  }
 
   if (ctaState.variant === "none") {
     return null;

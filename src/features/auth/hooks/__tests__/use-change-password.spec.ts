@@ -8,7 +8,7 @@ import {
   AUTH_PASSWORD_REUSE,
   AUTH_RESOURCE_CONFLICT,
   GLOBAL_VALIDATION_FAILED,
-} from "@/features/auth/errors/password-error-codes";
+} from "@/features/auth/errors/auth-error-codes";
 import type {
   AccountSecurityDto,
   ChangePasswordResponseDto,

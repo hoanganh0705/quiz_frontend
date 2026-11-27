@@ -3,8 +3,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
-import { DEFAULT_SEARCH_DEBOUNCE_MS } from "@/features/search/hooks/useDebouncedValue";
-import type { SearchResultKind } from "@/features/search/types/search.types";
+import {
+  DEFAULT_SEARCH_DEBOUNCE_MS,
+  type SearchResultKind,
+} from "@/features/search/types/search.types";
 
 export const URL_PARAM_QUERY = "q";
 
@@ -132,16 +134,9 @@ export function useSearchUrlState(
       if (debounceTimerRef.current) {
         clearTimeout(debounceTimerRef.current);
         debounceTimerRef.current = null;
-        const pending = pendingQueryRef.current;
         pendingQueryRef.current = null;
-        if (pending !== null) {
-          writeUrl(pending, kinds);
-        }
       }
     };
-    // `writeUrl` and `kinds` are stable enough across the hook
-    // lifecycle; we flush on unmount only.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const setKinds = useCallback(

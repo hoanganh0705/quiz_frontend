@@ -9,7 +9,7 @@ import {
   type LoginErrorKind,
 } from "@/features/auth/errors/login-error-mapper";
 import { login as authServiceLogin } from "@/features/auth/services/auth.service";
-import type { AuthControllerLoginResult } from "@/lib/api/generated/auth/auth";
+
 import type { LoginResponseDto } from "@/lib/api/generated/schemas/loginResponseDto";
 
 export type LoginSubmitResult =
@@ -24,7 +24,7 @@ export interface SubmitLoginDeps {
     email: string;
     password: string;
     rememberMe?: boolean;
-  }) => Promise<AuthControllerLoginResult>;
+  }) => Promise<LoginResponseDto>;
 
   clearAuthToken: ClearAuthTokenFn;
 }
@@ -41,9 +41,7 @@ export async function submitLogin(
   deps.clearAuthToken();
 
   try {
-    const result = (await deps.login(
-      toLoginDto(values),
-    )) as unknown as LoginResponseDto;
+    const result = await deps.login(toLoginDto(values));
     return { kind: "success", user: result };
   } catch (err: unknown) {
     const mapped = mapLoginError(err);

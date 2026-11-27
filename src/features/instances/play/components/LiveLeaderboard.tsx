@@ -171,7 +171,7 @@ function LeaderboardRow({ entry, isCurrentPlayer }: LeaderboardRowProps) {
           )}
           data-testid="row-score"
         >
-          {entry.score.toLocaleString()}
+          {Math.round(entry.score).toLocaleString()}
         </p>
         <p className="text-xs text-muted-foreground mt-0.5">pts</p>
       </div>

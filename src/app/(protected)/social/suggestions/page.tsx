@@ -23,10 +23,6 @@ function SuggestionsRouteGate(): React.ReactElement {
     );
   }
 
-  if (false) {
-    return <SocialDiscoveryPlaceholder surface="suggestions" />;
-  }
-
   if (isAuthenticated) {
     return <SuggestionsPanel />;
   }

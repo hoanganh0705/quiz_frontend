@@ -3,16 +3,18 @@
 import { useCallback, useMemo } from "react";
 import { getQueryClient } from "@/providers/QueryProvider";
 
-import {
-  myQuizReviewKey,
-  reviewQuizAttemptKey,
-  type ReviewGateState,
-  type ReviewGateResult,
-} from "@/features/reviews/types";
+import { useHasCompletedQuizAttempt } from "@/features/attempts/hooks/useHasCompletedQuizAttempt";
+import { ATTEMPT_KEYS } from "@/features/attempts/query-keys";
 import { useAuthSession } from "@/features/auth/hooks/use-auth-session";
+import { useAuthSessionId } from "@/features/auth/hooks/use-auth-session-id";
+import { REVIEW_KEYS } from "@/features/reviews/query-keys";
+
+import type {
+  ReviewGateResult,
+  ReviewGateState,
+} from "@/features/reviews/types";
 
 import { useMyQuizReview } from "./useMyQuizReview";
-import { useCompletedQuizAttempt } from "./useCompletedQuizAttempt";
 
 export interface UseReviewGateParams {
   quizId: string | null;
@@ -77,19 +79,11 @@ function resolveGateState(
 export function useReviewGate(params: UseReviewGateParams): ReviewGateResult {
   const { quizId } = params;
 
-  const { bootstrapState, currentUser } = useAuthSession();
-
-  const sessionId = useMemo<string | null>(() => {
-    if (bootstrapState !== "authenticated") return null;
-    if (!currentUser) return null;
-    const id =
-      (currentUser as { id?: string; userId?: string }).id ??
-      (currentUser as { userId?: string }).userId;
-    return id ?? null;
-  }, [bootstrapState, currentUser]);
+  const { bootstrapState } = useAuthSession();
+  const sessionId = useAuthSessionId();
 
   const my = useMyQuizReview({ quizId });
-  const attempt = useCompletedQuizAttempt({ quizId });
+  const attempt = useHasCompletedQuizAttempt({ quizId });
 
   const state = useMemo<ReviewGateState>(
     () =>
@@ -126,10 +120,10 @@ export function useReviewGate(params: UseReviewGateParams): ReviewGateResult {
     try {
       const qc = getQueryClient();
       await qc.invalidateQueries({
-        queryKey: myQuizReviewKey(quizId, sessionId),
+        queryKey: REVIEW_KEYS.mine(quizId, sessionId),
       });
       await qc.invalidateQueries({
-        queryKey: reviewQuizAttemptKey(quizId, sessionId),
+        queryKey: ATTEMPT_KEYS.completedCheck(quizId, sessionId),
       });
     } catch {}
   }, [quizId, sessionId]);

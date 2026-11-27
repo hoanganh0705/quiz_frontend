@@ -2,33 +2,21 @@
 
 import { useMemo } from "react";
 
-import { useCursorPaginated } from "@/lib/api";
+import { projectWithId, useCursorPaginated } from "@/lib/api";
 import type {
   CursorFetcherArgs,
   CursorPage,
   UseCursorPaginatedResult,
 } from "@/lib/api/use-cursor-paginated.types";
 
+import { REVIEW_KEYS } from "@/features/reviews/query-keys";
 import { listQuizReviews } from "@/features/reviews/services/reviews.service";
 import {
   REVIEWS_DEFAULT_LIMIT,
-  quizReviewsKey,
   type ReviewDto,
   type ReviewFilters,
   type ReviewPage,
 } from "@/features/reviews/types";
-
-type ListQuizReviewsResponse = {
-  data?: ReviewDto[];
-  meta?: {
-    pagination?: {
-      kind: string;
-      limit: number;
-      nextCursor: string | null;
-      hasNextPage: boolean;
-    };
-  };
-};
 
 export type UseQuizReviewsResult = UseCursorPaginatedResult<ReviewDto>;
 
@@ -44,7 +32,7 @@ export function useQuizReviews(
   const { quizId, filters } = params;
 
   const key = useMemo(
-    () => (quizId === null ? null : quizReviewsKey(quizId, filters)),
+    () => (quizId === null ? null : REVIEW_KEYS.list(quizId, filters)),
     [quizId, filters],
   );
 
@@ -66,13 +54,14 @@ export function useQuizReviews(
 
         const effectiveCursor = cursor ?? filters?.cursor ?? undefined;
 
-        const result = (await listQuizReviews(quizId, {
+        const result = await listQuizReviews(quizId, {
           cursor: effectiveCursor,
           limit: filters?.limit ?? REVIEWS_DEFAULT_LIMIT,
-        })) as unknown as ListQuizReviewsResponse;
+        });
 
-        const items: readonly ReviewDto[] = (result.data ?? []).map(
-          (item) => ({ ...item, id: item.reviewId }) as ReviewDto,
+        const items: readonly ReviewDto[] = projectWithId(
+          result.data ?? [],
+          "reviewId",
         );
 
         const pagination = result.meta?.pagination;
@@ -92,5 +81,6 @@ export function useQuizReviews(
     fetcher,
     params,
     paginationKind: "cursor",
+    enabled: quizId !== null,
   });
 }

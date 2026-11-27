@@ -1,6 +1,7 @@
-import type React from "react";
+import { AdminLayoutShell } from "@/features/admin/components/AdminLayoutShell";
+
 import type { Metadata } from "next";
-import { AdminLayoutShell } from "./_components";
+import type React from "react";
 
 export const metadata: Metadata = {
   title: {
@@ -19,12 +20,5 @@ export default function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return (
-    <>
-      <a href="#main-content" className="skip-link">
-        Skip to main content
-      </a>
-      <AdminLayoutShell>{children}</AdminLayoutShell>
-    </>
-  );
+  return <AdminLayoutShell>{children}</AdminLayoutShell>;
 }

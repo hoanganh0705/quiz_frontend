@@ -3,6 +3,7 @@
 import { useCallback, useRef, useState } from "react";
 
 import { isApiError, type ApiError } from "@/lib/api";
+import { unwrapEnvelope as inspectEnvelope } from "@/lib/api/core/unwrap";
 import type { CreateQuizDto } from "@/lib/api/generated/schemas";
 
 import { createQuiz } from "@/features/quizzes/services/quizzes.service";
@@ -36,14 +37,6 @@ export interface UseCreateQuizReturn {
   resetError: () => void;
 }
 
-function emitBreadcrumb(
-  _category: string,
-  _data: { status: string; durationMs: number; code?: string },
-): void {
-  void _category;
-  void _data;
-}
-
 function buildPayload(
   values: QuizCreateFormValues,
   resolvedTagIds?: string[],
@@ -54,8 +47,6 @@ function buildPayload(
     slug: values.slug ?? undefined,
     requirements: values.requirements ?? undefined,
     imagePublicId: values.imagePublicId ?? undefined,
-    isFeatured: values.isFeatured ?? undefined,
-    isHidden: values.isHidden ?? undefined,
     categoryId: values.categoryId ?? undefined,
     tagIds: resolvedTagIds ?? undefined,
     initialVersion: values.initialVersion,
@@ -92,16 +83,15 @@ export function useCreateQuiz(
 
       setIsSubmitting(true);
       setError(null);
-      const startedAt = Date.now();
 
       const core = (async (): Promise<CreateQuizSuccessResult | null> => {
         try {
           const payload = buildPayload(values, opts?.resolvedTagIds);
           const response = await createQuiz(payload);
-
-          const quiz = (
-            response as unknown as { data?: { quizId: string; slug: string } }
-          ).data;
+          const unwrapped = inspectEnvelope<{ quizId: string; slug: string }>(
+            response,
+          );
+          const quiz = unwrapped.kind === "envelope" ? unwrapped.value : null;
           if (!quiz?.quizId) {
             throw new Error("Unexpected response shape from POST /quizzes");
           }
@@ -112,34 +102,13 @@ export function useCreateQuiz(
           };
 
           onSuccess?.(result);
-
-          emitBreadcrumb("quizzes:create-quiz", {
-            status: "success",
-            durationMs: Date.now() - startedAt,
-          });
-
           return result;
         } catch (err) {
           if (isApiError(err)) {
             setError(err);
             onError?.(err);
-
-            emitBreadcrumb("quizzes:create-quiz", {
-              status: "error",
-              durationMs: Date.now() - startedAt,
-              code: err.code,
-            });
-
             throw err;
           }
-
-          const unknownErr =
-            err instanceof Error ? err.message : "Unknown error";
-          emitBreadcrumb("quizzes:create-quiz", {
-            status: "error",
-            durationMs: Date.now() - startedAt,
-            code: "GLOBAL_UNKNOWN",
-          });
           throw err;
         }
       })();

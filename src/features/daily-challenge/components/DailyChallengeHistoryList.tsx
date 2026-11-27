@@ -1,13 +1,15 @@
 "use client";
 
-import { Card, CardContent, CardHeader } from "@/components/ui/Card";
+import { ChevronRight } from "lucide-react";
+
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
-import { ChevronRight, ChevronLeft } from "lucide-react";
+import { Card, CardContent, CardHeader } from "@/components/ui/Card";
 
 import { cn } from "@/shared/utils/merge-class-names";
 
 import { DailyChallengeHistoryEmptyState } from "./DailyChallengeHistoryEmptyState";
+
 import type { DailyChallengeHistoryItemWithId } from "../hooks";
 
 export interface DailyChallengeHistoryListProps {
@@ -29,10 +31,6 @@ export function DailyChallengeHistoryList({
     return <DailyChallengeHistoryEmptyState className={className} />;
   }
 
-  const displayed = items.slice(0, 3);
-  const remaining = items.length - displayed.length;
-  const showAll = !hasMore;
-
   return (
     <Card
       role="region"
@@ -47,6 +45,7 @@ export function DailyChallengeHistoryList({
           </h2>
           {hasMore && onLoadMore ? (
             <Button
+              type="button"
               variant="outline"
               size="sm"
               onClick={onLoadMore}
@@ -54,32 +53,21 @@ export function DailyChallengeHistoryList({
               aria-label={
                 isLoadingMore
                   ? "Loading more challenge history"
-                  : `Load ${remaining} more past challenges`
+                  : "Load more past challenges"
               }
-              className="flex items-center gap-1.5 h-9 px-3 rounded-lg border border-border/80 bg-background text-foreground-secondary hover:text-foreground hover:bg-muted/50 transition-colors shadow-2xs"
+              className="flex items-center gap-1.5 h-9 px-3 rounded-md border border-border/80 bg-background text-foreground-secondary hover:text-foreground hover:bg-muted/50 transition-colors shadow-2xs"
             >
               <span className="text-xs font-medium">
-                {isLoadingMore ? "Loading…" : `Load ${remaining} more`}
+                {isLoadingMore ? "Loading…" : "Load more"}
               </span>
               <ChevronRight className="w-4 h-4" aria-hidden="true" />
-            </Button>
-          ) : showAll && items.length > 3 && onLoadMore ? (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={onLoadMore}
-              aria-label="Show fewer past challenges"
-              className="flex items-center gap-1.5 h-9 px-3 rounded-lg border border-border/80 bg-background text-foreground-secondary hover:text-foreground hover:bg-muted/50 transition-colors shadow-2xs"
-            >
-              <span className="text-xs font-medium">Show fewer</span>
-              <ChevronLeft className="w-4 h-4" aria-hidden="true" />
             </Button>
           ) : null}
         </div>
       </CardHeader>
       <CardContent>
         <div className="space-y-3">
-          {displayed.map((challenge) => (
+          {items.map((challenge) => (
             <div
               key={challenge.id}
               data-testid="daily-challenge-history-item"

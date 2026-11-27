@@ -4,9 +4,9 @@ import { useCallback, useEffect, useRef } from "react";
 import { CheckCircle2, X } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import {
-  PASSWORD_COPY_KEYS,
-  resolvePasswordCopy,
-} from "@/features/auth/services/auth.service";
+  COPY_KEYS as PASSWORD_COPY_KEYS,
+  resolveCopy as resolvePasswordCopy,
+} from "@/features/auth/copy/password-copy";
 
 export interface ChangePasswordSuccessBannerProps {
   onDismiss: () => void;

@@ -27,22 +27,63 @@ interface PendingOperation {
 interface CommentCacheEntry {
   items?: CommentThreadItem[];
   hasNextPage?: boolean;
-
   nextPageMarker?: string | null;
 }
+
+interface CommentInfiniteCacheEntry {
+  pages?: Array<{
+    items?: CommentThreadItem[];
+    hasNextPage?: boolean;
+    limit?: number;
+  }>;
+  pageParams?: unknown[];
+}
+
+type CommentQueryCacheData = CommentCacheEntry & CommentInfiniteCacheEntry;
 
 const pendingOperations = new Map<string, PendingOperation>();
 
 const PENDING_OPERATION_TTL_MS = 30_000;
 
-setInterval(() => {
+function pruneExpiredPendingOperations(): void {
   const now = Date.now();
   for (const [key, op] of pendingOperations.entries()) {
     if (now - op.timestamp > PENDING_OPERATION_TTL_MS) {
       pendingOperations.delete(key);
     }
   }
-}, 10_000);
+}
+
+function updateCommentCache(
+  current: CommentQueryCacheData | undefined,
+  transformPageItems: (
+    items: CommentThreadItem[],
+    pageIndex: number,
+  ) => CommentThreadItem[],
+): CommentQueryCacheData | undefined {
+  if (!current) return current;
+
+  if (Array.isArray(current.pages)) {
+    let changed = false;
+    const nextPages = current.pages.map((page, pageIndex) => {
+      if (!Array.isArray(page.items)) return page;
+      const nextItems = transformPageItems(page.items, pageIndex);
+      if (nextItems === page.items) return page;
+      changed = true;
+      return { ...page, items: nextItems };
+    });
+    return changed ? { ...current, pages: nextPages } : current;
+  }
+
+  if (Array.isArray(current.items)) {
+    const nextItems = transformPageItems(current.items, 0);
+    return nextItems === current.items
+      ? current
+      : { ...current, items: nextItems };
+  }
+
+  return current;
+}
 
 function pendingOpKey(
   type: PendingOperation["type"],
@@ -68,6 +109,7 @@ function registerPending(
   commentId: string,
   userId?: string,
 ): void {
+  pruneExpiredPendingOperations();
   const key = pendingOpKey(type, commentId, userId);
   pendingOperations.set(key, { type, commentId, timestamp: Date.now() });
 }
@@ -94,7 +136,7 @@ export function applyCommentCreated(
 
   try {
     const qc = getQueryClient();
-    qc.setQueriesData<CommentCacheEntry>(
+    qc.setQueriesData<CommentQueryCacheData>(
       {
         predicate: (query) => {
           const key = query.queryKey;
@@ -105,21 +147,31 @@ export function applyCommentCreated(
           );
         },
       },
-      (current) => {
-        if (!current?.items) return current;
-        if (isReply) {
-          return {
-            ...current,
-            items: [...current.items],
-          };
-        }
-        if (current.items.some((c) => c.id === commentId)) return current;
-        const newThread = createThreadFromSnapshot(snapshot);
-        return {
-          ...current,
-          items: [newThread, ...current.items],
-        };
-      },
+      (current) =>
+        updateCommentCache(current, (items, pageIndex) => {
+          if (isReply && snapshot.parentCommentId) {
+            let replyInserted = false;
+            const nextItems = items.map((thread) => {
+              if (thread.id !== snapshot.parentCommentId) return thread;
+              const existingReplies = thread.replies ?? [];
+              if (existingReplies.some((r) => r.id === commentId)) {
+                return thread;
+              }
+              replyInserted = true;
+              const replyItem = createThreadFromSnapshot(snapshot);
+              return {
+                ...thread,
+                replies: [...existingReplies, replyItem],
+                repliesCount: thread.repliesCount + 1,
+              };
+            });
+            return replyInserted ? nextItems : items;
+          }
+          if (pageIndex !== 0) return items;
+          if (items.some((c) => c.id === commentId)) return items;
+          const newThread = createThreadFromSnapshot(snapshot);
+          return [newThread, ...items];
+        }),
     );
   } catch {}
 }
@@ -137,22 +189,19 @@ export function applyCommentEdited(
 
   try {
     const qc = getQueryClient();
-    qc.setQueriesData<CommentCacheEntry>(
+    qc.setQueriesData<CommentQueryCacheData>(
       {
         predicate: (query) => {
           const key = query.queryKey;
           return Array.isArray(key) && key[0] === "comments";
         },
       },
-      (current) => {
-        if (!current?.items) return current;
-        return {
-          ...current,
-          items: current.items.map((thread) =>
+      (current) =>
+        updateCommentCache(current, (items) =>
+          items.map((thread) =>
             applyEditToThread(thread, commentId, snapshot),
           ),
-        };
-      },
+        ),
     );
   } catch {}
 }
@@ -169,7 +218,7 @@ export function applyCommentDeleted(
 
   try {
     const qc = getQueryClient();
-    qc.setQueriesData<CommentCacheEntry>(
+    qc.setQueriesData<CommentQueryCacheData>(
       {
         predicate: (query) => {
           const key = query.queryKey;
@@ -180,40 +229,34 @@ export function applyCommentDeleted(
           );
         },
       },
-      (current) => {
-        if (!current?.items) return current;
+      (current) =>
+        updateCommentCache(current, (items) =>
+          items.map((thread) => {
+            if (thread.id === commentId) {
+              return {
+                ...thread,
+                deletedAt: payload.timestamp,
+              };
+            }
 
-        const updatedItems = current.items.map((thread) => {
-          if (thread.id === commentId) {
-            return {
-              ...thread,
-              deletedAt: payload.timestamp,
-            };
-          }
-
-          if (thread.replies) {
-            const updatedReplies = thread.replies.map((reply) =>
-              reply.id === commentId
-                ? { ...reply, deletedAt: payload.timestamp }
-                : reply,
-            );
-            const hasUpdatedReplies = updatedReplies !== thread.replies;
-            if (hasUpdatedReplies) {
+            if (
+              thread.replies &&
+              thread.replies.some((reply) => reply.id === commentId)
+            ) {
+              const updatedReplies = thread.replies.map((reply) =>
+                reply.id === commentId
+                  ? { ...reply, deletedAt: payload.timestamp }
+                  : reply,
+              );
               return {
                 ...thread,
                 replies: updatedReplies,
                 repliesCount: Math.max(0, thread.repliesCount - 1),
               };
             }
-          }
-          return thread;
-        });
-
-        return {
-          ...current,
-          items: updatedItems,
-        };
-      },
+            return thread;
+          }),
+        ),
     );
   } catch {}
 }
@@ -231,22 +274,19 @@ export function applyCommentHidden(
 
   try {
     const qc = getQueryClient();
-    qc.setQueriesData<CommentCacheEntry>(
+    qc.setQueriesData<CommentQueryCacheData>(
       {
         predicate: (query) => {
           const key = query.queryKey;
           return Array.isArray(key) && key[0] === "comments";
         },
       },
-      (current) => {
-        if (!current?.items) return current;
-        return {
-          ...current,
-          items: current.items.map((thread) =>
+      (current) =>
+        updateCommentCache(current, (items) =>
+          items.map((thread) =>
             applyEditToThread(thread, commentId, snapshot),
           ),
-        };
-      },
+        ),
     );
   } catch {}
 }
@@ -264,22 +304,19 @@ export function applyCommentRestored(
 
   try {
     const qc = getQueryClient();
-    qc.setQueriesData<CommentCacheEntry>(
+    qc.setQueriesData<CommentQueryCacheData>(
       {
         predicate: (query) => {
           const key = query.queryKey;
           return Array.isArray(key) && key[0] === "comments";
         },
       },
-      (current) => {
-        if (!current?.items) return current;
-        return {
-          ...current,
-          items: current.items.map((thread) =>
+      (current) =>
+        updateCommentCache(current, (items) =>
+          items.map((thread) =>
             applyEditToThread(thread, commentId, snapshot),
           ),
-        };
-      },
+        ),
     );
   } catch {}
 }
@@ -305,18 +342,16 @@ export function applyVoteCast(
 
   try {
     const qc = getQueryClient();
-    qc.setQueriesData<CommentCacheEntry>(
+    qc.setQueriesData<CommentQueryCacheData>(
       {
         predicate: (query) => {
           const key = query.queryKey;
           return Array.isArray(key) && key[0] === "comments";
         },
       },
-      (current) => {
-        if (!current?.items) return current;
-        return {
-          ...current,
-          items: current.items.map((thread) =>
+      (current) =>
+        updateCommentCache(current, (items) =>
+          items.map((thread) =>
             applyVoteToThread(
               thread,
               commentId,
@@ -328,8 +363,7 @@ export function applyVoteCast(
               currentUserId,
             ),
           ),
-        };
-      },
+        ),
     );
   } catch {}
 }
@@ -349,18 +383,16 @@ export function applyVoteRemoved(
 
   try {
     const qc = getQueryClient();
-    qc.setQueriesData<CommentCacheEntry>(
+    qc.setQueriesData<CommentQueryCacheData>(
       {
         predicate: (query) => {
           const key = query.queryKey;
           return Array.isArray(key) && key[0] === "comments";
         },
       },
-      (current) => {
-        if (!current?.items) return current;
-        return {
-          ...current,
-          items: current.items.map((thread) =>
+      (current) =>
+        updateCommentCache(current, (items) =>
+          items.map((thread) =>
             applyVoteToThread(
               thread,
               commentId,
@@ -372,8 +404,7 @@ export function applyVoteRemoved(
               currentUserId,
             ),
           ),
-        };
-      },
+        ),
     );
   } catch {}
 }

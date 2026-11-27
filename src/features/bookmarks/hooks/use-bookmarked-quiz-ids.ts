@@ -1,14 +1,17 @@
 "use client";
 
 import { useMemo } from "react";
+
 import { useQuery } from "@tanstack/react-query";
+
+import { ApiError, coerceToApiError } from "@/lib/api";
 import { getQueryClient } from "@/providers/QueryProvider";
 
-import { ApiError, isApiError } from "@/lib/api";
-import type { BookmarkedQuizResponseDto } from "@/lib/api/generated/schemas";
 import { useAuthState } from "@/features/auth/hooks/use-auth-state";
 import { listBookmarksInCollection } from "@/features/bookmarks/api";
 import { useBookmarkCollections } from "@/features/bookmarks/hooks/use-bookmark-collections";
+
+import type { BookmarkedQuizResponseDto } from "@/lib/api/generated/schemas";
 
 export const bookmarkedQuizIdsKey = () => ["bookmarked-quiz-ids"] as const;
 
@@ -85,18 +88,9 @@ export function useBookmarkedQuizIds(): UseBookmarkedQuizIdsResult {
     ? false
     : collectionsLoading || (query.isLoading && !query.error && enabled);
 
-  const error: ApiError | null = (() => {
-    const first = query.error;
-    if (!first) return null;
-    if (isApiError(first)) return first;
-    if (first && typeof first === "object" && "status" in first) {
-      return first as unknown as ApiError;
-    }
-    return {
-      status: 0,
-      message: first instanceof Error ? first.message : String(first),
-    } as unknown as ApiError;
-  })();
+  const error: ApiError | null = query.error
+    ? coerceToApiError(query.error)
+    : null;
 
   return {
     quizIds,

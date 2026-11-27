@@ -36,8 +36,8 @@ import { cn } from "@/shared/utils/merge-class-names";
 
 export interface FilterBarProps {
   state: QuizFilterUrlState;
-  categories: readonly CategoryResponseDto[];
-  tags: readonly TagResponseDto[];
+  categories: readonly Pick<CategoryResponseDto, "categoryId" | "name">[];
+  tags: readonly Pick<TagResponseDto, "tagId" | "slug" | "name">[];
   onChange: (next: QuizFilterUrlState) => void;
   className?: string;
 }
@@ -113,8 +113,8 @@ export function FilterBar({
 
 interface FilterBarContentProps {
   state: QuizFilterUrlState;
-  categories: readonly CategoryResponseDto[];
-  tags: readonly TagResponseDto[];
+  categories: FilterBarProps["categories"];
+  tags: FilterBarProps["tags"];
   onChange: (next: QuizFilterUrlState) => void;
   className?: string;
 }

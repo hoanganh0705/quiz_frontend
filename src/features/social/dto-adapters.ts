@@ -294,6 +294,10 @@ export function toFriendRequest(input: unknown): SocialFriendRequestDto {
     readonly createdAt?: string;
     readonly requesterDisplayName?: unknown;
     readonly requesterAvatarUrl?: unknown;
+    readonly addresseeUsername?: string;
+    readonly addresseeDisplayName?: unknown;
+    readonly addresseeAvatarUrl?: unknown;
+    readonly addressee?: UserRowWireDto;
   };
   const friendshipId = wire.friendshipId ?? "";
   const requesterId = wire.requesterId ?? "";
@@ -304,6 +308,25 @@ export function toFriendRequest(input: unknown): SocialFriendRequestDto {
     displayName: wire.requesterDisplayName,
     avatarUrl: wire.requesterAvatarUrl,
   });
+  const hasAddresseeMeta =
+    typeof wire.addresseeUsername === "string" ||
+    wire.addresseeDisplayName !== undefined ||
+    wire.addresseeAvatarUrl !== undefined ||
+    (wire.addressee !== undefined && wire.addressee !== null);
+  const addressee = hasAddresseeMeta
+    ? toUserSummary({
+        userId: wire.addressee?.userId ?? wire.addresseeId,
+        userName:
+          wire.addressee?.userName ??
+          wire.addressee?.username ??
+          wire.addresseeUsername,
+        displayName:
+          wire.addressee?.displayName ?? wire.addresseeDisplayName,
+        avatarUrl: wire.addressee?.avatarUrl ?? wire.addresseeAvatarUrl,
+      })
+    : addresseeId
+      ? toUserSummary({ userId: addresseeId })
+      : undefined;
   const createdAt =
     typeof wire.createdAt === "string"
       ? wire.createdAt
@@ -314,6 +337,7 @@ export function toFriendRequest(input: unknown): SocialFriendRequestDto {
     requesterId,
     addresseeId,
     requester,
+    ...(addressee !== undefined ? { addressee } : {}),
     createdAt,
   });
 }
@@ -322,15 +346,27 @@ export function toBlockedUser(input: unknown): SocialBlockedUserDto {
   const wire = (input ?? {}) as {
     readonly blockedId?: string;
     readonly userId?: string;
+    readonly username?: string;
+    readonly userName?: string;
+    readonly blockedUsername?: string;
+    readonly displayName?: unknown;
+    readonly blockedDisplayName?: unknown;
+    readonly avatarUrl?: unknown;
+    readonly blockedAvatarUrl?: unknown;
     readonly createdAt?: string;
     readonly since?: string;
   };
   const id = wire.blockedId ?? wire.userId ?? "";
-  const user = toUserSummary({ userId: wire.blockedId ?? wire.userId });
+  const user = toUserSummary({
+    userId: id,
+    userName: wire.userName ?? wire.username ?? wire.blockedUsername,
+    displayName: wire.displayName ?? wire.blockedDisplayName,
+    avatarUrl: wire.avatarUrl ?? wire.blockedAvatarUrl,
+  });
   const since = wire.since ?? wire.createdAt ?? new Date(0).toISOString();
   return Object.freeze({
     id,
-    userId: wire.blockedId ?? wire.userId ?? "",
+    userId: id,
     user,
     since,
   });
