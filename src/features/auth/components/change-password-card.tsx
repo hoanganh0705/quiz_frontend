@@ -1,7 +1,22 @@
 "use client";
 
 import { memo, useCallback, useEffect, useId, useRef, useState } from "react";
-import { Eye, EyeOff, Loader2, RefreshCw } from "lucide-react";
+
+import { Loader2, RefreshCw } from "lucide-react";
+
+import { cn } from "@/shared/utils/merge-class-names";
+
+import {
+  useChangePassword,
+  type ChangePasswordFieldErrors,
+  type UseChangePasswordDeps,
+} from "@/features/auth/hooks/use-change-password";
+import {
+  COPY_KEYS as PASSWORD_COPY_KEYS,
+  resolveCopy as resolvePasswordCopy,
+} from "@/features/auth/copy/password-copy";
+
+import { Button } from "@/components/ui/Button";
 import {
   Card,
   CardContent,
@@ -9,22 +24,12 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/Card";
-import { Button } from "@/components/ui/Button";
-import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
 import { InlineError } from "@/components/ui/loading-states/ErrorState";
-import { cn } from "@/shared/utils/merge-class-names";
-import {
-  useChangePassword,
-  type ChangePasswordFieldErrors,
-  type UseChangePasswordDeps,
-} from "@/features/auth/hooks/use-change-password";
-import { getPasswordStrength } from "@/features/auth/utils/password-strength";
-import {
-  PASSWORD_COPY_KEYS,
-  resolvePasswordCopy,
-} from "@/features/auth/services/auth.service";
+
 import { ChangePasswordSuccessBanner } from "./change-password-success-banner";
+import { PasswordInput } from "./password-input";
+import { PasswordStrengthMeter } from "./password-strength-meter";
 
 export interface ChangePasswordCardProps {
   hookDeps?: UseChangePasswordDeps;
@@ -48,10 +53,6 @@ function ChangePasswordCardInner({
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
-  const [revealCurrent, setRevealCurrent] = useState(false);
-  const [revealNew, setRevealNew] = useState(false);
-  const [revealConfirm, setRevealConfirm] = useState(false);
-
   const [showSuccess, setShowSuccess] = useState(false);
   const collapseTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -60,14 +61,12 @@ function ChangePasswordCardInner({
       ? (error.fieldErrors as ChangePasswordFieldErrors)
       : undefined;
 
-  const lastKindRef = useRef<string | null>(null);
   const currentKind = error?.classification.kind ?? null;
-  if (currentKind !== lastKindRef.current) {
-    lastKindRef.current = currentKind;
-    if (currentKind === "invalid_current" && currentPassword !== "") {
+  useEffect(() => {
+    if (currentKind === "invalid_current") {
       setCurrentPassword("");
     }
-  }
+  }, [currentKind]);
 
   useEffect(() => {
     if (status === "success" && !showSuccess) {
@@ -106,9 +105,6 @@ function ChangePasswordCardInner({
     setCurrentPassword("");
     setNewPassword("");
     setConfirmPassword("");
-    setRevealCurrent(false);
-    setRevealNew(false);
-    setRevealConfirm(false);
     reset();
   }, [reset]);
 
@@ -144,7 +140,6 @@ function ChangePasswordCardInner({
     return resolvePasswordCopy(KEY_MAP[key] ?? key);
   };
 
-  const strength = getPasswordStrength(newPassword);
   const showStrengthMeter = newPassword.length > 0;
 
   const submitDisabled =
@@ -205,50 +200,34 @@ function ChangePasswordCardInner({
                 PASSWORD_COPY_KEYS.password.changePassword.currentLabel,
               )}
             </Label>
-            <div className="relative">
-              <Input
-                id={currentFieldId}
-                type={revealCurrent ? "text" : "password"}
-                autoComplete="current-password"
-                value={currentPassword}
-                onChange={(e) => setCurrentPassword(e.target.value)}
-                placeholder={resolvePasswordCopy(
-                  PASSWORD_COPY_KEYS.password.changePassword.currentPlaceholder,
-                )}
-                disabled={status === "pending"}
-                aria-invalid={Boolean(currentFieldError)}
-                aria-describedby={
-                  currentFieldError ? `${currentFieldId}-error` : undefined
-                }
-                className={cn(
-                  "pr-10",
-                  currentFieldError &&
-                    "border-destructive focus-visible:border-destructive",
-                )}
-              />
-              <button
-                type="button"
-                onClick={() => setRevealCurrent((r) => !r)}
-                disabled={status === "pending"}
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50"
-                aria-label={
-                  revealCurrent
-                    ? resolvePasswordCopy(
-                        PASSWORD_COPY_KEYS.password.changePassword.hide,
-                      )
-                    : resolvePasswordCopy(
-                        PASSWORD_COPY_KEYS.password.changePassword.reveal,
-                      )
-                }
-                data-testid="change-password-current-reveal"
-              >
-                {revealCurrent ? (
-                  <EyeOff className="w-4 h-4" />
-                ) : (
-                  <Eye className="w-4 h-4" />
-                )}
-              </button>
-            </div>
+            <PasswordInput
+              id={currentFieldId}
+              autoComplete="current-password"
+              value={currentPassword}
+              onChange={(e) => setCurrentPassword(e.target.value)}
+              placeholder={resolvePasswordCopy(
+                PASSWORD_COPY_KEYS.password.changePassword.currentPlaceholder,
+              )}
+              disabled={status === "pending"}
+              aria-invalid={Boolean(currentFieldError)}
+              aria-describedby={
+                currentFieldError ? `${currentFieldId}-error` : undefined
+              }
+              revealLabel={resolvePasswordCopy(
+                PASSWORD_COPY_KEYS.password.changePassword.reveal,
+              )}
+              hideLabel={resolvePasswordCopy(
+                PASSWORD_COPY_KEYS.password.changePassword.hide,
+              )}
+              toggleTestId="change-password-current-reveal"
+              iconClassName="w-4 h-4"
+              toggleClassName="right-2"
+              className={cn(
+                "pr-10",
+                currentFieldError &&
+                  "border-destructive focus-visible:border-destructive",
+              )}
+            />
             {currentFieldError && (
               <p
                 id={`${currentFieldId}-error`}
@@ -268,50 +247,34 @@ function ChangePasswordCardInner({
                 PASSWORD_COPY_KEYS.password.changePassword.newLabel,
               )}
             </Label>
-            <div className="relative">
-              <Input
-                id={newFieldId}
-                type={revealNew ? "text" : "password"}
-                autoComplete="new-password"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                placeholder={resolvePasswordCopy(
-                  PASSWORD_COPY_KEYS.password.changePassword.newPlaceholder,
-                )}
-                disabled={status === "pending"}
-                aria-invalid={Boolean(newFieldError)}
-                aria-describedby={
-                  newFieldError ? `${newFieldId}-error` : undefined
-                }
-                className={cn(
-                  "pr-10",
-                  newFieldError &&
-                    "border-destructive focus-visible:border-destructive",
-                )}
-              />
-              <button
-                type="button"
-                onClick={() => setRevealNew((r) => !r)}
-                disabled={status === "pending"}
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50"
-                aria-label={
-                  revealNew
-                    ? resolvePasswordCopy(
-                        PASSWORD_COPY_KEYS.password.changePassword.hide,
-                      )
-                    : resolvePasswordCopy(
-                        PASSWORD_COPY_KEYS.password.changePassword.reveal,
-                      )
-                }
-                data-testid="change-password-new-reveal"
-              >
-                {revealNew ? (
-                  <EyeOff className="w-4 h-4" />
-                ) : (
-                  <Eye className="w-4 h-4" />
-                )}
-              </button>
-            </div>
+            <PasswordInput
+              id={newFieldId}
+              autoComplete="new-password"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              placeholder={resolvePasswordCopy(
+                PASSWORD_COPY_KEYS.password.changePassword.newPlaceholder,
+              )}
+              disabled={status === "pending"}
+              aria-invalid={Boolean(newFieldError)}
+              aria-describedby={
+                newFieldError ? `${newFieldId}-error` : undefined
+              }
+              revealLabel={resolvePasswordCopy(
+                PASSWORD_COPY_KEYS.password.changePassword.reveal,
+              )}
+              hideLabel={resolvePasswordCopy(
+                PASSWORD_COPY_KEYS.password.changePassword.hide,
+              )}
+              toggleTestId="change-password-new-reveal"
+              iconClassName="w-4 h-4"
+              toggleClassName="right-2"
+              className={cn(
+                "pr-10",
+                newFieldError &&
+                  "border-destructive focus-visible:border-destructive",
+              )}
+            />
             {newFieldError && (
               <p
                 id={`${newFieldId}-error`}
@@ -323,63 +286,31 @@ function ChangePasswordCardInner({
               </p>
             )}
             {showStrengthMeter && (
-              <div
+              <PasswordStrengthMeter
+                password={newPassword}
                 className="mt-2"
-                data-testid="change-password-strength"
-                aria-label={resolvePasswordCopy(
+                testId="change-password-strength"
+                labelTestId="change-password-strength-label"
+                heading={resolvePasswordCopy(
                   PASSWORD_COPY_KEYS.password.strength.heading,
                 )}
-              >
-                <div className="flex items-center justify-between text-xs mb-1">
-                  <span className="text-muted-foreground">
-                    {resolvePasswordCopy(
-                      PASSWORD_COPY_KEYS.password.strength.heading,
-                    )}
-                  </span>
-                  <span
-                    className="font-medium"
-                    data-testid="change-password-strength-label"
-                  >
-                    {resolvePasswordCopy(
-                      strength.score >= 4
-                        ? PASSWORD_COPY_KEYS.password.strength.strong
-                        : strength.score === 3
-                          ? PASSWORD_COPY_KEYS.password.strength.good
-                          : strength.score === 2
-                            ? PASSWORD_COPY_KEYS.password.strength.fair
-                            : strength.score === 1
-                              ? PASSWORD_COPY_KEYS.password.strength.weak
-                              : PASSWORD_COPY_KEYS.password.strength.tooWeak,
-                    )}
-                  </span>
-                </div>
-                <div
-                  className="h-1.5 bg-muted rounded-full overflow-hidden"
-                  role="progressbar"
-                  aria-valuenow={strength.score}
-                  aria-valuemin={0}
-                  aria-valuemax={4}
-                >
-                  <div
-                    className={cn(
-                      "h-full transition-all",
-                      strength.score >= 4
-                        ? "bg-green-500"
-                        : strength.score >= 3
-                          ? "bg-emerald-500"
-                          : strength.score >= 2
-                            ? "bg-amber-500"
-                            : "bg-red-500",
-                    )}
-                    style={{ width: `${(strength.score / 4) * 100}%` }}
-                  />
-                </div>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  {resolvePasswordCopy(
-                    PASSWORD_COPY_KEYS.password.strength.requirements,
-                  )}
-                </p>
-              </div>
+                requirementsCopy={resolvePasswordCopy(
+                  PASSWORD_COPY_KEYS.password.strength.requirements,
+                )}
+                labelResolver={(score) =>
+                  resolvePasswordCopy(
+                    score >= 4
+                      ? PASSWORD_COPY_KEYS.password.strength.strong
+                      : score === 3
+                        ? PASSWORD_COPY_KEYS.password.strength.good
+                        : score === 2
+                          ? PASSWORD_COPY_KEYS.password.strength.fair
+                          : score === 1
+                            ? PASSWORD_COPY_KEYS.password.strength.weak
+                            : PASSWORD_COPY_KEYS.password.strength.tooWeak,
+                  )
+                }
+              />
             )}
           </div>
 
@@ -390,50 +321,34 @@ function ChangePasswordCardInner({
                 PASSWORD_COPY_KEYS.password.changePassword.confirmLabel,
               )}
             </Label>
-            <div className="relative">
-              <Input
-                id={confirmFieldId}
-                type={revealConfirm ? "text" : "password"}
-                autoComplete="new-password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                placeholder={resolvePasswordCopy(
-                  PASSWORD_COPY_KEYS.password.changePassword.confirmPlaceholder,
-                )}
-                disabled={status === "pending"}
-                aria-invalid={Boolean(confirmFieldError)}
-                aria-describedby={
-                  confirmFieldError ? `${confirmFieldId}-error` : undefined
-                }
-                className={cn(
-                  "pr-10",
-                  confirmFieldError &&
-                    "border-destructive focus-visible:border-destructive",
-                )}
-              />
-              <button
-                type="button"
-                onClick={() => setRevealConfirm((r) => !r)}
-                disabled={status === "pending"}
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50"
-                aria-label={
-                  revealConfirm
-                    ? resolvePasswordCopy(
-                        PASSWORD_COPY_KEYS.password.changePassword.hide,
-                      )
-                    : resolvePasswordCopy(
-                        PASSWORD_COPY_KEYS.password.changePassword.reveal,
-                      )
-                }
-                data-testid="change-password-confirm-reveal"
-              >
-                {revealConfirm ? (
-                  <EyeOff className="w-4 h-4" />
-                ) : (
-                  <Eye className="w-4 h-4" />
-                )}
-              </button>
-            </div>
+            <PasswordInput
+              id={confirmFieldId}
+              autoComplete="new-password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              placeholder={resolvePasswordCopy(
+                PASSWORD_COPY_KEYS.password.changePassword.confirmPlaceholder,
+              )}
+              disabled={status === "pending"}
+              aria-invalid={Boolean(confirmFieldError)}
+              aria-describedby={
+                confirmFieldError ? `${confirmFieldId}-error` : undefined
+              }
+              revealLabel={resolvePasswordCopy(
+                PASSWORD_COPY_KEYS.password.changePassword.reveal,
+              )}
+              hideLabel={resolvePasswordCopy(
+                PASSWORD_COPY_KEYS.password.changePassword.hide,
+              )}
+              toggleTestId="change-password-confirm-reveal"
+              iconClassName="w-4 h-4"
+              toggleClassName="right-2"
+              className={cn(
+                "pr-10",
+                confirmFieldError &&
+                  "border-destructive focus-visible:border-destructive",
+              )}
+            />
             {confirmFieldError && (
               <p
                 id={`${confirmFieldId}-error`}

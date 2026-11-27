@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
 
 import {
-  QUIZ_CARD_GRADIENTS,
-  gradientFromQuizId,
-} from "@/features/quizzes/utils/quiz-card-gradient";
+  ENTITY_CARD_GRADIENTS as QUIZ_CARD_GRADIENTS,
+  gradientFromId as gradientFromQuizId,
+} from "@/shared/utils/entity-decoration";
 
 describe("gradientFromQuizId", () => {
   it("returns one of the palette entries", () => {

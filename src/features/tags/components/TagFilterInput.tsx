@@ -1,31 +1,34 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
-import { Input } from "@/components/ui/Input";
-import { isValidTagSlug } from "@/features/tags/utils";
+import { Search, X } from "lucide-react";
+
 import { useDebouncedValue } from "@/lib/utils/use-debounced-value";
 
-const SEARCH_DEBOUNCE_MS = 250;
+import { Input } from "@/components/ui/Input";
+
+import { cn } from "@/shared/utils/merge-class-names";
+
+const SEARCH_DEBOUNCE_MS = 150;
 
 export interface TagFilterInputProps {
   value: string;
 
   onChange: (debouncedValue: string) => void;
 
-  className?: string;
-}
+  describedBy?: string;
 
-function isViolation(raw: string): boolean {
-  if (raw === "") return false;
-  return !isValidTagSlug(raw);
+  className?: string;
 }
 
 export function TagFilterInput({
   value,
   onChange,
+  describedBy,
   className,
 }: TagFilterInputProps): React.ReactElement {
+  const inputRef = useRef<HTMLInputElement | null>(null);
   const [typed, setTyped] = useState(value);
   const { debouncedValue: debounced } = useDebouncedValue(
     typed,
@@ -38,40 +41,50 @@ export function TagFilterInput({
 
   useEffect(() => {
     onChange(debounced);
-    // The `onChange` prop is captured at mount time. If the parent
-    // passes a new `onChange` reference, the hook re-fires with the
-    // current debounced value — this is intentional: a "Clear filter"
-    // link wired via `setValue('')` updates `value`, which updates
-    // `typed` (above), which updates `debounced`, which fires
-    // `onChange('')`.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [debounced]);
 
+  const handleClear = useCallback(() => {
+    setTyped("");
+    onChange("");
+    inputRef.current?.focus();
+  }, [onChange]);
+
   return (
-    <div className={className}>
+    <div className={cn("relative flex w-full items-center", className)}>
+      <Search
+        className="pointer-events-none absolute left-3 h-4 w-4 text-muted-foreground"
+        aria-hidden="true"
+      />
       <Input
+        ref={inputRef}
         type="search"
-        placeholder="Filter tags…"
+        placeholder="Filter by name or slug…"
+        aria-label="Filter tags by name or slug"
+        aria-describedby={describedBy}
         value={typed}
         onChange={(e) => setTyped(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Escape" && typed.length > 0) {
+            e.preventDefault();
+            handleClear();
+          }
+        }}
         autoComplete="off"
         spellCheck={false}
-        aria-label="Filter tags by slug"
         data-testid="tag-filter-input"
-        aria-invalid={isViolation(typed) ? true : undefined}
-        aria-describedby={
-          isViolation(typed) ? "tag-filter-input-helper" : undefined
-        }
+        className="h-10 sm:h-9 bg-background pl-9 pr-9 [&::-webkit-search-cancel-button]:hidden"
       />
-      {isViolation(typed) ? (
-        <p
-          id="tag-filter-input-helper"
-          role="status"
-          data-testid="tag-filter-input-helper"
-          className="mt-2 text-xs text-muted-foreground"
+      {typed.length > 0 ? (
+        <button
+          type="button"
+          onClick={handleClear}
+          aria-label="Clear tag filter"
+          data-testid="tag-filter-clear"
+          className="absolute right-1 inline-flex size-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground active:scale-95 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
         >
-          Tags use lowercase letters, numbers, and dashes only
-        </p>
+          <X className="h-4 w-4" aria-hidden="true" />
+        </button>
       ) : null}
     </div>
   );

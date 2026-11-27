@@ -16,9 +16,19 @@
 
 import { BookmarksDashboardPage } from "@/features/bookmarks";
 
+import { PAGE_CONTAINER_CLASS } from "@/shared/layout/constants";
+import { buildMetadata } from "@/shared/lib/seo";
+
+export const metadata = buildMetadata({
+  title: "Saved Quizzes | QuizHub",
+  description: "Manage your bookmarked quizzes and custom collections.",
+  path: "/bookmarks",
+  noIndex: true,
+});
+
 export default function BookmarksPage() {
   return (
-    <div className="min-h-screen text-foreground p-4 md:p-8 lg:p-12">
+    <div className={PAGE_CONTAINER_CLASS}>
       {/* Page Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-foreground mb-2">

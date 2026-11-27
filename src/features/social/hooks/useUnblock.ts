@@ -39,17 +39,6 @@ export function useUnblock(
   const [alreadyNotBlocking, setAlreadyNotBlocking] = useState(false);
 
   const result = useMemo<UseUnblockResult>(() => {
-    if (false) {
-      return Object.freeze({
-        unblock: () => {
-          // no-op — feature is gated off
-        },
-        isPending: false,
-        error: null,
-        alreadyNotBlocking: false,
-      });
-    }
-
     if (targetUserId === null) {
       return Object.freeze({
         unblock: () => {

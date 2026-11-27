@@ -19,9 +19,9 @@ import {
 } from "@/features/auth/forms/schemas/login.schema";
 import { submitLogin } from "@/features/auth/forms/login-submit";
 import {
-  safeRedirectTarget,
   isSafeRedirectTarget,
-} from "@/features/auth/utils/safe-redirect";
+  resolveSafeRedirectPath,
+} from "@/shared/config/routes";
 import type { AuthControllerLoginResult } from "@/lib/api/generated/auth/auth";
 
 interface FakeApiError {
@@ -130,34 +130,28 @@ describe("loginSchema", () => {
     expect(result.success).toBe(true);
   });
 
-  it("rejects a password shorter than 6 chars", () => {
+  it("accepts non-empty legacy passwords without signup complexity rules", () => {
+    for (const password of ["Abc!", "abcdef1!", "Abcdefg!", "Abcdef12"]) {
+      const result = loginSchema.safeParse({
+        email: "a@b.co",
+        password,
+      });
+      expect(result.success).toBe(true);
+    }
+  });
+
+  it("rejects an empty password", () => {
     const result = loginSchema.safeParse({
       email: "a@b.co",
-      password: "Abc!",
+      password: "",
     });
     expect(result.success).toBe(false);
   });
 
-  it("rejects a password without uppercase", () => {
+  it("rejects a password exceeding 128 characters", () => {
     const result = loginSchema.safeParse({
       email: "a@b.co",
-      password: "abcdef1!",
-    });
-    expect(result.success).toBe(false);
-  });
-
-  it("rejects a password without number", () => {
-    const result = loginSchema.safeParse({
-      email: "a@b.co",
-      password: "Abcdefg!",
-    });
-    expect(result.success).toBe(false);
-  });
-
-  it("rejects a password without symbol", () => {
-    const result = loginSchema.safeParse({
-      email: "a@b.co",
-      password: "Abcdef12",
+      password: "a".repeat(129),
     });
     expect(result.success).toBe(false);
   });
@@ -267,19 +261,25 @@ describe("safeRedirectTarget", () => {
     });
   });
 
-  describe("safeRedirectTarget", () => {
+  describe("resolveSafeRedirectPath", () => {
     it("returns the raw target when safe", () => {
-      expect(safeRedirectTarget("/quizzes")).toBe("/quizzes");
-      expect(safeRedirectTarget("/my-profile")).toBe("/my-profile");
+      expect(resolveSafeRedirectPath("/quizzes", "/quizzes")).toBe("/quizzes");
+      expect(resolveSafeRedirectPath("/my-profile", "/quizzes")).toBe(
+        "/my-profile",
+      );
     });
 
     it("returns /quizzes as fallback for hostile values", () => {
-      expect(safeRedirectTarget("//evil.com")).toBe("/quizzes");
-      expect(safeRedirectTarget("https://evil.com")).toBe("/quizzes");
-      expect(safeRedirectTarget("/login")).toBe("/quizzes");
-      expect(safeRedirectTarget("")).toBe("/quizzes");
-      expect(safeRedirectTarget(null)).toBe("/quizzes");
-      expect(safeRedirectTarget(undefined)).toBe("/quizzes");
+      expect(resolveSafeRedirectPath("//evil.com", "/quizzes")).toBe(
+        "/quizzes",
+      );
+      expect(resolveSafeRedirectPath("https://evil.com", "/quizzes")).toBe(
+        "/quizzes",
+      );
+      expect(resolveSafeRedirectPath("/login", "/quizzes")).toBe("/quizzes");
+      expect(resolveSafeRedirectPath("", "/quizzes")).toBe("/quizzes");
+      expect(resolveSafeRedirectPath(null, "/quizzes")).toBe("/quizzes");
+      expect(resolveSafeRedirectPath(undefined, "/quizzes")).toBe("/quizzes");
     });
   });
 });

@@ -3,7 +3,8 @@ import Link from "next/link";
 import { Clock, Users, Zap } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import type { QuizDifficulty } from "@/features/quizzes/types";
-import { QuizCardDifficultyBadge } from "./shared/QuizCardDifficultyBadge";
+import { DifficultyBadge } from "@/shared/ui/DifficultyBadge";
+
 import { QuizCardCreator } from "./shared/QuizCardCreator";
 
 export interface QuizCardDifficultyProps {
@@ -46,10 +47,11 @@ export function QuizCardDifficulty({
           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
         />
         <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/25 to-transparent" />
-        <QuizCardDifficultyBadge
+        <DifficultyBadge
           difficulty={difficulty}
+          variant="solid"
           asDiv
-          className="absolute top-3 right-3 text-white capitalize shadow-xs"
+          className="absolute top-3 right-3 shadow-xs"
         />
         {creatorName ? (
           <QuizCardCreator

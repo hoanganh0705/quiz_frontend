@@ -1,23 +1,31 @@
 import { renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { useAuthSession } from "@/features/auth/hooks/use-auth-session";
 import { useDailyChallengeStreakView } from "@/features/daily-challenge/hooks/useDailyChallengeStreakView";
-import { useUser } from "@/features/users/store/user-store";
 
-vi.mock("@/features/users/store/user-store", () => ({
-  useUser: vi.fn(),
+vi.mock("@/features/auth/hooks/use-auth-session", () => ({
+  useAuthSession: vi.fn(),
 }));
 
-
-const useUserMock = vi.mocked(useUser);
+const useAuthSessionMock = vi.mocked(useAuthSession);
 
 beforeEach(() => {
-  useUserMock.mockReset();
+  useAuthSessionMock.mockReset();
 });
 
 describe("useDailyChallengeStreakView — unauthenticated", () => {
-  it("(1) returns { streak: null, isAuthenticated: false } when the user store is null", () => {
-    useUserMock.mockReturnValue(null);
+  it("(1) returns { streak: null, isAuthenticated: false } when unauthenticated", () => {
+    useAuthSessionMock.mockReturnValue({
+      user: null,
+      currentUser: null,
+      currentUserId: null,
+      isAuthenticated: false,
+      isBootstrapping: false,
+      bootstrapState: "unauthenticated",
+      authSessionId: "anon",
+      clearSession: vi.fn(),
+    } as unknown as ReturnType<typeof useAuthSession>);
 
     const { result } = renderHook(() => useDailyChallengeStreakView());
 
@@ -28,7 +36,7 @@ describe("useDailyChallengeStreakView — unauthenticated", () => {
 
 describe("useDailyChallengeStreakView — authenticated", () => {
   it("(2) returns { streak: 5, isAuthenticated: true } when currentStreak is 5", () => {
-    useUserMock.mockReturnValue({
+    const mockUser = {
       userId: "u-1",
       username: "player",
       email: "player@example.com",
@@ -41,9 +49,17 @@ describe("useDailyChallengeStreakView — authenticated", () => {
       settings: {},
       createdAt: "2026-01-01T00:00:00.000Z",
       updatedAt: "2026-01-01T00:00:00.000Z",
-    } as unknown as NonNullable<
-      Parameters<typeof useUserMock.mockReturnValue>[0]
-    >);
+    };
+    useAuthSessionMock.mockReturnValue({
+      user: mockUser,
+      currentUser: mockUser,
+      currentUserId: "u-1",
+      isAuthenticated: true,
+      isBootstrapping: false,
+      bootstrapState: "authenticated",
+      authSessionId: "u-1",
+      clearSession: vi.fn(),
+    } as unknown as ReturnType<typeof useAuthSession>);
 
     const { result } = renderHook(() => useDailyChallengeStreakView());
 
@@ -52,7 +68,7 @@ describe("useDailyChallengeStreakView — authenticated", () => {
   });
 
   it("(3) returns { streak: 0, isAuthenticated: true } when the user has not started a streak", () => {
-    useUserMock.mockReturnValue({
+    const mockUser = {
       userId: "u-2",
       username: "player",
       email: "player@example.com",
@@ -65,9 +81,17 @@ describe("useDailyChallengeStreakView — authenticated", () => {
       settings: {},
       createdAt: "2026-01-01T00:00:00.000Z",
       updatedAt: "2026-01-01T00:00:00.000Z",
-    } as unknown as NonNullable<
-      Parameters<typeof useUserMock.mockReturnValue>[0]
-    >);
+    };
+    useAuthSessionMock.mockReturnValue({
+      user: mockUser,
+      currentUser: mockUser,
+      currentUserId: "u-2",
+      isAuthenticated: true,
+      isBootstrapping: false,
+      bootstrapState: "authenticated",
+      authSessionId: "u-2",
+      clearSession: vi.fn(),
+    } as unknown as ReturnType<typeof useAuthSession>);
 
     const { result } = renderHook(() => useDailyChallengeStreakView());
 

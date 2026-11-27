@@ -4,9 +4,11 @@ import { type ReactElement } from "react";
 
 import { useSuggestions } from "@/features/social/hooks/useSuggestions";
 
-import { SearchEmptyState } from "../components/SearchEmptyState";
-import { SearchErrorState } from "../components/SearchErrorState";
-import { SearchResultSkeleton } from "../components/SearchResultSkeleton";
+import {
+  SearchEmptyState,
+  SearchErrorState,
+  SearchResultSkeleton,
+} from "@/shared/ui/search";
 import { PrivacyRestrictedNotice } from "../components/PrivacyRestrictedNotice";
 import { SocialListRow } from "../components/SocialListRow";
 import { BlockedContentGate } from "../components/BlockedContentGate";

@@ -1,5 +1,8 @@
-import { resetPassword as defaultResetPassword } from "@/features/auth/services/auth.service";
-
+import {
+  broadcastAuth,
+  resetPassword as defaultResetPassword,
+} from "@/features/auth/services/auth.service";
+import { clearAuthToken } from "@/features/auth/utils/auth-cookies";
 import {
   mapResetPasswordError,
   type ResetPasswordErrorKind,
@@ -27,13 +30,8 @@ export interface SubmitResetPasswordDeps {
 
 export const defaultSubmitResetPasswordDeps: SubmitResetPasswordDeps = {
   resetPassword: defaultResetPassword,
-  clearAuthToken: () => {
-    // Page-side hooks supply the real implementation; the unit
-    // suite supplies stubs.
-  },
-  broadcastLogout: () => {
-    // Same as above — page-side hooks supply the real implementation.
-  },
+  clearAuthToken: () => clearAuthToken(),
+  broadcastLogout: () => broadcastAuth({ type: "LOGGED_OUT" }),
 };
 
 export async function submitResetPassword(

@@ -1,16 +1,4 @@
 export type {
-  QuizDifficulty as QuizDifficultyLegacy,
-  QuizCreator as QuizCreatorLegacy,
-  QuizAnswerOption as QuizAnswerOptionLegacy,
-  QuizQuestion as QuizQuestionLegacy,
-  QuizReview as QuizReviewLegacy,
-  QuizLeaderboardEntry as QuizLeaderboardEntryLegacy,
-  QuizMetadata as QuizMetadataLegacy,
-} from "./quiz";
-export type { Quiz as QuizLegacy } from "./quiz";
-export type { Quiz } from "./quiz";
-
-export type {
   QuizDifficulty,
   QuizVersionStatus,
   QuizResponseDto,
@@ -50,7 +38,6 @@ export type {
   MyQuizListItem,
   MyQuizzesAnalytics,
 } from "./my-quizzes";
-export { myQuizzesKey } from "./my-quizzes";
 
 export type {
   SlugAvailabilityResult,
@@ -58,40 +45,6 @@ export type {
   CreateQuizSubmitPayload,
   CreateQuizSuccessResult,
 } from "./quiz-create-form.types";
-
-export type {
-  QuizResult,
-  QuizProgress,
-  QuestionReview,
-  QuizResultsProps,
-  ScoreHeroProps,
-  StatsOverviewProps,
-  AnswerReviewTabProps,
-  LeaderboardTabProps,
-  ShareResultsTabProps,
-  TimeAnalysisProps,
-  BottomActionsProps,
-  QuestionReviewItemProps,
-  LeaderboardItemProps,
-  SharePreviewProps,
-  ShareButtonsProps,
-  ChallengeFriendsProps,
-  TimeAnalysisItemProps,
-} from "./quiz-results";
-export type {
-  QuizActivityType,
-  QuizResultStatus,
-  DateRangeFilter,
-  SortOption,
-  QuizHistoryEntry,
-  QuizHistoryStats,
-  CategoryStat,
-  DifficultyBreakdown,
-  WeeklyActivity,
-  MonthlyScoreTrend,
-  QuizHistoryFilters,
-  ExportFormat,
-} from "./quiz-history";
 
 export type {
   QuizAuthorQuestionDto,
@@ -125,7 +78,6 @@ export {
 
 export {
   PUBLISH_MIN_QUESTIONS,
-  publishResultKey,
   computePublishReadiness,
 } from "./publish.types";
 export type { PublishReadiness, PublishResult } from "./publish.types";

@@ -1,34 +1,10 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 
-import { getQuizByIdOrSlug } from "@/features/quizzes/services/quizzes.service";
+import { buildMetadata } from "@/shared/lib/seo";
+
 import { projectQuizToPlayerView } from "@/features/quizzes/lib";
-import { buildMetadata, siteConfig } from "@/shared/lib/seo";
-
-function safeJsonLd(value: unknown): string {
-  return JSON.stringify(value)
-    .replace(/</g, "\\u003c")
-    .replace(/>/g, "\\u003e")
-    .replace(/&/g, "\\u0026")
-    .replace(/\u2028/g, "\\u2028")
-    .replace(/\u2029/g, "\\u2029");
-}
-
-function absoluteImageUrl(imageUrl: string | null): string | undefined {
-  if (!imageUrl) return undefined;
-  try {
-    return new URL(imageUrl, siteConfig.url).toString();
-  } catch {
-    return undefined;
-  }
-}
-
-function toIsoDuration(durationMs: number | undefined): string | undefined {
-  if (!durationMs || !Number.isFinite(durationMs) || durationMs <= 0) {
-    return undefined;
-  }
-  return `PT${Math.max(1, Math.round(durationMs / 1000))}S`;
-}
+import { getQuizByIdOrSlugCached } from "@/features/quizzes/services/quiz-ssr";
 
 export async function generateMetadata({
   params,
@@ -37,7 +13,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { idOrSlug } = await params;
   try {
-    const dto = await getQuizByIdOrSlug(idOrSlug);
+    const dto = await getQuizByIdOrSlugCached(idOrSlug);
     if (!dto) {
       throw new Error("quiz detail missing");
     }
@@ -57,51 +33,10 @@ export async function generateMetadata({
   }
 }
 
-export default async function QuizDetailLayout({
+export default function QuizDetailLayout({
   children,
-  params,
 }: {
   children: ReactNode;
-  params: Promise<{ idOrSlug: string }>;
 }) {
-  const { idOrSlug } = await params;
-
-  let jsonLd: string | null = null;
-  try {
-    const dto = await getQuizByIdOrSlug(idOrSlug);
-    if (!dto) {
-      throw new Error("quiz detail missing");
-    }
-    const quiz = projectQuizToPlayerView(dto);
-    const publishedVersion = quiz.publishedVersion;
-    jsonLd = safeJsonLd({
-      "@context": "https://schema.org",
-      "@type": "Quiz",
-      name: quiz.title,
-      description: quiz.description ?? undefined,
-      educationalLevel: publishedVersion?.difficulty,
-      timeRequired: toIsoDuration(publishedVersion?.durationMs),
-      numberOfQuestions: publishedVersion?.questions.length ?? 0,
-      isAccessibleForFree: true,
-      url: new URL(
-        `/quizzes/${quiz.slug || idOrSlug}`,
-        siteConfig.url,
-      ).toString(),
-      image: absoluteImageUrl(quiz.imageUrl),
-    });
-  } catch {
-    jsonLd = null;
-  }
-
-  return (
-    <>
-      {jsonLd ? (
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: jsonLd }}
-        />
-      ) : null}
-      {children}
-    </>
-  );
+  return children;
 }

@@ -1,19 +1,23 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+
+import { coerceToApiError } from "@/lib/api";
 import { getQueryClient } from "@/providers/QueryProvider";
 
-import { ApiError, isApiError } from "@/lib/api";
 import { useAuthState } from "@/features/auth/hooks/use-auth-state";
 import { getCollection } from "@/features/bookmarks/api";
+import { BOOKMARK_KEYS } from "@/features/bookmarks/query-keys";
+import { toBookmarkCollection } from "@/features/bookmarks/types";
+
 import type {
   BookmarkCollection,
   BookmarkCollectionResponseDto,
 } from "@/features/bookmarks/types";
-import { toBookmarkCollection } from "@/features/bookmarks/types";
+import type { ApiError } from "@/lib/api";
 
 export function bookmarkCollectionKey(collectionId: string) {
-  return ["bookmark-collections", "detail", collectionId] as const;
+  return BOOKMARK_KEYS.detail(collectionId);
 }
 
 export interface UseCollectionResult {
@@ -43,32 +47,15 @@ export function useCollection(
     getQueryClient(),
   );
 
-  const collection: BookmarkCollection | null = (() => {
-    if (!query.data) return null;
-    const items = (
-      query.data as unknown as {
-        data?: { items?: Array<Record<string, unknown>> };
-      }
-    )?.data?.items;
-    if (!items || items.length === 0) return null;
-    const first = items[0];
-    return toBookmarkCollection(
-      first as unknown as BookmarkCollectionResponseDto,
-    );
-  })();
+  const collection: BookmarkCollection | null = query.data
+    ? toBookmarkCollection(
+        query.data as unknown as BookmarkCollectionResponseDto,
+      )
+    : null;
 
-  const error: ApiError | null = (() => {
-    const first = query.error;
-    if (!first) return null;
-    if (isApiError(first)) return first;
-    if (first && typeof first === "object" && "status" in first) {
-      return first as unknown as ApiError;
-    }
-    return {
-      status: 0,
-      message: first instanceof Error ? first.message : String(first),
-    } as unknown as ApiError;
-  })();
+  const error: ApiError | null = query.error
+    ? coerceToApiError(query.error)
+    : null;
 
   return {
     collection,

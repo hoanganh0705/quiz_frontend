@@ -70,16 +70,6 @@ export function useRankingLeaderboard(
   const fetcher = useMemo(
     () =>
       async ({ page }: OffsetFetcherArgs<RankingLeaderboardFilters>) => {
-        if (false) {
-          return {
-            items: [] as readonly RankingLeaderboardEntry[],
-            page,
-            total: 0,
-            hasMore: false,
-            limit: 0,
-          };
-        }
-
         const limit = filters.limit ?? DEFAULT_LIMIT;
 
         const offset = (page - 1) * limit;

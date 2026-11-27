@@ -93,29 +93,12 @@ export const SingleQuestionForm = memo(function SingleQuestionForm({
     reset,
   } = form;
 
-  const [cooldownSeconds, setCooldownSeconds] = useState<number | null>(null);
-
-  useEffect(() => {
-    if (cooldownSeconds === null) return;
-
-    if (cooldownSeconds <= 0) {
-      setCooldownSeconds(null);
-      return;
-    }
-
-    const timer = setTimeout(() => {
-      setCooldownSeconds((prev) => (prev !== null ? prev - 1 : null));
-    }, 1000);
-
-    return () => clearTimeout(timer);
-  }, [cooldownSeconds]);
-
   const {
     createQuestion,
     isSubmitting,
     error: hookError,
     fieldErrors,
-    cooldownSeconds: hookCooldownSeconds,
+    cooldownSeconds,
   } = useCreateVersionQuestion({
     onSuccess: () => {
       reset({
@@ -130,19 +113,18 @@ export const SingleQuestionForm = memo(function SingleQuestionForm({
     onError: (err) => {
       onError({ code: err.code, message: err.message });
     },
-    onRateLimit: (seconds) => {
-      setCooldownSeconds(seconds);
-    },
   });
 
   useEffect(() => {
-    if (hookCooldownSeconds !== null) setCooldownSeconds(hookCooldownSeconds);
-  }, [hookCooldownSeconds]);
-
-  useEffect(() => {
+    const validFields = new Set<keyof CreateQuestionFormValues>([
+      "questionText",
+      "imageUrl",
+      "questionType",
+      "answerOptions",
+    ]);
     Object.entries(fieldErrors).forEach(([field, message]) => {
       if (field === "_general") return;
-      if (field in ({} as CreateQuestionFormValues)) {
+      if (validFields.has(field as keyof CreateQuestionFormValues)) {
         setError(field as keyof CreateQuestionFormValues, { message });
       }
     });
@@ -185,6 +167,7 @@ export const SingleQuestionForm = memo(function SingleQuestionForm({
       position,
       questionText: text.trim(),
       imageUrl: (form.getValues("imageUrl") ?? "").trim() || undefined,
+      questionType,
       answerOptions: options.map((opt, idx) => ({
         position: idx + 1,
         value: opt.value.trim(),

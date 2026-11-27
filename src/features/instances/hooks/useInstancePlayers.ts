@@ -204,10 +204,7 @@ export function useInstancePlayers(
   const mappedError = useMemo<ApiError | null>(() => {
     if (result.error === null) return null;
     const mappedCode = mapToInstanceLifecycleErrorCode(result.error.code);
-    return new ApiError({
-      ...(result.error as unknown as object),
-      code: mappedCode,
-    } as unknown as ConstructorParameters<typeof ApiError>[0]);
+    return result.error.withCode(mappedCode);
   }, [result.error]);
 
   return {

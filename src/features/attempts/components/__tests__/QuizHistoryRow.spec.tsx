@@ -130,4 +130,33 @@ describe("QuizHistoryRow — accessibility", () => {
     render(<QuizHistoryRow row={makeRow({ status: "completed" })} />);
     expect(screen.getByTestId("quiz-history-row-status")).toBeInTheDocument();
   });
+
+  it("formats abandoned timestamps with 'Abandoned' instead of 'Completed'", () => {
+    render(
+      <QuizHistoryRow
+        row={makeRow({
+          status: "abandoned",
+          finishedAt: "2026-01-15T12:00:00.000Z",
+        })}
+      />,
+    );
+    const ts = screen.getByTestId("quiz-history-row-finished-at");
+    expect(ts.textContent).toMatch(/^Abandoned /);
+    expect(ts.textContent).not.toMatch(/Completed/i);
+  });
+
+  it("omits malformed dates instead of rendering Invalid Date", () => {
+    render(
+      <QuizHistoryRow
+        row={makeRow({
+          status: "completed",
+          finishedAt: "not-a-date",
+          startedAt: "still-not-a-date",
+        })}
+      />,
+    );
+    expect(
+      screen.getByTestId("quiz-history-row-finished-at"),
+    ).not.toHaveTextContent(/Invalid Date/i);
+  });
 });

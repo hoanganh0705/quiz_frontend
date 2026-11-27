@@ -1,9 +1,5 @@
 export { default as QuizCatalogMainContent } from "./QuizCatalogMainContent";
-export {
-  default as QuizCard,
-  QuizCardDifficulty,
-  QuizCardDetail,
-} from "./QuizCard";
+export { QuizCardDifficulty } from "./QuizCard";
 export type { QuizCardDifficultyProps as QuizCardProps } from "./QuizCard/QuizCardDifficulty";
 
 export { QuizzesDirectoryPage } from "./QuizzesDirectoryPage";
@@ -23,10 +19,6 @@ export { QuizMetadataRow } from "./QuizMetadataRow";
 export type { QuizMetadataRowProps } from "./QuizMetadataRow";
 export { QuizDescription } from "./QuizDescription";
 export type { QuizDescriptionProps } from "./QuizDescription";
-export { QuizQuestionCard } from "./QuizQuestionCard";
-export type { QuizQuestionCardProps } from "./QuizQuestionCard";
-export { QuizQuestionList } from "./QuizQuestionList";
-export type { QuizQuestionListProps } from "./QuizQuestionList";
 export { QuizStatsPanel, QuizStatsPanelSkeleton } from "./QuizStatsPanel";
 export type {
   QuizStatsPanelProps,
@@ -57,10 +49,11 @@ export type { QuizRailSkeletonProps } from "./QuizRailSkeleton";
 
 export { HomeFeaturedRail } from "./HomeFeaturedRail";
 export type { HomeFeaturedRailProps } from "./HomeFeaturedRail";
-export { HomeTrendingRail } from "./HomeTrendingRail";
-export type { HomeTrendingRailProps } from "./HomeTrendingRail";
-export { HomePopularRail } from "./HomePopularRail";
-export type { HomePopularRailProps } from "./HomePopularRail";
+export { HomeMetricRail } from "./HomeMetricRail";
+export type {
+  HomeMetricRailProps,
+  HomeMetricRailVariant,
+} from "./HomeMetricRail";
 
 export { HomePage } from "./HomePage";
 export type { HomePageProps } from "./HomePage";
@@ -120,8 +113,6 @@ export type {
   PublishReadinessCounterProps,
 } from "./QuestionEditor";
 
-export { PublishCta } from "./PublishCta";
-export type { PublishCtaProps } from "./PublishCta";
 export { PublishConfirmDialog } from "./PublishConfirmDialog";
 export type { PublishConfirmDialogProps } from "./PublishConfirmDialog";
 export { EditPublishedQuizCTA } from "./EditPublishedQuizCTA";

@@ -1,63 +1,29 @@
 "use client";
 
-/**
- * `<TagDetailPage>` — the `/tags/[slug]` route's main composition.
- *
- * Wires:
- *   - `useTagBySlug(slug)` for the header data (including the 404 signal).
- *   - `<TagBreadcrumb />` above the header.
- *   - `<TagHeader />` below the breadcrumb.
- *   - `<TagAnalyticsPanel />` below the header.
- *   - `<TagQuizGrid />` below the analytics panel.
- *   - `<RelatedTagsStrip />` below the quiz grid.
- *
- * State contract:
- *
- * | Hook state                                | Render                                            |
- * | ----------------------------------------- | ------------------------------------------------- |
- * | `isLoading`                               | Header skeleton + analytics skeleton + 12-card grid skeleton. |
- * | `notFound: true` (404)                    | Inline 404 block (no header, no grid).            |
- * | `error.status >= 500`                     | Inline error message + retry button.              |
- * | resolved                                  | Header + Analytics + Grid + Related strip.        |
- *
- * ## 404 path
- *
- * The page renders an inline 404 block (matching the existing
- * `app/not-found.tsx` visual) instead of calling `next/navigation`'s
- * `notFound()`. The page is a client component (it consumes query
- * hooks), so the file-based 404 mechanism (intended for server
- * components) is not appropriate here. The visual matches the app's
- * existing 404 surface so the user experience is consistent.
- *
- * ## Loading path
- *
- * The header skeleton mirrors the resolved header's height; the
- * analytics panel renders its own skeleton (counts + sparkline);
- * the grid skeleton uses 12 cards (the same count as
- * `<TagQuizGrid />`). CLS = 0 once items arrive.
- *
- * ## Analytics zero-state
- *
- * When `useTagAnalytics(id)` returns `analytics: null` (the 404 → no-data
- * path), the `<TagAnalyticsPanel />` renders its
- * zero-state ("Analytics will populate after activity") — the rest of
- * the page is unaffected.
- */
-
 import { getQueryClient } from "@/providers/QueryProvider";
-import Link from "next/link";
-import { Home, Search } from "lucide-react";
 
-import { TagBreadcrumb } from "./TagBreadcrumb";
-import { TagFollowButtonSlot } from "./TagFollowButtonSlot";
-import { TagHeader } from "./TagHeader";
-import { TagAnalyticsPanel } from "./TagAnalyticsPanel";
-import { TagQuizGrid } from "./TagQuizGrid";
-import { RelatedTagsStrip } from "./RelatedTagsStrip";
+import { PAGE_CONTAINER_CLASS } from "@/shared/layout/constants";
+import {
+  EntityDetailErrorState,
+  EntityDetailNotFound,
+} from "@/shared/ui/EntityDetailErrorState";
+import { EntityFollowButtonSlot } from "@/shared/ui/EntityFollowButtonSlot";
+import { EntityQuizGrid } from "@/shared/ui/EntityQuizGrid";
+
+import { useAuthState } from "@/features/auth/hooks/use-auth-state";
+import { useFollowTag } from "@/features/tags/hooks/useFollowTag";
+import { useIsFollowingTag } from "@/features/tags/hooks/useIsFollowingTag";
 import { useTagBySlug } from "@/features/tags/hooks/useTagBySlug";
-import { Button } from "@/components/ui/Button";
+import { useTagQuizzes } from "@/features/tags/hooks/useTagQuizzes";
+import { useUnfollowTag } from "@/features/tags/hooks/useUnfollowTag";
+import { TAG_KEYS } from "@/features/tags/query-keys";
 
-const HEADER_QUERY_KEY_FACTORY = (slug: string) => ["tag", slug] as const;
+import { RelatedTagsStrip } from "./RelatedTagsStrip";
+import { TagAnalyticsPanel } from "./TagAnalyticsPanel";
+import { TagEmptyState } from "./TagEmptyState";
+import { TagHeader } from "./TagHeader";
+
+import type { QuizListItemDto } from "@/lib/api/generated/schemas";
 
 const PAGE_LOADING_TESTID = "tag-detail-page-loading";
 const PAGE_NOT_FOUND_TESTID = "tag-detail-page-not-found";
@@ -72,107 +38,70 @@ export function TagDetailPage({
   slug,
 }: TagDetailPageProps): React.ReactElement {
   const { tag, isLoading, error, notFound } = useTagBySlug(slug);
+  const canonicalSlug = tag?.slug || slug;
+  const quizzes = useTagQuizzes(canonicalSlug, {});
 
-  // 404 — inline 404 block (matches the app's not-found.tsx style).
+  const tagId = tag?.tagId ?? null;
+  const { isAuthenticated } = useAuthState();
+  const { isFollowing, isLoading: isFollowingLoading } = useIsFollowingTag(tagId);
+  const {
+    isPending: isFollowPending,
+    lastError: followError,
+    follow,
+  } = useFollowTag(tagId);
+  const {
+    isPending: isUnfollowPending,
+    lastError: unfollowError,
+    unfollow,
+  } = useUnfollowTag(tagId);
+
   if (notFound) {
     return (
-      <div
-        className="min-h-screen bg-background flex items-center justify-center p-4"
-        data-testid={PAGE_NOT_FOUND_TESTID}
-      >
-        <div className="max-w-md w-full text-center">
-          <div className="mb-8">
-            <h1 className="text-8xl font-bold text-default mb-2">404</h1>
-            <div className="w-16 h-1 bg-default mx-auto rounded-full" />
-          </div>
-          <h2 className="text-2xl font-bold text-foreground mb-2">
-            Tag Not Found
-          </h2>
-          <p className="text-foreground-secondary mb-8">
-            The tag you&apos;re looking for doesn&apos;t exist or has been
-            removed.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <Button
-              asChild
-              className="bg-default hover:bg-default-hover text-white"
-            >
-              <Link href="/">
-                <Home className="w-4 h-4 mr-2" />
-                Go Home
-              </Link>
-            </Button>
-            <Button
-              asChild
-              variant="outline"
-              className="border-border text-primary"
-            >
-              <Link href="/tags">
-                <Search className="w-4 h-4 mr-2" />
-                Browse Tags
-              </Link>
-            </Button>
-          </div>
-        </div>
-      </div>
+      <EntityDetailNotFound
+        entityTitle="Tag"
+        entityNoun="tag"
+        browseHref="/tags"
+        browseLabel="Browse Tags"
+        testId={PAGE_NOT_FOUND_TESTID}
+      />
     );
   }
 
-  // 5xx — generic error message + retry button.
-  if (error && error.status >= 500) {
+  if (error) {
     return (
-      <div
-        className="min-h-screen bg-background flex items-center justify-center p-4"
-        data-testid={PAGE_ERROR_TESTID}
-      >
-        <div className="max-w-md w-full text-center">
-          <h2 className="text-2xl font-bold text-foreground mb-2">
-            Something went wrong
-          </h2>
-          <p className="text-foreground-secondary mb-6">
-            We couldn&apos;t load this tag. Please try again.
-          </p>
-          <Button
-            variant="outline"
-            onClick={() =>
-              void getQueryClient().invalidateQueries({
-                queryKey: HEADER_QUERY_KEY_FACTORY(slug),
-              })
-            }
-            data-testid="tag-detail-page-retry"
-          >
-            Retry
-          </Button>
-        </div>
-      </div>
+      <EntityDetailErrorState
+        entityNoun="tag"
+        testId={PAGE_ERROR_TESTID}
+        retryTestId="tag-detail-page-retry"
+        onRetry={() =>
+          void getQueryClient().invalidateQueries({
+            queryKey: TAG_KEYS.detail(slug),
+          })
+        }
+      />
     );
   }
 
-  // Loading — header skeleton + analytics skeleton + grid skeleton.
-  // CLS = 0 once items arrive.
   if (isLoading || !tag) {
     return (
-      <div
-        className="min-h-screen text-foreground p-4 md:p-8 lg:p-12"
-        data-testid={PAGE_LOADING_TESTID}
-      >
+      <div className={PAGE_CONTAINER_CLASS} data-testid={PAGE_LOADING_TESTID}>
         <div
           className="mb-8"
           aria-label="Loading tag header"
           aria-busy="true"
           data-testid="tag-detail-page-header-skeleton"
         >
-          <div className="h-7 w-48 animate-pulse rounded bg-accent" />
+          <div className="h-8 w-48 animate-pulse rounded bg-accent" />
           <div className="mt-2 h-4 w-32 animate-pulse rounded bg-accent" />
         </div>
         <div
-          className="mb-8 h-32 animate-pulse rounded bg-accent"
+          className="mb-8 h-32 animate-pulse rounded-xl bg-accent"
           aria-label="Loading tag analytics"
           aria-busy="true"
           data-testid="tag-detail-page-analytics-skeleton"
         />
         <div
-          className="h-96 animate-pulse rounded bg-accent"
+          className="h-96 animate-pulse rounded-xl bg-accent"
           aria-label="Loading tag quizzes"
           aria-busy="true"
           data-testid="tag-detail-page-grid-skeleton"
@@ -181,26 +110,38 @@ export function TagDetailPage({
     );
   }
 
-  // Resolved — breadcrumb + header + analytics + grid + related strip.
   return (
-    <div
-      className="min-h-screen text-foreground p-4 md:p-8 lg:p-12"
-      data-testid={PAGE_RESOLVED_TESTID}
-    >
-      <TagBreadcrumb tag={tag} />
+    <div className={PAGE_CONTAINER_CLASS} data-testid={PAGE_RESOLVED_TESTID}>
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <TagHeader tag={tag} />
-        {/*
-         * The follow slot lives beside the header. The slot receives the
-         * resolved `tag.tagId` (NOT the route `slug`). When the tag
-         * is loading, `tagId` is `null` and the slot renders `null`
-         * (no CLS during the hydration window).
-         */}
-        <TagFollowButtonSlot tagId={tag.tagId} />
+        <EntityFollowButtonSlot
+          entityId={tag.tagId}
+          testId="tag-follow-button-slot"
+          isAuthenticated={isAuthenticated}
+          isFollowing={isFollowing}
+          isLoading={isFollowingLoading}
+          isPending={isFollowPending || isUnfollowPending}
+          errorKind={(followError ?? unfollowError)?.kind ?? null}
+          followerCount={tag.followerCount}
+          onFollow={follow}
+          onUnfollow={unfollow}
+        />
       </div>
       <TagAnalyticsPanel id={tag.tagId} className="mb-8" />
-      <TagQuizGrid slug={slug} />
-      <RelatedTagsStrip slug={slug} />
+      <EntityQuizGrid
+        items={quizzes.items as readonly QuizListItemDto[]}
+        isLoading={quizzes.isLoading}
+        isLoadingMore={quizzes.isLoadingMore}
+        hasMore={quizzes.hasMore}
+        loadMore={quizzes.loadMore}
+        error={quizzes.error}
+        refresh={quizzes.refresh}
+        retryBannerVisible={quizzes.retryBannerVisible}
+        emptyState={<TagEmptyState variant="quizzes-by-tag" />}
+        entityNoun="tag"
+        testIdPrefix="tag-quiz-grid"
+      />
+      <RelatedTagsStrip slug={canonicalSlug} />
     </div>
   );
 }

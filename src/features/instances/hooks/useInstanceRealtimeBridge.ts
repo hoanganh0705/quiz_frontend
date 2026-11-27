@@ -13,6 +13,8 @@ import {
 
 import { useInstanceRealtimeStore } from "../stores/useInstanceRealtimeStore";
 
+const activeBridgeMounts = new Map<string, number>();
+
 export function useInstanceRealtimeBridge(instanceId: string | null): void {
   const enabled = true;
 
@@ -83,9 +85,17 @@ export function useInstanceRealtimeBridge(instanceId: string | null): void {
   ]);
 
   useEffect(() => {
+    if (instanceId === null) return;
+    const nextCount = (activeBridgeMounts.get(instanceId) ?? 0) + 1;
+    activeBridgeMounts.set(instanceId, nextCount);
+
     return () => {
-      if (instanceId !== null) {
+      const remaining = Math.max(0, (activeBridgeMounts.get(instanceId) ?? 1) - 1);
+      if (remaining === 0) {
+        activeBridgeMounts.delete(instanceId);
         reset(instanceId);
+      } else {
+        activeBridgeMounts.set(instanceId, remaining);
       }
     };
   }, [instanceId, reset]);

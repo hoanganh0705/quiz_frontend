@@ -8,7 +8,7 @@ import {
   useAttemptsStore,
   hydrateAttemptEntry,
 } from "@/features/attempts/stores/useAttemptsStore";
-import { ATTEMPT_CACHE_KEYS } from "@/features/attempts/types/attempt-runner.types";
+import { ATTEMPT_KEYS } from "@/features/attempts/query-keys";
 
 const startAttemptMock = vi.hoisted(() => vi.fn());
 const useAuthSessionMock = vi.hoisted(() => vi.fn());
@@ -193,7 +193,7 @@ describe("useStartAttempt — happy path", () => {
 
     expect(invalidateQueriesMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        queryKey: ATTEMPT_CACHE_KEYS.active(QUIZ_ID, SESSION_ID),
+        queryKey: ATTEMPT_KEYS.active(QUIZ_ID, SESSION_ID),
       }),
     );
   });
@@ -249,7 +249,7 @@ describe("useStartAttempt — already_started (409)", () => {
     expect(result.current.error).toBeNull();
     expect(invalidateQueriesMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        queryKey: ATTEMPT_CACHE_KEYS.active(QUIZ_ID, SESSION_ID),
+        queryKey: ATTEMPT_KEYS.active(QUIZ_ID, SESSION_ID),
       }),
     );
   });

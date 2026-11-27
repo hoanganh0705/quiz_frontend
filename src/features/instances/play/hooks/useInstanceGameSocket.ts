@@ -5,36 +5,44 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ApiError, coerceToApiError, isApiError } from "@/lib/api";
 import {
   INSTANCES_NAMESPACE,
-  useSocket,
+  decodeWsError,
   useRealtimeEvent,
+  useSocket,
 } from "@/lib/realtime";
-import type { UseSocketReturn } from "@/lib/realtime";
-import { decodeWsError } from "@/lib/realtime";
 
 import { useAuthSession } from "@/features/auth/hooks/use-auth-session";
 
-import {
-  type AnswerSubmissionAckDto,
-  type AnswerSubmissionDto,
-  type GameplayEventEnvelope,
-  type GameplaySocketConnectionState,
-  type GameplayWsErrorCode,
-  type InstanceClosedEventDto,
-  type LeaderboardEntryDto,
-  type PlayerQuestionBundleDto,
-  type AnswerResultDto,
-  type FinalLeaderboardDto,
+import { getQueryClient } from "@/providers/QueryProvider";
+
+import { useInstanceGameplayStore } from "../stores/instanceGameplay.store";
+
+import type { UseSocketReturn } from "@/lib/realtime";
+import type {
+  AnswerResultDto,
+  AnswerSubmissionAckDto,
+  AnswerSubmissionDto,
+  FinalLeaderboardDto,
+  GameplayEventEnvelope,
+  GameplaySocketConnectionState,
+  GameplayWsErrorCode,
+  InstanceClosedEventDto,
+  LeaderboardEntryDto,
+  PlayerQuestionBundleDto,
 } from "../types/gameplay.types";
 
 export const GAMEPLAY_PAYLOAD_VERSION = 1 as const;
 
 const EMIT_JOIN_GAME_EVENT = "join_instance" as const;
 const EMIT_ANSWER_EVENT = "answer_submitted" as const;
+const EMIT_PLAYER_FINISHED_EVENT = "player_finished" as const;
+const EMIT_END_GAME_EVENT = "end_game" as const;
 
 const QUESTION_REVEALED_EVENT = "question_revealed" as const;
 const ANSWER_RESULT_EVENT = "answer_result" as const;
 const LEADERBOARD_UPDATED_EVENT = "leaderboard_updated" as const;
 const INSTANCE_CLOSED_EVENT = "instance_closed" as const;
+const INSTANCE_FINISHED_EVENT = "instance_finished" as const;
+const GAME_FINISHED_EVENT = "game_finished" as const;
 const INSTANCE_FINAL_LEADERBOARD_EVENT = "instance_final_leaderboard" as const;
 
 type GameplayEventName =
@@ -55,6 +63,10 @@ export interface UseInstanceGameSocketResult {
   emitAnswer: (
     submission: AnswerSubmissionDto,
   ) => Promise<AnswerSubmissionAckDto>;
+
+  emitPlayerFinished: (attemptId?: string | null) => Promise<void>;
+
+  emitEndGame: () => Promise<void>;
 
   payloadVersion: number;
 }
@@ -310,7 +322,7 @@ export function useInstanceGameSocket(
                 accepted: true,
                 submissionId: crypto.randomUUID(),
               });
-            }, 5000);
+            }, 600);
 
             socket.emit(
               EMIT_ANSWER_EVENT,
@@ -318,7 +330,7 @@ export function useInstanceGameSocket(
                 instanceId,
                 questionId: submission.questionId,
                 selectedOptionId: submission.optionId,
-                timeTakenMs: 1000,
+                timeTakenMs: submission.timeTakenMs ?? 1000,
                 clientToken: submission.clientToken ?? crypto.randomUUID(),
               },
               (response: unknown) => {
@@ -376,17 +388,51 @@ export function useInstanceGameSocket(
     [isAuthenticated, instanceId, socket, connectionState],
   );
 
+  const emitPlayerFinished = useCallback(
+    async (attemptId?: string | null): Promise<void> => {
+      if (
+        instanceId === null ||
+        !isAuthenticated ||
+        socket === null ||
+        connectionState !== "connected"
+      ) {
+        return;
+      }
+      try {
+        socket.emit(EMIT_PLAYER_FINISHED_EVENT, {
+          instanceId,
+          ...(attemptId ? { attemptId } : {}),
+        });
+      } catch {
+        // Non-blocking: completeAttempt & 3s polling also sync player completion
+      }
+    },
+    [isAuthenticated, instanceId, socket, connectionState],
+  );
+
+  const emitEndGame = useCallback(async (): Promise<void> => {
+    if (
+      instanceId === null ||
+      !isAuthenticated ||
+      socket === null ||
+      connectionState !== "connected"
+    ) {
+      return;
+    }
+    try {
+      socket.emit(EMIT_END_GAME_EVENT, { instanceId });
+    } catch {
+      // Non-blocking: local finish fallback still closes the view
+    }
+  }, [isAuthenticated, instanceId, socket, connectionState]);
+
   useEffect(() => {
     if (instanceId === null || !isAuthenticated) {
       return;
     }
     if (connectionState !== "connected") return;
     void emitJoin();
-  }, [instanceId,
-    isAuthenticated,
-    connectionState,
-    emitJoin,
-  ]);
+  }, [instanceId, isAuthenticated, connectionState, emitJoin]);
 
   useEffect(() => {
     joinedInstancesRef.current.clear();
@@ -447,10 +493,80 @@ export function useInstanceGameSocket(
   );
   useRealtimeEvent(
     socket,
+    isConnected ? INSTANCE_FINISHED_EVENT : null,
+    buildHandler<InstanceClosedEventDto>(INSTANCE_CLOSED_EVENT),
+    { enabled: isConnected },
+  );
+  useRealtimeEvent(
+    socket,
+    isConnected ? GAME_FINISHED_EVENT : null,
+    buildHandler<InstanceClosedEventDto>(INSTANCE_CLOSED_EVENT),
+    { enabled: isConnected },
+  );
+  useRealtimeEvent(
+    socket,
     isConnected ? INSTANCE_FINAL_LEADERBOARD_EVENT : null,
     buildHandler<FinalLeaderboardDto>(INSTANCE_FINAL_LEADERBOARD_EVENT),
     { enabled: isConnected },
   );
+
+  // Listen to backend player lifecycle room events so waiting players and
+  // the live leaderboard update immediately when opponents answer, finish, or disconnect.
+  useEffect(() => {
+    if (socket === null || !isConnected || instanceId === null) return;
+    const extractUserId = (raw: unknown): string | null => {
+      if (!raw || typeof raw !== "object") return null;
+      const obj = raw as Record<string, unknown>;
+      if (typeof obj.userId === "string") return obj.userId;
+      if (typeof obj.playerId === "string") return obj.playerId;
+      return null;
+    };
+
+    const invalidateLeaderboard = () => {
+      try {
+        void getQueryClient().invalidateQueries({
+          queryKey: ["instances", "leaderboard", instanceId],
+        });
+      } catch {
+        // Query client may be unavailable in isolated hook tests
+      }
+    };
+
+    const handlePlayerFinished = (raw: unknown) => {
+      const userId = extractUserId(raw);
+      if (userId) {
+        useInstanceGameplayStore
+          .getState()
+          .markPlayerFinished(instanceId, userId);
+      }
+      invalidateLeaderboard();
+    };
+
+    const handlePlayerAnswered = () => {
+      invalidateLeaderboard();
+    };
+
+    const handlePlayerLeft = (raw: unknown) => {
+      const userId = extractUserId(raw);
+      if (userId) {
+        useInstanceGameplayStore
+          .getState()
+          .markPlayerDisconnected(instanceId, userId);
+      }
+      invalidateLeaderboard();
+    };
+
+    socket.on("player_finished", handlePlayerFinished);
+    socket.on("player_answered", handlePlayerAnswered);
+    socket.on("player_left", handlePlayerLeft);
+    socket.on("player:left", handlePlayerLeft);
+    return () => {
+      socket.off("player_finished", handlePlayerFinished);
+      socket.off("player_answered", handlePlayerAnswered);
+      socket.off("player_left", handlePlayerLeft);
+      socket.off("player:left", handlePlayerLeft);
+    };
+  }, [socket, isConnected, instanceId]);
 
   useEffect(() => {
     if (socket === null) return;
@@ -476,6 +592,8 @@ export function useInstanceGameSocket(
     lastError: mappedLastError,
     subscribe,
     emitAnswer,
+    emitPlayerFinished,
+    emitEndGame,
     payloadVersion: GAMEPLAY_PAYLOAD_VERSION,
   };
 }

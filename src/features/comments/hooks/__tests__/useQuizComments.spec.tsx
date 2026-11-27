@@ -5,10 +5,10 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ApiError } from "@/lib/api";
 
 import { useQuizComments } from "@/features/comments/hooks/useQuizComments";
+import { COMMENT_KEYS } from "@/features/comments/query-keys";
 import {
   REPLY_DEFAULT_LIMIT,
   TOP_LEVEL_DEFAULT_LIMIT,
-  commentsKey,
 } from "@/features/comments/types";
 
 const listQuizCommentsMock = vi.hoisted(() => vi.fn());
@@ -105,9 +105,15 @@ function makeWrapper() {
       },
     },
   });
-  return ({ children }: { children: React.ReactNode }) => (
-    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
-  );
+  return function CommentsQueryWrapper({
+    children,
+  }: {
+    children: React.ReactNode;
+  }) {
+    return (
+      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    );
+  };
 }
 
 beforeEach(() => {
@@ -282,15 +288,15 @@ describe("useQuizComments — cursor pass-through", () => {
   });
 });
 
-describe("commentsKey — cache key factory", () => {
+describe("COMMENT_KEYS.list — cache key factory", () => {
   it("starts with 'comments' and embeds the quiz id", () => {
-    const key = commentsKey("quiz-1");
+    const key = COMMENT_KEYS.list("quiz-1");
     expect(key[0]).toBe("comments");
     expect(key[1]).toBe("quiz-1");
   });
 
   it("embeds parentId, cursor, limit when filters are passed", () => {
-    const key = commentsKey("quiz-1", {
+    const key = COMMENT_KEYS.list("quiz-1", {
       parentId: "c1",
       cursor: "p2",
       limit: 50,
@@ -299,8 +305,8 @@ describe("commentsKey — cache key factory", () => {
   });
 
   it("produces stable keys for semantically-equivalent filters", () => {
-    const k1 = commentsKey("quiz-1", { parentId: undefined });
-    const k2 = commentsKey("quiz-1");
+    const k1 = COMMENT_KEYS.list("quiz-1", { parentId: undefined });
+    const k2 = COMMENT_KEYS.list("quiz-1");
     expect(k2[2]).toEqual(k1[2]);
   });
 });

@@ -2,6 +2,7 @@ import * as React from "react";
 
 import { ApiError } from "@/lib/api";
 
+import { deriveQuestionKind } from "@/features/attempts/lib/attempt-answer-validation";
 import { useAttemptHydration } from "@/features/attempts/hooks/useAttemptHydration";
 import { useActiveAttempt } from "@/features/attempts/hooks/useActiveAttempt";
 import { useAttemptCrossTabSync } from "@/features/attempts/hooks/useAttemptCrossTabSync";
@@ -25,7 +26,7 @@ import {
   useAttemptSubmittedAnswers,
 } from "@/features/attempts/stores/useAttemptsStore";
 
-import { useAuthSession } from "@/features/auth/hooks/use-auth-session";
+import { useAuthSessionId } from "@/features/auth/hooks/use-auth-session-id";
 
 import type {
   AttemptSummaryResponseDto,
@@ -98,15 +99,7 @@ export function useAttemptRunner(
 ): UseAttemptRunnerResult {
   const { quizId, quizVersionId, idOrSlug, questions } = params;
 
-  const { bootstrapState, currentUser } = useAuthSession();
-  const sessionId = React.useMemo<string | null>(() => {
-    if (bootstrapState !== "authenticated") return null;
-    if (!currentUser) return null;
-    const id =
-      (currentUser as { id?: string; userId?: string }).id ??
-      (currentUser as { userId?: string }).userId;
-    return id ?? null;
-  }, [bootstrapState, currentUser]);
+  const sessionId = useAuthSessionId();
 
   const {
     attempt: activeAttempt,
@@ -153,7 +146,7 @@ export function useAttemptRunner(
     return wireStatus ?? overlayStatus;
   }, [overlayStatus, wireStatus]);
 
-  useAttemptCrossTabSync({ quizVersionId });
+  useAttemptCrossTabSync({ quizVersionId, quizId });
 
   React.useEffect(() => {
     if (attemptId === null || quizId === null || sessionId === null) return;
@@ -185,12 +178,28 @@ export function useAttemptRunner(
       for (const q of questions) {
         const sub = hydration.submittedAnswers[q.questionId];
         if (sub && sub.selectedOptionId && !next[q.questionId]) {
-          next[q.questionId] = {
-            kind: "multiple_choice",
-            questionId: q.questionId,
-            selectedOptionIds: [sub.selectedOptionId],
-          };
-          changed = true;
+          const kind = deriveQuestionKind(q);
+          if (kind === "true_false") {
+            const matchedOption = q.answerOptions.find(
+              (o) => o.optionId === sub.selectedOptionId,
+            );
+            const normalizedVal = matchedOption?.value?.toLowerCase();
+            if (normalizedVal === "true" || normalizedVal === "false") {
+              next[q.questionId] = {
+                kind: "true_false",
+                questionId: q.questionId,
+                value: normalizedVal === "true",
+              };
+              changed = true;
+            }
+          } else {
+            next[q.questionId] = {
+              kind: "multiple_choice",
+              questionId: q.questionId,
+              selectedOptionIds: [sub.selectedOptionId],
+            };
+            changed = true;
+          }
         }
       }
       if (changed) {
@@ -221,7 +230,7 @@ export function useAttemptRunner(
 
   const startHook = useStartAttempt({ quizId });
   const submitHook = useSubmitAnswer({ attemptId, quizVersionId });
-  const completeHook = useCompleteAttempt({ attemptId, quizVersionId });
+  const completeHook = useCompleteAttempt({ attemptId, quizVersionId, quizId });
   const deleteHook = useDeleteAnswer({ attemptId, quizVersionId });
   const abandonHook = useAbandonAttempt({ attemptId, quizVersionId, quizId });
 

@@ -23,9 +23,7 @@ vi.mock("@/features/search/hooks/useSearchHistory", () => ({
   SEARCH_HISTORY_MAX_ENTRIES: 10,
 }));
 
-vi.mock("@/features/search/hooks/useDebouncedValue", () => ({
-  DEFAULT_SEARCH_DEBOUNCE_MS: 250,
-  SEARCH_INPUT_DEBOUNCE_MS: 250,
+vi.mock("@/lib/utils/use-debounced-value", () => ({
   useDebouncedValue: (value: string) => ({
     debouncedValue: value,
     cancel: () => undefined,
@@ -68,7 +66,9 @@ afterEach(() => {
   cleanup();
 });
 
-async function loadPage(): Promise<any> {
+async function loadPage(): Promise<
+  typeof import("@/features/search/components/SearchPage").SearchPage
+> {
   const mod = await import("@/features/search/components/SearchPage");
   return mod.SearchPage;
 }

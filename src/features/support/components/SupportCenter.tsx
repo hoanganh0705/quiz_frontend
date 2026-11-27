@@ -14,7 +14,7 @@ export function SupportCenter() {
   const [activeTab, setActiveTab] = useState("faq");
 
   return (
-    <div className="mx-auto max-w-7xl space-y-8 px-4 py-8 sm:px-6 lg:px-8">
+    <div className="min-h-screen w-full text-foreground p-4 md:p-8 lg:p-12 space-y-8">
       {/* Header */}
       <div className="space-y-2 text-center">
         <div className="inline-flex items-center gap-1.5 font-mono text-xs font-medium uppercase tracking-wider text-primary">

@@ -1,27 +1,26 @@
-import { ApiError, getAttempts } from "@/lib/api";
+import { ApiError, getAttempts, unwrapEnvelope } from "@/lib/api";
+import { unwrapEnvelope as inspectEnvelope } from "@/lib/api/core/unwrap";
 
 import type {
-  StartAttemptDto,
-  SubmitAnswerDto,
-  AttemptSummaryResponseDto,
-  AttemptAnswersResponseDto,
-  CompleteAttemptResponseDto,
   AttemptControllerListMyAttemptsParams,
   AttemptReviewResponseDto,
+  AttemptSummaryResponseDto,
+  CompleteAttemptResponseDto,
+  StartAttemptDto,
+  SubmitAnswerDto,
 } from "@/lib/api/generated/schemas";
-
 import type {
-  AttemptControllerStartAttemptResult,
-  AttemptControllerGetAttemptByIdResult,
-  AttemptControllerSubmitAnswerResult,
-  AttemptControllerGetAttemptAnswersResult,
-  AttemptControllerWithdrawAnswerResult,
   AttemptControllerAbandonAttemptResult,
   AttemptControllerCompleteAttemptResult,
-  AttemptControllerListMyAttemptsResult,
-  AttemptControllerGetMyAttemptStatsResult,
   AttemptControllerGetAttemptAnalyticsResult,
+  AttemptControllerGetAttemptAnswersResult,
+  AttemptControllerGetAttemptByIdResult,
   AttemptControllerGetAttemptReviewResult,
+  AttemptControllerGetMyAttemptStatsResult,
+  AttemptControllerListMyAttemptsResult,
+  AttemptControllerStartAttemptResult,
+  AttemptControllerSubmitAnswerResult,
+  AttemptControllerWithdrawAnswerResult,
 } from "@/lib/api/generated/attempts/attempts";
 
 export type ListMyAttemptsParams = AttemptControllerListMyAttemptsParams;
@@ -73,37 +72,11 @@ export async function completeAttempt(
   attemptId: string,
 ): Promise<CompleteAttemptResponseDto> {
   const sdk = getAttempts();
-
-  const wire = (await sdk.attemptControllerCompleteAttempt(
-    attemptId,
-  )) as unknown as { data?: CompleteAttemptResponseDto };
-  if (!wire.data) {
-    throw new ApiError({
-      name: "AxiosError",
-      message: "complete_attempt_missing_envelope",
-      isAxiosError: true,
-      response: {
-        status: 500,
-        statusText: "X",
-        data: {
-          type: "https://api.quiz.local/problems/internal",
-          title: "Internal",
-          status: 500,
-          detail:
-            "Complete-attempt response envelope was missing the data field",
-          instance: `/api/v1/attempts/${attemptId}/complete`,
-          extensions: {
-            code: "GLOBAL_INTERNAL_ERROR",
-            requestId: "req-missing",
-          },
-        },
-        headers: {},
-        config: undefined as never,
-      },
-      toJSON: () => ({}),
-    });
-  }
-  return wire.data;
+  const wire = await sdk.attemptControllerCompleteAttempt(attemptId);
+  return unwrapEnvelope<CompleteAttemptResponseDto>(
+    wire as { data?: CompleteAttemptResponseDto },
+    "Complete-attempt response envelope was missing the data field",
+  );
 }
 
 export async function listMyAttempts(params?: ListMyAttemptsParams) {
@@ -133,21 +106,35 @@ export async function getAttemptAnalytics(attemptId: string) {
   return sdk.attemptControllerGetAttemptAnalytics(attemptId);
 }
 
-type ListMyAttemptsWireResponse = AttemptControllerListMyAttemptsResult & {
-  data?: AttemptSummaryResponseDto[];
-};
-
 export async function getActiveAttempt(
   quizId: string,
 ): Promise<AttemptSummaryResponseDto | null> {
   const sdk = getAttempts();
   try {
-    const wire = (await sdk.attemptControllerListMyAttempts({
+    const wire = await sdk.attemptControllerListMyAttempts({
       quizId,
       status: "started",
       limit: 1,
-    })) as unknown as ListMyAttemptsWireResponse;
-    const items = wire.data ?? [];
+    });
+    const unwrapped = inspectEnvelope<
+      AttemptSummaryResponseDto[] | { items?: AttemptSummaryResponseDto[] }
+    >(wire);
+    let items: AttemptSummaryResponseDto[] = [];
+    if (unwrapped.kind === "envelope" && unwrapped.value) {
+      if (Array.isArray(unwrapped.value)) {
+        items = unwrapped.value;
+      } else if (Array.isArray(unwrapped.value.items)) {
+        items = unwrapped.value.items;
+      }
+    } else if (
+      unwrapped.kind === "passthrough" &&
+      unwrapped.value &&
+      typeof unwrapped.value === "object" &&
+      "items" in unwrapped.value &&
+      Array.isArray((unwrapped.value as { items?: unknown }).items)
+    ) {
+      items = (unwrapped.value as { items: AttemptSummaryResponseDto[] }).items;
+    }
     return items[0] ?? null;
   } catch (err) {
     if (err instanceof ApiError && err.status === 404) {
@@ -157,19 +144,14 @@ export async function getActiveAttempt(
   }
 }
 
-type GetAttemptReviewWireResponse = {
-  data?: AttemptReviewResponseDto;
-};
-
 export async function getAttemptResult(
   attemptId: string,
 ): Promise<AttemptReviewResponseDto | null> {
   const sdk = getAttempts();
   try {
-    const wire = (await sdk.attemptControllerGetAttemptReview(
-      attemptId,
-    )) as unknown as GetAttemptReviewWireResponse;
-    return wire.data ?? null;
+    const wire = await sdk.attemptControllerGetAttemptReview(attemptId);
+    const unwrapped = inspectEnvelope<AttemptReviewResponseDto>(wire);
+    return unwrapped.kind === "envelope" ? (unwrapped.value ?? null) : null;
   } catch (err) {
     if (err instanceof ApiError && err.status === 404) {
       return null;

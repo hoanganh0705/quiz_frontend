@@ -6,7 +6,6 @@ import { useAuthSession } from "@/features/auth/hooks/use-auth-session";
 
 import { useInstance } from "@/features/instances/hooks/useInstance";
 import {
-  selectInstanceRealtimeLastSequence,
   selectInstanceRealtimeStatus,
   useInstanceRealtimeStore,
 } from "@/features/instances/stores/useInstanceRealtimeStore";
@@ -77,8 +76,7 @@ export function resolveInstancePermissions(args: {
   const isPlayer = role === "player";
 
   return {
-    canJoin:
-      !isHost && !isPlayer && (status === "open" || status === "countdown"),
+    canJoin: !isHost && !isPlayer && status === "open",
     canLeave: isPlayer,
     canStart: isHost && (status === "countdown" || status === "open"),
     canCancel: isHost && status === "countdown",

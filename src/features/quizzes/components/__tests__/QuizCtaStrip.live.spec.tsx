@@ -97,7 +97,7 @@ describe("QuizCtaStrip — Continue branch", () => {
 });
 
 describe("QuizCtaStrip — retry branch", () => {
-  it("renders the retry button when the lookup fails and no attempt is known (unauthenticated)", () => {
+  it("renders the retry button when the active attempt lookup fails for an authenticated user", () => {
     useActiveAttemptMock.mockReturnValue({
       attempt: null,
       isLoading: false,
@@ -106,6 +106,6 @@ describe("QuizCtaStrip — retry branch", () => {
     });
     render(<QuizCtaStrip quizId="quiz-1" idOrSlug="my-quiz" />);
 
-    expect(screen.getByTestId("mock-start-cta")).toBeInTheDocument();
+    expect(screen.getByTestId("quiz-attempt-retry")).toBeInTheDocument();
   });
 });

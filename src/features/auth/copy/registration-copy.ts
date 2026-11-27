@@ -17,9 +17,9 @@ const COPY: Readonly<Record<string, string>> = Object.freeze({
   "form.email.placeholder": "you@example.com",
   "form.email.help": "We will email you a verification link.",
   "form.password.label": "Password",
-  "form.password.placeholder": "At least 6 characters",
+  "form.password.placeholder": "At least 8 characters",
   "form.password.help":
-    "6–100 characters, with at least one uppercase letter, one number, and one symbol.",
+    "8–128 characters, with at least one uppercase letter, one number, and one symbol.",
   "form.passwordConfirmation.label": "Confirm password",
   "form.passwordConfirmation.placeholder": "Type your password again",
   "form.passwordConfirmation.help": "Re-enter the password above.",

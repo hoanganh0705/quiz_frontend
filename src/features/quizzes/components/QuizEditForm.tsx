@@ -1,11 +1,30 @@
 "use client";
 
-import { memo } from "react";
+import { memo, useEffect, useState } from "react";
 
-import { Skeleton } from "@/components/ui/Skeleton";
 import { Button } from "@/components/ui/Button";
+import { Skeleton } from "@/components/ui/Skeleton";
 
 import type { QuizVersionDetail } from "@/features/quizzes/types/quiz-version.types";
+import type { UpdateQuizVersionDto } from "@/lib/api/generated/schemas";
+
+type DifficultyValue = "easy" | "medium" | "hard";
+
+function readInitialDifficulty(data: QuizVersionDetail): DifficultyValue {
+  const candidate =
+    "difficulty" in data && typeof data.difficulty === "string"
+      ? data.difficulty
+      : undefined;
+  if (candidate === "easy" || candidate === "medium" || candidate === "hard") {
+    return candidate;
+  }
+  return "medium";
+}
+
+function readInitialDurationMinutes(data: QuizVersionDetail): number {
+  const minutes = Math.round((data.durationMs ?? 300_000) / 60_000);
+  return Math.max(1, minutes);
+}
 
 export interface QuizEditFormProps {
   quizId: string;
@@ -14,7 +33,7 @@ export interface QuizEditFormProps {
 
   initialData: QuizVersionDetail;
 
-  onSave: (data: { difficulty?: "easy" | "medium" | "hard" }) => Promise<void>;
+  onSave: (data: UpdateQuizVersionDto) => Promise<void>;
 
   isSaving?: boolean;
 
@@ -32,14 +51,35 @@ export const QuizEditForm = memo(function QuizEditForm({
   slugError,
   className,
 }: QuizEditFormProps): React.ReactElement {
+  const [difficulty, setDifficulty] = useState<DifficultyValue>(() =>
+    readInitialDifficulty(initialData),
+  );
+  const [durationMinutes, setDurationMinutes] = useState<number>(() =>
+    readInitialDurationMinutes(initialData),
+  );
+  const [passingScorePercent, setPassingScorePercent] = useState<number>(
+    () => initialData.passingScorePercent ?? 70,
+  );
+
+  useEffect(() => {
+    setDifficulty(readInitialDifficulty(initialData));
+    setDurationMinutes(readInitialDurationMinutes(initialData));
+    setPassingScorePercent(initialData.passingScorePercent ?? 70);
+  }, [initialData]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await onSave({});
+    const clampedMinutes = Math.max(1, Math.round(durationMinutes));
+    const clampedPassingScore = Math.min(
+      100,
+      Math.max(0, Math.round(passingScorePercent)),
+    );
+    await onSave({
+      difficulty,
+      durationMs: clampedMinutes * 60_000,
+      passingScorePercent: clampedPassingScore,
+    });
   };
-
-  const difficultyValue = (
-    initialData as unknown as { difficulty: "easy" | "medium" | "hard" }
-  ).difficulty;
 
   return (
     <form
@@ -74,8 +114,8 @@ export const QuizEditForm = memo(function QuizEditForm({
         </label>
         <select
           id="difficulty"
-          value={difficultyValue}
-          onChange={() => {}}
+          value={difficulty}
+          onChange={(e) => setDifficulty(e.target.value as DifficultyValue)}
           disabled={isSaving}
           className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
           data-testid="difficulty-select"
@@ -106,8 +146,11 @@ export const QuizEditForm = memo(function QuizEditForm({
           <input
             type="number"
             id="duration"
-            value={Math.floor((initialData.durationMs ?? 0) / 1000 / 60)}
-            onChange={() => {}}
+            value={durationMinutes}
+            onChange={(e) => {
+              const parsed = Number.parseInt(e.target.value, 10);
+              setDurationMinutes(Number.isNaN(parsed) ? 1 : Math.max(1, parsed));
+            }}
             disabled={isSaving}
             min={1}
             className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
@@ -126,8 +169,13 @@ export const QuizEditForm = memo(function QuizEditForm({
           <input
             type="number"
             id="passing-score"
-            value={initialData.passingScorePercent ?? 70}
-            onChange={() => {}}
+            value={passingScorePercent}
+            onChange={(e) => {
+              const parsed = Number.parseInt(e.target.value, 10);
+              setPassingScorePercent(
+                Number.isNaN(parsed) ? 0 : Math.min(100, Math.max(0, parsed)),
+              );
+            }}
             disabled={isSaving}
             min={0}
             max={100}
@@ -144,7 +192,7 @@ export const QuizEditForm = memo(function QuizEditForm({
           {isSaving ? "Saving…" : "Save changes"}
         </Button>
         <p className="text-xs text-muted-foreground">
-          Changes are saved automatically every 5 seconds.
+          Save your changes to update this draft version.
         </p>
       </div>
     </form>

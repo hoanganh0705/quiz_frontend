@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 
+import { ATTEMPT_KEYS } from "@/features/attempts/query-keys";
+
 import {
-  ATTEMPT_CACHE_KEYS,
   statusFromAttempt,
   statusFromAttemptSummary,
   type AttemptRunnerStatus,
@@ -59,43 +60,43 @@ describe("attempt-runner.types — exhaustive runner status union", () => {
 
 describe("attempt-runner.types — cache key factories", () => {
   it("equal inputs produce equal keys (frozen tuple)", () => {
-    expect(ATTEMPT_CACHE_KEYS.active("q1", "u1")).toEqual(
-      ATTEMPT_CACHE_KEYS.active("q1", "u1"),
+    expect(ATTEMPT_KEYS.active("q1", "u1")).toEqual(
+      ATTEMPT_KEYS.active("q1", "u1"),
     );
-    expect(ATTEMPT_CACHE_KEYS.detail("a1", "u1")).toEqual(
-      ATTEMPT_CACHE_KEYS.detail("a1", "u1"),
+    expect(ATTEMPT_KEYS.detail("a1", "u1")).toEqual(
+      ATTEMPT_KEYS.detail("a1", "u1"),
     );
-    expect(ATTEMPT_CACHE_KEYS.answers("a1", "u1")).toEqual(
-      ATTEMPT_CACHE_KEYS.answers("a1", "u1"),
+    expect(ATTEMPT_KEYS.answers("a1", "u1")).toEqual(
+      ATTEMPT_KEYS.answers("a1", "u1"),
     );
   });
 
   it("different quiz ids produce different active keys", () => {
-    expect(ATTEMPT_CACHE_KEYS.active("q1", "u1")).not.toEqual(
-      ATTEMPT_CACHE_KEYS.active("q2", "u1"),
+    expect(ATTEMPT_KEYS.active("q1", "u1")).not.toEqual(
+      ATTEMPT_KEYS.active("q2", "u1"),
     );
   });
 
   it("different session ids produce different active keys", () => {
-    expect(ATTEMPT_CACHE_KEYS.active("q1", "u1")).not.toEqual(
-      ATTEMPT_CACHE_KEYS.active("q1", "u2"),
+    expect(ATTEMPT_KEYS.active("q1", "u1")).not.toEqual(
+      ATTEMPT_KEYS.active("q1", "u2"),
     );
   });
 
   it("different attempt ids produce different detail keys", () => {
-    expect(ATTEMPT_CACHE_KEYS.detail("a1", "u1")).not.toEqual(
-      ATTEMPT_CACHE_KEYS.detail("a2", "u1"),
+    expect(ATTEMPT_KEYS.detail("a1", "u1")).not.toEqual(
+      ATTEMPT_KEYS.detail("a2", "u1"),
     );
   });
 
   it("detail and answers keys differ even for the same attempt", () => {
-    expect(ATTEMPT_CACHE_KEYS.detail("a1", "u1")).not.toEqual(
-      ATTEMPT_CACHE_KEYS.answers("a1", "u1"),
+    expect(ATTEMPT_KEYS.detail("a1", "u1")).not.toEqual(
+      ATTEMPT_KEYS.answers("a1", "u1"),
     );
   });
 
   it("keys are typed readonly tuples (compile-time check)", () => {
-    const key = ATTEMPT_CACHE_KEYS.active("q1", "u1");
+    const key = ATTEMPT_KEYS.active("q1", "u1");
 
     expect(key[0]).toBe("attempts");
     expect(key[1]).toBe("active");

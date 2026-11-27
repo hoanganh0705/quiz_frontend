@@ -2,19 +2,23 @@
 
 import { useRouter } from "next/navigation";
 
-import { render, screen, waitFor } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { useAuth } from "@/features/auth/hooks/use-auth";
-import { getAuthToken } from "@/features/auth/utils/auth-cookies";
+import { useAuthIdentity } from "@/features/auth/hooks/use-auth-session";
+import {
+  clearAuthToken,
+  getAuthToken,
+} from "@/features/auth/utils/auth-cookies";
 
 import { ProtectedShell } from "@/app/(protected)/_components/ProtectedShell";
 
-vi.mock("@/features/auth/hooks/use-auth", () => ({
-  useAuth: vi.fn(),
+vi.mock("@/features/auth/hooks/use-auth-session", () => ({
+  useAuthIdentity: vi.fn(),
 }));
 
 vi.mock("@/features/auth/utils/auth-cookies", () => ({
+  clearAuthToken: vi.fn(),
   getAuthToken: vi.fn(),
   subscribeToAuthChanges: vi.fn(() => () => {}),
 }));
@@ -23,12 +27,17 @@ vi.mock("next/navigation", () => ({
   useRouter: vi.fn(),
 }));
 
-
-const mockedUseAuth = vi.mocked(useAuth);
+const mockedUseAuth = vi.mocked(useAuthIdentity);
+const mockedClearAuthToken = vi.mocked(clearAuthToken);
 const mockedGetAuthToken = vi.mocked(getAuthToken);
 const mockedUseRouter = vi.mocked(useRouter);
 
 describe("ProtectedShell integration", () => {
+  afterEach(() => {
+    cleanup();
+    vi.clearAllMocks();
+  });
+
   it("renders the checking-state skeleton while the user is loading", () => {
     mockedUseAuth.mockReturnValue({
       currentUser: null,
@@ -103,7 +112,7 @@ describe("ProtectedShell integration", () => {
     expect(screen.queryByTestId("protected-child")).toBeNull();
   });
 
-  it("does not redirect when a token is present even if the user is still null", () => {
+  it("does not redirect when a token is present while auth is still loading", () => {
     const replace = vi.fn();
     mockedUseRouter.mockReturnValue({
       replace,
@@ -129,5 +138,72 @@ describe("ProtectedShell integration", () => {
 
     expect(replace).not.toHaveBeenCalled();
     expect(screen.getByRole("status")).toBeInTheDocument();
+  });
+
+  it("clears stale cookie and redirects on 401 auth failure instead of hanging forever", async () => {
+    const replace = vi.fn();
+    mockedUseRouter.mockReturnValue({
+      replace,
+      back: vi.fn(),
+      forward: vi.fn(),
+      push: vi.fn(),
+      refresh: vi.fn(),
+      prefetch: vi.fn(),
+    } as never);
+    const err401 = Object.assign(new Error("Unauthorized"), { status: 401 });
+    mockedUseAuth.mockReturnValue({
+      currentUser: null,
+      isLoading: false,
+      error: err401,
+      refetch: vi.fn(),
+    });
+    mockedGetAuthToken.mockReturnValue("stale-token");
+
+    render(
+      <ProtectedShell>
+        <div data-testid="protected-child">child</div>
+      </ProtectedShell>,
+    );
+
+    await waitFor(() => {
+      expect(mockedClearAuthToken).toHaveBeenCalledTimes(1);
+      expect(replace).toHaveBeenCalledWith(
+        expect.stringMatching(/^\/login\?redirect=/),
+      );
+    });
+  });
+
+  it("renders a retry alert instead of an infinite skeleton on transient server error", () => {
+    const refetch = vi.fn(async () => undefined);
+    const replace = vi.fn();
+    mockedUseRouter.mockReturnValue({
+      replace,
+      back: vi.fn(),
+      forward: vi.fn(),
+      push: vi.fn(),
+      refresh: vi.fn(),
+      prefetch: vi.fn(),
+    } as never);
+    mockedUseAuth.mockReturnValue({
+      currentUser: null,
+      isLoading: false,
+      error: new Error("Service Unavailable"),
+      refetch,
+    });
+    mockedGetAuthToken.mockReturnValue("token-123");
+
+    render(
+      <ProtectedShell>
+        <div data-testid="protected-child">child</div>
+      </ProtectedShell>,
+    );
+
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      /unable to verify your session/i,
+    );
+    expect(replace).not.toHaveBeenCalled();
+
+    fireEvent.click(screen.getByRole("button", { name: /retry/i }));
+    expect(refetch).toHaveBeenCalledTimes(1);
   });
 });

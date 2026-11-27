@@ -5,9 +5,11 @@ import { type ReactElement } from "react";
 import { useUserSearch } from "@/features/social/hooks/useUserSearch";
 import { SocialSearchInput } from "../components/SocialSearchInput";
 import { UserSearchResultWindow } from "../components/UserSearchResultWindow";
-import { SearchResultSkeleton } from "../components/SearchResultSkeleton";
-import { SearchEmptyState } from "../components/SearchEmptyState";
-import { SearchErrorState } from "../components/SearchErrorState";
+import {
+  SearchEmptyState,
+  SearchErrorState,
+  SearchResultSkeleton,
+} from "@/shared/ui/search";
 import { SearchRateLimitNotice } from "../components/SearchRateLimitNotice";
 import { SocialListRow } from "../components/SocialListRow";
 import { BlockedContentGate } from "../components/BlockedContentGate";
@@ -69,9 +71,20 @@ export function UserSearchResults({
       ? Math.max(0, Math.ceil((rateLimitedUntil - Date.now()) / 1000))
       : null;
 
+  const searchBar = (
+    <SocialSearchInput
+      value={query}
+      onChange={onQueryChange}
+      cooldownSeconds={cooldownSeconds}
+      ariaLabel="Search players by username or display name"
+      surface="social-search-page"
+    />
+  );
+
   if (error !== null && RATE_LIMIT_CODES.has(error.code as string)) {
     return (
       <div className="flex flex-col gap-4 p-4">
+        {searchBar}
         <SearchRateLimitNotice
           cooldownSeconds={cooldownSeconds}
           surface="social-search-page"
@@ -83,6 +96,7 @@ export function UserSearchResults({
   if (isTooShort) {
     return (
       <div className="flex flex-col gap-4 p-4">
+        {searchBar}
         <SearchEmptyState kind="query-too-short" query={query} />
       </div>
     );
@@ -91,6 +105,7 @@ export function UserSearchResults({
   if (isTooLong) {
     return (
       <div className="flex flex-col gap-4 p-4">
+        {searchBar}
         <SearchEmptyState kind="no-results" query={query} />
       </div>
     );
@@ -99,6 +114,7 @@ export function UserSearchResults({
   if (isLoading && items.length === 0) {
     return (
       <div className="flex flex-col gap-4 p-4">
+        {searchBar}
         <SearchResultSkeleton kind="search" />
       </div>
     );
@@ -107,6 +123,7 @@ export function UserSearchResults({
   if (error !== null && items.length === 0) {
     return (
       <div className="flex flex-col gap-4 p-4">
+        {searchBar}
         <SearchErrorState
           errorCode={
             (error.code as "GLOBAL_INTERNAL_ERROR") ?? "GLOBAL_INTERNAL_ERROR"
@@ -119,6 +136,7 @@ export function UserSearchResults({
   if (items.length === 0) {
     return (
       <div className="flex flex-col gap-4 p-4">
+        {searchBar}
         <SearchEmptyState kind="no-results" query={query} />
       </div>
     );
@@ -126,7 +144,6 @@ export function UserSearchResults({
 
   const renderRow = ({
     user,
-    index,
   }: {
     user: SocialUserSummaryDto;
     index: number;
@@ -141,6 +158,7 @@ export function UserSearchResults({
 
   return (
     <div className="flex flex-col gap-4 p-4">
+      {searchBar}
       <section
         data-testid="user-search-results"
         aria-label="Search results"

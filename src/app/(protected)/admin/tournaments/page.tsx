@@ -1,7 +1,20 @@
-"use client";
+import { Suspense } from "react";
 
-import { TournamentAdminRouteHandoff } from "./_components/TournamentAdminRouteHandoff";
+import { TournamentAdminPage } from "@/features/admin/tournament-admin/components/TournamentAdminPage";
+
+import AdminLoading from "../loading";
+
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Tournaments",
+  description: "Create, edit, and manage tournaments across the platform.",
+};
 
 export default function AdminTournamentsPage() {
-  return <TournamentAdminRouteHandoff />;
+  return (
+    <Suspense fallback={<AdminLoading />}>
+      <TournamentAdminPage />
+    </Suspense>
+  );
 }

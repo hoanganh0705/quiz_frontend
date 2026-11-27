@@ -25,8 +25,6 @@ import {
   selectGameplayFinalLeaderboard,
 } from "../stores/instanceGameplay.store";
 
-const EMPTY_LEADERBOARD: LeaderboardEntryDto[] = [];
-
 export interface UseLiveLeaderboardResult {
   entries: LeaderboardEntryDto[];
   final: FinalLeaderboardDto | null;
@@ -37,15 +35,17 @@ export interface UseLiveLeaderboardResult {
 }
 
 function mapRestEntryToLeaderboardEntry(
-  rest: InstanceLeaderboardEntryDto,
+  rest: InstanceLeaderboardEntryDto & { answeredCount?: number | null },
 ): LeaderboardEntryDto {
   return {
     playerId: rest.userId,
     displayName: rest.displayName ?? rest.username,
     avatarUrl: rest.avatarUrl ?? undefined,
-    score: rest.scorePercent ?? 0,
+    score: Math.round(rest.scorePercent ?? 0),
     rank: rest.rank,
-    answeredCount: rest.correctCount ?? 0,
+    answeredCount: rest.answeredCount ?? rest.correctCount ?? 0,
+    correctCount: rest.correctCount ?? null,
+    timeTakenMs: rest.timeTakenMs ?? null,
     lastAwardedAt: null,
     eventSequence: 0,
   };
@@ -78,10 +78,11 @@ export function useLiveLeaderboard(
       queryKey: ["instances", "leaderboard", instanceId],
       queryFn: async (): Promise<LeaderboardEntryDto[]> => {
         if (!instanceId) return [];
-        const rest = (await getInstanceLeaderboard(
-          instanceId,
-        )) as unknown as InstanceLeaderboardResponseDto;
-        return (rest.items ?? []).map(mapRestEntryToLeaderboardEntry);
+        const rest = await getInstanceLeaderboard(instanceId);
+        const items: InstanceLeaderboardEntryDto[] = Array.isArray(rest)
+          ? (rest as unknown as InstanceLeaderboardEntryDto[])
+          : ((rest as unknown as InstanceLeaderboardResponseDto)?.items ?? []);
+        return items.map(mapRestEntryToLeaderboardEntry);
       },
       enabled: instanceId !== null,
       refetchOnWindowFocus: false,
@@ -130,9 +131,13 @@ export function useLiveLeaderboard(
         }
 
         for (const entry of typed.data.entries) {
-          const existing = mergedMap.get(entry.playerId);
-          if (!existing || entry.eventSequence > existing.eventSequence) {
-            mergedMap.set(entry.playerId, entry);
+          const normalized = {
+            ...entry,
+            score: Math.round(entry.score ?? 0),
+          };
+          const existing = mergedMap.get(normalized.playerId);
+          if (!existing || normalized.eventSequence > existing.eventSequence) {
+            mergedMap.set(normalized.playerId, normalized);
           }
         }
 
@@ -154,11 +159,11 @@ export function useLiveLeaderboard(
   const error = useMemo<ApiError | null>(() => {
     if (!restError) return null;
     if (restError instanceof ApiError) return restError;
-    return new ApiError({
+    return ApiError.fromInput({
       status: 0,
       code: "UNKNOWN",
       message: "Failed to load leaderboard",
-    } as unknown as ConstructorParameters<typeof ApiError>[0]);
+    });
   }, [restError]);
 
   const isStale = error !== null && restEntries !== undefined;

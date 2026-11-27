@@ -1,4 +1,3 @@
-export * from "./use-my-profile-page";
 export * from "./use-public-profile-page";
 export * from "./use-user";
 
@@ -23,19 +22,6 @@ export type { UseMyActivityParams, UseMyActivityResult } from "./useMyActivity";
 
 export { useMyBadges } from "./useMyBadges";
 export type { UseMyBadgesReturn } from "./useMyBadges";
-
-export { useMyTournaments } from "./useMyTournaments";
-export type { UseMyTournamentsReturn } from "./useMyTournaments";
-
-export { useMyTournamentHistory } from "./useMyTournamentHistory";
-export type {
-  UseMyTournamentHistoryParams,
-  UseMyTournamentHistoryResult,
-  TournamentHistoryItem,
-} from "./useMyTournamentHistory";
-
-export { useMyTournamentAnalytics } from "./useMyTournamentAnalytics";
-export type { UseMyTournamentAnalyticsReturn } from "./useMyTournamentAnalytics";
 
 export { useMyRanking } from "./useMyRanking";
 export type { UseMyRankingReturn } from "./useMyRanking";

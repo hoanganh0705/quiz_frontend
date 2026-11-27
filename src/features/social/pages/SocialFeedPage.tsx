@@ -1,6 +1,9 @@
 "use client";
 
-import { useCallback, useMemo, type ReactElement } from "react";
+import { useCallback, useMemo } from "react";
+import Link from "next/link";
+
+import { BarChart3, Flame, Sparkles, UserPlus, Users } from "lucide-react";
 
 import { useAuthSession } from "@/features/auth/hooks/use-auth-session";
 import { ConnectionStatusBadge } from "@/features/social/components/ConnectionStatusBadge";
@@ -14,6 +17,59 @@ import { PrivacyRestrictedNotice } from "@/features/social/components/PrivacyRes
 import { SocialFeedItem } from "@/features/social/components/SocialFeedItem";
 import { useFeed } from "@/features/social/hooks/useFeed";
 import { useSocialListLifecycleReset } from "@/features/social/hooks/useSocialListLifecycleReset";
+
+import { Button } from "@/components/ui/Button";
+
+import { PAGE_CONTAINER_CLASS } from "@/shared/layout/constants";
+
+import type { ReactElement } from "react";
+
+function SocialFeedHeader(): ReactElement {
+  return (
+    <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between border-b border-border pb-5">
+      <div className="space-y-1">
+        <div className="flex items-center gap-2.5">
+          <Sparkles className="h-6 w-6 text-brand shrink-0" aria-hidden="true" />
+          <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground">
+            Social Feed
+          </h1>
+        </div>
+        <p className="text-sm sm:text-base text-muted-foreground">
+          Live quiz completions, badges, and milestones from players you follow.
+        </p>
+      </div>
+      <nav
+        aria-label="Social shortcuts"
+        className="flex flex-wrap items-center gap-2"
+      >
+        <Button asChild size="sm" variant="outline">
+          <Link href="/friends">
+            <Users className="h-4 w-4 mr-1.5" aria-hidden="true" />
+            Friends
+          </Link>
+        </Button>
+        <Button asChild size="sm" variant="outline">
+          <Link href="/social/suggestions">
+            <UserPlus className="h-4 w-4 mr-1.5" aria-hidden="true" />
+            Suggestions
+          </Link>
+        </Button>
+        <Button asChild size="sm" variant="outline">
+          <Link href="/social/users/trending">
+            <Flame className="h-4 w-4 mr-1.5" aria-hidden="true" />
+            Trending
+          </Link>
+        </Button>
+        <Button asChild size="sm" variant="outline">
+          <Link href="/social/me/analytics">
+            <BarChart3 className="h-4 w-4 mr-1.5" aria-hidden="true" />
+            Analytics
+          </Link>
+        </Button>
+      </nav>
+    </header>
+  );
+}
 
 export function SocialFeedPage(): ReactElement {
   const auth = useAuthSession();
@@ -73,8 +129,9 @@ export function SocialFeedPage(): ReactElement {
     return (
       <div
         data-testid="social-feed-page-rate-limited"
-        className="flex flex-col gap-2 p-4"
+        className={`${PAGE_CONTAINER_CLASS} space-y-6`}
       >
+        <SocialFeedHeader />
         <ConnectionStatusBadge />
         <FeedGlobalNotice />
         <FeedErrorState
@@ -91,8 +148,9 @@ export function SocialFeedPage(): ReactElement {
     return (
       <div
         data-testid="social-feed-page-loading"
-        className="flex flex-col gap-2 p-4"
+        className={`${PAGE_CONTAINER_CLASS} space-y-6`}
       >
+        <SocialFeedHeader />
         <ConnectionStatusBadge />
         <FeedGlobalNotice />
         <FeedSkeleton rowCount={5} />
@@ -104,8 +162,9 @@ export function SocialFeedPage(): ReactElement {
     return (
       <div
         data-testid="social-feed-page-empty"
-        className="flex flex-col gap-2 p-4"
+        className={`${PAGE_CONTAINER_CLASS} space-y-6`}
       >
+        <SocialFeedHeader />
         <ConnectionStatusBadge />
         <FeedGlobalNotice />
         <FeedEmptyState kind="empty" />
@@ -117,8 +176,9 @@ export function SocialFeedPage(): ReactElement {
     return (
       <div
         data-testid="social-feed-page-error"
-        className="flex flex-col gap-2 p-4"
+        className={`${PAGE_CONTAINER_CLASS} space-y-6`}
       >
+        <SocialFeedHeader />
         <ConnectionStatusBadge />
         <FeedGlobalNotice />
         <FeedErrorState
@@ -132,7 +192,11 @@ export function SocialFeedPage(): ReactElement {
   }
 
   return (
-    <div data-testid="social-feed-page" className="flex flex-col gap-2 p-4">
+    <div
+      data-testid="social-feed-page"
+      className={`${PAGE_CONTAINER_CLASS} space-y-6`}
+    >
+      <SocialFeedHeader />
       <ConnectionStatusBadge />
       <FeedGlobalNotice />
       {staleness === "stale" ? <FeedStaleMarker isStale={true} /> : null}

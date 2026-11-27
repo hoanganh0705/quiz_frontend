@@ -1,5 +1,10 @@
+import { Suspense } from "react";
+
+import { AuditLogPage } from "@/features/admin/audit-admin/components/AuditLogPage";
+
+import AdminLoading from "../loading";
+
 import type { Metadata } from "next";
-import { AuditLogRouteHandoff } from "./_components/AuditLogRouteHandoff";
 
 export const metadata: Metadata = {
   title: "Audit Log",
@@ -7,5 +12,9 @@ export const metadata: Metadata = {
 };
 
 export default function AdminAuditPage() {
-  return <AuditLogRouteHandoff />;
+  return (
+    <Suspense fallback={<AdminLoading />}>
+      <AuditLogPage />
+    </Suspense>
+  );
 }

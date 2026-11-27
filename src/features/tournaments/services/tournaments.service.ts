@@ -1,20 +1,18 @@
 import * as Sentry from "@sentry/nextjs";
 
-import { getTournaments } from "@/lib/api";
-
-import { ApiError } from "@/lib/api/core/ApiError";
+import { getTournaments, unwrapEnvelope } from "@/lib/api";
 
 import type {
   CreateTournamentDto,
-  UpdateTournamentDto,
-  TournamentControllerListTournamentsParams,
-  TournamentControllerGetUpcomingTournamentsParams,
+  CreateTournamentRoundDto,
   TournamentControllerGetActiveTournamentsParams,
   TournamentControllerGetCompletedTournamentsParams,
-  TournamentControllerGetRelatedTournamentsParams,
   TournamentControllerGetLeaderboardParams,
+  TournamentControllerGetRelatedTournamentsParams,
   TournamentControllerGetTournamentParticipantsParams,
-  CreateTournamentRoundDto,
+  TournamentControllerGetUpcomingTournamentsParams,
+  TournamentControllerListTournamentsParams,
+  UpdateTournamentDto,
 } from "@/lib/api/generated/schemas";
 
 export type { TournamentControllerListTournamentsParams as ListTournamentsParams } from "@/lib/api/generated/schemas";
@@ -85,247 +83,196 @@ export async function createTournament(params: CreateTournamentDto) {
 
 export async function getUpcomingTournaments(
   params?: TournamentControllerGetUpcomingTournamentsParams,
-): Promise<unknown> {
+) {
   Sentry.addBreadcrumb({
     category: "tournaments:service",
     message: "tournaments.getUpcomingTournaments",
   });
-  const data =
+  const response =
     await getTournaments().tournamentControllerGetUpcomingTournaments(params);
-  if (!data.data) {
-    throw new ApiError({
-      status: 500,
-      code: "GLOBAL_INTERNAL_ERROR",
-      message: "Upcoming tournaments response missing data envelope",
-    } as unknown as ConstructorParameters<typeof ApiError>[0]);
-  }
-  return data.data;
+  return unwrapEnvelope(
+    response,
+    "Upcoming tournaments response missing data envelope",
+  );
 }
 
 export async function getActiveTournaments(
   params?: TournamentControllerGetActiveTournamentsParams,
-): Promise<unknown> {
+) {
   Sentry.addBreadcrumb({
     category: "tournaments:service",
     message: "tournaments.getActiveTournaments",
   });
-  const data =
+  const response =
     await getTournaments().tournamentControllerGetActiveTournaments(params);
-  if (!data.data) {
-    throw new ApiError({
-      status: 500,
-      code: "GLOBAL_INTERNAL_ERROR",
-      message: "Active tournaments response missing data envelope",
-    } as unknown as ConstructorParameters<typeof ApiError>[0]);
-  }
-  return data.data;
+  return unwrapEnvelope(
+    response,
+    "Active tournaments response missing data envelope",
+  );
 }
 
 export async function getCompletedTournaments(
   params?: TournamentControllerGetCompletedTournamentsParams,
-): Promise<unknown> {
+) {
   Sentry.addBreadcrumb({
     category: "tournaments:service",
     message: "tournaments.getCompletedTournaments",
   });
-  const data =
+  const response =
     await getTournaments().tournamentControllerGetCompletedTournaments(params);
-  if (!data.data) {
-    throw new ApiError({
-      status: 500,
-      code: "GLOBAL_INTERNAL_ERROR",
-      message: "Completed tournaments response missing data envelope",
-    } as unknown as ConstructorParameters<typeof ApiError>[0]);
-  }
-  return data.data;
+  return unwrapEnvelope(
+    response,
+    "Completed tournaments response missing data envelope",
+  );
 }
 
 export async function getRelatedTournaments(
   id: string,
   params?: TournamentControllerGetRelatedTournamentsParams,
-): Promise<unknown> {
+) {
   Sentry.addBreadcrumb({
     category: "tournaments:service",
     message: `tournaments.getRelatedTournaments(${id})`,
   });
-  const data = await getTournaments().tournamentControllerGetRelatedTournaments(
-    id,
-    params,
+  const response =
+    await getTournaments().tournamentControllerGetRelatedTournaments(
+      id,
+      params,
+    );
+  return unwrapEnvelope(
+    response,
+    "Related tournaments response missing data envelope",
   );
-  if (!data.data) {
-    throw new ApiError({
-      status: 500,
-      code: "GLOBAL_INTERNAL_ERROR",
-      message: "Related tournaments response missing data envelope",
-    } as unknown as ConstructorParameters<typeof ApiError>[0]);
-  }
-  return data.data;
 }
 
 export async function getTournamentParticipants(
   id: string,
   params?: TournamentControllerGetTournamentParticipantsParams,
-): Promise<unknown> {
+) {
   Sentry.addBreadcrumb({
     category: "tournaments:service",
     message: `tournaments.getTournamentParticipants(${id})`,
   });
-  const data =
+  const response =
     await getTournaments().tournamentControllerGetTournamentParticipants(
       id,
       params,
     );
-  if (!data.data) {
-    throw new ApiError({
-      status: 500,
-      code: "GLOBAL_INTERNAL_ERROR",
-      message: "Tournament participants response missing data envelope",
-    } as unknown as ConstructorParameters<typeof ApiError>[0]);
-  }
-  return data.data;
+  return unwrapEnvelope(
+    response,
+    "Tournament participants response missing data envelope",
+  );
 }
 
-export async function getTournamentStats(id: string): Promise<unknown> {
+export async function getTournamentStats(id: string) {
   Sentry.addBreadcrumb({
     category: "tournaments:service",
     message: `tournaments.getTournamentStats(${id})`,
   });
-  const data =
+  const response =
     await getTournaments().tournamentControllerGetTournamentStats(id);
-  if (!data.data) {
-    throw new ApiError({
-      status: 500,
-      code: "GLOBAL_INTERNAL_ERROR",
-      message: "Tournament stats response missing data envelope",
-    } as unknown as ConstructorParameters<typeof ApiError>[0]);
-  }
-  return data.data;
+  return unwrapEnvelope(
+    response,
+    "Tournament stats response missing data envelope",
+  );
 }
 
-export async function getTournamentWinners(id: string): Promise<unknown> {
+export async function getTournamentWinners(id: string) {
   Sentry.addBreadcrumb({
     category: "tournaments:service",
     message: `tournaments.getTournamentWinners(${id})`,
   });
-  const data =
+  const response =
     await getTournaments().tournamentControllerGetTournamentWinners(id);
-  if (!data.data) {
-    throw new ApiError({
-      status: 500,
-      code: "GLOBAL_INTERNAL_ERROR",
-      message: "Tournament winners response missing data envelope",
-    } as unknown as ConstructorParameters<typeof ApiError>[0]);
-  }
-  return data.data;
+  return unwrapEnvelope(
+    response,
+    "Tournament winners response missing data envelope",
+  );
 }
 
-export async function getMyTournamentStanding(id: string): Promise<unknown> {
+export async function getMyTournamentStanding(id: string) {
   Sentry.addBreadcrumb({
     category: "tournaments:service",
     message: `tournaments.getMyTournamentStanding(${id})`,
   });
-  const data =
+  const response =
     await getTournaments().tournamentControllerGetMyTournamentStanding(id);
-  if (!data.data) {
-    throw new ApiError({
-      status: 500,
-      code: "GLOBAL_INTERNAL_ERROR",
-      message: "Tournament standing response missing data envelope",
-    } as unknown as ConstructorParameters<typeof ApiError>[0]);
-  }
-  return data.data;
+  return unwrapEnvelope(
+    response,
+    "Tournament standing response missing data envelope",
+  );
 }
 
 export async function createTournamentRound(
   id: string,
   params: CreateTournamentRoundDto,
-): Promise<unknown> {
+) {
   Sentry.addBreadcrumb({
     category: "tournaments:service",
     message: `tournaments.createTournamentRound(${id})`,
   });
-  const data = await getTournaments().tournamentControllerCreateTournamentRound(
-    id,
-    params,
+  const response =
+    await getTournaments().tournamentControllerCreateTournamentRound(
+      id,
+      params,
+    );
+  return unwrapEnvelope(
+    response,
+    "Create tournament round response missing data envelope",
   );
-  if (!data.data) {
-    throw new ApiError({
-      status: 500,
-      code: "GLOBAL_INTERNAL_ERROR",
-      message: "Create tournament round response missing data envelope",
-    } as unknown as ConstructorParameters<typeof ApiError>[0]);
-  }
-  return data.data;
 }
 
-export async function withdrawFromTournament(id: string): Promise<unknown> {
+export async function withdrawFromTournament(id: string) {
   Sentry.addBreadcrumb({
     category: "tournaments:service",
     message: `tournaments.withdrawFromTournament(${id})`,
   });
-  const data =
+  const response =
     await getTournaments().tournamentControllerWithdrawFromTournament(id);
-  if (!data.data) {
-    throw new ApiError({
-      status: 500,
-      code: "GLOBAL_INTERNAL_ERROR",
-      message: "Withdraw from tournament response missing data envelope",
-    } as unknown as ConstructorParameters<typeof ApiError>[0]);
-  }
-  return data.data;
+  return unwrapEnvelope(
+    response,
+    "Withdraw from tournament response missing data envelope",
+  );
 }
 
 export async function updateTournament(
   id: string,
   params: UpdateTournamentDto,
-): Promise<unknown> {
+) {
   Sentry.addBreadcrumb({
     category: "tournaments:service",
     message: `tournaments.updateTournament(${id})`,
   });
-  const data = await getTournaments().tournamentControllerUpdateTournament(
-    id,
-    params,
+  const response =
+    await getTournaments().tournamentControllerUpdateTournament(id, params);
+  return unwrapEnvelope(
+    response,
+    "Update tournament response missing data envelope",
   );
-  if (!data.data) {
-    throw new ApiError({
-      status: 500,
-      code: "GLOBAL_INTERNAL_ERROR",
-      message: "Update tournament response missing data envelope",
-    } as unknown as ConstructorParameters<typeof ApiError>[0]);
-  }
-  return data.data;
 }
 
-export async function deleteTournament(id: string): Promise<unknown> {
+export async function deleteTournament(id: string) {
   Sentry.addBreadcrumb({
     category: "tournaments:service",
     message: `tournaments.deleteTournament(${id})`,
   });
-  const data =
+  const response =
     await getTournaments().tournamentControllerSoftDeleteTournament(id);
-  if (!data.data) {
-    throw new ApiError({
-      status: 500,
-      code: "GLOBAL_INTERNAL_ERROR",
-      message: "Delete tournament response missing data envelope",
-    } as unknown as ConstructorParameters<typeof ApiError>[0]);
-  }
-  return data.data;
+  return unwrapEnvelope(
+    response,
+    "Delete tournament response missing data envelope",
+  );
 }
 
-export async function cancelTournament(id: string): Promise<unknown> {
+export async function cancelTournament(id: string) {
   Sentry.addBreadcrumb({
     category: "tournaments:service",
     message: `tournaments.cancelTournament(${id})`,
   });
-  const data = await getTournaments().tournamentControllerCancelTournament(id);
-  if (!data.data) {
-    throw new ApiError({
-      status: 500,
-      code: "GLOBAL_INTERNAL_ERROR",
-      message: "Cancel tournament response missing data envelope",
-    } as unknown as ConstructorParameters<typeof ApiError>[0]);
-  }
-  return data.data;
+  const response =
+    await getTournaments().tournamentControllerCancelTournament(id);
+  return unwrapEnvelope(
+    response,
+    "Cancel tournament response missing data envelope",
+  );
 }

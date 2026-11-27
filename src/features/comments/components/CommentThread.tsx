@@ -101,27 +101,27 @@ export function CommentThread({
         </Button>
       </div>
 
-      {/* ─── Collapsed state ─────────────────────────────────────────── */}
+      {/* ─── Top-level comment (always visible) ─────────────────────── */}
+      <div className="p-4">
+        <CommentItem
+          comment={thread}
+          depth={0}
+          quizId={quizId}
+          currentUserId={currentUserId ?? null}
+          isAuthenticated={isAuthenticated}
+        />
+      </div>
+
+      {/* ─── Collapsed replies state ────────────────────────────────── */}
       {!expanded && (
-        <div className="px-4 py-3 text-xs text-muted-foreground">
+        <div className="border-t border-border px-4 py-3 text-xs text-muted-foreground">
           Replies hidden
         </div>
       )}
 
-      {/* ─── Expanded content ────────────────────────────────────────── */}
+      {/* ─── Expanded replies ───────────────────────────────────────── */}
       {expanded && (
         <div className="flex flex-col">
-          {/* ─── Top-level comment ─────────────────────────────────────── */}
-          <div className="p-4">
-            <CommentItem
-              comment={thread}
-              depth={0}
-              quizId={quizId}
-              currentUserId={currentUserId ?? null}
-              isAuthenticated={isAuthenticated}
-            />
-          </div>
-
           {/* ─── Reply tree ──────────────────────────────────────────── */}
           {firstPageReplies.length > 0 && (
             <div

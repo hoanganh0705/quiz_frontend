@@ -3,7 +3,7 @@
 import { useCallback, useRef, useState } from "react";
 import { getQueryClient } from "@/providers/QueryProvider";
 
-import { ApiError, isApiError } from "@/lib/api";
+import { ApiError, coerceToApiError } from "@/lib/api";
 
 import { markAllNotificationsRead } from "@/features/notifications/services/notifications.service";
 import {
@@ -25,10 +25,6 @@ export function useMarkAllNotificationsRead(): UseMarkAllNotificationsReadResult
   const inFlightRef = useRef(false);
 
   const markAllRead = useCallback(async (): Promise<void> => {
-    if (false) {
-      return;
-    }
-
     if (state === "pending" || inFlightRef.current) {
       return;
     }
@@ -58,22 +54,8 @@ export function useMarkAllNotificationsRead(): UseMarkAllNotificationsReadResult
       const qc = getQueryClient();
       void qc.invalidateQueries({ queryKey: ["notifications", "list"] });
 
-      if (isApiError(cause)) {
-        setState("error");
-        setError(cause);
-      } else if (cause instanceof Error) {
-        const mappedError = new ApiError(
-          cause as unknown as ConstructorParameters<typeof ApiError>[0],
-        );
-        setState("error");
-        setError(mappedError);
-      } else {
-        const mappedError = new ApiError(
-          cause as unknown as ConstructorParameters<typeof ApiError>[0],
-        );
-        setState("error");
-        setError(mappedError);
-      }
+      setState("error");
+      setError(coerceToApiError(cause));
     } finally {
       inFlightRef.current = false;
     }

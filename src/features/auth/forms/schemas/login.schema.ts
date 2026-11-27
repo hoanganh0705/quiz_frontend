@@ -1,9 +1,11 @@
 import { z } from "zod";
-import { emailSchema, passwordSchema } from "../schemas/register.schema";
+
+import { loginPasswordSchema } from "./password.schema";
+import { emailSchema } from "./register.schema";
 
 export const loginSchema = z.object({
   email: emailSchema,
-  password: passwordSchema,
+  password: loginPasswordSchema,
   rememberMe: z.boolean().optional(),
 });
 

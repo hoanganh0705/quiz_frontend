@@ -22,7 +22,6 @@ export function MilestonesList({ className }: MilestonesListProps) {
   const { milestones, isLoading, error, retry, isStale } =
     useRankingMilestones();
 
-  if (false) return null;
   if (!isAuthenticated && bootstrapState !== "bootstrapping") return null;
 
   if (isLoading && milestones.length === 0) {

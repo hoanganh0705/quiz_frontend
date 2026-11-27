@@ -1,3 +1,5 @@
+import { PASSWORD_CHECKS } from "@/features/auth/forms/schemas/password.schema";
+
 export type PasswordStrengthScore = 0 | 1 | 2 | 3 | 4;
 
 export type PasswordStrengthResult = {
@@ -34,10 +36,10 @@ export function getPasswordStrength(password: string): PasswordStrengthResult {
   }
 
   const checks = {
-    minLength: password.length >= 8,
-    uppercase: /[A-Z]/.test(password),
-    number: /\d/.test(password),
-    symbol: /[^A-Za-z0-9]/.test(password),
+    minLength: PASSWORD_CHECKS.minLength(password),
+    uppercase: PASSWORD_CHECKS.uppercase(password),
+    number: PASSWORD_CHECKS.number(password),
+    symbol: PASSWORD_CHECKS.symbol(password),
   };
 
   const score = Object.values(checks).filter(Boolean)

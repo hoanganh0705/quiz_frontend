@@ -27,7 +27,7 @@ import {
 import {
   forgotPasswordSchema,
   toForgotPasswordDto,
-} from "@/features/auth/forms/schemas/forgot-password.schema";
+} from "@/features/auth/forms/schemas/recovery-email.schema";
 import {
   resetPasswordSchema,
   toResetPasswordDto,

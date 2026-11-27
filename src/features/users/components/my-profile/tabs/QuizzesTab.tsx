@@ -1,4 +1,4 @@
-import { memo, useCallback } from "react";
+import { memo, useCallback, useMemo } from "react";
 import Link from "next/link";
 
 import { Button } from "@/components/ui/Button";
@@ -16,7 +16,8 @@ import {
   ChevronRight,
 } from "lucide-react";
 
-import { useMyAttempts } from "@/features/attempts";
+import { useMyAttemptsWithFilters } from "@/features/attempts";
+import { DEFAULT_ATTEMPT_HISTORY_FILTERS } from "@/features/attempts/types/attempt-history.types";
 
 const SKELETON_COUNT = 8;
 
@@ -67,12 +68,17 @@ function getStatusDisplay(status: string): {
 }
 
 export const QuizzesTab = memo(function QuizzesTab() {
+  const filters = useMemo(
+    () => ({ ...DEFAULT_ATTEMPT_HISTORY_FILTERS, limit: 20 }),
+    [],
+  );
+
   const {
     items: attempts,
     isLoading,
     hasMore,
     loadMore,
-  } = useMyAttempts({ limit: 20 });
+  } = useMyAttemptsWithFilters({ filters });
 
   const handleLoadMore = useCallback(() => {
     loadMore();
@@ -111,7 +117,7 @@ export const QuizzesTab = memo(function QuizzesTab() {
                 aria-hidden="true"
               />
               <p className="text-sm text-muted-foreground mb-4">
-                You haven't started an attempt yet.
+                You haven&apos;t started an attempt yet.
               </p>
               <Button variant="outline" size="sm" asChild>
                 <Link href="/quizzes">

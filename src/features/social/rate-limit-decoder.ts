@@ -4,7 +4,9 @@ export interface DecodedRateLimit {
   readonly cooldownSeconds: number | null;
 }
 
-export function decodeRateLimit(error: ApiError | null): DecodedRateLimit {
+export function decodeRateLimit(
+  error: ApiError | Partial<ApiError> | null,
+): DecodedRateLimit {
   if (error === null) {
     return { cooldownSeconds: null };
   }

@@ -5,15 +5,21 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ApiError } from "@/lib/api";
 
 import {
-  useMyQuizzesPublished,
-  type UseMyQuizzesPublishedResult,
-} from "@/features/quizzes/hooks/useMyQuizzesPublished";
+  useMyQuizzes,
+  type UseMyQuizzesResult,
+} from "@/features/quizzes/hooks/useMyQuizzes";
 
 const getMyQuizzesPublishedMock = vi.hoisted(() => vi.fn());
 
 vi.mock("@/features/quizzes/services/quizzes.service", () => ({
+  getMyQuizzes: vi.fn(),
+  getMyQuizzesDrafts: vi.fn(),
   getMyQuizzesPublished: getMyQuizzesPublishedMock,
 }));
+
+const useMyQuizzesPublished = (
+  params?: Omit<Parameters<typeof useMyQuizzes>[0], "tab">,
+): UseMyQuizzesResult => useMyQuizzes({ ...params, tab: "published" });
 
 function TestProvider({ children }: { children: React.ReactNode }) {
   const queryClient = new QueryClient({

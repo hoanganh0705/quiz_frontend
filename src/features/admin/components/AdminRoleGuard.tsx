@@ -1,29 +1,42 @@
 "use client";
 
-import type { ReactNode } from "react";
-
 import { Loader2 } from "lucide-react";
 
 import { useAdminRole } from "../hooks/useAdminRole";
 import { PermissionDeniedNotice } from "./PermissionDeniedNotice";
+
+import type { ReactNode } from "react";
+
+import type { AdminPermission } from "../permissions";
 
 export type AdminRoleStatus = "unknown" | "non-admin" | "admin";
 
 export interface AdminRoleGuardProps {
   children: ReactNode;
   fallback?: ReactNode;
+  requiredPermissions?: readonly AdminPermission[];
 }
 
-export function AdminRoleGuard({ children, fallback }: AdminRoleGuardProps) {
-  const role = useAdminRole();
+export function AdminRoleGuard({
+  children,
+  fallback,
+  requiredPermissions,
+}: AdminRoleGuardProps) {
+  const roleState = useAdminRole();
 
   let status: AdminRoleStatus;
-  if (role.isLoading) {
+  if (roleState.isLoading) {
     status = "unknown";
-  } else if (role.role === "admin") {
-    status = "admin";
-  } else {
+  } else if (roleState.permissions.length === 0) {
     status = "non-admin";
+  } else if (
+    requiredPermissions &&
+    requiredPermissions.length > 0 &&
+    !requiredPermissions.every((perm) => roleState.permissions.includes(perm))
+  ) {
+    status = "non-admin";
+  } else {
+    status = "admin";
   }
 
   if (status === "unknown") {

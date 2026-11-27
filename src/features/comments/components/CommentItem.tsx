@@ -149,11 +149,13 @@ export function CommentItem({
         <footer className="pl-11 flex flex-wrap items-center gap-3 text-xs">
           <CommentVoteButtons
             commentId={comment.id}
+            quizId={quizId}
             userVote={userVote}
             votesCount={comment.votesCount}
             upvotesCount={comment.upvotesCount}
             downvotesCount={comment.downvotesCount}
             isOwner={isOwner}
+            isAuthenticated={isAuthenticated}
             size={isReply ? "sm" : "md"}
           />
 
@@ -182,6 +184,7 @@ export function CommentItem({
           {isOwner && (
             <CommentEditInline
               commentId={comment.id}
+              quizId={quizId}
               initialBody={comment.body}
               parentCommentId={
                 isReply ? (comment.parentCommentId ?? null) : null

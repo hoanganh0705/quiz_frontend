@@ -1,23 +1,28 @@
 "use client";
 
 import { useCallback, useMemo, useState } from "react";
+import Link from "next/link";
+
 import { AlertTriangle, Loader2 } from "lucide-react";
 import { z } from "zod";
 
 import { Button } from "@/components/ui/Button";
 import { Textarea } from "@/components/ui/Textarea";
-import { cn } from "@/shared/utils/merge-class-names";
+
 import { isApiError } from "@/lib/api";
 import { getUserCopy } from "@/lib/api/error-codes";
-
 import { reviewFormSchema } from "@/lib/forms/presets";
+
 import { StarRatingInput } from "@/features/reviews/components/StarRatingInput";
 import { ReviewGateNotice } from "@/features/reviews/components/ReviewGateState";
 import {
-  useReviewGate,
   useCreateReview,
+  useReviewGate,
   type UseReviewGateParams,
 } from "@/features/reviews/hooks";
+
+import { LOGIN_ROUTE } from "@/shared/config/routes";
+import { cn } from "@/shared/utils/merge-class-names";
 
 import { ReviewEditInline } from "./ReviewEditInline";
 
@@ -147,7 +152,7 @@ export function ReviewForm({
       );
     }
     if (state.kind === "unauthenticated") {
-      return <ReviewFormSignInPrompt startAttemptHref={startAttemptHref} />;
+      return <ReviewFormSignInPrompt />;
     }
     if (state.kind === "error") {
       return <ReviewFormErrorBanner onRetry={() => void revalidate()} />;
@@ -301,11 +306,7 @@ function ReviewFormSkeleton() {
   );
 }
 
-function ReviewFormSignInPrompt({
-  startAttemptHref,
-}: {
-  startAttemptHref?: string;
-}) {
+function ReviewFormSignInPrompt() {
   return (
     <div
       className="flex flex-col gap-2 rounded-lg border bg-card p-4 text-sm shadow-xs"
@@ -316,15 +317,13 @@ function ReviewFormSignInPrompt({
       <p className="text-muted-foreground">
         You need to be signed in to post a review for this quiz.
       </p>
-      {startAttemptHref ? (
-        <a
-          href={startAttemptHref}
-          className="text-sm font-medium text-primary underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-sm"
-          data-testid="review-form-signin-cta"
-        >
-          Sign in
-        </a>
-      ) : null}
+      <Link
+        href={LOGIN_ROUTE}
+        className="text-sm font-medium text-primary underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-sm"
+        data-testid="review-form-signin-cta"
+      >
+        Sign in
+      </Link>
     </div>
   );
 }

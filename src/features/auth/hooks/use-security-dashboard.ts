@@ -57,11 +57,11 @@ export function useSecurityDashboard(
         err && typeof err === "object" && "code" in err && "status" in err
           ? (err as ApiError)
           : null;
-      setState({
-        data: null,
+      setState((prev) => ({
+        ...prev,
         status: "error",
         error,
-      });
+      }));
     }
   }, [deps]);
 

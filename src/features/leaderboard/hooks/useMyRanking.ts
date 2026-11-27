@@ -3,15 +3,16 @@
 import { useMemo } from "react";
 
 import { ApiError, useSingleWithRetry } from "@/lib/api";
+import { getLeaderboards } from "@/lib/api/generated/leaderboards/leaderboards";
 
 import { useAuthState } from "@/features/auth/hooks/use-auth-state";
 
-import { getLeaderboards } from "@/lib/api/generated/leaderboards/leaderboards";
+import type { LeaderboardPeriod } from "@/features/leaderboard/services/leaderboard.service";
 import type {
-  UserRankResponseDto,
   PeakRanksResponseDto,
-  UserRankPositionDto,
   UserBadgesDto,
+  UserRankPositionDto,
+  UserRankResponseDto,
 } from "@/lib/api/generated/schemas";
 
 export interface UseMyRankingResult {
@@ -42,6 +43,15 @@ export function getAllTimePosition(
   data: UserRankResponseDto | null,
 ): UserRankPositionDto | null {
   return data?.global?.allTime ?? null;
+}
+
+export function getPositionForPeriod(
+  data: UserRankResponseDto | null,
+  period: LeaderboardPeriod,
+): UserRankPositionDto | null {
+  if (period === "monthly") return getMonthlyPosition(data);
+  if (period === "all_time") return getAllTimePosition(data);
+  return getWeeklyPosition(data);
 }
 
 export function getPeakRanks(
@@ -87,11 +97,11 @@ export function useMyRanking(): UseMyRankingResult {
           throw new DOMException("aborted", "AbortError");
         }
         if (!wire.data) {
-          throw new ApiError({
+          throw ApiError.fromInput({
             status: 502,
             code: "GLOBAL_INVALID_RESPONSE",
             message: "Empty payload from /leaderboard/me",
-          } as unknown as ConstructorParameters<typeof ApiError>[0]);
+          });
         }
         return wire.data;
       },

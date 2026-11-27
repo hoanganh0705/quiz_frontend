@@ -1,53 +1,31 @@
-import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
+// @vitest-environment jsdom
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { handleRemoteAccountDeleted } from "@/features/auth/lifecycle/deletion-cross-tab";
-import { runDeletionFinalization } from "@/features/auth/lifecycle/deletion-finalization";
-import { resetDeletionFinalizationForTesting } from "@/features/auth/lifecycle/deletion-finalization";
+import {
+  AUTH_PERSISTENT_KEYS,
+  AUTH_SYNC_KEYS,
+  isDeletionTerminal,
+  resetDeletionFinalizationForTesting,
+  runDeletionFinalization,
+} from "@/features/auth/lifecycle/deletion-finalization";
 
 import { ACCOUNT_DELETED_EVENT } from "./__fixtures__/deletion-event-fixture";
 
-const mocks = vi.hoisted(() => {
-  return {
-    capturedBroadcastListener: {
-      value: null as ((event: unknown) => void) | null,
-    },
-    subscribeToAuthEvents: vi.fn(),
-    broadcastAccountDeleted: vi.fn(),
-    broadcastAuthEvent: vi.fn(),
-    clearAllAuthCache: vi.fn(),
-    clearAuthToken: vi.fn(),
-    getAuthToken: vi.fn(() => "old-token"),
-    setAuthToken: vi.fn(),
-    clearVerificationFlags: vi.fn(),
-    cancelInFlightRefresh: vi.fn(),
-    markDeletionTerminal: vi.fn(),
-    clearDeletionTerminal: vi.fn(),
-    isDeletionTerminal: vi.fn(() => false),
-    buildDeletionReplaceHistory: vi.fn(() => () => {
-      // Best-effort: in jsdom this would overwrite history. The
-      // thunk is called for ordering and idempotence assertions.
-    }),
-    finalizeDeletedAccountAuthMarkers: vi.fn(),
-    clearAllDeletionCaches: vi.fn(() => ({
-      authCache: { ran: true, removedKeys: ["auth_cache_user1_identity"] },
-      persistedUserStore: { ran: true },
-      crossTabSyncKeys: { ran: true, removedKeys: ["auth_sync_LOGGED_OUT"] },
-      additionalPersistedKeys: { ran: true, removedKeys: [] },
-      inMemoryUserStore: { ran: true },
-    })),
-    clearDeletionPersistedAccountState: vi.fn(() => [
-      "user_store_v1",
-      "user_settings",
-    ]),
-    clearSensitiveDeletionFormValues: vi.fn(),
-    captureHandler: vi.fn((handler: (event: unknown) => void) => {
-      mocks.capturedBroadcastListener.value = handler;
-      return () => {
-        mocks.capturedBroadcastListener.value = null;
-      };
-    }),
-  };
-});
+const mocks = vi.hoisted(() => ({
+  broadcastAccountDeleted: vi.fn(),
+  broadcastAuthEvent: vi.fn(),
+  clearAuthToken: vi.fn(),
+  getAuthToken: vi.fn(() => "old-token"),
+  setAuthToken: vi.fn(),
+  clearVerificationFlags: vi.fn(),
+  cancelInFlightRefresh: vi.fn(),
+  clearUser: vi.fn(),
+  queryClientClear: vi.fn(),
+  buildDeletionReplaceHistory: vi.fn(() => () => {
+    // Best-effort no-op in jsdom
+  }),
+}));
 
 vi.mock("@/lib/api/core/broadcast-channel", async () => {
   const actual = await vi.importActual<
@@ -55,7 +33,6 @@ vi.mock("@/lib/api/core/broadcast-channel", async () => {
   >("@/lib/api/core/broadcast-channel");
   return {
     ...actual,
-    subscribeToAuthEvents: mocks.captureHandler,
     broadcastAccountDeleted: mocks.broadcastAccountDeleted,
     broadcastAuthEvent: mocks.broadcastAuthEvent,
   };
@@ -73,16 +50,6 @@ vi.mock("@/features/auth/utils/auth-cookies", async () => {
   };
 });
 
-vi.mock("@/features/auth/utils/user-scoped-cache", async () => {
-  const actual = await vi.importActual<
-    typeof import("@/features/auth/utils/user-scoped-cache")
-  >("@/features/auth/utils/user-scoped-cache");
-  return {
-    ...actual,
-    clearAllAuthCache: mocks.clearAllAuthCache,
-  };
-});
-
 vi.mock("@/features/auth/utils/verification-flag", async () => {
   const actual = await vi.importActual<
     typeof import("@/features/auth/utils/verification-flag")
@@ -97,49 +64,19 @@ vi.mock("@/lib/api/core/custom-instance", () => ({
   cancelInFlightRefresh: mocks.cancelInFlightRefresh,
 }));
 
-vi.mock("@/features/auth/lifecycle/deletion-terminal", async () => {
-  const actual = await vi.importActual<
-    typeof import("@/features/auth/lifecycle/deletion-terminal")
-  >("@/features/auth/lifecycle/deletion-terminal");
-  return {
-    ...actual,
-    markDeletionTerminal: mocks.markDeletionTerminal,
-    clearDeletionTerminal: mocks.clearDeletionTerminal,
-    isDeletionTerminal: mocks.isDeletionTerminal,
-  };
-});
+vi.mock("@/features/users/store/user-store", () => ({
+  useUserStore: {
+    getState: () => ({
+      clearUser: mocks.clearUser,
+    }),
+  },
+}));
 
-vi.mock("@/features/auth/lifecycle/deletion-auth-markers", async () => {
-  const actual = await vi.importActual<
-    typeof import("@/features/auth/lifecycle/deletion-auth-markers")
-  >("@/features/auth/lifecycle/deletion-auth-markers");
-  return {
-    ...actual,
-    finalizeDeletedAccountAuthMarkers: mocks.finalizeDeletedAccountAuthMarkers,
-  };
-});
-
-vi.mock("@/features/auth/lifecycle/deletion-cache-cleanup", async () => {
-  const actual = await vi.importActual<
-    typeof import("@/features/auth/lifecycle/deletion-cache-cleanup")
-  >("@/features/auth/lifecycle/deletion-cache-cleanup");
-  return {
-    ...actual,
-    clearAllDeletionCaches: mocks.clearAllDeletionCaches,
-  };
-});
-
-vi.mock("@/features/auth/lifecycle/deletion-persisted-state", async () => {
-  const actual = await vi.importActual<
-    typeof import("@/features/auth/lifecycle/deletion-persisted-state")
-  >("@/features/auth/lifecycle/deletion-persisted-state");
-  return {
-    ...actual,
-    clearDeletionPersistedAccountState:
-      mocks.clearDeletionPersistedAccountState,
-    clearSensitiveDeletionFormValues: mocks.clearSensitiveDeletionFormValues,
-  };
-});
+vi.mock("@/providers/QueryProvider", () => ({
+  getQueryClient: () => ({
+    clear: mocks.queryClientClear,
+  }),
+}));
 
 vi.mock("@/features/auth/lifecycle/deletion-history", async () => {
   const actual = await vi.importActual<
@@ -151,42 +88,18 @@ vi.mock("@/features/auth/lifecycle/deletion-history", async () => {
   };
 });
 
-
 beforeEach(() => {
   vi.resetAllMocks();
-  mocks.capturedBroadcastListener.value = null;
   resetDeletionFinalizationForTesting();
-  mocks.markDeletionTerminal.mockImplementation(() => {
-    mocks.isDeletionTerminal.mockReturnValue(true);
-  });
-  mocks.clearDeletionTerminal.mockImplementation(() => {
-    mocks.isDeletionTerminal.mockReturnValue(false);
-  });
-  mocks.isDeletionTerminal.mockReturnValue(false);
-  mocks.clearAllDeletionCaches.mockImplementation(() => ({
-    authCache: { ran: true, removedKeys: ["auth_cache_user1_identity"] },
-    persistedUserStore: { ran: true },
-    crossTabSyncKeys: { ran: true, removedKeys: ["auth_sync_LOGGED_OUT"] },
-    additionalPersistedKeys: { ran: true, removedKeys: [] },
-    inMemoryUserStore: { ran: true },
-  }));
-  mocks.clearDeletionPersistedAccountState.mockImplementation(() => [
-    "user_store_v1",
-    "user_settings",
-  ]);
-  mocks.buildDeletionReplaceHistory.mockImplementation(() => () => {
-    // Best-effort: in jsdom this would overwrite history. The
-    // thunk is called for ordering and idempotence assertions.
-  });
-
+  if (typeof localStorage !== "undefined") {
+    localStorage.clear();
+  }
+  mocks.buildDeletionReplaceHistory.mockImplementation(() => () => {});
   mocks.cancelInFlightRefresh.mockImplementation(() => undefined);
   mocks.clearVerificationFlags.mockImplementation(() => undefined);
   mocks.clearAuthToken.mockImplementation(() => undefined);
-  mocks.clearAllAuthCache.mockImplementation(() => undefined);
-  mocks.markDeletionTerminal.mockImplementation(() => {
-    mocks.isDeletionTerminal.mockReturnValue(true);
-  });
-  mocks.finalizeDeletedAccountAuthMarkers.mockImplementation(() => undefined);
+  mocks.clearUser.mockImplementation(() => undefined);
+  mocks.queryClientClear.mockImplementation(() => undefined);
   mocks.broadcastAccountDeleted.mockImplementation(() => undefined);
 });
 
@@ -195,44 +108,54 @@ afterEach(() => {
 });
 
 describe("runDeletionFinalization — local success cleanup", () => {
-  it("clears auth markers, caches, and persisted state in order", async () => {
+  it("clears auth markers, caches, query client, and persisted state in order", async () => {
     const order: string[] = [];
-    mocks.finalizeDeletedAccountAuthMarkers.mockImplementation(() => {
-      order.push("authMarkers");
+    localStorage.setItem("auth_cache_user1_identity", "1");
+    for (const key of AUTH_SYNC_KEYS) localStorage.setItem(key, "1");
+    for (const key of AUTH_PERSISTENT_KEYS) localStorage.setItem(key, "1");
+
+    mocks.clearAuthToken.mockImplementation(() => {
+      order.push("clearAuthToken");
     });
-    mocks.clearAllDeletionCaches.mockImplementation(() => {
-      order.push("caches");
-      return {
-        authCache: { ran: true, removedKeys: [] },
-        persistedUserStore: { ran: true },
-        crossTabSyncKeys: { ran: true, removedKeys: [] },
-        additionalPersistedKeys: { ran: true, removedKeys: [] },
-        inMemoryUserStore: { ran: true },
-      };
+    mocks.clearUser.mockImplementation(() => {
+      order.push("clearUser");
     });
-    mocks.clearDeletionPersistedAccountState.mockImplementation(() => {
-      order.push("persisted");
-      return ["user_store_v1"];
+    mocks.queryClientClear.mockImplementation(() => {
+      order.push("queryClientClear");
+    });
+    mocks.broadcastAccountDeleted.mockImplementation(() => {
+      order.push("broadcastAccountDeleted");
     });
 
     const result = await runDeletionFinalization();
 
     expect(result.alreadyFinalized).toBe(false);
-    expect(order).toEqual(["authMarkers", "caches", "persisted"]);
+    expect(result.errors).toHaveLength(0);
+    expect(isDeletionTerminal()).toBe(true);
+    expect(localStorage.getItem("auth_cache_user1_identity")).toBeNull();
+    for (const key of AUTH_SYNC_KEYS) {
+      expect(localStorage.getItem(key)).toBeNull();
+    }
+    for (const key of AUTH_PERSISTENT_KEYS) {
+      expect(localStorage.getItem(key)).toBeNull();
+    }
+    expect(order).toEqual([
+      "clearAuthToken",
+      "clearUser",
+      "queryClientClear",
+      "broadcastAccountDeleted",
+    ]);
   });
 
-  it("marks the deletion terminal flag before any await", async () => {
-    const order: string[] = [];
-    mocks.markDeletionTerminal.mockImplementation(() => {
-      order.push("markDeletionTerminal");
-    });
-    mocks.finalizeDeletedAccountAuthMarkers.mockImplementation(() => {
-      order.push("authMarkers");
+  it("marks the deletion terminal flag before auth markers are cleared", async () => {
+    let wasTerminalDuringAuthClear = false;
+    mocks.clearVerificationFlags.mockImplementation(() => {
+      wasTerminalDuringAuthClear = isDeletionTerminal();
     });
 
     await runDeletionFinalization();
 
-    expect(order[0]).toBe("markDeletionTerminal");
+    expect(wasTerminalDuringAuthClear).toBe(true);
   });
 
   it("broadcasts ACCOUNT_DELETED exactly once on the originator path", async () => {
@@ -261,60 +184,38 @@ describe("runDeletionFinalization — local success cleanup", () => {
     const second = await runDeletionFinalization();
     expect(second.alreadyFinalized).toBe(true);
 
-    expect(mocks.finalizeDeletedAccountAuthMarkers).toHaveBeenCalledTimes(1);
-    expect(mocks.clearAllDeletionCaches).toHaveBeenCalledTimes(1);
-    expect(mocks.clearDeletionPersistedAccountState).toHaveBeenCalledTimes(1);
+    expect(mocks.clearAuthToken).toHaveBeenCalledTimes(1);
+    expect(mocks.clearUser).toHaveBeenCalledTimes(1);
+    expect(mocks.queryClientClear).toHaveBeenCalledTimes(1);
     expect(mocks.broadcastAccountDeleted).toHaveBeenCalledTimes(1);
   });
 });
 
 describe("runDeletionFinalization — partial cleanup failure", () => {
   it("continues cleanup when the auth-marker step throws", async () => {
-    mocks.finalizeDeletedAccountAuthMarkers.mockImplementation(() => {
+    mocks.clearAuthToken.mockImplementation(() => {
       throw new Error("quota exceeded");
     });
 
     const result = await runDeletionFinalization();
 
     expect(result.errors).toHaveLength(1);
-    if (result.errors[0]) {
-      expect(result.errors[0].step).toBe("clearAuthMarkers");
-    }
-
-    expect(mocks.clearAllDeletionCaches).toHaveBeenCalledTimes(1);
-    expect(mocks.clearDeletionPersistedAccountState).toHaveBeenCalledTimes(1);
+    expect(result.errors[0]?.step).toBe("clearAuthMarkers");
+    expect(mocks.clearUser).toHaveBeenCalledTimes(1);
+    expect(mocks.queryClientClear).toHaveBeenCalledTimes(1);
     expect(mocks.broadcastAccountDeleted).toHaveBeenCalledTimes(1);
   });
 
-  it("continues cleanup when the cache step throws", async () => {
-    mocks.clearAllDeletionCaches.mockImplementation(() => {
+  it("continues cleanup when the query cache clear throws", async () => {
+    mocks.queryClientClear.mockImplementation(() => {
       throw new Error("cache write failed");
     });
 
     const result = await runDeletionFinalization();
 
     expect(result.errors).toHaveLength(1);
-    if (result.errors[0]) {
-      expect(result.errors[0].step).toBe("clearAllDeletionCaches");
-    }
-    expect(mocks.finalizeDeletedAccountAuthMarkers).toHaveBeenCalledTimes(1);
-    expect(mocks.clearDeletionPersistedAccountState).toHaveBeenCalledTimes(1);
-    expect(mocks.broadcastAccountDeleted).toHaveBeenCalledTimes(1);
-  });
-
-  it("continues cleanup when the persisted-state step throws", async () => {
-    mocks.clearDeletionPersistedAccountState.mockImplementation(() => {
-      throw new Error("persisted write failed");
-    });
-
-    const result = await runDeletionFinalization();
-
-    expect(result.errors).toHaveLength(1);
-    if (result.errors[0]) {
-      expect(result.errors[0].step).toBe("clearPersistedAccountState");
-    }
-    expect(mocks.finalizeDeletedAccountAuthMarkers).toHaveBeenCalledTimes(1);
-    expect(mocks.clearAllDeletionCaches).toHaveBeenCalledTimes(1);
+    expect(result.errors[0]?.step).toBe("clearAllDeletionCaches");
+    expect(mocks.clearAuthToken).toHaveBeenCalledTimes(1);
     expect(mocks.broadcastAccountDeleted).toHaveBeenCalledTimes(1);
   });
 
@@ -326,19 +227,16 @@ describe("runDeletionFinalization — partial cleanup failure", () => {
     const result = await runDeletionFinalization();
 
     expect(result.errors).toHaveLength(1);
-    if (result.errors[0]) {
-      expect(result.errors[0].step).toBe("broadcastDeletion");
-    }
-
-    expect(mocks.finalizeDeletedAccountAuthMarkers).toHaveBeenCalledTimes(1);
-    expect(mocks.clearAllDeletionCaches).toHaveBeenCalledTimes(1);
+    expect(result.errors[0]?.step).toBe("broadcastDeletion");
+    expect(mocks.clearAuthToken).toHaveBeenCalledTimes(1);
+    expect(mocks.queryClientClear).toHaveBeenCalledTimes(1);
   });
 
-  it("collects errors from multiple failing steps", async () => {
-    mocks.finalizeDeletedAccountAuthMarkers.mockImplementation(() => {
+  it("collects errors from multiple failing steps and keeps terminal marker set", async () => {
+    mocks.clearAuthToken.mockImplementation(() => {
       throw new Error("a");
     });
-    mocks.clearAllDeletionCaches.mockImplementation(() => {
+    mocks.queryClientClear.mockImplementation(() => {
       throw new Error("b");
     });
 
@@ -348,22 +246,7 @@ describe("runDeletionFinalization — partial cleanup failure", () => {
     const steps = result.errors.map((e) => e.step);
     expect(steps).toContain("clearAuthMarkers");
     expect(steps).toContain("clearAllDeletionCaches");
-  });
-
-  it("always sets the terminal marker, even when every cleanup step throws", async () => {
-    mocks.finalizeDeletedAccountAuthMarkers.mockImplementation(() => {
-      throw new Error("a");
-    });
-    mocks.clearAllDeletionCaches.mockImplementation(() => {
-      throw new Error("b");
-    });
-    mocks.clearDeletionPersistedAccountState.mockImplementation(() => {
-      throw new Error("c");
-    });
-
-    await runDeletionFinalization();
-
-    expect(mocks.markDeletionTerminal).toHaveBeenCalledTimes(1);
+    expect(isDeletionTerminal()).toBe(true);
   });
 });
 
@@ -387,23 +270,20 @@ describe("handleRemoteAccountDeleted — cross-tab receiver", () => {
     await new Promise((resolve) => setImmediate(resolve));
     await Promise.resolve();
 
-    expect(mocks.finalizeDeletedAccountAuthMarkers).toHaveBeenCalled();
-    expect(mocks.clearAllDeletionCaches).toHaveBeenCalled();
-    expect(mocks.clearDeletionPersistedAccountState).toHaveBeenCalled();
+    expect(mocks.clearAuthToken).toHaveBeenCalled();
+    expect(mocks.clearUser).toHaveBeenCalled();
+    expect(mocks.queryClientClear).toHaveBeenCalled();
   });
 
-  it("marks the deletion terminal flag before any await", () => {
-    const order: string[] = [];
-    mocks.markDeletionTerminal.mockImplementation(() => {
-      order.push("markDeletionTerminal");
-    });
+  it("marks the deletion terminal flag before cancelling refresh", () => {
+    let wasTerminalDuringCancel = false;
     mocks.cancelInFlightRefresh.mockImplementation(() => {
-      order.push("cancelInFlightRefresh");
+      wasTerminalDuringCancel = isDeletionTerminal();
     });
 
     handleRemoteAccountDeleted(ACCOUNT_DELETED_EVENT);
 
-    expect(order[0]).toBe("markDeletionTerminal");
+    expect(wasTerminalDuringCancel).toBe(true);
   });
 
   it("cancels any in-flight refresh", () => {
@@ -412,12 +292,11 @@ describe("handleRemoteAccountDeleted — cross-tab receiver", () => {
     expect(mocks.cancelInFlightRefresh).toHaveBeenCalledTimes(1);
   });
 
-  it("clears the access token cookie and the auth cache", () => {
+  it("clears the access token cookie and verification flags", () => {
     handleRemoteAccountDeleted(ACCOUNT_DELETED_EVENT);
 
-    expect(mocks.clearAuthToken).toHaveBeenCalledTimes(1);
-    expect(mocks.clearAllAuthCache).toHaveBeenCalledTimes(1);
-    expect(mocks.clearVerificationFlags).toHaveBeenCalledTimes(1);
+    expect(mocks.clearAuthToken).toHaveBeenCalled();
+    expect(mocks.clearVerificationFlags).toHaveBeenCalled();
   });
 
   it("does NOT broadcast ACCOUNT_DELETED on the receiver path (no loop)", async () => {
@@ -434,11 +313,5 @@ describe("handleRemoteAccountDeleted — cross-tab receiver", () => {
     await Promise.resolve();
 
     expect(mocks.buildDeletionReplaceHistory).toHaveBeenCalled();
-  });
-
-  it("does NOT call logout on the receiver path", () => {
-    handleRemoteAccountDeleted(ACCOUNT_DELETED_EVENT);
-
-    expect(mocks.clearAuthToken).toHaveBeenCalledTimes(1);
   });
 });

@@ -7,7 +7,7 @@ import { ApiError } from "@/lib/api";
 import {
   SlugConflictNotice,
   type SlugConflictNoticeProps,
-} from "@/features/admin/tag-admin/components/SlugConflictNotice";
+} from "@/features/admin/components/SlugConflictNotice";
 
 export interface CategorySlugConflictNoticeProps extends Omit<
   SlugConflictNoticeProps,

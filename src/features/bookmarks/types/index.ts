@@ -86,6 +86,67 @@ function hashStringToIndex(str: string): number {
   return Math.abs(hash) % PRESET_COLORS.length;
 }
 
+export interface CollectionColorClasses {
+  readonly badgeBg: string;
+  readonly iconText: string;
+  readonly accentBar: string;
+}
+
+const DEFAULT_COLLECTION_COLOR_CLASSES: CollectionColorClasses = {
+  badgeBg: "bg-brand/15",
+  iconText: "text-brand",
+  accentBar: "bg-brand",
+};
+
+const PRESET_COLOR_CLASS_MAP: Readonly<Record<string, CollectionColorClasses>> =
+  {
+    "#ef4444": {
+      badgeBg: "bg-red-500/15",
+      iconText: "text-red-500",
+      accentBar: "bg-red-500",
+    },
+    "#f97316": {
+      badgeBg: "bg-orange-500/15",
+      iconText: "text-orange-500",
+      accentBar: "bg-orange-500",
+    },
+    "#eab308": {
+      badgeBg: "bg-amber-500/15",
+      iconText: "text-amber-500",
+      accentBar: "bg-amber-500",
+    },
+    "#22c55e": {
+      badgeBg: "bg-emerald-500/15",
+      iconText: "text-emerald-500",
+      accentBar: "bg-emerald-500",
+    },
+    "#14b8a6": {
+      badgeBg: "bg-teal-500/15",
+      iconText: "text-teal-500",
+      accentBar: "bg-teal-500",
+    },
+    "#3b82f6": {
+      badgeBg: "bg-blue-500/15",
+      iconText: "text-blue-500",
+      accentBar: "bg-blue-500",
+    },
+    "#8b5cf6": {
+      badgeBg: "bg-violet-500/15",
+      iconText: "text-violet-500",
+      accentBar: "bg-violet-500",
+    },
+    "#ec4899": {
+      badgeBg: "bg-pink-500/15",
+      iconText: "text-pink-500",
+      accentBar: "bg-pink-500",
+    },
+    "#6b7280": {
+      badgeBg: "bg-muted",
+      iconText: "text-muted-foreground",
+      accentBar: "bg-muted-foreground",
+    },
+  };
+
 export function getCollectionColor(collection: BookmarkCollection): string {
   if (
     collection.color &&
@@ -95,6 +156,13 @@ export function getCollectionColor(collection: BookmarkCollection): string {
     return collection.color;
   }
   return PRESET_COLORS[hashStringToIndex(collection.collectionId)];
+}
+
+export function getCollectionColorClasses(
+  collection: BookmarkCollection,
+): CollectionColorClasses {
+  const resolved = getCollectionColor(collection).trim().toLowerCase();
+  return PRESET_COLOR_CLASS_MAP[resolved] ?? DEFAULT_COLLECTION_COLOR_CLASSES;
 }
 
 export const BOOKMARK_COLLECTIONS_LOOKUP_KEY = [

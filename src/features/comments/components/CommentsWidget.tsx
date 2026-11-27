@@ -10,9 +10,10 @@ import { logger } from "@/shared/log";
 import { isApiError } from "@/lib/api";
 import { getUserCopy } from "@/lib/api/error-codes";
 
-import { CommentThreadList } from "./CommentThreadList";
-import { useAuth } from "@/features/auth/hooks/use-auth";
+import { useAuthSession } from "@/features/auth/hooks/use-auth-session";
 import { useCommentRealtime } from "@/features/comments/hooks/useCommentRealtime";
+
+import { CommentThreadList } from "./CommentThreadList";
 
 export interface CommentsWidgetProps {
   quizId: string;
@@ -34,12 +35,15 @@ export function CommentsWidget({ quizId, className }: CommentsWidgetProps) {
 }
 
 function WidgetBody({ quizId }: { quizId: string }) {
-  const { currentUser, isLoading: isAuthLoading } = useAuth();
+  const {
+    currentUserId,
+    isAuthenticated,
+    isBootstrapping: isAuthLoading,
+  } = useAuthSession();
 
-  const { isConnected } = useCommentRealtime(
-    quizId,
-    currentUser?.userId ?? null,
-  );
+  const { isConnected } = useCommentRealtime(quizId, currentUserId, {
+    enabled: isAuthenticated,
+  });
 
   if (isAuthLoading) {
     return (
@@ -71,8 +75,8 @@ function WidgetBody({ quizId }: { quizId: string }) {
       </div>
       <CommentThreadList
         quizId={quizId}
-        currentUserId={currentUser?.userId ?? null}
-        isAuthenticated={Boolean(currentUser)}
+        currentUserId={currentUserId}
+        isAuthenticated={isAuthenticated}
       />
     </CommentsErrorBoundary>
   );

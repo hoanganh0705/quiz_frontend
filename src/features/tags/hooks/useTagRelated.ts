@@ -3,9 +3,10 @@
 import { useQuery } from "@tanstack/react-query";
 import { getQueryClient } from "@/providers/QueryProvider";
 
-import { ApiError } from "@/lib/api";
+import { ApiError, coerceToApiError } from "@/lib/api";
 import type { TagResponseDto } from "@/lib/api/generated/schemas";
 
+import { TAG_KEYS } from "@/features/tags/query-keys";
 import { getRelatedTags } from "@/features/tags/services/tags.service";
 
 export interface UseTagRelatedParams {
@@ -22,15 +23,14 @@ export function useTagRelated(
   slug: string,
   params: UseTagRelatedParams = {},
 ): UseTagRelatedResult {
-  const key = ["tag", slug, "related", params] as const;
-
   const { data, error, isLoading } = useQuery(
     {
-      queryKey: key,
+      queryKey: TAG_KEYS.related(slug, params),
       queryFn: async () => {
         const result = await getRelatedTags(slug, { limit: params.limit });
         return result.data ?? [];
       },
+      enabled: Boolean(slug),
     },
     getQueryClient(),
   );
@@ -38,6 +38,6 @@ export function useTagRelated(
   return {
     tags: data ?? [],
     isLoading,
-    error: error instanceof ApiError ? error : null,
+    error: error ? coerceToApiError(error) : null,
   };
 }

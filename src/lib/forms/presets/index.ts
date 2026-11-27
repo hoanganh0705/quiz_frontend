@@ -59,7 +59,12 @@ export const quizQuestionFormSchema = z.object({
     .url("Image URL must be a valid URL.")
     .nullable()
     .optional(),
-  answerOptions: quizAnswerOptionFormSchema,
+  answerOptions: z.union([
+    z
+      .array(quizAnswerOptionFormSchema)
+      .min(2, "Each question must include at least 2 answer options."),
+    quizAnswerOptionFormSchema,
+  ]),
 
   questionType: z.enum(QUESTION_TYPE_VALUES).default("single_choice"),
 });

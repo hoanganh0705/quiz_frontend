@@ -51,6 +51,14 @@ export function consumeRecentlyVerified(actionId: string): boolean {
   return true;
 }
 
+function readRecentlyVerifiedPure(actionId: string): boolean {
+  const entry = flags.get(actionId);
+  if (!entry) {
+    return false;
+  }
+  return Date.now() - entry.markedAt < entry.ttlMs;
+}
+
 export function isRecentlyVerified(actionId: string): boolean {
   const entry = flags.get(actionId);
   if (!entry) {
@@ -89,7 +97,7 @@ export function useVerificationFlag(actionId: string): boolean {
     };
   };
 
-  const getSnapshot = (): boolean => isRecentlyVerified(actionId);
+  const getSnapshot = (): boolean => readRecentlyVerifiedPure(actionId);
   const getServerSnapshot = (): boolean => false;
 
   return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);

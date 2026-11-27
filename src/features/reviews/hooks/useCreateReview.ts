@@ -1,82 +1,38 @@
 "use client";
 
-import { useCallback, useMemo, useRef, useState } from "react";
-import { getQueryClient } from "@/providers/QueryProvider";
+import { useCallback, useRef, useState } from "react";
 
-import { isApiError, ApiError } from "@/lib/api";
+import { ApiError, isApiError } from "@/lib/api";
 
-import { useAuthSession } from "@/features/auth/hooks/use-auth-session";
+import { useAuthSessionId } from "@/features/auth/hooks/use-auth-session-id";
+import { invalidateReviewCaches } from "@/features/reviews/query-keys";
 import { createReview } from "@/features/reviews/services/reviews.service";
-import { invalidateReviewCaches } from "@/features/reviews/types";
 
 import type { CreateReviewDto } from "@/lib/api/generated/schemas";
 
 export type CreateReviewOutcomeKind =
-  "success" | "attempt-required" | "conflict" | "validation" | "reverted";
+  | "success"
+  | "attempt-required"
+  | "conflict"
+  | "validation"
+  | "reverted";
 
 export interface CreateReviewOutcome {
   kind: CreateReviewOutcomeKind;
-
   cause: ApiError | null;
 }
 
 export interface UseCreateReviewOptions {
   onSuccess?: () => void;
-
   onError?: (outcome: CreateReviewOutcome) => void;
 }
 
 export interface UseCreateReviewResult {
   submit: (payload: CreateReviewDto) => Promise<boolean>;
-
   isLoading: boolean;
-
   error: ApiError | null;
-
   lastOutcome: CreateReviewOutcome | null;
-
   reset: () => void;
-}
-
-function makeSyntheticApiError(
-  status: number,
-  code: string,
-  message: string,
-): ApiError {
-  return new ApiError({
-    isAxiosError: true,
-    name: "AxiosError",
-    message,
-    code,
-    config: undefined,
-    request: undefined,
-    response: {
-      status,
-      statusText: message,
-      data: {
-        type: "https://api.quiz.local/problems/synthetic",
-        title: message,
-        status,
-        detail: message,
-        extensions: { code, requestId: "req-synthetic" },
-      },
-      headers: {},
-      config: undefined as never,
-    },
-    toJSON: () => ({}),
-  } as unknown as Parameters<typeof ApiError.fromAxios>[0]);
-}
-
-async function invalidateAllReviewKeysForQuiz(quizId: string): Promise<void> {
-  try {
-    const qc = getQueryClient();
-    await qc.invalidateQueries({
-      predicate: (query) =>
-        Array.isArray(query.queryKey) &&
-        query.queryKey[0] === "reviews" &&
-        query.queryKey[2] === quizId,
-    });
-  } catch {}
 }
 
 export function useCreateReview(
@@ -92,25 +48,23 @@ export function useCreateReview(
   );
 
   const inFlightRef = useRef<Promise<boolean> | null>(null);
-
-  const { currentUser } = useAuthSession();
-  const sessionId = useMemo<string | null>(() => {
-    const u = currentUser as { id?: string; userId?: string } | null;
-    if (!u) return null;
-    return u.id ?? u.userId ?? null;
-  }, [currentUser]);
+  const sessionId = useAuthSessionId();
 
   const handleSubmit = useCallback(
     async (payload: CreateReviewDto): Promise<boolean> => {
       if (!quizId) {
-        const synthetic = makeSyntheticApiError(
-          0,
-          "REVIEW_VALIDATION",
-          "quizId is required to submit a review",
-        );
-        setError(synthetic);
-        setLastOutcome({ kind: "validation", cause: synthetic });
-        onError?.({ kind: "validation", cause: synthetic });
+        const validationError = ApiError.fromInput({
+          status: 0,
+          code: "REVIEW_VALIDATION",
+          message: "quizId is required to submit a review",
+        });
+        setError(validationError);
+        const outcome: CreateReviewOutcome = {
+          kind: "validation",
+          cause: validationError,
+        };
+        setLastOutcome(outcome);
+        onError?.(outcome);
         return false;
       }
 
@@ -126,29 +80,25 @@ export function useCreateReview(
         try {
           await createReview(quizId, payload);
 
-          if (sessionId) {
-            await invalidateReviewCaches({
-              quizId,
-              sessionId,
-            });
-          } else {
-            await invalidateAllReviewKeysForQuiz(quizId);
-          }
+          await invalidateReviewCaches({
+            quizId,
+            sessionId,
+          });
 
           setLastOutcome({ kind: "success", cause: null });
           onSuccess?.();
           return true;
         } catch (cause: unknown) {
           if (!isApiError(cause)) {
-            const synthetic = makeSyntheticApiError(
-              0,
-              "GLOBAL_UNKNOWN",
-              String(cause),
-            );
-            setError(synthetic);
+            const unknownError = ApiError.fromInput({
+              status: 0,
+              code: "GLOBAL_UNKNOWN",
+              message: cause instanceof Error ? cause.message : String(cause),
+            });
+            setError(unknownError);
             const outcome: CreateReviewOutcome = {
               kind: "reverted",
-              cause: synthetic,
+              cause: unknownError,
             };
             setLastOutcome(outcome);
             onError?.(outcome);
@@ -157,14 +107,10 @@ export function useCreateReview(
 
           switch (cause.code) {
             case "REVIEW_ATTEMPT_REQUIRED": {
-              if (sessionId) {
-                await invalidateReviewCaches({
-                  quizId,
-                  sessionId,
-                });
-              } else {
-                await invalidateAllReviewKeysForQuiz(quizId);
-              }
+              await invalidateReviewCaches({
+                quizId,
+                sessionId,
+              });
               setError(cause);
               const outcome: CreateReviewOutcome = {
                 kind: "attempt-required",
@@ -175,14 +121,10 @@ export function useCreateReview(
               return false;
             }
             case "REVIEW_CONFLICT": {
-              if (sessionId) {
-                await invalidateReviewCaches({
-                  quizId,
-                  sessionId,
-                });
-              } else {
-                await invalidateAllReviewKeysForQuiz(quizId);
-              }
+              await invalidateReviewCaches({
+                quizId,
+                sessionId,
+              });
               setError(cause);
               const outcome: CreateReviewOutcome = { kind: "conflict", cause };
               setLastOutcome(outcome);

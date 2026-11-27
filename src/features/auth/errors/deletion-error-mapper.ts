@@ -7,7 +7,7 @@ import {
   USER_NOT_FOUND,
   isDeletionRecoverableStatus,
   isUserNotFoundError,
-} from "./deletion-error-codes";
+} from "./auth-error-codes";
 
 export type DeletionErrorClassification =
   | {

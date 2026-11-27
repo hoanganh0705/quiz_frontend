@@ -1,12 +1,15 @@
 "use client";
 
+import { useState } from "react";
+
 import {
   FEATURED_RAIL_LIMIT,
   type QuizListItemDto,
 } from "@/features/quizzes/types/home-rails";
+
+import { HomeFeaturedRefreshButton } from "./HomeFeaturedRefreshButton";
 import { QuizRail } from "./QuizRail";
 import { QuizRailEmpty } from "./QuizRailEmpty";
-import { HomeFeaturedRefreshButton } from "./HomeFeaturedRefreshButton";
 
 export interface HomeFeaturedRailProps {
   items?: readonly QuizListItemDto[];
@@ -19,14 +22,28 @@ export function HomeFeaturedRail({
   title = "Featured",
   className,
 }: HomeFeaturedRailProps): React.ReactElement {
-  const visibleQuizzes = (items ?? []).slice(0, FEATURED_RAIL_LIMIT);
+  const [refreshedItems, setRefreshedItems] = useState<
+    readonly QuizListItemDto[] | null
+  >(null);
+  const visibleQuizzes = (refreshedItems ?? items ?? []).slice(
+    0,
+    FEATURED_RAIL_LIMIT,
+  );
 
   return (
     <QuizRail
       layout="grid"
       title={title}
       subtitle="Specially selected quizzes you don’t want to miss"
-      filter={<HomeFeaturedRefreshButton />}
+      filter={
+        <HomeFeaturedRefreshButton
+          onRefreshed={(data) => {
+            if (data?.featured) {
+              setRefreshedItems(data.featured);
+            }
+          }}
+        />
+      }
       gridItems={visibleQuizzes}
       className={className}
     >
@@ -40,9 +57,8 @@ export function HomeFeaturedRail({
   );
 }
 
-// Re-export so other rails can drive the same cache key.
 export {
   refreshHomeBundle,
   type FeaturedRefreshHandle,
   type HomeBundleData,
-} from "./refresh-home-bundle";
+} from "@/features/quizzes/services/quizzes.service";

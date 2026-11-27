@@ -1,3 +1,5 @@
+import { PAGE_CONTAINER_CLASS } from "@/shared/layout/constants";
+
 import { QuizCardSkeleton } from "@/components/primitives/QuizCard/QuizCardSkeleton";
 import { Skeleton } from "@/components/ui/Skeleton";
 
@@ -6,7 +8,7 @@ import { QuizStatsPanelSkeleton } from "./QuizStatsPanel";
 export function QuizDetailPageSkeleton() {
   return (
     <div
-      className="mx-auto min-h-screen w-full max-w-6xl overflow-x-hidden px-4 py-6 sm:px-6 sm:py-8 lg:px-8"
+      className={`${PAGE_CONTAINER_CLASS} overflow-x-hidden`}
       aria-label="Loading quiz details"
       aria-busy="true"
       data-testid="quiz-detail-page-skeleton"

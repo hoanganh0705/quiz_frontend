@@ -3,8 +3,12 @@
 import { useCallback, useRef, useState } from "react";
 import { getQueryClient } from "@/providers/QueryProvider";
 
-import { isApiError, ApiError } from "@/lib/api";
+import { ApiError, isApiError } from "@/lib/api";
 
+import {
+  isReviewListPageForQuiz,
+  REVIEW_KEYS,
+} from "@/features/reviews/query-keys";
 import {
   markReviewHelpful,
   unmarkReviewHelpful,
@@ -35,15 +39,6 @@ export interface UseHelpfulReviewResult {
 
 const COOLDOWN_MS = 500;
 
-function isReviewListPageForQuiz(
-  key: readonly unknown[],
-  quizId: string,
-): boolean {
-  if (!Array.isArray(key)) return false;
-  if (key[0] !== "reviews" || key[1] !== "quiz") return false;
-  return key[2] === quizId;
-}
-
 function applyCountDeltaToPage(
   page: CursorPage<ReviewDto>,
   reviewId: string,
@@ -71,12 +66,15 @@ async function applyOptimisticCountDelta(
     qc.setQueriesData(
       { predicate: (query) => isReviewListPageForQuiz(query.queryKey, quizId) },
       (current: unknown): unknown => {
-        if (!current) return current;
-        const anyCurrent = current as any;
-        if (anyCurrent.pages && Array.isArray(anyCurrent.pages)) {
+        if (!current || typeof current !== "object") return current;
+        const record = current as {
+          pages?: unknown;
+          items?: unknown;
+        };
+        if (Array.isArray(record.pages)) {
           return {
-            ...anyCurrent,
-            pages: anyCurrent.pages.map((p: any) =>
+            ...record,
+            pages: record.pages.map((p) =>
               applyCountDeltaToPage(
                 p as CursorPage<ReviewDto>,
                 reviewId,
@@ -85,9 +83,9 @@ async function applyOptimisticCountDelta(
             ),
           };
         }
-        if (Array.isArray(anyCurrent.items)) {
+        if (Array.isArray(record.items)) {
           return applyCountDeltaToPage(
-            anyCurrent as CursorPage<ReviewDto>,
+            record as CursorPage<ReviewDto>,
             reviewId,
             delta,
           );
@@ -102,7 +100,7 @@ async function revalidateReviewListPages(quizId: string): Promise<void> {
   try {
     const qc = getQueryClient();
     await qc.invalidateQueries({
-      predicate: (query) => isReviewListPageForQuiz(query.queryKey, quizId),
+      queryKey: REVIEW_KEYS.byQuiz(quizId),
     });
   } catch {}
 }
@@ -153,11 +151,15 @@ export function useHelpfulReview(
     } catch (cause: unknown) {
       setViewerMarkedHelpful(previousMarkedRef.current);
       await revalidateReviewListPages(quizId);
-      if (isApiError(cause)) {
-        setLastError(cause);
-      } else {
-        setLastError(makeSyntheticApiError(0, "GLOBAL_UNKNOWN", String(cause)));
-      }
+      setLastError(
+        isApiError(cause)
+          ? cause
+          : ApiError.fromInput({
+              status: 0,
+              code: "GLOBAL_UNKNOWN",
+              message: cause instanceof Error ? cause.message : String(cause),
+            }),
+      );
     } finally {
       setIsPending(false);
     }
@@ -174,33 +176,4 @@ export function useHelpfulReview(
     lastError,
     reset,
   };
-}
-
-function makeSyntheticApiError(
-  status: number,
-  code: string,
-  message: string,
-): ApiError {
-  return new ApiError({
-    isAxiosError: true,
-    name: "AxiosError",
-    message,
-    code,
-    config: undefined,
-    request: undefined,
-    response: {
-      status,
-      statusText: message,
-      data: {
-        type: "https://api.quiz.local/problems/synthetic",
-        title: message,
-        status,
-        detail: message,
-        extensions: { code, requestId: "req-synthetic" },
-      },
-      headers: {},
-      config: undefined as never,
-    },
-    toJSON: () => ({}),
-  } as unknown as Parameters<typeof ApiError.fromAxios>[0]);
 }

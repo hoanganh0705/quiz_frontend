@@ -149,8 +149,8 @@ function SecuritySummaryCardInner({
   error,
   refetch,
 }: SecuritySummaryCardProps) {
-  // Loading branch — stable footprint, no spinner.
-  if (status === "loading") {
+  // Loading / pre-fetch idle branch — stable footprint, no error flash.
+  if (status === "idle" || status === "loading") {
     return (
       <Card data-testid="security-summary-card" data-status="loading">
         <CardHeader>

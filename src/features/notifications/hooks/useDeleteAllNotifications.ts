@@ -2,7 +2,7 @@
 
 import { useCallback, useRef, useState } from "react";
 
-import { ApiError, isApiError } from "@/lib/api";
+import { ApiError, coerceToApiError } from "@/lib/api";
 import { getQueryClient } from "@/providers/QueryProvider";
 
 import { deleteAllNotifications } from "@/features/notifications/services/notifications.service";
@@ -98,22 +98,8 @@ export function useDeleteAllNotifications(): UseDeleteAllNotificationsResult {
         queryKey: NOTIFICATION_CACHE_KEYS.unreadCount(),
       });
 
-      if (isApiError(cause)) {
-        setState("error");
-        setError(cause);
-      } else if (cause instanceof Error) {
-        const mappedError = new ApiError(
-          cause as unknown as ConstructorParameters<typeof ApiError>[0],
-        );
-        setState("error");
-        setError(mappedError);
-      } else {
-        const mappedError = new ApiError(
-          cause as unknown as ConstructorParameters<typeof ApiError>[0],
-        );
-        setState("error");
-        setError(mappedError);
-      }
+      setState("error");
+      setError(coerceToApiError(cause));
     } finally {
       inFlightRef.current = false;
     }

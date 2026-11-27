@@ -78,7 +78,6 @@ export function useRelationship(
   }, [targetUserId, viewerUserId]);
 
   const key = useMemo<readonly unknown[] | null>(() => {
-    if (false) return null;
     if (!isAuthenticated) return null;
     if (targetUserId === null) return null;
     if (isSelf) return null;
@@ -86,7 +85,6 @@ export function useRelationship(
   }, [isAuthenticated, targetUserId, isSelf]);
 
   const fetcher = useCallback(async (): Promise<Relationship> => {
-    if (false) return "none";
     if (!isAuthenticated) return "none";
     if (targetUserId === null) return "none";
     if (isSelf) return "self";

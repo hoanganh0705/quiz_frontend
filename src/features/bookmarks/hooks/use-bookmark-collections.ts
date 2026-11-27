@@ -1,14 +1,18 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+
+import { coerceToApiError } from "@/lib/api";
 import { getQueryClient } from "@/providers/QueryProvider";
 
-import { ApiError, isApiError } from "@/lib/api";
-import type { BookmarkCollectionResponseDto } from "@/lib/api/generated/schemas";
 import { useAuthState } from "@/features/auth/hooks/use-auth-state";
 import { listCollections } from "@/features/bookmarks/api";
+import { BOOKMARK_KEYS } from "@/features/bookmarks/query-keys";
 
-export const bookmarkCollectionsKey = () => ["bookmark-collections"] as const;
+import type { ApiError } from "@/lib/api";
+import type { BookmarkCollectionResponseDto } from "@/lib/api/generated/schemas";
+
+export const bookmarkCollectionsKey = () => BOOKMARK_KEYS.all;
 
 export interface UseBookmarkCollectionsResult {
   collections: ReadonlyArray<BookmarkCollectionResponseDto>;
@@ -28,7 +32,7 @@ export function useBookmarkCollections(): UseBookmarkCollectionsResult {
 
   const queryKey = isAuthenticated
     ? bookmarkCollectionsKey()
-    : ["bookmark-collections", "disabled"];
+    : (["bookmark-collections", "disabled"] as const);
 
   const query = useQuery(
     {
@@ -41,20 +45,9 @@ export function useBookmarkCollections(): UseBookmarkCollectionsResult {
   );
 
   const collections = extractCollections(query.data);
-
-  const error: ApiError | null = (() => {
-    const first = query.error;
-    if (!first) return null;
-    if (isApiError(first)) return first;
-
-    if (first && typeof first === "object" && "status" in first) {
-      return first as unknown as ApiError;
-    }
-    return {
-      status: 0,
-      message: first instanceof Error ? first.message : String(first),
-    } as unknown as ApiError;
-  })();
+  const error: ApiError | null = query.error
+    ? coerceToApiError(query.error)
+    : null;
 
   return {
     collections,

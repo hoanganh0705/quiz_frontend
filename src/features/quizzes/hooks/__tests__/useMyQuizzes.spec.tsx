@@ -13,6 +13,8 @@ const getMyQuizzesMock = vi.hoisted(() => vi.fn());
 
 vi.mock("@/features/quizzes/services/quizzes.service", () => ({
   getMyQuizzes: getMyQuizzesMock,
+  getMyQuizzesDrafts: vi.fn(),
+  getMyQuizzesPublished: vi.fn(),
 }));
 
 function TestProvider({ children }: { children: React.ReactNode }) {

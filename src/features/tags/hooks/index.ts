@@ -25,13 +25,8 @@ export type { UseTagAnalyticsResult } from "./useTagAnalytics";
 export { useTagsDirectory } from "./useTagsDirectory";
 export type { UseTagsDirectoryQuery } from "./useTagsDirectory";
 
-export {
-  useFollowedLookup,
-  followedCategoriesKey,
-  followedTagsKey,
-  FOLLOWED_LOOKUP_LIMIT,
-} from "./useFollowedLookup";
-export type { UseFollowedLookupResult } from "./useFollowedLookup";
+export { useFollowedTags, FOLLOWED_TAGS_LIMIT } from "./useFollowedTags";
+export type { UseFollowedTagsResult } from "./useFollowedTags";
 
 export { useIsFollowingTag } from "./useIsFollowingTag";
 export type { UseIsFollowingTagResult } from "./useIsFollowingTag";

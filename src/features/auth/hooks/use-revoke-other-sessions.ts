@@ -51,7 +51,7 @@ export interface UseRevokeOtherSessionsOptions {
 export function useRevokeOtherSessions(
   options: UseRevokeOtherSessionsOptions,
 ): UseRevokeOtherSessionsResult {
-  const [requiresConfirmation, setRequiresConfirmation] = useState(true);
+  const [requiresConfirmation, setRequiresConfirmation] = useState(false);
   const [status, setStatus] = useState<UseRevokeOtherSessionsStatus>("idle");
   const [error, setError] = useState<UseRevokeOtherSessionsError | null>(null);
 
@@ -112,7 +112,7 @@ export function useRevokeOtherSessions(
   }, []);
 
   const reset = useCallback((): void => {
-    setRequiresConfirmation(true);
+    setRequiresConfirmation(false);
     setStatus("idle");
     setError(null);
     inFlightRef.current = null;

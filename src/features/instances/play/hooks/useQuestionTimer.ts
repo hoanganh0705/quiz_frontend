@@ -1,10 +1,9 @@
 "use client";
 
-import { useSyncExternalStore, useMemo } from "react";
+import { useEffect, useState } from "react";
 
-
-import { useQuestionRevealed } from "./useQuestionRevealed";
 import { useInstanceLifecycle } from "./useInstanceLifecycle";
+import { useQuestionRevealed } from "./useQuestionRevealed";
 
 export interface UseQuestionTimerResult {
   remainingMs: number;
@@ -13,37 +12,7 @@ export interface UseQuestionTimerResult {
   serverDriftMs: number;
 }
 
-const TICK_INTERVAL_MS = 50;
-
-let currentClock = typeof window !== "undefined" ? Date.now() : 0;
-const clockListeners = new Set<() => void>();
-let clockInterval: ReturnType<typeof setInterval> | null = null;
-
-function subscribeClock(listener: () => void): () => void {
-  clockListeners.add(listener);
-  if (clockListeners.size === 1) {
-    currentClock = Date.now();
-    clockInterval = setInterval(() => {
-      currentClock = Date.now();
-      clockListeners.forEach((l) => l());
-    }, TICK_INTERVAL_MS);
-  }
-  return () => {
-    clockListeners.delete(listener);
-    if (clockListeners.size === 0 && clockInterval !== null) {
-      clearInterval(clockInterval);
-      clockInterval = null;
-    }
-  };
-}
-
-function getClockSnapshot(): number {
-  return currentClock;
-}
-
-function getClockServerSnapshot(): number {
-  return 0;
-}
+const TICK_INTERVAL_MS = 250;
 
 export function useQuestionTimer(
   instanceId: string | null,
@@ -51,17 +20,30 @@ export function useQuestionTimer(
   const { timing } = useQuestionRevealed(instanceId);
   const { isClosed } = useInstanceLifecycle(instanceId);
 
-  const clockNow = useSyncExternalStore(
-    subscribeClock,
-    getClockSnapshot,
-    getClockServerSnapshot,
-  );
+  const [tick, setTick] = useState<{ now: number; driftMs: number }>(() => {
+    const now = Date.now();
+    const serverNowMs = timing ? new Date(timing.serverNow).getTime() : NaN;
+    return {
+      now,
+      driftMs: !Number.isNaN(serverNowMs) ? serverNowMs - now : 0,
+    };
+  });
 
-  const serverDriftMs = useMemo(() => {
-    if (!timing) return 0;
+  useEffect(() => {
+    if (!timing || isClosed) return;
+
     const serverNowMs = new Date(timing.serverNow).getTime();
-    return serverNowMs - Date.now();
-  }, [timing]);
+    const anchorNow = Date.now();
+    const driftMs = !Number.isNaN(serverNowMs) ? serverNowMs - anchorNow : 0;
+
+    const intervalId = setInterval(() => {
+      setTick({ now: Date.now(), driftMs });
+    }, TICK_INTERVAL_MS);
+
+    return () => {
+      clearInterval(intervalId);
+    };
+  }, [timing, isClosed]);
 
   if (!timing) {
     return {
@@ -77,21 +59,24 @@ export function useQuestionTimer(
       remainingMs: 0,
       totalMs: timing.durationMs,
       isWindowOpen: false,
-      serverDriftMs,
+      serverDriftMs: tick.driftMs,
     };
   }
 
   const startMs = new Date(timing.startsAt).getTime();
   const endMs = startMs + timing.durationMs;
-  const effectiveNow = clockNow > 0 ? clockNow + serverDriftMs : startMs;
+  const effectiveNow = tick.now + tick.driftMs;
 
-  const remainingMs = Math.max(0, endMs - effectiveNow);
-  const isWindowOpen = effectiveNow >= startMs && effectiveNow < endMs;
+  const remainingMs = Math.min(
+    timing.durationMs,
+    Math.max(0, endMs - effectiveNow),
+  );
+  const isWindowOpen = remainingMs > 0;
 
   return {
     remainingMs,
     totalMs: timing.durationMs,
     isWindowOpen,
-    serverDriftMs,
+    serverDriftMs: tick.driftMs,
   };
 }

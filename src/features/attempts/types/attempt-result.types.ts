@@ -42,9 +42,3 @@ export function scoreSummaryFromResult(
     finishedAt: result.finishedAt,
   };
 }
-
-export const ATTEMPT_RESULT_CACHE_KEYS = {
-  result(attemptId: string, sessionId: string) {
-    return ["attempts", "result", sessionId, attemptId] as const;
-  },
-} as const;

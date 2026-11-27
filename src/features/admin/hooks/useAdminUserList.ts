@@ -1,16 +1,25 @@
 "use client";
 
 import { useCallback, useState } from "react";
+
 import { useQuery } from "@tanstack/react-query";
+
 import { getQueryClient } from "@/providers/QueryProvider";
 
 import {
-  listAdminUsers,
   createAdminUser,
-  updateAdminUserRole,
   deleteAdminUser,
-  type AdminUserQuery,
-  type CreateAdminUserInput,
+  listAdminUsers,
+  updateAdminUserRole,
+} from "../services/user-admin.service";
+import {
+  ADMIN_USERS_LIST_KEY,
+  userRoleListKey,
+} from "../user-role-admin/user-role-admin-cache";
+
+import type {
+  AdminUserQuery,
+  CreateAdminUserInput,
 } from "../services/user-admin.service";
 
 export function useAdminUserList(initialQuery: AdminUserQuery = {}) {
@@ -63,7 +72,7 @@ export function useAdminUserList(initialQuery: AdminUserQuery = {}) {
 
   const mutate = useCallback(async () => {
     const qc = getQueryClient();
-    await qc.invalidateQueries({ queryKey: ["admin", "users"] });
+    await qc.invalidateQueries({ queryKey: ADMIN_USERS_LIST_KEY });
   }, []);
 
   const createUser = useCallback(
@@ -78,7 +87,11 @@ export function useAdminUserList(initialQuery: AdminUserQuery = {}) {
   const updateRole = useCallback(
     async (userId: string, role: "user" | "moderator" | "admin") => {
       const updated = await updateAdminUserRole(userId, role);
-      await mutate();
+      const qc = getQueryClient();
+      await Promise.all([
+        mutate(),
+        qc.invalidateQueries({ queryKey: [userRoleListKey(userId)] }),
+      ]);
       return updated;
     },
     [mutate],

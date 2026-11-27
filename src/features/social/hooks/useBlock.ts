@@ -71,16 +71,6 @@ export function useBlock(
       : null;
 
   const result = useMemo<UseBlockResult>(() => {
-    if (false) {
-      return Object.freeze({
-        block: () => {
-          // no-op — feature is gated off
-        },
-        isPending: false,
-        error: null,
-      });
-    }
-
     if (targetUserId === null) {
       return Object.freeze({
         block: () => {

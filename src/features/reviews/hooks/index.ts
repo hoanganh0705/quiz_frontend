@@ -10,12 +10,6 @@ export type {
   UseMyQuizReviewResult,
 } from "./useMyQuizReview";
 
-export { useCompletedQuizAttempt } from "./useCompletedQuizAttempt";
-export type {
-  UseCompletedQuizAttemptParams,
-  UseCompletedQuizAttemptResult,
-} from "./useCompletedQuizAttempt";
-
 export { useReviewGate } from "./useReviewGate";
 export type { UseReviewGateParams } from "./useReviewGate";
 

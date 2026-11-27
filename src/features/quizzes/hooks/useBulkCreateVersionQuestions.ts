@@ -4,7 +4,10 @@ import { useCallback, useRef, useState } from "react";
 
 import { isApiError, type ApiError } from "@/lib/api";
 
-import { bulkCreateVersionQuestions } from "@/features/quizzes/services/question-service";
+import { useCooldownTimer } from "@/shared/hooks/use-cooldown-timer";
+
+import { bulkCreateVersionQuestions } from "@/features/quizzes/services/quizzes.service";
+
 import type {
   BulkCreateQuestionsDto,
   BulkQuestionResultItem,
@@ -13,25 +16,19 @@ import type {
 
 export interface BulkProgress {
   current: number;
-
   total: number;
-
   label: string;
 }
 
 export interface BulkCreateResult {
   ok: boolean;
-
   questions: QuizAuthorQuestionDto[];
-
   results: BulkQuestionResultItem[];
 }
 
 export interface UseBulkCreateVersionQuestionsOptions {
   onComplete?: (result: BulkCreateResult) => void;
-
   onError?: (error: ApiError) => void;
-
   onRateLimit?: (seconds: number) => void;
 }
 
@@ -41,31 +38,14 @@ export interface UseBulkCreateVersionQuestionsReturn {
     versionId: string,
     payload: BulkCreateQuestionsDto,
   ) => Promise<BulkCreateResult>;
-
   isLoading: boolean;
-
   progress: BulkProgress | null;
-
   result: BulkCreateResult | null;
-
   cooldownSeconds: number | null;
-
   clearResult: () => void;
 }
 
-function emitBreadcrumb(
-  _category: string,
-  _data: {
-    status: string;
-    durationMs: number;
-    code?: string;
-    itemCount?: number;
-    successCount?: number;
-  },
-): void {
-  void _category;
-  void _data;
-}
+const RATE_LIMIT_SECONDS = 60;
 
 export function useBulkCreateVersionQuestions(
   options: UseBulkCreateVersionQuestionsOptions = {},
@@ -75,9 +55,11 @@ export function useBulkCreateVersionQuestions(
   const [isLoading, setIsLoading] = useState(false);
   const [progress, setProgress] = useState<BulkProgress | null>(null);
   const [result, setResult] = useState<BulkCreateResult | null>(null);
-  const [cooldownSeconds, setCooldownSeconds] = useState<number | null>(null);
 
+  const cooldown = useCooldownTimer();
   const inFlightRef = useRef<Promise<BulkCreateResult> | null>(null);
+
+  const cooldownSeconds = cooldown.isActive ? cooldown.remainingSeconds : null;
 
   const bulkCreate = useCallback(
     async (
@@ -89,7 +71,7 @@ export function useBulkCreateVersionQuestions(
         return inFlightRef.current;
       }
 
-      if (cooldownSeconds !== null) {
+      if (cooldown.isActive) {
         return {
           ok: false,
           questions: [],
@@ -102,24 +84,16 @@ export function useBulkCreateVersionQuestions(
         };
       }
 
+      const total = payload.questions.length;
       setIsLoading(true);
       setProgress({
         current: 0,
-        total: payload.questions.length,
-        label: `Adding 0 of ${payload.questions.length}...`,
+        total,
+        label: `Adding 0 of ${total}...`,
       });
-
-      const startedAt = Date.now();
-      const total = payload.questions.length;
 
       const core = (async (): Promise<BulkCreateResult> => {
         try {
-          setProgress({
-            current: 0,
-            total,
-            label: `Adding 0 of ${total}...`,
-          });
-
           const response = await bulkCreateVersionQuestions(
             quizId,
             versionId,
@@ -143,32 +117,12 @@ export function useBulkCreateVersionQuestions(
 
           setResult(bulkResult);
           onComplete?.(bulkResult);
-
-          emitBreadcrumb("quizzes:bulk-create-questions", {
-            status: bulkResult.ok ? "success" : "partial",
-            durationMs: Date.now() - startedAt,
-            itemCount: total,
-            successCount,
-          });
-
           return bulkResult;
         } catch (err) {
           if (isApiError(err)) {
             if (err.status === 429) {
-              const seconds = 60;
-              setCooldownSeconds(seconds);
-
-              const interval = setInterval(() => {
-                setCooldownSeconds((prev) => {
-                  if (prev === null || prev <= 1) {
-                    clearInterval(interval);
-                    return null;
-                  }
-                  return prev - 1;
-                });
-              }, 1000);
-
-              onRateLimit?.(seconds);
+              cooldown.start(RATE_LIMIT_SECONDS * 1000);
+              onRateLimit?.(RATE_LIMIT_SECONDS);
 
               const rateLimitResult: BulkCreateResult = {
                 ok: false,
@@ -177,19 +131,12 @@ export function useBulkCreateVersionQuestions(
                   index: i,
                   status: 429,
                   code: "GLOBAL_RATE_LIMITED",
-                  message: `Rate limited. Please wait ${seconds} seconds.`,
+                  message: `Rate limited. Please wait ${RATE_LIMIT_SECONDS} seconds.`,
                 })),
               };
 
               setResult(rateLimitResult);
               onComplete?.(rateLimitResult);
-
-              emitBreadcrumb("quizzes:bulk-create-questions", {
-                status: "cooldown",
-                durationMs: Date.now() - startedAt,
-                code: err.code,
-              });
-
               return rateLimitResult;
             }
 
@@ -207,14 +154,6 @@ export function useBulkCreateVersionQuestions(
             setResult(errorResult);
             onError?.(err);
             onComplete?.(errorResult);
-
-            emitBreadcrumb("quizzes:bulk-create-questions", {
-              status: "error",
-              durationMs: Date.now() - startedAt,
-              code: err.code,
-              itemCount: total,
-            });
-
             return errorResult;
           }
 
@@ -231,14 +170,6 @@ export function useBulkCreateVersionQuestions(
 
           setResult(errorResult);
           onComplete?.(errorResult);
-
-          emitBreadcrumb("quizzes:bulk-create-questions", {
-            status: "error",
-            durationMs: Date.now() - startedAt,
-            code: "GLOBAL_UNKNOWN",
-            itemCount: total,
-          });
-
           return errorResult;
         }
       })();
@@ -253,7 +184,7 @@ export function useBulkCreateVersionQuestions(
         setProgress(null);
       }
     },
-    [cooldownSeconds, onComplete, onError, onRateLimit],
+    [cooldown, onComplete, onError, onRateLimit],
   );
 
   const clearResult = useCallback(() => {

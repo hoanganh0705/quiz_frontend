@@ -1,10 +1,10 @@
+import { broadcastAuthEvent } from "@/lib/api/core/broadcast-channel";
 import { getQueryClient } from "@/providers/QueryProvider";
 
 import { clearAuthToken } from "@/features/auth/utils/auth-cookies";
-import { clearAllAuthCache } from "@/features/auth/utils/user-scoped-cache";
 import { clearVerificationFlags } from "@/features/auth/utils/verification-flag";
-import { isSafeRedirectTarget } from "@/features/auth/utils/safe-redirect";
-import { broadcastAuthEvent } from "@/lib/api/core/broadcast-channel";
+
+import { isSafeRedirectTarget } from "@/shared/config/routes";
 
 export interface ClearAuthStateOptions {
   redirectTo?: string | null;
@@ -30,12 +30,6 @@ export function clearAuthState(options: ClearAuthStateOptions = {}): void {
     clearAuthToken();
   } catch {
     // Fail-open so a cookie write error does not block the broadcast / redirect.
-  }
-
-  try {
-    clearAllAuthCache();
-  } catch {
-    // Fail-open
   }
 
   if (!skipCacheClear) {

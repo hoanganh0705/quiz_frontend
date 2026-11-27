@@ -1,8 +1,10 @@
 "use client";
 
 import * as React from "react";
+import Link from "next/link";
 
 import { Button } from "@/components/ui/Button";
+
 import { cn } from "@/shared/utils/merge-class-names";
 
 export interface ReviewGateStateProps {
@@ -65,16 +67,32 @@ export function ReviewGateNotice({
 
       <div className="flex flex-wrap items-center gap-2">
         {hasLiveCta ? (
-          <Button
-            type="button"
-            variant="default"
-            size="sm"
-            onClick={onStartAttempt}
-            data-href={startAttemptHref ?? undefined}
-            data-testid="review-gate-state-cta"
-          >
-            Start attempt
-          </Button>
+          typeof onStartAttempt === "function" ? (
+            <Button
+              type="button"
+              variant="default"
+              size="sm"
+              onClick={onStartAttempt}
+              data-href={startAttemptHref ?? undefined}
+              data-testid="review-gate-state-cta"
+            >
+              Start attempt
+            </Button>
+          ) : (
+            <Button
+              asChild
+              variant="default"
+              size="sm"
+              data-testid="review-gate-state-cta"
+            >
+              <Link
+                href={startAttemptHref!}
+                data-href={startAttemptHref}
+              >
+                Start attempt
+              </Link>
+            </Button>
+          )
         ) : (
           <Button
             type="button"

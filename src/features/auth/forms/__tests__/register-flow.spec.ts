@@ -9,8 +9,10 @@ import {
   COPY_KEYS,
   resolveCopy,
 } from "@/features/auth/copy/registration-copy";
-import { isWellFormedEmail } from "@/features/auth/hooks/use-check-email";
-import { isWellFormedUsername } from "@/features/auth/hooks/use-check-username";
+import {
+  isWellFormedEmail,
+  isWellFormedUsername,
+} from "@/features/auth/hooks/use-availability-check";
 import { submitRegistration } from "@/features/auth/forms/registration-submit";
 import type { RegisterFormValues } from "@/features/auth/forms/schemas/register.schema";
 

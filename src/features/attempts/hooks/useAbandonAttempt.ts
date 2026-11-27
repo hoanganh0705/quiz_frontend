@@ -1,13 +1,13 @@
 "use client";
 
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { getQueryClient } from "@/providers/QueryProvider";
 
 import { ApiError, isApiError } from "@/lib/api";
 
+import { ATTEMPT_KEYS } from "@/features/attempts/query-keys";
 import { abandonAttempt } from "@/features/attempts/services/attempts.service";
-import { useAuthSession } from "@/features/auth/hooks/use-auth-session";
-import { ATTEMPT_CACHE_KEYS } from "@/features/attempts/types/attempt-runner.types";
+import { useAuthSessionId } from "@/features/auth/hooks/use-auth-session-id";
 import {
   beginAbandon,
   recordAbandonSuccess,
@@ -55,16 +55,7 @@ export function useAbandonAttempt(
 ): UseAbandonAttemptResult {
   const { attemptId, quizVersionId, quizId } = params;
 
-  const { bootstrapState, currentUser } = useAuthSession();
-
-  const sessionId = useMemo<string | null>(() => {
-    if (bootstrapState !== "authenticated") return null;
-    if (!currentUser) return null;
-    const id =
-      (currentUser as { id?: string; userId?: string }).id ??
-      (currentUser as { userId?: string }).userId;
-    return id ?? null;
-  }, [bootstrapState, currentUser]);
+  const sessionId = useAuthSessionId();
 
   const [outcome, setOutcome] = useState<AbandonAttemptOutcome | null>(null);
   const [error, setError] = useState<ApiError | null>(null);
@@ -73,6 +64,14 @@ export function useAbandonAttempt(
 
   const lastInvocationRef = useRef<number>(0);
   const cooldownTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (cooldownTimerRef.current !== null) {
+        clearTimeout(cooldownTimerRef.current);
+      }
+    };
+  }, []);
 
   const reset = useCallback(() => {
     setOutcome(null);
@@ -108,17 +107,17 @@ export function useAbandonAttempt(
         const qc = getQueryClient();
         if (quizId && sessionId) {
           void qc.invalidateQueries({
-            queryKey: ATTEMPT_CACHE_KEYS.active(quizId, sessionId),
+            queryKey: ATTEMPT_KEYS.active(quizId, sessionId),
           });
-          qc.setQueryData(ATTEMPT_CACHE_KEYS.active(quizId, sessionId), null);
+          qc.setQueryData(ATTEMPT_KEYS.active(quizId, sessionId), null);
         }
         void qc.invalidateQueries({
-          queryKey: ATTEMPT_CACHE_KEYS.active(quizVersionId, sessionId),
+          queryKey: ATTEMPT_KEYS.active(quizVersionId, sessionId),
         });
         void qc.invalidateQueries({
-          queryKey: ATTEMPT_CACHE_KEYS.detail(attemptId, sessionId),
+          queryKey: ATTEMPT_KEYS.detail(attemptId, sessionId),
         });
-        void qc.invalidateQueries({ queryKey: ["attempts"] });
+        void qc.invalidateQueries({ queryKey: ATTEMPT_KEYS.all });
       } catch {}
 
       broadcastAttemptsChanged({
@@ -148,14 +147,14 @@ export function useAbandonAttempt(
           const qc = getQueryClient();
           if (quizId && sessionId) {
             void qc.invalidateQueries({
-              queryKey: ATTEMPT_CACHE_KEYS.active(quizId, sessionId),
+              queryKey: ATTEMPT_KEYS.active(quizId, sessionId),
             });
-            qc.setQueryData(ATTEMPT_CACHE_KEYS.active(quizId, sessionId), null);
+            qc.setQueryData(ATTEMPT_KEYS.active(quizId, sessionId), null);
           }
           void qc.invalidateQueries({
-            queryKey: ATTEMPT_CACHE_KEYS.detail(attemptId, sessionId),
+            queryKey: ATTEMPT_KEYS.detail(attemptId, sessionId),
           });
-          void qc.invalidateQueries({ queryKey: ["attempts"] });
+          void qc.invalidateQueries({ queryKey: ATTEMPT_KEYS.all });
         } catch {}
         recordAbandonSuccess(attemptId, quizVersionId, sessionId);
 
@@ -226,7 +225,7 @@ export function useAbandonAttempt(
       }, DEFAULT_COOLDOWN_MS);
       return retryable;
     }
-  }, [sessionId, attemptId, quizVersionId]);
+  }, [sessionId, attemptId, quizVersionId, quizId]);
 
   return {
     isPending,

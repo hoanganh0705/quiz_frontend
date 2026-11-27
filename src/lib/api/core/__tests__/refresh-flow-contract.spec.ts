@@ -1,15 +1,12 @@
 import { describe, expect, it, beforeEach } from "vitest";
 
 import {
-  AUTH_TOKEN_REUSED,
   AUTH_INVALID_REFRESH_TOKEN,
   AUTH_SESSION_CONTEXT_MISMATCH,
+  AUTH_TOKEN_REUSED,
+  isRefreshTerminalError,
   REFRESH_TERMINAL_ERROR_CODES,
 } from "@/features/auth/errors/refresh-error-codes";
-import {
-  classifyRefreshError,
-  isTerminalRefreshError,
-} from "@/features/auth/errors/refresh-error-mapper";
 
 import {
   isInCooldown,
@@ -90,24 +87,6 @@ describe("Refresh failure cooldown", () => {
     clearCooldown();
     expect(isInCooldown()).toBe(false);
   });
-
-  it("retryable classification: 5xx, 0/network trigger cooldown", () => {
-    expect(classifyRefreshError({ code: "X", status: 500 }).kind).toBe(
-      "retryable",
-    );
-    expect(classifyRefreshError({ code: "X", status: 502 }).kind).toBe(
-      "retryable",
-    );
-    expect(classifyRefreshError({ code: "X", status: 0 }).kind).toBe(
-      "retryable",
-    );
-  });
-
-  it("retryable classification: 429 triggers rate-limited backoff cooldown", () => {
-    expect(classifyRefreshError({ code: "X", status: 429 }).kind).toBe(
-      "retryable",
-    );
-  });
 });
 
 describe("Terminal refresh error handling", () => {
@@ -119,19 +98,15 @@ describe("Terminal refresh error handling", () => {
     );
   });
 
-  it("classifyRefreshError maps each terminal code to terminal (no retry)", () => {
+  it("isRefreshTerminalError recognizes each terminal code", () => {
     for (const code of REFRESH_TERMINAL_ERROR_CODES) {
-      const result = classifyRefreshError({ code, status: 401 });
-      expect(result.kind).toBe("terminal");
-      expect(isTerminalRefreshError(result)).toBe(true);
+      expect(isRefreshTerminalError(code)).toBe(true);
     }
   });
 
-  it("terminal errors trigger clearAllAuthCache + LOGGED_OUT broadcast", async () => {
-    const userScoped = await import("@/features/auth/utils/user-scoped-cache");
+  it("terminal errors trigger LOGGED_OUT broadcast", async () => {
     const broadcast = await import("@/lib/api/core/broadcast-channel");
 
-    expect(typeof userScoped.clearAllAuthCache).toBe("function");
     expect(typeof broadcast.broadcastLoggedOut).toBe("function");
   });
 });
@@ -143,7 +118,6 @@ describe("Auth refresh core module exports", () => {
       "@/lib/api/core/broadcast-channel",
       "@/lib/api/core/storage-sync",
       "@/features/auth/errors/refresh-error-codes",
-      "@/features/auth/errors/refresh-error-mapper",
     ];
     for (const modulePath of modules) {
       const mod = await import(modulePath);

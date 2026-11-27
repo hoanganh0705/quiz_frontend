@@ -9,45 +9,39 @@ import {
   type AttemptsChangedEvent,
 } from "@/lib/api/core/attempts-broadcast-channel";
 
-import { useAuthSession } from "@/features/auth/hooks/use-auth-session";
-import { ATTEMPT_CACHE_KEYS } from "@/features/attempts/types/attempt-runner.types";
-import { ATTEMPT_RESULT_CACHE_KEYS } from "@/features/attempts/types/attempt-result.types";
+import { ATTEMPT_KEYS } from "@/features/attempts/query-keys";
 import {
   recordAbandonSuccess,
   recordCompletionSuccess,
   useAttemptsStore,
 } from "@/features/attempts/stores/useAttemptsStore";
+import { useAuthSessionId } from "@/features/auth/hooks/use-auth-session-id";
 
 export interface UseAttemptCrossTabSyncParams {
   quizVersionId: string | null;
+
+  quizId?: string | null;
 }
 
 export function useAttemptCrossTabSync(
   params: UseAttemptCrossTabSyncParams,
 ): void {
-  const { quizVersionId } = params;
+  const { quizVersionId, quizId } = params;
 
-  const { bootstrapState, currentUser } = useAuthSession();
-
-  const sessionId =
-    bootstrapState === "authenticated" && currentUser
-      ? ((currentUser as { id?: string; userId?: string }).id ??
-        (currentUser as { userId?: string }).userId ??
-        null)
-      : null;
+  const sessionId = useAuthSessionId();
 
   useEffect(() => {
     if (sessionId === null) return;
 
     const unsubscribe = subscribeToAttemptEvents((event) => {
       if (!isEventForSession(event, sessionId)) return;
-      handleRemoteAttemptEvent(event, quizVersionId);
+      handleRemoteAttemptEvent(event, quizVersionId, quizId ?? null);
     });
 
     return () => {
       unsubscribe();
     };
-  }, [sessionId, quizVersionId]);
+  }, [sessionId, quizVersionId, quizId]);
 }
 
 function isEventForSession(
@@ -60,25 +54,31 @@ function isEventForSession(
 function handleRemoteAttemptEvent(
   event: AttemptsChangedEvent,
   quizVersionId: string | null,
+  quizId: string | null,
 ): void {
   try {
     const qc = getQueryClient();
-    void qc.invalidateQueries({ queryKey: ["attempts"] });
+    void qc.invalidateQueries({ queryKey: ATTEMPT_KEYS.all });
+    if (quizId !== null) {
+      void qc.invalidateQueries({
+        queryKey: ATTEMPT_KEYS.active(quizId, event.userId),
+      });
+    }
     if (quizVersionId !== null) {
       void qc.invalidateQueries({
-        queryKey: ATTEMPT_CACHE_KEYS.active(quizVersionId, event.userId),
+        queryKey: ATTEMPT_KEYS.active(quizVersionId, event.userId),
       });
     }
     void qc.invalidateQueries({
-      queryKey: ATTEMPT_CACHE_KEYS.detail(event.attemptId, event.userId),
+      queryKey: ATTEMPT_KEYS.detail(event.attemptId, event.userId),
     });
     void qc.invalidateQueries({
-      queryKey: ATTEMPT_CACHE_KEYS.answers(event.attemptId, event.userId),
+      queryKey: ATTEMPT_KEYS.answers(event.attemptId, event.userId),
     });
     void qc.invalidateQueries({
-      queryKey: ATTEMPT_RESULT_CACHE_KEYS.result(event.attemptId, event.userId),
+      queryKey: ATTEMPT_KEYS.result(event.attemptId, event.userId),
     });
-    void qc.invalidateQueries({ queryKey: ["attempts", "history"] });
+    void qc.invalidateQueries({ queryKey: ATTEMPT_KEYS.historyAll() });
   } catch {}
 
   const kind: AttemptChangeKind = event.kind;

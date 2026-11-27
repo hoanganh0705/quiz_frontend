@@ -1,11 +1,11 @@
 import { memo } from "react";
 
-import { Trophy, Zap, Medal, TrendingUp } from "lucide-react";
-import { Card } from "@/components/ui/Card";
-import { CardContent } from "@/components/ui/Card";
-import { Skeleton } from "@/components/ui/Skeleton";
+import { Medal, TrendingUp, Trophy, Zap } from "lucide-react";
 
 import { useMyRanking } from "@/features/users/hooks";
+
+import { Card, CardContent } from "@/components/ui/Card";
+import { Skeleton } from "@/components/ui/Skeleton";
 
 export interface RankingPanelProps {
   className?: string;
@@ -49,12 +49,20 @@ function formatXP(xp: number): string {
 }
 
 function getRankTier(rank: number): { label: string; color: string } {
-  if (rank === 1) return { label: "Gold", color: "text-yellow-500" };
-  if (rank === 2) return { label: "Silver", color: "text-gray-400" };
+  if (rank === 1) return { label: "Gold", color: "text-amber-500" };
+  if (rank === 2) return { label: "Silver", color: "text-slate-400" };
   if (rank === 3) return { label: "Bronze", color: "text-amber-700" };
   if (rank <= 10) return { label: "Top 10", color: "text-purple-500" };
   if (rank <= 100) return { label: "Top 100", color: "text-blue-500" };
   return { label: "Ranked", color: "text-muted-foreground" };
+}
+
+function getMedalBadgeClass(rank: number): string {
+  if (rank === 1) return "bg-amber-400 text-amber-950";
+  if (rank === 2) {
+    return "bg-slate-300 text-slate-900 dark:bg-slate-400 dark:text-slate-950";
+  }
+  return "bg-amber-700 text-amber-50";
 }
 
 export const RankingPanel = memo(function RankingPanel({
@@ -98,17 +106,9 @@ export const RankingPanel = memo(function RankingPanel({
             <div className="w-20 h-20 rounded-full bg-linear-to-br from-brand/20 to-brand/5 flex items-center justify-center border-4 border-brand/30">
               <Trophy className="w-10 h-10 text-brand" aria-hidden="true" />
             </div>
-            {ranking.globalRank && ranking.globalRank <= 3 && (
+            {ranking.globalRank <= 3 && (
               <div
-                className="absolute -top-1 -right-1 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white"
-                style={{
-                  backgroundColor:
-                    ranking.globalRank === 1
-                      ? "#FFD700"
-                      : ranking.globalRank === 2
-                        ? "#C0C0C0"
-                        : "#CD7F32",
-                }}
+                className={`absolute -top-1 -right-1 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold font-mono tabular-nums ${getMedalBadgeClass(ranking.globalRank)}`}
                 aria-label={`Rank ${ranking.globalRank}`}
               >
                 {ranking.globalRank}
@@ -120,7 +120,9 @@ export const RankingPanel = memo(function RankingPanel({
           <div className="flex-1">
             {/* Rank number */}
             <div className="flex items-baseline gap-2">
-              <span className={`text-4xl font-bold ${rankTier.color}`}>
+              <span
+                className={`text-4xl font-bold font-mono tabular-nums ${rankTier.color}`}
+              >
                 #{ranking.globalRank}
               </span>
               <span className={`text-sm font-medium ${rankTier.color}`}>
@@ -131,7 +133,7 @@ export const RankingPanel = memo(function RankingPanel({
             {/* XP */}
             <div className="flex items-center gap-2 mt-1">
               <Zap className="w-4 h-4 text-amber-500" aria-hidden="true" />
-              <span className="text-sm text-muted-foreground">
+              <span className="text-sm text-muted-foreground font-mono tabular-nums">
                 {formatXP(ranking.totalScore)} XP
               </span>
             </div>
@@ -139,7 +141,7 @@ export const RankingPanel = memo(function RankingPanel({
             {/* Level */}
             <div className="flex items-center gap-2 mt-1">
               <Medal className="w-4 h-4 text-purple-500" aria-hidden="true" />
-              <span className="text-sm text-muted-foreground">
+              <span className="text-sm text-muted-foreground font-mono tabular-nums">
                 Level {ranking.level}
               </span>
             </div>

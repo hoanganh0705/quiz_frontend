@@ -1,9 +1,13 @@
 "use client";
 
-import { useEffect, useMemo, useRef } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useEffect, useMemo, useRef } from "react";
+
+import { ArrowLeft, Lock, Trophy } from "lucide-react";
 
 import { useToast } from "@/lib/forms/useToast";
+
 import { useAuthSession } from "@/features/auth/hooks/use-auth-session";
 import { useInstance } from "@/features/instances/hooks/useInstance";
 import { useInstanceRealtimeBridge } from "@/features/instances/hooks/useInstanceRealtimeBridge";
@@ -12,7 +16,8 @@ import {
   selectInstanceRealtimeStatus,
   useInstanceRealtimeStore,
 } from "@/features/instances/stores/useInstanceRealtimeStore";
-import type { InstanceLifecycleErrorCode } from "@/features/instances/types/instance.types";
+
+import { Button } from "@/components/ui/Button";
 
 import {
   ConnectionBanner,
@@ -21,6 +26,8 @@ import {
   InstanceLobby,
   InstanceLobbySkeleton,
 } from "../components";
+
+import type { InstanceLifecycleErrorCode } from "@/features/instances/types/instance.types";
 
 export interface InstanceRoomPageProps {
   instanceId: string | null;
@@ -68,14 +75,37 @@ export function InstanceRoomPage({
       : selectInstanceRealtimeStatus(state, instanceId),
   );
   const effectiveStatus = realtimeStatus ?? instance?.status ?? null;
+  const isParticipant = Boolean(
+    currentUserId &&
+      instance &&
+      (instance.hostUserId === currentUserId ||
+        instance.players?.some((p) => p.userId === currentUserId)),
+  );
+  const isCurrentUserFinished = Boolean(
+    currentUserId &&
+      instance?.players?.some(
+        (p) => p.userId === currentUserId && p.status === "finished",
+      ),
+  );
   const toast = useToast();
   const redirectedRef = useRef(false);
 
   useEffect(() => {
-    if (effectiveStatus === "running" && instanceId) {
+    if (
+      effectiveStatus === "running" &&
+      instanceId &&
+      isParticipant &&
+      !isCurrentUserFinished
+    ) {
       router.push(`/instances/${instanceId}/play`);
     }
-  }, [effectiveStatus, instanceId, router]);
+  }, [
+    effectiveStatus,
+    instanceId,
+    isParticipant,
+    isCurrentUserFinished,
+    router,
+  ]);
 
   useEffect(() => {
     if (effectiveStatus === "closed" && !redirectedRef.current) {
@@ -143,12 +173,17 @@ export function InstanceRoomPage({
     );
   }
 
-  if (instance !== null && shouldShowClosedStatus(instance.status)) {
+  const displayStatus = effectiveStatus ?? instance?.status ?? null;
+  if (
+    instance !== null &&
+    displayStatus !== null &&
+    shouldShowClosedStatus(displayStatus)
+  ) {
     return (
       <div
         className={className}
         data-testid="instance-room-page"
-        data-state={instance.status}
+        data-state={displayStatus}
       >
         <div className="space-y-6">
           {instance.quizTitle && (
@@ -162,10 +197,64 @@ export function InstanceRoomPage({
             </div>
           )}
           <InstanceClosedState
-            status={instance.status}
+            status={displayStatus}
             closedAt={instance.closedAt}
           />
+          {displayStatus === "finished" ? (
+            <div className="flex justify-center">
+              <Button
+                asChild
+                className="h-10 sm:h-9 gap-2 bg-default text-default-foreground hover:bg-default-hover"
+                data-testid="view-final-results-link"
+              >
+                <Link href={`/instances/${instanceId}/play`}>
+                  <Trophy className="h-4 w-4" aria-hidden="true" />
+                  View Final Results
+                </Link>
+              </Button>
+            </div>
+          ) : null}
           <ConnectionBanner instanceId={instanceId} />
+        </div>
+      </div>
+    );
+  }
+
+  if (
+    instance !== null &&
+    displayStatus === "running" &&
+    !isParticipant
+  ) {
+    return (
+      <div
+        className={className}
+        data-testid="instance-room-page"
+        data-state="in-progress"
+      >
+        <div className="mx-auto max-w-xl rounded-xl border border-border/80 bg-card p-6 sm:p-8 text-center shadow-sm space-y-4">
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl border border-border/80 bg-muted/50 text-muted-foreground">
+            <Lock className="h-6 w-6" aria-hidden="true" />
+          </div>
+          <div className="space-y-1.5">
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
+              Match Already in Progress
+            </h1>
+            <p className="text-sm text-muted-foreground">
+              {instance.quizTitle || "This battle"} has already started and is
+              no longer accepting new players.
+            </p>
+          </div>
+          <div className="pt-2">
+            <Button
+              asChild
+              className="h-10 sm:h-9 gap-2 bg-default text-default-foreground hover:bg-default-hover"
+            >
+              <Link href="/instances">
+                <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+                Browse Open Lobbies
+              </Link>
+            </Button>
+          </div>
         </div>
       </div>
     );

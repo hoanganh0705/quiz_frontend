@@ -1,108 +1,29 @@
-import type { Metadata } from "next";
 import Link from "next/link";
-import {
-  BookOpen,
-  Tag,
-  Users,
-  Swords,
-  Eye,
-  ArrowUpRight,
-  Activity,
-  AlertCircle,
-  Trophy,
-  MessageSquare,
-  Star,
-} from "lucide-react";
 
+import { Activity, AlertCircle, ArrowUpRight, Eye } from "lucide-react";
+
+import { ADMIN_DASHBOARD_QUICK_LINKS } from "@/features/admin/config/admin-nav-registry";
+
+import { Button } from "@/components/ui/Button";
 import {
   Card,
+  CardContent,
+  CardDescription,
   CardHeader,
   CardTitle,
-  CardDescription,
-  CardContent,
 } from "@/components/ui/Card";
-import { Button } from "@/components/ui/Button";
+
+import { PAGE_CONTAINER_CLASS } from "@/shared/layout/constants";
+
+import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Dashboard",
 };
 
-/**
- * `/admin` — admin landing page.
- *
- * Per the Sep 2026 user direction ("make sure no fake stats exist"),
- * this page intentionally renders ZERO platform-wide aggregate numbers
- * until a real `/admin/stats` (or equivalent) endpoint ships. The
- * historic hardcoded arrays have been deleted (see git history).
- *
- * What the page DOES render:
- *   1. An honest banner explaining why no aggregate numbers appear.
- *   2. A "Quick Actions" grid pointing to every admin sub-area that
- *      IS already wired to real APIs.
- *   3. A CTA to `/admin/audit` for live platform activity.
- *
- * What the page does NOT render:
- *   - Total quizzes / categories / active users / average score cards.
- *   - "Recent activity" feed with fake usernames.
- *
- * When a real aggregate endpoint is built, those surfaces can be
- * reintroduced here using the same Tailwind card scaffolding.
- */
-
-const quickLinks = [
-  {
-    label: "Manage Quizzes",
-    href: "/admin/quizzes",
-    description: "Review and moderate quizzes",
-    icon: Swords,
-  },
-  {
-    label: "Manage Tournaments",
-    href: "/admin/tournaments",
-    description: "Configure competitive tournaments",
-    icon: Trophy,
-  },
-  {
-    label: "Manage Categories",
-    href: "/admin/categories",
-    description: "Add, edit, or remove categories",
-    icon: Tag,
-  },
-  {
-    label: "Manage Tags",
-    href: "/admin/tags",
-    description: "Organize quiz tags",
-    icon: BookOpen,
-  },
-  {
-    label: "Manage Users",
-    href: "/admin/users",
-    description: "User accounts and permissions",
-    icon: Users,
-  },
-  {
-    label: "Comment Reports",
-    href: "/admin/comments/reports",
-    description: "Moderation queue for comments",
-    icon: MessageSquare,
-  },
-  {
-    label: "Review Reports",
-    href: "/admin/reviews/reports",
-    description: "Flagged quiz reviews and ratings",
-    icon: Star,
-  },
-  {
-    label: "Audit Log",
-    href: "/admin/audit",
-    description: "Live administrative actions and events",
-    icon: Activity,
-  },
-];
-
 export default function AdminDashboardPage() {
   return (
-    <div className="mx-auto max-w-7xl px-4 sm:px-6 pb-8 space-y-6">
+    <div className={`${PAGE_CONTAINER_CLASS} space-y-6`}>
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pt-6">
         <div>
@@ -169,7 +90,7 @@ export default function AdminDashboardPage() {
         </CardHeader>
         <CardContent className="px-6 sm:px-8">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
-            {quickLinks.map((link) => (
+            {ADMIN_DASHBOARD_QUICK_LINKS.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
@@ -184,7 +105,7 @@ export default function AdminDashboardPage() {
                   </div>
                   <div className="min-w-0">
                     <p className="text-sm font-medium text-foreground transition-colors group-hover:text-primary truncate">
-                      {link.label}
+                      {link.quickActionLabel ?? link.label}
                     </p>
                     <p className="text-xs text-muted-foreground line-clamp-1">
                       {link.description}

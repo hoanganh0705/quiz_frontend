@@ -305,6 +305,34 @@ describe("TournamentRegistrationCta", () => {
     });
   });
 
+  describe("closed tournament state", () => {
+    it("renders nothing when isRegistrationOpen is false", () => {
+      mockUseTournamentRegistration.mockReturnValue(
+        makeMockResult({
+          isRegistered: false,
+          isEligible: true,
+        }),
+      );
+
+      render(
+        <TournamentRegistrationCta
+          tournamentId="tournament-1"
+          isRegistrationOpen={false}
+        />,
+      );
+
+      expect(
+        screen.queryByTestId("tournament-cta-register"),
+      ).not.toBeInTheDocument();
+      expect(
+        screen.queryByTestId("tournament-cta-withdraw"),
+      ).not.toBeInTheDocument();
+      expect(
+        screen.queryByTestId("tournament-cta-sign-in"),
+      ).not.toBeInTheDocument();
+    });
+  });
+
   describe("loading state", () => {
     it("renders nothing while loading participation data", () => {
       mockUseTournamentRegistration.mockReturnValue(

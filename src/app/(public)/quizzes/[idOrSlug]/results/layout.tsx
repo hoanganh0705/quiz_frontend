@@ -10,9 +10,10 @@ export async function generateMetadata({
   const { idOrSlug } = await params;
 
   return buildMetadata({
-    title: `Quiz Results | QuizHub`,
-    description: `View your quiz score and detailed performance.`,
+    title: "Quiz Results | QuizHub",
+    description: "View your quiz score and detailed performance.",
     path: `/quizzes/${idOrSlug}/results`,
+    noIndex: true,
   });
 }
 

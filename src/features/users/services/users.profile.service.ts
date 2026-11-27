@@ -211,5 +211,58 @@ export async function getUserQuizAnalytics(
 export async function getMyAnalytics(): Promise<GetMyAnalyticsResult> {
   const sdk = getUsers();
   const response = await sdk.userControllerGetMyAnalytics();
-  return response as GetMyAnalyticsResult;
+  const envelope = response as unknown as {
+    data?: Record<string, unknown> & {
+      summary?: {
+        totalAttempts?: number;
+        completedQuizzes?: number;
+        averageScore?: number;
+      };
+    };
+    summary?: {
+      totalAttempts?: number;
+      completedQuizzes?: number;
+      averageScore?: number;
+    };
+  } & GetMyAnalyticsResult;
+
+  const payload = envelope?.data ?? envelope;
+  const summary = payload?.summary;
+
+  return {
+    xpTotal:
+      typeof payload?.xpTotal === "number" ? payload.xpTotal : undefined,
+    quizzesCompleted:
+      typeof payload?.quizzesCompleted === "number"
+        ? payload.quizzesCompleted
+        : typeof summary?.completedQuizzes === "number"
+          ? summary.completedQuizzes
+          : undefined,
+    averageScore:
+      typeof payload?.averageScore === "number"
+        ? payload.averageScore
+        : typeof summary?.averageScore === "number"
+          ? summary.averageScore
+          : undefined,
+    totalTimeSpentMinutes:
+      typeof payload?.totalTimeSpentMinutes === "number"
+        ? payload.totalTimeSpentMinutes
+        : undefined,
+    currentStreak:
+      typeof payload?.currentStreak === "number"
+        ? payload.currentStreak
+        : undefined,
+    longestStreak:
+      typeof payload?.longestStreak === "number"
+        ? payload.longestStreak
+        : undefined,
+    tournamentsPlayed:
+      typeof payload?.tournamentsPlayed === "number"
+        ? payload.tournamentsPlayed
+        : undefined,
+    tournamentsWon:
+      typeof payload?.tournamentsWon === "number"
+        ? payload.tournamentsWon
+        : undefined,
+  };
 }

@@ -3,6 +3,7 @@ export { authOnlyInstance } from "./core/auth-only-instance";
 export { orvalCustomInstance } from "./core/custom-instance";
 
 export { ApiError, isApiError } from "./core/ApiError";
+export { unwrapEnvelope } from "./core/unwrap-envelope";
 export type { ApiErrorData } from "./core/ApiError";
 export type { CustomConfig } from "./core/custom-instance";
 
@@ -88,6 +89,7 @@ export type {
 
 export { getSocial } from "./generated/social/social";
 
+export { getAdminQuizzes } from "./generated/admin-quizzes/admin-quizzes";
 export { getAttempts } from "./generated/attempts/attempts";
 export { getAuth } from "./generated/auth/auth";
 export { getBookmarks } from "./generated/bookmarks/bookmarks";

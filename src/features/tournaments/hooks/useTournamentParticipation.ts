@@ -6,11 +6,11 @@ import { useAuthSession } from "@/features/auth/hooks/use-auth-session";
 import { useTournament } from "@/features/tournaments/hooks/useTournament";
 import { useTournamentParticipants } from "@/features/tournaments/hooks/useTournamentParticipants";
 import {
-  TOURNAMENT_REGISTRATION_CACHE_KEYS,
   type ParticipationState,
   type RegistrationStatus,
 } from "@/features/tournaments/types/registration.types";
 
+import { isTournamentRegistrationOpen } from "@/features/tournaments/lib/tournament-lifecycle";
 import type { TournamentDetail } from "@/features/tournaments/types";
 
 export interface UseTournamentParticipationResult {
@@ -43,8 +43,7 @@ function deriveRegistrationStatus(params: {
     return "registered";
   }
 
-  const now = new Date();
-  const isRegistrationOpen = true;
+  const isRegistrationOpen = isTournamentRegistrationOpen(tournament);
 
   const isFull =
     typeof tournament.maxParticipants === "number" &&
@@ -129,7 +128,8 @@ export function useTournamentParticipation(
     const isRegistered = status === "registered";
     const isEligible = status === "eligible";
 
-    const canWithdraw = isRegistered;
+    const canWithdraw =
+      isRegistered && isTournamentRegistrationOpen(tournament);
 
     const userParticipant = participants.find((p) => p.userId === userId);
     const registeredAt = userParticipant?.registeredAt ?? null;

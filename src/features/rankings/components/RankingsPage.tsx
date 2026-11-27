@@ -117,7 +117,7 @@ function RankingsPageInner({ className }: RankingsPageProps) {
   return (
     <main
       data-testid="rankings-page"
-      className={`mx-auto max-w-4xl space-y-6 p-4 sm:p-6 lg:p-8 ${className ?? ""}`}
+      className={`min-h-screen w-full text-foreground p-4 md:p-8 lg:p-12 space-y-6 ${className ?? ""}`}
     >
       <header className="space-y-1">
         <h1 className="text-2xl font-bold tracking-tight">Rankings</h1>
@@ -142,7 +142,7 @@ export function RankingsPage({ className }: RankingsPageProps) {
     return (
       <main
         data-testid="rankings-page-placeholder"
-        className={`mx-auto max-w-4xl p-4 sm:p-6 lg:p-8 ${className ?? ""}`}
+        className={`min-h-screen w-full text-foreground p-4 md:p-8 lg:p-12 ${className ?? ""}`}
       >
         <RankingsPlaceholder />
       </main>

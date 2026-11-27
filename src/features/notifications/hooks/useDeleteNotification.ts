@@ -3,7 +3,7 @@
 import { useCallback, useRef, useState } from "react";
 import { getQueryClient } from "@/providers/QueryProvider";
 
-import { ApiError, isApiError } from "@/lib/api";
+import { ApiError, coerceToApiError } from "@/lib/api";
 
 import { deleteNotification } from "@/features/notifications/services/notifications.service";
 import {
@@ -100,22 +100,8 @@ export function useDeleteNotification(
     } catch (cause: unknown) {
       void qc.invalidateQueries({ queryKey: ["notifications", "list"] });
 
-      if (isApiError(cause)) {
-        setState("error");
-        setError(cause);
-      } else if (cause instanceof Error) {
-        const mappedError = new ApiError(
-          cause as unknown as ConstructorParameters<typeof ApiError>[0],
-        );
-        setState("error");
-        setError(mappedError);
-      } else {
-        const mappedError = new ApiError(
-          cause as unknown as ConstructorParameters<typeof ApiError>[0],
-        );
-        setState("error");
-        setError(mappedError);
-      }
+      setState("error");
+      setError(coerceToApiError(cause));
     } finally {
       inFlightRef.current = false;
     }

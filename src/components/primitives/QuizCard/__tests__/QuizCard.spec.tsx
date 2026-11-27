@@ -66,7 +66,7 @@ describe("QuizCard", () => {
     ).toBeInTheDocument();
     expect(screen.getByText(/verified/i)).toBeInTheDocument();
     expect(screen.getByText(/featured/i)).toBeInTheDocument();
-    expect(screen.getByText("MEDIUM")).toBeInTheDocument();
+    expect(screen.getByText("Medium")).toBeInTheDocument();
     expect(screen.getByText("1m 30s")).toBeInTheDocument();
   });
 

@@ -28,6 +28,7 @@ interface GameResultSummaryProps {
   playerProgress: PlayerProgressDto | null;
   currentPlayerId: string | null;
   instanceId?: string;
+  closureReason?: string;
   className?: string;
 }
 
@@ -66,12 +67,24 @@ interface PlayerResultRowProps {
   rank: number;
 }
 
+function formatCompletionTime(timeTakenMs: number | null | undefined): string | null {
+  if (typeof timeTakenMs !== "number" || !Number.isFinite(timeTakenMs) || timeTakenMs <= 0) {
+    return null;
+  }
+  const totalSeconds = Math.max(1, Math.round(timeTakenMs / 1000));
+  const mins = Math.floor(totalSeconds / 60);
+  const secs = totalSeconds % 60;
+  return mins > 0 ? `${mins}m ${secs}s` : `${secs}s`;
+}
+
 function PlayerResultRow({
   entry,
   isCurrentPlayer,
   rank,
 }: PlayerResultRowProps) {
   const initial = (entry.displayName || entry.playerId).charAt(0).toUpperCase();
+  const formattedTime = formatCompletionTime(entry.timeTakenMs);
+  const hasCorrectCount = typeof entry.correctCount === "number";
 
   return (
     <div
@@ -109,14 +122,17 @@ function PlayerResultRow({
             </span>
           )}
         </div>
-        <p className="text-xs text-muted-foreground mt-0.5">
-          {entry.answeredCount} answered
+        <p className="text-xs text-muted-foreground mt-0.5 font-mono tabular-nums">
+          {hasCorrectCount
+            ? `${entry.correctCount} correct · ${entry.answeredCount} answered`
+            : `${entry.answeredCount} answered`}
+          {formattedTime ? ` · ${formattedTime}` : ""}
         </p>
       </div>
 
       <div className="text-right shrink-0">
         <p className="text-sm sm:text-base font-bold font-mono tabular-nums text-foreground">
-          {entry.score.toLocaleString()}
+          {Math.round(entry.score).toLocaleString()}
         </p>
         <p className="text-xs font-mono uppercase tracking-wide text-muted-foreground">
           pts
@@ -214,7 +230,7 @@ function BattlePodium({ entries, currentPlayerId }: PodiumProps) {
             {second.playerId === currentPlayerId && " (You)"}
           </h3>
           <p className="text-muted-foreground text-xs font-mono font-medium tabular-nums mt-0.5">
-            {second.score.toLocaleString()} pts
+            {Math.round(second.score).toLocaleString()} pts
           </p>
         </div>
       ) : null}
@@ -249,7 +265,7 @@ function BattlePodium({ entries, currentPlayerId }: PodiumProps) {
             {first.playerId === currentPlayerId && " (You)"}
           </h3>
           <p className="text-amber-500 dark:text-amber-400 text-xs sm:text-sm font-mono font-bold tabular-nums mt-0.5">
-            {first.score.toLocaleString()} pts
+            {Math.round(first.score).toLocaleString()} pts
           </p>
         </div>
       ) : null}
@@ -280,7 +296,7 @@ function BattlePodium({ entries, currentPlayerId }: PodiumProps) {
             {third.playerId === currentPlayerId && " (You)"}
           </h3>
           <p className="text-muted-foreground text-xs font-mono font-medium tabular-nums mt-0.5">
-            {third.score.toLocaleString()} pts
+            {Math.round(third.score).toLocaleString()} pts
           </p>
         </div>
       ) : null}
@@ -293,6 +309,7 @@ export function GameResultSummary({
   playerProgress,
   currentPlayerId,
   instanceId,
+  closureReason,
   className,
 }: GameResultSummaryProps) {
   if (!finalLeaderboard) {
@@ -334,12 +351,17 @@ export function GameResultSummary({
     (entries.findIndex((e) => e.playerId === currentPlayerId) !== -1
       ? entries.findIndex((e) => e.playerId === currentPlayerId) + 1
       : null);
-  const playerScore =
-    matchedEntry?.score ?? playerProgress?.currentScore ?? 0;
+  const playerScore = Math.round(
+    matchedEntry?.score ?? playerProgress?.currentScore ?? 0,
+  );
+  const hasServerCorrectCount = typeof matchedEntry?.correctCount === "number";
   const playerAnswered =
     matchedEntry?.answeredCount ??
     playerProgress?.answeredCount ??
     totalQuestions;
+  const playerCorrectOrAnswered = hasServerCorrectCount
+    ? matchedEntry!.correctCount!
+    : playerAnswered;
   const totalQuestionsCount =
     totalQuestions > 0
       ? totalQuestions
@@ -364,6 +386,14 @@ export function GameResultSummary({
             />
           </div>
           <div>
+            {closureReason === "timeout" ? (
+              <span
+                className="mb-2 inline-flex items-center rounded-full border border-amber-500/30 bg-amber-500/15 px-3 py-0.5 text-xs font-semibold text-amber-700 dark:text-amber-300"
+                data-testid="result-timeout-badge"
+              >
+                Time&apos;s Up
+              </span>
+            ) : null}
             <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground font-display">
               Battle Complete!
             </h1>
@@ -389,9 +419,11 @@ export function GameResultSummary({
           </div>
           <div className="bg-card/60 border border-border/60 p-3 sm:p-3.5 rounded-xl text-center shadow-2xs">
             <p className="text-lg sm:text-xl font-bold font-mono tabular-nums text-foreground">
-              {playerAnswered}/{totalQuestionsCount}
+              {playerCorrectOrAnswered}/{totalQuestionsCount}
             </p>
-            <p className="text-xs text-muted-foreground mt-0.5">Answered</p>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              {hasServerCorrectCount ? "Correct" : "Answered"}
+            </p>
           </div>
           <div className="bg-card/60 border border-border/60 p-3 sm:p-3.5 rounded-xl text-center shadow-2xs">
             <p className="text-lg sm:text-xl font-bold font-mono tabular-nums text-foreground">

@@ -1,83 +1,49 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAuthTokenFromRequest } from "@/features/auth/utils/auth-cookies";
 
-const PROTECTED_PREFIXES = [
-  "/bookmarks",
-  "/create-quiz",
-  "/friends",
-  "/instances",
-  "/my-profile",
-  "/notifications",
-  "/onboarding",
-  "/quiz-history",
-  "/settings",
+import { hasUsableSession } from "@/features/auth/utils/auth-cookies";
 
-  "/social",
-  "/tournament",
-] as const;
-
-const AUTH_ROUTES = [
-  "/login",
-  "/signup",
-  "/forgot-password",
-  "/resend-verification",
-  "/verify-email",
-] as const;
-
-const ADMIN_PREFIXES = ["/admin"] as const;
-
-const PUBLIC_ROUTES = [
-  "/api",
-  "/_next",
-  "/favicon",
-  "/manifest",
-  "/sw",
-] as const;
-
-function isProtected(pathname: string): boolean {
-  return [...PROTECTED_PREFIXES, ...ADMIN_PREFIXES].some((p) =>
-    pathname.startsWith(p),
-  );
-}
-
-function isAuthRoute(pathname: string): boolean {
-  return AUTH_ROUTES.some((r) => pathname === r || pathname.startsWith(r));
-}
-
-function isPublic(pathname: string): boolean {
-  return PUBLIC_ROUTES.some((r) => pathname.startsWith(r));
-}
+import {
+  LOGIN_ROUTE,
+  isAuthRoute,
+  isProtectedRoute,
+  isPublicAssetRoute,
+  resolveSafeInternalRedirect,
+} from "@/shared/config/routes";
 
 export function proxy(request: NextRequest) {
-  const { pathname } = request.nextUrl;
+  const { pathname, search } = request.nextUrl;
 
-  if (isPublic(pathname)) {
+  if (isPublicAssetRoute(pathname)) {
     return NextResponse.next();
   }
 
-  const token = getAuthTokenFromRequest(request);
-  const isAuthenticated = !!token;
+  const isAuthenticated = hasUsableSession(request);
+  const fullPath = `${pathname}${search}`;
 
-  if (isProtected(pathname) && !isAuthenticated) {
-    const loginUrl = new URL("/login", request.url);
-
-    loginUrl.searchParams.set("redirect", pathname);
+  if (isProtectedRoute(pathname) && !isAuthenticated) {
+    const loginUrl = new URL(LOGIN_ROUTE, request.url);
+    loginUrl.searchParams.set("redirect", fullPath);
     return NextResponse.redirect(loginUrl);
   }
 
   if (isAuthRoute(pathname) && isAuthenticated) {
     const redirectParam = request.nextUrl.searchParams.get("redirect");
-    if (redirectParam) {
-      const dest = new URL(redirectParam, request.url);
-      if (dest.pathname !== pathname) {
-        return NextResponse.redirect(dest);
-      }
+    const safeDest = resolveSafeInternalRedirect(redirectParam, request.url);
+    if (safeDest && safeDest.pathname !== pathname) {
+      return NextResponse.redirect(safeDest);
     }
 
     return NextResponse.redirect(new URL("/", request.url));
   }
 
-  return NextResponse.next();
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set("x-pathname", fullPath);
+
+  return NextResponse.next({
+    request: {
+      headers: requestHeaders,
+    },
+  });
 }
 
 export const config = {

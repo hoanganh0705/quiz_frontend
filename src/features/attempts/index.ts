@@ -1,12 +1,18 @@
 export * from "./services";
 export * from "./types";
 
-export { useMyAttempts } from "./hooks/useMyAttempts";
-export type {
-  UseMyAttemptsParams,
-  UseMyAttemptsResult,
-  AttemptSummary,
-} from "./hooks/useMyAttempts";
+export {
+  useMyAttemptsWithFilters,
+  type UseMyAttemptsWithFiltersParams,
+  type UseMyAttemptsWithFiltersResult,
+  type AttemptHistoryPage,
+} from "./hooks/useMyAttemptsWithFilters";
+
+export {
+  useHasCompletedQuizAttempt,
+  type UseHasCompletedQuizAttemptParams,
+  type UseHasCompletedQuizAttemptResult,
+} from "./hooks/useHasCompletedQuizAttempt";
 
 export {
   useAttemptRunner,
@@ -36,6 +42,8 @@ export {
 } from "./components/QuizHistoryPage";
 
 export {
-  AttemptDetailPage,
-  type AttemptDetailPageProps,
-} from "./components/AttemptDetailPage";
+  AttemptResultView,
+  type AttemptResultViewMode,
+  type AttemptResultViewProps,
+} from "./pages/AttemptResultView";
+export { QuizResultsClientFallback } from "./components/QuizResultsClientFallback";

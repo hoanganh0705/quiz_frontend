@@ -1,10 +1,10 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+import { ATTEMPT_KEYS } from "@/features/attempts/query-keys";
 import {
-  ATTEMPT_HISTORY_CACHE_KEYS,
+  DEFAULT_ATTEMPT_HISTORY_FILTERS,
   serializeAttemptHistoryFilters,
 } from "@/features/attempts/types/attempt-history.types";
-import { DEFAULT_ATTEMPT_HISTORY_FILTERS } from "@/features/attempts/types/attempt-history.types";
 
 afterEach(() => {
   vi.clearAllMocks();
@@ -70,9 +70,9 @@ describe("serializeAttemptHistoryFilters", () => {
   });
 });
 
-describe("ATTEMPT_HISTORY_CACHE_KEYS", () => {
-  it("list returns a readonly tuple", () => {
-    const key = ATTEMPT_HISTORY_CACHE_KEYS.list("user-1", {
+describe("ATTEMPT_KEYS history helpers", () => {
+  it("historyList returns a readonly tuple", () => {
+    const key = ATTEMPT_KEYS.historyList("user-1", {
       status: "completed",
       dateRange: "all",
       search: "",
@@ -86,26 +86,26 @@ describe("ATTEMPT_HISTORY_CACHE_KEYS", () => {
     expect(key[1]).toBe("history");
   });
 
-  it("list keys are scoped by sessionId", () => {
-    const a = ATTEMPT_HISTORY_CACHE_KEYS.list(
+  it("historyList keys are scoped by sessionId", () => {
+    const a = ATTEMPT_KEYS.historyList(
       "user-1",
       DEFAULT_ATTEMPT_HISTORY_FILTERS,
     );
-    const b = ATTEMPT_HISTORY_CACHE_KEYS.list(
+    const b = ATTEMPT_KEYS.historyList(
       "user-2",
       DEFAULT_ATTEMPT_HISTORY_FILTERS,
     );
     expect(a).not.toEqual(b);
   });
 
-  it("list keys differ when filter shape differs", () => {
-    const a = ATTEMPT_HISTORY_CACHE_KEYS.list("user-1", {
+  it("historyList keys differ when filter shape differs", () => {
+    const a = ATTEMPT_KEYS.historyList("user-1", {
       status: "completed",
       dateRange: "all",
       search: "",
       cursor: null,
     });
-    const b = ATTEMPT_HISTORY_CACHE_KEYS.list("user-1", {
+    const b = ATTEMPT_KEYS.historyList("user-1", {
       status: "abandoned",
       dateRange: "all",
       search: "",
@@ -114,11 +114,10 @@ describe("ATTEMPT_HISTORY_CACHE_KEYS", () => {
     expect(a).not.toEqual(b);
   });
 
-  it("all returns a readonly tuple scoped by sessionId", () => {
-    const key = ATTEMPT_HISTORY_CACHE_KEYS.all("user-1");
+  it("history returns a readonly prefix tuple scoped by sessionId without wildcard", () => {
+    const key = ATTEMPT_KEYS.history("user-1");
 
     expect(Array.isArray(key)).toBe(true);
-    expect(Array.from(key)).toContain("user-1");
-    expect(Array.from(key)).toContain("*");
+    expect(key).toEqual(["attempts", "history", "user-1"]);
   });
 });

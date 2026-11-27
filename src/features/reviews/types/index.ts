@@ -5,16 +5,9 @@ export type {
   ReviewPage,
   ReviewGateState,
   ReviewGateResult,
-  InvalidateReviewCachesArgs,
 } from "./review.types";
 
-export {
-  REVIEWS_DEFAULT_LIMIT,
-  quizReviewsKey,
-  myQuizReviewKey,
-  reviewQuizAttemptKey,
-  invalidateReviewCaches,
-} from "./review.types";
+export { REVIEWS_DEFAULT_LIMIT } from "./review.types";
 
 export type {
   ReviewResponseDto,

@@ -1,6 +1,5 @@
-export type {} from "./tag-slug-regex";
-export { TAG_SLUG_REGEX, isValidTagSlug } from "./tag-slug-regex";
+export { isValidTagSlug, TAG_SLUG_REGEX } from "@/lib/forms/regex";
 export {
-  formatTagDate,
-  FORMATTED_TAG_DATE_PLACEHOLDER,
-} from "./format-tag-date";
+  FORMATTED_DATE_PLACEHOLDER as FORMATTED_TAG_DATE_PLACEHOLDER,
+  formatShortDate as formatTagDate,
+} from "@/shared/utils/date-utils";

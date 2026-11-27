@@ -1,1 +1,5 @@
-export { QUIZ_CARD_GRADIENTS, gradientFromQuizId } from "./quiz-card-gradient";
+export {
+  ENTITY_CARD_GRADIENTS,
+  gradientFromId,
+  initialsFromId,
+} from "@/shared/utils/entity-decoration";

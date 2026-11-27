@@ -5,7 +5,7 @@ import {
   type EntityCardProps,
 } from "@/components/primitives/EntityCard/EntityCard";
 
-import { initialsFromQuizId } from "@/features/quizzes/utils/quiz-card-decoration";
+import { initialsFromId } from "@/shared/utils/entity-decoration";
 
 /**
  * The minimal wire shape every rail-quiz-card variant accepts. Each rail's
@@ -53,7 +53,7 @@ export function RailQuizCard({
       description={null}
       imageUrl={quiz.imageUrl ?? null}
       imageAlt=""
-      initials={initialsFromQuizId(quiz.quizId)}
+      initials={initialsFromId(quiz.quizId)}
       aspectRatio="16/9"
       coverSize="md"
       className={className}

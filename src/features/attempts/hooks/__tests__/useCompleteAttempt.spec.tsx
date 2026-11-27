@@ -9,8 +9,7 @@ import {
 import { broadcastAttemptsChanged } from "@/lib/api/core/attempts-broadcast-channel";
 
 import { useCompleteAttempt } from "../useCompleteAttempt";
-import { ATTEMPT_CACHE_KEYS } from "@/features/attempts/types/attempt-runner.types";
-import { ATTEMPT_RESULT_CACHE_KEYS } from "@/features/attempts/types/attempt-result.types";
+import { ATTEMPT_KEYS } from "@/features/attempts/query-keys";
 
 const completeAttemptMock = vi.fn();
 const broadcastAttemptsChangedMock = vi.fn();
@@ -244,22 +243,22 @@ describe("useCompleteAttempt — success", () => {
 
     expect(invalidateQueriesMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        queryKey: ATTEMPT_CACHE_KEYS.active("qv1", "user-1"),
+        queryKey: ATTEMPT_KEYS.active("qv1", "user-1"),
       }),
     );
     expect(invalidateQueriesMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        queryKey: ATTEMPT_CACHE_KEYS.detail("a1", "user-1"),
+        queryKey: ATTEMPT_KEYS.detail("a1", "user-1"),
       }),
     );
     expect(invalidateQueriesMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        queryKey: ATTEMPT_CACHE_KEYS.answers("a1", "user-1"),
+        queryKey: ATTEMPT_KEYS.answers("a1", "user-1"),
       }),
     );
     expect(invalidateQueriesMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        queryKey: ATTEMPT_RESULT_CACHE_KEYS.result("a1", "user-1"),
+        queryKey: ATTEMPT_KEYS.result("a1", "user-1"),
       }),
     );
     expect(invalidateQueriesMock).toHaveBeenCalledWith(

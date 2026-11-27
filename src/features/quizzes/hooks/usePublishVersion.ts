@@ -4,13 +4,12 @@ import { useCallback, useRef, useState } from "react";
 import { getQueryClient } from "@/providers/QueryProvider";
 
 import { isApiError, type ApiError } from "@/lib/api";
+import { unwrapEnvelope as inspectEnvelope } from "@/lib/api/core/unwrap";
 
+import { QUIZ_KEYS } from "@/features/quizzes/query-keys";
 import { publishQuizVersion } from "@/features/quizzes/services/quizzes.service";
+
 import type { QuizVersionSummary } from "@/features/quizzes/types/quiz-version.types";
-import {
-  quizAuthorKey,
-  quizVersionsKey,
-} from "@/features/quizzes/types/quiz-version.types";
 
 export interface UsePublishVersionOptions {
   onSuccess?: (result: QuizVersionSummary) => void;
@@ -25,14 +24,6 @@ export interface UsePublishVersionReturn {
   isLoading: boolean;
   error: ApiError | null;
   resetError: () => void;
-}
-
-function emitBreadcrumb(
-  _category: string,
-  _data: { status: string; durationMs: number; code?: string },
-): void {
-  void _category;
-  void _data;
 }
 
 export function usePublishVersion(
@@ -56,31 +47,37 @@ export function usePublishVersion(
 
       setIsLoading(true);
       setError(null);
-      const startedAt = Date.now();
 
       const core = (async (): Promise<QuizVersionSummary | null> => {
         try {
           const response = await publishQuizVersion(quizId, versionId);
-
-          const version = (response as unknown as { data?: QuizVersionSummary })
-            .data;
+          const unwrapped = inspectEnvelope<QuizVersionSummary>(response);
+          const version =
+            unwrapped.kind === "envelope" ? unwrapped.value : null;
           if (!version) {
             throw new Error(
               "Unexpected response shape from POST /quizzes/:id/versions/:versionId/publish",
             );
           }
 
-          emitBreadcrumb("quizzes:publish-version", {
-            status: "success",
-            durationMs: Date.now() - startedAt,
-          });
-
           const queryClient = getQueryClient();
           void queryClient.invalidateQueries({
-            queryKey: quizVersionsKey(quizId),
+            queryKey: QUIZ_KEYS.versions(quizId),
           });
           void queryClient.invalidateQueries({
-            queryKey: quizAuthorKey(quizId),
+            queryKey: QUIZ_KEYS.version(quizId, versionId),
+          });
+          void queryClient.invalidateQueries({
+            queryKey: QUIZ_KEYS.author(quizId),
+          });
+          void queryClient.invalidateQueries({
+            queryKey: QUIZ_KEYS.mineAll(),
+          });
+          void queryClient.invalidateQueries({
+            queryKey: QUIZ_KEYS.detail(quizId),
+          });
+          void queryClient.invalidateQueries({
+            queryKey: QUIZ_KEYS.aggregate(quizId),
           });
 
           onSuccess?.(version);
@@ -89,21 +86,8 @@ export function usePublishVersion(
           if (isApiError(err)) {
             setError(err);
             onError?.(err);
-
-            emitBreadcrumb("quizzes:publish-version", {
-              status: "error",
-              durationMs: Date.now() - startedAt,
-              code: err.code,
-            });
-
             throw err;
           }
-
-          emitBreadcrumb("quizzes:publish-version", {
-            status: "error",
-            durationMs: Date.now() - startedAt,
-            code: "GLOBAL_UNKNOWN",
-          });
           throw err;
         }
       })();

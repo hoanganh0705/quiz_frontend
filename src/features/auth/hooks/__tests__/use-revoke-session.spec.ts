@@ -5,7 +5,7 @@ import {
   AUTH_SESSION_NOT_FOUND,
   AUTH_INVALID_TOKEN,
   AUTH_RESOURCE_CONFLICT,
-} from "@/features/auth/errors/session-error-codes";
+} from "@/features/auth/errors/auth-error-codes";
 import type { SessionListItemDto } from "@/lib/api";
 import type { RevokeCurrentSessionResult } from "@/features/auth/services/auth.service";
 

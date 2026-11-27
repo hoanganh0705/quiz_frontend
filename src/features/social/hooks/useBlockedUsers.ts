@@ -47,7 +47,6 @@ export function useBlockedUsers(): UseBlockedUsersResult {
   const isAuthenticated = auth.isAuthenticated;
 
   const key = useMemo<readonly unknown[] | null>(() => {
-    if (false) return null;
     if (!isAuthenticated) return null;
     return SOCIAL_CACHE_KEYS.makeBlockedKey();
   }, [isAuthenticated]);
@@ -102,7 +101,6 @@ export function useBlockedUsers(): UseBlockedUsersResult {
     paginationKind: "cursor",
   });
 
-  if (false) return PLACEHOLDER_RESULT;
   if (!isAuthenticated) return PLACEHOLDER_RESULT;
 
   return {

@@ -8,7 +8,7 @@ import {
 
 export default function RankingsLoading() {
   return (
-    <main className="mx-auto max-w-4xl space-y-6 p-4 sm:p-6 lg:p-8">
+    <main className="min-h-screen w-full text-foreground p-4 md:p-8 lg:p-12 space-y-6">
       <header className="space-y-1">
         <Skeleton className="h-7 w-40" />
         <Skeleton className="h-4 w-72" />

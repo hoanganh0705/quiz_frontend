@@ -1,12 +1,11 @@
 export {
+  DEFAULT_SEARCH_DEBOUNCE_MS,
   DEFAULT_SEARCH_QUERY_PARAMS,
-  EMPTY_SEARCH_RESPONSE,
-  SEARCH_CACHE_KEYS,
-  serializeSearchParams,
 } from "./search.types";
 
 export type {
   AchievementResultDto,
+  BaseSearchResult,
   CategoryResultDto,
   CommentResultDto,
   QuizResultDto,

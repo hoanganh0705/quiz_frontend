@@ -5,10 +5,12 @@ import { getQueryClient } from "@/providers/QueryProvider";
 import { RefreshCw } from "lucide-react";
 
 import { Button } from "@/components/ui/Button";
+
+import { QUIZ_KEYS } from "@/features/quizzes/query-keys";
 import {
   refreshHomeBundle,
   type FeaturedRefreshHandle,
-} from "./refresh-home-bundle";
+} from "@/features/quizzes/services/quizzes.service";
 
 export function HomeFeaturedRefreshButton({
   onRefreshed,
@@ -23,8 +25,10 @@ export function HomeFeaturedRefreshButton({
     setIsRefreshing(true);
     try {
       const data = await refreshHomeBundle();
-      getQueryClient().setQueryData(["home", "bundle"], data);
+      getQueryClient().setQueryData(QUIZ_KEYS.homeBundle(), data);
       onRefreshed?.(data);
+    } catch {
+      // Fail gracefully without unhandled promise rejection
     } finally {
       setIsRefreshing(false);
     }

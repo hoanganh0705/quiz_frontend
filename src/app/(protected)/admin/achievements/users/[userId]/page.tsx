@@ -1,13 +1,26 @@
-"use client";
+import { Suspense } from "react";
 
-import * as React from "react";
-import { AchievementAdminUserRouteHandoff } from "./_components/AchievementAdminUserRouteHandoff";
+import { AchievementAdminUserPage } from "@/features/admin/achievement-admin/components/AchievementAdminUserPage";
 
-export default function AdminAchievementUserPage({
+import AdminLoading from "../../../loading";
+
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "User Achievements",
+  description: "Re-evaluate user achievements and manage earned badges.",
+};
+
+export default async function AdminAchievementUserPage({
   params,
 }: {
   params: Promise<{ userId: string }>;
 }) {
-  const { userId } = React.use(params);
-  return <AchievementAdminUserRouteHandoff userId={userId} />;
+  const { userId } = await params;
+
+  return (
+    <Suspense fallback={<AdminLoading />}>
+      <AchievementAdminUserPage userId={userId} />
+    </Suspense>
+  );
 }

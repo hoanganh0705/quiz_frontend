@@ -218,7 +218,14 @@ export function InstanceStatusBanner({
             <span className="text-muted-foreground/40 hidden sm:inline" aria-hidden="true">•</span>
             <span className="inline-flex items-center gap-1 font-mono text-xs text-muted-foreground">
               <Timer className="h-3.5 w-3.5" aria-hidden="true" />
-              {Math.round(instance.durationMs / 1000)}s / question
+              {(() => {
+                const totalSec = Math.round(instance.durationMs / 1000);
+                const mins = Math.floor(totalSec / 60);
+                const secs = totalSec % 60;
+                if (mins > 0 && secs > 0) return `${mins}m ${secs}s total`;
+                if (mins > 0) return `${mins}m total`;
+                return `${secs}s total`;
+              })()}
             </span>
           </>
         )}

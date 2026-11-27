@@ -43,10 +43,6 @@ function SearchRouteGate(): React.ReactElement {
     );
   }
 
-  if (false) {
-    return <SocialSearchPlaceholder />;
-  }
-
   if (isAuthenticated) {
     return (
       <UserSearchResults query={query} onQueryChange={handleQueryChange} />

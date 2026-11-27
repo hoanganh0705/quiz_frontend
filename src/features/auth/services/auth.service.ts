@@ -1,53 +1,54 @@
 import {
-  AuthControllerCheckEmailParams,
-  AuthControllerCheckUsernameParams,
+  ApiError,
+  coerceToApiError,
   getAuth,
+  unwrapEnvelope,
+  type AccountSecurityDto,
+  type AuthControllerCheckEmailParams,
+  type AuthControllerCheckUsernameParams,
+  type ChangePasswordDto,
+  type ChangePasswordResponseDto,
+  type DeleteAccountDto,
+  type DeleteAccountResponseDto,
+  type SessionListResponseDto,
+  type SessionManagementResultDto,
+  type VerifyPasswordDto,
+  type VerifyPasswordResponseDto,
 } from "@/lib/api";
-import {
-  setAuthToken,
-  clearAuthToken,
-  setRememberMeActive,
-} from "@/features/auth/utils/auth-cookies";
-import { clearAllAuthCache } from "@/features/auth/utils/user-scoped-cache";
-import { clearAuthState } from "@/features/auth/utils/clear-auth-state";
 import {
   broadcastAuthEvent,
   type LoggedInEvent,
 } from "@/lib/api/core/broadcast-channel";
+import { getQueryClient } from "@/providers/QueryProvider";
+
+import {
+  clearAuthToken,
+  setAuthToken,
+  setRememberMeActive,
+} from "@/features/auth/utils/auth-cookies";
+import { clearAuthState } from "@/features/auth/utils/clear-auth-state";
 import { clearVerificationFlags } from "@/features/auth/utils/verification-flag";
+
 import type {
+  AuthControllerChangePasswordResult,
   AuthControllerCheckEmailResult,
   AuthControllerCheckUsernameResult,
+  AuthControllerDeleteAccountResult,
   AuthControllerForgotPasswordResult,
   AuthControllerGetActiveSessionsResult,
-  AuthControllerGoogleLoginResult,
-  AuthControllerLoginResult,
-  AuthControllerLogoutResult,
   AuthControllerLogoutAllResult,
+  AuthControllerLogoutResult,
   AuthControllerRegisterResult,
   AuthControllerResendVerificationEmailResult,
   AuthControllerResetPasswordResult,
   AuthControllerVerifyEmailResult,
-} from "@/lib/api/generated/auth/auth";
-import type {
-  AccountSecurityDto,
-  ChangePasswordDto,
-  ChangePasswordResponseDto,
-  DeleteAccountDto,
-  DeleteAccountResponseDto,
-  SessionListResponseDto,
-  SessionManagementResultDto,
-  VerifyPasswordDto,
-  VerifyPasswordResponseDto,
-} from "@/lib/api";
-import type { LoginResponseDto } from "@/lib/api/generated/schemas/loginResponseDto";
-import {
-  AuthControllerChangePasswordResult,
-  AuthControllerDeleteAccountResult,
   AuthControllerVerifyPasswordResult,
 } from "@/lib/api/generated/auth/auth";
-import { ApiError } from "@/lib/api/core/ApiError";
-import { getQueryClient } from "@/providers/QueryProvider";
+import type { LoginResponseDto } from "@/lib/api/generated/schemas/loginResponseDto";
+
+function readEnvelopeMessage(wire: { data?: { message?: string } } | null | undefined): string {
+  return wire?.data?.message ?? "";
+}
 
 function broadcastLogin(userId: string, accessToken: string): void {
   const event: Omit<LoggedInEvent, "tabId" | "timestamp"> = {
@@ -56,10 +57,6 @@ function broadcastLogin(userId: string, accessToken: string): void {
     accessToken,
   };
   broadcastAuthEvent(event);
-}
-
-function broadcastLogout(): void {
-  broadcastAuthEvent({ type: "LOGGED_OUT" });
 }
 
 function broadcastTokenRefreshed(accessToken: string): void {
@@ -93,17 +90,41 @@ export async function register(
   return getAuth().authControllerRegister(dto);
 }
 
+const VIEWER_QUERY_KEY_PREFIXES = [
+  ["auth"],
+  ["users", "me"],
+  ["bookmarks"],
+  ["follow-lookup"],
+  ["attempts"],
+  ["daily-challenge"],
+  ["reviews"],
+] as const;
+
+function invalidateViewerQueries(): void {
+  if (typeof window === "undefined") return;
+  try {
+    const queryClient = getQueryClient();
+    for (const queryKey of VIEWER_QUERY_KEY_PREFIXES) {
+      void queryClient.invalidateQueries({ queryKey });
+    }
+  } catch {
+    // Fail-open when QueryClient is unavailable
+  }
+}
+
 export async function login(
-  dto: Parameters<ReturnType<typeof getAuth>["authControllerLogin"]>[0] & { rememberMe?: boolean },
-): Promise<AuthControllerLoginResult> {
+  dto: Parameters<ReturnType<typeof getAuth>["authControllerLogin"]>[0] & {
+    rememberMe?: boolean;
+  },
+): Promise<LoginResponseDto> {
   const rememberMe = Boolean(dto?.rememberMe);
   setRememberMeActive(rememberMe);
 
   const wire = await getAuth().authControllerLogin(dto);
-  if (!wire || (wire as { data?: unknown }).data === undefined) {
-    throw new Error("Login response missing data envelope");
-  }
-  const data = (wire as { data: LoginResponseDto }).data;
+  const data = unwrapEnvelope<LoginResponseDto>(
+    wire as { data?: LoginResponseDto },
+    "Login response missing data envelope",
+  );
   const accessToken = data.accessToken;
 
   setAuthToken(accessToken, {
@@ -115,31 +136,23 @@ export async function login(
 
   if (userId) {
     broadcastLogin(userId, accessToken);
+  } else {
+    broadcastTokenRefreshed(accessToken);
   }
 
-  if (typeof window !== "undefined") {
-    try {
-      void getQueryClient().invalidateQueries();
-    } catch {
-      // Fail-open
-    }
-  }
+  invalidateViewerQueries();
 
-  broadcastTokenRefreshed(accessToken);
-
-  return data as unknown as AuthControllerLoginResult;
+  return data;
 }
 
-export async function googleLogin(
-  idToken: string,
-): Promise<AuthControllerGoogleLoginResult> {
+export async function googleLogin(idToken: string): Promise<LoginResponseDto> {
   const wire = await getAuth().authControllerGoogleLogin({
     idToken,
   });
-  if (!wire || (wire as { data?: unknown }).data === undefined) {
-    throw new Error("Google login response missing data envelope");
-  }
-  const data = (wire as { data: LoginResponseDto }).data;
+  const data = unwrapEnvelope<LoginResponseDto>(
+    wire as { data?: LoginResponseDto },
+    "Google login response missing data envelope",
+  );
   const accessToken = data.accessToken;
 
   setAuthToken(accessToken);
@@ -148,11 +161,13 @@ export async function googleLogin(
 
   if (userId) {
     broadcastLogin(userId, accessToken);
+  } else {
+    broadcastTokenRefreshed(accessToken);
   }
 
-  broadcastTokenRefreshed(accessToken);
+  invalidateViewerQueries();
 
-  return data as unknown as AuthControllerGoogleLoginResult;
+  return data;
 }
 
 export async function logout(): Promise<AuthControllerLogoutResult> {
@@ -172,74 +187,57 @@ export async function logoutAll(): Promise<AuthControllerLogoutAllResult> {
 }
 
 export async function getSecurityDashboard(): Promise<AccountSecurityDto> {
-  const data = await getAuth().authControllerGetSecurityDashboard();
-  if (!data.data) {
-    throw ApiError.fromInput({
-      status: 500,
-      code: "GLOBAL_INTERNAL_ERROR",
-      message: "Security dashboard response missing data envelope",
-    });
-  }
-  return data.data;
+  const wire = await getAuth().authControllerGetSecurityDashboard();
+  return unwrapEnvelope(
+    wire,
+    "Security dashboard response missing data envelope",
+  );
 }
 
 export async function getActiveSessions(): Promise<SessionListResponseDto> {
-  const data: AuthControllerGetActiveSessionsResult =
+  const wire: AuthControllerGetActiveSessionsResult =
     await getAuth().authControllerGetActiveSessions();
-  if (!data.data) {
-    throw ApiError.fromInput({
-      status: 500,
-      code: "GLOBAL_INTERNAL_ERROR",
-      message: "Active sessions response missing data envelope",
-    });
-  }
-  return data.data;
+  return unwrapEnvelope(
+    wire,
+    "Active sessions response missing data envelope",
+  );
 }
 
 export async function revokeOtherSessions(): Promise<SessionManagementResultDto> {
-  const data = await getAuth().authControllerRevokeOtherSessions();
+  const wire = await getAuth().authControllerRevokeOtherSessions();
   return {
-    message: (data.data as { message?: string })?.message ?? "",
+    message: readEnvelopeMessage(wire as { data?: { message?: string } }),
   };
 }
 
 export async function revokeSession(
   sessionId: string,
 ): Promise<SessionManagementResultDto> {
-  const data = await getAuth().authControllerRevokeSession(sessionId);
+  const wire = await getAuth().authControllerRevokeSession(sessionId);
   return {
-    message: (data.data as { message?: string })?.message ?? "",
+    message: readEnvelopeMessage(wire as { data?: { message?: string } }),
   };
 }
 
 export type RevokeCurrentSessionResult =
-  { kind: "success"; message: string } | { kind: "error"; error: ApiError };
+  | { kind: "success"; message: string }
+  | { kind: "error"; error: ApiError };
 
 export async function revokeCurrentSession(
   sessionId: string,
 ): Promise<RevokeCurrentSessionResult> {
   try {
-    const data = await getAuth().authControllerRevokeSession(sessionId);
-    const message = (data.data as { message?: string })?.message ?? "";
+    const wire = await getAuth().authControllerRevokeSession(sessionId);
+    const message = readEnvelopeMessage(
+      wire as { data?: { message?: string } },
+    );
 
     clearVerificationFlags();
     clearAuthToken();
-    clearAllAuthCache();
     broadcastAuthEvent({ type: "LOGGED_OUT" });
     return { kind: "success", message };
   } catch (error) {
-    const err =
-      error instanceof ApiError
-        ? error
-        : ApiError.fromInput({
-            status: 0,
-            code: "GLOBAL_INTERNAL_ERROR",
-            message:
-              error instanceof Error
-                ? error.message
-                : "Unknown error revoking current session",
-          });
-    return { kind: "error", error: err };
+    return { kind: "error", error: coerceToApiError(error) };
   }
 }
 
@@ -274,31 +272,23 @@ export async function resetPassword(
 export async function verifyPassword(
   dto: VerifyPasswordDto,
 ): Promise<VerifyPasswordResponseDto> {
-  const data: AuthControllerVerifyPasswordResult =
+  const wire: AuthControllerVerifyPasswordResult =
     await getAuth().authControllerVerifyPassword(dto);
-  if (!data.data) {
-    throw ApiError.fromInput({
-      status: 500,
-      code: "GLOBAL_INTERNAL_ERROR",
-      message: "Verify password response missing data envelope",
-    });
-  }
-  return data.data;
+  return unwrapEnvelope(
+    wire,
+    "Verify password response missing data envelope",
+  );
 }
 
 export async function changePassword(
   dto: ChangePasswordDto,
 ): Promise<ChangePasswordResponseDto> {
-  const data: AuthControllerChangePasswordResult =
+  const wire: AuthControllerChangePasswordResult =
     await getAuth().authControllerChangePassword(dto);
-  if (!data.data) {
-    throw ApiError.fromInput({
-      status: 500,
-      code: "GLOBAL_INTERNAL_ERROR",
-      message: "Change password response missing data envelope",
-    });
-  }
-  return data.data;
+  return unwrapEnvelope(
+    wire,
+    "Change password response missing data envelope",
+  );
 }
 
 export async function revalidateAfterPasswordChange(): Promise<{
@@ -312,192 +302,13 @@ export async function revalidateAfterPasswordChange(): Promise<{
   return { dashboard, sessions };
 }
 
-export {
-  mapGoogleLoginError,
-  type GoogleLoginErrorKind,
-  type GoogleLoginErrorResult,
-} from "@/features/auth/errors/oauth-error-mapper";
-
-export {
-  mapSessionError,
-  isAlreadyRevoked,
-  isCurrentRevoked,
-  isAuthTerminalSessionError,
-  isSessionErrorRetryable,
-  isSessionConflict,
-  type SessionErrorTarget,
-  type SessionErrorClassification,
-  type SessionErrorInput,
-} from "@/features/auth/errors/session-error-mapper";
-
-export {
-  AUTH_SESSION_NOT_FOUND,
-  AUTH_INVALID_TOKEN,
-  AUTH_RESOURCE_CONFLICT,
-  isSessionNotFoundError,
-  isSessionErrorCode,
-  isSessionRecoverableStatus,
-  type SessionErrorCode,
-} from "@/features/auth/errors/session-error-codes";
-
-export {
-  COPY_KEYS as SECURITY_COPY_KEYS,
-  resolveCopy as resolveSecurityCopy,
-  passwordAgeUnknownSnapshot,
-  sessionListEmptySnapshot,
-  lastPasswordChangeUnknownSnapshot,
-} from "@/features/auth/copy/security-copy";
-
-export {
-  mapPasswordError,
-  isInvalidCurrentPassword,
-  isPasswordReuse,
-  isPasswordValidation,
-  isAuthTerminalPasswordError,
-  isPasswordConflict,
-  isPasswordErrorRetryable,
-  type PasswordErrorClassification,
-  type PasswordErrorInput,
-} from "@/features/auth/errors/password-error-mapper";
-
-export {
-  AUTH_INVALID_CURRENT_PASSWORD,
-  AUTH_PASSWORD_REUSE,
-  GLOBAL_VALIDATION_FAILED,
-  isInvalidCurrentPasswordError,
-  isPasswordReuseError,
-  isPasswordErrorCode,
-  isPasswordRecoverableStatus,
-  type PasswordErrorCode,
-} from "@/features/auth/errors/password-error-codes";
-
-export {
-  COPY_KEYS as PASSWORD_COPY_KEYS,
-  resolveCopy as resolvePasswordCopy,
-  verifyInvalidCurrentSnapshot,
-  passwordTooWeakSnapshot,
-  passwordChangeSuccessSnapshot,
-  hasPasswordCopyKey,
-} from "@/features/auth/copy/password-copy";
-
 export async function deleteAccount(
   dto: DeleteAccountDto,
 ): Promise<DeleteAccountResponseDto> {
-  const data: AuthControllerDeleteAccountResult =
+  const wire: AuthControllerDeleteAccountResult =
     await getAuth().authControllerDeleteAccount(dto);
-  if (!data.data) {
-    throw ApiError.fromInput({
-      status: 500,
-      code: "GLOBAL_INTERNAL_ERROR",
-      message: "Delete account response missing data envelope",
-    });
-  }
-  return data.data;
+  return unwrapEnvelope(
+    wire,
+    "Delete account response missing data envelope",
+  );
 }
-
-export { verifyPassword as verifyPasswordForDeletion };
-
-export {
-  mapDeletionError,
-  isInvalidCurrentPasswordDeletion,
-  isDeletionConflict,
-  isDeletionNotFound,
-  isAuthTerminalDeletionError,
-  isDeletionValidation,
-  isDeletionUncertain,
-  type DeletionErrorClassification,
-  type DeletionErrorInput,
-} from "@/features/auth/errors/deletion-error-mapper";
-
-export {
-  AUTH_DELETION_FAILED,
-  USER_NOT_FOUND,
-  isInvalidCurrentPasswordError as isInvalidCurrentPasswordDeletionCode,
-  isDeletionFailedError,
-  isUserNotFoundError,
-  isDeletionErrorCode,
-  isDeletionRecoverableStatus,
-  type DeletionErrorCode,
-} from "@/features/auth/errors/deletion-error-codes";
-
-export {
-  COPY_KEYS as DELETION_COPY_KEYS,
-  resolveCopy as resolveDeletionCopy,
-  deletionConfirmTitleSnapshot,
-  deletionConsequenceSnapshot,
-  deletionUncertainSnapshot,
-  hasDeletionCopyKey,
-} from "@/features/auth/copy/deletion-copy";
-
-export {
-  runDeletionFinalization,
-  isDeletionFinalized,
-  resetDeletionFinalizationForTesting,
-  type DeletionFinalizationResult,
-  type DeletionCleanupStep,
-} from "@/features/auth/lifecycle/deletion-finalization";
-
-export { finalizeDeletedAccountAuthMarkers } from "@/features/auth/lifecycle/deletion-auth-markers";
-
-export {
-  clearAllDeletionCaches,
-  type DeletionCacheCleanupReport,
-} from "@/features/auth/lifecycle/deletion-cache-cleanup";
-
-export {
-  AUTH_PERSISTENT_KEYS,
-  clearPersistedUserStore,
-  clearDeletionPersistedAccountState,
-  clearSensitiveDeletionFormValues,
-  type DeletionFormSetters,
-} from "@/features/auth/lifecycle/deletion-persisted-state";
-
-export {
-  revalidateAccountExists,
-  type DeletionAccountExistence,
-  type DeletionRevalidationResult,
-  type RevalidateAccountExistsDeps,
-} from "@/features/auth/lifecycle/deletion-revalidation";
-
-export {
-  buildDeletionReplaceHistory,
-  DELETION_PUBLIC_LANDING_PATH,
-} from "@/features/auth/lifecycle/deletion-history";
-
-export {
-  DeletionGuard,
-  useDeletionGuardActive,
-  type DeletionGuardProps,
-} from "@/features/auth/guards/deletion-guard";
-
-export {
-  initialDeletionState,
-  assertNeverExhaustiveDeletionState,
-  isTerminalDeletionState,
-  type DeletionState,
-  type DeletionIdleState,
-  type DeletionPendingState,
-  type DeletionUncertainState,
-  type DeletionCleanupState,
-  type DeletionCompletedState,
-  type DeletionStateError,
-} from "@/features/auth/types/deletion-state";
-
-export {
-  useDeleteAccount,
-  DELETION_INTENT_TOKEN,
-  type UseDeleteAccountDeps,
-  type UseDeleteAccountResult,
-  type UseDeleteAccountSubmitResult,
-} from "@/features/auth/hooks/use-delete-account";
-
-export { broadcastAccountDeleted } from "@/lib/api/core/broadcast-channel";
-
-export {
-  isDeletionTerminal,
-  markDeletionTerminal,
-  clearDeletionTerminal,
-  _isDeletionTerminalForTesting,
-} from "@/features/auth/lifecycle/deletion-terminal";
-
-export { handleRemoteAccountDeleted } from "@/features/auth/lifecycle/deletion-cross-tab";

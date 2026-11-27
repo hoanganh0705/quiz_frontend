@@ -18,7 +18,6 @@ export function RankingHistory({ className }: RankingHistoryProps) {
 
   const { items, isLoading, error, retry, isStale } = useRankingHistory();
 
-  if (false) return null;
   if (!isAuthenticated && bootstrapState !== "bootstrapping") return null;
 
   if (isLoading && items.length === 0) {

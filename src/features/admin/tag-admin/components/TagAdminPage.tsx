@@ -61,7 +61,7 @@ export function TagAdminPage(_props: TagAdminPageProps) {
   }, []);
 
   return (
-    <div className="mx-auto max-w-7xl px-4 sm:px-6 pb-8 space-y-6 pt-6">
+    <div className="min-h-screen w-full text-foreground p-4 md:p-8 lg:p-12 space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-6">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">

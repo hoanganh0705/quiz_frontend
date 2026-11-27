@@ -2,21 +2,22 @@
 
 import { useCallback, useRef, useState } from "react";
 
-import { isApiError, ApiError } from "@/lib/api";
+import { ApiError, coerceToApiError, isApiError } from "@/lib/api";
 
-import { createVersionQuestion } from "@/features/quizzes/services/question-service";
+import { useCooldownTimer } from "@/shared/hooks/use-cooldown-timer";
+
 import { getQuestionEditorCopy } from "@/features/quizzes/constants/question-errors";
-import type {
-  QuizAuthorQuestionDto,
-  CreateQuestionDto,
-} from "@/features/quizzes/types/author-dtos";
+import { createVersionQuestion } from "@/features/quizzes/services/quizzes.service";
+
 import type { UserCopyEntry } from "@/lib/api/error-codes";
+import type {
+  CreateQuestionDto,
+  QuizAuthorQuestionDto,
+} from "@/features/quizzes/types/author-dtos";
 
 export interface UseCreateVersionQuestionOptions {
   onSuccess?: (question: QuizAuthorQuestionDto) => void;
-
   onError?: (error: ApiError) => void;
-
   onRateLimit?: (seconds: number) => void;
 }
 
@@ -26,27 +27,15 @@ export interface UseCreateVersionQuestionReturn {
     versionId: string,
     payload: CreateQuestionDto,
   ) => Promise<QuizAuthorQuestionDto | null>;
-
   isSubmitting: boolean;
-
   error: ApiError | null;
-
   errorCopy: UserCopyEntry | null;
-
   fieldErrors: Record<string, string>;
-
   cooldownSeconds: number | null;
-
   resetError: () => void;
 }
 
-function emitBreadcrumb(
-  _category: string,
-  _data: { status: string; durationMs: number; code?: string },
-): void {
-  void _category;
-  void _data;
-}
+const RATE_LIMIT_SECONDS = 60;
 
 export function useCreateVersionQuestion(
   options: UseCreateVersionQuestionOptions = {},
@@ -56,12 +45,13 @@ export function useCreateVersionQuestion(
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<ApiError | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
-  const [cooldownSeconds, setCooldownSeconds] = useState<number | null>(null);
 
+  const cooldown = useCooldownTimer();
   const inFlightRef = useRef<Promise<QuizAuthorQuestionDto | null> | null>(
     null,
   );
 
+  const cooldownSeconds = cooldown.isActive ? cooldown.remainingSeconds : null;
   const errorCopy = error ? getQuestionEditorCopy(error.code) : null;
 
   const createQuestion = useCallback(
@@ -74,14 +64,13 @@ export function useCreateVersionQuestion(
         return inFlightRef.current;
       }
 
-      if (cooldownSeconds !== null) {
+      if (cooldown.isActive) {
         return null;
       }
 
       setIsSubmitting(true);
       setError(null);
       setFieldErrors({});
-      const startedAt = Date.now();
 
       const core = (async (): Promise<QuizAuthorQuestionDto | null> => {
         try {
@@ -90,39 +79,13 @@ export function useCreateVersionQuestion(
             versionId,
             payload,
           );
-
           onSuccess?.(question);
-
-          emitBreadcrumb("quizzes:create-question", {
-            status: "success",
-            durationMs: Date.now() - startedAt,
-          });
-
           return question;
         } catch (err) {
           if (isApiError(err)) {
             if (err.status === 429) {
-              const seconds = 60;
-              setCooldownSeconds(seconds);
-
-              const interval = setInterval(() => {
-                setCooldownSeconds((prev) => {
-                  if (prev === null || prev <= 1) {
-                    clearInterval(interval);
-                    return null;
-                  }
-                  return prev - 1;
-                });
-              }, 1000);
-
-              onRateLimit?.(seconds);
-
-              emitBreadcrumb("quizzes:create-question", {
-                status: "cooldown",
-                durationMs: Date.now() - startedAt,
-                code: err.code,
-              });
-
+              cooldown.start(RATE_LIMIT_SECONDS * 1000);
+              onRateLimit?.(RATE_LIMIT_SECONDS);
               return null;
             }
 
@@ -156,33 +119,12 @@ export function useCreateVersionQuestion(
 
             setError(err);
             onError?.(err);
-
-            emitBreadcrumb("quizzes:create-question", {
-              status: "error",
-              durationMs: Date.now() - startedAt,
-              code: err.code,
-            });
-
             throw err;
           }
 
-          const unknownErr =
-            err instanceof Error ? err.message : "Unknown error";
-          const apiErr = new ApiError({
-            status: 0,
-            code: "GLOBAL_UNKNOWN",
-            message: unknownErr,
-          });
-
+          const apiErr = coerceToApiError(err);
           setError(apiErr);
           onError?.(apiErr);
-
-          emitBreadcrumb("quizzes:create-question", {
-            status: "error",
-            durationMs: Date.now() - startedAt,
-            code: "GLOBAL_UNKNOWN",
-          });
-
           throw apiErr;
         }
       })();
@@ -196,14 +138,14 @@ export function useCreateVersionQuestion(
         setIsSubmitting(false);
       }
     },
-    [cooldownSeconds, onSuccess, onError, onRateLimit],
+    [cooldown, onSuccess, onError, onRateLimit],
   );
 
   const resetError = useCallback(() => {
     setError(null);
     setFieldErrors({});
-    setCooldownSeconds(null);
-  }, []);
+    cooldown.stop();
+  }, [cooldown]);
 
   return {
     createQuestion,

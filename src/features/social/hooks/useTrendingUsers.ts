@@ -67,7 +67,6 @@ export function useTrendingUsers(): UseTrendingUsersResult {
   const isAuthenticated = auth.isAuthenticated;
 
   const key = useMemo<readonly unknown[] | null>(() => {
-    if (false) return null;
     if (!isAuthenticated) return null;
     return ["social", "trending"] as const;
   }, [isAuthenticated]);
@@ -117,7 +116,6 @@ export function useTrendingUsers(): UseTrendingUsersResult {
     paginationKind: "offset",
   });
 
-  if (false) return FALLBACK_RESULT;
   if (!isAuthenticated) return FALLBACK_RESULT;
 
   const code = result.error?.code;

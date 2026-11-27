@@ -2,9 +2,9 @@
 
 import { useMemo } from "react";
 
+import { isValidSlug } from "@/lib/forms/regex";
 import { useDebouncedValue } from "@/lib/utils/use-debounced-value";
 
-import { isValidTagSlug } from "../tag-slug-regex";
 import { isTagSlugTaken } from "../tag-validation";
 import type { TagAdminListItem } from "../tag-types";
 import { useTagAdminList } from "./useTagAdminList";
@@ -46,7 +46,7 @@ export function useTagSlugAvailability(
       return { status: "unknown", debouncedSlug: "", conflictingTag: null };
     }
 
-    if (!isValidTagSlug(debouncedSlug)) {
+    if (!isValidSlug(debouncedSlug)) {
       return { status: "invalid", debouncedSlug, conflictingTag: null };
     }
 

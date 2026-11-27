@@ -2,19 +2,18 @@
 
 import { useMemo } from "react";
 
-import { ApiError, useCursorPaginated } from "@/lib/api";
+import { useCursorPaginated } from "@/lib/api";
 import type {
   CursorFetcherArgs,
   CursorPage,
   UseCursorPaginatedResult,
 } from "@/lib/api/use-cursor-paginated.types";
 
+import { COMMENT_KEYS } from "@/features/comments/query-keys";
 import { listQuizComments } from "@/features/comments/services/comments.service";
-import { useCommentThreadLookup } from "@/features/comments/stores/useCommentThreadLookup";
 import {
   REPLY_DEFAULT_LIMIT,
   TOP_LEVEL_DEFAULT_LIMIT,
-  commentsKey,
   type CommentFilters,
   type CommentThreadItem,
 } from "@/features/comments/types";
@@ -44,10 +43,8 @@ export function useQuizComments(
 ): UseQuizCommentsResult {
   const { quizId, filters } = params;
 
-  const lookup = useCommentThreadLookup(quizId);
-
   const key = useMemo(
-    () => (quizId === null ? null : commentsKey(quizId, filters)),
+    () => (quizId === null ? null : COMMENT_KEYS.list(quizId, filters)),
     [quizId, filters],
   );
 
@@ -67,49 +64,27 @@ export function useQuizComments(
           };
         }
 
-        const startedAt = Date.now();
-
         const effectiveCursor = cursor ?? filters?.cursor ?? undefined;
 
-        try {
-          const result = (await listQuizComments(quizId, {
-            cursor: effectiveCursor,
-            limit: filters?.limit ?? defaultLimitFor(filters),
+        const result = (await listQuizComments(quizId, {
+          cursor: effectiveCursor,
+          limit: filters?.limit ?? defaultLimitFor(filters),
+          parentId: filters?.parentId,
+        })) as unknown as ListQuizCommentsResponse;
 
-            parentId: filters?.parentId,
-          } as unknown as Parameters<
-            typeof listQuizComments
-          >[1])) as unknown as ListQuizCommentsResponse;
+        const items: readonly CommentThreadItem[] = (result.data ?? []).map(
+          (item) => ({ ...item, id: item.id }) as CommentThreadItem,
+        );
 
-          const items: readonly CommentThreadItem[] = (result.data ?? []).map(
-            (item) => ({ ...item, id: item.id }) as CommentThreadItem,
-          );
-
-          for (const item of items) {
-            lookup.setRepliesCount(item.id, item.repliesCount);
-          }
-
-          const pagination = result.meta?.pagination;
-          return {
-            items,
-            nextCursor: pagination?.nextCursor ?? null,
-            hasNextPage: pagination?.hasNextPage ?? false,
-            limit: pagination?.limit ?? items.length,
-          };
-        } catch (err) {
-          if (err instanceof Error && err.name === "AbortError") {
-            throw err;
-          }
-
-          emitBreadcrumb("comments:comments-list", {
-            status: "error",
-            durationMs: Date.now() - startedAt,
-            code: err instanceof ApiError ? err.code : "GLOBAL_UNKNOWN",
-          });
-          throw err;
-        }
+        const pagination = result.meta?.pagination;
+        return {
+          items,
+          nextCursor: pagination?.nextCursor ?? null,
+          hasNextPage: pagination?.hasNextPage ?? false,
+          limit: pagination?.limit ?? items.length,
+        };
       },
-    [quizId, filters, lookup],
+    [quizId, filters],
   );
 
   return useCursorPaginated<CommentThreadItem, UseQuizCommentsParams>({
@@ -117,6 +92,7 @@ export function useQuizComments(
     fetcher,
     params,
     paginationKind: "cursor",
+    enabled: quizId !== null,
   });
 }
 
@@ -124,12 +100,4 @@ function defaultLimitFor(filters: CommentFilters | undefined): number {
   if (filters?.limit !== undefined) return filters.limit;
   if (filters?.parentId !== undefined) return REPLY_DEFAULT_LIMIT;
   return TOP_LEVEL_DEFAULT_LIMIT;
-}
-
-function emitBreadcrumb(
-  category: string,
-  data: { status: string; durationMs: number; code?: string },
-): void {
-  void category;
-  void data;
 }

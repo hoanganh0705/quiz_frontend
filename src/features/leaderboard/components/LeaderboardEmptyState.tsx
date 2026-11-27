@@ -1,8 +1,9 @@
 "use client";
 
-import { Trophy } from "lucide-react";
+import { Compass, Trophy } from "lucide-react";
 
 import { EmptyState } from "@/components/ui/EmptyState";
+
 import { cn } from "@/shared/utils/merge-class-names";
 
 const LEADERBOARD_EMPTY_COPY =
@@ -39,7 +40,14 @@ export function LeaderboardEmptyState({
                   onClick: onRetry,
                 },
               ]
-            : undefined
+            : [
+                {
+                  label: "Explore Quizzes",
+                  href: "/quizzes",
+                  variant: "default",
+                  icon: Compass,
+                },
+              ]
         }
       />
     </div>

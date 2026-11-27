@@ -47,7 +47,6 @@ export function useIncomingRequests(): UseIncomingRequestsResult {
   const isAuthenticated = auth.isAuthenticated;
 
   const key = useMemo<readonly unknown[] | null>(() => {
-    if (false) return null;
     if (!isAuthenticated) return null;
     return SOCIAL_CACHE_KEYS.makeIncomingRequestsKey();
   }, [isAuthenticated]);
@@ -100,7 +99,6 @@ export function useIncomingRequests(): UseIncomingRequestsResult {
     paginationKind: "cursor",
   });
 
-  if (false) return PLACEHOLDER_RESULT;
   if (!isAuthenticated) return PLACEHOLDER_RESULT;
 
   return {

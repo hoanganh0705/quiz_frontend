@@ -1,8 +1,6 @@
 import * as Sentry from "@sentry/nextjs";
-import type { AxiosRequestConfig } from "axios";
 
-import { customInstance } from "@/lib/api";
-import { ApiError } from "@/lib/api/core/ApiError";
+import { customInstance, unwrapEnvelope } from "@/lib/api";
 
 export interface CoinWallet {
   userId: string;
@@ -65,7 +63,9 @@ export interface AdminAdjustRequest {
 
 const IDEMPOTENCY_HEADER = "Idempotency-Key";
 
-async function callCoins<T>(config: AxiosRequestConfig): Promise<T> {
+type CoinsRequestConfig = Parameters<typeof customInstance.request>[0];
+
+async function callCoins<T>(config: CoinsRequestConfig): Promise<T> {
   const response = await customInstance.request<T>(config);
   return response.data as T;
 }
@@ -79,14 +79,7 @@ export async function getCoinWallet(): Promise<CoinWallet> {
     method: "GET",
     url: "/api/v1/users/me/wallet",
   });
-  if (!envelope.data) {
-    throw new ApiError({
-      status: 500,
-      code: "GLOBAL_INTERNAL_ERROR",
-      message: "Coin wallet response missing data envelope",
-    } as unknown as ConstructorParameters<typeof ApiError>[0]);
-  }
-  return envelope.data;
+  return unwrapEnvelope(envelope, "Coin wallet response missing data envelope");
 }
 
 export async function listCoinTransactions(params: {
@@ -148,14 +141,7 @@ export async function tipUser(
         ? { [IDEMPOTENCY_HEADER]: idempotencyKey }
         : undefined,
   });
-  if (!envelope.data) {
-    throw new ApiError({
-      status: 500,
-      code: "GLOBAL_INTERNAL_ERROR",
-      message: "Tip response missing data envelope",
-    } as unknown as ConstructorParameters<typeof ApiError>[0]);
-  }
-  return envelope.data;
+  return unwrapEnvelope(envelope, "Tip response missing data envelope");
 }
 
 export async function purchaseFlair(
@@ -176,14 +162,10 @@ export async function purchaseFlair(
         ? { [IDEMPOTENCY_HEADER]: idempotencyKey }
         : undefined,
   });
-  if (!envelope.data) {
-    throw new ApiError({
-      status: 500,
-      code: "GLOBAL_INTERNAL_ERROR",
-      message: "Flair purchase response missing data envelope",
-    } as unknown as ConstructorParameters<typeof ApiError>[0]);
-  }
-  return envelope.data;
+  return unwrapEnvelope(
+    envelope,
+    "Flair purchase response missing data envelope",
+  );
 }
 
 export async function suppressRecommendedQuiz(
@@ -204,14 +186,10 @@ export async function suppressRecommendedQuiz(
         ? { [IDEMPOTENCY_HEADER]: idempotencyKey }
         : undefined,
   });
-  if (!envelope.data) {
-    throw new ApiError({
-      status: 500,
-      code: "GLOBAL_INTERNAL_ERROR",
-      message: "Suppress-quiz response missing data envelope",
-    } as unknown as ConstructorParameters<typeof ApiError>[0]);
-  }
-  return envelope.data;
+  return unwrapEnvelope(
+    envelope,
+    "Suppress-quiz response missing data envelope",
+  );
 }
 
 export async function adminAdjustCoins(
@@ -237,12 +215,8 @@ export async function adminAdjustCoins(
     data: { ...body },
     headers: { [IDEMPOTENCY_HEADER]: headerValue },
   });
-  if (!envelope.data) {
-    throw new ApiError({
-      status: 500,
-      code: "GLOBAL_INTERNAL_ERROR",
-      message: "Admin adjust response missing data envelope",
-    } as unknown as ConstructorParameters<typeof ApiError>[0]);
-  }
-  return envelope.data;
+  return unwrapEnvelope(
+    envelope,
+    "Admin adjust response missing data envelope",
+  );
 }

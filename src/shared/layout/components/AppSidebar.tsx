@@ -1,32 +1,12 @@
 "use client";
 
-import type * as React from "react";
-import {
-  BookOpen,
-  Home,
-  Trophy,
-  Grid3X3,
-  Compass,
-  UserPlus,
-  Users,
-  BarChart3,
-  Plus,
-  LifeBuoy,
-  Shield,
-  Award,
-  Coins,
-  Gamepad2,
-  ArrowUpRight,
-  Bookmark,
-  History,
-  Tag,
-  Sparkles,
-  Settings,
-} from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-import { cn } from "@/shared/utils/merge-class-names";
+import { ArrowUpRight, BookOpen, Shield } from "lucide-react";
+
+import { useAdminRole } from "@/features/admin/hooks/useAdminRole";
+
 import {
   Sidebar,
   SidebarContent,
@@ -39,7 +19,11 @@ import {
   SidebarMenuItem,
   SidebarRail,
 } from "@/components/ui/Sidebar";
-import { useAdminRole } from "@/features/admin/hooks/useAdminRole";
+
+import { APP_NAV_GROUPS } from "@/shared/layout/constants";
+import { cn } from "@/shared/utils/merge-class-names";
+
+import type * as React from "react";
 
 function isItemActive(pathname: string, url: string): boolean {
   if (url === "/") {
@@ -48,114 +32,11 @@ function isItemActive(pathname: string, url: string): boolean {
   return pathname === url || pathname.startsWith(`${url}/`);
 }
 
-const playItems = [
-  {
-    title: "Home",
-    url: "/",
-    icon: Home,
-  },
-  {
-    title: "Today's Challenge",
-    url: "/daily-challenge",
-    icon: Trophy,
-  },
-  {
-    title: "Explore Quizzes",
-    url: "/quizzes",
-    icon: Compass,
-  },
-  {
-    title: "Categories",
-    url: "/categories",
-    icon: Grid3X3,
-  },
-  {
-    title: "Tags",
-    url: "/tags",
-    icon: Tag,
-  },
-  {
-    title: "Live Battles",
-    url: "/instances",
-    icon: Gamepad2,
-  },
-  {
-    title: "Tournaments",
-    url: "/tournaments",
-    icon: Users,
-  },
-  {
-    title: "Leaderboard",
-    url: "/leaderboard",
-    icon: BarChart3,
-  },
-  {
-    title: "Achievements",
-    url: "/achievements",
-    icon: Award,
-  },
-];
-
-const libraryItems = [
-  {
-    title: "Saved Quizzes",
-    url: "/bookmarks",
-    icon: Bookmark,
-  },
-  {
-    title: "Quiz History",
-    url: "/quiz-history",
-    icon: History,
-  },
-];
-
-const communityItems = [
-  {
-    title: "Friends",
-    url: "/friends",
-    icon: UserPlus,
-  },
-  {
-    title: "Social Feed",
-    url: "/social",
-    icon: Sparkles,
-  },
-  {
-    title: "Coins",
-    url: "/coins",
-    icon: Coins,
-  },
-];
-
-const creatorItems = [
-  {
-    title: "Create Quiz",
-    url: "/create-quiz",
-    icon: Plus,
-  },
-  {
-    title: "My Quizzes",
-    url: "/my-quizzes",
-    icon: BookOpen,
-  },
-  {
-    title: "Support",
-    url: "/support",
-    icon: LifeBuoy,
-  },
-  {
-    title: "Settings",
-    url: "/settings",
-    icon: Settings,
-  },
-];
-
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const pathname = usePathname();
-  const { isLoading: isAdminLoading, role } = useAdminRole();
+  const { isLoading: isAdminLoading, permissions } = useAdminRole();
 
-  const canSeeAdmin =
-    !isAdminLoading && (role === "admin" || role === "moderator");
+  const canSeeAdmin = !isAdminLoading && permissions.length > 0;
 
   return (
     <Sidebar
@@ -182,185 +63,51 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent className="bg-background border border-border">
-        {/* Discover & Play Group */}
-        <SidebarGroup>
-          <SidebarGroupLabel className="text-xs font-semibold uppercase tracking-wider text-muted-foreground/80 px-2">
-            Discover & Play
-          </SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu className="space-y-1">
-              {playItems.map((item) => {
-                const active = isItemActive(pathname, item.url);
-                return (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton
-                      asChild
-                      isActive={active}
-                      className={cn(
-                        "text-sm flex items-center gap-2.5 rounded-lg px-2.5 py-2 transition-all duration-150",
-                        active
-                          ? "bg-sidebar-accent text-sidebar-accent-foreground font-semibold shadow-xs"
-                          : "text-foreground/80 hover:bg-main-hover hover:text-foreground",
-                      )}
-                    >
-                      <Link
-                        href={item.url}
-                        className="flex items-center gap-2.5 w-full"
+        {APP_NAV_GROUPS.map((group) => (
+          <SidebarGroup key={group.id}>
+            <SidebarGroupLabel className="text-xs font-semibold uppercase tracking-wider text-muted-foreground/80 px-2">
+              {group.label}
+            </SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu className="space-y-1">
+                {group.items.map((item) => {
+                  const active = isItemActive(pathname, item.href);
+                  return (
+                    <SidebarMenuItem key={item.href}>
+                      <SidebarMenuButton
+                        asChild
+                        isActive={active}
+                        className={cn(
+                          "text-sm flex items-center gap-2.5 rounded-lg px-2.5 py-2 transition-all duration-150",
+                          active
+                            ? "bg-sidebar-accent text-sidebar-accent-foreground font-semibold shadow-xs"
+                            : "text-foreground/80 hover:bg-main-hover hover:text-foreground",
+                        )}
                       >
-                        <item.icon
-                          className={cn(
-                            "size-4 shrink-0 transition-colors",
-                            active
-                              ? "text-sidebar-accent-foreground"
-                              : "text-muted-foreground",
-                          )}
-                        />
-                        <span className="text-sm font-medium">
-                          {item.title}
-                        </span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                );
-              })}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-
-        {/* My Library Group */}
-        <SidebarGroup>
-          <SidebarGroupLabel className="text-xs font-semibold uppercase tracking-wider text-muted-foreground/80 px-2">
-            My Library
-          </SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu className="space-y-1">
-              {libraryItems.map((item) => {
-                const active = isItemActive(pathname, item.url);
-                return (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton
-                      asChild
-                      isActive={active}
-                      className={cn(
-                        "text-sm flex items-center gap-2.5 rounded-lg px-2.5 py-2 transition-all duration-150",
-                        active
-                          ? "bg-sidebar-accent text-sidebar-accent-foreground font-semibold shadow-xs"
-                          : "text-foreground/80 hover:bg-main-hover hover:text-foreground",
-                      )}
-                    >
-                      <Link
-                        href={item.url}
-                        className="flex items-center gap-2.5 w-full"
-                      >
-                        <item.icon
-                          className={cn(
-                            "size-4 shrink-0 transition-colors",
-                            active
-                              ? "text-sidebar-accent-foreground"
-                              : "text-muted-foreground",
-                          )}
-                        />
-                        <span className="text-sm font-medium">
-                          {item.title}
-                        </span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                );
-              })}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-
-        {/* Social & Rewards Group */}
-        <SidebarGroup>
-          <SidebarGroupLabel className="text-xs font-semibold uppercase tracking-wider text-muted-foreground/80 px-2">
-            Social & Rewards
-          </SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu className="space-y-1">
-              {communityItems.map((item) => {
-                const active = isItemActive(pathname, item.url);
-                return (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton
-                      asChild
-                      isActive={active}
-                      className={cn(
-                        "text-sm flex items-center gap-2.5 rounded-lg px-2.5 py-2 transition-all duration-150",
-                        active
-                          ? "bg-sidebar-accent text-sidebar-accent-foreground font-semibold shadow-xs"
-                          : "text-foreground/80 hover:bg-main-hover hover:text-foreground",
-                      )}
-                    >
-                      <Link
-                        href={item.url}
-                        className="flex items-center gap-2.5 w-full"
-                      >
-                        <item.icon
-                          className={cn(
-                            "size-4 shrink-0 transition-colors",
-                            active
-                              ? "text-sidebar-accent-foreground"
-                              : "text-muted-foreground",
-                          )}
-                        />
-                        <span className="text-sm font-medium">
-                          {item.title}
-                        </span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                );
-              })}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-
-        {/* Creator Studio Group */}
-        <SidebarGroup>
-          <SidebarGroupLabel className="text-xs font-semibold uppercase tracking-wider text-muted-foreground/80 px-2">
-            Creator Studio
-          </SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu className="space-y-1">
-              {creatorItems.map((item) => {
-                const active = isItemActive(pathname, item.url);
-                return (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton
-                      asChild
-                      isActive={active}
-                      className={cn(
-                        "text-sm flex items-center gap-2.5 rounded-lg px-2.5 py-2 transition-all duration-150",
-                        active
-                          ? "bg-sidebar-accent text-sidebar-accent-foreground font-semibold shadow-xs"
-                          : "text-foreground/80 hover:bg-main-hover hover:text-foreground",
-                      )}
-                    >
-                      <Link
-                        href={item.url}
-                        className="flex items-center gap-2.5 w-full"
-                      >
-                        <item.icon
-                          className={cn(
-                            "size-4 shrink-0 transition-colors",
-                            active
-                              ? "text-sidebar-accent-foreground"
-                              : "text-muted-foreground",
-                          )}
-                        />
-                        <span className="text-sm font-medium">
-                          {item.title}
-                        </span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                );
-              })}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+                        <Link
+                          href={item.href}
+                          className="flex items-center gap-2.5 w-full"
+                        >
+                          <item.icon
+                            className={cn(
+                              "size-4 shrink-0 transition-colors",
+                              active
+                                ? "text-sidebar-accent-foreground"
+                                : "text-muted-foreground",
+                            )}
+                          />
+                          <span className="text-sm font-medium">
+                            {item.label}
+                          </span>
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  );
+                })}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        ))}
 
         {/* Admin Section - Only visible to admin/moderator users */}
         {canSeeAdmin && (

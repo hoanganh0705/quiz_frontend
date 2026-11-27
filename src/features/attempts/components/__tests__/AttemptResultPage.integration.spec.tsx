@@ -9,8 +9,15 @@ import {
 
 import { ToastProvider } from "@/lib/forms/useToast";
 
-import { AttemptResultPage } from "@/features/attempts/components/AttemptResultPage";
+import {
+  AttemptResultView,
+  type AttemptResultViewProps,
+} from "@/features/attempts/pages/AttemptResultView";
 import type { AttemptResultDto } from "@/features/attempts/types/attempt-result.types";
+
+const AttemptResultPage = (props: Omit<AttemptResultViewProps, "mode">) => (
+  <AttemptResultView mode="result" {...props} />
+);
 
 const useAttemptResultMock = vi.fn();
 const pushMock = vi.fn();

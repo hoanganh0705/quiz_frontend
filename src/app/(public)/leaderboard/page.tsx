@@ -1,24 +1,18 @@
-import {
-  GlobalLeaderboard,
-  LeaderboardHighlights,
-  CompetitionStats,
-  LeaderboardHeader,
-} from "@/features/leaderboard";
+import { PAGE_CONTAINER_CLASS } from "@/shared/layout/constants";
+import { buildMetadata } from "@/shared/lib/seo";
 
-export default function LeaderboardPage() {
+import { LeaderboardArena } from "@/features/leaderboard";
+
+export const metadata = buildMetadata({
+  title: "Leaderboard | QuizHub",
+  description: "See top players and track global quiz rankings.",
+  path: "/leaderboard",
+});
+
+export default function LeaderboardRoutePage() {
   return (
-    <div className="mx-auto max-w-7xl min-h-screen text-foreground px-4 sm:px-6 lg:px-8 py-8 sm:py-10 space-y-8">
-      <LeaderboardHeader />
-
-      <section
-        className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6"
-        aria-label="Leaderboard statistics"
-      >
-        <CompetitionStats />
-        <LeaderboardHighlights />
-      </section>
-
-      <GlobalLeaderboard />
+    <div className={PAGE_CONTAINER_CLASS}>
+      <LeaderboardArena />
     </div>
   );
 }

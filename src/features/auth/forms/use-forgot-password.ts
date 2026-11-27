@@ -1,15 +1,15 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
+
+import { useCooldownTimer } from "@/shared/hooks/use-cooldown-timer";
 
 import {
-  submitForgotPassword,
   defaultSubmitForgotPasswordDeps,
-  type SubmitForgotPasswordDeps,
+  submitForgotPassword,
   type ForgotSubmitResult,
+  type SubmitForgotPasswordDeps,
 } from "./forgot-password-submit";
-
-import { FORGOT_PASSWORD_COOLDOWN_MS } from "./recovery-cooldown";
 
 export type UseForgotPasswordState =
   | { status: "idle" }
@@ -22,11 +22,8 @@ export type UseForgotPasswordState =
 
 export interface UseForgotPassword {
   state: UseForgotPasswordState;
-
   cooldownRemainingMs: number;
-
   start: (email: string) => Promise<ForgotSubmitResult>;
-
   reset: () => void;
 }
 
@@ -36,61 +33,13 @@ export function useForgotPassword(
   deps: SubmitForgotPasswordDeps = defaultSubmitForgotPasswordDeps,
 ): UseForgotPassword {
   const [state, setState] = useState<UseForgotPasswordState>(initialState);
-  const [cooldownRemainingMs, setCooldownRemainingMs] = useState<number>(-1);
-
   const inFlightRef = useRef<Promise<ForgotSubmitResult> | null>(null);
 
-  const cooldownTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const cooldownStartedAtRef = useRef<number | null>(null);
-  const cooldownDurationRef = useRef<number>(FORGOT_PASSWORD_COOLDOWN_MS);
-  const animationFrameRef = useRef<number | null>(null);
-
-  const stopCooldown = useCallback(() => {
-    if (cooldownTimerRef.current) {
-      clearTimeout(cooldownTimerRef.current);
-      cooldownTimerRef.current = null;
-    }
-    if (animationFrameRef.current !== null) {
-      cancelAnimationFrame(animationFrameRef.current);
-      animationFrameRef.current = null;
-    }
-    cooldownStartedAtRef.current = null;
-    setCooldownRemainingMs(-1);
+  const handleExpire = useCallback(() => {
+    setState(initialState);
   }, []);
 
-  useEffect(() => {
-    return () => {
-      stopCooldown();
-    };
-  }, [stopCooldown]);
-
-  const startCooldownTicker = useCallback(
-    (durationMs: number) => {
-      cooldownStartedAtRef.current = Date.now();
-      cooldownDurationRef.current = durationMs;
-      setCooldownRemainingMs(durationMs);
-
-      const tick = () => {
-        if (cooldownStartedAtRef.current === null) return;
-        const remaining = Math.max(
-          0,
-          cooldownDurationRef.current -
-            (Date.now() - cooldownStartedAtRef.current),
-        );
-        setCooldownRemainingMs(remaining);
-        if (remaining > 0) {
-          animationFrameRef.current = requestAnimationFrame(tick);
-        }
-      };
-      animationFrameRef.current = requestAnimationFrame(tick);
-
-      cooldownTimerRef.current = setTimeout(() => {
-        stopCooldown();
-        setState({ status: "idle" });
-      }, durationMs);
-    },
-    [stopCooldown],
-  );
+  const cooldown = useCooldownTimer({ onExpire: handleExpire });
 
   const start = useCallback(
     (email: string): Promise<ForgotSubmitResult> => {
@@ -104,12 +53,14 @@ export function useForgotPassword(
         inFlightRef.current = null;
         if (result.kind === "cooldown") {
           setState({ status: "cooldown" });
-          startCooldownTicker(result.cooldownMs);
+          cooldown.start(result.cooldownMs);
         } else {
           setState({
             status: "error",
             errorKind: result.errorKind as
-              "rate_limited" | "server" | "acknowledgement",
+              | "rate_limited"
+              | "server"
+              | "acknowledgement",
           });
         }
         return result;
@@ -118,14 +69,19 @@ export function useForgotPassword(
       inFlightRef.current = promise;
       return promise;
     },
-    [deps, startCooldownTicker],
+    [deps, cooldown],
   );
 
   const reset = useCallback(() => {
     inFlightRef.current = null;
-    stopCooldown();
+    cooldown.stop();
     setState(initialState);
-  }, [stopCooldown]);
+  }, [cooldown]);
 
-  return { state, cooldownRemainingMs, start, reset };
+  return {
+    state,
+    cooldownRemainingMs: state.status === "cooldown" ? cooldown.remainingMs : -1,
+    start,
+    reset,
+  };
 }

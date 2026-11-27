@@ -1,36 +1,29 @@
 "use client";
 
-import { forwardRef, useCallback, useImperativeHandle, useRef } from "react";
+import type React from "react";
+import { forwardRef, useCallback, useRef } from "react";
+
 import { Plus } from "lucide-react";
 
+import { AdminPageHeader } from "@/features/admin/components/AdminPageHeader";
 import { usePermission } from "@/features/admin/hooks/usePermission";
-import { AdminPageHeader } from "@/app/(protected)/admin/_components/AdminPageHeader";
+import { PERMISSIONS } from "@/features/admin/permissions";
+import { PAGE_CONTAINER_CLASS } from "@/shared/layout/constants";
 
 import { TournamentAdminList } from "./TournamentAdminList";
 import type { TournamentAdminListHandle } from "./TournamentAdminList";
 
-import type React from "react";
+export type TournamentAdminPageProps = Record<string, never>;
 
-const DISABLED_NOTICE_COPY = {
-  title: "Tournament Management",
-  description:
-    "Tournament management is not yet available in your environment. Please check back in a future release.",
-} as const;
-
-export interface TournamentAdminPageProps {
-  // No required props — component is self-contained.
-}
-
-export interface TournamentAdminPageHandle {
-  // Exposed for parent components if they need to trigger page-level actions.
-}
+export type TournamentAdminPageHandle = Record<string, never>;
 
 export const TournamentAdminPage = forwardRef<
   TournamentAdminPageHandle,
   TournamentAdminPageProps
->(function TournamentAdminPage(_props, _ref): React.ReactElement {
-
-  const canCreate = usePermission("tournament_create");
+>(function TournamentAdminPage(): React.ReactElement {
+  const createPermission = usePermission(PERMISSIONS.tournament_create);
+  const canCreate =
+    !createPermission.isLoading && createPermission.hasPermission;
 
   const listRef = useRef<TournamentAdminListHandle | null>(null);
 
@@ -39,7 +32,7 @@ export const TournamentAdminPage = forwardRef<
   }, []);
 
   return (
-    <div className="mx-auto max-w-3xl py-8 space-y-6">
+    <div className={PAGE_CONTAINER_CLASS}>
       <AdminPageHeader
         title="Tournament Management"
         description="Create, edit, and delete tournaments. Filter by status or search by title."
@@ -47,7 +40,7 @@ export const TournamentAdminPage = forwardRef<
         actionIcon={canCreate ? Plus : undefined}
         onAction={canCreate ? handleNewTournament : undefined}
       />
-      <TournamentAdminList ref={listRef} />
+      <TournamentAdminList ref={listRef} canCreate={canCreate} />
     </div>
   );
 });

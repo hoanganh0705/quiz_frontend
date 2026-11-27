@@ -3,7 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { getQueryClient } from "@/providers/QueryProvider";
 
-import { ApiError } from "@/lib/api";
+import { ApiError, coerceToApiError } from "@/lib/api";
 
 import {
   getReviewById,
@@ -63,12 +63,6 @@ export function useReview(reviewId: string | null): UseReviewResult {
     review: reviewId === null ? null : (data ?? null),
     isLoading: reviewId === null ? false : isLoading && data === undefined,
     error:
-      reviewId === null
-        ? null
-        : error instanceof ApiError
-          ? error
-          : error
-            ? new ApiError(error as unknown as ConstructorParameters<typeof ApiError>[0])
-            : null,
+      reviewId === null || !error ? null : coerceToApiError(error),
   };
 }

@@ -1,17 +1,14 @@
 "use client";
 
 import { useCallback, useRef, useState } from "react";
+
+import { ApiError, coerceToApiError } from "@/lib/api";
 import { getQueryClient } from "@/providers/QueryProvider";
 
-import { ApiError, isApiError } from "@/lib/api";
-
 import { registerForTournament } from "@/features/tournaments/services/tournaments.service";
-import {
-  TOURNAMENT_REGISTRATION_CACHE_KEYS,
-  type RegistrationMutationState,
-} from "@/features/tournaments/types/registration.types";
+import { TOURNAMENT_REGISTRATION_CACHE_KEYS } from "@/features/tournaments/types/registration.types";
 
-import type { RegisterTournamentResponseDto } from "@/lib/api/generated/schemas";
+import type { RegistrationMutationState } from "@/features/tournaments/types/registration.types";
 
 export interface UseRegisterTournamentResult {
   register: () => Promise<void>;
@@ -42,9 +39,7 @@ export function useRegisterTournament(
     setError(null);
 
     try {
-      const result = (await registerForTournament(tournamentId)) as {
-        data?: RegisterTournamentResponseDto;
-      };
+      await registerForTournament(tournamentId);
 
       const keys = TOURNAMENT_REGISTRATION_CACHE_KEYS.all(tournamentId);
       try {
@@ -62,22 +57,8 @@ export function useRegisterTournament(
         setState("idle");
       }, 2000);
     } catch (cause: unknown) {
-      if (isApiError(cause)) {
-        setState("error");
-        setError(cause);
-      } else if (cause instanceof Error) {
-        const mappedError = new ApiError(
-          cause as unknown as ConstructorParameters<typeof ApiError>[0],
-        );
-        setState("error");
-        setError(mappedError);
-      } else {
-        const mappedError = new ApiError(
-          cause as unknown as ConstructorParameters<typeof ApiError>[0],
-        );
-        setState("error");
-        setError(mappedError);
-      }
+      setState("error");
+      setError(coerceToApiError(cause));
     } finally {
       inFlightRef.current = false;
     }

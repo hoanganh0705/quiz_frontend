@@ -1,5 +1,5 @@
-import { redirect } from "next/navigation";
+import { permanentRedirect } from "next/navigation";
 
-export default function TournamentRedirectRoute() {
-  redirect("/tournaments");
+export default function TournamentRedirectRoute(): never {
+  permanentRedirect("/tournaments");
 }

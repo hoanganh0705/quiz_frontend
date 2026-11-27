@@ -1,8 +1,11 @@
 "use client";
 
+import type React from "react";
 import { memo, useCallback } from "react";
-import { MoreHorizontal } from "lucide-react";
 
+import { MoreHorizontal, Pencil, Plus, Trash2 } from "lucide-react";
+
+import { Button } from "@/components/ui/Button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,12 +13,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/DropdownMenu";
-
 import { usePermission } from "@/features/admin/hooks/usePermission";
 import { PERMISSIONS } from "@/features/admin/permissions";
+import { cn } from "@/shared/utils/merge-class-names";
 
-import { isTournamentStartedForEdit } from "../tournament-id-validation";
 import type { TournamentDto } from "../admin-tournament-types";
+import { isTournamentStartedForEdit } from "../tournament-id-validation";
 
 export interface TournamentAdminActionMenuProps {
   tournament?: TournamentDto;
@@ -30,6 +33,12 @@ export interface TournamentAdminActionMenuProps {
 }
 
 type AdminItem = "create" | "edit" | "delete";
+
+const ITEM_ICONS: Record<AdminItem, React.ComponentType<{ className?: string }>> = {
+  create: Plus,
+  edit: Pencil,
+  delete: Trash2,
+};
 
 export const TournamentAdminActionMenu = memo(
   function TournamentAdminActionMenu({
@@ -75,24 +84,28 @@ export const TournamentAdminActionMenu = memo(
       updatePermission.isLoading ||
       deletePermission.isLoading;
 
+    const triggerLabel =
+      tournament !== undefined
+        ? `Actions for ${tournament.title}`
+        : "Tournament actions";
+
     if (loading) {
       const testIdSuffix = tournament?.tournamentId ?? "header";
       return (
-        <button
+        <Button
           type="button"
-          className={[
-            "flex h-8 w-8 cursor-progress items-center justify-center",
-            "rounded-md text-muted-foreground",
-            className ?? "",
-          ]
-            .filter(Boolean)
-            .join(" ")}
+          variant="ghost"
+          size="icon"
+          className={cn(
+            "h-10 w-10 sm:h-9 sm:w-9 cursor-progress text-muted-foreground",
+            className,
+          )}
           aria-label="Loading actions"
           data-testid={`tournament-admin-action-trigger-${testIdSuffix}`}
           disabled
         >
           <MoreHorizontal className="h-4 w-4" aria-hidden="true" />
-        </button>
+        </Button>
       );
     }
 
@@ -135,21 +148,20 @@ export const TournamentAdminActionMenu = memo(
     if (visibleItems.length === 0) {
       const testIdSuffix = tournament?.tournamentId ?? "header";
       return (
-        <button
+        <Button
           type="button"
-          className={[
-            "flex h-8 w-8 cursor-not-allowed items-center justify-center",
-            "rounded-md text-muted-foreground/50",
-            className ?? "",
-          ]
-            .filter(Boolean)
-            .join(" ")}
+          variant="ghost"
+          size="icon"
+          className={cn(
+            "h-10 w-10 sm:h-9 sm:w-9 cursor-not-allowed text-muted-foreground/50",
+            className,
+          )}
           aria-label="No actions available"
           data-testid={`tournament-admin-action-empty-${testIdSuffix}`}
           disabled
         >
           <MoreHorizontal className="h-4 w-4" aria-hidden="true" />
-        </button>
+        </Button>
       );
     }
 
@@ -157,23 +169,19 @@ export const TournamentAdminActionMenu = memo(
     return (
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <button
+          <Button
             type="button"
-            className={[
-              "flex h-8 w-8 items-center justify-center rounded-md",
-              "text-muted-foreground transition-colors",
-              "hover:bg-muted hover:text-foreground",
-              "focus-visible:outline-none focus-visible:ring-2",
-              "focus-visible:ring-ring focus-visible:ring-offset-2",
-              className ?? "",
-            ]
-              .filter(Boolean)
-              .join(" ")}
-            aria-label="Tournament actions"
+            variant="ghost"
+            size="icon"
+            className={cn(
+              "h-10 w-10 sm:h-9 sm:w-9 text-muted-foreground hover:text-foreground",
+              className,
+            )}
+            aria-label={triggerLabel}
             data-testid={`tournament-admin-action-trigger-${menuTestIdSuffix}`}
           >
             <MoreHorizontal className="h-4 w-4" aria-hidden="true" />
-          </button>
+          </Button>
         </DropdownMenuTrigger>
 
         <DropdownMenuContent
@@ -186,17 +194,39 @@ export const TournamentAdminActionMenu = memo(
             const showSeparator =
               previous !== null &&
               (previous.destructive ?? false) !== (item.destructive ?? false);
+            const Icon = ITEM_ICONS[item.id];
             return (
               <div key={item.id}>
                 {showSeparator ? <DropdownMenuSeparator /> : null}
                 <DropdownMenuItem
                   onClick={handleSelect(item.id)}
+                  className={cn(
+                    "items-start gap-2.5 py-2",
+                    item.destructive &&
+                      "text-destructive focus:text-destructive focus:bg-destructive/10",
+                  )}
                   data-testid={`tournament-admin-action-${item.id}-${menuTestIdSuffix}`}
                 >
+                  <Icon
+                    className={cn(
+                      "mt-0.5 h-4 w-4 shrink-0",
+                      item.destructive
+                        ? "text-destructive"
+                        : "text-muted-foreground",
+                    )}
+                    aria-hidden="true"
+                  />
                   <span className="flex flex-col gap-0.5">
-                    <span className="text-sm">{item.label}</span>
+                    <span className="text-sm leading-snug">{item.label}</span>
                     {item.hint ? (
-                      <span className="text-xs text-muted-foreground">
+                      <span
+                        className={cn(
+                          "text-xs",
+                          item.destructive
+                            ? "text-destructive/80"
+                            : "text-muted-foreground",
+                        )}
+                      >
                         {item.hint}
                       </span>
                     ) : null}

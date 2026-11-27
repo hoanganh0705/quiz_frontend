@@ -28,20 +28,12 @@ export interface UseEventuallyConsistentQueryResult<T> {
 function coerceError(err: unknown): ApiError {
   if (err instanceof ApiError) return err;
   if (err instanceof Error) {
-    return new ApiError({
-      isAxiosError: true,
-      name: "ApiError",
+    return ApiError.fromInput({
+      status: 500,
+      code: "GLOBAL_INTERNAL_ERROR",
+      title: "Internal Server Error",
       message: err.message,
-      response: {
-        status: 500,
-        statusText: "Internal Server Error",
-        data: {
-          status: 500,
-          title: "Internal Server Error",
-          extensions: { code: "GLOBAL_INTERNAL_ERROR" },
-        },
-      },
-    } as unknown as ConstructorParameters<typeof ApiError>[0]);
+    });
   }
   throw err;
 }

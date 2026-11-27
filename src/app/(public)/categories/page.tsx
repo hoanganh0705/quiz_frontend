@@ -1,4 +1,12 @@
+import { buildMetadata } from "@/shared/lib/seo";
+
 import { CategoriesDirectoryPage } from "@/features/categories";
+
+export const metadata = buildMetadata({
+  title: "Quiz Categories | QuizHub",
+  description: "Explore quizzes by category and find topics you love.",
+  path: "/categories",
+});
 
 export default function CategoriesPage() {
   return <CategoriesDirectoryPage />;

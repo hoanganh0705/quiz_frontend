@@ -1,7 +1,8 @@
 import type { ReactNode } from "react";
 
+import { FollowedLookupHydrator } from "@/shared/layout/components/FollowedLookupHydrator";
+
 import { BookmarksLookupHydrator } from "@/features/bookmarks/components/BookmarksLookupHydrator";
-import { FollowedLookupHydrator } from "@/features/tags/components/FollowedLookupHydrator";
 
 export default function PublicLayout({ children }: { children: ReactNode }) {
   return (

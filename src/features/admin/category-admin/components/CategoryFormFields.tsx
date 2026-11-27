@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/Label";
 import { Textarea } from "@/components/ui/Textarea";
 import { cn } from "@/shared/utils/merge-class-names";
 
-import { deriveCategorySlug } from "../category-slug-regex";
+import { deriveSlug } from "@/lib/forms/regex";
 import {
   CATEGORY_DESCRIPTION_MAX_LENGTH,
   CATEGORY_IMAGE_URL_MAX_LENGTH,
@@ -144,7 +144,7 @@ export function CategoryFormFields({
 
   useEffect(() => {
     if (mode === "create" && !slugManuallyEdited && name) {
-      const derived = deriveCategorySlug(name);
+      const derived = deriveSlug(name);
       setSlug(derived);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

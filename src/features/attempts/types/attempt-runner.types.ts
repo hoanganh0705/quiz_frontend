@@ -88,18 +88,4 @@ export interface AttemptHydrationView {
   refresh: () => Promise<void>;
 }
 
-export const ATTEMPT_CACHE_KEYS = {
-  active(quizId: string, sessionId: string) {
-    return ["attempts", "active", sessionId, quizId] as const;
-  },
-
-  detail(attemptId: string, sessionId: string) {
-    return ["attempts", "detail", sessionId, attemptId] as const;
-  },
-
-  answers(attemptId: string, sessionId: string) {
-    return ["attempts", "answers", sessionId, attemptId] as const;
-  },
-} as const;
-
 export type VerifiedSubmitAnswerPayload = SubmitAnswerDto;

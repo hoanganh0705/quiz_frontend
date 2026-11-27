@@ -52,20 +52,6 @@ export interface UseFeedResult {
   readonly cooldownSeconds?: number;
 }
 
-const PLACEHOLDER_RESULT: UseFeedResult = Object.freeze({
-  items: [],
-  hasMore: false,
-  loadMore: () => undefined,
-  isLoading: false,
-  isLoadingMore: false,
-  error: null,
-  refresh: () => Promise.resolve(),
-  staleness: "fresh",
-  visibility: "not_found",
-  rateLimitedUntil: null,
-  cooldownSeconds: undefined,
-});
-
 const UNAUTHENTICATED_RESULT: UseFeedResult = Object.freeze({
   items: [],
   hasMore: false,
@@ -87,7 +73,6 @@ export function useFeed(viewerUserId: string | null): UseFeedResult {
   const isAuthenticated = auth.isAuthenticated;
 
   const key = useMemo<readonly unknown[] | null>(() => {
-    if (false) return null;
     if (!isAuthenticated) return null;
     if (viewerUserId === null) return null;
     return SOCIAL_CACHE_KEYS.makeFeedKey(viewerUserId);
@@ -179,7 +164,6 @@ export function useFeed(viewerUserId: string | null): UseFeedResult {
     await paginated.refresh();
   }, [paginated]);
 
-  if (false) return PLACEHOLDER_RESULT;
   if (!isAuthenticated) return UNAUTHENTICATED_RESULT;
   if (viewerUserId === null) return UNAUTHENTICATED_RESULT;
 

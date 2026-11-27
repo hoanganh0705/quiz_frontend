@@ -4,7 +4,7 @@ import { useCallback, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { getQueryClient } from "@/providers/QueryProvider";
 
-import { ApiError, isApiError } from "@/lib/api";
+import { ApiError, coerceToApiError } from "@/lib/api";
 
 import {
   getNotificationPreferences,
@@ -104,22 +104,8 @@ export function useNotificationPreferences(): UseNotificationPreferencesResult {
       } catch (cause: unknown) {
         void refetch();
 
-        if (isApiError(cause)) {
-          setState("error");
-          setError(cause);
-        } else if (cause instanceof Error) {
-          const mappedError = new ApiError(
-            cause as unknown as ConstructorParameters<typeof ApiError>[0],
-          );
-          setState("error");
-          setError(mappedError);
-        } else {
-          const mappedError = new ApiError(
-            cause as unknown as ConstructorParameters<typeof ApiError>[0],
-          );
-          setState("error");
-          setError(mappedError);
-        }
+        setState("error");
+        setError(coerceToApiError(cause));
       } finally {
         inFlightRef.current = false;
       }
@@ -133,13 +119,10 @@ export function useNotificationPreferences(): UseNotificationPreferencesResult {
     inFlightRef.current = false;
   }, []);
 
-  const readError: ApiError | null = useMemo(() => {
-    if (!queryError) return null;
-    if (isApiError(queryError)) return queryError;
-    return new ApiError(
-      queryError as unknown as ConstructorParameters<typeof ApiError>[0],
-    );
-  }, [queryError]);
+  const readError: ApiError | null = useMemo(
+    () => (queryError ? coerceToApiError(queryError) : null),
+    [queryError],
+  );
 
   return {
     preferences: data ?? null,

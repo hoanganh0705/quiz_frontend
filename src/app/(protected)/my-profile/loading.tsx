@@ -1,48 +1,36 @@
-import { Skeleton } from "@/components/ui/Skeleton";
 import {
-  StatsCardSkeleton,
   ProfileHeaderSkeleton,
+  StatsCardSkeleton,
 } from "@/components/ui/loading-states";
+import { Skeleton } from "@/components/ui/Skeleton";
+
+import { PAGE_CONTAINER_CLASS } from "@/shared/layout/constants";
 
 export default function ProfileLoading() {
   return (
-    <div className="min-h-screen text-foreground p-4 md:p-8 lg:p-12">
-      {/* Profile Header Skeleton */}
-      <div className="max-w-4xl mx-auto mb-8">
-        <ProfileHeaderSkeleton />
+    <div className={`${PAGE_CONTAINER_CLASS} space-y-6`}>
+      <ProfileHeaderSkeleton />
+
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <StatsCardSkeleton key={i} />
+        ))}
       </div>
 
-      {/* Stats Cards Skeleton */}
-      <div className="max-w-4xl mx-auto mb-8">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 space-y-4">
+          <div className="flex gap-2">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <Skeleton key={i} className="h-10 w-24 rounded-md" />
+            ))}
+          </div>
           {Array.from({ length: 4 }).map((_, i) => (
-            <StatsCardSkeleton key={i} />
+            <Skeleton key={i} className="h-20 w-full rounded-xl" />
           ))}
         </div>
-      </div>
-
-      {/* Tabs Skeleton */}
-      <div className="max-w-4xl mx-auto">
-        <div className="flex gap-2 mb-6">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <Skeleton key={i} className="h-10 w-24 rounded-md" />
-          ))}
-        </div>
-
-        {/* Content Area Skeleton */}
-        <div className="space-y-4">
-          {Array.from({ length: 5 }).map((_, i) => (
-            <div key={i} className="p-4 border border-border rounded-lg">
-              <div className="flex items-center gap-4">
-                <Skeleton className="h-12 w-12 rounded-lg" />
-                <div className="flex-1">
-                  <Skeleton className="h-5 w-48 mb-2" />
-                  <Skeleton className="h-4 w-32" />
-                </div>
-                <Skeleton className="h-8 w-20 rounded-md" />
-              </div>
-            </div>
-          ))}
+        <div className="lg:col-span-1 space-y-4">
+          <Skeleton className="h-44 w-full rounded-xl" />
+          <Skeleton className="h-32 w-full rounded-xl" />
         </div>
       </div>
     </div>

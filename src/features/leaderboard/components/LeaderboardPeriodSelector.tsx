@@ -37,7 +37,7 @@ export function LeaderboardPeriodSelector({
       role="group"
       aria-labelledby={groupLabelId}
       className={cn(
-        "inline-flex h-9 items-center gap-1 rounded-xl bg-muted/60 p-1 border border-border/60 backdrop-blur-xs",
+        "inline-flex h-10 sm:h-9 items-center gap-1 rounded-lg border border-border/70 bg-muted/60 p-1",
         className,
       )}
     >
@@ -57,8 +57,8 @@ export function LeaderboardPeriodSelector({
               }
             }}
             className={cn(
-              "inline-flex h-full items-center justify-center rounded-lg px-3 text-xs sm:text-sm font-medium transition-all duration-150",
-              "focus:outline-none focus-visible:ring-2 focus-visible:ring-primary",
+              "inline-flex h-full items-center justify-center rounded-md px-3.5 text-xs sm:text-sm font-medium transition-all duration-150 cursor-pointer",
+              "focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50",
               isSelected
                 ? "bg-background text-foreground shadow-xs font-semibold"
                 : "text-muted-foreground hover:bg-background/60 hover:text-foreground",

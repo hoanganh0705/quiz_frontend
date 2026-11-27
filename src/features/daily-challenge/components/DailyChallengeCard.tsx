@@ -14,7 +14,7 @@
  * ## Status-aware CTAs
  *
  *   - `status === 'pending'` + unauthenticated → "Sign in to play"
- *     link to `/login?next=/daily-challenge`.
+ *     link to `/login?redirect=/daily-challenge`.
  *   - `status === 'pending'` + authenticated → inline "Start today's
  *     challenge" affordance (the play surface below toggles to active;
  *     no navigation needed).
@@ -37,12 +37,14 @@
  */
 
 import Link from "next/link";
-import { Calendar, Sparkles, Clock, Trophy, LogIn, Play } from "lucide-react";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
-import { Badge } from "@/components/ui/Badge";
+import { Calendar, Clock, LogIn, Play, Sparkles, Trophy } from "lucide-react";
 
+import { LOGIN_ROUTE } from "@/shared/config/routes";
 import { cn } from "@/shared/utils/merge-class-names";
+
+import { Badge } from "@/components/ui/Badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 
 import type { DailyChallengeView } from "../types/dto";
 
@@ -106,7 +108,7 @@ function StatusCta({
   if (!isAuthenticated) {
     return (
       <Link
-        href="/login?next=/daily-challenge"
+        href={`${LOGIN_ROUTE}?redirect=/daily-challenge`}
         data-testid="daily-challenge-card-signin"
         className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand rounded-xs"
       >

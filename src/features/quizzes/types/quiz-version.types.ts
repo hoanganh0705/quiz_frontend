@@ -1,24 +1,9 @@
 import type {
-  QuizVersionResponseDto,
-  QuizVersionDetailResponseDto,
   CreateQuizVersionDto,
+  QuizVersionDetailResponseDto,
+  QuizVersionResponseDto,
   UpdateQuizVersionDto,
 } from "@/lib/api/generated/schemas";
-
-export function quizAuthorKey(quizId: string): ["quiz", "author", string] {
-  return ["quiz", "author", quizId];
-}
-
-export function quizVersionsKey(quizId: string): ["quiz", "versions", string] {
-  return ["quiz", "versions", quizId];
-}
-
-export function quizVersionKey(
-  quizId: string,
-  versionId: string,
-): ["quiz", "version", string, string] {
-  return ["quiz", "version", quizId, versionId];
-}
 
 export type QuizVersionSummary = QuizVersionResponseDto & { id: string };
 

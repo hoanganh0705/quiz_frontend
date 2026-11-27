@@ -27,6 +27,8 @@ export interface SearchQueryParams {
   kinds?: SearchResultKind[];
 }
 
+export const DEFAULT_SEARCH_DEBOUNCE_MS = 250;
+
 export const DEFAULT_SEARCH_QUERY_PARAMS: SearchQueryParams = {
   q: "",
   limit: undefined,
@@ -129,11 +131,6 @@ export interface SearchResponseDto {
   cursor?: string;
 }
 
-export const EMPTY_SEARCH_RESPONSE: SearchResponseDto = {
-  query: "",
-  groups: {},
-};
-
 export type SearchErrorCode =
   | "SEARCH_QUERY_TOO_SHORT"
   | "SEARCH_QUERY_TOO_LONG"
@@ -148,40 +145,8 @@ export type SearchErrorCode =
 export type SearchQueryState =
   "idle" | "debouncing" | "fetching" | "success" | "stale" | "error" | "empty";
 
-export function serializeSearchParams(params: SearchQueryParams): string {
-  const parts: string[] = [];
-
-  const trimmedQ = params.q.trim();
-  if (trimmedQ.length > 0) {
-    parts.push(`q=${trimmedQ.toLowerCase()}`);
-  }
-  if (typeof params.limit === "number") {
-    parts.push(`limit=${params.limit}`);
-  }
-  if (Array.isArray(params.kinds) && params.kinds.length > 0) {
-    const sortedKinds = [...params.kinds].sort();
-    parts.push(`kinds=${sortedKinds.join(",")}`);
-  }
-
-  return parts.join("|");
-}
-
 export interface SearchHistoryEntry {
   query: string;
 
   timestamp: number;
 }
-
-export const SEARCH_CACHE_KEYS = {
-  results(params: SearchQueryParams) {
-    return ["search", "results", serializeSearchParams(params)] as const;
-  },
-
-  history() {
-    return ["search", "history", "session"] as const;
-  },
-
-  resultsPrefix() {
-    return ["search", "results"] as const;
-  },
-} as const;

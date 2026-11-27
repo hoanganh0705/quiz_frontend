@@ -4,13 +4,13 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { getQueryClient } from "@/providers/QueryProvider";
 import { ChevronLeft, ChevronRight, Flame } from "lucide-react";
 
-import { CategoryCard } from "./CategoryCard";
-import { CategoryCardSkeleton } from "@/components/primitives";
-import { useCategoriesTrending } from "@/features/categories/hooks";
-import { rankedCategoryToCategoryResponse } from "@/features/categories/utils/ranked-category-to-category-response";
+import { CategoryCard, CategoryCardSkeleton } from "@/components/primitives";
 import { Button } from "@/components/ui/Button";
 
-const QUERY_KEY = ["categories", "trending", { limit: 10 }] as const;
+import { useCategoriesTrending } from "@/features/categories/hooks";
+import { CATEGORY_KEYS } from "@/features/categories/query-keys";
+
+const QUERY_KEY = CATEGORY_KEYS.trending({ limit: 10 });
 
 const STRIP_CONTAINER =
   "flex gap-4 overflow-x-auto pb-3 pt-1 px-0.5 snap-x snap-mandatory scroll-mt-16 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden scroll-smooth";
@@ -161,10 +161,7 @@ export function TrendingCategoriesStrip(): React.ReactElement | null {
       >
         {categories.map((ranked) => (
           <div key={ranked.categoryId} className="w-64 shrink-0 snap-start">
-            <CategoryCard
-              category={rankedCategoryToCategoryResponse(ranked)}
-              titleHeadingLevel={3 as const}
-            />
+            <CategoryCard category={ranked} titleHeadingLevel={3 as const} />
           </div>
         ))}
       </div>

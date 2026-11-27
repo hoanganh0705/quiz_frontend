@@ -148,7 +148,7 @@ export function AchievementsPage({ className }: AchievementsPageProps) {
     return (
       <main
         data-testid="achievements-page-placeholder"
-        className={`mx-auto max-w-7xl min-h-screen text-foreground px-4 sm:px-6 lg:px-8 py-8 sm:py-10 space-y-8 ${className ?? ""}`}
+        className={`min-h-screen w-full text-foreground p-4 md:p-8 lg:p-12 space-y-8 ${className ?? ""}`}
       >
         <AchievementsPlaceholder />
       </main>
@@ -165,7 +165,7 @@ function AchievementsPageLive({ className }: AchievementsPageProps) {
   return (
     <main
       data-testid="achievements-page"
-      className={`mx-auto max-w-7xl min-h-screen text-foreground px-4 sm:px-6 lg:px-8 py-8 sm:py-10 space-y-8 ${className ?? ""}`}
+      className={`min-h-screen w-full text-foreground p-4 md:p-8 lg:p-12 space-y-8 ${className ?? ""}`}
     >
       <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between pb-2 border-b border-border/40">
         <div className="flex items-start gap-3.5">

@@ -1,23 +1,24 @@
 "use client";
 
 import { useCallback, useRef, useState } from "react";
+
 import { getQueryClient } from "@/providers/QueryProvider";
 
 import { isApiError, type ApiError } from "@/lib/api";
+import { unwrapEnvelope as inspectEnvelope } from "@/lib/api/core/unwrap";
 import { getUserCopy, type UserCopyEntry } from "@/lib/api/error-codes";
+
+import { useCooldownTimer } from "@/shared/hooks/use-cooldown-timer";
 import { logger } from "@/shared/log";
 
+import { COMMENT_KEYS } from "@/features/comments/query-keys";
 import { createComment } from "@/features/comments/services/comments.service";
-import { useCommentThreadLookup } from "@/features/comments/stores/useCommentThreadLookup";
-import { commentsKey, commentThreadKey } from "@/features/comments/types";
 
 import type { CreateCommentDto } from "@/lib/api/generated/schemas";
 
 export interface UseCreateCommentOptions {
   onSuccess?: (comment: CreatedComment) => void;
-
   onError?: (error: ApiError) => void;
-
   onRateLimit?: (seconds: number) => void;
 }
 
@@ -30,24 +31,11 @@ export interface UseCreateCommentResult {
     body: string;
     parentId?: string;
   }) => Promise<CreatedComment | null>;
-
   isLoading: boolean;
-
   error: ApiError | null;
-
   errorCopy: UserCopyEntry | null;
-
   cooldownSeconds: number | null;
-
   resetError: () => void;
-}
-
-function emitBreadcrumb(
-  category: string,
-  data: { status: string; durationMs: number; code?: string },
-): void {
-  void category;
-  void data;
 }
 
 const COOLDOWN_SECONDS_DEFAULT = 60;
@@ -60,11 +48,11 @@ export function useCreateComment(
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<ApiError | null>(null);
-  const [cooldownSeconds, setCooldownSeconds] = useState<number | null>(null);
 
+  const cooldown = useCooldownTimer();
   const inFlightRef = useRef<Promise<CreatedComment | null> | null>(null);
 
-  const lookup = useCommentThreadLookup(quizId);
+  const cooldownSeconds = cooldown.isActive ? cooldown.remainingSeconds : null;
   const errorCopy = error ? getUserCopy(error.code) : null;
 
   const handleCreate = useCallback(
@@ -79,105 +67,58 @@ export function useCreateComment(
         return inFlightRef.current;
       }
 
-      if (cooldownSeconds !== null && cooldownSeconds > 0) {
+      if (cooldown.isActive) {
         return null;
       }
 
       setIsLoading(true);
       setError(null);
 
-      const startedAt = Date.now();
       const payload: CreateCommentDto = parentId
         ? { body, parentCommentId: parentId }
         : { body };
 
       const core = (async (): Promise<CreatedComment | null> => {
         try {
-          const response = (await createComment(
-            quizId,
-            payload,
-          )) as unknown as {
-            data?: CreatedComment;
+          const response = await createComment(quizId, payload);
+          const unwrapped = inspectEnvelope<{
+            id?: string;
             commentId?: string;
-          };
+          }>(response);
+          const payloadData =
+            unwrapped.kind === "envelope"
+              ? unwrapped.value
+              : unwrapped.kind === "passthrough"
+                ? (unwrapped.value as { id?: string; commentId?: string })
+                : null;
 
           const created: CreatedComment = {
-            commentId: response.data?.commentId ?? response.commentId ?? "",
+            commentId: payloadData?.id ?? payloadData?.commentId ?? "",
           };
-
-          if (parentId) {
-            lookup.incrementRepliesCount(parentId);
-          }
 
           try {
             const qc = getQueryClient();
             await qc.invalidateQueries({
-              predicate: (query) =>
-                Array.isArray(query.queryKey) &&
-                query.queryKey[0] === "comments" &&
-                query.queryKey[1] === quizId,
+              queryKey: COMMENT_KEYS.byQuiz(quizId),
             });
-            await qc.invalidateQueries({ queryKey: commentThreadKey(quizId) });
-            await qc.invalidateQueries({ queryKey: commentsKey(quizId) });
-            if (parentId) {
-              await qc.invalidateQueries({
-                queryKey: commentsKey(quizId, { parentId }),
-              });
-            }
           } catch {}
-
-          emitBreadcrumb("comments:create-comment", {
-            status: "success",
-            durationMs: Date.now() - startedAt,
-          });
 
           onSuccess?.(created);
           return created;
         } catch (err) {
           if (isApiError(err)) {
             if (err.status === 429) {
-              const seconds = COOLDOWN_SECONDS_DEFAULT;
-              setCooldownSeconds(seconds);
-              const interval = setInterval(() => {
-                setCooldownSeconds((prev) => {
-                  if (prev === null || prev <= 1) {
-                    clearInterval(interval);
-                    return null;
-                  }
-                  return prev - 1;
-                });
-              }, 1000);
-              onRateLimit?.(seconds);
-
-              emitBreadcrumb("comments:create-comment", {
-                status: "cooldown",
-                durationMs: Date.now() - startedAt,
-                code: err.code,
-              });
+              cooldown.start(COOLDOWN_SECONDS_DEFAULT * 1000);
+              onRateLimit?.(COOLDOWN_SECONDS_DEFAULT);
               return null;
             }
 
             setError(err);
             onError?.(err);
-
-            emitBreadcrumb("comments:create-comment", {
-              status: "error",
-              durationMs: Date.now() - startedAt,
-              code: err.code,
-            });
             return null;
           }
 
-          const wrapped = new Error(String(err));
-          emitBreadcrumb("comments:create-comment", {
-            status: "error",
-            durationMs: Date.now() - startedAt,
-            code: "GLOBAL_UNKNOWN",
-          });
-          logger.warn("comments.create", "unexpected rejection", {
-            err,
-            wrapped,
-          });
+          logger.warn("comments.create", "unexpected rejection", { err });
           return null;
         }
       })();
@@ -190,7 +131,7 @@ export function useCreateComment(
         inFlightRef.current = null;
       }
     },
-    [quizId, lookup, cooldownSeconds, onSuccess, onError, onRateLimit],
+    [quizId, cooldown, onSuccess, onError, onRateLimit],
   );
 
   const resetError = useCallback(() => {

@@ -1,19 +1,15 @@
 "use client";
 
-import { useMemo } from "react";
-
-import { useAuthState } from "@/features/auth/hooks/use-auth-state";
-
+import { useAuthSession } from "@/features/auth/hooks/use-auth-session";
+import { BlockedUsersList } from "@/features/social/lists/BlockedUsersList";
 import { FollowersList } from "@/features/social/lists/FollowersList";
 import { FollowingList } from "@/features/social/lists/FollowingList";
 import { FriendsList } from "@/features/social/lists/FriendsList";
-import { BlockedUsersList } from "@/features/social/lists/BlockedUsersList";
 
 import { PrivacyRestrictedNotice } from "./PrivacyRestrictedNotice";
-import {
-  SocialListPlaceholder,
-  type SocialListKind,
-} from "./SocialListPlaceholder";
+import { SocialListPlaceholder } from "./SocialListPlaceholder";
+
+import type { SocialListKind } from "./SocialListPlaceholder";
 
 interface SocialListRouteGateProps {
   kind: SocialListKind;
@@ -28,19 +24,10 @@ export function SocialListRouteGate(
 ): React.ReactElement {
   const { kind, targetUserId, requireAuth = false } = props;
 
-  const { isAuthenticated } = useAuthState();
+  const { isAuthenticated, currentUser } = useAuthSession();
   if (requireAuth && !isAuthenticated) {
     return (
       <PrivacyRestrictedNotice variant="not_available" resourceKind={kind} />
-    );
-  }
-
-  if (false) {
-    return (
-      <SocialListPlaceholder
-        kind={kind}
-        {...(targetUserId !== undefined ? { targetUserId } : {})}
-      />
     );
   }
 
@@ -55,7 +42,11 @@ export function SocialListRouteGate(
       />
     );
   }
-  const viewerIsOwner = false;
+  const currentUserId =
+    (currentUser as { id?: string; userId?: string } | null)?.id ??
+    (currentUser as { userId?: string } | null)?.userId ??
+    null;
+  const viewerIsOwner = currentUserId !== null && currentUserId === targetUserId;
 
   if (kind === "followers") {
     return (

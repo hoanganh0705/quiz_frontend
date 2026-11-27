@@ -57,9 +57,6 @@ export {
 } from "./useSocialListVisibility";
 export type { UseSocialListVisibilityResult } from "./useSocialListVisibility";
 
-export { useSocialCountsBadge } from "./useSocialCountsBadge";
-export type { UseSocialCountsBadgeResult } from "./useSocialCountsBadge";
-
 export { useUserSocialStats } from "./useUserSocialStats";
 export type {
   UseUserSocialStatsResult,

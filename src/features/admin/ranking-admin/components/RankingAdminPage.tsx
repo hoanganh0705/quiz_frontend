@@ -2,7 +2,7 @@
 
 import { usePermission } from "@/features/admin/hooks/usePermission";
 import { Skeleton } from "@/components/ui/Skeleton";
-import { AdminPageHeader } from "@/app/(protected)/admin/_components/AdminPageHeader";
+import { AdminPageHeader } from "@/features/admin/components/AdminPageHeader";
 
 import { ConsistencyCheckPanel } from "./ConsistencyCheckPanel";
 import { PeriodResetPanel } from "./PeriodResetPanel";
@@ -16,7 +16,7 @@ export function RankingAdminPage(): React.ReactElement {
     return (
       <div
         data-testid="ranking-admin-permission-pending"
-        className="mx-auto max-w-7xl px-4 sm:px-6 pb-8 pt-6 flex flex-col gap-6"
+        className="min-h-screen w-full text-foreground p-4 md:p-8 lg:p-12 flex flex-col gap-6"
       >
         <Skeleton className="h-8 w-1/3" />
         <Skeleton className="h-44 w-full rounded-xl" />
@@ -31,7 +31,7 @@ export function RankingAdminPage(): React.ReactElement {
   return (
     <div
       data-testid="ranking-admin-page"
-      className="mx-auto max-w-7xl px-4 sm:px-6 pb-8 pt-6 flex flex-col gap-8"
+      className="min-h-screen w-full text-foreground p-4 md:p-8 lg:p-12 flex flex-col gap-8"
     >
       <AdminPageHeader
         title="Rankings"

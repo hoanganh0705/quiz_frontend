@@ -40,11 +40,11 @@ function coerceToApiError(err: unknown): ApiError {
   ) {
     return ApiError.fromAxios(err as Parameters<typeof ApiError.fromAxios>[0]);
   }
-  const fallback = new ApiError({
+  const fallback = ApiError.fromInput({
     status: 0,
     code: "GLOBAL_INTERNAL_ERROR",
     message: err instanceof Error ? err.message : "Unknown error from fetcher",
-  } as unknown as ConstructorParameters<typeof ApiError>[0]);
+  });
   if (err instanceof Error && err.stack) {
     (fallback as { cause?: unknown }).cause = err;
   }

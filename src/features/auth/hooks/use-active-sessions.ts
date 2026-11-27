@@ -89,12 +89,11 @@ export function useActiveSessions(
         err && typeof err === "object" && "code" in err && "status" in err
           ? (err as ApiError)
           : null;
-      setState({
-        sessions: [],
+      setState((prev) => ({
+        ...prev,
         status: "error",
         error,
-        currentSessionId: null,
-      });
+      }));
     }
   }, [deps]);
 

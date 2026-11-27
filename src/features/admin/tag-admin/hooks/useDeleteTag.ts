@@ -8,10 +8,10 @@ import { ApiError } from "@/lib/api";
 import { addTagAdminBreadcrumb } from "@/lib/admin/admin_live_sentry";
 
 import { deleteTag } from "@/features/admin/services/tag-admin.service";
-import { TAG_ADMIN_LIST_KEY } from "./useTagAdminList";
-import { broadcastTagAdminInvalidate } from "../cache/tag-cross-tab";
+import { TAG_KEYS } from "@/features/tags/query-keys";
 
-const PUBLIC_TAGS_KEY = "tags:directory" as const;
+import { broadcastTagAdminInvalidate } from "../cache/tag-cross-tab";
+import { TAG_ADMIN_LIST_KEY } from "./useTagAdminList";
 
 export interface UseDeleteTag {
   remove: (id: string) => Promise<void>;
@@ -67,7 +67,7 @@ export function useDeleteTag(): UseDeleteTag {
       const qc = getQueryClient();
       await Promise.all([
         qc.invalidateQueries({ queryKey: [TAG_ADMIN_LIST_KEY] }),
-        qc.invalidateQueries({ queryKey: [PUBLIC_TAGS_KEY] }),
+        qc.invalidateQueries({ queryKey: TAG_KEYS.all }),
       ]);
 
       broadcastTagAdminInvalidate("delete", id);

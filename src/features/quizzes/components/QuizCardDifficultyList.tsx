@@ -1,17 +1,22 @@
 "use client";
 
 import "swiper/css";
+
+import { useMemo, useRef, useState } from "react";
+
 import { ChevronLeft, ChevronRight, Pause, Play } from "lucide-react";
-import { Button } from "@/components/ui/Button";
-import { difficultyColors } from "@/features/quizzes/constants/difficulty-color";
-import { QuizCardDifficulty } from "@/features/quizzes/components/QuizCard";
-import { useState, useMemo, useRef } from "react";
-import { SwiperSlide, Swiper } from "swiper/react";
-import type { Swiper as SwiperType } from "swiper";
 import { Autoplay } from "swiper/modules";
-import { useQuizzesList } from "@/features/quizzes/hooks";
-import type { QuizDifficulty } from "@/features/quizzes/types";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Button } from "@/components/ui/Button";
 import { LoadingSpinner } from "@/components/ui/loading-states/LoadingSpinner";
+
+import { QuizCardDifficulty } from "@/features/quizzes/components/QuizCard";
+import { useQuizzesList } from "@/features/quizzes/hooks";
+
+import { DIFFICULTY_STYLES } from "@/shared/ui/DifficultyBadge";
+
+import type { QuizDifficulty } from "@/features/quizzes/types";
+import type { Swiper as SwiperType } from "swiper";
 
 const DIFFICULTIES: QuizDifficulty[] = ["easy", "medium", "hard"];
 
@@ -22,12 +27,14 @@ const QuizCardDifficultyList = () => {
   const [isEnd, setIsEnd] = useState(false);
   const [isPlaying, setIsPlaying] = useState(true);
 
-  const { items: quizzes, isLoading } = useQuizzesList({ filters: {} });
+  const { items: quizzes, isLoading } = useQuizzesList({
+    filters: { difficulty: selectedDifficulty },
+  });
 
   const filteredQuizzes = useMemo(() => {
     return quizzes.filter((quiz) => {
       const difficulty = quiz.publishedVersion?.difficulty;
-      return difficulty === selectedDifficulty;
+      return !difficulty || difficulty === selectedDifficulty;
     });
   }, [quizzes, selectedDifficulty]);
 
@@ -52,27 +59,6 @@ const QuizCardDifficultyList = () => {
     }
   };
 
-  if (isLoading) {
-    return (
-      <div className="mt-12 flex items-center justify-center min-h-72">
-        <LoadingSpinner size="lg" />
-      </div>
-    );
-  }
-
-  if (filteredQuizzes.length === 0) {
-    return (
-      <div className="mt-12 text-center min-h-72 flex flex-col items-center justify-center">
-        <p className="text-muted-foreground text-lg">
-          No {selectedDifficulty} quizzes available yet.
-        </p>
-        <p className="text-muted-foreground text-sm mt-2">
-          Check back soon for new content.
-        </p>
-      </div>
-    );
-  }
-
   return (
     <section
       className="w-full"
@@ -94,61 +80,78 @@ const QuizCardDifficultyList = () => {
             {DIFFICULTIES.map((level) => (
               <Button
                 key={level}
+                type="button"
                 onClick={() => setSelectedDifficulty(level)}
                 className={`rounded-full capitalize px-4 py-1 text-xs sm:text-sm font-medium transition-all cursor-pointer ${
                   selectedDifficulty === level
-                    ? `${difficultyColors[level].bg} pointer-events-none text-white dark:text-foreground shadow-xs font-semibold`
-                    : `bg-transparent text-foreground dark:text-foreground-secondary ${difficultyColors[level].hover}`
+                    ? `${DIFFICULTY_STYLES[level].solid} pointer-events-none shadow-xs font-semibold`
+                    : `bg-transparent text-foreground dark:text-foreground-secondary ${DIFFICULTY_STYLES[level].solidHover}`
                 }`}
               >
                 {level}
               </Button>
             ))}
           </div>
-          <div className="flex items-center gap-1.5 self-end sm:self-auto">
-            <Button
-              size="icon"
-              variant="outline"
-              className="h-9 w-9 sm:h-10 sm:w-10 rounded-full border-border/80 bg-background/80 hover:bg-main-hover transition-all cursor-pointer"
-              onClick={handleTogglePlay}
-              aria-label={
-                isPlaying
-                  ? "Pause difficulty carousel auto-play"
-                  : "Resume difficulty carousel auto-play"
-              }
-            >
-              {isPlaying ? (
-                <Pause className="h-4 w-4" aria-hidden="true" />
-              ) : (
-                <Play className="h-4 w-4" aria-hidden="true" />
-              )}
-            </Button>
-            <Button
-              size="icon"
-              variant="outline"
-              className="h-9 w-9 sm:h-10 sm:w-10 rounded-full border-border/80 bg-background/80 hover:bg-main-hover transition-all cursor-pointer"
-              onClick={handlePrevClick}
-              disabled={isBeginning}
-              aria-label="Previous quiz"
-            >
-              <ChevronLeft className="h-4 w-4" aria-hidden="true" />
-            </Button>
-            <Button
-              size="icon"
-              variant="outline"
-              className="h-9 w-9 sm:h-10 sm:w-10 rounded-full border-border/80 bg-background/80 hover:bg-main-hover transition-all cursor-pointer"
-              onClick={handleNextClick}
-              disabled={isEnd}
-              aria-label="Next quiz"
-            >
-              <ChevronRight className="h-4 w-4" aria-hidden="true" />
-            </Button>
-          </div>
+          {filteredQuizzes.length > 0 && (
+            <div className="flex items-center gap-1.5 self-end sm:self-auto">
+              <Button
+                size="icon"
+                variant="outline"
+                className="h-9 w-9 sm:h-10 sm:w-10 rounded-full border-border/80 bg-background/80 hover:bg-main-hover transition-all cursor-pointer"
+                onClick={handleTogglePlay}
+                aria-label={
+                  isPlaying
+                    ? "Pause difficulty carousel auto-play"
+                    : "Resume difficulty carousel auto-play"
+                }
+              >
+                {isPlaying ? (
+                  <Pause className="h-4 w-4" aria-hidden="true" />
+                ) : (
+                  <Play className="h-4 w-4" aria-hidden="true" />
+                )}
+              </Button>
+              <Button
+                size="icon"
+                variant="outline"
+                className="h-9 w-9 sm:h-10 sm:w-10 rounded-full border-border/80 bg-background/80 hover:bg-main-hover transition-all cursor-pointer"
+                onClick={handlePrevClick}
+                disabled={isBeginning}
+                aria-label="Previous quiz"
+              >
+                <ChevronLeft className="h-4 w-4" aria-hidden="true" />
+              </Button>
+              <Button
+                size="icon"
+                variant="outline"
+                className="h-9 w-9 sm:h-10 sm:w-10 rounded-full border-border/80 bg-background/80 hover:bg-main-hover transition-all cursor-pointer"
+                onClick={handleNextClick}
+                disabled={isEnd}
+                aria-label="Next quiz"
+              >
+                <ChevronRight className="h-4 w-4" aria-hidden="true" />
+              </Button>
+            </div>
+          )}
         </div>
       </div>
 
-      <div>
-        <Swiper
+      {isLoading ? (
+        <div className="flex items-center justify-center min-h-72">
+          <LoadingSpinner size="lg" />
+        </div>
+      ) : filteredQuizzes.length === 0 ? (
+        <div className="text-center min-h-72 flex flex-col items-center justify-center rounded-xl border border-dashed border-border bg-card/50 p-6">
+          <p className="text-muted-foreground text-base font-medium">
+            No {selectedDifficulty} quizzes available yet.
+          </p>
+          <p className="text-muted-foreground text-sm mt-1">
+            Try switching difficulty levels or check back soon for new content.
+          </p>
+        </div>
+      ) : (
+        <div>
+          <Swiper
           spaceBetween={20}
           slidesPerView={4}
           modules={[Autoplay]}
@@ -213,8 +216,9 @@ const QuizCardDifficultyList = () => {
               />
             </SwiperSlide>
           ))}
-        </Swiper>
-      </div>
+          </Swiper>
+        </div>
+      )}
     </section>
   );
 };

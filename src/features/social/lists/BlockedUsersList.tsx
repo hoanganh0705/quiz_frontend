@@ -84,7 +84,7 @@ export function BlockedUsersList(): ReactElement {
   const visibility = useSocialListVisibility(null);
 
   const { users, isLoading, isStale, error, retry } = useBlockedUsers();
-  const showUnblockAffordance = !false;
+  const showUnblockAffordance = true;
 
   const prevFetchStateRef = useRef<"loading" | "done" | "error">(
     isLoading ? "loading" : error !== null ? "error" : "done",

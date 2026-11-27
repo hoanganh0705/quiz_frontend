@@ -3,13 +3,12 @@
 import { useMemo } from "react";
 
 import { ApiError, projectWithId, useCursorPaginated } from "@/lib/api";
-import type { CursorPage } from "@/lib/api/use-cursor-paginated.types";
-import type { TagResponseDto } from "@/lib/api/generated/schemas";
 
+import { TAG_KEYS } from "@/features/tags/query-keys";
 import { listTags } from "@/features/tags/services/tags.service";
-import { useDebouncedValue } from "@/lib/utils/use-debounced-value";
 
-const FILTER_DEBOUNCE_MS = 250;
+import type { TagResponseDto } from "@/lib/api/generated/schemas";
+import type { CursorPage } from "@/lib/api/use-cursor-paginated.types";
 
 export interface UseTagsDirectoryQuery {
   filter: string;
@@ -17,41 +16,36 @@ export interface UseTagsDirectoryQuery {
   limit?: number;
 }
 
+interface UseTagsDirectoryParams {
+  limit?: number;
+}
+
 type TagDirItem = TagResponseDto & { id: string };
 
 export function useTagsDirectory(query: UseTagsDirectoryQuery) {
-  const debouncedFilter = useDebouncedValue(
-    query.filter,
-    FILTER_DEBOUNCE_MS,
-  ).debouncedValue;
-
   const fetcher = useMemo(
     () =>
       async ({
         cursor,
         params,
+        signal,
       }: {
         cursor: string | null;
-        params: UseTagsDirectoryQuery;
+        params: UseTagsDirectoryParams;
         signal?: AbortSignal;
       }): Promise<CursorPage<TagDirItem>> => {
         try {
           const result = await listTags({
             cursor: cursor ?? undefined,
             limit: params.limit,
+            signal,
           });
-          const items = (result.data ?? []) as unknown as Array<
-            TagResponseDto & { id: string }
-          >;
-
-          const itemsWithId = projectWithId(
-            items as unknown as readonly Record<string, unknown>[],
-            "tagId",
-          );
+          const items = result.data ?? [];
+          const itemsWithId = projectWithId(items, "tagId");
 
           const pagination = result.meta?.pagination;
           return {
-            items: itemsWithId as any,
+            items: itemsWithId,
             nextCursor: pagination?.nextCursor ?? null,
             hasNextPage: pagination?.hasNextPage ?? false,
             limit: pagination?.limit ?? itemsWithId.length,
@@ -71,26 +65,39 @@ export function useTagsDirectory(query: UseTagsDirectoryQuery) {
     [],
   );
 
-  const result = useCursorPaginated<TagDirItem, UseTagsDirectoryQuery>({
-    key: ["tags", "directory", debouncedFilter, { limit: query.limit }],
+  const result = useCursorPaginated<TagDirItem, UseTagsDirectoryParams>({
+    key: TAG_KEYS.directory(query.limit),
     fetcher,
-    params: { filter: debouncedFilter, limit: query.limit },
+    params: { limit: query.limit },
     paginationKind: "cursor",
   });
 
   const wireItems = result.items as readonly TagResponseDto[];
 
-  const trimmed = debouncedFilter.trim().toLowerCase();
-  const filteredItems = trimmed
-    ? wireItems.filter(
-        (tag) =>
-          tag.slug.toLowerCase().startsWith(trimmed) ||
-          tag.name.toLowerCase().includes(trimmed),
-      )
-    : wireItems;
+  const sortedItems = useMemo(() => {
+    if (wireItems.length <= 1) {
+      return wireItems;
+    }
+    return [...wireItems].sort((a, b) =>
+      a.name.localeCompare(b.name, "en", { sensitivity: "base" }),
+    );
+  }, [wireItems]);
+
+  const filteredItems = useMemo(() => {
+    const trimmed = query.filter.trim().toLowerCase();
+    if (!trimmed) {
+      return sortedItems;
+    }
+    return sortedItems.filter(
+      (tag) =>
+        tag.slug.toLowerCase().includes(trimmed) ||
+        tag.name.toLowerCase().includes(trimmed),
+    );
+  }, [sortedItems, query.filter]);
 
   return {
     ...result,
     items: filteredItems,
+    loadedCount: sortedItems.length,
   };
 }

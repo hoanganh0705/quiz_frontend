@@ -4,6 +4,7 @@ import { useCallback, useMemo } from "react";
 
 import { ApiError, useSingleWithRetry, type SingleFetcher } from "@/lib/api";
 
+import { DAILY_CHALLENGE_KEYS } from "@/features/daily-challenge/query-keys";
 import {
   getDailyChallengeToday,
   type DailyChallengeView,
@@ -18,8 +19,6 @@ export interface UseDailyChallengeTodayResult {
   refresh: () => Promise<void>;
   isRetrying: boolean;
 }
-
-const QUERY_KEY = ["daily-challenge", "today"] as const;
 
 export function useDailyChallengeToday(): UseDailyChallengeTodayResult {
   const fetcher = useMemo<SingleFetcher<DailyChallengeView | null>>(
@@ -39,7 +38,7 @@ export function useDailyChallengeToday(): UseDailyChallengeTodayResult {
 
   const { data, isLoading, error, retry, isRetrying } =
     useSingleWithRetry<DailyChallengeView | null>({
-      key: QUERY_KEY,
+      key: DAILY_CHALLENGE_KEYS.today(),
       fetcher,
     });
 

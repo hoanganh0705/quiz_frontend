@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { TAG_SLUG_REGEX, isValidTagSlug } from "../tag-slug-regex";
+import { isValidTagSlug, TAG_SLUG_REGEX } from "@/lib/forms/regex";
 
 describe("tag-slug-regex — TAG_SLUG_REGEX source", () => {
   it("is anchored to the canonical kebab-case regex", () => {

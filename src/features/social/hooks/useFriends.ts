@@ -47,7 +47,6 @@ export function useFriends(userId: string | null): UseFriendsResult {
   const isAuthenticated = auth.isAuthenticated;
 
   const key = useMemo<readonly unknown[] | null>(() => {
-    if (false) return null;
     if (!isAuthenticated) return null;
     if (userId === null) return null;
     return SOCIAL_CACHE_KEYS.makeFriendsKey(userId);
@@ -109,7 +108,6 @@ export function useFriends(userId: string | null): UseFriendsResult {
     paginationKind: "cursor",
   });
 
-  if (false) return PLACEHOLDER_RESULT;
   if (!isAuthenticated) return PLACEHOLDER_RESULT;
   if (userId === null) return PLACEHOLDER_RESULT;
 

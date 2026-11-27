@@ -1,9 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { act, renderHook, waitFor } from "@testing-library/react";
+import { renderHook } from "@testing-library/react";
 
 import { type UseCursorPaginatedResult } from "@/lib/api/use-cursor-paginated.types";
 
-import { useMyAttemptsWithFilters } from "@/features/attempts/hooks/useMyAttemptsWithFilters";
+import {
+  resolveDateRangeFromIso,
+  useMyAttemptsWithFilters,
+} from "@/features/attempts/hooks/useMyAttemptsWithFilters";
 import {
   DEFAULT_ATTEMPT_HISTORY_FILTERS,
   type AttemptHistoryFilters,
@@ -296,5 +299,49 @@ describe("useMyAttemptsWithFilters — pagination", () => {
       : false;
     const _assert: _Check = true;
     expect(_assert).toBe(true);
+  });
+});
+
+describe("useMyAttemptsWithFilters — dateRange & client-side search", () => {
+  it("resolves UTC start-of-day fromDate ISO strings for dateRange filters", () => {
+    const fixedNow = new Date("2026-11-25T15:45:00.000Z");
+    expect(resolveDateRangeFromIso("all", fixedNow)).toBeUndefined();
+    expect(resolveDateRangeFromIso("last_7_days", fixedNow)).toBe(
+      "2026-11-18T00:00:00.000Z",
+    );
+    expect(resolveDateRangeFromIso("last_30_days", fixedNow)).toBe(
+      "2026-10-26T00:00:00.000Z",
+    );
+    expect(resolveDateRangeFromIso("last_90_days", fixedNow)).toBe(
+      "2026-08-27T00:00:00.000Z",
+    );
+  });
+
+  it("filters returned items client-side by search query without refetching per keystroke", () => {
+    useCursorPaginatedMock.mockReturnValue({
+      items: [
+        { ...makeHistoryRow("a1"), quizTitle: "TypeScript Basics" },
+        { ...makeHistoryRow("a2"), quizTitle: "World Geography" },
+      ],
+      isLoading: false,
+      isLoadingMore: false,
+      error: null,
+      hasMore: false,
+      hasResolved: true,
+      loadMore: vi.fn(),
+      refresh: vi.fn(),
+    });
+
+    const { result } = renderHook(() =>
+      useMyAttemptsWithFilters({
+        filters: {
+          ...DEFAULT_ATTEMPT_HISTORY_FILTERS,
+          search: "typescript",
+        },
+      }),
+    );
+
+    expect(result.current.items).toHaveLength(1);
+    expect(result.current.items[0]?.id).toBe("a1");
   });
 });

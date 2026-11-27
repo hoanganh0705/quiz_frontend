@@ -1,22 +1,20 @@
 import { memo } from "react";
 
-import { Card } from "@/components/ui/Card";
-import { CardContent } from "@/components/ui/Card";
-import { CardHeader } from "@/components/ui/Card";
-import { CardTitle } from "@/components/ui/Card";
-import { Progress } from "@/components/ui/Progress";
-import { Skeleton } from "@/components/ui/Skeleton";
 import {
-  Zap,
-  Trophy,
+  BarChart3,
   BookOpen,
   Clock,
-  TrendingUp,
   Target,
-  BarChart3,
+  TrendingUp,
+  Trophy,
+  Zap,
 } from "lucide-react";
 
 import { useMyAnalytics } from "@/features/users/hooks";
+
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
+import { Progress } from "@/components/ui/Progress";
+
 import { StatsCard } from "../StatsCard";
 
 const SKELETON_COUNT = 4;
@@ -227,7 +225,7 @@ export const StatisticsTab = memo(function StatisticsTab() {
           <div className="space-y-2">
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">Average Score</span>
-              <span className="font-medium">
+              <span className="font-mono tabular-nums font-medium">
                 {analytics.averageScore.toFixed(1)}%
               </span>
             </div>
@@ -238,31 +236,24 @@ export const StatisticsTab = memo(function StatisticsTab() {
             />
           </div>
 
-          {/* Score ranges */}
-          <div className="grid grid-cols-3 gap-4 pt-4 border-t">
+          <div className="grid grid-cols-2 gap-4 pt-4 border-t border-border">
             <div className="text-center">
-              <p className="text-2xl font-bold text-success">
-                {analytics.averageScore >= 80
-                  ? analytics.quizzesCompleted
-                  : Math.round(analytics.quizzesCompleted * 0.3)}
+              <p className="font-mono tabular-nums text-2xl font-bold text-foreground">
+                {analytics.quizzesCompleted}
               </p>
-              <p className="text-xs text-muted-foreground">80%+ Scores</p>
+              <p className="text-xs text-muted-foreground">
+                Completed Quizzes
+              </p>
             </div>
             <div className="text-center">
-              <p className="text-2xl font-bold text-amber-500">
-                {analytics.averageScore >= 60 && analytics.averageScore < 80
-                  ? analytics.quizzesCompleted
-                  : Math.round(analytics.quizzesCompleted * 0.4)}
+              <p className="font-mono tabular-nums text-2xl font-bold text-foreground">
+                {analytics.tournamentsPlayed > 0
+                  ? `${Math.round((analytics.tournamentsWon / analytics.tournamentsPlayed) * 100)}%`
+                  : "—"}
               </p>
-              <p className="text-xs text-muted-foreground">60-79% Scores</p>
-            </div>
-            <div className="text-center">
-              <p className="text-2xl font-bold text-destructive">
-                {analytics.averageScore < 60
-                  ? analytics.quizzesCompleted
-                  : Math.round(analytics.quizzesCompleted * 0.3)}
+              <p className="text-xs text-muted-foreground">
+                Tournament Win Rate
               </p>
-              <p className="text-xs text-muted-foreground">Below 60%</p>
             </div>
           </div>
         </CardContent>

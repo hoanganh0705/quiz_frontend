@@ -62,9 +62,6 @@ export function useListInstances(
   );
 
   const fetcher = useCallback(async (): Promise<InstanceListItemDto[]> => {
-    if (false) {
-      return [];
-    }
     const raw = await listInstances(params);
     return extractInstanceItems(raw);
   }, [params]);
@@ -78,7 +75,7 @@ export function useListInstances(
     {
       queryKey: key ?? ["instances", "list", "disabled"],
       queryFn: fetcher,
-      enabled: !false,
+      enabled: true,
       refetchOnWindowFocus: true,
       staleTime: 1000,
     },
@@ -104,7 +101,9 @@ export function useListInstances(
               return {
                 ...item,
                 playerCount: data.playerCount,
-                ...(data.status ? { status: data.status as any } : {}),
+                ...(data.status
+                  ? { status: data.status as InstanceListItemDto["status"] }
+                  : {}),
               };
             }
             return item;
@@ -113,8 +112,13 @@ export function useListInstances(
       );
     };
 
-    const handleInstanceClosed = (data: { instanceId: string }) => {
+    const handleInstanceClosed = (data: {
+      instanceId: string;
+      status?: string;
+    }) => {
       if (!data?.instanceId) return;
+      const terminalStatus =
+        data.status === "finished" ? "finished" : "closed";
       const queryClient = getQueryClient();
       queryClient.setQueriesData<InstanceListItemDto[]>(
         { queryKey: ["instances", "list"] },
@@ -124,7 +128,7 @@ export function useListInstances(
             if (item.instanceId === data.instanceId) {
               return {
                 ...item,
-                status: "closed" as any,
+                status: terminalStatus as InstanceListItemDto["status"],
                 playerCount: 0,
               };
             }

@@ -12,7 +12,9 @@ import type {
   DeletedTagListItem,
 } from "../tag-types";
 
-export const TAG_ADMIN_LIST_KEY = "tag-admin:list" as const;
+import { TAG_ADMIN_LIST_KEY } from "../cache/tag-cache-keys";
+
+export { TAG_ADMIN_LIST_KEY };
 
 export interface UseTagAdminList {
   active: TagListItem[];

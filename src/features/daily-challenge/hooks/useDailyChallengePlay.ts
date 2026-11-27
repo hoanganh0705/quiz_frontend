@@ -3,15 +3,19 @@
 import { useCallback, useMemo, useRef, useState } from "react";
 
 import { ApiError, isApiError, useOptimisticMutation } from "@/lib/api";
+import { getQueryClient } from "@/providers/QueryProvider";
+
+import { DAILY_CHALLENGE_KEYS } from "@/features/daily-challenge/query-keys";
+import { submitDailyChallengeAnswer } from "@/features/daily-challenge/services/daily-challenge.service";
+import { useQuizByIdOrSlug } from "@/features/quizzes/hooks/useQuizByIdOrSlug";
+import { useUserStore } from "@/features/users/store/user-store";
+
 import type {
   OptimisticMutationCall,
   OptimisticMutationResult,
 } from "@/lib/api";
-
-import { submitDailyChallengeAnswer } from "@/features/daily-challenge/services/daily-challenge.service";
 import type { DailyChallengeAnswerResponseView } from "@/features/daily-challenge/services/daily-challenge.service";
 import type { PlayerQuestion } from "@/features/quizzes/lib/quiz-player-view";
-import { useQuizByIdOrSlug } from "@/features/quizzes/hooks/useQuizByIdOrSlug";
 
 export type DailyChallengePlayStatus =
   "idle" | "submitting" | "reveal" | "completed" | "error";
@@ -34,12 +38,6 @@ export interface UseDailyChallengePlayResult {
   submitAnswer: (selectedOptionId: string | null) => Promise<void>;
   advance: () => void;
   reset: () => void;
-}
-
-const QUERY_KEY_PREFIX = "daily-challenge-play";
-
-function submitKey(quizId: string, currentIndex: number): readonly unknown[] {
-  return [QUERY_KEY_PREFIX, quizId, currentIndex];
 }
 
 export function useDailyChallengePlay(
@@ -81,7 +79,7 @@ export function useDailyChallengePlay(
       setStatus("submitting");
       setLastError(null);
 
-      const optimisticKey = submitKey(quizId, currentIndex);
+      const optimisticKey = DAILY_CHALLENGE_KEYS.play(quizId, currentIndex);
       const payload: Parameters<typeof submitDailyChallengeAnswer>[0] = {
         questionIndex: currentIndex,
         selectedOptionId,
@@ -113,6 +111,16 @@ export function useDailyChallengePlay(
           if (data.completed) {
             setFinalScore(data.scorePercent ?? 0);
             setStatus("completed");
+            try {
+              const qc = getQueryClient();
+              void qc.invalidateQueries({ queryKey: DAILY_CHALLENGE_KEYS.all });
+              void qc.invalidateQueries({ queryKey: ["leaderboards"] });
+              void qc.invalidateQueries({ queryKey: ["rankings"] });
+            } catch {
+              // Fail-open when QueryClient is unavailable
+            }
+            void useUserStore.getState().fetchCurrentUser();
+            void onTodayRefresh?.();
           } else {
             setStatus("reveal");
           }

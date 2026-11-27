@@ -6,6 +6,7 @@ import { getQueryClient } from "@/providers/QueryProvider";
 import { ApiError, isApiError } from "@/lib/api";
 import type { QuizListItemDto } from "@/lib/api/generated/schemas";
 
+import { QUIZ_KEYS } from "@/features/quizzes/query-keys";
 import { getQuizzesRelated } from "@/features/quizzes/services/quizzes.service";
 
 export const QUIZ_RELATED_LIMIT = 4 as const;
@@ -28,11 +29,11 @@ export function useQuizRelated(idOrSlug: string | null): UseQuizRelatedResult {
   const key =
     idOrSlug === null
       ? null
-      : (["useQuizRelated", idOrSlug, { limit: QUIZ_RELATED_LIMIT }] as const);
+      : QUIZ_KEYS.related(idOrSlug, { limit: QUIZ_RELATED_LIMIT });
 
   const { data, error, isLoading } = useQuery<readonly QuizListItemDto[]>(
     {
-      queryKey: key ?? ["useQuizRelated", "disabled"],
+      queryKey: key ?? (["quizzes", "related", "disabled"] as const),
       queryFn: async () => {
         const result = await getQuizzesRelated(idOrSlug as string, {
           limit: QUIZ_RELATED_LIMIT,

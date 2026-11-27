@@ -86,11 +86,8 @@ export function useVerifyPassword(
 
   const verify = useCallback(
     async (password: string): Promise<VerifyPasswordResponseDto | null> => {
-      if (state.status === "pending") {
-        if (inFlightRef.current) {
-          return inFlightRef.current;
-        }
-        return null;
+      if (inFlightRef.current) {
+        return inFlightRef.current;
       }
 
       setState((prev) => ({
@@ -126,7 +123,7 @@ export function useVerifyPassword(
       inFlightRef.current = promise;
       return promise;
     },
-    [deps, state.status],
+    [deps],
   );
 
   const reset = useCallback((): void => {

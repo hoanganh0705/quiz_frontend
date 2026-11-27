@@ -15,6 +15,8 @@ import type {
 export interface CommentVoteButtonsProps {
   commentId: string;
 
+  quizId?: string;
+
   userVote?: CommentUserVote;
 
   votesCount: number;
@@ -22,6 +24,8 @@ export interface CommentVoteButtonsProps {
   downvotesCount: number;
 
   isOwner?: boolean;
+
+  isAuthenticated?: boolean;
 
   size?: "sm" | "md";
 
@@ -32,27 +36,29 @@ export interface CommentVoteButtonsProps {
 
 export function CommentVoteButtons({
   commentId,
+  quizId,
   userVote = null,
   votesCount,
   upvotesCount,
   downvotesCount,
   isOwner = false,
+  isAuthenticated = true,
   size = "md",
   showCounts = true,
   className,
 }: CommentVoteButtonsProps) {
-  const { toggleVote, isLoading } = useVoteComment(commentId);
+  const { toggleVote, isLoading } = useVoteComment(commentId, { quizId });
 
   const [announcement, setAnnouncement] = useState<string>("");
 
-  if (isOwner) {
+  if (isOwner || !isAuthenticated) {
     return (
       <div
         className={cn(
-          "inline-flex items-center gap-2 text-xs text-muted-foreground",
+          "inline-flex items-center gap-2 text-xs text-muted-foreground tabular-nums",
           className,
         )}
-        aria-label="Your comment"
+        aria-label={isOwner ? "Your comment" : "Sign in to vote"}
         data-testid={`comment-vote-${commentId}`}
       >
         <span>{votesCount}</span>

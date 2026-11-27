@@ -18,6 +18,7 @@ import type { UseTournamentParticipantsResult } from "@/features/tournaments/hoo
 
 export interface ParticipantListProps {
   participantsResult: UseTournamentParticipantsResult;
+  isRegistrationOpen?: boolean;
   className?: string;
 }
 
@@ -44,6 +45,7 @@ function getInitials(username: string): string {
 
 export function ParticipantList({
   participantsResult,
+  isRegistrationOpen = true,
   className,
 }: ParticipantListProps) {
   const prefersReducedMotion = usePrefersReducedMotion();
@@ -72,7 +74,18 @@ export function ParticipantList({
     return (
       <div className={cn("space-y-4", className)}>
         <h2 className="text-lg font-semibold">Participants</h2>
-        <TournamentEmptyState variant="participants" />
+        {isRegistrationOpen ? (
+          <TournamentEmptyState variant="participants" />
+        ) : (
+          <div className="rounded-xl border border-border bg-muted/20 px-6 py-10 text-center">
+            <p className="text-sm font-medium text-foreground">
+              No participants recorded
+            </p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Registration for this tournament is closed.
+            </p>
+          </div>
+        )}
       </div>
     );
   }

@@ -5,12 +5,16 @@ import Link from "next/link";
 
 import { Calendar } from "lucide-react";
 
-import { Card, CardContent } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
+import { Card, CardContent } from "@/components/ui/Card";
 import { cn } from "@/shared/utils/merge-class-names";
-import { usePrefersReducedMotion } from "@/shared/hooks";
 
+import {
+  isTournamentClosed,
+  resolveEffectiveTournamentStatus,
+} from "@/features/tournaments/lib/tournament-lifecycle";
 import type { TournamentSummary } from "@/features/tournaments/types";
+
 import { TournamentStatusBadge } from "./TournamentStatusBadge";
 
 export interface TournamentCardProps {
@@ -31,7 +35,6 @@ function formatDate(dateString: string): string {
 }
 
 export function TournamentCard({ tournament, className }: TournamentCardProps) {
-  const prefersReducedMotion = usePrefersReducedMotion();
   const {
     id,
     title,
@@ -43,12 +46,23 @@ export function TournamentCard({ tournament, className }: TournamentCardProps) {
     maxParticipants,
   } = tournament;
 
+  const effectiveStatus = resolveEffectiveTournamentStatus(tournament) ?? status;
+  const closed = isTournamentClosed(tournament);
   const tournamentUrl = "/tournaments/" + id;
+  const ctaLabel =
+    effectiveStatus === "finished"
+      ? "View Results"
+      : effectiveStatus === "cancelled"
+        ? "Details"
+        : "View";
 
   return (
     <Card
       className={cn(
-        "group relative flex flex-col justify-between overflow-hidden transition-all duration-200 hover:shadow-md hover:border-brand/40 bg-card",
+        "group relative flex flex-col justify-between overflow-hidden transition-all duration-200 bg-card",
+        closed
+          ? "border-border/80 opacity-90 hover:opacity-100 hover:border-border"
+          : "hover:shadow-md hover:border-brand/40",
         className,
       )}
       role="listitem"
@@ -57,7 +71,7 @@ export function TournamentCard({ tournament, className }: TournamentCardProps) {
         <div className="space-y-3">
           {/* Header: status badge + difficulty */}
           <div className="flex items-start justify-between gap-3">
-            <TournamentStatusBadge status={status} />
+            <TournamentStatusBadge status={effectiveStatus} />
             {difficulty && (
               <span className="text-xs font-medium text-muted-foreground capitalize">
                 {difficulty}
@@ -108,7 +122,7 @@ export function TournamentCard({ tournament, className }: TournamentCardProps) {
           )}
           <Button asChild size="sm" variant="outline" className="ml-auto">
             <Link href={tournamentUrl} aria-label={`View ${title} tournament`}>
-              View
+              {ctaLabel}
             </Link>
           </Button>
         </div>

@@ -3,9 +3,10 @@
 import { useQuery } from "@tanstack/react-query";
 import { getQueryClient } from "@/providers/QueryProvider";
 
-import { ApiError } from "@/lib/api";
+import { ApiError, coerceToApiError } from "@/lib/api";
 import type { RankedTagResponseDto } from "@/lib/api/generated/schemas";
 
+import { TAG_KEYS } from "@/features/tags/query-keys";
 import { getTagsPopular } from "@/features/tags/services/tags.service";
 
 export interface UseTagsPopularParams {
@@ -21,11 +22,9 @@ export interface UseTagsPopularResult {
 export function useTagsPopular(
   params: UseTagsPopularParams = {},
 ): UseTagsPopularResult {
-  const key = ["tags", "popular", params] as const;
-
   const { data, error, isLoading } = useQuery(
     {
-      queryKey: key,
+      queryKey: TAG_KEYS.popular(params),
       queryFn: async () => {
         const result = await getTagsPopular({ limit: params.limit });
         return result.data ?? [];
@@ -37,6 +36,6 @@ export function useTagsPopular(
   return {
     tags: data ?? [],
     isLoading,
-    error: error instanceof ApiError ? error : null,
+    error: error ? coerceToApiError(error) : null,
   };
 }

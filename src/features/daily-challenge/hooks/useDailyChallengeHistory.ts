@@ -4,6 +4,7 @@ import { useCallback, useMemo } from "react";
 
 import { ApiError, useCursorPaginated, type CursorPage } from "@/lib/api";
 
+import { DAILY_CHALLENGE_KEYS } from "@/features/daily-challenge/query-keys";
 import {
   getDailyChallengeHistoryPage,
   type DailyChallengeHistoryItemView,
@@ -65,11 +66,7 @@ export function useDailyChallengeHistory(): UseDailyChallengeHistoryResult {
     DailyChallengeHistoryItemWithId,
     { limit: number }
   >({
-    key: [
-      "daily-challenge",
-      "history",
-      { limit: DAILY_CHALLENGE_HISTORY_PAGE_LIMIT },
-    ],
+    key: DAILY_CHALLENGE_KEYS.history(DAILY_CHALLENGE_HISTORY_PAGE_LIMIT),
     fetcher,
     params: { limit: DAILY_CHALLENGE_HISTORY_PAGE_LIMIT },
     paginationKind: "cursor",

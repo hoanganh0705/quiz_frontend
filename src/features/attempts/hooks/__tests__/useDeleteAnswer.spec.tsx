@@ -8,7 +8,7 @@ import {
   useAttemptsStore,
   hydrateAttemptEntry,
 } from "@/features/attempts/stores/useAttemptsStore";
-import { ATTEMPT_CACHE_KEYS } from "@/features/attempts/types/attempt-runner.types";
+import { ATTEMPT_KEYS } from "@/features/attempts/query-keys";
 
 const withdrawAnswerMock = vi.hoisted(() => vi.fn());
 const useAuthSessionMock = vi.hoisted(() => vi.fn());
@@ -147,7 +147,7 @@ describe("useDeleteAnswer — happy path", () => {
 
     expect(invalidateQueriesMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        queryKey: ATTEMPT_CACHE_KEYS.answers(ATTEMPT_ID, SESSION_ID),
+        queryKey: ATTEMPT_KEYS.answers(ATTEMPT_ID, SESSION_ID),
       }),
     );
     expect(broadcastAttemptsChangedMock).toHaveBeenCalledTimes(1);
@@ -182,7 +182,7 @@ describe("useDeleteAnswer — 404 answer_not_found", () => {
     expect(result.current.error).toBeNull();
     expect(invalidateQueriesMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        queryKey: ATTEMPT_CACHE_KEYS.answers(ATTEMPT_ID, SESSION_ID),
+        queryKey: ATTEMPT_KEYS.answers(ATTEMPT_ID, SESSION_ID),
       }),
     );
   });

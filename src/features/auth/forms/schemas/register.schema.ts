@@ -1,11 +1,11 @@
 import { z } from "zod";
 
+import { passwordPolicySchema } from "./password.schema";
+
 const USERNAME_PATTERN = /^[a-zA-Z0-9._-]+$/;
 const USERNAME_MIN = 3;
 const USERNAME_MAX = 50;
 const EMAIL_MAX = 255;
-const PASSWORD_MIN = 6;
-const PASSWORD_MAX = 100;
 
 export const usernameSchema = z
   .string()
@@ -21,19 +21,7 @@ export const emailSchema = z
   .email("Please enter a valid email address")
   .max(EMAIL_MAX, `Email must be at most ${EMAIL_MAX} characters`);
 
-export const passwordSchema = z
-  .string()
-  .min(PASSWORD_MIN, `Password must be at least ${PASSWORD_MIN} characters`)
-  .max(PASSWORD_MAX, `Password must be at most ${PASSWORD_MAX} characters`)
-  .refine((value) => /[A-Z]/.test(value), {
-    message: "Password must include at least one uppercase letter",
-  })
-  .refine((value) => /\d/.test(value), {
-    message: "Password must include at least one number",
-  })
-  .refine((value) => /[^A-Za-z0-9]/.test(value), {
-    message: "Password must include at least one symbol",
-  });
+export const passwordSchema = passwordPolicySchema;
 
 export const registerSchema = z
   .object({

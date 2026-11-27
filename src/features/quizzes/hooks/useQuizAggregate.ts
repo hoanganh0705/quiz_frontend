@@ -17,6 +17,7 @@ import type {
   QuizStatsHistoryPointDto,
   QuizStatsResponseDto,
 } from "@/lib/api/generated/schemas";
+import { QUIZ_KEYS } from "@/features/quizzes/query-keys";
 import {
   projectQuizToPlayerView,
   type PlayerQuizDetail,
@@ -44,8 +45,7 @@ export function useQuizAggregate(
   idOrSlug: string | null,
 ): UseQuizAggregateResult {
   const key = useMemo(
-    () =>
-      idOrSlug === null ? null : (["useQuizAggregate", idOrSlug] as const),
+    () => (idOrSlug === null ? null : QUIZ_KEYS.aggregate(idOrSlug)),
     [idOrSlug],
   );
 

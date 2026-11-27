@@ -11,8 +11,7 @@ import {
   useAttemptsStore,
   hydrateAttemptEntry,
 } from "@/features/attempts/stores/useAttemptsStore";
-import { ATTEMPT_CACHE_KEYS } from "@/features/attempts/types/attempt-runner.types";
-import { ATTEMPT_RESULT_CACHE_KEYS } from "@/features/attempts/types/attempt-result.types";
+import { ATTEMPT_KEYS } from "@/features/attempts/query-keys";
 
 const invalidateQueriesMock = vi.hoisted(() =>
   vi.fn().mockResolvedValue(undefined),
@@ -202,17 +201,17 @@ describe("useAttemptCrossTabSync — kind dispatch", () => {
 
     expect(invalidateQueriesMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        queryKey: ATTEMPT_CACHE_KEYS.active(QV_ID, SESSION_ID),
+        queryKey: ATTEMPT_KEYS.active(QV_ID, SESSION_ID),
       }),
     );
     expect(invalidateQueriesMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        queryKey: ATTEMPT_CACHE_KEYS.detail(ATTEMPT_ID, SESSION_ID),
+        queryKey: ATTEMPT_KEYS.detail(ATTEMPT_ID, SESSION_ID),
       }),
     );
     expect(invalidateQueriesMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        queryKey: ATTEMPT_CACHE_KEYS.answers(ATTEMPT_ID, SESSION_ID),
+        queryKey: ATTEMPT_KEYS.answers(ATTEMPT_ID, SESSION_ID),
       }),
     );
   });
@@ -228,12 +227,12 @@ describe("useAttemptCrossTabSync — kind dispatch", () => {
 
     expect(invalidateQueriesMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        queryKey: ATTEMPT_CACHE_KEYS.detail(ATTEMPT_ID, SESSION_ID),
+        queryKey: ATTEMPT_KEYS.detail(ATTEMPT_ID, SESSION_ID),
       }),
     );
     expect(invalidateQueriesMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        queryKey: ATTEMPT_CACHE_KEYS.answers(ATTEMPT_ID, SESSION_ID),
+        queryKey: ATTEMPT_KEYS.answers(ATTEMPT_ID, SESSION_ID),
       }),
     );
   });
@@ -249,12 +248,12 @@ describe("useAttemptCrossTabSync — kind dispatch", () => {
 
     expect(invalidateQueriesMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        queryKey: ATTEMPT_CACHE_KEYS.detail(ATTEMPT_ID, SESSION_ID),
+        queryKey: ATTEMPT_KEYS.detail(ATTEMPT_ID, SESSION_ID),
       }),
     );
     expect(invalidateQueriesMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        queryKey: ATTEMPT_CACHE_KEYS.answers(ATTEMPT_ID, SESSION_ID),
+        queryKey: ATTEMPT_KEYS.answers(ATTEMPT_ID, SESSION_ID),
       }),
     );
   });
@@ -274,12 +273,12 @@ describe("useAttemptCrossTabSync — kind dispatch", () => {
 
     expect(invalidateQueriesMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        queryKey: ATTEMPT_CACHE_KEYS.detail(ATTEMPT_ID, SESSION_ID),
+        queryKey: ATTEMPT_KEYS.detail(ATTEMPT_ID, SESSION_ID),
       }),
     );
     expect(invalidateQueriesMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        queryKey: ATTEMPT_CACHE_KEYS.active(QV_ID, SESSION_ID),
+        queryKey: ATTEMPT_KEYS.active(QV_ID, SESSION_ID),
       }),
     );
 
@@ -298,17 +297,17 @@ describe("useAttemptCrossTabSync — kind dispatch", () => {
 
     expect(invalidateQueriesMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        queryKey: ATTEMPT_CACHE_KEYS.detail(ATTEMPT_ID, SESSION_ID),
+        queryKey: ATTEMPT_KEYS.detail(ATTEMPT_ID, SESSION_ID),
       }),
     );
     expect(invalidateQueriesMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        queryKey: ATTEMPT_CACHE_KEYS.answers(ATTEMPT_ID, SESSION_ID),
+        queryKey: ATTEMPT_KEYS.answers(ATTEMPT_ID, SESSION_ID),
       }),
     );
     expect(invalidateQueriesMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        queryKey: ATTEMPT_RESULT_CACHE_KEYS.result(ATTEMPT_ID, SESSION_ID),
+        queryKey: ATTEMPT_KEYS.result(ATTEMPT_ID, SESSION_ID),
       }),
     );
     expect(invalidateQueriesMock).toHaveBeenCalledWith(

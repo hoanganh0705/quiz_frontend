@@ -1,8 +1,8 @@
-import { describe, expect, it, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
-import React from "react";
+import { fireEvent, render, screen } from "@testing-library/react";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { AccountSettings } from "../AccountSettings";
+
 import type { UserMeResponseDto } from "@/features/users/types/user-backend";
 
 const mockProfile: UserMeResponseDto = {
@@ -30,24 +30,29 @@ const mockState = {
   resetError: vi.fn(),
 };
 
-const mockUsernameState = { status: "idle" as const, available: undefined };
-
 vi.mock("@/features/users/hooks/useUpdateMyProfile", () => ({
   useUpdateMyProfile: vi.fn().mockImplementation(() => mockState),
 }));
 
-vi.mock("@/features/auth/hooks/use-check-username", () => ({
-  useCheckUsername: vi.fn().mockImplementation(() => mockUsernameState),
-}));
-
 describe("AccountSettings", () => {
+  beforeEach(() => {
+    mockState.isPending = false;
+    mockState.isSuccess = false;
+    mockState.isError = false;
+    mockState.lastError = null;
+    mockState.mutate.mockClear();
+  });
+
   it("renders skeletons while profile is null", () => {
     const { container } = render(<AccountSettings profile={null} />);
     expect(container.querySelector(".animate-pulse")).toBeTruthy();
   });
 
-  it("renders form fields when profile is provided", () => {
+  it("renders h2 section heading and form fields when profile is provided", () => {
     render(<AccountSettings profile={mockProfile} />);
+    expect(
+      screen.getByRole("heading", { level: 2, name: /Account Settings/i }),
+    ).toBeInTheDocument();
     expect(screen.getByLabelText(/Display Name/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/Username.*read-only/i)).toBeInTheDocument();
     expect(
@@ -55,13 +60,30 @@ describe("AccountSettings", () => {
     ).toBeInTheDocument();
   });
 
-  it("renders the save button", () => {
+  it("links to /settings/security instead of rendering a mock password modal", () => {
     render(<AccountSettings profile={mockProfile} />);
-    expect(screen.getByRole("button", { name: /Save/i })).toBeInTheDocument();
+    const securityLink = screen.getByRole("link", {
+      name: /Manage password and active sessions/i,
+    });
+    expect(securityLink).toHaveAttribute("href", "/settings/security");
   });
 
   it("disables save button when form is not dirty", () => {
     render(<AccountSettings profile={mockProfile} />);
+    expect(screen.getByRole("button", { name: /Save/i })).toBeDisabled();
+  });
+
+  it("shows Discard button when displayName is edited and resets value on click", () => {
+    render(<AccountSettings profile={mockProfile} />);
+    const input = screen.getByLabelText(/Display Name/i) as HTMLInputElement;
+    expect(screen.queryByRole("button", { name: /Discard/i })).toBeNull();
+
+    fireEvent.change(input, { target: { value: "Jane Doe" } });
+    expect(input.value).toBe("Jane Doe");
+
+    const discardBtn = screen.getByRole("button", { name: /Discard/i });
+    fireEvent.click(discardBtn);
+    expect(input.value).toBe("John Doe");
     expect(screen.getByRole("button", { name: /Save/i })).toBeDisabled();
   });
 

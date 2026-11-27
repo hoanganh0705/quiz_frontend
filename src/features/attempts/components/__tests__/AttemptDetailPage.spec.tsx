@@ -1,10 +1,22 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 
-import { AttemptDetailPage } from "@/features/attempts/components/AttemptDetailPage";
+import {
+  AttemptResultView,
+  type AttemptResultViewProps,
+} from "@/features/attempts/pages/AttemptResultView";
 import type { AttemptResultDto } from "@/features/attempts/types/attempt-result.types";
 
+const AttemptDetailPage = (props: Omit<AttemptResultViewProps, "mode">) => (
+  <AttemptResultView mode="detail" {...props} />
+);
+
 const useAttemptResultMock = vi.fn();
+const replaceMock = vi.fn();
+
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ replace: replaceMock, push: vi.fn() }),
+}));
 
 vi.mock("@/features/attempts/hooks/useAttemptResult", () => ({
   useAttemptResult: (...args: unknown[]) => useAttemptResultMock(...args),
@@ -13,6 +25,7 @@ vi.mock("@/features/attempts/hooks/useAttemptResult", () => ({
 afterEach(() => {
   cleanup();
   useAttemptResultMock.mockReset();
+  replaceMock.mockReset();
 });
 
 function makeResult(

@@ -1,6 +1,6 @@
 "use client";
 
-import { useFollowedLookup } from "@/features/tags";
+import { useFollowedCategories } from "@/features/categories/hooks/useFollowedCategories";
 
 export interface UseIsFollowingCategoryResult {
   isFollowing: boolean;
@@ -11,7 +11,7 @@ export interface UseIsFollowingCategoryResult {
 export function useIsFollowingCategory(
   id: string | null,
 ): UseIsFollowingCategoryResult {
-  const lookup = useFollowedLookup();
+  const lookup = useFollowedCategories();
 
   if (id === null) {
     return { isFollowing: false, isLoading: false };

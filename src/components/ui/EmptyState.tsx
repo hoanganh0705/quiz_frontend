@@ -1,10 +1,13 @@
 "use client";
 
-import { LucideIcon } from "lucide-react";
-import type { ComponentType } from "react";
 import Link from "next/link";
+
 import { Button } from "@/components/ui/Button";
+
 import { cn } from "@/shared/utils/merge-class-names";
+
+import type { ComponentType } from "react";
+import type { LucideIcon } from "lucide-react";
 
 export interface EmptyStateAction {
   label: string;
@@ -21,6 +24,7 @@ interface EmptyStateProps {
   actions?: EmptyStateAction[];
   className?: string;
   size?: "sm" | "md" | "lg";
+  headingLevel?: "h2" | "h3";
 }
 
 export function EmptyState({
@@ -30,6 +34,7 @@ export function EmptyState({
   actions,
   className,
   size = "md",
+  headingLevel = "h3",
 }: EmptyStateProps) {
   const sizeClasses = {
     sm: {
@@ -56,6 +61,7 @@ export function EmptyState({
   };
 
   const sizes = sizeClasses[size];
+  const HeadingTag = headingLevel;
 
   return (
     <div
@@ -66,11 +72,19 @@ export function EmptyState({
       )}
     >
       <div className={cn("rounded-full bg-muted", sizes.iconWrapper)}>
-        <Icon className={cn("text-muted-foreground", sizes.icon)} />
+        <Icon
+          className={cn("text-muted-foreground", sizes.icon)}
+          aria-hidden="true"
+        />
       </div>
-      <h3 className={cn("font-semibold mb-2 text-foreground", sizes.title)}>
+      <HeadingTag
+        className={cn(
+          "font-semibold mb-2 text-foreground max-w-full break-words",
+          sizes.title,
+        )}
+      >
         {title}
-      </h3>
+      </HeadingTag>
       <p className={cn("text-muted-foreground mb-6", sizes.description)}>
         {description}
       </p>
@@ -78,9 +92,17 @@ export function EmptyState({
         <div className="flex flex-wrap gap-3 justify-center">
           {actions.map((action, index) => {
             const ActionIcon = action.icon;
+            const resolvedVariant =
+              action.variant ?? (index === 0 ? "default" : "outline");
+            const brandClassName =
+              resolvedVariant === "default"
+                ? "bg-default hover:bg-default-hover text-default-foreground"
+                : undefined;
             const buttonContent = (
               <>
-                {ActionIcon && <ActionIcon className="mr-2 h-4 w-4" />}
+                {ActionIcon && (
+                  <ActionIcon className="mr-2 h-4 w-4" aria-hidden="true" />
+                )}
                 {action.label}
               </>
             );
@@ -89,15 +111,9 @@ export function EmptyState({
               return (
                 <Button
                   key={index}
-                  variant={
-                    action.variant || (index === 0 ? "default" : "outline")
-                  }
+                  variant={resolvedVariant}
                   asChild
-                  className={
-                    index === 0
-                      ? "bg-default hover:bg-default-hover text-white"
-                      : ""
-                  }
+                  className={brandClassName}
                 >
                   <Link href={action.href}>{buttonContent}</Link>
                 </Button>
@@ -107,15 +123,9 @@ export function EmptyState({
             return (
               <Button
                 key={index}
-                variant={
-                  action.variant || (index === 0 ? "default" : "outline")
-                }
+                variant={resolvedVariant}
                 onClick={action.onClick}
-                className={
-                  index === 0
-                    ? "bg-default hover:bg-default-hover text-white"
-                    : ""
-                }
+                className={brandClassName}
               >
                 {buttonContent}
               </Button>

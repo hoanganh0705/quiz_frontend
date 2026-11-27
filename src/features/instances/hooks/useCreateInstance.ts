@@ -38,10 +38,6 @@ export function useCreateInstance(): UseCreateInstanceResult {
     async (
       params: CreateInstanceDto,
     ): Promise<CreateInstanceResponseDto | null> => {
-      if (false) {
-        return null;
-      }
-
       if (state === "pending" || inFlightRef.current) {
         return null;
       }

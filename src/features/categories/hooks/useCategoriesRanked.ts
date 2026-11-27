@@ -3,9 +3,10 @@
 import { useQuery } from "@tanstack/react-query";
 import { getQueryClient } from "@/providers/QueryProvider";
 
-import { ApiError } from "@/lib/api";
+import { ApiError, coerceToApiError } from "@/lib/api";
 import type { RankedCategoryResponseDto } from "@/lib/api/generated/schemas";
 
+import { CATEGORY_KEYS } from "@/features/categories/query-keys";
 import { getCategoriesRanked } from "@/features/categories/services/categories.service";
 
 export interface UseCategoriesRankedParams {
@@ -21,11 +22,9 @@ export interface UseCategoriesRankedResult {
 export function useCategoriesRanked(
   params: UseCategoriesRankedParams = {},
 ): UseCategoriesRankedResult {
-  const key = ["categories", "ranked", params] as const;
-
   const { data, error, isLoading } = useQuery(
     {
-      queryKey: key,
+      queryKey: CATEGORY_KEYS.ranked(params),
       queryFn: async () => {
         const result = await getCategoriesRanked({ limit: params.limit });
         return result.data ?? [];
@@ -37,6 +36,6 @@ export function useCategoriesRanked(
   return {
     categories: data ?? [],
     isLoading,
-    error: error instanceof ApiError ? error : null,
+    error: error ? coerceToApiError(error) : null,
   };
 }

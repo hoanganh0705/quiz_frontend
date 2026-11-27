@@ -36,7 +36,7 @@ export type AnswerValidationResult =
         | "question-has-no-options";
     };
 
-function resolveTrueFalseOptions(
+export function resolveTrueFalseOptions(
   question: Pick<QuizQuestionPlayerDto, "answerOptions">,
 ): { trueOptionId: string; falseOptionId: string } | null {
   const opts = question.answerOptions;

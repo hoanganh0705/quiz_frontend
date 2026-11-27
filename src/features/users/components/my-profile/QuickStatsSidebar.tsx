@@ -1,10 +1,11 @@
 import { memo } from "react";
-import { Card } from "@/components/ui/Card";
-import { CardContent } from "@/components/ui/Card";
-import { Skeleton } from "@/components/ui/Skeleton";
-import { Zap, Trophy, BookOpen, Target, TrendingUp } from "lucide-react";
+
+import { BookOpen, Target, TrendingUp, Trophy, Zap } from "lucide-react";
 
 import { useMyAnalytics, useMyRanking } from "@/features/users/hooks";
+
+import { Card, CardContent } from "@/components/ui/Card";
+import { Skeleton } from "@/components/ui/Skeleton";
 
 export interface QuickStatsSidebarProps {
   className?: string;
@@ -64,7 +65,7 @@ export const QuickStatsSidebar = memo(function QuickStatsSidebar({
               <Zap className="w-4 h-4 text-amber-500" aria-hidden="true" />
               Total XP
             </span>
-            <span className="text-sm font-bold text-foreground">
+            <span className="text-sm font-bold font-mono tabular-nums text-foreground">
               {formatXP(analytics?.xpTotal ?? 0)}
             </span>
           </div>
@@ -75,7 +76,7 @@ export const QuickStatsSidebar = memo(function QuickStatsSidebar({
               <Trophy className="w-4 h-4 text-purple-500" aria-hidden="true" />
               Global Rank
             </span>
-            <span className="text-sm font-bold text-foreground">
+            <span className="text-sm font-bold font-mono tabular-nums text-foreground">
               {formatRank(ranking?.globalRank)}
             </span>
           </div>
@@ -86,7 +87,7 @@ export const QuickStatsSidebar = memo(function QuickStatsSidebar({
               <BookOpen className="w-4 h-4 text-brand" aria-hidden="true" />
               Quizzes
             </span>
-            <span className="text-sm font-bold text-foreground">
+            <span className="text-sm font-bold font-mono tabular-nums text-foreground">
               {analytics?.quizzesCompleted ?? 0}
             </span>
           </div>
@@ -97,7 +98,7 @@ export const QuickStatsSidebar = memo(function QuickStatsSidebar({
               <Target className="w-4 h-4 text-success" aria-hidden="true" />
               Avg Score
             </span>
-            <span className="text-sm font-bold text-foreground">
+            <span className="text-sm font-bold font-mono tabular-nums text-foreground">
               {(analytics?.averageScore ?? 0).toFixed(1)}%
             </span>
           </div>
@@ -113,7 +114,7 @@ export const QuickStatsSidebar = memo(function QuickStatsSidebar({
                   />
                   Streak
                 </span>
-                <span className="text-sm font-bold text-foreground">
+                <span className="text-sm font-bold font-mono tabular-nums text-foreground">
                   {analytics.currentStreak} days
                 </span>
               </div>

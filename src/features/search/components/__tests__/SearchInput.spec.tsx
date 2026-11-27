@@ -9,13 +9,6 @@ const mockClearHistory = vi.fn();
 const mockOnSubmit = vi.fn();
 
 
-vi.mock("@/features/search/hooks/useDebouncedValue", async () => {
-  const actual = await vi.importActual<
-    typeof import("@/features/search/hooks/useDebouncedValue")
-  >("@/features/search/hooks/useDebouncedValue");
-  return actual;
-});
-
 vi.mock("@/features/search/hooks/useSearchHistory", () => ({
   useSearchHistory: vi.fn(() => ({
     entries: [

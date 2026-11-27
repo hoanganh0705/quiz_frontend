@@ -1,22 +1,21 @@
 "use client";
+
 import { EntityCard } from "@/components/primitives/EntityCard";
-import { gradientFromQuizId } from "@/features/quizzes/utils/quiz-card-gradient";
+
+import {
+  gradientFromId,
+  initialsFromId,
+} from "@/shared/utils/entity-decoration";
+
 import type { CategoryResponseDto } from "@/lib/api/generated/schemas";
 
-function initialsFromCategory(category: CategoryResponseDto): string {
-  const seed = category.categoryId.replace(/-/g, "").slice(-6);
-  let hash = 0;
-  for (let i = 0; i < seed.length; i += 1) {
-    hash = (hash * 31 + seed.charCodeAt(i)) >>> 0;
-  }
-  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-  const a = chars[hash % chars.length];
-  const b = chars[(hash >>> 8) % chars.length];
-  return `${a}${b}`;
-}
+export type CategoryCardItem = Pick<
+  CategoryResponseDto,
+  "categoryId" | "name" | "slug" | "description" | "imageUrl"
+>;
 
 export interface CategoryCardProps {
-  category: CategoryResponseDto;
+  category: CategoryCardItem;
   className?: string;
   titleHeadingLevel?: 2 | 3 | 4;
 }
@@ -34,8 +33,8 @@ export function CategoryCard({
       title={category.name}
       description={category.description}
       imageUrl={category.imageUrl}
-      initials={initialsFromCategory(category)}
-      fallbackBackground={gradientFromQuizId(category.categoryId)}
+      initials={initialsFromId(category.categoryId)}
+      fallbackBackground={gradientFromId(category.categoryId)}
       aspectRatio="4/3"
       coverSize="lg"
       className={className}

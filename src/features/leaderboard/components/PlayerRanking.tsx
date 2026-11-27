@@ -16,7 +16,12 @@ import { Autoplay } from "swiper/modules";
 import type { Swiper as SwiperType } from "swiper";
 import { PlayerCard } from "@/features/leaderboard/components/PlayerCard";
 import { useLeaderboard } from "@/features/leaderboard/hooks/useLeaderboard";
+import type { LeaderboardEntryDto } from "@/lib/api/generated/schemas";
 import type { Player } from "@/features/users/types";
+
+export interface PlayerRankingProps {
+  initialPlayers?: readonly LeaderboardEntryDto[];
+}
 
 const SKELETON_COUNT = 5;
 
@@ -36,20 +41,24 @@ function projectEntryToPlayer(entry: {
   };
 }
 
-const PlayerRanking = () => {
+const PlayerRanking = ({ initialPlayers }: PlayerRankingProps) => {
   const swiperRef = useRef<SwiperType | null>(null);
   const [isPlaying, setIsPlaying] = useState(true);
   const [isBeginning, setIsBeginning] = useState(true);
   const [isEnd, setIsEnd] = useState(false);
-  const { entries, isLoading, error } = useLeaderboard("all_time");
+  const hasSsrPlayers = Boolean(initialPlayers && initialPlayers.length > 0);
+  const { entries, isLoading, error } = useLeaderboard("all_time", {
+    enabled: !hasSsrPlayers,
+  });
 
-  const players: Player[] = entries.map((entry) =>
+  const activeEntries = hasSsrPlayers ? (initialPlayers ?? []) : entries;
+  const players: Player[] = activeEntries.map((entry) =>
     projectEntryToPlayer({
       userId: entry.userId,
-      rank: entry.rank,
+      rank: Number(entry.rank),
       displayName: entry.displayName,
       avatarUrl: entry.avatarUrl,
-      xp: entry.xp,
+      xp: Number(entry.xp),
     }),
   );
 

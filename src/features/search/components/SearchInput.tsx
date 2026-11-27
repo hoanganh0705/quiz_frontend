@@ -1,33 +1,36 @@
 "use client";
 
 import * as React from "react";
+
 import {
+  ArrowUp,
+  Clock,
+  CornerDownLeft,
   Search,
   X,
-  Clock,
-  ArrowUp,
-  ArrowDown,
-  CornerDownLeft,
 } from "lucide-react";
+
+import { useDebouncedValue } from "@/lib/utils/use-debounced-value";
+
+import { cn } from "@/shared/utils/merge-class-names";
+
+import { SEARCH_MIN_QUERY_LENGTH } from "@/features/search/hooks/useSearch";
+import { useSearchHistory } from "@/features/search/hooks/useSearchHistory";
+import { DEFAULT_SEARCH_DEBOUNCE_MS } from "@/features/search/types/search.types";
 
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
-import { cn } from "@/shared/utils/merge-class-names";
-
-import { useDebouncedValue } from "@/lib/utils/use-debounced-value";
-import { SEARCH_INPUT_DEBOUNCE_MS } from "@/features/search/hooks/useDebouncedValue";
-import {
-  useSearchHistory,
-  SEARCH_HISTORY_MAX_ENTRIES,
-} from "@/features/search/hooks/useSearchHistory";
-import { SEARCH_MIN_QUERY_LENGTH } from "@/features/search/hooks/useSearch";
 
 const MAX_VISIBLE_SUGGESTIONS = 5;
 
 export interface SearchInputProps {
   value?: string;
 
+  onChange?: (value: string) => void;
+
   onSubmit?: (query: string) => void;
+
+  onClear?: () => void;
 
   placeholder?: string;
 
@@ -36,7 +39,9 @@ export interface SearchInputProps {
 
 export function SearchInput({
   value: controlledValue,
+  onChange,
   onSubmit,
+  onClear,
   placeholder = "Search quizzes, users, tournaments…",
   className,
 }: SearchInputProps) {
@@ -47,7 +52,7 @@ export function SearchInput({
 
   const debouncedValue = useDebouncedValue(
     inputValue,
-    SEARCH_INPUT_DEBOUNCE_MS,
+    DEFAULT_SEARCH_DEBOUNCE_MS,
   ).debouncedValue;
 
   const [isOpen, setIsOpen] = React.useState(false);
@@ -60,8 +65,35 @@ export function SearchInput({
   const inputRef = React.useRef<HTMLInputElement>(null);
   const listRef = React.useRef<HTMLUListElement>(null);
 
+  const commit = React.useCallback(
+    (query: string) => {
+      const trimmed = query.trim();
+      if (trimmed.length < SEARCH_MIN_QUERY_LENGTH) return;
+      if (onSubmit) onSubmit(trimmed);
+      setIsOpen(false);
+      setHighlightedIndex(-1);
+    },
+    [onSubmit],
+  );
+
   const handleKeyDown = React.useCallback(
     (e: React.KeyboardEvent<HTMLInputElement>) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        if (showSuggestions && highlightedIndex >= 0) {
+          const picked = visibleSuggestions[highlightedIndex]!;
+          if (controlledValue === undefined) {
+            setInternalValue(picked.query);
+          } else {
+            onChange?.(picked.query);
+          }
+          commit(picked.query);
+        } else {
+          commit(inputValue);
+        }
+        return;
+      }
+
       if (!showSuggestions) return;
 
       switch (e.key) {
@@ -75,15 +107,6 @@ export function SearchInput({
           e.preventDefault();
           setHighlightedIndex((prev) => (prev > 0 ? prev - 1 : -1));
           break;
-        case "Enter":
-          e.preventDefault();
-          if (highlightedIndex >= 0) {
-            const picked = visibleSuggestions[highlightedIndex]!;
-            commit(picked.query);
-          } else {
-            commit(inputValue);
-          }
-          break;
         case "Escape":
           e.preventDefault();
           setIsOpen(false);
@@ -92,18 +115,15 @@ export function SearchInput({
           break;
       }
     },
-    [showSuggestions, highlightedIndex, visibleSuggestions, inputValue],
-  );
-
-  const commit = React.useCallback(
-    (query: string) => {
-      const trimmed = query.trim();
-      if (trimmed.length < SEARCH_MIN_QUERY_LENGTH) return;
-      if (onSubmit) onSubmit(trimmed);
-      setIsOpen(false);
-      setHighlightedIndex(-1);
-    },
-    [onSubmit],
+    [
+      showSuggestions,
+      highlightedIndex,
+      visibleSuggestions,
+      inputValue,
+      controlledValue,
+      onChange,
+      commit,
+    ],
   );
 
   const handleChange = React.useCallback(
@@ -111,11 +131,13 @@ export function SearchInput({
       const val = e.target.value;
       if (controlledValue === undefined) {
         setInternalValue(val);
+      } else {
+        onChange?.(val);
       }
       setIsOpen(true);
       setHighlightedIndex(-1);
     },
-    [controlledValue],
+    [controlledValue, onChange],
   );
 
   const handleFocus = React.useCallback(() => {
@@ -125,20 +147,25 @@ export function SearchInput({
   const handleClear = React.useCallback(() => {
     if (controlledValue === undefined) {
       setInternalValue("");
+    } else {
+      onChange?.("");
     }
+    onClear?.();
     setIsOpen(false);
     setHighlightedIndex(-1);
     inputRef.current?.focus();
-  }, [controlledValue]);
+  }, [controlledValue, onChange, onClear]);
 
   const handleSuggestionClick = React.useCallback(
     (query: string) => {
       if (controlledValue === undefined) {
         setInternalValue(query);
+      } else {
+        onChange?.(query);
       }
       commit(query);
     },
-    [commit, controlledValue],
+    [commit, controlledValue, onChange],
   );
 
   React.useEffect(() => {
@@ -146,9 +173,6 @@ export function SearchInput({
     if (trimmed.length >= SEARCH_MIN_QUERY_LENGTH && onSubmit) {
       onSubmit(trimmed);
     }
-    // NOTE: we intentionally do NOT close the suggestion list here.
-    // The debounce fires after 250 ms of inactivity, which may not
-    // coincide with user intent. The caller decides when to close.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [debouncedValue]);
 
@@ -158,7 +182,7 @@ export function SearchInput({
       <div className="relative flex items-center">
         {/* Search icon */}
         <Search
-          className="absolute left-3 h-4 w-4 text-muted-foreground pointer-events-none"
+          className="pointer-events-none absolute left-3 h-4 w-4 text-muted-foreground"
           aria-hidden="true"
         />
 
@@ -194,9 +218,7 @@ export function SearchInput({
             type="button"
             variant="ghost"
             size="icon"
-            // size="icon" renders a 36x36 hit area; h-7 w-7 forced the
-            // visual+hit area to 28x28, below the WCAG 2.5.5 44x44 minimum.
-            className="absolute right-3 sm:right-2 text-muted-foreground hover:text-foreground"
+            className="absolute right-3 text-muted-foreground hover:text-foreground sm:right-2"
             onClick={handleClear}
             aria-label="Clear search"
           >
@@ -206,7 +228,7 @@ export function SearchInput({
 
         {/* Keyboard hint (visible when no input, suggestions hidden) */}
         {inputValue.length === 0 && (
-          <div className="absolute right-3 hidden sm:flex items-center gap-0.5 text-xs text-muted-foreground pointer-events-none">
+          <div className="pointer-events-none absolute right-3 hidden items-center gap-0.5 text-xs text-muted-foreground sm:flex">
             <CornerDownLeft className="h-3 w-3" aria-hidden="true" />
           </div>
         )}
@@ -221,14 +243,14 @@ export function SearchInput({
           aria-label="Recent searches"
           className={cn(
             "absolute top-full left-0 right-0 z-50 mt-1",
-            "bg-background border rounded-lg shadow-lg",
+            "rounded-lg border bg-background shadow-lg",
             "max-h-72 overflow-y-auto",
             "divide-y divide-border",
           )}
         >
           {/* Header */}
           <li className="px-3 py-1.5">
-            <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+            <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
               Recent searches
             </span>
           </li>
@@ -241,7 +263,7 @@ export function SearchInput({
               role="option"
               aria-selected={index === highlightedIndex}
               className={cn(
-                "flex items-center gap-2 px-3 py-2 cursor-pointer",
+                "flex cursor-pointer items-center gap-2 px-3 py-2",
                 "text-sm",
                 "hover:bg-muted/50 focus-visible:bg-muted/50",
                 "outline-none",

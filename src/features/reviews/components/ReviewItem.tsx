@@ -25,7 +25,6 @@ export interface ReviewItemProps {
 }
 
 const MAX_COMMENT_LENGTH = 2000;
-const REMOVED_PLACEHOLDER = "[removed]";
 
 export function ReviewItem({
   review,
@@ -44,7 +43,7 @@ export function ReviewItem({
   const helpful = useHelpfulReview({
     quizId: review.quizId,
     reviewId: review.reviewId,
-    initialViewerMarkedHelpful: false,
+    initialViewerMarkedHelpful: review.viewerMarkedHelpful ?? false,
   });
 
   return (
@@ -147,8 +146,6 @@ function clampReviewText(text: string, max: number): string {
   if (text.length <= max) return text;
   return `${text.slice(0, max - 1).trimEnd()}…`;
 }
-
-export const REVIEW_REMOVED_PLACEHOLDER = REMOVED_PLACEHOLDER;
 
 export function ReviewItemSkeleton({
   className,

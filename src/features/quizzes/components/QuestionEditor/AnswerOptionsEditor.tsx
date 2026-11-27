@@ -68,11 +68,7 @@ const OptionRow = memo(function OptionRow({
   if (isShortAnswer) return <></>;
 
   const handleCorrectChange = (newIsCorrect: boolean) => {
-    if (isRadio) {
-      onUpdate({ isCorrect: newIsCorrect });
-    } else {
-      onUpdate({ isCorrect: newIsCorrect });
-    }
+    onUpdate({ isCorrect: newIsCorrect });
   };
 
   return (
@@ -110,7 +106,7 @@ const OptionRow = memo(function OptionRow({
           questionType={questionType}
           onChange={handleCorrectChange}
           disabled={disabled}
-          name={`correct-${option.id}`}
+          name={isRadio ? "correct-answer-option" : `correct-${option.id}`}
         />
       )}
 
@@ -143,7 +139,7 @@ function TrueFalseOptions({
 }: {
   options: AnswerOption[];
   questionType: QuestionType;
-  onUpdate: (updates: Partial<AnswerOption>) => void;
+  onUpdate: (index: number, updates: Partial<AnswerOption>) => void;
   disabled: boolean;
 }): React.ReactElement {
   return (
@@ -172,8 +168,9 @@ function TrueFalseOptions({
             id={option.id}
             isCorrect={option.isCorrect}
             questionType={questionType}
-            onChange={(isCorrect) => onUpdate({ isCorrect })}
+            onChange={(isCorrect) => onUpdate(index, { isCorrect })}
             disabled={disabled}
+            name="correct-answer-option"
           />
         </div>
       ))}
@@ -237,8 +234,17 @@ export const AnswerOptionsEditor = memo(function AnswerOptionsEditor({
   };
 
   const handleUpdate = (index: number, updates: Partial<AnswerOption>) => {
-    const newOptions = [...options];
-    newOptions[index] = { ...newOptions[index]!, ...updates };
+    const isSingleCorrectType =
+      questionType === "single_choice" || questionType === "true_false";
+    const newOptions = options.map((opt, i) => {
+      if (i === index) {
+        return { ...opt, ...updates };
+      }
+      if (isSingleCorrectType && updates.isCorrect === true) {
+        return { ...opt, isCorrect: false };
+      }
+      return opt;
+    });
     onChange(newOptions);
   };
 
@@ -258,31 +264,7 @@ export const AnswerOptionsEditor = memo(function AnswerOptionsEditor({
         <TrueFalseOptions
           options={options.slice(0, 2)}
           questionType={questionType}
-          onUpdate={(updates) => {
-            const trueIdx = options.findIndex((o) => o.value === "True");
-            const falseIdx = options.findIndex((o) => o.value === "False");
-
-            if (updates.isCorrect !== undefined) {
-              const newOptions = [...options];
-              if (trueIdx !== -1) {
-                newOptions[trueIdx] = {
-                  ...newOptions[trueIdx]!,
-                  isCorrect:
-                    updates.isCorrect &&
-                    "True".includes(options[trueIdx]?.value ?? ""),
-                };
-              }
-              if (falseIdx !== -1) {
-                newOptions[falseIdx] = {
-                  ...newOptions[falseIdx]!,
-                  isCorrect:
-                    updates.isCorrect &&
-                    "False".includes(options[falseIdx]?.value ?? ""),
-                };
-              }
-              onChange(newOptions);
-            }
-          }}
+          onUpdate={handleUpdate}
           disabled={disabled ?? false}
         />
         {error && (

@@ -1,23 +1,26 @@
 "use client";
 
 import { memo, useCallback, useMemo } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 
-import { Sparkles, Compass, ArrowLeft, Clock } from "lucide-react";
-import Link from "next/link";
+import { ArrowLeft, Clock, Compass, Sparkles } from "lucide-react";
 
-import { useQuizForm } from "@/lib/forms";
+import { quizCreateFormSchema, useQuizForm } from "@/lib/forms";
 import { useDraftAutoSave } from "@/lib/forms/useDraftAutoSave";
 import { useUnsavedChangesGuard } from "@/lib/forms/useUnsavedChangesGuard";
-import { DraftBanner } from "@/components/primitives/form/DraftBanner";
+
+import { PAGE_GUTTER_CLASS } from "@/shared/layout/constants";
+
 import { useAuthSession } from "@/features/auth/hooks/use-auth-session";
 import { useCategoriesRanked } from "@/features/categories";
-import { useTagsPopular } from "@/features/tags";
 import {
-  CreateQuizForm,
   CREATE_QUIZ_FORM_DEFAULT_VALUES,
+  CreateQuizForm,
 } from "@/features/quizzes/components/CreateQuizForm";
-import { quizCreateFormSchema } from "@/lib/forms";
+import { useTagsPopular } from "@/features/tags";
+
+import { DraftBanner } from "@/components/primitives/form/DraftBanner";
 
 export const CreateQuizPage = memo(function CreateQuizPage() {
   const router = useRouter();
@@ -75,7 +78,7 @@ export const CreateQuizPage = memo(function CreateQuizPage() {
     <div className="min-h-screen bg-background" data-testid="create-quiz-page">
       {/* Authoritative Studio Header */}
       <header className="border-b border-border/40 bg-card/30 backdrop-blur-xs">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div className={`${PAGE_GUTTER_CLASS} py-6`}>
           {/* Breadcrumb / Back Navigation */}
           <div className="flex items-center gap-2 mb-3">
             <Link
@@ -131,7 +134,7 @@ export const CreateQuizPage = memo(function CreateQuizPage() {
       </header>
 
       {/* Main Studio Deck */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+      <main className={`${PAGE_GUTTER_CLASS} py-6 md:py-8 space-y-6`}>
         {/* Restore-from-draft CTA */}
         <DraftBanner
           savedAt={draft.savedAt}

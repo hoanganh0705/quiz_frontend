@@ -14,6 +14,7 @@ import type {
   TagResponseDto,
 } from "@/lib/api/generated/schemas";
 
+import { QUIZ_KEYS } from "@/features/quizzes/query-keys";
 import { listQuizzes } from "@/features/quizzes/services/quizzes.service";
 import { listTags } from "@/features/tags/services/tags.service";
 import type { QuizFilterUrlState } from "@/features/quizzes/types/quiz-filter-params";
@@ -84,13 +85,8 @@ export function useQuizzesList(
             signal,
           });
 
-          const items = (result.data ??
-            []) as unknown as Array<QuizListItemWithId>;
-
-          const itemsWithId = projectWithId(
-            items as unknown as readonly Record<string, unknown>[],
-            "quizId",
-          ) as unknown as QuizListItemWithId[];
+          const items = result.data ?? [];
+          const itemsWithId = projectWithId(items, "quizId");
 
           const visibleItems = itemsWithId.filter(
             (item) => item.isHidden !== true,
@@ -127,12 +123,8 @@ export function useQuizzesList(
                 tagIds: undefined,
                 signal,
               });
-              const items = (result.data ??
-                []) as unknown as Array<QuizListItemWithId>;
-              const itemsWithId = projectWithId(
-                items as unknown as readonly Record<string, unknown>[],
-                "quizId",
-              ) as unknown as QuizListItemWithId[];
+              const items = result.data ?? [];
+              const itemsWithId = projectWithId(items, "quizId");
 
               const visibleItems = itemsWithId.filter(
                 (item) => item.isHidden !== true,
@@ -160,7 +152,7 @@ export function useQuizzesList(
   );
 
   const result = useCursorPaginated<QuizListItemWithId, UseQuizzesListQuery>({
-    key: ["quizzes", "list", query.filters, { limit: query.limit }],
+    key: QUIZ_KEYS.list(query.filters, { limit: query.limit }),
     fetcher,
     params: query,
     paginationKind: "cursor",
@@ -192,7 +184,7 @@ async function resolveTagSlugsToIds(
   if (!slugs || slugs.length === 0) return [];
 
   const result = await listTags({ limit: 100, signal });
-  const tags = (result.data ?? []) as unknown as TagResponseDto[];
+  const tags: readonly TagResponseDto[] = result.data ?? [];
   const slugMap = new Map<string, string>();
   for (const tag of tags) {
     slugMap.set(tag.slug, tag.tagId);

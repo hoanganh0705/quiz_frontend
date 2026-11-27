@@ -1,4 +1,13 @@
-import { AttemptDetailPage } from "@/features/attempts";
+import { buildMetadata } from "@/shared/lib/seo";
+
+import { AttemptResultView } from "@/features/attempts";
+
+export const metadata = buildMetadata({
+  title: "Attempt Review | QuizHub",
+  description: "Review your score breakdown and question-by-question feedback.",
+  path: "/quiz-history",
+  noIndex: true,
+});
 
 export default async function QuizHistoryDetailPage({
   params,
@@ -6,5 +15,5 @@ export default async function QuizHistoryDetailPage({
   params: Promise<{ attemptId: string }>;
 }) {
   const { attemptId } = await params;
-  return <AttemptDetailPage attemptId={decodeURIComponent(attemptId)} />;
+  return <AttemptResultView mode="detail" attemptId={attemptId} />;
 }

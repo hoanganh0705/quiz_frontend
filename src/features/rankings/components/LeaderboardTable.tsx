@@ -38,8 +38,6 @@ export function LeaderboardTable({
     isStale,
   } = useRankingLeaderboard({ period, limit });
 
-  if (false) return null;
-
   if (isLoading && items.length === 0) {
     return <LeaderboardTableSkeleton className={className} />;
   }

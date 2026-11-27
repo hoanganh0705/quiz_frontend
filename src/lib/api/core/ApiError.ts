@@ -207,6 +207,23 @@ export class ApiError extends Error {
     return (this.data as { method?: string } | undefined)?.method ?? "";
   }
 
+  /**
+   * Returns a new `ApiError` preserving all HTTP metadata (status, message,
+   * title, instance, requestId) while overriding the semantic error `code`.
+   * Prefer this over object-spreading an `ApiError` instance (which drops
+   * prototype getters).
+   */
+  withCode(code: string): ApiError {
+    return ApiError.fromInput({
+      status: this.status,
+      code,
+      message: this.detail || this.message,
+      title: this.title || undefined,
+      instance: this.instance || undefined,
+      requestId: this.requestId || undefined,
+    });
+  }
+
   static fromAxios(error: AxiosError<unknown>): ApiError {
     return new ApiError(error);
   }

@@ -7,13 +7,8 @@ vi.mock("@/features/auth/utils/auth-cookies", () => ({
   setAuthToken: vi.fn(),
   clearAuthToken: vi.fn(),
   getAuthTokenFromRequest: vi.fn(() => null),
-  setRefreshToken: vi.fn(),
   subscribeToAuthChanges: vi.fn(() => () => {}),
   writeLoginSync: vi.fn(),
-}));
-
-vi.mock("@/features/auth/utils/user-scoped-cache", () => ({
-  clearAllAuthCache: vi.fn(),
 }));
 
 vi.mock("@/lib/api", () => ({

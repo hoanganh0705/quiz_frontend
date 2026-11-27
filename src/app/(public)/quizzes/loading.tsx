@@ -1,16 +1,16 @@
-import { Skeleton } from "@/components/ui/Skeleton";
-import { QuizCardSkeleton } from "@/components/primitives";
+import { PAGE_CONTAINER_CLASS } from "@/shared/layout/constants";
+
 import { QuizRailSkeleton } from "@/features/quizzes/components/QuizRailSkeleton";
+
+import { QuizCardSkeleton } from "@/components/primitives";
+import { Skeleton } from "@/components/ui/Skeleton";
 
 const SKELETON_COUNT = 20;
 const STRIP_SKELETON_COUNT = 5;
 
 export default function QuizzesLoading() {
   return (
-    <div
-      className="min-h-screen text-foreground p-4 md:p-8 lg:p-12"
-      data-testid="quizzes-loading"
-    >
+    <div className={PAGE_CONTAINER_CLASS} data-testid="quizzes-loading">
       {/* Header — matches the live page header. */}
       <header className="mb-8">
         <Skeleton className="h-9 w-48 mb-2" />

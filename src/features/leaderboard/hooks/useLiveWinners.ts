@@ -1,40 +1,44 @@
 "use client";
 
 import { useCallback, useMemo } from "react";
-import {
-  useSingleWithRetry,
-  getLeaderboards,
-  type SingleFetcher,
-} from "@/lib/api";
 
-interface WinnerSummary {
-  userId: string;
-  username: string;
-  displayName: string | null;
-  avatarUrl: string | null;
-  quizTitle: string;
-  amountWon: string;
-  timeAgo: string;
-  wonAt: string;
+import { getLeaderboards, useSingleWithRetry } from "@/lib/api";
+
+import type { SingleFetcher } from "@/lib/api";
+
+export interface WinnerSummary {
+  readonly userId: string;
+  readonly username: string;
+  readonly displayName: string | null;
+  readonly avatarUrl: string | null;
+  readonly quizTitle: string;
+  readonly amountWon: string;
+  readonly timeAgo: string;
+  readonly wonAt: string;
 }
 
 interface RecentWinnersResponse {
-  winners: readonly WinnerSummary[];
-  lastUpdated: string;
+  readonly winners: readonly WinnerSummary[];
+  readonly lastUpdated: string;
 }
 
-interface UseLiveWinnersResult {
-  winners: readonly WinnerSummary[];
-  lastUpdated: string | null;
-  isLoading: boolean;
-  error: unknown;
-  refresh: () => Promise<void>;
-  isRetrying: boolean;
+export interface UseLiveWinnersResult {
+  readonly winners: readonly WinnerSummary[];
+  readonly lastUpdated: string | null;
+  readonly isLoading: boolean;
+  readonly error: unknown;
+  readonly refresh: () => Promise<void>;
+  readonly isRetrying: boolean;
 }
 
 const QUERY_KEY = ["leaderboard", "recent-winners"] as const;
 
-export function useLiveWinners(): UseLiveWinnersResult {
+export function useLiveWinners(enabled = true): UseLiveWinnersResult {
+  const key = useMemo<readonly unknown[] | null>(
+    () => (enabled ? QUERY_KEY : null),
+    [enabled],
+  );
+
   const fetcher = useMemo<SingleFetcher<RecentWinnersResponse | null>>(
     () => async () => {
       try {
@@ -51,7 +55,7 @@ export function useLiveWinners(): UseLiveWinnersResult {
 
   const { data, isLoading, error, retry, isRetrying } =
     useSingleWithRetry<RecentWinnersResponse | null>({
-      key: QUERY_KEY,
+      key,
       fetcher,
     });
 
@@ -60,11 +64,11 @@ export function useLiveWinners(): UseLiveWinnersResult {
   }, [retry]);
 
   return {
-    winners: data?.winners ?? [],
-    lastUpdated: data?.lastUpdated ?? null,
-    isLoading,
-    error,
+    winners: enabled ? (data?.winners ?? []) : [],
+    lastUpdated: enabled ? (data?.lastUpdated ?? null) : null,
+    isLoading: enabled ? isLoading : false,
+    error: enabled ? error : null,
     refresh,
-    isRetrying,
+    isRetrying: enabled ? isRetrying : false,
   };
 }

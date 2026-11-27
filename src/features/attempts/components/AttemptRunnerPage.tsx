@@ -7,8 +7,9 @@ import { Button } from "@/components/ui/Button";
 import { Skeleton } from "@/components/ui/Skeleton";
 
 import { useAuthSession } from "@/features/auth/hooks/use-auth-session";
-import { redirectToLogin } from "@/features/auth/utils/auth-redirect";
 import { useQuizByIdOrSlug } from "@/features/quizzes/hooks/useQuizByIdOrSlug";
+
+import { LOGIN_ROUTE } from "@/shared/config/routes";
 
 import { useActiveAttempt } from "@/features/attempts/hooks/useActiveAttempt";
 import { AttemptRunner } from "@/features/attempts/components/AttemptRunner";
@@ -26,14 +27,15 @@ export function AttemptRunnerPage(
   props: AttemptRunnerPageProps,
 ): React.ReactElement {
   const { idOrSlug } = props;
+  const router = useRouter();
   const returnTo = `/quizzes/${encodeURIComponent(idOrSlug)}/attempt`;
   const { isAuthenticated, isBootstrapping } = useAuthSession();
 
   React.useEffect(() => {
-    if (!isBootstrapping && !isAuthenticated && typeof window !== "undefined") {
-      redirectToLogin(returnTo);
+    if (!isBootstrapping && !isAuthenticated) {
+      router.replace(`${LOGIN_ROUTE}?redirect=${encodeURIComponent(returnTo)}`);
     }
-  }, [isAuthenticated, isBootstrapping, returnTo]);
+  }, [isAuthenticated, isBootstrapping, returnTo, router]);
 
   if (isBootstrapping) {
     return (

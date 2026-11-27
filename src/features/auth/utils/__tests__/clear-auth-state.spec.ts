@@ -2,7 +2,6 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const mockClearVerificationFlags = vi.fn();
 const mockClearAuthToken = vi.fn();
-const mockClearAllAuthCache = vi.fn();
 const mockBroadcastLogout = vi.fn();
 const mockQueryClientClear = vi.fn();
 
@@ -12,10 +11,7 @@ vi.mock("@/features/auth/utils/verification-flag", () => ({
 vi.mock("@/features/auth/utils/auth-cookies", () => ({
   clearAuthToken: () => mockClearAuthToken(),
 }));
-vi.mock("@/features/auth/utils/user-scoped-cache", () => ({
-  clearAllAuthCache: () => mockClearAllAuthCache(),
-}));
-vi.mock("@/features/auth/utils/safe-redirect", () => ({
+vi.mock("@/shared/config/routes", () => ({
   isSafeRedirectTarget: (target: unknown) =>
     typeof target === "string" &&
     target.startsWith("/") &&
@@ -33,7 +29,6 @@ vi.mock("@/providers/QueryProvider", () => ({
 beforeEach(() => {
   mockClearVerificationFlags.mockReset();
   mockClearAuthToken.mockReset();
-  mockClearAllAuthCache.mockReset();
   mockBroadcastLogout.mockReset();
   mockQueryClientClear.mockReset();
 });
@@ -50,7 +45,6 @@ describe("clearAuthState", () => {
 
     expect(mockClearVerificationFlags).toHaveBeenCalledTimes(1);
     expect(mockClearAuthToken).toHaveBeenCalledTimes(1);
-    expect(mockClearAllAuthCache).toHaveBeenCalledTimes(1);
     expect(mockBroadcastLogout).toHaveBeenCalledTimes(1);
     expect(mockQueryClientClear).toHaveBeenCalledTimes(1);
   });
@@ -62,7 +56,6 @@ describe("clearAuthState", () => {
 
     expect(mockClearVerificationFlags).toHaveBeenCalledTimes(1);
     expect(mockClearAuthToken).toHaveBeenCalledTimes(1);
-    expect(mockClearAllAuthCache).toHaveBeenCalledTimes(1);
     expect(mockBroadcastLogout).not.toHaveBeenCalled();
   });
 
@@ -72,9 +65,9 @@ describe("clearAuthState", () => {
 
     const { clearAuthState } =
       await import("@/features/auth/utils/clear-auth-state");
-    clearAuthState({ redirectTo: "/login?reason=expired" });
+    clearAuthState({ redirectTo: "/quizzes" });
 
-    expect(mockAssign).toHaveBeenCalledWith("/login?reason=expired");
+    expect(mockAssign).toHaveBeenCalledWith("/quizzes");
     vi.unstubAllGlobals();
   });
 
@@ -112,7 +105,7 @@ describe("clearAuthState", () => {
       await import("@/features/auth/utils/clear-auth-state");
     expect(() => clearAuthState()).not.toThrow();
 
-    expect(mockClearAllAuthCache).toHaveBeenCalledTimes(1);
+    expect(mockQueryClientClear).toHaveBeenCalledTimes(1);
     expect(mockBroadcastLogout).toHaveBeenCalledTimes(1);
   });
 

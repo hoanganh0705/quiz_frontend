@@ -1,12 +1,15 @@
-import { Skeleton } from "@/components/ui/Skeleton";
 import {
   DailyChallengeCardSkeleton,
   DailyChallengeHistorySkeleton,
 } from "@/features/daily-challenge/components";
 
+import { Skeleton } from "@/components/ui/Skeleton";
+
+import { PAGE_CONTAINER_CLASS } from "@/shared/layout/constants";
+
 export default function DailyChallengeLoading() {
   return (
-    <div className="min-h-screen text-foreground p-4 md:p-8 lg:p-12">
+    <div className={PAGE_CONTAINER_CLASS}>
       {/* Header skeleton — mirrors `app/(public)/daily-challenge/page.tsx`'s `<header>`. */}
       <header className="space-y-2">
         <Skeleton className="h-8 w-64" />

@@ -1,15 +1,23 @@
-import { getQuizzes } from "@/lib/api";
+import { getAdminQuizzes, getHome, getQuizzes } from "@/lib/api";
 
 import type {
+  AdminUpdateQuizDto,
   CreateQuizDto,
-  UpdateQuizDto,
-  CreateQuizVersionDto,
-  UpdateQuizVersionDto,
   CreateQuizQuestionDto,
   CreateQuizQuestionsDto,
+  CreateQuizVersionDto,
+  HomeControllerGetBundle200,
   QuizResponseDto,
   QuizStatsResponseDto,
+  UpdateQuizDto,
+  UpdateQuizVersionDto,
 } from "@/lib/api/generated/schemas";
+import type {
+  BulkCreateQuestionsDto,
+  BulkQuestionsResultDto,
+  CreateQuestionDto,
+  QuizAuthorQuestionDto,
+} from "@/features/quizzes/types/author-dtos";
 
 export type {
   QuizControllerCreateQuizResult,
@@ -41,6 +49,14 @@ export async function createQuiz(payload: CreateQuizDto) {
 export async function updateQuiz(quizId: string, payload: UpdateQuizDto) {
   const sdk = getQuizzes();
   return sdk.quizControllerUpdateQuiz(quizId, payload);
+}
+
+export async function adminUpdateQuiz(
+  quizId: string,
+  payload: AdminUpdateQuizDto,
+) {
+  const sdk = getAdminQuizzes();
+  return sdk.quizAdminControllerAdminUpdate(quizId, payload);
 }
 
 export async function deleteQuiz(quizId: string) {
@@ -122,6 +138,7 @@ export async function bulkCreateQuizQuestions(
 }
 
 export interface ListQuizzesParams {
+  q?: string;
   cursor?: string;
   limit?: number;
   categoryId?: string;
@@ -129,6 +146,7 @@ export interface ListQuizzesParams {
   tagIds?: string[];
   creatorId?: string;
   featured?: boolean;
+  isHidden?: boolean;
   /**
    * Aborts the underlying request when fired. The generated SDK signature
    * does not declare it, but Axios forwards `signal` natively; this cast
@@ -140,6 +158,9 @@ export interface ListQuizzesParams {
 export async function listQuizzes(params?: ListQuizzesParams) {
   const sdk = getQuizzes();
   const forwarded: Record<string, unknown> = {};
+  if (params?.q !== undefined && params.q.trim().length > 0) {
+    forwarded.q = params.q.trim();
+  }
   if (params?.cursor !== undefined) forwarded.cursor = params.cursor;
   if (params?.limit !== undefined) forwarded.limit = params.limit;
   if (params?.categoryId !== undefined)
@@ -149,6 +170,7 @@ export async function listQuizzes(params?: ListQuizzesParams) {
   if (params?.tagIds !== undefined) forwarded.tagIds = params.tagIds;
   if (params?.creatorId !== undefined) forwarded.creatorId = params.creatorId;
   if (params?.featured !== undefined) forwarded.featured = params.featured;
+  if (params?.isHidden !== undefined) forwarded.isHidden = params.isHidden;
   if (params?.signal !== undefined) forwarded.signal = params.signal;
   return sdk.quizControllerListQuizzes(
     forwarded as Parameters<typeof sdk.quizControllerListQuizzes>[0],
@@ -204,20 +226,108 @@ export async function getQuizBySlug(slug: string) {
   return getQuizByIdOrSlug(slug);
 }
 
-export async function addQuestion(
-  quizId: string,
-  versionId: string,
-  payload: CreateQuizQuestionDto,
-) {
-  const sdk = getQuizzes();
-  return sdk.quizControllerCreateQuizQuestion(quizId, versionId, payload);
+export type HomeBundleData = NonNullable<HomeControllerGetBundle200["data"]>;
+export type FeaturedRefreshHandle = (data: HomeBundleData | null) => void;
+
+export async function refreshHomeBundle(): Promise<HomeBundleData | null> {
+  const envelope = await getHome().homeControllerGetBundle();
+  return (envelope?.data as HomeBundleData | undefined) ?? null;
 }
 
-export async function addQuestionsBulk(
+export async function listVersionQuestions(
   quizId: string,
   versionId: string,
-  payload: CreateQuizQuestionsDto,
-) {
+): Promise<{ questions: QuizAuthorQuestionDto[] }> {
   const sdk = getQuizzes();
-  return sdk.quizControllerCreateQuizQuestions(quizId, versionId, payload);
+  const response = await sdk.quizControllerGetQuizVersionDetail(
+    quizId,
+    versionId,
+  );
+  const questions = response.data?.questions ?? [];
+
+  return { questions };
+}
+
+export async function createVersionQuestion(
+  quizId: string,
+  versionId: string,
+  payload: CreateQuestionDto,
+): Promise<QuizAuthorQuestionDto> {
+  const sdk = getQuizzes();
+  const sdkPayload: CreateQuizQuestionDto = {
+    position: payload.position,
+    questionText: payload.questionText,
+    imageUrl: payload.imageUrl,
+    ...(payload.questionType !== undefined
+      ? { questionType: payload.questionType }
+      : {}),
+    answerOptions: payload.answerOptions,
+  };
+
+  const response = await sdk.quizControllerCreateQuizQuestion(
+    quizId,
+    versionId,
+    sdkPayload,
+  );
+
+  const data = response.data;
+  if (!data) {
+    throw new Error(
+      "Unexpected response shape from POST /quizzes/:id/versions/:versionId/questions",
+    );
+  }
+
+  return data;
+}
+
+export async function bulkCreateVersionQuestions(
+  quizId: string,
+  versionId: string,
+  payload: BulkCreateQuestionsDto,
+): Promise<BulkQuestionsResultDto> {
+  const sdk = getQuizzes();
+  const sdkPayload: CreateQuizQuestionsDto = {
+    questions: payload.questions.map((q) => ({
+      position: q.position,
+      questionText: q.questionText,
+      imageUrl: q.imageUrl,
+      ...(q.questionType !== undefined ? { questionType: q.questionType } : {}),
+      answerOptions: q.answerOptions,
+    })),
+  };
+
+  const response = await sdk.quizControllerCreateQuizQuestions(
+    quizId,
+    versionId,
+    sdkPayload,
+  );
+
+  const data = response.data;
+  if (!data) {
+    throw new Error(
+      "Unexpected response shape from POST /quizzes/:id/versions/:versionId/questions/bulk",
+    );
+  }
+
+  const createdQuestions = data.questions ?? [];
+  const results: BulkQuestionsResultDto["results"] = data.results
+    ? data.results.map((r) => ({
+        index: r.index,
+        status: r.status,
+        code: r.code ?? "",
+        message: r.message ?? "",
+        questionId: typeof r.questionId === "string" ? r.questionId : undefined,
+      }))
+    : createdQuestions.map((q, i) => ({
+        index: i,
+        status: 201,
+        code: "",
+        message: "",
+        questionId: q.questionId,
+      }));
+
+  return {
+    questions: createdQuestions,
+    results,
+  };
 }

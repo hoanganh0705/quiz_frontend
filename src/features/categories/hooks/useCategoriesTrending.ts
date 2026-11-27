@@ -3,9 +3,10 @@
 import { useQuery } from "@tanstack/react-query";
 import { getQueryClient } from "@/providers/QueryProvider";
 
-import { ApiError } from "@/lib/api";
+import { ApiError, coerceToApiError } from "@/lib/api";
 import type { RankedCategoryResponseDto } from "@/lib/api/generated/schemas";
 
+import { CATEGORY_KEYS } from "@/features/categories/query-keys";
 import { getCategoriesTrending } from "@/features/categories/services/categories.service";
 
 export interface UseCategoriesTrendingParams {
@@ -21,11 +22,9 @@ export interface UseCategoriesTrendingResult {
 export function useCategoriesTrending(
   params: UseCategoriesTrendingParams = {},
 ): UseCategoriesTrendingResult {
-  const key = ["categories", "trending", params] as const;
-
   const { data, error, isLoading } = useQuery(
     {
-      queryKey: key,
+      queryKey: CATEGORY_KEYS.trending(params),
       queryFn: async () => {
         const result = await getCategoriesTrending({ limit: params.limit });
         return result.data ?? [];
@@ -37,6 +36,6 @@ export function useCategoriesTrending(
   return {
     categories: data ?? [],
     isLoading,
-    error: error instanceof ApiError ? error : null,
+    error: error ? coerceToApiError(error) : null,
   };
 }

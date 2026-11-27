@@ -138,4 +138,83 @@ describe("InstanceRoomPage", () => {
       "no-id",
     );
   });
+
+  it("does not redirect an already-finished player back to /play while room is running", () => {
+    instanceMocks.useInstance.mockReturnValue({
+      instance: makeInstanceDetail({
+        status: "running",
+        players: [
+          {
+            instancePlayerId: "ip-1",
+            userId: "u-1",
+            username: "player1",
+            displayName: "Player 1",
+            avatarUrl: null,
+            joinedAt: "2026-01-01T00:00:00Z",
+            status: "finished",
+            score: 100,
+            rank: 1,
+            lastActivityAt: "2026-01-01T00:05:00Z",
+          },
+        ] as unknown as ReturnType<typeof makeInstanceDetail>["players"],
+      }),
+      isLoading: false,
+      error: null,
+      refresh: vi.fn(),
+      isStale: false,
+    });
+
+    render(<InstanceRoomPage instanceId="inst-1" />);
+    expect(mockPush).not.toHaveBeenCalledWith("/instances/inst-1/play");
+  });
+
+  it("shows View Final Results CTA without redirecting when status is finished", () => {
+    instanceMocks.useInstance.mockReturnValue({
+      instance: makeInstanceDetail({ status: "finished" }),
+      isLoading: false,
+      error: null,
+      refresh: vi.fn(),
+      isStale: false,
+    });
+
+    const { getByTestId } = render(<InstanceRoomPage instanceId="inst-1" />);
+    expect(getByTestId("instance-room-page").getAttribute("data-state")).toBe(
+      "finished",
+    );
+    expect(getByTestId("view-final-results-link")).toBeDefined();
+    expect(mockPush).not.toHaveBeenCalledWith("/instances");
+  });
+
+  it("blocks non-participants when a match is already in progress without redirecting to /play", () => {
+    instanceMocks.useInstance.mockReturnValue({
+      instance: makeInstanceDetail({
+        hostUserId: "host-99",
+        status: "running",
+        players: [
+          {
+            instancePlayerId: "ip-host",
+            userId: "host-99",
+            username: "host",
+            displayName: "Host",
+            avatarUrl: null,
+            joinedAt: "2026-01-01T00:00:00Z",
+            status: "playing",
+          },
+        ] as unknown as ReturnType<typeof makeInstanceDetail>["players"],
+      }),
+      isLoading: false,
+      error: null,
+      refresh: vi.fn(),
+      isStale: false,
+    });
+
+    const { getByTestId, getByText } = render(
+      <InstanceRoomPage instanceId="inst-1" />,
+    );
+    expect(getByTestId("instance-room-page").getAttribute("data-state")).toBe(
+      "in-progress",
+    );
+    expect(getByText("Match Already in Progress")).toBeDefined();
+    expect(mockPush).not.toHaveBeenCalledWith("/instances/inst-1/play");
+  });
 });

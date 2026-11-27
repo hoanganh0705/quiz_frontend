@@ -200,7 +200,9 @@ export function parseBulkText(
         continue;
       }
 
-      const validType = QUESTION_TYPE_VALUES.includes(questionType as never);
+      const validType = (QUESTION_TYPE_VALUES as readonly string[]).includes(
+        questionType,
+      );
       if (!validType) {
         results.push({
           index: i,

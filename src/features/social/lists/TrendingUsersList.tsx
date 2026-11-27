@@ -4,9 +4,11 @@ import { type ReactElement } from "react";
 
 import { useTrendingUsers } from "@/features/social/hooks/useTrendingUsers";
 
-import { SearchEmptyState } from "../components/SearchEmptyState";
-import { SearchErrorState } from "../components/SearchErrorState";
-import { SearchResultSkeleton } from "../components/SearchResultSkeleton";
+import {
+  SearchEmptyState,
+  SearchErrorState,
+  SearchResultSkeleton,
+} from "@/shared/ui/search";
 import { PrivacyRestrictedNotice } from "../components/PrivacyRestrictedNotice";
 import { TrendingUserCard } from "../components/TrendingUserCard";
 import { BlockedContentGate } from "../components/BlockedContentGate";

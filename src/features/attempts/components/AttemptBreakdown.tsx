@@ -152,7 +152,10 @@ function BreakdownRow(props: {
         </div>
       </dl>
       {q.explanation ? (
-        <div className="mt-2.5 rounded-lg bg-muted/40 p-2.5 text-xs text-muted-foreground border border-border/40">
+        <div
+          className="mt-2.5 rounded-lg bg-muted/40 p-2.5 text-xs text-muted-foreground border border-border/40"
+          data-testid="attempt-question-feedback"
+        >
           <span className="font-semibold text-foreground">Explanation: </span>
           {q.explanation}
         </div>
@@ -208,13 +211,8 @@ function formatSelectedOption(
   const matched = options?.find((opt) => opt.optionId === id);
   if (matched?.value) {
     return (
-      <span>
-        <span className="font-sans font-medium text-foreground">
-          {matched.value}
-        </span>
-        <span className="text-xs font-mono text-muted-foreground/60 ml-1.5">
-          ({id})
-        </span>
+      <span className="font-sans font-medium text-foreground">
+        {matched.value}
       </span>
     );
   }
@@ -232,13 +230,8 @@ function formatCorrectOptions(
 
   if (values.length > 0) {
     return (
-      <span>
-        <span className="font-sans font-medium text-emerald-600 dark:text-emerald-400">
-          {values.join(", ")}
-        </span>
-        <span className="text-xs font-mono text-muted-foreground/60 ml-1.5">
-          ({ids})
-        </span>
+      <span className="font-sans font-medium text-emerald-600 dark:text-emerald-400">
+        {values.join(", ")}
       </span>
     );
   }

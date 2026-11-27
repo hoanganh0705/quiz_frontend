@@ -1,28 +1,74 @@
 "use client";
 
-import { type ReactElement } from "react";
-
+import { useCallback } from "react";
 
 import { FriendRequestEmptyState } from "@/features/social/components/FriendRequestEmptyState";
 import { FriendRequestItem } from "@/features/social/components/FriendRequestItem";
 import { FriendRequestSkeleton } from "@/features/social/components/FriendRequestSkeleton";
 import { SocialListErrorState } from "@/features/social/components/SocialListErrorState";
 import { useIncomingRequests } from "@/features/social/hooks/useIncomingRequests";
+import { useRespondFriendRequest } from "@/features/social/hooks/useRespondFriendRequest";
+
+import { Button } from "@/components/ui/Button";
+
+import type { ReactElement } from "react";
 
 export interface IncomingRequestsListPageProps {
   readonly currentUserId?: string | null;
 }
 
-export function IncomingRequestsListPage({}: IncomingRequestsListPageProps): ReactElement {
-  const { requests, isLoading, error, retry } = useIncomingRequests();
+function IncomingRowActions({
+  friendshipId,
+  targetUserId,
+  requesterLabel,
+}: {
+  friendshipId: string;
+  targetUserId: string;
+  requesterLabel: string;
+}): ReactElement {
+  const { respond, isPending } = useRespondFriendRequest(targetUserId, {
+    assumeCanRespond: true,
+  });
 
-  if (false) {
-    return (
-      <div data-testid="incoming-requests-page-placeholder" className="p-6">
-        <FriendRequestEmptyState kind="incoming" />
-      </div>
-    );
-  }
+  const handleAccept = useCallback(() => {
+    void respond({ friendshipId, action: "accept" });
+  }, [friendshipId, respond]);
+
+  const handleDecline = useCallback(() => {
+    void respond({ friendshipId, action: "decline" });
+  }, [friendshipId, respond]);
+
+  return (
+    <>
+      <Button
+        type="button"
+        size="sm"
+        onClick={handleAccept}
+        disabled={isPending}
+        data-testid="incoming-requests-accept"
+        aria-label={`Accept request from ${requesterLabel}`}
+      >
+        Accept
+      </Button>
+      <Button
+        type="button"
+        size="sm"
+        variant="outline"
+        onClick={handleDecline}
+        disabled={isPending}
+        data-testid="incoming-requests-decline"
+        aria-label={`Decline request from ${requesterLabel}`}
+      >
+        Decline
+      </Button>
+    </>
+  );
+}
+
+export function IncomingRequestsListPage(
+  _props: IncomingRequestsListPageProps,
+): ReactElement {
+  const { requests, isLoading, error, retry } = useIncomingRequests();
 
   if (isLoading && requests.length === 0) {
     return (
@@ -69,19 +115,16 @@ export function IncomingRequestsListPage({}: IncomingRequestsListPageProps): Rea
       <ul role="list" className="flex flex-col gap-1">
         {requests.map((request) => (
           <li key={request.id}>
-            <FriendRequestItem request={request}>
-              {/* The action slot for incoming rows is a no-op markup
-                  placeholder — the actual inline Accept / Decline
-                  buttons are rendered by the per-row
-                  `FriendRequestCta` on the requester's
-                  profile page, NOT in this list view. The list
-                  view does not show per-row respond actions
-                  because this list view is kept read-only for
-                  navigation simplicity; mutation entry points
-                  live on the per-user profile CTA. The render-prop
-                  is preserved for symmetry with `FriendRequestItem`
-                  but is intentionally a no-op here. */}
-              {() => null}
+            <FriendRequestItem request={request} direction="incoming">
+              {(ctx) => (
+                <IncomingRowActions
+                  friendshipId={ctx.friendshipId}
+                  targetUserId={ctx.targetUserId}
+                  requesterLabel={
+                    request.requester.userName || request.requesterId
+                  }
+                />
+              )}
             </FriendRequestItem>
           </li>
         ))}

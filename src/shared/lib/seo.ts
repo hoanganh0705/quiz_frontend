@@ -13,18 +13,28 @@ interface BuildMetadataInput {
   title: string;
   description: string;
   path?: string;
+  noIndex?: boolean;
 }
 
 export function buildMetadata({
   title,
   description,
   path = "/",
+  noIndex = false,
 }: BuildMetadataInput): Metadata {
   const url = new URL(path, siteConfig.url).toString();
 
   return {
     title,
     description,
+    ...(noIndex
+      ? {
+          robots: {
+            index: false,
+            follow: false,
+          },
+        }
+      : {}),
     alternates: {
       canonical: url,
     },

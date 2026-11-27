@@ -21,7 +21,6 @@ const {
   useIsFollowingCategoryMock,
   useFollowCategoryMock,
   useUnfollowCategoryMock,
-  useFollowedLookupMock,
 } = vi.hoisted(() => ({
   useCategoryMock: vi.fn(),
   useCategoryQuizzesMock: vi.fn(),
@@ -29,7 +28,6 @@ const {
   useIsFollowingCategoryMock: vi.fn(),
   useFollowCategoryMock: vi.fn(),
   useUnfollowCategoryMock: vi.fn(),
-  useFollowedLookupMock: vi.fn(),
 }));
 
 vi.mock("next/link", () => ({
@@ -69,15 +67,6 @@ vi.mock("@/features/categories/hooks/useUnfollowCategory", () => ({
 vi.mock("@/features/auth/hooks/use-auth-state", () => ({
   useAuthState: () => useAuthStateMock(),
 }));
-
-vi.mock("@/features/tags", async () => {
-  const actual =
-    await vi.importActual<typeof import("@/features/tags")>("@/features/tags");
-  return {
-    ...actual,
-    useFollowedLookup: () => useFollowedLookupMock(),
-  };
-});
 
 
 const CATEGORY_ID = "0192f4d8-0000-7000-8000-000000000001";
@@ -137,14 +126,6 @@ const DEFAULT_ACTION_RESULT = {
   unfollow: NOOP_ASYNC,
 };
 
-const DEFAULT_LOOKUP_RESULT = {
-  categories: new Set<string>(),
-  tags: new Set<string>(),
-  isLoading: false,
-  error: null,
-  mutate: NOOP_ASYNC,
-};
-
 const DEFAULT_CATEGORY_QUIZZES_RESULT = {
   items: [],
   isLoading: false,
@@ -166,7 +147,6 @@ beforeEach(() => {
   });
   useFollowCategoryMock.mockReturnValue(DEFAULT_ACTION_RESULT);
   useUnfollowCategoryMock.mockReturnValue(DEFAULT_ACTION_RESULT);
-  useFollowedLookupMock.mockReturnValue(DEFAULT_LOOKUP_RESULT);
 });
 
 afterEach(() => {
@@ -439,10 +419,6 @@ describe("CategoryDetailPage — follow slot integration (F1 / (g) follow count)
       isFollowing: false,
       isLoading: false,
     });
-    useFollowedLookupMock.mockReturnValue({
-      ...DEFAULT_LOOKUP_RESULT,
-      categories: new Set(["cat-1", "cat-2", "cat-3"]),
-    });
 
     render(
       <TestQueryProvider>
@@ -450,12 +426,10 @@ describe("CategoryDetailPage — follow slot integration (F1 / (g) follow count)
       </TestQueryProvider>,
     );
 
-    const count = screen.getByTestId("follow-count");
-    expect(count).toHaveTextContent("3 followers");
-    expect(count).toHaveAttribute("data-count", "3");
+    expect(screen.queryByTestId("follow-count")).toBeNull();
   });
 
-  it("(g) when the lookup reports size=N+1 (post-optimistic-update), the span reflects the new size", () => {
+  it("(g) does not fabricate entity follower count from viewer lookup size on follow", () => {
     useCategoryMock.mockReturnValue({
       category: makeCategory(),
       isLoading: false,
@@ -467,10 +441,6 @@ describe("CategoryDetailPage — follow slot integration (F1 / (g) follow count)
       isFollowing: true,
       isLoading: false,
     });
-    useFollowedLookupMock.mockReturnValue({
-      ...DEFAULT_LOOKUP_RESULT,
-      categories: new Set(["cat-1", "cat-2", "cat-3", "cat-4"]),
-    });
 
     render(
       <TestQueryProvider>
@@ -478,14 +448,10 @@ describe("CategoryDetailPage — follow slot integration (F1 / (g) follow count)
       </TestQueryProvider>,
     );
 
-    expect(screen.getByTestId("follow-count")).toHaveAttribute(
-      "data-count",
-      "4",
-    );
-    expect(screen.getByTestId("follow-count")).toHaveTextContent("4 followers");
+    expect(screen.queryByTestId("follow-count")).toBeNull();
   });
 
-  it("(g) when the lookup reports size=N-1 (post-unfollow), the span reflects the new size", () => {
+  it("(g) does not fabricate entity follower count from viewer lookup size on unfollow", () => {
     useCategoryMock.mockReturnValue({
       category: makeCategory(),
       isLoading: false,
@@ -497,9 +463,27 @@ describe("CategoryDetailPage — follow slot integration (F1 / (g) follow count)
       isFollowing: false,
       isLoading: false,
     });
-    useFollowedLookupMock.mockReturnValue({
-      ...DEFAULT_LOOKUP_RESULT,
-      categories: new Set(["cat-1", "cat-2"]),
+
+    render(
+      <TestQueryProvider>
+        <CategoryDetailPage idOrSlug={CATEGORY_SLUG} />
+      </TestQueryProvider>,
+    );
+
+    expect(screen.queryByTestId("follow-count")).toBeNull();
+  });
+
+  it("renders authoritative followerCount and quizCount when provided by the category DTO", () => {
+    useCategoryMock.mockReturnValue({
+      category: makeCategory({ followerCount: 42, quizCount: 18 }),
+      isLoading: false,
+      error: null,
+      notFound: false,
+    });
+    useAuthStateMock.mockReturnValue({ isAuthenticated: true });
+    useIsFollowingCategoryMock.mockReturnValue({
+      isFollowing: false,
+      isLoading: false,
     });
 
     render(
@@ -508,11 +492,12 @@ describe("CategoryDetailPage — follow slot integration (F1 / (g) follow count)
       </TestQueryProvider>,
     );
 
-    expect(screen.getByTestId("follow-count")).toHaveAttribute(
-      "data-count",
-      "2",
+    expect(screen.getByTestId("follow-count")).toHaveTextContent(
+      "42 followers",
     );
-    expect(screen.getByTestId("follow-count")).toHaveTextContent("2 followers");
+    expect(screen.getByTestId("category-header-quiz-count")).toHaveTextContent(
+      "18 quizzes",
+    );
   });
 });
 
@@ -572,11 +557,8 @@ describe("CategoryDetailPage — follow slot integration (F1 / wiring)", () => {
     expect(useIsFollowingCategoryMock).toHaveBeenCalledWith(CATEGORY_ID);
     expect(useFollowCategoryMock).toHaveBeenCalledWith(CATEGORY_ID);
     expect(useUnfollowCategoryMock).toHaveBeenCalledWith(CATEGORY_ID);
-
-    const breadcrumb = screen.getByTestId("category-detail-page-breadcrumb");
-    const slugLink = within(breadcrumb).getByRole("link", {
-      name: /mathematics/i,
-    });
-    expect(slugLink).toHaveAttribute("href", "/categories/mathematics");
+    expect(screen.getByTestId("category-header")).toHaveTextContent(
+      /mathematics/i,
+    );
   });
 });

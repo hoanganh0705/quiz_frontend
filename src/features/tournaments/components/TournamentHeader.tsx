@@ -2,16 +2,15 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { Calendar, Users, Award, Crown } from "lucide-react";
+import { Calendar, Users, Award } from "lucide-react";
 
 import { cn } from "@/shared/utils/merge-class-names";
 
-import type {
-  TournamentDetail,
-  TournamentStatus,
-} from "@/features/tournaments/types";
-import { TournamentStatusBadge } from "./TournamentStatusBadge";
+import { resolveEffectiveTournamentStatus } from "@/features/tournaments/lib/tournament-lifecycle";
 import { HEADER_STAT_ICONS } from "@/features/tournaments/lib/tournament-tokens";
+import type { TournamentDetail } from "@/features/tournaments/types";
+
+import { TournamentStatusBadge } from "./TournamentStatusBadge";
 
 export interface TournamentHeaderProps {
   tournament: TournamentDetail;
@@ -40,7 +39,6 @@ export function TournamentHeader({
   const {
     title,
     description,
-    status,
     startAt,
     endAt,
     difficulty,
@@ -50,14 +48,7 @@ export function TournamentHeader({
     categoryName,
   } = tournament;
 
-  const mappedStatus: TournamentStatus | undefined =
-    status === "upcoming" ||
-    status === "registration" ||
-    status === "ongoing" ||
-    status === "finished" ||
-    status === "cancelled"
-      ? status
-      : undefined;
+  const mappedStatus = resolveEffectiveTournamentStatus(tournament);
 
   return (
     <div className={cn("space-y-6", className)}>

@@ -1,18 +1,22 @@
 "use client";
 
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { getQueryClient } from "@/providers/QueryProvider";
 
 import { ApiError, isApiError } from "@/lib/api";
 
+import { ATTEMPT_KEYS } from "@/features/attempts/query-keys";
 import { completeAttempt as completeAttemptService } from "@/features/attempts/services/attempts.service";
-import { useAuthSession } from "@/features/auth/hooks/use-auth-session";
-import { ATTEMPT_CACHE_KEYS } from "@/features/attempts/types/attempt-runner.types";
-import { ATTEMPT_RESULT_CACHE_KEYS } from "@/features/attempts/types/attempt-result.types";
 import {
   hydrateAttemptEntry,
   recordCompletionSuccess,
 } from "@/features/attempts/stores/useAttemptsStore";
+import { useAuthSessionId } from "@/features/auth/hooks/use-auth-session-id";
+import { useUserStore } from "@/features/users/store/user-store";
+import {
+  myAnalyticsKey,
+  myRankingKey,
+} from "@/features/users/types/user-analytics.types";
 import { broadcastAttemptsChanged } from "@/lib/api/core/attempts-broadcast-channel";
 
 import type { CompleteAttemptResponseDto } from "@/lib/api/generated/schemas";
@@ -21,6 +25,8 @@ export interface UseCompleteAttemptParams {
   attemptId: string | null;
 
   quizVersionId: string | null;
+
+  quizId?: string | null;
 }
 
 export type CompleteAttemptOutcome =
@@ -53,44 +59,53 @@ function revalidateAttemptCaches(
   attemptId: string,
   quizVersionId: string,
   sessionId: string,
+  quizId?: string | null,
 ): Promise<unknown>[] {
   const qc = getQueryClient();
-  return [
+  const tasks: Promise<unknown>[] = [
     qc.invalidateQueries({
-      queryKey: ATTEMPT_CACHE_KEYS.active(quizVersionId, sessionId),
+      queryKey: ATTEMPT_KEYS.active(quizVersionId, sessionId),
     }),
     qc.invalidateQueries({
-      queryKey: ATTEMPT_CACHE_KEYS.detail(attemptId, sessionId),
+      queryKey: ATTEMPT_KEYS.detail(attemptId, sessionId),
     }),
     qc.invalidateQueries({
-      queryKey: ATTEMPT_CACHE_KEYS.answers(attemptId, sessionId),
+      queryKey: ATTEMPT_KEYS.answers(attemptId, sessionId),
     }),
     qc.invalidateQueries({
-      queryKey: ATTEMPT_RESULT_CACHE_KEYS.result(attemptId, sessionId),
+      queryKey: ATTEMPT_KEYS.result(attemptId, sessionId),
     }),
-    qc.invalidateQueries({ queryKey: ["attempts", "history", sessionId] }),
+    qc.invalidateQueries({ queryKey: ATTEMPT_KEYS.history(sessionId) }),
     qc.invalidateQueries({
       queryKey: ["attempts", "history", "stats", sessionId],
     }),
-    qc.invalidateQueries({ queryKey: ["attempts"] }),
+    qc.invalidateQueries({ queryKey: ATTEMPT_KEYS.all }),
+    qc.invalidateQueries({ queryKey: myRankingKey() }),
+    qc.invalidateQueries({ queryKey: myAnalyticsKey() }),
+    qc.invalidateQueries({ queryKey: ["rankings"] }),
+    qc.invalidateQueries({ queryKey: ["leaderboards"] }),
   ];
+
+  if (quizId) {
+    tasks.push(
+      qc.invalidateQueries({
+        queryKey: ATTEMPT_KEYS.active(quizId, sessionId),
+      }),
+      qc.invalidateQueries({
+        queryKey: ATTEMPT_KEYS.completedCheck(quizId, sessionId),
+      }),
+    );
+  }
+
+  return tasks;
 }
 
 export function useCompleteAttempt(
   params: UseCompleteAttemptParams,
 ): UseCompleteAttemptResult {
-  const { attemptId, quizVersionId } = params;
+  const { attemptId, quizVersionId, quizId } = params;
 
-  const { bootstrapState, currentUser } = useAuthSession();
-
-  const sessionId = useMemo<string | null>(() => {
-    if (bootstrapState !== "authenticated") return null;
-    if (!currentUser) return null;
-    const id =
-      (currentUser as { id?: string; userId?: string }).id ??
-      (currentUser as { userId?: string }).userId;
-    return id ?? null;
-  }, [bootstrapState, currentUser]);
+  const sessionId = useAuthSessionId();
 
   const [outcome, setOutcome] = useState<CompleteAttemptOutcome | null>(null);
   const [error, setError] = useState<ApiError | null>(null);
@@ -99,6 +114,14 @@ export function useCompleteAttempt(
 
   const lastInvocationRef = useRef<number>(0);
   const cooldownTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (cooldownTimerRef.current !== null) {
+        clearTimeout(cooldownTimerRef.current);
+      }
+    };
+  }, []);
 
   const reset = useCallback(() => {
     setOutcome(null);
@@ -140,10 +163,12 @@ export function useCompleteAttempt(
       });
 
       await Promise.all(
-        revalidateAttemptCaches(attemptId, quizVersionId, sessionId),
+        revalidateAttemptCaches(attemptId, quizVersionId, sessionId, quizId),
       ).catch(() => {
         // Best-effort: swallow so the broadcast still fires.
       });
+
+      void useUserStore.getState().fetchCurrentUser();
 
       broadcastAttemptsChanged({
         userId: sessionId,
@@ -177,7 +202,7 @@ export function useCompleteAttempt(
           cooldownUntil: null,
         });
         await Promise.all(
-          revalidateAttemptCaches(attemptId, quizVersionId, sessionId),
+          revalidateAttemptCaches(attemptId, quizVersionId, sessionId, quizId),
         );
         const swapped: CompleteAttemptOutcome = { kind: "not_active" };
         setOutcome(swapped);
@@ -231,7 +256,7 @@ export function useCompleteAttempt(
       }, DEFAULT_COOLDOWN_MS);
       return retryable;
     }
-  }, [sessionId, attemptId, quizVersionId]);
+  }, [sessionId, attemptId, quizVersionId, quizId]);
 
   return {
     isPending,

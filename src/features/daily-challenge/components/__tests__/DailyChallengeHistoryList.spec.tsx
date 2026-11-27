@@ -103,7 +103,7 @@ describe("DailyChallengeHistoryList — render", () => {
       />,
     );
     expect(
-      screen.getByLabelText(/Load \d+ more past challenges/),
+      screen.getByLabelText(/Load more past challenges/),
     ).toBeInTheDocument();
   });
 
@@ -116,7 +116,7 @@ describe("DailyChallengeHistoryList — render", () => {
         onLoadMore={vi.fn()}
       />,
     );
-    expect(screen.queryByLabelText(/Load \d+ more past challenges/)).toBeNull();
+    expect(screen.queryByLabelText(/Load more past challenges/)).toBeNull();
   });
 
   it('(4) renders with role="region" and a stable aria-labelledby', () => {

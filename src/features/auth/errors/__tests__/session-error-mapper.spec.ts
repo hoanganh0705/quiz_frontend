@@ -14,7 +14,7 @@ import {
   AUTH_INVALID_TOKEN,
   AUTH_RESOURCE_CONFLICT,
   SESSION_RECOVERYABLE_STATUSES,
-} from "../session-error-codes";
+} from "../auth-error-codes";
 
 describe("mapSessionError — AUTH_SESSION_NOT_FOUND", () => {
   it('classifies AUTH_SESSION_NOT_FOUND on target "other" as already_revoked', () => {

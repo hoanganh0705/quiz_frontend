@@ -3,162 +3,229 @@
 /**
  * `<TagsDirectoryPage>` — the `/tags` route's main composition.
  *
- * Wires:
- *   - `<PopularTagsStrip />` above the grid.
- *   - `<TrendingTagsStrip />` below the popular strip.
- *   - `<TagFilterInput />` below the trending strip.
- *   - The cursor-paginated directory grid (`useTagsDirectory`) — debounced filter + cursor pagination.
- *   - `<TagEmptyState variant="directory" />` when the underlying list is empty AND the filter is empty.
- *   - `<TagEmptyState variant="filter-no-match" query={query} onClearFilter={...} />` when the filter has no matches.
- *
- * ## Search semantics
- *
- * The search is client-side. The filter is applied to the current
- * page's items (the cursor primitive does NOT load additional
- * pages to satisfy the filter). The 250 ms
- * debounce is implemented inside `useTagsDirectory` (the hook owns
- * the debounce, mirroring `useDebouncedValue`); the filter input
- * is fully controlled by the page.
- *
- * When the user has typed a non-empty query and the filter produces
- * zero matches, the page renders the filter-specific empty state
- * (`TagEmptyState variant="filter-no-match"`) which surfaces a
- * "Clear filter" action that resets the page's filter state.
- *
- * The filter affects ONLY the directory grid. The popular +
- * trending strips above it are supplementary and are NOT filtered.
- *
- * ## Layout
- *
- * The grid renders 30 pills per page. The cursor pagination
- * for the directory increments via the Load-more button. The grid
- * uses the `TagPillSkeleton` for first-load + load-more.
- *
- * The component is a client component because it consumes query
- * hooks and holds the local filter state.
+ * Spatial structure (Operate discovery mode):
+ *   1. Page header (`<h1>` + concise lead).
+ *   2. Full-width curated discovery band (`Popular now`, `Trending now` — collapses cleanly when empty).
+ *   3. `All tags` catalog section with a container-responsive toolbar (`@2xl:flex-row`) that co-locates `<TagFilterInput>` directly with the tag list and live count it controls.
  */
 
-import { useCallback, useState } from "react";
+import { useCallback, useId, useState } from "react";
+
+import { RotateCcw } from "lucide-react";
+
 import { getQueryClient } from "@/providers/QueryProvider";
 
-import { TagPill } from "@/components/primitives/TagPill/TagPill";
-import { TagPillSkeleton } from "@/components/primitives";
-import { Button } from "@/components/ui/Button";
+import { PAGE_CONTAINER_CLASS } from "@/shared/layout/constants";
+
 import { useTagsDirectory } from "@/features/tags/hooks/useTagsDirectory";
+import { TAG_KEYS } from "@/features/tags/query-keys";
+
+import { TagPill } from "@/components/primitives/TagPill/TagPill";
+import { TagPillSkeleton } from "@/components/primitives/TagPill/TagPillSkeleton";
+import { Button } from "@/components/ui/Button";
 
 import { PopularTagsStrip } from "./PopularTagsStrip";
-import { TrendingTagsStrip } from "./TrendingTagsStrip";
-import { TagFilterInput } from "./TagFilterInput";
 import { TagEmptyState } from "./TagEmptyState";
+import { TagFilterInput } from "./TagFilterInput";
+import { TrendingTagsStrip } from "./TrendingTagsStrip";
 
-const PAGE_LIMIT = 30;
-const DIRECTORY_QUERY_KEY_FACTORY = (filter: string) =>
-  ["tags", "directory", filter, { limit: PAGE_LIMIT }] as const;
+const PAGE_LIMIT = 60;
+const SKELETON_COUNT = 24;
+const SKELETON_WIDTHS = [
+  "w-24",
+  "w-32",
+  "w-28",
+  "w-20",
+  "w-36",
+  "w-28",
+] as const;
 
-const GRID_LAYOUT = "flex flex-wrap gap-3";
+const GRID_LAYOUT = "flex flex-wrap gap-x-2 gap-y-3 sm:gap-2.5";
 
 export function TagsDirectoryPage(): React.ReactElement {
-  // Filter state held by the page. The debounced value is consumed
-  // by `useTagsDirectory` (the hook owns the debounce).
   const [filter, setFilter] = useState("");
+  const countStatusId = useId();
 
-  const { items, isLoading, isLoadingMore, hasMore, loadMore, error } =
-    useTagsDirectory({ filter, limit: PAGE_LIMIT });
+  const {
+    items,
+    loadedCount,
+    isLoading,
+    isLoadingMore,
+    hasMore,
+    loadMore,
+    refresh,
+    error,
+  } = useTagsDirectory({ filter, limit: PAGE_LIMIT });
 
   const handleClearFilter = useCallback(() => {
     setFilter("");
   }, []);
 
+  const handleRetry = useCallback(() => {
+    if (typeof refresh === "function") {
+      void refresh();
+    }
+    void getQueryClient().invalidateQueries({
+      queryKey: TAG_KEYS.directory(PAGE_LIMIT),
+    });
+  }, [refresh]);
+
+  const trimmedFilter = filter.trim();
+  const hasActiveFilter = trimmedFilter.length > 0;
+  const isCatalogEmpty =
+    !isLoading && !error && loadedCount === 0 && !hasActiveFilter;
+
   return (
     <div
-      className="min-h-screen text-foreground p-4 md:p-8 lg:p-12"
+      className={`@container ${PAGE_CONTAINER_CLASS} space-y-8 md:space-y-10`}
       data-testid="tags-directory-page"
     >
-      <header className="mb-6">
+      <header className="space-y-2">
         <h1
-          className="text-3xl font-bold mb-3 text-foreground"
+          className="text-3xl sm:text-4xl font-bold tracking-tight text-foreground"
           data-testid="tags-directory-page-title"
         >
           Tags
         </h1>
-        <p className="text-foreground-secondary text-base mb-6">
-          Browse tags to discover quizzes by topic.
+        <p className="max-w-2xl text-sm sm:text-base leading-relaxed text-foreground-secondary">
+          Discover quizzes by community topic—jump into popular and trending
+          tags or search the catalog below.
         </p>
-        <div className="max-w-md">
-          <TagFilterInput value={filter} onChange={setFilter} />
-        </div>
       </header>
 
-      <PopularTagsStrip />
-      <TrendingTagsStrip />
+      <div
+        className="space-y-5 empty:hidden"
+        data-testid="tags-discovery-rails"
+      >
+        <PopularTagsStrip />
+        <TrendingTagsStrip />
+      </div>
 
-      {isLoading ? (
-        <div
-          className={GRID_LAYOUT}
-          aria-label="Loading tags"
-          aria-busy="true"
-          data-testid="tags-directory-page-loading"
-        >
-          {Array.from({ length: PAGE_LIMIT }).map((_, i) => (
-            <TagPillSkeleton key={i} />
-          ))}
-        </div>
-      ) : error ? (
-        <div
-          className="text-center py-12"
-          role="alert"
-          data-testid="tags-directory-page-error"
-        >
-          <p className="text-destructive text-lg mb-4">
-            Could not load tags. Please try again.
-          </p>
-          <Button
-            variant="outline"
-            onClick={() =>
-              void getQueryClient().invalidateQueries({
-                queryKey: DIRECTORY_QUERY_KEY_FACTORY(filter),
-              })
-            }
-            data-testid="tags-directory-page-retry"
-          >
-            Retry
-          </Button>
-        </div>
-      ) : items.length === 0 && filter.trim() === "" ? (
-        <TagEmptyState variant="directory" />
-      ) : items.length === 0 ? (
-        <TagEmptyState
-          variant="filter-no-match"
-          query={filter}
-          onClearFilter={handleClearFilter}
-        />
-      ) : (
-        <div
-          data-testid="tags-directory-page-grid"
-          className={GRID_LAYOUT}
-          role="list"
-          aria-label="Tags"
-        >
-          {items.map((tag) => (
-            <div key={tag.tagId} role="listitem">
-              <TagPill tag={tag} variant="clickable" />
+      <section
+        aria-labelledby="all-tags-heading"
+        className="space-y-5 pt-6 border-t border-border/60"
+      >
+        <div className="flex flex-col gap-3.5 @2xl:flex-row @2xl:items-center @2xl:justify-between border-b border-border/60 pb-4">
+          <div className="space-y-1 min-w-0">
+            <div className="flex flex-wrap items-center gap-2.5">
+              <h2
+                id="all-tags-heading"
+                className="text-xl font-bold tracking-tight text-foreground"
+              >
+                All tags
+              </h2>
+              {!isLoading && !error && loadedCount > 0 ? (
+                <span
+                  id={countStatusId}
+                  className="inline-flex items-center rounded-full border border-border/60 bg-muted px-2.5 py-0.5 font-mono text-xs font-medium tabular-nums text-muted-foreground"
+                  aria-live="polite"
+                  data-testid="tags-directory-count"
+                >
+                  {hasActiveFilter
+                    ? `${items.length} of ${loadedCount} loaded`
+                    : `${loadedCount} loaded`}
+                </span>
+              ) : null}
             </div>
-          ))}
-        </div>
-      )}
 
-      {hasMore && !isLoading && !error && items.length > 0 ? (
-        <div className="mt-8 flex justify-center">
-          <Button
-            variant="outline"
-            onClick={loadMore}
-            disabled={isLoadingMore}
-            data-testid="tags-directory-page-load-more"
-          >
-            {isLoadingMore ? "Loading…" : "Load more"}
-          </Button>
+            {!isCatalogEmpty ? (
+              <p className="text-xs sm:text-sm text-muted-foreground">
+                {hasActiveFilter
+                  ? hasMore
+                    ? `Matching "${trimmedFilter}" across ${loadedCount} loaded tags — load more below to expand search`
+                    : `Showing tags matching "${trimmedFilter}"`
+                  : "Browse community tags alphabetically and select any topic to explore its quizzes"}
+              </p>
+            ) : null}
+          </div>
+
+          {!isCatalogEmpty && !error ? (
+            <div className="w-full @2xl:w-80 shrink-0">
+              <TagFilterInput
+                value={filter}
+                onChange={setFilter}
+                describedBy={
+                  !isLoading && loadedCount > 0 ? countStatusId : undefined
+                }
+              />
+            </div>
+          ) : null}
         </div>
-      ) : null}
+
+        {isLoading ? (
+          <div
+            className={GRID_LAYOUT}
+            aria-label="Loading tags"
+            aria-busy="true"
+            data-testid="tags-directory-page-loading"
+          >
+            {Array.from({ length: SKELETON_COUNT }).map((_, i) => (
+              <TagPillSkeleton
+                key={i}
+                className={SKELETON_WIDTHS[i % SKELETON_WIDTHS.length]}
+              />
+            ))}
+          </div>
+        ) : error ? (
+          <div
+            className="rounded-xl border border-border bg-card p-8 text-center"
+            role="alert"
+            data-testid="tags-directory-page-error"
+          >
+            <p className="text-destructive text-base font-medium mb-4">
+              Could not load tags. Please try again.
+            </p>
+            <Button
+              variant="outline"
+              className="min-h-10 sm:min-h-9"
+              onClick={handleRetry}
+              data-testid="tags-directory-page-retry"
+            >
+              <RotateCcw className="h-4 w-4" aria-hidden="true" />
+              Retry
+            </Button>
+          </div>
+        ) : isCatalogEmpty ? (
+          <TagEmptyState variant="directory" />
+        ) : items.length === 0 ? (
+          <TagEmptyState
+            variant="filter-no-match"
+            query={filter}
+            loadedCount={loadedCount}
+            hasMore={hasMore}
+            isLoadingMore={isLoadingMore}
+            onLoadMore={loadMore}
+            onClearFilter={handleClearFilter}
+          />
+        ) : (
+          <div
+            data-testid="tags-directory-page-grid"
+            className={GRID_LAYOUT}
+            role="list"
+            aria-label="Tags"
+          >
+            {items.map((tag) => (
+              <div key={tag.tagId} role="listitem">
+                <TagPill tag={tag} variant="clickable" />
+              </div>
+            ))}
+          </div>
+        )}
+
+        {hasMore && !isLoading && !error && items.length > 0 ? (
+          <div className="pt-2 flex justify-center">
+            <Button
+              variant="outline"
+              className="min-h-10 px-6"
+              onClick={loadMore}
+              disabled={isLoadingMore}
+              data-testid="tags-directory-page-load-more"
+            >
+              {isLoadingMore ? "Loading…" : "Load more tags"}
+            </Button>
+          </div>
+        ) : null}
+      </section>
     </div>
   );
 }

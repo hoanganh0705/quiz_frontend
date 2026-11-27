@@ -362,7 +362,12 @@ export function NotificationSkeleton({ className }: { className?: string }) {
 
 export function RouteGateSkeleton({ className }: { className?: string }) {
   return (
-    <div className={cn("space-y-4 p-4", className)}>
+    <div
+      className={cn(
+        "min-h-screen w-full text-foreground p-4 md:p-8 lg:p-12 space-y-4",
+        className,
+      )}
+    >
       <div className="space-y-2">
         <Skeleton className="h-6 w-48" />
         <Skeleton className="h-4 w-72" />

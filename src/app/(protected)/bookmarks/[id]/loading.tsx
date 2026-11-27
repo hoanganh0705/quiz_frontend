@@ -3,7 +3,7 @@ import { Skeleton } from "@/components/ui/Skeleton";
 export default function CollectionDetailLoading() {
   return (
     <div className="min-h-screen text-foreground">
-      <div className="max-w-7xl mx-auto px-4 py-6 space-y-8">
+      <div className="min-h-screen w-full text-foreground p-4 md:p-8 lg:p-12 space-y-8">
         {/* Header skeleton */}
         <div className="space-y-4">
           <Skeleton className="h-4 w-32 rounded mb-4" />

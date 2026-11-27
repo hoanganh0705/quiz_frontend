@@ -10,15 +10,14 @@ import { getQueryClient } from "@/providers/QueryProvider";
 import { isRefreshTerminalError } from "@/features/auth/errors/refresh-error-codes";
 import { handleRemoteAccountDeleted } from "@/features/auth/lifecycle/deletion-cross-tab";
 import {
-  isDeletionTerminal,
   clearDeletionTerminal,
-} from "@/features/auth/lifecycle/deletion-terminal";
+  isDeletionTerminal,
+} from "@/features/auth/lifecycle/deletion-finalization";
 import {
-  getAuthToken,
   clearAuthToken,
+  getAuthToken,
   setAuthToken,
 } from "@/features/auth/utils/auth-cookies";
-import { clearAllAuthCache } from "@/features/auth/utils/user-scoped-cache";
 import { clearVerificationFlags } from "@/features/auth/utils/verification-flag";
 
 import { logger } from "@/shared/log";
@@ -116,11 +115,11 @@ export function _resetRefreshStateForTesting(): void {
 }
 
 export {
+  _isDeletionTerminalForTesting,
+  clearDeletionTerminal,
   isDeletionTerminal,
   markDeletionTerminal,
-  clearDeletionTerminal,
-  _isDeletionTerminalForTesting,
-} from "@/features/auth/lifecycle/deletion-terminal";
+} from "@/features/auth/lifecycle/deletion-finalization";
 
 export const customInstance: AxiosInstance = axios.create({
   baseURL: API_BASE_URL,
@@ -218,7 +217,6 @@ customInstance.interceptors.response.use(
 
         clearVerificationFlags();
 
-        clearAllAuthCache();
         try {
           getQueryClient().clear();
         } catch {

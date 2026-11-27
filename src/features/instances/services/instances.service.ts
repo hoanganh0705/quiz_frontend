@@ -1,27 +1,26 @@
 import * as Sentry from "@sentry/nextjs";
 
-import { getInstances } from "@/lib/api";
+import { getInstances, unwrapEnvelope } from "@/lib/api";
+import { orvalCustomInstance } from "@/lib/api/core/custom-instance";
 
-import { ApiError } from "@/lib/api/core/ApiError";
-
+import type {
+  CancelCountdownResult,
+  CloseInstanceResult,
+  CreateInstanceResult,
+  GetInstanceByIdResult,
+  GetInstanceLeaderboardResult,
+  JoinInstanceResult,
+  ListInstancePlayersResult,
+  ListInstancesResult,
+  StartCountdownResult,
+  StartInstanceResult,
+} from "@/lib/api/generated/instances/instances";
 import type {
   CreateInstanceDto,
-  ListInstancesParams,
   ListInstancePlayersParams,
+  ListInstancesParams,
   StartCountdownDto,
 } from "@/lib/api/generated/schemas";
-
-import type {
-  ListInstancesResult,
-  ListInstancePlayersResult,
-  GetInstanceByIdResult,
-  JoinInstanceResult,
-  StartInstanceResult,
-  CloseInstanceResult,
-  StartCountdownResult,
-  CancelCountdownResult,
-  GetInstanceLeaderboardResult,
-} from "@/lib/api/generated/instances/instances";
 
 export async function listInstances(
   params?: ListInstancesParams,
@@ -30,15 +29,11 @@ export async function listInstances(
     category: "instances:service",
     message: "instances.listInstances",
   });
-  const data = await getInstances().listInstances(params);
-  if (!data.data) {
-    throw new ApiError({
-      status: 500,
-      code: "GLOBAL_INTERNAL_ERROR",
-      message: "List instances response missing data envelope",
-    } as unknown as ConstructorParameters<typeof ApiError>[0]);
-  }
-  return data.data;
+  const response = await getInstances().listInstances(params);
+  return unwrapEnvelope(
+    response,
+    "List instances response missing data envelope",
+  );
 }
 
 export async function getInstance(
@@ -48,15 +43,17 @@ export async function getInstance(
     category: "instances:service",
     message: `instances.getInstance(${id})`,
   });
-  const data = await getInstances().getInstanceById(id);
-  if (!data.data) {
-    throw new ApiError({
-      status: 500,
-      code: "GLOBAL_INTERNAL_ERROR",
-      message: "Get instance response missing data envelope",
-    } as unknown as ConstructorParameters<typeof ApiError>[0]);
-  }
-  return data.data;
+  const response = await getInstances().getInstanceById(id);
+  const instance = unwrapEnvelope(
+    response,
+    "Get instance response missing data envelope",
+  );
+  const serverTimestamp = (
+    response as unknown as { meta?: { timestamp?: string } }
+  ).meta?.timestamp;
+  return serverTimestamp
+    ? ({ ...instance, serverTimestamp } as GetInstanceByIdResult["data"])
+    : instance;
 }
 
 export async function getInstanceLeaderboard(
@@ -66,15 +63,11 @@ export async function getInstanceLeaderboard(
     category: "instances:service",
     message: `instances.getInstanceLeaderboard(${id})`,
   });
-  const data = await getInstances().getInstanceLeaderboard(id);
-  if (!data.data) {
-    throw new ApiError({
-      status: 500,
-      code: "GLOBAL_INTERNAL_ERROR",
-      message: "Instance leaderboard response missing data envelope",
-    } as unknown as ConstructorParameters<typeof ApiError>[0]);
-  }
-  return data.data;
+  const response = await getInstances().getInstanceLeaderboard(id);
+  return unwrapEnvelope(
+    response,
+    "Instance leaderboard response missing data envelope",
+  );
 }
 
 export async function listInstancePlayers(
@@ -85,35 +78,25 @@ export async function listInstancePlayers(
     category: "instances:service",
     message: `instances.listInstancePlayers(${id})`,
   });
-  const data = await getInstances().listInstancePlayers(id, params);
-  if (!data.data) {
-    throw new ApiError({
-      status: 500,
-      code: "GLOBAL_INTERNAL_ERROR",
-      message: "List instance players response missing data envelope",
-    } as unknown as ConstructorParameters<typeof ApiError>[0]);
-  }
-  return data.data;
+  const response = await getInstances().listInstancePlayers(id, params);
+  return unwrapEnvelope(
+    response,
+    "List instance players response missing data envelope",
+  );
 }
 
 export async function createInstance(
   params: CreateInstanceDto,
-): Promise<
-  import("@/lib/api/generated/instances/instances").CreateInstanceResult["data"]
-> {
+): Promise<CreateInstanceResult["data"]> {
   Sentry.addBreadcrumb({
     category: "instances:service",
     message: "instances.createInstance",
   });
-  const data = await getInstances().createInstance(params);
-  if (!data.data) {
-    throw new ApiError({
-      status: 500,
-      code: "GLOBAL_INTERNAL_ERROR",
-      message: "Create instance response missing data envelope",
-    } as unknown as ConstructorParameters<typeof ApiError>[0]);
-  }
-  return data.data;
+  const response = await getInstances().createInstance(params);
+  return unwrapEnvelope(
+    response,
+    "Create instance response missing data envelope",
+  );
 }
 
 export async function joinInstance(
@@ -123,15 +106,11 @@ export async function joinInstance(
     category: "instances:service",
     message: `instances.joinInstance(${id})`,
   });
-  const data = await getInstances().joinInstance(id);
-  if (!data.data) {
-    throw new ApiError({
-      status: 500,
-      code: "GLOBAL_INTERNAL_ERROR",
-      message: "Join instance response missing data envelope",
-    } as unknown as ConstructorParameters<typeof ApiError>[0]);
-  }
-  return data.data;
+  const response = await getInstances().joinInstance(id);
+  return unwrapEnvelope(
+    response,
+    "Join instance response missing data envelope",
+  );
 }
 
 export async function startInstance(
@@ -141,15 +120,11 @@ export async function startInstance(
     category: "instances:service",
     message: `instances.startInstance(${id})`,
   });
-  const data = await getInstances().startInstance(id);
-  if (!data.data) {
-    throw new ApiError({
-      status: 500,
-      code: "GLOBAL_INTERNAL_ERROR",
-      message: "Start instance response missing data envelope",
-    } as unknown as ConstructorParameters<typeof ApiError>[0]);
-  }
-  return data.data;
+  const response = await getInstances().startInstance(id);
+  return unwrapEnvelope(
+    response,
+    "Start instance response missing data envelope",
+  );
 }
 
 export async function closeInstance(
@@ -159,15 +134,11 @@ export async function closeInstance(
     category: "instances:service",
     message: `instances.closeInstance(${id})`,
   });
-  const data = await getInstances().closeInstance(id);
-  if (!data.data) {
-    throw new ApiError({
-      status: 500,
-      code: "GLOBAL_INTERNAL_ERROR",
-      message: "Close instance response missing data envelope",
-    } as unknown as ConstructorParameters<typeof ApiError>[0]);
-  }
-  return data.data;
+  const response = await getInstances().closeInstance(id);
+  return unwrapEnvelope(
+    response,
+    "Close instance response missing data envelope",
+  );
 }
 
 export async function startCountdown(
@@ -178,15 +149,11 @@ export async function startCountdown(
     category: "instances:service",
     message: `instances.startCountdown(${id})`,
   });
-  const data = await getInstances().startCountdown(id, params);
-  if (!data.data) {
-    throw new ApiError({
-      status: 500,
-      code: "GLOBAL_INTERNAL_ERROR",
-      message: "Start countdown response missing data envelope",
-    } as unknown as ConstructorParameters<typeof ApiError>[0]);
-  }
-  return data.data;
+  const response = await getInstances().startCountdown(id, params);
+  return unwrapEnvelope(
+    response,
+    "Start countdown response missing data envelope",
+  );
 }
 
 export async function cancelCountdown(
@@ -196,13 +163,46 @@ export async function cancelCountdown(
     category: "instances:service",
     message: `instances.cancelCountdown(${id})`,
   });
-  const data = await getInstances().cancelCountdown(id);
-  if (!data.data) {
-    throw new ApiError({
-      status: 500,
-      code: "GLOBAL_INTERNAL_ERROR",
-      message: "Cancel countdown response missing data envelope",
-    } as unknown as ConstructorParameters<typeof ApiError>[0]);
-  }
-  return data.data;
+  const response = await getInstances().cancelCountdown(id);
+  return unwrapEnvelope(
+    response,
+    "Cancel countdown response missing data envelope",
+  );
+}
+
+export async function leaveInstance(
+  id: string,
+): Promise<{ message: string }> {
+  Sentry.addBreadcrumb({
+    category: "instances:service",
+    message: `instances.leaveInstance(${id})`,
+  });
+  const wire = await orvalCustomInstance<{
+    data?: { message: string };
+  }>({
+    url: `/api/v1/instances/${id}/leave`,
+    method: "POST",
+  });
+  return wire?.data ?? { message: "Left instance successfully" };
+}
+
+export async function finishInstancePlayer(
+  id: string,
+  attemptId?: string | null,
+): Promise<{ marked: boolean; allFinished: boolean; status: string }> {
+  Sentry.addBreadcrumb({
+    category: "instances:service",
+    message: `instances.finishInstancePlayer(${id})`,
+  });
+  const wire = await orvalCustomInstance<{
+    data?: { marked: boolean; allFinished: boolean; status: string };
+  }>({
+    url: `/api/v1/instances/${id}/finish-player`,
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    data: attemptId ? { attemptId } : {},
+  });
+  return (
+    wire?.data ?? { marked: true, allFinished: false, status: "running" }
+  );
 }

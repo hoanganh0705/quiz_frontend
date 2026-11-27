@@ -1,23 +1,26 @@
 "use client";
 
 import { useMemo } from "react";
+
 import { useQuery } from "@tanstack/react-query";
+
+import { ApiError, coerceToApiError } from "@/lib/api";
 import { getQueryClient } from "@/providers/QueryProvider";
 
-import { ApiError, isApiError } from "@/lib/api";
+import { useAuthState } from "@/features/auth/hooks/use-auth-state";
+import { listBookmarksInCollection } from "@/features/bookmarks/api";
+import {
+  collectionQuizzesKey,
+  toCollectionQuiz,
+} from "@/features/bookmarks/types";
+
 import type {
   CursorFetcherArgs,
   CursorPage,
 } from "@/lib/api/use-cursor-paginated.types";
-import { useAuthState } from "@/features/auth/hooks/use-auth-state";
-import { listBookmarksInCollection } from "@/features/bookmarks/api";
 import type {
-  CollectionQuiz,
   BookmarkedQuizResponseDto,
-} from "@/features/bookmarks/types";
-import {
-  toCollectionQuiz,
-  collectionQuizzesKey,
+  CollectionQuiz,
 } from "@/features/bookmarks/types";
 
 export interface UseCollectionQuizzesResult {
@@ -102,18 +105,9 @@ export function useCollectionQuizzes(
   const cursor = data?.nextCursor ?? null;
   const hasMore = data?.hasNextPage ?? true;
 
-  const error: ApiError | null = (() => {
-    const first = query.error;
-    if (!first) return null;
-    if (isApiError(first)) return first;
-    if (first && typeof first === "object" && "status" in first) {
-      return first as unknown as ApiError;
-    }
-    return {
-      status: 0,
-      message: first instanceof Error ? first.message : String(first),
-    } as unknown as ApiError;
-  })();
+  const error: ApiError | null = query.error
+    ? coerceToApiError(query.error)
+    : null;
 
   const loadMore = () => {};
 

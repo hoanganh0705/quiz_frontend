@@ -2,7 +2,7 @@ import { describe, expect, it, vi, beforeEach } from "vitest";
 
 import { ApiError } from "@/lib/api/core/ApiError";
 
-import { AUTH_INVALID_CURRENT_PASSWORD } from "@/features/auth/errors/deletion-error-codes";
+import { AUTH_INVALID_CURRENT_PASSWORD } from "@/features/auth/errors/auth-error-codes";
 import { deleteAccount } from "@/features/auth/services/auth.service";
 
 const mockAuthControllerDeleteAccount = vi.fn();

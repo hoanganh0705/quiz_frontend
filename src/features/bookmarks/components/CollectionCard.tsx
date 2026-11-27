@@ -2,14 +2,20 @@
 
 import { memo } from "react";
 import { useRouter } from "next/navigation";
+
+import { FolderOpen, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
+
+import { getCollectionColorClasses } from "@/features/bookmarks/types";
+
 import { Button } from "@/components/ui/Button";
-import { DropdownMenu } from "@/components/ui/DropdownMenu";
-import { DropdownMenuContent } from "@/components/ui/DropdownMenu";
-import { DropdownMenuItem } from "@/components/ui/DropdownMenu";
-import { DropdownMenuTrigger } from "@/components/ui/DropdownMenu";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/DropdownMenu";
+
 import type { BookmarkCollection } from "@/features/bookmarks/types";
-import { getCollectionColor } from "@/features/bookmarks/types";
-import { MoreHorizontal, Pencil, Trash2, FolderOpen } from "lucide-react";
 
 interface CollectionCardProps {
   collection: BookmarkCollection;
@@ -34,7 +40,7 @@ const CollectionCard = memo(function CollectionCard({
   onDelete,
 }: CollectionCardProps) {
   const router = useRouter();
-  const displayColor = getCollectionColor(collection);
+  const colorClasses = getCollectionColorClasses(collection);
   const hasActions = onRename || onChangeColor || onDelete;
 
   const handleSelect = () => {
@@ -48,7 +54,7 @@ const CollectionCard = memo(function CollectionCard({
   return (
     <div
       onClick={handleSelect}
-      className={`group relative p-4 rounded-lg border cursor-pointer transition-all ${
+      className={`group relative p-4 rounded-xl border cursor-pointer transition-all ${
         isSelected
           ? "border-default bg-default/5 shadow-sm"
           : "border-border hover:border-ring hover:shadow-sm"
@@ -56,16 +62,14 @@ const CollectionCard = memo(function CollectionCard({
     >
       {/* Color indicator */}
       <div
-        className="absolute top-0 left-0 w-1 h-full rounded-l-lg"
-        style={{ backgroundColor: displayColor }}
+        className={`absolute top-0 left-0 w-1 h-full rounded-l-xl ${colorClasses.accentBar}`}
       />
 
       <div className="flex items-start justify-between pl-2">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
             <FolderOpen
-              className="h-4 w-4 shrink-0"
-              style={{ color: displayColor }}
+              className={`h-4 w-4 shrink-0 ${colorClasses.iconText}`}
               aria-hidden="true"
             />
             <h4 className="font-medium text-sm truncate">{collection.name}</h4>
@@ -77,7 +81,7 @@ const CollectionCard = memo(function CollectionCard({
             </p>
           )}
 
-          <span className="text-xs text-muted-foreground">
+          <span className="text-xs text-muted-foreground font-mono tabular-nums">
             {collection.quizCount === 0
               ? "No quizzes saved yet"
               : `${collection.quizCount} ${collection.quizCount === 1 ? "quiz" : "quizzes"}`}

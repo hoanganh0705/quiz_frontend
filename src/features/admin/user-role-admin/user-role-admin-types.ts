@@ -1,3 +1,8 @@
+import {
+  ADMIN_PERMISSION_DESCRIPTIONS,
+  ADMIN_PERMISSIONS,
+} from "@/features/admin/permissions";
+
 import type { AdminPermission } from "@/features/admin/permissions";
 import type { AdminRoleOrPermission } from "@/features/admin/services/user-role-admin.service";
 
@@ -47,7 +52,8 @@ export interface DocumentedRole {
 export const DOCUMENTED_ROLES: readonly DocumentedRole[] = [
   {
     name: "moderator",
-    description: "Moderator role: review reports, moderate comments, manage content",
+    description:
+      "Moderator role: review reports, moderate comments, manage content",
     isHighestPrivilege: false,
   },
   {
@@ -55,124 +61,9 @@ export const DOCUMENTED_ROLES: readonly DocumentedRole[] = [
     description: "Full administrator privileges across the platform",
     isHighestPrivilege: true,
   },
-  {
-    name: "user_grant_role",
-    description: "Grant roles to users",
+  ...ADMIN_PERMISSIONS.map((permission): DocumentedRole => ({
+    name: permission,
+    description: ADMIN_PERMISSION_DESCRIPTIONS[permission],
     isHighestPrivilege: false,
-  },
-  {
-    name: "user_revoke_role",
-    description: "Revoke roles from users",
-    isHighestPrivilege: false,
-  },
-  {
-    name: "review_report_read",
-    description: "View review moderation reports",
-    isHighestPrivilege: false,
-  },
-  {
-    name: "review_report_update",
-    description: "Update review moderation reports",
-    isHighestPrivilege: false,
-  },
-  {
-    name: "comment_report_read",
-    description: "View comment moderation reports",
-    isHighestPrivilege: false,
-  },
-  {
-    name: "comment_report_update",
-    description: "Update comment moderation reports",
-    isHighestPrivilege: false,
-  },
-  {
-    name: "comment_hide",
-    description: "Hide comments",
-    isHighestPrivilege: false,
-  },
-  {
-    name: "comment_restore",
-    description: "Restore hidden comments",
-    isHighestPrivilege: false,
-  },
-  {
-    name: "tag_create",
-    description: "Create tags",
-    isHighestPrivilege: false,
-  },
-  {
-    name: "tag_update",
-    description: "Update tags",
-    isHighestPrivilege: false,
-  },
-  {
-    name: "tag_delete",
-    description: "Delete tags",
-    isHighestPrivilege: false,
-  },
-  {
-    name: "tag_restore",
-    description: "Restore deleted tags",
-    isHighestPrivilege: false,
-  },
-  {
-    name: "category_create",
-    description: "Create categories",
-    isHighestPrivilege: false,
-  },
-  {
-    name: "category_update",
-    description: "Update categories",
-    isHighestPrivilege: false,
-  },
-  {
-    name: "category_delete",
-    description: "Delete categories",
-    isHighestPrivilege: false,
-  },
-  {
-    name: "category_restore",
-    description: "Restore deleted categories",
-    isHighestPrivilege: false,
-  },
-  {
-    name: "ranking_recalculate",
-    description: "Recalculate rankings",
-    isHighestPrivilege: false,
-  },
-  {
-    name: "ranking_reset",
-    description: "Reset ranking period",
-    isHighestPrivilege: false,
-  },
-  {
-    name: "ranking_consistency_check",
-    description: "Check ranking consistency",
-    isHighestPrivilege: false,
-  },
-  {
-    name: "achievement_reevaluate",
-    description: "Re-evaluate user achievements",
-    isHighestPrivilege: false,
-  },
-  {
-    name: "achievement_badge_revoke",
-    description: "Revoke badges from users",
-    isHighestPrivilege: false,
-  },
-  {
-    name: "tournament_create",
-    description: "Create tournaments",
-    isHighestPrivilege: false,
-  },
-  {
-    name: "tournament_update",
-    description: "Update tournaments",
-    isHighestPrivilege: false,
-  },
-  {
-    name: "tournament_delete",
-    description: "Delete tournaments",
-    isHighestPrivilege: false,
-  },
+  })),
 ] as const;

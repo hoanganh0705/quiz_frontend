@@ -422,11 +422,13 @@ export const useAttemptStatus = (attemptId: string | null) =>
     attemptId === null ? "idle" : (s.attemptsById[attemptId]?.status ?? "idle"),
   );
 
+const EMPTY_SUBMITTED_ANSWERS: SubmittedAnswersMap = Object.freeze({});
+
 export const useAttemptSubmittedAnswers = (attemptId: string | null) =>
   useAttemptsStore((s) =>
     attemptId === null
-      ? {}
-      : (s.attemptsById[attemptId]?.submittedAnswers ?? {}),
+      ? EMPTY_SUBMITTED_ANSWERS
+      : (s.attemptsById[attemptId]?.submittedAnswers ?? EMPTY_SUBMITTED_ANSWERS),
   );
 
 export const useAttemptError = (attemptId: string | null) =>

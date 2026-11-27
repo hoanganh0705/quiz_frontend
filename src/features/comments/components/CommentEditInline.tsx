@@ -15,6 +15,7 @@ import { useDeleteComment } from "@/features/comments/hooks/useDeleteComment";
 
 export interface CommentEditInlineProps {
   commentId: string;
+  quizId?: string;
   initialBody: string;
 
   parentCommentId?: string | null;
@@ -30,6 +31,7 @@ export interface CommentEditInlineProps {
 
 export function CommentEditInline({
   commentId,
+  quizId,
   initialBody,
   parentCommentId = null,
   isOwner,
@@ -47,13 +49,14 @@ export function CommentEditInline({
     editComment,
     isLoading: isEditing,
     error: editError,
-  } = useEditComment(commentId);
+  } = useEditComment(commentId, { quizId });
 
   const {
     deleteComment,
     isLoading: isDeleting,
     error: deleteError,
   } = useDeleteComment(commentId, {
+    quizId,
     parentId: parentCommentId,
   });
 

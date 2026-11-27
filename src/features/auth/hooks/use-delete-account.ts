@@ -14,15 +14,15 @@ import {
 } from "@/features/auth/errors/deletion-error-mapper";
 import { ApiError } from "@/lib/api/core/ApiError";
 import type { DeleteAccountResponseDto } from "@/lib/api";
-import { runDeletionFinalization } from "@/features/auth/lifecycle/deletion-finalization";
+import {
+  clearSensitiveDeletionFormValues,
+  runDeletionFinalization,
+  type DeletionFormSetters,
+} from "@/features/auth/lifecycle/deletion-finalization";
 import {
   revalidateAccountExists,
   type DeletionAccountExistence,
 } from "@/features/auth/lifecycle/deletion-revalidation";
-import {
-  clearSensitiveDeletionFormValues,
-  type DeletionFormSetters,
-} from "@/features/auth/lifecycle/deletion-persisted-state";
 import {
   initialDeletionState,
   isTerminalDeletionState,

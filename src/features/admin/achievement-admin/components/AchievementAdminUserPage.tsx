@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect } from "react";
 
-import { AdminPageHeader } from "@/app/(protected)/admin/_components/AdminPageHeader";
+import { AdminPageHeader } from "@/features/admin/components/AdminPageHeader";
 import { AdminRoleGuard } from "@/features/admin/components/AdminRoleGuard";
 import { addAchievementAdminBreadcrumb } from "@/lib/admin/admin_live_sentry";
 

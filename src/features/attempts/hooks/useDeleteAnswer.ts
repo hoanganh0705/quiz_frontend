@@ -1,13 +1,13 @@
 "use client";
 
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { getQueryClient } from "@/providers/QueryProvider";
 
 import { ApiError, isApiError } from "@/lib/api";
 
+import { ATTEMPT_KEYS } from "@/features/attempts/query-keys";
 import { withdrawAnswer } from "@/features/attempts/services/attempts.service";
-import { useAuthSession } from "@/features/auth/hooks/use-auth-session";
-import { ATTEMPT_CACHE_KEYS } from "@/features/attempts/types/attempt-runner.types";
+import { useAuthSessionId } from "@/features/auth/hooks/use-auth-session-id";
 import {
   recordMutationFailure,
   recordWithdrawSuccess,
@@ -52,16 +52,7 @@ export function useDeleteAnswer(
 ): UseDeleteAnswerResult {
   const { attemptId, quizVersionId } = params;
 
-  const { bootstrapState, currentUser } = useAuthSession();
-
-  const sessionId = useMemo<string | null>(() => {
-    if (bootstrapState !== "authenticated") return null;
-    if (!currentUser) return null;
-    const id =
-      (currentUser as { id?: string; userId?: string }).id ??
-      (currentUser as { userId?: string }).userId;
-    return id ?? null;
-  }, [bootstrapState, currentUser]);
+  const sessionId = useAuthSessionId();
 
   const [outcome, setOutcome] = useState<DeleteAnswerOutcome | null>(null);
   const [error, setError] = useState<ApiError | null>(null);
@@ -70,6 +61,14 @@ export function useDeleteAnswer(
 
   const lastInvocationByQuestionRef = useRef<Record<string, number>>({});
   const cooldownTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (cooldownTimerRef.current !== null) {
+        clearTimeout(cooldownTimerRef.current);
+      }
+    };
+  }, []);
 
   const reset = useCallback(() => {
     setOutcome(null);
@@ -111,9 +110,9 @@ export function useDeleteAnswer(
         try {
           const qc = getQueryClient();
           void qc.invalidateQueries({
-            queryKey: ATTEMPT_CACHE_KEYS.answers(attemptId, sessionId),
+            queryKey: ATTEMPT_KEYS.answers(attemptId, sessionId),
           });
-          void qc.invalidateQueries({ queryKey: ["attempts"] });
+          void qc.invalidateQueries({ queryKey: ATTEMPT_KEYS.all });
         } catch {}
 
         broadcastAttemptsChanged({
@@ -151,7 +150,7 @@ export function useDeleteAnswer(
           try {
             const qc = getQueryClient();
             void qc.invalidateQueries({
-              queryKey: ATTEMPT_CACHE_KEYS.answers(attemptId, sessionId),
+              queryKey: ATTEMPT_KEYS.answers(attemptId, sessionId),
             });
           } catch {}
           const silent: DeleteAnswerOutcome = {

@@ -1,6 +1,14 @@
 "use client";
 
 import { memo, useCallback, useEffect, useMemo, useState } from "react";
+
+import { Link2, Loader2, X } from "lucide-react";
+
+import { useToast } from "@/lib/forms/useToast";
+
+import { useUpdateMySettings } from "@/features/users/hooks/useUpdateMySettings";
+
+import { FormErrorBanner } from "@/components/primitives/form/FormErrorBanner";
 import { Button } from "@/components/ui/Button";
 import {
   Card,
@@ -17,14 +25,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/Dialog";
-import { useToast } from "@/lib/forms/useToast";
-import { FormErrorBanner } from "@/components/primitives/form/FormErrorBanner";
-import { useUpdateMySettings } from "@/features/users/hooks/useUpdateMySettings";
+
 import type {
-  UserMeResponseDto,
   ConnectedAccount,
+  UserMeResponseDto,
 } from "@/features/users/types/user-backend";
-import { Link2, Check, X, ExternalLink, Loader2 } from "lucide-react";
 
 export interface ConnectedAccountsProps {
   profile: UserMeResponseDto | null;
@@ -48,7 +53,7 @@ interface AccountData {
 
 function GoogleIcon() {
   return (
-    <svg className="w-5 h-5" viewBox="0 0 24 24" aria-hidden="true">
+    <svg className="h-5 w-5" viewBox="0 0 24 24" aria-hidden="true">
       <path
         fill="#4285F4"
         d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -72,7 +77,7 @@ function GoogleIcon() {
 function GitHubIcon() {
   return (
     <svg
-      className="w-5 h-5"
+      className="h-5 w-5"
       viewBox="0 0 24 24"
       fill="currentColor"
       aria-hidden="true"
@@ -85,7 +90,7 @@ function GitHubIcon() {
 function DiscordIcon() {
   return (
     <svg
-      className="w-5 h-5"
+      className="h-5 w-5"
       viewBox="0 0 24 24"
       fill="#5865F2"
       aria-hidden="true"
@@ -98,7 +103,7 @@ function DiscordIcon() {
 function TwitterIcon() {
   return (
     <svg
-      className="w-5 h-5"
+      className="h-5 w-5"
       viewBox="0 0 24 24"
       fill="currentColor"
       aria-hidden="true"
@@ -108,7 +113,7 @@ function TwitterIcon() {
   );
 }
 
-const PROVIDER_CONFIGS: ProviderConfig[] = [
+const PROVIDER_CONFIGS: ReadonlyArray<ProviderConfig> = [
   {
     key: "google",
     label: "Google",
@@ -139,7 +144,6 @@ interface AccountProviderRowProps {
   config: ProviderConfig;
   account: ConnectedAccount | null;
   isSaving: boolean;
-  onConnect: (provider: Provider) => void;
   onDisconnect: (provider: Provider) => void;
 }
 
@@ -147,45 +151,62 @@ const AccountProviderRow = memo(function AccountProviderRow({
   config,
   account,
   isSaving,
-  onConnect,
   onDisconnect,
 }: AccountProviderRowProps) {
   return (
-    <div className="flex items-center justify-between p-4 rounded-lg border border-border/40 bg-background/50">
-      <div className="flex items-center gap-4">
-        <div className="p-3 rounded-lg bg-muted/50">{config.icon}</div>
-        <div>
-          <h4 className="font-medium">{config.label}</h4>
-          <p className="text-sm text-muted-foreground">
+    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between py-3.5 first:pt-0 last:pb-0">
+      <div className="flex items-center gap-3 min-w-0">
+        <div className="p-2 rounded-lg bg-muted/70 shrink-0">{config.icon}</div>
+        <div className="min-w-0 space-y-0.5">
+          <div className="flex items-center gap-2">
+            <h4 className="text-sm font-medium text-foreground">
+              {config.label}
+            </h4>
+            {account && (
+              <span className="inline-flex items-center rounded-full bg-emerald-500/15 px-2 py-0.5 text-xs font-medium text-emerald-700 dark:text-emerald-300">
+                Connected
+              </span>
+            )}
+          </div>
+          <p
+            className="text-xs sm:text-sm text-muted-foreground truncate"
+            title={account ? account.email : config.description}
+          >
             {account ? account.email : config.description}
           </p>
         </div>
       </div>
       {account ? (
         <Button
+          type="button"
           variant="outline"
           size="sm"
-          className="text-destructive hover:text-destructive"
+          className="h-10 sm:h-9 shrink-0 self-start sm:self-auto text-destructive hover:text-destructive"
           disabled={isSaving}
           onClick={() => onDisconnect(config.key)}
           aria-label={`Disconnect ${config.label} account`}
         >
-          {isSaving && (
-            <Loader2 className="w-4 h-4 mr-2 animate-spin" aria-hidden="true" />
+          {isSaving ? (
+            <Loader2
+              className="h-4 w-4 mr-2 animate-spin"
+              aria-hidden="true"
+            />
+          ) : (
+            <X className="h-4 w-4 mr-2" aria-hidden="true" />
           )}
-          <X className="w-4 h-4 mr-2" aria-hidden="true" />
           Disconnect
         </Button>
       ) : (
         <Button
+          type="button"
           variant="outline"
           size="sm"
-          disabled={isSaving}
-          onClick={() => onConnect(config.key)}
-          aria-label={`Connect ${config.label} account`}
+          className="h-10 sm:h-9 shrink-0 self-start sm:self-auto"
+          disabled
+          aria-label={`${config.label} account linking is not yet available`}
         >
-          <Link2 className="w-4 h-4 mr-2" aria-hidden="true" />
-          Connect
+          <Link2 className="h-4 w-4 mr-2" aria-hidden="true" />
+          Coming Soon
         </Button>
       )}
     </div>
@@ -219,6 +240,12 @@ export const ConnectedAccounts = memo(function ConnectedAccounts({
   }, [defaultAccounts]);
 
   useEffect(() => {
+    if (updateSettings.isError) {
+      setLocalAccounts(defaultAccounts);
+    }
+  }, [updateSettings.isError, defaultAccounts]);
+
+  useEffect(() => {
     if (updateSettings.isSuccess) {
       toast.push({
         title: "Account settings updated",
@@ -233,16 +260,6 @@ export const ConnectedAccounts = memo(function ConnectedAccounts({
     () => Object.values(localAccounts).filter(Boolean).length,
     [localAccounts],
   );
-
-  const handleConnect = useCallback((provider: Provider) => {
-    const oauthUrls: Record<Provider, string> = {
-      google: "/api/auth/oauth/google",
-      github: "/api/auth/oauth/github",
-      discord: "/api/auth/oauth/discord",
-      twitter: "/api/auth/oauth/twitter",
-    };
-    window.open(oauthUrls[provider], "_blank", "noopener,noreferrer");
-  }, []);
 
   const handleDisconnectRequest = useCallback((provider: Provider) => {
     setPendingDisconnect(provider);
@@ -267,15 +284,23 @@ export const ConnectedAccounts = memo(function ConnectedAccounts({
   if (!profile) {
     return (
       <div className="space-y-6">
-        <div className="h-16 animate-pulse rounded-lg bg-muted" />
-        <div className="h-48 animate-pulse rounded-lg bg-muted" />
+        <div className="h-16 animate-pulse rounded-xl bg-muted" />
+        <div className="h-48 animate-pulse rounded-xl bg-muted" />
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      {/* Error banner */}
+      <div className="space-y-1">
+        <h2 className="text-xl font-semibold tracking-tight text-foreground">
+          Connected Accounts
+        </h2>
+        <p className="text-sm text-muted-foreground">
+          Review linked social providers associated with your QuizHub account.
+        </p>
+      </div>
+
       {updateSettings.lastError && (
         <FormErrorBanner
           lastError={{
@@ -286,69 +311,36 @@ export const ConnectedAccounts = memo(function ConnectedAccounts({
         />
       )}
 
-      {/* Header */}
-      <div>
-        <h3 className="text-lg font-semibold">Connected Accounts</h3>
-        <p className="text-sm text-muted-foreground">
-          Connect your accounts for easier login and sharing.
-        </p>
-      </div>
-
-      {/* Connection status card */}
-      <Card className="border-border/40 py-4">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Link2 className="w-5 h-5 text-primary" aria-hidden="true" />
-            Connection Status
-          </CardTitle>
-          <CardDescription>
-            {connectedCount} of 4 accounts connected.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center gap-4">
-            <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
-              <div
-                className="h-full bg-primary transition-all duration-300"
-                style={{ width: `${(connectedCount / 4) * 100}%` }}
-              />
-            </div>
-            <span
-              className="text-sm text-muted-foreground"
-              style={{ fontVariantNumeric: "tabular-nums" }}
-            >
-              {connectedCount}/4
-            </span>
+      <Card className="bg-card border-border rounded-xl gap-0 py-0 overflow-hidden">
+        <CardHeader className="px-6 py-4 border-b border-border/60 flex flex-row items-center justify-between gap-4">
+          <div className="space-y-1">
+            <CardTitle>
+              <h3 className="text-base font-semibold text-foreground">
+                Social Providers
+              </h3>
+            </CardTitle>
+            <CardDescription>
+              New provider linking from settings is coming soon.
+            </CardDescription>
           </div>
-        </CardContent>
-      </Card>
-
-      {/* Account providers */}
-      <Card className="border-border/40 py-4">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <ExternalLink className="w-5 h-5 text-primary" aria-hidden="true" />
-            Social Accounts
-          </CardTitle>
-          <CardDescription>
-            Link your social accounts to share achievements and login easily.
-          </CardDescription>
+          <span className="inline-flex items-center rounded-full border border-border bg-muted/50 px-2.5 py-1 text-xs font-mono tabular-nums text-muted-foreground shrink-0">
+            {connectedCount}/4 linked
+          </span>
         </CardHeader>
-        <CardContent className="space-y-3">
+
+        <CardContent className="p-6 divide-y divide-border/60">
           {PROVIDER_CONFIGS.map((config) => (
             <AccountProviderRow
               key={config.key}
               config={config}
               account={localAccounts[config.key]}
               isSaving={isSaving && pendingDisconnect === config.key}
-              onConnect={handleConnect}
               onDisconnect={handleDisconnectRequest}
             />
           ))}
         </CardContent>
       </Card>
 
-      {/* Disconnect confirmation dialog */}
       <Dialog
         open={pendingDisconnect !== null}
         onOpenChange={(open) => !open && setPendingDisconnect(null)}
@@ -363,12 +355,17 @@ export const ConnectedAccounts = memo(function ConnectedAccounts({
           </DialogHeader>
           <DialogFooter>
             <Button
+              type="button"
               variant="outline"
               onClick={() => setPendingDisconnect(null)}
             >
               Cancel
             </Button>
-            <Button variant="destructive" onClick={handleDisconnectConfirm}>
+            <Button
+              type="button"
+              variant="destructive"
+              onClick={handleDisconnectConfirm}
+            >
               Disconnect
             </Button>
           </DialogFooter>

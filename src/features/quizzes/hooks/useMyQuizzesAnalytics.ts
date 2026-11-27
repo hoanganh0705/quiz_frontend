@@ -5,9 +5,10 @@ import { getQueryClient } from "@/providers/QueryProvider";
 
 import { ApiError } from "@/lib/api";
 
+import { QUIZ_KEYS } from "@/features/quizzes/query-keys";
 import { getMyQuizAnalytics } from "@/features/quizzes/services/quizzes.service";
+
 import type { MyQuizzesAnalytics } from "@/features/quizzes/types/my-quizzes";
-import { myQuizzesKey } from "@/features/quizzes/types/my-quizzes";
 
 export interface UseMyQuizzesAnalyticsResult {
   analytics: MyQuizzesAnalytics | null;
@@ -28,7 +29,7 @@ export function useMyQuizzesAnalytics(
     ApiError
   >(
     {
-      queryKey: myQuizzesKey("analytics"),
+      queryKey: QUIZ_KEYS.mine("analytics"),
       queryFn: async () => {
         const result = await getMyQuizAnalytics();
         return result.data as MyQuizzesAnalytics;

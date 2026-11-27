@@ -1,4 +1,4 @@
-import { ApiError, getSocial } from "@/lib/api";
+import { ApiError, getSocial, unwrapEnvelope } from "@/lib/api";
 
 import type { SocialControllerGetUserSocialStatsResult } from "@/lib/api/generated/social/social";
 
@@ -121,14 +121,10 @@ export async function refreshSocialStats(
     call: async () => {
       const wire: SocialControllerGetUserSocialStatsResult =
         await getSocial().socialControllerGetUserSocialStats(userId);
-      const envelope = wire?.data;
-      if (envelope === null || envelope === undefined) {
-        throw new ApiError({
-          status: 500,
-          code: "GLOBAL_INTERNAL_ERROR",
-          message: "Get user social stats response missing envelope",
-        } as unknown as ConstructorParameters<typeof ApiError>[0]);
-      }
+      const envelope = unwrapEnvelope(
+        wire,
+        "Get user social stats response missing envelope",
+      );
 
       return Object.freeze({
         friends: envelope.friends,

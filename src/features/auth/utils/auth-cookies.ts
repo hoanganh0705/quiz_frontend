@@ -10,7 +10,6 @@ const DEFAULT_COOKIE_DAYS = 7;
 const DEFAULT_PATH = "/";
 const AUTH_STATE_EVENT = "auth-state-change";
 const AUTH_TOKEN_NAME = "auth_token";
-const REFRESH_TOKEN_NAME = "refresh_token";
 const REMEMBER_ME_STORAGE_KEY = "auth_remember_me";
 
 export function isRememberMeActive(): boolean {
@@ -40,11 +39,16 @@ const STORAGE_SYNC_LOGGED_OUT = "auth_sync_LOGGED_OUT";
 const STORAGE_SYNC_LOGGED_IN = "auth_sync_LOGGED_IN";
 
 function decodeBase64(input: string): string {
+  const normalized = input.replace(/-/g, "+").replace(/_/g, "/");
+  const remainder = normalized.length % 4;
+  const padded =
+    remainder === 0 ? normalized : normalized + "=".repeat(4 - remainder);
+
   if (typeof Buffer !== "undefined") {
-    return Buffer.from(input, "base64").toString();
+    return Buffer.from(padded, "base64").toString("utf-8");
   }
   if (typeof atob === "function") {
-    return atob(input);
+    return atob(padded);
   }
   throw new Error("No base64 decoder available");
 }
@@ -140,36 +144,10 @@ export function setAuthToken(token: string, options: CookieOptions = {}) {
 
   writeSyncPayload(STORAGE_SYNC_TOKEN_REFRESHED, {
     type: "TOKEN_REFRESHED",
-    accessToken: token,
     timestamp: Date.now(),
     tabId: "cookie-sync",
   });
 
-  notifyAuthStateChange();
-}
-
-export function setRefreshToken(token: string, options: CookieOptions = {}) {
-  if (typeof document === "undefined") return;
-
-  const days = options.days ?? 30;
-  const path = options.path ?? DEFAULT_PATH;
-  const expires = new Date(Date.now() + days * 864e5).toUTCString();
-
-  const isSecure = window.location.protocol === "https:";
-
-  const cookieParts = [
-    `${REFRESH_TOKEN_NAME}=${encodeURIComponent(token)}`,
-    `expires=${expires}`,
-    `path=${path}`,
-    "SameSite=Lax",
-    "HttpOnly", // refresh token is never needed in JS
-  ];
-
-  if (isSecure) {
-    cookieParts.push("Secure");
-  }
-
-  document.cookie = cookieParts.join("; ");
   notifyAuthStateChange();
 }
 
@@ -179,8 +157,6 @@ export function clearAuthToken(path: string = DEFAULT_PATH) {
   setRememberMeActive(false);
 
   document.cookie = `${AUTH_TOKEN_NAME}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=${path}`;
-
-  document.cookie = `${REFRESH_TOKEN_NAME}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=${path}`;
 
   writeSyncPayload(STORAGE_SYNC_LOGGED_OUT, {
     type: "LOGGED_OUT",
@@ -205,11 +181,10 @@ export function subscribeToAuthChanges(listener: () => void) {
   };
 }
 
-export function writeLoginSync(userId: string, accessToken: string): void {
+export function writeLoginSync(userId: string): void {
   writeSyncPayload(STORAGE_SYNC_LOGGED_IN, {
     type: "LOGGED_IN",
     userId,
-    accessToken,
     timestamp: Date.now(),
     tabId: "cookie-sync",
   });

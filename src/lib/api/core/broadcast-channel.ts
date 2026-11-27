@@ -1,29 +1,15 @@
-import { logger } from "@/shared/log";
+import { createBroadcastChannel } from "@/lib/broadcast/create-channel";
+import { getCurrentTabId } from "@/lib/broadcast/tab-id";
+
+export { getCurrentTabId };
 
 export const AUTH_CHANNEL_NAME = "auth";
 
-
-const TAB_ID_STORAGE_KEY = "auth_tab_id";
-
-function generateTabId(): string {
-  return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 9)}`;
-}
-
-function getTabId(): string {
-  if (typeof sessionStorage === "undefined") {
-    return generateTabId();
-  }
-
-  let tabId = sessionStorage.getItem(TAB_ID_STORAGE_KEY);
-  if (!tabId) {
-    tabId = generateTabId();
-    sessionStorage.setItem(TAB_ID_STORAGE_KEY, tabId);
-  }
-  return tabId;
-}
-
 export type AuthEventType =
-  "TOKEN_REFRESHED" | "LOGGED_OUT" | "LOGGED_IN" | "ACCOUNT_DELETED";
+  | "TOKEN_REFRESHED"
+  | "LOGGED_OUT"
+  | "LOGGED_IN"
+  | "ACCOUNT_DELETED";
 
 export interface BaseAuthEvent {
   type: AuthEventType;
@@ -56,127 +42,56 @@ export interface AccountDeletedEvent extends BaseAuthEvent {
 }
 
 export type AuthEvent =
-  TokenRefreshedEvent | LoggedOutEvent | LoggedInEvent | AccountDeletedEvent;
+  | TokenRefreshedEvent
+  | LoggedOutEvent
+  | LoggedInEvent
+  | AccountDeletedEvent;
 
-let authChannel: BroadcastChannel | null = null;
+const VALID_AUTH_EVENT_TYPES: ReadonlySet<string> = new Set([
+  "TOKEN_REFRESHED",
+  "LOGGED_OUT",
+  "LOGGED_IN",
+  "ACCOUNT_DELETED",
+]);
 
-let isBroadcastChannelAvailable: boolean | null = null;
-
-function checkBroadcastChannelAvailable(): boolean {
-  if (isBroadcastChannelAvailable !== null) {
-    return isBroadcastChannelAvailable;
+function validateAuthEvent(data: unknown): AuthEvent | null {
+  if (!data || typeof data !== "object") {
+    return null;
   }
 
-  if (typeof BroadcastChannel === "undefined") {
-    isBroadcastChannelAvailable = false;
-    return false;
+  const candidate = data as Partial<AuthEvent>;
+  if (!candidate.type || !VALID_AUTH_EVENT_TYPES.has(candidate.type)) {
+    return null;
+  }
+  if (!candidate.tabId || typeof candidate.tabId !== "string") {
+    return null;
   }
 
-  try {
-    new BroadcastChannel("test");
-    isBroadcastChannelAvailable = true;
-  } catch {
-    isBroadcastChannelAvailable = false;
-  }
-
-  return isBroadcastChannelAvailable;
+  return candidate as AuthEvent;
 }
 
+const authChannelApi = createBroadcastChannel<AuthEvent>(AUTH_CHANNEL_NAME, {
+  validate: validateAuthEvent,
+  timestampField: "timestamp",
+  getCurrentTabId,
+});
+
 export function getAuthChannel(): BroadcastChannel | null {
-  if (typeof window === "undefined") {
-    return null;
-  }
-
-  if (!checkBroadcastChannelAvailable()) {
-    return null;
-  }
-
-  if (authChannel === null) {
-    authChannel = new BroadcastChannel(AUTH_CHANNEL_NAME);
-  }
-
-  return authChannel;
+  return authChannelApi.getChannel();
 }
 
 export function closeAuthChannel(): void {
-  if (authChannel !== null) {
-    authChannel.close();
-    authChannel = null;
-  }
+  authChannelApi.closeChannel();
 }
 
 type AuthEventHandler = (event: AuthEvent) => void;
 
-const externalSubscribers = new Set<AuthEventHandler>();
-
 export function subscribeToAuthEvents(handler: AuthEventHandler): () => void {
-  externalSubscribers.add(handler);
-
-  return () => {
-    externalSubscribers.delete(handler);
-  };
-}
-
-function dispatchToSubscribers(event: AuthEvent): void {
-  externalSubscribers.forEach((handler) => {
-    try {
-      handler(event);
-    } catch (err) {
-      logger.error("auth.broadcast", "Error in auth event subscriber", err);
-    }
-  });
-}
-
-function handleMessage(event: MessageEvent): void {
-  if (!event.data || typeof event.data !== "object") {
-    return;
-  }
-
-  const data = event.data as Partial<AuthEvent>;
-
-  if (
-    !data.type ||
-    !["TOKEN_REFRESHED", "LOGGED_OUT", "LOGGED_IN", "ACCOUNT_DELETED"].includes(
-      data.type,
-    )
-  ) {
-    return;
-  }
-
-  if (!data.tabId || typeof data.tabId !== "string") {
-    return;
-  }
-
-  const myTabId = getTabId();
-  if (data.tabId === myTabId) {
-    return;
-  }
-
-  dispatchToSubscribers(data as AuthEvent);
+  return authChannelApi.subscribe(handler);
 }
 
 export function initAuthChannel(): boolean {
-  const channel = getAuthChannel();
-
-  if (channel === null) {
-    return false;
-  }
-
-  if (!(channel as unknown as { _listenerAdded?: boolean })._listenerAdded) {
-    channel.addEventListener("message", handleMessage);
-    (channel as unknown as { _listenerAdded?: boolean })._listenerAdded = true;
-  }
-
-  return true;
-}
-
-let cachedTabId: string | null = null;
-
-export function getCurrentTabId(): string {
-  if (cachedTabId === null) {
-    cachedTabId = getTabId();
-  }
-  return cachedTabId;
+  return authChannelApi.ensureChannel() !== null;
 }
 
 export function broadcastAuthEvent(
@@ -186,20 +101,7 @@ export function broadcastAuthEvent(
     | Omit<LoggedInEvent, "tabId" | "timestamp">
     | Omit<AccountDeletedEvent, "tabId" | "timestamp">,
 ): void {
-  initAuthChannel();
-
-  const channel = getAuthChannel();
-  if (channel === null) {
-    return;
-  }
-
-  const fullEvent: AuthEvent = {
-    ...event,
-    tabId: getCurrentTabId(),
-    timestamp: Date.now(),
-  } as AuthEvent;
-
-  channel.postMessage(fullEvent);
+  authChannelApi.publish(event);
 }
 
 export function broadcastTokenRefreshed(accessToken: string): void {

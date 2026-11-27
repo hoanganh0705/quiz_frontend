@@ -1,52 +1,42 @@
 "use client";
 
 import { useCallback, useRef, useState } from "react";
+
 import { getQueryClient } from "@/providers/QueryProvider";
 
 import { isApiError, type ApiError } from "@/lib/api";
 import { getUserCopy, type UserCopyEntry } from "@/lib/api/error-codes";
+
 import { logger } from "@/shared/log";
 
+import { COMMENT_KEYS } from "@/features/comments/query-keys";
 import {
   unvoteComment,
   voteComment,
 } from "@/features/comments/services/comments.service";
+
 import type {
-  CommentVoteDirection,
   CommentUserVote,
+  CommentVoteDirection,
 } from "@/features/comments/types";
 
 export interface UseVoteCommentOptions {
+  quizId?: string;
   onSuccess?: (nextVote: CommentUserVote) => void;
-
   onError?: (error: ApiError) => void;
 }
 
 export interface UseVoteCommentResult {
   vote: (direction: CommentVoteDirection) => Promise<CommentUserVote | null>;
-
   unvote: () => Promise<CommentUserVote | null>;
-
   toggleVote: (
     direction: CommentVoteDirection,
     currentVote?: CommentUserVote,
   ) => Promise<CommentUserVote | null>;
-
   isLoading: boolean;
-
   error: ApiError | null;
-
   errorCopy: UserCopyEntry | null;
-
   resetError: () => void;
-}
-
-function emitBreadcrumb(
-  category: string,
-  data: { status: string; durationMs: number; code?: string },
-): void {
-  void category;
-  void data;
 }
 
 const COOLDOWN_MS = 500;
@@ -58,7 +48,6 @@ function nextVoteForToggle(
   if (currentVote === direction) {
     return null;
   }
-
   return direction;
 }
 
@@ -66,7 +55,7 @@ export function useVoteComment(
   commentId: string,
   options: UseVoteCommentOptions = {},
 ): UseVoteCommentResult {
-  const { onSuccess, onError } = options;
+  const { quizId, onSuccess, onError } = options;
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<ApiError | null>(null);
@@ -75,9 +64,8 @@ export function useVoteComment(
 
   const errorCopy = error ? getUserCopy(error.code) : null;
 
-  const runWithOptimistic = useCallback(
+  const runVoteMutation = useCallback(
     async (
-      patcher: (current: unknown) => unknown,
       run: () => Promise<unknown>,
       nextUserVote: CommentUserVote,
     ): Promise<CommentUserVote | null> => {
@@ -95,8 +83,6 @@ export function useVoteComment(
       setIsLoading(true);
       setError(null);
 
-      const startedAt = Date.now();
-
       const core = (async (): Promise<CommentUserVote | null> => {
         try {
           await run();
@@ -104,16 +90,9 @@ export function useVoteComment(
           try {
             const qc = getQueryClient();
             await qc.invalidateQueries({
-              predicate: (query) =>
-                Array.isArray(query.queryKey) &&
-                query.queryKey[0] === "comments",
+              queryKey: quizId ? COMMENT_KEYS.byQuiz(quizId) : COMMENT_KEYS.all,
             });
           } catch {}
-
-          emitBreadcrumb("comments:vote-comment", {
-            status: "success",
-            durationMs: Date.now() - startedAt,
-          });
 
           onSuccess?.(nextUserVote);
           return nextUserVote;
@@ -121,29 +100,16 @@ export function useVoteComment(
           try {
             const qc = getQueryClient();
             await qc.invalidateQueries({
-              predicate: (query) =>
-                Array.isArray(query.queryKey) &&
-                query.queryKey[0] === "comments",
+              queryKey: quizId ? COMMENT_KEYS.byQuiz(quizId) : COMMENT_KEYS.all,
             });
           } catch {}
 
           if (isApiError(err)) {
             setError(err);
             onError?.(err);
-
-            emitBreadcrumb("comments:vote-comment", {
-              status: "error",
-              durationMs: Date.now() - startedAt,
-              code: err.code,
-            });
             return null;
           }
 
-          emitBreadcrumb("comments:vote-comment", {
-            status: "error",
-            durationMs: Date.now() - startedAt,
-            code: "GLOBAL_UNKNOWN",
-          });
           logger.warn("comments.vote", "unexpected rejection", err);
           return null;
         }
@@ -157,65 +123,25 @@ export function useVoteComment(
         inFlightRef.current = null;
       }
     },
-    [onSuccess, onError],
-  );
-
-  const patcher = useCallback(
-    (direction: CommentVoteDirection, nextUserVote: CommentUserVote) =>
-      (item: unknown): unknown => {
-        if (
-          typeof item !== "object" ||
-          item === null ||
-          (item as { id?: unknown }).id !== commentId
-        ) {
-          return item;
-        }
-        const c = item as {
-          upvotesCount: number;
-          downvotesCount: number;
-          votesCount: number;
-          userVote: CommentUserVote;
-        };
-
-        const prevVote: CommentUserVote = c.userVote ?? null;
-        let upvotesDelta = 0;
-        let downvotesDelta = 0;
-        if (prevVote === "upvote") upvotesDelta -= 1;
-        if (prevVote === "downvote") downvotesDelta -= 1;
-        if (nextUserVote === "upvote") upvotesDelta += 1;
-        if (nextUserVote === "downvote") downvotesDelta += 1;
-
-        return {
-          ...c,
-          upvotesCount: c.upvotesCount + upvotesDelta,
-          downvotesCount: c.downvotesCount + downvotesDelta,
-          votesCount: c.votesCount + upvotesDelta + downvotesDelta,
-          userVote: nextUserVote,
-        };
-      },
-    [commentId],
+    [quizId, onSuccess, onError],
   );
 
   const vote = useCallback(
     async (
       direction: CommentVoteDirection,
-    ): Promise<CommentUserVote | null> => {
-      return runWithOptimistic(
-        patcher(direction, direction),
+    ): Promise<CommentUserVote | null> =>
+      runVoteMutation(
         () => voteComment(commentId, { value: direction }),
         direction,
-      );
-    },
-    [commentId, patcher, runWithOptimistic],
+      ),
+    [commentId, runVoteMutation],
   );
 
-  const unvote = useCallback(async (): Promise<CommentUserVote | null> => {
-    return runWithOptimistic(
-      patcher("upvote", null),
-      () => unvoteComment(commentId),
-      null,
-    );
-  }, [commentId, patcher, runWithOptimistic]);
+  const unvote = useCallback(
+    async (): Promise<CommentUserVote | null> =>
+      runVoteMutation(() => unvoteComment(commentId), null),
+    [commentId, runVoteMutation],
+  );
 
   const toggleVote = useCallback(
     async (
